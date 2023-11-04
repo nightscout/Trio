@@ -55,9 +55,20 @@ extension BolusCalculatorConfig {
                         }
                     } header: { Text("Fatty Meals") }
 
+                    Section {
+                        HStack {
+                            Toggle("Enable super bolus", isOn: $state.sweetMeals)
+                        }
+                        HStack {
+                            Text("Factor how often current basalrate is added")
+                            Spacer()
+                            DecimalTextField("2", value: $state.sweetMealFactor, formatter: conversionFormatter)
+                        }
+                    } header: { Text("Sweet Meals") }
+
                     Section {}
                     footer: { Text(
-                        "The new alternate bolus calculator is another approach to the default bolus calculator in iAPS. If the toggle is on you use this bolus calculator and not the original iAPS calculator. At the end of the calculation a custom factor is applied as it is supposed to be when using smbs (default 0.8).\n\nYou can also add the option in your bolus calculator to apply another (!) customizable factor at the end of the calculation which could be useful for fatty meals, e.g Pizza (default 0.7)."
+                        "The new alternate bolus calculator is another approach to the default bolus calculator in iAPS. If the toggle is on you use this bolus calculator and not the original iAPS calculator. At the end of the calculation a custom factor is applied as it is supposed to be when using smbs (default 0.8).\n\nYou can also add the option in your bolus calculator to apply another (!) customizable factor at the end of the calculation which could be useful for fatty meals, e.g Pizza (default 0.7).\n\nMoreover you can enable the super bolus functionality which could be useful when eating sweets/cake etc. Therefore your current basal rate will be added x-times to you your bolus recommendation. You can adjust x here, the default is 2 times your current basal rate."
                     )
                     }
                 }

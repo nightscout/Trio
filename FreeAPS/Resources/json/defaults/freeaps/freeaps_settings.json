@@ -46,5 +46,7 @@
   "overrideFactor": 0.8,
   "useCalc": false,
   "fattyMeals": false,
-  "fattyMealFactor": 0.7
+  "fattyMealFactor": 0.7,
+  "sweetMeals": false,
+  "sweetMealFactor": 2
 }
