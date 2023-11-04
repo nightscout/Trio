@@ -14,6 +14,12 @@ extension Bolus {
                 ?? PumpSettings(insulinActionCurve: 6, maxBolus: 10, maxBasal: 2)
         }
 
+        func getProfile() -> [BasalProfileEntry] {
+            storage.retrieve(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self)
+                ?? [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile))
+                ?? []
+        }
+
         func fetchGlucose() -> [Readings] {
             var fetchGlucose = [Readings]()
             coredataContext.performAndWait {
