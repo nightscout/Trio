@@ -63,6 +63,9 @@ extension Bolus {
         @Published var eventualBG: Int = 0
 
         @Published var currentBasal: Decimal = 0
+        @Published var sweetMeals: Bool = false
+        @Published var sweetMealFactor: Decimal = 0
+        @Published var useSuperBolus: Bool = false
 
         @Published var meal: [CarbsEntry]?
         @Published var carbs: Decimal = 0
@@ -82,6 +85,8 @@ extension Bolus {
             useCalc = settings.settings.useCalc
             fattyMeals = settings.settings.fattyMeals
             fattyMealFactor = settings.settings.fattyMealFactor
+            sweetMeals = settings.settings.sweetMeals
+            sweetMealFactor = settings.settings.sweetMealFactor
 
             if waitForSuggestionInitial {
                 apsManager.determineBasal()
@@ -185,6 +190,8 @@ extension Bolus {
             // apply custom factor if fatty meal toggle in bolus calc config settings is on and the box for fatty meals is checked (in RootView)
             if useFattyMealCorrectionFactor {
                 insulinCalculated = result * fattyMealFactor
+            } else if useSuperBolus {
+                insulinCalculated = result * sweetMealFactor
             } else {
                 insulinCalculated = result
             }
