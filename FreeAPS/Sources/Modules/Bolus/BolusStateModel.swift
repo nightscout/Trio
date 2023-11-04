@@ -66,6 +66,7 @@ extension Bolus {
         @Published var sweetMeals: Bool = false
         @Published var sweetMealFactor: Decimal = 0
         @Published var useSuperBolus: Bool = false
+        @Published var superBolusInsulin: Decimal = 0
 
         @Published var meal: [CarbsEntry]?
         @Published var carbs: Decimal = 0
@@ -191,7 +192,8 @@ extension Bolus {
             if useFattyMealCorrectionFactor {
                 insulinCalculated = result * fattyMealFactor
             } else if useSuperBolus {
-                insulinCalculated = result * sweetMealFactor
+                superBolusInsulin = sweetMealFactor * currentBasal
+                insulinCalculated = wholeCalc + superBolusInsulin
             } else {
                 insulinCalculated = result
             }

@@ -369,6 +369,17 @@ extension Bolus {
                             .foregroundColor(.orange)
                     }
                 }
+                if state.useSuperBolus {
+                    HStack {
+                        Text("Super Bolus")
+                            .foregroundColor(.red)
+                        Spacer()
+                        let superBolusInsulin = state.superBolusInsulin
+                        Text(superBolusInsulin.formatted())
+                        Text(" U")
+                            .foregroundColor(.secondary)
+                    }
+                }
             }
         }
 
@@ -469,26 +480,42 @@ extension Bolus {
                     Text("Result")
                         .fontWeight(.bold)
                     Spacer()
-                    let fraction = state.fraction
-                    Text(fraction.formatted())
-                    Text(" x ")
-                        .foregroundColor(.secondary)
-
-                    // if fatty meal is chosen
-                    if state.useFattyMealCorrectionFactor {
-                        let fattyMealFactor = state.fattyMealFactor
-                        Text(fattyMealFactor.formatted())
-                            .foregroundColor(.orange)
+                    
+                    if !state.useSuperBolus {
+                        let fraction = state.fraction
+                        Text(fraction.formatted())
                         Text(" x ")
                             .foregroundColor(.secondary)
-                    }
 
-                    let insulin = state.roundedWholeCalc
-                    Text(insulin.formatted()).foregroundStyle(state.roundedWholeCalc < 0 ? Color.loopRed : Color.primary)
-                    Text(" U")
-                        .foregroundColor(.secondary)
-                    Text(" = ")
-                        .foregroundColor(.secondary)
+                        // if fatty meal is chosen
+                        if state.useFattyMealCorrectionFactor {
+                            let fattyMealFactor = state.fattyMealFactor
+                            Text(fattyMealFactor.formatted())
+                                .foregroundColor(.orange)
+                            Text(" x ")
+                                .foregroundColor(.secondary)
+                        }
+
+                        let insulin = state.roundedWholeCalc
+                        Text(insulin.formatted()).foregroundStyle(state.roundedWholeCalc < 0 ? Color.loopRed : Color.primary)
+                        Text(" U")
+                            .foregroundColor(.secondary)
+                        Text(" = ")
+                            .foregroundColor(.secondary)
+                    } else {
+                        //roundedWholeCalc
+                        let insulin = state.roundedWholeCalc
+                        Text(insulin.formatted()).foregroundStyle(state.roundedWholeCalc < 0 ? Color.loopRed : Color.primary)
+                        Text(" U")
+                        //plus
+                        Text(" + ")
+                            .foregroundColor(.secondary)
+                        //superBolusInsulin
+                        let superBolusInsulin = state.superBolusInsulin
+                        Text(superBolusInsulin.formatted())
+                        Text(" U")
+                            .foregroundColor(.secondary)
+                    }
 
                     let result = state.insulinCalculated
                     // rounding
