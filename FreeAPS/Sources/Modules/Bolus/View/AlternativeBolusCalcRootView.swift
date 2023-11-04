@@ -375,7 +375,7 @@ extension Bolus {
                             .foregroundColor(.red)
                         Spacer()
                         let superBolusInsulin = state.superBolusInsulin
-                        Text(superBolusInsulin.formatted())
+                        Text(superBolusInsulin.formatted()).foregroundColor(.red)
                         Text(" U")
                             .foregroundColor(.secondary)
                     }
@@ -480,7 +480,7 @@ extension Bolus {
                     Text("Result")
                         .fontWeight(.bold)
                     Spacer()
-                    
+
                     if !state.useSuperBolus {
                         let fraction = state.fraction
                         Text(fraction.formatted())
@@ -500,23 +500,22 @@ extension Bolus {
                         Text(insulin.formatted()).foregroundStyle(state.roundedWholeCalc < 0 ? Color.loopRed : Color.primary)
                         Text(" U")
                             .foregroundColor(.secondary)
-                        Text(" = ")
-                            .foregroundColor(.secondary)
                     } else {
-                        //roundedWholeCalc
+                        // roundedWholeCalc
                         let insulin = state.roundedWholeCalc
                         Text(insulin.formatted()).foregroundStyle(state.roundedWholeCalc < 0 ? Color.loopRed : Color.primary)
                         Text(" U")
-                        //plus
+                        // plus
                         Text(" + ")
                             .foregroundColor(.secondary)
-                        //superBolusInsulin
+                        // superBolusInsulin
                         let superBolusInsulin = state.superBolusInsulin
-                        Text(superBolusInsulin.formatted())
+                        Text(superBolusInsulin.formatted()).foregroundColor(.red)
                         Text(" U")
                             .foregroundColor(.secondary)
                     }
-
+                    Text(" = ")
+                        .foregroundColor(.secondary)
                     let result = state.insulinCalculated
                     // rounding
                     let resultAsDouble = NSDecimalNumber(decimal: result).doubleValue
