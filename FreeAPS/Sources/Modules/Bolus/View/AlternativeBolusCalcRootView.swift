@@ -96,6 +96,9 @@ extension Bolus {
                             .font(.footnote)
                             .onChange(of: state.useFattyMealCorrectionFactor) { _ in
                                 state.insulinCalculated = state.calculateInsulin()
+                                if state.useFattyMealCorrectionFactor {
+                                    state.useSuperBolus = false
+                                }
                             }
                         }
                         if state.sweetMeals {
@@ -107,6 +110,9 @@ extension Bolus {
                             .font(.footnote)
                             .onChange(of: state.useSuperBolus) { _ in
                                 state.insulinCalculated = state.calculateInsulin()
+                                if state.useSuperBolus {
+                                    state.useFattyMealCorrectionFactor = false
+                                }
                             }
                         }
                     }
