@@ -37,53 +37,17 @@ extension Bolus {
             Form {
                 if fetch {
                     Section {
-                        VStack {
-                            if let carbs = meal.first?.carbs, carbs > 0 {
-                                HStack {
-                                    Text("Carbs")
-                                    Spacer()
-                                    Text(carbs.formatted())
-                                    Text("g")
-                                }.foregroundColor(.secondary)
-                            }
-                            if let fat = meal.first?.fat, fat > 0 {
-                                HStack {
-                                    Text("Fat")
-                                    Spacer()
-                                    Text(fat.formatted())
-                                    Text("g")
-                                }.foregroundColor(.secondary)
-                            }
-                            if let protein = meal.first?.protein, protein > 0 {
-                                HStack {
-                                    Text("Protein")
-                                    Spacer()
-                                    Text(protein.formatted())
-                                    Text("g")
-                                }.foregroundColor(.secondary)
-                            }
-                            if let note = meal.first?.note, note != "" {
-                                HStack {
-                                    Text("Note")
-                                    Spacer()
-                                    Text(note)
-                                }.foregroundColor(.secondary)
-                            }
-                        }
+                        mealEntries
                     } header: { Text("Meal Summary") }
                 }
 
                 Section {
-                    Button {
-                        let id_ = meal.first?.id ?? ""
-                        if fetch {
-                            keepForNextWiew = true
-                            state.backToCarbsView(complexEntry: fetch, id_)
-                        } else {
-                            state.showModal(for: .addCarbs(editMode: false))
+                    if !fetch {
+                        Button {
+                            carbssView()
                         }
+                        label: { Text("Add Meal") }.frame(maxWidth: .infinity, alignment: .center)
                     }
-                    label: { Text(fetch ? "Edit Meal" : "Add Meal") }.frame(maxWidth: .infinity, alignment: .center)
                 } header: { Text(!fetch ? "Meal Summary" : "") }
 
                 Section {
@@ -146,14 +110,14 @@ extension Bolus {
                                 )
                         }
                     }
-                    if state.amount <= 0 {
-                        Section {
-                            Button {
-                                keepForNextWiew = true
-                                state.showModal(for: nil)
-                            }
-                            label: { Text("Continue without bolus") }.frame(maxWidth: .infinity, alignment: .center)
+                }
+                if state.amount <= 0 {
+                    Section {
+                        Button {
+                            keepForNextWiew = true
+                            state.showModal(for: nil)
                         }
+                        label: { Text("Continue without bolus") }.frame(maxWidth: .infinity, alignment: .center)
                     }
                 }
             }
@@ -187,7 +151,17 @@ extension Bolus {
 
             .navigationTitle("Enact Bolus")
             .navigationBarTitleDisplayMode(.inline)
-            .navigationBarItems(leading: Button("Close", action: state.hideModal))
+            .navigationBarItems(
+                leading: Button {
+                    if fetch {
+                        carbssView()
+                    }
+                }
+                label: { Text(fetch ? "Back" : "") },
+
+                trailing: Button { state.hideModal() }
+                label: { Text("Close") }
+            )
             .popup(isPresented: presentInfo, alignment: .center, direction: .bottom) {
                 bolusInfo
             }
@@ -199,6 +173,52 @@ extension Bolus {
 
         var hasFatOrProtein: Bool {
             ((meal.first?.fat ?? 0) > 0) || ((meal.first?.protein ?? 0) > 0)
+        }
+
+        func carbssView() {
+            let id_ = meal.first?.id ?? ""
+            if fetch {
+                keepForNextWiew = true
+                state.backToCarbsView(complexEntry: fetch, id_)
+            } else {
+                state.showModal(for: .addCarbs(editMode: false))
+            }
+        }
+
+        var mealEntries: some View {
+            VStack {
+                if let carbs = meal.first?.carbs, carbs > 0 {
+                    HStack {
+                        Text("Carbs")
+                        Spacer()
+                        Text(carbs.formatted())
+                        Text("g")
+                    }.foregroundColor(.secondary)
+                }
+                if let fat = meal.first?.fat, fat > 0 {
+                    HStack {
+                        Text("Fat")
+                        Spacer()
+                        Text(fat.formatted())
+                        Text("g")
+                    }.foregroundColor(.secondary)
+                }
+                if let protein = meal.first?.protein, protein > 0 {
+                    HStack {
+                        Text("Protein")
+                        Spacer()
+                        Text(protein.formatted())
+                        Text("g")
+                    }.foregroundColor(.secondary)
+                }
+                if let note = meal.first?.note, note != "" {
+                    HStack {
+                        Text("Note")
+                        Spacer()
+                        Text(note)
+                    }.foregroundColor(.secondary)
+                }
+            }
         }
 
         var bolusInfo: some View {
