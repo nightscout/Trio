@@ -32,6 +32,7 @@ extension NightscoutConfig {
         @Published var dia: Decimal = 6
         @Published var maxBasal: Decimal = 2
         @Published var maxBolus: Decimal = 10
+        @Published var allowAnnouncements: Bool = false
 
         override func subscribe() {
             url = keychain.getValue(String.self, forKey: Config.urlKey) ?? ""
@@ -41,6 +42,7 @@ extension NightscoutConfig {
             maxBasal = settingsManager.pumpSettings.maxBasal
             maxBolus = settingsManager.pumpSettings.maxBolus
 
+            subscribeSetting(\.allowAnnouncements, on: $allowAnnouncements) { allowAnnouncements = $0 }
             subscribeSetting(\.isUploadEnabled, on: $isUploadEnabled) { isUploadEnabled = $0 }
             subscribeSetting(\.useLocalGlucoseSource, on: $useLocalSource) { useLocalSource = $0 }
             subscribeSetting(\.localGlucosePort, on: $localPort.map(Int.init)) { localPort = Decimal($0) }

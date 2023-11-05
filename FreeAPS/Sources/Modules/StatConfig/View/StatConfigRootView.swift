@@ -62,7 +62,7 @@ extension StatConfig {
                 } header: { Text("Add Meal View settings ") }
             }
             .onAppear(perform: configureView)
-            .navigationBarTitle("UI/UX Settings")
+            .navigationBarTitle("UI/UX")
             .navigationBarTitleDisplayMode(.automatic)
         }
     }

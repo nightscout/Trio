@@ -119,6 +119,10 @@ extension NightscoutConfig {
                     Button("Backfill glucose") { state.backfillGlucose() }
                         .disabled(state.url.isEmpty || state.connecting || state.backfilling)
                 }
+
+                Section {
+                    Toggle("Remote control", isOn: $state.allowAnnouncements)
+                } header: { Text("Allow Remote control of iAPS") }
             }
             .onAppear(perform: configureView)
             .navigationBarTitle("Nightscout Config")

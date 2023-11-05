@@ -27,8 +27,6 @@ extension PreferencesEditor {
                         Text("mg/dL").tag(0)
                         Text("mmol/L").tag(1)
                     }
-
-                    Toggle("Remote control", isOn: $state.allowAnnouncements)
                 }
 
                 ForEach(state.sections.indexed(), id: \.1.id) { sectionIndex, section in
