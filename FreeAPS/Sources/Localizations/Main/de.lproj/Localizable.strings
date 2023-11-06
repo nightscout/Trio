@@ -56,37 +56,37 @@
 "Error at" = "Fehler um";
 
 /* Bolus View Meal Summary Header */
-"Meal Summary" = "Meal Summary";
+"Meal Summary" = "Mahlzeitenübersicht";
 
 /* Bolus View Meal Edit Meal Button */
-"Edit Meal" = "Edit Meal";
+"Edit Meal" = "Mahlzeit bearbeiten";
 
 /* Bolus View Meal Add Meal Button */
-"Add Meal" = "Add Meal";
+"Add Meal" = "Mahlzeit hinzufügen";
 
 /* Bolus View Bolus Summary Header */
-"Bolus Summary" = "Bolus Summary";
+"Bolus Summary" = "Bolusübersicht";
 
 /* For the  Bolus View pop-up */
-"Calculations" = "Calculations";
+"Calculations" = "Berechnungen";
 
 /* For the  Bolus View pop-up */
-"Fatty Meal" = "Fatty Meal";
+"Fatty Meal" = "Fette Mahlzeit";
 
 /* For the  Bolus View pop-up */
-"Full Bolus" = "Full Bolus";
+"Full Bolus" = "Voller Bolus";
 
 /* For the  Bolus View pop-up */
-"Fraction" = "Fraction";
+"Fraction" = "Fraktion";
 
 /* For the  Bolus View pop-up */
-"Fatty Meal Factor" = "Fatty Meal Factor";
+"Fatty Meal Factor" = "Fettspeise Faktor";
 
 /* For the  Bolus View pop-up */
-"Result" = "Result";
+"Result" = "Ergebnis";
 
 /* For the  Bolus View pop-up */
-"Your entered amount was limited by your max Bolus setting of %d%@" = "Your entered amount was limited by your max Bolus setting of %d%@";
+"Your entered amount was limited by your max Bolus setting of %d%@" = "Dein eingegebener Wert wurde durch deine maximale Bolus-Einstellung von %d%@ begrenzt";
 
 /* Home title */
 "Home" = "Hauptseite";
@@ -348,43 +348,43 @@ Enact a temp Basal or a temp target */
 "Remote control" = "Fernbedienung";
 
 /* Imported Profiles Alert */
-"\nNow please verify all of your new settings thoroughly:\n\n* Basal Settings\n * Carb Ratios\n * Glucose Targets\n * Insulin Sensitivities\n * DIA\n\n in iAPS Settings > Configuration.\n\nBad or invalid profile settings could have disatrous effects." = "\nNow please verify all of your new settings thoroughly:\n\n* Basal Settings\n * Carb Ratios\n * Glucose Targets\n * Insulin Sensitivities\n * DIA\n\n in iAPS Settings > Configuration.\n\nBad or invalid profile settings could have disatrous effects.";
+"\nNow please verify all of your new settings thoroughly:\n\n* Basal Settings\n * Carb Ratios\n * Glucose Targets\n * Insulin Sensitivities\n * DIA\n\n in iAPS Settings > Configuration.\n\nBad or invalid profile settings could have disatrous effects." = "\nBitte überprüfen Sie jetzt alle Ihre neuen Einstellungen gründlich:\n\n* Basaleinstellungen\n * Carb Ratios\n * Glukose-Ziele\n * Insulinempfindlichkeiten\n * DIA\n\n in iAPS-Einstellungen > Konfiguration.\n\nSchlechte oder ungültige Profileinstellungen können abscheuliche Effekte haben.";
 
 /* Profile Import Alert */
-"This will replace some or all of your current pump settings. Are you sure you want to import profile settings from Nightscout?" = "This will replace some or all of your current pump settings. Are you sure you want to import profile settings from Nightscout?";
+"This will replace some or all of your current pump settings. Are you sure you want to import profile settings from Nightscout?" = "Dies wird einige oder alle deine aktuellen Pumpeneinstellungen ersetzen. Bist du sicher, dass du die Profileinstellungen von Nightscout importieren möchtest?";
 
 /* Import Error */
-"\nInvalid Nightcsout Basal Settings. \n\nImport aborted. Please check your Nightscout Profile Basal Settings!" = "\nInvalid Nightcsout Basal Settings. \n\nImport aborted. Please check your Nightscout Profile Basal Settings!";
+"\nInvalid Nightcsout Basal Settings. \n\nImport aborted. Please check your Nightscout Profile Basal Settings!" = "\nUngültige Nightcsout Basal-Einstellungen. \n\nImport abgebrochen. Bitte überprüfen Sie Ihre Nightscout Profil Basal-Einstellungen!";
 
 /* Import Error */
-"\nSettings were imported but the Basals couldn't be saved to pump (No pump). Check your basal settings and tap ´Save on Pump´ to sync the new basal settings" = "\nSettings were imported but the Basals couldn't be saved to pump (No pump). Check your basal settings and tap ´Save on Pump´ to sync the new basal settings";
+"\nSettings were imported but the Basals couldn't be saved to pump (No pump). Check your basal settings and tap ´Save on Pump´ to sync the new basal settings" = "\nEinstellungen wurden importiert, aber die Basalen konnten nicht in Pumpe gespeichert werden (keine Pump). Überprüfen Sie Ihre Basiseinstellungen und tippen Sie auf <unk> Speichern auf Pump, um die neuen Basiseinstellungen zu synchronisieren";
 
 /* Import Error Headline */
-"Import Error" = "Import Error";
+"Import Error" = "Fehler beim Import";
 
 /* */
-"Yes, Import" = "Yes, Import";
+"Yes, Import" = "Ja, importieren";
 
 /* */
-"Import settings from Nightscout" = "Import settings from Nightscout";
+"Import settings from Nightscout" = "Einstellungen von Nightscout importieren";
 
 /* */
-"Import settings?" = "Import settings?";
+"Import settings?" = "Einstellungen importieren?";
 
 /* */
-"Import from Nightscout" = "Import from Nightscout";
+"Import from Nightscout" = "Einstellungen von Nightscout importieren";
 
 /* */
-"Settings imported" = "Settings imported";
+"Settings imported" = "Einstellungen importiert";
 
 /* Import Error */
-"\nMismatching glucose units in Nightscout and Pump Settings. Import settings aborted." = "\nMismatching glucose units in Nightscout and Pump Settings. Import settings aborted.";
+"\nMismatching glucose units in Nightscout and Pump Settings. Import settings aborted." = "\nFalsch übereinstimmende Glukoseeinheiten in Nightscout und Pump-Einstellungen. Import abgebrochen.";
 
 /* Import Error */
-"Can't find the default Nightscout Profile." = "Can't find the default Nightscout Profile.";
+"Can't find the default Nightscout Profile." = "Kann das Standard-Nightscout-Profil nicht finden.";
 
 /* Add Blood Glucose Test, header */
-"Blood Glucose Test" = "Blood Glucose Test";
+"Blood Glucose Test" = "Blutzucker Einheit";
 
 /* Add Medtronic pump */
 "Add Medtronic" = "Medtronic-Pumpe hinzufügen";
@@ -603,7 +603,7 @@ Enact a temp Basal or a temp target */
 "Automatic" = "Automatisch";
 
 /* External insulin treatments */
-"External" = "External";
+"External" = "Externe";
 
 /* */
 "Other" = "Sonstiges";
@@ -1134,7 +1134,7 @@ Enact a temp Basal or a temp target */
 "Only Autotune Basal Insulin" = "Nur Autotune Basalinsulin";
 
 /* */
-"Save as your Normal Basal Rates" = "Save as your Normal Basal Rates";
+"Save as your Normal Basal Rates" = "Als deine normalen Basalraten speichern";
 
 /* */
 "Save on Pump" = "Auf Pumpe speichern";

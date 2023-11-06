@@ -1,5 +1,5 @@
 /* No glucose value representation (3 dashes for mg/dL) */
-"– – –" = "– – –";
+"– – –" = "";
 
 /* Format string for glucose trend per minute. (1: glucose value and unit) */
 "%@/min" = "%@/min";
@@ -99,7 +99,7 @@
 "Sensor failed" = "Sensorfehler";
 
 /* title for g7 settings row showing sensor start time */
-"Sensor Start" = "Start sensor";
+"Sensor Start" = "Starte den Sensor";
 
 /* G7 Status highlight text for signal loss */
 "Signal\nLoss" = "Signal\nVerlust";

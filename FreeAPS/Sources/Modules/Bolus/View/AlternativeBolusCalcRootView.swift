@@ -63,15 +63,6 @@ extension Bolus {
                 }
 
                 Section {
-                    if !fetch {
-                        Button {
-                            carbssView()
-                        }
-                        label: { Text("Add Meal") }.frame(maxWidth: .infinity, alignment: .center)
-                    }
-                } header: { Text(!fetch ? "Meal Summary" : "") }
-
-                Section {
                     HStack {
                         Button(action: {
                             showInfo.toggle()
@@ -155,7 +146,7 @@ extension Bolus {
                             }
                         }
                     }
-                } header: { Text("Bolus Summary") }
+                } header: { Text("Bolus") }
 
                 if state.amount > 0 {
                     Section {
@@ -186,11 +177,9 @@ extension Bolus {
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarItems(
                 leading: Button {
-                    if fetch {
-                        carbssView()
-                    }
+                    carbssView()
                 }
-                label: { Text(fetch ? "Back" : "") },
+                label: { Text(fetch ? "Back" : "Meal") },
 
                 trailing: Button { state.hideModal() }
                 label: { Text("Close") }
