@@ -10,6 +10,7 @@ extension AddCarbs {
         @State var dish: String = ""
         @State var isPromptPresented = false
         @State var saved = false
+        @State var pushed = false
         @State private var showAlert = false
         @FocusState private var isFocused: Bool
 
@@ -29,12 +30,12 @@ extension AddCarbs {
 
         var body: some View {
             Form {
-                if let carbsReq = state.carbsRequired {
+                if let carbsReq = state.carbsRequired, state.carbs < carbsReq {
                     Section {
                         HStack {
                             Text("Carbs required")
                             Spacer()
-                            Text(formatter.string(from: carbsReq as NSNumber)! + " g")
+                            Text((formatter.string(from: carbsReq as NSNumber) ?? "") + " g")
                         }
                     }
                 }
@@ -50,11 +51,55 @@ extension AddCarbs {
                             cleanInput: true
                         )
                         Text("grams").foregroundColor(.secondary)
-                    }.padding(.vertical)
+                    }
 
                     if state.useFPUconversion {
                         proteinAndFat()
                     }
+
+                    // Summary when combining presets
+                    if state.waitersNotepad() != "" {
+                        HStack {
+                            Text("Total")
+                            let test = state.waitersNotepad().components(separatedBy: ", ").removeDublicates()
+                            HStack(spacing: 0) {
+                                ForEach(test, id: \.self) {
+                                    Text($0).foregroundStyle(Color.randomGreen()).font(.footnote)
+                                    Text($0 == test[test.count - 1] ? "" : ", ")
+                                }
+                            }.frame(maxWidth: .infinity, alignment: .trailing)
+                        }
+                    }
+
+                    // Time
+                    HStack {
+                        let now = Date.now
+                        Text("Time")
+                        Spacer()
+                        if !pushed {
+                            Button {
+                                pushed = true
+                            } label: { Text("Now") }.buttonStyle(.borderless).foregroundColor(.secondary).padding(.trailing, 5)
+                        } else {
+                            Button { state.date = state.date.addingTimeInterval(-10.minutes.timeInterval) }
+                            label: { Image(systemName: "minus.circle") }.tint(.blue).buttonStyle(.borderless)
+                            DatePicker(
+                                "Time",
+                                selection: $state.date,
+                                in: ...now,
+                                displayedComponents: [.hourAndMinute]
+                            ).controlSize(.mini)
+                                .labelsHidden()
+                            Button {
+                                if state.date.addingTimeInterval(5.minutes.timeInterval) < now {
+                                    state.date = state.date.addingTimeInterval(10.minutes.timeInterval)
+                                }
+                            }
+                            label: { Image(systemName: "plus.circle") }.tint(.blue).buttonStyle(.borderless)
+                        }
+                    }
+
+                    // Optional meal note
                     HStack {
                         Text("Note").foregroundColor(.secondary)
                         TextField("", text: $state.note).multilineTextAlignment(.trailing)
@@ -62,14 +107,11 @@ extension AddCarbs {
                             Button { isFocused = false } label: { Image(systemName: "keyboard.chevron.compact.down") }
                                 .controlSize(.mini)
                         }
-                    }.focused($isFocused)
-                        .popover(isPresented: $isPromptPresented) {
-                            presetPopover
-                        }
-                }
-
-                Section {
-                    mealPresets
+                    }
+                    .focused($isFocused)
+                    .popover(isPresented: $isPromptPresented) {
+                        presetPopover
+                    }
                 }
 
                 Section {
@@ -77,10 +119,11 @@ extension AddCarbs {
                     label: { Text(state.skipBolus ? "Save" : "Continue") }
                         .disabled(state.carbs <= 0 && state.fat <= 0 && state.protein <= 0)
                         .frame(maxWidth: .infinity, alignment: .center)
-                } footer: { Text(state.waitersNotepad().description) }
+                }.listRowBackground(!empty ? Color(.systemBlue) : Color(.systemGray4))
+                    .tint(.white)
 
                 Section {
-                    DatePicker("Date", selection: $state.date)
+                    mealPresets
                 }
             }
             .onAppear {
@@ -93,7 +136,7 @@ extension AddCarbs {
             .navigationBarItems(leading: Button("Close", action: state.hideModal))
         }
 
-        var presetPopover: some View {
+        private var presetPopover: some View {
             Form {
                 Section {
                     TextField("Name Of Dish", text: $dish)
@@ -121,20 +164,118 @@ extension AddCarbs {
             }
         }
 
-        var notEmpty: Bool {
-            state.carbs > 0 || state.protein > 0 || state.fat > 0
+        private var empty: Bool {
+            state.carbs <= 0 && state.fat <= 0 && state.protein <= 0
         }
 
-        var mealPresets: some View {
+        private var minusButton: some View {
+            Button {
+                if state.carbs != 0,
+                   (state.carbs - (((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal) as Decimal) >= 0
+                {
+                    state.carbs -= (((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal)
+                } else { state.carbs = 0 }
+
+                if state.fat != 0,
+                   (state.fat - (((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal) as Decimal) >= 0
+                {
+                    state.fat -= (((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal)
+                } else { state.fat = 0 }
+
+                if state.protein != 0,
+                   (state.protein - (((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal) as Decimal) >= 0
+                {
+                    state.protein -= (((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal)
+                } else { state.protein = 0 }
+
+                state.removePresetFromNewMeal()
+                if state.carbs == 0, state.fat == 0, state.protein == 0 { state.summation = [] }
+            }
+            label: { Image(systemName: "minus.circle") }
+                .disabled(
+                    state
+                        .selection == nil ||
+                        (
+                            !state.summation
+                                .contains(state.selection?.dish ?? "") && (state.selection?.dish ?? "") != ""
+                        )
+                )
+                .buttonStyle(.borderless)
+                .tint(.blue)
+        }
+
+        private var plusButton: some View {
+            Button {
+                state.carbs += ((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal
+                state.fat += ((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal
+                state.protein += ((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal
+
+                state.addPresetToNewMeal()
+            }
+            label: { Image(systemName: "plus.circle") }
+                .disabled(state.selection == nil)
+                .buttonStyle(.borderless)
+                .tint(.blue)
+        }
+
+        private var mealPresets: some View {
             Section {
                 HStack {
+                    if state.selection != nil {
+                        minusButton
+                    }
+                    Picker("Preset", selection: $state.selection) {
+                        Text("Saved Food").tag(nil as Presets?)
+                        ForEach(carbPresets, id: \.self) { (preset: Presets) in
+                            Text(preset.dish ?? "").tag(preset as Presets?)
+                        }
+                    }
+                    .labelsHidden()
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    ._onBindingChange($state.selection) { _ in
+                        state.carbs += ((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal
+                        state.fat += ((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal
+                        state.protein += ((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal
+                        state.addToSummation()
+                    }
+                    if state.selection != nil {
+                        plusButton
+                    }
+                }
+
+                HStack {
+                    Button("Delete Preset") {
+                        showAlert.toggle()
+                    }
+                    .disabled(state.selection == nil)
+                    .tint(.orange)
+                    .buttonStyle(.borderless)
+                    .alert(
+                        "Delete preset '\(state.selection?.dish ?? "")'?",
+                        isPresented: $showAlert,
+                        actions: {
+                            Button("No", role: .cancel) {}
+                            Button("Yes", role: .destructive) {
+                                state.deletePreset()
+
+                                state.carbs += ((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal
+                                state.fat += ((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal
+                                state.protein += ((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal
+
+                                state.addPresetToNewMeal()
+                            }
+                        }
+                    )
+
+                    Spacer()
+
                     Button {
                         isPromptPresented = true
                     }
                     label: { Text("Save as Preset") }
-                        .buttonStyle(BorderlessButtonStyle())
+                        .buttonStyle(.borderless)
                         .disabled(
-                            !notEmpty ||
+                            empty ||
                                 (
                                     (((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal) == state
                                         .carbs && (((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal) == state
@@ -142,93 +283,6 @@ extension AddCarbs {
                                         .protein
                                 )
                         )
-
-                    Picker("Select a Preset", selection: $state.selection) {
-                        Text("Presets").tag(nil as Presets?)
-                        ForEach(carbPresets, id: \.self) { (preset: Presets) in
-                            Text(preset.dish ?? "").tag(preset as Presets?)
-                        }
-                    }
-                    .labelsHidden()
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-                    ._onBindingChange($state.selection) { _ in
-                        state.carbs += ((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal
-                        state.fat += ((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal
-                        state.protein += ((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal
-                        state.addToSummation()
-                    }
-                }
-
-                if state.selection != nil {
-                    HStack {
-                        Button("Delete Preset") {
-                            showAlert.toggle()
-                        }
-                        .disabled(state.selection == nil)
-                        .tint(.orange)
-                        .buttonStyle(BorderlessButtonStyle())
-                        .alert(
-                            "Delete preset '\(state.selection?.dish ?? "")'?",
-                            isPresented: $showAlert,
-                            actions: {
-                                Button("No", role: .cancel) {}
-                                Button("Yes", role: .destructive) {
-                                    state.deletePreset()
-
-                                    state.carbs += ((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal
-                                    state.fat += ((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal
-                                    state.protein += ((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal
-
-                                    state.addPresetToNewMeal()
-                                }
-                            }
-                        )
-                        Button {
-                            if state.carbs != 0,
-                               (state.carbs - (((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal) as Decimal) >= 0
-                            {
-                                state.carbs -= (((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal)
-                            } else { state.carbs = 0 }
-
-                            if state.fat != 0,
-                               (state.fat - (((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal) as Decimal) >= 0
-                            {
-                                state.fat -= (((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal)
-                            } else { state.fat = 0 }
-
-                            if state.protein != 0,
-                               (state.protein - (((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal) as Decimal) >= 0
-                            {
-                                state.protein -= (((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal)
-                            } else { state.protein = 0 }
-
-                            state.removePresetFromNewMeal()
-                            if state.carbs == 0, state.fat == 0, state.protein == 0 { state.summation = [] }
-                        }
-                        label: { Text("[ -1 ]") }
-                            .disabled(
-                                state
-                                    .selection == nil ||
-                                    (
-                                        !state.summation
-                                            .contains(state.selection?.dish ?? "") && (state.selection?.dish ?? "") != ""
-                                    )
-                            )
-                            .buttonStyle(BorderlessButtonStyle())
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-                            .tint(.minus)
-                        Button {
-                            state.carbs += ((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal
-                            state.fat += ((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal
-                            state.protein += ((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal
-
-                            state.addPresetToNewMeal()
-                        }
-                        label: { Text("[ +1 ]") }
-                            .disabled(state.selection == nil)
-                            .buttonStyle(BorderlessButtonStyle())
-                            .tint(.blue)
-                    }
                 }
             }
         }
@@ -260,5 +314,16 @@ extension AddCarbs {
                 Text("grams").foregroundColor(.secondary)
             }
         }
+    }
+}
+
+public extension Color {
+    static func randomGreen(randomOpacity: Bool = false) -> Color {
+        Color(
+            red: .random(in: 0 ... 1),
+            green: .random(in: 0.4 ... 0.7),
+            blue: .random(in: 0.2 ... 1),
+            opacity: randomOpacity ? .random(in: 0.8 ... 1) : 1
+        )
     }
 }

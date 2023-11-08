@@ -1,5 +1,3 @@
-
-import CoreData
 import LoopKit
 import SwiftUI
 import Swinject
@@ -14,9 +12,8 @@ extension Bolus {
         @Injected() var settings: SettingsManager!
         @Injected() var nsManager: NightscoutManager!
 
-        let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
-
         @Published var suggestion: Suggestion?
+        @Published var predictions: Predictions?
         @Published var amount: Decimal = 0
         @Published var insulinRecommended: Decimal = 0
         @Published var insulinRequired: Decimal = 0
@@ -60,7 +57,6 @@ extension Bolus {
         @Published var fattyMeals: Bool = false
         @Published var fattyMealFactor: Decimal = 0
         @Published var useFattyMealCorrectionFactor: Bool = false
-        @Published var eventualBG: Int = 0
 
         @Published var currentBasal: Decimal = 0
         @Published var sweetMeals: Bool = false
@@ -100,6 +96,12 @@ extension Bolus {
                             self.insulinRecommended = 0
                         }
                     }.store(in: &lifetime)
+            }
+            if let notNilSugguestion = provider.suggestion {
+                suggestion = notNilSugguestion
+                if let notNilPredictions = suggestion?.predictions {
+                    predictions = notNilPredictions
+                }
             }
         }
 
