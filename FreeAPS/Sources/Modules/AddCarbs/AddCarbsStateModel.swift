@@ -189,7 +189,7 @@ extension AddCarbs {
 
         func saveToCoreData(_ stored: [CarbsEntry]) {
             let save = Meals(context: coredataContext)
-            save.createdAt = stored.first?.createdAt ?? .distantPast
+            save.createdAt = Date.now
             save.id = stored.first?.collectionID ?? ""
             save.carbs = Double(stored.first?.carbs ?? 0)
             save.fat = Double(stored.first?.fat ?? 0)
