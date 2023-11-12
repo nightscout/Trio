@@ -10,30 +10,24 @@
 import Foundation
 
 
-
 public struct CancelDeliveryCommand : NonceResyncableMessageBlock {
-    
+
     public let blockType: MessageBlockType = .cancelDelivery
-    
-    // ID1:1f00ee84 PTYPE:PDM SEQ:26 ID2:1f00ee84 B9:ac BLEN:7 MTYPE:1f05 BODY:e1f78752078196 CRC:03
-    
-    // Cancel bolus
-    // 1f 05 be1b741a 64 - 1U
-    // 1f 05 a00a1a95 64 - 1U over 1hr
-    // 1f 05 ff52f6c8 64 - 1U immediate, 1U over 1hr
-    
-    // Cancel temp basal
-    // 1f 05 f76d34c4 62 - 30U/hr
-    // 1f 05 156b93e8 62 - ?
-    // 1f 05 62723698 62 - 0%
-    // 1f 05 2933db73 62 - 03ea
-    
-    // Suspend is a Cancel delivery, followed by a configure alerts command (0x19)
-    // 1f 05 50f02312 03 191050f02312580f000f06046800001e0302
-    
-    // Deactivate pod:
+    // OFF 1  2 3 4 5  6
+    // 1F 05 NNNNNNNN AX
+
+    // Cancel bolus (with confirmation beep)
+    // 1f 05 be1b741a 64
+
+    // Cancel temp basal (with confirmation beep)
+    // 1f 05 f76d34c4 62
+
+    // Cancel all (before deactivate pod)
     // 1f 05 e1f78752 07
-    
+
+    // Cancel basal & temp basal for a suspend, followed by a configure alerts command (0x19) for alerts 5 & 6
+    // 1f 05 50f02312 03 19 10 50f02312 580f 000f 0604 6800 001e 0302
+
     public struct DeliveryType: OptionSet, Equatable {
         public let rawValue: UInt8
         
@@ -48,7 +42,23 @@ public struct CancelDeliveryCommand : NonceResyncableMessageBlock {
         public init(rawValue: UInt8) {
             self.rawValue = rawValue
         }
-        
+
+        var debugDescription: String {
+            switch self {
+            case .none:
+                return "None"
+            case .basal:
+                return "Basal"
+            case .tempBasal:
+                return "TempBasal"
+            case .all:
+                return "All"
+            case .allButBasal:
+                return "AllButBasal"
+            default:
+                return "\(self.rawValue)"
+            }
+        }
     }
     
     public let deliveryType: DeliveryType
@@ -85,6 +95,6 @@ public struct CancelDeliveryCommand : NonceResyncableMessageBlock {
 
 extension CancelDeliveryCommand: CustomDebugStringConvertible {
     public var debugDescription: String {
-        return "CancelDeliveryCommand(nonce:\(Data(bigEndian: nonce).hexadecimalString), deliveryType:\(deliveryType), beepType:\(beepType))"
+        return "CancelDeliveryCommand(nonce:\(Data(bigEndian: nonce).hexadecimalString), deliveryType:\(deliveryType.debugDescription), beepType:\(beepType))"
     }
 }

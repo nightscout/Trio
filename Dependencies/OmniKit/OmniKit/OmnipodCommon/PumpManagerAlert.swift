@@ -1,5 +1,5 @@
 //
-//  PodAlert.swift
+//  PumpManagerAlert.swift
 //  OmniKit
 //
 //  Created by Pete Schwamb on 7/9/20.
@@ -11,7 +11,6 @@ import LoopKit
 import HealthKit
 
 public enum PumpManagerAlert: Hashable {
-    case multiCommand(triggeringSlot: AlertSlot?)
     case podExpireImminent(triggeringSlot: AlertSlot?)
     case userPodExpiration(triggeringSlot: AlertSlot?, scheduledExpirationReminderOffset: TimeInterval)
     case lowReservoir(triggeringSlot: AlertSlot?, lowReservoirReminderValue: Double)
@@ -19,6 +18,7 @@ public enum PumpManagerAlert: Hashable {
     case suspendEnded(triggeringSlot: AlertSlot?)
     case podExpiring(triggeringSlot: AlertSlot?)
     case finishSetupReminder(triggeringSlot: AlertSlot?)
+    case unexpectedAlert(triggeringSlot: AlertSlot?)
     case timeOffsetChangeDetected
 
     var isRepeating: Bool {
@@ -36,8 +36,6 @@ public enum PumpManagerAlert: Hashable {
 
     var contentTitle: String {
         switch self {
-        case .multiCommand:
-            return LocalizedString("Multiple Command Alert", comment: "Alert content title for multiCommand pod alert")
         case .userPodExpiration:
             return LocalizedString("Pod Expiration Reminder", comment: "Alert content title for userPodExpiration pod alert")
         case .podExpiring:
@@ -52,6 +50,8 @@ public enum PumpManagerAlert: Hashable {
             return LocalizedString("Resume Insulin", comment: "Alert content title for suspendEnded pod alert")
         case .finishSetupReminder:
             return LocalizedString("Pod Pairing Incomplete", comment: "Alert content title for finishSetupReminder pod alert")
+        case .unexpectedAlert:
+            return LocalizedString("Unexpected Alert", comment: "Alert content title for unexpected pod alert")
         case .timeOffsetChangeDetected:
             return LocalizedString("Time Change Detected", comment: "Alert content title for timeOffsetChangeDetected pod alert")
         }
@@ -59,8 +59,6 @@ public enum PumpManagerAlert: Hashable {
 
     var contentBody: String {
         switch self {
-        case .multiCommand:
-            return LocalizedString("Multiple Command Alert", comment: "Alert content body for multiCommand pod alert")
         case .userPodExpiration(_, let offset):
             let formatter = DateComponentsFormatter()
             formatter.allowedUnits = [.hour]
@@ -81,6 +79,9 @@ public enum PumpManagerAlert: Hashable {
             return LocalizedString("The insulin suspension period has ended.\n\nYou can resume delivery from the banner on the home screen or from your pump settings screen. You will be reminded again in 15 minutes.", comment: "Alert content body for suspendEnded pod alert")
         case .finishSetupReminder:
             return LocalizedString("Please finish pairing your pod.", comment: "Alert content body for finishSetupReminder pod alert")
+        case .unexpectedAlert(let triggeringSlot):
+            let slotNumberString = triggeringSlot != nil ? String(describing: triggeringSlot!.rawValue) : "?"
+            return String(format: LocalizedString("Unexpected Pod Alert #%1@!", comment: "Alert content body for unexpected pod alert (1: slotNumberString)"), slotNumberString)
         case .timeOffsetChangeDetected:
             return LocalizedString("The time on your pump is different from the current time. You can review the pump time and and sync to current time in settings.", comment: "Alert content body for timeOffsetChangeDetected pod alert")
         }
@@ -88,8 +89,6 @@ public enum PumpManagerAlert: Hashable {
 
     var triggeringSlot: AlertSlot? {
         switch self {
-        case .multiCommand(let slot):
-            return slot
         case .userPodExpiration(let slot, _):
             return slot
         case .podExpiring(let slot):
@@ -103,6 +102,8 @@ public enum PumpManagerAlert: Hashable {
         case .suspendEnded(let slot):
             return slot
         case .finishSetupReminder(let slot):
+            return slot
+        case .unexpectedAlert(let slot):
             return slot
         case .timeOffsetChangeDetected:
             return nil
@@ -139,8 +140,6 @@ public enum PumpManagerAlert: Hashable {
 
     var alertIdentifier: String {
         switch self {
-        case .multiCommand:
-            return "multiCommand"
         case .userPodExpiration:
             return "userPodExpiration"
         case .podExpiring:
@@ -153,10 +152,12 @@ public enum PumpManagerAlert: Hashable {
             return "suspendInProgress"
         case .suspendEnded:
             return "suspendEnded"
-        case .timeOffsetChangeDetected:
-            return "timeOffsetChangeDetected"
         case .finishSetupReminder:
             return "finishSetupReminder"
+        case .unexpectedAlert:
+            return "unexpectedAlert"
+        case .timeOffsetChangeDetected:
+            return "timeOffsetChangeDetected"
         }
     }
 
@@ -183,8 +184,6 @@ extension PumpManagerAlert: RawRepresentable {
         }
 
         switch identifier {
-        case "multiCommand":
-            self = .multiCommand(triggeringSlot: slot)
         case "userPodExpiration":
             guard let offset = rawValue["offset"] as? TimeInterval, offset > 0 else {
                 return nil
@@ -203,6 +202,8 @@ extension PumpManagerAlert: RawRepresentable {
             self = .suspendInProgress(triggeringSlot: slot)
         case "suspendEnded":
             self = .suspendEnded(triggeringSlot: slot)
+        case "unexpectedAlert":
+            self = .unexpectedAlert(triggeringSlot: slot)
         case "timeOffsetChangeDetected":
             self = .timeOffsetChangeDetected
         default:
@@ -227,16 +228,5 @@ extension PumpManagerAlert: RawRepresentable {
         }
 
         return rawValue
-    }
-}
-
-extension PodAlert {
-    var isIgnored: Bool {
-        switch self {
-        case .podSuspendedReminder, .finishSetupReminder:
-            return true
-        default:
-            return false
-        }
     }
 }

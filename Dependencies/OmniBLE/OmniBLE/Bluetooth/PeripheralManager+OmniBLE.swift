@@ -20,7 +20,6 @@ extension PeripheralManager {
         dispatchPrecondition(condition: .onQueue(queue))
 
         let controllerId = Id.fromUInt32(myId).address
-        log.default("Sending Hello %{public}@", controllerId.hexadecimalString)
         guard let characteristic = peripheral.getCommandCharacteristic() else {
             throw PeripheralManagerError.notReady
         }
@@ -148,7 +147,6 @@ extension PeripheralManager {
         guard let characteristic = peripheral.getCommandCharacteristic() else {
             throw PeripheralManagerError.notReady
         }
-        log.default("CMD >>> %{public}@", Data([command.rawValue]).hexadecimalString)
         
         try writeValue(Data([command.rawValue]), for: characteristic, type: .withResponse, timeout: timeout)
     }
@@ -157,8 +155,6 @@ extension PeripheralManager {
     func waitForCommand(_ command: PodCommand, timeout: TimeInterval = 5) throws {
         dispatchPrecondition(condition: .onQueue(queue))
 
-        log.debug("waitForCommand %{public}@", Data([command.rawValue]).hexadecimalString)
-        
         // Wait for data to be read.
         queueLock.lock()
         if (cmdQueue.count == 0) {
@@ -199,16 +195,12 @@ extension PeripheralManager {
             throw PeripheralManagerError.notReady
         }
         
-        log.default("DATA >>> %{public}@", value.hexadecimalString)
-        
         try writeValue(value, for: characteristic, type: .withResponse, timeout: timeout)
     }
 
     /// - Throws: PeripheralManagerError
     func waitForData(sequence: UInt8, timeout: TimeInterval) throws -> Data {
         dispatchPrecondition(condition: .onQueue(queue))
-
-        log.default("waitForData sequence %02x", sequence)
 
         // Wait for data to be read.
         queueLock.lock()
@@ -235,7 +227,6 @@ extension PeripheralManager {
                 log.error("waitForData failed data[0] != sequence (%d != %d).", data[0], sequence)
                 throw PeripheralManagerError.incorrectResponse
             }
-            log.default("waitForData success %{public}@", data.hexadecimalString)
             return data
         }
         

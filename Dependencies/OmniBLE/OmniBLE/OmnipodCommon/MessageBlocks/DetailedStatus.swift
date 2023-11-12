@@ -88,7 +88,7 @@ public struct DetailedStatus : PodInfo, Equatable {
         
         // For Eros, encodedData[19] (XX) byte is the same previousPodProgressStatus nibble in the VV byte on fault.
         // For Dash, encodedData[19] (XX) byte is uninitialized or unknown, so use VV byte for previousPodProgressStatus.
-        
+
         // Decode YYYY based on whether there was a pod fault
         if encodedData[8] == 0 {
             // For non-faults, YYYY contents not valid (either uninitialized data for Eros or some unknown content for Dash).
@@ -119,9 +119,8 @@ extension DetailedStatus: CustomDebugStringConvertible {
             "* bolusNotDelivered: \(bolusNotDelivered.twoDecimals) U",
             "* lastProgrammingMessageSeqNum: \(lastProgrammingMessageSeqNum)",
             "* totalInsulinDelivered: \(totalInsulinDelivered.twoDecimals) U",
-            "* faultEventCode: \(faultEventCode.description)",
-            "* reservoirLevel: \(reservoirLevel > Pod.maximumReservoirReading ? "50+" : reservoirLevel.twoDecimals) U",
-            "* timeActive: \(timeActive.stringValue)",
+            "* reservoirLevel: \(reservoirLevel == Pod.reservoirLevelAboveThresholdMagicNumber ? "50+" : reservoirLevel.twoDecimals) U",
+            "* timeActive: \(timeActive.timeIntervalStr)",
             "* unacknowledgedAlerts: \(unacknowledgedAlerts)",
             "",
             ].joined(separator: "\n")
@@ -134,8 +133,9 @@ extension DetailedStatus: CustomDebugStringConvertible {
         }
         if faultEventCode.faultType != .noFaults {
             result += [
+                "* faultEventCode: \(faultEventCode.description)",
                 "* faultAccessingTables: \(faultAccessingTables)",
-                "* faultEventTimeSinceActivation: \(faultEventTimeSinceActivation?.stringValue ?? "NA")",
+                "* faultEventTimeSinceActivation: \(faultEventTimeSinceActivation?.timeIntervalStr ?? "NA")",
                 "* errorEventInfo: \(errorEventInfo?.description ?? "NA")",
                 "* previousPodProgressStatus: \(previousPodProgressStatus?.description ?? "NA")",
                 "* possibleFaultCallingAddress: \(possibleFaultCallingAddress != nil ? String(format: "0x%04x", possibleFaultCallingAddress!) : "NA")",
@@ -161,21 +161,21 @@ extension DetailedStatus: RawRepresentable {
 }
 
 extension TimeInterval {
-    var stringValue: String {
-        let totalSeconds = self
-        let minutes = Int(totalSeconds / 60) % 60
-        let hours = Int(totalSeconds / 3600) - (Int(self / 3600)/24 * 24)
-        let days = Int((totalSeconds / 3600) / 24)
-        var pluralFormOfDays = "days"
-        if days == 1 {
-            pluralFormOfDays = "day"
+    var timeIntervalStr: String {
+        var str: String = ""
+        let hours = UInt(self / 3600)
+        let minutes = UInt(self / 60) % 60
+        let seconds = UInt(self) % 60
+        if hours != 0 {
+            str += String(format: "%uh", hours)
         }
-        let timeComponent = String(format: "%02d:%02d", hours, minutes)
-        if days > 0 {
-            return String(format: "%d \(pluralFormOfDays) plus %@", days, timeComponent)
-        } else {
-            return timeComponent
+        if minutes != 0 || hours != 0 {
+            str += String(format: "%um", minutes)
         }
+        if seconds != 0 || str.isEmpty {
+            str += String(format: "%us", seconds)
+        }
+        return str
     }
 }
 
@@ -192,11 +192,11 @@ extension Double {
 // dddd: Pod Progress at time of first logged fault event
 //
 public struct ErrorEventInfo: CustomStringConvertible, Equatable {
-    let rawValue: UInt8
-    let insulinStateTableCorruption: Bool // 'a' bit
-    let occlusionType: Int // 'bb' 2-bit occlusion type
-    let immediateBolusInProgress: Bool // 'c' bit
-    let podProgressStatus: PodProgressStatus // 'dddd' bits
+    public let rawValue: UInt8
+    public let insulinStateTableCorruption: Bool // 'a' bit
+    public let occlusionType: Int // 'bb' 2-bit occlusion type
+    public let immediateBolusInProgress: Bool // 'c' bit
+    public let podProgressStatus: PodProgressStatus // 'dddd' bits
 
     public var errorEventInfo: ErrorEventInfo? {
         return ErrorEventInfo(rawValue: rawValue)

@@ -31,7 +31,7 @@ extension AddCarbs {
             useFPUconversion = settingsManager.settings.useFPUconversion
         }
 
-        func add() {
+        func add(_ continue_: Bool, fetch: Bool) {
             guard carbs > 0 || fat > 0 || protein > 0 else {
                 showModal(for: nil)
                 return
@@ -51,7 +51,7 @@ extension AddCarbs {
             )]
             carbsStorage.storeCarbs(carbsToStore)
 
-            if skipBolus {
+            if skipBolus, !continue_, !fetch {
                 apsManager.determineBasalSync()
                 showModal(for: nil)
             } else if carbs > 0 {

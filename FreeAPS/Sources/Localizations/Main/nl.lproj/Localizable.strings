@@ -88,6 +88,9 @@
 /* For the  Bolus View pop-up */
 "Your entered amount was limited by your max Bolus setting of %d%@" = "Je ingevoerde hoeveelheid is beperkt door je maximale bolusinstelling van %d%@";
 
+/* Bolus View Continue Button */
+"Continue" = "Vervolg";
+
 /* Home title */
 "Home" = "Hoofdmenu";
 
@@ -117,6 +120,9 @@
 
 /*  */
 "Carbs required" = "Koolhydraten benodigd";
+
+/* Saved Food Presets */
+"Saved Food" = "Bewaarde maaltijd";
 
 /* */
 "Are you sure?" = "Weet je het zeker?";
@@ -1395,6 +1401,12 @@ Enact a temp Basal or a temp target */
 
 /* */
 "Eventual Glucose" = "Voorspelde glucose";
+
+/* */
+"Please wait" = "Even geduld";
+
+/* */
+"Glucose, " = "Glucosewaarde, ";
 
 /* */
 "Target Glucose" = "Doel glucose";

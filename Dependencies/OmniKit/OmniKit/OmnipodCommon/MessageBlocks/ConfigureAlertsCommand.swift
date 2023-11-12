@@ -21,7 +21,9 @@ public struct ConfigureAlertsCommand : NonceResyncableMessageBlock {
             UInt8(4 + configurations.count * AlertConfiguration.length),
             ])
         data.appendBigEndian(nonce)
-        for config in configurations {
+        // Sorting the alerts not required, but it can be helpful for log analysis
+        let sorted = configurations.sorted { $0.slot.rawValue < $1.slot.rawValue }
+        for config in sorted {
             data.append(contentsOf: config.data)
         }
         return data
@@ -92,6 +94,7 @@ extension AlertConfiguration {
         }
         self.beepType = beepType
 
+        self.silent = (beepType == .noBeepNonCancel)
     }
 
     public var data: Data {
@@ -104,12 +107,16 @@ extension AlertConfiguration {
         if autoOffModifier {
             firstByte += 1 << 1
         }
+
+        // The 9-bit duration is limited to 2^9-1 minutes max value
+        let durationMinutes = min(UInt(duration.minutes), 0x1ff)
+
         // High bit of duration
-        firstByte += UInt8((Int(duration.minutes) >> 8) & 0x1)
+        firstByte += UInt8((durationMinutes >> 8) & 0x1)
 
         var data = Data([
             firstByte,
-            UInt8(Int(duration.minutes) & 0xff)
+            UInt8(durationMinutes & 0xff)
             ])
 
         switch trigger {
@@ -122,7 +129,8 @@ extension AlertConfiguration {
             data.appendBigEndian(minutes)
         }
         data.append(beepRepeat.rawValue)
-        data.append(beepType.rawValue)
+        let beepTypeToSet: BeepType = silent ? .noBeepNonCancel : beepType
+        data.append(beepTypeToSet.rawValue)
 
         return data
     }

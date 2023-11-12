@@ -88,6 +88,9 @@
 /* For the  Bolus View pop-up */
 "Your entered amount was limited by your max Bolus setting of %d%@" = "Il tuo importo inserito è stato limitato dalla tua impostazione del Bolo massimo di %d%@";
 
+/* Bolus View Continue Button */
+"Continue" = "Continua";
+
 /* Home title */
 "Home" = "Home";
 
@@ -117,6 +120,9 @@
 
 /*  */
 "Carbs required" = "Carboidrati necessari";
+
+/* Saved Food Presets */
+"Saved Food" = "Cibo Salvato";
 
 /* */
 "Are you sure?" = "Sei sicuro?";
@@ -1029,7 +1035,7 @@ Enact a temp Basal or a temp target */
 "Last loop was more than %d min ago" = "L'ultimo ciclo è stato più di %d min fa";
 
 /* Glucose badge */
-"Show glucose on the app badge" = "Mostra il glicemie sul badge dell'app";
+"Show glucose on the app badge" = "Mostra le glicemie sull'icona dell'app";
 
 /* */
 "Backfill glucose" = "Riempi glicemia";
@@ -1134,7 +1140,7 @@ Enact a temp Basal or a temp target */
 "Only Autotune Basal Insulin" = "Solo Insulina Basale Autotune";
 
 /* */
-"Save as your Normal Basal Rates" = "Salva come Tassi Basali Normali";
+"Save as your Normal Basal Rates" = "Salva come Profilo Basale Normale";
 
 /* */
 "Save on Pump" = "Salva sul microinfusore";
@@ -1397,6 +1403,12 @@ Enact a temp Basal or a temp target */
 "Eventual Glucose" = "previsione glicemica";
 
 /* */
+"Please wait" = "Attendere prego";
+
+/* */
+"Glucose, " = "Glicemie, ";
+
+/* */
 "Target Glucose" = "Target Glicemia";
 
 /* */
@@ -1556,7 +1568,7 @@ Enact a temp Basal or a temp target */
 "Total Delivery" = "Totale Consegnata";
 
 /* */
-"Add Omnipod Dash" = "Agg Omnipod Dash";
+"Add Omnipod Dash" = "Aggiungi Omnipod Dash";
 
 /* */
 "Insert Cannula" = "Inserisci cannula";

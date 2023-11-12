@@ -88,6 +88,9 @@
 /* For the  Bolus View pop-up */
 "Your entered amount was limited by your max Bolus setting of %d%@" = "Dein eingegebener Wert wurde durch deine maximale Bolus-Einstellung von %d%@ begrenzt";
 
+/* Bolus View Continue Button */
+"Continue" = "Fortsetzen";
+
 /* Home title */
 "Home" = "Hauptseite";
 
@@ -117,6 +120,9 @@
 
 /*  */
 "Carbs required" = "Kohlenhydrate erforderlich";
+
+/* Saved Food Presets */
+"Saved Food" = "Gespeichertes Essen";
 
 /* */
 "Are you sure?" = "Sind Sie sicher?";
@@ -1395,6 +1401,12 @@ Enact a temp Basal or a temp target */
 
 /* */
 "Eventual Glucose" = "Prognostizierte Glukose";
+
+/* */
+"Please wait" = "Bitte warten";
+
+/* */
+"Glucose, " = "Blutzucker, ";
 
 /* */
 "Target Glucose" = "Ziel Glukose";

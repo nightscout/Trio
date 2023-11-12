@@ -144,15 +144,14 @@ extension Bolus {
         func getDeltaBG() {
             let glucose = provider.fetchGlucose()
             guard glucose.count >= 3 else { return }
-            let lastGlucose = glucose.last?.glucose ?? 0
-            let thirdLastGlucose = glucose[glucose.count - 3]
+            let lastGlucose = glucose.first?.glucose ?? 0
+            let thirdLastGlucose = glucose[2]
             let delta = Decimal(lastGlucose) - Decimal(thirdLastGlucose.glucose)
             deltaBG = delta
         }
 
         // CALCULATIONS FOR THE BOLUS CALCULATOR
         func calculateInsulin() -> Decimal {
-            // for mmol conversion
             var conversion: Decimal = 1.0
             if units == .mmolL {
                 conversion = 0.0555
@@ -270,9 +269,9 @@ extension Bolus {
             }
         }
 
-        func backToCarbsView(complexEntry: Bool, _ id: String) {
+        func backToCarbsView(complexEntry: Bool, _ id: String, override: Bool) {
             delete(deleteTwice: complexEntry, id: id)
-            showModal(for: .addCarbs(editMode: complexEntry))
+            showModal(for: .addCarbs(editMode: complexEntry, override: override))
         }
 
         func delete(deleteTwice: Bool, id: String) {

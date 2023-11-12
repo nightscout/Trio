@@ -9,8 +9,26 @@ struct PredictionView: View {
     @Binding var eventualBG: Int
     @Binding var target: Decimal
 
+    private enum Config {
+        static let height: CGFloat = 160
+        static let lineWidth: CGFloat = 2
+    }
+
     var body: some View {
-        chart()
+        VStack {
+            chart()
+            HStack {
+                let conversion = units == .mmolL ? 0.0555 : 1
+                Text("Eventual Glucose")
+                Spacer()
+                Text(
+                    (Double(eventualBG) * conversion)
+                        .formatted(.number.grouping(.never).rounded().precision(.fractionLength(units == .mmolL ? 1 : 0)))
+                )
+                Text(units.rawValue).foregroundStyle(.secondary)
+                Divider()
+            }.font(.callout)
+        }
     }
 
     func chart() -> some View {
@@ -23,8 +41,6 @@ struct PredictionView: View {
         var now = Date.now
         var startIndex = 0
         let conversion = units == .mmolL ? 0.0555 : 1
-        let eventualRounded: String = (Double(eventualBG) * conversion)
-            .formatted(.number.grouping(.never).rounded().precision(.fractionLength(units == .mmolL ? 1 : 0)))
         // Organize the data needed for prediction chart.
         var data = [ChartData]()
         repeat {
@@ -52,7 +68,7 @@ struct PredictionView: View {
                     series: .value("IOB", "A")
                 )
                 .foregroundStyle(Color(.insulin))
-                .lineStyle(StrokeStyle(lineWidth: 2))
+                .lineStyle(StrokeStyle(lineWidth: Config.lineWidth))
             }
             if $0.uam != 0 {
                 LineMark(
@@ -61,7 +77,7 @@ struct PredictionView: View {
                     series: .value("UAM", "B")
                 )
                 .foregroundStyle(Color(.UAM))
-                .lineStyle(StrokeStyle(lineWidth: 2))
+                .lineStyle(StrokeStyle(lineWidth: Config.lineWidth))
             }
             if $0.cob != 0 {
                 LineMark(
@@ -70,7 +86,7 @@ struct PredictionView: View {
                     series: .value("COB", "C")
                 )
                 .foregroundStyle(Color(.loopYellow))
-                .lineStyle(StrokeStyle(lineWidth: 2))
+                .lineStyle(StrokeStyle(lineWidth: Config.lineWidth))
             }
             if $0.zt != 0 {
                 LineMark(
@@ -79,16 +95,16 @@ struct PredictionView: View {
                     series: .value("ZT", "D")
                 )
                 .foregroundStyle(Color(.ZT))
-                .lineStyle(StrokeStyle(lineWidth: 2))
+                .lineStyle(StrokeStyle(lineWidth: Config.lineWidth))
             }
         }
-        .frame(minHeight: 150)
+        .frame(minHeight: Config.height)
         .chartForegroundStyleScale([
             "IOB": Color(.insulin),
-            "UAM": Color(.UAM),
+            "UAM": .uam,
             "COB": Color(.loopYellow),
-            "ZT": Color(.ZT)
+            "ZT": .zt
         ])
-        .chartYAxisLabel("Eventual Glucose: " + eventualRounded + " " + units.rawValue, alignment: .center)
+        .chartYAxisLabel(NSLocalizedString("Glucose, ", comment: "") + units.rawValue, alignment: .center)
     }
 }

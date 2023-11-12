@@ -785,3 +785,12 @@
 
 /* DASH Pod time ago since last status */
 "%@ ago" = "%@ sedan";
+
+/* Title string for SilencePodPreference.enabled */
+"Silenced" = "Tystad";
+
+/* Description for SilencePodPreference.disabled */
+"Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled." = "Normalt läge när ljud är på både för varningar och för bekräftelser.";
+
+/* Description for SilencePodPreference.enabled */
+"All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts." = "Varningar kommer inte längre använda ljud och alla bekräftelseljud kommer också att vara avstängda. Podden kommer bara att pipa om du väljer att spela upp testljud.\n\n⚠️Varning - när podden är tystad måste du vara inom räckhåll för dina enheter för att några poddvarningar.";

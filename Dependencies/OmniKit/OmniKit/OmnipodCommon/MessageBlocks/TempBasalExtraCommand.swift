@@ -74,6 +74,6 @@ public struct TempBasalExtraCommand : MessageBlock {
 
 extension TempBasalExtraCommand: CustomDebugStringConvertible {
     public var debugDescription: String {
-        return "TempBasalExtraCommand(completionBeep:\(completionBeep), programReminderInterval:\(programReminderInterval.stringValue) remainingPulses:\(remainingPulses), delayUntilFirstPulse:\(delayUntilFirstPulse.stringValue), rateEntries:\(rateEntries))"
+        return "TempBasalExtraCommand(completionBeep:\(completionBeep), programReminderInterval:\(programReminderInterval.timeIntervalStr), remainingPulses:\(remainingPulses), delayUntilFirstPulse:\(delayUntilFirstPulse.timeIntervalStr), rateEntries:\(rateEntries))"
     }
 }

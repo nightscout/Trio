@@ -481,7 +481,7 @@ extension Home {
                 Rectangle().fill(Color.gray.opacity(0.3)).frame(height: 50 + geo.safeAreaInsets.bottom)
 
                 HStack {
-                    Button { state.showModal(for: .addCarbs(editMode: false)) }
+                    Button { state.showModal(for: .addCarbs(editMode: false, override: false)) }
                     label: {
                         ZStack(alignment: Alignment(horizontal: .trailing, vertical: .bottom)) {
                             Image("carbs")

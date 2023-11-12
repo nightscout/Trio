@@ -107,7 +107,7 @@ struct PodSetupView: View {
 
 }
 
-struct RileyLinkSetupView_Previews: PreviewProvider {
+struct PodSetupView_Previews: PreviewProvider {
     static var previews: some View {
         PodSetupView(nextAction: {}, allowDebugFeatures: true, skipOnboarding: {})
     }

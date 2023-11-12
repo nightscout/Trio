@@ -54,7 +54,7 @@
 "Last Reading" = "Letzte Messung";
 
 /* Descriptive text on G7StartupView */
-"iAPS can read G7 CGM data, but you must still use the Dexcom G7 App for pairing, calibration, and other sensor management." = "iAPS kann CGM Daten vom G7 direkt lesen. Zum Verbinden, Kalibrieren und weiteres Sensor Management braucht man die G7 App.";
+"iAPS can read G7 CGM data, but you must still use the Dexcom G7 App for pairing, calibration, and other sensor management." = "iAPS kann CGM Daten direkt vom G7 lesen. Zum Verbinden, Kalibrieren und erweitertem Sensor Management benötigt man die G7 App.";
 
 /* String displayed instead of a glucose value below the CGM range */
 "LOW" = "NIEDRIG";

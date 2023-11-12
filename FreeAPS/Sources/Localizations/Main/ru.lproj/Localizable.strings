@@ -56,37 +56,40 @@
 "Error at" = "Ошибка в";
 
 /* Bolus View Meal Summary Header */
-"Meal Summary" = "Meal Summary";
+"Meal Summary" = "Итог питания";
 
 /* Bolus View Meal Edit Meal Button */
-"Edit Meal" = "Edit Meal";
+"Edit Meal" = "Изменить еду";
 
 /* Bolus View Meal Add Meal Button */
-"Add Meal" = "Add Meal";
+"Add Meal" = "Добавить еду";
 
 /* Bolus View Bolus Summary Header */
-"Bolus Summary" = "Bolus Summary";
+"Bolus Summary" = "Болюс суммарно";
 
 /* For the  Bolus View pop-up */
-"Calculations" = "Calculations";
+"Calculations" = "Вычисления";
 
 /* For the  Bolus View pop-up */
-"Fatty Meal" = "Fatty Meal";
+"Fatty Meal" = "Жирная пища";
 
 /* For the  Bolus View pop-up */
-"Full Bolus" = "Full Bolus";
+"Full Bolus" = "Полный болюс";
 
 /* For the  Bolus View pop-up */
-"Fraction" = "Fraction";
+"Fraction" = "Доля";
 
 /* For the  Bolus View pop-up */
-"Fatty Meal Factor" = "Fatty Meal Factor";
+"Fatty Meal Factor" = "Фактор жирной пищи";
 
 /* For the  Bolus View pop-up */
-"Result" = "Result";
+"Result" = "Итого";
 
 /* For the  Bolus View pop-up */
-"Your entered amount was limited by your max Bolus setting of %d%@" = "Your entered amount was limited by your max Bolus setting of %d%@";
+"Your entered amount was limited by your max Bolus setting of %d%@" = "Доза была ограничена Вашей настройкой максимального болюса в размере %d%@";
+
+/* Bolus View Continue Button */
+"Continue" = "Продолжить";
 
 /* Home title */
 "Home" = "Главная";
@@ -117,6 +120,9 @@
 
 /*  */
 "Carbs required" = "Требуются углеводы";
+
+/* Saved Food Presets */
+"Saved Food" = "Сохранённая еда";
 
 /* */
 "Are you sure?" = "Вы уверены?";
@@ -603,7 +609,7 @@ Enact a temp Basal or a temp target */
 "Automatic" = "Автоматически";
 
 /* External insulin treatments */
-"External" = "External";
+"External" = "Внешний";
 
 /* */
 "Other" = "Прочее";
@@ -1208,7 +1214,7 @@ Enact a temp Basal or a temp target */
 "SMB" = "SMB";
 
 /* A manually entered dose of external insulin */
-"External Insulin" = "External Insulin";
+"External Insulin" = "Внешний инсулин";
 
 /* Status highlight when manual temp basal is running. */
 "Manual Basal" = "Ручная ВБС";
@@ -1395,6 +1401,12 @@ Enact a temp Basal or a temp target */
 
 /* */
 "Eventual Glucose" = "Возможная глюкоза";
+
+/* */
+"Please wait" = "Подождите";
+
+/* */
+"Glucose, " = "Глюкоза, ";
 
 /* */
 "Target Glucose" = "Целевая глюкоза";

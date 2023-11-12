@@ -20,16 +20,6 @@ extension OmnipodPumpManager: PodDeactivater {}
 
 class DeactivatePodViewModel: ObservableObject, Identifiable {
     
-    public var podAttachedToBody: Bool
-    
-    var instructionText: String {
-        if podAttachedToBody {
-            return LocalizedString("Please deactivate the pod. When deactivation is complete, you may remove it and pair a new pod.", comment: "Instructions for deactivate pod when pod is on body")
-        } else {
-            return LocalizedString("Please deactivate the pod. When deactivation is complete, you may pair a new pod.", comment: "Instructions for deactivate pod when pod not on body")
-        }
-    }
-    
     enum DeactivatePodViewModelState {
         case active
         case deactivating
@@ -125,9 +115,38 @@ class DeactivatePodViewModel: ObservableObject, Identifiable {
     
     var podDeactivator: PodDeactivater
 
-    init(podDeactivator: PodDeactivater, podAttachedToBody: Bool) {
+    var podAttachedToBody: Bool
+
+    var instructionText: String
+
+    init(podDeactivator: PodDeactivater, podAttachedToBody: Bool, fault: DetailedStatus?) {
+
+        var text: String = ""
+        if let faultEventCode = fault?.faultEventCode {
+            let notificationString = faultEventCode.notificationTitle
+            switch faultEventCode.faultType {
+            case .exceededMaximumPodLife80Hrs, .reservoirEmpty, .occluded:
+                // Just prepend a simple sentence with the notification string for these faults.
+                // Other occluded related 0x6? faults will be treated as a general pod error as per the PDM.
+                text = String(format: "%@. ", notificationString)
+            default:
+                // Display the fault code in decimal and hex, the fault description and the pdmRef string for other errors.
+                text = String(format: "⚠️ %1$@ (0x%2$02X)\n%3$@\n", notificationString, faultEventCode.rawValue, faultEventCode.faultDescription)
+                if let pdmRef = fault?.pdmRef {
+                    text += LocalizedString("Ref: ", comment: "PDM Ref string line") + pdmRef + "\n\n"
+                }
+            }
+        }
+
+        if podAttachedToBody {
+            text += LocalizedString("Please deactivate the pod. When deactivation is complete, you may remove it and pair a new pod.", comment: "Instructions for deactivate pod when pod is on body")
+        } else {
+            text += LocalizedString("Please deactivate the pod. When deactivation is complete, you may pair a new pod.", comment: "Instructions for deactivate pod when pod not on body")
+        }
+
         self.podDeactivator = podDeactivator
         self.podAttachedToBody = podAttachedToBody
+        self.instructionText = text
     }
     
     public func continueButtonTapped() {

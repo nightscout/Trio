@@ -56,7 +56,6 @@ extension PeripheralManager.Configuration {
                     guard let characteristic = manager.peripheral.getCommandCharacteristic() else { return }
                     guard let value = characteristic.value else { return }
 
-                    manager.log.default("CMD <<< %{public}@", value.hexadecimalString)
                     manager.queueLock.lock()
                     manager.cmdQueue.append(value)
                     manager.queueLock.signal()
@@ -66,7 +65,6 @@ extension PeripheralManager.Configuration {
                     guard let characteristic = manager.peripheral.getDataCharacteristic() else { return }
                     guard let value = characteristic.value else { return }
 
-                    manager.log.default("DATA <<< %{public}@", value.hexadecimalString)
                     manager.queueLock.lock()
                     manager.dataQueue.append(value)
                     manager.queueLock.signal()

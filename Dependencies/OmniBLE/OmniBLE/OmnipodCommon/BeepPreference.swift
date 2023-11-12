@@ -29,9 +29,9 @@ public enum BeepPreference: Int, CaseIterable {
         case .silent:
             return LocalizedString("No confidence reminders are used.", comment: "Description for BeepPreference.silent")
         case .manualCommands:
-            return LocalizedString("Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When Loop automatically adjusts delivery, no confidence reminders are used.", comment: "Description for BeepPreference.manualCommands")
+            return LocalizedString("Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used.", comment: "Description for BeepPreference.manualCommands")
         case .extended:
-            return LocalizedString("Confidence reminders will sound when Loop automatically adjusts delivery as well as for commands you initiate.", comment: "Description for BeepPreference.extended")
+            return LocalizedString("Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate.", comment: "Description for BeepPreference.extended")
         }
     }
 

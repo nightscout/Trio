@@ -88,6 +88,9 @@
 /* For the  Bolus View pop-up */
 "Your entered amount was limited by your max Bolus setting of %d%@" = "Your entered amount was limited by your max Bolus setting of %d%@";
 
+/* Bolus View Continue Button */
+"Continue" = "Kontynuuj";
+
 /* Home title */
 "Home" = "Home";
 
@@ -117,6 +120,9 @@
 
 /*  */
 "Carbs required" = "Carbs required";
+
+/* Saved Food Presets */
+"Saved Food" = "Saved Food";
 
 /* */
 "Are you sure?" = "Czy jesteś pewien?";
@@ -1397,6 +1403,12 @@ Połączono z Nightscout!";
 
 /* */
 "Eventual Glucose" = "Eventual Glucose";
+
+/* */
+"Please wait" = "Please wait";
+
+/* */
+"Glucose, " = "Glucose, ";
 
 /* */
 "Target Glucose" = "Target Glucose";

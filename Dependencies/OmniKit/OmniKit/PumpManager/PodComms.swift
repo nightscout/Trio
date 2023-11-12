@@ -454,7 +454,6 @@ class PodComms: CustomDebugStringConvertible {
     var debugDescription: String {
         return [
             "## PodComms",
-            "podState: \(String(reflecting: podState))",
             "configuredDevices: \(configuredDevices.value.map { $0.uuidString })",
             "delegate: \(String(describing: delegate != nil))",
             ""

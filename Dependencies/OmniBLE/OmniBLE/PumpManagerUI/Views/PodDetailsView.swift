@@ -92,12 +92,12 @@ struct PodDetailsView: View {
                 row(LocalizedString("Device Name", comment: "description label for device name pod details row"), value: deviceName)
             }
             row(LocalizedString("Lot Number", comment: "description label for lot number pod details row"), value: String(describing: podDetails.lotNumber))
-            row(LocalizedString("Sequence Number", comment: "description label for sequence number pod details row"), value: String(describing: podDetails.sequenceNumber))
+            row(LocalizedString("Sequence Number", comment: "description label for sequence number pod details row"), value: String(format: "%07d", podDetails.sequenceNumber))
             row(LocalizedString("Firmware Version", comment: "description label for firmware version pod details row"), value: podDetails.firmwareVersion)
             row(LocalizedString("BLE Firmware Version", comment: "description label for ble firmware version pod details row"), value: podDetails.bleFirmwareVersion)
             row(LocalizedString("Total Delivery", comment: "description label for total delivery pod details row"), value: totalDeliveryText)
             if let activeTime = podDetails.activeTime, let activatedAt = podDetails.activatedAt {
-                row(LocalizedString("Pod Activated", comment: "description label for activated at timne pod details row"), value: dateFormatter.string(from: activatedAt))
+                row(LocalizedString("Pod Activated", comment: "description label for activated at time pod details row"), value: dateFormatter.string(from: activatedAt))
                 row(LocalizedString("Active Time", comment: "description label for active time pod details row"), value: activeTimeText(activeTime))
             } else {
                 row(LocalizedString("Last Status", comment: "description label for last status date pod details row"), value: lastStatusText)
@@ -111,10 +111,7 @@ struct PodDetailsView: View {
                             Text(LocalizedString("Pod Fault Details", comment: "description label for pod fault details"))
                                 .fontWeight(.semibold)
                         }.padding(.vertical, 4)
-                        Text(String(describing: fault))
-                            .fixedSize(horizontal: false, vertical: true)
-                            .foregroundColor(.secondary)
-                        Text("Ref: " + pdmRef)
+                        Text(String(format: LocalizedString("Internal Pod fault code %1$03d\n%2$@\nRef: %3$@\n", comment: "The format string for the pod fault info: (1: fault code) (2: fault description) (3: pdm ref string)"), fault.rawValue, fault.faultDescription, pdmRef))
                             .fixedSize(horizontal: false, vertical: true)
                             .foregroundColor(.secondary)
                     }
@@ -127,6 +124,6 @@ struct PodDetailsView: View {
 
 struct PodDetailsView_Previews: PreviewProvider {
     static var previews: some View {
-        PodDetailsView(podDetails: PodDetails(lotNumber: 0x1234, sequenceNumber: 0x1234, firmwareVersion: "1.1.1", bleFirmwareVersion: "2.2.2", deviceName: "PreviewPod", totalDelivery: 10, lastStatus: Date(), fault: FaultEventCode(rawValue: 0x67), activatedAt: Date().addingTimeInterval(.days(1))), title: "Device Details")
+        PodDetailsView(podDetails: PodDetails(lotNumber: 123456789, sequenceNumber: 1234567, firmwareVersion: "4.3.2", bleFirmwareVersion: "1.2.3", deviceName: "DashPreviewPod", totalDelivery: 99, lastStatus: Date(), fault: FaultEventCode(rawValue: 064), activatedAt: Date().addingTimeInterval(.days(2)), pdmRef: "19-02448-09951-064"), title: "Device Details")
     }
 }

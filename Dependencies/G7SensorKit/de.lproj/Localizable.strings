@@ -2,7 +2,7 @@
 "Dexcom G7" = "Dexcom G7";
 
 /* Descriptive text on G7StartupView */
-"iAPS can read G7 CGM data, but you must still use the Dexcom G7 App for pairing, calibration, and other sensor management." = "iAPS kann CGM Daten vom G7 direkt lesen. Zum Verbinden, Kalibrieren und weiteres Sensor Management braucht man die G7 App.";
+"iAPS can read G7 CGM data, but you must still use the Dexcom G7 App for pairing, calibration, and other sensor management." = "iAPS kann CGM Daten direkt vom G7 lesen. Zum Verbinden, Kalibrieren und erweitertes Sensor Management benötigt man die G7 App.";
 
 /* Button title for starting setup */
 "Continue" = "Fortsetzen";
@@ -11,7 +11,7 @@
 "Cancel" = "Abbrechen";
 
 /* Error description for unreliable state */
-"Glucose data is unavailable" = "Blutzuckerwerte sind nicht verfügbar";
+"Glucose data is unavailable" = "Glukosewerte sind nicht verfügbar";
 
 /* The description of sensor algorithm state when sensor is ok. */
 "Sensor is OK" = "Sensor ist OK";
@@ -70,7 +70,7 @@
 "Configuration" = "Konfiguration";
 
 /* title for g7 config settings to upload readings */
-"Upload Readings" = "Upload von Messwerten";
+"Upload Readings" = "Werte hochladen";
 
 /* Button */
 "Scan for new sensor" = "Nach neuem Sensor suchen";

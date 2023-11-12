@@ -71,11 +71,13 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                 var bg_ = 0
                 var bgDate = Date()
                 var id = ""
+                var direction = ""
 
                 if glucose.isNotEmpty {
                     bg_ = glucose[0].glucose ?? 0
                     bgDate = glucose[0].dateString
                     id = glucose[0].id
+                    direction = glucose[0].direction?.symbol ?? "↔︎"
                 }
 
                 if bg_ != 0 {
@@ -84,6 +86,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                         dataForForStats.date = bgDate
                         dataForForStats.glucose = Int16(bg_)
                         dataForForStats.id = id
+                        dataForForStats.direction = direction
                         try? self.coredataContext.save()
                     }
                 }

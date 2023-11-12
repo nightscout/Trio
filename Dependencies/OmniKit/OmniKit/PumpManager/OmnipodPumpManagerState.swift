@@ -35,6 +35,8 @@ public struct OmnipodPumpManagerState: RawRepresentable, Equatable {
 
     public var unstoredDoses: [UnfinalizedDose]
 
+    public var silencePod: Bool
+
     public var confirmationBeeps: BeepPreference
 
     public var scheduledExpirationReminderOffset: TimeInterval?
@@ -100,6 +102,7 @@ public struct OmnipodPumpManagerState: RawRepresentable, Equatable {
         self.basalSchedule = basalSchedule
         self.rileyLinkConnectionManagerState = rileyLinkConnectionManagerState
         self.unstoredDoses = []
+        self.silencePod = false
         self.confirmationBeeps = .manualCommands
         self.insulinType = insulinType
         self.lowReservoirReminderValue = Pod.defaultLowReservoirReminder
@@ -186,6 +189,8 @@ public struct OmnipodPumpManagerState: RawRepresentable, Equatable {
             self.unstoredDoses = []
         }
 
+        self.silencePod = rawValue["silencePod"] as? Bool ?? false
+
         if let oldAutomaticBolusBeeps = rawValue["automaticBolusBeeps"] as? Bool, oldAutomaticBolusBeeps {
             self.confirmationBeeps = .extended
         } else if let oldConfirmationBeeps = rawValue["confirmationBeeps"] as? Bool, oldConfirmationBeeps {
@@ -253,6 +258,7 @@ public struct OmnipodPumpManagerState: RawRepresentable, Equatable {
             "timeZone": timeZone.secondsFromGMT(),
             "basalSchedule": basalSchedule.rawValue,
             "unstoredDoses": unstoredDoses.map { $0.rawValue },
+            "silencePod": silencePod,
             "confirmationBeeps": confirmationBeeps.rawValue,
             "activeAlerts": activeAlerts.map { $0.rawValue },
             "podAttachmentConfirmed": podAttachmentConfirmed,
@@ -303,8 +309,8 @@ extension OmnipodPumpManagerState: CustomDebugStringConvertible {
             "* timeZone: \(timeZone)",
             "* basalSchedule: \(String(describing: basalSchedule))",
             "* maximumTempBasalRate: \(maximumTempBasalRate)",
-            "* scheduledExpirationReminderOffset: \(String(describing: scheduledExpirationReminderOffset))",
-            "* defaultExpirationReminderOffset: \(String(describing: defaultExpirationReminderOffset))",
+            "* scheduledExpirationReminderOffset: \(String(describing: scheduledExpirationReminderOffset?.timeIntervalStr))",
+            "* defaultExpirationReminderOffset: \(defaultExpirationReminderOffset.timeIntervalStr)",
             "* lowReservoirReminderValue: \(String(describing: lowReservoirReminderValue))",
             "* podAttachmentConfirmed: \(podAttachmentConfirmed)",
             "* activeAlerts: \(activeAlerts)",
@@ -317,14 +323,21 @@ extension OmnipodPumpManagerState: CustomDebugStringConvertible {
             "* tempBasalEngageState: \(String(describing: tempBasalEngageState))",
             "* lastPumpDataReportDate: \(String(describing: lastPumpDataReportDate))",
             "* isPumpDataStale: \(String(describing: isPumpDataStale))",
+            "* silencePod: \(String(describing: silencePod))",
             "* confirmationBeeps: \(String(describing: confirmationBeeps))",
             "* pairingAttemptAddress: \(String(describing: pairingAttemptAddress))",
             "* insulinType: \(String(describing: insulinType))",
+            "* scheduledExpirationReminderOffset: \(String(describing: scheduledExpirationReminderOffset?.timeIntervalStr))",
+            "* defaultExpirationReminderOffset: \(defaultExpirationReminderOffset.timeIntervalStr)",
             "* rileyLinkBatteryAlertLevel: \(String(describing: rileyLinkBatteryAlertLevel))",
             "* lastRileyLinkBatteryAlertDate \(String(describing: lastRileyLinkBatteryAlertDate))",
-            String(reflecting: podState),
-            "* PreviousPodState: \(String(reflecting: previousPodState))",
-            String(reflecting: rileyLinkConnectionManagerState),
+            "",
+            "* RileyLinkConnectionManagerState: " + (rileyLinkConnectionManagerState == nil ? "nil" : String(describing: rileyLinkConnectionManagerState!)),
+            "",
+            "* PodState: " + (podState == nil ? "nil" : String(describing: podState!)),
+            "",
+            "* PreviousPodState: " + (previousPodState == nil ? "nil" : String(describing: previousPodState!)),
+            "",
         ].joined(separator: "\n")
     }
 }

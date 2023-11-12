@@ -22,7 +22,7 @@ jobs:
     steps:
       # Uncomment to manually select Xcode version if needed
       - name: Select Xcode version
-        run: "sudo xcode-select --switch /Applications/Xcode_14.3.app/Contents/Developer"
+        run: "sudo xcode-select --switch /Applications/Xcode_15.0.1.app/Contents/Developer"
 
       # Checks-out the repo
       - name: Checkout Repo

@@ -9,14 +9,13 @@
 import Foundation
 
 public struct DeactivatePodCommand : NonceResyncableMessageBlock {
-    
-    // ID1:1f00ee84 PTYPE:PDM SEQ:09 ID2:1f00ee84 B9:34 BLEN:6 MTYPE:1c04 BODY:0f7dc4058344 CRC:f1
+    // OFF 1  2 3 4 5
+    // 1C 04 NNNNNNNN
     
     public let blockType: MessageBlockType = .deactivatePod
     
     public var nonce: UInt32
     
-    // e1f78752 07 8196
     public var data: Data {
         var data = Data([
             blockType.rawValue,

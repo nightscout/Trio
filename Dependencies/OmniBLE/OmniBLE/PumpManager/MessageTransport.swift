@@ -246,8 +246,6 @@ class PodMessageTransport: MessageTransport {
             payloads: [cmd.encoded(), Data()]
         )
 
-        log.debug("Sending command: %@", wrapped.hexadecimalString)
-
         let msg = MessagePacket(
             type: MessageType.ENCRYPTED,
             source: self.myId,
@@ -272,14 +270,11 @@ class PodMessageTransport: MessageTransport {
         incrementNonceSeq()
         let decrypted = try enDecrypt.decrypt(readMessage, nonceSeq)
 
-        log.debug("Received response: %@", decrypted.payload.hexadecimalString)
-
         let response = try parseResponse(decrypted: decrypted)
 
         incrementMsgSeq()
         incrementNonceSeq()
         let ack = try getAck(response: decrypted)
-        log.debug("Sending ACK: %@ in packet $ack", ack.payload.hexadecimalString)
         let ackResult = manager.sendMessagePacket(ack)
         guard case .sentWithAcknowledgment = ackResult else {
             throw PodProtocolError.messageIOException("Could not write $msgType: \(ackResult)")
@@ -296,14 +291,14 @@ class PodMessageTransport: MessageTransport {
     private func parseResponse(decrypted: MessagePacket) throws -> Message {
 
         let data = try StringLengthPrefixEncoding.parseKeys([RESPONSE_PREFIX], decrypted.payload)[0]
-        log.info("Received decrypted response: %@ in packet: %@", data.hexadecimalString, decrypted.payload.hexadecimalString)
+        log.debug("Received decrypted response: %{public}@ in packet: %{public}@", data.hexadecimalString, decrypted.payload.hexadecimalString)
 
         // Dash pods generates a CRC16 for Omnipod Messages, but the actual algorithm is not understood and doesn't match the CRC16
         // that the pod enforces for incoming Omnipod command message. The Dash PDM explicitly ignores the CRC16 for incoming messages,
         // so we ignore them as well and rely on higher level BLE & Dash message data checking to provide data corruption protection.
         let response = try Message(encodedData: data, checkCRC: false)
 
-        log.default("Recv(Hex): %@", data.hexadecimalString)
+        log.default("Recv(Hex): %{public}@", data.hexadecimalString)
         messageLogger?.didReceive(data)
 
         return response

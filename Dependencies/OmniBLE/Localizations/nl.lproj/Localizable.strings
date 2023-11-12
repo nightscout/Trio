@@ -571,7 +571,7 @@
 "Critical Alerts" = "Kritieke waarschuwingen";
 
 /* Description text for critical alerts */
-"The reminders above will not sound if your device is in Silent or Do Not Disturb mode.\n\nThere are other critical Pod alerts and alarms that will sound even if your device is set to Silent or Do Not Disturb mode." = "De bovenstaande meldingen waarschuwen zonder geluid als je apparaat in de modus Stil of Niet storen staat.\n\nEr zijn andere belangrijke Pod waarschuwingen en -alarmen die wel klinken, zelfs als je apparaat in de modus Stil of Niet storen staat.";
+"The reminders above will not sound if your device is in Silent or Do Not Disturb mode.\n\nThere are other critical Pod alerts and alarms that will sound even if your device is set to Silent or Do Not Disturb mode." = "De bovenstaande meldingen waarschuwen zonder geluid als je apparaat in de modus 'Stil' of 'Niet storen' staat.\n\nEr zijn andere belangrijke Pod waarschuwingen en -alarmen die wel klinken, zelfs als je apparaat in de modus 'Stil' of 'Niet storen' staat.";
 /* navigation title for notification settings */
 "Notification Settings" = "Instellingen voor meldingen";
 

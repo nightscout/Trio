@@ -63,6 +63,6 @@ struct InsulinTypeConfirmation: View {
 
 struct InsulinTypeConfirmation_Previews: PreviewProvider {
     static var previews: some View {
-        InsulinTypeConfirmation(initialValue: .humalog, supportedInsulinTypes: InsulinType.allCases, didConfirm: { (newType) in }, didCancel: {})
+        InsulinTypeConfirmation(initialValue: .humalog, supportedInsulinTypes: InsulinType.allCases, didConfirm: { (newType) in }, didCancel: { })
     }
 }

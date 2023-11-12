@@ -58,10 +58,12 @@ extension Bolus {
         var body: some View {
             Form {
                 Section {
-                    predictionChart
-                } header: {
-                    Text("Predictions")
-                }
+                    if state.waitForSuggestion {
+                        Text("Please wait")
+                    } else {
+                        predictionChart
+                    }
+                } header: { Text("Predictions") }
 
                 Section {}
                 if fetch {
@@ -133,27 +135,26 @@ extension Bolus {
                             .onTapGesture { state.amount = state.insulinCalculated }
                     }
 
-                    if !state.waitForSuggestion {
-                        HStack {
-                            Text("Bolus")
-                            Spacer()
-                            DecimalTextField(
-                                "0",
-                                value: $state.amount,
-                                formatter: formatter,
-                                autofocus: false,
-                                cleanInput: true
-                            )
-                            Text(exceededMaxBolus ? "😵" : " U").foregroundColor(.secondary)
-                        }
-                        .onChange(of: state.amount) { newValue in
-                            if newValue > state.maxBolus {
-                                exceededMaxBolus = true
-                            } else {
-                                exceededMaxBolus = false
-                            }
+                    HStack {
+                        Text("Bolus")
+                        Spacer()
+                        DecimalTextField(
+                            "0",
+                            value: $state.amount,
+                            formatter: formatter,
+                            autofocus: false,
+                            cleanInput: true
+                        )
+                        Text(exceededMaxBolus ? "😵" : " U").foregroundColor(.secondary)
+                    }
+                    .onChange(of: state.amount) { newValue in
+                        if newValue > state.maxBolus {
+                            exceededMaxBolus = true
+                        } else {
+                            exceededMaxBolus = false
                         }
                     }
+
                 } header: { Text("Bolus") }
 
                 if state.amount > 0 {
@@ -164,10 +165,9 @@ extension Bolus {
                         }
                         label: { Text(exceededMaxBolus ? "Max Bolus exceeded!" : "Enact bolus") }
                             .frame(maxWidth: .infinity, alignment: .center)
-                            .foregroundColor(exceededMaxBolus ? .loopRed : .accentColor)
-                            .disabled(
-                                state.amount <= 0 || state.amount > state.maxBolus
-                            )
+                            .disabled(disabled)
+                            .listRowBackground(!disabled ? Color(.systemBlue) : Color(.systemGray4))
+                            .tint(.white)
                     }
                 }
                 if state.amount <= 0 {
@@ -185,10 +185,14 @@ extension Bolus {
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarItems(
                 leading: Button {
-                    carbssView()
+                    carbsView()
                 }
-                label: { Text(fetch ? "Back" : "Meal") },
-
+                label: {
+                    HStack {
+                        Image(systemName: "chevron.backward")
+                        Text("Meal")
+                    }
+                },
                 trailing: Button { state.hideModal() }
                 label: { Text("Close") }
             )
@@ -282,6 +286,10 @@ extension Bolus {
             )
         }
 
+        private var disabled: Bool {
+            state.amount <= 0 || state.amount > state.maxBolus
+        }
+
         var changed: Bool {
             ((meal.first?.carbs ?? 0) > 0) || ((meal.first?.fat ?? 0) > 0) || ((meal.first?.protein ?? 0) > 0)
         }
@@ -290,13 +298,13 @@ extension Bolus {
             ((meal.first?.fat ?? 0) > 0) || ((meal.first?.protein ?? 0) > 0)
         }
 
-        func carbssView() {
+        func carbsView() {
             let id_ = meal.first?.id ?? ""
             if fetch {
                 keepForNextWiew = true
-                state.backToCarbsView(complexEntry: fetch, id_)
+                state.backToCarbsView(complexEntry: fetch, id_, override: false)
             } else {
-                state.showModal(for: .addCarbs(editMode: false))
+                state.backToCarbsView(complexEntry: false, id_, override: true)
             }
         }
 

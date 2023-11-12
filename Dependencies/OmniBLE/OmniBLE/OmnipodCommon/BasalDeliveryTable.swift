@@ -164,8 +164,9 @@ public struct RateEntry {
             // Eros zero TB is the only case not using pulses
             return 0
         } else {
-            // Use delayBetweenPulses to compute rate, works for non-Eros near zero rates
-            return (.hours(1) / delayBetweenPulses) / Pod.pulsesPerUnit
+            // Use delayBetweenPulses to compute rate which will also work for non-Eros near zero rates.
+            // Round the rate calculation to a two digit value to avoid slightly off values for some cases.
+            return round(((.hours(1) / delayBetweenPulses) / Pod.pulsesPerUnit) * 100) / 100.0
         }
     }
     
@@ -174,8 +175,9 @@ public struct RateEntry {
             // Eros zero TB case uses fixed 30 minute rate entries
             return TimeInterval(minutes: 30)
         } else {
-            // Use delayBetweenPulses to compute duration, works for non-Eros near zero rates
-            return delayBetweenPulses * totalPulses
+            // Use delayBetweenPulses to compute duration which will also work for non-Eros near zero rates.
+            // Round to nearest second to not be slightly off of the 30 minute rate entry boundary for some cases.
+            return round(delayBetweenPulses * totalPulses)
         }
     }
     
@@ -231,6 +233,6 @@ public struct RateEntry {
 
 extension RateEntry: CustomDebugStringConvertible {
     public var debugDescription: String {
-        return "RateEntry(rate:\(rate) duration:\(duration.stringValue))"
+        return "RateEntry(rate:\(rate), duration:\(duration.timeIntervalStr))"
     }
 }

@@ -41,10 +41,12 @@ extension AddTempTarget {
                 }
 
                 if state.viewPercantage {
-                    Section(
-                        header: Text("")
-                    ) {
+                    Section {
                         VStack {
+                            Text("\(state.percentage.formatted(.number)) % Insulin")
+                                .foregroundColor(isEditing ? .orange : .blue)
+                                .font(.largeTitle)
+                                .padding(.vertical)
                             Slider(
                                 value: $state.percentage,
                                 in: 15 ...
@@ -54,33 +56,27 @@ extension AddTempTarget {
                                     isEditing = editing
                                 }
                             )
-                            HStack {
-                                Text("\(state.percentage.formatted(.number)) % Insulin")
-                                    .foregroundColor(isEditing ? .orange : .blue)
-                                    .font(.largeTitle)
-                            }
                             // Only display target slider when not 100 %
                             if state.percentage != 100 {
+                                Spacer()
                                 Divider()
+                                Text(
+                                    (
+                                        state
+                                            .units == .mmolL ?
+                                            "\(state.computeTarget().asMmolL.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))) mmol/L" :
+                                            "\(state.computeTarget().formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) mg/dl"
+                                    )
+                                        + NSLocalizedString(" Target Glucose", comment: "")
+                                )
+                                .foregroundColor(.green)
+                                .padding(.vertical)
 
                                 Slider(
                                     value: $state.hbt,
                                     in: 101 ... 295,
                                     step: 1
                                 ).accentColor(.green)
-
-                                HStack {
-                                    Text(
-                                        (
-                                            state
-                                                .units == .mmolL ?
-                                                "\(state.computeTarget().asMmolL.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))) mmol/L" :
-                                                "\(state.computeTarget().formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) mg/dl"
-                                        )
-                                            + NSLocalizedString("  Target Glucose", comment: "")
-                                    )
-                                    .foregroundColor(.green)
-                                }
                             }
                         }
                     }
@@ -145,7 +141,7 @@ extension AddTempTarget {
             }
             .navigationTitle("Enact Temp Target")
             .navigationBarTitleDisplayMode(.inline)
-            .navigationBarItems(leading: Button("Close", action: state.hideModal))
+            .navigationBarItems(trailing: Button("Close", action: state.hideModal))
         }
 
         private func presetView(for preset: TempTarget) -> some View {

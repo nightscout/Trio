@@ -6,6 +6,7 @@ extension AddCarbs {
     struct RootView: BaseView {
         let resolver: Resolver
         let editMode: Bool
+        let override: Bool
         @StateObject var state = StateModel()
         @State var dish: String = ""
         @State var isPromptPresented = false
@@ -115,9 +116,9 @@ extension AddCarbs {
                 }
 
                 Section {
-                    Button { state.add() }
-                    label: { Text(state.skipBolus ? "Save" : "Continue") }
-                        .disabled(state.carbs <= 0 && state.fat <= 0 && state.protein <= 0)
+                    Button { state.add(override, fetch: editMode) }
+                    label: { Text((state.skipBolus && !override && !editMode) ? "Save" : "Continue") }
+                        .disabled(empty)
                         .frame(maxWidth: .infinity, alignment: .center)
                 }.listRowBackground(!empty ? Color(.systemBlue) : Color(.systemGray4))
                     .tint(.white)
@@ -133,7 +134,7 @@ extension AddCarbs {
             }
             .navigationTitle("Add Meal")
             .navigationBarTitleDisplayMode(.inline)
-            .navigationBarItems(leading: Button("Close", action: state.hideModal))
+            .navigationBarItems(trailing: Button("Close", action: state.hideModal))
         }
 
         private var presetPopover: some View {

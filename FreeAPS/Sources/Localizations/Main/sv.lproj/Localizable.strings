@@ -88,6 +88,9 @@
 /* For the  Bolus View pop-up */
 "Your entered amount was limited by your max Bolus setting of %d%@" = "Du har angivit en insulinmängd som är över din maxinställning på %d%@";
 
+/* Bolus View Continue Button */
+"Continue" = "Fortsätt";
+
 /* Home title */
 "Home" = "Hem";
 
@@ -117,6 +120,9 @@
 
 /*  */
 "Carbs required" = "Kolhydrater krävs";
+
+/* Saved Food Presets */
+"Saved Food" = "Sparad mat";
 
 /* */
 "Are you sure?" = "Är du säker?";
@@ -1395,6 +1401,12 @@ Enact a temp Basal or a temp target */
 
 /* */
 "Eventual Glucose" = "Blodsockerprognos";
+
+/* */
+"Please wait" = "Vänta...";
+
+/* */
+"Glucose, " = "Blodsocker, ";
 
 /* */
 "Target Glucose" = "Målvärde";

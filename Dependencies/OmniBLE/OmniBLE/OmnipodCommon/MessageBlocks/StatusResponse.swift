@@ -52,9 +52,9 @@ public struct StatusResponse : MessageBlock {
         self.lastProgrammingMessageSeqNum = (encodedData[4] >> 3) & 0xf
         
         self.bolusNotDelivered = Double((Int(encodedData[4] & 0x3) << 8) | Int(encodedData[5])) / Pod.pulsesPerUnit
-        
+
         self.alerts = AlertSet(rawValue: ((encodedData[6] & 0x7f) << 1) | (encodedData[7] >> 7))
-        
+
         self.reservoirLevel = Double((Int(encodedData[8] & 0x3) << 8) + Int(encodedData[9])) / Pod.pulsesPerUnit
     }
 
@@ -95,7 +95,7 @@ public struct StatusResponse : MessageBlock {
 
 extension StatusResponse: CustomDebugStringConvertible {
     public var debugDescription: String {
-        return "StatusResponse(deliveryStatus:\(deliveryStatus), progressStatus:\(podProgressStatus), timeActive:\(timeActive.stringValue), reservoirLevel:\(String(describing: reservoirLevel)), delivered:\(insulinDelivered), bolusNotDelivered:\(bolusNotDelivered), lastProgrammingMessageSeqNum:\(lastProgrammingMessageSeqNum), alerts:\(alerts))"
+        return "StatusResponse(deliveryStatus:\(deliveryStatus.description), progressStatus:\(podProgressStatus), timeActive:\(timeActive.timeIntervalStr), reservoirLevel:\(reservoirLevel == Pod.reservoirLevelAboveThresholdMagicNumber ? "50+" : reservoirLevel.twoDecimals), insulinDelivered:\(insulinDelivered.twoDecimals), bolusNotDelivered:\(bolusNotDelivered.twoDecimals), lastProgrammingMessageSeqNum:\(lastProgrammingMessageSeqNum), alerts:\(alerts))"
     }
 }
 

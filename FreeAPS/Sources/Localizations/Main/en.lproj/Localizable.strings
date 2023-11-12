@@ -121,6 +121,9 @@
 /*  */
 "Carbs required" = "Carbs required";
 
+/* Saved Food Presets */
+"Saved Food" = "Saved Food";
+
 /* */
 "Are you sure?" = "Are you sure?";
 
@@ -1389,6 +1392,12 @@ Enact a temp Basal or a temp target */
 /* */
 "Save as Preset" = "Save as Preset";
 
+/* */
+"Predictions" = "Predictions";
+
+/* Watch Config Option */
+"Display Protein & Fat" = "Display Protein & Fat";
+
 /* ----------------------- New Bolus Calculator ---------------------------*/
 
 /* Warning about bolus recommendation. Title */
@@ -1399,6 +1408,12 @@ Enact a temp Basal or a temp target */
 
 /* */
 "Eventual Glucose" = "Eventual Glucose";
+
+/* */
+"Please wait" = "Please wait";
+
+/* */
+"Glucose, " = "Glucose, ";
 
 /* */
 "Target Glucose" = "Target Glucose";

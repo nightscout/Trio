@@ -1,6 +1,6 @@
 //
 //  PodProtocolError.swift
-//  OmnipodKit
+//  OmniBLE
 //
 //  Created by Randall Knutson on 8/3/21.
 //

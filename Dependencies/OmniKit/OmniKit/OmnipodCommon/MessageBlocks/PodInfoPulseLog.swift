@@ -89,14 +89,14 @@ extension BinaryInteger {
     }
 }
 
-func pulseLogString(pulseLogEntries: [UInt32], lastPulseNumber: Int) -> String {
-    var str: String = "Pulse eeeeee0a pppliiib cccccccc dfgggggg\n"
+public func pulseLogString(pulseLogEntries: [UInt32], lastPulseNumber: Int) -> String {
+    var str: String = "Pulse eeeeee0a pppliiib cccccccc dfgggggg"
     var index = pulseLogEntries.count - 1
     var pulseNumber = lastPulseNumber
     while index >= 0 {
-        str += String(format: "%04d:", pulseNumber) + UInt32(pulseLogEntries[index]).binaryDescription + "\n"
+        str += String(format: "\n%04d:", pulseNumber) + UInt32(pulseLogEntries[index]).binaryDescription
         index -= 1
         pulseNumber -= 1
     }
-    return str + "\n"
+    return str
 }

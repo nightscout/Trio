@@ -162,7 +162,7 @@ class OmnipodUICoordinator: UINavigationController, PumpManagerOnboarding, Compl
             hostedView.navigationItem.title = LocalizedString("Insulin Type", comment: "Title for insulin type selection screen")
             return hostedView
         case .deactivate:
-            let viewModel = DeactivatePodViewModel(podDeactivator: pumpManager, podAttachedToBody: pumpManager.podAttachmentConfirmed)
+            let viewModel = DeactivatePodViewModel(podDeactivator: pumpManager, podAttachedToBody: pumpManager.podAttachmentConfirmed, fault: pumpManager.state.podState?.fault)
 
             viewModel.didFinish = { [weak self] in
                 self?.stepFinished()

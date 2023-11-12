@@ -89,7 +89,7 @@ struct PodDetailsView: View {
     var body: some View {
         List {
             row(LocalizedString("Lot Number", comment: "description label for lot number pod details row"), value: String(describing: podDetails.lotNumber))
-            row(LocalizedString("Sequence Number", comment: "description label for sequence number pod details row"), value: String(describing: podDetails.sequenceNumber))
+            row(LocalizedString("Sequence Number", comment: "description label for sequence number pod details row"), value: String(format: "%07d", podDetails.sequenceNumber))
             row(LocalizedString("PI Version", comment: "description label for pi version pod details row"), value: podDetails.piVersion)
             row(LocalizedString("PM Version", comment: "description label for ble firmware version pod details row"), value: podDetails.pmVersion)
             row(LocalizedString("Total Delivery", comment: "description label for total delivery pod details row"), value: totalDeliveryText)
@@ -108,10 +108,7 @@ struct PodDetailsView: View {
                             Text(LocalizedString("Pod Fault Details", comment: "description label for pod fault details"))
                                 .fontWeight(.semibold)
                         }.padding(.vertical, 4)
-                        Text(String(describing: fault))
-                            .fixedSize(horizontal: false, vertical: true)
-                            .foregroundColor(.secondary)
-                        Text("Ref: " + pdmRef)
+                        Text(String(format: LocalizedString("Internal Pod fault code %1$03d\n%2$@\nRef: %3$@\n", comment: "The format string for the pod fault info: (1: fault code) (2: fault description) (3: pdm ref string)"), fault.rawValue, fault.faultDescription, pdmRef))
                             .fixedSize(horizontal: false, vertical: true)
                             .foregroundColor(.secondary)
                     }
@@ -124,6 +121,6 @@ struct PodDetailsView: View {
 
 struct PodDetailsView_Previews: PreviewProvider {
     static var previews: some View {
-        PodDetailsView(podDetails: PodDetails(lotNumber: 0x1234, sequenceNumber: 0x1234, piVersion: "1.1.1", pmVersion: "2.2.2", totalDelivery: 10, lastStatus: Date(), fault: FaultEventCode(rawValue: 0x67), activatedAt: Date().addingTimeInterval(.days(1))), title: "Device Details")
+        PodDetailsView(podDetails: PodDetails(lotNumber: 123456789, sequenceNumber: 1234567, piVersion: "2.1.0", pmVersion: "2.1.0", totalDelivery: 99, lastStatus: Date(), fault: FaultEventCode(rawValue: 064), activatedAt: Date().addingTimeInterval(.days(2)), pdmRef: "19-02448-09951-064"), title: "Device Details")
     }
 }

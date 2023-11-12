@@ -56,37 +56,40 @@
 "Error at" = "Feil kl.";
 
 /* Bolus View Meal Summary Header */
-"Meal Summary" = "Meal Summary";
+"Meal Summary" = "Oppsummering av måltid";
 
 /* Bolus View Meal Edit Meal Button */
-"Edit Meal" = "Edit Meal";
+"Edit Meal" = "Endre måltid";
 
 /* Bolus View Meal Add Meal Button */
-"Add Meal" = "Add Meal";
+"Add Meal" = "Legg til måltid";
 
 /* Bolus View Bolus Summary Header */
-"Bolus Summary" = "Bolus Summary";
+"Bolus Summary" = "Bolus-sammendrag";
 
 /* For the  Bolus View pop-up */
-"Calculations" = "Calculations";
+"Calculations" = "Beregninger";
 
 /* For the  Bolus View pop-up */
-"Fatty Meal" = "Fatty Meal";
+"Fatty Meal" = "Fett måltid";
 
 /* For the  Bolus View pop-up */
 "Full Bolus" = "Full Bolus";
 
 /* For the  Bolus View pop-up */
-"Fraction" = "Fraction";
+"Fraction" = "Brøkdel";
 
 /* For the  Bolus View pop-up */
-"Fatty Meal Factor" = "Fatty Meal Factor";
+"Fatty Meal Factor" = "Brøkdel for fett måltid";
 
 /* For the  Bolus View pop-up */
-"Result" = "Result";
+"Result" = "Resultat";
 
 /* For the  Bolus View pop-up */
-"Your entered amount was limited by your max Bolus setting of %d%@" = "Your entered amount was limited by your max Bolus setting of %d%@";
+"Your entered amount was limited by your max Bolus setting of %d%@" = "Mengden du la inn ble begrenset av innstillingen for Maks Bolus på %d%@";
+
+/* Bolus View Continue Button */
+"Continue" = "Fortsett";
 
 /* Home title */
 "Home" = "Hjem";
@@ -117,6 +120,9 @@
 
 /*  */
 "Carbs required" = "Karbo nødvendig";
+
+/* Saved Food Presets */
+"Saved Food" = "Saved Food";
 
 /* */
 "Are you sure?" = "Er du sikker?";
@@ -603,7 +609,7 @@ Enact a temp Basal or a temp target */
 "Automatic" = "Automatisk";
 
 /* External insulin treatments */
-"External" = "External";
+"External" = "Ekstern";
 
 /* */
 "Other" = "Annet";
@@ -1208,7 +1214,7 @@ Enact a temp Basal or a temp target */
 "SMB" = "SMB";
 
 /* A manually entered dose of external insulin */
-"External Insulin" = "External Insulin";
+"External Insulin" = "Eksternt insulin";
 
 /* Status highlight when manual temp basal is running. */
 "Manual Basal" = "Manuell basal";
@@ -1395,6 +1401,12 @@ Enact a temp Basal or a temp target */
 
 /* */
 "Eventual Glucose" = "Beregnet blodsukker";
+
+/* */
+"Please wait" = "Please wait";
+
+/* */
+"Glucose, " = "Glucose, ";
 
 /* */
 "Target Glucose" = "Blodsukkermål";

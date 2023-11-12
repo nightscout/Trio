@@ -61,6 +61,6 @@ struct ExpirationReminderPickerView: View {
 
 struct ExpirationReminderPickerView_Previews: PreviewProvider {
     static var previews: some View {
-        ExpirationReminderPickerView(expirationReminderDefault: .constant(2))
+        ExpirationReminderPickerView(expirationReminderDefault: .constant(2), showingHourPicker: true)
     }
 }

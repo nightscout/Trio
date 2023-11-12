@@ -85,7 +85,7 @@ enum PodLifeState {
         case .podDeactivating:
             return LocalizedString("Finish deactivation", comment: "Settings page link description when next lifecycle action is to finish deactivation")
         default:
-            return LocalizedString("Replace Pod", comment: "Settings page link description when next lifecycle action is to replace pod")
+            return LocalizedString("Deactivate Pod", comment: "Settings page link description when next lifecycle action is to deactivate pod")
         }
     }
     
