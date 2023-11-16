@@ -434,26 +434,12 @@ extension Home {
                     }
                 }
                 .pickerStyle(.segmented)
-                .background(.cyan.opacity(0.2))
+                .background(.gray.opacity(0.1))
             }
-            .padding(.horizontal, 4)
-            .padding(.vertical, 2)
+//            .padding(.horizontal, 4)
+//            .padding(.vertical, 4)
+            .padding()
         }
-
-//        private func calculateScreenHours(scale: Scale) -> Int {
-//            switch scale {
-//            case .one:
-//                return 1
-//            case .three:
-//                return 3
-//            case .six:
-//                return 6
-//            case .twelve:
-//                return 12
-//            case .twentyfour:
-//                return 24
-//            }
-//        }
 
         @ViewBuilder private func profiles(_: GeometryProxy) -> some View {
             let colour: Color = colorScheme == .dark ? .black : .white
@@ -617,9 +603,9 @@ extension Home {
                 VStack(spacing: 0) {
                     header(geo)
                     infoPanel
+                    pickerPanel(geo)
                     mainChart
                     legendPanel
-                    pickerPanel(geo)
                     profiles(geo)
                     bottomPanel(geo)
                 }
