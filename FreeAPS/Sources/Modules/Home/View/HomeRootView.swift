@@ -37,6 +37,19 @@ extension Home {
             sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
         ) var enactedSliderTT: FetchedResults<TempTargetsSlider>
 
+        // MARK: FOR PICKER TO SCALE X AXIS GRAPH
+
+//        enum Scale: Int, CaseIterable, Identifiable {
+//            case one = 1
+//            case three = 3
+//            case six = 6
+//            case twelve = 12
+//            case twentyfour = 24
+//            var id: Self { self }
+//        }
+
+//        @State private var scale: Scale = .six
+
         private var numberFormatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
@@ -411,6 +424,37 @@ extension Home {
             .modal(for: .dataTable, from: self)
         }
 
+        // MARK: PICKER IN SEGEMENTED STYLE TO CHOOSE THE X AXIS SCALE OF THE GRAPH
+
+        @ViewBuilder private func pickerPanel(_: GeometryProxy) -> some View {
+            HStack {
+                Picker("Scale", selection: $state.scale) {
+                    ForEach(Home.StateModel.Scale.allCases) { scale in
+                        Text("\(scale.rawValue)h").tag(Optional(scale))
+                    }
+                }
+                .pickerStyle(.segmented)
+                .background(.cyan.opacity(0.2))
+            }
+            .padding(.horizontal, 4)
+            .padding(.vertical, 2)
+        }
+
+//        private func calculateScreenHours(scale: Scale) -> Int {
+//            switch scale {
+//            case .one:
+//                return 1
+//            case .three:
+//                return 3
+//            case .six:
+//                return 6
+//            case .twelve:
+//                return 12
+//            case .twentyfour:
+//                return 24
+//            }
+//        }
+
         @ViewBuilder private func profiles(_: GeometryProxy) -> some View {
             let colour: Color = colorScheme == .dark ? .black : .white
             // Rectangle().fill(colour).frame(maxHeight: 1)
@@ -575,6 +619,7 @@ extension Home {
                     infoPanel
                     mainChart
                     legendPanel
+                    pickerPanel(geo)
                     profiles(geo)
                     bottomPanel(geo)
                 }
