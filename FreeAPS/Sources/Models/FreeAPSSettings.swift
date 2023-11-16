@@ -52,7 +52,6 @@ struct FreeAPSSettings: JSON, Equatable {
     var sweetMeals: Bool = false
     var sweetMealFactor: Decimal = 2
     var displayPredictions: Bool = true
-
 }
 
 extension FreeAPSSettings: Decodable {
