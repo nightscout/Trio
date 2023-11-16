@@ -57,6 +57,7 @@ extension Bolus {
         @Published var fattyMeals: Bool = false
         @Published var fattyMealFactor: Decimal = 0
         @Published var useFattyMealCorrectionFactor: Bool = false
+        @Published var displayPredictions: Bool = true
 
         @Published var currentBasal: Decimal = 0
         @Published var sweetMeals: Bool = false
@@ -82,8 +83,12 @@ extension Bolus {
             useCalc = settings.settings.useCalc
             fattyMeals = settings.settings.fattyMeals
             fattyMealFactor = settings.settings.fattyMealFactor
+<<<<<<< HEAD
             sweetMeals = settings.settings.sweetMeals
             sweetMealFactor = settings.settings.sweetMealFactor
+=======
+            displayPredictions = settings.settings.displayPredictions
+>>>>>>> upstream/dev
 
             if waitForSuggestionInitial {
                 apsManager.determineBasal()

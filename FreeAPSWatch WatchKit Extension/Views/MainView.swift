@@ -80,7 +80,18 @@ struct MainView: View {
                             .scaledToFill()
                             .minimumScaleFactor(0.5)
                     }
-                    Text(state.delta).font(.caption2).foregroundColor(.gray)
+                    /* IF YOU WANT TO DISPLAY MINUTES AGO, UNCOMMENT the gray code below
+                     let minutesAgo: TimeInterval = -1 * (state.glucoseDate ?? .distantPast).timeIntervalSinceNow / 60
+                     let minuteString = minutesAgo.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))
+                     */
+                    HStack {
+                        /* if minutesAgo > 0 {
+                             Text(minuteString)
+                             Text("min")
+                         } */
+                        Text(state.delta)
+                    }
+                    .font(.caption2).foregroundColor(.gray)
                 }
                 Spacer()
 

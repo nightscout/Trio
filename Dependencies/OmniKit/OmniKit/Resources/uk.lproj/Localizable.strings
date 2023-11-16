@@ -63,10 +63,10 @@
 "Communication issue: Unacknowledged command pending." = "Проблема комунікації: не визнана команда в очікуванні.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When Loop automatically adjusts delivery, no confidence reminders are used." = "Сигнали підтвердження лунатимуть для команд, які ви ініціюєте, таких як болюс, скасування болюсу, призупинення, відновлення, збереження сповіщень тощо. Коли петля автоматично регулює подачу, сигнали підтвердження не використовуються.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Нагадування про достовірність лунатимуть для команд, які ви ініціюєте, як-от болюс, скасування болюсу, призупинення, відновлення, збереження сповіщень тощо. Коли Loop автоматично регулює доставку, нагадування про довіру не використовуються.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when Loop automatically adjusts delivery as well as for commands you initiate." = "Сигнали підтвердження лунатимуть, коли петля автоматично регулює подачу, а також для команд, які ви ініціюєте.";
+"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Нагадування про довіру лунатимуть, коли Loop автоматично регулює доставку, а також для команд, які ви ініціюєте.";
 
 /* The title for AlarmCode.other notification */
 "Critical Pod Error" = "Критична Помилка";

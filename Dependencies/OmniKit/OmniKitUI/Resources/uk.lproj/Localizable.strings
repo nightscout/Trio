@@ -153,7 +153,7 @@
 "Confidence Reminders" = "Нагадування про Впевненість";
 
 /* Help text for BeepPreferenceSelectionView */
-"Confidence reminders are beeps from the pod which can be used to acknowledge selected commands." = "Сигнали підтвердження — це звукові сигнали Podʼа, які можна використовувати для підтвердження вибраних команд.";
+"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Сигнали підтвердження — це звукові сигнали Podʼа, які можна використовувати для підтвердження вибраних команд.";
 
 /* The title of the configuration section in settings */
 "Configuration" = "Налаштування";
@@ -547,7 +547,7 @@
 "Remove Pump" = "Зніміть Pod";
 
 /* Label text for step two of attach pod instructions */
-"Remove the pod's needle cap and check cannula. Then remove paper backing." = "Зніміть захисну кришку канюлі та перевірте канюлю. Потім зніміть захисні стікери.";
+"Remove the Pod's clear needle cap and check cannula. Then remove paper backing." = "Видаліть синю кришку голки Podʼа та перевірте канюлю. Потім зніміть паперову підкладку.";
 
 /* Label indicating pod replacement necessary
    The title of the command to replace pod */
@@ -764,3 +764,41 @@
 
 /* Alert message body for confirm pod attachment */
 "Your Pod may still be delivering Insulin.\nRemove it from your body, then tap “Continue.“" = "Ваш Pod може все ще подавати інсулін.\nЗніміть його зі свого тіла, а потім натисніть «Продовжити»";
+
+/* Title string for SilencePodPreference.enabled */
+"Silenced" = "Сповіщення вимкнено";
+
+/* Description for SilencePodPreference.disabled */
+"Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled." = "Звичайний режим роботи, коли звукові сигнали Pod використовуються для всіх сповіщень Pod і коли ввімкнено нагадування про конфіденційність.";
+
+/* Description for SilencePodPreference.enabled */
+"All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts." = "Усі сповіщення Pod не використовують звукові сигнали, а звукові сигнали нагадування про підтвердження пригнічуються. Pod подає звукові сигнали лише у разі фатальних помилок Pod і під час відтворення тестових звукових сигналів.\n\n⚠️Попередження. Щоразу, коли Pod вимкнено, він має залишатися в зоні дії Bluetooth цього пристрою, щоб отримувати сповіщення про сповіщення Pod.";
+
+/* Help text for Silence Pod view */
+/* navigation title for Silnce Pod" */
+
+"Silence Pod mode suppresses all Pod alert and confirmation reminder beeping.
+Silence Pod" = "Silence Pod";
+
+/* title for pod details page */
+"Pod Details" = "Деталі Pod";
+
+/* Text for previous pod details row" */
+"Previous Pod Details" = "Попередні подробиці Pod";
+
+/* Text for pump manager details navigation link */
+"Pump Manager Details" = "Деталі менеджера помпи";
+
+/* button title when retrieving pump manager details */
+"Retrieving Pump Manager Details..." = "Отримання деталей менеджера помп...";
+/* button title to refresh pump manager details */
+"Refresh Pump Manager Details" = "Оновити відомості про керування помпами";
+
+/* Alert title for error when updating silence pod preference */
+"Failed to update silence pod preference." = "Не вдалося оновити налаштування сигналів підтвердження.";
+
+/* Section header for diagnostic section */
+"Diagnostics" = "Diagnostics";
+
+/* Text for read pod status navigation link */
+"Read Pod Status" = "Read Pod Status";

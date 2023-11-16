@@ -153,7 +153,7 @@
 "Confidence Reminders" = "Bekräftelseljud";
 
 /* Help text for BeepPreferenceSelectionView */
-"Confidence reminders are beeps from the pod which can be used to acknowledge selected commands." = "Bekräftelseljud är pip från podden som kan användas som bekräftelser på utförda kommandon";
+"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Bekräftelseljud är pip från podden (när den inte är tystad) som kan användas som bekräftelser på utförda kommandon.";
 
 /* The title of the configuration section in settings */
 "Configuration" = "Konfiguration";
@@ -547,7 +547,7 @@
 "Remove Pump" = "Ta bort podd";
 
 /* Label text for step two of attach pod instructions */
-"Remove the pod's needle cap and check cannula. Then remove paper backing." = "Ta bort kanylskyddet och kontrollera att kanylen inte redan sticker ut. Ta sedan bort skyddspappret.";
+"Remove the Pod's clear needle cap and check cannula. Then remove paper backing." = "Ta bort poddens kanylskydd och kontrollera att kanylen inte redan sticker ut. Ta sedan bort skyddspappret.";
 
 /* Label indicating pod replacement necessary
    The title of the command to replace pod */
@@ -764,3 +764,41 @@
 
 /* Alert message body for confirm pod attachment */
 "Your Pod may still be delivering Insulin.\nRemove it from your body, then tap “Continue.“" = "Din podd kan eventuellt fortfarande ge Insulin.\nTa bort den från din kropp och tryck sedan på ”Fortsätt.”";
+
+/* Title string for SilencePodPreference.enabled */
+"Silenced" = "Tystad";
+
+/* Description for SilencePodPreference.disabled */
+"Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled." = "Normalt läge när ljud är på för både varningar och för bekräftelser.";
+
+/* Description for SilencePodPreference.enabled */
+"All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts." = "\"Varningar kommer inte längre använda ljud och även alla bekräftelseljud kommer att vara avstängda. Podden kommer bara att pipa om du väljer att spela upp testljud.\n\n⚠️Varning - när podden är tystad måste du vara inom räckhåll för dina enheter för att få några poddvarningar.\"";
+
+/* Help text for Silence Pod view */
+/* navigation title for Silnce Pod" */
+
+"Silence Pod mode suppresses all Pod alert and confirmation reminder beeping.
+Silence Pod" = "Tysta podden";
+
+/* title for pod details page */
+"Pod Details" = "Poddetaljer";
+
+/* Text for previous pod details row" */
+"Previous Pod Details" = "Detaljer om tidigare podd";
+
+/* Text for pump manager details navigation link */
+"Pump Manager Details" = "Information om pumphanteraren";
+
+/* button title when retrieving pump manager details */
+"Retrieving Pump Manager Details..." = "Hämtar pumphanterarens detaljer...";
+/* button title to refresh pump manager details */
+"Refresh Pump Manager Details" = "Uppdatera pumphanterarens detaljer";
+
+/* Alert title for error when updating silence pod preference */
+"Failed to update silence pod preference." = "Misslyckades att uppdatera inställning för tystad podd.";
+
+/* Section header for diagnostic section */
+"Diagnostics" = "Diagnostik";
+
+/* Text for read pod status navigation link */
+"Read Pod Status" = "Läd poddstatus";

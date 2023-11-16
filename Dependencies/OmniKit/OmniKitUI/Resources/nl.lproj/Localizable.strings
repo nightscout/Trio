@@ -153,7 +153,7 @@
 "Confidence Reminders" = "Meldingen met piepjes vanuit de Pod";
 
 /* Help text for BeepPreferenceSelectionView */
-"Confidence reminders are beeps from the pod which can be used to acknowledge selected commands." = "Dit zijn meldingen die met piepjes uit de Pod komen en kunnen worden gebruikt ter bevestiging van geselecteerde opdrachten.";
+"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Dit zijn meldingen die met piepjes uit de Pod komen en kunnen worden gebruikt ter bevestiging van geselecteerde opdrachten.";
 
 /* The title of the configuration section in settings */
 "Configuration" = "Configuratie";
@@ -547,7 +547,7 @@
 "Remove Pump" = "Verwijder Pomp";
 
 /* Label text for step two of attach pod instructions */
-"Remove the pod's needle cap and check cannula. Then remove paper backing." = "Verwijder de blauwe naalddop van de Pod en controleer de canule. Verwijder vervolgens de beschermlaag van de hechtstrip.";
+"Remove the Pod's clear needle cap and check cannula. Then remove paper backing." = "Verwijder de blauwe naalddop van de Pod en controleer de canule. Verwijder vervolgens de beschermlaag van de hechtstrip.";
 
 /* Label indicating pod replacement necessary
    The title of the command to replace pod */
@@ -764,3 +764,41 @@
 
 /* Alert message body for confirm pod attachment */
 "Your Pod may still be delivering Insulin.\nRemove it from your body, then tap “Continue.“" = "Je Pod kan nog steeds insuline toedienen.\nVerwijder de Pod van je lichaam en tik vervolgens op \"Ga Verder\".";
+
+/* Title string for SilencePodPreference.enabled */
+"Silenced" = "Gedempt";
+
+/* Description for SilencePodPreference.disabled */
+"Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled." = "Normale bewerkingsmodus waarbij hoorbare puepjes worden gebruikt voor alle Pod waarschuwingen en wanneer meldingen zijn ingeschakeld.";
+
+/* Description for SilencePodPreference.enabled */
+"All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts." = "Alle Pod alarmen gebruiken geen piepjes en herinneringen worden gedempt. De Pod zal alleen piepen bij fatale Pod fouten en bij testpiepen.\n\n⚠️Waarschuwing - Wanneer de Pod is gedempt, moet het binnen het Bluetooth-bereik van dit apparaat worden gehouden om meldingen voor Pod te ontvangen.";
+
+/* Help text for Silence Pod view */
+/* navigation title for Silnce Pod" */
+
+"Silence Pod mode suppresses all Pod alert and confirmation reminder beeping.
+Silence Pod" = "Gedempt";
+
+/* title for pod details page */
+"Pod Details" = "Pod details";
+
+/* Text for previous pod details row" */
+"Previous Pod Details" = "Vorige Pod details";
+
+/* Text for pump manager details navigation link */
+"Pump Manager Details" = "Pomp manager details";
+
+/* button title when retrieving pump manager details */
+"Retrieving Pump Manager Details..." = "Pomp manager gegevens ophalen...";
+/* button title to refresh pump manager details */
+"Refresh Pump Manager Details" = "Pomp manager details verversen";
+
+/* Alert title for error when updating silence pod preference */
+"Failed to update silence pod preference." = "Kon de voorkeur voor meldingen niet bijwerken.";
+
+/* Section header for diagnostic section */
+"Diagnostics" = "Diagnostische gegevens";
+
+/* Text for read pod status navigation link */
+"Read Pod Status" = "";

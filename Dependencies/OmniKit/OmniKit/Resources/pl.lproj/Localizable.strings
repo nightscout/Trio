@@ -63,10 +63,10 @@
 "Communication issue: Unacknowledged command pending." = "Problem z komunikacją: Niepotwierdzone polecenie w toku.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When Loop automatically adjusts delivery, no confidence reminders are used." = "Przypomnienia (sygnały dźwiękowe) będą emitowane w przypadku poleceń, które zainicjujesz, takich jak bolus, anulowanie bolusa, wstrzymanie, wznowienie, zapisanie przypomnień o powiadomieniach itp. Kiedy Loop automatycznie dostosowuje podawanie, nie są używane żadne sygnały dźwiękowe.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when Loop automatically adjusts delivery as well as for commands you initiate." = "Przypomnienia potwierdzające są emitowane, gdy Loop automatycznie dostosowuje podawanie insuliny, a także w przypadku poleceń inicjowanych przez użytkownika.";
+"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate.";
 
 /* The title for AlarmCode.other notification */
 "Critical Pod Error" = "Krytyczny błąd POD'a";

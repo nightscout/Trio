@@ -153,7 +153,7 @@
 "Confidence Reminders" = "Mementouri de confimare";
 
 /* Help text for BeepPreferenceSelectionView */
-"Confidence reminders are beeps from the pod which can be used to acknowledge selected commands." = "Memento-urile de confirmare sunt semnale sonore de la Pod care pot fi folosite pentru confirmarea comenzilor selectate.";
+"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Memento-urile de confirmare sunt semnale sonore de la Pod care pot fi folosite pentru confirmarea comenzilor selectate.";
 
 /* The title of the configuration section in settings */
 "Configuration" = "Configurare";
@@ -550,7 +550,7 @@
 "Remove Pump" = "Ștergeți pompa";
 
 /* Label text for step two of attach pod instructions */
-"Remove the pod's needle cap and check cannula. Then remove paper backing." = "Scoateți capacul acului de pe Pod și verificați canula. Apoi înlăturați eticheta de hârtie de pe spate.";
+"Remove the Pod's clear needle cap and check cannula. Then remove paper backing." = "Scoateți capacul acului de pe Pod și verificați canula. Apoi înlăturați eticheta de hârtie de pe spate.";
 
 /* Label indicating pod replacement necessary
    The title of the command to replace pod */

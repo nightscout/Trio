@@ -62,7 +62,6 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
             self.state.delta = glucoseValues.delta
             self.state.trendRaw = readings.first?.direction ?? "↔︎"
             self.state.glucoseDate = readings.first?.date ?? .distantPast
-            self.state.glucoseDateInterval = self.state.glucoseDate.map { UInt64($0.timeIntervalSince1970) }
             self.state.lastLoopDate = self.enactedSuggestion?.recieved == true ? self.enactedSuggestion?.deliverAt : self
                 .apsManager.lastLoopDate
             self.state.lastLoopDateInterval = self.state.lastLoopDate.map {

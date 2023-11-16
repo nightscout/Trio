@@ -51,6 +51,8 @@ struct FreeAPSSettings: JSON, Equatable {
     var fattyMealFactor: Decimal = 0.7
     var sweetMeals: Bool = false
     var sweetMealFactor: Decimal = 2
+    var displayPredictions: Bool = true
+
 }
 
 extension FreeAPSSettings: Decodable {
@@ -262,6 +264,10 @@ extension FreeAPSSettings: Decodable {
 
         if let onlyAutotuneBasals = try? container.decode(Bool.self, forKey: .onlyAutotuneBasals) {
             settings.onlyAutotuneBasals = onlyAutotuneBasals
+        }
+
+        if let displayPredictions = try? container.decode(Bool.self, forKey: .displayPredictions) {
+            settings.displayPredictions = displayPredictions
         }
 
         self = settings

@@ -602,10 +602,10 @@
 "No confidence reminders are used." = "Er worden geen meldingen met piepjes gebruikt.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When Loop automatically adjusts delivery, no confidence reminders are used." = "Piepjes uit de Pod zullen klinken voor commando's die u hebt geïnitieerd, zoals bolus, annulering, geschorst, hervatten, opslaan van meldingen etc. Als iAPS automatisch de levering wijzigt, worden er geen piepjes gebruikt.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Piepjes uit de Pod zullen klinken voor commando's die je hebt geïnitieerd, zoals bolus, annulering, geschorst, hervatten, opslaan van meldingen etc. Als iAPS automatisch de levering wijzigt, worden er geen piepjes gebruikt.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when Loop automatically adjusts delivery as well as for commands you initiate." = "Piepjes zullen klinken als iAPS de levering automatisch aanpast evenals voor commando's die u initieert.";
+"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Piepjes zullen klinken als iAPS de levering automatisch aanpast evenals voor commando's die je initieert.";
 
 /* Label text for temporary basal rate summary */
 "Rate" = "Waarde";
@@ -785,3 +785,38 @@
 
 /* DASH Pod time ago since last status */
 "%@ ago" = "%@ geleden";
+
+/* Title string for SilencePodPreference.enabled */
+"Silenced" = "Gedempt";
+
+/* Description for SilencePodPreference.disabled */
+"Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled." = "Normale bewerkingsmodus waarbij hoorbare puepjes worden gebruikt voor alle Pod waarschuwingen en wanneer meldingen zijn ingeschakeld.";
+
+/* Description for SilencePodPreference.enabled */
+"All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts." = "Alle Pod alarmen gebruiken geen piepjes en herinneringen worden gedempt. De Pod zal alleen piepen bij fatale Pod fouten en bij testpiepen.\n\n⚠️Waarschuwing - Wanneer de Pod is gedempt, moet het binnen het Bluetooth-bereik van dit apparaat worden gehouden om meldingen voor Pod te ontvangen.";
+
+/* Help text for Silence Pod view */
+"Silence Pod mode suppresses all Pod alert and confirmation reminder beeping." = "Pod modus dempt alle Pod alarmen en herinnering meldingen.";
+
+/* navigation title for Silnce Pod */
+"Silence Pod" = "Gedempt";
+
+/* title for pod details page */
+"Pod Details" = "Pod details";
+
+/* Text for previous pod details row" */
+"Previous Pod Details" = "Vorige Pod details";
+
+/* Text for pump manager details navigation link */
+"Pump Manager Details" = "Pomp manager details";
+
+/* button title when retrieving pump manager details */
+"Retrieving Pump Manager Details..." = "Pomp manager gegevens ophalen...";
+/* button title to refresh pump manager details */
+"Refresh Pump Manager Details" = "Pomp manager details verversen";
+
+/* Section header for diagnostic section */
+"Diagnostics" = "Diagnostische gegevens";
+
+/* Text for read pod status navigation link */
+"Read Pod Status" = "";

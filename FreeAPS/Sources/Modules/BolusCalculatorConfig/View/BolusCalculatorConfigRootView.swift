@@ -43,6 +43,11 @@ extension BolusCalculatorConfig {
                     }
                 } header: { Text("Calculator settings") }
 
+                Section {
+                    Toggle("Display Predictions", isOn: $state.displayPredictions)
+
+                } header: { Text("Smaller iPhone Screens") }
+
                 if state.useCalc {
                     Section {
                         HStack {

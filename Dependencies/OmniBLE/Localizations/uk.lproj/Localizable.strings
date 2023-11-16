@@ -433,7 +433,7 @@
 "Change Pod now. Insulin delivery will stop 8 hours after the Pod has expired or when no more insulin remains." = "Замініть Pod. Подача інсуліну буде зупинена через 8 годин після закінчення терміну дії Pod'a або коли резервуар буде порожній.";
 
 /* Label text for step 1 of pair pod instructions */
-"Fill a new pod with U-100 Insulin (leave blue Pod needle cap on)." = "Заповніть новий Pod інсуліном U-100 (залиште синю захисну кришку Pod'а).";
+"Fill a new pod with U-100 Insulin (leave blue Pod needle cap on)." = "Наповніть новий Pod інсуліном U-100 (залиште синю кришку капсули на голці).";
 
 /* Label text for step 2 of pair pod instructions */
 "Listen for 2 beeps." = "Прослухайте 2 звукові сигнали.";
@@ -573,7 +573,7 @@
 /* Description text for critical alerts */
 "The reminders above will not sound if your device is in Silent or Do Not Disturb mode.\n\nThere are other critical Pod alerts and alarms that will sound even if your device is set to Silent or Do Not Disturb mode." = "Нагадування вище не звучатимуть, якщо ваш пристрій перебуває в беззвучному режимі або режимі «Не турбувати».\n\nІснують інші важливі сповіщення та будильники Podʼу, які лунатимуть, навіть якщо на пристрої встановлено режим «Без звуку» або «Не турбувати».";
 /* navigation title for notification settings */
-"Notification Settings" = "Параметри Сповіщень";
+"Notification Settings" = "Параметри сповіщень";
 
 /* Label for scheduled reminder value row */
 "Time" = "Час";
@@ -602,10 +602,10 @@
 "No confidence reminders are used." = "Нагадування про довіру не використовуються.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When Loop automatically adjusts delivery, no confidence reminders are used." = "Довірені звукові сигнали спрацюють для операцій, які Ви ініціюєте - Болюс, Скасування Болюса, Припинення подачі, Відновлення подачі, Збереження нагадувань тощо. Коли петля автоматично змінює подачу інсуліну – звукові сигнали не використовуються.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Нагадування про достовірність лунатимуть для команд, які ви ініціюєте, як-от болюс, скасування болюсу, призупинення, відновлення, збереження сповіщень тощо. Коли Loop автоматично регулює доставку, нагадування про довіру не використовуються.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when Loop automatically adjusts delivery as well as for commands you initiate." = "Нагадування про довіру лунатимуть, коли петля автоматично регулює доставку, а також для команд, які ви ініціюєте.";
+"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Нагадування про довіру лунатимуть, коли Loop автоматично регулює доставку, а також для команд, які ви ініціюєте.";
 
 /* Label text for temporary basal rate summary */
 "Rate" = "Швидкість";
@@ -785,3 +785,38 @@
 
 /* DASH Pod time ago since last status */
 "%@ ago" = "%@ тому";
+
+/* Title string for SilencePodPreference.enabled */
+"Silenced" = "Сповіщення вимкнено";
+
+/* Description for SilencePodPreference.disabled */
+"Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled." = "Звичайний режим роботи, коли звукові сигнали Pod використовуються для всіх сповіщень Pod і коли ввімкнено нагадування про конфіденційність.";
+
+/* Description for SilencePodPreference.enabled */
+"All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts." = "Усі сповіщення Pod не використовують звукові сигнали, а звукові сигнали нагадування про підтвердження пригнічуються. Pod подає звукові сигнали лише у разі фатальних помилок Pod і під час відтворення тестових звукових сигналів.\n\n⚠️Попередження. Щоразу, коли Pod вимкнено, він має залишатися в зоні дії Bluetooth цього пристрою, щоб отримувати сповіщення про сповіщення Pod.";
+
+/* Help text for Silence Pod view */
+"Silence Pod mode suppresses all Pod alert and confirmation reminder beeping." = "Режим Silence Pod пригнічує всі звукові сигнали сповіщень і нагадувань про підтвердження.";
+
+/* navigation title for Silnce Pod */
+"Silence Pod" = "Silence Pod";
+
+/* title for pod details page */
+"Pod Details" = "Деталі Pod";
+
+/* Text for previous pod details row" */
+"Previous Pod Details" = "Попередні подробиці Pod";
+
+/* Text for pump manager details navigation link */
+"Pump Manager Details" = "Деталі менеджера помпи";
+
+/* button title when retrieving pump manager details */
+"Retrieving Pump Manager Details..." = "Отримання деталей менеджера помп...";
+/* button title to refresh pump manager details */
+"Refresh Pump Manager Details" = "Оновити відомості про керування помпами";
+
+/* Section header for diagnostic section */
+"Diagnostics" = "Diagnostics";
+
+/* Text for read pod status navigation link */
+"Read Pod Status" = "Read Pod Status";

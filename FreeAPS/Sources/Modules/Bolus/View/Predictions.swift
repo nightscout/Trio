@@ -8,6 +8,7 @@ struct PredictionView: View {
     @Binding var units: GlucoseUnits
     @Binding var eventualBG: Int
     @Binding var target: Decimal
+    @Binding var displayPredictions: Bool
 
     private enum Config {
         static let height: CGFloat = 160
@@ -16,7 +17,9 @@ struct PredictionView: View {
 
     var body: some View {
         VStack {
-            chart()
+            if displayPredictions {
+                chart()
+            }
             HStack {
                 let conversion = units == .mmolL ? 0.0555 : 1
                 Text("Eventual Glucose")

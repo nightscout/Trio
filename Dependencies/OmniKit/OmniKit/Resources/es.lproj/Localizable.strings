@@ -63,10 +63,10 @@
 "Communication issue: Unacknowledged command pending." = "Problema de comunicación: Pendiente de confirmar comando.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When Loop automatically adjusts delivery, no confidence reminders are used." = "Los recordatorios de confianza sonarán para los comandos que seleccione, como bolo, cancelar bolo, suspender, reanudar, guardar recordatorios de notificación, etc. Cuando Loop ajusta automáticamente la administración de insulina, no se utilizan recordatorios de confianza.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when Loop automatically adjusts delivery as well as for commands you initiate." = "Recordatorios de confianza sonarán cuando Loop  automáticamente ajuste la administración de insulina, así como para los comandos que selecciones.";
+"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate.";
 
 /* The title for AlarmCode.other notification */
 "Critical Pod Error" = "Error crítico del Pod";

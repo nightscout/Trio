@@ -176,7 +176,8 @@ extension Bolus {
         var predictionChart: some View {
             ZStack {
                 PredictionView(
-                    predictions: $state.predictions, units: $state.units, eventualBG: $state.evBG, target: $state.target
+                    predictions: $state.predictions, units: $state.units, eventualBG: $state.evBG, target: $state.target,
+                    displayPredictions: $state.displayPredictions
                 )
             }
         }

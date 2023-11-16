@@ -56,37 +56,37 @@
 "Error at" = "Fejl ved";
 
 /* Bolus View Meal Summary Header */
-"Meal Summary" = "Meal Summary";
+"Meal Summary" = "Måltidsoversigt";
 
 /* Bolus View Meal Edit Meal Button */
-"Edit Meal" = "Edit Meal";
+"Edit Meal" = "Rediger Måltid";
 
 /* Bolus View Meal Add Meal Button */
-"Add Meal" = "Add Meal";
+"Add Meal" = "Tilføj Måltid";
 
 /* Bolus View Bolus Summary Header */
-"Bolus Summary" = "Bolus Summary";
+"Bolus Summary" = "Bolusoversigt";
 
 /* For the  Bolus View pop-up */
-"Calculations" = "Calculations";
+"Calculations" = "Beregninger";
 
 /* For the  Bolus View pop-up */
-"Fatty Meal" = "Fatty Meal";
+"Fatty Meal" = "Fedt Måltid";
 
 /* For the  Bolus View pop-up */
-"Full Bolus" = "Full Bolus";
+"Full Bolus" = "Fuld Bolus";
 
 /* For the  Bolus View pop-up */
-"Fraction" = "Fraction";
+"Fraction" = "Fraktion";
 
 /* For the  Bolus View pop-up */
-"Fatty Meal Factor" = "Fatty Meal Factor";
+"Fatty Meal Factor" = "Fedt Måltidsfaktor";
 
 /* For the  Bolus View pop-up */
-"Result" = "Result";
+"Result" = "Resultat";
 
 /* For the  Bolus View pop-up */
-"Your entered amount was limited by your max Bolus setting of %d%@" = "Your entered amount was limited by your max Bolus setting of %d%@";
+"Your entered amount was limited by your max Bolus setting of %d%@" = "Din indtastade mængde blev begrænset af din maksimale Bolusindstilling på %d%@";
 
 /* Bolus View Continue Button */
 "Continue" = "Fortsæt";
@@ -122,7 +122,7 @@
 "Carbs required" = "Krævede kulhydrater";
 
 /* Saved Food Presets */
-"Saved Food" = "Saved Food";
+"Saved Food" = "Gemte Måltider";
 
 /* */
 "Are you sure?" = "Er du sikker?";
@@ -609,7 +609,7 @@ Enact a temp Basal or a temp target */
 "Automatic" = "Automatisk";
 
 /* External insulin treatments */
-"External" = "External";
+"External" = "Ekstern";
 
 /* */
 "Other" = "Andet";
@@ -630,7 +630,7 @@ Enact a temp Basal or a temp target */
 "Libre 2 Direct" = "Libre 2 Direct";
 
 /* */
-"Select the third party transmitter you want to connect to" = "Select the third party transmitter you want to connect to";
+"Select the third party transmitter you want to connect to" = "Vælg den tredjeparts sensor du vil forbinde til";
 
 /* State was restored */
 "State was restored" = "Tilstand blev gendannet";
@@ -645,13 +645,13 @@ Enact a temp Basal or a temp target */
 "Add calibration" = "Tilføj kalibrering";
 
 /* When adding capillary glucose meater reading */
-"Meter glucose" = "Meter glucose";
+"Meter glucose" = "Måler glucose";
 
 /* */
 "Info" = "Info";
 
 /*v*/
-"Slope" = "Slope";
+"Slope" = "Hældning";
 
 /* */
 "Intercept" = "Intercept";
@@ -681,7 +681,7 @@ Enact a temp Basal or a temp target */
 "PatchInfo" = "PatchInfo";
 
 /* */
-"Calibrationinfo" = "Calibrationinfo";
+"Calibrationinfo" = "Kalibreringsinfo";
 
 /* */
 "Unknown" = "Ukendt";
@@ -693,25 +693,25 @@ Enact a temp Basal or a temp target */
 "Pair Sensor & connect" = "Par Sensor & Forbind";
 
 /* */
-"Phone NFC required!" = "Phone NFC required!";
+"Phone NFC required!" = "Telefon NFC påkrævet!";
 
 /* */
 "Your phone or app is not enabled for NFC communications, which is needed to pair to libre2 sensors" = "Din telefon eller app er ikke aktiveret til NFC-kommunikation, som er nødvendig for at parre til libre2 sensorer";
 
 /* Bluetooth Power Off */
-"Bluetooth Power Off" = "Bluetooth Power Off";
+"Bluetooth Power Off" = "Bluetooth Slået Fra";
 
 /* Please turn on Bluetooth */
 "Please turn on Bluetooth" = "Slå Bluetooth til";
 
 /* No Libre Transmitter Selected */
-"No Libre Transmitter Selected" = "No Libre Transmitter Selected";
+"No Libre Transmitter Selected" = "Ingen Libre Sensor Valgt";
 
 /* Delete Transmitter and start anew. */
 "Delete CGMManager and start anew. Your libreoopweb credentials will be preserved" = "Delete CGMManager and start anew. Your libreoopweb credentials will be preserved";
 
 /* Invalid libre checksum */
-"Invalid libre checksum" = "Invalid libre checksum";
+"Invalid libre checksum" = "Ugyldig libre checksum";
 
 /* Libre sensor was incorrectly read, CRCs were not valid */
 "Libre sensor was incorrectly read, CRCs were not valid" = "Libre sensor was incorrectly read, CRCs were not valid";
@@ -720,19 +720,19 @@ Enact a temp Basal or a temp target */
 "Glucose" = "Glukose";
 
 /* LOWALERT! */
-"LOWALERT!" = "LOWALERT!";
+"LOWALERT!" = "LAVALARM!";
 
 /* HIGHALERT! */
-"HIGHALERT!" = "HIGHALERT!";
+"HIGHALERT!" = "HØJALARM!";
 
 /* (Snoozed)*/
-"(Snoozed)" = "(Snoozed)";
+"(Snoozed)" = "(Udsat)";
 
 /* Glucose: %@ */
-"Glucose: %@" = "Glucose: %@";
+"Glucose: %@" = "Glukose: %@";
 
 /* Transmitter: %@%% */
-"Transmitter: %@%%" = "Transmitter: %@%%";
+"Transmitter: %@%%" = "Sensor: %@%%";
 
 /* No Sensor Detected */
 "No Sensor Detected" = "Ingen Sensor Fundet";
@@ -780,7 +780,7 @@ Enact a temp Basal or a temp target */
 "Extracting calibrationdata from sensor" = "Extracting calibrationdata from sensor";
 
 /* Sensor Ending Soon */
-"Sensor Ending Soon" = "Sensor Ending Soon";
+"Sensor Ending Soon" = "Sensor Udløber Snart";
 
 /* Current Sensor is Ending soon! Sensor Life left in %@ */
 "Current Sensor is Ending soon! Sensor Life left in %@" = "Current Sensor is Ending soon! Sensor Life left in %@";
@@ -789,10 +789,10 @@ Enact a temp Basal or a temp target */
 "Libre Bluetooth" = "Libre Bluetooth";
 
 /* */
-"Snooze Alerts" = "Snooze Alerts";
+"Snooze Alerts" = "Udsæt Alarmer";
 
 /* */
-"Last measurement" = "Last measurement";
+"Last measurement" = "Sidste måling";
 
 /* */
 "Sensor Footer checksum" = "Sensor Footer checksum";
@@ -807,22 +807,22 @@ Enact a temp Basal or a temp target */
 "Sensor Info" = "Sensor Info";
 
 /* */
-"Sensor Age" = "Sensor Age";
+"Sensor Age" = "Sensor Alder";
 
 /* */
-"Sensor Age Left" = "Sensor Age Left";
+"Sensor Age Left" = "Sensor Tid Tilbage";
 
 /* */
-"Sensor Endtime" = "Sensor Endtime";
+"Sensor Endtime" = "Sensor Sluttid";
 
 /* */
-"Sensor State" = "Sensor State";
+"Sensor State" = "Sensortilstand";
 
 /* */
-"Sensor Serial" = "Sensor Serial";
+"Sensor Serial" = "Sensor Serienummer";
 
 /* */
-"Transmitter Info" = "Transmitter Info";
+"Transmitter Info" = "Senderinfo";
 
 /* */
 "Hardware" = "Hardware";
@@ -1065,16 +1065,16 @@ Enact a temp Basal or a temp target */
 "Temp Target" = "Temp Target";
 
 /* */
-"Resume" = "Resume";
+"Resume" = "Genoptag";
 
 /* */
-"Suspend" = "Suspend";
+"Suspend" = "Suspender";
 
 /* */
-"Animated Background" = "Animated Background";
+"Animated Background" = "Animeret Baggrund";
 
 /* Sensor day(s) */
-" day(s)" = " day(s)";
+" day(s)" = " dag(e)";
 
 /* Option to show HR in Watch app*/
 "Display HR on Watch" = "Display HR on Watch";
@@ -1391,6 +1391,12 @@ Enact a temp Basal or a temp target */
 /* */
 "Save as Preset" = "Gem som forudindstilling";
 
+/* */
+"Predictions" = "Predictions";
+
+/* Watch Config Option */
+"Display Protein & Fat" = "Display Protein & Fat";
+
 /* ----------------------- New Bolus Calculator ---------------------------*/
 /* Warning about bolus recommendation. Title */
 
@@ -1474,7 +1480,7 @@ Enact a temp Basal or a temp target */
 /* Text for confidence reminders navigation link */
 "Confidence Reminders" = "Confidence Reminders";
 
-"Confidence reminders are beeps from the pod which can be used to acknowledge selected commands." = "Confidence reminders are beeps from the pod which can be used to acknowledge selected commands.";
+"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced.";
 
 /* button title for saving low reservoir reminder while saving */
 "Saving..." = "Gemmer...";
@@ -1504,10 +1510,10 @@ Enact a temp Basal or a temp target */
 "No confidence reminders are used." = "No confidence reminders are used.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When Loop automatically adjusts delivery, no confidence reminders are used." = "Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When Loop automatically adjusts delivery, no confidence reminders are used.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when Loop automatically adjusts delivery as well as for commands you initiate." = "Confidence reminders will sound when Loop automatically adjusts delivery as well as for commands you initiate.";
+"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate.";
 
 /* Label text for expiration reminder default row */
 "Expiration Reminder Default" = "Expiration Reminder Default";

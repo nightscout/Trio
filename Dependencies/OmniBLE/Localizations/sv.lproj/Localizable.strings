@@ -602,10 +602,10 @@
 "No confidence reminders are used." = "Inga ljud på.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When Loop automatically adjusts delivery, no confidence reminders are used." = "Bekräftelseljud kommer att pipa för för ala pumpkommandon du ger, som bolus, avbryt bolus, pausa pump, återuppta insulintillförsel, spara påminnelser etc. När iAPS automatiskt justerar insulintillförsel kommer inga pip att ljuda.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Bekräftelseljud kommer att pipa för för ala pumpkommandon du ger, som bolus, avbryt bolus, pausa pump, återuppta insulintillförsel, spara påminnelser etc. När iAPS automatiskt justerar insulintillförsel kommer inga pip att ljuda.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when Loop automatically adjusts delivery as well as for commands you initiate." = "Bekräftelsepip kommer att ljuda även vid automatiska pumpkommandon såväl som vid manuella.";
+"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Bekräftelsepip kommer att ljuda även vid automatiska pumpkommandon såväl som vid manuella.";
 
 /* Label text for temporary basal rate summary */
 "Rate" = "Värde";
@@ -790,7 +790,33 @@
 "Silenced" = "Tystad";
 
 /* Description for SilencePodPreference.disabled */
-"Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled." = "Normalt läge när ljud är på både för varningar och för bekräftelser.";
+"Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled." = "Normalt läge när ljud är på för både varningar och för bekräftelser.";
 
 /* Description for SilencePodPreference.enabled */
-"All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts." = "Varningar kommer inte längre använda ljud och alla bekräftelseljud kommer också att vara avstängda. Podden kommer bara att pipa om du väljer att spela upp testljud.\n\n⚠️Varning - när podden är tystad måste du vara inom räckhåll för dina enheter för att några poddvarningar.";
+"All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts." = "\"Varningar kommer inte längre använda ljud och även alla bekräftelseljud kommer att vara avstängda. Podden kommer bara att pipa om du väljer att spela upp testljud.\n\n⚠️Varning - när podden är tystad måste du vara inom räckhåll för dina enheter för att få några poddvarningar.\"";
+
+/* Help text for Silence Pod view */
+"Silence Pod mode suppresses all Pod alert and confirmation reminder beeping." = "Under tyst poddläge stängs alla poddens ljud av.";
+
+/* navigation title for Silnce Pod */
+"Silence Pod" = "Tysta podden";
+
+/* title for pod details page */
+"Pod Details" = "Poddetaljer";
+
+/* Text for previous pod details row" */
+"Previous Pod Details" = "Detaljer om tidigare podd";
+
+/* Text for pump manager details navigation link */
+"Pump Manager Details" = "Information om pumphanteraren";
+
+/* button title when retrieving pump manager details */
+"Retrieving Pump Manager Details..." = "Hämtar pumphanterarens detaljer...";
+/* button title to refresh pump manager details */
+"Refresh Pump Manager Details" = "Uppdatera pumphanterarens detaljer";
+
+/* Section header for diagnostic section */
+"Diagnostics" = "Diagnostik";
+
+/* Text for read pod status navigation link */
+"Read Pod Status" = "Läd poddstatus";
