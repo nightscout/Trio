@@ -123,6 +123,25 @@ extension Home {
                 .padding([.leading, .trailing], 10)
         }
 
+        @ViewBuilder func header2(_: GeometryProxy) -> some View {
+//            let colour: Color = colorScheme == .dark ? .gray.opacity(0.2) : .white
+
+            HStack {
+                Spacer()
+                cobIobView2
+//                Spacer()
+//                        glucoseView
+//                        Spacer()
+//                loopView
+//                Spacer()
+                pumpView
+                Spacer()
+            }
+//            .frame(maxWidth: .infinity)
+//                    .padding(.top, 10 + geo.safeAreaInsets.top)
+//                    .padding(.bottom, 10)
+        }
+
         var cobIobView: some View {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
@@ -141,6 +160,28 @@ extension Home {
                     )
                     .font(.footnote).fontWeight(.bold)
                 }.frame(alignment: .bottom)
+            }
+        }
+
+        var cobIobView2: some View {
+            HStack {
+                Text("IOB").font(.callout).foregroundColor(.secondary)
+                Text(
+                    (numberFormatter.string(from: (state.suggestion?.iob ?? 0) as NSNumber) ?? "0") +
+                        NSLocalizedString(" U", comment: "Insulin unit")
+                )
+                .font(.callout).fontWeight(.bold)
+
+                Spacer()
+
+                Text("COB").font(.callout).foregroundColor(.secondary)
+                Text(
+                    (numberFormatter.string(from: (state.suggestion?.cob ?? 0) as NSNumber) ?? "0") +
+                        NSLocalizedString(" g", comment: "gram of carbs")
+                )
+                .font(.callout).fontWeight(.bold)
+                
+                Spacer()
             }
         }
 
@@ -647,19 +688,21 @@ extension Home {
             GeometryReader { geo in
                 VStack(spacing: 0) {
                     glucoseView
-                        .padding(.top, 90)
+                        .padding(.top, 80)
+
+                    header2(geo)
+                        .padding(.vertical, 35)
+                        .padding([.leading, .trailing], 10)
 
                     infoPanel
-                        .padding(.top, 5)
-
-                    header(geo)
+                        .padding([.leading, .trailing], 10)
 
                     RoundedRectangle(cornerRadius: 15)
                         .fill(colourChart)
                         .shadow(radius: 3)
                         .overlay(mainChart)
                         .padding([.leading, .trailing], 10)
-                        .padding(.top, 10)
+                        .padding(.top, 5)
                         .frame(height: UIScreen.main.bounds.height / 2.2) // with 2 chart was still too big
 
                     pickerPanel(geo)

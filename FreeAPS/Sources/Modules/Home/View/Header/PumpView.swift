@@ -21,36 +21,41 @@ struct PumpView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        HStack {
+            Spacer()
+
             if let reservoir = reservoir {
                 HStack {
                     Image(systemName: "drop.fill")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(maxHeight: 10)
+                        .frame(maxHeight: 15)
                         .foregroundColor(reservoirColor)
                     if reservoir == 0xDEAD_BEEF {
-                        Text("50+ " + NSLocalizedString("U", comment: "Insulin unit")).font(.footnote)
+                        Text("50+ " + NSLocalizedString("U", comment: "Insulin unit")).font(.callout)
                             .fontWeight(.bold)
                     } else {
                         Text(
                             reservoirFormatter
                                 .string(from: reservoir as NSNumber)! + NSLocalizedString(" U", comment: "Insulin unit")
                         )
-                        .font(.footnote).fontWeight(.bold)
+                        .font(.callout).fontWeight(.bold)
                     }
-                }.frame(alignment: .top)
+                }
             }
+
+            Spacer()
+
             if let battery = battery, battery.display ?? false, expiresAtDate == nil {
                 HStack {
                     Image(systemName: "battery.100")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(maxHeight: 10)
+                        .frame(maxHeight: 15)
                         .foregroundColor(batteryColor)
-                    Text("\(Int(battery.percent ?? 100)) %").font(.footnote)
+                    Text("\(Int(battery.percent ?? 100)) %").font(.callout)
                         .fontWeight(.bold)
-                }.frame(alignment: .bottom)
+                }
             }
 
             if let date = expiresAtDate {
@@ -58,11 +63,14 @@ struct PumpView: View {
                     Image(systemName: "stopwatch.fill")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(maxHeight: 10)
+                        .frame(maxHeight: 15)
                         .foregroundColor(timerColor)
-                    Text(remainingTimeString(time: date.timeIntervalSince(timerDate))).font(.footnote)
+
+                    Spacer()
+
+                    Text(remainingTimeString(time: date.timeIntervalSince(timerDate))).font(.callout)
                         .fontWeight(.bold)
-                }.frame(alignment: .bottom)
+                }
             }
         }
     }
@@ -98,11 +106,11 @@ struct PumpView: View {
 
         switch percent {
         case ...10:
-            return .loopRed
+            return .red
         case ...20:
-            return .loopYellow
+            return .yellow
         default:
-            return .loopGreen
+            return .green
         }
     }
 
@@ -113,11 +121,11 @@ struct PumpView: View {
 
         switch reservoir {
         case ...10:
-            return .loopRed
+            return .red
         case ...30:
-            return .loopYellow
+            return .yellow
         default:
-            return .insulin
+            return .blue
         }
     }
 
@@ -130,11 +138,11 @@ struct PumpView: View {
 
         switch time {
         case ...8.hours.timeInterval:
-            return .loopRed
+            return .red
         case ...1.days.timeInterval:
-            return .loopYellow
+            return .yellow
         default:
-            return .loopGreen
+            return .green
         }
     }
 }

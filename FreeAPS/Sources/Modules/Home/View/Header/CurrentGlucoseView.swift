@@ -11,6 +11,8 @@ struct CurrentGlucoseView: View {
 
     @State private var rotationDegrees: Double = 0.0
 
+    @Environment(\.colorScheme) var colorScheme
+
     private var glucoseFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
@@ -47,6 +49,8 @@ struct CurrentGlucoseView: View {
     }
 
     var body: some View {
+        let colourGlucoseText: Color = colorScheme == .dark ? .white : .black
+
         ZStack {
             TrendShape(color: colorOfGlucose)
                 .rotationEffect(.degrees(rotationDegrees))
@@ -61,7 +65,7 @@ struct CurrentGlucoseView: View {
                             ?? "--"
                     )
                     .font(.system(size: 40, weight: .bold))
-                    .foregroundColor(alarm == nil ? colorOfGlucose : .loopRed)
+                    .foregroundColor(alarm == nil ? colourGlucoseText : .loopRed)
 
                     //                image
                 }
@@ -194,7 +198,7 @@ struct CircleShape: View {
     let color: Color
 
     var body: some View {
-        let colorBackground: Color = colorScheme == .dark ? .gray.opacity(0.2) : .white
+        let colorBackground: Color = colorScheme == .dark ? .black : .white
 
         Circle()
             .stroke(color, lineWidth: 10)
