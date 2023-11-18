@@ -80,66 +80,12 @@ extension Home {
             return scene
         }
 
-//        @ViewBuilder func header(_ geo: GeometryProxy) -> some View {
-//            HStack(alignment: .bottom) {
-//                Spacer()
-//                cobIobView
-//                Spacer()
-//                glucoseView
-//                Spacer()
-//                pumpView
-//                Spacer()
-//                loopView
-//                Spacer()
-//            }
-//            .frame(maxWidth: .infinity)
-//            .padding(.top, 10 + geo.safeAreaInsets.top)
-//            .padding(.bottom, 10)
-//            .background(Color.gray.opacity(0.3))
-//        }
         @ViewBuilder func header(_: GeometryProxy) -> some View {
-            let colour: Color = colorScheme == .dark ? .gray.opacity(0.2) : .white
-            RoundedRectangle(cornerRadius: 15)
-                .fill(colour)
-                .shadow(radius: 3)
-//                .frame(height: UIScreen.main.bounds.height / 6)
-                .overlay(
-                    HStack(alignment: .bottom) {
-                        Spacer()
-                        cobIobView
-                        Spacer()
-//                        glucoseView
-//                        Spacer()
-                        loopView
-                        Spacer()
-                        pumpView
-                        Spacer()
-                    }
-//                    .frame(maxWidth: .infinity)
-//                    .padding(.top, 10 + geo.safeAreaInsets.top)
-//                    .padding(.bottom, 10)
-                )
-                .frame(height: UIScreen.main.bounds.height / 13)
-                .padding([.leading, .trailing], 10)
-        }
-
-        @ViewBuilder func header2(_: GeometryProxy) -> some View {
-//            let colour: Color = colorScheme == .dark ? .gray.opacity(0.2) : .white
-
             HStack {
                 Spacer()
-//                cobIobView2
-//                Spacer()
-//                        glucoseView
-//                        Spacer()
-//                loopView
-//                Spacer()
                 pumpView
                 Spacer()
             }
-//            .frame(maxWidth: .infinity)
-//                    .padding(.top, 10 + geo.safeAreaInsets.top)
-//                    .padding(.bottom, 10)
         }
 
         var cobIobView: some View {
@@ -490,7 +436,6 @@ extension Home {
                 }
                 .pickerStyle(.segmented)
                 .background(Color.clear)
-                .shadow(radius: 3)
                 .frame(width: UIScreen.main.bounds.width / 1.5, height: 40, alignment: .center)
             }
             .padding(.vertical, 1)
@@ -678,7 +623,6 @@ extension Home {
                     .buttonStyle(.borderless)
                 }
                 .padding(.horizontal, 24)
-//                .padding(.bottom, geo.safeAreaInsets.bottom)
             }
         }
 
@@ -698,7 +642,7 @@ extension Home {
                             .padding(.top, 75)
                     }
 
-                    header2(geo)
+                    header(geo)
                         .padding(.top, 40)
                         .padding([.leading, .trailing], 10)
 
