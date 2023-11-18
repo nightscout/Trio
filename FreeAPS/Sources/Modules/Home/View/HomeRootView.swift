@@ -708,11 +708,12 @@ extension Home {
 
                     RoundedRectangle(cornerRadius: 15)
                         .fill(colourChart)
-                        .shadow(radius: 3)
                         .overlay(mainChart)
+                        .clipShape(RoundedRectangle(cornerRadius: 15))
+                        .shadow(radius: 3)
                         .padding([.leading, .trailing], 10)
                         .padding(.top, 5)
-                        .frame(height: UIScreen.main.bounds.height / 2.2) // with 2 chart was still too big
+                        .frame(maxHeight: UIScreen.main.bounds.height / 2.2)
 
                     pickerPanel(geo)
                         .padding(.top, 13)
