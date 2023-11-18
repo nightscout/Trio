@@ -169,3 +169,14 @@ struct PumpView: View {
         }
     }
 }
+
+struct Hairline: View {
+    let color: Color
+
+    var body: some View {
+        Rectangle()
+            .fill(color)
+            .frame(width: UIScreen.main.bounds.width / 1.3, height: 1)
+            .opacity(0.5)
+    }
+}

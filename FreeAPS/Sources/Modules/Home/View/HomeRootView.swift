@@ -640,32 +640,40 @@ extension Home {
                             /// circles width is 110, loops width is 35 -> (110/2) - (35/2) = 55 - 17.5 = 37.5
                             .offset(x: UIScreen.main.bounds.width * 0.43, y: -37.5)
                             .padding(.top, 75)
+                            .padding(.trailing, 10)
                     }
 
+                    Spacer()
+
                     header(geo)
-                        .padding(.top, 40)
-                        .padding([.leading, .trailing], 10)
+                        .padding(.top, 15)
+                        .padding(.horizontal, 10)
+
+                    Spacer()
 
                     infoPanel
-                        .padding([.leading, .trailing], 10)
-                        .padding(.top, 25)
+                        .padding(.horizontal, 10)
 
                     RoundedRectangle(cornerRadius: 15)
                         .fill(colourChart)
                         .overlay(mainChart)
                         .clipShape(RoundedRectangle(cornerRadius: 15))
                         .shadow(radius: 3)
-                        .padding([.leading, .trailing], 10)
-                        .padding(.top, 5)
+                        .padding(.horizontal, 10)
                         .frame(maxHeight: UIScreen.main.bounds.height / 2.2)
 
+                    Spacer()
+
                     pickerPanel(geo)
-                        .padding(.top, 13)
+//
+                    Spacer()
+
                     legendPanel
-                        .padding(.top, 10)
+//
+                    Spacer()
 
                     bottomPanel(geo)
-                        .padding(.top, 3)
+//
                 }
                 .edgesIgnoringSafeArea(.vertical)
             }
