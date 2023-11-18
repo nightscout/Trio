@@ -690,18 +690,21 @@ extension Home {
                 VStack(spacing: 0) {
                     ZStack {
                         glucoseView
-                            .padding(.top, 80)
+                            .padding(.top, 75)
 
                         loopView
-                            .offset(x: UIScreen.main.bounds.width * 0.35)
+                            /// circles width is 110, loops width is 35 -> (110/2) - (35/2) = 55 - 17.5 = 37.5
+                            .offset(x: UIScreen.main.bounds.width * 0.43, y: -37.5)
+                            .padding(.top, 75)
                     }
 
                     header2(geo)
-                        .padding(.vertical, 35)
+                        .padding(.top, 40)
                         .padding([.leading, .trailing], 10)
 
                     infoPanel
                         .padding([.leading, .trailing], 10)
+                        .padding(.top, 25)
 
                     RoundedRectangle(cornerRadius: 15)
                         .fill(colourChart)
@@ -712,15 +715,12 @@ extension Home {
                         .frame(height: UIScreen.main.bounds.height / 2.2) // with 2 chart was still too big
 
                     pickerPanel(geo)
-                        .padding(.top, 5)
+                        .padding(.top, 13)
                     legendPanel
-                        .padding(.top, 5)
-
-//                    profiles(geo)
-//                        .padding(.top, 2)
+                        .padding(.top, 10)
 
                     bottomPanel(geo)
-                        .padding(.top, 5)
+                        .padding(.top, 3)
                 }
                 .edgesIgnoringSafeArea(.vertical)
             }
