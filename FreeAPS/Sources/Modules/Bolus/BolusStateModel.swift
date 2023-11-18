@@ -59,6 +59,12 @@ extension Bolus {
         @Published var useFattyMealCorrectionFactor: Bool = false
         @Published var displayPredictions: Bool = true
 
+        @Published var currentBasal: Decimal = 0
+        @Published var sweetMeals: Bool = false
+        @Published var sweetMealFactor: Decimal = 0
+        @Published var useSuperBolus: Bool = false
+        @Published var superBolusInsulin: Decimal = 0
+
         @Published var meal: [CarbsEntry]?
         @Published var carbs: Decimal = 0
         @Published var fat: Decimal = 0
@@ -77,6 +83,8 @@ extension Bolus {
             useCalc = settings.settings.useCalc
             fattyMeals = settings.settings.fattyMeals
             fattyMealFactor = settings.settings.fattyMealFactor
+            sweetMeals = settings.settings.sweetMeals
+            sweetMealFactor = settings.settings.sweetMealFactor
             displayPredictions = settings.settings.displayPredictions
 
             if waitForSuggestionInitial {
@@ -95,6 +103,42 @@ extension Bolus {
                 suggestion = notNilSugguestion
                 if let notNilPredictions = suggestion?.predictions {
                     predictions = notNilPredictions
+                }
+            }
+        }
+
+        func getCurrentBasal() {
+            let basalEntries = provider.getProfile()
+
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "HH:mm:ss"
+            let currentTime = dateFormatter.string(from: Date())
+
+            // loop throug entries and get current basal entry
+            for (index, entry) in basalEntries.enumerated() {
+                if let entryStartTimeDate = dateFormatter.date(from: entry.start) {
+                    var entryEndTimeDate: Date
+
+                    if index < basalEntries.count - 1 {
+                        let nextEntry = basalEntries[index + 1]
+                        if let nextEntryStartTimeDate = dateFormatter.date(from: nextEntry.start) {
+                            let timeDifference = nextEntryStartTimeDate.timeIntervalSince(entryStartTimeDate)
+                            entryEndTimeDate = entryStartTimeDate.addingTimeInterval(timeDifference)
+                        } else {
+                            continue
+                        }
+                    } else {
+                        entryEndTimeDate = Date()
+                    }
+                    // if currenTime is between start and end of basal entry -> basal = currentBasal
+                    if let currentTimeDate = dateFormatter.date(from: currentTime) {
+                        if currentTimeDate >= entryStartTimeDate, currentTimeDate <= entryEndTimeDate {
+                            if let basal = entry.rate as? Decimal {
+                                currentBasal = basal
+                                break
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -150,6 +194,9 @@ extension Bolus {
             // apply custom factor if fatty meal toggle in bolus calc config settings is on and the box for fatty meals is checked (in RootView)
             if useFattyMealCorrectionFactor {
                 insulinCalculated = result * fattyMealFactor
+            } else if useSuperBolus {
+                superBolusInsulin = sweetMealFactor * currentBasal
+                insulinCalculated = wholeCalc + superBolusInsulin
             } else {
                 insulinCalculated = result
             }
@@ -217,6 +264,7 @@ extension Bolus {
                     .roundBolus(amount: max(self.insulinRecommended, 0))
 
                 if self.useCalc {
+                    self.getCurrentBasal()
                     self.getDeltaBG()
                     self.insulinCalculated = self.calculateInsulin()
                 }

@@ -6,6 +6,8 @@ extension BolusCalculatorConfig {
         @Published var useCalc: Bool = false
         @Published var fattyMeals: Bool = false
         @Published var fattyMealFactor: Decimal = 0
+        @Published var sweetMeals: Bool = false
+        @Published var sweetMealFactor: Decimal = 0
         @Published var insulinReqPercentage: Decimal = 70
         @Published var displayPredictions: Bool = true
 
@@ -22,6 +24,13 @@ extension BolusCalculatorConfig {
             subscribeSetting(\.fattyMealFactor, on: $fattyMealFactor, initial: {
                 let value = max(min($0, 1.2), 0.1)
                 fattyMealFactor = value
+            }, map: {
+                $0
+            })
+            subscribeSetting(\.sweetMeals, on: $sweetMeals) { sweetMeals = $0 }
+            subscribeSetting(\.sweetMealFactor, on: $sweetMealFactor, initial: {
+                let value = max(min($0, 5), 1)
+                sweetMealFactor = value
             }, map: {
                 $0
             })
