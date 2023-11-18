@@ -98,7 +98,7 @@ extension Home {
 //            .background(Color.gray.opacity(0.3))
 //        }
         @ViewBuilder func header(_: GeometryProxy) -> some View {
-            let colour: Color = colorScheme == .dark ? .gray.opacity(0.1) : .white
+            let colour: Color = colorScheme == .dark ? .gray.opacity(0.2) : .white
             RoundedRectangle(cornerRadius: 15)
                 .fill(colour)
                 .shadow(radius: 3)
@@ -526,7 +526,7 @@ extension Home {
         }
 
         @ViewBuilder private func bottomPanel(_: GeometryProxy) -> some View {
-            let colourRectangle: Color = colorScheme == .dark ? .gray.opacity(0.1) : .white
+            let colourRectangle: Color = colorScheme == .dark ? .gray.opacity(0.2) : .white
 
             ZStack {
                 Rectangle()
@@ -642,7 +642,7 @@ extension Home {
 
         var body: some View {
             let colourBackground: Color = colorScheme == .dark ? .black.opacity(0.5) : .gray.opacity(0.1)
-            let colourChart: Color = colorScheme == .dark ? .gray.opacity(0.1) : .white
+            let colourChart: Color = colorScheme == .dark ? .gray.opacity(0.2) : .white
 
             GeometryReader { geo in
                 VStack(spacing: 0) {
