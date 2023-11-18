@@ -490,8 +490,8 @@ extension Home {
                 }
                 .pickerStyle(.segmented)
                 .background(Color.clear)
+                .shadow(radius: 3)
                 .frame(width: UIScreen.main.bounds.width / 1.5, height: 40, alignment: .center)
-                .disabled(state.bolusProgress != nil)
             }
             .padding(.vertical, 1)
         }
