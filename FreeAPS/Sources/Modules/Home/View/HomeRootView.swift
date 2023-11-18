@@ -650,7 +650,7 @@ extension Home {
                         .padding(.top, 55)
 
                     glucoseView
-                        .padding(.vertical, 15)
+                        .padding(.vertical, 20)
 
                     infoPanel
 
@@ -670,7 +670,7 @@ extension Home {
 //                        .padding(.top, 2)
 
                     bottomPanel(geo)
-                        .padding(.top, 20)
+                        .padding(.top, 5)
                 }
                 .edgesIgnoringSafeArea(.vertical)
             }
