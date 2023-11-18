@@ -143,9 +143,9 @@ extension Bolus {
 
             .onDisappear {
                 if fetch, hasFatOrProtein, !keepForNextWiew, !state.useCalc {
-                    state.delete(deleteTwice: true, id: meal.first?.id ?? "")
+                    state.delete(deleteTwice: true, meal: meal)
                 } else if fetch, !keepForNextWiew, !state.useCalc {
-                    state.delete(deleteTwice: false, id: meal.first?.id ?? "")
+                    state.delete(deleteTwice: false, meal: meal)
                 }
             }
 
@@ -191,12 +191,11 @@ extension Bolus {
         }
 
         func carbsView() {
-            let id_ = meal.first?.id ?? ""
             if fetch {
                 keepForNextWiew = true
-                state.backToCarbsView(complexEntry: fetch, id_, override: false)
+                state.backToCarbsView(complexEntry: fetch, meal, override: false)
             } else {
-                state.backToCarbsView(complexEntry: false, id_, override: true)
+                state.backToCarbsView(complexEntry: false, meal, override: true)
             }
         }
 

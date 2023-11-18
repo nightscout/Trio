@@ -19,6 +19,10 @@ extension Home {
             storage.retrieve(OpenAPS.Enact.enacted, as: Suggestion.self)
         }
 
+        func pumpTimeZone() -> TimeZone? {
+            apsManager.pumpManager?.status.timeZone
+        }
+
         func heartbeatNow() {
             apsManager.heartbeat(date: Date())
         }

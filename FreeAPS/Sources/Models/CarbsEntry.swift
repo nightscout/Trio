@@ -1,7 +1,7 @@
 import Foundation
 
 struct CarbsEntry: JSON, Equatable, Hashable {
-    let collectionID: String?
+    let id: String?
     let createdAt: Date
     let carbs: Decimal
     let fat: Decimal?
@@ -25,7 +25,7 @@ struct CarbsEntry: JSON, Equatable, Hashable {
 
 extension CarbsEntry {
     private enum CodingKeys: String, CodingKey {
-        case collectionID = "_id"
+        case id = "_id"
         case createdAt = "created_at"
         case carbs
         case fat

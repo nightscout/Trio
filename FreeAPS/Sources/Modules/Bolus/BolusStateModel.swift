@@ -271,25 +271,34 @@ extension Bolus {
             }
         }
 
-        func backToCarbsView(complexEntry: Bool, _ id: String, override: Bool) {
-            delete(deleteTwice: complexEntry, id: id)
+        func backToCarbsView(complexEntry: Bool, _ meal: FetchedResults<Meals>, override: Bool) {
+            delete(deleteTwice: complexEntry, meal: meal)
             showModal(for: .addCarbs(editMode: complexEntry, override: override))
         }
 
-        func delete(deleteTwice: Bool, id: String) {
+        func delete(deleteTwice: Bool, meal: FetchedResults<Meals>) {
+            guard let meals = meal.first else {
+                return
+            }
+
+            let mealArray = DataTable.Treatment(
+                units: units,
+                type: .carbs,
+                date: meals.createdAt ?? Date(),
+                id: meals.id ?? "",
+                isFPU: deleteTwice ? true : false,
+                fpuID: deleteTwice ? (meals.fpuID ?? "") : ""
+            )
+
+            print(
+                "meals 2: ID: " + (mealArray.id ?? "").description + " FPU ID: " + (mealArray.fpuID ?? "")
+                    .description
+            )
+
             if deleteTwice {
-                // DispatchQueue.safeMainSync {
-                nsManager.deleteCarbs(
-                    at: id, isFPU: nil, fpuID: nil, syncID: id
-                )
-                nsManager.deleteCarbs(
-                    at: id + ".fpu", isFPU: nil, fpuID: nil, syncID: id
-                )
-                // }
+                nsManager.deleteCarbs(mealArray, complexMeal: true)
             } else {
-                nsManager.deleteCarbs(
-                    at: id, isFPU: nil, fpuID: nil, syncID: id
-                )
+                nsManager.deleteCarbs(mealArray, complexMeal: false)
             }
         }
     }

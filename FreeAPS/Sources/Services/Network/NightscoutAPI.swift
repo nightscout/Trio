@@ -141,18 +141,25 @@ extension NightscoutAPI {
             .eraseToAnyPublisher()
     }
 
-    func deleteCarbs(at uniqueID: String) -> AnyPublisher<Void, Swift.Error> {
+    func deleteCarbs(_ treatement: DataTable.Treatment) -> AnyPublisher<Void, Swift.Error> {
         var components = URLComponents()
         components.scheme = url.scheme
         components.host = url.host
         components.port = url.port
         components.path = Config.treatmentsPath
+
+        var arguments = "find[_id][$eq]"
+        if treatement.isFPU ?? false {
+            arguments = "find[fpuID][$eq]"
+        }
+        let value = !(treatement.isFPU ?? false) ? treatement.id : (treatement.fpuID ?? "")
+
         components.queryItems = [
             // Removed below because it prevented all futire entries to be deleted. Don't know why?
             /* URLQueryItem(name: "find[carbs][$exists]", value: "true"), */
             URLQueryItem(
-                name: "find[collectionID][$eq]",
-                value: uniqueID
+                name: arguments,
+                value: value
             )
         ]
 
