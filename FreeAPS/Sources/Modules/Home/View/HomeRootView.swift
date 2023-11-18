@@ -128,7 +128,7 @@ extension Home {
 
             HStack {
                 Spacer()
-                cobIobView2
+//                cobIobView2
 //                Spacer()
 //                        glucoseView
 //                        Spacer()
@@ -180,7 +180,7 @@ extension Home {
                         NSLocalizedString(" g", comment: "gram of carbs")
                 )
                 .font(.callout).fontWeight(.bold)
-                
+
                 Spacer()
             }
         }
@@ -219,7 +219,8 @@ extension Home {
                 battery: $state.battery,
                 name: $state.pumpName,
                 expiresAtDate: $state.pumpExpiresAtDate,
-                timerDate: $state.timerDate
+                timerDate: $state.timerDate,
+                state: state
             )
             .onTapGesture {
                 if state.pumpDisplayState != nil {
@@ -687,8 +688,13 @@ extension Home {
 
             GeometryReader { geo in
                 VStack(spacing: 0) {
-                    glucoseView
-                        .padding(.top, 80)
+                    ZStack {
+                        glucoseView
+                            .padding(.top, 80)
+
+                        loopView
+                            .offset(x: UIScreen.main.bounds.width * 0.35)
+                    }
 
                     header2(geo)
                         .padding(.vertical, 35)

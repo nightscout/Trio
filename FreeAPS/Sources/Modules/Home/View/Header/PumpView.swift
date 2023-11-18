@@ -7,6 +7,8 @@ struct PumpView: View {
     @Binding var expiresAtDate: Date?
     @Binding var timerDate: Date
 
+    @State var state: Home.StateModel
+
     private var reservoirFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
@@ -20,8 +22,52 @@ struct PumpView: View {
         return formatter
     }
 
+    private var numberFormatter: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 2
+        return formatter
+    }
+
     var body: some View {
         HStack {
+//            MARK: TEST
+
+//            HStack {
+//                Text("IOB").font(.callout).foregroundColor(.secondary)
+//                Text(
+//                    (numberFormatter.string(from: (state.suggestion?.iob ?? 0) as NSNumber) ?? "0") +
+//                        NSLocalizedString(" U", comment: "Insulin unit")
+//                )
+//                .font(.callout).fontWeight(.bold)
+//
+//                Spacer()
+//
+//                Text("COB").font(.callout).foregroundColor(.secondary)
+//                Text(
+//                    (numberFormatter.string(from: (state.suggestion?.cob ?? 0) as NSNumber) ?? "0") +
+//                        NSLocalizedString(" g", comment: "gram of carbs")
+//                )
+//                .font(.callout).fontWeight(.bold)
+//
+//                Spacer()
+//            }
+            Text("IOB").font(.callout).foregroundColor(.secondary)
+            Text(
+                (numberFormatter.string(from: (state.suggestion?.iob ?? 0) as NSNumber) ?? "0") +
+                    NSLocalizedString(" U", comment: "Insulin unit")
+            )
+            .font(.callout).fontWeight(.bold)
+
+            Spacer()
+
+            Text("COB").font(.callout).foregroundColor(.secondary)
+            Text(
+                (numberFormatter.string(from: (state.suggestion?.cob ?? 0) as NSNumber) ?? "0") +
+                    NSLocalizedString(" g", comment: "gram of carbs")
+            )
+            .font(.callout).fontWeight(.bold)
+
             Spacer()
 
             if let reservoir = reservoir {
