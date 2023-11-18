@@ -192,7 +192,7 @@ struct CircleShape: View {
     let color: Color
 
     var body: some View {
-        let colorBackground: Color = colorScheme == .dark ? .gray.opacity(0.1) : .white
+        let colorBackground: Color = colorScheme == .dark ? .gray.opacity(0.2) : .white
 
         Circle()
             .stroke(color, lineWidth: 10)
