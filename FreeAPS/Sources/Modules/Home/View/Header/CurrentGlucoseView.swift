@@ -92,13 +92,13 @@ struct CurrentGlucoseView: View {
                 case .doubleUp,
                      .singleUp,
                      .tripleUp:
-                    rotationDegrees = 0
+                    rotationDegrees = -90
                 case .fortyFiveUp:
-                    rotationDegrees = 22.5
+                    rotationDegrees = -45
                 case .flat:
-                    rotationDegrees = 45
+                    rotationDegrees = 0
                 case .fortyFiveDown:
-                    rotationDegrees = 67.5
+                    rotationDegrees = 45
                 case .doubleDown,
                      .singleDown,
                      .tripleDown:
@@ -106,9 +106,9 @@ struct CurrentGlucoseView: View {
                 case .none,
                      .notComputable,
                      .rateOutOfRange:
-                    rotationDegrees = 45
+                    rotationDegrees = 0
                 @unknown default:
-                    rotationDegrees = 45
+                    rotationDegrees = 0
                 }
             }
         }
