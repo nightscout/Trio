@@ -179,9 +179,11 @@ struct TrendShape: View {
     let color: Color
 
     var body: some View {
-        HStack(alignment: .center, spacing: -5) {
-            CircleShape(color: color)
-            TriangleShape(color: color)
+        HStack(alignment: .center) {
+            ZStack {
+                CircleShape(color: color)
+                TriangleShape(color: color)
+            }
         }
     }
 }
@@ -199,7 +201,6 @@ struct CircleShape: View {
             .shadow(radius: 3)
             .background(Circle().fill(colorBackground))
             .frame(width: 110, height: 110)
-            .offset(x: 13)
     }
 }
 
@@ -211,6 +212,6 @@ struct TriangleShape: View {
             .fill(color)
             .frame(width: 30, height: 30)
             .rotationEffect(.degrees(90))
-            .offset(x: 13)
+            .offset(x: 65)
     }
 }
