@@ -646,19 +646,20 @@ extension Home {
 
             GeometryReader { geo in
                 VStack(spacing: 0) {
-                    header(geo)
-                        .padding(.top, 55)
-
                     glucoseView
-                        .padding(.vertical, 20)
+                        .padding(.top, 90)
 
                     infoPanel
+                        .padding(.top, 5)
+
+                    header(geo)
 
                     RoundedRectangle(cornerRadius: 15)
                         .fill(colourChart)
                         .shadow(radius: 3)
                         .overlay(mainChart)
                         .padding([.leading, .trailing], 10)
+                        .padding(.top, 10)
                         .frame(height: UIScreen.main.bounds.height / 2.2) // with 2 chart was still too big
 
                     pickerPanel(geo)
