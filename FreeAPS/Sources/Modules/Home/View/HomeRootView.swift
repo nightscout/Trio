@@ -590,13 +590,13 @@ extension Home {
                     Button {
                         state.showModal(for: .overrideProfilesConfig)
                     } label: {
-                        Image(systemName: "person.fill")
+                        Image(systemName: "person")
                             .renderingMode(.template)
                             .resizable()
                             .frame(width: 24, height: 24)
                             .padding(8)
                     }
-                    .foregroundColor(.purple)
+                    .foregroundColor(.cyan)
                     .buttonStyle(.borderless)
                     Spacer()
                     Button { state.showModal(for: .statistics)

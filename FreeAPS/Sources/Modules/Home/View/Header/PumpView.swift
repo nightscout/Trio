@@ -91,8 +91,6 @@ struct PumpView: View {
                         .frame(maxHeight: 15)
                         .foregroundColor(timerColor)
 
-                    Spacer()
-
                     Text(remainingTimeString(time: date.timeIntervalSince(timerDate))).font(.callout)
                         .fontWeight(.bold)
                 }
