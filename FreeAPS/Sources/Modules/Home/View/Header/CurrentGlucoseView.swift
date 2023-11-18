@@ -196,6 +196,7 @@ struct CircleShape: View {
 
         Circle()
             .stroke(color, lineWidth: 10)
+            .shadow(radius: 3)
             .background(Circle().fill(colorBackground))
             .frame(width: 110, height: 110)
             .offset(x: 13)
