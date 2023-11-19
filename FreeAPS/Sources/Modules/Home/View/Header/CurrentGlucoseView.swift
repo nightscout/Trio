@@ -10,6 +10,16 @@ struct CurrentGlucoseView: View {
     @Binding var highGlucose: Decimal
 
     @State private var rotationDegrees: Double = 0.0
+    @State var gradientColor = LinearGradient(
+        gradient: Gradient(colors: [
+            Color(red: 0.298, green: 0.071, blue: 0.4),
+            Color(red: 0.435, green: 0.114, blue: 0.573),
+            Color(red: 0.741, green: 0.204, blue: 0.914),
+            Color(red: 0.831, green: 0.263, blue: 1)
+        ]),
+        startPoint: .leading,
+        endPoint: .trailing
+    )
 
     @Environment(\.colorScheme) var colorScheme
 
@@ -50,9 +60,10 @@ struct CurrentGlucoseView: View {
 
     var body: some View {
         let colourGlucoseText: Color = colorScheme == .dark ? .white : .black
+        let triangleColor = Color(red: 0.831, green: 0.263, blue: 1)
 
         ZStack {
-            TrendShape(color: colorOfGlucose)
+            TrendShape(gradient: gradientColor, color: triangleColor)
                 .rotationEffect(.degrees(rotationDegrees))
 
             VStack(alignment: .center) {
@@ -95,22 +106,98 @@ struct CurrentGlucoseView: View {
                      .singleUp,
                      .tripleUp:
                     rotationDegrees = -90
+                    gradientColor = LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color(red: 0.298, green: 0.071, blue: 0.4),
+                            Color(red: 0.435, green: 0.114, blue: 0.573),
+                            Color(red: 0.741, green: 0.204, blue: 0.914),
+                            Color(red: 0.831, green: 0.263, blue: 1)
+                        ]),
+                        startPoint: .bottom,
+                        endPoint: .top
+                    )
+
                 case .fortyFiveUp:
                     rotationDegrees = -45
+                    gradientColor = LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color(red: 0.298, green: 0.071, blue: 0.4),
+                            Color(red: 0.435, green: 0.114, blue: 0.573),
+                            Color(red: 0.741, green: 0.204, blue: 0.914),
+                            Color(red: 0.831, green: 0.263, blue: 1)
+                        ]),
+                        startPoint: .bottomLeading,
+                        endPoint: .topTrailing
+                    )
+
                 case .flat:
                     rotationDegrees = 0
+                    gradientColor = LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color(red: 0.298, green: 0.071, blue: 0.4),
+                            Color(red: 0.435, green: 0.114, blue: 0.573),
+                            Color(red: 0.741, green: 0.204, blue: 0.914),
+                            Color(red: 0.831, green: 0.263, blue: 1)
+                        ]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+
                 case .fortyFiveDown:
                     rotationDegrees = 45
+                    gradientColor = LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color(red: 0.298, green: 0.071, blue: 0.4),
+                            Color(red: 0.435, green: 0.114, blue: 0.573),
+                            Color(red: 0.741, green: 0.204, blue: 0.914),
+                            Color(red: 0.831, green: 0.263, blue: 1)
+                        ]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+
                 case .doubleDown,
                      .singleDown,
                      .tripleDown:
                     rotationDegrees = 90
+                    gradientColor = LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color(red: 0.298, green: 0.071, blue: 0.4),
+                            Color(red: 0.435, green: 0.114, blue: 0.573),
+                            Color(red: 0.741, green: 0.204, blue: 0.914),
+                            Color(red: 0.831, green: 0.263, blue: 1)
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+
                 case .none,
                      .notComputable,
                      .rateOutOfRange:
                     rotationDegrees = 0
+                    gradientColor = LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color(red: 0.298, green: 0.071, blue: 0.4),
+                            Color(red: 0.435, green: 0.114, blue: 0.573),
+                            Color(red: 0.741, green: 0.204, blue: 0.914),
+                            Color(red: 0.831, green: 0.263, blue: 1)
+                        ]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+
                 @unknown default:
                     rotationDegrees = 0
+                    gradientColor = LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color(red: 0.298, green: 0.071, blue: 0.4),
+                            Color(red: 0.435, green: 0.114, blue: 0.573),
+                            Color(red: 0.741, green: 0.204, blue: 0.914),
+                            Color(red: 0.831, green: 0.263, blue: 1)
+                        ]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
                 }
             }
         }
@@ -150,12 +237,13 @@ struct Triangle: Shape {
 }
 
 struct TrendShape: View {
+    let gradient: LinearGradient
     let color: Color
 
     var body: some View {
         HStack(alignment: .center) {
             ZStack {
-                CircleShape(color: color)
+                CircleShape(gradient: gradient)
                 TriangleShape(color: color)
             }
         }
@@ -165,13 +253,13 @@ struct TrendShape: View {
 struct CircleShape: View {
     @Environment(\.colorScheme) var colorScheme
 
-    let color: Color
+    let gradient: LinearGradient
 
     var body: some View {
         let colorBackground: Color = colorScheme == .dark ? .black : .white
 
         Circle()
-            .stroke(color, lineWidth: 10)
+            .stroke(gradient, lineWidth: 10)
             .shadow(radius: 3)
             .background(Circle().fill(colorBackground))
             .frame(width: 110, height: 110)
