@@ -428,17 +428,43 @@ extension Home {
         // MARK: PICKER IN SEGEMENTED STYLE TO CHOOSE THE X AXIS SCALE OF THE GRAPH
 
         @ViewBuilder private func pickerPanel(_: GeometryProxy) -> some View {
-            HStack {
-                Picker("Scale", selection: $state.scale) {
-                    ForEach(Home.StateModel.Scale.allCases) { scale in
-                        Text("\(scale.rawValue)h").tag(Optional(scale))
+//            HStack {
+//                Picker("Scale", selection: $state.scale) {
+//                    ForEach(Home.StateModel.Scale.allCases) { scale in
+//                        Text("\(scale.rawValue)h").tag(Optional(scale))
+//                    }
+//                }
+//                .pickerStyle(.segmented)
+//                .background(Color.clear)
+//                .frame(width: UIScreen.main.bounds.width / 1.5, height: 40, alignment: .center)
+//            }
+//            .padding(.vertical, 1)
+            HStack(spacing: 0) {
+                ForEach(Home.StateModel.Scale.allCases, id: \.self) { scale in
+                    Button(action: {
+                        state.scale = scale
+                    }) {
+                        Text(scale == state.scale ? "\(scale.rawValue) hours" : "\(scale.rawValue)")
+                            .font(.footnote)
+                            .foregroundColor(
+                                scale == state.scale ? (colorScheme == .dark ? Color.white : Color.black) : Color.secondary
+                            )
+                            .padding(.vertical, 6).padding(.horizontal, scale == state.scale ? 15 : 10)
+                            .background(
+                                scale == state
+                                    .scale ?
+                                    // RGB(10, 30, 50)
+                                    (colorScheme == .dark ? Color(red: 0.039, green: 0.117, blue: 0.196) : Color.white) :
+                                    Color
+                                    .clear
+                            )
+                            .cornerRadius(20)
                     }
+                    .shadow(radius: 3)
                 }
-                .pickerStyle(.segmented)
-                .background(Color.clear)
-                .frame(width: UIScreen.main.bounds.width / 1.5, height: 40, alignment: .center)
             }
-            .padding(.vertical, 1)
+            .padding()
+            .background(Color.clear)
         }
 
 //        @ViewBuilder private func profiles(_: GeometryProxy) -> some View {

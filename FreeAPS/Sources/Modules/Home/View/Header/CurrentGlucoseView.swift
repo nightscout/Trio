@@ -10,16 +10,7 @@ struct CurrentGlucoseView: View {
     @Binding var highGlucose: Decimal
 
     @State private var rotationDegrees: Double = 0.0
-    @State var gradientColor = LinearGradient(
-        gradient: Gradient(colors: [
-            Color(red: 0.298, green: 0.071, blue: 0.4),
-            Color(red: 0.435, green: 0.114, blue: 0.573),
-            Color(red: 0.741, green: 0.204, blue: 0.914),
-            Color(red: 0.831, green: 0.263, blue: 1)
-        ]),
-        startPoint: .leading,
-        endPoint: .trailing
-    )
+    @State private var angularGradient: AngularGradient = defaultGradient()
 
     @Environment(\.colorScheme) var colorScheme
 
@@ -59,11 +50,10 @@ struct CurrentGlucoseView: View {
     }
 
     var body: some View {
-        let colourGlucoseText: Color = colorScheme == .dark ? .white : .black
-        let triangleColor = Color(red: 0.831, green: 0.263, blue: 1)
+        let triangleColor = Color(red: 0.729, green: 0.337, blue: 1)
 
         ZStack {
-            TrendShape(gradient: gradientColor, color: triangleColor)
+            TrendShape(gradient: angularGradient, color: triangleColor)
                 .rotationEffect(.degrees(rotationDegrees))
 
             VStack(alignment: .center) {
@@ -106,105 +96,65 @@ struct CurrentGlucoseView: View {
                      .singleUp,
                      .tripleUp:
                     rotationDegrees = -90
-                    gradientColor = LinearGradient(
-                        gradient: Gradient(colors: [
-                            Color(red: 0.298, green: 0.071, blue: 0.4),
-                            Color(red: 0.435, green: 0.114, blue: 0.573),
-                            Color(red: 0.741, green: 0.204, blue: 0.914),
-                            Color(red: 0.831, green: 0.263, blue: 1)
-                        ]),
-                        startPoint: .bottom,
-                        endPoint: .top
-                    )
+                    setupAngularGradient(startAngle: 135, endAngle: -45)
 
                 case .fortyFiveUp:
                     rotationDegrees = -45
-                    gradientColor = LinearGradient(
-                        gradient: Gradient(colors: [
-                            Color(red: 0.298, green: 0.071, blue: 0.4),
-                            Color(red: 0.435, green: 0.114, blue: 0.573),
-                            Color(red: 0.741, green: 0.204, blue: 0.914),
-                            Color(red: 0.831, green: 0.263, blue: 1)
-                        ]),
-                        startPoint: .bottomLeading,
-                        endPoint: .topTrailing
-                    )
+                    setupAngularGradient(startAngle: 180, endAngle: 0)
 
                 case .flat:
                     rotationDegrees = 0
-                    gradientColor = LinearGradient(
-                        gradient: Gradient(colors: [
-                            Color(red: 0.298, green: 0.071, blue: 0.4),
-                            Color(red: 0.435, green: 0.114, blue: 0.573),
-                            Color(red: 0.741, green: 0.204, blue: 0.914),
-                            Color(red: 0.831, green: 0.263, blue: 1)
-                        ]),
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
+                    setupAngularGradient(startAngle: 225, endAngle: 45)
 
                 case .fortyFiveDown:
                     rotationDegrees = 45
-                    gradientColor = LinearGradient(
-                        gradient: Gradient(colors: [
-                            Color(red: 0.298, green: 0.071, blue: 0.4),
-                            Color(red: 0.435, green: 0.114, blue: 0.573),
-                            Color(red: 0.741, green: 0.204, blue: 0.914),
-                            Color(red: 0.831, green: 0.263, blue: 1)
-                        ]),
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
+                    setupAngularGradient(startAngle: 270, endAngle: 90)
 
                 case .doubleDown,
                      .singleDown,
                      .tripleDown:
                     rotationDegrees = 90
-                    gradientColor = LinearGradient(
-                        gradient: Gradient(colors: [
-                            Color(red: 0.298, green: 0.071, blue: 0.4),
-                            Color(red: 0.435, green: 0.114, blue: 0.573),
-                            Color(red: 0.741, green: 0.204, blue: 0.914),
-                            Color(red: 0.831, green: 0.263, blue: 1)
-                        ]),
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
+                    setupAngularGradient(startAngle: -45, endAngle: 135)
 
                 case .none,
                      .notComputable,
                      .rateOutOfRange:
                     rotationDegrees = 0
-                    gradientColor = LinearGradient(
-                        gradient: Gradient(colors: [
-                            Color(red: 0.298, green: 0.071, blue: 0.4),
-                            Color(red: 0.435, green: 0.114, blue: 0.573),
-                            Color(red: 0.741, green: 0.204, blue: 0.914),
-                            Color(red: 0.831, green: 0.263, blue: 1)
-                        ]),
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
+                    setupAngularGradient(startAngle: 225, endAngle: 45)
 
                 @unknown default:
                     rotationDegrees = 0
-                    gradientColor = LinearGradient(
-                        gradient: Gradient(colors: [
-                            Color(red: 0.298, green: 0.071, blue: 0.4),
-                            Color(red: 0.435, green: 0.114, blue: 0.573),
-                            Color(red: 0.741, green: 0.204, blue: 0.914),
-                            Color(red: 0.831, green: 0.263, blue: 1)
-                        ]),
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
+                    setupAngularGradient(startAngle: 225, endAngle: 45)
                 }
             }
         }
     }
 
-    var colorOfGlucose: Color {
+    private func setupAngularGradient(startAngle: Double, endAngle: Double) {
+        angularGradient = AngularGradient(colors: [
+            Color(red: 0.729, green: 0.337, blue: 1),
+            Color(red: 0.263, green: 0.733, blue: 0.914),
+            Color(red: 0.263, green: 0.733, blue: 0.914),
+            Color(red: 0.263, green: 0.733, blue: 0.914),
+            Color(red: 0.263, green: 0.733, blue: 0.914),
+            Color(red: 0.729, green: 0.337, blue: 1)
+        ], center: .center, startAngle: .degrees(startAngle), endAngle: .degrees(endAngle))
+    }
+
+    private static func defaultGradient(startAngle: Double = 180, endAngle: Double = 0) -> AngularGradient {
+        AngularGradient(colors: [
+            Color(red: 0.729, green: 0.337, blue: 1),
+            Color(red: 0.263, green: 0.733, blue: 0.914),
+            Color(red: 0.263, green: 0.733, blue: 0.914),
+            Color(red: 0.263, green: 0.733, blue: 0.914),
+            Color(red: 0.263, green: 0.733, blue: 0.914),
+            Color(red: 0.729, green: 0.337, blue: 1)
+        ], center: .center, startAngle: .degrees(startAngle), endAngle: .degrees(endAngle))
+    }
+
+    var colourGlucoseText: Color {
         let whichGlucose = recentGlucose?.glucose ?? 0
+        let defaultColor: Color = colorScheme == .dark ? .white : .black
 
         guard lowGlucose < highGlucose else { return .primary }
 
@@ -212,11 +162,11 @@ struct CurrentGlucoseView: View {
         case 0 ..< Int(lowGlucose):
             return .loopRed
         case Int(lowGlucose) ..< Int(highGlucose):
-            return .loopGreen
+            return defaultColor
         case Int(highGlucose)...:
             return .loopYellow
         default:
-            return .loopYellow
+            return defaultColor
         }
     }
 }
@@ -237,7 +187,7 @@ struct Triangle: Shape {
 }
 
 struct TrendShape: View {
-    let gradient: LinearGradient
+    let gradient: AngularGradient
     let color: Color
 
     var body: some View {
@@ -253,10 +203,10 @@ struct TrendShape: View {
 struct CircleShape: View {
     @Environment(\.colorScheme) var colorScheme
 
-    let gradient: LinearGradient
+    let gradient: AngularGradient
 
     var body: some View {
-        let colorBackground: Color = colorScheme == .dark ? .black : .white
+        let colorBackground: Color = colorScheme == .dark ? .black.opacity(0.8) : .white
 
         Circle()
             .stroke(gradient, lineWidth: 10)
