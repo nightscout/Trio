@@ -513,11 +513,11 @@ extension Home {
         }
 
         @ViewBuilder private func bottomPanel(_: GeometryProxy) -> some View {
-            let colourRectangle: Color = colorScheme == .dark ? .gray.opacity(0.2) : .white
+            let colorRectangle: Color = colorScheme == .dark ? .black.opacity(0.8) : .white
 
             ZStack {
                 Rectangle()
-                    .fill(colourRectangle)
+                    .fill(colorRectangle)
                     .frame(height: UIScreen.main.bounds.height / 13)
                     .cornerRadius(15)
                     .shadow(radius: 3)
@@ -627,21 +627,33 @@ extension Home {
         }
 
         var body: some View {
-            let colourBackground: Color = colorScheme == .dark ? .black.opacity(0.5) : .gray.opacity(0.1)
-            let colourChart: Color = colorScheme == .dark ? .gray.opacity(0.2) : .white
+            let colorBackground = colorScheme == .dark ? LinearGradient(
+                gradient: Gradient(colors: [
+                    // RGB(3, 15, 28)
+                    Color(red: 0.011, green: 0.058, blue: 0.109),
+                    // RGB(1, 3, 8)
+                    Color(red: 0.003, green: 0.011, blue: 0.031)
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+                :
+                LinearGradient(gradient: Gradient(colors: [Color.gray.opacity(0.1)]), startPoint: .top, endPoint: .bottom)
+            let colourChart: Color = colorScheme == .dark ? .black.opacity(0.8) : .white
 
             GeometryReader { geo in
                 VStack(spacing: 0) {
                     ZStack {
                         glucoseView
-                            .padding(.top, 75)
 
                         loopView
                             /// circles width is 110, loops width is 35 -> (110/2) - (35/2) = 55 - 17.5 = 37.5
                             .offset(x: UIScreen.main.bounds.width * 0.43, y: -37.5)
-                            .padding(.top, 75)
                             .padding(.trailing, 10)
                     }
+                    .padding(.top, 75)
+
+                    Spacer()
 
                     Spacer()
 
@@ -665,21 +677,21 @@ extension Home {
                     Spacer()
 
                     pickerPanel(geo)
-//
+
                     Spacer()
 
                     legendPanel
-//
+
                     Spacer()
 
                     bottomPanel(geo)
-//
                 }
-                .edgesIgnoringSafeArea(.vertical)
+                .background(colorBackground)
+                .edgesIgnoringSafeArea(.all)
             }
             .onAppear(perform: configureView)
             .navigationTitle("Home")
-            .background(colourBackground)
+
             .navigationBarHidden(true)
             .ignoresSafeArea(.keyboard)
             .popup(isPresented: isStatusPopupPresented, alignment: .top, direction: .top) {
