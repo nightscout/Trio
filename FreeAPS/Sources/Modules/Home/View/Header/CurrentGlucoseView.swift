@@ -210,7 +210,11 @@ struct CircleShape: View {
 
         Circle()
             .stroke(gradient, lineWidth: 10)
-            .shadow(radius: 3)
+            .shadow(
+                color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
+                    Color.black.opacity(0.33),
+                radius: 3
+            )
             .background(Circle().fill(colorBackground))
             .frame(width: 110, height: 110)
     }

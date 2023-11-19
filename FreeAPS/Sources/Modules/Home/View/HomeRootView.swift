@@ -166,6 +166,7 @@ extension Home {
                 name: $state.pumpName,
                 expiresAtDate: $state.pumpExpiresAtDate,
                 timerDate: $state.timerDate,
+                boluses: $state.boluses,
                 state: state
             )
             .onTapGesture {
@@ -460,7 +461,11 @@ extension Home {
                             )
                             .cornerRadius(20)
                     }
-                    .shadow(radius: 3)
+                    .shadow(
+                        color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) : Color
+                            .black.opacity(0.33),
+                        radius: 3
+                    )
                 }
             }
             .padding()
@@ -539,14 +544,19 @@ extension Home {
         }
 
         @ViewBuilder private func bottomPanel(_: GeometryProxy) -> some View {
-            let colorRectangle: Color = colorScheme == .dark ? .black.opacity(0.8) : .white
+            let colorRectangle: Color = colorScheme == .dark ? Color.black.opacity(0.8) : Color.white
+            let colorIcon: Color = (colorScheme == .dark ? Color.white : Color.black).opacity(0.9)
 
             ZStack {
                 Rectangle()
                     .fill(colorRectangle)
                     .frame(height: UIScreen.main.bounds.height / 13)
                     .cornerRadius(15)
-                    .shadow(radius: 3)
+                    .shadow(
+                        color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) : Color
+                            .black.opacity(0.33),
+                        radius: 3
+                    )
                     .padding([.leading, .trailing], 10)
 
                 HStack {
@@ -557,7 +567,7 @@ extension Home {
                                 .renderingMode(.template)
                                 .resizable()
                                 .frame(width: 24, height: 24)
-                                .foregroundColor(.loopYellow)
+                                .foregroundColor(colorIcon)
                                 .padding(8)
                             if let carbsReq = state.carbsRequired {
                                 Text(numberFormatter.string(from: carbsReq as NSNumber)!)
@@ -582,7 +592,7 @@ extension Home {
                             .frame(width: 24, height: 24)
                             .padding(8)
                     }
-                    .foregroundColor(.insulin)
+                    .foregroundColor(colorIcon)
                     .buttonStyle(.borderless)
                     Spacer()
                     if state.allowManualTemp {
@@ -594,7 +604,7 @@ extension Home {
                                 .frame(width: 24, height: 24)
                                 .padding(8)
                         }
-                        .foregroundColor(.insulin)
+                        .foregroundColor(colorIcon)
                         .buttonStyle(.borderless)
                         Spacer()
                     }
@@ -606,7 +616,7 @@ extension Home {
                             .frame(width: 24, height: 24)
                             .padding(8)
                     }
-                    .foregroundColor(.loopGreen)
+                    .foregroundColor(colorIcon)
                     .buttonStyle(.borderless)
                     Spacer()
 
@@ -622,7 +632,7 @@ extension Home {
                             .frame(width: 24, height: 24)
                             .padding(8)
                     }
-                    .foregroundColor(.cyan)
+                    .foregroundColor(colorIcon)
                     .buttonStyle(.borderless)
                     Spacer()
                     Button { state.showModal(for: .statistics)
@@ -634,7 +644,7 @@ extension Home {
                             .frame(width: 24, height: 24)
                             .padding(8)
                     }
-                    .foregroundColor(.purple)
+                    .foregroundColor(colorIcon)
                     .buttonStyle(.borderless)
                     Spacer()
                     Button { state.showModal(for: .settings) }
@@ -645,10 +655,11 @@ extension Home {
                             .frame(width: 24, height: 24)
                             .padding(8)
                     }
-                    .foregroundColor(.loopGray)
+                    .foregroundColor(colorIcon)
                     .buttonStyle(.borderless)
                 }
                 .padding(.horizontal, 24)
+                .padding(.bottom, 16)
             }
         }
 
@@ -657,11 +668,12 @@ extension Home {
                 gradient: Gradient(colors: [
                     // RGB(3, 15, 28)
                     Color(red: 0.011, green: 0.058, blue: 0.109),
+                    Color(red: 0.011, green: 0.058, blue: 0.109),
                     // RGB(1, 3, 8)
                     Color(red: 0.003, green: 0.011, blue: 0.031)
                 ]),
-                startPoint: .top,
-                endPoint: .bottom
+                startPoint: .bottom,
+                endPoint: .top
             )
                 :
                 LinearGradient(gradient: Gradient(colors: [Color.gray.opacity(0.1)]), startPoint: .top, endPoint: .bottom)
@@ -669,6 +681,8 @@ extension Home {
 
             GeometryReader { geo in
                 VStack(spacing: 0) {
+                    Spacer()
+
                     ZStack {
                         glucoseView
 
@@ -678,8 +692,6 @@ extension Home {
                             .padding(.trailing, 10)
                     }
                     .padding(.top, 75)
-
-                    Spacer()
 
                     Spacer()
 
@@ -696,15 +708,15 @@ extension Home {
                         .fill(colourChart)
                         .overlay(mainChart)
                         .clipShape(RoundedRectangle(cornerRadius: 15))
-                        .shadow(radius: 3)
+                        .shadow(
+                            color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
+                                Color.black.opacity(0.33),
+                            radius: 3
+                        )
                         .padding(.horizontal, 10)
                         .frame(maxHeight: UIScreen.main.bounds.height / 2.2)
 
-                    Spacer()
-
                     pickerPanel(geo)
-
-                    Spacer()
 
                     legendPanel
 
