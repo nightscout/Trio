@@ -31,12 +31,6 @@ extension StatConfig {
                     Toggle("Display Chart Y - Grid lines", isOn: $state.yGridLines)
                     Toggle("Display Chart Threshold lines for Low and High", isOn: $state.rulerMarks)
                     Toggle("Standing / Laying TIR Chart", isOn: $state.oneDimensionalGraph)
-                    HStack {
-                        Text("Hours X-Axis (6 default)")
-                        Spacer()
-                        DecimalTextField("6", value: $state.hours, formatter: carbsFormatter)
-                        Text("hours").foregroundColor(.secondary)
-                    }
                 } header: { Text("Home Chart settings ") }
 
                 Section {
@@ -64,6 +58,7 @@ extension StatConfig {
             .onAppear(perform: configureView)
             .navigationBarTitle("UI/UX")
             .navigationBarTitleDisplayMode(.automatic)
+            .navigationBarItems(trailing: Button("Close", action: state.hideModal))
         }
     }
 }

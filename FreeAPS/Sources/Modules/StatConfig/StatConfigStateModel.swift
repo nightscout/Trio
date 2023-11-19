@@ -5,7 +5,6 @@ extension StatConfig {
         @Published var overrideHbA1cUnit = false
         @Published var low: Decimal = 4 / 0.0555
         @Published var high: Decimal = 10 / 0.0555
-        @Published var hours: Decimal = 6
         @Published var xGridLines = false
         @Published var yGridLines: Bool = false
         @Published var oneDimensionalGraph = false
@@ -40,13 +39,6 @@ extension StatConfig {
             }, map: {
                 guard units == .mmolL else { return $0 }
                 return $0.asMgdL
-            })
-
-            subscribeSetting(\.hours, on: $hours.map(Int.init), initial: {
-                let value = max(min($0, 24), 2)
-                hours = Decimal(value)
-            }, map: {
-                $0
             })
         }
     }

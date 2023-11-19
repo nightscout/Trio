@@ -576,10 +576,10 @@ Enact a temp Basal or a temp target */
 "Temp Targets" = "Målvärden";
 
 /* Delete carbs from data table and Nightscout */
-"Delete carbs?" = "Ta bort kolhydrater?";
+"Delete Carbs?" = "Ta bort kolhydrater?";
 
 /* Delete insulin from pump history and Nightscout */
-"Delete insulin?" = "Ta bort insulin?";
+"Delete Insulin?" = "Ta bort insulin?";
 
 /* Treatments list */
 "Treatments" = "Behandlingar";
@@ -1368,7 +1368,7 @@ Enact a temp Basal or a temp target */
 "Statistics and Home View" = "Statistik och Diagram";
 
 /* Alert text */
-"Delete carb equivalents?" = "Radera dessa poster?";
+"Delete Carb Equivalents?" = "Radera dessa poster?";
 
 /* */
 "Meal Presets" = "Förval";
@@ -1651,6 +1651,21 @@ Enact a temp Basal or a temp target */
 
 /* */
 "Hours X-Axis (6 default)" = "Antal timmar att visa för X-axel (6 standard)";
+
+/* */
+"2 hours" = "2 timmar";
+
+/* */
+"4 hours" = "4 timmar";
+
+/* */
+"6 hours" = "6 timmar";
+
+/* */
+"12 hours" = "12 timmar";
+
+/* */
+"24 hours" = "24 timmar";
 
 /* Average BG = */
 "Average" = "Medelvärde";

@@ -12,6 +12,24 @@ extension Home {
         @State var isStatusPopupPresented = false
         @State var showCancelAlert = false
 
+        struct Buttons: Identifiable {
+            let label: String
+            let number: String
+            var active: Bool
+            let hours: Int16
+            var id: String { label }
+        }
+
+        @State var timeButtons: [Buttons] = [
+            Buttons(label: "2 hours", number: "2", active: false, hours: 2),
+            Buttons(label: "4 hours", number: "4", active: false, hours: 4),
+            Buttons(label: "6 hours", number: "6", active: true, hours: 6),
+            Buttons(label: "12 hours", number: "12", active: false, hours: 12),
+            Buttons(label: "24 hours", number: "24", active: false, hours: 24)
+        ]
+
+        let buttonFont = Font.custom("TimeButtonFont", size: 14)
+
         @Environment(\.managedObjectContext) var moc
         @Environment(\.colorScheme) var colorScheme
 
@@ -36,6 +54,11 @@ extension Home {
             entity: TempTargetsSlider.entity(),
             sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
         ) var enactedSliderTT: FetchedResults<TempTargetsSlider>
+
+        @FetchRequest(
+            entity: UXSettings.entity(),
+            sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
+        ) var fetchedSettings: FetchedResults<UXSettings>
 
         private var numberFormatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -167,6 +190,7 @@ extension Home {
                 expiresAtDate: $state.pumpExpiresAtDate,
                 timerDate: $state.timerDate,
                 boluses: $state.boluses,
+                screenHours: $state.hours,
                 state: state
             )
             .onTapGesture {
@@ -388,6 +412,26 @@ extension Home {
             }
         }
 
+        var timeInterval: some View {
+            HStack(alignment: .center) {
+                let saveButton = UXSettings(context: moc)
+                ForEach(timeButtons) { button in
+                    Text(button.active ? NSLocalizedString(button.label, comment: "") : button.number).onTapGesture {
+                        let index = timeButtons.firstIndex(where: { $0.label == button.label }) ?? 0
+                        highlightButtons(index, onAppear: false)
+                        saveButton.hours = button.hours
+                        saveButton.date = Date.now
+                        try? moc.save()
+                        state.hours = button.hours
+                    }
+                    .foregroundStyle(button.active ? .primary : .secondary)
+                    .frame(maxHeight: 30).padding(.horizontal, 8)
+                    .background(button.active ? Color(.systemGray5) : .clear, in: .capsule(style: .circular))
+                }
+            }
+            .font(buttonFont)
+        }
+
         var mainChart: some View {
             ZStack {
                 if state.animatedBackground {
@@ -415,107 +459,15 @@ extension Home {
                     smooth: $state.smooth,
                     highGlucose: $state.highGlucose,
                     lowGlucose: $state.lowGlucose,
-                    screenHours: $state.screenHours,
+                    screenHours: $state.hours,
                     displayXgridLines: $state.displayXgridLines,
                     displayYgridLines: $state.displayYgridLines,
-                    thresholdLines: $state.thresholdLines,
-                    state: state
+                    thresholdLines: $state.thresholdLines
                 )
             }
             .padding(.bottom)
             .modal(for: .dataTable, from: self)
         }
-
-        // MARK: PICKER IN SEGEMENTED STYLE TO CHOOSE THE X AXIS SCALE OF THE GRAPH
-
-        @ViewBuilder private func pickerPanel(_: GeometryProxy) -> some View {
-//            HStack {
-//                Picker("Scale", selection: $state.scale) {
-//                    ForEach(Home.StateModel.Scale.allCases) { scale in
-//                        Text("\(scale.rawValue)h").tag(Optional(scale))
-//                    }
-//                }
-//                .pickerStyle(.segmented)
-//                .background(Color.clear)
-//                .frame(width: UIScreen.main.bounds.width / 1.5, height: 40, alignment: .center)
-//            }
-//            .padding(.vertical, 1)
-            HStack(spacing: 0) {
-                ForEach(Home.StateModel.Scale.allCases, id: \.self) { scale in
-                    Button(action: {
-                        state.scale = scale
-                    }) {
-                        Text(scale == state.scale ? "\(scale.rawValue) hours" : "\(scale.rawValue)")
-                            .font(.footnote)
-                            .foregroundColor(
-                                scale == state.scale ? (colorScheme == .dark ? Color.white : Color.black) : Color.secondary
-                            )
-                            .padding(.vertical, 6).padding(.horizontal, scale == state.scale ? 15 : 10)
-                            .background(
-                                scale == state
-                                    .scale ?
-                                    // RGB(10, 30, 50)
-                                    (colorScheme == .dark ? Color(red: 0.039, green: 0.117, blue: 0.196) : Color.white) :
-                                    Color
-                                    .clear
-                            )
-                            .cornerRadius(20)
-                    }
-                    .shadow(
-                        color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) : Color
-                            .black.opacity(0.33),
-                        radius: 3
-                    )
-                }
-            }
-            .padding()
-            .background(Color.clear)
-        }
-
-//        @ViewBuilder private func profiles(_: GeometryProxy) -> some View {
-//            let colour: Color = colorScheme == .dark ? .black : .white
-//            let colourRectangle: Color = colorScheme == .dark ? .gray.opacity(0.1) : .white
-//
-//            ZStack {
-//                Rectangle()
-        ////                    .fill(Color.gray.opacity(0.3))
-//                    .fill(colourRectangle)
-//                    .frame(maxHeight: 40)
-//                    .cornerRadius(15)
-//                    .padding([.leading, .trailing], 10)
-//                let cancel = fetchedPercent.first?.enabled ?? false
-//                HStack(spacing: cancel ? 25 : 15) {
-//                    Text(selectedProfile().name).foregroundColor(.secondary)
-//                    if cancel, selectedProfile().isOn {
-//                        Button { showCancelAlert.toggle() }
-//                        label: {
-//                            Image(systemName: "xmark")
-//                                .foregroundStyle(.secondary)
-//                        }
-//                    }
-//                    Button { state.showModal(for: .overrideProfilesConfig) }
-//                    label: {
-//                        Image(systemName: "person.3.sequence.fill")
-//                            .symbolRenderingMode(.palette)
-//                            .foregroundStyle(
-//                                !(fetchedPercent.first?.enabled ?? false) ? .green : .cyan,
-//                                !(fetchedPercent.first?.enabled ?? false) ? .cyan : .green,
-//                                .purple
-//                            )
-//                    }
-//                }
-//            }
-//            .alert(
-//                "Return to Normal?", isPresented: $showCancelAlert,
-//                actions: {
-//                    Button("No", role: .cancel) {}
-//                    Button("Yes", role: .destructive) {
-//                        state.cancelProfile()
-//                    }
-//                }, message: { Text("This will change settings back to your normal profile.") }
-//            )
-//            Rectangle().fill(colour).frame(maxHeight: 1)
-//        }
 
         private func selectedProfile() -> (name: String, isOn: Bool) {
             var profileString = ""
@@ -541,6 +493,31 @@ extension Home {
                 }
             }
             return (name: profileString, isOn: display)
+        }
+
+        func highlightButtons(_ int: Int?, onAppear: Bool) {
+            var index = 0
+            if let integer = int, !onAppear {
+                repeat {
+                    if index == integer {
+                        timeButtons[index].active = true
+                    } else {
+                        timeButtons[index].active = false
+                    }
+                    index += 1
+                } while index < timeButtons.count
+            } else if onAppear {
+                let i = timeButtons.firstIndex(where: { $0.hours == (fetchedSettings.first?.hours ?? 6) }) ?? 2
+                index = 0
+                repeat {
+                    if index == i {
+                        timeButtons[index].active = true
+                    } else {
+                        timeButtons[index].active = false
+                    }
+                    index += 1
+                } while index < timeButtons.count
+            }
         }
 
         @ViewBuilder private func bottomPanel(_: GeometryProxy) -> some View {
@@ -579,6 +556,17 @@ extension Home {
                         }
                     }.buttonStyle(.borderless)
                     Spacer()
+                    Button { state.showModal(for: .addTempTarget) }
+                    label: {
+                        Image("target")
+                            .renderingMode(.template)
+                            .resizable()
+                            .frame(width: 24, height: 24)
+                            .padding(8)
+                    }
+                    .foregroundColor(colorIcon)
+                    .buttonStyle(.borderless)
+                    Spacer()
                     Button {
                         state.showModal(for: .bolus(
                             waitForSuggestion: true,
@@ -608,17 +596,6 @@ extension Home {
                         .buttonStyle(.borderless)
                         Spacer()
                     }
-                    Button { state.showModal(for: .addTempTarget) }
-                    label: {
-                        Image("target")
-                            .renderingMode(.template)
-                            .resizable()
-                            .frame(width: 24, height: 24)
-                            .padding(8)
-                    }
-                    .foregroundColor(colorIcon)
-                    .buttonStyle(.borderless)
-                    Spacer()
 
                     // MARK: CANCEL OF PROFILE HAS TO BE IMPLEMENTED
 
@@ -716,7 +693,11 @@ extension Home {
                         .padding(.horizontal, 10)
                         .frame(maxHeight: UIScreen.main.bounds.height / 2.2)
 
-                    pickerPanel(geo)
+                    Spacer()
+
+                    timeInterval
+
+                    Spacer()
 
                     legendPanel
 

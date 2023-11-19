@@ -56,11 +56,11 @@ extension Home {
         @Published var lowGlucose: Decimal = 4 / 0.0555
         @Published var highGlucose: Decimal = 10 / 0.0555
         @Published var overrideUnit: Bool = false
-        @Published var screenHours: Int = 6
         @Published var displayXgridLines: Bool = false
         @Published var displayYgridLines: Bool = false
         @Published var thresholdLines: Bool = false
         @Published var timeZone: TimeZone?
+        @Published var hours: Int16 = 6
 
         enum Scale: Int, CaseIterable, Identifiable {
             case one = 1
@@ -73,7 +73,7 @@ extension Home {
 
         @Published var scale: Scale = .six {
             didSet {
-                screenHours = calculateScreenHours(scale: scale)
+                hours = Int16(calculateScreenHours(scale: scale))
             }
         }
 
@@ -110,7 +110,6 @@ extension Home {
             lowGlucose = settingsManager.settings.low
             highGlucose = settingsManager.settings.high
             overrideUnit = settingsManager.settings.overrideHbA1cUnit
-            screenHours = settingsManager.settings.hours
             displayXgridLines = settingsManager.settings.xGridLines
             displayYgridLines = settingsManager.settings.yGridLines
             thresholdLines = settingsManager.settings.rulerMarks
@@ -244,6 +243,15 @@ extension Home {
                 let profiles = Override(context: self.coredataContext)
                 profiles.enabled = false
                 profiles.date = Date()
+                try? self.coredataContext.save()
+            }
+        }
+
+        func saveSettings() {
+            coredataContext.perform {
+                let settings = UXSettings(context: self.coredataContext)
+                settings.hours = self.hours
+                settings.date = Date.now
                 try? self.coredataContext.save()
             }
         }
@@ -457,7 +465,6 @@ extension Home.StateModel:
         lowGlucose = settingsManager.settings.low
         highGlucose = settingsManager.settings.high
         overrideUnit = settingsManager.settings.overrideHbA1cUnit
-        screenHours = settingsManager.settings.hours
         displayXgridLines = settingsManager.settings.xGridLines
         displayYgridLines = settingsManager.settings.yGridLines
         thresholdLines = settingsManager.settings.rulerMarks

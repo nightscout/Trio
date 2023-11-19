@@ -163,4 +163,8 @@
         <attribute name="id" optional="YES" attributeType="String" defaultValueString="empy"/>
         <attribute name="isPreset" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
     </entity>
+    <entity name="UXSettings" representedClassName="UXSettings" syncable="YES" codeGenerationType="class">
+        <attribute name="date" optional="YES" attributeType="Date" defaultDateTimeInterval="722095800" usesScalarValueType="NO"/>
+        <attribute name="hours" optional="YES" attributeType="Integer 16" defaultValueString="6" usesScalarValueType="YES"/>
+    </entity>
 </model>

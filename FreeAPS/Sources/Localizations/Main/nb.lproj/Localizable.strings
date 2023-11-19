@@ -576,10 +576,10 @@ Enact a temp Basal or a temp target */
 "Temp Targets" = "Midlertidige mål";
 
 /* Delete carbs from data table and Nightscout */
-"Delete carbs?" = "Slette karbohydrater?";
+"Delete Carbs?" = "Slette karbohydrater?";
 
 /* Delete insulin from pump history and Nightscout */
-"Delete insulin?" = "Slette insulin?";
+"Delete Insulin?" = "Slette insulin?";
 
 /* Treatments list */
 "Treatments" = "Behandlinger";
@@ -1368,7 +1368,7 @@ Enact a temp Basal or a temp target */
 "Statistics and Home View" = "Statistikk og startskjerm";
 
 /* Alert text */
-"Delete carb equivalents?" = "Slette karboekvivalenter?";
+"Delete Carb Equivalents?" = "Slette karboekvivalenter?";
 
 /* */
 "Meal Presets" = "Forvalg av måltid";

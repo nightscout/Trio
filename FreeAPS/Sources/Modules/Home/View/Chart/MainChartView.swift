@@ -72,7 +72,7 @@ struct MainChartView: View {
     @Binding var smooth: Bool
     @Binding var highGlucose: Decimal
     @Binding var lowGlucose: Decimal
-    @Binding var screenHours: Int
+    @Binding var screenHours: Int16
     @Binding var displayXgridLines: Bool
     @Binding var displayYgridLines: Bool
     @Binding var thresholdLines: Bool
@@ -98,8 +98,6 @@ struct MainChartView: View {
     @State private var glucoseYRange: GlucoseYRange = (0, 0, 0, 0)
     @State private var offset: CGFloat = 0
     @State private var cachedMaxBasalRate: Decimal?
-
-    @State var state: Home.StateModel
 
     private let calculationQueue = DispatchQueue(label: "MainChartView.calculationQueue")
 
@@ -197,9 +195,10 @@ struct MainChartView: View {
                         .onChange(of: tempBasals) { _ in
                             scroll.scrollTo(Config.endID, anchor: .trailing)
                         }
-                        .onChange(of: state.scale) { _ in
+                        .onChange(of: screenHours) { _ in
                             scroll.scrollTo(Config.endID, anchor: .trailing)
                         }
+
                         .onAppear {
                             // add trigger to the end of main queue
                             DispatchQueue.main.async {
@@ -274,7 +273,7 @@ struct MainChartView: View {
         .scaleEffect(x: 1, y: -1)
         .frame(width: fullGlucoseWidth(viewWidth: fullSize.width) + additionalWidth(viewWidth: fullSize.width))
         .frame(maxHeight: Config.basalHeight)
-        .background(colorScheme == .dark ? Color.black.opacity(0.8) : Color.clear)
+        .background(Color.secondary.opacity(0.1))
         .onChange(of: tempBasals) { _ in
             calculateBasalPoints(fullSize: fullSize)
         }
@@ -320,14 +319,11 @@ struct MainChartView: View {
         return ZStack {
             Path { path in
                 for hour in 0 ..< hours + hours {
-                    if screenHours < 12 || hour % 2 == 0 {
-                        // only show every second line if screenHours is too big
-                        let x = firstHourPosition(viewWidth: fullSize.width) +
-                            oneSecondStep(viewWidth: fullSize.width) *
-                            CGFloat(hour) * CGFloat(1.hours.timeInterval)
-                        path.move(to: CGPoint(x: x, y: 0))
-                        path.addLine(to: CGPoint(x: x, y: fullSize.height - 20))
-                    }
+                    let x = firstHourPosition(viewWidth: fullSize.width) +
+                        oneSecondStep(viewWidth: fullSize.width) *
+                        CGFloat(hour) * CGFloat(1.hours.timeInterval)
+                    path.move(to: CGPoint(x: x, y: 0))
+                    path.addLine(to: CGPoint(x: x, y: fullSize.height - 20))
                 }
             }
             .stroke(useColour, lineWidth: 0.15)
@@ -349,20 +345,15 @@ struct MainChartView: View {
         return ZStack {
             // X time labels
             ForEach(0 ..< hours + hours) { hour in
-                if screenHours >= 12 && hour % 2 == 1 {
-                    // only show every second time label if screenHours is too big
-                    EmptyView()
-                } else {
-                    Text(format.string(from: firstHourDate().addingTimeInterval(hour.hours.timeInterval)))
-                        .font(.caption)
-                        .position(
-                            x: firstHourPosition(viewWidth: fullSize.width) +
-                                oneSecondStep(viewWidth: fullSize.width) *
-                                CGFloat(hour) * CGFloat(1.hours.timeInterval),
-                            y: 10.0
-                        )
-                        .foregroundColor(.secondary)
-                }
+                Text(format.string(from: firstHourDate().addingTimeInterval(hour.hours.timeInterval)))
+                    .font(.caption)
+                    .position(
+                        x: firstHourPosition(viewWidth: fullSize.width) +
+                            oneSecondStep(viewWidth: fullSize.width) *
+                            CGFloat(hour) * CGFloat(1.hours.timeInterval),
+                        y: 10.0
+                    )
+                    .foregroundColor(.secondary)
             }
         }.frame(maxHeight: 20)
     }
@@ -832,8 +823,8 @@ extension MainChartView {
                 path.addLine(to: CGPoint(x: 0, y: Config.basalHeight))
             }
             let adjustForOptionalExtraHours = screenHours > 12 ? screenHours - 12 : 0
-            let endDateTime = dayAgoTime + min(max(screenHours - adjustForOptionalExtraHours, 12), 24).hours
-                .timeInterval + min(max(screenHours - adjustForOptionalExtraHours, 12), 24).hours
+            let endDateTime = dayAgoTime + min(max(Int(screenHours - adjustForOptionalExtraHours), 12), 24).hours
+                .timeInterval + min(max(Int(screenHours - adjustForOptionalExtraHours), 12), 24).hours
                 .timeInterval
             let autotunedBasalPoints = findRegularBasalPoints(
                 timeBegin: dayAgoTime,

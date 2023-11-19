@@ -578,10 +578,10 @@ Połączono z Nightscout!";
 "Temp Targets" = "Temp Targets";
 
 /* Delete carbs from data table and Nightscout */
-"Delete carbs?" = "Delete carbs?";
+"Delete Carbs?" = "Delete Carbs?";
 
 /* Delete insulin from pump history and Nightscout */
-"Delete insulin?" = "Delete insulin?";
+"Delete Insulin?" = "Delete Insulin?";
 
 /* Treatments list */
 "Treatments" = "Treatments";
@@ -1370,7 +1370,7 @@ Połączono z Nightscout!";
 "Statistics and Home View" = "Statistics and Home View";
 
 /* Alert text */
-"Delete carb equivalents?" = "Delete carb equivalents?";
+"Delete Carb Equivalents?" = "Delete Carb Equivalents?";
 
 /* */
 "Meal Presets" = "Meal Presets";
