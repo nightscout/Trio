@@ -112,7 +112,9 @@ struct MainChartView2: View {
         NavigationStack {
             ScrollView {
                 VStack {
-                    Chart(glucose) {
+                    let filteredGlucose: [BloodGlucose] = filterGlucoseData(for: 6)
+
+                    Chart(filteredGlucose) {
                         PointMark(
                             x: .value("Time", $0.dateString),
                             y: .value("Value", $0.value)
@@ -123,7 +125,7 @@ struct MainChartView2: View {
 
                     .frame(height: 350)
                     .chartXAxis {
-                        AxisMarks(values: glucose.map(\.dateString)) { _ in
+                        AxisMarks(values: filteredGlucose.map(\.dateString)) { _ in
                             AxisValueLabel(format: .dateTime.hour())
                         }
                     }
@@ -132,6 +134,17 @@ struct MainChartView2: View {
                 .padding()
             }
         }
+    }
+
+    private func filterGlucoseData(for hours: Int) -> [BloodGlucose] {
+        guard hours > 0 else {
+            return glucose
+        }
+
+        let currentDate = Date()
+        let startDate = Calendar.current.date(byAdding: .hour, value: -hours, to: currentDate) ?? currentDate
+
+        return glucose.filter { $0.dateString >= startDate }
     }
 
 //    // MARK: GLUCOSE FOR CHART
