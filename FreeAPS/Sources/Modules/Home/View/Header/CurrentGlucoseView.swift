@@ -11,13 +11,18 @@ struct CurrentGlucoseView: View {
 
     @State private var rotationDegrees: Double = 0.0
     @State private var angularGradient = AngularGradient(colors: [
-        Color(red: 0.729, green: 0.337, blue: 1),
-        Color(red: 0.263, green: 0.733, blue: 0.914),
-        Color(red: 0.263, green: 0.733, blue: 0.914),
-        Color(red: 0.263, green: 0.733, blue: 0.914),
-        Color(red: 0.263, green: 0.733, blue: 0.914),
-        Color(red: 0.729, green: 0.337, blue: 1)
-    ], center: .center, startAngle: .degrees(-45), endAngle: .degrees(135))
+        // 184, 87, 255
+        // 159, 108, 250
+        // 124, 139, 243
+        // 87, 170, 236
+        // 67, 187, 233
+        Color(red: 0.7215686275, green: 0.3411764706, blue: 1),
+        Color(red: 0.6235294118, green: 0.4235294118, blue: 0.9803921569),
+        Color(red: 0.4862745098, green: 0.5450980392, blue: 0.9529411765),
+        Color(red: 0.3411764706, green: 0.6666666667, blue: 0.9254901961),
+        Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902),
+        Color(red: 0.7215686275, green: 0.3411764706, blue: 1)
+    ], center: .center, startAngle: .degrees(270), endAngle: .degrees(-90))
 
     @Environment(\.colorScheme) var colorScheme
 
@@ -57,8 +62,7 @@ struct CurrentGlucoseView: View {
     }
 
     var body: some View {
-//        let triangleColor = Color(red: 0.729, green: 0.337, blue: 1)
-        let triangleColor = Color(red: 0.263, green: 0.733, blue: 0.914)
+        let triangleColor = Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902)
 
         ZStack {
             TrendShape(gradient: angularGradient, color: triangleColor)

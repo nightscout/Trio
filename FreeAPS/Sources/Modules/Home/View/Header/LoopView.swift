@@ -21,13 +21,13 @@ struct LoopView: View {
         return formatter
     }
 
-    private let rect = CGRect(x: 0, y: 0, width: 35, height: 35)
+    private let rect = CGRect(x: 0, y: 0, width: 24, height: 24)
     var body: some View {
         VStack(alignment: .center) {
             ZStack {
                 Circle()
-                    .strokeBorder(color, lineWidth: 5)
-                    .frame(width: rect.width, height: rect.height, alignment: .bottom)
+                    .strokeBorder(color, lineWidth: 4)
+                    .frame(width: rect.width, height: rect.height, alignment: .center)
                     .mask(mask(in: rect).fill(style: FillStyle(eoFill: true)))
                 if isLooping {
                     ProgressView()

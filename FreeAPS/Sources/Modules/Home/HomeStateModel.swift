@@ -61,25 +61,12 @@ extension Home {
         @Published var thresholdLines: Bool = false
         @Published var timeZone: TimeZone?
         @Published var hours: Int16 = 6
-
-        enum Scale: Int, CaseIterable, Identifiable {
-            case one = 1
-            case three = 3
-            case six = 6
-            case twelve = 12
-            case twentyfour = 24
-            var id: Self { self }
-        }
-
-        @Published var scale: Scale = .six {
-            didSet {
-                hours = Int16(calculateScreenHours(scale: scale))
-            }
-        }
+        @Published var totalBolus: Decimal = 0
 
         let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
 
         override func subscribe() {
+            calculateTINS()
             setupGlucose()
             setupBasals()
             setupBoluses()
@@ -211,21 +198,6 @@ extension Home {
                 .store(in: &lifetime)
         }
 
-        func calculateScreenHours(scale: Scale) -> Int {
-            switch scale {
-            case .one:
-                return 1
-            case .three:
-                return 3
-            case .six:
-                return 6
-            case .twelve:
-                return 12
-            case .twentyfour:
-                return 24
-            }
-        }
-
         func addCarbs() {
             showModal(for: .addCarbs(editMode: false, override: false))
         }
@@ -304,6 +276,29 @@ extension Home {
                     $0.type == .bolus
                 }
             }
+        }
+
+        // MARK: WORKS....BUT MAYBE TIMEZONE PROBLEMS COULD OCCUR
+
+        func calculateTINS() -> String {
+            let date = Date()
+            let calendar = Calendar.current
+            let offset = hours
+
+            var offsetComponents = DateComponents()
+            //        offsetComponents.hour = -offset.rawValue
+            offsetComponents.hour = -Int(offset)
+
+            let startTime = calendar.date(byAdding: offsetComponents, to: date)!
+            print("******************")
+            print("die voll krasse start time ist: \(startTime)")
+
+            let bolusesForCurrentDay = boluses.filter { $0.timestamp >= startTime && $0.type == .bolus }
+
+            let totalBolus = bolusesForCurrentDay.map { $0.amount ?? 0 }.reduce(0, +)
+            let roundedTotalBolus = Decimal(round(100 * Double(totalBolus)) / 100)
+
+            return "\(roundedTotalBolus)"
         }
 
         private func setupSuspensions() {

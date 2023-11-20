@@ -189,8 +189,6 @@ extension Home {
                 name: $state.pumpName,
                 expiresAtDate: $state.pumpExpiresAtDate,
                 timerDate: $state.timerDate,
-                boluses: $state.boluses,
-                screenHours: $state.hours,
                 state: state
             )
             .onTapGesture {
@@ -231,7 +229,7 @@ extension Home {
                     comment: "Manual Temp basal"
                 )
             }
-            return rateString + NSLocalizedString(" U/hr", comment: "Unit per hour with space") + manualBasalString
+            return rateString + " " + NSLocalizedString(" U/hr", comment: "Unit per hour with space") + manualBasalString
         }
 
         var tempTargetString: String? {
@@ -330,6 +328,12 @@ extension Home {
                         .font(.system(size: 12, weight: .bold))
                         .foregroundColor(.insulin)
                         .padding(.leading, 8)
+                    Text(
+                        "TINS: \(state.calculateTINS())" +
+                            NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
+                    )
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.insulin)
                 }
 
                 if let tempTargetString = tempTargetString {
@@ -368,6 +372,8 @@ extension Home {
         var legendPanel: some View {
             ZStack {
                 HStack(alignment: .center) {
+                    Spacer()
+
                     Group {
                         Circle().fill(Color.loopGreen).frame(width: 8, height: 8)
                         Text("BG")
@@ -385,9 +391,15 @@ extension Home {
                         Text("ZT")
                             .font(.system(size: 12, weight: .bold)).foregroundColor(.zt)
                     }
+
+                    Spacer()
+
+                    loopView.padding(.top, 16)
+
+                    Spacer()
+
                     Group {
                         Circle().fill(Color.loopYellow).frame(width: 8, height: 8)
-                            .padding(.leading, 8)
                         Text("COB")
                             .font(.system(size: 12, weight: .bold)).foregroundColor(.loopYellow)
                     }
@@ -406,9 +418,9 @@ extension Home {
                         )
                         .font(.system(size: 12, weight: .bold)).foregroundColor(.secondary)
                     }
+                    Spacer()
                 }
                 .frame(maxWidth: .infinity)
-                .padding([.bottom], 20)
             }
         }
 
@@ -424,11 +436,30 @@ extension Home {
                         try? moc.save()
                         state.hours = button.hours
                     }
-                    .foregroundStyle(button.active ? .primary : .secondary)
+                    .foregroundStyle(button.active ? (colorScheme == .dark ? Color.white : Color.black).opacity(0.9) : .secondary)
                     .frame(maxHeight: 30).padding(.horizontal, 8)
-                    .background(button.active ? Color(.systemGray5) : .clear, in: .capsule(style: .circular))
+                    .background(
+                        button.active ?
+                            // RGB(30, 60, 95)
+                            (
+                                colorScheme == .dark ? Color(red: 0.1176470588, green: 0.2352941176, blue: 0.3725490196) :
+                                    Color.white
+                            ) :
+                            Color
+                            .clear
+                    )
+                    .cornerRadius(20)
                 }
             }
+            .shadow(
+                color: colorScheme == .dark ? Color(
+                    red: 0.02745098039,
+                    green: 0.1098039216,
+                    blue: 0.1411764706
+                ) : Color
+                    .black.opacity(0.33),
+                radius: 3
+            )
             .font(buttonFont)
         }
 
@@ -660,15 +691,15 @@ extension Home {
                 VStack(spacing: 0) {
                     Spacer()
 
-                    ZStack {
-                        glucoseView
+//                    ZStack {
+                    glucoseView.padding(.top, 75)
 
-                        loopView
-                            /// circles width is 110, loops width is 35 -> (110/2) - (35/2) = 55 - 17.5 = 37.5
-                            .offset(x: UIScreen.main.bounds.width * 0.43, y: -37.5)
-                            .padding(.trailing, 10)
-                    }
-                    .padding(.top, 75)
+//                        loopView
+//                            /// circles width is 110, loops width is 35 -> (110/2) - (35/2) = 55 - 17.5 = 37.5
+//                            .offset(x: UIScreen.main.bounds.width * 0.43, y: -37.5)
+//                            .padding(.trailing, 10)
+//                    }
+//                    .padding(.top, 75)
 
                     Spacer()
 
@@ -696,8 +727,6 @@ extension Home {
                     Spacer()
 
                     timeInterval
-
-                    Spacer()
 
                     legendPanel
 
