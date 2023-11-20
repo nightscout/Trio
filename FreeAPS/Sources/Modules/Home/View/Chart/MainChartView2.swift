@@ -2,70 +2,58 @@ import Charts
 import SwiftUI
 
 struct MainChartView2: View {
-    // MARK: BINDINGS
-
+    @Binding var tempBasals: [PumpHistoryEvent]
     @Binding var glucose: [BloodGlucose]
     @Binding var screenHours: Int16
+    @Binding var highGlucose: Decimal
+    @Binding var lowGlucose: Decimal
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack {
-                    let filteredGlucose: [BloodGlucose] = filterGlucoseData(for: screenHours)
+        VStack(alignment: .center, spacing: 8, content: {
+            GlucoseChart(glucose: $glucose, screenHours: $screenHours, highGlucose: $highGlucose, lowGlucose: $lowGlucose)
+                .padding(.bottom, 20)
+            BasalChart(tempBasals: $tempBasals, screenHours: $screenHours)
+                .padding(.bottom, 8)
+            Legend()
+        })
+    }
+}
 
-                    Chart(filteredGlucose) {
-                        PointMark(
-                            x: .value("Time", $0.dateString),
-                            y: .value("Value", $0.value)
-                        )
-                        .foregroundStyle(Color.green.gradient)
-                        .cornerRadius(0)
-                    }
+// MARK: GLUCOSE FOR CHART
 
-                    .frame(height: 350)
-                    .chartXAxis {
-//                        MARK: THIS PIECE OF CODE BELONGS TO THE UNIQUEHOURLABELS FUNC....BUT DOES NOT WORK
+struct GlucoseChart: View {
+    @Binding var glucose: [BloodGlucose]
+    @Binding var screenHours: Int16
+    @Binding var highGlucose: Decimal
+    @Binding var lowGlucose: Decimal
 
-//                        let uniqueHourLabels = self.uniqueHourLabels(for: filteredGlucose)
-//                        AxisMarks(values: uniqueHourLabels) { _ in
-//                            AxisValueLabel(format: .dateTime.hour())
-//                        }
+    var body: some View {
+        VStack {
+            let filteredGlucose: [BloodGlucose] = filterGlucoseData(for: screenHours)
 
-                        AxisMarks(values: filteredGlucose.map(\.dateString)) { _ in
-                            AxisValueLabel(format: .dateTime.hour())
-                        }
-                    }
-                    Legend()
-                }
-                .padding()
+            Chart(filteredGlucose) {
+                RuleMark(y: .value("High", highGlucose))
+                    .foregroundStyle(Color.loopYellow)
+                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [5]))
+
+                RuleMark(y: .value("Low", lowGlucose))
+                    .foregroundStyle(Color.loopRed)
+                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [5]))
+
+                PointMark(
+                    x: .value("Time", $0.dateString),
+                    y: .value("Value", $0.value)
+                )
+                .foregroundStyle(
+                    $0.value > Double(highGlucose) ? Color.yellow.gradient :
+                        $0.value < Double(lowGlucose) ? Color.red.gradient : Color.green.gradient
+                )
+                .symbolSize(12)
             }
+            .frame(height: 250)
+            .chartXAxis(.hidden)
         }
     }
-
-//    // MARK: THIS FUNCTION DOES NOT WORK BUT COULD MAYBE IMPROVED?
-//
-//    private func uniqueHourLabels(for glucoseData: [BloodGlucose]) -> [String] {
-//        var uniqueLabels: Set<String> = Set()
-//        var result: [String] = []
-//
-//        let dateFormatter = DateFormatter()
-//        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-//        dateFormatter.setLocalizedDateFormatFromTemplate("HH")
-//
-//        let currentHour = Calendar.current.component(.hour, from: Date())
-//
-//        for entry in glucoseData {
-//            let hourLabel = dateFormatter.string(from: entry.dateString)
-//            if !uniqueLabels.contains(hourLabel), currentHour == Calendar.current.component(.hour, from: entry.dateString) {
-//                uniqueLabels.insert(hourLabel)
-//                result.append(hourLabel)
-//            }
-//        }
-//
-//        return result
-//    }
-
-    // MARK: WORKS NOW...
 
     private func filterGlucoseData(for hours: Int16) -> [BloodGlucose] {
         guard hours > 0 else {
@@ -75,10 +63,43 @@ struct MainChartView2: View {
         let currentDate = Date()
         let startDate = Calendar.current.date(byAdding: .hour, value: -Int(hours), to: currentDate) ?? currentDate
 
-//        print("die hours sind ++++++++++++++++++++")
-//        print(hours)
-
         return glucose.filter { $0.dateString >= startDate }
+    }
+}
+
+// MARK: BASAL FOR CHART
+
+struct BasalChart: View {
+    @Binding var tempBasals: [PumpHistoryEvent]
+    @Binding var screenHours: Int16
+
+    var body: some View {
+        VStack {
+            let filteredBasal: [PumpHistoryEvent] = filterBasalData(for: screenHours)
+            Chart(filteredBasal) {
+                BarMark(
+                    x: .value("Time", $0.timestamp),
+                    y: .value("Value", $0.rate ?? 0)
+                )
+                .foregroundStyle(Color.blue.gradient)
+                .cornerRadius(0)
+            }
+            .frame(height: 80)
+//            .rotationEffect(.degrees(180))
+//            .chartXAxis(.hidden)
+            .chartYAxis(.hidden)
+        }
+    }
+
+    private func filterBasalData(for hours: Int16) -> [PumpHistoryEvent] {
+        guard hours > 0 else {
+            return tempBasals
+        }
+
+        let currentDate = Date()
+        let startDate = Calendar.current.date(byAdding: .hour, value: -Int(hours), to: currentDate) ?? currentDate
+
+        return tempBasals.filter { $0.timestamp >= startDate }
     }
 }
 
@@ -106,6 +127,7 @@ struct Legend: View {
                 .foregroundColor(.secondary)
             Spacer()
             Image(systemName: "line.diagonal")
+                .frame(height: 10)
                 .rotationEffect(Angle(degrees: 45))
                 .foregroundColor(.loopYellow)
             Text("COB")
@@ -118,7 +140,7 @@ struct Legend: View {
                 .foregroundColor(.secondary)
         }
         .font(.caption2)
-        .padding(.horizontal, 4)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 40)
+        .padding(.vertical, 1)
     }
 }

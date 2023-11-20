@@ -499,8 +499,11 @@ extension Home {
 //                MARK: SWIFT CHARTS
 
                 MainChartView2(
+                    tempBasals: $state.tempBasals,
                     glucose: $state.glucose,
-                    screenHours: $state.hours
+                    screenHours: $state.hours,
+                    highGlucose: $state.highGlucose,
+                    lowGlucose: $state.lowGlucose
                 )
             }
             .padding(.bottom)
