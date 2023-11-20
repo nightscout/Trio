@@ -112,7 +112,7 @@ struct MainChartView2: View {
         NavigationStack {
             ScrollView {
                 VStack {
-                    let filteredGlucose: [BloodGlucose] = filterGlucoseData(for: 6)
+                    let filteredGlucose: [BloodGlucose] = filterGlucoseData(for: screenHours)
 
                     Chart(filteredGlucose) {
                         PointMark(
@@ -136,13 +136,16 @@ struct MainChartView2: View {
         }
     }
 
-    private func filterGlucoseData(for hours: Int) -> [BloodGlucose] {
+    private func filterGlucoseData(for hours: Int16) -> [BloodGlucose] {
         guard hours > 0 else {
             return glucose
         }
 
         let currentDate = Date()
-        let startDate = Calendar.current.date(byAdding: .hour, value: -hours, to: currentDate) ?? currentDate
+        let startDate = Calendar.current.date(byAdding: .hour, value: -Int(hours), to: currentDate) ?? currentDate
+
+//        print("die hours sind ++++++++++++++++++++")
+//        print(hours)
 
         return glucose.filter { $0.dateString >= startDate }
     }
