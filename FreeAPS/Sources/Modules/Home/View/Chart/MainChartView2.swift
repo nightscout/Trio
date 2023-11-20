@@ -69,10 +69,10 @@ struct MainChartView2: View {
     @Binding var displayYgridLines: Bool
     @Binding var thresholdLines: Bool
 
-    // MARK: STATEs
-
-    @State private var glucoseDots: [CGRect] = []
-    @State private var glucoseYRange: Range<CGFloat> = 0 ..< 0
+//    // MARK: STATEs
+//
+//    @State private var glucoseDots: [CGRect] = []
+//    @State private var glucoseYRange: Range<CGFloat> = 0 ..< 0
     @State var didAppearTrigger = false
     @State private var glucoseDots: [CGRect] = []
     @State private var manualGlucoseDots: [CGRect] = []
@@ -95,34 +95,47 @@ struct MainChartView2: View {
     @State private var offset: CGFloat = 0
     @State private var cachedMaxBasalRate: Decimal?
 
+    private var date24Formatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.setLocalizedDateFormatFromTemplate("HH")
+        return formatter
+    }
+
+    private var dateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack {
-                    Chart {
-                        ForEach(glucoseDots.indices, id: \.self) { index in
-                            PointMark(position: glucoseDots[index].origin)
-                                .frame(width: glucoseDots[index].width, height: glucoseDots[index].height)
-                                .foregroundStyle(Color.green.gradient)
-                        }
-                    }
-                    .frame(height: 350)
-                    .chartXAxis {
-                        // to do
+                    Chart(glucose) {
+                        PointMark(
+                            x: .value("Time", $0.dateString),
+                            y: .value("Value", $0.value)
+                        )
+                        .foregroundStyle(Color.green.gradient)
+                        .cornerRadius(0)
                     }
 
+                    .frame(height: 350)
+                    .chartXAxis {
+                        AxisMarks(values: glucose.map(\.dateString)) { _ in
+                            AxisValueLabel(format: .dateTime.hour())
+                        }
+                    }
                     Legend()
                 }
                 .padding()
             }
         }
-        .onAppear {
-            calculateGlucoseDots(fullSize: UIScreen.main.bounds.size)
-        }
     }
 
-    // MARK: GLUCOSE FOR CHART
-
+//    // MARK: GLUCOSE FOR CHART
+//
     private func calculateGlucoseDots(fullSize: CGSize) {
         let dots = glucose.map { value -> CGRect in
             let position = glucoseToCoordinate(value, fullSize: fullSize)

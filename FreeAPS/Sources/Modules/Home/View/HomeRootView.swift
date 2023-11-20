@@ -498,7 +498,30 @@ extension Home {
 
 //                MARK: SWIFT CHARTS
 
-                MainChartView2()
+                MainChartView2(
+                    glucose: $state.glucose,
+                    isManual: $state.isManual,
+                    suggestion: $state.suggestion,
+                    tempBasals: $state.tempBasals,
+                    boluses: $state.boluses,
+                    suspensions: $state.suspensions,
+                    announcement: $state.announcement,
+                    hours: .constant(state.filteredHours),
+                    maxBasal: $state.maxBasal,
+                    autotunedBasalProfile: $state.autotunedBasalProfile,
+                    basalProfile: $state.basalProfile,
+                    tempTargets: $state.tempTargets,
+                    carbs: $state.carbs,
+                    timerDate: $state.timerDate,
+                    units: $state.units,
+                    smooth: $state.smooth,
+                    highGlucose: $state.highGlucose,
+                    lowGlucose: $state.lowGlucose,
+                    screenHours: $state.hours,
+                    displayXgridLines: $state.displayXgridLines,
+                    displayYgridLines: $state.displayYgridLines,
+                    thresholdLines: $state.thresholdLines
+                )
             }
             .padding(.bottom)
             .modal(for: .dataTable, from: self)
