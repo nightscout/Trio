@@ -62,6 +62,7 @@ extension Home {
         @Published var timeZone: TimeZone?
         @Published var hours: Int16 = 6
         @Published var totalBolus: Decimal = 0
+        @Published var cob: Decimal = 0
 
         let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
 
@@ -100,6 +101,8 @@ extension Home {
             displayXgridLines = settingsManager.settings.xGridLines
             displayYgridLines = settingsManager.settings.yGridLines
             thresholdLines = settingsManager.settings.rulerMarks
+
+            cob = provider.suggestion?.cob ?? 0
 
             broadcaster.register(GlucoseObserver.self, observer: self)
             broadcaster.register(SuggestionObserver.self, observer: self)

@@ -43,6 +43,13 @@ struct GlucoseChart: View {
                     .foregroundStyle(Color.loopRed)
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [5]))
 
+//                MARK: TO DO -> at the moment this rule mark is not visible because the chart is not scrollable
+                if let currentTime = getCurrentTime() {
+                    RuleMark(x: .value("Current Time", currentTime))
+                        .foregroundStyle(Color.gray)
+                        .lineStyle(StrokeStyle(lineWidth: 1, dash: [5]))
+                }
+
                 PointMark(
                     x: .value("Time", $0.dateString),
                     y: .value("Value", $0.value)
@@ -68,6 +75,12 @@ struct GlucoseChart: View {
 
         return glucose.filter { $0.dateString >= startDate }
     }
+
+    private func getCurrentTime() -> String? {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "HH:mm"
+        return dateFormatter.string(from: Date())
+    }
 }
 
 // MARK: BASAL FOR CHART
@@ -91,6 +104,9 @@ struct BasalChart: View {
 //            .rotationEffect(.degrees(180))
 //            .chartXAxis(.hidden)
             .chartYAxis(.hidden)
+            .chartPlotStyle { plotArea in
+                plotArea.background(.blue.gradient.opacity(0.1))
+            }
         }
     }
 
@@ -113,23 +129,18 @@ struct CarbsChart: View {
     @Binding var screenHours: Int16
 
     var body: some View {
-        let currentDate = Date()
-        let startDate = Calendar.current.date(byAdding: .hour, value: -Int(screenHours), to: currentDate) ?? currentDate
-
         VStack {
             let filteredCarbs: [CarbsEntry] = filterCarbData(for: screenHours)
             Chart(filteredCarbs) {
-                BarMark(
+                PointMark(
                     x: .value("Time", $0.createdAt),
-                    y: .value("Value", $0.carbs)
+                    y: .value("Value", 40)
                 )
                 .foregroundStyle(Color.loopYellow.gradient)
-                .cornerRadius(0)
             }
             .frame(height: 80)
             .chartYAxis(.hidden)
-//            .chartXScale(domain: Int(startDate.timeIntervalSince1970) ... Int(currentDate.timeIntervalSince1970))
-//            .chartXScale(domain: 0 ... 5)
+            .chartXAxis(.hidden)
         }
     }
 
