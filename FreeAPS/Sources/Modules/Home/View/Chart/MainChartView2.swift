@@ -7,11 +7,14 @@ struct MainChartView2: View {
     @Binding var screenHours: Int16
     @Binding var highGlucose: Decimal
     @Binding var lowGlucose: Decimal
+    @Binding var carbs: [CarbsEntry]
 
     var body: some View {
         VStack(alignment: .center, spacing: 8, content: {
             GlucoseChart(glucose: $glucose, screenHours: $screenHours, highGlucose: $highGlucose, lowGlucose: $lowGlucose)
                 .padding(.bottom, 20)
+            CarbsChart(carbs: $carbs, screenHours: $screenHours)
+                .padding(.bottom, 8)
             BasalChart(tempBasals: $tempBasals, screenHours: $screenHours)
                 .padding(.bottom, 8)
             Legend()
@@ -100,6 +103,45 @@ struct BasalChart: View {
         let startDate = Calendar.current.date(byAdding: .hour, value: -Int(hours), to: currentDate) ?? currentDate
 
         return tempBasals.filter { $0.timestamp >= startDate }
+    }
+}
+
+// MARK: COB
+
+struct CarbsChart: View {
+    @Binding var carbs: [CarbsEntry]
+    @Binding var screenHours: Int16
+
+    var body: some View {
+        let currentDate = Date()
+        let startDate = Calendar.current.date(byAdding: .hour, value: -Int(screenHours), to: currentDate) ?? currentDate
+
+        VStack {
+            let filteredCarbs: [CarbsEntry] = filterCarbData(for: screenHours)
+            Chart(filteredCarbs) {
+                BarMark(
+                    x: .value("Time", $0.createdAt),
+                    y: .value("Value", $0.carbs)
+                )
+                .foregroundStyle(Color.loopYellow.gradient)
+                .cornerRadius(0)
+            }
+            .frame(height: 80)
+            .chartYAxis(.hidden)
+//            .chartXScale(domain: Int(startDate.timeIntervalSince1970) ... Int(currentDate.timeIntervalSince1970))
+//            .chartXScale(domain: 0 ... 5)
+        }
+    }
+
+    private func filterCarbData(for hours: Int16) -> [CarbsEntry] {
+        guard hours > 0 else {
+            return carbs
+        }
+
+        let currentDate = Date()
+        let startDate = Calendar.current.date(byAdding: .hour, value: -Int(hours), to: currentDate) ?? currentDate
+
+        return carbs.filter { $0.createdAt >= startDate }
     }
 }
 
