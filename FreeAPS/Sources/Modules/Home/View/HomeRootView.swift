@@ -504,7 +504,8 @@ extension Home {
                     screenHours: $state.hours,
                     highGlucose: $state.highGlucose,
                     lowGlucose: $state.lowGlucose,
-                    carbs: $state.carbs
+                    carbs: $state.carbs,
+                    basalProfile: $state.basalProfile
                 )
             }
             .padding(.bottom)
