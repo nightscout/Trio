@@ -433,7 +433,7 @@
 "Change Pod now. Insulin delivery will stop 8 hours after the Pod has expired or when no more insulin remains." = "Замените Под. Подача инсулина будет остановлена спустя 8 часов после истечения срока действия Пода, либо когда резервуар будет пуст.";
 
 /* Label text for step 1 of pair pod instructions */
-"Fill a new pod with U-100 Insulin (leave blue Pod needle cap on)." = "Fill a new pod with U-100 Insulin (leave blue Pod needle cap on).";
+"Fill a new pod with U-100 Insulin (leave blue Pod needle cap on)." = "Заполните новый Под U-100 инсулином (оставьте синюю защитную крышку Пода).";
 
 /* Label text for step 2 of pair pod instructions */
 "Listen for 2 beeps." = "Прослушайте 2 звуковых сигнала.";
@@ -602,10 +602,10 @@
 "No confidence reminders are used." = "Доверенные звуковые сигналы не используются.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Доверенные звуковые сигналы сработают для операций, которые Вы инициируете - Болюс, Отмена Болюса, Приостановка подачи, Возобновление подачи, Сохранение напоминаний и т. д. Когда петля автоматически меняет подачу инсулина - звуковые сигналы не используются.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate.";
+"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Доверенные звуковые сигналы сработают даже тогда, когда петля автоматически изменит подачу инсулина, а также для команд, которые Вы инициируете.";
 
 /* Label text for temporary basal rate summary */
 "Rate" = "Скорость";
@@ -787,36 +787,36 @@
 "%@ ago" = "%@ назад";
 
 /* Title string for SilencePodPreference.enabled */
-"Silenced" = "Silenced";
+"Silenced" = "Беззвучно";
 
 /* Description for SilencePodPreference.disabled */
-"Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled." = "Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled.";
+"Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled." = "Обычный режим работы, при котором звуковые сигналы используются для всех оповещений Пода и при включенных доверенных напоминаниях.";
 
 /* Description for SilencePodPreference.enabled */
-"All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts." = "All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts.";
+"All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts." = "Все уведомления Пода не издают звуковых сигналов и напоминания о подтверждении подавлены. Под будет издавать звуковые сигналы только при критических сбоях Пода и когда проигрываются тестовые звуки.\n\n⚠️Предупреждение — Когда Под заглушен, он должен находиться в пределах Bluetooth-диапазона этого устройства, для получения сигналов уведомлений.";
 
 /* Help text for Silence Pod view */
-"Silence Pod mode suppresses all Pod alert and confirmation reminder beeping." = "Silence Pod mode suppresses all Pod alert and confirmation reminder beeping.";
+"Silence Pod mode suppresses all Pod alert and confirmation reminder beeping." = "Беззвучный режим Пода отключает все звуковые сигналы и напоминания о подтверждении Пода.";
 
 /* navigation title for Silnce Pod */
-"Silence Pod" = "Silence Pod";
+"Silence Pod" = "Беззвучный Под";
 
 /* title for pod details page */
-"Pod Details" = "Pod Details";
+"Pod Details" = "Сведения о Поде";
 
 /* Text for previous pod details row" */
-"Previous Pod Details" = "Previous Pod Details";
+"Previous Pod Details" = "Сведения о предыдущем Поде";
 
 /* Text for pump manager details navigation link */
-"Pump Manager Details" = "Pump Manager Details";
+"Pump Manager Details" = "Сведения о помпе";
 
 /* button title when retrieving pump manager details */
-"Retrieving Pump Manager Details..." = "Retrieving Pump Manager Details...";
+"Retrieving Pump Manager Details..." = "Получение сведений о помпе...";
 /* button title to refresh pump manager details */
-"Refresh Pump Manager Details" = "Refresh Pump Manager Details";
+"Refresh Pump Manager Details" = "Обновить сведения о помпе";
 
 /* Section header for diagnostic section */
-"Diagnostics" = "Diagnostics";
+"Diagnostics" = "Диагностика";
 
 /* Text for read pod status navigation link */
-"Read Pod Status" = "Read Pod Status";
+"Read Pod Status" = "Получить статус Пода";

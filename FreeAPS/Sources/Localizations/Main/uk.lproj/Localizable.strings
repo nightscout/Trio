@@ -1371,6 +1371,12 @@ Enact a temp Basal or a temp target */
 "Delete Carb Equivalents?" = "Видалити вуглеводні еквіваленти?";
 
 /* */
+"All FPUs of the meal will be deleted." = "Усі FPU страви буде видалено.";
+
+/* */
+"Delete Glucose?" = "Видалити глюкозу?";
+
+/* */
 "Meal Presets" = "Попередні Налаштування Їжі";
 
 /* */
@@ -1651,6 +1657,21 @@ Enact a temp Basal or a temp target */
 
 /* */
 "Hours X-Axis (6 default)" = "Вісь Х годин (6 за замовчуванням)";
+
+/* */
+"2 hours" = "2 години";
+
+/* */
+"4 hours" = "4 години";
+
+/* */
+"6 hours" = "6 годин";
+
+/* */
+"12 hours" = "12 годин";
+
+/* */
+"24 hours" = "24 години";
 
 /* Average BG = */
 "Average" = "Середній";

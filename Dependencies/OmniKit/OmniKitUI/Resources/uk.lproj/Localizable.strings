@@ -798,7 +798,7 @@ Silence Pod" = "Silence Pod";
 "Failed to update silence pod preference." = "Не вдалося оновити налаштування сигналів підтвердження.";
 
 /* Section header for diagnostic section */
-"Diagnostics" = "Diagnostics";
+"Diagnostics" = "Діагностика";
 
 /* Text for read pod status navigation link */
-"Read Pod Status" = "Read Pod Status";
+"Read Pod Status" = "Отримати статус Pod'у";

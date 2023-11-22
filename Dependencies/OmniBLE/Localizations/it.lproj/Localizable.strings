@@ -433,7 +433,7 @@
 "Change Pod now. Insulin delivery will stop 8 hours after the Pod has expired or when no more insulin remains." = "Cambia il Pod ora. La somministrazione di insulina si fermerà 8 ore dopo la scadenza del Pod o quando non rimane più insulina.";
 
 /* Label text for step 1 of pair pod instructions */
-"Fill a new pod with U-100 Insulin (leave blue Pod needle cap on)." = "Fill a new pod with U-100 Insulin (leave blue Pod needle cap on).";
+"Fill a new pod with U-100 Insulin (leave blue Pod needle cap on)." = "Riempi un nuovo pod con U-100 Insulina (lascia il cappuccio blu dell’ago sul pod).";
 
 /* Label text for step 2 of pair pod instructions */
 "Listen for 2 beeps." = "Ascolta per 2 bip.";
@@ -602,10 +602,10 @@
 "No confidence reminders are used." = "Non vengono utilizzati promemoria di fiducia.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "I promemoria di fiducia suoneranno per i comandi inoltrati, come boli, cancellazione boli, sospensioni, ripristini erogazione, salvataggi di promemoria, etc. Quando iAPS invece regolerà in automatico l'erogazione allora non userà alcun promemoria di fiducia.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate.";
+"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "I promemoria di fiducia suonano quando iAPS regola automaticamente l'erogazione e per i comandi avviati dall'utente.";
 
 /* Label text for temporary basal rate summary */
 "Rate" = "Valore";
@@ -787,36 +787,36 @@
 "%@ ago" = "%@ fa";
 
 /* Title string for SilencePodPreference.enabled */
-"Silenced" = "Silenced";
+"Silenced" = "Silenziato";
 
 /* Description for SilencePodPreference.disabled */
-"Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled." = "Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled.";
+"Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled." = "Modalità di funzionamento normale in cui vengono utilizzati segnali acustici del Pod per tutti gli avvisi Pod e quando i promemoria di fiducia sono abilitati.";
 
 /* Description for SilencePodPreference.enabled */
-"All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts." = "All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts.";
+"All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts." = "Tutti gli avvisi Pod non usano alcun segnale acustico e gli avvisi acustici di conferma vengono soppressi. Il Pod sarà solo beep per difetti di Pod fatali e durante la riproduzione di beep di prova.\n\n⚠️Attenzione - Ogni volta che il Pod viene silenziato, deve essere mantenuto entro la gamma Bluetooth di questo dispositivo per ricevere le notifiche per gli avvisi Pod.";
 
 /* Help text for Silence Pod view */
-"Silence Pod mode suppresses all Pod alert and confirmation reminder beeping." = "Silence Pod mode suppresses all Pod alert and confirmation reminder beeping.";
+"Silence Pod mode suppresses all Pod alert and confirmation reminder beeping." = "La modalità Pod Silenziato sopprime tutti gli avvisi e promemoria di conferma del Pod.";
 
 /* navigation title for Silnce Pod */
-"Silence Pod" = "Silence Pod";
+"Silence Pod" = "Pod Silenziato";
 
 /* title for pod details page */
-"Pod Details" = "Pod Details";
+"Pod Details" = "Dettagli Pod";
 
 /* Text for previous pod details row" */
-"Previous Pod Details" = "Previous Pod Details";
+"Previous Pod Details" = "Dettagli Pod Precedente";
 
 /* Text for pump manager details navigation link */
-"Pump Manager Details" = "Pump Manager Details";
+"Pump Manager Details" = "Dettagli Microinfusore";
 
 /* button title when retrieving pump manager details */
-"Retrieving Pump Manager Details..." = "Retrieving Pump Manager Details...";
+"Retrieving Pump Manager Details..." = "Recupero Dettagli Microinfusore...";
 /* button title to refresh pump manager details */
-"Refresh Pump Manager Details" = "Refresh Pump Manager Details";
+"Refresh Pump Manager Details" = "Recupero Dettagli Microinfusore";
 
 /* Section header for diagnostic section */
-"Diagnostics" = "Diagnostics";
+"Diagnostics" = "Diagnostica";
 
 /* Text for read pod status navigation link */
-"Read Pod Status" = "Read Pod Status";
+"Read Pod Status" = "Leggi stato microinfusore";

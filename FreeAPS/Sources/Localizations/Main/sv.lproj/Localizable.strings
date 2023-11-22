@@ -1368,7 +1368,13 @@ Enact a temp Basal or a temp target */
 "Statistics and Home View" = "Statistik och Diagram";
 
 /* Alert text */
-"Delete Carb Equivalents?" = "Radera dessa poster?";
+"Delete Carb Equivalents?" = "Ta bort dessa fett/protein-poster?";
+
+/* */
+"All FPUs of the meal will be deleted." = "Alla poster fett/protein-poster tillhörande denna måltid kommer att tas bort.";
+
+/* */
+"Delete Glucose?" = "Ta bort blodsockervärde?";
 
 /* */
 "Meal Presets" = "Förval";

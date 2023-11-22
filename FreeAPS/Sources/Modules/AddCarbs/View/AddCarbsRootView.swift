@@ -82,19 +82,16 @@ extension AddCarbs {
                                 pushed = true
                             } label: { Text("Now") }.buttonStyle(.borderless).foregroundColor(.secondary).padding(.trailing, 5)
                         } else {
-                            Button { state.date = state.date.addingTimeInterval(-10.minutes.timeInterval) }
+                            Button { state.date = state.date.addingTimeInterval(-15.minutes.timeInterval) }
                             label: { Image(systemName: "minus.circle") }.tint(.blue).buttonStyle(.borderless)
                             DatePicker(
                                 "Time",
                                 selection: $state.date,
-                                in: ...now,
                                 displayedComponents: [.hourAndMinute]
                             ).controlSize(.mini)
                                 .labelsHidden()
                             Button {
-                                if state.date.addingTimeInterval(5.minutes.timeInterval) < now {
-                                    state.date = state.date.addingTimeInterval(10.minutes.timeInterval)
-                                }
+                                state.date = state.date.addingTimeInterval(15.minutes.timeInterval)
                             }
                             label: { Image(systemName: "plus.circle") }.tint(.blue).buttonStyle(.borderless)
                         }

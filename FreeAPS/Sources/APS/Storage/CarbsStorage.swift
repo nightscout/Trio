@@ -69,7 +69,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                 // Only use delay in first loop
                 var firstIndex = true
                 // New date for each carb equivalent
-                var useDate = entries.last?.createdAt ?? Date()
+                var useDate = entries.last?.actualDate ?? Date()
                 // Group and Identify all FPUs together
                 let fpuID = entries.last?.fpuID ?? ""
                 // Create an array of all future carb equivalents.
@@ -81,7 +81,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     } else { useDate = useDate.addingTimeInterval(interval.minutes.timeInterval) }
 
                     let eachCarbEntry = CarbsEntry(
-                        id: UUID().uuidString, createdAt: useDate, carbs: equivalent, fat: 0, protein: 0, note: nil,
+                        id: UUID().uuidString, createdAt: entries.last?.createdAt ?? Date(), actualDate: useDate,
+                        carbs: equivalent, fat: 0, protein: 0, note: nil,
                         enteredBy: CarbsEntry.manual, isFPU: true,
                         fpuID: fpuID
                     )
@@ -91,7 +92,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                 // Save the array
                 if carbEquivalents > 0 {
                     self.storage.transaction { storage in
-                        storage.append(futureCarbArray, to: file, uniqBy: \.createdAt)
+                        storage.append(futureCarbArray, to: file, uniqBy: \.id)
                         uniqEvents = storage.retrieve(file, as: [CarbsEntry].self)?
                             .filter { $0.createdAt.addingTimeInterval(1.days.timeInterval) > Date() }
                             .sorted { $0.createdAt > $1.createdAt } ?? []
@@ -105,6 +106,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                 let onlyCarbs = CarbsEntry(
                     id: entry.id ?? "",
                     createdAt: entry.createdAt,
+                    actualDate: entry.actualDate ?? entry.createdAt,
                     carbs: entry.carbs,
                     fat: nil,
                     protein: nil,
@@ -115,7 +117,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                 )
 
                 self.storage.transaction { storage in
-                    storage.append(onlyCarbs, to: file, uniqBy: \.createdAt)
+                    storage.append(onlyCarbs, to: file, uniqBy: \.id)
                     uniqEvents = storage.retrieve(file, as: [CarbsEntry].self)?
                         .filter { $0.createdAt.addingTimeInterval(1.days.timeInterval) > Date() }
                         .sorted { $0.createdAt > $1.createdAt } ?? []
@@ -129,7 +131,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             var carbDate = Date()
             if entries.isNotEmpty {
                 cbs = entries[0].carbs
-                carbDate = entries[0].createdAt
+                carbDate = entries[0].actualDate ?? entries[0].createdAt
             }
             if cbs != 0 {
                 self.coredataContext.perform {
@@ -197,7 +199,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                 absolute: nil,
                 rate: nil,
                 eventType: .nsCarbCorrection,
-                createdAt: $0.createdAt,
+                createdAt: $0.actualDate ?? $0.createdAt,
                 enteredBy: CarbsEntry.manual,
                 bolus: nil,
                 insulin: nil,

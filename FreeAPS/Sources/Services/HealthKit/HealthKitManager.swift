@@ -195,13 +195,13 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
             let sampleDates = samples.map(\.startDate)
             let samplesToSave = carbsWithId
                 .filter { !sampleIDs.contains($0.id ?? "") } // id existing in AH
-                .filter { !sampleDates.contains($0.createdAt) } // not id but exaclty the same datetime
+                .filter { !sampleDates.contains($0.actualDate ?? $0.createdAt) } // not id but exaclty the same datetime
                 .map {
                     HKQuantitySample(
                         type: sampleType,
                         quantity: HKQuantity(unit: .gram(), doubleValue: Double($0.carbs)),
-                        start: $0.createdAt,
-                        end: $0.createdAt,
+                        start: $0.actualDate ?? $0.createdAt,
+                        end: $0.actualDate ?? $0.createdAt,
                         metadata: [
                             HKMetadataKeySyncIdentifier: $0.id ?? "_id",
                             HKMetadataKeySyncVersion: 1,

@@ -576,10 +576,10 @@ Enact a temp Basal or a temp target */
 "Temp Targets" = "Obiettivi Temporanei";
 
 /* Delete carbs from data table and Nightscout */
-"Delete Carbs?" = "Cancella carboidrati?";
+"Delete Carbs?" = "Delete Carbs?";
 
 /* Delete insulin from pump history and Nightscout */
-"Delete Insulin?" = "Cancella l'insulina?";
+"Delete Insulin?" = "Delete Insulin?";
 
 /* Treatments list */
 "Treatments" = "Trattamenti";
@@ -1368,7 +1368,13 @@ Enact a temp Basal or a temp target */
 "Statistics and Home View" = "Statistiche e Vista Iniziale";
 
 /* Alert text */
-"Delete Carb Equivalents?" = "Cancella i carb equivalenti?";
+"Delete Carb Equivalents?" = "Delete Carb Equivalents?";
+
+/* */
+"All FPUs of the meal will be deleted." = "Tutti gli indici insulinici del pasto verranno eliminati.";
+
+/* */
+"Delete Glucose?" = "Cancella Glicemie?";
 
 /* */
 "Meal Presets" = "Pasto Predefinito";
@@ -1395,7 +1401,7 @@ Enact a temp Basal or a temp target */
 "Predictions" = "Previsione";
 
 /* Watch Config Option */
-"Display Protein & Fat" = "Display Protein & Fat";
+"Display Protein & Fat" = "Mostra Proteine & Grassi";
 
 /* ----------------------- New Bolus Calculator ---------------------------*/
 /* Warning about bolus recommendation. Title */
@@ -1480,7 +1486,7 @@ Enact a temp Basal or a temp target */
 /* Text for confidence reminders navigation link */
 "Confidence Reminders" = "Promemoria Di Sicurezza";
 
-"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced.";
+"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "I promemoria di fiducia sono segnali acustici emessi dal Pod che possono essere utilizzati per confermare i comandi selezionati quando il Pod non è silenziato.";
 
 /* button title for saving low reservoir reminder while saving */
 "Saving..." = "Sto salvando...";
@@ -1510,10 +1516,10 @@ Enact a temp Basal or a temp target */
 "No confidence reminders are used." = "Non vengono utilizzati promemoria di fiducia.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "I promemoria di fiducia suoneranno per i comandi inoltrati, come boli, cancellazione boli, sospensioni, ripristini erogazione, salvataggi di promemoria, etc. Quando iAPS invece regolerà in automatico l'erogazione allora non userà alcun promemoria di fiducia.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate.";
+"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "I promemoria di fiducia suonano quando iAPS regola automaticamente l'erogazione e per i comandi avviati dall'utente.";
 
 /* Label text for expiration reminder default row */
 "Expiration Reminder Default" = "Promemoria scadenza predefinito";
@@ -1651,6 +1657,21 @@ Enact a temp Basal or a temp target */
 
 /* */
 "Hours X-Axis (6 default)" = "Ore X-Axis (6 predefinito)";
+
+/* */
+"2 hours" = "2 ore";
+
+/* */
+"4 hours" = "4 ore";
+
+/* */
+"6 hours" = "6 ore";
+
+/* */
+"12 hours" = "12 ore";
+
+/* */
+"24 hours" = "24 ore";
 
 /* Average BG = */
 "Average" = "Media";

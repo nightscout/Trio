@@ -153,7 +153,7 @@
 "Confidence Reminders" = "Promemoria di fiducia";
 
 /* Help text for BeepPreferenceSelectionView */
-"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced.";
+"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "I promemoria di fiducia sono segnali acustici emessi dal Pod che possono essere utilizzati per confermare i comandi selezionati quando il Pod non è silenziato.";
 
 /* The title of the configuration section in settings */
 "Configuration" = "Configurazione";
@@ -547,7 +547,7 @@
 "Remove Pump" = "Rimuovere microinfusore";
 
 /* Label text for step two of attach pod instructions */
-"Remove the Pod's clear needle cap and check cannula. Then remove paper backing." = "Remove the Pod's clear needle cap and check cannula. Then remove paper backing.";
+"Remove the Pod's clear needle cap and check cannula. Then remove paper backing." = "Rimuovere il cappuccio trasparente dell'ago del Pod e controllare la cannula. Quindi rimuovere le due coperture di carta.";
 
 /* Label indicating pod replacement necessary
    The title of the command to replace pod */
@@ -766,39 +766,39 @@
 "Your Pod may still be delivering Insulin.\nRemove it from your body, then tap “Continue.“" = "Il tuo Pod potrebbe ancora erogare insulina.\n Rimuovilo dal tuo corpo, e poi tocca \"Continua\".";
 
 /* Title string for SilencePodPreference.enabled */
-"Silenced" = "Silenced";
+"Silenced" = "Silenziato";
 
 /* Description for SilencePodPreference.disabled */
-"Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled." = "Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled.";
+"Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled." = "Modalità di funzionamento normale in cui vengono utilizzati segnali acustici del Pod per tutti gli avvisi Pod e quando i promemoria di fiducia sono abilitati.";
 
 /* Description for SilencePodPreference.enabled */
-"All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts." = "All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts.";
+"All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts." = "Tutti gli avvisi Pod non usano alcun segnale acustico e gli avvisi acustici di conferma vengono soppressi. Il Pod sarà solo beep per difetti di Pod fatali e durante la riproduzione di beep di prova.\n\n⚠️Attenzione - Ogni volta che il Pod viene silenziato, deve essere mantenuto entro la gamma Bluetooth di questo dispositivo per ricevere le notifiche per gli avvisi Pod.";
 
 /* Help text for Silence Pod view */
 /* navigation title for Silnce Pod" */
 
 "Silence Pod mode suppresses all Pod alert and confirmation reminder beeping.
-Silence Pod" = "Silence Pod";
+Silence Pod" = "Pod Silenziato";
 
 /* title for pod details page */
-"Pod Details" = "Pod Details";
+"Pod Details" = "Dettagli Pod";
 
 /* Text for previous pod details row" */
-"Previous Pod Details" = "Previous Pod Details";
+"Previous Pod Details" = "Dettagli Pod Precedente";
 
 /* Text for pump manager details navigation link */
-"Pump Manager Details" = "Pump Manager Details";
+"Pump Manager Details" = "Dettagli Microinfusore";
 
 /* button title when retrieving pump manager details */
-"Retrieving Pump Manager Details..." = "Retrieving Pump Manager Details...";
+"Retrieving Pump Manager Details..." = "Recupero Dettagli Microinfusore...";
 /* button title to refresh pump manager details */
-"Refresh Pump Manager Details" = "Refresh Pump Manager Details";
+"Refresh Pump Manager Details" = "Recupero Dettagli Microinfusore";
 
 /* Alert title for error when updating silence pod preference */
-"Failed to update silence pod preference." = "Failed to update silence pod preference.";
+"Failed to update silence pod preference." = "Impossibile aggiornare la preferenza del Pod silenziato.";
 
 /* Section header for diagnostic section */
-"Diagnostics" = "Diagnostics";
+"Diagnostics" = "Diagnostica";
 
 /* Text for read pod status navigation link */
-"Read Pod Status" = "Read Pod Status";
+"Read Pod Status" = "Leggi stato microinfusore";

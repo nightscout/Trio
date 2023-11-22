@@ -297,10 +297,10 @@
 "If you cancel Pod setup, the current Pod will be deactivated and will be unusable." = "Als je de Podinstallatie annuleert, wordt de huidige Pod gedeactiveerd en onbruikbaar.";
 
 /* Instructions when deactivating pod that has been paired, but not attached. */
-"Incompletely set up pod must be deactivated before pairing with a new one. Please deactivate and discard pod." = "Een gedeeltelijk ingestelde pod moet eerst worden gedeactiveerd voordat er geprobeerd wordt een nieuwe pod te koppelen. Deactiveer pod en gooi weg.";
+"Incompletely set up pod must be deactivated before pairing with a new one. Please deactivate and discard pod." = "Een Pod die gedeeltelijk is ingesteld, moet eerst worden uitgeschakeld voordat je probeert een nieuwe pod te koppelen. Deactiveer de Pod uit en gooi hem weg.";
 
 /* Instructions when deactivating pod that has been paired and possibly attached. */
-"Incompletely set up pod must be deactivated before pairing with a new one. Please deactivate and remove pod." = "Een gedeeltelijk ingestelde pod moet eerst worden gedeactiveerd voordat er geprobeerd wordt een nieuwe pod te koppelen. Deactiveer pod en gooi weg.";
+"Incompletely set up pod must be deactivated before pairing with a new one. Please deactivate and remove pod." = "Een niet compleet ingestelde Pod, moet eerst worden uitgeschakeld voordat je probeert een nieuwe pod te koppelen. Deactiveer de Pod uit en gooi hem weg.";
 
 /* Button title to insert cannula during setup */
 "Insert Cannula" = "Canule inbrengen";

@@ -738,7 +738,11 @@ extension MainChartView {
         calculationQueue.async {
             let realCarbs = carbs.filter { !($0.isFPU ?? false) }
             let dots = realCarbs.map { value -> DotInfo in
-                let center = timeToInterpolatedPoint(value.createdAt.timeIntervalSince1970, fullSize: fullSize)
+                let center = timeToInterpolatedPoint(
+                    value.actualDate != nil ? (value.actualDate ?? Date()).timeIntervalSince1970 : value.createdAt
+                        .timeIntervalSince1970,
+                    fullSize: fullSize
+                )
                 let size = Config.carbsSize + CGFloat(value.carbs) * Config.carbsScale
                 let rect = CGRect(x: center.x - size / 2, y: center.y - size / 2, width: size, height: size)
                 return DotInfo(rect: rect, value: value.carbs)
@@ -761,7 +765,11 @@ extension MainChartView {
         calculationQueue.async {
             let fpus = carbs.filter { $0.isFPU ?? false }
             let dots = fpus.map { value -> DotInfo in
-                let center = timeToInterpolatedPoint(value.createdAt.timeIntervalSince1970, fullSize: fullSize)
+                let center = timeToInterpolatedPoint(
+                    value.actualDate != nil ? (value.actualDate ?? Date()).timeIntervalSince1970 : value.createdAt
+                        .timeIntervalSince1970,
+                    fullSize: fullSize
+                )
                 let size = Config.fpuSize + CGFloat(value.carbs) * Config.fpuScale
                 let rect = CGRect(x: center.x - size / 2, y: center.y - size / 2, width: size, height: size)
                 return DotInfo(rect: rect, value: value.carbs)

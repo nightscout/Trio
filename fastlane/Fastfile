@@ -126,6 +126,7 @@ platform :ios do
       skip_submission: false,
       ipa: "iAPS.ipa",
       skip_waiting_for_build_processing: true,
+      changelog: git_branch+" "+last_git_commit[:abbreviated_commit_hash],
     )
   end
 
@@ -203,6 +204,12 @@ platform :ios do
     end
 
     find_bundle_id("ru.artpancreas.#{TEAMID}.FreeAPS")
+
+    match(
+      type: "appstore",
+      git_basic_authorization: Base64.strict_encode64("#{GITHUB_REPOSITORY_OWNER}:#{GH_PAT}"),
+      app_identifier: [],
+    )
   end
 
   desc "Nuke Certs"

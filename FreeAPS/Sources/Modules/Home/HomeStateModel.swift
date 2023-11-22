@@ -219,15 +219,6 @@ extension Home {
             }
         }
 
-        func saveSettings() {
-            coredataContext.perform {
-                let settings = UXSettings(context: self.coredataContext)
-                settings.hours = self.hours
-                settings.date = Date.now
-                try? self.coredataContext.save()
-            }
-        }
-
         private func setupGlucose() {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }

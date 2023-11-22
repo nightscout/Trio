@@ -61,6 +61,10 @@ extension NightscoutConfig {
         }
 
         func connect() {
+            if let CheckURL = url.last, CheckURL == "/" {
+                let fixedURL = url.dropLast()
+                url = String(fixedURL)
+            }
             guard let url = URL(string: url) else {
                 message = "Invalid URL"
                 return

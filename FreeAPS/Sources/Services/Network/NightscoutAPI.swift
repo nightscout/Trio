@@ -148,7 +148,7 @@ extension NightscoutAPI {
         components.port = url.port
         components.path = Config.treatmentsPath
 
-        var arguments = "find[_id][$eq]"
+        var arguments = "find[id][$eq]"
         if treatement.isFPU ?? false {
             arguments = "find[fpuID][$eq]"
         }

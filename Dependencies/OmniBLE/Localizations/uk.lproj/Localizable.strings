@@ -816,7 +816,7 @@
 "Refresh Pump Manager Details" = "Оновити відомості про керування помпами";
 
 /* Section header for diagnostic section */
-"Diagnostics" = "Diagnostics";
+"Diagnostics" = "Діагностика";
 
 /* Text for read pod status navigation link */
-"Read Pod Status" = "Read Pod Status";
+"Read Pod Status" = "Отримати статус Pod'у";

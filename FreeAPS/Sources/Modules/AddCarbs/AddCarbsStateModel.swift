@@ -22,6 +22,8 @@ extension AddCarbs {
         @Published var summary: String = ""
         @Published var skipBolus: Bool = false
 
+        let now = Date.now
+
         let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
 
         override func subscribe() {
@@ -41,7 +43,8 @@ extension AddCarbs {
 
             let carbsToStore = [CarbsEntry(
                 id: id_,
-                createdAt: Date.now,
+                createdAt: now,
+                actualDate: date,
                 carbs: carbs,
                 fat: fat,
                 protein: protein,
@@ -191,7 +194,8 @@ extension AddCarbs {
             coredataContext.performAndWait {
                 let save = Meals(context: coredataContext)
                 if let entry = stored.first {
-                    save.createdAt = Date.now
+                    save.createdAt = now
+                    save.actualDate = entry.actualDate ?? Date.now
                     save.id = entry.id ?? ""
                     save.fpuID = entry.fpuID ?? ""
                     save.carbs = Double(entry.carbs)

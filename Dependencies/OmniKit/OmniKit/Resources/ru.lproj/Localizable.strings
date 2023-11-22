@@ -63,10 +63,10 @@
 "Communication issue: Unacknowledged command pending." = "Проблема со связью: ожидается неподтвержденная команда.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Доверенные звуковые сигналы сработают для операций, которые Вы инициируете - Болюс, Отмена Болюса, Приостановка подачи, Возобновление подачи, Сохранение напоминаний и т. д. Когда петля автоматически меняет подачу инсулина - звуковые сигналы не используются.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate.";
+"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Доверенные звуковые сигналы сработают даже тогда, когда петля автоматически изменит подачу инсулина, а также для команд, которые Вы инициируете.";
 
 /* The title for AlarmCode.other notification */
 "Critical Pod Error" = "Критическая ошибка пода";

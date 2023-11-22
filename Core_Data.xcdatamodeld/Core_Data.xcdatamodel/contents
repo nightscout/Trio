@@ -66,6 +66,7 @@
         <attribute name="start" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
     <entity name="Meals" representedClassName="Meals" syncable="YES" codeGenerationType="class">
+        <attribute name="actualDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="carbs" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>

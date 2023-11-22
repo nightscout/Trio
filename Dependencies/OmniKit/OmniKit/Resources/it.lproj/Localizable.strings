@@ -63,10 +63,10 @@
 "Communication issue: Unacknowledged command pending." = "Problema di comunicazione:  comando di conferma in attesa.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "I promemoria di fiducia suoneranno per i comandi inoltrati, come boli, cancellazione boli, sospensioni, ripristini erogazione, salvataggi di promemoria, etc. Quando iAPS invece regolerà in automatico l'erogazione allora non userà alcun promemoria di fiducia.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate.";
+"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "I promemoria di fiducia suonano quando iAPS regola automaticamente l'erogazione e per i comandi avviati dall'utente.";
 
 /* The title for AlarmCode.other notification */
 "Critical Pod Error" = "Errore critico Pod";

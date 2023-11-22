@@ -369,7 +369,7 @@
 "Suspend Delivery" = "Onderbreek toediening";
 
 /* Message for suspend duration selection action sheet */
-"Insulin delivery will be stopped until you resume manually. When would you like Loop to remind you to resume delivery?" = "De insulinetoediening wordt gestopt totdat u de toediening handmatig hervat. Wanneer wilt u dat Loop u eraan herinnert om de toediening te hervatten?";
+"Insulin delivery will be stopped until you resume manually. When would you like Loop to remind you to resume delivery?" = "De insulinetoediening wordt gestopt totdat je de toediening handmatig hervat. Wanneer wil je dat iAPS je eraan herinnert om de toediening te hervatten?";
 
 /* Button text for 30 minute suspend duration */
 "30 minutes" = "30 minuten";

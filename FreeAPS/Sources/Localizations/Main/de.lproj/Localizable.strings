@@ -576,10 +576,10 @@ Enact a temp Basal or a temp target */
 "Temp Targets" = "Temporäre Ziele";
 
 /* Delete carbs from data table and Nightscout */
-"Delete Carbs?" = "Kohlenhydrate löschen?";
+"Delete Carbs?" = "Delete Carbs?";
 
 /* Delete insulin from pump history and Nightscout */
-"Delete Insulin?" = "Insulin löschen?";
+"Delete Insulin?" = "Delete Insulin?";
 
 /* Treatments list */
 "Treatments" = "Behandlungen";
@@ -1368,7 +1368,13 @@ Enact a temp Basal or a temp target */
 "Statistics and Home View" = "Statistiken und Home-Ansicht";
 
 /* Alert text */
-"Delete Carb Equivalents?" = "Kohlenhydratäquivalente löschen?";
+"Delete Carb Equivalents?" = "Delete Carb Equivalents?";
+
+/* */
+"All FPUs of the meal will be deleted." = "All FPUs of the meal will be deleted.";
+
+/* */
+"Delete Glucose?" = "Delete Glucose?";
 
 /* */
 "Meal Presets" = "Mahlzeit Voreinstellungen";
@@ -1395,7 +1401,7 @@ Enact a temp Basal or a temp target */
 "Predictions" = "Prognosen";
 
 /* Watch Config Option */
-"Display Protein & Fat" = "Display Protein & Fat";
+"Display Protein & Fat" = "Zeige Eiweiß & Fett";
 
 /* ----------------------- New Bolus Calculator ---------------------------*/
 /* Warning about bolus recommendation. Title */
@@ -1480,7 +1486,7 @@ Enact a temp Basal or a temp target */
 /* Text for confidence reminders navigation link */
 "Confidence Reminders" = "Pumpe Bestätigungstöne";
 
-"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced.";
+"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Vertrauenserinnerungen sind Pieptöne vom Pod, die verwendet werden können, um ausgewählte Befehle zu bestätigen.";
 
 /* button title for saving low reservoir reminder while saving */
 "Saving..." = "Speichern...";
@@ -1510,10 +1516,10 @@ Enact a temp Basal or a temp target */
 "No confidence reminders are used." = "Keine Erinnerungseinstellungen in Verwendung.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Vertrauenserinnerungen ertönen für von Ihnen initiierte Befehle, wie Bolus, Bolus abbrechen, Unterbrechen, Fortsetzen, Benachrichtigungserinnerungen speichern usw. Wenn Loop die Abgabe automatisch anpasst, werden keine Vertrauenserinnerungen verwendet.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate.";
+"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Vertrauenserinnerungen ertönen, wenn Loop die Lieferung automatisch anpasst, sowie für von Ihnen initiierte Befehle.";
 
 /* Label text for expiration reminder default row */
 "Expiration Reminder Default" = "Standard Ablauf-Erinnerung";
@@ -1651,6 +1657,21 @@ Enact a temp Basal or a temp target */
 
 /* */
 "Hours X-Axis (6 default)" = "Stunden X-Achse (6 Standard)";
+
+/* */
+"2 hours" = "2 Stunden";
+
+/* */
+"4 hours" = "4 hours";
+
+/* */
+"6 hours" = "6 hours";
+
+/* */
+"12 hours" = "12 hours";
+
+/* */
+"24 hours" = "24 hours";
 
 /* Average BG = */
 "Average" = "Mittelwert";

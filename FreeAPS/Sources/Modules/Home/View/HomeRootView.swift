@@ -55,11 +55,6 @@ extension Home {
             sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
         ) var enactedSliderTT: FetchedResults<TempTargetsSlider>
 
-        @FetchRequest(
-            entity: UXSettings.entity(),
-            sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
-        ) var fetchedSettings: FetchedResults<UXSettings>
-
         private var numberFormatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
@@ -425,15 +420,11 @@ extension Home {
         }
 
         var timeInterval: some View {
-            HStack(alignment: .center) {
-                let saveButton = UXSettings(context: moc)
+            HStack {
                 ForEach(timeButtons) { button in
                     Text(button.active ? NSLocalizedString(button.label, comment: "") : button.number).onTapGesture {
                         let index = timeButtons.firstIndex(where: { $0.label == button.label }) ?? 0
-                        highlightButtons(index, onAppear: false)
-                        saveButton.hours = button.hours
-                        saveButton.date = Date.now
-                        try? moc.save()
+                        highlightButtons(index)
                         state.hours = button.hours
                     }
                     .foregroundStyle(button.active ? (colorScheme == .dark ? Color.white : Color.black).opacity(0.9) : .secondary)
@@ -521,29 +512,16 @@ extension Home {
             return (name: profileString, isOn: display)
         }
 
-        func highlightButtons(_ int: Int?, onAppear: Bool) {
+        func highlightButtons(_ int: Int) {
             var index = 0
-            if let integer = int, !onAppear {
-                repeat {
-                    if index == integer {
-                        timeButtons[index].active = true
-                    } else {
-                        timeButtons[index].active = false
-                    }
-                    index += 1
-                } while index < timeButtons.count
-            } else if onAppear {
-                let i = timeButtons.firstIndex(where: { $0.hours == (fetchedSettings.first?.hours ?? 6) }) ?? 2
-                index = 0
-                repeat {
-                    if index == i {
-                        timeButtons[index].active = true
-                    } else {
-                        timeButtons[index].active = false
-                    }
-                    index += 1
-                } while index < timeButtons.count
-            }
+            repeat {
+                if index == int {
+                    timeButtons[index].active = true
+                } else {
+                    timeButtons[index].active = false
+                }
+                index += 1
+            } while index < timeButtons.count
         }
 
         @ViewBuilder private func bottomPanel(_: GeometryProxy) -> some View {
@@ -736,7 +714,6 @@ extension Home {
             }
             .onAppear(perform: configureView)
             .navigationTitle("Home")
-
             .navigationBarHidden(true)
             .ignoresSafeArea(.keyboard)
             .popup(isPresented: isStatusPopupPresented, alignment: .top, direction: .top) {

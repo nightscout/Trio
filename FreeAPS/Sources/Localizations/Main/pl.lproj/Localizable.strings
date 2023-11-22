@@ -1373,6 +1373,12 @@ Połączono z Nightscout!";
 "Delete Carb Equivalents?" = "Delete Carb Equivalents?";
 
 /* */
+"All FPUs of the meal will be deleted." = "All FPUs of the meal will be deleted.";
+
+/* */
+"Delete Glucose?" = "Delete Glucose?";
+
+/* */
 "Meal Presets" = "Meal Presets";
 
 /* */
@@ -1653,6 +1659,21 @@ Połączono z Nightscout!";
 
 /* */
 "Hours X-Axis (6 default)" = "Hours X-Axis (6 default)";
+
+/* */
+"2 hours" = "2 hours";
+
+/* */
+"4 hours" = "4 hours";
+
+/* */
+"6 hours" = "6 hours";
+
+/* */
+"12 hours" = "12 hours";
+
+/* */
+"24 hours" = "24 hours";
 
 /* Average BG = */
 "Average" = "Average";
