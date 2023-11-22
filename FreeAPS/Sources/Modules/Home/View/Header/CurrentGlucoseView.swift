@@ -89,7 +89,7 @@ struct CurrentGlucoseView: View {
                                 NSLocalizedString("min", comment: "Short form for minutes") + " "
                         )
                     )
-                    .font(.caption2).foregroundColor(.secondary)
+                    .font(.caption2).foregroundColor(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
 
                     Text(
                         delta
@@ -97,7 +97,7 @@ struct CurrentGlucoseView: View {
                                 deltaFormatter.string(from: Double(units == .mmolL ? $0.asMmolL : Decimal($0)) as NSNumber)!
                             } ?? "--"
                     )
-                    .font(.caption2).foregroundColor(.secondary)
+                    .font(.caption2).foregroundColor(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
                 }.frame(alignment: .top)
             }
         }
@@ -108,35 +108,28 @@ struct CurrentGlucoseView: View {
                      .singleUp,
                      .tripleUp:
                     rotationDegrees = -90
-                    angularGradient
 
                 case .fortyFiveUp:
                     rotationDegrees = -45
-                    angularGradient
 
                 case .flat:
                     rotationDegrees = 0
-                    angularGradient
 
                 case .fortyFiveDown:
                     rotationDegrees = 45
-                    angularGradient
 
                 case .doubleDown,
                      .singleDown,
                      .tripleDown:
                     rotationDegrees = 90
-                    angularGradient
 
                 case .none,
                      .notComputable,
                      .rateOutOfRange:
                     rotationDegrees = 0
-                    angularGradient
 
                 @unknown default:
                     rotationDegrees = 0
-                    angularGradient
                 }
             }
         }
@@ -177,14 +170,19 @@ struct Triangle: Shape {
 }
 
 struct TrendShape: View {
+    @Environment(\.colorScheme) var colorScheme
+
     let gradient: AngularGradient
     let color: Color
 
     var body: some View {
         HStack(alignment: .center) {
             ZStack {
+                Group {
+                    CircleShape(gradient: gradient)
+                    TriangleShape(color: color)
+                }.shadow(color: Color.black.opacity(colorScheme == .dark ? 0.75 : 0.33), radius: colorScheme == .dark ? 5 : 3)
                 CircleShape(gradient: gradient)
-                TriangleShape(color: color)
             }
         }
     }
@@ -196,15 +194,14 @@ struct CircleShape: View {
     let gradient: AngularGradient
 
     var body: some View {
-        let colorBackground: Color = colorScheme == .dark ? .black.opacity(0.8) : .white
+        let colorBackground: Color = colorScheme == .dark ? Color(
+            red: 0.05490196078,
+            green: 0.05490196078,
+            blue: 0.05490196078
+        ) : .white
 
         Circle()
             .stroke(gradient, lineWidth: 10)
-            .shadow(
-                color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
-                    Color.black.opacity(0.33),
-                radius: 3
-            )
             .background(Circle().fill(colorBackground))
             .frame(width: 110, height: 110)
     }
