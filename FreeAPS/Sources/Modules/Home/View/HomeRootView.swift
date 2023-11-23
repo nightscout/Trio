@@ -305,6 +305,8 @@ extension Home {
                         .font(.system(size: 12, weight: .bold))
                         .foregroundColor(.insulin)
                         .padding(.leading, 8)
+                }
+                if state.tins {
                     Text(
                         "TINS: \(state.calculateTINS())" +
                             NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")

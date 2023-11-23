@@ -31,6 +31,7 @@ extension StatConfig {
                     Toggle("Display Chart Y - Grid lines", isOn: $state.yGridLines)
                     Toggle("Display Chart Threshold lines for Low and High", isOn: $state.rulerMarks)
                     Toggle("Standing / Laying TIR Chart", isOn: $state.oneDimensionalGraph)
+                    Toggle("Enable total insulin in scope", isOn: $state.tins)
                 } header: { Text("Home Chart settings ") }
 
                 Section {
