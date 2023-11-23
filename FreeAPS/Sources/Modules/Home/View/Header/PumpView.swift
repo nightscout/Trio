@@ -83,8 +83,7 @@ struct PumpView: View {
                         .frame(maxHeight: 15)
                         .foregroundColor(reservoirColor)
                     if reservoir == 0xDEAD_BEEF {
-                        Text("50+ " + NSLocalizedString("U", comment: "Insulin unit")).font(.callout)
-                            .fontWeight(.bold)
+                        Text("50+ " + NSLocalizedString("U", comment: "Insulin unit")) .font(.caption).fontWeight(.bold)
                     } else {
                         Text(
                             reservoirFormatter
@@ -117,8 +116,7 @@ struct PumpView: View {
                         .frame(maxHeight: 15)
                         .foregroundColor(timerColor)
 
-                    Text(remainingTimeString(time: date.timeIntervalSince(timerDate))).font(.callout)
-                        .fontWeight(.bold)
+                    Text(remainingTimeString(time: date.timeIntervalSince(timerDate))) .font(.caption).fontWeight(.bold)
                 }
             }
         }
