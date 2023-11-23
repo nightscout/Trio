@@ -9,6 +9,8 @@ struct PumpView: View {
 
     @State var state: Home.StateModel
 
+    @Environment(\.colorScheme) var colorScheme
+
     private var reservoirFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
@@ -29,23 +31,47 @@ struct PumpView: View {
         return formatter
     }
 
+    private var dateFormatter: DateFormatter {
+        let dateFormatter = DateFormatter()
+        dateFormatter.timeStyle = .short
+        return dateFormatter
+    }
+
     var body: some View {
         HStack {
-            Text("IOB").font(.callout).foregroundColor(.secondary)
+            Text("IOB").font(.caption).foregroundColor(.secondary)
             Text(
                 (numberFormatter.string(from: (state.suggestion?.iob ?? 0) as NSNumber) ?? "0") +
                     NSLocalizedString(" U", comment: "Insulin unit")
             )
-            .font(.callout).fontWeight(.bold)
+            .font(.caption).fontWeight(.bold)
 
             Spacer()
 
-            Text("COB").font(.callout).foregroundColor(.secondary)
+            Text("COB").font(.caption).foregroundColor(.secondary)
             Text(
                 (numberFormatter.string(from: (state.suggestion?.cob ?? 0) as NSNumber) ?? "0") +
                     NSLocalizedString(" g", comment: "gram of carbs")
             )
-            .font(.callout).fontWeight(.bold)
+            .font(.caption).fontWeight(.bold)
+
+            Spacer()
+
+            LoopView(
+                suggestion: $state.suggestion,
+                enactedSuggestion: $state.enactedSuggestion,
+                closedLoop: $state.closedLoop,
+                timerDate: $state.timerDate,
+                isLooping: $state.isLooping,
+                lastLoopDate: $state.lastLoopDate,
+                manualTempBasal: $state.manualTempBasal
+            ).onTapGesture {
+                state.isStatusPopupPresented = true
+            }.onLongPressGesture {
+                let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+                impactHeavy.impactOccurred()
+                state.runLoop()
+            }
 
             Spacer()
 
@@ -64,7 +90,7 @@ struct PumpView: View {
                             reservoirFormatter
                                 .string(from: reservoir as NSNumber)! + NSLocalizedString(" U", comment: "Insulin unit")
                         )
-                        .font(.callout).fontWeight(.bold)
+                        .font(.caption).fontWeight(.bold)
                     }
                 }
             }
@@ -78,7 +104,7 @@ struct PumpView: View {
                         .aspectRatio(contentMode: .fit)
                         .frame(maxHeight: 15)
                         .foregroundColor(batteryColor)
-                    Text("\(Int(battery.percent ?? 100)) %").font(.callout)
+                    Text("\(Int(battery.percent ?? 100)) %").font(.caption)
                         .fontWeight(.bold)
                 }
             }

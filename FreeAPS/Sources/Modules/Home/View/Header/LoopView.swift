@@ -21,27 +21,29 @@ struct LoopView: View {
         return formatter
     }
 
-    private let rect = CGRect(x: 0, y: 0, width: 24, height: 24)
+    private let rect = CGRect(x: 0, y: 0, width: 14, height: 14)
     var body: some View {
-        VStack(alignment: .center) {
+        HStack(alignment: .center) {
             ZStack {
-                Circle()
-                    .strokeBorder(color, lineWidth: 4)
+                Image(systemName: "circle.fill")
+                    .resizable()
                     .frame(width: rect.width, height: rect.height, alignment: .center)
+                    .foregroundColor(color)
                     .mask(mask(in: rect).fill(style: FillStyle(eoFill: true)))
+
                 if isLooping {
                     ProgressView()
+                        .foregroundColor(Color.loopGreen)
                 }
             }
             if isLooping {
-                Text("looping").font(.caption2)
+                Text("looping").font(.caption).fontWeight(.bold)
             } else if manualTempBasal {
-                Text("Manual").font(.caption2)
+                Text("Manual").font(.caption).fontWeight(.bold)
             } else if actualSuggestion?.timestamp != nil {
-                Text(timeString).font(.caption2)
-                    .foregroundColor(.secondary)
+                Text(timeString).font(.caption).fontWeight(.bold)
             } else {
-                Text("--").font(.caption2).foregroundColor(.secondary)
+                Text("--").font(.caption).fontWeight(.bold)
             }
         }
     }

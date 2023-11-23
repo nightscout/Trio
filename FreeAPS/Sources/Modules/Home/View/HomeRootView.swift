@@ -193,23 +193,23 @@ extension Home {
             }
         }
 
-        var loopView: some View {
-            LoopView(
-                suggestion: $state.suggestion,
-                enactedSuggestion: $state.enactedSuggestion,
-                closedLoop: $state.closedLoop,
-                timerDate: $state.timerDate,
-                isLooping: $state.isLooping,
-                lastLoopDate: $state.lastLoopDate,
-                manualTempBasal: $state.manualTempBasal
-            ).onTapGesture {
-                isStatusPopupPresented = true
-            }.onLongPressGesture {
-                let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
-                impactHeavy.impactOccurred()
-                state.runLoop()
-            }
-        }
+//        var loopView: some View {
+//            LoopView(
+//                suggestion: $state.suggestion,
+//                enactedSuggestion: $state.enactedSuggestion,
+//                closedLoop: $state.closedLoop,
+//                timerDate: $state.timerDate,
+//                isLooping: $state.isLooping,
+//                lastLoopDate: $state.lastLoopDate,
+//                manualTempBasal: $state.manualTempBasal
+//            ).onTapGesture {
+//                isStatusPopupPresented = true
+//            }.onLongPressGesture {
+//                let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+//                impactHeavy.impactOccurred()
+//                state.runLoop()
+//            }
+//        }
 
         var tempBasalString: String? {
             guard let tempRate = state.tempRate else {
@@ -387,11 +387,11 @@ extension Home {
                             .font(.system(size: 12, weight: .bold)).foregroundColor(.zt)
                     }
 
-                    Spacer()
-
-                    loopView.padding(.top, 16)
-
-                    Spacer()
+//                    Spacer()
+//
+                    ////                    loopView.padding(.top, 16)
+//
+//                    Spacer()
 
                     Group {
                         Circle().fill(Color.loopYellow).frame(width: 8, height: 8)
@@ -703,6 +703,8 @@ extension Home {
 
                     timeInterval
 
+                    Spacer()
+
                     legendPanel
 
                     Spacer()
@@ -716,7 +718,7 @@ extension Home {
             .navigationTitle("Home")
             .navigationBarHidden(true)
             .ignoresSafeArea(.keyboard)
-            .popup(isPresented: isStatusPopupPresented, alignment: .top, direction: .top) {
+            .popup(isPresented: state.isStatusPopupPresented, alignment: .top, direction: .top) {
                 popup
                     .padding()
                     .background(
@@ -728,13 +730,13 @@ extension Home {
                             ) : Color(UIColor.darkGray))
                     )
                     .onTapGesture {
-                        isStatusPopupPresented = false
+                        state.isStatusPopupPresented = false
                     }
                     .gesture(
                         DragGesture(minimumDistance: 10, coordinateSpace: .local)
                             .onEnded { value in
                                 if value.translation.height < 0 {
-                                    isStatusPopupPresented = false
+                                    state.isStatusPopupPresented = false
                                 }
                             }
                     )

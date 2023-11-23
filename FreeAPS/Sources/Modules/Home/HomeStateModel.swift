@@ -62,6 +62,7 @@ extension Home {
         @Published var timeZone: TimeZone?
         @Published var hours: Int16 = 6
         @Published var totalBolus: Decimal = 0
+        @Published var isStatusPopupPresented: Bool = false
 
         let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
 

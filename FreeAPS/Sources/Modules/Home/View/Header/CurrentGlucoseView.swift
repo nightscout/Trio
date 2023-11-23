@@ -201,9 +201,9 @@ struct CircleShape: View {
         ) : .white
 
         Circle()
-            .stroke(gradient, lineWidth: 10)
+            .stroke(gradient, lineWidth: 6)
             .background(Circle().fill(colorBackground))
-            .frame(width: 110, height: 110)
+            .frame(width: 130, height: 130)
     }
 }
 
@@ -213,8 +213,8 @@ struct TriangleShape: View {
     var body: some View {
         Triangle()
             .fill(color)
-            .frame(width: 30, height: 30)
+            .frame(width: 35, height: 35)
             .rotationEffect(.degrees(90))
-            .offset(x: 65)
+            .offset(x: 70)
     }
 }
