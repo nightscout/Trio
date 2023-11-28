@@ -43,6 +43,7 @@ struct FreeAPSSettings: JSON, Equatable {
     var maxCarbs: Decimal = 1000
     var displayFatAndProteinOnWatch: Bool = false
     var onlyAutotuneBasals: Bool = false
+    var useLiveActivity: Bool = true
 }
 
 extension FreeAPSSettings: Decodable {
@@ -222,6 +223,10 @@ extension FreeAPSSettings: Decodable {
 
         if let onlyAutotuneBasals = try? container.decode(Bool.self, forKey: .onlyAutotuneBasals) {
             settings.onlyAutotuneBasals = onlyAutotuneBasals
+        }
+
+        if let useLiveActivity = try? container.decode(Bool.self, forKey: .useLiveActivity) {
+            settings.useLiveActivity = useLiveActivity
         }
 
         self = settings
