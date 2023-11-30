@@ -107,9 +107,9 @@ extension MainChartView2 {
         VStack {
             Chart {
                 if thresholdLines {
-                    RuleMark(y: .value("High", highGlucose)).foregroundStyle(Color.red)
+                    RuleMark(y: .value("High", highGlucose)).foregroundStyle(Color.loopYellow)
                         .lineStyle(.init(lineWidth: 1, dash: [2]))
-                    RuleMark(y: .value("Low", lowGlucose)).foregroundStyle(Color.red)
+                    RuleMark(y: .value("Low", lowGlucose)).foregroundStyle(Color.loopRed)
                         .lineStyle(.init(lineWidth: 1, dash: [2]))
                 }
                 RuleMark(
@@ -207,7 +207,7 @@ extension MainChartView2 {
             }.id("MainChart")
                 .frame(
                     width: max(0, screenSize.width - 20, fullWidth(viewWidth: screenSize.width)),
-                    height: min(screenSize.height, 150)
+                    height: min(screenSize.height, 200)
                 )
                 .chartYScale(domain: 0 ... 450)
                 .chartXAxis {
