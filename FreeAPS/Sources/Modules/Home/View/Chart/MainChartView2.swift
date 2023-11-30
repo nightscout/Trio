@@ -207,9 +207,9 @@ extension MainChartView2 {
             }.id("MainChart")
                 .frame(
                     width: max(0, screenSize.width - 20, fullWidth(viewWidth: screenSize.width)),
-                    height: min(screenSize.height, 200)
+                    height: min(screenSize.height, 300)
                 )
-                .chartYScale(domain: 0 ... 450)
+//                .chartYScale(domain: 0 ... 450)
                 .chartXAxis {
                     AxisMarks(values: .stride(by: .hour, count: 2)) { _ in
                         if displayXgridLines {
@@ -279,7 +279,7 @@ extension MainChartView2 {
                 }
             }
             .frame(height: 80)
-            .chartYScale(domain: 0 ... maxBasal)
+//            .chartYScale(domain: 0 ... maxBasal)
             //            .rotationEffect(.degrees(180))
             //            .chartXAxis(.hidden)
             .chartXAxis {
