@@ -471,42 +471,39 @@ extension Home {
                         .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
                 }
 
-//                MainChartView(
-//                    glucose: $state.glucose,
-//                    isManual: $state.isManual,
-//                    suggestion: $state.suggestion,
-//                    tempBasals: $state.tempBasals,
-//                    boluses: $state.boluses,
-//                    suspensions: $state.suspensions,
-//                    announcement: $state.announcement,
-//                    hours: .constant(state.filteredHours),
-//                    maxBasal: $state.maxBasal,
-//                    autotunedBasalProfile: $state.autotunedBasalProfile,
-//                    basalProfile: $state.basalProfile,
-//                    tempTargets: $state.tempTargets,
-//                    carbs: $state.carbs,
-//                    timerDate: $state.timerDate,
-//                    units: $state.units,
-//                    smooth: $state.smooth,
-//                    highGlucose: $state.highGlucose,
-//                    lowGlucose: $state.lowGlucose,
-//                    screenHours: $state.hours,
-//                    displayXgridLines: $state.displayXgridLines,
-//                    displayYgridLines: $state.displayYgridLines,
-//                    thresholdLines: $state.thresholdLines
-//                )
+                MainChartView2(
+                    glucose: $state.glucose,
+                    suggestion: $state.suggestion,
+                    tempBasals: $state.tempBasals,
+                    boluses: $state.boluses,
+                    suspensions: $state.suspensions,
+                    announcement: $state.announcement,
+                    hours: .constant(state.filteredHours),
+                    maxBasal: $state.maxBasal,
+                    autotunedBasalProfile: $state.autotunedBasalProfile,
+                    basalProfile: $state.basalProfile,
+                    tempTargets: $state.tempTargets,
+                    carbs: $state.carbs,
+                    smooth: $state.smooth,
+                    highGlucose: $state.highGlucose,
+                    lowGlucose: $state.lowGlucose,
+                    screenHours: $state.hours,
+                    displayXgridLines: $state.displayXgridLines,
+                    displayYgridLines: $state.displayYgridLines,
+                    thresholdLines: $state.thresholdLines
+                )
 
 //                MARK: SWIFT CHARTS
 
-                MainChartView2(
-                    tempBasals: $state.tempBasals,
-                    glucose: $state.glucose,
-                    screenHours: $state.hours,
-                    highGlucose: $state.highGlucose,
-                    lowGlucose: $state.lowGlucose,
-                    carbs: $state.carbs,
-                    basalProfile: $state.basalProfile
-                )
+//                MainChartView2(
+//                    tempBasals: $state.tempBasals,
+//                    glucose: $state.glucose,
+//                    screenHours: $state.hours,
+//                    highGlucose: $state.highGlucose,
+//                    lowGlucose: $state.lowGlucose,
+//                    carbs: $state.carbs,
+//                    basalProfile: $state.basalProfile
+//                )
             }
             .padding(.bottom)
             .modal(for: .dataTable, from: self)
