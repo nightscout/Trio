@@ -34,7 +34,7 @@ extension BasalProfileEditor {
                 let date = Date(timeIntervalSince1970: self.timeValues[item.timeIndex])
                 let minutes = Int(date.timeIntervalSince1970 / 60)
                 let rate = self.rateValues[item.rateIndex]
-                return BasalProfileEntry(id: "_id", start: fotmatter.string(from: date), minutes: minutes, rate: rate)
+                return BasalProfileEntry(start: fotmatter.string(from: date), minutes: minutes, rate: rate)
             }
 
             var profileWith24hours = profile.map(\.minutes)
@@ -66,7 +66,7 @@ extension BasalProfileEditor {
                 let date = Date(timeIntervalSince1970: self.timeValues[item.timeIndex])
                 let minutes = Int(date.timeIntervalSince1970 / 60)
                 let rate = self.rateValues[item.rateIndex]
-                return BasalProfileEntry(id: "_id", start: fotmatter.string(from: date), minutes: minutes, rate: rate)
+                return BasalProfileEntry(start: fotmatter.string(from: date), minutes: minutes, rate: rate)
             }
             provider.saveProfile(profile)
                 .receive(on: DispatchQueue.main)

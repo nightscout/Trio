@@ -14,7 +14,11 @@ struct PlayTestBeepsView: View {
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
 
-    private var toRun: ((_ completion: @escaping (_ result: Error?) -> Void) -> Void)?
+    var toRun: ((_ completion: @escaping (_ result: Error?) -> Void) -> Void)?
+
+    private let title = LocalizedString("Play Test Beeps", comment: "navigation title for play test beeps")
+    private let actionString = LocalizedString("Playing Test Beeps...", comment: "button title when executing play test beeps")
+    private let failedString: String = LocalizedString("Failed to play test beeps.", comment: "Alert title for error when playing test beeps")
 
     @State private var alertIsPresented: Bool = false
     @State private var displayString: String = ""
@@ -22,10 +26,6 @@ struct PlayTestBeepsView: View {
     @State private var error: Error? = nil
     @State private var executing: Bool = false
     @State private var showActivityView = false
-
-    init(toRun: @escaping (_ completion: @escaping (_ result: Error?) -> Void) -> Void) {
-        self.toRun = toRun
-    }
 
     var body: some View {
         VStack {
@@ -48,7 +48,7 @@ struct PlayTestBeepsView: View {
             .background(Color(UIColor.secondarySystemGroupedBackground).shadow(radius: 5))
         }
         .insetGroupedListStyle()
-        .navigationTitle(LocalizedString("Play Test Beeps", comment: "navigation title for play test beeps"))
+        .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
         .alert(isPresented: $alertIsPresented, content: { alert(error: error) })
         .onFirstAppear {
@@ -61,6 +61,7 @@ struct PlayTestBeepsView: View {
             executing = true
             self.displayString = ""
             toRun?() { (error) in
+                executing = false
                 if let error = error {
                     self.displayString = ""
                     self.error = error
@@ -68,26 +69,24 @@ struct PlayTestBeepsView: View {
                 } else {
                     self.displayString = successMessage
                 }
-                executing = false
             }
         }
     }
 
     private var buttonText: String {
         if executing {
-            return LocalizedString("Playing Test Beeps...", comment: "button title when executing play test beeps")
+            return actionString
         } else {
-            return LocalizedString("Play Test Beeps", comment: "button title to play test beeps")
+            return title
         }
     }
 
     private func alert(error: Error?) -> SwiftUI.Alert {
         return SwiftUI.Alert(
-            title: Text(LocalizedString("Failed to play test beeps.", comment: "Alert title for error when playing test beeps")),
+            title: Text(failedString),
             message: Text(error?.localizedDescription ?? "No Error")
         )
     }
-
 }
 
 struct PlayTestBeepsView_Previews: PreviewProvider {

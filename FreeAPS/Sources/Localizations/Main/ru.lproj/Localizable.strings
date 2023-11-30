@@ -576,10 +576,10 @@ Enact a temp Basal or a temp target */
 "Temp Targets" = "Временные цели";
 
 /* Delete carbs from data table and Nightscout */
-"Delete Carbs?" = "Delete Carbs?";
+"Delete Carbs?" = "Удалить углеводы?";
 
 /* Delete insulin from pump history and Nightscout */
-"Delete Insulin?" = "Delete Insulin?";
+"Delete Insulin?" = "Удалить инсулин?";
 
 /* Treatments list */
 "Treatments" = "События";
@@ -1368,13 +1368,13 @@ Enact a temp Basal or a temp target */
 "Statistics and Home View" = "Статистика и экран";
 
 /* Alert text */
-"Delete Carb Equivalents?" = "Delete Carb Equivalents?";
+"Delete Carb Equivalents?" = "Удалить эквиваленты углеводов?";
 
 /* */
-"All FPUs of the meal will be deleted." = "All FPUs of the meal will be deleted.";
+"All FPUs of the meal will be deleted." = "Все пищевые единицы будут удалены.";
 
 /* */
-"Delete Glucose?" = "Delete Glucose?";
+"Delete Glucose?" = "Удалить глюкозу?";
 
 /* */
 "Meal Presets" = "Шаблоны";
@@ -1662,16 +1662,16 @@ Enact a temp Basal or a temp target */
 "2 hours" = "2 часа";
 
 /* */
-"4 hours" = "4 hours";
+"4 hours" = "4 часа";
 
 /* */
-"6 hours" = "6 hours";
+"6 hours" = "6 часов";
 
 /* */
-"12 hours" = "12 hours";
+"12 hours" = "12 часов";
 
 /* */
-"24 hours" = "24 hours";
+"24 hours" = "24 часа";
 
 /* Average BG = */
 "Average" = "Средний";
