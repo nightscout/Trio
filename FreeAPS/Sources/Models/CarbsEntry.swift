@@ -1,6 +1,6 @@
 import Foundation
 
-struct CarbsEntry: JSON, Equatable, Hashable {
+struct CarbsEntry: JSON, Equatable, Hashable, Identifiable {
     let id: String?
     let createdAt: Date
     let actualDate: Date?

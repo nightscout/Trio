@@ -194,7 +194,7 @@ extension NightscoutConfig {
                                     areBasalsOK = false
                                 }
                                 return BasalProfileEntry(
-                                    start: basal.time,
+                                    id: "_id", start: basal.time,
                                     minutes: (basal.timeAsSeconds ?? self.offset(basal.time)) / 60,
                                     rate: basal.value
                                 ) }

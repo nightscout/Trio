@@ -67,7 +67,7 @@ extension AutotuneConfig {
                 let basals = autotunedBasals.basalProfile
                     .map { basal -> BasalProfileEntry in
                         BasalProfileEntry(
-                            start: String(basal.start.prefix(5)),
+                            id: "_id", start: String(basal.start.prefix(5)),
                             minutes: basal.minutes,
                             rate: basal.rate
                         )

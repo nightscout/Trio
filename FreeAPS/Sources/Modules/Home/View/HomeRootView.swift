@@ -451,9 +451,8 @@ extension Home {
                         .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
                 }
 
-                MainChartView(
+                MainChartView2(
                     glucose: $state.glucose,
-                    isManual: $state.isManual,
                     suggestion: $state.suggestion,
                     tempBasals: $state.tempBasals,
                     boluses: $state.boluses,
@@ -465,8 +464,6 @@ extension Home {
                     basalProfile: $state.basalProfile,
                     tempTargets: $state.tempTargets,
                     carbs: $state.carbs,
-                    timerDate: $state.timerDate,
-                    units: $state.units,
                     smooth: $state.smooth,
                     highGlucose: $state.highGlucose,
                     lowGlucose: $state.lowGlucose,
@@ -693,7 +690,7 @@ extension Home {
 
                     Spacer()
 
-                    legendPanel
+//                    legendPanel
 
                     Spacer()
 
