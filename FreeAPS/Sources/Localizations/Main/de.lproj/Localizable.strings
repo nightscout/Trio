@@ -576,10 +576,10 @@ Enact a temp Basal or a temp target */
 "Temp Targets" = "Temporäre Ziele";
 
 /* Delete carbs from data table and Nightscout */
-"Delete Carbs?" = "Delete Carbs?";
+"Delete Carbs?" = "Kohlenhydrate löschen?";
 
 /* Delete insulin from pump history and Nightscout */
-"Delete Insulin?" = "Delete Insulin?";
+"Delete Insulin?" = "Insulin löschen?";
 
 /* Treatments list */
 "Treatments" = "Behandlungen";
@@ -1368,13 +1368,13 @@ Enact a temp Basal or a temp target */
 "Statistics and Home View" = "Statistiken und Home-Ansicht";
 
 /* Alert text */
-"Delete Carb Equivalents?" = "Delete Carb Equivalents?";
+"Delete Carb Equivalents?" = "Kohlenhydratäquivalente löschen?";
 
 /* */
-"All FPUs of the meal will be deleted." = "All FPUs of the meal will be deleted.";
+"All FPUs of the meal will be deleted." = "Alle FPUs der Mahlzeit werden gelöscht.";
 
 /* */
-"Delete Glucose?" = "Delete Glucose?";
+"Delete Glucose?" = "Glukose löschen?";
 
 /* */
 "Meal Presets" = "Mahlzeit Voreinstellungen";
@@ -1662,16 +1662,16 @@ Enact a temp Basal or a temp target */
 "2 hours" = "2 Stunden";
 
 /* */
-"4 hours" = "4 hours";
+"4 hours" = "4 Stunden";
 
 /* */
-"6 hours" = "6 hours";
+"6 hours" = "6 Stunden";
 
 /* */
-"12 hours" = "12 hours";
+"12 hours" = "12 Stunden";
 
 /* */
-"24 hours" = "24 hours";
+"24 hours" = "24 Stunden";
 
 /* Average BG = */
 "Average" = "Mittelwert";

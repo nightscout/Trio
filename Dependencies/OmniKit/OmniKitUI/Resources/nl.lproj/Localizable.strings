@@ -216,7 +216,7 @@
 "Discard Pod" = "Gooi pod weg";
 
 /* No comment provided by engineer. */
-"Done" = "Gereed";
+"Done" = "OK";
 
 /* Title text for button to enable bolus beeps */
 "Enable Bolus Beeps" = "Boluspiepjes inschakelen";
@@ -669,10 +669,10 @@
 "Testing Commands…" = "Commando’s aan het testen...";
 
 /* Footer text for omnipod reminders section */
-"The app configures a reminder on the pod to notify you in advance of Pod expiration. Set the number of hours advance notice you would like to configure when pairing a new Pod." = "iAPS stelt een herinnering in op de pod om je van tevoren op de hoogte te stellen van het verlopen van de Pod. Stel het aantal uur in van de vooraankondiging die je wenst in te stellen bij het koppelen van een nieuwe Pod.";
+"The app configures a reminder on the pod to notify you in advance of Pod expiration. Set the number of hours advance notice you would like to configure when pairing a new Pod." = "iAPS configureert melding op de Pod om je op de hoogte te stellen wanneer de Pod verloopt. Stel het aantal uren vooraf in dat je standaard wilt instellen als je een nieuwe Pod koppelt.";
 
 /* Description text on ExpirationReminderSetupView */
-"The App notifies you in advance of Pod expiration.\n\nScroll to set the number of hours advance notice you would like to have." = "iAPS kondigt van tevoren aan wanneer de Pod verloopt.\n\nScroll om het aantal uren in te stellen voor de gewenste vooraankondiging.";
+"The App notifies you in advance of Pod expiration.\n\nScroll to set the number of hours advance notice you would like to have." = "iAPS geeft een melding als de Pod verloopt.\n\nScroll om het aantal uren in te stellen voor de gewenste vooraankondiging.";
 
 /* Description text on LowReservoirReminderSetupView */
 "The App notifies you when the amount of insulin in the Pod reaches this level (50-10 U).\n\nScroll to set the number of units at which you would like to be reminded." = "iAPS geeft een melding wanneer de hoeveelheid insuline in de Pod dit niveau bereikt (50-10 E).\n\nScroll om het aantal eenheden in te stellen waarbij je herinnerd wilt worden.";
@@ -681,7 +681,7 @@
 "The App notifies you when the amount of insulin in the Pod reaches this level." = "iAPS geeft een melding wanneer de hoeveelheid insuline in de Pod dit niveau bereikt.";
 
 /* Description text for critical alerts */
-"The reminders above will not sound if your device is in Silent or Do Not Disturb mode.\n\nThere are other critical Pod alerts and alarms that will sound even if your device is set to Silent or Do Not Disturb mode." = "Bovenstaande herinneringen zijn niet hoorbaar wanneer je apparaat in de modus 'Stil' of 'Niet storen' staat.\n\nAndere kritieke Podmeldingen en Podalarmen gaan wel af, zelfs als je apparaat op de modus 'Stil' of 'Niet storen' staat.";
+"The reminders above will not sound if your device is in Silent or Do Not Disturb mode.\n\nThere are other critical Pod alerts and alarms that will sound even if your device is set to Silent or Do Not Disturb mode." = "Als je apparaat stil is of in de Niet storen-modus staat, hoor je de bovenstaande herinneringen niet in de app. Er zijn echter andere belangrijke waarschuwingen voor de Pod die nog steeds in de app verschijnen, zelfs als je apparaat stil is of in de Niet storen-modus staat. De Pod maakt ook geluid met piepjes voor alle herinneringen en waarschuwingen, behalve als de Pod is uitgeschakeld.";
 
 /* Message for pod sync time action sheet */
 "The time on your pump is different from the current time. Do you want to update the time on your pump to the current time?" = "De tijd op je pomp is anders dan de huidige tijd. Wil je de tijd op je pomp bijwerken naar de huidige tijd?";
@@ -769,7 +769,7 @@
 "Silenced" = "Gedempt";
 
 /* Description for SilencePodPreference.disabled */
-"Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled." = "Normale bewerkingsmodus waarbij hoorbare puepjes worden gebruikt voor alle Pod waarschuwingen en wanneer meldingen zijn ingeschakeld.";
+"Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled." = "Normale bewerkingsmodus waarbij hoorbare piepjes worden gebruikt voor alle Pod waarschuwingen en wanneer meldingen zijn ingeschakeld.";
 
 /* Description for SilencePodPreference.enabled */
 "All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts." = "Alle Pod alarmen gebruiken geen piepjes en herinneringen worden gedempt. De Pod zal alleen piepen bij fatale Pod fouten en bij testpiepen.\n\n⚠️Waarschuwing - Wanneer de Pod is gedempt, moet het binnen het Bluetooth-bereik van dit apparaat worden gehouden om meldingen voor Pod te ontvangen.";
@@ -792,7 +792,7 @@ Silence Pod" = "Gedempt";
 /* button title when retrieving pump manager details */
 "Retrieving Pump Manager Details..." = "Pomp manager gegevens ophalen...";
 /* button title to refresh pump manager details */
-"Refresh Pump Manager Details" = "Pomp manager details verversen";
+"Refresh Pump Manager Details" = "Ververs details pompmanager";
 
 /* Alert title for error when updating silence pod preference */
 "Failed to update silence pod preference." = "Kon de voorkeur voor meldingen niet bijwerken.";
@@ -801,4 +801,4 @@ Silence Pod" = "Gedempt";
 "Diagnostics" = "Diagnostische gegevens";
 
 /* Text for read pod status navigation link */
-"Read Pod Status" = "";
+"Read Pod Status" = "Lees pompstatus";

@@ -340,6 +340,30 @@ class OmniBLESettingsViewModel: ObservableObject {
         }
     }
 
+    func readPulseLogPlus(_ completion: @escaping (_ result: Result<String, Error>) -> Void) {
+        pumpManager.readPulseLogPlus() { (result) in
+            DispatchQueue.main.async {
+                completion(result)
+            }
+        }
+    }
+
+    func readActivationTime(_ completion: @escaping (_ result: Result<String, Error>) -> Void) {
+        pumpManager.readActivationTime() { (result) in
+            DispatchQueue.main.async {
+                completion(result)
+            }
+        }
+    }
+
+    func readTriggeredAlerts(_ completion: @escaping (_ result: Result<String, Error>) -> Void) {
+        pumpManager.readTriggeredAlerts() { (result) in
+            DispatchQueue.main.async {
+                completion(result)
+            }
+        }
+    }
+
     func playTestBeeps(_ completion: @escaping (Error?) -> Void) {
         pumpManager.playTestBeeps(completion: completion)
     }

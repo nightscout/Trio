@@ -25,7 +25,7 @@
 		C12401BB29C7D8E900B32844 /* TempBasalExtraCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018129C7D8E900B32844 /* TempBasalExtraCommand.swift */; };
 		C12401BC29C7D8E900B32844 /* DeactivatePodCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018229C7D8E900B32844 /* DeactivatePodCommand.swift */; };
 		C12401BD29C7D8E900B32844 /* AcknowledgeAlertCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018329C7D8E900B32844 /* AcknowledgeAlertCommand.swift */; };
-		C12401BE29C7D8E900B32844 /* PodInfoConfiguredAlerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018429C7D8E900B32844 /* PodInfoConfiguredAlerts.swift */; };
+		C12401BE29C7D8E900B32844 /* PodInfoTriggeredAlerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018429C7D8E900B32844 /* PodInfoTriggeredAlerts.swift */; };
 		C12401BF29C7D8E900B32844 /* MessageBlock.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018529C7D8E900B32844 /* MessageBlock.swift */; };
 		C12401C029C7D8E900B32844 /* PlaceholderMessageBlock.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018629C7D8E900B32844 /* PlaceholderMessageBlock.swift */; };
 		C12401C129C7D8E900B32844 /* PodInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018729C7D8E900B32844 /* PodInfo.swift */; };
@@ -162,9 +162,10 @@
 		D845A1482AF8A4E400EA0853 /* FirstAppear.swift in Sources */ = {isa = PBXBuildFile; fileRef = D845A1472AF8A4E400EA0853 /* FirstAppear.swift */; };
 		D845A14A2AF8A4EF00EA0853 /* PlayTestBeepsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D845A1492AF8A4EF00EA0853 /* PlayTestBeepsView.swift */; };
 		D845A14E2AF8A4FB00EA0853 /* ReadPodStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D845A14B2AF8A4FB00EA0853 /* ReadPodStatusView.swift */; };
-		D845A14F2AF8A4FB00EA0853 /* ReadPulseLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D845A14C2AF8A4FB00EA0853 /* ReadPulseLogView.swift */; };
 		D845A1502AF8A4FB00EA0853 /* PumpManagerDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D845A14D2AF8A4FB00EA0853 /* PumpManagerDetailsView.swift */; };
 		D845A1522AF8A51000EA0853 /* SilencePodSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D845A1512AF8A51000EA0853 /* SilencePodSelectionView.swift */; };
+		D85AEAC82B1403C000081044 /* PodDiagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = D85AEAC72B1403C000081044 /* PodDiagnostics.swift */; };
+		D85AEACA2B1403CB00081044 /* ReadPodInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D85AEAC92B1403CB00081044 /* ReadPodInfoView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -236,7 +237,7 @@
 		C124018129C7D8E900B32844 /* TempBasalExtraCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TempBasalExtraCommand.swift; sourceTree = "<group>"; };
 		C124018229C7D8E900B32844 /* DeactivatePodCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeactivatePodCommand.swift; sourceTree = "<group>"; };
 		C124018329C7D8E900B32844 /* AcknowledgeAlertCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AcknowledgeAlertCommand.swift; sourceTree = "<group>"; };
-		C124018429C7D8E900B32844 /* PodInfoConfiguredAlerts.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PodInfoConfiguredAlerts.swift; sourceTree = "<group>"; };
+		C124018429C7D8E900B32844 /* PodInfoTriggeredAlerts.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PodInfoTriggeredAlerts.swift; sourceTree = "<group>"; };
 		C124018529C7D8E900B32844 /* MessageBlock.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageBlock.swift; sourceTree = "<group>"; };
 		C124018629C7D8E900B32844 /* PlaceholderMessageBlock.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaceholderMessageBlock.swift; sourceTree = "<group>"; };
 		C124018729C7D8E900B32844 /* PodInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PodInfo.swift; sourceTree = "<group>"; };
@@ -415,9 +416,10 @@
 		D845A1472AF8A4E400EA0853 /* FirstAppear.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FirstAppear.swift; sourceTree = "<group>"; };
 		D845A1492AF8A4EF00EA0853 /* PlayTestBeepsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayTestBeepsView.swift; sourceTree = "<group>"; };
 		D845A14B2AF8A4FB00EA0853 /* ReadPodStatusView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReadPodStatusView.swift; sourceTree = "<group>"; };
-		D845A14C2AF8A4FB00EA0853 /* ReadPulseLogView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReadPulseLogView.swift; sourceTree = "<group>"; };
 		D845A14D2AF8A4FB00EA0853 /* PumpManagerDetailsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PumpManagerDetailsView.swift; sourceTree = "<group>"; };
 		D845A1512AF8A51000EA0853 /* SilencePodSelectionView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SilencePodSelectionView.swift; sourceTree = "<group>"; };
+		D85AEAC72B1403C000081044 /* PodDiagnostics.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PodDiagnostics.swift; sourceTree = "<group>"; };
+		D85AEAC92B1403CB00081044 /* ReadPodInfoView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReadPodInfoView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -564,31 +566,31 @@
 		C124017D29C7D8E900B32844 /* MessageBlocks */ = {
 			isa = PBXGroup;
 			children = (
-				C124017E29C7D8E900B32844 /* PodInfoPulseLog.swift */,
-				C124017F29C7D8E900B32844 /* VersionResponse.swift */,
-				C124018029C7D8E900B32844 /* PodInfoActivationTime.swift */,
-				C124018129C7D8E900B32844 /* TempBasalExtraCommand.swift */,
-				C124018229C7D8E900B32844 /* DeactivatePodCommand.swift */,
 				C124018329C7D8E900B32844 /* AcknowledgeAlertCommand.swift */,
-				C124018429C7D8E900B32844 /* PodInfoConfiguredAlerts.swift */,
-				C124018529C7D8E900B32844 /* MessageBlock.swift */,
-				C124018629C7D8E900B32844 /* PlaceholderMessageBlock.swift */,
-				C124018729C7D8E900B32844 /* PodInfo.swift */,
-				C124018829C7D8E900B32844 /* BolusExtraCommand.swift */,
-				C124018929C7D8E900B32844 /* FaultConfigCommand.swift */,
-				C124018A29C7D8E900B32844 /* PodInfoPulseLogPlus.swift */,
-				C124018B29C7D8E900B32844 /* StatusResponse.swift */,
-				C124018C29C7D8E900B32844 /* GetStatusCommand.swift */,
-				C124018D29C7D8E900B32844 /* BasalScheduleExtraCommand.swift */,
-				C124018E29C7D8E900B32844 /* CancelDeliveryCommand.swift */,
 				C124018F29C7D8E900B32844 /* AssignAddressCommand.swift */,
+				C124018D29C7D8E900B32844 /* BasalScheduleExtraCommand.swift */,
 				C124019029C7D8E900B32844 /* BeepConfigCommand.swift */,
-				C124019129C7D8E900B32844 /* ErrorResponse.swift */,
-				C124019229C7D8E900B32844 /* SetupPodCommand.swift */,
-				C124019329C7D8E900B32844 /* DetailedStatus.swift */,
-				C124019429C7D8E900B32844 /* PodInfoResponse.swift */,
-				C124019529C7D8E900B32844 /* SetInsulinScheduleCommand.swift */,
+				C124018829C7D8E900B32844 /* BolusExtraCommand.swift */,
+				C124018E29C7D8E900B32844 /* CancelDeliveryCommand.swift */,
 				C124019629C7D8E900B32844 /* ConfigureAlertsCommand.swift */,
+				C124018229C7D8E900B32844 /* DeactivatePodCommand.swift */,
+				C124019329C7D8E900B32844 /* DetailedStatus.swift */,
+				C124019129C7D8E900B32844 /* ErrorResponse.swift */,
+				C124018929C7D8E900B32844 /* FaultConfigCommand.swift */,
+				C124018C29C7D8E900B32844 /* GetStatusCommand.swift */,
+				C124018629C7D8E900B32844 /* PlaceholderMessageBlock.swift */,
+				C124018529C7D8E900B32844 /* MessageBlock.swift */,
+				C124018729C7D8E900B32844 /* PodInfo.swift */,
+				C124018029C7D8E900B32844 /* PodInfoActivationTime.swift */,
+				C124017E29C7D8E900B32844 /* PodInfoPulseLog.swift */,
+				C124018A29C7D8E900B32844 /* PodInfoPulseLogPlus.swift */,
+				C124019429C7D8E900B32844 /* PodInfoResponse.swift */,
+				C124018429C7D8E900B32844 /* PodInfoTriggeredAlerts.swift */,
+				C124019529C7D8E900B32844 /* SetInsulinScheduleCommand.swift */,
+				C124019229C7D8E900B32844 /* SetupPodCommand.swift */,
+				C124018B29C7D8E900B32844 /* StatusResponse.swift */,
+				C124018129C7D8E900B32844 /* TempBasalExtraCommand.swift */,
+				C124017F29C7D8E900B32844 /* VersionResponse.swift */,
 			);
 			path = MessageBlocks;
 			sourceTree = "<group>";
@@ -722,11 +724,12 @@
 				C124024329C7DA9700B32844 /* PairPodView.swift */,
 				D845A1492AF8A4EF00EA0853 /* PlayTestBeepsView.swift */,
 				C124024829C7DA9700B32844 /* PodDetailsView.swift */,
+				D85AEAC72B1403C000081044 /* PodDiagnostics.swift */,
 				C124022E29C7DA9700B32844 /* PodLifeHUDView.swift */,
 				C124024129C7DA9700B32844 /* PodSetupView.swift */,
 				D845A14D2AF8A4FB00EA0853 /* PumpManagerDetailsView.swift */,
+				D85AEAC92B1403CB00081044 /* ReadPodInfoView.swift */,
 				D845A14B2AF8A4FB00EA0853 /* ReadPodStatusView.swift */,
-				D845A14C2AF8A4FB00EA0853 /* ReadPulseLogView.swift */,
 				C124023729C7DA9700B32844 /* RileyLinkSetupView.swift */,
 				C124024729C7DA9700B32844 /* ScheduledExpirationReminderEditView.swift */,
 				C124023829C7DA9700B32844 /* SetupCompleteView.swift */,
@@ -1081,7 +1084,7 @@
 				C12401D429C7D8E900B32844 /* BeepPreference.swift in Sources */,
 				C12401B829C7D8E900B32844 /* PodInfoPulseLog.swift in Sources */,
 				D845A1352AF89DEC00EA0853 /* SilencePodPreference.swift in Sources */,
-				C12401BE29C7D8E900B32844 /* PodInfoConfiguredAlerts.swift in Sources */,
+				C12401BE29C7D8E900B32844 /* PodInfoTriggeredAlerts.swift in Sources */,
 				C12401E529C7D8E900B32844 /* PodCommsSession.swift in Sources */,
 				C12401DE29C7D8E900B32844 /* CRC16.swift in Sources */,
 				C12401C729C7D8E900B32844 /* BasalScheduleExtraCommand.swift in Sources */,
@@ -1127,7 +1130,6 @@
 				C124028B29C7DA9700B32844 /* BeepPreferenceSelectionView.swift in Sources */,
 				C12EDA1429C7DFBF00435701 /* TimeInterval.swift in Sources */,
 				C124028D29C7DA9700B32844 /* AttachPodView.swift in Sources */,
-				D845A14F2AF8A4FB00EA0853 /* ReadPulseLogView.swift in Sources */,
 				C124027229C7DA9700B32844 /* DeactivatePodViewModel.swift in Sources */,
 				C124028C29C7DA9700B32844 /* ExpirationReminderSetupView.swift in Sources */,
 				D845A1462AF8A4DA00EA0853 /* ActivityView.swift in Sources */,
@@ -1165,6 +1167,7 @@
 				D845A14A2AF8A4EF00EA0853 /* PlayTestBeepsView.swift in Sources */,
 				C124026F29C7DA9700B32844 /* PairPodViewModel.swift in Sources */,
 				C124026E29C7DA9700B32844 /* FrameworkLocalText.swift in Sources */,
+				D85AEAC82B1403C000081044 /* PodDiagnostics.swift in Sources */,
 				C124028F29C7DA9700B32844 /* PodDetailsView.swift in Sources */,
 				C124028629C7DA9700B32844 /* NotificationSettingsView.swift in Sources */,
 				C124027D29C7DA9700B32844 /* InsertCannulaView.swift in Sources */,
@@ -1177,6 +1180,7 @@
 				C124027B29C7DA9700B32844 /* ErrorView.swift in Sources */,
 				C124028829C7DA9700B32844 /* PodSetupView.swift in Sources */,
 				C124027F29C7DA9700B32844 /* SetupCompleteView.swift in Sources */,
+				D85AEACA2B1403CB00081044 /* ReadPodInfoView.swift in Sources */,
 				C124029429C7DA9700B32844 /* TimeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

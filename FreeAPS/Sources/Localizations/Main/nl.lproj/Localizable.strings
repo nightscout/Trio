@@ -38,7 +38,7 @@
 "Clear" = "Wissen";
 
 /* Button */
-"Done" = "Gereed";
+"Done" = "OK";
 
 /*  */
 "Wait please" = "Wachten";
@@ -1484,9 +1484,9 @@ Enact a temp Basal or a temp target */
 "Previous Pod Information" = "Vorige Pod informatie";
 
 /* Text for confidence reminders navigation link */
-"Confidence Reminders" = "Meldingen met piepjes vanuit de Pod";
+"Confidence Reminders" = "Bevestigingsmeldingen";
 
-"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Dit zijn meldingen die met piepjes uit de Pod komen en kunnen worden gebruikt ter bevestiging van geselecteerde opdrachten.";
+"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Dit zijn bevestigingsmeldingen met piepjes die uit de Pod komen en kunnen worden gebruikt ter bevestiging van geselecteerde opdrachten als de Pod niet gedempt is.";
 
 /* button title for saving low reservoir reminder while saving */
 "Saving..." = "Opslaan...";
@@ -1510,7 +1510,7 @@ Enact a temp Basal or a temp target */
 "Enabled" = "Ingeschakeld";
 
 /* Title string for BeepPreference.extended */
-"Extended" = "Verlengd";
+"Extended" = "Uitgebreid";
 
 /* Description for BeepPreference.silent */
 "No confidence reminders are used." = "Er worden geen meldingen met piepjes gebruikt.";

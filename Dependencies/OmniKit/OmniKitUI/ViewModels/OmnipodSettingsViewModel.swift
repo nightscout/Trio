@@ -348,6 +348,10 @@ class OmnipodSettingsViewModel: ObservableObject {
         }
     }
 
+    func playTestBeeps(_ completion: @escaping (Error?) -> Void) {
+        pumpManager.playTestBeeps(completion: completion)
+    }
+
     func readPulseLog(_ completion: @escaping (_ result: Result<String, Error>) -> Void) {
         pumpManager.readPulseLog() { (result) in
             DispatchQueue.main.async {
@@ -356,8 +360,28 @@ class OmnipodSettingsViewModel: ObservableObject {
         }
     }
 
-    func playTestBeeps(_ completion: @escaping (Error?) -> Void) {
-        pumpManager.playTestBeeps(completion: completion)
+    func readPulseLogPlus(_ completion: @escaping (_ result: Result<String, Error>) -> Void) {
+        pumpManager.readPulseLogPlus() { (result) in
+            DispatchQueue.main.async {
+                completion(result)
+            }
+        }
+    }
+
+    func readActivationTime(_ completion: @escaping (_ result: Result<String, Error>) -> Void) {
+        pumpManager.readActivationTime() { (result) in
+            DispatchQueue.main.async {
+                completion(result)
+            }
+        }
+    }
+
+    func readTriggeredAlerts(_ completion: @escaping (_ result: Result<String, Error>) -> Void) {
+        pumpManager.readTriggeredAlerts() { (result) in
+            DispatchQueue.main.async {
+                completion(result)
+            }
+        }
     }
 
     func pumpManagerDetails(_ completion: @escaping (_ result: String) -> Void) {
