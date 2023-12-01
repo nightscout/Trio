@@ -63,8 +63,16 @@ extension LiveActivityAttributes.ContentState {
         }) ?? ""
 
         let chartBG = chart.map(\.glucose)
+        let chartDate = chart.map(\.dateString)
 
-        self.init(bg: formattedBG, trendSystemImage: trendString, change: change, date: bg.dateString, chart: chartBG)
+        self.init(
+            bg: formattedBG,
+            trendSystemImage: trendString,
+            change: change,
+            date: bg.dateString,
+            chart: chartBG,
+            chartDate: chartDate
+        )
     }
 }
 
@@ -196,12 +204,13 @@ extension LiveActivityBridge: GlucoseObserver {
             self.latestGlucose = glucose.last
         }
 
-        let last200Glucose = Array(glucose.suffix(200))
+        let last72Glucose = Array(glucose.dropLast().suffix(72))
 
         guard let bg = glucose.last, let content = LiveActivityAttributes.ContentState(
             new: bg,
             prev: latestGlucose,
-            mmol: settings.units == .mmolL, chart: last200Glucose
+            mmol: settings.units == .mmolL,
+            chart: last72Glucose
         ) else {
             // no bg or value stale. Don't update the activity if there already is one, just let it turn stale so that it can still be used once current bg is available again
             return

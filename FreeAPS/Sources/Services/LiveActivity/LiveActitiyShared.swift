@@ -8,6 +8,7 @@ struct LiveActivityAttributes: ActivityAttributes {
         let change: String
         let date: Date
         let chart: [Int?]
+        let chartDate: [Date?]
     }
 
     let startDate: Date
