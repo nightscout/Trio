@@ -11,8 +11,8 @@ struct LiveActivity: Widget {
     }()
 
     func changeLabel(context: ActivityViewContext<LiveActivityAttributes>) -> Text {
-        if let change = context.state.change {
-            Text("\(change > 0 ? "+" : "")\(change)")
+        if !context.isStale && !context.state.change.isEmpty {
+            Text(context.state.change)
         } else {
             Text("--")
         }
@@ -26,7 +26,7 @@ struct LiveActivity: Widget {
         if context.isStale {
             Text("--")
         } else {
-            Text("\(context.state.bg)")
+            Text(context.state.bg)
         }
     }
 
@@ -34,7 +34,7 @@ struct LiveActivity: Widget {
         if context.isStale {
             Text("--")
         } else {
-            Text("\(context.state.bg)")
+            Text(context.state.bg)
             if let trendSystemImage = context.state.trendSystemImage {
                 Image(systemName: trendSystemImage)
             }
@@ -44,21 +44,22 @@ struct LiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: LiveActivityAttributes.self) { context in
             // Lock screen/banner UI goes here
-            VStack(alignment: .trailing, spacing: 0) {
-                HStack(alignment: .top) {
-                    HStack(alignment: .center, spacing: 3) {
-                        bgAndTrend(context: context).font(.title)
-                    }
-                    Spacer()
+
+            HStack(spacing: 3) {
+                bgAndTrend(context: context).font(.title)
+                Spacer()
+                VStack(alignment: .trailing, spacing: 5) {
                     changeLabel(context: context).font(.title3)
+                    updatedLabel(context: context).font(.caption).foregroundStyle(.black.opacity(0.7))
                 }
-                .imageScale(.small)
-                updatedLabel(context: context).font(.caption).offset(y: -3)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 10)
+            .privacySensitive()
+            .imageScale(.small)
+            .padding(.all, 15)
+            .background(Color.white.opacity(0.2))
+            .foregroundColor(Color.black)
             .activityBackgroundTint(Color.cyan.opacity(0.2))
-            .activitySystemActionForegroundColor(Color.white)
+            .activitySystemActionForegroundColor(Color.black)
 
         } dynamicIsland: { context in
             DynamicIsland {
@@ -73,14 +74,15 @@ struct LiveActivity: Widget {
                     changeLabel(context: context).font(.title).padding(.trailing, 5)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    updatedLabel(context: context).font(.caption)
+                    updatedLabel(context: context).font(.caption).foregroundStyle(Color.secondary)
+                        .padding(.bottom, 5)
                 }
             } compactLeading: {
                 HStack(spacing: 1) {
                     bgAndTrend(context: context)
-                }.bold().imageScale(.small)
+                }.bold().imageScale(.small).padding(.leading, 5)
             } compactTrailing: {
-                changeLabel(context: context)
+                changeLabel(context: context).padding(.trailing, 5)
             } minimal: {
                 bgLabel(context: context).bold()
             }
@@ -98,7 +100,7 @@ private extension LiveActivityAttributes {
 
 private extension LiveActivityAttributes.ContentState {
     static var test: LiveActivityAttributes.ContentState {
-        LiveActivityAttributes.ContentState(bg: "100", trendSystemImage: "arrow.right", change: 2, date: Date())
+        LiveActivityAttributes.ContentState(bg: "100", trendSystemImage: "arrow.right", change: "+2", date: Date())
     }
 }
 

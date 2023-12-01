@@ -60,7 +60,7 @@ extension NotificationsConfig {
                     Section(
                         header: Text("Live Activity"),
                         footer: Text(
-                            "Live activity displays blood gluocse live on the lock screen and on the dynamic island (if available)"
+                            "Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)"
                         )
                     ) {
                         Toggle("Show live activity", isOn: $state.useLiveActivity)
