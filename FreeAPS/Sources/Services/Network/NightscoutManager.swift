@@ -482,15 +482,28 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     func uploadProfileAndSettings(_ force: Bool) {
-        // These should be modified anyways and not the defaults
-        guard let sensitivities = storage.retrieve(OpenAPS.Settings.insulinSensitivities, as: InsulinSensitivities.self),
-              let basalProfile = storage.retrieve(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self),
-              let carbRatios = storage.retrieve(OpenAPS.Settings.carbRatios, as: CarbRatios.self),
-              let targets = storage.retrieve(OpenAPS.Settings.bgTargets, as: BGTargets.self),
-              let preferences = storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self),
-              let settings = storage.retrieve(OpenAPS.FreeAPS.settings, as: FreeAPSSettings.self)
-        else {
-            debug(.nightscout, "NightscoutManager uploadProfile Not all settings found to build profile!")
+        guard let sensitivities = storage.retrieve(OpenAPS.Settings.insulinSensitivities, as: InsulinSensitivities.self) else {
+            debug(.nightscout, "NightscoutManager uploadProfile: error loading insulinSensitivities")
+            return
+        }
+        guard let settings = storage.retrieve(OpenAPS.FreeAPS.settings, as: FreeAPSSettings.self) else {
+            debug(.nightscout, "NightscoutManager uploadProfile: error loading settings")
+            return
+        }
+        guard let preferences = storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self) else {
+            debug(.nightscout, "NightscoutManager uploadProfile: error loading preferences")
+            return
+        }
+        guard let targets = storage.retrieve(OpenAPS.Settings.bgTargets, as: BGTargets.self) else {
+            debug(.nightscout, "NightscoutManager uploadProfile: error loading bgTargets")
+            return
+        }
+        guard let carbRatios = storage.retrieve(OpenAPS.Settings.carbRatios, as: CarbRatios.self) else {
+            debug(.nightscout, "NightscoutManager uploadProfile: error loading carbRatios")
+            return
+        }
+        guard let basalProfile = storage.retrieve(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self) else {
+            debug(.nightscout, "NightscoutManager uploadProfile: error loading basalProfile")
             return
         }
 
@@ -498,32 +511,30 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             NightscoutTimevalue(
                 time: String(item.start.prefix(5)),
                 value: item.sensitivity,
-                timeAsSeconds: item.offset
+                timeAsSeconds: item.offset * 60
             )
         }
-
         let target_low = targets.targets.map { item -> NightscoutTimevalue in
             NightscoutTimevalue(
                 time: String(item.start.prefix(5)),
                 value: item.low,
-                timeAsSeconds: item.offset
+                timeAsSeconds: item.offset * 60
             )
         }
         let target_high = targets.targets.map { item -> NightscoutTimevalue in
             NightscoutTimevalue(
                 time: String(item.start.prefix(5)),
                 value: item.high,
-                timeAsSeconds: item.offset
+                timeAsSeconds: item.offset * 60
             )
         }
         let cr = carbRatios.schedule.map { item -> NightscoutTimevalue in
             NightscoutTimevalue(
                 time: String(item.start.prefix(5)),
                 value: item.ratio,
-                timeAsSeconds: item.offset
+                timeAsSeconds: item.offset * 60
             )
         }
-
         let basal = basalProfile.map { item -> NightscoutTimevalue in
             NightscoutTimevalue(
                 time: String(item.start.prefix(5)),

@@ -49,3 +49,16 @@ public struct PodInfoPulseLogPlus : PodInfo {
         self.data = encodedData
     }
 }
+
+func pulseLogPlusString(podInfoPulseLogPlus: PodInfoPulseLogPlus) -> String {
+    var result: [String] = []
+
+    result.append(String(format: "Pod Active: %@", podInfoPulseLogPlus.timeActivation.timeIntervalStr))
+    result.append(String(format: "Fault Time: %@", podInfoPulseLogPlus.timeFaultEvent.timeIntervalStr))
+    result.append(String(format: "%@\n", String(describing: podInfoPulseLogPlus.faultEventCode)))
+
+    let lastPulseNumber = Int(podInfoPulseLogPlus.nEntries)
+    result.append(pulseLogString(pulseLogEntries: podInfoPulseLogPlus.pulseLog, lastPulseNumber: lastPulseNumber))
+
+    return result.joined(separator: "\n")
+}

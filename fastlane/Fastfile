@@ -57,7 +57,8 @@ platform :ios do
       app_identifier: [
         "ru.artpancreas.#{TEAMID}.FreeAPS",
         "ru.artpancreas.#{TEAMID}.FreeAPS.watchkitapp",
-        "ru.artpancreas.#{TEAMID}.FreeAPS.watchkitapp.watchkitextension"
+        "ru.artpancreas.#{TEAMID}.FreeAPS.watchkitapp.watchkitextension",
+        "ru.artpancreas.#{TEAMID}.FreeAPS.LiveActivity"
       ]
     )
 
@@ -96,6 +97,12 @@ platform :ios do
       profile_name: mapping["ru.artpancreas.#{TEAMID}.FreeAPS.watchkitapp"],
       code_sign_identity: "iPhone Distribution",
       targets: ["FreeAPSWatch"]
+    )
+    update_code_signing_settings(
+      path: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
+      profile_name: mapping["ru.artpancreas.#{TEAMID}.FreeAPS.LiveActivity"],
+      code_sign_identity: "iPhone Distribution",
+      targets: ["LiveActivityExtension"]
     )
 
     gym(
@@ -162,6 +169,10 @@ platform :ios do
     configure_bundle_id("FreeAPSWatch", "ru.artpancreas.#{TEAMID}.FreeAPS.watchkitapp", [
       Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS
     ])
+
+    configure_bundle_id("LiveActivityExtension", "ru.artpancreas.#{TEAMID}.FreeAPS.LiveActivity", [
+      Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS
+    ])
     
   end
 
@@ -184,6 +195,7 @@ platform :ios do
         "ru.artpancreas.#{TEAMID}.FreeAPS",
         "ru.artpancreas.#{TEAMID}.FreeAPS.watchkitapp.watchkitextension",
         "ru.artpancreas.#{TEAMID}.FreeAPS.watchkitapp",
+        "ru.artpancreas.#{TEAMID}.FreeAPS.LiveActivity"
       ]
     )
   end

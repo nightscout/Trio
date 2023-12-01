@@ -1,3 +1,4 @@
+import ActivityKit
 import CoreData
 import SwiftUI
 import Swinject
@@ -44,6 +45,9 @@ import Swinject
         _ = resolver.resolve(WatchManager.self)!
         _ = resolver.resolve(HealthKitManager.self)!
         _ = resolver.resolve(BluetoothStateManager.self)!
+        if #available(iOS 16.2, *) {
+            _ = resolver.resolve(LiveActivityBridge.self)!
+        }
     }
 
     init() {

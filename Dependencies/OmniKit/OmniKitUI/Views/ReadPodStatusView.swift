@@ -10,6 +10,96 @@ import SwiftUI
 import LoopKit
 import OmniKit
 
+
+struct ReadPodStatusView: View {
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
+
+    var toRun: ((_ completion: @escaping (_ result: PumpManagerResult<DetailedStatus>) -> Void) -> Void)?
+
+    private let title = LocalizedString("Read Pod Status", comment: "navigation title for read pod status")
+    private let actionString = LocalizedString("Reading Pod Status...", comment: "button title when executing read pod status")
+    private let failedString = LocalizedString("Failed to read pod status.", comment: "Alert title for error when reading pod status")
+
+    @State private var alertIsPresented: Bool = false
+    @State private var displayString: String = ""
+    @State private var error: LocalizedError? = nil
+    @State private var executing: Bool = false
+    @State private var showActivityView: Bool = false
+
+    var body: some View {
+        VStack {
+            List {
+                Section {
+                    Text(self.displayString).fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        self.showActivityView = true
+                    }) {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                }
+            }.sheet(isPresented: $showActivityView) {
+                ActivityView(isPresented: $showActivityView, activityItems: [self.displayString])
+            }
+            VStack {
+                Button(action: {
+                    asyncAction()
+                }) {
+                    Text(buttonText)
+                        .actionButtonStyle(.primary)
+                }
+                .padding()
+                .disabled(executing)
+            }
+            .padding(self.horizontalSizeClass == .regular ? .bottom : [])
+            .background(Color(UIColor.secondarySystemGroupedBackground).shadow(radius: 5))
+        }
+        .insetGroupedListStyle()
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.inline)
+        .alert(isPresented: $alertIsPresented, content: { alert(error: error) })
+        .onFirstAppear {
+            asyncAction()
+        }
+    }
+
+    private func asyncAction () {
+        DispatchQueue.global(qos: .utility).async {
+            executing = true
+            self.displayString = ""
+            toRun?() { (result) in
+                executing = false
+                switch result {
+                case .success(let detailedStatus):
+                    self.displayString = podStatusString(status: detailedStatus)
+                case .failure(let error):
+                    self.error = error
+                    self.alertIsPresented = true
+                }
+            }
+        }
+    }
+
+    private var buttonText: String {
+        if executing {
+            return actionString
+        } else {
+            return title
+        }
+    }
+
+    private func alert(error: Error?) -> SwiftUI.Alert {
+        return SwiftUI.Alert(
+            title: Text(failedString),
+            message: Text(error?.localizedDescription ?? "No Error")
+        )
+    }
+}
+
 private func podStatusString(status: DetailedStatus) -> String {
     var result, str: String
 
@@ -67,95 +157,6 @@ private func podStatusString(status: DetailedStatus) -> String {
     return result
 }
 
-struct ReadPodStatusView: View {
-    @Environment(\.horizontalSizeClass) var horizontalSizeClass
-    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
-
-    private var toRun: ((_ completion: @escaping (_ result: PumpManagerResult<DetailedStatus>) -> Void) -> Void)?
-
-    @State private var alertIsPresented: Bool = false
-    @State private var displayString: String = ""
-    @State private var error: LocalizedError? = nil
-    @State private var executing: Bool = false
-    @State private var showActivityView: Bool = false
-
-    init(toRun: @escaping (_ completion: @escaping (_ result: PumpManagerResult<DetailedStatus>) -> Void) -> Void) {
-        self.toRun = toRun
-    }
-
-    var body: some View {
-        VStack {
-            List {
-                Section {
-                    Text(self.displayString).fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        self.showActivityView = true
-                    }) {
-                        Image(systemName: "square.and.arrow.up")
-                    }
-                }
-            }.sheet(isPresented: $showActivityView) {
-                ActivityView(isPresented: $showActivityView, activityItems: [self.displayString])
-            }
-            VStack {
-                Button(action: {
-                    asyncAction()
-                }) {
-                    Text(buttonText)
-                        .actionButtonStyle(.primary)
-                }
-                .padding()
-                .disabled(executing)
-            }
-            .padding(self.horizontalSizeClass == .regular ? .bottom : [])
-            .background(Color(UIColor.secondarySystemGroupedBackground).shadow(radius: 5))
-        }
-        .insetGroupedListStyle()
-        .navigationTitle(LocalizedString("Read Pod Status", comment: "navigation title for read pod status"))
-        .navigationBarTitleDisplayMode(.inline)
-        .alert(isPresented: $alertIsPresented, content: { alert(error: error) })
-        .onFirstAppear {
-            asyncAction()
-        }
-    }
-
-    private func asyncAction () {
-        DispatchQueue.global(qos: .utility).async {
-            executing = true
-            self.displayString = ""
-            toRun?() { (result) in
-                switch result {
-                case .success(let detailedStatus):
-                    self.displayString = podStatusString(status: detailedStatus)
-                case .failure(let error):
-                    self.error = error
-                    self.alertIsPresented = true
-                }
-                executing = false
-            }
-        }
-    }
-
-    private var buttonText: String {
-        if executing {
-            return LocalizedString("Reading Pod Status...", comment: "button title when executing read pod status")
-        } else {
-            return LocalizedString("Read Pod Status", comment: "button title to read pod status")
-        }
-    }
-
-    private func alert(error: Error?) -> SwiftUI.Alert {
-        return SwiftUI.Alert(
-            title: Text(LocalizedString("Failed to read pod status.", comment: "Alert title for error when reading pod status")),
-            message: Text(error?.localizedDescription ?? "No Error")
-        )
-    }
-}
-
 struct ReadPodStatusView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
@@ -165,4 +166,4 @@ struct ReadPodStatusView_Previews: PreviewProvider {
             }
         }
     }
- }
+}

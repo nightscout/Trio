@@ -366,7 +366,8 @@ struct OmniBLESettingsView: View  {
 
                 if let podDetails = self.viewModel.podDetails {
                     NavigationLink(destination: PodDetailsView(podDetails: podDetails, title: LocalizedString("Pod Details", comment: "title for pod details page"))) {
-                        FrameworkLocalText("Pod Details", comment: "Text for pod details disclosure row").foregroundColor(Color.primary)
+                        FrameworkLocalText("Pod Details", comment: "Text for pod details disclosure row")
+                            .foregroundColor(Color.primary)
                     }
                 } else {
                     HStack {
@@ -379,7 +380,8 @@ struct OmniBLESettingsView: View  {
 
                 if let previousPodDetails = viewModel.previousPodDetails {
                     NavigationLink(destination: PodDetailsView(podDetails: previousPodDetails, title: LocalizedString("Previous Pod", comment: "title for previous pod page"))) {
-                        FrameworkLocalText("Previous Pod Details", comment: "Text for previous pod details row").foregroundColor(Color.primary)
+                        FrameworkLocalText("Previous Pod Details", comment: "Text for previous pod details row")
+                            .foregroundColor(Color.primary)
                     }
                 } else {
                     HStack {
@@ -416,7 +418,8 @@ struct OmniBLESettingsView: View  {
                 }
                 NavigationLink(destination: BeepPreferenceSelectionView(initialValue: viewModel.beepPreference, onSave: viewModel.setConfirmationBeeps)) {
                     HStack {
-                        FrameworkLocalText("Confidence Reminders", comment: "Text for confidence reminders navigation link").foregroundColor(Color.primary)
+                        FrameworkLocalText("Confidence Reminders", comment: "Text for confidence reminders navigation link")
+                            .foregroundColor(Color.primary)
                         Spacer()
                         Text(viewModel.beepPreference.title)
                             .foregroundColor(.secondary)
@@ -424,7 +427,8 @@ struct OmniBLESettingsView: View  {
                 }
                 NavigationLink(destination: SilencePodSelectionView(initialValue: viewModel.silencePodPreference, onSave: viewModel.setSilencePod)) {
                     HStack {
-                        FrameworkLocalText("Silence Pod", comment: "Text for silence pod navigation link").foregroundColor(Color.primary)
+                        FrameworkLocalText("Silence Pod", comment: "Text for silence pod navigation link")
+                            .foregroundColor(Color.primary)
                         Spacer()
                         Text(viewModel.silencePodPreference.title)
                             .foregroundColor(.secondary)
@@ -472,21 +476,13 @@ struct OmniBLESettingsView: View  {
                 }
             }
 
-            Section(header: SectionHeader(label: LocalizedString("Diagnostics", comment: "Section header for diagnostic section"))) {
-                NavigationLink(destination: ReadPodStatusView(toRun: viewModel.readPodStatus)) {
-                    FrameworkLocalText("Read Pod Status", comment: "Text for read pod status navigation link").foregroundColor(Color.primary)
-                }
-                .disabled(self.viewModel.noPod)
-                NavigationLink(destination: ReadPulseLogView(toRun: viewModel.readPulseLog)) {
-                    FrameworkLocalText("Read Pulse Log", comment: "Text for read pulse log navigation link").foregroundColor(Color.primary)
-                }
-                .disabled(self.viewModel.noPod)
-                NavigationLink(destination: PlayTestBeepsView(toRun: viewModel.playTestBeeps)) {
-                    FrameworkLocalText("Play Test Beeps", comment: "Text for play test beeps navigation link").foregroundColor(Color.primary)
-                }
-                .disabled(!self.viewModel.podOk)
-                NavigationLink(destination: PumpManagerDetailsView(toRun: viewModel.pumpManagerDetails)) {
-                    FrameworkLocalText("Pump Manager Details", comment: "Text for pump manager details navigation link").foregroundColor(Color.primary)
+            Section() {
+                NavigationLink(destination: PodDiagnosticsView(
+                    title: LocalizedString("Pod Diagnostics", comment: "Title for the pod diagnostic view"),
+                    viewModel: viewModel))
+                {
+                    FrameworkLocalText("Pod Diagnostics", comment: "Text for pod diagnostics row")
+                        .foregroundColor(Color.primary)
                 }
             }
 

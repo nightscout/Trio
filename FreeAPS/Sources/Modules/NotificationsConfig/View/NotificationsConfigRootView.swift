@@ -55,6 +55,17 @@ extension NotificationsConfig {
                         Text("g").foregroundColor(.secondary)
                     }
                 }
+
+                if #available(iOS 16.2, *) {
+                    Section(
+                        header: Text("Live Activity"),
+                        footer: Text(
+                            "Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)"
+                        )
+                    ) {
+                        Toggle("Show live activity", isOn: $state.useLiveActivity)
+                    }
+                }
             }
             .onAppear(perform: configureView)
             .navigationBarTitle("Notifications")
