@@ -174,7 +174,7 @@ extension MainChartView2 {
                     }
                 }
                 ForEach(calculatePredictions(), id: \.self) { info in
-                    if info.type == .uam, info.timestamp.timeIntervalSince1970 < endMarker.timeIntervalSince1970 {
+                    if info.type == .uam {
                         LineMark(
                             x: .value("Time", info.timestamp, unit: .second),
                             y: .value("Value", info.amount),
