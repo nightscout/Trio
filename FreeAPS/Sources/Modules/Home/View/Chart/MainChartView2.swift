@@ -39,6 +39,7 @@ struct MainChartView2: View {
     }
 
     @Binding var glucose: [BloodGlucose]
+    @Binding var eventualBG: Int?
     @Binding var suggestion: Suggestion?
     @Binding var tempBasals: [PumpHistoryEvent]
     @Binding var boluses: [PumpHistoryEvent]
@@ -341,10 +342,8 @@ extension MainChartView2 {
                 .foregroundColor(.orange)
             Text("UAM")
                 .foregroundColor(.secondary)
-            if suggestion?.predictions?.cob?.last != nil {
-                Text("⇢ " + String(suggestion?.predictions?.cob?.last ?? 0))
-            } else if suggestion?.predictions?.uam?.last != nil {
-                Text("⇢ " + String(suggestion?.predictions?.uam?.last ?? 0))
+            if eventualBG != nil {
+                Text("⇢ " + String(eventualBG ?? 0))
             }
         }
         .font(.caption2)
