@@ -221,7 +221,7 @@ extension MainChartView2 {
             }.id("MainChart")
                 .frame(
                     width: max(0, screenSize.width - 20, fullWidth(viewWidth: screenSize.width)),
-                    height: min(screenSize.height, 300)
+                    height: min(screenSize.height, 200)
                 )
 //                .chartYScale(domain: 0 ... 450)
                 .chartXAxis {
