@@ -1,4 +1,5 @@
 import ActivityKit
+import Charts
 import SwiftUI
 import WidgetKit
 
@@ -41,6 +42,35 @@ struct LiveActivity: Widget {
         }
     }
 
+//
+//    @ViewBuilder func chart(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
+//        if context.isStale {
+//            Text("--")
+//        } else {
+//            Chart {
+//                PointMark(
+//                    x: .value("Time", context.state.chart.count),
+//                    y: .value("Value", context.state.chart.count)
+//                )
+//            }
+//        }
+//    }
+
+    @ViewBuilder func chart(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
+        if context.isStale {
+            Text("--")
+        } else {
+            Chart {
+                ForEach(context.state.chart.indices, id: \.self) { index in
+                    PointMark(
+                        x: .value("Time", index),
+                        y: .value("Value", context.state.chart[index] ?? 0)
+                    )
+                }
+            }
+        }
+    }
+
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: LiveActivityAttributes.self) { context in
             // Lock screen/banner UI goes here
@@ -51,6 +81,7 @@ struct LiveActivity: Widget {
                 VStack(alignment: .trailing, spacing: 5) {
                     changeLabel(context: context).font(.title3)
                     updatedLabel(context: context).font(.caption).foregroundStyle(.black.opacity(0.7))
+                    chart(context: context)
                 }
             }
             .privacySensitive()
@@ -76,6 +107,7 @@ struct LiveActivity: Widget {
                 DynamicIslandExpandedRegion(.bottom) {
                     updatedLabel(context: context).font(.caption).foregroundStyle(Color.secondary)
                         .padding(.bottom, 5)
+                    chart(context: context)
                 }
             } compactLeading: {
                 HStack(spacing: 1) {
@@ -92,20 +124,20 @@ struct LiveActivity: Widget {
     }
 }
 
-private extension LiveActivityAttributes {
-    static var preview: LiveActivityAttributes {
-        LiveActivityAttributes(startDate: Date())
-    }
-}
-
-private extension LiveActivityAttributes.ContentState {
-    static var test: LiveActivityAttributes.ContentState {
-        LiveActivityAttributes.ContentState(bg: "100", trendSystemImage: "arrow.right", change: "+2", date: Date())
-    }
-}
-
-#Preview("Notification", as: .content, using: LiveActivityAttributes.preview) {
-    LiveActivity()
-} contentStates: {
-    LiveActivityAttributes.ContentState.test
-}
+// private extension LiveActivityAttributes {
+//    static var preview: LiveActivityAttributes {
+//        LiveActivityAttributes(startDate: Date())
+//    }
+// }
+//
+// private extension LiveActivityAttributes.ContentState {
+//    static var test: LiveActivityAttributes.ContentState {
+//        LiveActivityAttributes.ContentState(bg: "100", trendSystemImage: "arrow.right", change: "+2", date: Date())
+//    }
+// }
+//
+// #Preview("Notification", as: .content, using: LiveActivityAttributes.preview) {
+//    LiveActivity()
+// } contentStates: {
+//    LiveActivityAttributes.ContentState.test
+// }

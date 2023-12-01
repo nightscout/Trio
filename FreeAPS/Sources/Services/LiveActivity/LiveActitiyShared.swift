@@ -7,6 +7,7 @@ struct LiveActivityAttributes: ActivityAttributes {
         let trendSystemImage: String?
         let change: String
         let date: Date
+        let chart: [Int?]
     }
 
     let startDate: Date
