@@ -362,12 +362,6 @@ extension MainChartView2 {
         .font(.caption2)
         .padding(.horizontal, 40)
         .padding(.vertical, 1)
-        .onChange(of: basalProfile) { _ in
-            calculcateBasals()
-        }
-        .onChange(of: tempBasals) { _ in
-            calculateTempBasals()
-        }
     }
 }
 
