@@ -59,6 +59,7 @@ struct MainChartView2: View {
     @Binding var displayYgridLines: Bool
     @Binding var thresholdLines: Bool
 
+    @State var didAppearTrigger = false
     @State private var BasalProfiles: [BasalProfile] = []
     @State private var TempBasals: [PumpHistoryEvent] = []
     @State private var startMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 - 86400))
@@ -93,6 +94,19 @@ struct MainChartView2: View {
                     }.onAppear {
                         scroller.scrollTo("MainChart", anchor: .trailing)
                         calculateTempBasals()
+                    }.onChange(of: tempBasals) { _ in
+                        calculateBasals()
+                    }
+                    .onChange(of: maxBasal) { _ in
+                        calculateBasals()
+                    }
+                    .onChange(of: autotunedBasalProfile) { _ in
+                        calculateBasals()
+                    }
+                    .onChange(of: didAppearTrigger) { _ in
+                        calculateBasals()
+                    }.onChange(of: basalProfile) { _ in
+                        calculateBasals()
                     }
                 }
             }
@@ -543,6 +557,7 @@ extension MainChartView2 {
     }
 
     private func calculcateBasals() {
+    private func calculateBasals() {
         let dayAgoTime = Date().addingTimeInterval(-1.days.timeInterval).timeIntervalSince1970
         let firstTempTime = (tempBasals.first?.timestamp ?? Date()).timeIntervalSince1970
 
