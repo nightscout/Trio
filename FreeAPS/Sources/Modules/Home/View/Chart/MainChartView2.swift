@@ -549,7 +549,6 @@ extension MainChartView2 {
         return basalTruncatedPoints
     }
 
-    private func calculcateBasals() {
     private func calculateBasals() {
         let dayAgoTime = Date().addingTimeInterval(-1.days.timeInterval).timeIntervalSince1970
         let firstTempTime = (tempBasals.first?.timestamp ?? Date()).timeIntervalSince1970
