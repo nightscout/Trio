@@ -93,7 +93,6 @@ struct MainChartView2: View {
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }.onAppear {
                         scroller.scrollTo("MainChart", anchor: .trailing)
-                        calculateTempBasals()
                     }.onChange(of: tempBasals) { _ in
                         calculateBasals()
                     }
