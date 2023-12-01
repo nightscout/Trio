@@ -42,30 +42,16 @@ struct LiveActivity: Widget {
         }
     }
 
-//
-//    @ViewBuilder func chart(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
-//        if context.isStale {
-//            Text("--")
-//        } else {
-//            Chart {
-//                PointMark(
-//                    x: .value("Time", context.state.chart.count),
-//                    y: .value("Value", context.state.chart.count)
-//                )
-//            }
-//        }
-//    }
-
     @ViewBuilder func chart(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
         if context.isStale {
             Text("--")
         } else {
             Chart {
                 ForEach(context.state.chart.indices, id: \.self) { index in
-                    PointMark(
-                        x: .value("Time", index),
+                    LineMark(
+                        x: .value("Time", context.state.chartDate[index] ?? Date()),
                         y: .value("Value", context.state.chart[index] ?? 0)
-                    )
+                    ).foregroundStyle(Color.blue.gradient).symbolSize(12)
                 }
             }
         }
