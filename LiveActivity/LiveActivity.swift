@@ -20,7 +20,7 @@ struct LiveActivity: Widget {
     }
 
     func updatedLabel(context: ActivityViewContext<LiveActivityAttributes>) -> Text {
-        Text("Updated: \(dateFormatter.string(from: context.state.date))")
+        Text(dateFormatter.string(from: context.state.date))
     }
 
     func bgLabel(context: ActivityViewContext<LiveActivityAttributes>) -> Text {
@@ -28,6 +28,16 @@ struct LiveActivity: Widget {
             Text("--")
         } else {
             Text(context.state.bg)
+        }
+    }
+
+    @ViewBuilder func trend(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
+        if context.isStale {
+            Text("--")
+        } else {
+            if let trendSystemImage = context.state.trendSystemImage {
+                Image(systemName: trendSystemImage)
+            }
         }
     }
 
@@ -62,11 +72,16 @@ struct LiveActivity: Widget {
             // Lock screen/banner UI goes here
 
             HStack(spacing: 3) {
-                bgAndTrend(context: context).font(.title)
+                VStack {
+                    bgLabel(context: context).font(.title)
+                    HStack {
+                        trend(context: context)
+                        changeLabel(context: context).font(.title3)
+                    }
+                    updatedLabel(context: context).font(.caption).foregroundStyle(.black.opacity(0.7))
+                }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 5) {
-                    changeLabel(context: context).font(.title3)
-                    updatedLabel(context: context).font(.caption).foregroundStyle(.black.opacity(0.7))
                     chart(context: context)
                 }
             }
