@@ -12,7 +12,7 @@ struct WidgetBobble: View {
                 Group {
                     CircleShape(gradient: gradient)
                     TriangleShape(color: color)
-                }.shadow(color: Color.black.opacity(colorScheme == .dark ? 0.75 : 0.33), radius: colorScheme == .dark ? 5 : 3)
+                }
                 CircleShape(gradient: gradient)
             }
         }
@@ -25,15 +25,15 @@ struct CircleShape: View {
     let gradient: AngularGradient
 
     var body: some View {
-        let colorBackground: Color = colorScheme == .dark ? Color(
-            red: 0.05490196078,
-            green: 0.05490196078,
-            blue: 0.05490196078
-        ) : .white
+//        let colorBackground: Color = colorScheme == .dark ? Color(
+//            red: 0.05490196078,
+//            green: 0.05490196078,
+//            blue: 0.05490196078
+//        ) : .white
 
         Circle()
-            .stroke(gradient, lineWidth: 6)
-            .background(Circle().fill(colorBackground))
+            .stroke(gradient, lineWidth: 10)
+            .background(Circle().fill(.clear))
             .frame(width: 130, height: 130)
     }
 }
@@ -46,7 +46,7 @@ struct TriangleShape: View {
             .fill(color)
             .frame(width: 35, height: 35)
             .rotationEffect(.degrees(90))
-            .offset(x: 70)
+            .offset(x: 78)
     }
 }
 
@@ -54,7 +54,7 @@ struct Triangle: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
 
-        let cornerRadius: CGFloat = 8
+        let cornerRadius: CGFloat = 2
 
         path.move(to: CGPoint(x: rect.midX, y: rect.minY))
         path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - cornerRadius))

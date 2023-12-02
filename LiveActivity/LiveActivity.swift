@@ -71,7 +71,7 @@ struct LiveActivity: Widget {
 
     @ViewBuilder func chart(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
         if context.isStale {
-            Text("--")
+            Text("No data available")
         } else {
             Chart {
                 ForEach(context.state.chart.indices, id: \.self) { index in
@@ -81,14 +81,14 @@ struct LiveActivity: Widget {
                     ).foregroundStyle(Color.green.gradient).symbolSize(12)
                 }
             }.chartPlotStyle { plotContent in
-                plotContent.background(.gray.opacity(0.1))
+                plotContent.background(.cyan.opacity(0.1))
             }
             .chartYAxis {
                 AxisMarks(position: .leading)
-            }.foregroundStyle(Color.white)
+            }
             .chartXAxis {
                 AxisMarks(position: .automatic)
-            }.foregroundStyle(Color.white)
+            }
         }
     }
 
@@ -120,7 +120,7 @@ struct LiveActivity: Widget {
             .padding(.all, 15)
             .background(Color.white.opacity(0.2))
             .foregroundColor(Color.white)
-            .activityBackgroundTint(Color.cyan.opacity(0.3))
+            .activityBackgroundTint(Color.black.opacity(0.7))
             .activitySystemActionForegroundColor(Color.black)
 
         } dynamicIsland: { context in
