@@ -23,6 +23,18 @@ private struct Prediction: Hashable {
     let type: PredictionType
 }
 
+private struct Carb: Hashable {
+    let amount: Decimal
+    let timestamp: Date
+    let nearestGlucose: BloodGlucose
+}
+
+private struct ChartBolus: Hashable {
+    let amount: Decimal
+    let timestamp: Date
+    let nearestGlucose: BloodGlucose
+}
+
 private enum PredictionType: Hashable {
     case iob
     case cob
@@ -32,9 +44,9 @@ private enum PredictionType: Hashable {
 
 struct MainChartView2: View {
     private enum Config {
-        static let bolusSize: CGFloat = 8
+        static let bolusSize: CGFloat = 4
         static let bolusScale: CGFloat = 2.5
-        static let carbsSize: CGFloat = 10
+        static let carbsSize: CGFloat = 5
         static let carbsScale: CGFloat = 0.3
     }
 
@@ -62,6 +74,9 @@ struct MainChartView2: View {
     @State var didAppearTrigger = false
     @State private var BasalProfiles: [BasalProfile] = []
     @State private var TempBasals: [PumpHistoryEvent] = []
+    @State private var Predictions: [Prediction] = []
+    @State private var ChartCarbs: [Carb] = []
+    @State private var ChartBoluses: [ChartBolus] = []
     @State private var startMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 - 86400))
     @State private var endMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 + 10800))
 
@@ -93,19 +108,14 @@ struct MainChartView2: View {
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }.onAppear {
                         scroller.scrollTo("MainChart", anchor: .trailing)
-                    }.onChange(of: tempBasals) { _ in
-                        calculateBasals()
+                    }.onChange(of: glucose) { _ in
+                        scroller.scrollTo("MainChart", anchor: .trailing)
                     }
-                    .onChange(of: maxBasal) { _ in
-                        calculateBasals()
+                    .onChange(of: suggestion) { _ in
+                        scroller.scrollTo("MainChart", anchor: .trailing)
                     }
-                    .onChange(of: autotunedBasalProfile) { _ in
-                        calculateBasals()
-                    }
-                    .onChange(of: didAppearTrigger) { _ in
-                        calculateBasals()
-                    }.onChange(of: basalProfile) { _ in
-                        calculateBasals()
+                    .onChange(of: tempBasals) { _ in
+                        scroller.scrollTo("MainChart", anchor: .trailing)
                     }
                 }
             }
@@ -147,33 +157,31 @@ extension MainChartView2 {
                         unit: .second
                     )
                 ).foregroundStyle(.clear)
-                ForEach(carbs) { carb in
-                    let glucose = timeToNearestGlucose(time: carb.createdAt.timeIntervalSince1970)
-                    let carbAmount = carb.carbs
+                ForEach(ChartCarbs, id: \.self) { carb in
+                    let carbAmount = carb.amount
                     PointMark(
-                        x: .value("Time", carb.createdAt, unit: .second),
-                        y: .value("Value", glucose.sgv ?? 120)
+                        x: .value("Time", carb.timestamp, unit: .second),
+                        y: .value("Value", carb.nearestGlucose.sgv ?? 120)
                     )
-                    .symbolSize((Config.carbsSize + CGFloat(carb.carbs) * Config.carbsScale) * 10)
+                    .symbolSize((Config.carbsSize + CGFloat(carbAmount) * Config.carbsScale) * 10)
                     .foregroundStyle(Color.orange)
                     .annotation(position: .top) {
                         Text(bolusFormatter.string(from: carbAmount as NSNumber)!).font(.caption2)
                     }
                 }
-                ForEach(boluses) { bolus in
-                    let glucose = timeToNearestGlucose(time: bolus.timestamp.timeIntervalSince1970)
-                    let bolusAmount = bolus.amount ?? 0
+                ForEach(ChartBoluses, id: \.self) { bolus in
+                    let bolusAmount = bolus.amount
                     PointMark(
                         x: .value("Time", bolus.timestamp, unit: .second),
-                        y: .value("Value", glucose.sgv ?? 120)
+                        y: .value("Value", bolus.nearestGlucose.sgv ?? 120)
                     )
-                    .symbolSize((Config.bolusSize + CGFloat(bolus.amount ?? 0) * Config.bolusScale) * 10)
+                    .symbolSize((Config.bolusSize + CGFloat(bolusAmount) * Config.bolusScale) * 10)
                     .foregroundStyle(Color.insulin)
                     .annotation(position: .bottom) {
                         Text(bolusFormatter.string(from: bolusAmount as NSNumber)!).font(.caption2)
                     }
                 }
-                ForEach(calculatePredictions(), id: \.self) { info in
+                ForEach(Predictions, id: \.self) { info in
                     if info.type == .uam {
                         LineMark(
                             x: .value("Time", info.timestamp, unit: .second),
@@ -219,6 +227,26 @@ extension MainChartView2 {
                     }
                 }
             }.id("MainChart")
+                .onChange(of: glucose) { _ in
+                    calculatePredictions()
+                }
+                .onChange(of: carbs) { _ in
+                    calculateCarbs()
+                }
+                .onChange(of: boluses) { _ in
+                    calculateBoluses()
+                }
+                .onChange(of: didAppearTrigger) { _ in
+                    calculatePredictions()
+                }.onChange(of: suggestion) { _ in
+                    calculatePredictions()
+                }
+                .onReceive(
+                    Foundation.NotificationCenter.default
+                        .publisher(for: UIApplication.willEnterForegroundNotification)
+                ) { _ in
+                    calculatePredictions()
+                }
                 .frame(
                     width: max(0, screenSize.width - 20, fullWidth(viewWidth: screenSize.width)),
                     height: min(screenSize.height, 200)
@@ -273,7 +301,7 @@ extension MainChartView2 {
                         unit: .second
                     )
                 ).foregroundStyle(.clear)
-                ForEach(calculateTempBasals()) {
+                ForEach(TempBasals) {
                     BarMark(
                         x: .value("Time", $0.timestamp),
                         y: .value("Rate", $0.rate ?? 0)
@@ -291,6 +319,24 @@ extension MainChartView2 {
                         series: .value("profile", "profile")
                     ).lineStyle(.init(lineWidth: 2, dash: [2, 3]))
                 }
+            }.onChange(of: tempBasals) { _ in
+                calculateBasals()
+                calculateTempBasals()
+            }
+            .onChange(of: maxBasal) { _ in
+                calculateBasals()
+                calculateTempBasals()
+            }
+            .onChange(of: autotunedBasalProfile) { _ in
+                calculateBasals()
+                calculateTempBasals()
+            }
+            .onChange(of: didAppearTrigger) { _ in
+                calculateBasals()
+                calculateTempBasals()
+            }.onChange(of: basalProfile) { _ in
+                calculateBasals()
+                calculateTempBasals()
             }
             .frame(height: 80)
 //            .chartYScale(domain: 0 ... maxBasal)
@@ -386,7 +432,6 @@ extension MainChartView2 {
                 print("Break", value.dateString.timeIntervalSince1970, time)
                 break
             }
-            print("Glucose", value.dateString.timeIntervalSince1970, time)
         }
         return glucose[nextIndex]
     }
@@ -395,14 +440,32 @@ extension MainChartView2 {
         viewWidth * CGFloat(hours) / CGFloat(min(max(screenHours, 2), 24))
     }
 
-    private func calculatePredictions() -> [Prediction] {
+    private func calculateCarbs() {
+        var calculatedCarbs: [Carb] = []
+        carbs.forEach { carb in
+            let bg = timeToNearestGlucose(time: carb.createdAt.timeIntervalSince1970)
+            calculatedCarbs.append(Carb(amount: carb.carbs, timestamp: carb.createdAt, nearestGlucose: bg))
+        }
+        ChartCarbs = calculatedCarbs
+    }
+
+    private func calculateBoluses() {
+        var calculatedBoluses: [ChartBolus] = []
+        boluses.forEach { bolus in
+            let bg = timeToNearestGlucose(time: bolus.timestamp.timeIntervalSince1970)
+            calculatedBoluses.append(ChartBolus(amount: bolus.amount ?? 0, timestamp: bolus.timestamp, nearestGlucose: bg))
+        }
+        ChartBoluses = calculatedBoluses
+    }
+
+    private func calculatePredictions() {
         var calculatedPredictions: [Prediction] = []
         let uam = suggestion?.predictions?.uam ?? []
         let iob = suggestion?.predictions?.iob ?? []
         let cob = suggestion?.predictions?.cob ?? []
         let zt = suggestion?.predictions?.zt ?? []
         guard let deliveredAt = suggestion?.deliverAt else {
-            return []
+            return
         }
         uam.indices.forEach { index in
             let predTime = Date(
@@ -414,13 +477,6 @@ extension MainChartView2 {
                     Prediction(amount: uam[index], timestamp: predTime, type: .uam)
                 )
             }
-            print(
-                "Vergleich",
-                index,
-                predTime.timeIntervalSince1970,
-                endMarker.timeIntervalSince1970,
-                predTime.timeIntervalSince1970 < endMarker.timeIntervalSince1970
-            )
         }
         iob.indices.forEach { index in
             let predTime = Date(
@@ -455,8 +511,7 @@ extension MainChartView2 {
                 )
             }
         }
-
-        return calculatedPredictions
+        Predictions = calculatedPredictions
     }
 
     private func getLastUam() -> Int {
@@ -464,7 +519,7 @@ extension MainChartView2 {
         return uam.last ?? 0
     }
 
-    private func calculateTempBasals() -> [PumpHistoryEvent] {
+    private func calculateTempBasals() {
         var basals = tempBasals
         var returnTempBasalRates: [PumpHistoryEvent] = []
         var finished: [Int: Bool] = [:]
@@ -487,8 +542,7 @@ extension MainChartView2 {
                 }
             }
         }
-        print("Temp Basals", returnTempBasalRates)
-        return returnTempBasalRates
+        TempBasals = returnTempBasalRates
     }
 
     private func findRegularBasalPoints(
