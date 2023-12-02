@@ -48,6 +48,7 @@ struct MainChartView2: View {
         static let bolusScale: CGFloat = 2.5
         static let carbsSize: CGFloat = 5
         static let carbsScale: CGFloat = 0.3
+        static let fpuSize: CGFloat = 20
     }
 
     @Binding var glucose: [BloodGlucose]
@@ -76,6 +77,7 @@ struct MainChartView2: View {
     @State private var TempBasals: [PumpHistoryEvent] = []
     @State private var Predictions: [Prediction] = []
     @State private var ChartCarbs: [Carb] = []
+    @State private var ChartFpus: [Carb] = []
     @State private var ChartBoluses: [ChartBolus] = []
     @State private var startMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 - 86400))
     @State private var endMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 + 10800))
@@ -93,6 +95,15 @@ struct MainChartView2: View {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.maximumFractionDigits = 0
+        return formatter
+    }
+
+    private var fpuFormatter: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 1
+        formatter.decimalSeparator = "."
+        formatter.minimumIntegerDigits = 0
         return formatter
     }
 
@@ -157,18 +168,32 @@ extension MainChartView2 {
                         unit: .second
                     )
                 ).foregroundStyle(.clear)
-                ForEach(ChartCarbs, id: \.self) { carb in
-                    let carbAmount = carb.amount
+                /* ForEach(ChartCarbs, id: \.self) { carb in
+                     let carbAmount = carb.amount
+                     PointMark(
+                         x: .value("Time", carb.timestamp, unit: .second),
+                         y: .value("Value", carb.nearestGlucose.sgv ?? 120)
+                     )
+                     .symbolSize((Config.carbsSize + CGFloat(carbAmount) * Config.carbsScale) * 10)
+                     .foregroundStyle(Color.orange)
+                     .annotation(position: .top) {
+                         Text(bolusFormatter.string(from: carbAmount as NSNumber)!).font(.caption2)
+                     }
+                 }
+                 */
+                ForEach(ChartFpus, id: \.self) { fpu in
+                    let fpuAmount = fpu.amount
                     PointMark(
-                        x: .value("Time", carb.timestamp, unit: .second),
-                        y: .value("Value", carb.nearestGlucose.sgv ?? 120)
+                        x: .value("Time", fpu.timestamp, unit: .second),
+                        y: .value("Value", fpu.nearestGlucose.sgv ?? 120)
                     )
-                    .symbolSize((Config.carbsSize + CGFloat(carbAmount) * Config.carbsScale) * 10)
-                    .foregroundStyle(Color.orange)
+                    .symbolSize((Config.fpuSize + CGFloat(fpuAmount) * Config.carbsScale) * 10)
+                    .foregroundStyle(Color.brown)
                     .annotation(position: .top) {
-                        Text(bolusFormatter.string(from: carbAmount as NSNumber)!).font(.caption2)
+                        Text(bolusFormatter.string(from: fpuAmount as NSNumber)!).font(.caption2)
                     }
                 }
+
                 ForEach(ChartBoluses, id: \.self) { bolus in
                     let bolusAmount = bolus.amount
                     PointMark(
@@ -232,6 +257,7 @@ extension MainChartView2 {
                 }
                 .onChange(of: carbs) { _ in
                     calculateCarbs()
+                    calculateFpus()
                 }
                 .onChange(of: boluses) { _ in
                     calculateBoluses()
@@ -447,6 +473,16 @@ extension MainChartView2 {
             calculatedCarbs.append(Carb(amount: carb.carbs, timestamp: carb.createdAt, nearestGlucose: bg))
         }
         ChartCarbs = calculatedCarbs
+    }
+
+    private func calculateFpus() {
+        var calculatedFpus: [Carb] = []
+        let fpus = carbs.filter { $0.isFPU ?? false }
+        fpus.forEach { fpu in
+            let bg = timeToNearestGlucose(time: fpu.createdAt.timeIntervalSince1970)
+            calculatedFpus.append(Carb(amount: fpu.carbs, timestamp: fpu.createdAt, nearestGlucose: bg))
+        }
+        ChartFpus = calculatedFpus
     }
 
     private func calculateBoluses() {
