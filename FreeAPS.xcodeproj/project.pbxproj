@@ -315,6 +315,8 @@
 		B9CAAEFC2AE70836000F68BC /* branch.txt in Resources */ = {isa = PBXBuildFile; fileRef = B9CAAEFB2AE70836000F68BC /* branch.txt */; };
 		BA00D96F7B2FF169A06FB530 /* CGMStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C018D1680307A31C9ED7120 /* CGMStateModel.swift */; };
 		BA90041DC8991147E5C8C3AA /* CalibrationsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500371C09F54F89A97D65FDB /* CalibrationsRootView.swift */; };
+		BD188BEC2B1B805B00B183BF /* WidgetBobble.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD188BEB2B1B805A00B183BF /* WidgetBobble.swift */; };
+		BD188BED2B1B805B00B183BF /* WidgetBobble.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD188BEB2B1B805A00B183BF /* WidgetBobble.swift */; };
 		BD2B464E0745FBE7B79913F4 /* NightscoutConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF768BD6264FF7D71D66767 /* NightscoutConfigProvider.swift */; };
 		BD2FF1A02AE29D43005D1C5D /* CheckboxToggleStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD2FF19F2AE29D43005D1C5D /* CheckboxToggleStyle.swift */; };
 		BD7DA9A52AE06DFC00601B20 /* BolusCalculatorConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7DA9A42AE06DFC00601B20 /* BolusCalculatorConfigDataFlow.swift */; };
@@ -875,6 +877,7 @@
 		B9CAAEFB2AE70836000F68BC /* branch.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = branch.txt; sourceTree = SOURCE_ROOT; };
 		BA49538D56989D8DA6FCF538 /* TargetsEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TargetsEditorDataFlow.swift; sourceTree = "<group>"; };
 		BC210C0F3CB6D3C86E5DED4E /* LibreConfigRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LibreConfigRootView.swift; sourceTree = "<group>"; };
+		BD188BEB2B1B805A00B183BF /* WidgetBobble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetBobble.swift; sourceTree = "<group>"; };
 		BD2FF19F2AE29D43005D1C5D /* CheckboxToggleStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckboxToggleStyle.swift; sourceTree = "<group>"; };
 		BD7DA9A42AE06DFC00601B20 /* BolusCalculatorConfigDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorConfigDataFlow.swift; sourceTree = "<group>"; };
 		BD7DA9A62AE06E2B00601B20 /* BolusCalculatorConfigProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorConfigProvider.swift; sourceTree = "<group>"; };
@@ -2061,6 +2064,7 @@
 			children = (
 				6B1A8D1D2B14D91600E76752 /* LiveActivityBundle.swift */,
 				6B1A8D1F2B14D91600E76752 /* LiveActivity.swift */,
+				BD188BEB2B1B805A00B183BF /* WidgetBobble.swift */,
 				6B1A8D232B14D91700E76752 /* Assets.xcassets */,
 				6B1A8D252B14D91700E76752 /* Info.plist */,
 			);
@@ -2902,6 +2906,7 @@
 				38FEF3FA2737E42000574A46 /* BaseStateModel.swift in Sources */,
 				CC6C406E2ACDD69E009B8058 /* RawFetchedProfile.swift in Sources */,
 				385CEA8225F23DFD002D6D5B /* NightscoutStatus.swift in Sources */,
+				BD188BEC2B1B805B00B183BF /* WidgetBobble.swift in Sources */,
 				F90692AA274B7AAE0037068D /* HealthKitManager.swift in Sources */,
 				38887CCE25F5725200944304 /* IOBEntry.swift in Sources */,
 				38E98A2425F52C9300C0CED0 /* Logger.swift in Sources */,
@@ -3059,6 +3064,7 @@
 				6BCF84DE2B16843A003AD46E /* LiveActitiyShared.swift in Sources */,
 				6B1A8D1E2B14D91600E76752 /* LiveActivityBundle.swift in Sources */,
 				6B1A8D202B14D91600E76752 /* LiveActivity.swift in Sources */,
+				BD188BED2B1B805B00B183BF /* WidgetBobble.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
