@@ -211,7 +211,7 @@ extension LiveActivityBridge: GlucoseObserver {
         defer {
             self.latestGlucose = glucose.last
         }
-        
+
 //        let last72Glucose = Array(glucose.dropLast().suffix(72))
         let coreDataStorage = CoreDataStorage()
 

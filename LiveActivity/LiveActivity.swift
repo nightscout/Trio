@@ -138,7 +138,7 @@ struct LiveActivity: Widget {
                 DynamicIslandExpandedRegion(.bottom) {
                     updatedLabel(context: context).font(.caption).foregroundStyle(Color.secondary)
                         .padding(.bottom, 5)
-                    chart(context: context)
+                    chart(context: context).frame(height: 70)
                 }
             } compactLeading: {
                 HStack(spacing: 1) {
