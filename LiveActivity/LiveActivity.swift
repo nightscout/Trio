@@ -27,7 +27,7 @@ struct LiveActivity: Widget {
         if context.isStale {
             Text("--")
         } else {
-            Text(context.state.bg)
+            Text(context.state.bg).fontWeight(.bold)
         }
     }
 
@@ -84,17 +84,21 @@ struct LiveActivity: Widget {
             HStack(spacing: 2) {
                 VStack {
                     chart(context: context).frame(width: UIScreen.main.bounds.width / 1.7)
-                }.padding()
+                }
                 Divider()
                 VStack {
                     ZStack {
-                        Circle().fill(Color.green.opacity(0.7))
-                            .frame(width: UIScreen.main.bounds.width / 5, height: UIScreen.main.bounds.height / 5).clipped()
+//                        Circle().fill(Color.green.opacity(0.7))
+//                            .frame(width: UIScreen.main.bounds.width / 5, height: UIScreen.main.bounds.height / 5).clipped()
+                        WidgetBobble()
+                            .scaleEffect(0.6)
+                            .clipped()
                         VStack {
-                            bgAndTrend(context: context).imageScale(.small).font(.title2)
+//                            bgAndTrend(context: context).imageScale(.small).font(.title2)
+                            bgLabel(context: context).font(.title2).imageScale(.small)
                             changeLabel(context: context).font(.callout)
                         }
-                    }.padding()
+                    }
                     updatedLabel(context: context).font(.caption)
                 }
             }
