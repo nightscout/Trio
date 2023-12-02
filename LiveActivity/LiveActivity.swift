@@ -54,6 +54,21 @@ struct LiveActivity: Widget {
         }
     }
 
+    @ViewBuilder func bobble(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
+        @State var angularGradient = AngularGradient(colors: [
+            Color(red: 0.7215686275, green: 0.3411764706, blue: 1),
+            Color(red: 0.6235294118, green: 0.4235294118, blue: 0.9803921569),
+            Color(red: 0.4862745098, green: 0.5450980392, blue: 0.9529411765),
+            Color(red: 0.3411764706, green: 0.6666666667, blue: 0.9254901961),
+            Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902),
+            Color(red: 0.7215686275, green: 0.3411764706, blue: 1)
+        ], center: .center, startAngle: .degrees(270), endAngle: .degrees(-90))
+        let triangleColor = Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902)
+
+        WidgetBobble(gradient: angularGradient, color: triangleColor)
+            .rotationEffect(.degrees(context.state.rotationDegrees))
+    }
+
     @ViewBuilder func chart(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
         if context.isStale {
             Text("--")
@@ -84,13 +99,11 @@ struct LiveActivity: Widget {
             HStack(spacing: 2) {
                 VStack {
                     chart(context: context).frame(width: UIScreen.main.bounds.width / 1.7)
-                }
+                }.padding(.vertical, 5).padding(.horizontal, 15)
                 Divider()
                 VStack {
                     ZStack {
-//                        Circle().fill(Color.green.opacity(0.7))
-//                            .frame(width: UIScreen.main.bounds.width / 5, height: UIScreen.main.bounds.height / 5).clipped()
-                        WidgetBobble()
+                        bobble(context: context)
                             .scaleEffect(0.6)
                             .clipped()
                         VStack {
@@ -98,8 +111,8 @@ struct LiveActivity: Widget {
                             bgLabel(context: context).font(.title2).imageScale(.small)
                             changeLabel(context: context).font(.callout)
                         }
-                    }
-                    updatedLabel(context: context).font(.caption)
+                    }.padding(.trailing, 5).padding(.top, 5)
+                    updatedLabel(context: context).font(.caption).padding(.bottom)
                 }
             }
             .privacySensitive()

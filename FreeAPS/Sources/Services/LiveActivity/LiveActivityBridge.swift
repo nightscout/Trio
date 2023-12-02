@@ -31,31 +31,38 @@ extension LiveActivityAttributes.ContentState {
         let formattedBG = Self.formatGlucose(glucose, mmol: mmol, forceSign: false)
 
         let trendString: String?
+        var rotationDegrees: Double = 0.0
         switch bg.direction {
         case .doubleUp,
              .singleUp,
              .tripleUp:
             trendString = "arrow.up"
+            rotationDegrees = -90
 
         case .fortyFiveUp:
             trendString = "arrow.up.right"
+            rotationDegrees = -45
 
         case .flat:
             trendString = "arrow.right"
+            rotationDegrees = 0
 
         case .fortyFiveDown:
             trendString = "arrow.down.right"
+            rotationDegrees = 45
 
         case .doubleDown,
              .singleDown,
              .tripleDown:
             trendString = "arrow.down"
+            rotationDegrees = 90
 
         case .notComputable,
              Optional.none,
              .rateOutOfRange,
              .some(.none):
             trendString = nil
+            rotationDegrees = 0
         }
 
         let change = prev?.glucose.map({
@@ -72,7 +79,7 @@ extension LiveActivityAttributes.ContentState {
             change: change,
             date: bg.dateString,
             chart: chartBG,
-            chartDate: chartDate
+            chartDate: chartDate, rotationDegrees: rotationDegrees
         )
     }
 }
