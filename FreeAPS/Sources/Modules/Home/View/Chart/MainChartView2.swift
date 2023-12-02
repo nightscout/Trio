@@ -39,6 +39,7 @@ struct MainChartView2: View {
     }
 
     @Binding var glucose: [BloodGlucose]
+    @Binding var eventualBG: Int?
     @Binding var suggestion: Suggestion?
     @Binding var tempBasals: [PumpHistoryEvent]
     @Binding var boluses: [PumpHistoryEvent]
@@ -58,6 +59,7 @@ struct MainChartView2: View {
     @Binding var displayYgridLines: Bool
     @Binding var thresholdLines: Bool
 
+    @State var didAppearTrigger = false
     @State private var BasalProfiles: [BasalProfile] = []
     @State private var TempBasals: [PumpHistoryEvent] = []
     @State private var startMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 - 86400))
@@ -91,7 +93,19 @@ struct MainChartView2: View {
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }.onAppear {
                         scroller.scrollTo("MainChart", anchor: .trailing)
-                        calculateTempBasals()
+                    }.onChange(of: tempBasals) { _ in
+                        calculateBasals()
+                    }
+                    .onChange(of: maxBasal) { _ in
+                        calculateBasals()
+                    }
+                    .onChange(of: autotunedBasalProfile) { _ in
+                        calculateBasals()
+                    }
+                    .onChange(of: didAppearTrigger) { _ in
+                        calculateBasals()
+                    }.onChange(of: basalProfile) { _ in
+                        calculateBasals()
                     }
                 }
             }
@@ -160,7 +174,7 @@ extension MainChartView2 {
                     }
                 }
                 ForEach(calculatePredictions(), id: \.self) { info in
-                    if info.type == .uam, info.timestamp.timeIntervalSince1970 < endMarker.timeIntervalSince1970 {
+                    if info.type == .uam {
                         LineMark(
                             x: .value("Time", info.timestamp, unit: .second),
                             y: .value("Value", info.amount),
@@ -207,7 +221,7 @@ extension MainChartView2 {
             }.id("MainChart")
                 .frame(
                     width: max(0, screenSize.width - 20, fullWidth(viewWidth: screenSize.width)),
-                    height: min(screenSize.height, 300)
+                    height: min(screenSize.height, 200)
                 )
 //                .chartYScale(domain: 0 ... 450)
                 .chartXAxis {
@@ -341,21 +355,13 @@ extension MainChartView2 {
                 .foregroundColor(.orange)
             Text("UAM")
                 .foregroundColor(.secondary)
-            if suggestion?.predictions?.cob?.last != nil {
-                Text("⇢ " + String(suggestion?.predictions?.cob?.last ?? 0))
-            } else if suggestion?.predictions?.uam?.last != nil {
-                Text("⇢ " + String(suggestion?.predictions?.uam?.last ?? 0))
+            if eventualBG != nil {
+                Text("⇢ " + String(eventualBG ?? 0))
             }
         }
         .font(.caption2)
         .padding(.horizontal, 40)
         .padding(.vertical, 1)
-        .onChange(of: basalProfile) { _ in
-            calculcateBasals()
-        }
-        .onChange(of: tempBasals) { _ in
-            calculateTempBasals()
-        }
     }
 }
 
@@ -543,7 +549,7 @@ extension MainChartView2 {
         return basalTruncatedPoints
     }
 
-    private func calculcateBasals() {
+    private func calculateBasals() {
         let dayAgoTime = Date().addingTimeInterval(-1.days.timeInterval).timeIntervalSince1970
         let firstTempTime = (tempBasals.first?.timestamp ?? Date()).timeIntervalSince1970
 
