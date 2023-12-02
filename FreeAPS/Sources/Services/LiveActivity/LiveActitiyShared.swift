@@ -9,6 +9,7 @@ struct LiveActivityAttributes: ActivityAttributes {
         let date: Date
         let chart: [Int?]
         let chartDate: [Date?]
+        let rotationDegrees: Double
     }
 
     let startDate: Date
