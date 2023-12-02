@@ -75,6 +75,7 @@ struct MainChartView2: View {
     @State var didAppearTrigger = false
     @State private var BasalProfiles: [BasalProfile] = []
     @State private var TempBasals: [PumpHistoryEvent] = []
+    @State private var ChartTTs: [TempTarget] = []
     @State private var Predictions: [Prediction] = []
     @State private var ChartCarbs: [Carb] = []
     @State private var ChartFpus: [Carb] = []
@@ -112,7 +113,11 @@ struct MainChartView2: View {
             ScrollViewReader { scroller in
                 ScrollView(.horizontal, showsIndicators: false) {
                     VStack {
-                        MainChart()
+                        ZStack {
+                            TTs()
+                            MainChart()
+                        }
+
                         BasalChart()
                             .padding(.bottom, 8)
                     }.onChange(of: screenHours) { _ in
@@ -205,6 +210,26 @@ extension MainChartView2 {
                         Text(bolusFormatter.string(from: bolusAmount as NSNumber)!).font(.caption2)
                     }
                 }
+                /*  ForEach(ChartTTs, id: \.self) { tt in
+                     //  let bolusAmount = tt.amount
+                     LineMark(
+                         x: .value("Time", tt.duration),
+                         y: .value("Value", tt.targetBottom)
+                     )
+                     .foregroundStyle(Color.insulin)
+                 }*/
+                /*     ForEach(ChartTTs, id: \.self) { profile in
+                     LineMark(
+                         x: .value("Start Date", profile.createdAt),
+                         y: .value("Amount", profile.targetBottom),
+                         series: .value("profile", "profile")
+                     ).lineStyle(.init(lineWidth: 2, dash: [2, 3]))
+                     LineMark(
+                         x: .value("End Date", profile.createdAt + 3 ?? endMarker),
+                         y: .value("Amount", profile.amount),
+                         series: .value("profile", "profile")
+                     ).lineStyle(.init(lineWidth: 2, dash: [2, 3]))
+                 }*/
                 ForEach(Predictions, id: \.self) { info in
                     if info.type == .uam {
                         LineMark(
@@ -394,6 +419,12 @@ extension MainChartView2 {
         }
     }
 
+    private func TTs() -> some View {
+        Chart(tempTargets) {
+            PointMark(x: .value("Time", $0.dateString), y: .value("value", $0.value))
+        }
+    }
+
     private func Legend() -> some View {
         HStack {
             Image(systemName: "line.diagonal")
@@ -492,6 +523,40 @@ extension MainChartView2 {
         }
         ChartBoluses = calculatedBoluses
     }
+
+    private func calculateTTs() {
+        var calculatedTTs: [TempTarget] = []
+        tempTargets.indices.forEach { index in
+            calculatedTTs.append(TempTarget(
+                name: tempTargets[index].name,
+                createdAt: tempTargets[index].createdAt,
+                targetTop: tempTargets[index].targetTop,
+                targetBottom: tempTargets[index].targetBottom,
+                duration: tempTargets[index].duration,
+                enteredBy: tempTargets[index].enteredBy,
+                reason: tempTargets[index].enteredBy
+            ))
+        }
+        ChartTTs = calculatedTTs
+    }
+
+    /* private func calculateTTs() {
+         var calculatedTTs: [TempTarget] = []
+         tempTargets.forEach { tt in
+             calculatedTTs
+                 .append(TempTarget(
+                     id: tt.id,
+                     name: tt.name,
+                     createdAt: tt.createdAt,
+                     targetTop: tt.targetTop,
+                     targetBottom: tt.targetBottom,
+                     duration: tt.duration,
+                     enteredBy: tt.enteredBy,
+                     reason: tt.reason
+                 ))
+         }
+         ChartTTs = calculatedTTs
+     }*/
 
     private func calculatePredictions() {
         var calculatedPredictions: [Prediction] = []
