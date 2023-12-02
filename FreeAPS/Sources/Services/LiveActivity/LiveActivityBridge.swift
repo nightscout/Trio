@@ -63,6 +63,7 @@ extension LiveActivityAttributes.ContentState {
         }) ?? ""
 
         let chartBG = chart.map(\.glucose)
+
         let chartDate = chart.map(\.dateString)
 
         self.init(
