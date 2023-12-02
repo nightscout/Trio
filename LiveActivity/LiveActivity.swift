@@ -45,9 +45,11 @@ struct LiveActivity: Widget {
         if context.isStale {
             Text("--")
         } else {
-            Text(context.state.bg)
-            if let trendSystemImage = context.state.trendSystemImage {
-                Image(systemName: trendSystemImage)
+            HStack {
+                Text(context.state.bg).fontWeight(.bold)
+                if let trendSystemImage = context.state.trendSystemImage {
+                    Image(systemName: trendSystemImage)
+                }
             }
         }
     }
@@ -61,9 +63,17 @@ struct LiveActivity: Widget {
                     LineMark(
                         x: .value("Time", context.state.chartDate[index] ?? Date()),
                         y: .value("Value", context.state.chart[index] ?? 0)
-                    ).foregroundStyle(Color.blue.gradient).symbolSize(12)
+                    ).foregroundStyle(Color.green.gradient).symbolSize(12)
                 }
+            }.chartPlotStyle { plotContent in
+                plotContent.background(.gray.opacity(0.1))
             }
+            .chartYAxis {
+                AxisMarks(position: .leading)
+            }.foregroundStyle(Color.white)
+            .chartXAxis {
+                AxisMarks(position: .automatic)
+            }.foregroundStyle(Color.white)
         }
     }
 
@@ -71,26 +81,29 @@ struct LiveActivity: Widget {
         ActivityConfiguration(for: LiveActivityAttributes.self) { context in
             // Lock screen/banner UI goes here
 
-            HStack(spacing: 3) {
+            HStack(spacing: 2) {
                 VStack {
-                    bgLabel(context: context).font(.title)
-                    HStack {
-                        trend(context: context)
-                        changeLabel(context: context).font(.title3)
-                    }
-                    updatedLabel(context: context).font(.caption).foregroundStyle(.black.opacity(0.7))
-                }
-                Spacer()
-                VStack(alignment: .trailing, spacing: 5) {
-                    chart(context: context)
+                    chart(context: context).frame(width: UIScreen.main.bounds.width / 1.7)
+                }.padding()
+                Divider()
+                VStack {
+                    ZStack {
+                        Circle().fill(Color.green.opacity(0.7))
+                            .frame(width: UIScreen.main.bounds.width / 5, height: UIScreen.main.bounds.height / 5).clipped()
+                        VStack {
+                            bgAndTrend(context: context).imageScale(.small).font(.title2)
+                            changeLabel(context: context).font(.callout)
+                        }
+                    }.padding()
+                    updatedLabel(context: context).font(.caption)
                 }
             }
             .privacySensitive()
             .imageScale(.small)
             .padding(.all, 15)
             .background(Color.white.opacity(0.2))
-            .foregroundColor(Color.black)
-            .activityBackgroundTint(Color.cyan.opacity(0.2))
+            .foregroundColor(Color.white)
+            .activityBackgroundTint(Color.cyan.opacity(0.3))
             .activitySystemActionForegroundColor(Color.black)
 
         } dynamicIsland: { context in
