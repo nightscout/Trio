@@ -21,7 +21,7 @@ extension LiveActivityAttributes.ContentState {
             .string(from: mmol ? value.asMmolL as NSNumber : NSNumber(value: value))!
     }
 
-    init?(new bg: BloodGlucose, prev: BloodGlucose?, mmol: Bool, chart: [BloodGlucose]) {
+    init?(new bg: BloodGlucose, prev: BloodGlucose?, mmol: Bool, chart: [Readings]) {
         guard let glucose = bg.glucose,
               bg.dateString.timeIntervalSinceNow > -TimeInterval(minutes: 6)
         else {
@@ -71,7 +71,7 @@ extension LiveActivityAttributes.ContentState {
 
         let chartBG = chart.map(\.glucose)
 
-        let chartDate = chart.map(\.dateString)
+        let chartDate = chart.map(\.date)
 
         self.init(
             bg: formattedBG,
@@ -211,14 +211,19 @@ extension LiveActivityBridge: GlucoseObserver {
         defer {
             self.latestGlucose = glucose.last
         }
+        
+//        let last72Glucose = Array(glucose.dropLast().suffix(72))
+        let coreDataStorage = CoreDataStorage()
 
-        let last72Glucose = Array(glucose.dropLast().suffix(72))
+//        let fetchGlucose = coreDataStorage.fetchGlucose(interval: DateFilter().day)
+        let sixHoursAgo = Calendar.current.date(byAdding: .hour, value: -6, to: Date()) ?? Date()
+        let fetchGlucose = coreDataStorage.fetchGlucose(interval: sixHoursAgo as NSDate)
 
         guard let bg = glucose.last, let content = LiveActivityAttributes.ContentState(
             new: bg,
             prev: latestGlucose,
             mmol: settings.units == .mmolL,
-            chart: last72Glucose
+            chart: fetchGlucose
         ) else {
             // no bg or value stale. Don't update the activity if there already is one, just let it turn stale so that it can still be used once current bg is available again
             return
