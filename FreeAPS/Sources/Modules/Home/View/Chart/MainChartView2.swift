@@ -217,16 +217,17 @@ extension MainChartView2 {
                 // MARK: this code causes 'compiler is unable to type-check this expression'-error
 
                 ForEach(ChartTempTargets, id: \.self) { tt in
+                    let randomString = UUID().uuidString
                     LineMark(
                         x: .value("Time", tt.start),
                         y: .value("Value", tt.amount),
-                        series: .value("tt", "tt")
+                        series: .value("tt", randomString)
                     )
                     .foregroundStyle(Color.insulin).lineStyle(.init(lineWidth: 2, dash: [2, 3]))
                     LineMark(
                         x: .value("Time", tt.end),
                         y: .value("Value", tt.amount),
-                        series: .value("tt", "tt")
+                        series: .value("tt", randomString)
                     )
                     .foregroundStyle(Color.insulin).lineStyle(.init(lineWidth: 2, dash: [2, 3]))
                 }
@@ -525,8 +526,7 @@ extension MainChartView2 {
     private func calculateTTs() {
         var calculatedTTs: [ChartTempTarget] = []
         tempTargets.forEach { tt in
-
-            let end = tt.createdAt.addingTimeInterval(TimeInterval(tt.duration))
+            let end = tt.createdAt.addingTimeInterval(TimeInterval(tt.duration * 60))
             if tt.targetTop != nil {
                 calculatedTTs
                     .append(ChartTempTarget(amount: tt.targetTop ?? 0, start: tt.createdAt, end: end))
