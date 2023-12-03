@@ -36,9 +36,9 @@ private struct ChartBolus: Hashable {
 }
 
 private struct ChartTempTarget: Hashable {
-    let amount: Decimal?
+    let amount: Decimal
     let start: Date
-    let end: Date?
+    let end: Date
 }
 
 private enum PredictionType: Hashable {
@@ -217,14 +217,16 @@ extension MainChartView2 {
                 // MARK: this code causes 'compiler is unable to type-check this expression'-error
 
                 ForEach(ChartTempTargets, id: \.self) { tt in
-                    PointMark(
+                    LineMark(
                         x: .value("Time", tt.start),
-                        y: .value("Value", tt.amount)
+                        y: .value("Value", tt.amount),
+                        series: .value("tt", "tt")
                     )
                     .foregroundStyle(Color.insulin).lineStyle(.init(lineWidth: 2, dash: [2, 3]))
-                    PointMark(
+                    LineMark(
                         x: .value("Time", tt.end),
-                        y: .value("Value", tt.amount)
+                        y: .value("Value", tt.amount),
+                        series: .value("tt", "tt")
                     )
                     .foregroundStyle(Color.insulin).lineStyle(.init(lineWidth: 2, dash: [2, 3]))
                 }
@@ -289,6 +291,7 @@ extension MainChartView2 {
                 }
                 .onChange(of: didAppearTrigger) { _ in
                     calculatePredictions()
+                    calculateTTs()
                 }.onChange(of: suggestion) { _ in
                     calculatePredictions()
                 }
@@ -524,9 +527,10 @@ extension MainChartView2 {
         tempTargets.forEach { tt in
 
             let end = tt.createdAt.addingTimeInterval(TimeInterval(tt.duration))
-
-            calculatedTTs
-                .append(ChartTempTarget(amount: tt.targetTop, start: tt.createdAt, end: end))
+            if tt.targetTop != nil {
+                calculatedTTs
+                    .append(ChartTempTarget(amount: tt.targetTop ?? 0, start: tt.createdAt, end: end))
+            }
         }
         ChartTempTargets = calculatedTTs
     }
