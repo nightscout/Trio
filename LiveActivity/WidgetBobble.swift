@@ -10,16 +10,16 @@ struct WidgetBobble: View {
         HStack(alignment: .center) {
             ZStack {
                 Group {
-                    CircleShape(gradient: gradient)
-                    TriangleShape(color: color)
+                    CircleShapeWidget(gradient: gradient)
+                    TriangleShapeWidget(color: color)
                 }
-                CircleShape(gradient: gradient)
+                CircleShapeWidget(gradient: gradient)
             }
         }
     }
 }
 
-struct CircleShape: View {
+struct CircleShapeWidget: View {
     @Environment(\.colorScheme) var colorScheme
 
     let gradient: AngularGradient
@@ -38,11 +38,11 @@ struct CircleShape: View {
     }
 }
 
-struct TriangleShape: View {
+struct TriangleShapeWidget: View {
     let color: Color
 
     var body: some View {
-        Triangle()
+        TriangleWidget()
             .fill(color)
             .frame(width: 35, height: 35)
             .rotationEffect(.degrees(90))
@@ -50,7 +50,7 @@ struct TriangleShape: View {
     }
 }
 
-struct Triangle: Shape {
+struct TriangleWidget: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
 

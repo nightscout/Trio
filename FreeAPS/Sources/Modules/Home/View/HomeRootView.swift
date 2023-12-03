@@ -23,7 +23,7 @@ extension Home {
         @State var timeButtons: [Buttons] = [
             Buttons(label: "2 hours", number: "2", active: false, hours: 2),
             Buttons(label: "4 hours", number: "4", active: false, hours: 4),
-            Buttons(label: "6 hours", number: "6", active: false, hours: 6),
+            Buttons(label: "6 hours", number: "6", active: true, hours: 6),
             Buttons(label: "12 hours", number: "12", active: false, hours: 12),
             Buttons(label: "24 hours", number: "24", active: false, hours: 24)
         ]
