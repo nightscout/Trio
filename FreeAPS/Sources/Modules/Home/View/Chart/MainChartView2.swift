@@ -223,13 +223,13 @@ extension MainChartView2 {
                         y: .value("Value", tt.amount),
                         series: .value("tt", randomString)
                     )
-                    .foregroundStyle(Color.insulin).lineStyle(.init(lineWidth: 2, dash: [2, 3]))
+                    .foregroundStyle(Color.purple).lineStyle(.init(lineWidth: 8, dash: [2, 3]))
                     LineMark(
                         x: .value("Time", tt.end),
                         y: .value("Value", tt.amount),
                         series: .value("tt", randomString)
                     )
-                    .foregroundStyle(Color.insulin).lineStyle(.init(lineWidth: 2, dash: [2, 3]))
+                    .foregroundStyle(Color.purple).lineStyle(.init(lineWidth: 8, dash: [2, 3]))
                 }
                 ForEach(Predictions, id: \.self) { info in
                     if info.type == .uam {
@@ -262,17 +262,28 @@ extension MainChartView2 {
                     }
                 }
                 ForEach(glucose) {
-                    if $0.sgv != nil {
+                    if let sgv = $0.sgv {
+                        /* let color: Color
+                         if sgv < lowGlucose {
+                             color = Color.red
+                         } else if sgv > highGlucose {
+                             color = Color.loopYellow
+                         } else {
+                             color = Color.green
+                         }*/
                         PointMark(
                             x: .value("Time", $0.dateString, unit: .second),
-                            y: .value("Value", $0.sgv!)
-                        ).foregroundStyle(Color.green).symbolSize(16)
+                            y: .value("Value", sgv)
+                            // series: .value("Value", "unsmooth")
+                        ).foregroundStyle(Color.green.gradient).symbolSize(16)
+
                         if smooth {
                             LineMark(
                                 x: .value("Time", $0.dateString, unit: .second),
-                                y: .value("Value", $0.sgv!),
-                                series: .value("glucose", "glucose")
-                            ).foregroundStyle(Color.green)
+                                y: .value("Value", sgv)
+                                // series: .value("Value", "smooth")
+                            ).foregroundStyle(Color.green.gradient).symbolSize(16)
+                                .interpolationMethod(.cardinal)
                         }
                     }
                 }
@@ -304,7 +315,7 @@ extension MainChartView2 {
                 }
                 .frame(
                     width: max(0, screenSize.width - 20, fullWidth(viewWidth: screenSize.width)),
-                    height: min(screenSize.height, 200)
+                    height: UIScreen.main.bounds.height / 3.5
                 )
 //                .chartYScale(domain: 0 ... 450)
                 .chartXAxis {
@@ -329,6 +340,7 @@ extension MainChartView2 {
                         }
                     }
                 }
+                .aspectRatio(1, contentMode: .fit)
         }
     }
 
@@ -393,7 +405,11 @@ extension MainChartView2 {
                 calculateBasals()
                 calculateTempBasals()
             }
-            .frame(height: 80)
+            // .frame(height: 80)
+            .frame(
+                width: max(0, screenSize.width - 20, fullWidth(viewWidth: screenSize.width)),
+                height: UIScreen.main.bounds.height / 10
+            )
 //            .chartYScale(domain: 0 ... maxBasal)
             //            .rotationEffect(.degrees(180))
             //            .chartXAxis(.hidden)
@@ -404,7 +420,8 @@ extension MainChartView2 {
                     } else {
                         AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
                     }
-                    AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
+                    // AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
+                    AxisValueLabel(format: .dateTime.hour())
                 }
             }.chartYAxis {
                 AxisMarks(position: .trailing, values: .stride(by: 1)) { _ in
@@ -416,10 +433,6 @@ extension MainChartView2 {
                     AxisTick(length: 30, stroke: .init(lineWidth: 4))
                         .foregroundStyle(Color.clear)
                 }
-            }
-
-            .chartPlotStyle { plotArea in
-                plotArea.background(.blue.gradient.opacity(0.1))
             }
         }
     }
