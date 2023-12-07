@@ -430,52 +430,62 @@ extension MainChartView2 {
                     } else {
                         AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
                     }
-                    AxisTick(length: 30, stroke: .init(lineWidth: 4))
-                        .foregroundStyle(Color.clear)
+                    AxisTick(length: 4, stroke: .init(lineWidth: 4))
+                        .foregroundStyle(Color.gray)
+                    AxisValueLabel()
                 }
             }
         }
     }
 
     private func Legend() -> some View {
-        HStack {
-            Image(systemName: "line.diagonal")
-                .rotationEffect(Angle(degrees: 45))
-                .foregroundColor(.green)
-            Text("BG")
-                .foregroundColor(.secondary)
-            Spacer()
-            Image(systemName: "line.diagonal")
-                .rotationEffect(Angle(degrees: 45))
-                .foregroundColor(.insulin)
-            Text("IOB")
-                .foregroundColor(.secondary)
-            Spacer()
-            Image(systemName: "line.diagonal")
-                .rotationEffect(Angle(degrees: 45))
-                .foregroundColor(.purple)
-            Text("ZT")
-                .foregroundColor(.secondary)
-            Spacer()
-            Image(systemName: "line.diagonal")
-                .frame(height: 10)
-                .rotationEffect(Angle(degrees: 45))
-                .foregroundColor(.loopYellow)
-            Text("COB")
-                .foregroundColor(.secondary)
-            Spacer()
-            Image(systemName: "line.diagonal")
-                .rotationEffect(Angle(degrees: 45))
-                .foregroundColor(.orange)
-            Text("UAM")
-                .foregroundColor(.secondary)
-            if eventualBG != nil {
-                Text("⇢ " + String(eventualBG ?? 0))
+        ZStack {
+            Capsule(style: .circular).foregroundStyle(.gray.opacity(0.1)).padding(.horizontal, 30)
+
+            HStack {
+                Image(systemName: "line.diagonal")
+                    .fontWeight(.bold)
+                    .rotationEffect(Angle(degrees: 45))
+                    .foregroundColor(.green)
+                Text("BG")
+                    .foregroundColor(.secondary)
+                Spacer()
+                Image(systemName: "line.diagonal")
+                    .fontWeight(.bold)
+                    .rotationEffect(Angle(degrees: 45))
+                    .foregroundColor(.insulin)
+                Text("IOB")
+                    .foregroundColor(.secondary)
+                Spacer()
+                Image(systemName: "line.diagonal")
+                    .fontWeight(.bold)
+                    .rotationEffect(Angle(degrees: 45))
+                    .foregroundColor(.purple)
+                Text("ZT")
+                    .foregroundColor(.secondary)
+                Spacer()
+                Image(systemName: "line.diagonal")
+                    .fontWeight(.bold)
+                    .frame(height: 10)
+                    .rotationEffect(Angle(degrees: 45))
+                    .foregroundColor(.loopYellow)
+                Text("COB")
+                    .foregroundColor(.secondary)
+                Spacer()
+                Image(systemName: "line.diagonal")
+                    .fontWeight(.bold)
+                    .rotationEffect(Angle(degrees: 45))
+                    .foregroundColor(.orange)
+                Text("UAM")
+                    .foregroundColor(.secondary)
+                if eventualBG != nil {
+                    Text("⇢ " + String(eventualBG ?? 0))
+                }
             }
+            .font(.caption2)
+            .padding(.horizontal, 40)
+            .padding(.vertical, 1)
         }
-        .font(.caption2)
-        .padding(.horizontal, 40)
-        .padding(.vertical, 1)
     }
 }
 
