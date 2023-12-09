@@ -208,7 +208,9 @@ extension MainChartView2 {
                         y: .value("Value", bolus.yPosition)
                     )
                     .symbolSize((Config.bolusSize + CGFloat(bolusAmount) * Config.bolusScale) * 10)
-                    .symbol(ChartTriangle())
+                    .symbol {
+                        Image(systemName: "arrowtriangle.down.fill").font(.body)
+                    }
                     .foregroundStyle(Color.insulin)
 //                    .annotation(position: .bottom) {
 //                        Text(bolusFormatter.string(from: bolusAmount as NSNumber)!).font(.caption2).foregroundStyle(Color.insulin)
@@ -401,17 +403,17 @@ extension MainChartView2 {
             .rotationEffect(.degrees(180))
             .scaleEffect(x: -1, y: 1)
             .chartXAxis(.hidden)
-//            .chartXAxis {
-//                AxisMarks(values: .stride(by: .hour, count: screenHours == 24 ? 4 : 2)) { _ in
-//                    if displayXgridLines {
-//                        AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
-//                    } else {
-//                        AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
-//                    }
-            ////                     AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
-            ////                    AxisValueLabel(format: .dateTime.hour())
-//                }
-//            }
+            .chartXAxis {
+                AxisMarks(values: .stride(by: .hour, count: screenHours == 24 ? 4 : 2)) { _ in
+                    if displayXgridLines {
+                        AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
+                    } else {
+                        AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
+                    }
+                    //                     AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
+                    //                    AxisValueLabel(format: .dateTime.hour())
+                }
+            }
             .chartYAxis {
                 AxisMarks(position: .trailing) { _ in
                     if displayYgridLines {
@@ -734,33 +736,5 @@ extension MainChartView2 {
             )
         }
         BasalProfiles = basals
-    }
-}
-
-struct ChartTriangle: ChartSymbolShape, InsettableShape {
-    let inset: CGFloat
-
-    init(inset: CGFloat = 0) {
-        self.inset = inset
-    }
-
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-
-        path.move(to: CGPoint(x: rect.midX, y: rect.maxY - inset))
-        path.addLine(to: CGPoint(x: rect.maxX - inset, y: rect.minY + inset))
-        path.addLine(to: CGPoint(x: rect.minX + inset, y: rect.minY + inset))
-        path.closeSubpath()
-
-        return path
-    }
-
-    func inset(by amount: CGFloat) -> ChartTriangle {
-        ChartTriangle(inset: inset + amount)
-    }
-
-    var perceptualUnitRect: CGRect {
-        let scaleAdjustment: CGFloat = 0.75
-        return CGRect(x: 0.5 - scaleAdjustment / 2, y: 0.5 - scaleAdjustment / 2, width: scaleAdjustment, height: scaleAdjustment)
     }
 }
