@@ -35,6 +35,12 @@ private struct ChartBolus: Hashable {
     let nearestGlucose: BloodGlucose
 }
 
+private struct ChartTempTarget: Hashable {
+    let amount: Decimal
+    let start: Date
+    let end: Date
+}
+
 private enum PredictionType: Hashable {
     case iob
     case cob
@@ -75,6 +81,7 @@ struct MainChartView2: View {
     @State var didAppearTrigger = false
     @State private var BasalProfiles: [BasalProfile] = []
     @State private var TempBasals: [PumpHistoryEvent] = []
+    @State private var ChartTempTargets: [ChartTempTarget] = []
     @State private var Predictions: [Prediction] = []
     @State private var ChartCarbs: [Carb] = []
     @State private var ChartFpus: [Carb] = []
@@ -113,6 +120,7 @@ struct MainChartView2: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     VStack {
                         MainChart()
+
                         BasalChart()
                             .padding(.bottom, 8)
                     }.onChange(of: screenHours) { _ in
@@ -205,6 +213,24 @@ extension MainChartView2 {
                         Text(bolusFormatter.string(from: bolusAmount as NSNumber)!).font(.caption2)
                     }
                 }
+
+                // MARK: this code causes 'compiler is unable to type-check this expression'-error
+
+                ForEach(ChartTempTargets, id: \.self) { tt in
+                    let randomString = UUID().uuidString
+                    LineMark(
+                        x: .value("Time", tt.start),
+                        y: .value("Value", tt.amount),
+                        series: .value("tt", randomString)
+                    )
+                    .foregroundStyle(Color.purple).lineStyle(.init(lineWidth: 8, dash: [2, 3]))
+                    LineMark(
+                        x: .value("Time", tt.end),
+                        y: .value("Value", tt.amount),
+                        series: .value("tt", randomString)
+                    )
+                    .foregroundStyle(Color.purple).lineStyle(.init(lineWidth: 8, dash: [2, 3]))
+                }
                 ForEach(Predictions, id: \.self) { info in
                     if info.type == .uam {
                         LineMark(
@@ -236,17 +262,28 @@ extension MainChartView2 {
                     }
                 }
                 ForEach(glucose) {
-                    if $0.sgv != nil {
+                    if let sgv = $0.sgv {
+                        /* let color: Color
+                         if sgv < lowGlucose {
+                             color = Color.red
+                         } else if sgv > highGlucose {
+                             color = Color.loopYellow
+                         } else {
+                             color = Color.green
+                         }*/
                         PointMark(
                             x: .value("Time", $0.dateString, unit: .second),
-                            y: .value("Value", $0.sgv!)
-                        ).foregroundStyle(Color.green).symbolSize(16)
+                            y: .value("Value", sgv)
+                            // series: .value("Value", "unsmooth")
+                        ).foregroundStyle(Color.green.gradient).symbolSize(16)
+
                         if smooth {
                             LineMark(
                                 x: .value("Time", $0.dateString, unit: .second),
-                                y: .value("Value", $0.sgv!),
-                                series: .value("glucose", "glucose")
-                            ).foregroundStyle(Color.green)
+                                y: .value("Value", sgv)
+                                // series: .value("Value", "smooth")
+                            ).foregroundStyle(Color.green.gradient).symbolSize(16)
+                                .interpolationMethod(.cardinal)
                         }
                     }
                 }
@@ -261,8 +298,12 @@ extension MainChartView2 {
                 .onChange(of: boluses) { _ in
                     calculateBoluses()
                 }
+                .onChange(of: tempTargets) { _ in
+                    calculateTTs()
+                }
                 .onChange(of: didAppearTrigger) { _ in
                     calculatePredictions()
+                    calculateTTs()
                 }.onChange(of: suggestion) { _ in
                     calculatePredictions()
                 }
@@ -274,7 +315,7 @@ extension MainChartView2 {
                 }
                 .frame(
                     width: max(0, screenSize.width - 20, fullWidth(viewWidth: screenSize.width)),
-                    height: min(screenSize.height, 200)
+                    height: UIScreen.main.bounds.height / 3.5
                 )
 //                .chartYScale(domain: 0 ... 450)
                 .chartXAxis {
@@ -299,6 +340,7 @@ extension MainChartView2 {
                         }
                     }
                 }
+                .aspectRatio(1, contentMode: .fit)
         }
     }
 
@@ -363,7 +405,11 @@ extension MainChartView2 {
                 calculateBasals()
                 calculateTempBasals()
             }
-            .frame(height: 80)
+            // .frame(height: 80)
+            .frame(
+                width: max(0, screenSize.width - 20, fullWidth(viewWidth: screenSize.width)),
+                height: UIScreen.main.bounds.height / 10
+            )
 //            .chartYScale(domain: 0 ... maxBasal)
             //            .rotationEffect(.degrees(180))
             //            .chartXAxis(.hidden)
@@ -374,7 +420,8 @@ extension MainChartView2 {
                     } else {
                         AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
                     }
-                    AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
+                    // AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
+                    AxisValueLabel(format: .dateTime.hour())
                 }
             }.chartYAxis {
                 AxisMarks(position: .trailing, values: .stride(by: 1)) { _ in
@@ -386,10 +433,6 @@ extension MainChartView2 {
                     AxisTick(length: 30, stroke: .init(lineWidth: 4))
                         .foregroundStyle(Color.clear)
                 }
-            }
-
-            .chartPlotStyle { plotArea in
-                plotArea.background(.blue.gradient.opacity(0.1))
             }
         }
     }
@@ -491,6 +534,18 @@ extension MainChartView2 {
             calculatedBoluses.append(ChartBolus(amount: bolus.amount ?? 0, timestamp: bolus.timestamp, nearestGlucose: bg))
         }
         ChartBoluses = calculatedBoluses
+    }
+
+    private func calculateTTs() {
+        var calculatedTTs: [ChartTempTarget] = []
+        tempTargets.forEach { tt in
+            let end = tt.createdAt.addingTimeInterval(TimeInterval(tt.duration * 60))
+            if tt.targetTop != nil {
+                calculatedTTs
+                    .append(ChartTempTarget(amount: tt.targetTop ?? 0, start: tt.createdAt, end: end))
+            }
+        }
+        ChartTempTargets = calculatedTTs
     }
 
     private func calculatePredictions() {

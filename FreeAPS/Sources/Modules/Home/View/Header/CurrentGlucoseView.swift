@@ -158,9 +158,11 @@ struct Triangle: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
 
-        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY + 10))
-        path.addQuadCurve(to: CGPoint(x: rect.minX, y: rect.maxY), control: CGPoint(x: rect.midX, y: rect.maxY + 10))
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY + 10))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+
+        path.addQuadCurve(to: CGPoint(x: rect.minX, y: rect.maxY), control: CGPoint(x: rect.midX, y: rect.midY + 10))
+
         path.closeSubpath()
 
         return path
