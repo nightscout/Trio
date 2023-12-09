@@ -544,17 +544,17 @@ extension Home {
                             }
                         }
                     }.buttonStyle(.borderless)
-                    Spacer()
-                    Button { state.showModal(for: .addTempTarget) }
-                    label: {
-                        Image("target")
-                            .renderingMode(.template)
-                            .resizable()
-                            .frame(width: 24, height: 24)
-                            .padding(8)
-                    }
-                    .foregroundColor(colorIcon)
-                    .buttonStyle(.borderless)
+//                    Spacer()
+//                    Button { state.showModal(for: .addTempTarget) }
+//                    label: {
+//                        Image("target")
+//                            .renderingMode(.template)
+//                            .resizable()
+//                            .frame(width: 24, height: 24)
+//                            .padding(8)
+//                    }
+//                    .foregroundColor(colorIcon)
+//                    .buttonStyle(.borderless)
                     Spacer()
                     Button {
                         state.showModal(for: .bolus(
@@ -604,7 +604,7 @@ extension Home {
                     Button { state.showModal(for: .statistics)
                     }
                     label: {
-                        Image(systemName: "chart.xyaxis.line")
+                        Image(systemName: "list.bullet")
                             .renderingMode(.template)
                             .resizable()
                             .frame(width: 24, height: 24)
@@ -655,6 +655,24 @@ extension Home {
 
                     Spacer()
 
+                    LoopView(
+                        suggestion: $state.suggestion,
+                        enactedSuggestion: $state.enactedSuggestion,
+                        closedLoop: $state.closedLoop,
+                        timerDate: $state.timerDate,
+                        isLooping: $state.isLooping,
+                        lastLoopDate: $state.lastLoopDate,
+                        manualTempBasal: $state.manualTempBasal
+                    ).onTapGesture {
+                        state.isStatusPopupPresented = true
+                    }.onLongPressGesture {
+                        let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+                        impactHeavy.impactOccurred()
+                        state.runLoop()
+                    }
+
+                    Spacer()
+
                     header(geo)
                         .padding(.top, 15)
                         .padding(.horizontal, 10)
@@ -677,31 +695,10 @@ extension Home {
                         .frame(maxHeight: UIScreen.main.bounds.height / 2.2)
 
                     Spacer()
-                        .frame(height: UIScreen.main.bounds.height / 40)
 
                     timeInterval
 
                     Spacer()
-                        .frame(height: UIScreen.main.bounds.height / 40)
-
-                    LoopView(
-                        suggestion: $state.suggestion,
-                        enactedSuggestion: $state.enactedSuggestion,
-                        closedLoop: $state.closedLoop,
-                        timerDate: $state.timerDate,
-                        isLooping: $state.isLooping,
-                        lastLoopDate: $state.lastLoopDate,
-                        manualTempBasal: $state.manualTempBasal
-                    ).onTapGesture {
-                        state.isStatusPopupPresented = true
-                    }.onLongPressGesture {
-                        let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
-                        impactHeavy.impactOccurred()
-                        state.runLoop()
-                    }
-
-                    Spacer()
-                        .frame(height: UIScreen.main.bounds.height / 40)
 
                     bottomPanel(geo)
                 }

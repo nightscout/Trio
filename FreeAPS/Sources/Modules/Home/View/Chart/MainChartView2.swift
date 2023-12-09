@@ -33,6 +33,7 @@ private struct ChartBolus: Hashable {
     let amount: Decimal
     let timestamp: Date
     let nearestGlucose: BloodGlucose
+    let yPosition: Int
 }
 
 private struct ChartTempTarget: Hashable {
@@ -50,7 +51,7 @@ private enum PredictionType: Hashable {
 
 struct MainChartView2: View {
     private enum Config {
-        static let bolusSize: CGFloat = 8
+        static let bolusSize: CGFloat = 15
         static let bolusScale: CGFloat = 2.5
         static let carbsSize: CGFloat = 5
         static let carbsScale: CGFloat = 0.3
@@ -201,15 +202,13 @@ extension MainChartView2 {
 
                 ForEach(ChartBoluses, id: \.self) { bolus in
                     let bolusAmount = bolus.amount
-                    var triangle: BasicChartSymbolShape { .triangle }
 
                     PointMark(
                         x: .value("Time", bolus.timestamp, unit: .second),
-//                        y: .value("Value", bolus.nearestGlucose.sgv ?? 120)
-                        y: .value("Value", 50)
+                        y: .value("Value", bolus.yPosition)
                     )
-                    .symbolSize((Config.bolusSize + CGFloat(bolusAmount) * Config.bolusScale) * 5)
-                    .symbol(triangle)
+                    .symbolSize((Config.bolusSize + CGFloat(bolusAmount) * Config.bolusScale) * 10)
+                    .symbol(ChartTriangle())
                     .foregroundStyle(Color.insulin)
 //                    .annotation(position: .bottom) {
 //                        Text(bolusFormatter.string(from: bolusAmount as NSNumber)!).font(.caption2).foregroundStyle(Color.insulin)
@@ -530,7 +529,14 @@ extension MainChartView2 {
         var calculatedBoluses: [ChartBolus] = []
         boluses.forEach { bolus in
             let bg = timeToNearestGlucose(time: bolus.timestamp.timeIntervalSince1970)
-            calculatedBoluses.append(ChartBolus(amount: bolus.amount ?? 0, timestamp: bolus.timestamp, nearestGlucose: bg))
+            let yPosition = (bg.sgv ?? 120) + 30
+            calculatedBoluses
+                .append(ChartBolus(
+                    amount: bolus.amount ?? 0,
+                    timestamp: bolus.timestamp,
+                    nearestGlucose: bg,
+                    yPosition: yPosition
+                ))
         }
         ChartBoluses = calculatedBoluses
     }
@@ -728,5 +734,33 @@ extension MainChartView2 {
             )
         }
         BasalProfiles = basals
+    }
+}
+
+struct ChartTriangle: ChartSymbolShape, InsettableShape {
+    let inset: CGFloat
+
+    init(inset: CGFloat = 0) {
+        self.inset = inset
+    }
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+
+        path.move(to: CGPoint(x: rect.midX, y: rect.maxY - inset))
+        path.addLine(to: CGPoint(x: rect.maxX - inset, y: rect.minY + inset))
+        path.addLine(to: CGPoint(x: rect.minX + inset, y: rect.minY + inset))
+        path.closeSubpath()
+
+        return path
+    }
+
+    func inset(by amount: CGFloat) -> ChartTriangle {
+        ChartTriangle(inset: inset + amount)
+    }
+
+    var perceptualUnitRect: CGRect {
+        let scaleAdjustment: CGFloat = 0.75
+        return CGRect(x: 0.5 - scaleAdjustment / 2, y: 0.5 - scaleAdjustment / 2, width: scaleAdjustment, height: scaleAdjustment)
     }
 }
