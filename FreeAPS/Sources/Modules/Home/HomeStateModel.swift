@@ -62,8 +62,11 @@ extension Home {
         @Published var timeZone: TimeZone?
         @Published var hours: Int16 = 6
         @Published var totalBolus: Decimal = 0
+
         @Published var isStatusPopupPresented: Bool = false
         @Published var tins: Bool = false
+
+        @Published var cob: Decimal = 0
 
         let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
 
@@ -103,6 +106,8 @@ extension Home {
             displayYgridLines = settingsManager.settings.yGridLines
             thresholdLines = settingsManager.settings.rulerMarks
             tins = settingsManager.settings.tins
+
+            cob = provider.suggestion?.cob ?? 0
 
             broadcaster.register(GlucoseObserver.self, observer: self)
             broadcaster.register(SuggestionObserver.self, observer: self)
@@ -284,8 +289,8 @@ extension Home {
             offsetComponents.hour = -Int(offset)
 
             let startTime = calendar.date(byAdding: offsetComponents, to: date)!
-            print("******************")
-            print("die voll krasse start time ist: \(startTime)")
+//            print("******************")
+//            print("die voll krasse start time ist: \(startTime)")
 
             let bolusesForCurrentDay = boluses.filter { $0.timestamp >= startTime && $0.type == .bolus }
 

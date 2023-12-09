@@ -175,7 +175,6 @@
 		38A504A425DD9C4000C5B9E8 /* UserDefaultsExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38A5049125DD9C4000C5B9E8 /* UserDefaultsExtensions.swift */; };
 		38A9260525F012D8009E3739 /* CarbRatios.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38A9260425F012D8009E3739 /* CarbRatios.swift */; };
 		38AAF85525FFF846004AF583 /* CurrentGlucoseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38AAF85425FFF846004AF583 /* CurrentGlucoseView.swift */; };
-		38AAF8712600C1B0004AF583 /* MainChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38AAF8702600C1B0004AF583 /* MainChartView.swift */; };
 		38AEE73D25F0200C0013F05B /* FreeAPSSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38AEE73C25F0200C0013F05B /* FreeAPSSettings.swift */; };
 		38AEE75225F022080013F05B /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38AEE75125F022080013F05B /* SettingsManager.swift */; };
 		38AEE75725F0F18E0013F05B /* CarbsStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38AEE75625F0F18E0013F05B /* CarbsStorage.swift */; };
@@ -319,6 +318,7 @@
 		BD188BED2B1B805B00B183BF /* WidgetBobble.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD188BEB2B1B805A00B183BF /* WidgetBobble.swift */; };
 		BD2B464E0745FBE7B79913F4 /* NightscoutConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF768BD6264FF7D71D66767 /* NightscoutConfigProvider.swift */; };
 		BD2FF1A02AE29D43005D1C5D /* CheckboxToggleStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD2FF19F2AE29D43005D1C5D /* CheckboxToggleStyle.swift */; };
+		BD3CC0722B0B89D50013189E /* MainChartView2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3CC0712B0B89D50013189E /* MainChartView2.swift */; };
 		BD7DA9A52AE06DFC00601B20 /* BolusCalculatorConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7DA9A42AE06DFC00601B20 /* BolusCalculatorConfigDataFlow.swift */; };
 		BD7DA9A72AE06E2B00601B20 /* BolusCalculatorConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7DA9A62AE06E2B00601B20 /* BolusCalculatorConfigProvider.swift */; };
 		BD7DA9A92AE06E9200601B20 /* BolusCalculatorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7DA9A82AE06E9200601B20 /* BolusCalculatorStateModel.swift */; };
@@ -729,7 +729,6 @@
 		38A5049125DD9C4000C5B9E8 /* UserDefaultsExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserDefaultsExtensions.swift; sourceTree = "<group>"; };
 		38A9260425F012D8009E3739 /* CarbRatios.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbRatios.swift; sourceTree = "<group>"; };
 		38AAF85425FFF846004AF583 /* CurrentGlucoseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentGlucoseView.swift; sourceTree = "<group>"; };
-		38AAF8702600C1B0004AF583 /* MainChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainChartView.swift; sourceTree = "<group>"; };
 		38AEE73C25F0200C0013F05B /* FreeAPSSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreeAPSSettings.swift; sourceTree = "<group>"; };
 		38AEE75125F022080013F05B /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
 		38AEE75625F0F18E0013F05B /* CarbsStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbsStorage.swift; sourceTree = "<group>"; };
@@ -879,6 +878,7 @@
 		BC210C0F3CB6D3C86E5DED4E /* LibreConfigRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LibreConfigRootView.swift; sourceTree = "<group>"; };
 		BD188BEB2B1B805A00B183BF /* WidgetBobble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetBobble.swift; sourceTree = "<group>"; };
 		BD2FF19F2AE29D43005D1C5D /* CheckboxToggleStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckboxToggleStyle.swift; sourceTree = "<group>"; };
+		BD3CC0712B0B89D50013189E /* MainChartView2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainChartView2.swift; sourceTree = "<group>"; };
 		BD7DA9A42AE06DFC00601B20 /* BolusCalculatorConfigDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorConfigDataFlow.swift; sourceTree = "<group>"; };
 		BD7DA9A62AE06E2B00601B20 /* BolusCalculatorConfigProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorConfigProvider.swift; sourceTree = "<group>"; };
 		BD7DA9A82AE06E9200601B20 /* BolusCalculatorStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorStateModel.swift; sourceTree = "<group>"; };
@@ -1565,7 +1565,7 @@
 		3833B51E260264AC003021B3 /* Chart */ = {
 			isa = PBXGroup;
 			children = (
-				38AAF8702600C1B0004AF583 /* MainChartView.swift */,
+				BD3CC0712B0B89D50013189E /* MainChartView2.swift */,
 			);
 			path = Chart;
 			sourceTree = "<group>";
@@ -2700,6 +2700,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3811DE2325C9D48300A708ED /* MainDataFlow.swift in Sources */,
+				BD3CC0722B0B89D50013189E /* MainChartView2.swift in Sources */,
 				3811DEEB25CA063400A708ED /* PersistedProperty.swift in Sources */,
 				38E44537274E411700EC9A94 /* Disk+Helpers.swift in Sources */,
 				388E5A6025B6F2310019842D /* Autosens.swift in Sources */,
@@ -2858,7 +2859,6 @@
 				CE7CA34E2A064973004BE681 /* AppShortcuts.swift in Sources */,
 				38C4D33A25E9A1ED00D30B77 /* NSObject+AssociatedValues.swift in Sources */,
 				38DF179027733EAD00B3528F /* SnowScene.swift in Sources */,
-				38AAF8712600C1B0004AF583 /* MainChartView.swift in Sources */,
 				19DC677F29CA675700FD9EC4 /* OverrideProfilesDataFlow.swift in Sources */,
 				1935364028496F7D001E0B16 /* Oref2_variables.swift in Sources */,
 				CE2FAD3A297D93F0001A872C /* BloodGlucoseExtensions.swift in Sources */,

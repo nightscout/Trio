@@ -158,11 +158,9 @@ struct Triangle: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
 
-        let cornerRadius: CGFloat = 8
-
         path.move(to: CGPoint(x: rect.midX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - cornerRadius))
-        path.addQuadCurve(to: CGPoint(x: rect.minX, y: rect.maxY - cornerRadius), control: CGPoint(x: rect.midX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY + 10))
+        path.addQuadCurve(to: CGPoint(x: rect.minX, y: rect.maxY), control: CGPoint(x: rect.midX, y: rect.maxY + 10))
         path.closeSubpath()
 
         return path
@@ -215,6 +213,6 @@ struct TriangleShape: View {
             .fill(color)
             .frame(width: 35, height: 35)
             .rotationEffect(.degrees(90))
-            .offset(x: 70)
+            .offset(x: 85)
     }
 }
