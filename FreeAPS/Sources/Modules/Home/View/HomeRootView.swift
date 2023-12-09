@@ -651,15 +651,7 @@ extension Home {
                 VStack(spacing: 0) {
                     Spacer()
 
-//                    ZStack {
-                    glucoseView.padding(.top, 75)
-
-//                        loopView
-//                            /// circles width is 110, loops width is 35 -> (110/2) - (35/2) = 55 - 17.5 = 37.5
-//                            .offset(x: UIScreen.main.bounds.width * 0.43, y: -37.5)
-//                            .padding(.trailing, 10)
-//                    }
-//                    .padding(.top, 75)
+                    glucoseView.padding(.top, 40)
 
                     Spacer()
 
@@ -685,14 +677,31 @@ extension Home {
                         .frame(maxHeight: UIScreen.main.bounds.height / 2.2)
 
                     Spacer()
+                        .frame(height: UIScreen.main.bounds.height / 40)
 
                     timeInterval
 
                     Spacer()
+                        .frame(height: UIScreen.main.bounds.height / 40)
 
-//                    legendPanel
+                    LoopView(
+                        suggestion: $state.suggestion,
+                        enactedSuggestion: $state.enactedSuggestion,
+                        closedLoop: $state.closedLoop,
+                        timerDate: $state.timerDate,
+                        isLooping: $state.isLooping,
+                        lastLoopDate: $state.lastLoopDate,
+                        manualTempBasal: $state.manualTempBasal
+                    ).onTapGesture {
+                        state.isStatusPopupPresented = true
+                    }.onLongPressGesture {
+                        let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+                        impactHeavy.impactOccurred()
+                        state.runLoop()
+                    }
 
                     Spacer()
+                        .frame(height: UIScreen.main.bounds.height / 40)
 
                     bottomPanel(geo)
                 }

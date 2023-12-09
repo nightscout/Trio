@@ -24,18 +24,19 @@ struct LoopView: View {
     private let rect = CGRect(x: 0, y: 0, width: 14, height: 14)
     var body: some View {
         HStack(alignment: .center) {
-            ZStack {
-                Image(systemName: "circle.fill")
-                    .resizable()
-                    .frame(width: rect.width, height: rect.height, alignment: .center)
-                    .foregroundColor(color)
-                    .mask(mask(in: rect).fill(style: FillStyle(eoFill: true)))
+            Rectangle().frame(width: UIScreen.main.bounds.width / 2.5, height: 2, alignment: .leading).foregroundColor(color)
+//            ZStack {
+//                Image(systemName: "circle.fill")
+//                    .resizable()
+//                    .frame(width: rect.width, height: rect.height, alignment: .center)
+//                    .foregroundColor(color)
+//                    .mask(mask(in: rect).fill(style: FillStyle(eoFill: true)))
 
-                if isLooping {
-                    ProgressView()
-                        .foregroundColor(Color.loopGreen)
-                }
+            if isLooping {
+                ProgressView()
+                    .foregroundColor(Color.loopGreen)
             }
+//            }
             if isLooping {
                 Text("looping").font(.caption).fontWeight(.bold)
             } else if manualTempBasal {
@@ -45,6 +46,7 @@ struct LoopView: View {
             } else {
                 Text("--").font(.caption).fontWeight(.bold)
             }
+            Rectangle().frame(width: UIScreen.main.bounds.width / 2.5, height: 2, alignment: .trailing).foregroundColor(color)
         }
     }
 

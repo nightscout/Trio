@@ -50,11 +50,11 @@ private enum PredictionType: Hashable {
 
 struct MainChartView2: View {
     private enum Config {
-        static let bolusSize: CGFloat = 4
+        static let bolusSize: CGFloat = 8
         static let bolusScale: CGFloat = 2.5
         static let carbsSize: CGFloat = 5
         static let carbsScale: CGFloat = 0.3
-        static let fpuSize: CGFloat = 5
+        static let fpuSize: CGFloat = 3
     }
 
     @Binding var glucose: [BloodGlucose]
@@ -86,6 +86,7 @@ struct MainChartView2: View {
     @State private var ChartCarbs: [Carb] = []
     @State private var ChartFpus: [Carb] = []
     @State private var ChartBoluses: [ChartBolus] = []
+    @State private var count: Decimal = 1
     @State private var startMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 - 86400))
     @State private var endMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 + 10800))
 
@@ -119,10 +120,10 @@ struct MainChartView2: View {
             ScrollViewReader { scroller in
                 ScrollView(.horizontal, showsIndicators: false) {
                     VStack {
+                        BasalChart()
+
                         MainChart()
 
-                        BasalChart()
-                            .padding(.bottom, 8)
                     }.onChange(of: screenHours) { _ in
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }.onAppear {
@@ -138,7 +139,7 @@ struct MainChartView2: View {
                     }
                 }
             }
-            Legend()
+            Legend().padding(.vertical, 4)
         })
     }
 }
@@ -185,7 +186,7 @@ extension MainChartView2 {
                     .symbolSize((Config.carbsSize + CGFloat(carbAmount) * Config.carbsScale) * 10)
                     .foregroundStyle(Color.orange)
                     .annotation(position: .top) {
-                        Text(bolusFormatter.string(from: carbAmount as NSNumber)!).font(.caption2)
+                        Text(bolusFormatter.string(from: carbAmount as NSNumber)!).font(.caption2).foregroundStyle(Color.orange)
                     }
                 }
                 ForEach(ChartFpus, id: \.self) { fpu in
@@ -196,25 +197,24 @@ extension MainChartView2 {
                     )
                     .symbolSize((Config.fpuSize + CGFloat(fpuAmount) * Config.carbsScale) * 10)
                     .foregroundStyle(Color.brown)
-                    .annotation(position: .top) {
-                        Text(bolusFormatter.string(from: fpuAmount as NSNumber)!).font(.caption2)
-                    }
                 }
 
                 ForEach(ChartBoluses, id: \.self) { bolus in
                     let bolusAmount = bolus.amount
+                    var triangle: BasicChartSymbolShape { .triangle }
+
                     PointMark(
                         x: .value("Time", bolus.timestamp, unit: .second),
-                        y: .value("Value", bolus.nearestGlucose.sgv ?? 120)
+//                        y: .value("Value", bolus.nearestGlucose.sgv ?? 120)
+                        y: .value("Value", 50)
                     )
-                    .symbolSize((Config.bolusSize + CGFloat(bolusAmount) * Config.bolusScale) * 10)
+                    .symbolSize((Config.bolusSize + CGFloat(bolusAmount) * Config.bolusScale) * 5)
+                    .symbol(triangle)
                     .foregroundStyle(Color.insulin)
-                    .annotation(position: .bottom) {
-                        Text(bolusFormatter.string(from: bolusAmount as NSNumber)!).font(.caption2)
-                    }
+//                    .annotation(position: .bottom) {
+//                        Text(bolusFormatter.string(from: bolusAmount as NSNumber)!).font(.caption2).foregroundStyle(Color.insulin)
+//                    }
                 }
-
-                // MARK: this code causes 'compiler is unable to type-check this expression'-error
 
                 ForEach(ChartTempTargets, id: \.self) { tt in
                     let randomString = UUID().uuidString
@@ -263,26 +263,16 @@ extension MainChartView2 {
                 }
                 ForEach(glucose) {
                     if let sgv = $0.sgv {
-                        /* let color: Color
-                         if sgv < lowGlucose {
-                             color = Color.red
-                         } else if sgv > highGlucose {
-                             color = Color.loopYellow
-                         } else {
-                             color = Color.green
-                         }*/
                         PointMark(
                             x: .value("Time", $0.dateString, unit: .second),
                             y: .value("Value", sgv)
-                            // series: .value("Value", "unsmooth")
-                        ).foregroundStyle(Color.green.gradient).symbolSize(16)
+                        ).foregroundStyle(Color.green.gradient).symbolSize(25)
 
                         if smooth {
                             LineMark(
                                 x: .value("Time", $0.dateString, unit: .second),
                                 y: .value("Value", sgv)
-                                // series: .value("Value", "smooth")
-                            ).foregroundStyle(Color.green.gradient).symbolSize(16)
+                            ).foregroundStyle(Color.green.gradient).symbolSize(25)
                                 .interpolationMethod(.cardinal)
                         }
                     }
@@ -315,19 +305,20 @@ extension MainChartView2 {
                 }
                 .frame(
                     width: max(0, screenSize.width - 20, fullWidth(viewWidth: screenSize.width)),
-                    height: UIScreen.main.bounds.height / 3.5
+                    height: UIScreen.main.bounds.height / 3.3
                 )
-//                .chartYScale(domain: 0 ... 450)
                 .chartXAxis {
-                    AxisMarks(values: .stride(by: .hour, count: 2)) { _ in
+                    AxisMarks(values: .stride(by: .hour, count: screenHours == 24 ? 4 : 2)) { _ in
                         if displayXgridLines {
                             AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
                         } else {
                             AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
                         }
+                        AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
                     }
-                }.chartYAxis {
-                    AxisMarks(position: .trailing, values: .stride(by: 100)) { value in
+                }
+                .chartYAxis {
+                    AxisMarks(position: .trailing) { value in
                         if displayYgridLines {
                             AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
                         } else {
@@ -340,7 +331,6 @@ extension MainChartView2 {
                         }
                     }
                 }
-                .aspectRatio(1, contentMode: .fit)
         }
     }
 
@@ -405,34 +395,33 @@ extension MainChartView2 {
                 calculateBasals()
                 calculateTempBasals()
             }
-            // .frame(height: 80)
             .frame(
                 width: max(0, screenSize.width - 20, fullWidth(viewWidth: screenSize.width)),
-                height: UIScreen.main.bounds.height / 10
+                height: UIScreen.main.bounds.height / 10.5
             )
-//            .chartYScale(domain: 0 ... maxBasal)
-            //            .rotationEffect(.degrees(180))
-            //            .chartXAxis(.hidden)
-            .chartXAxis {
-                AxisMarks(values: .stride(by: .hour, count: screenHours == 24 ? 4 : 2)) { _ in
-                    if displayXgridLines {
-                        AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
-                    } else {
-                        AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
-                    }
-                    // AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
-                    AxisValueLabel(format: .dateTime.hour())
-                }
-            }.chartYAxis {
-                AxisMarks(position: .trailing, values: .stride(by: 1)) { _ in
+            .rotationEffect(.degrees(180))
+            .scaleEffect(x: -1, y: 1)
+            .chartXAxis(.hidden)
+//            .chartXAxis {
+//                AxisMarks(values: .stride(by: .hour, count: screenHours == 24 ? 4 : 2)) { _ in
+//                    if displayXgridLines {
+//                        AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
+//                    } else {
+//                        AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
+//                    }
+            ////                     AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
+            ////                    AxisValueLabel(format: .dateTime.hour())
+//                }
+//            }
+            .chartYAxis {
+                AxisMarks(position: .trailing) { _ in
                     if displayYgridLines {
                         AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
                     } else {
                         AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
                     }
-                    AxisTick(length: 4, stroke: .init(lineWidth: 4))
-                        .foregroundStyle(Color.gray)
-                    AxisValueLabel()
+                    AxisTick(length: 30, stroke: .init(lineWidth: 4))
+                        .foregroundStyle(Color.clear)
                 }
             }
         }
@@ -440,7 +429,7 @@ extension MainChartView2 {
 
     private func Legend() -> some View {
         ZStack {
-            Capsule(style: .circular).foregroundStyle(.gray.opacity(0.1)).padding(.horizontal, 30)
+            Capsule(style: .circular).foregroundStyle(.gray.opacity(0.1)).padding(.horizontal, 30).frame(maxHeight: 15)
 
             HStack {
                 Image(systemName: "line.diagonal")

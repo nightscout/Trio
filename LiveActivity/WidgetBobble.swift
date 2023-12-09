@@ -25,12 +25,6 @@ struct CircleShapeWidget: View {
     let gradient: AngularGradient
 
     var body: some View {
-//        let colorBackground: Color = colorScheme == .dark ? Color(
-//            red: 0.05490196078,
-//            green: 0.05490196078,
-//            blue: 0.05490196078
-//        ) : .white
-
         Circle()
             .stroke(gradient, lineWidth: 10)
             .background(Circle().fill(.clear))

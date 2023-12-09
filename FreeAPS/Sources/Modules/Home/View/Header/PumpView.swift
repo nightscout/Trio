@@ -39,39 +39,21 @@ struct PumpView: View {
 
     var body: some View {
         HStack {
-            Text("IOB").font(.caption).foregroundColor(.secondary)
+            Text("IOB").font(.callout).foregroundColor(.secondary)
             Text(
                 (numberFormatter.string(from: (state.suggestion?.iob ?? 0) as NSNumber) ?? "0") +
                     NSLocalizedString(" U", comment: "Insulin unit")
             )
-            .font(.caption).fontWeight(.bold)
+            .font(.callout).fontWeight(.bold)
 
             Spacer()
 
-            Text("COB").font(.caption).foregroundColor(.secondary)
+            Text("COB").font(.callout).foregroundColor(.secondary)
             Text(
                 (numberFormatter.string(from: (state.suggestion?.cob ?? 0) as NSNumber) ?? "0") +
                     NSLocalizedString(" g", comment: "gram of carbs")
             )
-            .font(.caption).fontWeight(.bold)
-
-            Spacer()
-
-            LoopView(
-                suggestion: $state.suggestion,
-                enactedSuggestion: $state.enactedSuggestion,
-                closedLoop: $state.closedLoop,
-                timerDate: $state.timerDate,
-                isLooping: $state.isLooping,
-                lastLoopDate: $state.lastLoopDate,
-                manualTempBasal: $state.manualTempBasal
-            ).onTapGesture {
-                state.isStatusPopupPresented = true
-            }.onLongPressGesture {
-                let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
-                impactHeavy.impactOccurred()
-                state.runLoop()
-            }
+            .font(.callout).fontWeight(.bold)
 
             Spacer()
 
@@ -83,13 +65,13 @@ struct PumpView: View {
                         .frame(maxHeight: 15)
                         .foregroundColor(reservoirColor)
                     if reservoir == 0xDEAD_BEEF {
-                        Text("50+ " + NSLocalizedString("U", comment: "Insulin unit")).font(.caption).fontWeight(.bold)
+                        Text("50+ " + NSLocalizedString("U", comment: "Insulin unit")).font(.callout).fontWeight(.bold)
                     } else {
                         Text(
                             reservoirFormatter
                                 .string(from: reservoir as NSNumber)! + NSLocalizedString(" U", comment: "Insulin unit")
                         )
-                        .font(.caption).fontWeight(.bold)
+                        .font(.callout).fontWeight(.bold)
                     }
                 }
             }
@@ -103,7 +85,7 @@ struct PumpView: View {
                         .aspectRatio(contentMode: .fit)
                         .frame(maxHeight: 15)
                         .foregroundColor(batteryColor)
-                    Text("\(Int(battery.percent ?? 100)) %").font(.caption)
+                    Text("\(Int(battery.percent ?? 100)) %").font(.callout)
                         .fontWeight(.bold)
                 }
             }
@@ -116,7 +98,7 @@ struct PumpView: View {
                         .frame(maxHeight: 15)
                         .foregroundColor(timerColor)
 
-                    Text(remainingTimeString(time: date.timeIntervalSince(timerDate))).font(.caption).fontWeight(.bold)
+                    Text(remainingTimeString(time: date.timeIntervalSince(timerDate))).font(.callout).fontWeight(.bold)
                 }
             }
         }
