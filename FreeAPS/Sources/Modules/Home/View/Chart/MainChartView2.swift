@@ -52,8 +52,8 @@ private enum PredictionType: Hashable {
 
 struct MainChartView2: View {
     private enum Config {
-        static let bolusSize: CGFloat = 15
-        static let bolusScale: CGFloat = 2.5
+        static let bolusSize: CGFloat = 5
+        static let bolusScale: CGFloat = 0.6
         static let carbsSize: CGFloat = 5
         static let carbsScale: CGFloat = 0.3
         static let fpuSize: CGFloat = 3
@@ -189,14 +189,14 @@ extension MainChartView2 {
 
                 ForEach(ChartBoluses, id: \.self) { bolus in
                     let bolusAmount = bolus.amount
+                    let size = (Config.bolusSize + CGFloat(bolusAmount) * Config.bolusScale) * 3
 
                     PointMark(
                         x: .value("Time", bolus.timestamp, unit: .second),
                         y: .value("Value", bolus.yPosition)
                     )
-                    .symbolSize((Config.bolusSize + CGFloat(bolusAmount) * Config.bolusScale) * 10)
                     .symbol {
-                        Image(systemName: "arrowtriangle.down.fill").font(.body)
+                        Image(systemName: "arrowtriangle.down.fill").font(.system(size: size))
                     }
                     .foregroundStyle(Color.blue.gradient)
                     .annotation(position: .top) {
