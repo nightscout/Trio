@@ -27,6 +27,7 @@ private struct Carb: Hashable {
     let amount: Decimal
     let timestamp: Date
     let nearestGlucose: BloodGlucose
+    let yPosition: Int
 }
 
 private struct ChartBolus: Hashable {
@@ -160,33 +161,19 @@ extension MainChartView2 {
                 RuleMark(
                     x: .value(
                         "",
-                        startMarker,
-                        unit: .second
-                    )
-                ).foregroundStyle(.clear)
-                RuleMark(
-                    x: .value(
-                        "",
                         Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970)),
                         unit: .second
                     )
                 ).lineStyle(.init(lineWidth: 1, dash: [2]))
-                RuleMark(
-                    x: .value(
-                        "",
-                        endMarker,
-                        unit: .second
-                    )
-                ).foregroundStyle(.clear)
                 ForEach(ChartCarbs, id: \.self) { carb in
                     let carbAmount = carb.amount
                     PointMark(
                         x: .value("Time", carb.timestamp, unit: .second),
-                        y: .value("Value", carb.nearestGlucose.sgv ?? 120)
+                        y: .value("Value", carb.yPosition)
                     )
                     .symbolSize((Config.carbsSize + CGFloat(carbAmount) * Config.carbsScale) * 10)
                     .foregroundStyle(Color.orange)
-                    .annotation(position: .top) {
+                    .annotation(position: .bottom) {
                         Text(bolusFormatter.string(from: carbAmount as NSNumber)!).font(.caption2).foregroundStyle(Color.orange)
                     }
                 }
@@ -211,10 +198,10 @@ extension MainChartView2 {
                     .symbol {
                         Image(systemName: "arrowtriangle.down.fill").font(.body)
                     }
-                    .foregroundStyle(Color.insulin)
-//                    .annotation(position: .bottom) {
-//                        Text(bolusFormatter.string(from: bolusAmount as NSNumber)!).font(.caption2).foregroundStyle(Color.insulin)
-//                    }
+                    .foregroundStyle(Color.blue.gradient)
+                    .annotation(position: .top) {
+                        Text(bolusFormatter.string(from: bolusAmount as NSNumber)!).font(.caption2).foregroundStyle(Color.insulin)
+                    }
                 }
 
                 ForEach(ChartTempTargets, id: \.self) { tt in
@@ -308,6 +295,7 @@ extension MainChartView2 {
                     width: max(0, screenSize.width - 20, fullWidth(viewWidth: screenSize.width)),
                     height: UIScreen.main.bounds.height / 3.3
                 )
+                .chartXScale(domain: startMarker ... endMarker)
                 .chartXAxis {
                     AxisMarks(values: .stride(by: .hour, count: screenHours == 24 ? 4 : 2)) { _ in
                         if displayXgridLines {
@@ -341,24 +329,10 @@ extension MainChartView2 {
                 RuleMark(
                     x: .value(
                         "",
-                        startMarker,
-                        unit: .second
-                    )
-                ).foregroundStyle(.clear)
-                RuleMark(
-                    x: .value(
-                        "",
                         Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970)),
                         unit: .second
                     )
                 ).lineStyle(.init(lineWidth: 1, dash: [2]))
-                RuleMark(
-                    x: .value(
-                        "",
-                        endMarker,
-                        unit: .second
-                    )
-                ).foregroundStyle(.clear)
                 ForEach(TempBasals) {
                     BarMark(
                         x: .value("Time", $0.timestamp),
@@ -402,6 +376,7 @@ extension MainChartView2 {
             )
             .rotationEffect(.degrees(180))
             .scaleEffect(x: -1, y: 1)
+            .chartXScale(domain: startMarker ... endMarker)
             .chartXAxis(.hidden)
             .chartXAxis {
                 AxisMarks(values: .stride(by: .hour, count: screenHours == 24 ? 4 : 2)) { _ in
@@ -512,7 +487,8 @@ extension MainChartView2 {
         var calculatedCarbs: [Carb] = []
         carbs.forEach { carb in
             let bg = timeToNearestGlucose(time: carb.createdAt.timeIntervalSince1970)
-            calculatedCarbs.append(Carb(amount: carb.carbs, timestamp: carb.createdAt, nearestGlucose: bg))
+            let yPosition = (bg.sgv ?? 120) - 30
+            calculatedCarbs.append(Carb(amount: carb.carbs, timestamp: carb.createdAt, nearestGlucose: bg, yPosition: yPosition))
         }
         ChartCarbs = calculatedCarbs
     }
@@ -520,9 +496,11 @@ extension MainChartView2 {
     private func calculateFpus() {
         var calculatedFpus: [Carb] = []
         let fpus = carbs.filter { $0.isFPU ?? false }
+        let yPosition = 120
         fpus.forEach { fpu in
             let bg = timeToNearestGlucose(time: fpu.createdAt.timeIntervalSince1970)
-            calculatedFpus.append(Carb(amount: fpu.carbs, timestamp: fpu.actualDate ?? Date(), nearestGlucose: bg))
+            calculatedFpus
+                .append(Carb(amount: fpu.carbs, timestamp: fpu.actualDate ?? Date(), nearestGlucose: bg, yPosition: yPosition))
         }
         ChartFpus = calculatedFpus
     }
