@@ -165,6 +165,20 @@ extension MainChartView2 {
                         unit: .second
                     )
                 ).lineStyle(.init(lineWidth: 1, dash: [2]))
+                RuleMark(
+                    x: .value(
+                        "",
+                        startMarker,
+                        unit: .second
+                    )
+                ).foregroundStyle(Color.clear)
+                RuleMark(
+                    x: .value(
+                        "",
+                        endMarker,
+                        unit: .second
+                    )
+                ).foregroundStyle(Color.clear)
                 ForEach(ChartCarbs, id: \.self) { carb in
                     let carbAmount = carb.amount
                     PointMark(
@@ -334,6 +348,20 @@ extension MainChartView2 {
                         unit: .second
                     )
                 ).lineStyle(.init(lineWidth: 1, dash: [2]))
+                RuleMark(
+                    x: .value(
+                        "",
+                        startMarker,
+                        unit: .second
+                    )
+                ).foregroundStyle(Color.clear)
+                RuleMark(
+                    x: .value(
+                        "",
+                        endMarker,
+                        unit: .second
+                    )
+                ).foregroundStyle(Color.clear)
                 ForEach(TempBasals) {
                     BarMark(
                         x: .value("Time", $0.timestamp),
