@@ -84,7 +84,16 @@ struct LiveActivity: Widget {
                 plotContent.background(.cyan.opacity(0.1))
             }
             .chartYAxis {
-                AxisMarks(position: .leading)
+                AxisMarks(position: .leading) { _ in
+                    AxisValueLabel().foregroundStyle(Color.white)
+                    AxisGridLine(stroke: .init(lineWidth: 0.1, dash: [2, 3])).foregroundStyle(Color.white)
+                }
+            }
+            .chartXAxis {
+                AxisMarks(position: .automatic) { _ in
+                    AxisValueLabel().foregroundStyle(Color.white)
+                    AxisGridLine(stroke: .init(lineWidth: 0.1, dash: [2, 3])).foregroundStyle(Color.white)
+                }
             }
         }
     }
@@ -118,7 +127,7 @@ struct LiveActivity: Widget {
             .background(Color.white.opacity(0.2))
             .foregroundColor(Color.white)
             .activityBackgroundTint(Color.black.opacity(0.7))
-            .activitySystemActionForegroundColor(Color.black)
+            .activitySystemActionForegroundColor(Color.white)
 
         } dynamicIsland: { context in
             DynamicIsland {

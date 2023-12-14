@@ -21,7 +21,7 @@ extension LiveActivityAttributes.ContentState {
             .string(from: mmol ? value.asMmolL as NSNumber : NSNumber(value: value))!
     }
 
-    init?(new bg: BloodGlucose, prev: BloodGlucose?, mmol: Bool, chart: [Readings]) {
+    init?(new bg: BloodGlucose, prev: BloodGlucose?, mmol: Bool, chart: [Readings], settings: FreeAPSSettings) {
         guard let glucose = bg.glucose,
               bg.dateString.timeIntervalSinceNow > -TimeInterval(minutes: 6)
         else {
@@ -71,6 +71,9 @@ extension LiveActivityAttributes.ContentState {
 
         let chartBG = chart.map(\.glucose)
 
+        let conversionFactor: Double = settings.units == .mmolL ? 18.0 : 1.0
+        let convertedChartBG = chartBG.map { Double($0) / conversionFactor }
+
         let chartDate = chart.map(\.date)
 
         self.init(
@@ -78,7 +81,7 @@ extension LiveActivityAttributes.ContentState {
             trendSystemImage: trendString,
             change: change,
             date: bg.dateString,
-            chart: chartBG,
+            chart: convertedChartBG,
             chartDate: chartDate, rotationDegrees: rotationDegrees
         )
     }
@@ -211,11 +214,8 @@ extension LiveActivityBridge: GlucoseObserver {
         defer {
             self.latestGlucose = glucose.last
         }
-
-//        let last72Glucose = Array(glucose.dropLast().suffix(72))
+//        fetch glucose for chart from Core Data
         let coreDataStorage = CoreDataStorage()
-
-//        let fetchGlucose = coreDataStorage.fetchGlucose(interval: DateFilter().day)
         let sixHoursAgo = Calendar.current.date(byAdding: .hour, value: -6, to: Date()) ?? Date()
         let fetchGlucose = coreDataStorage.fetchGlucose(interval: sixHoursAgo as NSDate)
 
@@ -223,7 +223,9 @@ extension LiveActivityBridge: GlucoseObserver {
             new: bg,
             prev: latestGlucose,
             mmol: settings.units == .mmolL,
-            chart: fetchGlucose
+
+            chart: fetchGlucose, settings: settings
+
         ) else {
             // no bg or value stale. Don't update the activity if there already is one, just let it turn stale so that it can still be used once current bg is available again
             return
