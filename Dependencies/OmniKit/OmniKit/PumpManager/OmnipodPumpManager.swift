@@ -1864,6 +1864,12 @@ extension OmnipodPumpManager: PumpManager {
             return
         }
 
+        // Legal duration values are [virtual] zero (to cancel current temp basal) or between 30 min and 12 hours
+        guard duration < .ulpOfOne || (duration >= .minutes(30) && duration <= .hours(12)) else {
+            completion(.deviceState(OmnipodPumpManagerError.invalidSetting))
+            return
+        }
+
         // Round to nearest supported rate
         let rate = roundToSupportedBasalRate(unitsPerHour: unitsPerHour)
 

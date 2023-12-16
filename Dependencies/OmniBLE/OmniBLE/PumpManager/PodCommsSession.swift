@@ -741,9 +741,9 @@ public class PodCommsSession {
         let basalExtraCommand = BasalScheduleExtraCommand.init(schedule: schedule, scheduleOffset: scheduleOffset, acknowledgementBeep: acknowledgementBeep, programReminderInterval: programReminderInterval)
 
         do {
-            if !(podState.lastCommsOK && podState.deliveryStatusVerified) {
-                // Can't trust the current delivery state -- do a cancel all
-                // to be sure that setting a basal program won't fault the pod.
+            if podState.setupProgress == .completed && !(podState.lastCommsOK && podState.deliveryStatusVerified) {
+                // The pod setup is complete and the current delivery state can't be trusted so
+                // do a cancel all to be sure that setting the basal program won't fault the pod.
                 let _: StatusResponse = try send([CancelDeliveryCommand(nonce: podState.currentNonce, deliveryType: .all, beepType: .noBeepCancel)])
             }
             var status: StatusResponse = try send([basalScheduleCommand, basalExtraCommand])

@@ -598,11 +598,11 @@
 		C12401A929C7D8E900B32844 /* PumpManager */ = {
 			isa = PBXGroup;
 			children = (
-				C12401AA29C7D8E900B32844 /* PodComms.swift */,
 				C12401AB29C7D8E900B32844 /* DetailedStatus+OmniKit.swift */,
-				C12401AC29C7D8E900B32844 /* PodCommsSession.swift */,
-				C12401AD29C7D8E900B32844 /* OmnipodPumpManagerState.swift */,
 				C12401AE29C7D8E900B32844 /* OmnipodPumpManager.swift */,
+				C12401AD29C7D8E900B32844 /* OmnipodPumpManagerState.swift */,
+				C12401AA29C7D8E900B32844 /* PodComms.swift */,
+				C12401AC29C7D8E900B32844 /* PodCommsSession.swift */,
 				C12401AF29C7D8E900B32844 /* PodState.swift */,
 			);
 			path = PumpManager;

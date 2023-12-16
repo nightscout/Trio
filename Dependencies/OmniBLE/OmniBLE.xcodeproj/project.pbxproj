@@ -636,15 +636,15 @@
 		84752EAD26ED11A4009FD801 /* PumpManager */ = {
 			isa = PBXGroup;
 			children = (
-				C1C001C027A2349D00533D35 /* OmniBLE.swift */,
 				D8896C6127890E6B00E09A96 /* DetailedStatus+OmniBLE.swift */,
 				10389A2226FF7841002115E9 /* MessageTransport.swift */,
+				C1C001C027A2349D00533D35 /* OmniBLE.swift */,
 				1029AE4627094D0E00B7F5B6 /* OmniBLEPumpManager.swift */,
 				1029AE4727094D0E00B7F5B6 /* OmniBLEPumpManagerState.swift */,
-				102111422709462300784F13 /* PodCommsSession.swift */,
-				1021114C2709467400784F13 /* PodComms.swift */,
-				102111402709462300784F13 /* PodState.swift */,
 				C1D27A1A27911E9900C41EBA /* PodAdvertisement.swift */,
+				1021114C2709467400784F13 /* PodComms.swift */,
+				102111422709462300784F13 /* PodCommsSession.swift */,
+				102111402709462300784F13 /* PodState.swift */,
 			);
 			path = PumpManager;
 			sourceTree = "<group>";

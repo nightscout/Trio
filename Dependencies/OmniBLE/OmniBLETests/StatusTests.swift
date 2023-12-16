@@ -46,16 +46,16 @@ class StatusTests: XCTestCase {
         }
     }
     
-    func testStatusRequestCommandConfiguredAlerts() {
+    func testStatusRequestCommandTriggeredAlerts() {
         // 0e 01 01
         do {
             // Encode
-            let encoded = GetStatusCommand(podInfoType: .configuredAlerts)
+            let encoded = GetStatusCommand(podInfoType: .triggeredAlerts)
             XCTAssertEqual("0e0101", encoded.data.hexadecimalString)
                 
             // Decode
             let decoded = try GetStatusCommand(encodedData: Data(hexadecimalString: "0e0101")!)
-            XCTAssertEqual(.configuredAlerts, decoded.podInfoType)
+            XCTAssertEqual(.triggeredAlerts, decoded.podInfoType)
         } catch (let error) {
             XCTFail("message decoding threw error: \(error)")
         }
