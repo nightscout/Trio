@@ -450,7 +450,7 @@ extension Home {
                         .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
                 }
 
-                MainChartView2(
+                MainChartView(
                     glucose: $state.glucose,
                     eventualBG: $state.eventualBG,
                     suggestion: $state.suggestion,
@@ -529,7 +529,7 @@ extension Home {
                     Button { state.showModal(for: .addCarbs(editMode: false, override: false)) }
                     label: {
                         ZStack(alignment: Alignment(horizontal: .trailing, vertical: .bottom)) {
-                            Image("carbs")
+                            Image(systemName: "fork.knife")
                                 .renderingMode(.template)
                                 .resizable()
                                 .frame(width: 24, height: 24)
@@ -544,17 +544,17 @@ extension Home {
                             }
                         }
                     }.buttonStyle(.borderless)
-//                    Spacer()
-//                    Button { state.showModal(for: .addTempTarget) }
-//                    label: {
-//                        Image("target")
-//                            .renderingMode(.template)
-//                            .resizable()
-//                            .frame(width: 24, height: 24)
-//                            .padding(8)
-//                    }
-//                    .foregroundColor(colorIcon)
-//                    .buttonStyle(.borderless)
+                    Spacer()
+                    Button { state.showModal(for: .addTempTarget) }
+                    label: {
+                        Image(systemName: "target")
+                            .renderingMode(.template)
+                            .resizable()
+                            .frame(width: 24, height: 24)
+                            .padding(8)
+                    }
+                    .foregroundColor(colorIcon)
+                    .buttonStyle(.borderless)
                     Spacer()
                     Button {
                         state.showModal(for: .bolus(
@@ -563,7 +563,7 @@ extension Home {
                         ))
                     }
                     label: {
-                        Image("bolus")
+                        Image(systemName: "syringe")
                             .renderingMode(.template)
                             .resizable()
                             .frame(width: 24, height: 24)
@@ -604,7 +604,7 @@ extension Home {
                     Button { state.showModal(for: .statistics)
                     }
                     label: {
-                        Image(systemName: "list.bullet")
+                        Image(systemName: "chart.bar")
                             .renderingMode(.template)
                             .resizable()
                             .frame(width: 24, height: 24)
@@ -615,7 +615,7 @@ extension Home {
                     Spacer()
                     Button { state.showModal(for: .settings) }
                     label: {
-                        Image("settings1")
+                        Image(systemName: "gear")
                             .renderingMode(.template)
                             .resizable()
                             .frame(width: 24, height: 24)
