@@ -249,6 +249,9 @@
 /**/
 "Use local glucose server" = "Use local glucose server";
 
+/* Enable Statistics */
+"This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n" = "This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n";
+
 /*  */
 "Edit settings json" = "Edit settings json";
 

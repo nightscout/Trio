@@ -335,6 +335,9 @@ Enact a temp Basal or a temp target */
 /**/
 "Use local glucose server" = "Usa server locale come sorgente glicemia";
 
+/* Enable Statistics */
+"This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n" = "This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n";
+
 /*  */
 "Edit settings json" = "Modifica impostazioni json";
 

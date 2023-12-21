@@ -58,6 +58,21 @@ extension NightscoutConfig {
                     Toggle("Upload", isOn: $state.isUploadEnabled)
                     if state.isUploadEnabled {
                         Toggle("Statistics", isOn: $state.uploadStats)
+                        HStack(alignment: .top) {
+                            Image(systemName: "pencil.circle.fill")
+                            VStack {
+                                Text(
+                                    "This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n"
+                                )
+                                .font(.caption)
+                                Text(
+                                    "https://iaps-stats.hub.org"
+                                )
+                                .font(.caption)
+                                .multilineTextAlignment(.center)
+                            }
+                        }
+                        .foregroundColor(Color.secondary)
                         Toggle("Glucose", isOn: $state.uploadGlucose)
                     }
                 } header: {
