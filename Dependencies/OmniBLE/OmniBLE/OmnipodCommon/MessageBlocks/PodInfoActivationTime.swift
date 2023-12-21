@@ -36,7 +36,7 @@ public struct PodInfoActivationTime : PodInfo {
         self.day    = Int(encodedData[13])
         self.hour   = Int(encodedData[15])
         self.minute = Int(encodedData[16])
-        self.data = Data(encodedData)
+        self.data   = Data(encodedData)
     }
 }
 
@@ -51,8 +51,8 @@ func activationTimeString(podInfoActivationTime: PodInfoActivationTime) -> Strin
     result.append(String(format: "Minute: %u", podInfoActivationTime.minute))
 
     // pod fault info
-    result.append(String(format: "\n%@", String(describing: podInfoActivationTime.faultEventCode)))
-    result.append(String(format: "Fault Time: %@", podInfoActivationTime.faultTime.timeIntervalStr))
+    result.append(String(format: "\nFault Time: %@", podInfoActivationTime.faultTime.timeIntervalStr))
+    result.append(String(describing: podInfoActivationTime.faultEventCode))
 
     return result.joined(separator: "\n")
 }
