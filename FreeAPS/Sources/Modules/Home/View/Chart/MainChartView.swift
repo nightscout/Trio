@@ -27,7 +27,6 @@ private struct Carb: Hashable {
     let amount: Decimal
     let timestamp: Date
     let nearestGlucose: BloodGlucose
-    let yPosition: Int
 }
 
 private struct ChartBolus: Hashable {
@@ -56,7 +55,7 @@ struct MainChartView: View {
         static let bolusScale: CGFloat = 1
         static let carbsSize: CGFloat = 5
         static let carbsScale: CGFloat = 0.3
-        static let fpuSize: CGFloat = 3
+        static let fpuSize: CGFloat = 10
     }
 
     @Binding var glucose: [BloodGlucose]
@@ -182,7 +181,7 @@ extension MainChartView {
                     let carbAmount = carb.amount
                     PointMark(
                         x: .value("Time", carb.timestamp, unit: .second),
-                        y: .value("Value", carb.yPosition)
+                        y: .value("Value", 40)
                     )
                     .symbolSize((Config.carbsSize + CGFloat(carbAmount) * Config.carbsScale) * 10)
                     .foregroundStyle(Color.orange)
@@ -192,11 +191,13 @@ extension MainChartView {
                 }
                 /// fpus
                 ForEach(ChartFpus, id: \.self) { fpu in
+                    let fpuAmount = fpu.amount
+                    let size = (Config.fpuSize + CGFloat(fpuAmount) * Config.carbsScale) * 1.8
                     PointMark(
                         x: .value("Time", fpu.timestamp, unit: .second),
-                        y: .value("Value", fpu.nearestGlucose.sgv ?? 120)
+                        y: .value("Value", 40)
                     )
-                    .symbolSize(22)
+                    .symbolSize(size)
                     .foregroundStyle(Color.brown)
                 }
                 /// smbs in triangle form
@@ -217,15 +218,13 @@ extension MainChartView {
                     }
                 }
                 /// temp targets
-                ForEach(tempTargets, id: \.self) { tt in
-                    let duration = tt.duration
-                    let end = tt.createdAt.addingTimeInterval(TimeInterval(duration * 60))
-                    RuleMark(
-                        xStart: .value("Start", tt.createdAt),
-                        xEnd: .value("End", end),
-                        y: .value("Value", tt.targetTop ?? 0)
+                ForEach(ChartTempTargets, id: \.self) { tt in
+                    BarMark(
+                        xStart:.value("Time", tt.start),
+                        xEnd: .value("Time", tt.end),
+                        y: .value("Value", tt.amount)
                     )
-                    .foregroundStyle(Color.purple).lineStyle(.init(lineWidth: 8, dash: [2, 3]))
+                    .foregroundStyle(Color.purple.opacity(0.3)).lineStyle(.init(lineWidth: 8, dash: [2, 3]))
                 }
                 /// predictions
                 ForEach(Predictions, id: \.self) { info in
@@ -282,6 +281,7 @@ extension MainChartView {
             }.id("MainChart")
                 .onChange(of: glucose) {
                     calculatePredictions()
+                    calculateFpus()
                 }
                 .onChange(of: carbs) {
                     calculateCarbs()
@@ -468,6 +468,8 @@ extension MainChartView {
 
 // MARK: Calculations
 
+///calculates the glucose value thats the nearest to parameter 'time'
+///if time is later than all the arrays values return the last element of BloodGlucose
 extension MainChartView {
     private func timeToNearestGlucose(time: TimeInterval) -> BloodGlucose {
         var nextIndex = 0
@@ -494,57 +496,85 @@ extension MainChartView {
     private func fullWidth(viewWidth: CGFloat) -> CGFloat {
         viewWidth * CGFloat(hours) / CGFloat(min(max(screenHours, 2), 24))
     }
-
+    
     private func calculateCarbs() {
         var calculatedCarbs: [Carb] = []
-        carbs.forEach { carb in
+        
+        ///check if carbs are not fpus before adding them to the chart
+        ///this solves the problem of a first CARB entry with the amount of the single fpu entries that was made at current time when adding ONLY fpus
+        let realCarbs = carbs.filter { !($0.isFPU ?? false) }
+        
+        realCarbs.forEach { carb in
             let bg = timeToNearestGlucose(time: carb.createdAt.timeIntervalSince1970)
-            let yPosition = (bg.sgv ?? 120) - 30
-            calculatedCarbs.append(Carb(amount: carb.carbs, timestamp: carb.createdAt, nearestGlucose: bg, yPosition: yPosition))
+            calculatedCarbs.append(Carb(amount: carb.carbs, timestamp: carb.createdAt, nearestGlucose: bg))
         }
         ChartCarbs = calculatedCarbs
     }
 
     private func calculateFpus() {
         var calculatedFpus: [Carb] = []
+        
+        ///check for only fpus
         let fpus = carbs.filter { $0.isFPU ?? false }
-        let yPosition = 120
+        
         fpus.forEach { fpu in
-            let bg = timeToNearestGlucose(time: fpu.createdAt.timeIntervalSince1970)
+            let bg = timeToNearestGlucose(time: TimeInterval(rawValue: (fpu.actualDate?.timeIntervalSince1970)!) ?? fpu.createdAt.timeIntervalSince1970)
             calculatedFpus
-                .append(Carb(amount: fpu.carbs, timestamp: fpu.actualDate ?? Date(), nearestGlucose: bg, yPosition: yPosition))
+                .append(Carb(amount: fpu.carbs, timestamp: fpu.actualDate ?? Date(), nearestGlucose: bg))
         }
         ChartFpus = calculatedFpus
     }
-
+    
     private func calculateBoluses() {
-        var calculatedBoluses: [ChartBolus] = []
-        boluses.forEach { bolus in
-            let bg = timeToNearestGlucose(time: bolus.timestamp.timeIntervalSince1970)
-            let yPosition = (bg.sgv ?? 120) + 30
-            calculatedBoluses
-                .append(ChartBolus(
-                    amount: bolus.amount ?? 0,
-                    timestamp: bolus.timestamp,
-                    nearestGlucose: bg,
-                    yPosition: yPosition
-                ))
-        }
-        ChartBoluses = calculatedBoluses
-    }
+           var calculatedBoluses: [ChartBolus] = []
+           boluses.forEach { bolus in
+               let bg = timeToNearestGlucose(time: bolus.timestamp.timeIntervalSince1970)
+               let yPosition = (bg.sgv ?? 120) + 30
+               calculatedBoluses
+                   .append(ChartBolus(
+                       amount: bolus.amount ?? 0,
+                       timestamp: bolus.timestamp,
+                       nearestGlucose: bg,
+                       yPosition: yPosition
+                   ))
+           }
+           ChartBoluses = calculatedBoluses
+       }
 
+    ///calculations for temp target bar mark
+    ///it is now quite complicated because the remove function in TempTargetStorage does not actually remove the current temp target but instead creates a new temp target with a duration of 0 minutes
+    ///therefore it is necessary to check if a temp target was cancelled, i.e. the last temp target in the temp target array has a duration of 0 and then remove the last TWO elements of the array
     private func calculateTTs() {
         var calculatedTTs: [ChartTempTarget] = []
-        tempTargets.forEach { tt in
-            let end = tt.createdAt.addingTimeInterval(TimeInterval(tt.duration * 60))
-            if tt.targetTop != nil {
-                calculatedTTs
-                    .append(ChartTempTarget(amount: tt.targetTop ?? 0, start: tt.createdAt, end: end))
+        
+        ///check if last element has a duration of 0
+        if let lastTempTarget = tempTargets.last, lastTempTarget.duration == 0 {
+           
+            ///remove the last TWO elements if the last element has a duration of 0
+            let filteredTempTargets = Array(tempTargets.dropLast(2))
+            
+           ///use filtered temp targets for calculation
+            calculatedTTs = filteredTempTargets.compactMap { tt in
+                guard let targetTop = tt.targetTop else { return nil }
+                
+                let end = tt.createdAt.addingTimeInterval(TimeInterval(tt.duration * 60))
+                return ChartTempTarget(amount: targetTop, start: tt.createdAt, end: end)
+            }
+        } else {
+            
+           ///if the last temp target has NOT a duration of 0 use unfiltered temp targets for calculation
+            calculatedTTs = tempTargets.compactMap { tt in
+                guard let targetTop = tt.targetTop else { return nil }
+                
+                let end = tt.createdAt.addingTimeInterval(TimeInterval(tt.duration * 60))
+                return ChartTempTarget(amount: targetTop, start: tt.createdAt, end: end)
             }
         }
+        
         ChartTempTargets = calculatedTTs
     }
 
+    
     private func calculatePredictions() {
         var calculatedPredictions: [Prediction] = []
         let uam = suggestion?.predictions?.uam ?? []
