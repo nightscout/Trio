@@ -224,7 +224,7 @@ extension MainChartView {
                         xEnd: .value("Time", tt.end),
                         y: .value("Value", tt.amount)
                     )
-                    .foregroundStyle(Color.purple.opacity(0.3)).lineStyle(.init(lineWidth: 8, dash: [2, 3]))
+                    .foregroundStyle(Color.purple.opacity(0.5))
                 }
                 /// predictions
                 ForEach(Predictions, id: \.self) { info in
