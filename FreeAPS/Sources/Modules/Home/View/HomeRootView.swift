@@ -470,7 +470,8 @@ extension Home {
                     screenHours: $state.hours,
                     displayXgridLines: $state.displayXgridLines,
                     displayYgridLines: $state.displayYgridLines,
-                    thresholdLines: $state.thresholdLines
+                    thresholdLines: $state.thresholdLines,
+                    isTempTargetActive: $state.isTempTargetActive
                 )
             }
             .padding(.bottom)
@@ -553,7 +554,7 @@ extension Home {
                             .frame(width: 24, height: 24)
                             .padding(8)
                     }
-                    .foregroundColor(colorIcon)
+                    .foregroundColor(state.isTempTargetActive ? Color.purple : colorIcon)
                     .buttonStyle(.borderless)
                     Spacer()
                     Button {

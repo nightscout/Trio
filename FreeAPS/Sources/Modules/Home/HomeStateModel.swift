@@ -65,6 +65,7 @@ extension Home {
 
         @Published var isStatusPopupPresented: Bool = false
         @Published var tins: Bool = false
+        @Published var isTempTargetActive: Bool = false
 
         @Published var cob: Decimal = 0
 

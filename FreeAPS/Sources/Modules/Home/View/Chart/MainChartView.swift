@@ -79,6 +79,7 @@ struct MainChartView: View {
     @Binding var displayXgridLines: Bool
     @Binding var displayYgridLines: Bool
     @Binding var thresholdLines: Bool
+    @Binding var isTempTargetActive: Bool
 
     @State var didAppearTrigger = false
     @State private var BasalProfiles: [BasalProfile] = []
@@ -217,15 +218,13 @@ extension MainChartView {
                     }
                 }
                 /// temp targets
-                ForEach(tempTargets, id: \.self) { tt in
-                    let duration = tt.duration
-                    let end = tt.createdAt.addingTimeInterval(TimeInterval(duration * 60))
+                ForEach(ChartTempTargets, id: \.self) { target in
                     RuleMark(
-                        xStart: .value("Start", tt.createdAt),
-                        xEnd: .value("End", end),
-                        y: .value("Value", tt.targetTop ?? 0)
+                        xStart: .value("Start", target.start),
+                        xEnd: .value("End", target.end),
+                        y: .value("Value", target.amount)
                     )
-                    .foregroundStyle(Color.purple).lineStyle(.init(lineWidth: 8, dash: [2, 3]))
+                    .foregroundStyle(Color.purple.opacity(0.5)).lineStyle(.init(lineWidth: 8))
                 }
                 /// predictions
                 ForEach(Predictions, id: \.self) { info in
@@ -362,7 +361,7 @@ extension MainChartView {
                     BarMark(
                         x: .value("Time", $0.timestamp),
                         y: .value("Rate", $0.rate ?? 0)
-                    )
+                    ).foregroundStyle(<#T##S#>)
                 }
                 ForEach(BasalProfiles, id: \.self) { profile in
                     LineMark(
@@ -534,14 +533,60 @@ extension MainChartView {
     }
 
     private func calculateTTs() {
+        var groupedPackages: [[TempTarget]] = []
+        var currentPackage: [TempTarget] = []
         var calculatedTTs: [ChartTempTarget] = []
-        tempTargets.forEach { tt in
-            let end = tt.createdAt.addingTimeInterval(TimeInterval(tt.duration * 60))
-            if tt.targetTop != nil {
-                calculatedTTs
-                    .append(ChartTempTarget(amount: tt.targetTop ?? 0, start: tt.createdAt, end: end))
+
+        for target in tempTargets {
+            if target.duration > 0 {
+                if !currentPackage.isEmpty {
+                    groupedPackages.append(currentPackage)
+                    currentPackage = []
+                }
+                currentPackage.append(target)
+            } else {
+                if let lastNonZeroTempTarget = currentPackage.last(where: { $0.duration > 0 }) {
+                    if target.createdAt >= lastNonZeroTempTarget.createdAt,
+                       target.createdAt <= lastNonZeroTempTarget.createdAt
+                       .addingTimeInterval(TimeInterval(lastNonZeroTempTarget.duration * 60))
+                    {
+                        currentPackage.append(target)
+                    }
+                }
             }
         }
+
+        // appends last package, if exists
+        if !currentPackage.isEmpty {
+            groupedPackages.append(currentPackage)
+        }
+
+        for package in groupedPackages {
+            guard let firstNonZeroTarget = package.first(where: { $0.duration > 0 }) else {
+                continue
+            }
+
+            var end = firstNonZeroTarget.createdAt.addingTimeInterval(TimeInterval(firstNonZeroTarget.duration * 60))
+
+            let earliestCancelTarget = package.filter({ $0.duration == 0 }).min(by: { $0.createdAt < $1.createdAt })
+
+            if let earliestCancelTarget = earliestCancelTarget {
+                end = min(earliestCancelTarget.createdAt, end)
+            }
+
+            let now = Date()
+            isTempTargetActive = firstNonZeroTarget.createdAt <= now && now <= end
+
+            if firstNonZeroTarget.targetTop != nil {
+                calculatedTTs
+                    .append(ChartTempTarget(
+                        amount: firstNonZeroTarget.targetTop ?? 0,
+                        start: firstNonZeroTarget.createdAt,
+                        end: end
+                    ))
+            }
+        }
+
         ChartTempTargets = calculatedTTs
     }
 
@@ -690,7 +735,7 @@ extension MainChartView {
         return basalTruncatedPoints
     }
 
-    ///update start and  end marker to fix scroll update problem with x axis
+    /// update start and  end marker to fix scroll update problem with x axis
     private func updateStartEndMarkers() {
         startMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 - 86400))
         endMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 + 10800))
