@@ -219,7 +219,6 @@ extension MainChartView {
                     }
                 }
                 /// temp targets
-<<<<<<< HEAD
                 ForEach(ChartTempTargets, id: \.self) { target in
                     RuleMark(
                         xStart: .value("Start", target.start),
@@ -227,15 +226,6 @@ extension MainChartView {
                         y: .value("Value", target.amount)
                     )
                     .foregroundStyle(Color.purple.opacity(0.5)).lineStyle(.init(lineWidth: 8))
-=======
-                ForEach(ChartTempTargets, id: \.self) { tt in
-                    BarMark(
-                        xStart: .value("Time", tt.start),
-                        xEnd: .value("Time", tt.end),
-                        y: .value("Value", tt.amount)
-                    )
-                    .foregroundStyle(Color.purple.opacity(0.5))
->>>>>>> 915beea5951458270e3ae1c54be393eda6a01270
                 }
                 /// predictions
                 ForEach(Predictions, id: \.self) { info in
@@ -373,7 +363,7 @@ extension MainChartView {
                     BarMark(
                         x: .value("Time", $0.timestamp),
                         y: .value("Rate", $0.rate ?? 0)
-                    ).foregroundStyle(<#T##S#>)
+                    )
                 }
                 ForEach(BasalProfiles, id: \.self) { profile in
                     LineMark(
@@ -610,7 +600,7 @@ extension MainChartView {
                     ))
             }
         }
-        
+
         ChartTempTargets = calculatedTTs
     }
 
