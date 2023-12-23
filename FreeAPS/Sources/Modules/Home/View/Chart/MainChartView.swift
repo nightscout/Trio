@@ -27,7 +27,6 @@ private struct Carb: Hashable {
     let amount: Decimal
     let timestamp: Date
     let nearestGlucose: BloodGlucose
-    let yPosition: Int
 }
 
 private struct ChartBolus: Hashable {
@@ -56,7 +55,7 @@ struct MainChartView: View {
         static let bolusScale: CGFloat = 1
         static let carbsSize: CGFloat = 5
         static let carbsScale: CGFloat = 0.3
-        static let fpuSize: CGFloat = 3
+        static let fpuSize: CGFloat = 10
     }
 
     @Binding var glucose: [BloodGlucose]
@@ -183,7 +182,7 @@ extension MainChartView {
                     let carbAmount = carb.amount
                     PointMark(
                         x: .value("Time", carb.timestamp, unit: .second),
-                        y: .value("Value", carb.yPosition)
+                        y: .value("Value", 40)
                     )
                     .symbolSize((Config.carbsSize + CGFloat(carbAmount) * Config.carbsScale) * 10)
                     .foregroundStyle(Color.orange)
@@ -193,11 +192,13 @@ extension MainChartView {
                 }
                 /// fpus
                 ForEach(ChartFpus, id: \.self) { fpu in
+                    let fpuAmount = fpu.amount
+                    let size = (Config.fpuSize + CGFloat(fpuAmount) * Config.carbsScale) * 1.8
                     PointMark(
                         x: .value("Time", fpu.timestamp, unit: .second),
-                        y: .value("Value", fpu.nearestGlucose.sgv ?? 120)
+                        y: .value("Value", 40)
                     )
-                    .symbolSize(22)
+                    .symbolSize(size)
                     .foregroundStyle(Color.brown)
                 }
                 /// smbs in triangle form
@@ -218,6 +219,7 @@ extension MainChartView {
                     }
                 }
                 /// temp targets
+<<<<<<< HEAD
                 ForEach(ChartTempTargets, id: \.self) { target in
                     RuleMark(
                         xStart: .value("Start", target.start),
@@ -225,6 +227,15 @@ extension MainChartView {
                         y: .value("Value", target.amount)
                     )
                     .foregroundStyle(Color.purple.opacity(0.5)).lineStyle(.init(lineWidth: 8))
+=======
+                ForEach(ChartTempTargets, id: \.self) { tt in
+                    BarMark(
+                        xStart: .value("Time", tt.start),
+                        xEnd: .value("Time", tt.end),
+                        y: .value("Value", tt.amount)
+                    )
+                    .foregroundStyle(Color.purple.opacity(0.5))
+>>>>>>> 915beea5951458270e3ae1c54be393eda6a01270
                 }
                 /// predictions
                 ForEach(Predictions, id: \.self) { info in
@@ -281,6 +292,7 @@ extension MainChartView {
             }.id("MainChart")
                 .onChange(of: glucose) {
                     calculatePredictions()
+                    calculateFpus()
                 }
                 .onChange(of: carbs) {
                     calculateCarbs()
@@ -467,6 +479,8 @@ extension MainChartView {
 
 // MARK: Calculations
 
+/// calculates the glucose value thats the nearest to parameter 'time'
+/// if time is later than all the arrays values return the last element of BloodGlucose
 extension MainChartView {
     private func timeToNearestGlucose(time: TimeInterval) -> BloodGlucose {
         var nextIndex = 0
@@ -496,22 +510,31 @@ extension MainChartView {
 
     private func calculateCarbs() {
         var calculatedCarbs: [Carb] = []
-        carbs.forEach { carb in
+
+        /// check if carbs are not fpus before adding them to the chart
+        /// this solves the problem of a first CARB entry with the amount of the single fpu entries that was made at current time when adding ONLY fpus
+        let realCarbs = carbs.filter { !($0.isFPU ?? false) }
+
+        realCarbs.forEach { carb in
             let bg = timeToNearestGlucose(time: carb.createdAt.timeIntervalSince1970)
-            let yPosition = (bg.sgv ?? 120) - 30
-            calculatedCarbs.append(Carb(amount: carb.carbs, timestamp: carb.createdAt, nearestGlucose: bg, yPosition: yPosition))
+            calculatedCarbs.append(Carb(amount: carb.carbs, timestamp: carb.createdAt, nearestGlucose: bg))
         }
         ChartCarbs = calculatedCarbs
     }
 
     private func calculateFpus() {
         var calculatedFpus: [Carb] = []
+
+        /// check for only fpus
         let fpus = carbs.filter { $0.isFPU ?? false }
-        let yPosition = 120
+
         fpus.forEach { fpu in
-            let bg = timeToNearestGlucose(time: fpu.createdAt.timeIntervalSince1970)
+            let bg = timeToNearestGlucose(
+                time: TimeInterval(rawValue: (fpu.actualDate?.timeIntervalSince1970)!) ?? fpu.createdAt
+                    .timeIntervalSince1970
+            )
             calculatedFpus
-                .append(Carb(amount: fpu.carbs, timestamp: fpu.actualDate ?? Date(), nearestGlucose: bg, yPosition: yPosition))
+                .append(Carb(amount: fpu.carbs, timestamp: fpu.actualDate ?? Date(), nearestGlucose: bg))
         }
         ChartFpus = calculatedFpus
     }
@@ -532,6 +555,7 @@ extension MainChartView {
         ChartBoluses = calculatedBoluses
     }
 
+    /// calculations for temp target bar mark
     private func calculateTTs() {
         var groupedPackages: [[TempTarget]] = []
         var currentPackage: [TempTarget] = []
@@ -586,7 +610,7 @@ extension MainChartView {
                     ))
             }
         }
-
+        
         ChartTempTargets = calculatedTTs
     }
 

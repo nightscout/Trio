@@ -39,7 +39,11 @@ struct PumpView: View {
 
     var body: some View {
         HStack {
-            Text("IOB").font(.callout).foregroundColor(.secondary)
+            Image(systemName: "syringe")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(maxHeight: 15)
+                .foregroundColor(.blue)
             Text(
                 (numberFormatter.string(from: (state.suggestion?.iob ?? 0) as NSNumber) ?? "0") +
                     NSLocalizedString(" U", comment: "Insulin unit")
@@ -48,7 +52,11 @@ struct PumpView: View {
 
             Spacer()
 
-            Text("COB").font(.callout).foregroundColor(.secondary)
+            Image(systemName: "fork.knife")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(maxHeight: 15)
+                .foregroundColor(.loopYellow)
             Text(
                 (numberFormatter.string(from: (state.suggestion?.cob ?? 0) as NSNumber) ?? "0") +
                     NSLocalizedString(" g", comment: "gram of carbs")
