@@ -78,6 +78,7 @@ struct MainChartView: View {
     @Binding var displayXgridLines: Bool
     @Binding var displayYgridLines: Bool
     @Binding var thresholdLines: Bool
+    @Binding var isTempTargetActive: Bool
 
     @State var didAppearTrigger = false
     @State private var BasalProfiles: [BasalProfile] = []
@@ -218,13 +219,13 @@ extension MainChartView {
                     }
                 }
                 /// temp targets
-                ForEach(ChartTempTargets, id: \.self) { tt in
-                    BarMark(
-                        xStart: .value("Time", tt.start),
-                        xEnd: .value("Time", tt.end),
-                        y: .value("Value", tt.amount)
+                ForEach(ChartTempTargets, id: \.self) { target in
+                    RuleMark(
+                        xStart: .value("Start", target.start),
+                        xEnd: .value("End", target.end),
+                        y: .value("Value", target.amount)
                     )
-                    .foregroundStyle(Color.purple.opacity(0.5))
+                    .foregroundStyle(Color.purple.opacity(0.5)).lineStyle(.init(lineWidth: 8))
                 }
                 /// predictions
                 ForEach(Predictions, id: \.self) { info in
@@ -545,30 +546,58 @@ extension MainChartView {
     }
 
     /// calculations for temp target bar mark
-    /// it is now quite complicated because the remove function in TempTargetStorage does not actually remove the current temp target but instead creates a new temp target with a duration of 0 minutes
-    /// therefore it is necessary to check if a temp target was cancelled, i.e. the last temp target in the temp target array has a duration of 0 and then remove the last TWO elements of the array
     private func calculateTTs() {
+        var groupedPackages: [[TempTarget]] = []
+        var currentPackage: [TempTarget] = []
         var calculatedTTs: [ChartTempTarget] = []
 
-        /// check if last element has a duration of 0
-        if let lastTempTarget = tempTargets.last, lastTempTarget.duration == 0 {
-            /// remove the last TWO elements if the last element has a duration of 0
-            let filteredTempTargets = Array(tempTargets.dropLast(2))
-
-            /// use filtered temp targets for calculation
-            calculatedTTs = filteredTempTargets.compactMap { tt in
-                guard let targetTop = tt.targetTop else { return nil }
-
-                let end = tt.createdAt.addingTimeInterval(TimeInterval(tt.duration * 60))
-                return ChartTempTarget(amount: targetTop, start: tt.createdAt, end: end)
+        for target in tempTargets {
+            if target.duration > 0 {
+                if !currentPackage.isEmpty {
+                    groupedPackages.append(currentPackage)
+                    currentPackage = []
+                }
+                currentPackage.append(target)
+            } else {
+                if let lastNonZeroTempTarget = currentPackage.last(where: { $0.duration > 0 }) {
+                    if target.createdAt >= lastNonZeroTempTarget.createdAt,
+                       target.createdAt <= lastNonZeroTempTarget.createdAt
+                       .addingTimeInterval(TimeInterval(lastNonZeroTempTarget.duration * 60))
+                    {
+                        currentPackage.append(target)
+                    }
+                }
             }
-        } else {
-            /// if the last temp target has NOT a duration of 0 use unfiltered temp targets for calculation
-            calculatedTTs = tempTargets.compactMap { tt in
-                guard let targetTop = tt.targetTop else { return nil }
+        }
 
-                let end = tt.createdAt.addingTimeInterval(TimeInterval(tt.duration * 60))
-                return ChartTempTarget(amount: targetTop, start: tt.createdAt, end: end)
+        // appends last package, if exists
+        if !currentPackage.isEmpty {
+            groupedPackages.append(currentPackage)
+        }
+
+        for package in groupedPackages {
+            guard let firstNonZeroTarget = package.first(where: { $0.duration > 0 }) else {
+                continue
+            }
+
+            var end = firstNonZeroTarget.createdAt.addingTimeInterval(TimeInterval(firstNonZeroTarget.duration * 60))
+
+            let earliestCancelTarget = package.filter({ $0.duration == 0 }).min(by: { $0.createdAt < $1.createdAt })
+
+            if let earliestCancelTarget = earliestCancelTarget {
+                end = min(earliestCancelTarget.createdAt, end)
+            }
+
+            let now = Date()
+            isTempTargetActive = firstNonZeroTarget.createdAt <= now && now <= end
+
+            if firstNonZeroTarget.targetTop != nil {
+                calculatedTTs
+                    .append(ChartTempTarget(
+                        amount: firstNonZeroTarget.targetTop ?? 0,
+                        start: firstNonZeroTarget.createdAt,
+                        end: end
+                    ))
             }
         }
 
