@@ -531,9 +531,7 @@ extension Home {
                     label: {
                         ZStack(alignment: Alignment(horizontal: .trailing, vertical: .bottom)) {
                             Image(systemName: "fork.knife")
-                                .renderingMode(.template)
-                                .resizable()
-                                .frame(width: 24, height: 24)
+                                .font(.system(size: 24))
                                 .foregroundColor(colorIcon)
                                 .padding(8)
                             if let carbsReq = state.carbsRequired {
@@ -549,9 +547,7 @@ extension Home {
                     Button { state.showModal(for: .addTempTarget) }
                     label: {
                         Image(systemName: "target")
-                            .renderingMode(.template)
-                            .resizable()
-                            .frame(width: 24, height: 24)
+                            .font(.system(size: 24))
                             .padding(8)
                     }
                     .foregroundColor(state.isTempTargetActive ? Color.purple : colorIcon)
@@ -565,9 +561,8 @@ extension Home {
                     }
                     label: {
                         Image(systemName: "syringe")
-                            .renderingMode(.template)
-                            .resizable()
-                            .frame(width: 24, height: 24)
+                            .font(.system(size: 24))
+                            .foregroundColor(colorIcon)
                             .padding(8)
                     }
                     .foregroundColor(colorIcon)
@@ -594,9 +589,8 @@ extension Home {
                         state.showModal(for: .overrideProfilesConfig)
                     } label: {
                         Image(systemName: "person")
-                            .renderingMode(.template)
-                            .resizable()
-                            .frame(width: 24, height: 24)
+                            .font(.system(size: 24))
+                            .foregroundColor(colorIcon)
                             .padding(8)
                     }
                     .foregroundColor(colorIcon)
@@ -606,9 +600,8 @@ extension Home {
                     }
                     label: {
                         Image(systemName: "chart.bar")
-                            .renderingMode(.template)
-                            .resizable()
-                            .frame(width: 24, height: 24)
+                            .font(.system(size: 24))
+                            .foregroundColor(colorIcon)
                             .padding(8)
                     }
                     .foregroundColor(colorIcon)
@@ -617,9 +610,8 @@ extension Home {
                     Button { state.showModal(for: .settings) }
                     label: {
                         Image(systemName: "gear")
-                            .renderingMode(.template)
-                            .resizable()
-                            .frame(width: 24, height: 24)
+                            .font(.system(size: 24))
+                            .foregroundColor(colorIcon)
                             .padding(8)
                     }
                     .foregroundColor(colorIcon)

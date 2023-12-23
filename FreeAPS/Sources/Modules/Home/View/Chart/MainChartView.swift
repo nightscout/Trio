@@ -91,6 +91,9 @@ struct MainChartView: View {
     @State private var count: Decimal = 1
     @State private var startMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 - 86400))
     @State private var endMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 + 10800))
+    @State private var glucoseUpdateCount = 0
+    @State private var maxUpdateCount = 12
+    @State private var maxYLabel: Int = 400
 
     private var bolusFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -283,6 +286,7 @@ extension MainChartView {
                 .onChange(of: glucose) {
                     calculatePredictions()
                     calculateFpus()
+                    counter()
                 }
                 .onChange(of: carbs) {
                     calculateCarbs()
@@ -310,6 +314,7 @@ extension MainChartView {
                     width: max(0, screenSize.width - 20, fullWidth(viewWidth: screenSize.width)),
                     height: UIScreen.main.bounds.height / 2.9
                 )
+                .chartYScale(domain: 0 ... maxYLabel)
                 .chartXScale(domain: startMarker ... endMarker)
                 .chartXAxis {
                     AxisMarks(values: .stride(by: .hour, count: screenHours == 24 ? 4 : 2)) { _ in
@@ -753,6 +758,30 @@ extension MainChartView {
     private func updateStartEndMarkers() {
         startMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 - 86400))
         endMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 + 10800))
+    }
+    
+    /// get y axis scale
+    /// but only call the function every 60min, i.e. every 12th glucose value
+    private func counter() {
+        glucoseUpdateCount += 1
+        if glucoseUpdateCount >= maxUpdateCount {
+            /// filter glucose entries within the last 24 hours
+            let last24Hours = glucose.suffix(288)
+
+            /// find the maximum glucose value
+            if let maxGlucose = last24Hours.max(by: { $0.unfiltered ?? 0 < $1.unfiltered ?? 0 }) {
+                /// round to next 50er
+                maxYLabel = Int(50 * round(Double(maxGlucose.unfiltered ?? 0) / 50))
+                print("dein wert issssssssssss")
+                print(maxYLabel)
+
+            } else {
+                /// return a default rounded value if no entries are found
+                maxYLabel = 400
+            }
+
+            glucoseUpdateCount = 0
+        }
     }
 
     private func calculateBasals() {
