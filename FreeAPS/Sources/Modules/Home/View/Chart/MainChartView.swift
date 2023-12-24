@@ -461,9 +461,6 @@ extension MainChartView {
                     .foregroundColor(.orange)
                 Text("UAM")
                     .foregroundColor(.secondary)
-                if eventualBG != nil {
-                    Text("⇢ " + String(eventualBG ?? 0))
-                }
             }
             .font(.caption2)
             .padding(.horizontal, 40)
@@ -759,7 +756,7 @@ extension MainChartView {
         startMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 - 86400))
         endMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 + 10800))
     }
-    
+
     /// get y axis scale
     /// but only call the function every 60min, i.e. every 12th glucose value
     private func counter() {

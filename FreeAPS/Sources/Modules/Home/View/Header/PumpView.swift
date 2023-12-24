@@ -40,9 +40,7 @@ struct PumpView: View {
     var body: some View {
         HStack {
             Image(systemName: "syringe")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(maxHeight: 15)
+                .font(.system(size: 15))
                 .foregroundColor(.blue)
             Text(
                 (numberFormatter.string(from: (state.suggestion?.iob ?? 0) as NSNumber) ?? "0") +
@@ -53,9 +51,7 @@ struct PumpView: View {
             Spacer()
 
             Image(systemName: "fork.knife")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(maxHeight: 15)
+                .font(.system(size: 15))
                 .foregroundColor(.loopYellow)
             Text(
                 (numberFormatter.string(from: (state.suggestion?.cob ?? 0) as NSNumber) ?? "0") +
@@ -68,9 +64,7 @@ struct PumpView: View {
             if let reservoir = reservoir {
                 HStack {
                     Image(systemName: "drop.fill")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(maxHeight: 15)
+                        .font(.system(size: 15))
                         .foregroundColor(reservoirColor)
                     if reservoir == 0xDEAD_BEEF {
                         Text("50+ " + NSLocalizedString("U", comment: "Insulin unit")).font(.callout).fontWeight(.bold)
@@ -89,9 +83,7 @@ struct PumpView: View {
             if let battery = battery, battery.display ?? false, expiresAtDate == nil {
                 HStack {
                     Image(systemName: "battery.100")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(maxHeight: 15)
+                        .font(.system(size: 15))
                         .foregroundColor(batteryColor)
                     Text("\(Int(battery.percent ?? 100)) %").font(.callout)
                         .fontWeight(.bold)
@@ -101,9 +93,7 @@ struct PumpView: View {
             if let date = expiresAtDate {
                 HStack {
                     Image(systemName: "stopwatch.fill")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(maxHeight: 15)
+                        .font(.system(size: 15))
                         .foregroundColor(timerColor)
 
                     Text(remainingTimeString(time: date.timeIntervalSince(timerDate))).font(.callout).fontWeight(.bold)

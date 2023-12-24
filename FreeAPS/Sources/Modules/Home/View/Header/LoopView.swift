@@ -21,32 +21,33 @@ struct LoopView: View {
         return formatter
     }
 
-    private let rect = CGRect(x: 0, y: 0, width: 14, height: 14)
+    @Environment(\.colorScheme) var colorScheme
+
     var body: some View {
         HStack(alignment: .center) {
-            Rectangle().frame(width: UIScreen.main.bounds.width / 2.5, height: 2, alignment: .leading).foregroundColor(color)
-//            ZStack {
-//                Image(systemName: "circle.fill")
-//                    .resizable()
-//                    .frame(width: rect.width, height: rect.height, alignment: .center)
-//                    .foregroundColor(color)
-//                    .mask(mask(in: rect).fill(style: FillStyle(eoFill: true)))
+//            Rectangle().frame(width: UIScreen.main.bounds.width / 2.5, height: 2, alignment: .leading).foregroundColor(color)
+            ZStack {
+                Image(systemName: "circle")
+                    .font(.system(size: 15))
+                    .fontWeight(.bold)
+                    .foregroundColor(color)
 
-            if isLooping {
-                ProgressView()
-                    .foregroundColor(Color.loopGreen)
+                if isLooping {
+                    ProgressView()
+                        .foregroundColor(Color.loopGreen)
+                }
             }
-//            }
             if isLooping {
-                Text("looping").font(.caption).fontWeight(.bold)
+                Text("looping").font(.caption2).foregroundColor(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
             } else if manualTempBasal {
-                Text("Manual").font(.caption).fontWeight(.bold)
+                Text("Manual").font(.caption2).foregroundColor(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
             } else if actualSuggestion?.timestamp != nil {
-                Text(timeString).font(.caption).fontWeight(.bold)
+                Text(timeString).font(.caption2)
+                    .foregroundColor(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
             } else {
-                Text("--").font(.caption).fontWeight(.bold)
+                Text("--").font(.caption2).foregroundColor(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
             }
-            Rectangle().frame(width: UIScreen.main.bounds.width / 2.5, height: 2, alignment: .trailing).foregroundColor(color)
+//            Rectangle().frame(width: UIScreen.main.bounds.width / 2.5, height: 2, alignment: .trailing).foregroundColor(color)
         }
     }
 

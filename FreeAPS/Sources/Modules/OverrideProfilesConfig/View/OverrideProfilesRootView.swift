@@ -251,7 +251,24 @@ extension OverrideProfilesConfig {
                     }
                 }
 
-                header: { Text("Insulin") }
+                header: {
+                    HStack {
+                        Text("Insulin")
+                        Spacer()
+
+                        Button {
+                            state.showModal(for: .addTempTarget)
+                        } label: {
+                            HStack {
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.system(size: 20))
+                                Text("add temp target")
+                                    .font(.caption)
+                                    .foregroundStyle(Color.blue)
+                            }
+                        }
+                    }
+                }
                 footer: {
                     Text(
                         "Your profile basal insulin will be adjusted with the override percentage and your profile ISF and CR will be inversly adjusted with the percentage."

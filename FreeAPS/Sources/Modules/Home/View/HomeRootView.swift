@@ -475,7 +475,6 @@ extension Home {
                 )
             }
             .padding(.bottom)
-            .modal(for: .dataTable, from: self)
         }
 
         private func selectedProfile() -> (name: String, isOn: Bool) {
@@ -527,6 +526,25 @@ extension Home {
                     .padding([.leading, .trailing], 10)
 
                 HStack {
+                    Button {
+                        state.showModal(for: .dataTable)
+                    }
+                    label: {
+                        if #available(iOS 17.0, *) {
+                            Image(systemName: "book.pages")
+                                .font(.system(size: 24))
+                                .foregroundColor(colorIcon)
+                                .padding(8)
+                        } else {
+                            Image(systemName: "book")
+                                .font(.system(size: 24))
+                                .foregroundColor(colorIcon)
+                                .padding(8)
+                        }
+                    }
+                    .foregroundColor(colorIcon)
+                    .buttonStyle(.borderless)
+                    Spacer()
                     Button { state.showModal(for: .addCarbs(editMode: false, override: false)) }
                     label: {
                         ZStack(alignment: Alignment(horizontal: .trailing, vertical: .bottom)) {
@@ -544,15 +562,15 @@ extension Home {
                         }
                     }.buttonStyle(.borderless)
                     Spacer()
-                    Button { state.showModal(for: .addTempTarget) }
-                    label: {
-                        Image(systemName: "target")
-                            .font(.system(size: 24))
-                            .padding(8)
-                    }
-                    .foregroundColor(state.isTempTargetActive ? Color.purple : colorIcon)
-                    .buttonStyle(.borderless)
-                    Spacer()
+//                    Button { state.showModal(for: .addTempTarget) }
+//                    label: {
+//                        Image(systemName: "target")
+//                            .font(.system(size: 24))
+//                            .padding(8)
+//                    }
+//                    .foregroundColor(state.isTempTargetActive ? Color.purple : colorIcon)
+//                    .buttonStyle(.borderless)
+//                    Spacer()
                     Button {
                         state.showModal(for: .bolus(
                             waitForSuggestion: true,
@@ -593,13 +611,13 @@ extension Home {
                             .foregroundColor(colorIcon)
                             .padding(8)
                     }
-                    .foregroundColor(colorIcon)
+                    .foregroundColor(state.isTempTargetActive ? Color.purple : colorIcon)
                     .buttonStyle(.borderless)
                     Spacer()
                     Button { state.showModal(for: .statistics)
                     }
                     label: {
-                        Image(systemName: "chart.bar")
+                        Image(systemName: "chart.pie")
                             .font(.system(size: 24))
                             .foregroundColor(colorIcon)
                             .padding(8)
@@ -644,25 +662,45 @@ extension Home {
                 VStack(spacing: 0) {
                     Spacer()
 
-                    glucoseView.padding(.top, 40)
+                    ZStack(alignment: .bottom) {
+                        /// glucose bobble
+                        glucoseView
 
-                    Spacer()
+                        /// eventualBG string at bottomTrailing
+                        if let eventualBG = state.eventualBG {
+                            Text(
+                                "⇢ " + numberFormatter.string(
+                                    from: (
+                                        state.units == .mmolL ? eventualBG
+                                            .asMmolL : Decimal(eventualBG)
+                                    ) as NSNumber
+                                )!
+                            )
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                            .padding(.leading)
+                            .offset(x: 75, y: 4)
+                        }
 
-                    LoopView(
-                        suggestion: $state.suggestion,
-                        enactedSuggestion: $state.enactedSuggestion,
-                        closedLoop: $state.closedLoop,
-                        timerDate: $state.timerDate,
-                        isLooping: $state.isLooping,
-                        lastLoopDate: $state.lastLoopDate,
-                        manualTempBasal: $state.manualTempBasal
-                    ).onTapGesture {
-                        state.isStatusPopupPresented = true
-                    }.onLongPressGesture {
-                        let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
-                        impactHeavy.impactOccurred()
-                        state.runLoop()
-                    }
+                        /// Loop view at bottomLeading
+                        LoopView(
+                            suggestion: $state.suggestion,
+                            enactedSuggestion: $state.enactedSuggestion,
+                            closedLoop: $state.closedLoop,
+                            timerDate: $state.timerDate,
+                            isLooping: $state.isLooping,
+                            lastLoopDate: $state.lastLoopDate,
+                            manualTempBasal: $state.manualTempBasal
+                        ).padding(.trailing)
+                            .offset(x: -80, y: 4)
+                            .onTapGesture {
+                                state.isStatusPopupPresented = true
+                            }.onLongPressGesture {
+                                let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+                                impactHeavy.impactOccurred()
+                                state.runLoop()
+                            }
+                    }.padding(.top, 40)
 
                     Spacer()
 
