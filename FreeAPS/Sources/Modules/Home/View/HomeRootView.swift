@@ -55,6 +55,17 @@ extension Home {
             sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
         ) var enactedSliderTT: FetchedResults<TempTargetsSlider>
 
+        var bolusProgressFormatter: NumberFormatter {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            formatter.minimum = 0
+            formatter.maximumFractionDigits = state.settingsManager.preferences.bolusIncrement > 0.05 ? 1 : 2
+            formatter.minimumFractionDigits = state.settingsManager.preferences.bolusIncrement > 0.05 ? 1 : 2
+            formatter.allowsFloats = true
+            formatter.roundingIncrement = Double(state.settingsManager.preferences.bolusIncrement) as NSNumber
+            return formatter
+        }
+
         private var numberFormatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
@@ -392,6 +403,7 @@ extension Home {
 
                 MainChartView(
                     glucose: $state.glucose,
+                    units: $state.units,
                     eventualBG: $state.eventualBG,
                     suggestion: $state.suggestion,
                     tempBasals: $state.tempBasals,
@@ -548,7 +560,6 @@ extension Home {
                     } label: {
                         Image(systemName: "person")
                             .font(.system(size: 26))
-                            .foregroundColor(colorIcon)
                             .padding(8)
                     }
                     .foregroundColor(state.isTempTargetActive ? Color.purple : colorIcon)
@@ -614,7 +625,7 @@ extension Home {
             let bolusFraction = progress * bolusTotal
 
             let bolusString =
-                (numberFormatter.string(from: bolusFraction as NSNumber) ?? "0")
+                (bolusProgressFormatter.string(from: bolusFraction as NSNumber) ?? "0")
                     + " of " +
                     (numberFormatter.string(from: bolusTotal as NSNumber) ?? "0")
                     + NSLocalizedString(" U", comment: "Insulin unit")

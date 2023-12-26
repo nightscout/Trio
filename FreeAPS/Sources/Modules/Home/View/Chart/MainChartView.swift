@@ -56,9 +56,12 @@ struct MainChartView: View {
         static let carbsSize: CGFloat = 5
         static let carbsScale: CGFloat = 0.3
         static let fpuSize: CGFloat = 10
+        static let maxGlucose = 270
+        static let minGlucose = 45
     }
 
     @Binding var glucose: [BloodGlucose]
+    @Binding var units: GlucoseUnits
     @Binding var eventualBG: Int?
     @Binding var suggestion: Suggestion?
     @Binding var tempBasals: [PumpHistoryEvent]
@@ -93,7 +96,8 @@ struct MainChartView: View {
     @State private var endMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 + 10800))
     @State private var glucoseUpdateCount = 0
     @State private var maxUpdateCount = 12
-    @State private var maxYLabel: Int = 400
+    @State private var minValue: Int = 45
+    @State private var maxValue: Int = 270
 
     private var bolusFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -115,7 +119,7 @@ struct MainChartView: View {
         VStack {
             ScrollViewReader { scroller in
                 ScrollView(.horizontal, showsIndicators: false) {
-                    VStack(spacing: -0.5) {
+                    VStack(spacing: -0.00002) {
                         BasalChart()
 
                         MainChart()
@@ -141,7 +145,6 @@ struct MainChartView: View {
                     }
                 }
             }
-            //            Legend().padding(.vertical, 4)
             legendPanel.padding(.top, 8)
         }
     }
@@ -166,7 +169,7 @@ extension MainChartView {
                         Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970)),
                         unit: .second
                     )
-                ).lineStyle(.init(lineWidth: 2, dash: [2]))
+                ).lineStyle(.init(lineWidth: 2, dash: [2])).foregroundStyle(Color.insulin)
                 RuleMark(
                     x: .value(
                         "",
@@ -186,7 +189,7 @@ extension MainChartView {
                     let carbAmount = carb.amount
                     PointMark(
                         x: .value("Time", carb.timestamp, unit: .second),
-                        y: .value("Value", 40)
+                        y: .value("Value", 60)
                     )
                     .symbolSize((Config.carbsSize + CGFloat(carbAmount) * Config.carbsScale) * 10)
                     .foregroundStyle(Color.orange)
@@ -200,7 +203,7 @@ extension MainChartView {
                     let size = (Config.fpuSize + CGFloat(fpuAmount) * Config.carbsScale) * 1.8
                     PointMark(
                         x: .value("Time", fpu.timestamp, unit: .second),
-                        y: .value("Value", 40)
+                        y: .value("Value", 60)
                     )
                     .symbolSize(size)
                     .foregroundStyle(Color.brown)
@@ -217,7 +220,7 @@ extension MainChartView {
                     .symbol {
                         Image(systemName: "arrowtriangle.down.fill").font(.system(size: size))
                     }
-                    .foregroundStyle(Color.blue.gradient)
+                    .foregroundStyle(Color.insulin)
                     .annotation(position: .top) {
                         Text(bolusFormatter.string(from: bolusAmount as NSNumber)!).font(.caption2).foregroundStyle(Color.insulin)
                     }
@@ -312,10 +315,10 @@ extension MainChartView {
                     calculatePredictions()
                 }
                 .frame(
-                    width: max(0, screenSize.width - 20, fullWidth(viewWidth: screenSize.width)),
-                    height: UIScreen.main.bounds.height / 2.9
+                    minHeight: UIScreen.main.bounds.height / 3
                 )
-                .chartYScale(domain: 0 ... maxYLabel)
+                .frame(width: fullWidth(viewWidth: screenSize.width))
+                .chartYScale(domain: minValue ... maxValue)
                 .chartXScale(domain: startMarker ... endMarker)
                 .chartXAxis {
                     AxisMarks(values: .stride(by: .hour, count: screenHours == 24 ? 4 : 2)) { _ in
@@ -334,7 +337,6 @@ extension MainChartView {
                         } else {
                             AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
                         }
-                        AxisTick(length: 4, stroke: .init(lineWidth: 4)).foregroundStyle(Color.gray)
                         AxisValueLabel()
                     }
                 }
@@ -350,7 +352,7 @@ extension MainChartView {
                         Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970)),
                         unit: .second
                     )
-                ).lineStyle(.init(lineWidth: 2, dash: [2]))
+                ).lineStyle(.init(lineWidth: 2, dash: [2])).foregroundStyle(Color.insulin)
                 RuleMark(
                     x: .value(
                         "",
@@ -369,19 +371,19 @@ extension MainChartView {
                     BarMark(
                         x: .value("Time", $0.timestamp),
                         y: .value("Rate", $0.rate ?? 0)
-                    )
+                    ).foregroundStyle(Color.insulin)
                 }
                 ForEach(BasalProfiles, id: \.self) { profile in
                     LineMark(
                         x: .value("Start Date", profile.startDate),
                         y: .value("Amount", profile.amount),
                         series: .value("profile", "profile")
-                    ).lineStyle(.init(lineWidth: 2, dash: [2, 3]))
+                    ).lineStyle(.init(lineWidth: 2, dash: [2, 3])).foregroundStyle(Color.insulin)
                     LineMark(
                         x: .value("End Date", profile.endDate ?? endMarker),
                         y: .value("Amount", profile.amount),
                         series: .value("profile", "profile")
-                    ).lineStyle(.init(lineWidth: 2.5, dash: [2, 3]))
+                    ).lineStyle(.init(lineWidth: 2.5, dash: [2, 3])).foregroundStyle(Color.insulin)
                 }
             }.onChange(of: tempBasals) { _ in
                 calculateBasals()
@@ -402,9 +404,9 @@ extension MainChartView {
                 calculateTempBasals()
             }
             .frame(
-                width: max(0, screenSize.width - 20, fullWidth(viewWidth: screenSize.width)),
-                height: UIScreen.main.bounds.height / 10
+                minHeight: UIScreen.main.bounds.height / 10
             )
+            .frame(width: fullWidth(viewWidth: screenSize.width))
             .rotationEffect(.degrees(180))
             .scaleEffect(x: -1, y: 1)
             .chartXScale(domain: startMarker ... endMarker)
@@ -415,7 +417,7 @@ extension MainChartView {
             }
             .chartYAxis {
                 AxisMarks(position: .trailing) { _ in
-                    AxisTick(length: 30, stroke: .init(lineWidth: 4))
+                    AxisTick(length: 25, stroke: .init(lineWidth: 4))
                         .foregroundStyle(Color.clear)
                 }
             }
@@ -756,24 +758,68 @@ extension MainChartView {
     private func counter() {
         glucoseUpdateCount += 1
         if glucoseUpdateCount >= maxUpdateCount {
-            /// filter glucose entries within the last 24 hours
-            let last24Hours = glucose.suffix(288)
+            maxValue = glucose.compactMap(\.glucose).max() ?? Config.maxGlucose
 
-            /// find the maximum glucose value
-            if let maxGlucose = last24Hours.max(by: { $0.unfiltered ?? 0 < $1.unfiltered ?? 0 }) {
-                /// add  50
-                maxYLabel = Int(maxGlucose.unfiltered ?? 0 + 50)
-                print("dein wert issssssssssss")
-                print(maxYLabel)
+            if let maxPredValue = maxPredValue() {
+                maxValue = max(maxValue, maxPredValue)
+            }
 
-            } else {
-                /// return a default rounded value if no entries are found
-                maxYLabel = 400
+            minValue = glucose.compactMap(\.glucose).min() ?? Config.minGlucose
+            if let minPredValue = minPredValue() {
+                minValue = min(minValue, minPredValue)
+            }
+
+            if minValue > Config.minGlucose {
+                minValue = Config.minGlucose
+            }
+
+            if maxValue < Config.maxGlucose {
+                maxValue = Config.maxGlucose
             }
 
             glucoseUpdateCount = 0
         }
     }
+
+    private func maxPredValue() -> Int? {
+        [
+            suggestion?.predictions?.cob ?? [],
+            suggestion?.predictions?.iob ?? [],
+            suggestion?.predictions?.zt ?? [],
+            suggestion?.predictions?.uam ?? []
+        ].flatMap {
+            $0
+        }.max()
+    }
+
+    private func minPredValue() -> Int? {
+        [
+            suggestion?.predictions?.cob ?? [],
+            suggestion?.predictions?.iob ?? [],
+            suggestion?.predictions?.zt ?? [],
+            suggestion?.predictions?.uam ?? []
+        ].flatMap {
+            $0
+        }.min()
+    }
+
+    /*   private func generateYAxisValues(maxYLabel: Int) -> [Int] {
+         var yAxisValues = [50, 100, 150]
+
+         if maxYLabel > 170, maxYLabel < 200 {
+             yAxisValues.append(maxYLabel)
+         } else if maxYLabel > 200, maxYLabel < 250 {
+             yAxisValues += [200, maxYLabel]
+         } else if maxYLabel > 250, maxYLabel < 350 {
+             yAxisValues += [200, 250, maxYLabel]
+         } else if maxYLabel > 350 {
+             yAxisValues += [200, 250, 300, maxYLabel]
+         } else if maxYLabel == 400 {
+             yAxisValues += [200, 250, 300, 350, 400]
+         }
+
+         return yAxisValues
+     } */
 
     private func calculateBasals() {
         let dayAgoTime = Date().addingTimeInterval(-1.days.timeInterval).timeIntervalSince1970
