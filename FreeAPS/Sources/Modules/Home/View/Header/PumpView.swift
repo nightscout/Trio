@@ -39,9 +39,9 @@ struct PumpView: View {
 
     var body: some View {
         HStack {
-            Image(systemName: "syringe")
+            Image(systemName: "syringe.fill")
                 .font(.system(size: 15))
-                .foregroundColor(.blue)
+                .foregroundColor(Color.insulin)
             Text(
                 (numberFormatter.string(from: (state.suggestion?.iob ?? 0) as NSNumber) ?? "0") +
                     NSLocalizedString(" U", comment: "Insulin unit")

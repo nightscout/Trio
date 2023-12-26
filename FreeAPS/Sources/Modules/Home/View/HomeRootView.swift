@@ -578,7 +578,7 @@ extension Home {
                         ))
                     }
                     label: {
-                        Image(systemName: "syringe")
+                        Image(systemName: "syringe.fill")
                             .font(.system(size: 24))
                             .foregroundColor(colorIcon)
                             .padding(8)
@@ -607,7 +607,7 @@ extension Home {
                         state.showModal(for: .overrideProfilesConfig)
                     } label: {
                         Image(systemName: "person")
-                            .font(.system(size: 24))
+                            .font(.system(size: 26))
                             .foregroundColor(colorIcon)
                             .padding(8)
                     }
