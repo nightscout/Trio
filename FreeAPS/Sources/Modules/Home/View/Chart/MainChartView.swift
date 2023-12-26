@@ -767,8 +767,8 @@ extension MainChartView {
 
             /// find the maximum glucose value
             if let maxGlucose = last24Hours.max(by: { $0.unfiltered ?? 0 < $1.unfiltered ?? 0 }) {
-                /// round to next 50er
-                maxYLabel = Int(50 * round(Double(maxGlucose.unfiltered ?? 0) / 50))
+                /// add  50
+                maxYLabel = Int(maxGlucose.unfiltered ?? 0 + 50)
                 print("dein wert issssssssssss")
                 print(maxYLabel)
 
