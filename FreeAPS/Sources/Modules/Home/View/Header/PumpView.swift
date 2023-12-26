@@ -6,6 +6,7 @@ struct PumpView: View {
     @Binding var name: String
     @Binding var expiresAtDate: Date?
     @Binding var timerDate: Date
+    @Binding var timeZone: TimeZone?
 
     @State var state: Home.StateModel
 
@@ -75,6 +76,13 @@ struct PumpView: View {
                         )
                         .font(.callout).fontWeight(.bold)
                     }
+                }
+
+                if let timeZone = timeZone, timeZone.secondsFromGMT() != TimeZone.current.secondsFromGMT() {
+                    Image(systemName: "clock.badge.exclamationmark.fill")
+                        .font(.system(size: 15))
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(.red, Color(.warning))
                 }
             }
 
