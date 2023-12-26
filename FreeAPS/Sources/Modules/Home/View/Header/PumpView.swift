@@ -41,7 +41,7 @@ struct PumpView: View {
     var body: some View {
         HStack {
             Image(systemName: "syringe.fill")
-                .font(.system(size: 15))
+                .font(.system(size: 16))
                 .foregroundColor(Color.insulin)
             Text(
                 (numberFormatter.string(from: (state.suggestion?.iob ?? 0) as NSNumber) ?? "0") +
@@ -52,7 +52,7 @@ struct PumpView: View {
             Spacer()
 
             Image(systemName: "fork.knife")
-                .font(.system(size: 15))
+                .font(.system(size: 16))
                 .foregroundColor(.loopYellow)
             Text(
                 (numberFormatter.string(from: (state.suggestion?.cob ?? 0) as NSNumber) ?? "0") +
@@ -65,7 +65,7 @@ struct PumpView: View {
             if let reservoir = reservoir {
                 HStack {
                     Image(systemName: "drop.fill")
-                        .font(.system(size: 15))
+                        .font(.system(size: 16))
                         .foregroundColor(reservoirColor)
                     if reservoir == 0xDEAD_BEEF {
                         Text("50+ " + NSLocalizedString("U", comment: "Insulin unit")).font(.callout).fontWeight(.bold)
@@ -80,7 +80,7 @@ struct PumpView: View {
 
                 if let timeZone = timeZone, timeZone.secondsFromGMT() != TimeZone.current.secondsFromGMT() {
                     Image(systemName: "clock.badge.exclamationmark.fill")
-                        .font(.system(size: 15))
+                        .font(.system(size: 16))
                         .symbolRenderingMode(.palette)
                         .foregroundStyle(.red, Color(.warning))
                 }
@@ -91,7 +91,7 @@ struct PumpView: View {
             if let battery = battery, battery.display ?? false, expiresAtDate == nil {
                 HStack {
                     Image(systemName: "battery.100")
-                        .font(.system(size: 15))
+                        .font(.system(size: 16))
                         .foregroundColor(batteryColor)
                     Text("\(Int(battery.percent ?? 100)) %").font(.callout)
                         .fontWeight(.bold)
@@ -101,7 +101,7 @@ struct PumpView: View {
             if let date = expiresAtDate {
                 HStack {
                     Image(systemName: "stopwatch.fill")
-                        .font(.system(size: 15))
+                        .font(.system(size: 16))
                         .foregroundColor(timerColor)
 
                     Text(remainingTimeString(time: date.timeIntervalSince(timerDate))).font(.callout).fontWeight(.bold)

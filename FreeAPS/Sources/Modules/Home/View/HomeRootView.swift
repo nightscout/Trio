@@ -158,23 +158,23 @@ extension Home {
                 alarm: $state.alarm,
                 lowGlucose: $state.lowGlucose,
                 highGlucose: $state.highGlucose
-            )
-            .onTapGesture {
-                if state.alarm == nil {
-                    state.openCGM()
-                } else {
-                    state.showModal(for: .snooze)
+            ).scaleEffect(0.9)
+                .onTapGesture {
+                    if state.alarm == nil {
+                        state.openCGM()
+                    } else {
+                        state.showModal(for: .snooze)
+                    }
                 }
-            }
-            .onLongPressGesture {
-                let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
-                impactHeavy.impactOccurred()
-                if state.alarm == nil {
-                    state.showModal(for: .snooze)
-                } else {
-                    state.openCGM()
+                .onLongPressGesture {
+                    let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+                    impactHeavy.impactOccurred()
+                    if state.alarm == nil {
+                        state.showModal(for: .snooze)
+                    } else {
+                        state.openCGM()
+                    }
                 }
-            }
         }
 
         var pumpView: some View {
@@ -350,19 +350,6 @@ extension Home {
                 if state.closedLoop, state.settingsManager.preferences.maxIOB == 0 {
                     Text("Max IOB: 0").font(.callout).foregroundColor(.orange).padding(.trailing, 20)
                 }
-
-                if let progress = state.bolusProgress {
-                    HStack {
-                        Text("Bolusing")
-                            .font(.system(size: 12, weight: .bold)).foregroundColor(.insulin)
-                        ProgressView(value: Double(progress))
-                            .progressViewStyle(BolusProgressViewStyle())
-                            .padding(.trailing, 8)
-                    }
-                    .onTapGesture {
-                        state.cancelBolus()
-                    }
-                }
             }
             .frame(maxWidth: .infinity, maxHeight: 30)
         }
@@ -393,54 +380,6 @@ extension Home {
                 radius: colorScheme == .dark ? 5 : 3
             )
             .font(buttonFont)
-        }
-
-        var legendPanel: some View {
-            ZStack {
-                HStack(alignment: .center) {
-                    Spacer()
-
-                    Group {
-                        Circle().fill(Color.loopGreen).frame(width: 8, height: 8)
-                        Text("BG")
-                            .font(.system(size: 12, weight: .bold)).foregroundColor(.loopGreen)
-                    }
-                    Group {
-                        Circle().fill(Color.insulin).frame(width: 8, height: 8)
-                            .padding(.leading, 8)
-                        Text("IOB")
-                            .font(.system(size: 12, weight: .bold)).foregroundColor(.insulin)
-                    }
-                    Group {
-                        Circle().fill(Color.zt).frame(width: 8, height: 8)
-                            .padding(.leading, 8)
-                        Text("ZT")
-                            .font(.system(size: 12, weight: .bold)).foregroundColor(.zt)
-                    }
-                    Group {
-                        Circle().fill(Color.loopYellow).frame(width: 8, height: 8)
-                        Text("COB")
-                            .font(.system(size: 12, weight: .bold)).foregroundColor(.loopYellow)
-                    }
-                    Group {
-                        Circle().fill(Color.uam).frame(width: 8, height: 8)
-                            .padding(.leading, 8)
-                        Text("UAM")
-                            .font(.system(size: 12, weight: .bold)).foregroundColor(.uam)
-                    }
-
-                    if let eventualBG = state.eventualBG {
-                        Text(
-                            "⇢ " + numberFormatter.string(
-                                from: (state.units == .mmolL ? eventualBG.asMmolL : Decimal(eventualBG)) as NSNumber
-                            )!
-                        )
-                        .font(.system(size: 12, weight: .bold)).foregroundColor(.secondary)
-                    }
-                    Spacer()
-                }
-                .frame(maxWidth: .infinity)
-            }
         }
 
         var mainChart: some View {
@@ -641,6 +580,81 @@ extension Home {
             }
         }
 
+        @ViewBuilder func bolusProgressBar(_ progress: Decimal) -> some View {
+            GeometryReader { geo in
+                Rectangle()
+                    .frame(height: 6)
+                    .foregroundColor(.clear)
+                    .background(
+                        LinearGradient(colors: [
+                            Color(red: 0.7215686275, green: 0.3411764706, blue: 1),
+                            Color(red: 0.6235294118, green: 0.4235294118, blue: 0.9803921569),
+                            Color(red: 0.4862745098, green: 0.5450980392, blue: 0.9529411765),
+                            Color(red: 0.3411764706, green: 0.6666666667, blue: 0.9254901961),
+                            Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902)
+                        ], startPoint: .leading, endPoint: .trailing)
+                            .mask(alignment: .leading) {
+                                Rectangle()
+                                    .frame(width: geo.size.width * CGFloat(progress))
+                            }
+                    )
+            }
+        }
+
+        @ViewBuilder func bolusProgressView(_: GeometryProxy, _ progress: Decimal) -> some View {
+            let colorRectangle: Color = colorScheme == .dark ? Color(
+                red: 0.05490196078,
+                green: 0.05490196078,
+                blue: 0.05490196078
+            ) : Color.white
+
+            let colorIcon = (colorScheme == .dark ? Color.white : Color.black).opacity(0.9)
+
+            let bolusTotal = state.boluses.last?.amount ?? 0
+            let bolusFraction = progress * bolusTotal
+
+            let bolusString =
+                (numberFormatter.string(from: bolusFraction as NSNumber) ?? "0")
+                    + " of " +
+                    (numberFormatter.string(from: bolusTotal as NSNumber) ?? "0")
+                    + NSLocalizedString(" U", comment: "Insulin unit")
+
+            ZStack(alignment: .bottom) {
+                HStack {
+                    Button {
+                        state.cancelBolus()
+
+                    } label: {
+                        HStack(alignment: .center) {
+                            Text("Bolusing")
+                                .font(.subheadline)
+                                .fontWeight(.bold)
+                            Text(bolusString)
+                                .font(.subheadline)
+
+                            Spacer()
+
+                            Image(systemName: "xmark.app")
+                                .font(.system(size: 30))
+                                .padding(1)
+                        }
+                    }.foregroundColor(colorIcon)
+                }.padding()
+
+                bolusProgressBar(progress).offset(y: 56)
+            }
+            .background(colorRectangle)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .shadow(
+                color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
+                    Color.black.opacity(0.33),
+                radius: 3
+            )
+            .frame(height: 62, alignment: .center)
+            .padding(.horizontal, 10)
+            .offset(y: -90)
+        }
+
         var body: some View {
             let colorBackground = colorScheme == .dark ? LinearGradient(
                 gradient: Gradient(colors: [
@@ -724,7 +738,7 @@ extension Home {
                             radius: 3
                         )
                         .padding(.horizontal, 10)
-                        .frame(maxHeight: UIScreen.main.bounds.height / 2.2)
+                        .frame(maxHeight: UIScreen.main.bounds.height / 2.1)
 
                     Spacer()
 
@@ -732,7 +746,13 @@ extension Home {
 
                     Spacer()
 
-                    bottomPanel(geo)
+                    ZStack(alignment: .bottom) {
+                        bottomPanel(geo)
+
+                        if let progress = state.bolusProgress {
+                            bolusProgressView(geo, progress)
+                        }
+                    }
                 }
                 .background(colorBackground)
                 .edgesIgnoringSafeArea(.all)

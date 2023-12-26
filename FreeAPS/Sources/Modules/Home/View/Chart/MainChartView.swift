@@ -115,23 +115,23 @@ struct MainChartView: View {
         VStack {
             ScrollViewReader { scroller in
                 ScrollView(.horizontal, showsIndicators: false) {
-                    VStack {
+                    VStack(spacing: -0.5) {
                         BasalChart()
 
                         MainChart()
 
-                    }.onChange(of: screenHours) {
+                    }.onChange(of: screenHours) { _ in
                         updateStartEndMarkers()
                         scroller.scrollTo("MainChart", anchor: .trailing)
-                    }.onChange(of: glucose) {
-                        updateStartEndMarkers()
-                        scroller.scrollTo("MainChart", anchor: .trailing)
-                    }
-                    .onChange(of: suggestion) {
+                    }.onChange(of: glucose) { _ in
                         updateStartEndMarkers()
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }
-                    .onChange(of: tempBasals) {
+                    .onChange(of: suggestion) { _ in
+                        updateStartEndMarkers()
+                        scroller.scrollTo("MainChart", anchor: .trailing)
+                    }
+                    .onChange(of: tempBasals) { _ in
                         updateStartEndMarkers()
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }
@@ -142,6 +142,7 @@ struct MainChartView: View {
                 }
             }
             //            Legend().padding(.vertical, 4)
+            legendPanel.padding(.top, 8)
         }
     }
 }
@@ -283,25 +284,25 @@ extension MainChartView {
                     }
                 }
             }.id("MainChart")
-                .onChange(of: glucose) {
+                .onChange(of: glucose) { _ in
                     calculatePredictions()
                     calculateFpus()
                     counter()
                 }
-                .onChange(of: carbs) {
+                .onChange(of: carbs) { _ in
                     calculateCarbs()
                     calculateFpus()
                 }
-                .onChange(of: boluses) {
+                .onChange(of: boluses) { _ in
                     calculateBoluses()
                 }
-                .onChange(of: tempTargets) {
+                .onChange(of: tempTargets) { _ in
                     calculateTTs()
                 }
-                .onChange(of: didAppearTrigger) {
+                .onChange(of: didAppearTrigger) { _ in
                     calculatePredictions()
                     calculateTTs()
-                }.onChange(of: suggestion) {
+                }.onChange(of: suggestion) { _ in
                     calculatePredictions()
                 }
                 .onReceive(
@@ -382,27 +383,27 @@ extension MainChartView {
                         series: .value("profile", "profile")
                     ).lineStyle(.init(lineWidth: 2.5, dash: [2, 3]))
                 }
-            }.onChange(of: tempBasals) {
+            }.onChange(of: tempBasals) { _ in
                 calculateBasals()
                 calculateTempBasals()
             }
-            .onChange(of: maxBasal) {
+            .onChange(of: maxBasal) { _ in
                 calculateBasals()
                 calculateTempBasals()
             }
-            .onChange(of: autotunedBasalProfile) {
+            .onChange(of: autotunedBasalProfile) { _ in
                 calculateBasals()
                 calculateTempBasals()
             }
-            .onChange(of: didAppearTrigger) {
+            .onChange(of: didAppearTrigger) { _ in
                 calculateBasals()
                 calculateTempBasals()
-            }.onChange(of: basalProfile) {
+            }.onChange(of: basalProfile) { _ in
                 calculateTempBasals()
             }
             .frame(
                 width: max(0, screenSize.width - 20, fullWidth(viewWidth: screenSize.width)),
-                height: UIScreen.main.bounds.height / 10.5
+                height: UIScreen.main.bounds.height / 10
             )
             .rotationEffect(.degrees(180))
             .scaleEffect(x: -1, y: 1)
@@ -421,50 +422,43 @@ extension MainChartView {
         }
     }
 
-    private func Legend() -> some View {
+    var legendPanel: some View {
         ZStack {
-            Capsule(style: .circular).foregroundStyle(.gray.opacity(0.1)).padding(.horizontal, 30).frame(maxHeight: 15)
+            HStack(alignment: .center) {
+                Spacer()
 
-            HStack {
-                Image(systemName: "line.diagonal")
-                    .fontWeight(.bold)
-                    .rotationEffect(Angle(degrees: 45))
-                    .foregroundColor(.green)
-                Text("BG")
-                    .foregroundColor(.secondary)
+                Group {
+                    Circle().fill(Color.loopGreen).frame(width: 8, height: 8)
+                    Text("BG")
+                        .font(.system(size: 10, weight: .bold)).foregroundColor(.loopGreen)
+                }
+                Group {
+                    Circle().fill(Color.insulin).frame(width: 8, height: 8)
+                        .padding(.leading, 8)
+                    Text("IOB")
+                        .font(.system(size: 10, weight: .bold)).foregroundColor(.insulin)
+                }
+                Group {
+                    Circle().fill(Color.zt).frame(width: 8, height: 8)
+                        .padding(.leading, 8)
+                    Text("ZT")
+                        .font(.system(size: 10, weight: .bold)).foregroundColor(.zt)
+                }
+                Group {
+                    Circle().fill(Color.loopYellow).frame(width: 8, height: 8).padding(.leading, 8)
+                    Text("COB")
+                        .font(.system(size: 10, weight: .bold)).foregroundColor(.loopYellow)
+                }
+                Group {
+                    Circle().fill(Color.uam).frame(width: 8, height: 8)
+                        .padding(.leading, 8)
+                    Text("UAM")
+                        .font(.system(size: 10, weight: .bold)).foregroundColor(.uam)
+                }
                 Spacer()
-                Image(systemName: "line.diagonal")
-                    .fontWeight(.bold)
-                    .rotationEffect(Angle(degrees: 45))
-                    .foregroundColor(.insulin)
-                Text("IOB")
-                    .foregroundColor(.secondary)
-                Spacer()
-                Image(systemName: "line.diagonal")
-                    .fontWeight(.bold)
-                    .rotationEffect(Angle(degrees: 45))
-                    .foregroundColor(.purple)
-                Text("ZT")
-                    .foregroundColor(.secondary)
-                Spacer()
-                Image(systemName: "line.diagonal")
-                    .fontWeight(.bold)
-                    .frame(height: 10)
-                    .rotationEffect(Angle(degrees: 45))
-                    .foregroundColor(.loopYellow)
-                Text("COB")
-                    .foregroundColor(.secondary)
-                Spacer()
-                Image(systemName: "line.diagonal")
-                    .fontWeight(.bold)
-                    .rotationEffect(Angle(degrees: 45))
-                    .foregroundColor(.orange)
-                Text("UAM")
-                    .foregroundColor(.secondary)
             }
-            .font(.caption2)
-            .padding(.horizontal, 40)
-            .padding(.vertical, 1)
+            .padding(.horizontal, 10)
+            .frame(maxWidth: .infinity)
         }
     }
 }
