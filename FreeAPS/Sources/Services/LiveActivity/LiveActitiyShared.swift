@@ -10,6 +10,8 @@ struct LiveActivityAttributes: ActivityAttributes {
         let chart: [Double]
         let chartDate: [Date?]
         let rotationDegrees: Double
+        let highGlucose: Double
+        let lowGlucose: Double
     }
 
     let startDate: Date
