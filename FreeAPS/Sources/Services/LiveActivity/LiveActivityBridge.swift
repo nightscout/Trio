@@ -76,13 +76,20 @@ extension LiveActivityAttributes.ContentState {
 
         let chartDate = chart.map(\.date)
 
+        /// glucose limits from settings
+        let highGlucose = settings.highGlucose
+        let lowGlucose = settings.lowGlucose
+
         self.init(
             bg: formattedBG,
             trendSystemImage: trendString,
             change: change,
             date: bg.dateString,
             chart: convertedChartBG,
-            chartDate: chartDate, rotationDegrees: rotationDegrees
+            chartDate: chartDate,
+            rotationDegrees: rotationDegrees,
+            highGlucose: Double(highGlucose),
+            lowGlucose: Double(lowGlucose)
         )
     }
 }

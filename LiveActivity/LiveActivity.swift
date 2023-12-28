@@ -75,10 +75,23 @@ struct LiveActivity: Widget {
         } else {
             Chart {
                 ForEach(context.state.chart.indices, id: \.self) { index in
-                    LineMark(
-                        x: .value("Time", context.state.chartDate[index] ?? Date()),
-                        y: .value("Value", context.state.chart[index])
-                    ).foregroundStyle(Color.green.gradient).symbolSize(12)
+                    let currentValue = context.state.chart[index]
+                    if currentValue > context.state.highGlucose {
+                        PointMark(
+                            x: .value("Time", context.state.chartDate[index] ?? Date()),
+                            y: .value("Value", currentValue)
+                        ).foregroundStyle(Color.orange.gradient).symbolSize(12)
+                    } else if currentValue < context.state.lowGlucose {
+                        PointMark(
+                            x: .value("Time", context.state.chartDate[index] ?? Date()),
+                            y: .value("Value", currentValue)
+                        ).foregroundStyle(Color.red.gradient).symbolSize(12)
+                    } else {
+                        PointMark(
+                            x: .value("Time", context.state.chartDate[index] ?? Date()),
+                            y: .value("Value", currentValue)
+                        ).foregroundStyle(Color.green.gradient).symbolSize(12)
+                    }
                 }
             }.chartPlotStyle { plotContent in
                 plotContent.background(.cyan.opacity(0.1))
