@@ -270,16 +270,51 @@ extension MainChartView {
                     }
                 }
                 /// glucose point mark
-                ForEach(glucose) {
-                    if let sgv = $0.sgv {
+                /// filtering for high and low bounds in settings
+                ForEach(glucose.filter { $0.sgv ?? 0 > Int(highGlucose) }) { item in
+                    if let sgv = item.sgv {
                         PointMark(
-                            x: .value("Time", $0.dateString, unit: .second),
+                            x: .value("Time", item.dateString, unit: .second),
+                            y: .value("Value", sgv)
+                        ).foregroundStyle(Color.orange.gradient).symbolSize(25)
+
+                        if smooth {
+                            PointMark(
+                                x: .value("Time", item.dateString, unit: .second),
+                                y: .value("Value", sgv)
+                            ).foregroundStyle(Color.orange.gradient).symbolSize(25)
+                                .interpolationMethod(.cardinal)
+                        }
+                    }
+                }
+
+                ForEach(glucose.filter { $0.sgv ?? 0 < Int(lowGlucose) }) { item in
+                    if let sgv = item.sgv {
+                        PointMark(
+                            x: .value("Time", item.dateString, unit: .second),
+                            y: .value("Value", sgv)
+                        ).foregroundStyle(Color.red.gradient).symbolSize(25)
+
+                        if smooth {
+                            PointMark(
+                                x: .value("Time", item.dateString, unit: .second),
+                                y: .value("Value", sgv)
+                            ).foregroundStyle(Color.red.gradient).symbolSize(25)
+                                .interpolationMethod(.cardinal)
+                        }
+                    }
+                }
+
+                ForEach(glucose.filter { $0.sgv ?? 0 >= Int(lowGlucose) && $0.sgv ?? 0 <= Int(highGlucose) }) { item in
+                    if let sgv = item.sgv {
+                        PointMark(
+                            x: .value("Time", item.dateString, unit: .second),
                             y: .value("Value", sgv)
                         ).foregroundStyle(Color.green.gradient).symbolSize(25)
 
                         if smooth {
-                            LineMark(
-                                x: .value("Time", $0.dateString, unit: .second),
+                            PointMark(
+                                x: .value("Time", item.dateString, unit: .second),
                                 y: .value("Value", sgv)
                             ).foregroundStyle(Color.green.gradient).symbolSize(25)
                                 .interpolationMethod(.cardinal)
