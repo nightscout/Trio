@@ -39,72 +39,47 @@ struct PumpView: View {
     }
 
     var body: some View {
-        HStack {
-            Image(systemName: "syringe.fill")
-                .font(.system(size: 16))
-                .foregroundColor(Color.insulin)
-            Text(
-                (numberFormatter.string(from: (state.suggestion?.iob ?? 0) as NSNumber) ?? "0") +
-                    NSLocalizedString(" U", comment: "Insulin unit")
-            )
-            .font(.callout).fontWeight(.bold)
-
-            Spacer()
-
-            Image(systemName: "fork.knife")
-                .font(.system(size: 16))
-                .foregroundColor(.loopYellow)
-            Text(
-                (numberFormatter.string(from: (state.suggestion?.cob ?? 0) as NSNumber) ?? "0") +
-                    NSLocalizedString(" g", comment: "gram of carbs")
-            )
-            .font(.callout).fontWeight(.bold)
-
-            Spacer()
-
+        VStack(alignment: .leading, spacing: 20) {
             if let reservoir = reservoir {
                 HStack {
                     Image(systemName: "drop.fill")
-                        .font(.system(size: 16))
+                        .font(.system(size: 15))
                         .foregroundColor(reservoirColor)
                     if reservoir == 0xDEAD_BEEF {
-                        Text("50+ " + NSLocalizedString("U", comment: "Insulin unit")).font(.callout).fontWeight(.bold)
+                        Text("50+ " + NSLocalizedString("U", comment: "Insulin unit")).font(.system(size: 15))
                     } else {
                         Text(
                             reservoirFormatter
                                 .string(from: reservoir as NSNumber)! + NSLocalizedString(" U", comment: "Insulin unit")
                         )
-                        .font(.callout).fontWeight(.bold)
+                        .font(.system(size: 15))
                     }
                 }
 
                 if let timeZone = timeZone, timeZone.secondsFromGMT() != TimeZone.current.secondsFromGMT() {
                     Image(systemName: "clock.badge.exclamationmark.fill")
-                        .font(.system(size: 16))
+                        .font(.system(size: 15))
                         .symbolRenderingMode(.palette)
                         .foregroundStyle(.red, Color(.warning))
                 }
             }
 
-            Spacer()
-
             if let battery = battery, battery.display ?? false, expiresAtDate == nil {
                 HStack {
                     Image(systemName: "battery.100")
-                        .font(.system(size: 16))
+                        .font(.system(size: 15))
                         .foregroundColor(batteryColor)
-                    Text("\(Int(battery.percent ?? 100)) %").font(.callout)
-                        .fontWeight(.bold)
+                    Text("\(Int(battery.percent ?? 100)) %").font(.system(size: 15))
                 }
             }
 
             if let date = expiresAtDate {
                 HStack {
                     Image(systemName: "stopwatch.fill")
-                        .font(.system(size: 16))
+                        .font(.system(size: 15))
                         .foregroundColor(timerColor)
 
-                    Text(remainingTimeString(time: date.timeIntervalSince(timerDate))).font(.callout).fontWeight(.bold)
+                    Text(remainingTimeString(time: date.timeIntervalSince(timerDate))).font(.system(size: 15))
                 }
             }
         }

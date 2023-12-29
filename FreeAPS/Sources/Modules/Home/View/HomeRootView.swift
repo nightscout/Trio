@@ -310,11 +310,11 @@ extension Home {
             HStack(alignment: .center) {
                 if state.pumpSuspended {
                     Text("Pump suspended")
-                        .font(.system(size: 12, weight: .bold)).foregroundColor(.loopGray)
+                        .font(.system(size: 15, weight: .bold)).foregroundColor(.loopGray)
                         .padding(.leading, 8)
                 } else if let tempBasalString = tempBasalString {
                     Text(tempBasalString)
-                        .font(.system(size: 12, weight: .bold))
+                        .font(.system(size: 15, weight: .bold))
                         .foregroundColor(.insulin)
                         .padding(.leading, 8)
                 }
@@ -323,7 +323,7 @@ extension Home {
                         "TINS: \(state.calculateTINS())" +
                             NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
                     )
-                    .font(.system(size: 12, weight: .bold))
+                    .font(.system(size: 15, weight: .bold))
                     .foregroundColor(.insulin)
                 }
 
@@ -334,29 +334,6 @@ extension Home {
                 }
 
                 Spacer()
-
-                if let overrideString = overrideString {
-                    HStack {
-                        Text("👤 " + overrideString)
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
-                        Image(systemName: "xmark")
-                            .foregroundStyle(.secondary)
-                    }
-                    .alert(
-                        "Return to Normal?", isPresented: $showCancelAlert,
-                        actions: {
-                            Button("No", role: .cancel) {}
-                            Button("Yes", role: .destructive) {
-                                state.cancelProfile()
-                            }
-                        }, message: { Text("This will change settings back to your normal profile.") }
-                    )
-                    .padding(.trailing, 8)
-                    .onTapGesture {
-                        showCancelAlert = true
-                    }
-                }
 
                 if state.closedLoop, state.settingsManager.preferences.maxIOB == 0 {
                     Text("Max IOB: 0").font(.callout).foregroundColor(.orange).padding(.trailing, 20)
@@ -562,7 +539,7 @@ extension Home {
                             .font(.system(size: 26))
                             .padding(8)
                     }
-                    .foregroundColor(state.isTempTargetActive ? Color.purple : colorIcon)
+                    .foregroundColor((state.isTempTargetActive || (overrideString != nil)) ? Color.purple : colorIcon)
                     .buttonStyle(.borderless)
                     Spacer()
                     Button { state.showModal(for: .statistics)
@@ -666,6 +643,167 @@ extension Home {
             .offset(y: -90)
         }
 
+        @ViewBuilder func rightHeaderPanel(_: GeometryProxy) -> some View {
+            VStack(alignment: .leading, spacing: 20) {
+                /// Loop view at bottomLeading
+                LoopView(
+                    suggestion: $state.suggestion,
+                    enactedSuggestion: $state.enactedSuggestion,
+                    closedLoop: $state.closedLoop,
+                    timerDate: $state.timerDate,
+                    isLooping: $state.isLooping,
+                    lastLoopDate: $state.lastLoopDate,
+                    manualTempBasal: $state.manualTempBasal
+                ).onTapGesture {
+                    state.isStatusPopupPresented = true
+                }.onLongPressGesture {
+                    let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+                    impactHeavy.impactOccurred()
+                    state.runLoop()
+                }
+                /// eventualBG string at bottomTrailing
+                if let eventualBG = state.eventualBG {
+                    HStack {
+                        Image(systemName: "arrow.right.circle")
+                            .font(.system(size: 14))
+                        Text(
+                            numberFormatter.string(
+                                from: (
+                                    state.units == .mmolL ? eventualBG
+                                        .asMmolL : Decimal(eventualBG)
+                                ) as NSNumber
+                            )!
+                        )
+                        .font(.system(size: 14))
+                    }
+                }
+            }
+        }
+
+        @ViewBuilder func mealPanel(_: GeometryProxy) -> some View {
+            HStack(spacing: 40) {
+                HStack {
+                    Image(systemName: "syringe.fill")
+                        .font(.system(size: 15))
+                        .foregroundColor(Color.insulin)
+                    Text(
+                        (numberFormatter.string(from: (state.suggestion?.iob ?? 0) as NSNumber) ?? "0") +
+                            NSLocalizedString(" U", comment: "Insulin unit")
+                    )
+                    .font(.system(size: 15))
+                }
+                HStack {
+                    Image(systemName: "fork.knife")
+                        .font(.system(size: 15))
+                        .foregroundColor(.loopYellow)
+                    Text(
+                        (numberFormatter.string(from: (state.suggestion?.cob ?? 0) as NSNumber) ?? "0") +
+                            NSLocalizedString(" g", comment: "gram of carbs")
+                    )
+                    .font(.system(size: 15))
+                }
+                HStack {
+                    if state.pumpSuspended {
+                        Text("Pump suspended")
+                            .font(.system(size: 12)).foregroundColor(.loopGray)
+                    } else if let tempBasalString = tempBasalString {
+                        Text(tempBasalString)
+                            .font(.system(size: 15))
+                            .foregroundColor(.insulin)
+                    }
+                }
+                if !state.tins {
+                    HStack {
+                        Text(
+                            "TDD: " +
+                                (numberFormatter.string(from: (state.suggestion?.tdd ?? 0) as NSNumber) ?? "--") +
+                                NSLocalizedString(" U", comment: "Insulin unit")
+                        ).font(.system(size: 15))
+                    }
+                } else {
+                    Text(
+                        "TINS: \(state.calculateTINS())" +
+                            NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
+                    )
+                    .font(.system(size: 15))
+                    .foregroundColor(.insulin)
+                }
+            }
+        }
+
+        @ViewBuilder func profileView(_: GeometryProxy) -> some View {
+            let colourChart: Color = colorScheme == .dark ? Color(
+                red: 0.05490196078,
+                green: 0.05490196078,
+                blue: 0.05490196078
+            ) : .white
+
+            if let overrideString = overrideString {
+                ZStack {
+                    /// rectangle as background
+                    RoundedRectangle(cornerRadius: 15)
+                        .fill(colourChart)
+                        .clipShape(RoundedRectangle(cornerRadius: 15))
+                        .frame(height: UIScreen.main.bounds.height / 20)
+                        .shadow(
+                            color:
+                            Color(red: 0.7215686275, green: 0.3411764706, blue: 1),
+                            radius: 1
+                        )
+                    HStack {
+                        /// actual profile view
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(Color.purple)
+                        Spacer()
+                        Text(overrideString)
+                            .font(.system(size: 18))
+                        Spacer()
+                        Image(systemName: "xmark.app")
+                            .font(.system(size: 20))
+                    }.padding(.horizontal, 10)
+                        .alert(
+                            "Return to Normal?", isPresented: $showCancelAlert,
+                            actions: {
+                                Button("No", role: .cancel) {}
+                                Button("Yes", role: .destructive) {
+                                    state.cancelProfile()
+                                }
+                            }, message: { Text("This will change settings back to your normal profile.") }
+                        )
+                        .padding(.trailing, 8)
+                        .onTapGesture {
+                            showCancelAlert = true
+                        }
+                }.padding(.horizontal, 10)
+            }
+
+            /// just show temp target if no profile is already active
+            if overrideString == nil, let tempTargetString = tempTargetString {
+                ZStack {
+                    /// rectangle as background
+                    RoundedRectangle(cornerRadius: 15)
+                        .fill(colourChart)
+                        .clipShape(RoundedRectangle(cornerRadius: 15))
+                        .frame(height: UIScreen.main.bounds.height / 20)
+                        .shadow(
+                            color:
+                            Color(red: 0.7215686275, green: 0.3411764706, blue: 1),
+                            radius: 1
+                        )
+                    HStack {
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(Color.purple)
+                        Spacer()
+                        Text(tempTargetString)
+                            .font(.system(size: 15))
+                        Spacer()
+                    }.padding(.horizontal, 10)
+                }.padding(.horizontal, 10)
+            }
+        }
+
         var body: some View {
             let colorBackground = colorScheme == .dark ? LinearGradient(
                 gradient: Gradient(colors: [
@@ -688,56 +826,29 @@ extension Home {
                 VStack(spacing: 0) {
                     Spacer()
 
-                    ZStack(alignment: .bottom) {
+                    ZStack {
                         /// glucose bobble
                         glucoseView
 
-                        /// eventualBG string at bottomTrailing
-                        if let eventualBG = state.eventualBG {
-                            Text(
-                                "⇢ " + numberFormatter.string(
-                                    from: (
-                                        state.units == .mmolL ? eventualBG
-                                            .asMmolL : Decimal(eventualBG)
-                                    ) as NSNumber
-                                )!
-                            )
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
-                            .padding(.leading)
-                            .offset(x: 75, y: 4)
-                        }
+                        /// right panel with loop status and evBG
+                        HStack {
+                            Spacer()
+                            rightHeaderPanel(geo)
+                        }.padding(.trailing, 20)
 
-                        /// Loop view at bottomLeading
-                        LoopView(
-                            suggestion: $state.suggestion,
-                            enactedSuggestion: $state.enactedSuggestion,
-                            closedLoop: $state.closedLoop,
-                            timerDate: $state.timerDate,
-                            isLooping: $state.isLooping,
-                            lastLoopDate: $state.lastLoopDate,
-                            manualTempBasal: $state.manualTempBasal
-                        ).padding(.trailing)
-                            .offset(x: -80, y: 4)
-                            .onTapGesture {
-                                state.isStatusPopupPresented = true
-                            }.onLongPressGesture {
-                                let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
-                                impactHeavy.impactOccurred()
-                                state.runLoop()
-                            }
+                        /// left panel with pump related info
+                        HStack {
+                            pumpView
+                            Spacer()
+                        }.padding(.leading, 20)
+
                     }.padding(.top, 40)
 
-                    Spacer()
-
-                    header(geo)
-                        .padding(.top, 15)
-                        .padding(.horizontal, 10)
+                    mealPanel(geo).padding(.top, 20)
 
                     Spacer()
 
-                    infoPanel
-                        .padding(.horizontal, 10)
+                    profileView(geo).padding(.vertical)
 
                     RoundedRectangle(cornerRadius: 15)
                         .fill(colourChart)

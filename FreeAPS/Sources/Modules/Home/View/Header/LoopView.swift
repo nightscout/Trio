@@ -25,10 +25,9 @@ struct LoopView: View {
 
     var body: some View {
         HStack(alignment: .center) {
-//            Rectangle().frame(width: UIScreen.main.bounds.width / 2.5, height: 2, alignment: .leading).foregroundColor(color)
             ZStack {
                 Image(systemName: "circle")
-                    .font(.system(size: 15))
+                    .font(.system(size: 16))
                     .fontWeight(.bold)
                     .foregroundColor(color)
 
@@ -38,16 +37,16 @@ struct LoopView: View {
                 }
             }
             if isLooping {
-                Text("looping").font(.caption2).foregroundColor(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
+                Text("looping").font(.system(size: 16))
             } else if manualTempBasal {
-                Text("Manual").font(.caption2).foregroundColor(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
+                Text("Manual").font(.system(size: 16))
+
             } else if actualSuggestion?.timestamp != nil {
-                Text(timeString).font(.caption2)
-                    .foregroundColor(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
+                Text(timeString).font(.system(size: 16))
+
             } else {
-                Text("--").font(.caption2).foregroundColor(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
+                Text("--").font(.system(size: 16))
             }
-//            Rectangle().frame(width: UIScreen.main.bounds.width / 2.5, height: 2, alignment: .trailing).foregroundColor(color)
         }
     }
 
