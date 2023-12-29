@@ -19,6 +19,8 @@ extension Stat {
             sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
         ) var fetchedInsulin: FetchedResults<InsulinDistribution>
 
+        @Environment(\.colorScheme) var colorScheme
+
         enum Duration: String, CaseIterable, Identifiable {
             case Today
             case Day
@@ -145,11 +147,24 @@ extension Stat {
                 }
                 .pickerStyle(.segmented).background(.cyan.opacity(0.2))
                 stats()
-            }
-            .onAppear(perform: configureView)
-            .navigationBarTitle("Statistics")
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarItems(trailing: Button("Close", action: state.hideModal))
+            }.background(color)
+                .onAppear(perform: configureView)
+                .navigationBarTitle("Statistics")
+                .navigationBarTitleDisplayMode(.inline)
+                .navigationBarItems(trailing: Button("Close", action: state.hideModal))
+        }
+
+        private var color: LinearGradient {
+            colorScheme == .dark ? LinearGradient(
+                gradient: Gradient(colors: [
+                    Color(red: 0.011, green: 0.058, blue: 0.109),
+                    Color(red: 0.03921568627, green: 0.1333333333, blue: 0.2156862745)
+                ]),
+                startPoint: .bottom,
+                endPoint: .top
+            )
+                :
+                LinearGradient(gradient: Gradient(colors: [Color.gray.opacity(0.1)]), startPoint: .top, endPoint: .bottom)
         }
     }
 }

@@ -21,6 +21,7 @@ extension AddCarbs {
         ) var carbPresets: FetchedResults<Presets>
 
         @Environment(\.managedObjectContext) var moc
+        @Environment(\.colorScheme) var colorScheme
 
         private var formatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -123,15 +124,15 @@ extension AddCarbs {
                 Section {
                     mealPresets
                 }
-            }
-            .onAppear {
-                configureView {
-                    state.loadEntries(editMode)
+            }.scrollContentBackground(.hidden).background(color)
+                .onAppear {
+                    configureView {
+                        state.loadEntries(editMode)
+                    }
                 }
-            }
-            .navigationTitle("Add Meal")
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarItems(trailing: Button("Close", action: state.hideModal))
+                .navigationTitle("Add Meal")
+                .navigationBarTitleDisplayMode(.inline)
+                .navigationBarItems(trailing: Button("Close", action: state.hideModal))
         }
 
         private var presetPopover: some View {
@@ -160,6 +161,19 @@ extension AddCarbs {
                     label: { Text("Cancel") }
                 } header: { Text("Enter Meal Preset Name") }
             }
+        }
+
+        private var color: LinearGradient {
+            colorScheme == .dark ? LinearGradient(
+                gradient: Gradient(colors: [
+                    Color(red: 0.011, green: 0.058, blue: 0.109),
+                    Color(red: 0.03921568627, green: 0.1333333333, blue: 0.2156862745)
+                ]),
+                startPoint: .bottom,
+                endPoint: .top
+            )
+                :
+                LinearGradient(gradient: Gradient(colors: [Color.gray.opacity(0.1)]), startPoint: .top, endPoint: .bottom)
         }
 
         private var empty: Bool {

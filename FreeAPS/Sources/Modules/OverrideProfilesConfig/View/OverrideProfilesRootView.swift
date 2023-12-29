@@ -15,6 +15,7 @@ extension OverrideProfilesConfig {
 
         @Environment(\.dismiss) var dismiss
         @Environment(\.managedObjectContext) var moc
+        @Environment(\.colorScheme) var colorScheme
 
         @FetchRequest(
             entity: OverridePresets.entity(),
@@ -283,12 +284,12 @@ extension OverrideProfilesConfig {
                 .buttonStyle(BorderlessButtonStyle())
                 .disabled(!state.isEnabled)
                 .tint(.red)
-            }
-            .onAppear(perform: configureView)
-            .onAppear { state.savedSettings() }
-            .navigationBarTitle("Profiles")
-            .navigationBarTitleDisplayMode(.automatic)
-            .navigationBarItems(trailing: Button("Close", action: state.hideModal))
+            }.scrollContentBackground(.hidden).background(color)
+                .onAppear(perform: configureView)
+                .onAppear { state.savedSettings() }
+                .navigationBarTitle("Profiles")
+                .navigationBarTitleDisplayMode(.automatic)
+                .navigationBarItems(trailing: Button("Close", action: state.hideModal))
         }
 
         @ViewBuilder private func profilesView(for preset: OverridePresets) -> some View {
@@ -366,6 +367,19 @@ extension OverrideProfilesConfig {
             } catch {
                 // To do: add error
             }
+        }
+
+        private var color: LinearGradient {
+            colorScheme == .dark ? LinearGradient(
+                gradient: Gradient(colors: [
+                    Color(red: 0.011, green: 0.058, blue: 0.109),
+                    Color(red: 0.03921568627, green: 0.1333333333, blue: 0.2156862745)
+                ]),
+                startPoint: .bottom,
+                endPoint: .top
+            )
+                :
+                LinearGradient(gradient: Gradient(colors: [Color.gray.opacity(0.1)]), startPoint: .top, endPoint: .bottom)
         }
     }
 }

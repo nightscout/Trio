@@ -179,40 +179,53 @@ extension Bolus {
                         label: { Text("Continue without bolus") }.frame(maxWidth: .infinity, alignment: .center)
                     }
                 }
-            }
-            .blur(radius: showInfo ? 3 : 0)
-            .navigationTitle("Enact Bolus")
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarItems(
-                leading: Button {
-                    carbsView()
-                }
-                label: {
-                    HStack {
-                        Image(systemName: "chevron.backward")
-                        Text("Meal")
+            }.scrollContentBackground(.hidden).background(color)
+                .blur(radius: showInfo ? 3 : 0)
+                .navigationTitle("Enact Bolus")
+                .navigationBarTitleDisplayMode(.inline)
+                .navigationBarItems(
+                    leading: Button {
+                        carbsView()
                     }
-                },
-                trailing: Button { state.hideModal() }
-                label: { Text("Close") }
+                    label: {
+                        HStack {
+                            Image(systemName: "chevron.backward")
+                            Text("Meal")
+                        }
+                    },
+                    trailing: Button { state.hideModal() }
+                    label: { Text("Close") }
+                )
+                .onAppear {
+                    configureView {
+                        state.waitForSuggestionInitial = waitForSuggestion
+                        state.waitForSuggestion = waitForSuggestion
+                        state.insulinCalculated = state.calculateInsulin()
+                    }
+                }
+                .onDisappear {
+                    if fetch, hasFatOrProtein, !keepForNextWiew, state.useCalc {
+                        state.delete(deleteTwice: true, meal: meal)
+                    } else if fetch, !keepForNextWiew, state.useCalc {
+                        state.delete(deleteTwice: false, meal: meal)
+                    }
+                }
+                .popup(isPresented: showInfo) {
+                    bolusInfoAlternativeCalculator
+                }
+        }
+
+        private var color: LinearGradient {
+            colorScheme == .dark ? LinearGradient(
+                gradient: Gradient(colors: [
+                    Color(red: 0.011, green: 0.058, blue: 0.109),
+                    Color(red: 0.03921568627, green: 0.1333333333, blue: 0.2156862745)
+                ]),
+                startPoint: .bottom,
+                endPoint: .top
             )
-            .onAppear {
-                configureView {
-                    state.waitForSuggestionInitial = waitForSuggestion
-                    state.waitForSuggestion = waitForSuggestion
-                    state.insulinCalculated = state.calculateInsulin()
-                }
-            }
-            .onDisappear {
-                if fetch, hasFatOrProtein, !keepForNextWiew, state.useCalc {
-                    state.delete(deleteTwice: true, meal: meal)
-                } else if fetch, !keepForNextWiew, state.useCalc {
-                    state.delete(deleteTwice: false, meal: meal)
-                }
-            }
-            .popup(isPresented: showInfo) {
-                bolusInfoAlternativeCalculator
-            }
+                :
+                LinearGradient(gradient: Gradient(colors: [Color.gray.opacity(0.1)]), startPoint: .top, endPoint: .bottom)
         }
 
         var predictionChart: some View {
