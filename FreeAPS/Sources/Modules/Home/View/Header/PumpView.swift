@@ -42,8 +42,8 @@ struct PumpView: View {
         VStack(alignment: .leading, spacing: 20) {
             if let reservoir = reservoir {
                 HStack {
-                    Image(systemName: "drop.fill")
-                        .font(.system(size: 15))
+                    Image(systemName: "cross.vial.fill")
+                        .font(.system(size: 16))
                         .foregroundColor(reservoirColor)
                     if reservoir == 0xDEAD_BEEF {
                         Text("50+ " + NSLocalizedString("U", comment: "Insulin unit")).font(.system(size: 15))
@@ -52,13 +52,13 @@ struct PumpView: View {
                             reservoirFormatter
                                 .string(from: reservoir as NSNumber)! + NSLocalizedString(" U", comment: "Insulin unit")
                         )
-                        .font(.system(size: 15))
+                        .font(.system(size: 16))
                     }
                 }
 
                 if let timeZone = timeZone, timeZone.secondsFromGMT() != TimeZone.current.secondsFromGMT() {
                     Image(systemName: "clock.badge.exclamationmark.fill")
-                        .font(.system(size: 15))
+                        .font(.system(size: 16))
                         .symbolRenderingMode(.palette)
                         .foregroundStyle(.red, Color(.warning))
                 }
@@ -67,19 +67,19 @@ struct PumpView: View {
             if let battery = battery, battery.display ?? false, expiresAtDate == nil {
                 HStack {
                     Image(systemName: "battery.100")
-                        .font(.system(size: 15))
+                        .font(.system(size: 16))
                         .foregroundColor(batteryColor)
-                    Text("\(Int(battery.percent ?? 100)) %").font(.system(size: 15))
+                    Text("\(Int(battery.percent ?? 100)) %").font(.system(size: 16))
                 }
             }
 
             if let date = expiresAtDate {
                 HStack {
                     Image(systemName: "stopwatch.fill")
-                        .font(.system(size: 15))
+                        .font(.system(size: 16))
                         .foregroundColor(timerColor)
 
-                    Text(remainingTimeString(time: date.timeIntervalSince(timerDate))).font(.system(size: 15))
+                    Text(remainingTimeString(time: date.timeIntervalSince(timerDate))).font(.system(size: 16))
                 }
             }
         }
