@@ -6,6 +6,7 @@ enum DataTable {
 
     enum Mode: String, Hashable, Identifiable, CaseIterable {
         case treatments
+        case meals
         case glucose
 
         var id: String { rawValue }
@@ -15,9 +16,12 @@ enum DataTable {
             switch self {
             case .treatments:
                 name = "Treatments"
+            case .meals:
+                name = "Meals"
             case .glucose:
                 name = "Glucose"
             }
+
             return NSLocalizedString(name, comment: "History Mode")
         }
     }

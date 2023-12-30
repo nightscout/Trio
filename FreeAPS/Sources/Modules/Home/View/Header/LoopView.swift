@@ -21,33 +21,30 @@ struct LoopView: View {
         return formatter
     }
 
-    @Environment(\.colorScheme) var colorScheme
+    private let rect = CGRect(x: 0, y: 0, width: 18, height: 18)
 
     var body: some View {
         HStack(alignment: .center) {
             ZStack {
                 Image(systemName: "circle")
-                    .font(.system(size: 16))
-                    .fontWeight(.bold)
-                    .foregroundColor(color)
-
+                    .mask(mask(in: rect).fill(style: FillStyle(eoFill: true)))
                 if isLooping {
                     ProgressView()
-                        .foregroundColor(Color.loopGreen)
                 }
             }
             if isLooping {
-                Text("looping").font(.system(size: 16))
+                Text("looping")
             } else if manualTempBasal {
-                Text("Manual").font(.system(size: 16))
-
+                Text("Manual")
             } else if actualSuggestion?.timestamp != nil {
-                Text(timeString).font(.system(size: 16))
-
+                Text(timeString)
             } else {
-                Text("--").font(.system(size: 16))
+                Text("--")
             }
         }
+        .strikethrough(!closedLoop || manualTempBasal, pattern: .solid, color: color)
+        .font(.system(size: 16, weight: .bold))
+        .foregroundColor(color)
     }
 
     private var timeString: String {
@@ -60,11 +57,15 @@ struct LoopView: View {
 
     private var color: Color {
         guard actualSuggestion?.timestamp != nil else {
-            return .loopGray
+            return .secondary
         }
         guard manualTempBasal == false else {
             return .loopManualTemp
         }
+        guard closedLoop == true else {
+            return .secondary
+        }
+
         let delta = timerDate.timeIntervalSince(lastLoopDate) - Config.lag
 
         if delta <= 5.minutes.timeInterval {
@@ -82,7 +83,7 @@ struct LoopView: View {
     func mask(in rect: CGRect) -> Path {
         var path = Rectangle().path(in: rect)
         if !closedLoop || manualTempBasal {
-            path.addPath(Rectangle().path(in: CGRect(x: rect.minX, y: rect.midY - 5, width: rect.width, height: 10)))
+            path.addPath(Rectangle().path(in: CGRect(x: rect.minX, y: rect.midY - 4, width: rect.width, height: 8)))
         }
         return path
     }
