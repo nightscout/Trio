@@ -455,25 +455,6 @@ extension Home {
                     .padding([.leading, .trailing], 10)
 
                 HStack {
-                    Button {
-                        state.showModal(for: .dataTable)
-                    }
-                    label: {
-                        if #available(iOS 17.0, *) {
-                            Image(systemName: "book.pages")
-                                .font(.system(size: 24))
-                                .foregroundColor(colorIcon)
-                                .padding(8)
-                        } else {
-                            Image(systemName: "book")
-                                .font(.system(size: 24))
-                                .foregroundColor(colorIcon)
-                                .padding(8)
-                        }
-                    }
-                    .foregroundColor(colorIcon)
-                    .buttonStyle(.borderless)
-                    Spacer()
                     Button { state.showModal(for: .addCarbs(editMode: false, override: false)) }
                     label: {
                         ZStack(alignment: Alignment(horizontal: .trailing, vertical: .bottom)) {
@@ -535,17 +516,36 @@ extension Home {
                     Button {
                         state.showModal(for: .overrideProfilesConfig)
                     } label: {
-                        Image(systemName: "person")
+                        Image(systemName: state.isTempTargetActive || overrideString != nil ? "person.fill" : "person")
                             .font(.system(size: 26))
                             .padding(8)
                     }
                     .foregroundColor((state.isTempTargetActive || (overrideString != nil)) ? Color.purple : colorIcon)
                     .buttonStyle(.borderless)
                     Spacer()
+                    Button {
+                        state.showModal(for: .dataTable)
+                    }
+                    label: {
+                        if #available(iOS 17.0, *) {
+                            Image(systemName: "book.pages")
+                                .font(.system(size: 24))
+                                .foregroundColor(colorIcon)
+                                .padding(8)
+                        } else {
+                            Image(systemName: "book")
+                                .font(.system(size: 24))
+                                .foregroundColor(colorIcon)
+                                .padding(8)
+                        }
+                    }
+                    .foregroundColor(colorIcon)
+                    .buttonStyle(.borderless)
+                    Spacer()
                     Button { state.showModal(for: .statistics)
                     }
                     label: {
-                        Image(systemName: "chart.pie")
+                        Image(systemName: "chart.bar")
                             .font(.system(size: 24))
                             .foregroundColor(colorIcon)
                             .padding(8)
@@ -665,7 +665,7 @@ extension Home {
                 if let eventualBG = state.eventualBG {
                     HStack {
                         Image(systemName: "arrow.right.circle")
-                            .font(.system(size: 14))
+                            .font(.system(size: 16))
                         Text(
                             numberFormatter.string(
                                 from: (
@@ -674,61 +674,70 @@ extension Home {
                                 ) as NSNumber
                             )!
                         )
-                        .font(.system(size: 14))
+                        .font(.system(size: 16))
                     }
                 }
             }
         }
 
         @ViewBuilder func mealPanel(_: GeometryProxy) -> some View {
-            HStack(spacing: 40) {
+            HStack {
                 HStack {
                     Image(systemName: "syringe.fill")
-                        .font(.system(size: 15))
+                        .font(.system(size: 16))
                         .foregroundColor(Color.insulin)
                     Text(
                         (numberFormatter.string(from: (state.suggestion?.iob ?? 0) as NSNumber) ?? "0") +
                             NSLocalizedString(" U", comment: "Insulin unit")
                     )
-                    .font(.system(size: 15))
+                    .font(.system(size: 16, weight: .bold))
                 }
+
+                Spacer()
+
                 HStack {
                     Image(systemName: "fork.knife")
-                        .font(.system(size: 15))
+                        .font(.system(size: 16))
                         .foregroundColor(.loopYellow)
                     Text(
                         (numberFormatter.string(from: (state.suggestion?.cob ?? 0) as NSNumber) ?? "0") +
                             NSLocalizedString(" g", comment: "gram of carbs")
                     )
-                    .font(.system(size: 15))
+                    .font(.system(size: 16, weight: .bold))
                 }
+
+                Spacer()
+
                 HStack {
                     if state.pumpSuspended {
                         Text("Pump suspended")
-                            .font(.system(size: 12)).foregroundColor(.loopGray)
+                            .font(.system(size: 12, weight: .bold)).foregroundColor(.loopGray)
                     } else if let tempBasalString = tempBasalString {
+                        Image(systemName: "drop.circle")
+                            .font(.system(size: 16))
+                            .foregroundColor(.insulinTintColor)
                         Text(tempBasalString)
-                            .font(.system(size: 15))
-                            .foregroundColor(.insulin)
+                            .font(.system(size: 16, weight: .bold))
                     }
                 }
                 if !state.tins {
+                    Spacer()
+                    Text(
+                        "TDD: " + (numberFormatter.string(from: (state.suggestion?.tdd ?? 0) as NSNumber) ?? "0") +
+                            NSLocalizedString(" U", comment: "Insulin unit")
+                    )
+                    .font(.system(size: 16, weight: .bold))
+                } else {
+                    Spacer()
                     HStack {
                         Text(
-                            "TDD: " +
-                                (numberFormatter.string(from: (state.suggestion?.tdd ?? 0) as NSNumber) ?? "--") +
-                                NSLocalizedString(" U", comment: "Insulin unit")
-                        ).font(.system(size: 15))
+                            "TINS: \(state.calculateTINS())" +
+                                NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
+                        )
+                        .font(.system(size: 16, weight: .bold))
                     }
-                } else {
-                    Text(
-                        "TINS: \(state.calculateTINS())" +
-                            NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
-                    )
-                    .font(.system(size: 15))
-                    .foregroundColor(.insulin)
                 }
-            }
+            }.padding(.horizontal, 10)
         }
 
         @ViewBuilder func profileView(_: GeometryProxy) -> some View {
@@ -844,7 +853,9 @@ extension Home {
 
                     }.padding(.top, 40)
 
-                    mealPanel(geo).padding(.top, 20)
+                    Spacer()
+
+                    mealPanel(geo)
 
                     Spacer()
 

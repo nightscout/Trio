@@ -55,6 +55,17 @@ extension StatConfig {
                     Toggle("Skip Bolus screen after carbs", isOn: $state.skipBolusScreenAfterCarbs)
                     Toggle("Display and allow Fat and Protein entries", isOn: $state.useFPUconversion)
                 } header: { Text("Add Meal View settings ") }
+
+                Section {
+                    Picker(
+                        selection: $state.historyLayout,
+                        label: Text("History Layout")
+                    ) {
+                        ForEach(HistoryLayout.allCases) { selection in
+                            Text(selection.displayName).tag(selection)
+                        }
+                    }
+                } header: { Text("History Settings") }
             }
             .onAppear(perform: configureView)
             .navigationBarTitle("UI/UX")

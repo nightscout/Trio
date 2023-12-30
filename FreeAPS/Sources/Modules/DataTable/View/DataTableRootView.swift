@@ -60,8 +60,17 @@ extension DataTable {
         var body: some View {
             VStack {
                 Picker("Mode", selection: $state.mode) {
-                    ForEach(Mode.allCases.indexed(), id: \.1) { index, item in
-                        Text(item.name).tag(index)
+                    ForEach(
+                        Mode.allCases.filter({ state.historyLayout == .twoTabs ? $0 != .meals : true }).indexed(),
+                        id: \.1
+                    ) { index, item in
+                        if state.historyLayout == .threeTabs && item == .treatments {
+                            Text("Insulin")
+                                .tag(index)
+                        } else {
+                            Text(item.name)
+                                .tag(index)
+                        }
                     }
                 }
                 .pickerStyle(SegmentedPickerStyle())
@@ -71,6 +80,7 @@ extension DataTable {
                     switch state.mode {
                     case .treatments: treatmentsList
                     case .glucose: glucoseList
+                    case .meals: state.historyLayout == .threeTabs ? AnyView(mealsList) : AnyView(EmptyView())
                     }
                 }.scrollContentBackground(.hidden)
                     .background(color)
@@ -101,28 +111,33 @@ extension DataTable {
                         }.frame(maxWidth: .infinity, alignment: .leading)
                     }).buttonStyle(.borderless)
 
-                    Spacer()
-
-                    Button(action: { showFutureEntries.toggle() }, label: {
-                        HStack {
-                            Text(showFutureEntries ? "Hide Future" : "Show Future")
-                                .foregroundColor(Color.secondary)
-                                .font(.caption)
-                            Image(systemName: showFutureEntries ? "calendar.badge.minus" : "calendar.badge.plus")
-                        }.frame(maxWidth: .infinity, alignment: .trailing)
-                    }).buttonStyle(.borderless)
+                    if state.historyLayout == .twoTabs {
+                        Spacer()
+                        filterEntriesButton
+                    }
                 }
                 if !state.treatments.isEmpty {
-                    if !showFutureEntries {
-                        ForEach(state.treatments.filter { item in
-                            item.date <= Date()
-                        }) { item in
-                            treatmentView(item)
-                        }
-                    } else {
-                        ForEach(state.treatments) { item in
-                            treatmentView(item)
-                        }
+                    ForEach(state.treatments.filter({ !showFutureEntries ? $0.date <= Date() : true })) { item in
+                        treatmentView(item)
+                    }
+                } else {
+                    HStack {
+                        Text("No data.")
+                    }
+                }
+            }
+        }
+
+        private var mealsList: some View {
+            List {
+                HStack {
+                    Text("Type").foregroundStyle(.secondary)
+                    Spacer()
+                    filterEntriesButton
+                }
+                if !state.meals.isEmpty {
+                    ForEach(state.meals.filter({ !showFutureEntries ? $0.date <= Date() : true })) { item in
+                        mealView(item)
                     }
                 } else {
                     HStack {
@@ -211,13 +226,20 @@ extension DataTable {
                 LinearGradient(gradient: Gradient(colors: [Color.gray.opacity(0.1)]), startPoint: .top, endPoint: .bottom)
         }
 
+        private var filterEntriesButton: some View {
+            Button(action: { showFutureEntries.toggle() }, label: {
+                HStack {
+                    Text(showFutureEntries ? "Hide Future" : "Show Future")
+                        .foregroundColor(Color.secondary)
+                        .font(.caption)
+                    Image(systemName: showFutureEntries ? "calendar.badge.minus" : "calendar.badge.plus")
+                }.frame(maxWidth: .infinity, alignment: .trailing)
+            }).buttonStyle(.borderless)
+        }
+
         @ViewBuilder private func treatmentView(_ item: Treatment) -> some View {
             HStack {
-                if item.type == .bolus || item.type == .carbs {
-                    Image(systemName: "circle.fill").foregroundColor(item.color).padding(.vertical)
-                } else {
-                    Image(systemName: "circle.fill").foregroundColor(item.color)
-                }
+                Image(systemName: "circle.fill").foregroundColor(item.color)
                 Text((item.isSMB ?? false) ? "SMB" : item.type.name)
                 Text(item.amountText).foregroundColor(.secondary)
 
@@ -269,11 +291,67 @@ extension DataTable {
                         return
                     }
 
-                    if treatmentToDelete.type == .carbs || treatmentToDelete.type == .fpus {
+                    if state.historyLayout == .twoTabs, treatmentToDelete.type == .carbs || treatmentToDelete.type == .fpus {
                         state.deleteCarbs(treatmentToDelete)
                     } else {
                         state.deleteInsulin(treatmentToDelete)
                     }
+                }
+            } message: {
+                Text("\n" + NSLocalizedString(alertMessage, comment: ""))
+            }
+        }
+
+        @ViewBuilder private func mealView(_ meal: Treatment) -> some View {
+            HStack {
+                Image(systemName: "circle.fill").foregroundColor(meal.color)
+                Text(meal.type.name)
+                Text(meal.amountText).foregroundColor(.secondary)
+
+                if let duration = meal.durationText {
+                    Text(duration).foregroundColor(.secondary)
+                }
+
+                Spacer()
+
+                Text(dateFormatter.string(from: meal.date))
+                    .moveDisabled(true)
+            }.swipeActions {
+                Button(
+                    "Delete",
+                    systemImage: "trash.fill",
+                    role: .none,
+                    action: {
+                        alertTreatmentToDelete = meal
+
+                        if meal.type == .carbs {
+                            alertTitle = "Delete Carbs?"
+                            alertMessage = dateFormatter.string(from: meal.date) + ", " + meal.amountText
+                        } else if meal.type == .fpus {
+                            alertTitle = "Delete Carb Equivalents?"
+                            alertMessage = "All FPUs of the meal will be deleted."
+                        } else {
+                            // item is insulin treatment; item.type == .bolus
+                            alertTitle = "Delete Insulin?"
+                            alertMessage = dateFormatter.string(from: meal.date) + ", " + meal.amountText
+                        }
+
+                        isRemoveHistoryItemAlertPresented = true
+                    }
+                ).tint(.red)
+            }
+            .alert(
+                Text(NSLocalizedString(alertTitle, comment: "")),
+                isPresented: $isRemoveHistoryItemAlertPresented
+            ) {
+                Button("Cancel", role: .cancel) {}
+                Button("Delete", role: .destructive) {
+                    guard let treatmentToDelete = alertTreatmentToDelete else {
+                        debug(.default, "Cannot gracefully unwrap alertTreatmentToDelete!")
+                        return
+                    }
+
+                    state.deleteCarbs(treatmentToDelete)
                 }
             } message: {
                 Text("\n" + NSLocalizedString(alertMessage, comment: ""))

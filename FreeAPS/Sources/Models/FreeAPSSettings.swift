@@ -54,6 +54,7 @@ struct FreeAPSSettings: JSON, Equatable {
     var sweetMealFactor: Decimal = 2
     var displayPredictions: Bool = true
     var useLiveActivity: Bool = false
+    var historyLayout: HistoryLayout = .twoTabs
 }
 
 extension FreeAPSSettings: Decodable {
@@ -277,6 +278,10 @@ extension FreeAPSSettings: Decodable {
 
         if let useLiveActivity = try? container.decode(Bool.self, forKey: .useLiveActivity) {
             settings.useLiveActivity = useLiveActivity
+        }
+
+        if let historyLayout = try? container.decode(HistoryLayout.self, forKey: .historyLayout) {
+            settings.historyLayout = historyLayout
         }
 
         self = settings
