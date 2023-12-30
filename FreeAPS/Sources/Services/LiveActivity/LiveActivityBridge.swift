@@ -21,7 +21,14 @@ extension LiveActivityAttributes.ContentState {
             .string(from: mmol ? value.asMmolL as NSNumber : NSNumber(value: value))!
     }
 
-    init?(new bg: BloodGlucose, prev: BloodGlucose?, mmol: Bool, chart: [Readings], settings: FreeAPSSettings) {
+    init?(
+        new bg: BloodGlucose,
+        prev: BloodGlucose?,
+        mmol: Bool,
+        chart: [Readings],
+        settings: FreeAPSSettings,
+        suggestion: Suggestion
+    ) {
         guard let glucose = bg.glucose,
               bg.dateString.timeIntervalSinceNow > -TimeInterval(minutes: 6)
         else {
@@ -80,6 +87,9 @@ extension LiveActivityAttributes.ContentState {
         let highGlucose = settings.highGlucose
         let lowGlucose = settings.lowGlucose
 
+        let cob = suggestion.cob ?? 0
+        let iob = suggestion.iob ?? 0
+
         self.init(
             bg: formattedBG,
             trendSystemImage: trendString,
@@ -89,7 +99,9 @@ extension LiveActivityAttributes.ContentState {
             chartDate: chartDate,
             rotationDegrees: rotationDegrees,
             highGlucose: Double(highGlucose),
-            lowGlucose: Double(lowGlucose)
+            lowGlucose: Double(lowGlucose),
+            cob: cob,
+            iob: iob
         )
     }
 }
@@ -118,9 +130,14 @@ extension LiveActivityAttributes.ContentState {
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var broadcaster: Broadcaster!
+    @Injected() private var storage: FileStorage!
 
     private var settings: FreeAPSSettings {
         settingsManager.settings
+    }
+
+    var suggestion: Suggestion? {
+        storage.retrieve(OpenAPS.Enact.suggested, as: Suggestion.self)
     }
 
     private var currentActivity: ActiveActivity?
@@ -221,25 +238,31 @@ extension LiveActivityBridge: GlucoseObserver {
         defer {
             self.latestGlucose = glucose.last
         }
+        
         // fetch glucose for chart from Core Data
         let coreDataStorage = CoreDataStorage()
         let sixHoursAgo = Calendar.current.date(byAdding: .hour, value: -6, to: Date()) ?? Date()
         let fetchGlucose = coreDataStorage.fetchGlucose(interval: sixHoursAgo as NSDate)
 
-        guard let bg = glucose.last, let content = LiveActivityAttributes.ContentState(
-            new: bg,
-            prev: latestGlucose,
-            mmol: settings.units == .mmolL,
-
-            chart: fetchGlucose, settings: settings
-
-        ) else {
-            // no bg or value stale. Don't update the activity if there already is one, just let it turn stale so that it can still be used once current bg is available again
+        guard let bg = glucose.last else {
             return
         }
 
-        Task {
-            await self.pushUpdate(content)
+        if let suggestion = suggestion {
+            let content = LiveActivityAttributes.ContentState(
+                new: bg,
+                prev: latestGlucose,
+                mmol: settings.units == .mmolL,
+                chart: fetchGlucose,
+                settings: settings,
+                suggestion: suggestion
+            )
+
+            if let content = content {
+                Task {
+                    await self.pushUpdate(content)
+                }
+            }
         }
     }
 }
