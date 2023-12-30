@@ -23,7 +23,7 @@ extension Home {
         @State var timeButtons: [Buttons] = [
             Buttons(label: "2 hours", number: "2", active: false, hours: 2),
             Buttons(label: "4 hours", number: "4", active: false, hours: 4),
-            Buttons(label: "6 hours", number: "6", active: true, hours: 6),
+            Buttons(label: "6 hours", number: "6", active: false, hours: 6),
             Buttons(label: "12 hours", number: "12", active: false, hours: 12),
             Buttons(label: "24 hours", number: "24", active: false, hours: 24)
         ]
@@ -731,10 +731,18 @@ extension Home {
                     Spacer()
                     HStack {
                         Text(
-                            "TINS: \(state.calculateTINS())" +
+                            "TINS: \(state.roundedTotalBolus)" +
                                 NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
                         )
                         .font(.system(size: 16, weight: .bold))
+                        .onChange(of: state.hours) { _ in
+                            state.roundedTotalBolus = state.calculateTINS()
+                        }
+                        .onAppear {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                                state.roundedTotalBolus = state.calculateTINS()
+                            }
+                        }
                     }
                 }
             }.padding(.horizontal, 10)
@@ -815,17 +823,19 @@ extension Home {
 
         var body: some View {
             let colorBackground = colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    // RGB(3, 15, 28)
-                    Color(red: 0.011, green: 0.058, blue: 0.109),
-                    // RGB(10, 34, 55)
-                    Color(red: 0.03921568627, green: 0.1333333333, blue: 0.2156862745)
-                ]),
-                startPoint: .bottom,
-                endPoint: .top
-            )
-                :
-                LinearGradient(gradient: Gradient(colors: [Color.gray.opacity(0.1)]), startPoint: .top, endPoint: .bottom)
+                            gradient: Gradient(colors: [
+                                // RGB(10, 34, 55)
+                                Color(red: 0.03921568627, green: 0.1333333333, blue: 0.2156862745),
+                                // RGB(3, 15, 28)
+                                Color(red: 0.011, green: 0.058, blue: 0.109),
+                                // RGB(10, 34, 55)
+                                Color(red: 0.03921568627, green: 0.1333333333, blue: 0.2156862745)
+                            ]),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                            :
+                            LinearGradient(gradient: Gradient(colors: [Color.gray.opacity(0.1)]), startPoint: .top, endPoint: .bottom)
             let colourChart: Color = colorScheme == .dark ? Color(
                 red: 0.05490196078,
                 green: 0.05490196078,

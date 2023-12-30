@@ -83,6 +83,8 @@ struct MainChartView: View {
     @Binding var thresholdLines: Bool
     @Binding var isTempTargetActive: Bool
 
+    @StateObject var state = Home.StateModel()
+
     @State var didAppearTrigger = false
     @State private var BasalProfiles: [BasalProfile] = []
     @State private var TempBasals: [PumpHistoryEvent] = []
@@ -333,6 +335,7 @@ extension MainChartView {
                 }
                 .onChange(of: boluses) { _ in
                     calculateBoluses()
+                    state.roundedTotalBolus = state.calculateTINS()
                 }
                 .onChange(of: tempTargets) { _ in
                     calculateTTs()

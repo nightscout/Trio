@@ -11,6 +11,21 @@ struct LiveActivity: Widget {
         return f
     }()
 
+    private var bolusFormatter: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 2
+        formatter.decimalSeparator = "."
+        return formatter
+    }
+
+    private var carbsFormatter: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 0
+        return formatter
+    }
+
     func changeLabel(context: ActivityViewContext<LiveActivityAttributes>) -> Text {
         if !context.isStale && !context.state.change.isEmpty {
             Text(context.state.change)
@@ -20,7 +35,7 @@ struct LiveActivity: Widget {
     }
 
     func updatedLabel(context: ActivityViewContext<LiveActivityAttributes>) -> Text {
-        Text("Updated: \(dateFormatter.string(from: context.state.date))")
+        Text("Updated: \(dateFormatter.string(from: context.state.date))").italic()
     }
 
     func bgLabel(context: ActivityViewContext<LiveActivityAttributes>) -> Text {
@@ -29,6 +44,25 @@ struct LiveActivity: Widget {
         } else {
             Text(context.state.bg).fontWeight(.bold)
         }
+    }
+
+    @ViewBuilder func mealLabel(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
+        VStack(alignment: .leading, spacing: 1, content: {
+            HStack {
+                Text("COB: ").font(.caption)
+                Text(
+                    (carbsFormatter.string(from: context.state.cob as NSNumber) ?? "--") +
+                        NSLocalizedString(" g", comment: "grams of carbs")
+                ).font(.caption).fontWeight(.bold)
+            }
+            HStack {
+                Text("IOB: ").font(.caption)
+                Text(
+                    (bolusFormatter.string(from: context.state.iob as NSNumber) ?? "--") +
+                        NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
+                ).font(.caption).fontWeight(.bold)
+            }
+        })
     }
 
     @ViewBuilder func trend(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
@@ -118,25 +152,26 @@ struct LiveActivity: Widget {
             HStack(spacing: 2) {
                 VStack {
                     chart(context: context).frame(width: UIScreen.main.bounds.width / 1.8)
-                }.padding(.vertical, 5).padding(.horizontal, 15)
+                }.padding(.all, 15)
                 Divider().foregroundStyle(Color.white)
-                VStack {
+                VStack(alignment: .center) {
+                    Spacer()
                     ZStack {
                         bobble(context: context)
                             .scaleEffect(0.6)
                             .clipped()
                         VStack {
-//                            bgAndTrend(context: context).imageScale(.small).font(.title2)
                             bgLabel(context: context).font(.title2).imageScale(.small)
                             changeLabel(context: context).font(.callout)
                         }
-                    }.padding(.trailing, 10).padding(.top, 5)
-                    updatedLabel(context: context).font(.caption).padding(.bottom).padding(.trailing, 5)
+                    }.scaleEffect(0.85).offset(y: 15)
+                    mealLabel(context: context).padding(.bottom, 8)
+                    updatedLabel(context: context).font(.caption).padding(.bottom, 50)
                 }
             }
             .privacySensitive()
             .imageScale(.small)
-            .padding(.all, 15)
+//            .padding(.all, 15)
             .background(Color.white.opacity(0.2))
             .foregroundColor(Color.white)
             .activityBackgroundTint(Color.black.opacity(0.7))
