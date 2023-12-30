@@ -665,7 +665,7 @@ extension Home {
                 if let eventualBG = state.eventualBG {
                     HStack {
                         Image(systemName: "arrow.right.circle")
-                            .font(.system(size: 16))
+                            .font(.system(size: 16, weight: .bold))
                         Text(
                             numberFormatter.string(
                                 from: (
