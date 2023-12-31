@@ -90,6 +90,8 @@ extension LiveActivityAttributes.ContentState {
         let cob = suggestion.cob ?? 0
         let iob = suggestion.iob ?? 0
 
+        let lockScreenView = settings.lockScreenView.displayName
+        
         self.init(
             bg: formattedBG,
             trendSystemImage: trendString,
@@ -101,7 +103,8 @@ extension LiveActivityAttributes.ContentState {
             highGlucose: Double(highGlucose),
             lowGlucose: Double(lowGlucose),
             cob: cob,
-            iob: iob
+            iob: iob,
+            lockScreenView: lockScreenView
         )
     }
 }
@@ -146,7 +149,7 @@ extension LiveActivityAttributes.ContentState {
     init(resolver: Resolver) {
         injectServices(resolver)
         broadcaster.register(GlucoseObserver.self, observer: self)
-
+        
         Foundation.NotificationCenter.default.addObserver(
             forName: UIApplication.didEnterBackgroundNotification,
             object: nil,

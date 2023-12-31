@@ -64,6 +64,14 @@ extension NotificationsConfig {
                         )
                     ) {
                         Toggle("Show live activity", isOn: $state.useLiveActivity)
+                        Picker(
+                            selection: $state.lockScreenView,
+                            label: Text("Lock screen widget")
+                        ) {
+                            ForEach(LockScreenView.allCases) { selection in
+                                Text(selection.displayName).tag(selection)
+                            }
+                        }
                     }
                 }
             }

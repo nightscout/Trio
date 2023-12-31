@@ -148,35 +148,50 @@ struct LiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: LiveActivityAttributes.self) { context in
             // Lock screen/banner UI goes here
-
-            HStack(spacing: 2) {
-                VStack {
-                    chart(context: context).frame(width: UIScreen.main.bounds.width / 1.8)
-                }.padding(.all, 15)
-                Divider().foregroundStyle(Color.white)
-                VStack(alignment: .center) {
-                    Spacer()
-                    ZStack {
-                        bobble(context: context)
-                            .scaleEffect(0.6)
-                            .clipped()
-                        VStack {
-                            bgLabel(context: context).font(.title2).imageScale(.small)
-                            changeLabel(context: context).font(.callout)
-                        }
-                    }.scaleEffect(0.85).offset(y: 15)
-                    mealLabel(context: context).padding(.bottom, 8)
-                    updatedLabel(context: context).font(.caption).padding(.bottom, 50)
+            if context.state.lockScreenView == "Simple" {
+                HStack(spacing: 3) {
+                   bgAndTrend(context: context).font(.title)
+                   Spacer()
+                   VStack(alignment: .trailing, spacing: 5) {
+                       changeLabel(context: context).font(.title3)
+                       updatedLabel(context: context).font(.caption).foregroundStyle(.black.opacity(0.7))
+                   }
+               }
+               .privacySensitive()
+               .imageScale(.small)
+               .padding(.all, 15)
+               .background(Color.white.opacity(0.2))
+               .foregroundColor(Color.black)
+               .activityBackgroundTint(Color.cyan.opacity(0.2))
+               .activitySystemActionForegroundColor(Color.black)
+            } else {
+                HStack(spacing: 2) {
+                    VStack {
+                        chart(context: context).frame(width: UIScreen.main.bounds.width / 1.8)
+                    }.padding(.all, 15)
+                    Divider().foregroundStyle(Color.white)
+                    VStack(alignment: .center) {
+                        Spacer()
+                        ZStack {
+                            bobble(context: context)
+                                .scaleEffect(0.6)
+                                .clipped()
+                            VStack {
+                                bgLabel(context: context).font(.title2).imageScale(.small)
+                                changeLabel(context: context).font(.callout)
+                            }
+                        }.scaleEffect(0.85).offset(y: 15)
+                        mealLabel(context: context).padding(.bottom, 8)
+                        updatedLabel(context: context).font(.caption).padding(.bottom, 50)
+                    }
                 }
+                .privacySensitive()
+                .imageScale(.small)
+                .background(Color.white.opacity(0.2))
+                .foregroundColor(Color.white)
+                .activityBackgroundTint(Color.black.opacity(0.7))
+                .activitySystemActionForegroundColor(Color.white)
             }
-            .privacySensitive()
-            .imageScale(.small)
-//            .padding(.all, 15)
-            .background(Color.white.opacity(0.2))
-            .foregroundColor(Color.white)
-            .activityBackgroundTint(Color.black.opacity(0.7))
-            .activitySystemActionForegroundColor(Color.white)
-
         } dynamicIsland: { context in
             DynamicIsland {
                 // Expanded UI goes here.  Compose the expanded UI through

@@ -44,6 +44,7 @@ struct FreeAPSSettings: JSON, Equatable {
     var displayFatAndProteinOnWatch: Bool = false
     var onlyAutotuneBasals: Bool = false
     var useLiveActivity: Bool = false
+    var lockScreenView: LockScreenView = .simple
 }
 
 extension FreeAPSSettings: Decodable {
@@ -227,6 +228,9 @@ extension FreeAPSSettings: Decodable {
 
         if let useLiveActivity = try? container.decode(Bool.self, forKey: .useLiveActivity) {
             settings.useLiveActivity = useLiveActivity
+        }
+        if let lockScreenView = try? container.decode(LockScreenView.self, forKey: .lockScreenView) {
+            settings.lockScreenView = lockScreenView
         }
 
         self = settings

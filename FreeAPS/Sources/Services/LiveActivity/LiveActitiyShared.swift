@@ -14,6 +14,7 @@ struct LiveActivityAttributes: ActivityAttributes {
         let lowGlucose: Double
         let cob: Decimal
         let iob: Decimal
+        let lockScreenView: String
     }
 
     let startDate: Date
