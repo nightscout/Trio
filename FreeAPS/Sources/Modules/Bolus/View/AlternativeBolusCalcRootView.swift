@@ -103,7 +103,7 @@ extension Bolus {
                             Toggle(isOn: $state.useSuperBolus) {
                                 Text("Super Bolus")
                             }
-                            .toggleStyle(CheckboxToggleStyleVariant())
+                            .toggleStyle(CheckboxToggleStyle())
                             .font(.footnote)
                             .onChange(of: state.useSuperBolus) { _ in
                                 state.insulinCalculated = state.calculateInsulin()
