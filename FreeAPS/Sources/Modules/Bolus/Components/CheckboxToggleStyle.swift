@@ -3,13 +3,13 @@ import SwiftUI
 struct CheckboxToggleStyle: ToggleStyle {
     func makeBody(configuration: Self.Configuration) -> some View {
         HStack {
-            RoundedRectangle(cornerRadius: 5)
+            Circle()
                 .stroke(lineWidth: 2)
+                .foregroundColor(.secondary)
                 .frame(width: 20, height: 20)
-                .cornerRadius(5)
                 .overlay {
                     if configuration.isOn {
-                        Image(systemName: "checkmark")
+                        Image(systemName: "circle.fill")
                     }
                 }
                 .onTapGesture {
