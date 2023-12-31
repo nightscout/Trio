@@ -508,10 +508,35 @@ extension MainChartView {
 /// calculates the glucose value thats the nearest to parameter 'time'
 /// if time is later than all the arrays values return the last element of BloodGlucose
 extension MainChartView {
+    
+//    private func timeToNearestGlucose(time: TimeInterval) -> BloodGlucose {
+//        var nextIndex = 0
+//        if glucose.last?.dateString.timeIntervalSince1970 ?? Date().timeIntervalSince1970 < time {
+//            return glucose.last ?? BloodGlucose(
+//                date: 0,
+//                dateString: Date(),
+//                unfiltered: nil,
+//                filtered: nil,
+//                noise: nil,
+//                type: nil
+//            )
+//        }
+//        for (index, value) in glucose.enumerated() {
+//            if value.dateString.timeIntervalSince1970 > time {
+//                nextIndex = index
+//                print("Break", value.dateString.timeIntervalSince1970, time)
+//                break
+//            }
+//        }
+//        return glucose[nextIndex]
+//    }
+
+    //MARK: TEST
+    ///fix for index out of range problem in simulator
     private func timeToNearestGlucose(time: TimeInterval) -> BloodGlucose {
-        var nextIndex = 0
-        if glucose.last?.dateString.timeIntervalSince1970 ?? Date().timeIntervalSince1970 < time {
-            return glucose.last ?? BloodGlucose(
+        /// If the glucose array is empty, return a default BloodGlucose object or handle it accordingly
+        guard let lastGlucose = glucose.last else {
+            return BloodGlucose(
                 date: 0,
                 dateString: Date(),
                 unfiltered: nil,
@@ -520,16 +545,22 @@ extension MainChartView {
                 type: nil
             )
         }
-        for (index, value) in glucose.enumerated() {
-            if value.dateString.timeIntervalSince1970 > time {
-                nextIndex = index
-                print("Break", value.dateString.timeIntervalSince1970, time)
-                break
-            }
+
+        /// If the last glucose entry is before the specified time, return the last entry
+        if lastGlucose.dateString.timeIntervalSince1970 < time {
+            return lastGlucose
         }
-        return glucose[nextIndex]
+
+        /// Find the index of the first element in the array whose date is greater than the specified time
+        if let nextIndex = glucose.firstIndex(where: { $0.dateString.timeIntervalSince1970 > time }) {
+            return glucose[nextIndex]
+        } else {
+            /// If no such element is found, return the last element in the array
+            return lastGlucose
+        }
     }
 
+    
     private func fullWidth(viewWidth: CGFloat) -> CGFloat {
         viewWidth * CGFloat(hours) / CGFloat(min(max(screenHours, 2), 24))
     }
