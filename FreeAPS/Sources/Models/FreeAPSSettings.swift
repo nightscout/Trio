@@ -55,6 +55,7 @@ struct FreeAPSSettings: JSON, Equatable {
     var displayPredictions: Bool = true
     var useLiveActivity: Bool = false
     var historyLayout: HistoryLayout = .twoTabs
+    var lockScreenView: LockScreenView = .simple
 }
 
 extension FreeAPSSettings: Decodable {
@@ -282,6 +283,10 @@ extension FreeAPSSettings: Decodable {
 
         if let historyLayout = try? container.decode(HistoryLayout.self, forKey: .historyLayout) {
             settings.historyLayout = historyLayout
+        }
+        
+        if let lockScreenView = try? container.decode(LockScreenView.self, forKey: .lockScreenView) {
+            settings.lockScreenView = lockScreenView
         }
 
         self = settings

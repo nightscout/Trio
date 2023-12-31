@@ -50,5 +50,6 @@
   "fattyMealFactor": 0.7,
   "sweetMeals": false,
   "sweetMealFactor": 2
-  "historyLayout": "twoTabs"
+  "historyLayout": "twoTabs",
+  "lockScreenView": "simple"
 }

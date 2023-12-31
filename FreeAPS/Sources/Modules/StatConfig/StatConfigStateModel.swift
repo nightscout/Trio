@@ -13,6 +13,7 @@ extension StatConfig {
         @Published var useFPUconversion: Bool = true
         @Published var tins: Bool = false
         @Published var historyLayout: HistoryLayout = .twoTabs
+        @Published var lockScreenView: LockScreenView = .simple
 
         var units: GlucoseUnits = .mmolL
 
@@ -29,6 +30,7 @@ extension StatConfig {
             subscribeSetting(\.skipBolusScreenAfterCarbs, on: $skipBolusScreenAfterCarbs) { skipBolusScreenAfterCarbs = $0 }
             subscribeSetting(\.oneDimensionalGraph, on: $oneDimensionalGraph) { oneDimensionalGraph = $0 }
             subscribeSetting(\.historyLayout, on: $historyLayout) { historyLayout = $0 }
+            subscribeSetting(\.lockScreenView, on: $lockScreenView) { lockScreenView = $0 }
 
             subscribeSetting(\.low, on: $low, initial: {
                 let value = max(min($0, 90), 40)

@@ -66,6 +66,17 @@ extension StatConfig {
                         }
                     }
                 } header: { Text("History Settings") }
+                
+                Section {
+                    Picker(
+                        selection: $state.lockScreenView,
+                        label: Text("Lock screen widget")
+                    ) {
+                        ForEach(LockScreenView.allCases) { selection in
+                            Text(selection.displayName).tag(selection)
+                        }
+                    }
+                } header: { Text("Lock screen widget") }
             }
             .onAppear(perform: configureView)
             .navigationBarTitle("UI/UX")
