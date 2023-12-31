@@ -43,6 +43,7 @@ extension Home {
         @Published var errorMessage: String? = nil
         @Published var errorDate: Date? = nil
         @Published var bolusProgress: Decimal?
+        @Published var bolusAmount: Decimal?
         @Published var eventualBG: Int?
         @Published var carbsRequired: Decimal?
         @Published var allowManualTemp = false
@@ -169,6 +170,11 @@ extension Home {
                 .weakAssign(to: \.bolusProgress, on: self)
                 .store(in: &lifetime)
 
+            apsManager.bolusAmount
+                          .receive(on: DispatchQueue.main)
+                          .weakAssign(to: \.bolusAmount, on: self)
+                          .store(in: &lifetime)
+            
             apsManager.pumpDisplayState
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] state in

@@ -21,6 +21,7 @@ protocol APSManager {
     var lastLoopDate: Date { get }
     var lastLoopDateSubject: PassthroughSubject<Date, Never> { get }
     var bolusProgress: CurrentValueSubject<Decimal?, Never> { get }
+    var bolusAmount: CurrentValueSubject<Decimal?, Never> { get }
     var pumpExpiresAtDate: CurrentValueSubject<Date?, Never> { get }
     var isManualTempBasal: Bool { get }
     func enactTempBasal(rate: Double, duration: TimeInterval)
@@ -102,6 +103,7 @@ final class BaseAPSManager: APSManager, Injectable {
     let lastError = CurrentValueSubject<Error?, Never>(nil)
 
     let bolusProgress = CurrentValueSubject<Decimal?, Never>(nil)
+    let bolusAmount = CurrentValueSubject<Decimal?, Never>(nil)
 
     var pumpDisplayState: CurrentValueSubject<PumpDisplayState?, Never> {
         deviceDataManager.pumpDisplayState
@@ -449,6 +451,7 @@ final class BaseAPSManager: APSManager, Injectable {
                     self.determineBasal().sink { _ in }.store(in: &self.lifetime)
                 }
                 self.bolusProgress.send(0)
+                self.bolusAmount.send(Decimal(roundedAmout))
             }
         } receiveValue: { _ in }
             .store(in: &lifetime)
@@ -559,6 +562,7 @@ final class BaseAPSManager: APSManager, Injectable {
                     debug(.apsManager, "Announcement Bolus succeeded")
                     self.announcementsStorage.storeAnnouncements([announcement], enacted: true)
                     self.bolusProgress.send(0)
+                    self.bolusAmount.send(Decimal(roundedAmount))
                 }
             }
         case let .pump(pumpAction):
@@ -693,6 +697,7 @@ final class BaseAPSManager: APSManager, Injectable {
             }
             return pump.enactBolus(units: Double(units), automatic: true).map { _ in
                 self.bolusProgress.send(0)
+                self.bolusAmount.send(units)
                 return ()
             }
             .eraseToAnyPublisher()
