@@ -103,7 +103,7 @@ extension Bolus {
                             Toggle(isOn: $state.useSuperBolus) {
                                 Text("Super Bolus")
                             }
-                            .toggleStyle(CheckboxToggleStyle())
+                            .toggleStyle(CheckboxToggleStyleVariant())
                             .font(.footnote)
                             .onChange(of: state.useSuperBolus) { _ in
                                 state.insulinCalculated = state.calculateInsulin()
@@ -179,7 +179,7 @@ extension Bolus {
                         label: { Text("Continue without bolus") }.frame(maxWidth: .infinity, alignment: .center)
                     }
                 }
-            }
+            }.scrollContentBackground(.hidden).background(color)
             .blur(radius: showInfo ? 3 : 0)
             .navigationTitle("Enact Bolus")
             .navigationBarTitleDisplayMode(.inline)
