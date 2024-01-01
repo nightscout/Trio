@@ -598,11 +598,11 @@ extension Home {
 
             let colorIcon = (colorScheme == .dark ? Color.white : Color.black).opacity(0.9)
 
-            let bolusTotal = state.bolusAmount ?? 0
+            let bolusTotal = state.boluses.last?.amount ?? 0
             let bolusFraction = progress * bolusTotal
 
             let bolusString =
-                (numberFormatter.string(from: bolusFraction as NSNumber) ?? "0")
+                (bolusProgressFormatter.string(from: bolusFraction as NSNumber) ?? "0")
                     + " of " +
                     (numberFormatter.string(from: bolusTotal as NSNumber) ?? "0")
                     + NSLocalizedString(" U", comment: "Insulin unit")
