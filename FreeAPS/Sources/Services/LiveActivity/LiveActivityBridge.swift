@@ -91,7 +91,7 @@ extension LiveActivityAttributes.ContentState {
         let iob = suggestion.iob ?? 0
 
         let lockScreenView = settings.lockScreenView.displayName
-        
+
         self.init(
             bg: formattedBG,
             trendSystemImage: trendString,
@@ -149,7 +149,7 @@ extension LiveActivityAttributes.ContentState {
     init(resolver: Resolver) {
         injectServices(resolver)
         broadcaster.register(GlucoseObserver.self, observer: self)
-        
+
         Foundation.NotificationCenter.default.addObserver(
             forName: UIApplication.didEnterBackgroundNotification,
             object: nil,

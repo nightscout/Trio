@@ -150,20 +150,20 @@ struct LiveActivity: Widget {
             // Lock screen/banner UI goes here
             if context.state.lockScreenView == "Simple" {
                 HStack(spacing: 3) {
-                   bgAndTrend(context: context).font(.title)
-                   Spacer()
-                   VStack(alignment: .trailing, spacing: 5) {
-                       changeLabel(context: context).font(.title3)
-                       updatedLabel(context: context).font(.caption).foregroundStyle(.black.opacity(0.7))
-                   }
-               }
-               .privacySensitive()
-               .imageScale(.small)
-               .padding(.all, 15)
-               .background(Color.white.opacity(0.2))
-               .foregroundColor(Color.black)
-               .activityBackgroundTint(Color.cyan.opacity(0.2))
-               .activitySystemActionForegroundColor(Color.black)
+                    bgAndTrend(context: context).font(.title)
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 5) {
+                        changeLabel(context: context).font(.title3)
+                        updatedLabel(context: context).font(.caption).foregroundStyle(.black.opacity(0.7))
+                    }
+                }
+                .privacySensitive()
+                .imageScale(.small)
+                .padding(.all, 15)
+                .background(Color.white.opacity(0.2))
+                .foregroundColor(Color.black)
+                .activityBackgroundTint(Color.cyan.opacity(0.2))
+                .activitySystemActionForegroundColor(Color.black)
             } else {
                 HStack(spacing: 2) {
                     VStack {

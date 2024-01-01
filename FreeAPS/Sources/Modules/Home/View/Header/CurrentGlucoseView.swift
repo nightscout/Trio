@@ -194,15 +194,9 @@ struct CircleShape: View {
     let gradient: AngularGradient
 
     var body: some View {
-        let colorBackground: Color = colorScheme == .dark ? Color(
-            red: 0.05490196078,
-            green: 0.05490196078,
-            blue: 0.05490196078
-        ) : .white
-
         Circle()
             .stroke(gradient, lineWidth: 6)
-            .background(Circle().fill(colorBackground))
+            .background(Circle().fill(Color("Chart")))
             .frame(width: 130, height: 130)
     }
 }

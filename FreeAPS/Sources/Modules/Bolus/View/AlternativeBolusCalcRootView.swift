@@ -55,6 +55,25 @@ extension Bolus {
             } else { return 0 }
         }
 
+        private var color: LinearGradient {
+            colorScheme == .dark ? LinearGradient(
+                gradient: Gradient(colors: [
+                    Color("Background_1"),
+                    Color("Background_1"),
+                    Color("Background_2"),
+                    Color("Background_1")
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+                :
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+        }
+
         var body: some View {
             Form {
                 Section {
@@ -65,7 +84,6 @@ extension Bolus {
                     }
                 } header: { Text("Predictions") }
 
-                Section {}
                 if fetch {
                     Section {
                         mealEntries
@@ -180,60 +198,43 @@ extension Bolus {
                     }
                 }
             }.scrollContentBackground(.hidden).background(color)
-            .blur(radius: showInfo ? 3 : 0)
-            .navigationTitle("Enact Bolus")
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarItems(
-                leading: Button {
-                    carbsView()
-                }
-                label: {
-                    HStack {
-                        Image(systemName: "chevron.backward")
-                        Text("Meal")
+                .blur(radius: showInfo ? 3 : 0)
+                .navigationTitle("Enact Bolus")
+                .navigationBarTitleDisplayMode(.inline)
+                .navigationBarItems(
+                    leading: Button {
+                        carbsView()
                     }
-                },
-                trailing: Button { state.hideModal() }
-                label: { Text("Close") }
-            )
-            .onAppear {
-                configureView {
-                    state.waitForSuggestionInitial = waitForSuggestion
-                    state.waitForSuggestion = waitForSuggestion
-                    state.insulinCalculated = state.calculateInsulin()
+                    label: {
+                        HStack {
+                            Image(systemName: "chevron.backward")
+                            Text("Meal")
+                        }
+                    },
+                    trailing: Button { state.hideModal() }
+                    label: { Text("Close") }
+                )
+                .onAppear {
+                    configureView {
+                        state.waitForSuggestionInitial = waitForSuggestion
+                        state.waitForSuggestion = waitForSuggestion
+                        state.insulinCalculated = state.calculateInsulin()
+                    }
                 }
-            }
-            .onDisappear {
-                if fetch, hasFatOrProtein, !keepForNextWiew, state.useCalc {
-                    state.delete(deleteTwice: true, meal: meal)
-                } else if fetch, !keepForNextWiew, state.useCalc {
-                    state.delete(deleteTwice: false, meal: meal)
+                .onDisappear {
+                    if fetch, hasFatOrProtein, !keepForNextWiew, state.useCalc {
+                        state.delete(deleteTwice: true, meal: meal)
+                    } else if fetch, !keepForNextWiew, state.useCalc {
+                        state.delete(deleteTwice: false, meal: meal)
+                    }
                 }
-            }
-            .sheet(isPresented: $showInfo) {
-                calculationsDetailView
-                    .presentationDetents(
-                        [fetch ? .large : .fraction(0.9), .large],
-                        selection: $calculatorDetent
-                    )
-            }
-        }
-
-        private var color: LinearGradient {
-            colorScheme == .dark ?  LinearGradient(
-                gradient: Gradient(colors: [
-                    // RGB(10, 34, 55)
-                    Color(red: 0.03921568627, green: 0.1333333333, blue: 0.2156862745),
-                    // RGB(3, 15, 28)
-                    Color(red: 0.011, green: 0.058, blue: 0.109),
-                    // RGB(10, 34, 55)
-                    Color(red: 0.03921568627, green: 0.1333333333, blue: 0.2156862745)
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(gradient: Gradient(colors: [Color.gray.opacity(0.1)]), startPoint: .top, endPoint: .bottom)
+                .sheet(isPresented: $showInfo) {
+                    calculationsDetailView
+                        .presentationDetents(
+                            [fetch ? .large : .fraction(0.9), .large],
+                            selection: $calculatorDetent
+                        )
+                }
         }
 
         var predictionChart: some View {

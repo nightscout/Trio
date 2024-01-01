@@ -508,7 +508,6 @@ extension MainChartView {
 /// calculates the glucose value thats the nearest to parameter 'time'
 /// if time is later than all the arrays values return the last element of BloodGlucose
 extension MainChartView {
-    
 //    private func timeToNearestGlucose(time: TimeInterval) -> BloodGlucose {
 //        var nextIndex = 0
 //        if glucose.last?.dateString.timeIntervalSince1970 ?? Date().timeIntervalSince1970 < time {
@@ -531,8 +530,9 @@ extension MainChartView {
 //        return glucose[nextIndex]
 //    }
 
-    //MARK: TEST
-    ///fix for index out of range problem in simulator
+    // MARK: TEST
+
+    /// fix for index out of range problem in simulator
     private func timeToNearestGlucose(time: TimeInterval) -> BloodGlucose {
         /// If the glucose array is empty, return a default BloodGlucose object or handle it accordingly
         guard let lastGlucose = glucose.last else {
@@ -560,7 +560,6 @@ extension MainChartView {
         }
     }
 
-    
     private func fullWidth(viewWidth: CGFloat) -> CGFloat {
         viewWidth * CGFloat(hours) / CGFloat(min(max(screenHours, 2), 24))
     }

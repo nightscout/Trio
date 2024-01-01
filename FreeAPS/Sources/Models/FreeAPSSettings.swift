@@ -284,7 +284,7 @@ extension FreeAPSSettings: Decodable {
         if let historyLayout = try? container.decode(HistoryLayout.self, forKey: .historyLayout) {
             settings.historyLayout = historyLayout
         }
-        
+
         if let lockScreenView = try? container.decode(LockScreenView.self, forKey: .lockScreenView) {
             settings.lockScreenView = lockScreenView
         }

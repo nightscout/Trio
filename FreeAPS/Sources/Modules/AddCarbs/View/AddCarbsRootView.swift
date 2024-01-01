@@ -30,6 +30,25 @@ extension AddCarbs {
             return formatter
         }
 
+        private var color: LinearGradient {
+            colorScheme == .dark ? LinearGradient(
+                gradient: Gradient(colors: [
+                    Color("Background_1"),
+                    Color("Background_1"),
+                    Color("Background_2"),
+                    Color("Background_1")
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+                :
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+        }
+
         var body: some View {
             Form {
                 if let carbsReq = state.carbsRequired, state.carbs < carbsReq {
@@ -161,23 +180,6 @@ extension AddCarbs {
                     label: { Text("Cancel") }
                 } header: { Text("Enter Meal Preset Name") }
             }
-        }
-
-        private var color: LinearGradient {
-            colorScheme == .dark ?  LinearGradient(
-                gradient: Gradient(colors: [
-                    // RGB(10, 34, 55)
-                    Color(red: 0.03921568627, green: 0.1333333333, blue: 0.2156862745),
-                    // RGB(3, 15, 28)
-                    Color(red: 0.011, green: 0.058, blue: 0.109),
-                    // RGB(10, 34, 55)
-                    Color(red: 0.03921568627, green: 0.1333333333, blue: 0.2156862745)
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(gradient: Gradient(colors: [Color.gray.opacity(0.1)]), startPoint: .top, endPoint: .bottom)
         }
 
         private var empty: Bool {

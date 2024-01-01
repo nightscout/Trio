@@ -66,7 +66,7 @@ extension StatConfig {
                         }
                     }
                 } header: { Text("History Settings") }
-                
+
                 Section {
                     Picker(
                         selection: $state.lockScreenView,
