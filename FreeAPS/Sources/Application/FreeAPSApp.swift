@@ -1,5 +1,6 @@
 import ActivityKit
 import CoreData
+import Foundation
 import SwiftUI
 import Swinject
 
@@ -53,7 +54,7 @@ import Swinject
     init() {
         debug(
             .default,
-            "iAPS Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(Bundle.main.buildDate)]"
+            "iAPS Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(Bundle.main.buildDate)] [buildExpires: \(Bundle.main.profileExpiration)]"
         )
         loadServices()
     }

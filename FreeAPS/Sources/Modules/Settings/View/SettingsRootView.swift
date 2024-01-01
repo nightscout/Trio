@@ -41,8 +41,9 @@ extension Settings {
                     }
                 } header: {
                     Text(
-                        "iAPS v\(state.versionNumber) (\(state.buildNumber))\nBranch: \(state.branch) \(state.copyrightNotice) "
-                    ).textCase(nil)
+                        "iAPS v\(state.versionNumber) (\(state.buildNumber))\nBranch: \(state.branch) \(state.copyrightNotice)\nBuild Expires: \(Bundle.main.profileExpiration)"
+                    )
+                    .textCase(nil)
                 }.listRowBackground(Color.chart)
 
                 Section {
