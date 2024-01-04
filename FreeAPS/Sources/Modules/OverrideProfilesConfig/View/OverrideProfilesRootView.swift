@@ -16,6 +16,24 @@ extension OverrideProfilesConfig {
         @Environment(\.dismiss) var dismiss
         @Environment(\.managedObjectContext) var moc
         @Environment(\.colorScheme) var colorScheme
+        var color: LinearGradient {
+            colorScheme == .dark ? LinearGradient(
+                gradient: Gradient(colors: [
+                    Color("Background_1"),
+                    Color("Background_1"),
+                    Color("Background_2")
+                    // Color("Background_1")
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+                :
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+        }
 
         @FetchRequest(
             entity: OverridePresets.entity(),
@@ -40,25 +58,6 @@ extension OverrideProfilesConfig {
             }
             formatter.roundingMode = .halfUp
             return formatter
-        }
-
-        private var color: LinearGradient {
-            colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color("Background_1"),
-                    Color("Background_1"),
-                    Color("Background_2"),
-                    Color("Background_1")
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
         }
 
         var presetPopover: some View {

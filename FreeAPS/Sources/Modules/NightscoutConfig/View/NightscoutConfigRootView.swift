@@ -10,6 +10,26 @@ extension NightscoutConfig {
         @State var isImportAlertPresented = false
         @State var importedHasRun = false
 
+        @Environment(\.colorScheme) var colorScheme
+        var color: LinearGradient {
+            colorScheme == .dark ? LinearGradient(
+                gradient: Gradient(colors: [
+                    Color("Background_1"),
+                    Color("Background_1"),
+                    Color("Background_2")
+                    // Color("Background_1")
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+                :
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+        }
+
         @FetchRequest(
             entity: ImportError.entity(),
             sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)], predicate: NSPredicate(
@@ -139,6 +159,7 @@ extension NightscoutConfig {
                     Toggle("Remote control", isOn: $state.allowAnnouncements)
                 } header: { Text("Allow Remote control of iAPS") }
             }
+            .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)
             .navigationBarTitle("Nightscout Config")
             .navigationBarTitleDisplayMode(.automatic)
