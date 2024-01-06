@@ -208,6 +208,6 @@ public struct SetInsulinScheduleCommand : NonceResyncableMessageBlock {
 
 extension SetInsulinScheduleCommand: CustomDebugStringConvertible {
     public var debugDescription: String {
-        return "SetInsulinScheduleCommand(nonce:\(nonce), \(deliverySchedule))"
+        return "SetInsulinScheduleCommand(nonce:\(Data(bigEndian: nonce).hexadecimalString), \(deliverySchedule))"
     }
 }
