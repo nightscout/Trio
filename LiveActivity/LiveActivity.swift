@@ -138,7 +138,8 @@ struct LiveActivity: Widget {
             }
             .chartXAxis {
                 AxisMarks(position: .automatic) { _ in
-                    AxisValueLabel().foregroundStyle(Color.white)
+                    AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
+                        .foregroundStyle(Color.white)
                     AxisGridLine(stroke: .init(lineWidth: 0.1, dash: [2, 3])).foregroundStyle(Color.white)
                 }
             }
