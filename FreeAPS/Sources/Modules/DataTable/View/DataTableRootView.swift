@@ -107,7 +107,20 @@ extension DataTable {
                 .onAppear(perform: configureView)
                 .navigationTitle("History")
                 .navigationBarTitleDisplayMode(.inline)
-                .navigationBarItems(trailing: Button("Close", action: state.hideModal))
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("Close") {
+                            state.hideModal()
+                        }
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        switch state.mode {
+                        case .treatments: addInsulinButton
+                        case .meals: EmptyView()
+                        case .glucose: addGlucoseButton
+                        }
+                    }
+                }
                 .sheet(isPresented: $showManualGlucose) {
                     addGlucoseView
                 }
@@ -116,23 +129,39 @@ extension DataTable {
                     addExternalInsulinView
                 }
         }
+        
+        private var addGlucoseButton: some View {
+            Button(
+                action: { showManualGlucose = true
+                    state.manualGlucose = 0 },
+                label: { 
+                    Image(systemName: "plus.circle.fill")
+                    Text("Add")
+                }
+            )
+        }
+        
+        private var addInsulinButton: some View {
+            Button(action: { showExternalInsulin = true
+               state.externalInsulinDate = Date() }, label: {
+               HStack {
+                   Image(systemName: "plus.circle.fill")
+                   Text("Add")
+               }
+           })
+        }
 
         private var treatmentsList: some View {
             List {
                 HStack {
-                    Button(action: { showExternalInsulin = true
-                        state.externalInsulinDate = Date() }, label: {
-                        HStack {
-                            Image(systemName: "syringe")
-                            Text("Add")
-                                .foregroundColor(Color.secondary)
-                                .font(.caption)
-                        }.frame(maxWidth: .infinity, alignment: .leading)
-                    }).buttonStyle(.borderless)
-
                     if state.historyLayout == .twoTabs {
+                        Text("Insulin").foregroundStyle(.secondary)
                         Spacer()
                         filterEntriesButton
+                    } else {
+                        Text("Insulin").foregroundStyle(.secondary)
+                        Spacer()
+                        Text("Time").foregroundStyle(.secondary)
                     }
                 }
                 if !state.treatments.isEmpty {
@@ -169,13 +198,7 @@ extension DataTable {
         private var glucoseList: some View {
             List {
                 HStack {
-                    Button(
-                        action: { showManualGlucose = true
-                            state.manualGlucose = 0 },
-                        label: { Image(systemName: "plus.circle.fill").foregroundStyle(.secondary)
-                        }
-                    ).buttonStyle(.borderless)
-                    Text(state.units.rawValue).foregroundStyle(.secondary)
+                   Text("Values").foregroundStyle(.secondary)
                     Spacer()
                     Text("Time").foregroundStyle(.secondary)
                 }
@@ -228,7 +251,13 @@ extension DataTable {
                 .onAppear(perform: configureView)
                 .navigationTitle("Add Glucose")
                 .navigationBarTitleDisplayMode(.automatic)
-                .navigationBarItems(trailing: Button("Close", action: { showManualGlucose = false }))
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("Close") {
+                            showManualGlucose = false
+                        }
+                    }
+                }
             }
         }
 
@@ -237,7 +266,6 @@ extension DataTable {
                 HStack {
                     Text(showFutureEntries ? "Hide Future" : "Show Future")
                         .foregroundColor(Color.secondary)
-                        .font(.caption)
                     Image(systemName: showFutureEntries ? "calendar.badge.minus" : "calendar.badge.plus")
                 }.frame(maxWidth: .infinity, alignment: .trailing)
             }).buttonStyle(.borderless)

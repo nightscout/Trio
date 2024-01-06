@@ -307,7 +307,13 @@ extension OverrideProfilesConfig {
                 .onAppear { state.savedSettings() }
                 .navigationBarTitle("Profiles")
                 .navigationBarTitleDisplayMode(.inline)
-                .navigationBarItems(trailing: Button("Close", action: state.hideModal))
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Close") {
+                            state.hideModal()
+                        }
+                    }
+                }
         }
 
         @ViewBuilder private func profilesView(for preset: OverridePresets) -> some View {

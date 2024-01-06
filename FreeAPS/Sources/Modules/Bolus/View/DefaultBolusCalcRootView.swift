@@ -170,19 +170,24 @@ extension Bolus {
 
                 .navigationTitle("Enact Bolus")
                 .navigationBarTitleDisplayMode(.inline)
-                .navigationBarItems(
-                    leading: Button {
-                        carbsView()
-                    }
-                    label: {
-                        HStack {
-                            Image(systemName: "chevron.backward")
-                            Text("Meal")
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        if !fetch {
+                            Button("Close") {
+                                state.hideModal()
+                            }
+                        } else {
+                            Button {
+                                carbsView()
+                            } label: {
+                                HStack {
+                                    Image(systemName: "chevron.backward")
+                                    Text("Meal")
+                                }
+                            }
                         }
-                    },
-                    trailing: Button { state.hideModal() }
-                    label: { Text("Close") }
-                )
+                    }
+                }
                 .popup(isPresented: presentInfo, alignment: .center, direction: .bottom) {
                     bolusInfo
                 }
@@ -210,12 +215,8 @@ extension Bolus {
         }
 
         func carbsView() {
-            if fetch {
-                keepForNextWiew = true
-                state.backToCarbsView(complexEntry: fetch, meal, override: false)
-            } else {
-                state.backToCarbsView(complexEntry: false, meal, override: true)
-            }
+            keepForNextWiew = true
+            state.backToCarbsView(complexEntry: true, meal, override: false)
         }
 
         var mealEntries: some View {

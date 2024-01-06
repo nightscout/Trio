@@ -162,7 +162,13 @@ extension AddTempTarget {
                 }
                 .navigationTitle("Enact Temp Target")
                 .navigationBarTitleDisplayMode(.inline)
-                .navigationBarItems(trailing: Button("Close", action: state.hideModal))
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Close") {
+                            state.hideModal()
+                        }
+                    }
+                }
         }
 
         private func presetView(for preset: TempTarget) -> some View {
