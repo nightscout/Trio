@@ -7,19 +7,22 @@ struct DecimalTextField: UIViewRepresentable {
     private var formatter: NumberFormatter
     private var autofocus: Bool
     private var cleanInput: Bool
+    private var useButtons: Bool
 
     init(
         _ placeholder: String,
         value: Binding<Decimal>,
         formatter: NumberFormatter,
         autofocus: Bool = false,
-        cleanInput: Bool = false
+        cleanInput: Bool = false,
+        useButtons: Bool = true
     ) {
         self.placeholder = placeholder
         _value = value
         self.formatter = formatter
         self.autofocus = autofocus
         self.cleanInput = cleanInput
+        self.useButtons = useButtons
     }
 
     func makeUIView(context: Context) -> UITextField {
@@ -29,6 +32,35 @@ struct DecimalTextField: UIViewRepresentable {
         textfield.placeholder = placeholder
         textfield.text = cleanInput ? "" : formatter.string(for: value) ?? placeholder
         textfield.textAlignment = .right
+
+        lazy var toolBar: UIToolbar = {
+            let tool: UIToolbar = .init(frame: .init(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 35))
+            tool.barStyle = .default
+            tool.isTranslucent = true
+            tool.sizeToFit()
+
+            let spaceArea: UIBarButtonItem = .init(systemItem: .flexibleSpace)
+            let clearButton: UIBarButtonItem = .init(
+                title: "Clear",
+                style: .plain,
+                target: self,
+                action: #selector(textfield.clearButtonTapped(button:))
+            )
+            let doneButton: UIBarButtonItem = .init(
+                title: "Done",
+                style: .done,
+                target: self,
+                action: #selector(textfield.doneButtonTapped(button:))
+            )
+            tool.setItems([clearButton, spaceArea, doneButton], animated: false)
+            tool.isUserInteractionEnabled = true
+
+            return tool
+        }()
+
+        if useButtons {
+            textfield.inputAccessoryView = toolBar
+        }
 
         if autofocus {
             DispatchQueue.main.async {
