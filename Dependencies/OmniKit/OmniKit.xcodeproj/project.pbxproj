@@ -166,6 +166,7 @@
 		D845A1522AF8A51000EA0853 /* SilencePodSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D845A1512AF8A51000EA0853 /* SilencePodSelectionView.swift */; };
 		D85AEAC82B1403C000081044 /* PodDiagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = D85AEAC72B1403C000081044 /* PodDiagnostics.swift */; };
 		D85AEACA2B1403CB00081044 /* ReadPodInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D85AEAC92B1403CB00081044 /* ReadPodInfoView.swift */; };
+		D8DA5CCB2B49EDD400C54E6C /* SlideButton in Frameworks */ = {isa = PBXBuildFile; productRef = D8DA5CCA2B49EDD400C54E6C /* SlideButton */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -444,6 +445,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D8DA5CCB2B49EDD400C54E6C /* SlideButton in Frameworks */,
 				CEF2639B29D88516009921F1 /* OmniKit.framework in Frameworks */,
 				CEC751E329D88392006E9D24 /* LoopKitUI.framework in Frameworks */,
 			);
@@ -889,6 +891,9 @@
 			dependencies = (
 			);
 			name = OmniKitUI;
+			packageProductDependencies = (
+				D8DA5CCA2B49EDD400C54E6C /* SlideButton */,
+			);
 			productName = OmniKitUI;
 			productReference = C124020B29C7D92700B32844 /* OmniKitUI.framework */;
 			productType = "com.apple.product-type.framework";
@@ -993,6 +998,9 @@
 				hi,
 			);
 			mainGroup = C124016229C7D87A00B32844;
+			packageReferences = (
+				D8DA5CC92B49EDD400C54E6C /* XCRemoteSwiftPackageReference "SlideButton" */,
+			);
 			productRefGroup = C124016D29C7D87A00B32844 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -1722,6 +1730,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		D8DA5CC92B49EDD400C54E6C /* XCRemoteSwiftPackageReference "SlideButton" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/no-comment/SlideButton";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D8DA5CCA2B49EDD400C54E6C /* SlideButton */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D8DA5CC92B49EDD400C54E6C /* XCRemoteSwiftPackageReference "SlideButton" */;
+			productName = SlideButton;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C124016329C7D87A00B32844 /* Project object */;
 }

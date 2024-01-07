@@ -8,6 +8,7 @@
 
 import SwiftUI
 import LoopKitUI
+import SlideButton
 
 struct DeactivatePodView: View {
     
@@ -65,15 +66,8 @@ struct DeactivatePodView: View {
                     }
                     .disabled(viewModel.state.isProcessing)
                 }
-                Button(action: {
-                    viewModel.continueButtonTapped()
-                }) {
-                    Text(viewModel.state.actionButtonDescription)
-                        .accessibility(identifier: "button_next_action")
-                        .accessibility(label: Text(viewModel.state.actionButtonAccessibilityLabel))
-                        .actionButtonStyle(viewModel.state.actionButtonStyle)
-                }
-                .disabled(viewModel.state.isProcessing)
+                actionButton
+                    .disabled(viewModel.state.isProcessing)
             }
             .padding()
         }
@@ -93,5 +87,30 @@ struct DeactivatePodView: View {
             primaryButton: .cancel(),
             secondaryButton: .default(FrameworkLocalText("Continue", comment: "Title of button to continue discard"), action: { viewModel.discardPod() })
         )
+    }
+
+    var actionText: some View {
+        Text(self.viewModel.state.actionButtonDescription)
+            .accessibility(identifier: "button_next_action")
+            .accessibility(label: Text(self.viewModel.state.actionButtonAccessibilityLabel))
+            .font(.headline)
+    }
+
+    @ViewBuilder
+    var actionButton: some View {
+        if self.viewModel.stateNeedsDeliberateUserAcceptance {
+            SlideButton(styling: .init(indicatorSize: 60, indicatorColor: Color.red), action: {
+                self.viewModel.continueButtonTapped()
+            }) {
+                actionText
+            }
+        } else {
+            Button(action: {
+                self.viewModel.continueButtonTapped()
+            }) {
+                actionText
+                    .actionButtonStyle(.primary)
+            }
+        }
     }
 }
