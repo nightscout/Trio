@@ -122,11 +122,11 @@ extension DataTable {
                     }
                 }
                 .sheet(isPresented: $showManualGlucose) {
-                    addGlucoseView
+                    addGlucoseView()
                 }
                 .sheet(isPresented: $showExternalInsulin, onDismiss: { if isAmountUnconfirmed { state.externalInsulinAmount = 0
                     state.externalInsulinDate = Date() } }) {
-                    addExternalInsulinView
+                    addExternalInsulinView()
                 }
         }
         
@@ -214,7 +214,10 @@ extension DataTable {
             }
         }
 
-        var addGlucoseView: some View {
+       @ViewBuilder private func addGlucoseView() -> some View {
+             let limitLow: Decimal = state.units == .mmolL ? 0.8 : 14
+             let limitHigh: Decimal = state.units == .mmolL ? 40 : 720
+            
             NavigationView {
                 VStack {
                     Form {
@@ -234,8 +237,6 @@ extension DataTable {
 
                         Section {
                             HStack {
-                                let limitLow: Decimal = state.units == .mmolL ? 0.8 : 14
-                                let limitHigh: Decimal = state.units == .mmolL ? 40 : 720
                                 Button {
                                     state.addManualGlucose()
                                     isAmountUnconfirmed = false
@@ -245,8 +246,9 @@ extension DataTable {
                                     .frame(maxWidth: .infinity, alignment: .center)
                                     .disabled(state.manualGlucose < limitLow || state.manualGlucose > limitHigh)
                             }
-                        }
-                    }
+                        }.listRowBackground(state.manualGlucose < limitLow || state.manualGlucose > limitHigh ? Color(.systemGray4) : Color(.systemBlue))
+                            .tint(.white)
+                    }.scrollContentBackground(.hidden).background(color)
                 }
                 .onAppear(perform: configureView)
                 .navigationTitle("Add Glucose")
@@ -392,7 +394,7 @@ extension DataTable {
             }
         }
 
-        var addExternalInsulinView: some View {
+        @ViewBuilder func addExternalInsulinView() -> some View {
             NavigationView {
                 VStack {
                     Form {
@@ -416,6 +418,26 @@ extension DataTable {
                         }
 
                         let amountWarningCondition = (state.externalInsulinAmount > state.maxBolus)
+                        
+                        var listBackgroundColor: Color {
+                            if amountWarningCondition {
+                                return Color.red
+                            } else if state.externalInsulinAmount <= 0 || state.externalInsulinAmount > state.maxBolus * 3 {
+                                return Color(.systemGray4)
+                            } else {
+                                return Color(.systemBlue)
+                            }
+                        }
+                        
+                        var foregroundColor: Color {
+                            if amountWarningCondition {
+                                return Color.white
+                            } else if state.externalInsulinAmount <= 0 || state.externalInsulinAmount > state.maxBolus * 3 {
+                                return Color.secondary
+                            } else {
+                                return Color.white
+                            }
+                        }
 
                         Section {
                             HStack {
@@ -427,7 +449,7 @@ extension DataTable {
                                 label: {
                                     Text("Log external insulin")
                                 }
-                                .foregroundColor(amountWarningCondition ? Color.white : Color.accentColor)
+                                .foregroundStyle(foregroundColor)
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .disabled(
                                     state.externalInsulinAmount <= 0 || state.externalInsulinAmount > state.maxBolus * 3
@@ -440,17 +462,20 @@ extension DataTable {
                                 Text("⚠️ Warning! The entered insulin amount is greater than your Max Bolus setting!")
                             }
                         }
-                        .listRowBackground(
-                            amountWarningCondition ? Color
-                                .red : colorScheme == .dark ? Color(UIColor.secondarySystemBackground) : Color.white
-                        )
-                    }
+                        .listRowBackground(listBackgroundColor).tint(.white)
+                    }.scrollContentBackground(.hidden).background(color)
                 }
                 .onAppear(perform: configureView)
                 .navigationTitle("External Insulin")
                 .navigationBarTitleDisplayMode(.inline)
-                .navigationBarItems(trailing: Button("Close", action: { showExternalInsulin = false
-                    state.externalInsulinAmount = 0 }))
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("Close") {
+                            showExternalInsulin = false
+                           state.externalInsulinAmount = 0
+                        }
+                    }
+                }
             }
         }
 
