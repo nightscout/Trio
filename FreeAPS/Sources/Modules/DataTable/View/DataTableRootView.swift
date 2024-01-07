@@ -60,10 +60,8 @@ extension DataTable {
         private var color: LinearGradient {
             colorScheme == .dark ? LinearGradient(
                 gradient: Gradient(colors: [
-                    Color("Background_1"),
-                    Color("Background_1"),
-                    Color("Background_2")
-                    // Color("Background_1")
+                    Color.bgDarkBlue,
+                   Color.bgDarkerDarkBlue
                 ]),
                 startPoint: .top,
                 endPoint: .bottom
@@ -115,9 +113,15 @@ extension DataTable {
                     }
                     ToolbarItem(placement: .topBarTrailing) {
                         switch state.mode {
-                        case .treatments: addInsulinButton
+                        case .treatments: addButton( {
+                            showExternalInsulin = true
+                            state.externalInsulinDate = Date()
+                        })
                         case .meals: EmptyView()
-                        case .glucose: addGlucoseButton
+                        case .glucose: addButton({
+                            showManualGlucose = true
+                            state.manualGlucose = 0 
+                        })
                         }
                     }
                 }
@@ -130,25 +134,14 @@ extension DataTable {
                 }
         }
         
-        private var addGlucoseButton: some View {
+         @ViewBuilder func addButton(_ action: @escaping () -> Void) -> some View {
             Button(
-                action: { showManualGlucose = true
-                    state.manualGlucose = 0 },
-                label: { 
+                action: action,
+                label: {
                     Image(systemName: "plus.circle.fill")
                     Text("Add")
                 }
             )
-        }
-        
-        private var addInsulinButton: some View {
-            Button(action: { showExternalInsulin = true
-               state.externalInsulinDate = Date() }, label: {
-               HStack {
-                   Image(systemName: "plus.circle.fill")
-                   Text("Add")
-               }
-           })
         }
 
         private var treatmentsList: some View {

@@ -38,10 +38,8 @@ extension Bolus {
         private var color: LinearGradient {
             colorScheme == .dark ? LinearGradient(
                 gradient: Gradient(colors: [
-                    Color("Background_1"),
-                    Color("Background_1"),
-                    Color("Background_2")
-                    // Color("Background_1")
+                    Color.bgDarkBlue,
+                   Color.bgDarkerDarkBlue
                 ]),
                 startPoint: .top,
                 endPoint: .bottom
@@ -178,7 +176,8 @@ extension Bolus {
                             }
                         } else {
                             Button {
-                                carbsView()
+                                keepForNextWiew = true
+                                state.backToCarbsView(complexEntry: true, meal, override: false)
                             } label: {
                                 HStack {
                                     Image(systemName: "chevron.backward")
@@ -212,11 +211,6 @@ extension Bolus {
 
         var hasFatOrProtein: Bool {
             ((meal.first?.fat ?? 0) > 0) || ((meal.first?.protein ?? 0) > 0)
-        }
-
-        func carbsView() {
-            keepForNextWiew = true
-            state.backToCarbsView(complexEntry: true, meal, override: false)
         }
 
         var mealEntries: some View {
