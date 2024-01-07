@@ -3,8 +3,14 @@ import Charts
 import SwiftUI
 import WidgetKit
 
+private enum Size {
+    case minimal
+    case compact
+    case expanded
+}
+
 struct LiveActivity: Widget {
-    let dateFormatter: DateFormatter = {
+    private let dateFormatter: DateFormatter = {
         var f = DateFormatter()
         f.dateStyle = .none
         f.timeStyle = .short
@@ -26,23 +32,16 @@ struct LiveActivity: Widget {
         return formatter
     }
 
-    func changeLabel(context: ActivityViewContext<LiveActivityAttributes>) -> Text {
-        if !context.isStale && !context.state.change.isEmpty {
-            Text(context.state.change)
+    @ViewBuilder private func changeLabel(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
+        if !context.state.change.isEmpty {
+            if context.isStale {
+                Text(context.state.change).foregroundStyle(.primary.opacity(0.5))
+                    .strikethrough(pattern: .solid, color: .red.opacity(0.6))
+            } else {
+                Text(context.state.change)
+            }
         } else {
             Text("--")
-        }
-    }
-
-    func updatedLabel(context: ActivityViewContext<LiveActivityAttributes>) -> Text {
-        Text("Updated: \(dateFormatter.string(from: context.state.date))").italic()
-    }
-
-    func bgLabel(context: ActivityViewContext<LiveActivityAttributes>) -> Text {
-        if context.isStale {
-            Text("--")
-        } else {
-            Text(context.state.bg).fontWeight(.bold)
         }
     }
 
@@ -69,24 +68,89 @@ struct LiveActivity: Widget {
         if context.isStale {
             Text("--")
         } else {
-            if let trendSystemImage = context.state.trendSystemImage {
+            if let trendSystemImage = context.state.direction {
                 Image(systemName: trendSystemImage)
             }
         }
     }
-
-    @ViewBuilder func bgAndTrend(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
-        if context.isStale {
-            Text("--")
-        } else {
-            HStack {
-                Text(context.state.bg).fontWeight(.bold)
-                if let trendSystemImage = context.state.trendSystemImage {
-                    Image(systemName: trendSystemImage)
+    
+    private func updatedLabel(context: ActivityViewContext<LiveActivityAttributes>) -> Text {
+            let text = Text("Updated: \(dateFormatter.string(from: context.state.date))")
+            if context.isStale {
+                if #available(iOSApplicationExtension 17.0, *) {
+                    return text.bold().foregroundStyle(.red)
+                } else {
+                    return text.bold().foregroundColor(.red)
                 }
+            } else {
+                return text
             }
         }
+    
+    private func bgLabel(context: ActivityViewContext<LiveActivityAttributes>) -> Text {
+        Text(context.state.bg)
+            .fontWeight(.bold)
+            .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
     }
+
+    private func bgAndTrend(context: ActivityViewContext<LiveActivityAttributes>, size: Size) -> (some View, Int) {
+          var characters = 0
+
+          let bgText = context.state.bg
+          characters += bgText.count
+
+          // narrow mode is for the minimal dynamic island view
+          // there is not enough space to show all three arrow there
+          // and everything has to be squeezed together to some degree
+          // only display the first arrow character and make it red in case there were more characters
+          var directionText: String?
+          var warnColor: Color?
+          if let direction = context.state.direction {
+              if size == .compact {
+                  directionText = String(direction[direction.startIndex ... direction.startIndex])
+
+                  if direction.count > 1 {
+                      warnColor = Color.red
+                  }
+              } else {
+                  directionText = direction
+              }
+
+              characters += directionText!.count
+          }
+
+          let spacing: CGFloat
+          switch size {
+          case .minimal: spacing = -1
+          case .compact: spacing = 0
+          case .expanded: spacing = 3
+          }
+
+          let stack = HStack(spacing: spacing) {
+              Text(bgText)
+                  .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
+              if let direction = directionText {
+                  let text = Text(direction)
+                  switch size {
+                  case .minimal:
+                      let scaledText = text.scaleEffect(x: 0.7, y: 0.7, anchor: .leading)
+                      if let warnColor {
+                          scaledText.foregroundStyle(warnColor)
+                      } else {
+                          scaledText
+                      }
+                  case .compact:
+                      text.scaleEffect(x: 0.8, y: 0.8, anchor: .leading).padding(.trailing, -3)
+
+                  case .expanded:
+                      text.scaleEffect(x: 0.7, y: 0.7, anchor: .leading).padding(.trailing, -5)
+                  }
+              }
+          }
+          .foregroundStyle(context.isStale ? Color.primary.opacity(0.5) : Color.primary)
+
+          return (stack, characters)
+      }
 
     @ViewBuilder func bobble(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
         @State var angularGradient = AngularGradient(colors: [
@@ -151,20 +215,21 @@ struct LiveActivity: Widget {
             // Lock screen/banner UI goes here
             if context.state.lockScreenView == "Simple" {
                 HStack(spacing: 3) {
-                   bgAndTrend(context: context).font(.title)
-                   Spacer()
-                   VStack(alignment: .trailing, spacing: 5) {
-                       changeLabel(context: context).font(.title3)
-                       updatedLabel(context: context).font(.caption).foregroundStyle(.black.opacity(0.7))
-                   }
-               }
-               .privacySensitive()
-               .imageScale(.small)
+                    bgAndTrend(context: context, size: .expanded).0.font(.title)
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 5) {
+                        changeLabel(context: context).font(.title3)
+                        updatedLabel(context: context).font(.caption).foregroundStyle(.primary.opacity(0.7))
+                    }
+                }
+                .privacySensitive()
                .padding(.all, 15)
-               .background(Color.white.opacity(0.2))
-               .foregroundColor(Color.black)
-               .activityBackgroundTint(Color.cyan.opacity(0.2))
-               .activitySystemActionForegroundColor(Color.black)
+               // Semantic BackgroundStyle and Color values work here. They adapt to the given interface style (light mode, dark mode)
+               // Semantic UIColors do NOT (as of iOS 17.1.1). Like UIColor.systemBackgroundColor (it does not adapt to changes of the interface style)
+               // The colorScheme environment varaible that is usually used to detect dark mode does NOT work here (it reports false values)
+               .foregroundStyle(Color.primary)
+               .background(BackgroundStyle.background.opacity(0.4))
+               .activityBackgroundTint(Color.clear)
             } else {
                 HStack(spacing: 2) {
                     VStack {
@@ -181,7 +246,7 @@ struct LiveActivity: Widget {
                                 bgLabel(context: context).font(.title2).imageScale(.small)
                                 changeLabel(context: context).font(.callout)
                             }
-                        }.scaleEffect(0.85).offset(y: 15)
+                        }.scaleEffect(0.85).offset(y: 18)
                         mealLabel(context: context).padding(.bottom, 8)
                         updatedLabel(context: context).font(.caption).padding(.bottom, 50)
                     }
@@ -198,48 +263,51 @@ struct LiveActivity: Widget {
                 // Expanded UI goes here.  Compose the expanded UI through
                 // various regions, like leading/trailing/center/bottom
                 DynamicIslandExpandedRegion(.leading) {
-                    HStack(spacing: 3) {
-                        bgAndTrend(context: context)
-                    }.imageScale(.small).font(.title).padding(.leading, 5)
+                    bgAndTrend(context: context, size: .expanded).0.font(.title2).padding(.leading, 5)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    changeLabel(context: context).font(.title).padding(.trailing, 5)
+                    changeLabel(context: context).font(.title2).padding(.trailing, 5)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    chart(context: context)
+                    if context.state.lockScreenView == "Simple" {
+                        Group {
+                             updatedLabel(context: context).font(.caption).foregroundStyle(Color.secondary)
+                         }
+                         .frame(
+                             maxHeight: .infinity,
+                             alignment: .bottom
+                         )
+                    } else {
+                        chart(context: context)
+                    }
                 }
                 DynamicIslandExpandedRegion(.center) {
-                    updatedLabel(context: context).font(.caption).foregroundStyle(Color.secondary)
+                    if context.state.lockScreenView == "Detailed" {
+                        updatedLabel(context: context).font(.caption).foregroundStyle(Color.secondary)
+                    }
                 }
             } compactLeading: {
-                HStack(spacing: 1) {
-                    bgAndTrend(context: context)
-                }.bold().imageScale(.small).padding(.leading, 5)
+                bgAndTrend(context: context, size: .compact).0.padding(.leading, 4)
             } compactTrailing: {
-                changeLabel(context: context).padding(.trailing, 5)
+                changeLabel(context: context).padding(.trailing, 4)
             } minimal: {
-                bgLabel(context: context).bold()
+                let (_label, characterCount) = bgAndTrend(context: context, size: .minimal)
+
+              let label = _label.padding(.leading, 7).padding(.trailing, 3)
+
+              if characterCount < 4 {
+                  label
+              } else if characterCount < 5 {
+                  label.fontWidth(.condensed)
+              } else {
+                  label.fontWidth(.compressed)
+              }
             }
             .widgetURL(URL(string: "freeaps-x://"))
-            .keylineTint(Color.cyan.opacity(0.5))
+            .keylineTint(Color.purple)
+           .contentMargins(.horizontal, 0, for: .minimal)
+           .contentMargins(.trailing, 0, for: .compactLeading)
+           .contentMargins(.leading, 0, for: .compactTrailing)
         }
     }
 }
-
-// private extension LiveActivityAttributes {
-//    static var preview: LiveActivityAttributes {
-//        LiveActivityAttributes(startDate: Date())
-//    }
-// }
-//
-// private extension LiveActivityAttributes.ContentState {
-//    static var test: LiveActivityAttributes.ContentState {
-//        LiveActivityAttributes.ContentState(bg: "100", trendSystemImage: "arrow.right", change: "+2", date: Date())
-//    }
-// }
-//
-// #Preview("Notification", as: .content, using: LiveActivityAttributes.preview) {
-//    LiveActivity()
-// } contentStates: {
-//    LiveActivityAttributes.ContentState.test
-// }
