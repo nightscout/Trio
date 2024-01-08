@@ -11,6 +11,7 @@ extension Home {
         @StateObject var state = StateModel()
         @State var isStatusPopupPresented = false
         @State var showCancelAlert = false
+        @State var isMenuPresented = false
 
         struct Buttons: Identifiable {
             let label: String
@@ -396,6 +397,25 @@ extension Home {
                     .padding([.leading, .trailing], 10)
 
                 HStack {
+                    Button {
+                        state.showModal(for: .dataTable)
+                    }
+                    label: {
+                        if #available(iOS 17.0, *) {
+                            Image(systemName: "book.pages")
+                                .font(.system(size: 24))
+                                .foregroundColor(colorIcon)
+                                .padding(8)
+                        } else {
+                            Image(systemName: "book")
+                                .font(.system(size: 24))
+                                .foregroundColor(colorIcon)
+                                .padding(8)
+                        }
+                    }
+                    .foregroundColor(colorIcon)
+                    .buttonStyle(.borderless)
+                    Spacer()
                     Button { state.showModal(for: .addCarbs(editMode: false, override: false)) }
                     label: {
                         ZStack(alignment: Alignment(horizontal: .trailing, vertical: .bottom)) {
@@ -461,44 +481,35 @@ extension Home {
                     .buttonStyle(.borderless)
                     Spacer()
                     Button {
-                        state.showModal(for: .dataTable)
-                    }
-                    label: {
-                        if #available(iOS 17.0, *) {
-                            Image(systemName: "book.pages")
-                                .font(.system(size: 24))
-                                .foregroundColor(colorIcon)
-                                .padding(8)
-                        } else {
-                            Image(systemName: "book")
-                                .font(.system(size: 24))
-                                .foregroundColor(colorIcon)
-                                .padding(8)
-                        }
-                    }
-                    .foregroundColor(colorIcon)
-                    .buttonStyle(.borderless)
-                    Spacer()
-                    Button { state.showModal(for: .statistics)
-                    }
-                    label: {
-                        Image(systemName: "chart.bar")
-                            .font(.system(size: 24))
-                            .foregroundColor(colorIcon)
+                        isMenuPresented.toggle()
+                    } label: {
+                        Image(systemName: "text.justify")
+                            .font(.system(size: 26))
                             .padding(8)
                     }
-                    .foregroundColor(colorIcon)
+                    .foregroundColor((state.isTempTargetActive || (overrideString != nil)) ? Color.purple : colorIcon)
                     .buttonStyle(.borderless)
-                    Spacer()
-                    Button { state.showModal(for: .settings) }
-                    label: {
-                        Image(systemName: "gear")
-                            .font(.system(size: 24))
-                            .foregroundColor(colorIcon)
-                            .padding(8)
-                    }
-                    .foregroundColor(colorIcon)
-                    .buttonStyle(.borderless)
+                    /*  Spacer()
+                     Button { state.showModal(for: .statistics)
+                      }
+                      label: {
+                          Image(systemName: "chart.bar")
+                              .font(.system(size: 24))
+                              .foregroundColor(colorIcon)
+                              .padding(8)
+                      }
+                      .foregroundColor(colorIcon)
+                      .buttonStyle(.borderless)
+                      Spacer()
+                      Button { state.showModal(for: .settings) }
+                      label: {
+                          Image(systemName: "gear")
+                              .font(.system(size: 24))
+                              .foregroundColor(colorIcon)
+                              .padding(8)
+                      }
+                      .foregroundColor(colorIcon)
+                      .buttonStyle(.borderless)*/
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 16)
@@ -753,61 +764,143 @@ extension Home {
                 }.padding(.horizontal, 10)
             }
         }
+        
+        @ViewBuilder func menuElements(action: @escaping () -> Void, systemName: String, title: String) -> some View {
+            Button(action: action) {
+                HStack {
+                    Image(systemName: systemName)
+                        .font(.system(size: 21))
+                    Text(title)
+                        .font(.system(size: 19))
+                }
+            }
+        }
+
+        @ViewBuilder func sideMenuView() -> some View {
+            VStack(alignment: .leading, spacing: 25) {
+                HStack {
+                    Button {
+                        isMenuPresented.toggle()
+                    } label: {
+                        Image(systemName: "xmark.app")
+                            .font(.system(size: 30))
+                    }
+                }.padding(.horizontal, 1)
+                    .padding(.top, 60)
+                Text("Menu")
+                    .font(.system(size: 30)).fontWeight(.bold).padding(.top, 20)
+                HStack {
+                    Image(systemName: "chart.bar")
+                        .font(.system(size: 21))
+                    Text("Statistics")
+                        .font(.system(size: 19))
+                }.padding(.horizontal, 1).padding(.top, 20)
+
+                HStack {
+                    Image(systemName: "cross.vial.fill")
+                        .font(.system(size: 21))
+                        .foregroundColor(Color.insulinTintColor)
+                    Text("Pump Settings")
+                        .font(.system(size: 19))
+                }.padding(.horizontal, 1)
+
+                HStack {
+                    Image(systemName: "textformat.123")
+                        .font(.system(size: 21))
+                        .foregroundColor(Color.insulinTintColor)
+                    Text("CGM")
+                        .font(.system(size: 19))
+                }.padding(.horizontal, 1)
+
+                HStack {
+                    Image(systemName: "applewatch.watchface")
+                        .font(.system(size: 21))
+                        .foregroundColor(Color.insulinTintColor)
+                    Text("Watch Settings")
+                        .font(.system(size: 19))
+                }.padding(.horizontal, 1)
+
+                HStack {
+                    Image(systemName: "gear")
+                        .font(.system(size: 21))
+                        .foregroundColor(Color.insulinTintColor)
+                    Text("Settings")
+                        .font(.system(size: 19))
+                }.padding(.horizontal, 1)
+
+                Spacer()
+            }.padding(.trailing, 70)
+                .frame(width: UIScreen.main.bounds.width / 1.2, height: UIScreen.main.bounds.height - 20)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 8).stroke(Color.primary.opacity(0.2), lineWidth: 2).shadow(radius: 3)
+                        .ignoresSafeArea(edges: .all)
+                }
+        }
 
         var body: some View {
             GeometryReader { geo in
-                VStack(spacing: 0) {
-                    Spacer()
+                ZStack(alignment: .trailing) {
+                    VStack(spacing: 0) {
+                        Spacer()
 
-                    ZStack {
-                        /// glucose bobble
-                        glucoseView
+                        ZStack {
+                            /// glucose bobble
+                            glucoseView
 
-                        /// right panel with loop status and evBG
+                            /// right panel with loop status and evBG
+                            HStack {
+                                Spacer()
+                                rightHeaderPanel(geo)
+                            }.padding(.trailing, 20)
+
+                            /// left panel with pump related info
+                            HStack {
+                                pumpView
+
+                                Spacer()
+                            }.padding(.leading, 20)
+
+                        }.padding(.top, 40)
+
+                        Spacer()
+
+                        mealPanel(geo)
+
+                        Spacer()
+
+                        profileView(geo).padding(.vertical)
+
+                        RoundedRectangle(cornerRadius: 15)
+                            .fill(Color("Chart"))
+                            .overlay(mainChart)
+                            .clipShape(RoundedRectangle(cornerRadius: 15))
+                            .shadow(
+                                color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
+                                    Color.black.opacity(0.33),
+                                radius: 3
+                            )
+                            .padding(.horizontal, 10)
+                            .frame(maxHeight: UIScreen.main.bounds.height / 2.1)
+
+                        Spacer()
+
+                        timeInterval
+
+                        Spacer()
+
+                        ZStack(alignment: .bottom) {
+                            bottomPanel(geo)
+
+                            if let progress = state.bolusProgress {
+                                bolusProgressView(geo, progress)
+                            }
+                        }
+                    }
+
+                    // burger menu
+                    if isMenuPresented {
                         HStack {
-                            Spacer()
-                            rightHeaderPanel(geo)
-                        }.padding(.trailing, 20)
-
-                        /// left panel with pump related info
-                        HStack {
-                            pumpView
-                            Spacer()
-                        }.padding(.leading, 20)
-
-                    }.padding(.top, 40)
-
-                    Spacer()
-
-                    mealPanel(geo)
-
-                    Spacer()
-
-                    profileView(geo).padding(.vertical)
-
-                    RoundedRectangle(cornerRadius: 15)
-                        .fill(Color("Chart"))
-                        .overlay(mainChart)
-                        .clipShape(RoundedRectangle(cornerRadius: 15))
-                        .shadow(
-                            color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
-                                Color.black.opacity(0.33),
-                            radius: 3
-                        )
-                        .padding(.horizontal, 10)
-                        .frame(maxHeight: UIScreen.main.bounds.height / 2.1)
-
-                    Spacer()
-
-                    timeInterval
-
-                    Spacer()
-
-                    ZStack(alignment: .bottom) {
-                        bottomPanel(geo)
-
-                        if let progress = state.bolusProgress {
-                            bolusProgressView(geo, progress)
+                            sideMenuView().background(Color.chart).ignoresSafeArea(.all)
                         }
                     }
                 }
