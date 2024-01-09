@@ -20,7 +20,7 @@ extension OverrideProfilesConfig {
             colorScheme == .dark ? LinearGradient(
                 gradient: Gradient(colors: [
                     Color.bgDarkBlue,
-                   Color.bgDarkerDarkBlue
+                    Color.bgDarkerDarkBlue
                 ]),
                 startPoint: .top,
                 endPoint: .bottom
@@ -268,24 +268,7 @@ extension OverrideProfilesConfig {
                     }
                 }
 
-                header: {
-                    HStack {
-                        Text("Insulin")
-                        Spacer()
-
-                        Button {
-                            state.showModal(for: .addTempTarget)
-                        } label: {
-                            HStack {
-                                Image(systemName: "plus.circle.fill")
-                                    .font(.system(size: 20))
-                                Text("add temp target")
-                                    .font(.caption)
-                                    .foregroundStyle(Color.blue)
-                            }
-                        }
-                    }
-                }
+                header: { Text("Insulin") }
                 footer: {
                     Text(
                         "Your profile basal insulin will be adjusted with the override percentage and your profile ISF and CR will be inversly adjusted with the percentage."

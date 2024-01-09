@@ -486,27 +486,6 @@ extension Home {
                     }
                     .foregroundColor((state.isTempTargetActive || (overrideString != nil)) ? Color.purple : colorIcon)
                     .buttonStyle(.borderless)
-                    /*  Spacer()
-                     Button { state.showModal(for: .statistics)
-                      }
-                      label: {
-                          Image(systemName: "chart.bar")
-                              .font(.system(size: 24))
-                              .foregroundColor(colorIcon)
-                              .padding(8)
-                      }
-                      .foregroundColor(colorIcon)
-                      .buttonStyle(.borderless)
-                      Spacer()
-                      Button { state.showModal(for: .settings) }
-                      label: {
-                          Image(systemName: "gear")
-                              .font(.system(size: 24))
-                              .foregroundColor(colorIcon)
-                              .padding(8)
-                      }
-                      .foregroundColor(colorIcon)
-                      .buttonStyle(.borderless)*/
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 16)
@@ -805,6 +784,8 @@ extension Home {
                         state.showModal(for: .snooze)
                     }
                 }, systemName: "textformat.123", title: "CGM")
+
+                menuElements(action: { state.showModal(for: .addTempTarget) }, systemName: "target", title: "Temp targets")
 
                 menuElements(action: { state.showModal(for: .settings) }, systemName: "gear", title: "Settings")
 
