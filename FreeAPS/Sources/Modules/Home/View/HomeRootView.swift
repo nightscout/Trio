@@ -807,8 +807,8 @@ extension Home {
                         .ignoresSafeArea(edges: .all)
                 }
         }
-
-        var body: some View {
+        
+        @ViewBuilder func mainView() -> some View {
             GeometryReader { geo in
                 ZStack(alignment: .trailing) {
                     VStack(spacing: 0) {
@@ -910,6 +910,10 @@ extension Home {
                             }
                     )
             }
+        }
+
+        var body: some View {
+            mainView()
         }
 
         private var popup: some View {
