@@ -11,7 +11,7 @@ extension ManualTempBasal {
             colorScheme == .dark ? LinearGradient(
                 gradient: Gradient(colors: [
                     Color.bgDarkBlue,
-                   Color.bgDarkerDarkBlue
+                    Color.bgDarkerDarkBlue
                 ]),
                 startPoint: .top,
                 endPoint: .bottom

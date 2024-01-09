@@ -34,7 +34,7 @@ extension AddCarbs {
             colorScheme == .dark ? LinearGradient(
                 gradient: Gradient(colors: [
                     Color.bgDarkBlue,
-                   Color.bgDarkerDarkBlue
+                    Color.bgDarkerDarkBlue
                 ]),
                 startPoint: .top,
                 endPoint: .bottom
@@ -149,13 +149,6 @@ extension AddCarbs {
                 }
                 .navigationTitle("Add Meal")
                 .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button("Close") {
-                            state.hideModal()
-                        }
-                    }
-                }
         }
 
         private var presetPopover: some View {

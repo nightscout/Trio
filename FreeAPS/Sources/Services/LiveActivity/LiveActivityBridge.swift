@@ -34,9 +34,9 @@ extension LiveActivityAttributes.ContentState {
         }
 
         let formattedBG = Self.formatGlucose(glucose, mmol: mmol, forceSign: false)
-        
+
         var rotationDegrees: Double = 0.0
-        
+
         switch bg.direction {
         case .doubleUp,
              .singleUp,
@@ -58,7 +58,7 @@ extension LiveActivityAttributes.ContentState {
              .some(.none):
             rotationDegrees = 0
         }
-        
+
         let trendString = bg.direction?.symbol
 
         let change = prev?.glucose.map({
@@ -123,9 +123,9 @@ extension LiveActivityAttributes.ContentState {
     @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var storage: FileStorage!
-    
+
     private let activityAuthorizationInfo = ActivityAuthorizationInfo()
-       @Published private(set) var systemEnabled: Bool
+    @Published private(set) var systemEnabled: Bool
 
     private var settings: FreeAPSSettings {
         settingsManager.settings
@@ -158,7 +158,7 @@ extension LiveActivityAttributes.ContentState {
         ) { _ in
             self.forceActivityUpdate()
         }
-       
+
         monitorForLiveActivityAuthorizationChanges()
     }
 
@@ -207,9 +207,9 @@ extension LiveActivityAttributes.ContentState {
                 await pushUpdate(state)
             } else {
                 let content = ActivityContent(
-                                   state: state,
-                                   staleDate: min(state.date, Date.now).addingTimeInterval(TimeInterval(6 * 60))
-                               )
+                    state: state,
+                    staleDate: min(state.date, Date.now).addingTimeInterval(TimeInterval(6 * 60))
+                )
                 await currentActivity.activity.update(content)
             }
         } else {
@@ -241,9 +241,9 @@ extension LiveActivityAttributes.ContentState {
                     pushType: nil
                 )
                 currentActivity = ActiveActivity(activity: activity, startDate: Date.now)
-                
+
                 // then show the actual content
-               await pushUpdate(state)
+                await pushUpdate(state)
             } catch {
                 print("activity creation error: \(error)")
             }
@@ -268,14 +268,14 @@ extension LiveActivityAttributes.ContentState {
 extension LiveActivityBridge: GlucoseObserver {
     func glucoseDidUpdate(_ glucose: [BloodGlucose]) {
         guard settings.useLiveActivity else {
-                   if currentActivity != nil {
-                       Task {
-                           await self.endActivity()
-                       }
-                   }
-                   return
-               }
-        
+            if currentActivity != nil {
+                Task {
+                    await self.endActivity()
+                }
+            }
+            return
+        }
+
         // backfill latest glucose if contained in this update
         if glucose.count > 1 {
             latestGlucose = glucose[glucose.count - 2]

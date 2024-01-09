@@ -59,7 +59,7 @@ extension Bolus {
             colorScheme == .dark ? LinearGradient(
                 gradient: Gradient(colors: [
                     Color.bgDarkBlue,
-                   Color.bgDarkerDarkBlue
+                    Color.bgDarkerDarkBlue
                 ]),
                 startPoint: .top,
                 endPoint: .bottom
@@ -201,11 +201,7 @@ extension Bolus {
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
-                        if !fetch {
-                            Button("Close") {
-                                state.hideModal()
-                            }
-                        } else {
+                        if fetch {
                             Button {
                                 keepForNextWiew = true
                                 state.backToCarbsView(complexEntry: true, meal, override: false)

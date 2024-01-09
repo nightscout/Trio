@@ -73,20 +73,20 @@ struct LiveActivity: Widget {
             }
         }
     }
-    
+
     private func updatedLabel(context: ActivityViewContext<LiveActivityAttributes>) -> Text {
-            let text = Text("Updated: \(dateFormatter.string(from: context.state.date))")
-            if context.isStale {
-                if #available(iOSApplicationExtension 17.0, *) {
-                    return text.bold().foregroundStyle(.red)
-                } else {
-                    return text.bold().foregroundColor(.red)
-                }
+        let text = Text("Updated: \(dateFormatter.string(from: context.state.date))")
+        if context.isStale {
+            if #available(iOSApplicationExtension 17.0, *) {
+                return text.bold().foregroundStyle(.red)
             } else {
-                return text
+                return text.bold().foregroundColor(.red)
             }
+        } else {
+            return text
         }
-    
+    }
+
     private func bgLabel(context: ActivityViewContext<LiveActivityAttributes>) -> Text {
         Text(context.state.bg)
             .fontWeight(.bold)
@@ -94,63 +94,63 @@ struct LiveActivity: Widget {
     }
 
     private func bgAndTrend(context: ActivityViewContext<LiveActivityAttributes>, size: Size) -> (some View, Int) {
-          var characters = 0
+        var characters = 0
 
-          let bgText = context.state.bg
-          characters += bgText.count
+        let bgText = context.state.bg
+        characters += bgText.count
 
-          // narrow mode is for the minimal dynamic island view
-          // there is not enough space to show all three arrow there
-          // and everything has to be squeezed together to some degree
-          // only display the first arrow character and make it red in case there were more characters
-          var directionText: String?
-          var warnColor: Color?
-          if let direction = context.state.direction {
-              if size == .compact {
-                  directionText = String(direction[direction.startIndex ... direction.startIndex])
+        // narrow mode is for the minimal dynamic island view
+        // there is not enough space to show all three arrow there
+        // and everything has to be squeezed together to some degree
+        // only display the first arrow character and make it red in case there were more characters
+        var directionText: String?
+        var warnColor: Color?
+        if let direction = context.state.direction {
+            if size == .compact {
+                directionText = String(direction[direction.startIndex ... direction.startIndex])
 
-                  if direction.count > 1 {
-                      warnColor = Color.red
-                  }
-              } else {
-                  directionText = direction
-              }
+                if direction.count > 1 {
+                    warnColor = Color.red
+                }
+            } else {
+                directionText = direction
+            }
 
-              characters += directionText!.count
-          }
+            characters += directionText!.count
+        }
 
-          let spacing: CGFloat
-          switch size {
-          case .minimal: spacing = -1
-          case .compact: spacing = 0
-          case .expanded: spacing = 3
-          }
+        let spacing: CGFloat
+        switch size {
+        case .minimal: spacing = -1
+        case .compact: spacing = 0
+        case .expanded: spacing = 3
+        }
 
-          let stack = HStack(spacing: spacing) {
-              Text(bgText)
-                  .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
-              if let direction = directionText {
-                  let text = Text(direction)
-                  switch size {
-                  case .minimal:
-                      let scaledText = text.scaleEffect(x: 0.7, y: 0.7, anchor: .leading)
-                      if let warnColor {
-                          scaledText.foregroundStyle(warnColor)
-                      } else {
-                          scaledText
-                      }
-                  case .compact:
-                      text.scaleEffect(x: 0.8, y: 0.8, anchor: .leading).padding(.trailing, -3)
+        let stack = HStack(spacing: spacing) {
+            Text(bgText)
+                .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
+            if let direction = directionText {
+                let text = Text(direction)
+                switch size {
+                case .minimal:
+                    let scaledText = text.scaleEffect(x: 0.7, y: 0.7, anchor: .leading)
+                    if let warnColor {
+                        scaledText.foregroundStyle(warnColor)
+                    } else {
+                        scaledText
+                    }
+                case .compact:
+                    text.scaleEffect(x: 0.8, y: 0.8, anchor: .leading).padding(.trailing, -3)
 
-                  case .expanded:
-                      text.scaleEffect(x: 0.7, y: 0.7, anchor: .leading).padding(.trailing, -5)
-                  }
-              }
-          }
-          .foregroundStyle(context.isStale ? Color.primary.opacity(0.5) : Color.primary)
+                case .expanded:
+                    text.scaleEffect(x: 0.7, y: 0.7, anchor: .leading).padding(.trailing, -5)
+                }
+            }
+        }
+        .foregroundStyle(context.isStale ? Color.primary.opacity(0.5) : Color.primary)
 
-          return (stack, characters)
-      }
+        return (stack, characters)
+    }
 
     @ViewBuilder func bobble(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
         @State var angularGradient = AngularGradient(colors: [
@@ -223,13 +223,13 @@ struct LiveActivity: Widget {
                     }
                 }
                 .privacySensitive()
-               .padding(.all, 15)
-               // Semantic BackgroundStyle and Color values work here. They adapt to the given interface style (light mode, dark mode)
-               // Semantic UIColors do NOT (as of iOS 17.1.1). Like UIColor.systemBackgroundColor (it does not adapt to changes of the interface style)
-               // The colorScheme environment varaible that is usually used to detect dark mode does NOT work here (it reports false values)
-               .foregroundStyle(Color.primary)
-               .background(BackgroundStyle.background.opacity(0.4))
-               .activityBackgroundTint(Color.clear)
+                .padding(.all, 15)
+                // Semantic BackgroundStyle and Color values work here. They adapt to the given interface style (light mode, dark mode)
+                // Semantic UIColors do NOT (as of iOS 17.1.1). Like UIColor.systemBackgroundColor (it does not adapt to changes of the interface style)
+                // The colorScheme environment varaible that is usually used to detect dark mode does NOT work here (it reports false values)
+                .foregroundStyle(Color.primary)
+                .background(BackgroundStyle.background.opacity(0.4))
+                .activityBackgroundTint(Color.clear)
             } else {
                 HStack(spacing: 2) {
                     VStack {
@@ -271,12 +271,12 @@ struct LiveActivity: Widget {
                 DynamicIslandExpandedRegion(.bottom) {
                     if context.state.lockScreenView == "Simple" {
                         Group {
-                             updatedLabel(context: context).font(.caption).foregroundStyle(Color.secondary)
-                         }
-                         .frame(
-                             maxHeight: .infinity,
-                             alignment: .bottom
-                         )
+                            updatedLabel(context: context).font(.caption).foregroundStyle(Color.secondary)
+                        }
+                        .frame(
+                            maxHeight: .infinity,
+                            alignment: .bottom
+                        )
                     } else {
                         chart(context: context)
                     }
@@ -293,21 +293,21 @@ struct LiveActivity: Widget {
             } minimal: {
                 let (_label, characterCount) = bgAndTrend(context: context, size: .minimal)
 
-              let label = _label.padding(.leading, 7).padding(.trailing, 3)
+                let label = _label.padding(.leading, 7).padding(.trailing, 3)
 
-              if characterCount < 4 {
-                  label
-              } else if characterCount < 5 {
-                  label.fontWidth(.condensed)
-              } else {
-                  label.fontWidth(.compressed)
-              }
+                if characterCount < 4 {
+                    label
+                } else if characterCount < 5 {
+                    label.fontWidth(.condensed)
+                } else {
+                    label.fontWidth(.compressed)
+                }
             }
             .widgetURL(URL(string: "freeaps-x://"))
             .keylineTint(Color.purple)
-           .contentMargins(.horizontal, 0, for: .minimal)
-           .contentMargins(.trailing, 0, for: .compactLeading)
-           .contentMargins(.leading, 0, for: .compactTrailing)
+            .contentMargins(.horizontal, 0, for: .minimal)
+            .contentMargins(.trailing, 0, for: .compactLeading)
+            .contentMargins(.leading, 0, for: .compactTrailing)
         }
     }
 }

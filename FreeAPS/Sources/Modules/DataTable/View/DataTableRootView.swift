@@ -61,7 +61,7 @@ extension DataTable {
             colorScheme == .dark ? LinearGradient(
                 gradient: Gradient(colors: [
                     Color.bgDarkBlue,
-                   Color.bgDarkerDarkBlue
+                    Color.bgDarkerDarkBlue
                 ]),
                 startPoint: .top,
                 endPoint: .bottom
@@ -106,22 +106,17 @@ extension DataTable {
                 .navigationTitle("History")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button("Close") {
-                            state.hideModal()
-                        }
-                    }
                     ToolbarItem(placement: .topBarTrailing) {
                         switch state.mode {
-                        case .treatments: addButton( {
-                            showExternalInsulin = true
-                            state.externalInsulinDate = Date()
-                        })
+                        case .treatments: addButton({
+                                showExternalInsulin = true
+                                state.externalInsulinDate = Date()
+                            })
                         case .meals: EmptyView()
                         case .glucose: addButton({
-                            showManualGlucose = true
-                            state.manualGlucose = 0 
-                        })
+                                showManualGlucose = true
+                                state.manualGlucose = 0
+                            })
                         }
                     }
                 }
@@ -133,8 +128,8 @@ extension DataTable {
                     addExternalInsulinView()
                 }
         }
-        
-         @ViewBuilder func addButton(_ action: @escaping () -> Void) -> some View {
+
+        @ViewBuilder func addButton(_ action: @escaping () -> Void) -> some View {
             Button(
                 action: action,
                 label: {
@@ -191,7 +186,7 @@ extension DataTable {
         private var glucoseList: some View {
             List {
                 HStack {
-                   Text("Values").foregroundStyle(.secondary)
+                    Text("Values").foregroundStyle(.secondary)
                     Spacer()
                     Text("Time").foregroundStyle(.secondary)
                 }
@@ -207,10 +202,10 @@ extension DataTable {
             }
         }
 
-       @ViewBuilder private func addGlucoseView() -> some View {
-             let limitLow: Decimal = state.units == .mmolL ? 0.8 : 14
-             let limitHigh: Decimal = state.units == .mmolL ? 40 : 720
-            
+        @ViewBuilder private func addGlucoseView() -> some View {
+            let limitLow: Decimal = state.units == .mmolL ? 0.8 : 14
+            let limitHigh: Decimal = state.units == .mmolL ? 40 : 720
+
             NavigationView {
                 VStack {
                     Form {
@@ -239,8 +234,12 @@ extension DataTable {
                                     .frame(maxWidth: .infinity, alignment: .center)
                                     .disabled(state.manualGlucose < limitLow || state.manualGlucose > limitHigh)
                             }
-                        }.listRowBackground(state.manualGlucose < limitLow || state.manualGlucose > limitHigh ? Color(.systemGray4) : Color(.systemBlue))
-                            .tint(.white)
+                        }
+                        .listRowBackground(
+                            state.manualGlucose < limitLow || state
+                                .manualGlucose > limitHigh ? Color(.systemGray4) : Color(.systemBlue)
+                        )
+                        .tint(.white)
                     }.scrollContentBackground(.hidden).background(color)
                 }
                 .onAppear(perform: configureView)
@@ -411,7 +410,7 @@ extension DataTable {
                         }
 
                         let amountWarningCondition = (state.externalInsulinAmount > state.maxBolus)
-                        
+
                         var listBackgroundColor: Color {
                             if amountWarningCondition {
                                 return Color.red
@@ -421,7 +420,7 @@ extension DataTable {
                                 return Color(.systemBlue)
                             }
                         }
-                        
+
                         var foregroundColor: Color {
                             if amountWarningCondition {
                                 return Color.white
@@ -465,7 +464,7 @@ extension DataTable {
                     ToolbarItem(placement: .topBarLeading) {
                         Button("Close") {
                             showExternalInsulin = false
-                           state.externalInsulinAmount = 0
+                            state.externalInsulinAmount = 0
                         }
                     }
                 }

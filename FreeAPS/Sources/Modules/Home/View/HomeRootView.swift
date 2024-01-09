@@ -129,6 +129,14 @@ extension Home {
                 )
         }
 
+        private var historySFSymbol: String {
+            if #available(iOS 17.0, *) {
+                return "book.pages"
+            } else {
+                return "book"
+            }
+        }
+
         var glucoseView: some View {
             CurrentGlucoseView(
                 recentGlucose: $state.recentGlucose,
@@ -789,16 +797,6 @@ extension Home {
 
                 menuElements(action: { state.showModal(for: .settings) }, systemName: "gear", title: "Settings")
 
-                /* HStack {
-                     Image(systemName: "applewatch.watchface")
-                         .font(.system(size: 21))
-                         .foregroundColor(Color.insulinTintColor)
-                     Text("Watch Settings")
-                         .font(.system(size: 19))
-                 }.padding(.horizontal, 1)
-
-                 */
-
                 Spacer()
             }.padding(.trailing, 70)
                 .frame(width: UIScreen.main.bounds.width / 1.2, height: UIScreen.main.bounds.height - 20)
@@ -807,13 +805,11 @@ extension Home {
                         .ignoresSafeArea(edges: .all)
                 }
         }
-        
+
         @ViewBuilder func mainView() -> some View {
             GeometryReader { geo in
                 ZStack(alignment: .trailing) {
                     VStack(spacing: 0) {
-                        Spacer()
-
                         ZStack {
                             /// glucose bobble
                             glucoseView
@@ -831,13 +827,20 @@ extension Home {
                                 Spacer()
                             }.padding(.leading, 20)
 
-                        }.padding(.top, 40)
+                            HStack {
+                                Spacer()
+                                Button {
+                                    isMenuPresented.toggle()
+                                }
+                                label: {
+                                    Image(systemName: "text.justify")
+                                        .font(.body).foregroundStyle(colorScheme == .dark ? Color.white : Color.black)
+                                }.padding(.trailing, 20).padding(.bottom, 110)
+                            }
 
-                        Spacer()
+                        }.padding(.top, 70)
 
-                        mealPanel(geo)
-
-                        Spacer()
+                        mealPanel(geo).padding(.vertical, 25)
 
                         profileView(geo).padding(.vertical)
 
@@ -846,21 +849,23 @@ extension Home {
                             .overlay(mainChart)
                             .clipShape(RoundedRectangle(cornerRadius: 15))
                             .shadow(
-                                color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
+                                color: colorScheme == .dark ? Color(
+                                    red: 0.02745098039,
+                                    green: 0.1098039216,
+                                    blue: 0.1411764706
+                                ) :
                                     Color.black.opacity(0.33),
                                 radius: 3
                             )
                             .padding(.horizontal, 10)
                             .frame(maxHeight: UIScreen.main.bounds.height / 2.1)
 
-                        Spacer()
-
-                        timeInterval
+                        timeInterval.padding(.top, 25)
 
                         Spacer()
 
                         ZStack(alignment: .bottom) {
-                            bottomPanel(geo)
+                            // bottomPanel(geo)
 
                             if let progress = state.bolusProgress {
                                 bolusProgressView(geo, progress)
@@ -868,12 +873,7 @@ extension Home {
                         }
                     }
 
-                    // burger menu
-                    if isMenuPresented {
-                        HStack {
-                            sideMenuView().background(Color.chart).ignoresSafeArea(.all)
-                        }
-                    }
+                    // tabbar
                 }
                 .background(color)
                 .edgesIgnoringSafeArea(.all)
@@ -912,8 +912,38 @@ extension Home {
             }
         }
 
+        @ViewBuilder func tapBar() -> some View {
+            TabView {
+                mainView().tabItem { Label("Home", systemImage: "house") }
+
+                NavigationStack { DataTable.RootView(resolver: resolver) }
+                    .tabItem { Label("History", systemImage: historySFSymbol) }
+
+                NavigationStack { AddCarbs.RootView(resolver: resolver, editMode: false, override: false) }
+                    .tabItem { Label("Carbs", systemImage: "fork.knife") }
+
+                NavigationStack { Bolus.RootView(resolver: resolver, waitForSuggestion: false, fetch: false) }
+                    .tabItem { Label("Bolus", systemImage: "syringe.fill") }
+
+                NavigationStack { OverrideProfilesConfig.RootView(resolver: resolver) }
+                    .tabItem {
+                        Label(
+                            "Profile",
+                            systemImage: state.isTempTargetActive || overrideString != nil ? "person.fill" : "person"
+                        ) }
+            }
+        }
+
         var body: some View {
-            mainView()
+            ZStack(alignment: .trailing) {
+                tapBar()
+                // burger menu
+                if isMenuPresented {
+                    HStack {
+                        sideMenuView().background(Color.chart).ignoresSafeArea(.all)
+                    }
+                }
+            }
         }
 
         private var popup: some View {
