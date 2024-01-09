@@ -139,22 +139,24 @@ extension Home {
                 lowGlucose: $state.lowGlucose,
                 highGlucose: $state.highGlucose
             ).scaleEffect(0.9)
-                .onTapGesture {
-                    if state.alarm == nil {
-                        state.openCGM()
-                    } else {
-                        state.showModal(for: .snooze)
-                    }
-                }
-                .onLongPressGesture {
-                    let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
-                    impactHeavy.impactOccurred()
-                    if state.alarm == nil {
-                        state.showModal(for: .snooze)
-                    } else {
-                        state.openCGM()
-                    }
-                }
+            /*
+                 .onTapGesture {
+                     if state.alarm == nil {
+                         state.openCGM()
+                     } else {
+                         state.showModal(for: .snooze)
+                     }
+                 }
+                 .onLongPressGesture {
+                     let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+                     impactHeavy.impactOccurred()
+                     if state.alarm == nil {
+                         state.showModal(for: .snooze)
+                     } else {
+                         state.openCGM()
+                     }
+                 }
+             */
         }
 
         var pumpView: some View {
@@ -167,11 +169,6 @@ extension Home {
                 timeZone: $state.timeZone,
                 state: state
             )
-            .onTapGesture {
-                if state.pumpDisplayState != nil {
-                    state.setupPump = true
-                }
-            }
         }
 
         var tempBasalString: String? {
@@ -764,16 +761,19 @@ extension Home {
                 }.padding(.horizontal, 10)
             }
         }
-        
+
         @ViewBuilder func menuElements(action: @escaping () -> Void, systemName: String, title: String) -> some View {
-            Button(action: action) {
-                HStack {
-                    Image(systemName: systemName)
-                        .font(.system(size: 21))
-                    Text(title)
-                        .font(.system(size: 19))
+            Button(
+                action: action,
+                label: {
+                    HStack {
+                        Image(systemName: systemName)
+                            .font(.system(size: 21))
+                        Text(title)
+                            .font(.system(size: 19))
+                    }.padding(.top, 1)
                 }
-            }
+            )
         }
 
         @ViewBuilder func sideMenuView() -> some View {
@@ -785,48 +785,38 @@ extension Home {
                         Image(systemName: "xmark.app")
                             .font(.system(size: 30))
                     }
-                }.padding(.horizontal, 1)
-                    .padding(.top, 60)
+                }.padding(.horizontal, 1).padding(.top, 60)
                 Text("Menu")
                     .font(.system(size: 30)).fontWeight(.bold).padding(.top, 20)
-                HStack {
-                    Image(systemName: "chart.bar")
-                        .font(.system(size: 21))
-                    Text("Statistics")
-                        .font(.system(size: 19))
-                }.padding(.horizontal, 1).padding(.top, 20)
 
-                HStack {
-                    Image(systemName: "cross.vial.fill")
-                        .font(.system(size: 21))
-                        .foregroundColor(Color.insulinTintColor)
-                    Text("Pump Settings")
-                        .font(.system(size: 19))
-                }.padding(.horizontal, 1)
+                menuElements(action: { state.showModal(for: .statistics) }, systemName: "chart.bar", title: "Statistics")
+                    .padding(.top, 20)
 
-                HStack {
-                    Image(systemName: "textformat.123")
-                        .font(.system(size: 21))
-                        .foregroundColor(Color.insulinTintColor)
-                    Text("CGM")
-                        .font(.system(size: 19))
-                }.padding(.horizontal, 1)
+                menuElements(action: {
+                    if state.pumpDisplayState != nil {
+                        state.setupPump = true
+                    }
+                }, systemName: "cross.vial.fill", title: "Pump Settings")
 
-                HStack {
-                    Image(systemName: "applewatch.watchface")
-                        .font(.system(size: 21))
-                        .foregroundColor(Color.insulinTintColor)
-                    Text("Watch Settings")
-                        .font(.system(size: 19))
-                }.padding(.horizontal, 1)
+                menuElements(action: {
+                    if state.alarm == nil {
+                        state.openCGM()
+                    } else {
+                        state.showModal(for: .snooze)
+                    }
+                }, systemName: "textformat.123", title: "CGM")
 
-                HStack {
-                    Image(systemName: "gear")
-                        .font(.system(size: 21))
-                        .foregroundColor(Color.insulinTintColor)
-                    Text("Settings")
-                        .font(.system(size: 19))
-                }.padding(.horizontal, 1)
+                menuElements(action: { state.showModal(for: .settings) }, systemName: "gear", title: "Settings")
+
+                /* HStack {
+                     Image(systemName: "applewatch.watchface")
+                         .font(.system(size: 21))
+                         .foregroundColor(Color.insulinTintColor)
+                     Text("Watch Settings")
+                         .font(.system(size: 19))
+                 }.padding(.horizontal, 1)
+
+                 */
 
                 Spacer()
             }.padding(.trailing, 70)
