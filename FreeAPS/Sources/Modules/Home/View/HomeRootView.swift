@@ -780,78 +780,82 @@ extension Home {
         }
 
         @ViewBuilder func sideMenuView() -> some View {
-            VStack(alignment: .leading) {
-                Button {
-                    isMenuPresented.toggle()
-                } label: {
-                    HStack {
-                        Image(systemName: "arrow.left")
-                            .font(.system(size: 30))
-                            .foregroundStyle(colorScheme == .dark ? .white : .black)
-                        Text("Menu")
-                            .font(.system(size: 30)).fontWeight(.bold)
-                            .foregroundStyle(colorScheme == .dark ? .white : .black)
-                    }
-                }
-                .padding(.top, 60)
-
-                HStack(spacing: 15) {
-                    VStack(alignment: .leading, spacing: 25, content: {
-                        menuSymbols(action: { state.showModal(for: .statistics) }, systemName: "chart.bar.xaxis")
-                            .padding(.top, 20)
-
-                        menuSymbols(action: {
-                            if state.pumpDisplayState != nil {
-                                state.setupPump = true
-                            }
-                        }, systemName: "cross.vial.fill")
-
-                        menuSymbols(action: {
-                            if state.alarm == nil {
-                                state.openCGM()
-                            } else {
-                                state.showModal(for: .snooze)
-                            }
-                        }, systemName: "sensor.tag.radiowaves.forward.fill")
-
-                        menuSymbols(action: { state.showModal(for: .addTempTarget) }, systemName: "target")
-
-                        menuSymbols(action: { state.showModal(for: .settings) }, systemName: "gear")
-
-                        Spacer()
-                    })
-                    VStack(alignment: .leading, spacing: 25, content: {
-                        menuElements(action: { state.showModal(for: .statistics) }, title: "Statistics")
-                            .padding(.top, 20)
-
-                        menuElements(action: {
-                            if state.pumpDisplayState != nil {
-                                state.setupPump = true
-                            }
-                        }, title: "Pump Settings")
-
-                        menuElements(action: {
-                            if state.alarm == nil {
-                                state.openCGM()
-                            } else {
-                                state.showModal(for: .snooze)
-                            }
-                        }, title: "CGM")
-
-                        menuElements(action: { state.showModal(for: .addTempTarget) }, title: "Temp targets")
-
-                        menuElements(action: { state.showModal(for: .settings) }, title: "Settings")
-
-                        Spacer()
-                    })
-                }
-            }
-            .padding(.horizontal, 25)
-            .frame(width: UIScreen.main.bounds.width / 1.2, height: UIScreen.main.bounds.height - 20)
-            .overlay {
-                RoundedRectangle(cornerRadius: 8).stroke(Color.primary.opacity(0.2), lineWidth: 2).shadow(radius: 3)
+            ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(color)
+                    .shadow(
+                        color: Color.black.opacity(0.33),
+                        radius: 3)
                     .ignoresSafeArea(edges: .all)
+
+                VStack(alignment: .leading) {
+                    Button {
+                        isMenuPresented.toggle()
+                    } label: {
+                        HStack {
+                            Image(systemName: "arrow.left")
+                                .font(.system(size: 30))
+                                .foregroundStyle(colorScheme == .dark ? .white : .black)
+                            Text("Menu")
+                                .font(.system(size: 30)).fontWeight(.bold)
+                                .foregroundStyle(colorScheme == .dark ? .white : .black)
+                        }
+                    }
+                    .padding(.top, 60)
+
+                    HStack(spacing: 15) {
+                        VStack(alignment: .leading, spacing: 25, content: {
+                            menuSymbols(action: { state.showModal(for: .statistics) }, systemName: "chart.bar.xaxis")
+                                .padding(.top, 20)
+
+                            menuSymbols(action: {
+                                if state.pumpDisplayState != nil {
+                                    state.setupPump = true
+                                }
+                            }, systemName: "cross.vial.fill")
+
+                            menuSymbols(action: {
+                                if state.alarm == nil {
+                                    state.openCGM()
+                                } else {
+                                    state.showModal(for: .snooze)
+                                }
+                            }, systemName: "sensor.tag.radiowaves.forward.fill")
+
+                            menuSymbols(action: { state.showModal(for: .addTempTarget) }, systemName: "target")
+
+                            menuSymbols(action: { state.showModal(for: .settings) }, systemName: "gear")
+
+                            Spacer()
+                        })
+                        VStack(alignment: .leading, spacing: 25, content: {
+                            menuElements(action: { state.showModal(for: .statistics) }, title: "Statistics")
+                                .padding(.top, 20)
+
+                            menuElements(action: {
+                                if state.pumpDisplayState != nil {
+                                    state.setupPump = true
+                                }
+                            }, title: "Pump Settings")
+
+                            menuElements(action: {
+                                if state.alarm == nil {
+                                    state.openCGM()
+                                } else {
+                                    state.showModal(for: .snooze)
+                                }
+                            }, title: "CGM")
+
+                            menuElements(action: { state.showModal(for: .addTempTarget) }, title: "Temp targets")
+
+                            menuElements(action: { state.showModal(for: .settings) }, title: "Settings")
+
+                            Spacer()
+                        })
+                    }
+                }.padding(.horizontal, 25)
             }
+            .frame(width: UIScreen.main.bounds.width / 1.2, height: UIScreen.main.bounds.height - 20)
         }
 
         @ViewBuilder func mainView() -> some View {
