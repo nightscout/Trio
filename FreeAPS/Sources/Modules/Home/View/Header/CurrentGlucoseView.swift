@@ -196,7 +196,7 @@ struct CircleShape: View {
     var body: some View {
         Circle()
             .stroke(gradient, lineWidth: 6)
-            .background(Circle().fill(Color("Chart")))
+            .background(Circle().fill(Color.chart))
             .frame(width: 130, height: 130)
     }
 }

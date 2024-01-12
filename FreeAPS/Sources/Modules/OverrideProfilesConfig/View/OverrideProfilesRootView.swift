@@ -94,7 +94,7 @@ extension OverrideProfilesConfig {
                             .foregroundColor(
                                 state
                                     .percentage >= 130 ? .red :
-                                    (isEditing ? .orange : .blue)
+                                    (isEditing ? .orange : Color.tapBar)
                             )
                             .font(.largeTitle)
                         Slider(
@@ -104,7 +104,7 @@ extension OverrideProfilesConfig {
                             onEditingChanged: { editing in
                                 isEditing = editing
                             }
-                        ).accentColor(state.percentage >= 130 ? .red : .blue)
+                        )
                         Spacer()
                         Toggle(isOn: $state._indefinite) {
                             Text("Enable indefinitely")

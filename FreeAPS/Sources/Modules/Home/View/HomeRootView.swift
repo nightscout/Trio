@@ -985,7 +985,7 @@ extension Home {
                             "Profile",
                             systemImage: state.isTempTargetActive || overrideString != nil ? "person.fill" : "person"
                         ) }
-            }
+            }.tint(Color.tapBar)
         }
 
         var body: some View {
