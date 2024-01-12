@@ -785,7 +785,8 @@ extension Home {
                     .fill(color)
                     .shadow(
                         color: Color.black.opacity(0.33),
-                        radius: 3)
+                        radius: 3
+                    )
                     .ignoresSafeArea(edges: .all)
 
                 VStack(alignment: .leading) {
@@ -897,7 +898,7 @@ extension Home {
                         profileView(geo).padding(.vertical)
 
                         RoundedRectangle(cornerRadius: 15)
-                            .fill(Color("Chart"))
+                            .fill(Color.chart)
                             .overlay(mainChart)
                             .clipShape(RoundedRectangle(cornerRadius: 15))
                             .shadow(

@@ -128,7 +128,7 @@ extension AddCarbs {
                     .popover(isPresented: $isPromptPresented) {
                         presetPopover
                     }
-                }
+                }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
 
                 Section {
                     Button { state.add(override, fetch: editMode) }
@@ -140,7 +140,7 @@ extension AddCarbs {
 
                 Section {
                     mealPresets
-                }
+                }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
             }.scrollContentBackground(.hidden).background(color)
                 .onAppear {
                     configureView {

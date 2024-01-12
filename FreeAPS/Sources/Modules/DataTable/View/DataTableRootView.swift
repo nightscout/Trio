@@ -161,7 +161,7 @@ extension DataTable {
                         Text("No data.")
                     }
                 }
-            }
+            }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
         }
 
         private var mealsList: some View {
@@ -180,7 +180,7 @@ extension DataTable {
                         Text("No data.")
                     }
                 }
-            }
+            }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
         }
 
         private var glucoseList: some View {
@@ -199,7 +199,7 @@ extension DataTable {
                         Text("No data.")
                     }
                 }
-            }
+            }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
         }
 
         @ViewBuilder private func addGlucoseView() -> some View {
@@ -221,7 +221,7 @@ extension DataTable {
                                 )
                                 Text(state.units.rawValue).foregroundStyle(.secondary)
                             }
-                        }
+                        }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
 
                         Section {
                             HStack {
@@ -403,11 +403,11 @@ extension DataTable {
                                 )
                                 Text("U").foregroundColor(.secondary)
                             }
-                        }
+                        }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
 
                         Section {
                             DatePicker("Date", selection: $state.externalInsulinDate, in: ...Date())
-                        }
+                        }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
 
                         let amountWarningCondition = (state.externalInsulinAmount > state.maxBolus)
 

@@ -80,12 +80,12 @@ extension Bolus {
                     } else {
                         predictionChart
                     }
-                } header: { Text("Predictions") }
+                } header: { Text("Predictions") }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
 
                 if fetch {
                     Section {
                         mealEntries
-                    } header: { Text("Meal Summary") }
+                    } header: { Text("Meal Summary") }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
                 }
 
                 Section {
@@ -171,7 +171,7 @@ extension Bolus {
                         }
                     }
 
-                } header: { Text("Bolus") }
+                } header: { Text("Bolus") }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
 
                 if state.amount > 0 {
                     Section {
@@ -193,7 +193,7 @@ extension Bolus {
                             state.showModal(for: nil)
                         }
                         label: { Text("Continue without bolus") }.frame(maxWidth: .infinity, alignment: .center)
-                    }
+                    }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
                 }
             }.scrollContentBackground(.hidden).background(color)
                 .blur(radius: showInfo ? 3 : 0)
