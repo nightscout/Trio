@@ -56,7 +56,7 @@ extension Color {
     static let bgDarkBlue = Color("Background_DarkBlue")
     static let bgDarkerDarkBlue = Color("Background_DarkerDarkBlue")
     static let chart = Color("Chart")
-    static let tapBar = Color("Tap_Bar")
+    static let tabBar = Color("TabBar")
     //   static let insulin = Color("Insulin")
     static let uam = Color("UAM")
     static let zt = Color("ZT")

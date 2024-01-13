@@ -14,6 +14,8 @@ extension Bolus {
         @State private var keepForNextWiew: Bool = false
         @State private var calculatorDetent = PresentationDetent.medium
 
+        @ObservedObject var appState: AppState
+
         private enum Config {
             static let dividerHeight: CGFloat = 2
             static let spacing: CGFloat = 3
@@ -178,6 +180,7 @@ extension Bolus {
                         Button {
                             keepForNextWiew = true
                             state.add()
+                            appState.currentTab = .home
                         }
                         label: { Text(exceededMaxBolus ? "Max Bolus exceeded!" : "Enact bolus") }
                             .frame(maxWidth: .infinity, alignment: .center)
@@ -190,7 +193,7 @@ extension Bolus {
                     Section {
                         Button {
                             keepForNextWiew = true
-                            state.showModal(for: nil)
+                            appState.currentTab = .home
                         }
                         label: { Text("Continue without bolus") }.frame(maxWidth: .infinity, alignment: .center)
                     }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)

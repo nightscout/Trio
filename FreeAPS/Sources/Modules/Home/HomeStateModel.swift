@@ -70,6 +70,8 @@ extension Home {
         @Published var cob: Decimal = 0
         @Published var roundedTotalBolus: String = ""
 
+        @Published var selectedTab: Int = 0
+
         let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
 
         override func subscribe() {

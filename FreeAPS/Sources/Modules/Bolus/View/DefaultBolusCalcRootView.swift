@@ -14,6 +14,7 @@ extension Bolus {
         @State private var presentInfo = false
         @State private var displayError = false
         @State private var keepForNextWiew: Bool = false
+        @ObservedObject var appState: AppState
 
         @Environment(\.colorScheme) var colorScheme
 
@@ -119,6 +120,7 @@ extension Bolus {
                         Button {
                             keepForNextWiew = true
                             state.add()
+                            appState.currentTab = .home
                         }
                         label: { Text(!(state.amount > state.maxBolus) ? "Enact bolus" : "Max Bolus exceeded!") }
                             .frame(maxWidth: .infinity, alignment: .center)
@@ -132,7 +134,7 @@ extension Bolus {
                     Section {
                         Button {
                             keepForNextWiew = true
-                            state.showModal(for: nil)
+                            appState.currentTab = .home
                         }
                         label: { Text("Continue without bolus") }.frame(maxWidth: .infinity, alignment: .center)
                     }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)

@@ -8,10 +8,13 @@ extension Home {
     struct RootView: BaseView {
         let resolver: Resolver
 
+        @ObservedObject var appState = AppState()
         @StateObject var state = StateModel()
         @State var isStatusPopupPresented = false
         @State var showCancelAlert = false
         @State var isMenuPresented = false
+        @State var selectedTab: Int = 0
+        @State var currentTab: Tab
 
         struct Buttons: Identifiable {
             let label: String
@@ -966,18 +969,24 @@ extension Home {
             }
         }
 
-        @ViewBuilder func tapBar() -> some View {
-            TabView {
-                mainView().tabItem { Label("Home", systemImage: "house") }
+        @ViewBuilder func tabBar() -> some View {
+            TabView(selection: $appState.currentTab) {
+                mainView()
+                    .tabItem { Label("Home", systemImage: "house") }
+                    .tag(Tab.home)
 
                 NavigationStack { DataTable.RootView(resolver: resolver) }
                     .tabItem { Label("History", systemImage: historySFSymbol) }
+                    .tag(Tab.history)
 
                 NavigationStack { AddCarbs.RootView(resolver: resolver, editMode: false, override: false) }
                     .tabItem { Label("Carbs", systemImage: "fork.knife") }
+                    .tag(Tab.carbs)
 
-                NavigationStack { Bolus.RootView(resolver: resolver, waitForSuggestion: false, fetch: false) }
-                    .tabItem { Label("Bolus", systemImage: "syringe.fill") }
+                NavigationStack { Bolus.RootView(resolver: resolver, waitForSuggestion: false, fetch: false, appState: appState)
+                }
+                .tabItem { Label("Bolus", systemImage: "syringe.fill") }
+                .tag(Tab.bolus)
 
                 NavigationStack { OverrideProfilesConfig.RootView(resolver: resolver) }
                     .tabItem {
@@ -985,12 +994,13 @@ extension Home {
                             "Profile",
                             systemImage: state.isTempTargetActive || overrideString != nil ? "person.fill" : "person"
                         ) }
-            }.tint(Color.tapBar)
+                    .tag(Tab.profile)
+            }.tint(Color.tabBar)
         }
 
         var body: some View {
             ZStack(alignment: .trailing) {
-                tapBar()
+                tabBar()
                 // burger menu
                 if isMenuPresented {
                     HStack {
@@ -1027,4 +1037,16 @@ extension Home {
             }
         }
     }
+}
+
+class AppState: ObservableObject {
+    @Published var currentTab: Tab = .home
+}
+
+enum Tab {
+    case home
+    case history
+    case carbs
+    case bolus
+    case profile
 }
