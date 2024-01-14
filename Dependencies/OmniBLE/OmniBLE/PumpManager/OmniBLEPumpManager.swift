@@ -775,6 +775,9 @@ extension OmniBLEPumpManager {
 
         self.podComms = PodComms(podState: podState, myId: state.controllerId, podId: state.podId)
 
+        self.podComms.delegate = self
+        self.podComms.messageLogger = self
+
         setState({ (state) in
             state.updatePodStateFromPodComms(podState)
             state.scheduledExpirationReminderOffset = state.defaultExpirationReminderOffset
