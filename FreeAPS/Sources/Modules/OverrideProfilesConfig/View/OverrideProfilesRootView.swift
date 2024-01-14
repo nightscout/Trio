@@ -287,7 +287,17 @@ extension OverrideProfilesConfig {
                 .onAppear(perform: configureView)
                 .onAppear { state.savedSettings() }
                 .navigationBarTitle("Profiles")
-                 .navigationBarTitleDisplayMode(.large)
+                 .navigationBarTitleDisplayMode(.inline)
+                 .toolbar {
+                     ToolbarItem(placement: .topBarLeading) {
+                         Button {
+                             state.hideModal()
+                         } label: {
+                             Text("Close")
+                         }
+                         
+                     }
+                 }
         }
 
         @ViewBuilder private func profilesView(for preset: OverridePresets) -> some View {

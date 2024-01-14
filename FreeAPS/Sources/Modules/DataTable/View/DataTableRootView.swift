@@ -104,8 +104,16 @@ extension DataTable {
             }.background(color)
                 .onAppear(perform: configureView)
                 .navigationTitle("History")
-                 .navigationBarTitleDisplayMode(.large)
+                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button {
+                            state.hideModal()
+                        } label: {
+                            Text("Close")
+                        }
+
+                    }
                     ToolbarItem(placement: .topBarTrailing) {
                         switch state.mode {
                         case .treatments: addButton({

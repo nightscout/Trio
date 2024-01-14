@@ -148,7 +148,16 @@ extension AddCarbs {
                     }
                 }
                 .navigationTitle("Add Meal")
-                 .navigationBarTitleDisplayMode(.large)
+                 .navigationBarTitleDisplayMode(.inline)
+                 .toolbar {
+                     ToolbarItem(placement: .topBarLeading) {
+                         Button {
+                             state.hideModal()
+                         } label: {
+                             Text("Close")
+                         }
+                     }
+                 }
         }
 
         private var presetPopover: some View {

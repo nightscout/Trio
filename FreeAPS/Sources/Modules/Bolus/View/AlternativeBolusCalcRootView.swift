@@ -201,22 +201,30 @@ extension Bolus {
             }.scrollContentBackground(.hidden).background(color)
                 .blur(radius: showInfo ? 3 : 0)
                 .navigationTitle("Enact Bolus")
-                 .navigationBarTitleDisplayMode(.large)
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        if fetch {
-                            Button {
-                                keepForNextWiew = true
-                                state.backToCarbsView(complexEntry: true, meal, override: false)
-                            } label: {
-                                HStack {
-                                    Image(systemName: "chevron.backward")
-                                    Text("Meal")
-                                }
-                            }
-                        }
-                    }
-                }
+                 .navigationBarTitleDisplayMode(.inline)
+                 .toolbar {
+                     ToolbarItem(placement: .topBarLeading) {
+                         if fetch {
+                             Button {
+                                 keepForNextWiew = true
+                                 state.backToCarbsView(complexEntry: true, meal, override: false)
+                             } label: {
+                                 HStack {
+                                     Image(systemName: "chevron.backward")
+                                     Text("Meal")
+                                 }
+                             }
+                         }
+                         else {
+                             Button {
+                                 state.hideModal()
+                             } label: {
+                                 Text("Close")
+                             }
+
+                         }
+                     }
+                 }
 
                 .onAppear {
                     configureView {

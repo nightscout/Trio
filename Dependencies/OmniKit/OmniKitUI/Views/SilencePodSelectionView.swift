@@ -87,7 +87,7 @@ struct SilencePodSelectionView: View {
         }
         .insetGroupedListStyle()
         .navigationTitle(LocalizedString("Silence Pod", comment: "navigation title for Silnce Pod"))
-         .navigationBarTitleDisplayMode(.large)
+         .navigationBarTitleDisplayMode(.automatic)
         .alert(isPresented: $alertIsPresented, content: { alert(error: error) })
     }
 

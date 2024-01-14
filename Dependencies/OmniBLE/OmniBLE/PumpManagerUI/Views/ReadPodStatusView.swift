@@ -59,7 +59,7 @@ struct ReadPodStatusView: View {
         }
         .insetGroupedListStyle()
         .navigationTitle(title)
-         .navigationBarTitleDisplayMode(.large)
+         .navigationBarTitleDisplayMode(.automatic)
         .alert(isPresented: $alertIsPresented, content: { alert(error: error) })
         .onFirstAppear {
             asyncAction()

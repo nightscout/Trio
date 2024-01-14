@@ -489,9 +489,9 @@ extension Home {
                     .buttonStyle(.borderless)
                     Spacer()
                     Button {
-                        isMenuPresented.toggle()
+                        state.showModal(for: .settings)
                     } label: {
-                        Image(systemName: "text.justify")
+                        Image(systemName: "gear")
                             .font(.system(size: 26))
                             .padding(8)
                     }
@@ -828,8 +828,6 @@ extension Home {
 
                             menuSymbols(action: { state.showModal(for: .addTempTarget) }, systemName: "target")
 
-                            menuSymbols(action: { state.showModal(for: .settings) }, systemName: "gear")
-
                             Spacer()
                         })
                         VStack(alignment: .leading, spacing: 25, content: {
@@ -852,8 +850,6 @@ extension Home {
 
                             menuElements(action: { state.showModal(for: .addTempTarget) }, title: "Temp targets")
 
-                            menuElements(action: { state.showModal(for: .settings) }, title: "Settings")
-
                             Spacer()
                         })
                     }
@@ -866,6 +862,8 @@ extension Home {
             GeometryReader { geo in
                 ZStack(alignment: .trailing) {
                     VStack(spacing: 0) {
+                        Spacer()
+
                         ZStack {
                             /// glucose bobble
                             glucoseView
@@ -879,10 +877,9 @@ extension Home {
                             /// left panel with pump related info
                             HStack {
                                 pumpView
-
                                 Spacer()
                             }.padding(.leading, 20)
-
+                            
                             HStack {
                                 Spacer()
                                 Button {
@@ -894,42 +891,42 @@ extension Home {
                                 }.padding(.trailing, 20).padding(.bottom, 110)
                             }
 
-                        }.padding(.top, 70)
+                        }.padding(.top, 40)
 
-                        mealPanel(geo).padding(.vertical, 25)
+                        Spacer()
+
+                        mealPanel(geo)
+
+                        Spacer()
 
                         profileView(geo).padding(.vertical)
 
                         RoundedRectangle(cornerRadius: 15)
-                            .fill(Color.chart)
+                            .fill(Color("Chart"))
                             .overlay(mainChart)
                             .clipShape(RoundedRectangle(cornerRadius: 15))
                             .shadow(
-                                color: colorScheme == .dark ? Color(
-                                    red: 0.02745098039,
-                                    green: 0.1098039216,
-                                    blue: 0.1411764706
-                                ) :
+                                color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
                                     Color.black.opacity(0.33),
                                 radius: 3
                             )
                             .padding(.horizontal, 10)
                             .frame(maxHeight: UIScreen.main.bounds.height / 2.1)
 
-                        timeInterval.padding(.top, 25)
+                        Spacer()
+
+                        timeInterval
 
                         Spacer()
 
                         ZStack(alignment: .bottom) {
-                            // bottomPanel(geo)
+                            bottomPanel(geo)
 
                             if let progress = state.bolusProgress {
                                 bolusProgressView(geo, progress)
                             }
                         }
                     }
-
-                    // tabbar
                 }
                 .background(color)
                 .blur(radius: isMenuPresented ? 5 : 0)
@@ -969,38 +966,38 @@ extension Home {
             }
         }
 
-        @ViewBuilder func tabBar() -> some View {
-            TabView(selection: $appState.currentTab) {
-                mainView()
-                    .tabItem { Label("Home", systemImage: "house") }
-                    .tag(Tab.home)
-
-                NavigationStack { DataTable.RootView(resolver: resolver) }
-                    .tabItem { Label("History", systemImage: historySFSymbol) }
-                    .tag(Tab.history)
-
-                NavigationStack { AddCarbs.RootView(resolver: resolver, editMode: false, override: false) }
-                    .tabItem { Label("Carbs", systemImage: "fork.knife") }
-                    .tag(Tab.carbs)
-
-                NavigationStack { Bolus.RootView(resolver: resolver, waitForSuggestion: false, fetch: false, appState: appState)
-                }
-                .tabItem { Label("Bolus", systemImage: "syringe.fill") }
-                .tag(Tab.bolus)
-
-                NavigationStack { OverrideProfilesConfig.RootView(resolver: resolver) }
-                    .tabItem {
-                        Label(
-                            "Profile",
-                            systemImage: state.isTempTargetActive || overrideString != nil ? "person.fill" : "person"
-                        ) }
-                    .tag(Tab.profile)
-            }.tint(Color.tabBar)
-        }
+//        @ViewBuilder func tabBar() -> some View {
+//            TabView(selection: $appState.currentTab) {
+//                mainView()
+//                    .tabItem { Label("Home", systemImage: "house") }
+//                    .tag(Tab.home)
+//
+//                NavigationStack { DataTable.RootView(resolver: resolver) }
+//                    .tabItem { Label("History", systemImage: historySFSymbol) }
+//                    .tag(Tab.history)
+//
+//                NavigationStack { AddCarbs.RootView(resolver: resolver, editMode: false, override: false) }
+//                    .tabItem { Label("Carbs", systemImage: "fork.knife") }
+//                    .tag(Tab.carbs)
+//
+//                NavigationStack { Bolus.RootView(resolver: resolver, waitForSuggestion: false, fetch: false, appState: appState)
+//                }
+//                .tabItem { Label("Bolus", systemImage: "syringe.fill") }
+//                .tag(Tab.bolus)
+//
+//                NavigationStack { OverrideProfilesConfig.RootView(resolver: resolver) }
+//                    .tabItem {
+//                        Label(
+//                            "Profile",
+//                            systemImage: state.isTempTargetActive || overrideString != nil ? "person.fill" : "person"
+//                        ) }
+//                    .tag(Tab.profile)
+//            }.tint(Color.tabBar)
+//        }
 
         var body: some View {
             ZStack(alignment: .trailing) {
-                tabBar()
+                mainView()
                 // burger menu
                 if isMenuPresented {
                     HStack {

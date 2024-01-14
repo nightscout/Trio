@@ -159,7 +159,7 @@ extension Settings {
                         }
                     }
                 }
-                 .navigationBarTitleDisplayMode(.large)
+                 .navigationBarTitleDisplayMode(.inline)
                 .onDisappear(perform: { state.uploadProfileAndSettings(false) })
         }
     }

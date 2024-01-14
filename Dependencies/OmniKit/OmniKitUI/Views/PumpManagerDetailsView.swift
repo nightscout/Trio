@@ -66,7 +66,7 @@ struct PumpManagerDetailsView: View {
         }
         .insetGroupedListStyle()
         .navigationTitle(title)
-         .navigationBarTitleDisplayMode(.large)
+         .navigationBarTitleDisplayMode(.automatic)
         .onFirstAppear {
             asyncAction()
         }

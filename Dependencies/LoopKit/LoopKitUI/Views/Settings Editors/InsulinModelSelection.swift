@@ -84,7 +84,7 @@ public struct InsulinModelSelection: View {
             content
         case .settings:
             contentWithCancel
-                 .navigationBarTitleDisplayMode(.large)
+                 .navigationBarTitleDisplayMode(.automatic)
         }
     }
     
