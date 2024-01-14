@@ -180,7 +180,8 @@ extension Bolus {
                         Button {
                             keepForNextWiew = true
                             state.add()
-                            appState.currentTab = .home
+                            state.hideModal()
+//                            appState.currentTab = .home
                         }
                         label: { Text(exceededMaxBolus ? "Max Bolus exceeded!" : "Enact bolus") }
                             .frame(maxWidth: .infinity, alignment: .center)
@@ -193,7 +194,8 @@ extension Bolus {
                     Section {
                         Button {
                             keepForNextWiew = true
-                            appState.currentTab = .home
+                            state.hideModal()
+//                            appState.currentTab = .home
                         }
                         label: { Text("Continue without bolus") }.frame(maxWidth: .infinity, alignment: .center)
                     }.listRowBackground(Color.chart)
