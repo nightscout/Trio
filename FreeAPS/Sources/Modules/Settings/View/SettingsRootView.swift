@@ -35,13 +35,13 @@ extension Settings {
                     Text(
                         "iAPS v\(state.versionNumber) (\(state.buildNumber))\nBranch: \(state.branch) \(state.copyrightNotice) "
                     ).textCase(nil)
-                }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                }.listRowBackground(Color.chart)
 
                 Section {
                     Text("Pump").navigationLink(to: .pumpConfig, from: self)
                     Text("CGM").navigationLink(to: .cgm, from: self)
                     Text("Watch").navigationLink(to: .watch, from: self)
-                } header: { Text("Devices") }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                } header: { Text("Devices") }.listRowBackground(Color.chart)
 
                 Section {
                     Text("Nightscout").navigationLink(to: .nighscoutConfig, from: self)
@@ -49,7 +49,7 @@ extension Settings {
                         Text("Apple Health").navigationLink(to: .healthkit, from: self)
                     }
                     Text("Notifications").navigationLink(to: .notificationsConfig, from: self)
-                } header: { Text("Services") }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                } header: { Text("Services") }.listRowBackground(Color.chart)
 
                 Section {
                     Text("Pump Settings").navigationLink(to: .pumpSettingsEditor, from: self)
@@ -57,12 +57,12 @@ extension Settings {
                     Text("Insulin Sensitivities").navigationLink(to: .isfEditor, from: self)
                     Text("Carb Ratios").navigationLink(to: .crEditor, from: self)
                     Text("Target Glucose").navigationLink(to: .targetsEditor, from: self)
-                } header: { Text("Configuration") }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                } header: { Text("Configuration") }.listRowBackground(Color.chart)
 
                 Section {
                     Text("OpenAPS").navigationLink(to: .preferencesEditor, from: self)
                     Text("Autotune").navigationLink(to: .autotuneConfig, from: self)
-                } header: { Text("OpenAPS") }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                } header: { Text("OpenAPS") }.listRowBackground(Color.chart)
 
                 Section {
                     Text("UI/UX").navigationLink(to: .statisticsConfig, from: self)
@@ -70,7 +70,7 @@ extension Settings {
                     Text("Bolus Calculator").navigationLink(to: .bolusCalculatorConfig, from: self)
                     Text("Fat And Protein Conversion").navigationLink(to: .fpuConfig, from: self)
                     Text("Dynamic ISF").navigationLink(to: .dynamicISF, from: self)
-                } header: { Text("Extra Features") }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                } header: { Text("Extra Features") }.listRowBackground(Color.chart)
 
                 Section {
                     Toggle("Debug options", isOn: $state.debugOptions)
@@ -134,18 +134,18 @@ extension Settings {
                                 .navigationLink(to: .configEditor(file: OpenAPS.FreeAPS.settings), from: self)
                         }
                     }
-                } header: { Text("Developer") }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                } header: { Text("Developer") }.listRowBackground(Color.chart)
 
                 Section {
                     Toggle("Animated Background", isOn: $state.animatedBackground)
-                }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                }.listRowBackground(Color.chart)
 
                 Section {
                     Text("Share logs")
                         .onTapGesture {
                             showShareSheet = true
                         }
-                }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                }.listRowBackground(Color.chart)
             }.scrollContentBackground(.hidden).background(color)
                 .sheet(isPresented: $showShareSheet) {
                     ShareSheet(activityItems: state.logItems())
@@ -159,7 +159,7 @@ extension Settings {
                         }
                     }
                 }
-                .navigationBarTitleDisplayMode(.inline)
+                 .navigationBarTitleDisplayMode(.large)
                 .onDisappear(perform: { state.uploadProfileAndSettings(false) })
         }
     }

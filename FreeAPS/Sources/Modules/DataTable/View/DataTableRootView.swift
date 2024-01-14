@@ -104,7 +104,7 @@ extension DataTable {
             }.background(color)
                 .onAppear(perform: configureView)
                 .navigationTitle("History")
-                .navigationBarTitleDisplayMode(.inline)
+                 .navigationBarTitleDisplayMode(.large)
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
                         switch state.mode {
@@ -133,8 +133,8 @@ extension DataTable {
             Button(
                 action: action,
                 label: {
-                    Image(systemName: "plus.circle.fill")
-                    Text("Add")
+                    Image(systemName: "plus")
+                        .font(.system(size: 20))
                 }
             )
         }
@@ -161,7 +161,7 @@ extension DataTable {
                         Text("No data.")
                     }
                 }
-            }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+            }.listRowBackground(Color.chart)
         }
 
         private var mealsList: some View {
@@ -180,7 +180,7 @@ extension DataTable {
                         Text("No data.")
                     }
                 }
-            }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+            }.listRowBackground(Color.chart)
         }
 
         private var glucoseList: some View {
@@ -199,7 +199,7 @@ extension DataTable {
                         Text("No data.")
                     }
                 }
-            }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+            }.listRowBackground(Color.chart)
         }
 
         @ViewBuilder private func addGlucoseView() -> some View {
@@ -221,7 +221,7 @@ extension DataTable {
                                 )
                                 Text(state.units.rawValue).foregroundStyle(.secondary)
                             }
-                        }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                        }.listRowBackground(Color.chart)
 
                         Section {
                             HStack {
@@ -244,7 +244,7 @@ extension DataTable {
                 }
                 .onAppear(perform: configureView)
                 .navigationTitle("Add Glucose")
-                .navigationBarTitleDisplayMode(.automatic)
+                .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         Button("Close") {
@@ -403,11 +403,11 @@ extension DataTable {
                                 )
                                 Text("U").foregroundColor(.secondary)
                             }
-                        }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                        }.listRowBackground(Color.chart)
 
                         Section {
                             DatePicker("Date", selection: $state.externalInsulinDate, in: ...Date())
-                        }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                        }.listRowBackground(Color.chart)
 
                         let amountWarningCondition = (state.externalInsulinAmount > state.maxBolus)
 
@@ -459,7 +459,7 @@ extension DataTable {
                 }
                 .onAppear(perform: configureView)
                 .navigationTitle("External Insulin")
-                .navigationBarTitleDisplayMode(.inline)
+                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         Button("Close") {

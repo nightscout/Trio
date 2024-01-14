@@ -49,7 +49,7 @@ extension AddTempTarget {
                         ForEach(state.presets) { preset in
                             presetView(for: preset)
                         }
-                    }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                    }.listRowBackground(Color.chart)
                 }
 
                 HStack {
@@ -57,7 +57,7 @@ extension AddTempTarget {
                     Toggle(isOn: $state.viewPercantage) {}.controlSize(.mini)
                     Image(systemName: "figure.highintensity.intervaltraining")
                     Image(systemName: "fork.knife")
-                }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                }.listRowBackground(Color.chart)
 
                 if state.viewPercantage {
                     Section {
@@ -98,7 +98,7 @@ extension AddTempTarget {
                                 ).accentColor(.green)
                             }
                         }
-                    }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                    }.listRowBackground(Color.chart)
                 } else {
                     Section(header: Text("Custom")) {
                         HStack {
@@ -116,7 +116,7 @@ extension AddTempTarget {
                         DatePicker("Date", selection: $state.date)
                         Button { isPromptPresented = true }
                         label: { Text("Save as preset") }
-                    }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                    }.listRowBackground(Color.chart)
                 }
                 if state.viewPercantage {
                     Section {
@@ -130,7 +130,7 @@ extension AddTempTarget {
                         Button { isPromptPresented = true }
                         label: { Text("Save as preset") }
                             .disabled(state.duration == 0)
-                    }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                    }.listRowBackground(Color.chart)
                 }
 
                 Section {
@@ -138,7 +138,7 @@ extension AddTempTarget {
                     label: { Text("Enact") }
                     Button { state.cancel() }
                     label: { Text("Cancel Temp Target") }
-                }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                }.listRowBackground(Color.chart)
             }.scrollContentBackground(.hidden).background(color)
                 .popover(isPresented: $isPromptPresented) {
                     Form {
@@ -159,7 +159,7 @@ extension AddTempTarget {
                     state.hbt = isEnabledArray.first?.hbt ?? 160
                 }
                 .navigationTitle("Enact Temp Target")
-                .navigationBarTitleDisplayMode(.inline)
+                 .navigationBarTitleDisplayMode(.large)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarLeading) {
                         Button("Close") {

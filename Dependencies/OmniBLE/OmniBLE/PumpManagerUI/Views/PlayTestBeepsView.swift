@@ -49,7 +49,7 @@ struct PlayTestBeepsView: View {
         }
         .insetGroupedListStyle()
         .navigationTitle(title)
-        .navigationBarTitleDisplayMode(.inline)
+         .navigationBarTitleDisplayMode(.large)
         .alert(isPresented: $alertIsPresented, content: { alert(error: error) })
         .onFirstAppear {
             asyncAction()

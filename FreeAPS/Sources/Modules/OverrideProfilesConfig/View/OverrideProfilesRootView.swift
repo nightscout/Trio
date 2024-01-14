@@ -273,12 +273,12 @@ extension OverrideProfilesConfig {
                     Text(
                         "Your profile basal insulin will be adjusted with the override percentage and your profile ISF and CR will be inversly adjusted with the percentage."
                     )
-                }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                }.listRowBackground(Color.chart)
 
                 Button("Return to Normal") {
                     state.cancelProfile()
                     dismiss()
-                }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                }.listRowBackground(Color.chart)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .buttonStyle(BorderlessButtonStyle())
                     .disabled(!state.isEnabled)
@@ -287,7 +287,7 @@ extension OverrideProfilesConfig {
                 .onAppear(perform: configureView)
                 .onAppear { state.savedSettings() }
                 .navigationBarTitle("Profiles")
-                .navigationBarTitleDisplayMode(.inline)
+                 .navigationBarTitleDisplayMode(.large)
         }
 
         @ViewBuilder private func profilesView(for preset: OverridePresets) -> some View {

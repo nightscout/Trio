@@ -69,7 +69,7 @@ extension AddCarbs {
                             autofocus: true,
                             cleanInput: true
                         )
-                        Text("grams").foregroundColor(.secondary)
+                        Text("g").foregroundColor(.secondary)
                     }
 
                     if state.useFPUconversion {
@@ -128,7 +128,7 @@ extension AddCarbs {
                     .popover(isPresented: $isPromptPresented) {
                         presetPopover
                     }
-                }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                }.listRowBackground(Color.chart)
 
                 Section {
                     Button { state.add(override, fetch: editMode) }
@@ -140,7 +140,7 @@ extension AddCarbs {
 
                 Section {
                     mealPresets
-                }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                }.listRowBackground(Color.chart)
             }.scrollContentBackground(.hidden).background(color)
                 .onAppear {
                     configureView {
@@ -148,7 +148,7 @@ extension AddCarbs {
                     }
                 }
                 .navigationTitle("Add Meal")
-                .navigationBarTitleDisplayMode(.inline)
+                 .navigationBarTitleDisplayMode(.large)
         }
 
         private var presetPopover: some View {
@@ -313,7 +313,7 @@ extension AddCarbs {
                     autofocus: false,
                     cleanInput: true
                 )
-                Text("grams").foregroundColor(.secondary)
+                Text("g").foregroundColor(.secondary)
             }
             HStack {
                 Text("Protein").foregroundColor(.red)
@@ -326,7 +326,7 @@ extension AddCarbs {
                     cleanInput: true
                 ).foregroundColor(.loopRed)
 
-                Text("grams").foregroundColor(.secondary)
+                Text("g").foregroundColor(.secondary)
             }
         }
     }

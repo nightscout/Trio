@@ -82,12 +82,12 @@ extension Bolus {
                     } else {
                         predictionChart
                     }
-                } header: { Text("Predictions") }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                } header: { Text("Predictions") }.listRowBackground(Color.chart)
 
                 if fetch {
                     Section {
                         mealEntries
-                    } header: { Text("Meal Summary") }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                    } header: { Text("Meal Summary") }.listRowBackground(Color.chart)
                 }
 
                 Section {
@@ -173,7 +173,7 @@ extension Bolus {
                         }
                     }
 
-                } header: { Text("Bolus") }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                } header: { Text("Bolus") }.listRowBackground(Color.chart)
 
                 if state.amount > 0 {
                     Section {
@@ -196,12 +196,12 @@ extension Bolus {
                             appState.currentTab = .home
                         }
                         label: { Text("Continue without bolus") }.frame(maxWidth: .infinity, alignment: .center)
-                    }.listRowBackground(colorScheme == .dark ? Color.chart : Color.white)
+                    }.listRowBackground(Color.chart)
                 }
             }.scrollContentBackground(.hidden).background(color)
                 .blur(radius: showInfo ? 3 : 0)
                 .navigationTitle("Enact Bolus")
-                .navigationBarTitleDisplayMode(.inline)
+                 .navigationBarTitleDisplayMode(.large)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         if fetch {
