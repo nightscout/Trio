@@ -405,12 +405,23 @@ extension MainChartView {
                         unit: .second
                     )
                 ).foregroundStyle(Color.clear)
-                ForEach(TempBasals) {
-                    BarMark(
-                        x: .value("Time", $0.timestamp),
-                        y: .value("Rate", $0.rate ?? 0)
+                ///temp basal rects
+                ForEach(TempBasals) { temp in
+                    ///calculate end time of temp basal adding duration to start time
+                    let end = temp.timestamp + (temp.durationMin ?? 0).minutes.timeInterval
+                    let now = Date()
+                    ///ensure that temp basals that are set cannot exceed current date -> i.e. scheduled temp basals are not shown
+                    ///we could display scheduled temp basals with opacity etc... in the future
+                    let maxEndTime = min(end, now)
+                    
+                    RectangleMark(
+                        xStart: .value("start", temp.timestamp),
+                        xEnd: .value("end", maxEndTime),
+                        yStart: .value("rate-start", 0),
+                        yEnd: .value("rate-end", temp.rate ?? 0)
                     ).foregroundStyle(Color.insulin)
                 }
+                ///dashed profile line
                 ForEach(BasalProfiles, id: \.self) { profile in
                     LineMark(
                         x: .value("Start Date", profile.startDate),
