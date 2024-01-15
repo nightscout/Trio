@@ -441,15 +441,6 @@ extension Home {
                         }
                     }.buttonStyle(.borderless)
                     Spacer()
-//                    Button { state.showModal(for: .addTempTarget) }
-//                    label: {
-//                        Image(systemName: "target")
-//                            .font(.system(size: 24))
-//                            .padding(8)
-//                    }
-//                    .foregroundColor(state.isTempTargetActive ? Color.purple : colorIcon)
-//                    .buttonStyle(.borderless)
-//                    Spacer()
                     Button {
                         state.showModal(for: .bolus(
                             waitForSuggestion: true,
@@ -478,14 +469,15 @@ extension Home {
                         .buttonStyle(.borderless)
                         Spacer()
                     }
+                    let isOverrideActive = fetchedPercent.first?.enabled ?? false
                     Button {
                         state.showModal(for: .overrideProfilesConfig)
                     } label: {
-                        Image(systemName: state.isTempTargetActive || overrideString != nil ? "person.fill" : "person")
+                        Image(systemName: (state.isTempTargetActive || isOverrideActive) ? "person.fill" : "person")
                             .font(.system(size: 26))
                             .padding(8)
                     }
-                    .foregroundColor((state.isTempTargetActive || (overrideString != nil)) ? Color.purple : colorIcon)
+                    .foregroundColor((state.isTempTargetActive || isOverrideActive) ? Color.purple : colorIcon)
                     .buttonStyle(.borderless)
                     Spacer()
                     Button {
@@ -495,7 +487,7 @@ extension Home {
                             .font(.system(size: 26))
                             .padding(8)
                     }
-                    .foregroundColor((state.isTempTargetActive || (overrideString != nil)) ? Color.purple : colorIcon)
+                    .foregroundColor(colorIcon)
                     .buttonStyle(.borderless)
                 }
                 .padding(.horizontal, 24)
