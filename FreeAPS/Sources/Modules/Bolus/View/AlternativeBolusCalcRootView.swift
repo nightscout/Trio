@@ -399,36 +399,32 @@ extension Bolus {
                             .font(.footnote)
                             .buttonStyle(PlainButtonStyle())
                             .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-
-                    if state.sweetMeals || state.fattyMeals {
-                        HStack {
-                            if state.fattyMeals {
-                                Spacer()
-                                Toggle(isOn: $state.useFattyMealCorrectionFactor) {
-                                    Text("Fatty Meal")
-                                }
-                                .toggleStyle(CheckboxToggleStyle())
-                                .font(.footnote)
-                                .onChange(of: state.useFattyMealCorrectionFactor) { _ in
-                                    state.insulinCalculated = state.calculateInsulin()
-                                    if state.useFattyMealCorrectionFactor {
-                                        state.useSuperBolus = false
-                                    }
+                        
+                        if state.fattyMeals {
+                            Spacer()
+                            Toggle(isOn: $state.useFattyMealCorrectionFactor) {
+                                Text("Fatty Meal")
+                            }
+                            .toggleStyle(CheckboxToggleStyle())
+                            .font(.footnote)
+                            .onChange(of: state.useFattyMealCorrectionFactor) { _ in
+                                state.insulinCalculated = state.calculateInsulin()
+                                if state.useFattyMealCorrectionFactor {
+                                    state.useSuperBolus = false
                                 }
                             }
-                            if state.sweetMeals {
-                                Spacer()
-                                Toggle(isOn: $state.useSuperBolus) {
-                                    Text("Super Bolus")
-                                }
-                                .toggleStyle(CheckboxToggleStyle())
-                                .font(.footnote)
-                                .onChange(of: state.useSuperBolus) { _ in
-                                    state.insulinCalculated = state.calculateInsulin()
-                                    if state.useSuperBolus {
-                                        state.useFattyMealCorrectionFactor = false
-                                    }
+                        }
+                        if state.sweetMeals {
+                            Spacer()
+                            Toggle(isOn: $state.useSuperBolus) {
+                                Text("Super Bolus")
+                            }
+                            .toggleStyle(CheckboxToggleStyle())
+                            .font(.footnote)
+                            .onChange(of: state.useSuperBolus) { _ in
+                                state.insulinCalculated = state.calculateInsulin()
+                                if state.useSuperBolus {
+                                    state.useFattyMealCorrectionFactor = false
                                 }
                             }
                         }
