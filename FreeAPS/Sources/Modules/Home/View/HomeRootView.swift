@@ -981,9 +981,9 @@ extension Home {
                     action: {
                         state.showModal(for: .bolus(waitForSuggestion: false, fetch: false, editMode: false, override: false)) },
                     label: {
-                        Image(systemName: "plus.circle.fill").font(.system(size: 40)).foregroundStyle(Color.gray.opacity(0.9))
+                        Image(systemName: "plus").font(.system(size: 40)).foregroundStyle(Color.gray.opacity(0.8))
                     }
-                ).padding(.bottom, 2)
+                ).padding(.bottom, 5)
             }
         }
 
