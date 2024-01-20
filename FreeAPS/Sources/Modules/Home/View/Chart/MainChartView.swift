@@ -97,7 +97,7 @@ struct MainChartView: View {
     @State private var startMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 - 86400))
     @State private var endMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 + 10800))
     @State private var glucoseUpdateCount = 0
-    @State private var maxUpdateCount = 12
+    @State private var maxUpdateCount = 2
     @State private var minValue: Int = 45
     @State private var maxValue: Int = 270
 
