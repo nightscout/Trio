@@ -85,7 +85,7 @@ extension OverrideProfilesConfig {
                         ForEach(fetchedProfiles) { preset in
                             profilesView(for: preset)
                         }.onDelete(perform: removeProfile)
-                    }
+                    }.listRowBackground(Color.chart)
                 }
                 Section {
                     VStack {

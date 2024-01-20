@@ -855,6 +855,8 @@ extension Home {
             GeometryReader { geo in
                 ZStack(alignment: .trailing) {
                     VStack(spacing: 0) {
+                        Spacer()
+                        
                         ZStack {
                             /// glucose bobble
                             glucoseView
@@ -882,11 +884,15 @@ extension Home {
                                 }.padding(.trailing, 20).padding(.bottom, 110)
                             }
 
-                        }.padding(.top, 70)
+                        }.padding(.top, 40)
+                        
+                        Spacer()
 
-                        mealPanel(geo).padding(.vertical, 25)
+                        mealPanel(geo)
+                        
+                        Spacer()
 
-                        profileView(geo).padding(.vertical)
+                        profileView(geo)
 
                         RoundedRectangle(cornerRadius: 15)
                             .fill(Color("Chart"))
@@ -899,8 +905,10 @@ extension Home {
                             )
                             .padding(.horizontal, 10)
                             .frame(maxHeight: UIScreen.main.bounds.height / 2.1)
+                        
+                        Spacer()
 
-                        timeInterval.padding(.top, 25)
+                        timeInterval.padding(.bottom, 70)
 
                         Spacer()
 
@@ -979,7 +987,7 @@ extension Home {
             .overlay(alignment: .bottom) {
                 Button(
                     action: {
-                        state.showModal(for: .bolus(waitForSuggestion: false, fetch: false, editMode: false, override: false)) },
+                        state.showModal(for: .bolus(waitForSuggestion: true, fetch: false, editMode: false, override: false)) },
                     label: {
                         Image(systemName: "plus").font(.system(size: 40)).foregroundStyle(Color.gray.opacity(0.8))
                     }
