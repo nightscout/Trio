@@ -2,10 +2,12 @@ import SwiftUI
 import Swinject
 
 extension Bolus {
-    struct RootView: BaseView {
+    struct RootView: View {
         let resolver: Resolver
         let waitForSuggestion: Bool
         let fetch: Bool
+        let editMode: Bool
+        let override: Bool
         @StateObject var state = StateModel()
         @ObservedObject var appState = AppState()
 
@@ -16,6 +18,8 @@ extension Bolus {
                     resolver: resolver,
                     waitForSuggestion: waitForSuggestion,
                     fetch: fetch,
+                    editMode: editMode,
+                    override: override,
                     state: state,
                     appState: appState
                 )

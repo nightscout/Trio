@@ -13,6 +13,7 @@ extension Home {
         @State var isStatusPopupPresented = false
         @State var showCancelAlert = false
         @State var isMenuPresented = false
+        @State var showTreatments = false
         @State var selectedTab: Int = 0
         @State var currentTab: Tab
 
@@ -389,111 +390,111 @@ extension Home {
             }
         }
 
-        @ViewBuilder private func bottomPanel(_: GeometryProxy) -> some View {
-            let colorIcon: Color = (colorScheme == .dark ? Color.white : Color.black).opacity(0.9)
-
-            ZStack {
-                Rectangle()
-                    .fill(Color("Chart"))
-                    .frame(height: UIScreen.main.bounds.height / 13)
-                    .cornerRadius(15)
-                    .shadow(
-                        color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) : Color
-                            .black.opacity(0.33),
-                        radius: 3
-                    )
-                    .padding([.leading, .trailing], 10)
-
-                HStack {
-                    Button {
-                        state.showModal(for: .dataTable)
-                    }
-                    label: {
-                        if #available(iOS 17.0, *) {
-                            Image(systemName: "book.pages")
-                                .font(.system(size: 24))
-                                .foregroundColor(colorIcon)
-                                .padding(8)
-                        } else {
-                            Image(systemName: "book")
-                                .font(.system(size: 24))
-                                .foregroundColor(colorIcon)
-                                .padding(8)
-                        }
-                    }
-                    .foregroundColor(colorIcon)
-                    .buttonStyle(.borderless)
-                    Spacer()
-                    Button { state.showModal(for: .addCarbs(editMode: false, override: false)) }
-                    label: {
-                        ZStack(alignment: Alignment(horizontal: .trailing, vertical: .bottom)) {
-                            Image(systemName: "fork.knife")
-                                .font(.system(size: 24))
-                                .foregroundColor(colorIcon)
-                                .padding(8)
-                            if let carbsReq = state.carbsRequired {
-                                Text(numberFormatter.string(from: carbsReq as NSNumber)!)
-                                    .font(.caption)
-                                    .foregroundColor(.white)
-                                    .padding(4)
-                                    .background(Capsule().fill(Color.red))
-                            }
-                        }
-                    }.buttonStyle(.borderless)
-                    Spacer()
-                    Button {
-                        state.showModal(for: .bolus(
-                            waitForSuggestion: true,
-                            fetch: false
-                        ))
-                    }
-                    label: {
-                        Image(systemName: "syringe.fill")
-                            .font(.system(size: 24))
-                            .foregroundColor(colorIcon)
-                            .padding(8)
-                    }
-                    .foregroundColor(colorIcon)
-                    .buttonStyle(.borderless)
-                    Spacer()
-                    if state.allowManualTemp {
-                        Button { state.showModal(for: .manualTempBasal) }
-                        label: {
-                            Image("bolus1")
-                                .renderingMode(.template)
-                                .resizable()
-                                .frame(width: 24, height: 24)
-                                .padding(8)
-                        }
-                        .foregroundColor(colorIcon)
-                        .buttonStyle(.borderless)
-                        Spacer()
-                    }
-                    let isOverrideActive = fetchedPercent.first?.enabled ?? false
-                    Button {
-                        state.showModal(for: .overrideProfilesConfig)
-                    } label: {
-                        Image(systemName: (state.isTempTargetActive || isOverrideActive) ? "person.fill" : "person")
-                            .font(.system(size: 26))
-                            .padding(8)
-                    }
-                    .foregroundColor((state.isTempTargetActive || isOverrideActive) ? Color.purple : colorIcon)
-                    .buttonStyle(.borderless)
-                    Spacer()
-                    Button {
-                        state.showModal(for: .settings)
-                    } label: {
-                        Image(systemName: "gear")
-                            .font(.system(size: 26))
-                            .padding(8)
-                    }
-                    .foregroundColor(colorIcon)
-                    .buttonStyle(.borderless)
-                }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 16)
-            }
-        }
+//        @ViewBuilder private func bottomPanel(_: GeometryProxy) -> some View {
+//            let colorIcon: Color = (colorScheme == .dark ? Color.white : Color.black).opacity(0.9)
+//
+//            ZStack {
+//                Rectangle()
+//                    .fill(Color("Chart"))
+//                    .frame(height: UIScreen.main.bounds.height / 13)
+//                    .cornerRadius(15)
+//                    .shadow(
+//                        color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) : Color
+//                            .black.opacity(0.33),
+//                        radius: 3
+//                    )
+//                    .padding([.leading, .trailing], 10)
+//
+//                HStack {
+//                    Button {
+//                        state.showModal(for: .dataTable)
+//                    }
+//                    label: {
+//                        if #available(iOS 17.0, *) {
+//                            Image(systemName: "book.pages")
+//                                .font(.system(size: 24))
+//                                .foregroundColor(colorIcon)
+//                                .padding(8)
+//                        } else {
+//                            Image(systemName: "book")
+//                                .font(.system(size: 24))
+//                                .foregroundColor(colorIcon)
+//                                .padding(8)
+//                        }
+//                    }
+//                    .foregroundColor(colorIcon)
+//                    .buttonStyle(.borderless)
+//                    Spacer()
+//                    Button { state.showModal(for: .addCarbs(editMode: false, override: false)) }
+//                    label: {
+//                        ZStack(alignment: Alignment(horizontal: .trailing, vertical: .bottom)) {
+//                            Image(systemName: "fork.knife")
+//                                .font(.system(size: 24))
+//                                .foregroundColor(colorIcon)
+//                                .padding(8)
+//                            if let carbsReq = state.carbsRequired {
+//                                Text(numberFormatter.string(from: carbsReq as NSNumber)!)
+//                                    .font(.caption)
+//                                    .foregroundColor(.white)
+//                                    .padding(4)
+//                                    .background(Capsule().fill(Color.red))
+//                            }
+//                        }
+//                    }.buttonStyle(.borderless)
+//                    Spacer()
+//                    Button {
+//                        state.showModal(for: .bolus(
+//                            waitForSuggestion: true,
+//                            fetch: false
+//                        ))
+//                    }
+//                    label: {
+//                        Image(systemName: "syringe.fill")
+//                            .font(.system(size: 24))
+//                            .foregroundColor(colorIcon)
+//                            .padding(8)
+//                    }
+//                    .foregroundColor(colorIcon)
+//                    .buttonStyle(.borderless)
+//                    Spacer()
+//                    if state.allowManualTemp {
+//                        Button { state.showModal(for: .manualTempBasal) }
+//                        label: {
+//                            Image("bolus1")
+//                                .renderingMode(.template)
+//                                .resizable()
+//                                .frame(width: 24, height: 24)
+//                                .padding(8)
+//                        }
+//                        .foregroundColor(colorIcon)
+//                        .buttonStyle(.borderless)
+//                        Spacer()
+//                    }
+//                    let isOverrideActive = fetchedPercent.first?.enabled ?? false
+//                    Button {
+//                        state.showModal(for: .overrideProfilesConfig)
+//                    } label: {
+//                        Image(systemName: (state.isTempTargetActive || isOverrideActive) ? "person.fill" : "person")
+//                            .font(.system(size: 26))
+//                            .padding(8)
+//                    }
+//                    .foregroundColor((state.isTempTargetActive || isOverrideActive) ? Color.purple : colorIcon)
+//                    .buttonStyle(.borderless)
+//                    Spacer()
+//                    Button {
+//                        state.showModal(for: .settings)
+//                    } label: {
+//                        Image(systemName: "gear")
+//                            .font(.system(size: 26))
+//                            .padding(8)
+//                    }
+//                    .foregroundColor(colorIcon)
+//                    .buttonStyle(.borderless)
+//                }
+//                .padding(.horizontal, 24)
+//                .padding(.bottom, 16)
+//            }
+//        }
 
         @ViewBuilder func bolusProgressBar(_ progress: Decimal) -> some View {
             GeometryReader { geo in
@@ -956,8 +957,7 @@ extension Home {
                     .tabItem { Label("History", systemImage: historySFSymbol) }
                     .tag(Tab.history)
 
-//                Spacer()
-//                TreatmentsView().tabItem { Label("Treatmens", systemImage: "plus") }.tag(Tab.treatments)
+                Spacer()
 
                 NavigationStack { OverrideProfilesConfig.RootView(resolver: resolver) }
                     .tabItem {
@@ -976,11 +976,15 @@ extension Home {
                     .tag(Tab.settings)
             }
             .tint(Color.tabBar)
-//            .overlay(alignment: .bottom) {
-//                Button(action: { state.showModal(for: .bolus(waitForSuggestion: false, fetch: false)) }, label: {
-//                    Image(systemName: "plus.circle.fill").font(.system(size: 40)).foregroundStyle(Color.gray.opacity(0.9))
-//                })
-//            }
+            .overlay(alignment: .bottom) {
+                Button(
+                    action: {
+                        state.showModal(for: .bolus(waitForSuggestion: false, fetch: false, editMode: false, override: false)) },
+                    label: {
+                        Image(systemName: "plus.circle.fill").font(.system(size: 40)).foregroundStyle(Color.gray.opacity(0.9))
+                    }
+                ).padding(.bottom, 2)
+            }
         }
 
         var body: some View {

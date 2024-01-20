@@ -59,7 +59,7 @@ extension AddCarbs {
                 showModal(for: nil)
             } else if carbs > 0 {
                 saveToCoreData(carbsToStore)
-                showModal(for: .bolus(waitForSuggestion: true, fetch: true))
+//                showModal(for: .bolus(waitForSuggestion: true, fetch: true))
             } else {
                 hideModal()
             }
