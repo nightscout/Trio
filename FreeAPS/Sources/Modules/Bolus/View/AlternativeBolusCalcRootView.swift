@@ -14,6 +14,7 @@ extension Bolus {
         @State private var showInfo = false
         @State private var exceededMaxBolus = false
         @State private var keepForNextWiew: Bool = false
+        @State private var autofocus: Bool = true
         @State private var calculatorDetent = PresentationDetent.medium
         @State var pushed = false
         @State var isPromptPresented = false
@@ -245,8 +246,8 @@ extension Bolus {
                             } else {
                                 Text("Edit meal")
                             }
-                        }
-                        .disabled(empty)
+                        }.buttonStyle(.bordered)
+                            .disabled(empty)
 
                         Spacer()
                     }
@@ -355,7 +356,7 @@ extension Bolus {
                         Button {
                             keepForNextWiew = true
                             state.add()
-                            appState.currentTab = .home
+                            state.hideModal()
                         }
                         label: { Text(exceededMaxBolus ? "Max Bolus exceeded!" : "Enact bolus") }
                             .frame(maxWidth: .infinity, alignment: .center)
@@ -368,7 +369,7 @@ extension Bolus {
                     Section {
                         Button {
                             keepForNextWiew = true
-                            appState.currentTab = .home
+                            state.hideModal()
                         }
                         label: { Text("Continue without bolus") }.frame(maxWidth: .infinity, alignment: .center)
                     }.listRowBackground(Color.chart)
@@ -392,8 +393,6 @@ extension Bolus {
                         state.waitForSuggestion = waitForSuggestion
                         state.insulinCalculated = state.calculateInsulin()
                     }
-                    state.carbs = 0
-                    treatmentsViewMode = .calcMode
                 }
                 .onDisappear {
                     if fetch, hasFatOrProtein, !keepForNextWiew, state.useCalc {

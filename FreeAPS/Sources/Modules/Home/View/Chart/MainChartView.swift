@@ -220,9 +220,8 @@ extension MainChartView {
                         y: .value("Value", bolus.yPosition)
                     )
                     .symbol {
-                        Image(systemName: "arrowtriangle.down.fill").font(.system(size: size))
+                        Image(systemName: "arrowtriangle.down.fill").font(.system(size: size)).foregroundStyle(Color.insulin)
                     }
-                    .foregroundStyle(Color.insulin)
                     .annotation(position: .top) {
                         Text(bolusFormatter.string(from: bolusAmount as NSNumber)!).font(.caption2).foregroundStyle(Color.insulin)
                     }
