@@ -854,8 +854,6 @@ extension Home {
             GeometryReader { geo in
                 ZStack(alignment: .trailing) {
                     VStack(spacing: 0) {
-                        Spacer()
-
                         ZStack {
                             /// glucose bobble
                             glucoseView
@@ -871,7 +869,7 @@ extension Home {
                                 pumpView
                                 Spacer()
                             }.padding(.leading, 20)
-                            
+
                             HStack {
                                 Spacer()
                                 Button {
@@ -883,13 +881,9 @@ extension Home {
                                 }.padding(.trailing, 20).padding(.bottom, 110)
                             }
 
-                        }.padding(.top, 40)
+                        }.padding(.top, 70)
 
-                        Spacer()
-
-                        mealPanel(geo)
-
-                        Spacer()
+                        mealPanel(geo).padding(.vertical, 25)
 
                         profileView(geo).padding(.vertical)
 
@@ -905,18 +899,12 @@ extension Home {
                             .padding(.horizontal, 10)
                             .frame(maxHeight: UIScreen.main.bounds.height / 2.1)
 
-                        Spacer()
-
-                        timeInterval
+                        timeInterval.padding(.top, 25)
 
                         Spacer()
 
-                        ZStack(alignment: .bottom) {
-                            bottomPanel(geo)
-
-                            if let progress = state.bolusProgress {
-                                bolusProgressView(geo, progress)
-                            }
+                        if let progress = state.bolusProgress {
+                            bolusProgressView(geo, progress)
                         }
                     }
                 }
@@ -958,38 +946,42 @@ extension Home {
             }
         }
 
-//        @ViewBuilder func tabBar() -> some View {
-//            TabView(selection: $appState.currentTab) {
-//                mainView()
-//                    .tabItem { Label("Home", systemImage: "house") }
-//                    .tag(Tab.home)
-//
-//                NavigationStack { DataTable.RootView(resolver: resolver) }
-//                    .tabItem { Label("History", systemImage: historySFSymbol) }
-//                    .tag(Tab.history)
-//
-//                NavigationStack { AddCarbs.RootView(resolver: resolver, editMode: false, override: false) }
-//                    .tabItem { Label("Carbs", systemImage: "fork.knife") }
-//                    .tag(Tab.carbs)
-//
-//                NavigationStack { Bolus.RootView(resolver: resolver, waitForSuggestion: false, fetch: false, appState: appState)
-//                }
-//                .tabItem { Label("Bolus", systemImage: "syringe.fill") }
-//                .tag(Tab.bolus)
-//
-//                NavigationStack { OverrideProfilesConfig.RootView(resolver: resolver) }
-//                    .tabItem {
-//                        Label(
-//                            "Profile",
-//                            systemImage: state.isTempTargetActive || overrideString != nil ? "person.fill" : "person"
-//                        ) }
-//                    .tag(Tab.profile)
-//            }.tint(Color.tabBar)
-//        }
+        @ViewBuilder func tabBar() -> some View {
+            TabView(selection: $appState.currentTab) {
+                mainView()
+                    .tabItem { Label("Home", systemImage: "house") }
+                    .tag(Tab.home)
+
+                NavigationStack { DataTable.RootView(resolver: resolver) }
+                    .tabItem { Label("History", systemImage: historySFSymbol) }
+                    .tag(Tab.history)
+
+                NavigationStack { AddCarbs.RootView(resolver: resolver, editMode: false, override: false) }
+                    .tabItem { Label("Treatments", systemImage: "plus") }
+                    .tag(Tab.treatments)
+
+                NavigationStack { OverrideProfilesConfig.RootView(resolver: resolver) }
+                    .tabItem {
+                        Label(
+                            "Profile",
+                            systemImage: state.isTempTargetActive || overrideString != nil ? "person.fill" : "person"
+                        ) }
+                    .tag(Tab.profile)
+
+                NavigationStack { Settings.RootView(resolver: resolver) }
+                    .tabItem {
+                        Label(
+                            "Settings",
+                            systemImage: "gear"
+                        ) }
+                    .tag(Tab.settings)
+            }.tint(Color.tabBar)
+        }
 
         var body: some View {
             ZStack(alignment: .trailing) {
-                mainView()
+                // mainView()
+                tabBar()
                 // burger menu
                 if isMenuPresented {
                     HStack {
@@ -1035,7 +1027,7 @@ class AppState: ObservableObject {
 enum Tab {
     case home
     case history
-    case carbs
-    case bolus
+    case treatments
     case profile
+    case settings
 }

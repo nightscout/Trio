@@ -104,16 +104,8 @@ extension DataTable {
             }.background(color)
                 .onAppear(perform: configureView)
                 .navigationTitle("History")
-                 .navigationBarTitleDisplayMode(.inline)
+                .navigationBarTitleDisplayMode(.large)
                 .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button {
-                            state.hideModal()
-                        } label: {
-                            Text("Close")
-                        }
-
-                    }
                     ToolbarItem(placement: .topBarTrailing) {
                         switch state.mode {
                         case .treatments: addButton({
@@ -467,7 +459,7 @@ extension DataTable {
                 }
                 .onAppear(perform: configureView)
                 .navigationTitle("External Insulin")
-                 .navigationBarTitleDisplayMode(.inline)
+                .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         Button("Close") {

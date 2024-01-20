@@ -55,7 +55,7 @@ extension ConfigEditor {
                         }
                     }
                     .navigationTitle(file)
-                     .navigationBarTitleDisplayMode(.automatic)
+                    .navigationBarTitleDisplayMode(.automatic)
                     .padding()
             }
             .scrollContentBackground(.hidden).background(color)

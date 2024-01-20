@@ -152,14 +152,7 @@ extension Settings {
                 }
                 .onAppear(perform: configureView)
                 .navigationTitle("Settings")
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button("Close") {
-                            state.hideSettingsModal()
-                        }
-                    }
-                }
-                 .navigationBarTitleDisplayMode(.inline)
+                .navigationBarTitleDisplayMode(.large)
                 .onDisappear(perform: { state.uploadProfileAndSettings(false) })
         }
     }

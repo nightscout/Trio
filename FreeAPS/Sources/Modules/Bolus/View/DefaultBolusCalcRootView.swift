@@ -171,7 +171,7 @@ extension Bolus {
                 }
 
                 .navigationTitle("Enact Bolus")
-                 .navigationBarTitleDisplayMode(.inline)
+                .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         if fetch {
@@ -184,14 +184,12 @@ extension Bolus {
                                     Text("Meal")
                                 }
                             }
-                        }
-                        else {
+                        } else {
                             Button {
                                 state.hideModal()
                             } label: {
                                 Text("Close")
                             }
-
                         }
                     }
                 }
