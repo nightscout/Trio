@@ -956,9 +956,8 @@ extension Home {
                     .tabItem { Label("History", systemImage: historySFSymbol) }
                     .tag(Tab.history)
 
-                NavigationStack { AddCarbs.RootView(resolver: resolver, editMode: false, override: false) }
-                    .tabItem { Label("Treatments", systemImage: "plus") }
-                    .tag(Tab.treatments)
+//                Spacer()
+//                TreatmentsView().tabItem { Label("Treatmens", systemImage: "plus") }.tag(Tab.treatments)
 
                 NavigationStack { OverrideProfilesConfig.RootView(resolver: resolver) }
                     .tabItem {
@@ -975,13 +974,20 @@ extension Home {
                             systemImage: "gear"
                         ) }
                     .tag(Tab.settings)
-            }.tint(Color.tabBar)
+            }
+            .tint(Color.tabBar)
+//            .overlay(alignment: .bottom) {
+//                Button(action: { state.showModal(for: .bolus(waitForSuggestion: false, fetch: false)) }, label: {
+//                    Image(systemName: "plus.circle.fill").font(.system(size: 40)).foregroundStyle(Color.gray.opacity(0.9))
+//                })
+//            }
         }
 
         var body: some View {
             ZStack(alignment: .trailing) {
                 // mainView()
                 tabBar()
+
                 // burger menu
                 if isMenuPresented {
                     HStack {
