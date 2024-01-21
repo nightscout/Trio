@@ -504,7 +504,6 @@ extension Bolus {
                     ToolbarItem(placement: .topBarLeading) {
                         Button {
                             state.hideModal()
-                            state.backToCarbsView(complexEntry: true, meal, override: false)
                         } label: {
                             Text("Close")
                         }
