@@ -687,9 +687,9 @@ extension Home {
                         .clipShape(RoundedRectangle(cornerRadius: 15))
                         .frame(height: UIScreen.main.bounds.height / 20)
                         .shadow(
-                            color:
-                            Color(red: 0.7215686275, green: 0.3411764706, blue: 1),
-                            radius: 1
+                            color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
+                                Color.black.opacity(0.33),
+                            radius: 3
                         )
                     HStack {
                         /// actual profile view
@@ -716,7 +716,7 @@ extension Home {
                         .onTapGesture {
                             showCancelAlert = true
                         }
-                }.padding(.horizontal, 10)
+                }.padding(.horizontal, 10).padding(.bottom, 10)
             }
 
             /// just show temp target if no profile is already active
@@ -728,9 +728,9 @@ extension Home {
                         .clipShape(RoundedRectangle(cornerRadius: 15))
                         .frame(height: UIScreen.main.bounds.height / 20)
                         .shadow(
-                            color:
-                            Color(red: 0.7215686275, green: 0.3411764706, blue: 1),
-                            radius: 1
+                            color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
+                                Color.black.opacity(0.33),
+                            radius: 3
                         )
                     HStack {
                         Image(systemName: "person.fill")
@@ -741,7 +741,7 @@ extension Home {
                             .font(.system(size: 15))
                         Spacer()
                     }.padding(.horizontal, 10)
-                }.padding(.horizontal, 10)
+                }.padding(.horizontal, 10).padding(.bottom, 10)
             }
         }
 
@@ -856,7 +856,7 @@ extension Home {
                 ZStack(alignment: .trailing) {
                     VStack(spacing: 0) {
                         Spacer()
-                        
+
                         ZStack {
                             /// glucose bobble
                             glucoseView
@@ -885,11 +885,11 @@ extension Home {
                             }
 
                         }.padding(.top, 40)
-                        
+
                         Spacer()
 
                         mealPanel(geo)
-                        
+
                         Spacer()
 
                         profileView(geo)
@@ -905,7 +905,7 @@ extension Home {
                             )
                             .padding(.horizontal, 10)
                             .frame(maxHeight: UIScreen.main.bounds.height / 2.1)
-                        
+
                         Spacer()
 
                         timeInterval.padding(.bottom, 70)
