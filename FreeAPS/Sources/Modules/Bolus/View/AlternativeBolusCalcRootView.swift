@@ -15,6 +15,7 @@ extension Bolus {
         @State private var showAlert = false
         @State private var exceededMaxBolus = false
         @State private var keepForNextWiew: Bool = false
+        @State private var calcButtonPressed: Bool = false
         @State private var autofocus: Bool = true
         @State private var calculatorDetent = PresentationDetent.medium
         @State var pushed = false
@@ -360,6 +361,7 @@ extension Bolus {
                             if treatmentsViewMode == .calcMode {
                                 state.addCarbs(override, fetch: editMode)
                                 treatmentsViewMode = .editMode
+                                calcButtonPressed.toggle()
                             } else {
                                 state.backToCarbsView(complexEntry: true, meal, override: false)
                                 treatmentsViewMode = .calcMode
@@ -479,6 +481,11 @@ extension Bolus {
                             keepForNextWiew = true
                             state.add()
                             state.hideModal()
+                            ///check if user pressed the calc button or just wanted to enter carbs
+                            ///otherwise carb entry is doubled
+                            if !calcButtonPressed {
+                                state.addCarbs(override, fetch: editMode)
+                            }
                         }
                         label: { Text(exceededMaxBolus ? "Max Bolus exceeded!" : "Enact bolus") }
                             .frame(maxWidth: .infinity, alignment: .center)
@@ -492,6 +499,11 @@ extension Bolus {
                         Button {
                             keepForNextWiew = true
                             state.hideModal()
+                            ///check if user pressed the calc button or just wanted to enter carbs
+                            ///otherwise carb entry is doubled
+                            if !calcButtonPressed {
+                                state.addCarbs(override, fetch: editMode)
+                            }
                         }
                         label: { Text("Continue without bolus") }.frame(maxWidth: .infinity, alignment: .center)
                     }.listRowBackground(Color.chart)
