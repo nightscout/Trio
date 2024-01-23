@@ -31,6 +31,24 @@ struct OmniBLESettingsView: View  {
 
     @Environment(\.guidanceColors) var guidanceColors
     @Environment(\.insulinTintColor) var insulinTintColor
+    @Environment(\.colorScheme) var colorScheme
+
+    private var color: LinearGradient {
+        colorScheme == .dark ? LinearGradient(
+            gradient: Gradient(colors: [
+                Color("Background_DarkBlue"),
+                Color("Background_DarkerDarkBlue")
+            ]),
+            startPoint: .top,
+            endPoint: .bottom
+        )
+            :
+            LinearGradient(
+                gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+    }
     
     private var daysRemaining: Int? {
         if case .timeRemaining(let remaining, _) = viewModel.lifeState, remaining > .days(1) {
@@ -242,12 +260,6 @@ struct OmniBLESettingsView: View  {
         }
     }
     
-    private var doneButton: some View {
-        Button(LocalizedString("Done", comment: "Title of done button on OmniBLESettingsView"), action: {
-            self.viewModel.doneTapped()
-        })
-    }
-    
     var headerImage: some View {
         VStack(alignment: .center) {
             Image(frameworkImage: "Pod")
@@ -301,7 +313,7 @@ struct OmniBLESettingsView: View  {
                             .font(Font.footnote.weight(.semibold))
                     }.padding(.vertical, 8)
                 }
-            }
+            }.listRowBackground(Color("Chart"))
 
             Section(header: SectionHeader(label: LocalizedString("Activity", comment: "Section header for activity section"))) {
                 suspendResumeRow()
@@ -314,7 +326,7 @@ struct OmniBLESettingsView: View  {
                             .foregroundColor(Color.secondary)
                     }
                 }
-            }
+            }.listRowBackground(Color("Chart"))
 
             Section() {
                 if let manualTempRemaining = self.viewModel.manualBasalTimeRemaining, let remainingText = self.viewModel.timeRemainingFormatter.string(from: manualTempRemaining) {
@@ -342,7 +354,7 @@ struct OmniBLESettingsView: View  {
                 } else {
                     manualTempBasalRow
                 }
-            }
+            }.listRowBackground(Color("Chart"))
             .disabled(cancelingTempBasal || !self.viewModel.podOk)
 
             Section() {
@@ -391,7 +403,7 @@ struct OmniBLESettingsView: View  {
                             .foregroundColor(Color.secondary)
                     }
                 }
-            }
+            }.listRowBackground(Color("Chart"))
 
             Section() {
                 Button(action: {
@@ -400,7 +412,7 @@ struct OmniBLESettingsView: View  {
                     Text(self.viewModel.lifeState.nextPodLifecycleActionDescription)
                         .foregroundColor(self.viewModel.lifeState.nextPodLifecycleActionColor)
                 }
-            }
+            }.listRowBackground(Color("Chart"))
 
             Section(header: SectionHeader(label: LocalizedString("Configuration", comment: "Section header for configuration section")))
             {
@@ -444,7 +456,7 @@ struct OmniBLESettingsView: View  {
                         }
                     }
                 }
-            }
+            }.listRowBackground(Color("Chart"))
 
             Section() {
                 HStack {
@@ -474,7 +486,7 @@ struct OmniBLESettingsView: View  {
                         syncPumpTimeActionSheet
                     }
                 }
-            }
+            }.listRowBackground(Color("Chart"))
 
             Section() {
                 NavigationLink(destination: PodDiagnosticsView(
@@ -484,7 +496,7 @@ struct OmniBLESettingsView: View  {
                     FrameworkLocalText("Pod Diagnostics", comment: "Text for pod diagnostics row")
                         .foregroundColor(Color.primary)
                 }
-            }
+            }.listRowBackground(Color("Chart"))
 
             if self.viewModel.lifeState.allowsPumpManagerRemoval {
                 Section() {
@@ -497,12 +509,21 @@ struct OmniBLESettingsView: View  {
                     .actionSheet(isPresented: $showingDeleteConfirmation) {
                         removePumpManagerActionSheet
                     }
-                }
+                }.listRowBackground(Color("Chart"))
             }
-        }
+        }.background(color)
         .alert(isPresented: $viewModel.alertIsPresented, content: { alert(for: viewModel.activeAlert!) })
         .insetGroupedListStyle()
-        .navigationBarItems(trailing: doneButton)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    self.viewModel.doneTapped()
+                } label: {
+                    Text("Close")
+                }
+
+            }
+        }
         .navigationBarTitle(self.viewModel.viewTitle)
     }
 
