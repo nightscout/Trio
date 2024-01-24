@@ -409,16 +409,29 @@ extension MainChartView {
                     /// calculate end time of temp basal adding duration to start time
                     let end = temp.timestamp + (temp.durationMin ?? 0).minutes.timeInterval
                     let now = Date()
+
                     /// ensure that temp basals that are set cannot exceed current date -> i.e. scheduled temp basals are not shown
                     /// we could display scheduled temp basals with opacity etc... in the future
                     let maxEndTime = min(end, now)
 
-                    RectangleMark(
-                        xStart: .value("start", temp.timestamp),
-                        xEnd: .value("end", maxEndTime),
-                        yStart: .value("rate-start", 0),
-                        yEnd: .value("rate-end", temp.rate ?? 0)
-                    ).foregroundStyle(Color.insulin)
+                    /// find next basal entry and if available set end of current entry to start of next entry
+                    if let nextTemp = TempBasals.first(where: { $0.timestamp > temp.timestamp }) {
+                        let nextTempStart = nextTemp.timestamp
+
+                        RectangleMark(
+                            xStart: .value("start", temp.timestamp),
+                            xEnd: .value("end", nextTempStart),
+                            yStart: .value("rate-start", 0),
+                            yEnd: .value("rate-end", temp.rate ?? 0)
+                        ).foregroundStyle(Color.insulin.opacity(0.3))
+                    } else {
+                        RectangleMark(
+                            xStart: .value("start", temp.timestamp),
+                            xEnd: .value("end", maxEndTime),
+                            yStart: .value("rate-start", 0),
+                            yEnd: .value("rate-end", temp.rate ?? 0)
+                        ).foregroundStyle(Color.insulin.opacity(0.3))
+                    }
                 }
                 /// dashed profile line
                 ForEach(BasalProfiles, id: \.self) { profile in
