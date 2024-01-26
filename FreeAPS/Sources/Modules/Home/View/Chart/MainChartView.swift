@@ -121,7 +121,7 @@ struct MainChartView: View {
         VStack {
             ScrollViewReader { scroller in
                 ScrollView(.horizontal, showsIndicators: false) {
-                    VStack(spacing: -0.00002) {
+                    VStack(spacing: 2) {
                         BasalChart()
 
                         MainChart()
@@ -161,9 +161,9 @@ extension MainChartView {
                 /// high and low treshold lines
                 if thresholdLines {
                     RuleMark(y: .value("High", highGlucose)).foregroundStyle(Color.loopYellow)
-                        .lineStyle(.init(lineWidth: 2, dash: [2]))
+                        .lineStyle(.init(lineWidth: 1))
                     RuleMark(y: .value("Low", lowGlucose)).foregroundStyle(Color.loopRed)
-                        .lineStyle(.init(lineWidth: 2, dash: [2]))
+                        .lineStyle(.init(lineWidth: 1))
                 }
                 RuleMark(
                     x: .value(
@@ -171,7 +171,7 @@ extension MainChartView {
                         Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970)),
                         unit: .second
                     )
-                ).lineStyle(.init(lineWidth: 2, dash: [2])).foregroundStyle(Color.insulin)
+                ).lineStyle(.init(lineWidth: 2, dash: [3])).foregroundStyle(Color.insulin)
                 RuleMark(
                     x: .value(
                         "",
@@ -352,7 +352,7 @@ extension MainChartView {
                     calculatePredictions()
                 }
                 .frame(
-                    minHeight: UIScreen.main.bounds.height / 3
+                    minHeight: UIScreen.main.bounds.height / 3.1
                 )
                 .frame(width: fullWidth(viewWidth: screenSize.width))
                 .chartYScale(domain: minValue ... maxValue)
@@ -389,7 +389,7 @@ extension MainChartView {
                         Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970)),
                         unit: .second
                     )
-                ).lineStyle(.init(lineWidth: 2, dash: [2])).foregroundStyle(Color.insulin)
+                ).lineStyle(.init(lineWidth: 2, dash: [3])).foregroundStyle(Color.insulin)
                 RuleMark(
                     x: .value(
                         "",
@@ -423,14 +423,14 @@ extension MainChartView {
                             xEnd: .value("end", nextTempStart),
                             yStart: .value("rate-start", 0),
                             yEnd: .value("rate-end", temp.rate ?? 0)
-                        ).foregroundStyle(Color.insulin.opacity(0.3))
+                        ).foregroundStyle(Color.insulin.opacity(0.5))
                     } else {
                         RectangleMark(
                             xStart: .value("start", temp.timestamp),
                             xEnd: .value("end", maxEndTime),
                             yStart: .value("rate-start", 0),
                             yEnd: .value("rate-end", temp.rate ?? 0)
-                        ).foregroundStyle(Color.insulin.opacity(0.3))
+                        ).foregroundStyle(Color.insulin.opacity(0.5))
                     }
                 }
                 /// dashed profile line
@@ -439,12 +439,12 @@ extension MainChartView {
                         x: .value("Start Date", profile.startDate),
                         y: .value("Amount", profile.amount),
                         series: .value("profile", "profile")
-                    ).lineStyle(.init(lineWidth: 2, dash: [2, 3])).foregroundStyle(Color.insulin)
+                    ).lineStyle(.init(lineWidth: 2, dash: [2, 4])).foregroundStyle(Color.insulin)
                     LineMark(
                         x: .value("End Date", profile.endDate ?? endMarker),
                         y: .value("Amount", profile.amount),
                         series: .value("profile", "profile")
-                    ).lineStyle(.init(lineWidth: 2.5, dash: [2, 3])).foregroundStyle(Color.insulin)
+                    ).lineStyle(.init(lineWidth: 2.5, dash: [2, 4])).foregroundStyle(Color.insulin)
                 }
             }.onChange(of: tempBasals) { _ in
                 calculateBasals()
@@ -465,7 +465,7 @@ extension MainChartView {
                 calculateTempBasals()
             }
             .frame(
-                minHeight: UIScreen.main.bounds.height / 10
+                minHeight: UIScreen.main.bounds.height / 9.9
             )
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .rotationEffect(.degrees(180))

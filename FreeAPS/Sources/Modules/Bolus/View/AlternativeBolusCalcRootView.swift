@@ -401,7 +401,7 @@ extension Bolus {
                             .font(.footnote)
                             .buttonStyle(PlainButtonStyle())
                             .frame(maxWidth: .infinity, alignment: .leading)
-                        
+
                         if state.fattyMeals {
                             Spacer()
                             Toggle(isOn: $state.useFattyMealCorrectionFactor) {
@@ -481,8 +481,8 @@ extension Bolus {
                             keepForNextWiew = true
                             state.add()
                             state.hideModal()
-                            ///check if user pressed the calc button or just wanted to enter carbs
-                            ///otherwise carb entry is doubled
+                            /// check if user pressed the calc button or just wanted to enter carbs
+                            /// otherwise carb entry is doubled
                             if !calcButtonPressed {
                                 state.addCarbs(override, fetch: editMode)
                             }
@@ -499,8 +499,8 @@ extension Bolus {
                         Button {
                             keepForNextWiew = true
                             state.hideModal()
-                            ///check if user pressed the calc button or just wanted to enter carbs
-                            ///otherwise carb entry is doubled
+                            /// check if user pressed the calc button or just wanted to enter carbs
+                            /// otherwise carb entry is doubled
                             if !calcButtonPressed {
                                 state.addCarbs(override, fetch: editMode)
                             }
