@@ -118,9 +118,9 @@ extension Home {
             colorScheme == .dark ? LinearGradient(
                 gradient: Gradient(colors: [
                     Color.bgDarkBlue,
-                    Color.bgDarkBlue,
-                    Color.bgDarkerDarkBlue,
-                    Color.bgDarkBlue
+//                    Color.bgDarkBlue,
+                    Color.bgDarkerDarkBlue
+//                    Color.bgDarkBlue
                 ]),
                 startPoint: .top,
                 endPoint: .bottom
@@ -384,6 +384,32 @@ extension Home {
             .padding(.bottom)
         }
 
+        private func selectedProfile() -> (name: String, isOn: Bool) {
+            var profileString = ""
+            var display: Bool = false
+
+            let duration = (fetchedPercent.first?.duration ?? 0) as Decimal
+            let indefinite = fetchedPercent.first?.indefinite ?? false
+            let addedMinutes = Int(duration)
+            let date = fetchedPercent.first?.date ?? Date()
+            if date.addingTimeInterval(addedMinutes.minutes.timeInterval) > Date() || indefinite {
+                display.toggle()
+            }
+
+            if fetchedPercent.first?.enabled ?? false, !(fetchedPercent.first?.isPreset ?? false), display {
+                profileString = NSLocalizedString("Custom Profile", comment: "Custom but unsaved Profile")
+            } else if !(fetchedPercent.first?.enabled ?? false) || !display {
+                profileString = NSLocalizedString("Normal Profile", comment: "Your normal Profile. Use a short string")
+            } else {
+                let id_ = fetchedPercent.first?.id ?? ""
+                let profile = fetchedProfiles.filter({ $0.id == id_ }).first
+                if profile != nil {
+                    profileString = profile?.name?.description ?? ""
+                }
+            }
+            return (name: profileString, isOn: display)
+        }
+
         func highlightButtons() {
             for i in 0 ..< timeButtons.count {
                 timeButtons[i].active = timeButtons[i].hours == state.hours
@@ -569,16 +595,15 @@ extension Home {
         }
 
         @ViewBuilder func profileView(_: GeometryProxy) -> some View {
-            let colourChart: Color = colorScheme == .dark ? Color(
-                "Chart"
-            ) : .white
-
             ZStack {
                 /// rectangle as background
                 RoundedRectangle(cornerRadius: 15)
-                    .fill(Color.insulin.opacity(0.1))
+                    .fill(
+                        colorScheme == .dark ? Color(red: 0.03921568627, green: 0.133333333, blue: 0.2156862745) : Color.insulin
+                            .opacity(0.2)
+                    )
                     .clipShape(RoundedRectangle(cornerRadius: 15))
-                    .frame(height: UIScreen.main.bounds.height / 25)
+                    .frame(height: 45)
                     .shadow(
                         color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
                             Color.black.opacity(0.33),
@@ -586,24 +611,37 @@ extension Home {
                     )
                 HStack {
                     /// actual profile view
-                    Image(systemName: "person")
-                        .font(.system(size: 20))
+                    Image(systemName: "person.fill")
+                        .font(.system(size: 25))
+
                     Spacer()
 
                     if let overrideString = overrideString {
-                        Text(overrideString)
-                            .font(.system(size: 18))
+                        VStack {
+                            Text(selectedProfile().name)
+                                .font(.subheadline)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            Text(overrideString)
+                                .font(.caption)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }.padding(.leading, 5)
                         Spacer()
                         Image(systemName: "xmark.app")
-                            .font(.system(size: 20))
+                            .font(.system(size: 25))
                     } else {
                         if tempTargetString == nil {
-                            Text("100 %")
-                                .font(.system(size: 18))
+                            VStack {
+                                Text(selectedProfile().name)
+                                    .font(.subheadline)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                Text("100 %")
+                                    .font(.caption)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }.padding(.leading, 5)
                             Spacer()
                             /// to ensure the same position....
                             Image(systemName: "xmark.app")
-                                .font(.system(size: 20))
+                                .font(.system(size: 25))
                                 .foregroundStyle(Color.clear)
                         }
                     }
@@ -628,9 +666,13 @@ extension Home {
                 ZStack {
                     /// rectangle as background
                     RoundedRectangle(cornerRadius: 15)
-                        .fill(colourChart)
+                        .fill(
+                            colorScheme == .dark ? Color(red: 0.03921568627, green: 0.133333333, blue: 0.2156862745) : Color
+                                .insulin
+                                .opacity(0.2)
+                        )
                         .clipShape(RoundedRectangle(cornerRadius: 15))
-                        .frame(height: UIScreen.main.bounds.height / 20)
+                        .frame(height: 45)
                         .shadow(
                             color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
                                 Color.black.opacity(0.33),
@@ -638,11 +680,10 @@ extension Home {
                         )
                     HStack {
                         Image(systemName: "person.fill")
-                            .font(.system(size: 20))
-                            .foregroundStyle(Color.purple)
+                            .font(.system(size: 25))
                         Spacer()
                         Text(tempTargetString)
-                            .font(.system(size: 15))
+                            .font(.subheadline)
                         Spacer()
                     }.padding(.horizontal, 10)
                 }.padding(.horizontal, 10).padding(.bottom, 10)
