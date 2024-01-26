@@ -416,79 +416,6 @@ extension Home {
             }
         }
 
-        @ViewBuilder func bolusProgressBar(_ progress: Decimal) -> some View {
-            GeometryReader { geo in
-                Rectangle()
-                    .frame(height: 6)
-                    .foregroundColor(.clear)
-                    .background(
-                        LinearGradient(colors: [
-                            Color(red: 0.7215686275, green: 0.3411764706, blue: 1),
-                            Color(red: 0.6235294118, green: 0.4235294118, blue: 0.9803921569),
-                            Color(red: 0.4862745098, green: 0.5450980392, blue: 0.9529411765),
-                            Color(red: 0.3411764706, green: 0.6666666667, blue: 0.9254901961),
-                            Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902)
-                        ], startPoint: .leading, endPoint: .trailing)
-                            .mask(alignment: .leading) {
-                                Rectangle()
-                                    .frame(width: geo.size.width * CGFloat(progress))
-                            }
-                    )
-            }
-        }
-
-        @ViewBuilder func bolusProgressView(_: GeometryProxy, _ progress: Decimal) -> some View {
-            let colorRectangle: Color = colorScheme == .dark ? Color(
-                "Chart"
-            ) : Color.white
-
-            let colorIcon = (colorScheme == .dark ? Color.white : Color.black).opacity(0.9)
-
-            let bolusTotal = state.boluses.last?.amount ?? 0
-            let bolusFraction = progress * bolusTotal
-
-            let bolusString =
-                (bolusProgressFormatter.string(from: bolusFraction as NSNumber) ?? "0")
-                    + " of " +
-                    (numberFormatter.string(from: bolusTotal as NSNumber) ?? "0")
-                    + NSLocalizedString(" U", comment: "Insulin unit")
-
-            ZStack(alignment: .bottom) {
-                HStack {
-                    Button {
-                        state.cancelBolus()
-
-                    } label: {
-                        HStack(alignment: .center) {
-                            Text("Bolusing")
-                                .font(.subheadline)
-                                .fontWeight(.bold)
-                            Text(bolusString)
-                                .font(.subheadline)
-
-                            Spacer()
-
-                            Image(systemName: "xmark.app")
-                                .font(.system(size: 30))
-                                .padding(1)
-                        }
-                    }.foregroundColor(colorIcon)
-                }.padding()
-
-                bolusProgressBar(progress).offset(y: 59)
-            }
-            .background(colorRectangle)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            .shadow(
-                color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
-                    Color.black.opacity(0.33),
-                radius: 3
-            )
-            .frame(height: UIScreen.main.bounds.height / 25, alignment: .center)
-            .padding(.horizontal, 10)
-            .offset(y: -90)
-        }
-
         @ViewBuilder func rightHeaderPanel(_: GeometryProxy) -> some View {
             VStack(alignment: .leading, spacing: 20) {
                 /// Loop view at bottomLeading
@@ -603,7 +530,7 @@ extension Home {
                             .opacity(0.2)
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 15))
-                    .frame(height: 45)
+                    .frame(height: UIScreen.main.bounds.height / 18)
                     .shadow(
                         color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
                             Color.black.opacity(0.33),
@@ -672,7 +599,7 @@ extension Home {
                                 .opacity(0.2)
                         )
                         .clipShape(RoundedRectangle(cornerRadius: 15))
-                        .frame(height: 45)
+                        .frame(height: UIScreen.main.bounds.height / 18)
                         .shadow(
                             color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
                                 Color.black.opacity(0.33),
@@ -688,6 +615,85 @@ extension Home {
                     }.padding(.horizontal, 10)
                 }.padding(.horizontal, 10).padding(.bottom, 10)
             }
+        }
+        
+        @ViewBuilder func bolusProgressBar(_ progress: Decimal) -> some View {
+            GeometryReader { geo in
+                RoundedRectangle(cornerRadius: 15)
+                    .frame(height: 6)
+                    .foregroundColor(.clear)
+                    .background(
+                        LinearGradient(colors: [
+                            Color(red: 0.7215686275, green: 0.3411764706, blue: 1),
+                            Color(red: 0.6235294118, green: 0.4235294118, blue: 0.9803921569),
+                            Color(red: 0.4862745098, green: 0.5450980392, blue: 0.9529411765),
+                            Color(red: 0.3411764706, green: 0.6666666667, blue: 0.9254901961),
+                            Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902)
+                        ], startPoint: .leading, endPoint: .trailing)
+                            .mask(alignment: .leading) {
+                                RoundedRectangle(cornerRadius: 15)
+                                    .frame(width: geo.size.width * CGFloat(progress))
+                            }
+                    )
+            }
+        }
+        
+        @ViewBuilder func bolusView(_: GeometryProxy, _ progress: Decimal) -> some View {
+            let bolusTotal = state.boluses.last?.amount ?? 0
+            let bolusFraction = progress * bolusTotal
+
+            let bolusString =
+                (bolusProgressFormatter.string(from: bolusFraction as NSNumber) ?? "0")
+                    + " of " +
+                    (numberFormatter.string(from: bolusTotal as NSNumber) ?? "0")
+                    + NSLocalizedString(" U", comment: "Insulin unit")
+            
+            ZStack {
+                /// rectangle as background
+                RoundedRectangle(cornerRadius: 15)
+                    .fill(
+                        colorScheme == .dark ? Color(red: 0.03921568627, green: 0.133333333, blue: 0.2156862745) : Color.insulin
+                            .opacity(0.2)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 15))
+                    .frame(height: UIScreen.main.bounds.height / 18)
+                    .shadow(
+                        color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
+                            Color.black.opacity(0.33),
+                        radius: 3
+                    )
+                
+                /// actual bolus view
+                HStack {
+                    Image(systemName: "cross.vial.fill")
+                        .font(.system(size: 25))
+
+                    Spacer()
+
+                    VStack {
+                        Text("Bolusing")
+                            .font(.subheadline)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text(bolusString)
+                            .font(.caption)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }.padding(.leading, 5)
+                    
+                    Spacer()
+                   
+                    Button {
+                        state.cancelBolus()
+                    } label: {
+                        Image(systemName: "xmark.app")
+                            .font(.system(size: 25))
+                    }
+                }.padding(.horizontal, 10)
+                    .padding(.trailing, 8)
+                
+            }.padding(.horizontal, 10).padding(.bottom, 10)
+                .overlay(alignment: .bottom) {
+                    bolusProgressBar(progress).padding(.horizontal, 18).offset(y: 45)
+                }.clipShape(RoundedRectangle(cornerRadius: 15))
         }
 
         @ViewBuilder func menuSymbols(action: @escaping () -> Void, systemName: String) -> some View {
@@ -851,7 +857,7 @@ extension Home {
                     }
 
                     if let progress = state.bolusProgress {
-                        bolusProgressView(geo, progress).padding(.bottom, 20)
+                        bolusView(geo, progress).padding(.bottom, 80)
                     } else {
                         profileView(geo).padding(.bottom, 80)
                     }
