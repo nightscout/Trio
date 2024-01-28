@@ -529,9 +529,9 @@ extension Bolus {
                     }
                 }
                 .onDisappear {
-                    if hasFatOrProtein, !keepForNextWiew, state.useCalc {
+                    if hasFatOrProtein, !keepForNextWiew, state.useCalc, treatmentsViewMode == .editMode {
                         state.delete(deleteTwice: true, meal: meal)
-                    } else if !keepForNextWiew, state.useCalc {
+                    } else if !keepForNextWiew, state.useCalc, treatmentsViewMode == .editMode {
                         state.delete(deleteTwice: false, meal: meal)
                     }
                 }
