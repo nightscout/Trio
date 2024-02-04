@@ -527,7 +527,7 @@ extension Home {
                 RoundedRectangle(cornerRadius: 15)
                     .fill(
                         colorScheme == .dark ? Color(red: 0.03921568627, green: 0.133333333, blue: 0.2156862745) : Color.insulin
-                            .opacity(0.2)
+                            .opacity(0.1)
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 15))
                     .frame(height: UIScreen.main.bounds.height / 18)
@@ -616,7 +616,7 @@ extension Home {
                 }.padding(.horizontal, 10).padding(.bottom, 10)
             }
         }
-        
+
         @ViewBuilder func bolusProgressBar(_ progress: Decimal) -> some View {
             GeometryReader { geo in
                 RoundedRectangle(cornerRadius: 15)
@@ -637,7 +637,7 @@ extension Home {
                     )
             }
         }
-        
+
         @ViewBuilder func bolusView(_: GeometryProxy, _ progress: Decimal) -> some View {
             let bolusTotal = state.boluses.last?.amount ?? 0
             let bolusFraction = progress * bolusTotal
@@ -647,7 +647,7 @@ extension Home {
                     + " of " +
                     (numberFormatter.string(from: bolusTotal as NSNumber) ?? "0")
                     + NSLocalizedString(" U", comment: "Insulin unit")
-            
+
             ZStack {
                 /// rectangle as background
                 RoundedRectangle(cornerRadius: 15)
@@ -662,7 +662,7 @@ extension Home {
                             Color.black.opacity(0.33),
                         radius: 3
                     )
-                
+
                 /// actual bolus view
                 HStack {
                     Image(systemName: "cross.vial.fill")
@@ -678,9 +678,9 @@ extension Home {
                             .font(.caption)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }.padding(.leading, 5)
-                    
+
                     Spacer()
-                   
+
                     Button {
                         state.cancelBolus()
                     } label: {
@@ -689,7 +689,7 @@ extension Home {
                     }
                 }.padding(.horizontal, 10)
                     .padding(.trailing, 8)
-                
+
             }.padding(.horizontal, 10).padding(.bottom, 10)
                 .overlay(alignment: .bottom) {
                     bolusProgressBar(progress).padding(.horizontal, 18).offset(y: 45)
@@ -901,42 +901,44 @@ extension Home {
         }
 
         @ViewBuilder func tabBar() -> some View {
-            TabView(selection: $appState.currentTab) {
-                mainView()
-                    .tabItem { Label("Home", systemImage: "house") }
-                    .tag(Tab.home)
+            ZStack(alignment: .bottom) {
+                TabView(selection: $appState.currentTab) {
+                    mainView()
+                        .tabItem { Label("Home", systemImage: "house") }
+                        .tag(Tab.home)
 
-                NavigationStack { DataTable.RootView(resolver: resolver) }
-                    .tabItem { Label("History", systemImage: historySFSymbol) }
-                    .tag(Tab.history)
+                    NavigationStack { DataTable.RootView(resolver: resolver) }
+                        .tabItem { Label("History", systemImage: historySFSymbol) }
+                        .tag(Tab.history)
 
-                Spacer()
+                    Spacer()
 
-                NavigationStack { OverrideProfilesConfig.RootView(resolver: resolver) }
-                    .tabItem {
-                        Label(
-                            "Profile",
-                            systemImage: state.isTempTargetActive || overrideString != nil ? "person.fill" : "person"
-                        ) }
-                    .tag(Tab.profile)
+                    NavigationStack { OverrideProfilesConfig.RootView(resolver: resolver) }
+                        .tabItem {
+                            Label(
+                                "Profile",
+                                systemImage: state.isTempTargetActive || overrideString != nil ? "person.fill" : "person"
+                            ) }
+                        .tag(Tab.profile)
 
-                NavigationStack { Settings.RootView(resolver: resolver) }
-                    .tabItem {
-                        Label(
-                            "Settings",
-                            systemImage: "gear"
-                        ) }
-                    .tag(Tab.settings)
-            }
-            .tint(Color.tabBar)
-            .overlay(alignment: .bottom) {
+                    NavigationStack { Settings.RootView(resolver: resolver) }
+                        .tabItem {
+                            Label(
+                                "Settings",
+                                systemImage: "gear"
+                            ) }
+                        .tag(Tab.settings)
+                }
+                .tint(Color.tabBar)
+
                 Button(
                     action: {
                         state.showModal(for: .bolus(waitForSuggestion: true, fetch: false, editMode: false, override: false)) },
                     label: {
-                        Image(systemName: "plus").font(.system(size: 40)).foregroundStyle(Color.gray.opacity(0.8))
+                        Image(systemName: "plus.circle.fill").font(.system(size: 40)).foregroundStyle(Color.gray)
+                            .padding(.bottom, 2)
                     }
-                ).padding(.bottom, 5)
+                )
             }
         }
 
