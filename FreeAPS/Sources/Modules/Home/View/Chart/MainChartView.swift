@@ -160,9 +160,9 @@ extension MainChartView {
             Chart {
                 /// high and low treshold lines
                 if thresholdLines {
-                    RuleMark(y: .value("High", highGlucose)).foregroundStyle(Color.loopYellow)
+                    RuleMark(y: .value("High", highGlucose * (units == .mmolL ? 0.0555 : 1))).foregroundStyle(Color.loopYellow)
                         .lineStyle(.init(lineWidth: 1))
-                    RuleMark(y: .value("Low", lowGlucose)).foregroundStyle(Color.loopRed)
+                    RuleMark(y: .value("Low", lowGlucose * (units == .mmolL ? 0.0555 : 1))).foregroundStyle(Color.loopRed)
                         .lineStyle(.init(lineWidth: 1))
                 }
                 RuleMark(
@@ -228,44 +228,46 @@ extension MainChartView {
                 }
                 /// temp targets
                 ForEach(ChartTempTargets, id: \.self) { target in
+                    let targetLimited = min(max(target.amount, 0), 400)
+
                     RuleMark(
                         xStart: .value("Start", target.start),
                         xEnd: .value("End", target.end),
-                        y: .value("Value", target.amount)
+                        y: .value("Value", targetLimited)
                     )
                     .foregroundStyle(Color.purple.opacity(0.5)).lineStyle(.init(lineWidth: 8))
                 }
                 /// predictions
                 ForEach(Predictions, id: \.self) { info in
 
-                    /// ensure that there are no values below 0 in the chart
-                    let yValue = max(info.amount, 0)
+                    /// define limits in chart
+                    let yValue = max(min(info.amount, 400), 0)
 
                     if info.type == .uam {
                         LineMark(
                             x: .value("Time", info.timestamp, unit: .second),
-                            y: .value("Value", yValue),
+                            y: .value("Value", Decimal(yValue) * (units == .mmolL ? 0.0555 : 1)),
                             series: .value("uam", "uam")
                         ).foregroundStyle(Color.uam).symbolSize(16)
                     }
                     if info.type == .cob {
                         LineMark(
                             x: .value("Time", info.timestamp, unit: .second),
-                            y: .value("Value", yValue),
+                            y: .value("Value", Decimal(yValue) * (units == .mmolL ? 0.0555 : 1)),
                             series: .value("cob", "cob")
                         ).foregroundStyle(Color.orange).symbolSize(16)
                     }
                     if info.type == .iob {
                         LineMark(
                             x: .value("Time", info.timestamp, unit: .second),
-                            y: .value("Value", yValue),
+                            y: .value("Value", Decimal(yValue) * (units == .mmolL ? 0.0555 : 1)),
                             series: .value("iob", "iob")
                         ).foregroundStyle(Color.insulin).symbolSize(16)
                     }
                     if info.type == .zt {
                         LineMark(
                             x: .value("Time", info.timestamp, unit: .second),
-                            y: .value("Value", yValue),
+                            y: .value("Value", Decimal(yValue) * (units == .mmolL ? 0.0555 : 1)),
                             series: .value("zt", "zt")
                         ).foregroundStyle(Color.zt).symbolSize(16)
                     }
@@ -274,15 +276,17 @@ extension MainChartView {
                 /// filtering for high and low bounds in settings
                 ForEach(glucose.filter { $0.sgv ?? 0 > Int(highGlucose) }) { item in
                     if let sgv = item.sgv {
+                        let sgvLimited = min(sgv, 400)
+
                         PointMark(
                             x: .value("Time", item.dateString, unit: .second),
-                            y: .value("Value", sgv)
+                            y: .value("Value", Decimal(sgvLimited) * (units == .mmolL ? 0.0555 : 1))
                         ).foregroundStyle(Color.orange.gradient).symbolSize(25)
 
                         if smooth {
                             PointMark(
                                 x: .value("Time", item.dateString, unit: .second),
-                                y: .value("Value", sgv)
+                                y: .value("Value", Decimal(sgvLimited) * (units == .mmolL ? 0.0555 : 1))
                             ).foregroundStyle(Color.orange.gradient).symbolSize(25)
                                 .interpolationMethod(.cardinal)
                         }
@@ -291,15 +295,17 @@ extension MainChartView {
 
                 ForEach(glucose.filter { $0.sgv ?? 0 < Int(lowGlucose) }) { item in
                     if let sgv = item.sgv {
+                        let sgvLimited = min(sgv, 400)
+
                         PointMark(
                             x: .value("Time", item.dateString, unit: .second),
-                            y: .value("Value", sgv)
+                            y: .value("Value", Decimal(sgvLimited) * (units == .mmolL ? 0.0555 : 1))
                         ).foregroundStyle(Color.red.gradient).symbolSize(25)
 
                         if smooth {
                             PointMark(
                                 x: .value("Time", item.dateString, unit: .second),
-                                y: .value("Value", sgv)
+                                y: .value("Value", Decimal(sgvLimited) * (units == .mmolL ? 0.0555 : 1))
                             ).foregroundStyle(Color.red.gradient).symbolSize(25)
                                 .interpolationMethod(.cardinal)
                         }
@@ -308,15 +314,17 @@ extension MainChartView {
 
                 ForEach(glucose.filter { $0.sgv ?? 0 >= Int(lowGlucose) && $0.sgv ?? 0 <= Int(highGlucose) }) { item in
                     if let sgv = item.sgv {
+                        let sgvLimited = min(sgv, 400)
+
                         PointMark(
                             x: .value("Time", item.dateString, unit: .second),
-                            y: .value("Value", sgv)
+                            y: .value("Value", Decimal(sgvLimited) * (units == .mmolL ? 0.0555 : 1))
                         ).foregroundStyle(Color.green.gradient).symbolSize(25)
 
                         if smooth {
                             PointMark(
                                 x: .value("Time", item.dateString, unit: .second),
-                                y: .value("Value", sgv)
+                                y: .value("Value", Decimal(sgvLimited) * (units == .mmolL ? 0.0555 : 1))
                             ).foregroundStyle(Color.green.gradient).symbolSize(25)
                                 .interpolationMethod(.cardinal)
                         }
@@ -379,13 +387,15 @@ extension MainChartView {
 //                }
                 .chartYAxis {
                     AxisMarks(position: .trailing) { value in
+                        let upperLimit = units == .mgdL ? 400 : 22.2
+
                         if displayXgridLines {
                             AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
                         } else {
                             AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
                         }
 
-                        if let glucoseValue = value.as(Double.self), glucoseValue > 0 {
+                        if let glucoseValue = value.as(Double.self), glucoseValue > 0, glucoseValue < upperLimit {
                             AxisValueLabel()
                         }
                     }
