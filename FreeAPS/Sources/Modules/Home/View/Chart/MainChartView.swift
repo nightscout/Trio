@@ -189,9 +189,11 @@ extension MainChartView {
                 /// carbs
                 ForEach(ChartCarbs, id: \.self) { carb in
                     let carbAmount = carb.amount
+                    let yPosition = units == .mgdL ? 60 : 3.33
+                    
                     PointMark(
                         x: .value("Time", carb.timestamp, unit: .second),
-                        y: .value("Value", 60)
+                        y: .value("Value", yPosition)
                     )
                     .symbolSize((Config.carbsSize + CGFloat(carbAmount) * Config.carbsScale) * 10)
                     .foregroundStyle(Color.orange)
@@ -203,9 +205,11 @@ extension MainChartView {
                 ForEach(ChartFpus, id: \.self) { fpu in
                     let fpuAmount = fpu.amount
                     let size = (Config.fpuSize + CGFloat(fpuAmount) * Config.carbsScale) * 1.8
+                    let yPosition = units == .mgdL ? 60 : 3.33
+                    
                     PointMark(
                         x: .value("Time", fpu.timestamp, unit: .second),
-                        y: .value("Value", 60)
+                        y: .value("Value", yPosition)
                     )
                     .symbolSize(size)
                     .foregroundStyle(Color.brown)
