@@ -326,7 +326,7 @@ extension MainChartView {
                 .onChange(of: glucose) { _ in
                     calculatePredictions()
                     calculateFpus()
-                    counter()
+                    // counter()
                 }
                 .onChange(of: carbs) { _ in
                     calculateCarbs()
@@ -355,26 +355,39 @@ extension MainChartView {
                     minHeight: UIScreen.main.bounds.height / 3.1
                 )
                 .frame(width: fullWidth(viewWidth: screenSize.width))
-                .chartYScale(domain: minValue ... maxValue)
+                // .chartYScale(domain: minValue ... maxValue)
                 .chartXScale(domain: startMarker ... endMarker)
                 .chartXAxis {
                     AxisMarks(values: .stride(by: .hour, count: screenHours == 24 ? 4 : 2)) { _ in
                         if displayXgridLines {
-                            AxisGridLine(stroke: .init(lineWidth: 0.3, dash: [2, 3]))
+                            AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
                         } else {
                             AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
                         }
                         AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
                     }
                 }
+//                .chartYAxis {
+//                    AxisMarks { _ in
+//                        if displayYgridLines {
+//                            AxisGridLine(stroke: .init(lineWidth: 0.3, dash: [2, 3]))
+//                        } else {
+//                            AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
+//                        }
+//                        AxisValueLabel()
+//                    }
+//                }
                 .chartYAxis {
-                    AxisMarks { _ in
-                        if displayYgridLines {
-                            AxisGridLine(stroke: .init(lineWidth: 0.3, dash: [2, 3]))
+                    AxisMarks(position: .trailing) { value in
+                        if displayXgridLines {
+                            AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
                         } else {
                             AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
                         }
-                        AxisValueLabel()
+
+                        if let glucoseValue = value.as(Double.self), glucoseValue > 0 {
+                            AxisValueLabel()
+                        }
                     }
                 }
         }
@@ -846,53 +859,53 @@ extension MainChartView {
 
     /// get y axis scale
     /// but only call the function every 60min, i.e. every 12th glucose value
-    private func counter() {
-        glucoseUpdateCount += 1
-        if glucoseUpdateCount >= maxUpdateCount {
-            maxValue = glucose.compactMap(\.glucose).max() ?? Config.maxGlucose
+//    private func counter() {
+//        glucoseUpdateCount += 1
+//        if glucoseUpdateCount >= maxUpdateCount {
+//            maxValue = glucose.compactMap(\.glucose).max() ?? Config.maxGlucose
+//
+//            if let maxPredValue = maxPredValue() {
+//                maxValue = max(maxValue, maxPredValue)
+//            }
+//
+//            minValue = glucose.compactMap(\.glucose).min() ?? Config.minGlucose
+//            if let minPredValue = minPredValue() {
+//                minValue = min(minValue, minPredValue)
+//            }
+//
+//            if minValue > Config.minGlucose {
+//                minValue = Config.minGlucose
+//            }
+//
+//            if maxValue < Config.maxGlucose {
+//                maxValue = Config.maxGlucose
+//            }
+//
+//            glucoseUpdateCount = 0
+//        }
+//    }
 
-            if let maxPredValue = maxPredValue() {
-                maxValue = max(maxValue, maxPredValue)
-            }
-
-            minValue = glucose.compactMap(\.glucose).min() ?? Config.minGlucose
-            if let minPredValue = minPredValue() {
-                minValue = min(minValue, minPredValue)
-            }
-
-            if minValue > Config.minGlucose {
-                minValue = Config.minGlucose
-            }
-
-            if maxValue < Config.maxGlucose {
-                maxValue = Config.maxGlucose
-            }
-
-            glucoseUpdateCount = 0
-        }
-    }
-
-    private func maxPredValue() -> Int? {
-        [
-            suggestion?.predictions?.cob ?? [],
-            suggestion?.predictions?.iob ?? [],
-            suggestion?.predictions?.zt ?? [],
-            suggestion?.predictions?.uam ?? []
-        ].flatMap {
-            $0
-        }.max()
-    }
-
-    private func minPredValue() -> Int? {
-        [
-            suggestion?.predictions?.cob ?? [],
-            suggestion?.predictions?.iob ?? [],
-            suggestion?.predictions?.zt ?? [],
-            suggestion?.predictions?.uam ?? []
-        ].flatMap {
-            $0
-        }.min()
-    }
+//    private func maxPredValue() -> Int? {
+//        [
+//            suggestion?.predictions?.cob ?? [],
+//            suggestion?.predictions?.iob ?? [],
+//            suggestion?.predictions?.zt ?? [],
+//            suggestion?.predictions?.uam ?? []
+//        ].flatMap {
+//            $0
+//        }.max()
+//    }
+//
+//    private func minPredValue() -> Int? {
+//        [
+//            suggestion?.predictions?.cob ?? [],
+//            suggestion?.predictions?.iob ?? [],
+//            suggestion?.predictions?.zt ?? [],
+//            suggestion?.predictions?.uam ?? []
+//        ].flatMap {
+//            $0
+//        }.min()
+//    }
 
     /*   private func generateYAxisValues(maxYLabel: Int) -> [Int] {
          var yAxisValues = [50, 100, 150]
