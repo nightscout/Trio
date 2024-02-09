@@ -44,6 +44,7 @@
   "rulerMarks" : false,
   "maxCarbs": 1000,
   "displayFatAndProteinOnWatch": false,
+  "confirmBolusFaster": false,
   "overrideFactor": 0.8,
   "useCalc": true,
   "fattyMeals": false,
