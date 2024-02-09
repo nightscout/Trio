@@ -117,6 +117,14 @@ struct MainChartView: View {
         return formatter
     }
 
+    private var conversionFactor: Decimal {
+        units == .mmolL ? 0.0555 : 1
+    }
+
+    private var upperLimit: Decimal {
+        units == .mgdL ? 400 : 22.2
+    }
+
     var body: some View {
         VStack {
             ScrollViewReader { scroller in
@@ -160,9 +168,9 @@ extension MainChartView {
             Chart {
                 /// high and low treshold lines
                 if thresholdLines {
-                    RuleMark(y: .value("High", highGlucose * (units == .mmolL ? 0.0555 : 1))).foregroundStyle(Color.loopYellow)
+                    RuleMark(y: .value("High", highGlucose * conversionFactor)).foregroundStyle(Color.loopYellow)
                         .lineStyle(.init(lineWidth: 1))
-                    RuleMark(y: .value("Low", lowGlucose * (units == .mmolL ? 0.0555 : 1))).foregroundStyle(Color.loopRed)
+                    RuleMark(y: .value("Low", lowGlucose * conversionFactor)).foregroundStyle(Color.loopRed)
                         .lineStyle(.init(lineWidth: 1))
                 }
                 RuleMark(
@@ -190,7 +198,7 @@ extension MainChartView {
                 ForEach(ChartCarbs, id: \.self) { carb in
                     let carbAmount = carb.amount
                     let yPosition = units == .mgdL ? 60 : 3.33
-                    
+
                     PointMark(
                         x: .value("Time", carb.timestamp, unit: .second),
                         y: .value("Value", yPosition)
@@ -206,7 +214,7 @@ extension MainChartView {
                     let fpuAmount = fpu.amount
                     let size = (Config.fpuSize + CGFloat(fpuAmount) * Config.carbsScale) * 1.8
                     let yPosition = units == .mgdL ? 60 : 3.33
-                    
+
                     PointMark(
                         x: .value("Time", fpu.timestamp, unit: .second),
                         y: .value("Value", yPosition)
@@ -232,7 +240,7 @@ extension MainChartView {
                 }
                 /// temp targets
                 ForEach(ChartTempTargets, id: \.self) { target in
-                    let targetLimited = min(max(target.amount, 0), 400)
+                    let targetLimited = min(max(target.amount, 0), upperLimit)
 
                     RuleMark(
                         xStart: .value("Start", target.start),
@@ -243,35 +251,33 @@ extension MainChartView {
                 }
                 /// predictions
                 ForEach(Predictions, id: \.self) { info in
-
-                    /// define limits in chart
-                    let yValue = max(min(info.amount, 400), 0)
+                    let y = max(info.amount, 0)
 
                     if info.type == .uam {
                         LineMark(
                             x: .value("Time", info.timestamp, unit: .second),
-                            y: .value("Value", Decimal(yValue) * (units == .mmolL ? 0.0555 : 1)),
+                            y: .value("Value", Decimal(y) * conversionFactor),
                             series: .value("uam", "uam")
                         ).foregroundStyle(Color.uam).symbolSize(16)
                     }
                     if info.type == .cob {
                         LineMark(
                             x: .value("Time", info.timestamp, unit: .second),
-                            y: .value("Value", Decimal(yValue) * (units == .mmolL ? 0.0555 : 1)),
+                            y: .value("Value", Decimal(y) * conversionFactor),
                             series: .value("cob", "cob")
                         ).foregroundStyle(Color.orange).symbolSize(16)
                     }
                     if info.type == .iob {
                         LineMark(
                             x: .value("Time", info.timestamp, unit: .second),
-                            y: .value("Value", Decimal(yValue) * (units == .mmolL ? 0.0555 : 1)),
+                            y: .value("Value", Decimal(y) * conversionFactor),
                             series: .value("iob", "iob")
                         ).foregroundStyle(Color.insulin).symbolSize(16)
                     }
                     if info.type == .zt {
                         LineMark(
                             x: .value("Time", info.timestamp, unit: .second),
-                            y: .value("Value", Decimal(yValue) * (units == .mmolL ? 0.0555 : 1)),
+                            y: .value("Value", Decimal(y) * conversionFactor),
                             series: .value("zt", "zt")
                         ).foregroundStyle(Color.zt).symbolSize(16)
                     }
@@ -280,17 +286,17 @@ extension MainChartView {
                 /// filtering for high and low bounds in settings
                 ForEach(glucose.filter { $0.sgv ?? 0 > Int(highGlucose) }) { item in
                     if let sgv = item.sgv {
-                        let sgvLimited = min(sgv, 400)
+                        let sgvLimited = max(sgv, 0)
 
                         PointMark(
                             x: .value("Time", item.dateString, unit: .second),
-                            y: .value("Value", Decimal(sgvLimited) * (units == .mmolL ? 0.0555 : 1))
+                            y: .value("Value", Decimal(sgvLimited) * conversionFactor)
                         ).foregroundStyle(Color.orange.gradient).symbolSize(25)
 
                         if smooth {
                             PointMark(
                                 x: .value("Time", item.dateString, unit: .second),
-                                y: .value("Value", Decimal(sgvLimited) * (units == .mmolL ? 0.0555 : 1))
+                                y: .value("Value", Decimal(sgvLimited) * conversionFactor)
                             ).foregroundStyle(Color.orange.gradient).symbolSize(25)
                                 .interpolationMethod(.cardinal)
                         }
@@ -299,17 +305,17 @@ extension MainChartView {
 
                 ForEach(glucose.filter { $0.sgv ?? 0 < Int(lowGlucose) }) { item in
                     if let sgv = item.sgv {
-                        let sgvLimited = min(sgv, 400)
+                        let sgvLimited = max(sgv, 0)
 
                         PointMark(
                             x: .value("Time", item.dateString, unit: .second),
-                            y: .value("Value", Decimal(sgvLimited) * (units == .mmolL ? 0.0555 : 1))
+                            y: .value("Value", Decimal(sgvLimited) * conversionFactor)
                         ).foregroundStyle(Color.red.gradient).symbolSize(25)
 
                         if smooth {
                             PointMark(
                                 x: .value("Time", item.dateString, unit: .second),
-                                y: .value("Value", Decimal(sgvLimited) * (units == .mmolL ? 0.0555 : 1))
+                                y: .value("Value", Decimal(sgvLimited) * conversionFactor)
                             ).foregroundStyle(Color.red.gradient).symbolSize(25)
                                 .interpolationMethod(.cardinal)
                         }
@@ -318,17 +324,17 @@ extension MainChartView {
 
                 ForEach(glucose.filter { $0.sgv ?? 0 >= Int(lowGlucose) && $0.sgv ?? 0 <= Int(highGlucose) }) { item in
                     if let sgv = item.sgv {
-                        let sgvLimited = min(sgv, 400)
+                        let sgvLimited = max(sgv, 0)
 
                         PointMark(
                             x: .value("Time", item.dateString, unit: .second),
-                            y: .value("Value", Decimal(sgvLimited) * (units == .mmolL ? 0.0555 : 1))
+                            y: .value("Value", Decimal(sgvLimited) * conversionFactor)
                         ).foregroundStyle(Color.green.gradient).symbolSize(25)
 
                         if smooth {
                             PointMark(
                                 x: .value("Time", item.dateString, unit: .second),
-                                y: .value("Value", Decimal(sgvLimited) * (units == .mmolL ? 0.0555 : 1))
+                                y: .value("Value", Decimal(sgvLimited) * conversionFactor)
                             ).foregroundStyle(Color.green.gradient).symbolSize(25)
                                 .interpolationMethod(.cardinal)
                         }
@@ -400,6 +406,10 @@ extension MainChartView {
                         }
 
                         if let glucoseValue = value.as(Double.self), glucoseValue > 0, glucoseValue < upperLimit {
+                            /// fix offset between the two charts...
+                            if units == .mmolL {
+                                AxisTick(length: 7, stroke: .init(lineWidth: 7)).foregroundStyle(Color.clear)
+                            }
                             AxisValueLabel()
                         }
                     }
@@ -555,34 +565,9 @@ extension MainChartView {
 
 // MARK: Calculations
 
-/// calculates the glucose value thats the nearest to parameter 'time'
-/// if time is later than all the arrays values return the last element of BloodGlucose
 extension MainChartView {
-//    private func timeToNearestGlucose(time: TimeInterval) -> BloodGlucose {
-//        var nextIndex = 0
-//        if glucose.last?.dateString.timeIntervalSince1970 ?? Date().timeIntervalSince1970 < time {
-//            return glucose.last ?? BloodGlucose(
-//                date: 0,
-//                dateString: Date(),
-//                unfiltered: nil,
-//                filtered: nil,
-//                noise: nil,
-//                type: nil
-//            )
-//        }
-//        for (index, value) in glucose.enumerated() {
-//            if value.dateString.timeIntervalSince1970 > time {
-//                nextIndex = index
-//                print("Break", value.dateString.timeIntervalSince1970, time)
-//                break
-//            }
-//        }
-//        return glucose[nextIndex]
-//    }
-
-    // MARK: TEST
-
-    /// fix for index out of range problem in simulator
+    /// calculates the glucose value thats the nearest to parameter 'time'
+    /// if time is later than all the arrays values return the last element of BloodGlucose
     private func timeToNearestGlucose(time: TimeInterval) -> BloodGlucose {
         /// If the glucose array is empty, return a default BloodGlucose object or handle it accordingly
         guard let lastGlucose = glucose.last else {
@@ -649,7 +634,8 @@ extension MainChartView {
         var calculatedBoluses: [ChartBolus] = []
         boluses.forEach { bolus in
             let bg = timeToNearestGlucose(time: bolus.timestamp.timeIntervalSince1970)
-            let yPosition = (bg.sgv ?? 120) + 30
+            let offset = (bg.sgv ?? 120) + 30
+            let yPosition = offset * (units == .mmolL ? Int(0.0555) : 1)
             calculatedBoluses
                 .append(ChartBolus(
                     amount: bolus.amount ?? 0,
@@ -710,7 +696,7 @@ extension MainChartView {
             if firstNonZeroTarget.targetTop != nil {
                 calculatedTTs
                     .append(ChartTempTarget(
-                        amount: firstNonZeroTarget.targetTop ?? 0,
+                        amount: (firstNonZeroTarget.targetTop ?? 0) * conversionFactor,
                         start: firstNonZeroTarget.createdAt,
                         end: end
                     ))
