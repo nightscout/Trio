@@ -3,17 +3,20 @@ import SwiftUI
 
 extension OverrideProfilesConfig {
     final class StateModel: BaseStateModel<Provider> {
-        @Published var percentage: Double = 100
+        @Injected() var storage: TempTargetsStorage!
+        @Injected() var apsManager: APSManager!
+
+        @Published var percentageProfiles: Double = 100
         @Published var isEnabled = false
         @Published var _indefinite = true
-        @Published var duration: Decimal = 0
+        @Published var durationProfile: Decimal = 0
         @Published var target: Decimal = 0
         @Published var override_target: Bool = false
         @Published var smbIsOff: Bool = false
         @Published var id: String = ""
         @Published var profileName: String = ""
         @Published var isPreset: Bool = false
-        @Published var presets: [OverridePresets] = []
+        @Published var presetsProfiles: [OverridePresets] = []
         @Published var selection: OverridePresets?
         @Published var advancedSettings: Bool = false
         @Published var isfAndCr: Bool = true
@@ -26,14 +29,31 @@ extension OverrideProfilesConfig {
         @Published var uamMinutes: Decimal = 0
         @Published var defaultSmbMinutes: Decimal = 0
         @Published var defaultUamMinutes: Decimal = 0
+        @Published var selectedTab: Tab = .profiles
 
         var units: GlucoseUnits = .mmolL
+
+        // temp target stuff
+        @Published var low: Decimal = 0
+        // @Published var target: Decimal = 0
+        @Published var high: Decimal = 0
+        @Published var durationTT: Decimal = 0
+        @Published var date = Date()
+        @Published var newPresetName = ""
+        @Published var presetsTT: [TempTarget] = []
+        @Published var percentageTT = 100.0
+        @Published var maxValue: Decimal = 1.2
+        @Published var viewPercantage = false
+        @Published var hbt: Double = 160
+        @Published var didSaveSettings: Bool = false
 
         override func subscribe() {
             units = settingsManager.settings.units
             defaultSmbMinutes = settingsManager.preferences.maxSMBBasalMinutes
             defaultUamMinutes = settingsManager.preferences.maxUAMSMBBasalMinutes
-            presets = [OverridePresets(context: coredataContext)]
+            presetsProfiles = [OverridePresets(context: coredataContext)]
+            presetsTT = storage.presets()
+            maxValue = settingsManager.preferences.autosensMax
         }
 
         let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
@@ -41,9 +61,9 @@ extension OverrideProfilesConfig {
         func saveSettings() {
             coredataContext.perform { [self] in
                 let saveOverride = Override(context: self.coredataContext)
-                saveOverride.duration = self.duration as NSDecimalNumber
+                saveOverride.duration = self.durationProfile as NSDecimalNumber
                 saveOverride.indefinite = self._indefinite
-                saveOverride.percentage = self.percentage
+                saveOverride.percentage = self.percentageProfiles
                 saveOverride.enabled = true
                 saveOverride.smbIsOff = self.smbIsOff
                 if self.isPreset {
@@ -82,9 +102,9 @@ extension OverrideProfilesConfig {
         func savePreset() {
             coredataContext.perform { [self] in
                 let saveOverride = OverridePresets(context: self.coredataContext)
-                saveOverride.duration = self.duration as NSDecimalNumber
+                saveOverride.duration = self.durationProfile as NSDecimalNumber
                 saveOverride.indefinite = self._indefinite
-                saveOverride.percentage = self.percentage
+                saveOverride.percentage = self.percentageProfiles
                 saveOverride.smbIsOff = self.smbIsOff
                 saveOverride.name = self.profileName
                 id = UUID().uuidString
@@ -169,9 +189,9 @@ extension OverrideProfilesConfig {
                 // requestEnabled.fetchLimit = 1
                 try? overrideArray = coredataContext.fetch(requestEnabled)
                 isEnabled = overrideArray.first?.enabled ?? false
-                percentage = overrideArray.first?.percentage ?? 100
+                percentageProfiles = overrideArray.first?.percentage ?? 100
                 _indefinite = overrideArray.first?.indefinite ?? true
-                duration = (overrideArray.first?.duration ?? 0) as Decimal
+                durationProfile = (overrideArray.first?.duration ?? 0) as Decimal
                 smbIsOff = overrideArray.first?.smbIsOff ?? false
                 advancedSettings = overrideArray.first?.advancedSettings ?? false
                 isfAndCr = overrideArray.first?.isfAndCr ?? true
@@ -198,7 +218,7 @@ extension OverrideProfilesConfig {
 
                 let overrideTarget = (overrideArray.first?.target ?? 0) as Decimal
 
-                var newDuration = Double(duration)
+                var newDuration = Double(durationProfile)
                 if isEnabled {
                     let duration = overrideArray.first?.duration ?? 0
                     let addedMinutes = Int(duration as Decimal)
@@ -213,12 +233,12 @@ extension OverrideProfilesConfig {
                     }
                 }
 
-                if newDuration < 0 { newDuration = 0 } else { duration = Decimal(newDuration) }
+                if newDuration < 0 { newDuration = 0 } else { durationProfile = Decimal(newDuration) }
 
                 if !isEnabled {
                     _indefinite = true
-                    percentage = 100
-                    duration = 0
+                    percentageProfiles = 100
+                    durationProfile = 0
                     target = 0
                     override_target = false
                     smbIsOff = false
@@ -232,8 +252,8 @@ extension OverrideProfilesConfig {
         func cancelProfile() {
             _indefinite = true
             isEnabled = false
-            percentage = 100
-            duration = 0
+            percentageProfiles = 100
+            durationProfile = 0
             target = 0
             override_target = false
             smbIsOff = false
@@ -246,6 +266,169 @@ extension OverrideProfilesConfig {
             }
             smbMinutes = defaultSmbMinutes
             uamMinutes = defaultUamMinutes
+        }
+
+        // MARK: TEMP TARGET
+
+        func enact() {
+            guard durationTT > 0 else {
+                return
+            }
+            var lowTarget = low
+
+            if viewPercantage {
+                lowTarget = Decimal(round(Double(computeTarget())))
+                coredataContext.performAndWait {
+                    let saveToCoreData = TempTargets(context: self.coredataContext)
+                    saveToCoreData.id = UUID().uuidString
+                    saveToCoreData.active = true
+                    saveToCoreData.hbt = hbt
+                    saveToCoreData.date = Date()
+                    saveToCoreData.duration = durationTT as NSDecimalNumber
+                    saveToCoreData.startDate = Date()
+                    try? self.coredataContext.save()
+                }
+                didSaveSettings = true
+            } else {
+                coredataContext.performAndWait {
+                    let saveToCoreData = TempTargets(context: coredataContext)
+                    saveToCoreData.active = false
+                    saveToCoreData.date = Date()
+                    try? coredataContext.save()
+                }
+            }
+            var highTarget = lowTarget
+
+            if units == .mmolL, !viewPercantage {
+                lowTarget = Decimal(round(Double(lowTarget.asMgdL)))
+                highTarget = lowTarget
+            }
+
+            let entry = TempTarget(
+                name: TempTarget.custom,
+                createdAt: date,
+                targetTop: highTarget,
+                targetBottom: lowTarget,
+                duration: durationTT,
+                enteredBy: TempTarget.manual,
+                reason: TempTarget.custom
+            )
+            storage.storeTempTargets([entry])
+            showModal(for: nil)
+        }
+
+        func cancel() {
+            storage.storeTempTargets([TempTarget.cancel(at: Date())])
+            showModal(for: nil)
+
+            coredataContext.performAndWait {
+                let saveToCoreData = TempTargets(context: self.coredataContext)
+                saveToCoreData.active = false
+                saveToCoreData.date = Date()
+                try? self.coredataContext.save()
+
+                let setHBT = TempTargetsSlider(context: self.coredataContext)
+                setHBT.enabled = false
+                setHBT.date = Date()
+                try? self.coredataContext.save()
+            }
+        }
+
+        func save() {
+            guard durationTT > 0 else {
+                return
+            }
+            var lowTarget = low
+
+            if viewPercantage {
+                lowTarget = Decimal(round(Double(computeTarget())))
+                didSaveSettings = true
+            }
+            var highTarget = lowTarget
+
+            if units == .mmolL, !viewPercantage {
+                lowTarget = Decimal(round(Double(lowTarget.asMgdL)))
+                highTarget = lowTarget
+            }
+
+            let entry = TempTarget(
+                name: newPresetName.isEmpty ? TempTarget.custom : newPresetName,
+                createdAt: Date(),
+                targetTop: highTarget,
+                targetBottom: lowTarget,
+                duration: durationTT,
+                enteredBy: TempTarget.manual,
+                reason: newPresetName.isEmpty ? TempTarget.custom : newPresetName
+            )
+            presetsTT.append(entry)
+            storage.storePresets(presetsTT)
+
+            if viewPercantage {
+                let id = entry.id
+
+                coredataContext.performAndWait {
+                    let saveToCoreData = TempTargetsSlider(context: self.coredataContext)
+                    saveToCoreData.id = id
+                    saveToCoreData.isPreset = true
+                    saveToCoreData.enabled = true
+                    saveToCoreData.hbt = hbt
+                    saveToCoreData.date = Date()
+                    saveToCoreData.duration = durationTT as NSDecimalNumber
+                    try? self.coredataContext.save()
+                }
+            }
+        }
+
+        func enactPreset(id: String) {
+            if var preset = presetsTT.first(where: { $0.id == id }) {
+                preset.createdAt = Date()
+                storage.storeTempTargets([preset])
+                showModal(for: nil)
+
+                coredataContext.performAndWait {
+                    var tempTargetsArray = [TempTargetsSlider]()
+                    let requestTempTargets = TempTargetsSlider.fetchRequest() as NSFetchRequest<TempTargetsSlider>
+                    let sortTT = NSSortDescriptor(key: "date", ascending: false)
+                    requestTempTargets.sortDescriptors = [sortTT]
+                    try? tempTargetsArray = coredataContext.fetch(requestTempTargets)
+
+                    let whichID = tempTargetsArray.first(where: { $0.id == id })
+
+                    if whichID != nil {
+                        let saveToCoreData = TempTargets(context: self.coredataContext)
+                        saveToCoreData.active = true
+                        saveToCoreData.date = Date()
+                        saveToCoreData.hbt = whichID?.hbt ?? 160
+                        // saveToCoreData.id = id
+                        saveToCoreData.startDate = Date()
+                        saveToCoreData.duration = whichID?.duration ?? 0
+
+                        try? self.coredataContext.save()
+                    } else {
+                        let saveToCoreData = TempTargets(context: self.coredataContext)
+                        saveToCoreData.active = false
+                        saveToCoreData.date = Date()
+                        try? self.coredataContext.save()
+                    }
+                }
+            }
+        }
+
+        func removePreset(id: String) {
+            presetsTT = presetsTT.filter { $0.id != id }
+            storage.storePresets(presetsTT)
+        }
+
+        func computeTarget() -> Decimal {
+            var ratio = Decimal(percentageTT / 100)
+            let c = Decimal(hbt - 100)
+            var target = (c / ratio) - c + 100
+
+            if c * (c + target - 100) <= 0 {
+                ratio = maxValue
+                target = (c / ratio) - c + 100
+            }
+            return Decimal(Double(target))
         }
     }
 }

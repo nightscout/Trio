@@ -30,7 +30,15 @@ extension Settings {
         var body: some View {
             Form {
                 Section {
-                    Toggle("Closed loop", isOn: $state.closedLoop)
+                    HStack(spacing: 15) {
+                        Image(systemName: "circle")
+                            .imageScale(.small)
+                            .font(.system(size: 32))
+                            .foregroundColor(Color.green)
+                        Toggle("Closed loop", isOn: $state.closedLoop)
+                            .font(.subheadline)
+                            .foregroundStyle(.primary)
+                    }
                 } header: {
                     Text(
                         "iAPS v\(state.versionNumber) (\(state.buildNumber))\nBranch: \(state.branch) \(state.copyrightNotice) "
@@ -38,25 +46,41 @@ extension Settings {
                 }.listRowBackground(Color.chart)
 
                 Section {
-                    Text("Pump").navigationLink(to: .pumpConfig, from: self)
-                    Text("CGM").navigationLink(to: .cgm, from: self)
-                    Text("Watch").navigationLink(to: .watch, from: self)
-                } header: { Text("Devices") }.listRowBackground(Color.chart)
+                    SettingsRowView(imageName: "chart.xyaxis.line", title: "Statistics", tint: Color.green, spacing: 10)
+                        .navigationLink(to: .statistics, from: self)
+                } header: { Text("Statistics") }.listRowBackground(Color.chart)
 
                 Section {
-                    Text("Nightscout").navigationLink(to: .nighscoutConfig, from: self)
+                    SettingsRowViewCustomImage(imageName: "pod", title: "Pump")
+                        .navigationLink(to: .pumpConfig, from: self)
+                    SettingsRowViewCustomImage(imageName: "g6", title: "CGM")
+                        .navigationLink(to: .cgm, from: self)
+                    SettingsRowView(imageName: "applewatch.watchface", title: "Watch", tint: Color.primary, spacing: 18)
+                        .navigationLink(to: .watch, from: self)
+                } header: { Text("Select Devices") }.listRowBackground(Color.chart)
+
+                Section {
+                    SettingsRowViewCustomImage(imageName: "owl", title: "Nightscout", frame: 32)
+                        .navigationLink(to: .nighscoutConfig, from: self)
                     if HKHealthStore.isHealthDataAvailable() {
-                        Text("Apple Health").navigationLink(to: .healthkit, from: self)
+                        SettingsRowView(imageName: "heart.circle.fill", title: "Apple Health", tint: Color.red)
+                            .navigationLink(to: .healthkit, from: self)
                     }
-                    Text("Notifications").navigationLink(to: .notificationsConfig, from: self)
+                    SettingsRowView(imageName: "message.circle.fill", title: "Notifications", tint: Color.blue)
+                        .navigationLink(to: .notificationsConfig, from: self)
                 } header: { Text("Services") }.listRowBackground(Color.chart)
 
                 Section {
-                    Text("Pump Settings").navigationLink(to: .pumpSettingsEditor, from: self)
-                    Text("Basal Profile").navigationLink(to: .basalProfileEditor, from: self)
-                    Text("Insulin Sensitivities").navigationLink(to: .isfEditor, from: self)
-                    Text("Carb Ratios").navigationLink(to: .crEditor, from: self)
-                    Text("Target Glucose").navigationLink(to: .targetsEditor, from: self)
+                    SettingsRowViewCustomImage(imageName: "pod", title: "Pump Settings")
+                        .navigationLink(to: .pumpSettingsEditor, from: self)
+                    SettingsRowView(imageName: "chart.bar.xaxis", title: "Basal Profile", tint: Color.insulin, spacing: 10)
+                        .navigationLink(to: .basalProfileEditor, from: self)
+                    SettingsRowView(imageName: "drop.fill", title: "Insulin Sensitivities", tint: Color.insulin, spacing: 22)
+                        .navigationLink(to: .isfEditor, from: self)
+                    SettingsRowView(imageName: "fork.knife.circle", title: "Carb Ratios", tint: Color.orange, spacing: 14)
+                        .navigationLink(to: .crEditor, from: self)
+                    SettingsRowView(imageName: "target", title: "Target Glucose", tint: Color.green, spacing: 14)
+                        .navigationLink(to: .targetsEditor, from: self)
                 } header: { Text("Configuration") }.listRowBackground(Color.chart)
 
                 Section {
@@ -151,7 +175,7 @@ extension Settings {
                     ShareSheet(activityItems: state.logItems())
                 }
                 .onAppear(perform: configureView)
-                .navigationTitle("Settings")
+                .navigationTitle("Menü")
                 .navigationBarTitleDisplayMode(.large)
                 .onDisappear(perform: { state.uploadProfileAndSettings(false) })
         }

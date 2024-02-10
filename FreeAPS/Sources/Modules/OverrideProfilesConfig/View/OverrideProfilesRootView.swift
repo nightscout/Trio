@@ -7,11 +7,17 @@ extension OverrideProfilesConfig {
         let resolver: Resolver
 
         @StateObject var state = StateModel()
+
         @State private var isEditing = false
         @State private var showAlert = false
         @State private var showingDetail = false
         @State private var alertSring = ""
         @State var isSheetPresented: Bool = false
+        // temp targets
+        @State private var isPromptPresented = false
+        @State private var isRemoveAlertPresented = false
+        @State private var removeAlert: Alert?
+        @State private var isEditingTT = false
 
         @Environment(\.dismiss) var dismiss
         @Environment(\.managedObjectContext) var moc
@@ -39,6 +45,11 @@ extension OverrideProfilesConfig {
                 format: "name != %@", "" as String
             )
         ) var fetchedProfiles: FetchedResults<OverridePresets>
+
+        @FetchRequest(
+            entity: TempTargetsSlider.entity(),
+            sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
+        ) var isEnabledArray: FetchedResults<TempTargetsSlider>
 
         private var formatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -79,215 +90,437 @@ extension OverrideProfilesConfig {
         }
 
         var body: some View {
-            Form {
-                if state.presets.isNotEmpty {
-                    Section {
-                        ForEach(fetchedProfiles) { preset in
-                            profilesView(for: preset)
-                        }.onDelete(perform: removeProfile)
-                    }.listRowBackground(Color.chart)
+            VStack {
+                Picker("Tab", selection: $state.selectedTab) {
+                    ForEach(Tab.allCases) { tab in
+                        Text(NSLocalizedString(tab.name, comment: "")).tag(tab)
+                    }
                 }
+                .pickerStyle(.segmented).padding(.horizontal, 10)
+
+                Form {
+                    switch state.selectedTab {
+                    case .profiles: profiles()
+                    case .tempTargets: tempTargets() }
+                }.scrollContentBackground(.hidden).background(color)
+                    .onAppear(perform: configureView)
+                    .onAppear { state.savedSettings() }
+                    .navigationBarTitle("Profiles")
+                    .navigationBarTitleDisplayMode(.large)
+            }.background(color)
+        }
+
+        @ViewBuilder func profiles() -> some View {
+            if state.presetsProfiles.isNotEmpty {
+                Section {
+                    ForEach(fetchedProfiles) { preset in
+                        profilesView(for: preset)
+                    }.onDelete(perform: removeProfile)
+                }.listRowBackground(Color.chart)
+            }
+            Section {
+                VStack {
+                    Spacer()
+                    Text("\(state.percentageProfiles.formatted(.number)) %")
+                        .foregroundColor(
+                            state
+                                .percentageProfiles >= 130 ? .red :
+                                (isEditing ? .orange : Color.blue)
+                        )
+                        .font(.largeTitle)
+                    Slider(
+                        value: $state.percentageProfiles,
+                        in: 10 ... 200,
+                        step: 1,
+                        onEditingChanged: { editing in
+                            isEditing = editing
+                        }
+                    )
+                    Spacer()
+                    Toggle(isOn: $state._indefinite) {
+                        Text("Enable indefinitely")
+                    }
+                }
+                if !state._indefinite {
+                    HStack {
+                        Text("Duration")
+                        DecimalTextField("0", value: $state.durationProfile, formatter: formatter, cleanInput: false)
+                        Text("minutes").foregroundColor(.secondary)
+                    }
+                }
+
+                HStack {
+                    Toggle(isOn: $state.override_target) {
+                        Text("Override Profile Target")
+                    }
+                }
+                if state.override_target {
+                    HStack {
+                        Text("Target Glucose")
+                        DecimalTextField("0", value: $state.target, formatter: glucoseFormatter, cleanInput: false)
+                        Text(state.units.rawValue).foregroundColor(.secondary)
+                    }
+                }
+                HStack {
+                    Toggle(isOn: $state.advancedSettings) {
+                        Text("More options")
+                    }
+                }
+                if state.advancedSettings {
+                    HStack {
+                        Toggle(isOn: $state.smbIsOff) {
+                            Text("Disable SMBs")
+                        }
+                    }
+                    HStack {
+                        Toggle(isOn: $state.smbIsAlwaysOff) {
+                            Text("Schedule when SMBs are Off")
+                        }.disabled(!state.smbIsOff)
+                    }
+                    if state.smbIsAlwaysOff {
+                        HStack {
+                            Text("First Hour SMBs are Off (24 hours)")
+                            DecimalTextField("0", value: $state.start, formatter: formatter, cleanInput: false)
+                            Text("hour").foregroundColor(.secondary)
+                        }
+                        HStack {
+                            Text("Last Hour SMBs are Off (24 hours)")
+                            DecimalTextField("0", value: $state.end, formatter: formatter, cleanInput: false)
+                            Text("hour").foregroundColor(.secondary)
+                        }
+                    }
+                    HStack {
+                        Toggle(isOn: $state.isfAndCr) {
+                            Text("Change ISF and CR")
+                        }
+                    }
+                    if !state.isfAndCr {
+                        HStack {
+                            Toggle(isOn: $state.isf) {
+                                Text("Change ISF")
+                            }
+                        }
+                        HStack {
+                            Toggle(isOn: $state.cr) {
+                                Text("Change CR")
+                            }
+                        }
+                    }
+                    HStack {
+                        Text("SMB Minutes")
+                        DecimalTextField(
+                            "0",
+                            value: $state.smbMinutes,
+                            formatter: formatter,
+                            cleanInput: false
+                        )
+                        Text("minutes").foregroundColor(.secondary)
+                    }
+                    HStack {
+                        Text("UAM SMB Minutes")
+                        DecimalTextField(
+                            "0",
+                            value: $state.uamMinutes,
+                            formatter: formatter,
+                            cleanInput: false
+                        )
+                        Text("minutes").foregroundColor(.secondary)
+                    }
+                }
+
+                // MARK: TESTING
+
+                HStack {
+                    Button("Start new Profile") {
+                        showAlert.toggle()
+
+                        alertSring = "\(state.percentageProfiles.formatted(.number)) %, " +
+                            (
+                                state.durationProfile > 0 || !state
+                                    ._indefinite ?
+                                    (
+                                        state
+                                            .durationProfile
+                                            .formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) +
+                                            " min."
+                                    ) :
+                                    NSLocalizedString(" infinite duration.", comment: "")
+                            ) +
+                            (
+                                (state.target == 0 || !state.override_target) ? "" :
+                                    (" Target: " + state.target.formatted() + " " + state.units.rawValue + ".")
+                            )
+                            +
+                            (
+                                state
+                                    .smbIsOff ?
+                                    NSLocalizedString(
+                                        " SMBs are disabled either by schedule or during the entire duration.",
+                                        comment: ""
+                                    ) : ""
+                            )
+                            +
+                            "\n\n"
+                            +
+                            NSLocalizedString(
+                                "Starting this override will change your Profiles and/or your Target Glucose used for looping during the entire selected duration. Tapping ”Start Profile” will start your new profile or edit your current active profile.",
+                                comment: ""
+                            )
+                    }
+                    .disabled(unChanged())
+                    .buttonStyle(BorderlessButtonStyle())
+                    .font(.callout)
+                    .controlSize(.mini)
+                    .alert(
+                        "Start Profile",
+                        isPresented: $showAlert,
+                        actions: {
+                            Button("Cancel", role: .cancel) { state.isEnabled = false }
+                            Button("Start Profile", role: .destructive) {
+                                if state._indefinite { state.durationProfile = 0 }
+                                state.isEnabled.toggle()
+                                state.saveSettings()
+                                dismiss()
+                            }
+                        },
+                        message: {
+                            Text(alertSring)
+                        }
+                    )
+                    Button {
+                        isSheetPresented = true
+                    }
+                    label: { Text("Save as Profile") }
+                        .tint(.orange)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        .buttonStyle(BorderlessButtonStyle())
+                        .controlSize(.mini)
+                        .disabled(unChanged())
+                }
+                .sheet(isPresented: $isSheetPresented) {
+                    presetPopover
+                }
+
+                // MARK: TESTING END
+            }
+
+            header: { Text("Insulin") }
+            footer: {
+                Text(
+                    "Your profile basal insulin will be adjusted with the override percentage and your profile ISF and CR will be inversly adjusted with the percentage."
+                )
+            }.listRowBackground(Color.chart)
+
+            Button(action: {
+                state.cancelProfile()
+                dismiss()
+            }, label: {
+                HStack {
+                    Spacer()
+                    Text("Cancel Profile")
+                    Spacer()
+                    Image(systemName: "xmark.app")
+                        .font(.title)
+                }
+            })
+                .frame(maxWidth: .infinity, alignment: .center)
+                .disabled(!state.isEnabled)
+                .listRowBackground(!state.isEnabled ? Color(.systemGray4) : Color(.systemRed))
+                .tint(.white)
+        }
+
+        @ViewBuilder func tempTargets() -> some View {
+            if !state.presetsTT.isEmpty {
+                Section(header: Text("Presets")) {
+                    ForEach(state.presetsTT) { preset in
+                        presetView(for: preset)
+                    }
+                }.listRowBackground(Color.chart)
+            }
+
+            HStack {
+                Text("Experimental")
+                Toggle(isOn: $state.viewPercantage) {}.controlSize(.mini)
+                Image(systemName: "figure.highintensity.intervaltraining")
+                Image(systemName: "fork.knife")
+            }.listRowBackground(Color.chart)
+
+            if state.viewPercantage {
                 Section {
                     VStack {
-                        Spacer()
-                        Text("\(state.percentage.formatted(.number)) %")
-                            .foregroundColor(
-                                state
-                                    .percentage >= 130 ? .red :
-                                    (isEditing ? .orange : Color.blue)
-                            )
+                        Text("\(state.percentageTT.formatted(.number)) % Insulin")
+                            .foregroundColor(isEditingTT ? .orange : .blue)
                             .font(.largeTitle)
+                            .padding(.vertical)
                         Slider(
-                            value: $state.percentage,
-                            in: 10 ... 200,
+                            value: $state.percentageTT,
+                            in: 15 ...
+                                min(Double(state.maxValue * 100), 200),
                             step: 1,
                             onEditingChanged: { editing in
-                                isEditing = editing
+                                isEditingTT = editing
                             }
                         )
-                        Spacer()
-                        Toggle(isOn: $state._indefinite) {
-                            Text("Enable indefinitely")
-                        }
-                    }
-                    if !state._indefinite {
-                        HStack {
-                            Text("Duration")
-                            DecimalTextField("0", value: $state.duration, formatter: formatter, cleanInput: false)
-                            Text("minutes").foregroundColor(.secondary)
-                        }
-                    }
-
-                    HStack {
-                        Toggle(isOn: $state.override_target) {
-                            Text("Override Profile Target")
-                        }
-                    }
-                    if state.override_target {
-                        HStack {
-                            Text("Target Glucose")
-                            DecimalTextField("0", value: $state.target, formatter: glucoseFormatter, cleanInput: false)
-                            Text(state.units.rawValue).foregroundColor(.secondary)
-                        }
-                    }
-                    HStack {
-                        Toggle(isOn: $state.advancedSettings) {
-                            Text("More options")
-                        }
-                    }
-                    if state.advancedSettings {
-                        HStack {
-                            Toggle(isOn: $state.smbIsOff) {
-                                Text("Disable SMBs")
-                            }
-                        }
-                        HStack {
-                            Toggle(isOn: $state.smbIsAlwaysOff) {
-                                Text("Schedule when SMBs are Off")
-                            }.disabled(!state.smbIsOff)
-                        }
-                        if state.smbIsAlwaysOff {
-                            HStack {
-                                Text("First Hour SMBs are Off (24 hours)")
-                                DecimalTextField("0", value: $state.start, formatter: formatter, cleanInput: false)
-                                Text("hour").foregroundColor(.secondary)
-                            }
-                            HStack {
-                                Text("Last Hour SMBs are Off (24 hours)")
-                                DecimalTextField("0", value: $state.end, formatter: formatter, cleanInput: false)
-                                Text("hour").foregroundColor(.secondary)
-                            }
-                        }
-                        HStack {
-                            Toggle(isOn: $state.isfAndCr) {
-                                Text("Change ISF and CR")
-                            }
-                        }
-                        if !state.isfAndCr {
-                            HStack {
-                                Toggle(isOn: $state.isf) {
-                                    Text("Change ISF")
-                                }
-                            }
-                            HStack {
-                                Toggle(isOn: $state.cr) {
-                                    Text("Change CR")
-                                }
-                            }
-                        }
-                        HStack {
-                            Text("SMB Minutes")
-                            DecimalTextField(
-                                "0",
-                                value: $state.smbMinutes,
-                                formatter: formatter,
-                                cleanInput: false
-                            )
-                            Text("minutes").foregroundColor(.secondary)
-                        }
-                        HStack {
-                            Text("UAM SMB Minutes")
-                            DecimalTextField(
-                                "0",
-                                value: $state.uamMinutes,
-                                formatter: formatter,
-                                cleanInput: false
-                            )
-                            Text("minutes").foregroundColor(.secondary)
-                        }
-                    }
-
-                    HStack {
-                        Button("Start new Profile") {
-                            showAlert.toggle()
-                            alertSring = "\(state.percentage.formatted(.number)) %, " +
-                                (
-                                    state.duration > 0 || !state
-                                        ._indefinite ?
-                                        (
-                                            state
-                                                .duration
-                                                .formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) +
-                                                " min."
-                                        ) :
-                                        NSLocalizedString(" infinite duration.", comment: "")
-                                ) +
-                                (
-                                    (state.target == 0 || !state.override_target) ? "" :
-                                        (" Target: " + state.target.formatted() + " " + state.units.rawValue + ".")
-                                )
-                                +
+                        // Only display target slider when not 100 %
+                        if state.percentageTT != 100 {
+                            Spacer()
+                            Divider()
+                            Text(
                                 (
                                     state
-                                        .smbIsOff ?
-                                        NSLocalizedString(
-                                            " SMBs are disabled either by schedule or during the entire duration.",
-                                            comment: ""
-                                        ) : ""
+                                        .units == .mmolL ?
+                                        "\(state.computeTarget().asMmolL.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))) mmol/L" :
+                                        "\(state.computeTarget().formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) mg/dl"
                                 )
-                                +
-                                "\n\n"
-                                +
-                                NSLocalizedString(
-                                    "Starting this override will change your Profiles and/or your Target Glucose used for looping during the entire selected duration. Tapping ”Start Profile” will start your new profile or edit your current active profile.",
-                                    comment: ""
-                                )
+                                    + NSLocalizedString(" Target Glucose", comment: "")
+                            )
+                            .foregroundColor(.green)
+                            .padding(.vertical)
+
+                            Slider(
+                                value: $state.hbt,
+                                in: 101 ... 295,
+                                step: 1
+                            ).accentColor(.green)
                         }
-                        .disabled(unChanged())
-                        .buttonStyle(BorderlessButtonStyle())
-                        .font(.callout)
-                        .controlSize(.mini)
-                        .alert(
-                            "Start Profile",
-                            isPresented: $showAlert,
-                            actions: {
-                                Button("Cancel", role: .cancel) { state.isEnabled = false }
-                                Button("Start Profile", role: .destructive) {
-                                    if state._indefinite { state.duration = 0 }
-                                    state.isEnabled.toggle()
-                                    state.saveSettings()
-                                    dismiss()
-                                }
-                            },
-                            message: {
-                                Text(alertSring)
-                            }
-                        )
-                        Button {
-                            isSheetPresented = true
-                        }
-                        label: { Text("Save as Profile") }
+                    }
+                }.listRowBackground(Color.chart)
+            } else {
+                Section(header: Text("Custom")) {
+                    HStack {
+                        Text("Target")
+                        Spacer()
+                        DecimalTextField("0", value: $state.low, formatter: formatter, cleanInput: true)
+                        Text(state.units.rawValue).foregroundColor(.secondary)
+                    }
+                    HStack {
+                        Text("Duration")
+                        Spacer()
+                        DecimalTextField("0", value: $state.durationTT, formatter: formatter, cleanInput: true)
+                        Text("minutes").foregroundColor(.secondary)
+                    }
+                    DatePicker("Date", selection: $state.date)
+                    HStack {
+                        Button { state.enact() }
+                        label: { Text("Enact") }
+                            .disabled(state.durationTT == 0)
+                            .buttonStyle(BorderlessButtonStyle())
+                            .font(.callout)
+                            .controlSize(.mini)
+
+                        Button { isPromptPresented = true }
+                        label: { Text("Save as preset") }
+                            .disabled(state.durationTT == 0)
                             .tint(.orange)
                             .frame(maxWidth: .infinity, alignment: .trailing)
                             .buttonStyle(BorderlessButtonStyle())
                             .controlSize(.mini)
-                            .disabled(unChanged())
                     }
-                    .sheet(isPresented: $isSheetPresented) {
-                        presetPopover
+                }.listRowBackground(Color.chart)
+            }
+            if state.viewPercantage {
+                Section {
+                    HStack {
+                        Text("Duration")
+                        Spacer()
+                        DecimalTextField("0", value: $state.durationTT, formatter: formatter, cleanInput: true)
+                        Text("minutes").foregroundColor(.secondary)
+                    }
+                    DatePicker("Date", selection: $state.date)
+                    HStack {
+                        Button { state.enact() }
+                        label: { Text("Enact") }
+                            .disabled(state.durationTT == 0)
+                            .buttonStyle(BorderlessButtonStyle())
+                            .font(.callout)
+                            .controlSize(.mini)
+
+                        Button { isPromptPresented = true }
+                        label: { Text("Save as preset") }
+                            .disabled(state.durationTT == 0)
+                            .tint(.orange)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
+                            .buttonStyle(BorderlessButtonStyle())
+                            .controlSize(.mini)
+                    }
+                }.listRowBackground(Color.chart)
+            }
+
+            Section {
+                Button { state.cancel() }
+                label: {
+                    HStack {
+                        Spacer()
+                        Text("Cancel Temp Target")
+                        Spacer()
+                        Image(systemName: "xmark.app")
+                            .font(.title)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .center)
+                .disabled(state.storage.current() == nil)
+                .listRowBackground(state.storage.current() == nil ? Color(.systemGray4) : Color(.systemRed))
+                .tint(.white)
+            }
+        }
 
-                header: { Text("Insulin") }
-                footer: {
-                    Text(
-                        "Your profile basal insulin will be adjusted with the override percentage and your profile ISF and CR will be inversly adjusted with the percentage."
-                    )
-                }.listRowBackground(Color.chart)
+        private func presetView(for preset: TempTarget) -> some View {
+            var low = preset.targetBottom
+            var high = preset.targetTop
+            if state.units == .mmolL {
+                low = low?.asMmolL
+                high = high?.asMmolL
+            }
+            return HStack {
+                VStack {
+                    HStack {
+                        Text(preset.displayName)
+                        Spacer()
+                    }
+                    HStack(spacing: 2) {
+                        Text(
+                            "\(formatter.string(from: (low ?? 0) as NSNumber)!) - \(formatter.string(from: (high ?? 0) as NSNumber)!)"
+                        )
+                        .foregroundColor(.secondary)
+                        .font(.caption)
 
-                Button("Return to Normal") {
-                    state.cancelProfile()
-                    dismiss()
-                }.listRowBackground(Color.chart)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .buttonStyle(BorderlessButtonStyle())
-                    .disabled(!state.isEnabled)
-                    .tint(.red)
-            }.scrollContentBackground(.hidden).background(color)
-                .onAppear(perform: configureView)
-                .onAppear { state.savedSettings() }
-                .navigationBarTitle("Profiles")
-                .navigationBarTitleDisplayMode(.large)
+                        Text(state.units.rawValue)
+                            .foregroundColor(.secondary)
+                            .font(.caption)
+                        Text("for")
+                            .foregroundColor(.secondary)
+                            .font(.caption)
+                        Text("\(formatter.string(from: preset.duration as NSNumber)!)")
+                            .foregroundColor(.secondary)
+                            .font(.caption)
+                        Text("min")
+                            .foregroundColor(.secondary)
+                            .font(.caption)
+
+                        Spacer()
+                    }.padding(.top, 2)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    state.enactPreset(id: preset.id)
+                }
+
+                Image(systemName: "xmark.circle").foregroundColor(.secondary)
+                    .contentShape(Rectangle())
+                    .padding(.vertical)
+                    .onTapGesture {
+                        removeAlert = Alert(
+                            title: Text("Are you sure?"),
+                            message: Text("Delete preset \"\(preset.displayName)\""),
+                            primaryButton: .destructive(Text("Delete"), action: { state.removePreset(id: preset.id) }),
+                            secondaryButton: .cancel()
+                        )
+                        isRemoveAlertPresented = true
+                    }
+                    .alert(isPresented: $isRemoveAlertPresented) {
+                        removeAlert!
+                    }
+            }
         }
 
         @ViewBuilder private func profilesView(for preset: OverridePresets) -> some View {
@@ -345,10 +578,13 @@ extension OverrideProfilesConfig {
         }
 
         private func unChanged() -> Bool {
-            let isChanged = (state.percentage == 100 && !state.override_target && !state.smbIsOff && !state.advancedSettings) ||
-                (!state._indefinite && state.duration == 0) || (state.override_target && state.target == 0) ||
+            let isChanged = (
+                state.percentageProfiles == 100 && !state.override_target && !state.smbIsOff && !state
+                    .advancedSettings
+            ) ||
+                (!state._indefinite && state.durationProfile == 0) || (state.override_target && state.target == 0) ||
                 (
-                    state.percentage == 100 && !state.override_target && !state.smbIsOff && state.isf && state.cr && state
+                    state.percentageProfiles == 100 && !state.override_target && !state.smbIsOff && state.isf && state.cr && state
                         .smbMinutes == state.defaultSmbMinutes && state.uamMinutes == state.defaultUamMinutes
                 )
 

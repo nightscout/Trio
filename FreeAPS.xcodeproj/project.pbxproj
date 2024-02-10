@@ -268,6 +268,7 @@
 		45717281F743594AA9D87191 /* ConfigEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 920DDB21E5D0EB813197500D /* ConfigEditorRootView.swift */; };
 		5075C1608E6249A51495C422 /* TargetsEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BDEA2DC60EDE0A3CA54DC73 /* TargetsEditorProvider.swift */; };
 		53F2382465BF74DB1A967C8B /* PumpConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8630D58BDAD6D9C650B9B39 /* PumpConfigProvider.swift */; };
+		587DA1F62B77F3DD00B28F8A /* SettingsRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 587DA1F52B77F3DD00B28F8A /* SettingsRowView.swift */; };
 		5BFA1C2208114643B77F8CEB /* AddTempTargetProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEE53A13D26F101B332EFFC8 /* AddTempTargetProvider.swift */; };
 		5D16287A969E64D18CE40E44 /* PumpConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F60E97100041040446F44E7 /* PumpConfigStateModel.swift */; };
 		61962FCAF8A2D222553AC5A3 /* LibreConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66A5B83E7967C38F7CBD883C /* LibreConfigDataFlow.swift */; };
@@ -830,6 +831,7 @@
 		4DD795BA46B193644D48138C /* TargetsEditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TargetsEditorRootView.swift; sourceTree = "<group>"; };
 		500371C09F54F89A97D65FDB /* CalibrationsRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalibrationsRootView.swift; sourceTree = "<group>"; };
 		505E09DC17A0C3D0AF4B66FE /* ISFEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ISFEditorStateModel.swift; sourceTree = "<group>"; };
+		587DA1F52B77F3DD00B28F8A /* SettingsRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRowView.swift; sourceTree = "<group>"; };
 		5B8A42073A2D03A278914448 /* AddTempTargetDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AddTempTargetDataFlow.swift; sourceTree = "<group>"; };
 		5C018D1680307A31C9ED7120 /* CGMStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CGMStateModel.swift; sourceTree = "<group>"; };
 		5D5B4F8B4194BB7E260EF251 /* ConfigEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConfigEditorStateModel.swift; sourceTree = "<group>"; };
@@ -1758,6 +1760,8 @@
 				FE66D16A291F74F8005D6F77 /* Bundle+Extensions.swift */,
 				FEFFA7A12929FE49007B8193 /* UIDevice+Extensions.swift */,
 				CEA4F62229BE10F70011ADF7 /* SavitzkyGolayFilter.swift */,
+				587DA1F52B77F3DD00B28F8A /* SettingsRowView.swift */,
+				BD2FF19F2AE29D43005D1C5D /* CheckboxToggleStyle.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -2178,14 +2182,6 @@
 			path = View;
 			sourceTree = "<group>";
 		};
-		BD2FF19E2AE29D24005D1C5D /* Components */ = {
-			isa = PBXGroup;
-			children = (
-				BD2FF19F2AE29D43005D1C5D /* CheckboxToggleStyle.swift */,
-			);
-			path = Components;
-			sourceTree = "<group>";
-		};
 		BD7DA9A32AE06DBA00601B20 /* BolusCalculatorConfig */ = {
 			isa = PBXGroup;
 			children = (
@@ -2219,7 +2215,6 @@
 		C2C98283C436DB934D7E7994 /* Bolus */ = {
 			isa = PBXGroup;
 			children = (
-				BD2FF19E2AE29D24005D1C5D /* Components */,
 				C8D1A7CA8C10C4403D4BBFA7 /* BolusDataFlow.swift */,
 				C19984D62EFC0035A9E9644D /* BolusProvider.swift */,
 				223EC0494F55A91E3EA69EF4 /* BolusStateModel.swift */,
@@ -2867,6 +2862,7 @@
 				3811DEB025C9D88300A708ED /* BaseKeychain.swift in Sources */,
 				3811DE4325C9D4A100A708ED /* SettingsProvider.swift in Sources */,
 				45252C95D220E796FDB3B022 /* ConfigEditorDataFlow.swift in Sources */,
+				587DA1F62B77F3DD00B28F8A /* SettingsRowView.swift in Sources */,
 				3871F38725ED661C0013ECB5 /* Suggestion.swift in Sources */,
 				CE7CA34E2A064973004BE681 /* AppShortcuts.swift in Sources */,
 				38C4D33A25E9A1ED00D30B77 /* NSObject+AssociatedValues.swift in Sources */,

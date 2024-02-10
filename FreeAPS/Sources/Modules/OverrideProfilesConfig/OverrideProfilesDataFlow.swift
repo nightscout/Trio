@@ -1,5 +1,27 @@
+import Foundation
+import SwiftUI
+
 enum OverrideProfilesConfig {
     enum Config {}
+
+    enum Tab: String, Hashable, Identifiable, CaseIterable {
+        case profiles
+        case tempTargets
+
+        var id: String { rawValue }
+
+        var name: String {
+            var name: String = ""
+            switch self {
+            case .profiles:
+                name = "Profiles"
+            case .tempTargets:
+                name = "Temp Targets"
+            }
+
+            return NSLocalizedString(name, comment: "Selected Tab")
+        }
+    }
 }
 
 protocol OverrideProfilesProvider: Provider {}

@@ -164,6 +164,7 @@ struct MainChartView: View {
                         calculateFpus()
                         calculateCarbs()
                         calculatePredictions()
+                        calculateTTs()
                         updateStartEndMarkers()
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }

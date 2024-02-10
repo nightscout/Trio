@@ -167,14 +167,7 @@ extension Stat {
             }.background(color)
                 .onAppear(perform: configureView)
                 .navigationBarTitle("Statistics")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button("Close") {
-                            state.hideModal()
-                        }
-                    }
-                }
+                .navigationBarTitleDisplayMode(.large)
         }
     }
 }

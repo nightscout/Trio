@@ -149,24 +149,22 @@ extension Home {
                 lowGlucose: $state.lowGlucose,
                 highGlucose: $state.highGlucose
             ).scaleEffect(0.9)
-            /*
-                 .onTapGesture {
-                     if state.alarm == nil {
-                         state.openCGM()
-                     } else {
-                         state.showModal(for: .snooze)
-                     }
-                 }
-                 .onLongPressGesture {
-                     let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
-                     impactHeavy.impactOccurred()
-                     if state.alarm == nil {
-                         state.showModal(for: .snooze)
-                     } else {
-                         state.openCGM()
-                     }
-                 }
-             */
+                .onTapGesture {
+                    if state.alarm == nil {
+                        state.openCGM()
+                    } else {
+                        state.showModal(for: .snooze)
+                    }
+                }
+                .onLongPressGesture {
+                    let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+                    impactHeavy.impactOccurred()
+                    if state.alarm == nil {
+                        state.showModal(for: .snooze)
+                    } else {
+                        state.openCGM()
+                    }
+                }
         }
 
         var pumpView: some View {
@@ -178,7 +176,11 @@ extension Home {
                 timerDate: $state.timerDate,
                 timeZone: $state.timeZone,
                 state: state
-            )
+            ).onTapGesture {
+                if state.pumpDisplayState != nil {
+                    state.setupPump = true
+                }
+            }
         }
 
         var tempBasalString: String? {
@@ -702,111 +704,111 @@ extension Home {
                 }.clipShape(RoundedRectangle(cornerRadius: 15))
         }
 
-        @ViewBuilder func menuSymbols(action: @escaping () -> Void, systemName: String) -> some View {
-            Button(
-                action: action,
-                label: {
-                    HStack {
-                        Image(systemName: systemName)
-                            .font(.system(size: 21))
-                            .foregroundStyle(colorScheme == .dark ? .white : .black)
-                    }.padding(.top, 1)
-                }
-            )
-        }
-
-        @ViewBuilder func menuElements(action: @escaping () -> Void, title: String) -> some View {
-            Button(
-                action: action,
-                label: {
-                    HStack {
-                        Text(title)
-                            .font(.system(size: 19))
-                            .foregroundStyle(colorScheme == .dark ? .white : .black)
-                        Spacer()
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 21))
-                            .foregroundStyle(colorScheme == .dark ? .white : .black)
-                    }.padding(.top, 1)
-                }
-            )
-        }
-
-        @ViewBuilder func sideMenuView() -> some View {
-            ZStack {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(color)
-                    .shadow(
-                        color: Color.black.opacity(0.33),
-                        radius: 3
-                    )
-                    .ignoresSafeArea(edges: .all)
-
-                VStack(alignment: .leading) {
-                    Button {
-                        isMenuPresented.toggle()
-                    } label: {
-                        HStack {
-                            Image(systemName: "arrow.left")
-                                .font(.system(size: 30))
-                                .foregroundStyle(colorScheme == .dark ? .white : .black)
-                            Text("Menu")
-                                .font(.system(size: 30)).fontWeight(.bold)
-                                .foregroundStyle(colorScheme == .dark ? .white : .black)
-                        }
-                    }
-                    .padding(.top, 60)
-
-                    HStack(spacing: 15) {
-                        VStack(alignment: .leading, spacing: 25, content: {
-                            menuSymbols(action: { state.showModal(for: .statistics) }, systemName: "chart.bar.xaxis")
-                                .padding(.top, 20)
-
-                            menuSymbols(action: {
-                                if state.pumpDisplayState != nil {
-                                    state.setupPump = true
-                                }
-                            }, systemName: "cross.vial.fill")
-
-                            menuSymbols(action: {
-                                if state.alarm == nil {
-                                    state.openCGM()
-                                } else {
-                                    state.showModal(for: .snooze)
-                                }
-                            }, systemName: "sensor.tag.radiowaves.forward.fill")
-
-                            menuSymbols(action: { state.showModal(for: .addTempTarget) }, systemName: "target")
-
-                            Spacer()
-                        })
-                        VStack(alignment: .leading, spacing: 25, content: {
-                            menuElements(action: { state.showModal(for: .statistics) }, title: "Statistics")
-                                .padding(.top, 20)
-
-                            menuElements(action: {
-                                if state.pumpDisplayState != nil {
-                                    state.setupPump = true
-                                }
-                            }, title: "Pump Settings")
-
-                            menuElements(action: {
-                                if state.alarm == nil {
-                                    state.openCGM()
-                                } else {
-                                    state.showModal(for: .snooze)
-                                }
-                            }, title: "CGM")
-
-                            menuElements(action: { state.showModal(for: .addTempTarget) }, title: "Temp targets")
-
-                            Spacer()
-                        })
-                    }
-                }.padding(.horizontal, 25)
-            }
-            .frame(width: UIScreen.main.bounds.width / 1.2, height: UIScreen.main.bounds.height - 20)
-        }
+//        @ViewBuilder func menuSymbols(action: @escaping () -> Void, systemName: String) -> some View {
+//            Button(
+//                action: action,
+//                label: {
+//                    HStack {
+//                        Image(systemName: systemName)
+//                            .font(.system(size: 21))
+//                            .foregroundStyle(colorScheme == .dark ? .white : .black)
+//                    }.padding(.top, 1)
+//                }
+//            )
+//        }
+//
+//        @ViewBuilder func menuElements(action: @escaping () -> Void, title: String) -> some View {
+//            Button(
+//                action: action,
+//                label: {
+//                    HStack {
+//                        Text(title)
+//                            .font(.system(size: 19))
+//                            .foregroundStyle(colorScheme == .dark ? .white : .black)
+//                        Spacer()
+//                        Image(systemName: "arrow.right")
+//                            .font(.system(size: 21))
+//                            .foregroundStyle(colorScheme == .dark ? .white : .black)
+//                    }.padding(.top, 1)
+//                }
+//            )
+//        }
+//
+//        @ViewBuilder func sideMenuView() -> some View {
+//            ZStack {
+//                RoundedRectangle(cornerRadius: 8)
+//                    .fill(color)
+//                    .shadow(
+//                        color: Color.black.opacity(0.33),
+//                        radius: 3
+//                    )
+//                    .ignoresSafeArea(edges: .all)
+//
+//                VStack(alignment: .leading) {
+//                    Button {
+//                        isMenuPresented.toggle()
+//                    } label: {
+//                        HStack {
+//                            Image(systemName: "arrow.left")
+//                                .font(.system(size: 30))
+//                                .foregroundStyle(colorScheme == .dark ? .white : .black)
+//                            Text("Menu")
+//                                .font(.system(size: 30)).fontWeight(.bold)
+//                                .foregroundStyle(colorScheme == .dark ? .white : .black)
+//                        }
+//                    }
+//                    .padding(.top, 60)
+//
+//                    HStack(spacing: 15) {
+//                        VStack(alignment: .leading, spacing: 25, content: {
+        ////                            menuSymbols(action: { state.showModal(for: .statistics) }, systemName: "chart.bar.xaxis")
+        ////                                .padding(.top, 20)
+//
+//                            menuSymbols(action: {
+//                                if state.pumpDisplayState != nil {
+//                                    state.setupPump = true
+//                                }
+//                            }, systemName: "cross.vial.fill")
+//
+//                            menuSymbols(action: {
+//                                if state.alarm == nil {
+//                                    state.openCGM()
+//                                } else {
+//                                    state.showModal(for: .snooze)
+//                                }
+//                            }, systemName: "sensor.tag.radiowaves.forward.fill")
+//
+//                            menuSymbols(action: { state.showModal(for: .addTempTarget) }, systemName: "target")
+//
+//                            Spacer()
+//                        })
+//                        VStack(alignment: .leading, spacing: 25, content: {
+//                            menuElements(action: { state.showModal(for: .statistics) }, title: "Statistics")
+//                                .padding(.top, 20)
+//
+//                            menuElements(action: {
+//                                if state.pumpDisplayState != nil {
+//                                    state.setupPump = true
+//                                }
+//                            }, title: "Pump Settings")
+//
+//                            menuElements(action: {
+//                                if state.alarm == nil {
+//                                    state.openCGM()
+//                                } else {
+//                                    state.showModal(for: .snooze)
+//                                }
+//                            }, title: "CGM")
+//
+//                            menuElements(action: { state.showModal(for: .addTempTarget) }, title: "Temp targets")
+//
+//                            Spacer()
+//                        })
+//                    }
+//                }.padding(.horizontal, 25)
+//            }
+//            .frame(width: UIScreen.main.bounds.width / 1.2, height: UIScreen.main.bounds.height - 20)
+//        }
 
         @ViewBuilder func mainView() -> some View {
             GeometryReader { geo in
@@ -829,18 +831,6 @@ extension Home {
                             pumpView
                             Spacer()
                         }.padding(.leading, 20)
-
-                        HStack {
-                            Spacer()
-                            Button {
-                                isMenuPresented.toggle()
-                            }
-                            label: {
-                                Image(systemName: "text.justify")
-                                    .font(.body).foregroundStyle(colorScheme == .dark ? Color.white : Color.black)
-                            }.padding(.trailing, 20).padding(.bottom, 110)
-                        }
-
                     }.padding(.top, 10)
 
                     mealPanel(geo).padding(.top, 30).padding(.bottom, 20)
@@ -957,11 +947,6 @@ extension Home {
                     }) {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 45))
-                            .shadow(
-                                color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
-                                    Color.black.opacity(0.33),
-                                radius: 3
-                            )
                             .foregroundStyle(Color.tabBar)
                             .padding(.bottom, 2)
                     }
@@ -972,21 +957,14 @@ extension Home {
                         label: "Profile"
                     )
                     Spacer()
-                    tabBarButton(index: 3, systemName: "gear", label: "Settings")
+                    tabBarButton(index: 3, systemName: "text.justify", label: "Menu")
                 }
                 .padding(.horizontal, 20)
             }.blur(radius: isMenuPresented ? 5 : 0)
         }
 
         var body: some View {
-            ZStack(alignment: .trailing) {
-                customTabBar()
-
-                // burger menu
-                if isMenuPresented {
-                    sideMenuView().background(Color.chart)
-                }
-            }
+            customTabBar()
         }
 
         private var popup: some View {
