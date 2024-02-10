@@ -8,14 +8,12 @@ extension Home {
     struct RootView: BaseView {
         let resolver: Resolver
 
-        @ObservedObject var appState = AppState()
         @StateObject var state = StateModel()
         @State var isStatusPopupPresented = false
         @State var showCancelAlert = false
         @State var isMenuPresented = false
         @State var showTreatments = false
         @State var selectedTab: Int = 0
-        @State var currentTab: Tab
 
         struct Buttons: Identifiable {
             let label: String
@@ -584,7 +582,9 @@ extension Home {
                     )
                     .padding(.trailing, 8)
                     .onTapGesture {
-                        showCancelAlert = true
+                        if selectedProfile().name != "Normal Profile" {
+                            showCancelAlert = true
+                        }
                     }
             }.padding(.horizontal, 10).padding(.bottom, 10)
 
@@ -804,66 +804,63 @@ extension Home {
 
         @ViewBuilder func mainView() -> some View {
             GeometryReader { geo in
-                ZStack(alignment: .bottom) {
-                    VStack(spacing: 0) {
-                        Spacer()
+                VStack(spacing: 0) {
+                    Spacer()
+                        .frame(height: UIScreen.main.bounds.height / 16)
 
-                        ZStack {
-                            /// glucose bobble
-                            glucoseView
+                    ZStack {
+                        /// glucose bobble
+                        glucoseView
 
-                            /// right panel with loop status and evBG
-                            HStack {
-                                Spacer()
-                                rightHeaderPanel(geo)
-                            }.padding(.trailing, 20)
+                        /// right panel with loop status and evBG
+                        HStack {
+                            Spacer()
+                            rightHeaderPanel(geo)
+                        }.padding(.trailing, 20)
 
-                            /// left panel with pump related info
-                            HStack {
-                                pumpView
-                                Spacer()
-                            }.padding(.leading, 20)
+                        /// left panel with pump related info
+                        HStack {
+                            pumpView
+                            Spacer()
+                        }.padding(.leading, 20)
 
-                            HStack {
-                                Spacer()
-                                Button {
-                                    isMenuPresented.toggle()
-                                }
-                                label: {
-                                    Image(systemName: "text.justify")
-                                        .font(.body).foregroundStyle(colorScheme == .dark ? Color.white : Color.black)
-                                }.padding(.trailing, 20).padding(.bottom, 110)
+                        HStack {
+                            Spacer()
+                            Button {
+                                isMenuPresented.toggle()
                             }
+                            label: {
+                                Image(systemName: "text.justify")
+                                    .font(.body).foregroundStyle(colorScheme == .dark ? Color.white : Color.black)
+                            }.padding(.trailing, 20).padding(.bottom, 110)
+                        }
 
-                        }.padding(.top, 10)
+                    }.padding(.top, 10)
 
-                        mealPanel(geo).padding(.top, 30).padding(.bottom, 20)
+                    mealPanel(geo).padding(.top, 30).padding(.bottom, 20)
 
-                        RoundedRectangle(cornerRadius: 15)
-                            .fill(Color("Chart"))
-                            .overlay(mainChart)
-                            .clipShape(RoundedRectangle(cornerRadius: 15))
-                            .shadow(
-                                color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
-                                    Color.black.opacity(0.33),
-                                radius: 3
-                            )
-                            .padding(.horizontal, 10)
-                            .frame(maxHeight: UIScreen.main.bounds.height / 2.2)
+                    RoundedRectangle(cornerRadius: 15)
+                        .fill(Color("Chart"))
+                        .overlay(mainChart)
+                        .clipShape(RoundedRectangle(cornerRadius: 15))
+                        .shadow(
+                            color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
+                                Color.black.opacity(0.33),
+                            radius: 3
+                        )
+                        .padding(.horizontal, 10)
+                        .frame(maxHeight: UIScreen.main.bounds.height / 2.2)
 
-                        timeInterval.padding(.top, 20).padding(.bottom, 90)
-
-                        Spacer()
-                    }
+                    timeInterval.padding(.top, 15).padding(.bottom, 30)
 
                     if let progress = state.bolusProgress {
-                        bolusView(geo, progress).padding(.bottom, 80)
+                        bolusView(geo, progress)
                     } else {
-                        profileView(geo).padding(.bottom, 80)
+                        profileView(geo)
                     }
                 }
+
                 .background(color)
-                .blur(radius: isMenuPresented ? 5 : 0)
                 .edgesIgnoringSafeArea(.all)
             }
             .onChange(of: state.hours) { _ in
@@ -900,58 +897,88 @@ extension Home {
             }
         }
 
-        @ViewBuilder func tabBar() -> some View {
-            ZStack(alignment: .bottom) {
-                TabView(selection: $appState.currentTab) {
-                    mainView()
-                        .tabItem { Label("Home", systemImage: "house") }
-                        .tag(Tab.home)
+        @ViewBuilder func tabBarButton(index: Int, systemName: String, label: String) -> some View {
+            Button(action: {
+                selectedTab = index
+            }) {
+                ZStack(alignment: .bottom, content: {
+                    VStack {
+                        Image(systemName: systemName)
+                            .font(.system(size: 22))
+                            .foregroundStyle(selectedTab == index ? Color(.label) : Color.gray)
+                        Text(label)
+                            .font(.caption2)
+                            .foregroundStyle(selectedTab == index ? Color(.label) : Color.gray)
+                            .padding(.top, 1)
+                    }
+                    if selectedTab == index {
+                        Capsule()
+                            .frame(width: 25, height: 5)
+                            .foregroundStyle(Color(.label))
+                            .offset(y: 10)
+                    }
+                })
+            }
+        }
 
-                    NavigationStack { DataTable.RootView(resolver: resolver) }
-                        .tabItem { Label("History", systemImage: historySFSymbol) }
-                        .tag(Tab.history)
-
-                    Spacer()
-
-                    NavigationStack { OverrideProfilesConfig.RootView(resolver: resolver) }
-                        .tabItem {
-                            Label(
-                                "Profile",
-                                systemImage: state.isTempTargetActive || overrideString != nil ? "person.fill" : "person"
-                            ) }
-                        .tag(Tab.profile)
-
-                    NavigationStack { Settings.RootView(resolver: resolver) }
-                        .tabItem {
-                            Label(
-                                "Settings",
-                                systemImage: "gear"
-                            ) }
-                        .tag(Tab.settings)
+        @ViewBuilder func customTabBar() -> some View {
+            VStack {
+                ZStack {
+                    switch selectedTab {
+                    case 0:
+                        mainView()
+                    case 1:
+                        NavigationStack { DataTable.RootView(resolver: resolver) }
+                    case 2:
+                        NavigationStack { OverrideProfilesConfig.RootView(resolver: resolver) }
+                    case 3:
+                        NavigationStack { Settings.RootView(resolver: resolver) }
+                    default:
+                        mainView()
+                    }
                 }
-                .tint(Color.tabBar)
-
-                Button(
-                    action: {
-                        state.showModal(for: .bolus(waitForSuggestion: true, fetch: false, editMode: false, override: false)) },
-                    label: {
-                        Image(systemName: "plus.circle.fill").font(.system(size: 40)).foregroundStyle(Color.gray)
+                HStack {
+                    tabBarButton(
+                        index: 0,
+                        systemName: selectedTab == 0 ? "house.fill" : "house",
+                        label: "Home"
+                    )
+                    Spacer()
+                    tabBarButton(index: 1, systemName: historySFSymbol, label: "History")
+                    Spacer()
+                    Button(action: {
+                        state.showModal(for: .bolus(waitForSuggestion: true, fetch: false, editMode: false, override: false))
+                    }) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 45))
+                            .shadow(
+                                color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
+                                    Color.black.opacity(0.33),
+                                radius: 3
+                            )
+                            .foregroundStyle(Color.tabBar)
                             .padding(.bottom, 2)
                     }
-                )
-            }
+                    Spacer()
+                    tabBarButton(
+                        index: 2,
+                        systemName: selectedTab == 2 ? "person.fill" : "person",
+                        label: "Profile"
+                    )
+                    Spacer()
+                    tabBarButton(index: 3, systemName: "gear", label: "Settings")
+                }
+                .padding(.horizontal, 20)
+            }.blur(radius: isMenuPresented ? 5 : 0)
         }
 
         var body: some View {
             ZStack(alignment: .trailing) {
-                // mainView()
-                tabBar()
+                customTabBar()
 
                 // burger menu
                 if isMenuPresented {
-                    HStack {
-                        sideMenuView().background(Color.chart).ignoresSafeArea(.all)
-                    }
+                    sideMenuView().background(Color.chart)
                 }
             }
         }
@@ -983,16 +1010,4 @@ extension Home {
             }
         }
     }
-}
-
-class AppState: ObservableObject {
-    @Published var currentTab: Tab = .home
-}
-
-enum Tab {
-    case home
-    case history
-    case treatments
-    case profile
-    case settings
 }

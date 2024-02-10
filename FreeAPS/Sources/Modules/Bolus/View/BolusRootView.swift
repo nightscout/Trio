@@ -9,7 +9,6 @@ extension Bolus {
         let editMode: Bool
         let override: Bool
         @StateObject var state = StateModel()
-        @ObservedObject var appState = AppState()
 
         var body: some View {
             if state.useCalc {
@@ -20,8 +19,7 @@ extension Bolus {
                     fetch: fetch,
                     editMode: editMode,
                     override: override,
-                    state: state,
-                    appState: appState
+                    state: state
                 )
             } else {
                 // show iAPS standard bolus calc
@@ -29,8 +27,7 @@ extension Bolus {
                     resolver: resolver,
                     waitForSuggestion: waitForSuggestion,
                     fetch: fetch,
-                    state: state,
-                    appState: appState
+                    state: state
                 )
             }
         }

@@ -33,7 +33,7 @@ private struct ChartBolus: Hashable {
     let amount: Decimal
     let timestamp: Date
     let nearestGlucose: BloodGlucose
-    let yPosition: Int
+    let yPosition: Decimal
 }
 
 private struct ChartTempTarget: Hashable {
@@ -123,6 +123,14 @@ struct MainChartView: View {
 
     private var upperLimit: Decimal {
         units == .mgdL ? 400 : 22.2
+    }
+
+    private var defaultBolusPosition: Int {
+        units == .mgdL ? 120 : 7
+    }
+
+    private var bolusOffset: Decimal {
+        units == .mgdL ? 30 : 1.66
     }
 
     var body: some View {
@@ -370,7 +378,7 @@ extension MainChartView {
                     calculatePredictions()
                 }
                 .frame(
-                    minHeight: UIScreen.main.bounds.height / 3.1
+                    minHeight: UIScreen.main.bounds.height / 3.3
                 )
                 .frame(width: fullWidth(viewWidth: screenSize.width))
                 // .chartYScale(domain: minValue ... maxValue)
@@ -502,7 +510,7 @@ extension MainChartView {
                 calculateTempBasals()
             }
             .frame(
-                minHeight: UIScreen.main.bounds.height / 9.9
+                minHeight: UIScreen.main.bounds.height / 9.8
             )
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .rotationEffect(.degrees(180))
@@ -634,8 +642,7 @@ extension MainChartView {
         var calculatedBoluses: [ChartBolus] = []
         boluses.forEach { bolus in
             let bg = timeToNearestGlucose(time: bolus.timestamp.timeIntervalSince1970)
-            let offset = (bg.sgv ?? 120) + 30
-            let yPosition = offset * (units == .mmolL ? Int(0.0555) : 1)
+            let yPosition = (Decimal(bg.sgv ?? defaultBolusPosition) * conversionFactor) + bolusOffset
             calculatedBoluses
                 .append(ChartBolus(
                     amount: bolus.amount ?? 0,
@@ -906,24 +913,6 @@ extension MainChartView {
 //            $0
 //        }.min()
 //    }
-
-    /*   private func generateYAxisValues(maxYLabel: Int) -> [Int] {
-         var yAxisValues = [50, 100, 150]
-
-         if maxYLabel > 170, maxYLabel < 200 {
-             yAxisValues.append(maxYLabel)
-         } else if maxYLabel > 200, maxYLabel < 250 {
-             yAxisValues += [200, maxYLabel]
-         } else if maxYLabel > 250, maxYLabel < 350 {
-             yAxisValues += [200, 250, maxYLabel]
-         } else if maxYLabel > 350 {
-             yAxisValues += [200, 250, 300, maxYLabel]
-         } else if maxYLabel == 400 {
-             yAxisValues += [200, 250, 300, 350, 400]
-         }
-
-         return yAxisValues
-     } */
 
     private func calculateBasals() {
         let dayAgoTime = Date().addingTimeInterval(-1.days.timeInterval).timeIntervalSince1970

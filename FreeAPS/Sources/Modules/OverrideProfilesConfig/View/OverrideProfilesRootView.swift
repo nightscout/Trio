@@ -94,7 +94,7 @@ extension OverrideProfilesConfig {
                             .foregroundColor(
                                 state
                                     .percentage >= 130 ? .red :
-                                    (isEditing ? .orange : Color.tabBar)
+                                    (isEditing ? .orange : Color.blue)
                             )
                             .font(.largeTitle)
                         Slider(

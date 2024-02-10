@@ -26,8 +26,6 @@ extension Bolus {
 
         @FocusState private var isFocused: Bool
 
-        @ObservedObject var appState: AppState
-
         @Environment(\.managedObjectContext) var moc
 
         private enum Config {

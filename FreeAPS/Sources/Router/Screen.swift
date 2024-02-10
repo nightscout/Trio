@@ -44,7 +44,7 @@ extension Screen {
         case .loading:
             ProgressView()
         case .home:
-            Home.RootView(resolver: resolver, currentTab: .home)
+            Home.RootView(resolver: resolver)
         case .settings:
             Settings.RootView(resolver: resolver)
         case let .configEditor(file):
