@@ -587,34 +587,40 @@ extension Home {
                         }
                     }
             }.padding(.horizontal, 10).padding(.bottom, 10)
-
-            /// just show temp target if no profile is already active
-            if overrideString == nil, let tempTargetString = tempTargetString {
-                ZStack {
-                    /// rectangle as background
-                    RoundedRectangle(cornerRadius: 15)
-                        .fill(
-                            colorScheme == .dark ? Color(red: 0.03921568627, green: 0.133333333, blue: 0.2156862745) : Color
-                                .insulin
-                                .opacity(0.2)
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: 15))
-                        .frame(height: UIScreen.main.bounds.height / 18)
-                        .shadow(
-                            color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
-                                Color.black.opacity(0.33),
-                            radius: 3
-                        )
-                    HStack {
-                        Image(systemName: "person.fill")
-                            .font(.system(size: 25))
-                        Spacer()
-                        Text(tempTargetString)
-                            .font(.subheadline)
-                        Spacer()
-                    }.padding(.horizontal, 10)
-                }.padding(.horizontal, 10).padding(.bottom, 10)
-            }
+                .overlay {
+                    /// just show temp target if no profile is already active
+                    if overrideString == nil, let tempTargetString = tempTargetString {
+                        ZStack {
+                            /// rectangle as background
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(
+                                    colorScheme == .dark ? Color(red: 0.03921568627, green: 0.133333333, blue: 0.2156862745) :
+                                        Color
+                                        .insulin
+                                        .opacity(0.2)
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 15))
+                                .frame(height: UIScreen.main.bounds.height / 18)
+                                .shadow(
+                                    color: colorScheme == .dark ? Color(
+                                        red: 0.02745098039,
+                                        green: 0.1098039216,
+                                        blue: 0.1411764706
+                                    ) :
+                                        Color.black.opacity(0.33),
+                                    radius: 3
+                                )
+                            HStack {
+                                Image(systemName: "person.fill")
+                                    .font(.system(size: 25))
+                                Spacer()
+                                Text(tempTargetString)
+                                    .font(.subheadline)
+                                Spacer()
+                            }.padding(.horizontal, 10)
+                        }.padding(.horizontal, 10).padding(.bottom, 10)
+                    }
+                }
         }
 
         @ViewBuilder func bolusProgressBar(_ progress: Decimal) -> some View {
