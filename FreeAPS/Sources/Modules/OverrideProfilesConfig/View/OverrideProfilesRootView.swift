@@ -13,6 +13,7 @@ extension OverrideProfilesConfig {
         @State private var showingDetail = false
         @State private var alertSring = ""
         @State var isSheetPresented: Bool = false
+        @State private var showCheckmark: Bool = false
         // temp targets
         @State private var isPromptPresented = false
         @State private var isRemoveAlertPresented = false
@@ -461,6 +462,23 @@ extension OverrideProfilesConfig {
                 .disabled(state.storage.current() == nil)
                 .listRowBackground(state.storage.current() == nil ? Color(.systemGray4) : Color(.systemRed))
                 .tint(.white)
+            }.popover(isPresented: $isPromptPresented) {
+                Form {
+                    Section(header: Text("Enter preset name")) {
+                        TextField("Name", text: $state.newPresetName)
+                        Button {
+                            state.save()
+                            isPromptPresented = false
+                        }
+                        label: { Text("Save") }
+                        Button { isPromptPresented = false }
+                        label: { Text("Cancel") }
+                    }
+                }
+            }
+            .onAppear {
+                configureView()
+                state.hbt = isEnabledArray.first?.hbt ?? 160
             }
         }
 
@@ -471,41 +489,48 @@ extension OverrideProfilesConfig {
                 low = low?.asMmolL
                 high = high?.asMmolL
             }
-            return HStack {
-                VStack {
-                    HStack {
-                        Text(preset.displayName)
-                        Spacer()
+            return ZStack(alignment: .trailing, content: {
+                HStack {
+                    VStack {
+                        HStack {
+                            Text(preset.displayName)
+                            Spacer()
+                        }
+                        HStack(spacing: 2) {
+                            Text(
+                                "\(formatter.string(from: (low ?? 0) as NSNumber)!) - \(formatter.string(from: (high ?? 0) as NSNumber)!)"
+                            )
+                            .foregroundColor(.secondary)
+                            .font(.caption)
+                            
+                            Text(state.units.rawValue)
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                            Text("for")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                            Text("\(formatter.string(from: preset.duration as NSNumber)!)")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                            Text("min")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                            
+                            Spacer()
+                        }.padding(.top, 2)
                     }
-                    HStack(spacing: 2) {
-                        Text(
-                            "\(formatter.string(from: (low ?? 0) as NSNumber)!) - \(formatter.string(from: (high ?? 0) as NSNumber)!)"
-                        )
-                        .foregroundColor(.secondary)
-                        .font(.caption)
-
-                        Text(state.units.rawValue)
-                            .foregroundColor(.secondary)
-                            .font(.caption)
-                        Text("for")
-                            .foregroundColor(.secondary)
-                            .font(.caption)
-                        Text("\(formatter.string(from: preset.duration as NSNumber)!)")
-                            .foregroundColor(.secondary)
-                            .font(.caption)
-                        Text("min")
-                            .foregroundColor(.secondary)
-                            .font(.caption)
-
-                        Spacer()
-                    }.padding(.top, 2)
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    state.enactPreset(id: preset.id)
-                }
-
-                Image(systemName: "xmark.circle").foregroundColor(.secondary)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        state.enactPreset(id: preset.id)
+                        showCheckmark.toggle()
+                        
+                        //deactivate showCheckmark after 3 seconds
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                            showCheckmark = false
+                        }
+                    }
+        
+                Image(systemName: "xmark.circle").foregroundColor(showCheckmark ? Color.clear : Color.secondary)
                     .contentShape(Rectangle())
                     .padding(.vertical)
                     .onTapGesture {
@@ -520,7 +545,15 @@ extension OverrideProfilesConfig {
                     .alert(isPresented: $isRemoveAlertPresented) {
                         removeAlert!
                     }
-            }
+                }
+                if showCheckmark {
+                    //show checkmark to indicate if the preset was actually pressed
+                    Image(systemName: "checkmark.circle.fill")
+                        .imageScale(.large)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color.green)
+                }
+            })
         }
 
         @ViewBuilder private func profilesView(for preset: OverridePresets) -> some View {
@@ -542,38 +575,53 @@ extension OverrideProfilesConfig {
             let isfAndCRstring = isfString + dash + crString
 
             if name != "" {
-                HStack {
-                    VStack {
-                        HStack {
-                            Text(name)
-                            Spacer()
-                        }
-                        HStack(spacing: 5) {
-                            Text(percent.formatted(.percent.grouping(.never).rounded().precision(.fractionLength(0))))
-                            if targetString != "" {
-                                Text(targetString)
-                                Text(targetString != "" ? state.units.rawValue : "")
+                ZStack(alignment: .trailing, content: {
+                    HStack {
+                        VStack {
+                            HStack {
+                                Text(name)
+                                Spacer()
                             }
-                            if durationString != "" { Text(durationString + (perpetual ? "" : "min")) }
-                            if smbString != "" { Text(smbString).foregroundColor(.secondary).font(.caption) }
-                            if scheduledSMBstring != "" { Text(scheduledSMBstring) }
-                            if preset.advancedSettings {
-                                Text(maxMinutesSMB == 0 ? "" : maxMinutesSMB.formatted() + " SMB")
-                                Text(maxMinutesUAM == 0 ? "" : maxMinutesUAM.formatted() + " UAM")
-                                Text(isfAndCRstring)
+                            HStack(spacing: 5) {
+                                Text(percent.formatted(.percent.grouping(.never).rounded().precision(.fractionLength(0))))
+                                if targetString != "" {
+                                    Text(targetString)
+                                    Text(targetString != "" ? state.units.rawValue : "")
+                                }
+                                if durationString != "" { Text(durationString + (perpetual ? "" : "min")) }
+                                if smbString != "" { Text(smbString).foregroundColor(.secondary).font(.caption) }
+                                if scheduledSMBstring != "" { Text(scheduledSMBstring) }
+                                if preset.advancedSettings {
+                                    Text(maxMinutesSMB == 0 ? "" : maxMinutesSMB.formatted() + " SMB")
+                                    Text(maxMinutesUAM == 0 ? "" : maxMinutesUAM.formatted() + " UAM")
+                                    Text(isfAndCRstring)
+                                }
+                                Spacer()
                             }
-                            Spacer()
+                            .padding(.top, 2)
+                            .foregroundColor(.secondary)
+                            .font(.caption)
                         }
-                        .padding(.top, 2)
-                        .foregroundColor(.secondary)
-                        .font(.caption)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            state.selectProfile(id_: preset.id ?? "")
+                            state.hideModal()
+                            showCheckmark.toggle()
+                            
+                            //deactivate showCheckmark after 3 seconds
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                               showCheckmark = false
+                           }
+                        }
                     }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        state.selectProfile(id_: preset.id ?? "")
-                        state.hideModal()
+                    //show checkmark to indicate if the preset was actually pressed
+                    if showCheckmark {
+                        Image(systemName: "checkmark.circle.fill")
+                            .imageScale(.large)
+                            .fontWeight(.bold)
+                            .foregroundStyle(Color.green)
                     }
-                }
+                })
             }
         }
 
