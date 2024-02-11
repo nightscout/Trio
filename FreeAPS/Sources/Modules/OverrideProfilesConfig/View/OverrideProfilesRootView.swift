@@ -14,6 +14,7 @@ extension OverrideProfilesConfig {
         @State private var alertSring = ""
         @State var isSheetPresented: Bool = false
         @State private var showCheckmark: Bool = false
+        @State private var selectedPresetID: String?
         // temp targets
         @State private var isPromptPresented = false
         @State private var isRemoveAlertPresented = false
@@ -489,6 +490,8 @@ extension OverrideProfilesConfig {
                 low = low?.asMmolL
                 high = high?.asMmolL
             }
+            let isSelected = preset.id == selectedPresetID
+            
             return ZStack(alignment: .trailing, content: {
                 HStack {
                     VStack {
@@ -522,6 +525,7 @@ extension OverrideProfilesConfig {
                     .contentShape(Rectangle())
                     .onTapGesture {
                         state.enactPreset(id: preset.id)
+                        selectedPresetID = preset.id
                         showCheckmark.toggle()
                         
                         //deactivate showCheckmark after 3 seconds
@@ -530,7 +534,7 @@ extension OverrideProfilesConfig {
                         }
                     }
         
-                Image(systemName: "xmark.circle").foregroundColor(showCheckmark ? Color.clear : Color.secondary)
+                Image(systemName: "xmark.circle").foregroundColor(showCheckmark && isSelected ? Color.clear : Color.secondary)
                     .contentShape(Rectangle())
                     .padding(.vertical)
                     .onTapGesture {
@@ -546,7 +550,7 @@ extension OverrideProfilesConfig {
                         removeAlert!
                     }
                 }
-                if showCheckmark {
+                if showCheckmark && isSelected {
                     //show checkmark to indicate if the preset was actually pressed
                     Image(systemName: "checkmark.circle.fill")
                         .imageScale(.large)
