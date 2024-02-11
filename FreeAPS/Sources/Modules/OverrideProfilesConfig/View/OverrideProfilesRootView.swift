@@ -577,6 +577,7 @@ extension OverrideProfilesConfig {
             let crString = preset.cr ? "CR" : ""
             let dash = crString != "" ? "/" : ""
             let isfAndCRstring = isfString + dash + crString
+            let isSelected = preset.id == selectedPresetID
 
             if name != "" {
                 ZStack(alignment: .trailing, content: {
@@ -611,6 +612,7 @@ extension OverrideProfilesConfig {
                             state.selectProfile(id_: preset.id ?? "")
                             state.hideModal()
                             showCheckmark.toggle()
+                            selectedPresetID = preset.id
                             
                             //deactivate showCheckmark after 3 seconds
                             DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
@@ -619,7 +621,7 @@ extension OverrideProfilesConfig {
                         }
                     }
                     //show checkmark to indicate if the preset was actually pressed
-                    if showCheckmark {
+                    if showCheckmark && isSelected {
                         Image(systemName: "checkmark.circle.fill")
                             .imageScale(.large)
                             .fontWeight(.bold)
