@@ -385,7 +385,7 @@ extension MainChartView {
                     calculatePredictions()
                 }
                 .frame(
-                    minHeight: UIScreen.main.bounds.height / 3.3
+                    minHeight: UIScreen.main.bounds.height / 3.6
                 )
                 .frame(width: fullWidth(viewWidth: screenSize.width))
                 // .chartYScale(domain: minValue ... maxValue)
