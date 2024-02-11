@@ -45,7 +45,7 @@
   "maxCarbs": 1000,
   "displayFatAndProteinOnWatch": false,
   "overrideFactor": 0.8,
-  "useCalc": false,
+  "useCalc": true,
   "fattyMeals": false,
   "fattyMealFactor": 0.7,
   "sweetMeals": false,
