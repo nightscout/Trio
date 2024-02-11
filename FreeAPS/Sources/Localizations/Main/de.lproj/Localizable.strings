@@ -4,10 +4,10 @@
 */
 /* -------------------------------- */
 /* Bolus screen when adding insulin */
-"Add insulin without actually bolusing" = "Insulin ohne Bolusabgabe erfassen";
+"Add insulin without actually bolusing" = "Insulin erfassen ohne tatsächliche Bolusabgabe";
 
 /* Add insulin from source outside of pump */
-"Add %@ without bolusing" = "Hinzufügen von %@ ohne Bolusabgabe";
+"Add %@ without bolusing" = "Hinzufügen von %@ ohne tatsächliche Bolusabgabe";
 
 "Bolus" = "Bolus";
 
@@ -17,7 +17,7 @@
 "Continue without bolus" = "Ohne Bolusabgabe fortfahren";
 
 /* Alert when adding large amount without bolusing */
-"\nAmount is more than your Max Bolus setting! \nAre you sure you want to add " = "\nEingegebener Bolus ist größer als Max Bolus Einstellung! Sind Sie sicher, dass er hinzugefügt werden soll ";
+"\nAmount is more than your Max Bolus setting! \nAre you sure you want to add " = "\nEingegebener Bolus ist größer als Max Bolus Einstellung! \nTrotzdem hinzufügen? ";
 
 /* Header */
 "Enact Bolus" = "Bolus abgeben";
@@ -26,10 +26,10 @@
 "Enact bolus" = "Bolus abgeben";
 
 /*  */
-"Insulin recommended" = "Empfohlener Bolus";
+"Insulin recommended" = "Empfohlene Insulinmenge";
 
 /*  */
-"Insulin required" = "Benötigtes Insulin";
+"Insulin required" = "Benötigte Insulinmenge";
 
 /* Bolus screen */
 "Recommendation" = "Empfehlung";
@@ -46,8 +46,11 @@
 /*  */
 "Agree and continue" = "Zustimmen und fortfahren";
 
+/* Bolus progress view */
+"of" = "von";
+
 /* Headline in enacted pop up (at: at what time) */
-"Enacted at" = "Letze Berechnung um";
+"Enacted at" = "Letzte Berechnung um";
 
 /* Headline in suggested pop up (at: at what time) */
 "Suggested at" = "Vorgeschlagen um";
@@ -65,13 +68,13 @@
 "Add Meal" = "Mahlzeit hinzufügen";
 
 /* Bolus View Bolus Summary Header */
-"Bolus Summary" = "Bolusübersicht";
+"Bolus Summary" = "Bolus-Zusammenfassung";
 
 /* For the  Bolus View pop-up */
 "Calculations" = "Berechnungen";
 
 /* For the  Bolus View pop-up */
-"Fatty Meal" = "Fette Mahlzeit";
+"Fatty Meal" = "Fettige Mahlzeit";
 
 /* For the  Bolus View pop-up */
 "Full Bolus" = "Voller Bolus";
@@ -80,7 +83,7 @@
 "Fraction" = "Fraktion";
 
 /* For the  Bolus View pop-up */
-"Fatty Meal Factor" = "Fettspeise Faktor";
+"Fatty Meal Factor" = "Faktor für fettige Mahlzeit";
 
 /* For the  Bolus View pop-up */
 "Result" = "Ergebnis";
@@ -98,7 +101,7 @@
 "looping" = "Loop aktiv";
 
 /* min ago since last loop */
-"min ago" = "min her";
+"min ago" = "Min. her";
 
 /* Status Title */
 "No suggestion" = "Kein Vorschlag";
@@ -113,13 +116,13 @@
 "Add Carbs " = "Kohlenhydrate hinzufügen ";
 
 /*  */
-"Amount Carbs" = "Menge Kohlenhydrate";
+"Amount Carbs" = "Kohlenhydratmenge";
 
 /* Grams unit */
 "grams" = "Gramm";
 
 /*  */
-"Carbs required" = "Kohlenhydrate erforderlich";
+"Carbs required" = "Erforderliche Kohlenhydrate";
 
 /* Saved Food Presets */
 "Saved Food" = "Gespeichertes Essen";
@@ -137,7 +140,7 @@
 "Cancel Temp Target" = "Temporäres Ziel abbrechen";
 
 /* Custom temp target */
-"Custom" = "Benutzerdefiniertes";
+"Custom" = "Benutzerdefiniert";
 
 /*  */
 "Date" = "Datum";
@@ -336,7 +339,7 @@ Enact a temp Basal or a temp target */
 "Use local glucose server" = "Lokalen BZ-Server verwenden";
 
 /* Enable Statistics */
-"This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n" = "This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n";
+"This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n" = "Dies ermöglicht das Hochladen der statistics.json zu Nightscout, die vom Community Statistics and Demographics Project genutzt werden kann.\n\nDie Teilnahme an der Gemeinschaftsstatistik erfolgt auf freiwilliger Basis und erfordert eine gesonderte Registrierung unter:\n";
 
 /*  */
 "Edit settings json" = "Einstellungen bearbeiten json";
@@ -1334,8 +1337,11 @@ Enact a temp Basal or a temp target */
 /* */
 "Save as Profile" = "Als Profil speichern";
 
-/* */
-"Return to Normal" = "Rückkehr zum Normalzustand";
+/* Alert */
+"Cancel Profile Override" = "Profilüberschreibung abbrechen?";
+
+/* Alert */
+"Cancel Temp Target" = "Temporäres Ziel abbrechen";
 
 /* Alert */
 "Return to Normal?" = "Rückkehr zum Normalzustand?";
@@ -1680,7 +1686,7 @@ Enact a temp Basal or a temp target */
 "Average" = "Mittelwert";
 
 /* Median BG */
-"Median" = "Mittelwert";
+"Median" = "Median";
 
 /* CGM readings in statView */
 "Readings" = "Lesungen";
@@ -2035,33 +2041,138 @@ Enact a temp Basal or a temp target */
 "Enable Dynamic ISF" = "Aktiviere Dynamic ISF";
 
 /* Enable Dynamic ISF */
-"Calculate a new ISF with every loop cycle. New ISF will be based on current BG, TDD of insulin (past 24 hours or a weighted average) and an Adjustment Factor (default is 1).\n\nDynamic ISF and CR ratios will be limited by your autosens.min/max limits.\n\nDynamic ratio replaces the autosens.ratio: New ISF = Static ISF / Dynamic ratio,\nDynamic ratio = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes" = "Berechnet einen neuen ISF mit jedem Loop-Zyklus. Die neue ISF basiert auf dem aktuellen BG, TDD des Insulins (nach 24 Stunden oder einem gewichteten Durchschnitt) und einem Anpassungsfaktor (Standardeinstellung ist 1).\n\nDynamic ISF und CR Verhältnisse werden durch Ihre autosens.min/max Limits begrenzt.\n\nDas dynamische Verhältnis ersetzt das autosens.ratio: New ISF = Static ISF / Dynamic ratio,\nDynamic Ratio = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes";
+"Calculate a new Insulin Sensitivity Setting (ISF) upon every loop cycle. The new ISF will be based on your current Glucose, total daily dose of insulin (TDD, past 24 hours of all delivered insulin) and an individual Adjustment Factor (recommendation to start with is 0.5 if using Sigmoid Function and 0.8 if not).\n\nAll of the Dynamic ISF and CR adjustments will be limited by your autosens.min/max limits." = "Berechnen Sie bei jedem Loop-Zyklus eine neue Insulinempfindlichkeitseinstellung (ISF). Die neue ISF basiert auf Ihrem aktuellen Blutzucker, der täglichen Gesamtinsulindosis (TDD, alle in den letzten 24 Stunden abgegebenen Insuline) und einem individuellen Anpassungsfaktor (die Empfehlung für den Anfang ist 0,5, wenn Sie die Sigmoid-Funktion verwenden, und 0,8, wenn nicht).\n\nAlle dynamischen ISF- und CR-Anpassungen werden durch Ihre autosens.min/max-Grenzwerte begrenzt.";
 
-/* Headline "Enable Dynamic CR" */
+/* Headline Enable Dynamic CR */
 "Enable Dynamic CR" = "Aktiviere dynamischen CR";
 
 /* Enable Dynamic CR */
 "Use Dynamic CR. The dynamic ratio will be used for CR as follows:\n\n When ratio > 1:  dynCR = (newRatio - 1) / 2 + 1.\nWhen ratio < 1: dynCR = CR/dynCR.\n\nDon't use toghether with a high Insulin Fraction (> 2)" = "Nutze Dynamic CR. Das dynamische Verhältnis wird für CR wie folgt verwendet:\n\n Bei Verhältnis > 1: dynCR = (newRatio - 1) / 2 + 1.\nWenn Verhältnis < 1: dynCR = CR/dynCR.\n\nNicht verwenden mit hohem Insulinanteil (> 2)";
 
+/* Enable Dyn ISF */
+"Activate Dynamic Sensitivity (ISF)" = "Dynamische Sensibilität (ISF) aktivieren";
+
+/* Enable Dyn CR */
+"Activate Dynamic Carb Ratio (CR)" = "Dynamisches Carb Ratio (CR) aktivieren";
+
 /* Headline "Adjust Dynamic ISF constant" */
 "Adjust Dynamic ISF constant" = "Dynamic ISF-Konstante anpassen";
 
 /* Adjust Dynamic ISF constant */
-"Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula there is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users" = "Dynamische Verhältnisse um eine Konstante anpassen. Die Voreinstellung ist 0,5. Je höher der Wert, desto größer ist die Korrektur Ihres ISF für einen hohen oder niedrigen BG. Die maximale Korrektur wird durch die Autosens min/max-Einstellungen bestimmt. Für die Sigmoid-Funktion wird für den Anfang ein Anpassungsfaktor von 0,4 - 0,5 empfohlen. Für die logarithmische Formel gibt es weniger Konsens, aber ein Anfangswert von 0,5 - 0,8 ist für die meisten Benutzer angemessener.";
+"Individual adjustment of the computed dynamic ratios. Default is 0.5. The higher the value, the larger the correction of your ISF/CR will be for a high or a low blood glucose. Maximum/minumum correction is determined by the Autosens min/max settings.\n\nFor Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with.\n\nFor the logaritmic formula threre is less consensus, but starting around 0.8 is probably appropiate for most adult users. For younger users it's recommended to start even lower when using logaritmic formula, to avoid overly aggressive treatment." = "Individuelle Anpassung der berechneten dynamischen Verhältnisse. Die Voreinstellung ist 0,5. Je höher der Wert, desto größer ist die Korrektur Ihres ISF/CR für einen hohen oder niedrigen Blutzuckerwert. Die maximale/minimale Korrektur wird durch die Min/Max-Einstellungen von Autosens bestimmt.\n\nFür die Sigmoid-Funktion wird für den Anfang ein Anpassungsfaktor von 0,4 - 0,5 empfohlen.\n\nFür die logarithmische Formel gibt es weniger Konsens, aber ein Wert von 0,8 ist wahrscheinlich für die meisten erwachsenen Benutzer angemessen. Für jüngere Anwender wird empfohlen, bei der logaritmischen Formel noch niedriger anzusetzen, um eine zu aggressive Behandlung zu vermeiden.";
 
-
-/* Headline "Use Sigmoid Function" */
+/* Headline Use Sigmoid Function */
 "Use Sigmoid Function" = "Sigmoid-Funktion verwenden";
+
+/* Which dyn ISF function to use */
+"Formula" = "Formel";
+
+/* Extra Safety Features when using dyn ISF */
+"Safety" = "Sicherheit";
 
 /* Use Sigmoid Function */
 "Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function." = "Verwenden Sie eine sigmoid Funktion für ISF (und für CR, wenn aktiviert), anstelle der Standard-logarithmischen Formel. Erfordert die Aktivierung der dynamischen ISF-Einstellung in den Einstellungen\n\nDie Veränderungsanpassung passt die Neigung der Kurve an (Y: Dynamisches Verhältnis, X: Blutzucker). Ein niedrigerer Wert ==> weniger steil == weniger aggressiv.\n\nDie autosens.min/max Einstellungen bestimmen sowohl die max/min Grenzen für das dynamische Verhältnis UND wie sehr das dynamische Verhältnis angepasst wird. Wenn AF ist der Hang der Kurve, die Autosen. in/max ist die Höhe des Diagramms, das Y-Intervall, wo Y: dynamisches Verhältnis. Die Kurve hat immer eine S-Form, egal welche autosense.min/max Einstellungen verwendet werden, was bedeutet, dass diese Einstellungen große Folgen für das Ergebnis des berechneten dynamischen ISF haben. Bitte sei vorsichtig, einen zu hohen autosens.max Wert zu setzen. Mit einer korrekten Profil-ISF-Einstellung werden Sie wahrscheinlich nie mehr als 1 benötigen.\n\nEin Autosens.max Limit > 1.5 ist nicht ratsam, wenn Sie die sigmoid Funktion benutzen.";
 
+/* Headline Threshold Setting */
+"Threshold Setting" = "Grenzwert-Einstellungen";
 
-/* Headline "Threshold Setting" */
-"Threshold Setting (mg/dl)" = "Grenzwerteinstellung (mg/dl)";
+/* Dynamic ISF Setting Title */
+"Minimum Threshold Setting" = "Minimale Grenzwerteinstellung";
 
-/* Threshold Setting */
-"The default threshold in FAX depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl." = "Der Standardschwellenwert in FAX hängt von Ihrem aktuellen Minimum für BG ab, wie folgt:\n\nWenn Ihr Minimum BG Ziel = 90 mg/dl -> Schwellenwert = 65 mg/dl,\n\nwenn Minimum BG Ziel = 100 mg/dl -> Schwellenwert = 70 mg/dl,\n\nMinimum BG Ziel = 110 mg/dl -> Schwellenwert = 75 mg/dl,\n\nund wenn Minimum BG Ziel = 130 mg/dl -> Schwellenwert = 85 mg/dl.\n\nMit dieser Einstellung können Sie die Standardeinstellung auf einen höheren Schwellenwert für die Schleife mit dynISF ändern. Gültige Werte sind 65 mg/dl<= Grenzwert <= 120 mg/dl.";
+/* Minimum Threshold Setting, Part 1 */
+"This setting lets you choose a level below which no insulin will be given.\n\nThe threshold is using the largest amount of your threshold setting and the computed threshold:\n\nTarget Glucose - (Target Glucose - 40) / 2\n, here using mg/dl as glucose unit.\n\nFor example, if your Target Glucose is " = "Mit dieser Einstellung können Sie einen Wert wählen, unterhalb dessen kein Insulin verabreicht wird.\n\nDer Schwellenwert ergibt sich aus dem größten Wert Ihrer Schwellenwerteinstellung und dem berechneten Schwellenwert:\n\nZielglukose - (Zielglukose - 40) / 2\n, wobei hier mg/dl als Glukoseeinheit verwendet wird.\n\nWenn Ihr Zielglukose-Wert beispielsweise ";
+
+/* Minimum Threshold Setting, Part 2 */
+"the threshold will be " = "der Grenzwert wird sein ";
+
+/* Minimum Threshold Setting, Part 3 */
+"unless your threshold setting is set higher:" = "es sei denn, Sie haben einen höheren Grenzwert eingestellt:";
+
+/* Threshold Table Columns Title */
+"Setting" = "Einstellung";
+
+/* Threshold Table Columns Title */
+"Threshold" = "Grenzwert";
+
+/* Header */
+"Calculator settings" = "Berechnungseinstellungen";
+
+/* Bolus Calculator Setting */
+"Use alternate Bolus Calculator" = "Alternativer Bolusrechner verwenden";
+
+/* Bolus Calculator Setting */
+"Fatty Meals" = "Fettige Mahlzeit";
+
+/* Bolus Calculator Setting */
+"Apply factor for fatty meals" = "Faktor für fette Mahlzeiten anwenden";
+
+/* Bolus Calculator Footer */
+"The new alternate bolus calculator is another approach to the default bolus calculator in iAPS. If the toggle is on you use this bolus calculator and not the original iAPS calculator. At the end of the calculation a custom factor is applied as it is supposed to be when using smbs (default 0.8).\n\nYou can also add the option in your bolus calculator to apply another (!) customizable factor at the end of the calculation which could be useful for fatty meals, e.g Pizza (default 0.7)." = "Der neue alternative Bolusrechner ist ein anderer Ansatz als der Standard-Bolusrechner in iAPS. Wenn die Umschaltfunktion aktiviert ist, wird dieser Bolusrechner und nicht der ursprüngliche iAPS-Rechner verwendet. Am Ende der Berechnung wird ein benutzerdefinierter Faktor angewandt, wie es bei der Verwendung von smbs der Fall sein sollte (Standardwert 0,8).\n\nSie können in Ihrem Bolusrechner auch die Option hinzufügen, am Ende der Berechnung einen weiteren (!) benutzerdefinierten Faktor anzuwenden, der für fetthaltige Mahlzeiten, z. B. Pizza, nützlich sein könnte (Standardwert 0,7).";
+
+/* UI/UX option */
+"Display Predictions" = "Prognosen anzeigen";
+
+/* UI/UX option */
+"Smaller iPhone Screens" = "Kleinere iPhone Bildschirme";
+
+/* UI/UX option */
+"Display and allow Fat and Protein entries" = "Fett- und Proteineinträge anzeigen und erlauben";
+
+/* UI/UX option */
+"Add Meal View settings " = "Mahlzeitansicht Einstellungen hinzufügen ";
+
+/* UI/UX option */
+"Display Temp Targets Button" = "Temp Zielknopf anzeigen";
+
+/* UI/UX option */
+"Home View Button Panel " = "Home-Schaltflächenleiste ";
+
+/* UI/UX title */
+"Home Chart settings " = "Home-Chart Einstellungen ";
+
+/* UI/UX title */
+"Statistics settings " = "Statistik-Einstellungen ";
+
+/* UI/UX title */
+"Override HbA1c Unit" = "HbA1c-Einheit überschreiben";
+
+/* UI/UX option */
+"In case you're using both profiles and temp targets" = "Falls Sie sowohl Profile als auch temporäre Ziele verwenden";
+
+/* UI/UX option */
+"Always Color Glucose Value (green, yellow etc)" = "Farbe Glukosewert immer (grün, gelb etc.)";
+
+/* UI/UX option */
+"Header settings" = "Header-Einstellungen";
+/* UI/UX option */
+"Normally glucose is colored red only when over or under your notification limits for high/low" = "Normalerweise ist die Glukose nur rot wenn sie über oder unter Ihren Benachrichtigungsgrenzen für hoch/niedrig ist";
+
+/* UI/UX option */
+"Horizontal Scroll View Visible hours" = "Horizontale Scroll-Ansicht sichtbare Stunden";
+
+/* UI/UX option */
+"Display Time Interval Setting Button" = "Anzeigeintervall Einstellungs-Button";
+
+/* Setting title */
+"Bolus Calculator" = "Bolus-Rechner";
+
+/* Setting title */
+"Dynamic ISF" = "Dynamischer ISF";
+
+/* Notification option */
+"Live Activity" = "Live-Aktivitäten";
+
+/* Notification option */
+"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "Die Live-Aktivität zeigt die Blutzucker live auf dem Sperrbildschirm und auf der dynamischen Insel (falls verfügbar)";
+
+/* Notification option */
+"Show Live activity" = "Live Aktivitäten anzeigen";
+
+/* Live Activity Footer */
+"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "Die Live-Aktivität zeigt die Blutzucker live auf dem Sperrbildschirm und auf der dynamischen Insel (falls verfügbar)";
+
+/* Live Activity Footer when off */
+"Live activities are turned OFF in system settings. To enable live activities, go to Settings app -> iAPS -> Turn live Activities ON.\n\n" = "Live-Aktivitäten werden in den Systemeinstellungen AUS aktiviert. Um Live-Aktivitäten zu aktivieren, gehen Sie zu Einstellungen -> iAPS -> Live-Aktivitäten einschalten.\n\n";
 
 /* Headline "Weighted Average of TDD. Weight of past 24 hours:" */
 "Weighted Average of TDD. Weight of past 24 hours:" = "Gewichteter Durchschnitt von TDD. Gewichtung von 24 Stunden:";

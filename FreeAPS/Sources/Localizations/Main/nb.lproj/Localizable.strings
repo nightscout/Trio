@@ -46,6 +46,9 @@
 /*  */
 "Agree and continue" = "Godta og fortsett";
 
+/* Bolus progress view */
+"of" = "av";
+
 /* Headline in enacted pop up (at: at what time) */
 "Enacted at" = "Utført kl.";
 
@@ -336,7 +339,7 @@ Enact a temp Basal or a temp target */
 "Use local glucose server" = "Bruk lokal glukoseserver";
 
 /* Enable Statistics */
-"This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n" = "This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n";
+"This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n" = "Dette skrur på opplasting av statistics.json til Nightscout, som kan brukes av prosjektet \"Community Statistics and Demographics\".\n\nDeltakelse er frivillig og krever en egen registrering på:\n";
 
 /*  */
 "Edit settings json" = "Rediger \"freeaps_settings.json\"";
@@ -579,10 +582,10 @@ Enact a temp Basal or a temp target */
 "Temp Targets" = "Midlertidige mål";
 
 /* Delete carbs from data table and Nightscout */
-"Delete Carbs?" = "Delete Carbs?";
+"Delete Carbs?" = "Slette karbohydrater?";
 
 /* Delete insulin from pump history and Nightscout */
-"Delete Insulin?" = "Delete Insulin?";
+"Delete Insulin?" = "Slette insulin?";
 
 /* Treatments list */
 "Treatments" = "Behandlinger";
@@ -1334,8 +1337,11 @@ Enact a temp Basal or a temp target */
 /* */
 "Save as Profile" = "Lagre som profil";
 
-/* */
-"Return to Normal" = "Gå tilbake til normal";
+/* Alert */
+"Cancel Profile Override" = "Cancel Profile Override";
+
+/* Alert */
+"Cancel Temp Target" = "Avbryt midlertidig mål";
 
 /* Alert */
 "Return to Normal?" = "Gå tilbake til normal?";
@@ -1371,13 +1377,13 @@ Enact a temp Basal or a temp target */
 "Statistics and Home View" = "Statistikk og startskjerm";
 
 /* Alert text */
-"Delete Carb Equivalents?" = "Delete Carb Equivalents?";
+"Delete Carb Equivalents?" = "Slette karboekvivalenter?";
 
 /* */
-"All FPUs of the meal will be deleted." = "All FPUs of the meal will be deleted.";
+"All FPUs of the meal will be deleted." = "Alle karboekvivalenter for måltidet vil bli slettet.";
 
 /* */
-"Delete Glucose?" = "Delete Glucose?";
+"Delete Glucose?" = "Slette blodsukker?";
 
 /* */
 "Meal Presets" = "Forvalg av måltid";
@@ -1665,16 +1671,16 @@ Enact a temp Basal or a temp target */
 "2 hours" = "2 timer";
 
 /* */
-"4 hours" = "4 hours";
+"4 hours" = "4 timer";
 
 /* */
-"6 hours" = "6 hours";
+"6 hours" = "6 timer";
 
 /* */
-"12 hours" = "12 hours";
+"12 hours" = "12 timer";
 
 /* */
-"24 hours" = "24 hours";
+"24 hours" = "24 timer";
 
 /* Average BG = */
 "Average" = "Gj.snitt";
@@ -2035,33 +2041,138 @@ Enact a temp Basal or a temp target */
 "Enable Dynamic ISF" = "Aktiver dynamisk ISF";
 
 /* Enable Dynamic ISF */
-"Calculate a new ISF with every loop cycle. New ISF will be based on current BG, TDD of insulin (past 24 hours or a weighted average) and an Adjustment Factor (default is 1).\n\nDynamic ISF and CR ratios will be limited by your autosens.min/max limits.\n\nDynamic ratio replaces the autosens.ratio: New ISF = Static ISF / Dynamic ratio,\nDynamic ratio = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes" = "Beregn ny ISF ved hver loop-syklus. Ny ISF vil baseres på nåværende BS, TDD med insulin (siste 24 timer eller vektet gjennomsnitt) og en justeringsfaktor (standardverdi er 1).\n\nDynamisk ISF og CR-ratier vil bli begrenset av dine autosens-innstillinger.\n\nDynamisk ratio erstatter autosens-ratio: Ny ISF = Statisk ISF / Dyamisk ratio,\nDynamisk ratio = profile.sens * adjustmentFactor * tdd * Math.log(BS/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes";
+"Calculate a new Insulin Sensitivity Setting (ISF) upon every loop cycle. The new ISF will be based on your current Glucose, total daily dose of insulin (TDD, past 24 hours of all delivered insulin) and an individual Adjustment Factor (recommendation to start with is 0.5 if using Sigmoid Function and 0.8 if not).\n\nAll of the Dynamic ISF and CR adjustments will be limited by your autosens.min/max limits." = "Beregne ny insulinsensitivitet (ISF) ved hver loop-syklus. Den nye ISF-verdien vil bli basert på nåværende blodsukker, total daglig insulindose (TDD, siste 24 timer med levert insulin) og en individuell justeringsfaktor (anbefalingen er å starte med 0.5 hvis man benytter Sigmoid og ellers 0.8).\n\nAlle dynamiske justeringer av ISF og CR blir begrenset av dine Autosens MIN/MAX-innstillinger.";
 
-/* Headline "Enable Dynamic CR" */
+/* Headline Enable Dynamic CR */
 "Enable Dynamic CR" = "Aktiver dynamisk CR";
 
 /* Enable Dynamic CR */
 "Use Dynamic CR. The dynamic ratio will be used for CR as follows:\n\n When ratio > 1:  dynCR = (newRatio - 1) / 2 + 1.\nWhen ratio < 1: dynCR = CR/dynCR.\n\nDon't use toghether with a high Insulin Fraction (> 2)" = "Bruk dynamisk CR. Dynamisk ratio brukes for CR som følger:\n\n Når ratio > 1: dynCR = (newRatio - 1) / 2 + 1.\nNår ratio < 1: dynCR = CR/dynCR.\n\nIkke bruk denne innstillingen sammen med en høy insulinbrøk (Insulin Fraction > 2)";
 
+/* Enable Dyn ISF */
+"Activate Dynamic Sensitivity (ISF)" = "Aktivere dynamisk insulinfølsomhet (ISF)";
+
+/* Enable Dyn CR */
+"Activate Dynamic Carb Ratio (CR)" = "Aktivere dynamisk karbohydratforhold (CR)";
+
 /* Headline "Adjust Dynamic ISF constant" */
 "Adjust Dynamic ISF constant" = "Juster konstant for dynamisk ISF";
 
 /* Adjust Dynamic ISF constant */
-"Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula there is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users" = "Juster dynamisk forholdstall med en konstant. Standard er 0,5. Jo høyere verdien er, jo større blir korreksjonen av ISF ved høyt eller lavt BS. Maksimal korrigering bestemmes av min/maks innstillingene for Autosens. For Sigmoidfunksjon anbefales det å starte en justeringsfaktor på 0,4-0,5. For den logaritmiske formelens er det mindre konsensus, men å starte med 0.5 – 0,8 er anbefalt for de fleste brukere";
+"Individual adjustment of the computed dynamic ratios. Default is 0.5. The higher the value, the larger the correction of your ISF/CR will be for a high or a low blood glucose. Maximum/minumum correction is determined by the Autosens min/max settings.\n\nFor Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with.\n\nFor the logaritmic formula threre is less consensus, but starting around 0.8 is probably appropiate for most adult users. For younger users it's recommended to start even lower when using logaritmic formula, to avoid overly aggressive treatment." = "Justeringsfaktoren brukes til å bestemme hvor mye ISF/CR skal justeres når man benytter dynamisk ISF/CR. Standardverdi er 0.5. Jo høyere verdi, jo større blir korrigeringen av ISF/CR ved høyt eller lavt blodsukker. Maks/min korrigering avgjøres av dine Autosens maks/min-innstillinger.\n\nFor Sigmoid anbefales det en justeringsfaktor på 0.4 - 0.5 til å begynne med.\n\nNår Sigmoid ikke er i bruk anbefales det å starte på 0.8 for voksne brukere. For yngre brukere er det anbefalt å starte med en lavere justeringsfaktor for å unngå aggresiv behandling.";
 
-
-/* Headline "Use Sigmoid Function" */
+/* Headline Use Sigmoid Function */
 "Use Sigmoid Function" = "Bruk sigmoid-funksjon";
+
+/* Which dyn ISF function to use */
+"Formula" = "Formel";
+
+/* Extra Safety Features when using dyn ISF */
+"Safety" = "Sikkerhet";
 
 /* Use Sigmoid Function */
 "Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function." = "Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function.";
 
+/* Headline Threshold Setting */
+"Threshold Setting" = "Terskelinnstilling";
 
-/* Headline "Threshold Setting" */
-"Threshold Setting (mg/dl)" = "Terskelinnstilling (mg/dl)";
+/* Dynamic ISF Setting Title */
+"Minimum Threshold Setting" = "Minimum terskelinnstilling";
 
-/* Threshold Setting */
-"The default threshold in FAX depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl." = "Standard terskel i FAX er avhengig av ditt nåværende laveste BS-mål, som følger:\n\nDersom ditt laveste BS-mål = 90 mg/dL -> terskel = 65 mg/dL,\n\ndersom laveste BS-mål = 100 mg/dL -> terskel = 70 mg/dL,\n\nlaveste BS-mål = 110 mg/dL -> terskel = 75 mg/dL,\n\nog dersom laveste BS-mål = 130 mg/dL -> terskel = 85 mg/dL.\n\nDenne innstillingen tillater deg å endre til en høyere terskel for å loope med dynamisk ISF. Gyldige verdier er 65 mg/dL <= terskel-innstilling <= 120 mg/dL.";
+/* Minimum Threshold Setting, Part 1 */
+"This setting lets you choose a level below which no insulin will be given.\n\nThe threshold is using the largest amount of your threshold setting and the computed threshold:\n\nTarget Glucose - (Target Glucose - 40) / 2\n, here using mg/dl as glucose unit.\n\nFor example, if your Target Glucose is " = "Denne innstillingen lar deg velge et blodsukkernivå for å stoppe insulintilførsel.\n\nSystemet ser på denne innstillingen og den beregnede terskelverdien, og velger den høyeste av disse:\n\nMålverdi - (Målverdi - 40) / 2\n, her med mg/dl.\n\nFor eksempel, hvis blodsukkermålet ditt er ";
+
+/* Minimum Threshold Setting, Part 2 */
+"the threshold will be " = "så vil terskelverdien bli ";
+
+/* Minimum Threshold Setting, Part 3 */
+"unless your threshold setting is set higher:" = "med mindre din terskelinnstilling er satt høyere:";
+
+/* Threshold Table Columns Title */
+"Setting" = "Innstilling";
+
+/* Threshold Table Columns Title */
+"Threshold" = "Terskel";
+
+/* Header */
+"Calculator settings" = "Innstillinger for kalkulator";
+
+/* Bolus Calculator Setting */
+"Use alternate Bolus Calculator" = "Bruk alternativ boluskalkulator";
+
+/* Bolus Calculator Setting */
+"Fatty Meals" = "Måltid med høyt fettinnhold";
+
+/* Bolus Calculator Setting */
+"Apply factor for fatty meals" = "Bruk egen faktor for fete måltider";
+
+/* Bolus Calculator Footer */
+"The new alternate bolus calculator is another approach to the default bolus calculator in iAPS. If the toggle is on you use this bolus calculator and not the original iAPS calculator. At the end of the calculation a custom factor is applied as it is supposed to be when using smbs (default 0.8).\n\nYou can also add the option in your bolus calculator to apply another (!) customizable factor at the end of the calculation which could be useful for fatty meals, e.g Pizza (default 0.7)." = "Den nye alternative boluskalkulatoren bruker en annen tilnærming enn den vanlige boluskalkulatoren i iAPS. Ved slutten av beregningen brukes det en faktor for å begrense hvor mye av beregnet bolus som blir gitt med en gang. Tanken er at resten av nødvendig insulin blir gitt via SMB. Standard faktor er 0.8, som betyr at kalkulatoren foreslår å dosere 80% av insulinbehovet som bolus.\n\nDu kan også legge til en annen faktor for måltider med høyt fettinnhold, for eksempel pizza. Tanken er at slike måltider trenger mindre insulin ved måltidsstart. Standard faktor er derfor 0.7 (70%).";
+
+/* UI/UX option */
+"Display Predictions" = "Vis prognoser";
+
+/* UI/UX option */
+"Smaller iPhone Screens" = "Mindre iPhone-skjermer";
+
+/* UI/UX option */
+"Display and allow Fat and Protein entries" = "Vis og tillat registrering av fett og protein";
+
+/* UI/UX option */
+"Add Meal View settings " = "Innstillinger for registrering av måltid ";
+
+/* UI/UX option */
+"Display Temp Targets Button" = "Vis knapp for midlertidig mål";
+
+/* UI/UX option */
+"Home View Button Panel " = "Knapperad på startskjerm ";
+
+/* UI/UX title */
+"Home Chart settings " = "Innstillinger for graf på startskjerm ";
+
+/* UI/UX title */
+"Statistics settings " = "Innstillinger for statistikk ";
+
+/* UI/UX title */
+"Override HbA1c Unit" = "Overstyre HbA1c-enhet";
+
+/* UI/UX option */
+"In case you're using both profiles and temp targets" = "I tilfelle du bruker både profiler og midlertidige mål";
+
+/* UI/UX option */
+"Always Color Glucose Value (green, yellow etc)" = "Alltid bruk farge på blodsukkerverdi (grønn, gul, osv)";
+
+/* UI/UX option */
+"Header settings" = "Innstillinger for topplinjen";
+/* UI/UX option */
+"Normally glucose is colored red only when over or under your notification limits for high/low" = "Vanligvis er blodsukkerverdien rød bare når den er over og under varslingsinnstillingene for høy/lav";
+
+/* UI/UX option */
+"Horizontal Scroll View Visible hours" = "Antall synlige timer for horisontal visning";
+
+/* UI/UX option */
+"Display Time Interval Setting Button" = "Vis knapp for tidsintervall";
+
+/* Setting title */
+"Bolus Calculator" = "Boluskalkulator";
+
+/* Setting title */
+"Dynamic ISF" = "Dynamisk ISF";
+
+/* Notification option */
+"Live Activity" = "Oppdateringer i sanntid";
+
+/* Notification option */
+"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "Sanntidsoppdatering (Live Activity) viser blodsukkerverdi på låseskjerm og i Dynamic Island (hvis telefonen har dette)";
+
+/* Notification option */
+"Show Live activity" = "Vis sanntidsoppdatering";
+
+/* Live Activity Footer */
+"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "Sanntidsoppdatering (Live Activity) viser blodsukkerverdi på låseskjerm og i Dynamic Island (hvis telefonen har dette)";
+
+/* Live Activity Footer when off */
+"Live activities are turned OFF in system settings. To enable live activities, go to Settings app -> iAPS -> Turn live Activities ON.\n\n" = "Sanntidsoppdatering er skrudd av i systeminnstillingene. For å skru på, gå til Innstillinger-appen -> iAPS og skru på Oppdateringer i sanntid.\n\n";
 
 /* Headline "Weighted Average of TDD. Weight of past 24 hours:" */
 "Weighted Average of TDD. Weight of past 24 hours:" = "Vektet snitt av TDD. Vekting av siste 24 timer:";

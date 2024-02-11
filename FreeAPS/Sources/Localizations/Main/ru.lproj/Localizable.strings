@@ -46,6 +46,9 @@
 /*  */
 "Agree and continue" = "Согласиться и Продолжить";
 
+/* Bolus progress view */
+"of" = "из";
+
 /* Headline in enacted pop up (at: at what time) */
 "Enacted at" = "Принято в";
 
@@ -336,7 +339,7 @@ Enact a temp Basal or a temp target */
 "Use local glucose server" = "Использовать локальный сервер глюкозы";
 
 /* Enable Statistics */
-"This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n" = "This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n";
+"This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n" = "Это позволяет загружать файл statistics.json в Nightscout, который может использоваться проектом статистики и сообщества.\n\nУчастие в статистике сообщества является добровольным и требует отдельной регистрации по адресу:\n";
 
 /*  */
 "Edit settings json" = "Редактировать json настроек";
@@ -1334,8 +1337,11 @@ Enact a temp Basal or a temp target */
 /* */
 "Save as Profile" = "Сохранить как профиль";
 
-/* */
-"Return to Normal" = "Вернуться к нормальному";
+/* Alert */
+"Cancel Profile Override" = "Отменить переопределение профиля?";
+
+/* Alert */
+"Cancel Temp Target" = "Отменить временную цель";
 
 /* Alert */
 "Return to Normal?" = "Вернуться к нормальному?";
@@ -2035,33 +2041,138 @@ Enact a temp Basal or a temp target */
 "Enable Dynamic ISF" = "Включить динамический ISF";
 
 /* Enable Dynamic ISF */
-"Calculate a new ISF with every loop cycle. New ISF will be based on current BG, TDD of insulin (past 24 hours or a weighted average) and an Adjustment Factor (default is 1).\n\nDynamic ISF and CR ratios will be limited by your autosens.min/max limits.\n\nDynamic ratio replaces the autosens.ratio: New ISF = Static ISF / Dynamic ratio,\nDynamic ratio = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes" = "Считать новый ISF с каждым циклом петли. Новый ISF будет зависеть от текущего BG, TDD (за последние 24 часа или взвешенное среднее значение) и Adjustment Factor (по-умолчанию - 1).\n\nDynamic ratio ISF и CR будет ограничен настройками autosens.min/max.\n\nDynamic ratio заменяет autosens.ratio: Новый ISF = Постоянный ISF/ Dynamic ratio,\nDynamic ratio = profile.sens*adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes";
+"Calculate a new Insulin Sensitivity Setting (ISF) upon every loop cycle. The new ISF will be based on your current Glucose, total daily dose of insulin (TDD, past 24 hours of all delivered insulin) and an individual Adjustment Factor (recommendation to start with is 0.5 if using Sigmoid Function and 0.8 if not).\n\nAll of the Dynamic ISF and CR adjustments will be limited by your autosens.min/max limits." = "Рассчитывать новое значение чувствительности к инсулину (ISF) при каждом цикле петли. Новый ISF будет основан на вашем текущем уровне глюкозы, общей суточной дозе инсулина (TDD, количество введенного инсулина за последние 24 часа) и индивидуальном корректирующем коэффициенте (рекомендуется начинать с 0,5, если используется сигмоидная функция, и 0,8, если нет).\n\nДинамические настройки ISF и CR будут ограничены максимумом и минимумом алгоритма autosens.";
 
-/* Headline "Enable Dynamic CR" */
+/* Headline Enable Dynamic CR */
 "Enable Dynamic CR" = "Включить динамический CR";
 
 /* Enable Dynamic CR */
 "Use Dynamic CR. The dynamic ratio will be used for CR as follows:\n\n When ratio > 1:  dynCR = (newRatio - 1) / 2 + 1.\nWhen ratio < 1: dynCR = CR/dynCR.\n\nDon't use toghether with a high Insulin Fraction (> 2)" = "Использовать Dynamic CR. Dynamic ratio будет также влиять и на CR:\n\n Когда ratio > 1: dynCR = (newRatio - 1) / 2 + 1.\nКогда ratio <1: dynCR = CR/dynCR.\n\nНе используйте совместно с высоким Insulin Fraction (> 2)";
 
+/* Enable Dyn ISF */
+"Activate Dynamic Sensitivity (ISF)" = "Включить динамическую чувствительность (ISF)";
+
+/* Enable Dyn CR */
+"Activate Dynamic Carb Ratio (CR)" = "Включить динамический углеводный коэффициент (CR)";
+
 /* Headline "Adjust Dynamic ISF constant" */
 "Adjust Dynamic ISF constant" = "Настроить константу динамического ISF";
 
 /* Adjust Dynamic ISF constant */
-"Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula there is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users" = "Отрегулируйте динамические коэффициенты на постоянную величину. Значение по умолчанию равно 0.5. Чем выше значение, тем больше будет коррекция вашего ISF для высокого или низкого BG. Максимальная коррекция определяется настройками Auto sens min/max. Для сигмовидной функции рекомендуется для начала использовать коэффициент регулировки 0.4 - 0.5. В отношении логарифмической формулы консенсуса меньше, но большинству пользователей более подходит начинать с 0.5 - 0.8";
+"Individual adjustment of the computed dynamic ratios. Default is 0.5. The higher the value, the larger the correction of your ISF/CR will be for a high or a low blood glucose. Maximum/minumum correction is determined by the Autosens min/max settings.\n\nFor Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with.\n\nFor the logaritmic formula threre is less consensus, but starting around 0.8 is probably appropiate for most adult users. For younger users it's recommended to start even lower when using logaritmic formula, to avoid overly aggressive treatment." = "Индивидуальная настройка рассчитанных динамических коэффициентов. Значение по умолчанию равно 0.5. Чем выше значение, тем больше будет коррекция вашего ISF/CR для высокого или низкого уровня глюкозы в крови. Максимальная/минимальная коррекция определяется настройками autosens min/max.\n\nДля сигмоидной функции рекомендуется для начала использовать коэффициент 0.4 - 0.5.\n\nДля логарифмической формулы существует меньшее единодушие, но для большинства взрослых пользователей, вероятно, подходит значение, начинающееся примерно с 0.8. Для более молодых пользователей рекомендуется начинать с еще меньшего значения при использовании логарифмической формулы, чтобы избежать чрезмерно агрессивного лечения.";
 
-
-/* Headline "Use Sigmoid Function" */
+/* Headline Use Sigmoid Function */
 "Use Sigmoid Function" = "Использовать Сигмоидную функцию";
+
+/* Which dyn ISF function to use */
+"Formula" = "Формула";
+
+/* Extra Safety Features when using dyn ISF */
+"Safety" = "Безопасность";
 
 /* Use Sigmoid Function */
 "Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function." = "Использовать сигмоидную функцию для ISF (и для CR, если включено), вместо логарифмической функции. Требует включенного в настройках режима Dynamic ISF\n\nКоэффициент регулировки AF регулирует наклон кривой (Y: Динамическое соотношение, X: Глюкоза крови). Ниже значения ==> меньше крутизна == меньше агрессивность.\n\nAutosens минимум и максимум определяют оба - максимальный и минимальный лимиты для динамического соотношения и как сильно динамическое соотношение будет изменять ISF/CR. Коэффициент регулировки AF - это высота кривой, Y - интервал, где Y - динамическое соотношение. Кривая всегда будет иметь сигмовидную форму, не важно какой autosens минимум/максимум указаны. Это означает, что эти настройки имеют большие последствия для результата вычисляемого динамического ISF. Пожалуйста, будьте осторожны с высокими значениями параметра алгоритма максимума для autosens. При правильной настройке профиля ISF, никогда не понадобится значение выше 1,5.\n\nAn Предел Autosens максимум > 1,5 не рекомендуется при использовании сигмовидной функции.";
 
+/* Headline Threshold Setting */
+"Threshold Setting" = "Настройка порога";
 
-/* Headline "Threshold Setting" */
-"Threshold Setting (mg/dl)" = "Настройка порога (мг/дл)";
+/* Dynamic ISF Setting Title */
+"Minimum Threshold Setting" = "Минимальный порог";
 
-/* Threshold Setting */
-"The default threshold in FAX depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl." = "Порог, в мг/дл, в FAX по-умолчанию зависит от Вашей текущей минимальной цели BG, следующим образом:\n\nЕсли минимальная цель BG = 5 ммоль/л -> порог = 3,6 ммоль/л,\n\nесли минимальная цель BG = 5.6 ммоль/л -> порог = 3,9 ммоль/л,\n\nминимальная цель BG  = 6.1 ммоль/л -> порог = 4,2 ммоль/л,\n\nи если минимальная цель BG = 7.2 ммоль/л  -> порог = 4,7 ммоль/л.\n\nЭта настройка позволяет Вам увеличить уровень порога для более безопасной работы с dynISF. Валидным будет значение 65 мг/дл=3,6 ммоль/л <= Threshold Setting <= 120 мг/дл=6,7 ммоль/л.";
+/* Minimum Threshold Setting, Part 1 */
+"This setting lets you choose a level below which no insulin will be given.\n\nThe threshold is using the largest amount of your threshold setting and the computed threshold:\n\nTarget Glucose - (Target Glucose - 40) / 2\n, here using mg/dl as glucose unit.\n\nFor example, if your Target Glucose is " = "Этот параметр позволяет вам выбрать уровень, ниже которого инсулин вводиться не будет.\n\nВ качестве порогового значения используется наибольшее значение вашей настройки порога и вычисленное пороговое значение:\n\nЦелевая глюкоза - (Целевая глюкоза - 40) / 2\n, здесь в качестве единицы измерения глюкозы используется мг/дл.\n\nНапример, если ваш целевой уровень глюкозы равен ";
+
+/* Minimum Threshold Setting, Part 2 */
+"the threshold will be " = "пороговое значение будет равно ";
+
+/* Minimum Threshold Setting, Part 3 */
+"unless your threshold setting is set higher:" = "пока порог не установлен выше:";
+
+/* Threshold Table Columns Title */
+"Setting" = "Параметр";
+
+/* Threshold Table Columns Title */
+"Threshold" = "Порог";
+
+/* Header */
+"Calculator settings" = "Настройки калькулятора";
+
+/* Bolus Calculator Setting */
+"Use alternate Bolus Calculator" = "Альтернативный калькулятор болюса";
+
+/* Bolus Calculator Setting */
+"Fatty Meals" = "Жирная пища";
+
+/* Bolus Calculator Setting */
+"Apply factor for fatty meals" = "Применить фактор для жирной пищи";
+
+/* Bolus Calculator Footer */
+"The new alternate bolus calculator is another approach to the default bolus calculator in iAPS. If the toggle is on you use this bolus calculator and not the original iAPS calculator. At the end of the calculation a custom factor is applied as it is supposed to be when using smbs (default 0.8).\n\nYou can also add the option in your bolus calculator to apply another (!) customizable factor at the end of the calculation which could be useful for fatty meals, e.g Pizza (default 0.7)." = "Альтернативный калькулятор болюса использует другой алгоритм расчета болюса. Для индивидуальной настройки вы можете изменить поправочный коэффициент (значение по умолчанию 0.8) в зависимости от того, хотите ли вы более высокие (выше 1) или меньшие (ниже 1) рекомендации по болюсу.\n\nДля особо жирных блюд, таких как пицца, существует возможность уменьшить рекомендуемый болюс еще на один коэффициент (стандартно 0.7).";
+
+/* UI/UX option */
+"Display Predictions" = "Отображать прогнозы";
+
+/* UI/UX option */
+"Smaller iPhone Screens" = "Небольшие экраны iPhone";
+
+/* UI/UX option */
+"Display and allow Fat and Protein entries" = "Отображать и разрешать запись жиров и белков";
+
+/* UI/UX option */
+"Add Meal View settings " = "Настройки отображения еды ";
+
+/* UI/UX option */
+"Display Temp Targets Button" = "Отображать кнопку временных целей";
+
+/* UI/UX option */
+"Home View Button Panel " = "Панель кнопок главного экрана ";
+
+/* UI/UX title */
+"Home Chart settings " = "Схема главного экрана ";
+
+/* UI/UX title */
+"Statistics settings " = "Настройки статистики ";
+
+/* UI/UX title */
+"Override HbA1c Unit" = "HbA1c в процентах";
+
+/* UI/UX option */
+"In case you're using both profiles and temp targets" = "В случае, если вы используете как профили, так и временные цели";
+
+/* UI/UX option */
+"Always Color Glucose Value (green, yellow etc)" = "Цветовая индикация уровня глюкозы в крови (зеленый, желтый, красный)";
+
+/* UI/UX option */
+"Header settings" = "Верхняя панель";
+/* UI/UX option */
+"Normally glucose is colored red only when over or under your notification limits for high/low" = "Обычно глюкоза окрашивается в красный цвет только в том случае, если значение превышено или выходит за пределы ваших лимитов уведомлений о высоком / низком уровне";
+
+/* UI/UX option */
+"Horizontal Scroll View Visible hours" = "Интервал при горизонтальной прокрутке";
+
+/* UI/UX option */
+"Display Time Interval Setting Button" = "Отображать кнопку выбора интервала времени";
+
+/* Setting title */
+"Bolus Calculator" = "Калькулятор болюса";
+
+/* Setting title */
+"Dynamic ISF" = "Динамический ISF";
+
+/* Notification option */
+"Live Activity" = "Эфир активности";
+
+/* Notification option */
+"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "Эфир активности - в реальном времени отображает уровень глюкозы в крови на экране блокировки и на динамическом островке Dynamic Island (если доступно)";
+
+/* Notification option */
+"Show Live activity" = "Отображать эфир активности";
+
+/* Live Activity Footer */
+"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "Эфир активности - в реальном времени отображает уровень глюкозы в крови на экране блокировки и на динамическом островке Dynamic Island (если доступно)";
+
+/* Live Activity Footer when off */
+"Live activities are turned OFF in system settings. To enable live activities, go to Settings app -> iAPS -> Turn live Activities ON.\n\n" = "\"Эфир активности\" отключен в системных настройках. Чтобы включить \"эфир активности\", перейдите в Настройки -> iAPS -> \"Эфир активности\" -> ВКЛ.\n\n";
 
 /* Headline "Weighted Average of TDD. Weight of past 24 hours:" */
 "Weighted Average of TDD. Weight of past 24 hours:" = "Взвешенное среднее значение TDD. Вес последних 24 часов:";

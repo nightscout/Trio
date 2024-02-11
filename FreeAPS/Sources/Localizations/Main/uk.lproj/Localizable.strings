@@ -46,6 +46,9 @@
 /*  */
 "Agree and continue" = "Прийняти та Продовжити";
 
+/* Bolus progress view */
+"of" = "із";
+
 /* Headline in enacted pop up (at: at what time) */
 "Enacted at" = "Виконано в";
 
@@ -336,7 +339,7 @@ Enact a temp Basal or a temp target */
 "Use local glucose server" = "Використовувати локальний сервер";
 
 /* Enable Statistics */
-"This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n" = "This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n";
+"This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n" = "Це дає змогу завантажувати statistics.json у Nightscout, який може використовуватися Проектом статистики та демографії спільноти.\n\nУчасть у статистиці спільноти є обов’язковою та потребує окремої реєстрації за адресою:\n";
 
 /*  */
 "Edit settings json" = "Редагувати json налаштувань";
@@ -1334,8 +1337,11 @@ Enact a temp Basal or a temp target */
 /* */
 "Save as Profile" = "Зберегти як Профіль";
 
-/* */
-"Return to Normal" = "Повернутися до Нормального стану";
+/* Alert */
+"Cancel Profile Override" = "Скасувати заміну профілю?";
+
+/* Alert */
+"Cancel Temp Target" = "Відмінити Тимчасову ціль";
 
 /* Alert */
 "Return to Normal?" = "Повернутися до Нормального стану?";
@@ -2035,33 +2041,138 @@ Enact a temp Basal or a temp target */
 "Enable Dynamic ISF" = "Включити Динамічний ISF";
 
 /* Enable Dynamic ISF */
-"Calculate a new ISF with every loop cycle. New ISF will be based on current BG, TDD of insulin (past 24 hours or a weighted average) and an Adjustment Factor (default is 1).\n\nDynamic ISF and CR ratios will be limited by your autosens.min/max limits.\n\nDynamic ratio replaces the autosens.ratio: New ISF = Static ISF / Dynamic ratio,\nDynamic ratio = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes" = "Вважати новий ISF з кожним циклом петлі. Новий ISF буде залежати від поточного BG, TDD (за останні 24 години або зважене середнє значення) та Adjustment Factor (за замовчуванням - 1). nDynamic ratio замінює autosens.ratio: Новий ISF = Постійний ISF/ Dynamic ratio,\nDynamic ratio = profile.sens*adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPe";
+"Calculate a new Insulin Sensitivity Setting (ISF) upon every loop cycle. The new ISF will be based on your current Glucose, total daily dose of insulin (TDD, past 24 hours of all delivered insulin) and an individual Adjustment Factor (recommendation to start with is 0.5 if using Sigmoid Function and 0.8 if not).\n\nAll of the Dynamic ISF and CR adjustments will be limited by your autosens.min/max limits." = "Обчислюйте новий параметр чутливості до інсуліну (ISF) після кожного циклу Петлі. Новий ISF базуватиметься на вашій поточній глюкозі, загальній добовій дозі інсуліну (TDD, останні 24 години всього доставленого інсуліну) та індивідуальному коригуючому факторі (рекомендація для початку становить 0,5, якщо використовується сигмоподібна функція, і 0,8, якщо ні).\\ n\nУсі налаштування Dynamic ISF і CR будуть обмежені вашими обмеженнями autosens.min/max.";
 
-/* Headline "Enable Dynamic CR" */
+/* Headline Enable Dynamic CR */
 "Enable Dynamic CR" = "Включити Динамічний CR";
 
 /* Enable Dynamic CR */
 "Use Dynamic CR. The dynamic ratio will be used for CR as follows:\n\n When ratio > 1:  dynCR = (newRatio - 1) / 2 + 1.\nWhen ratio < 1: dynCR = CR/dynCR.\n\nDon't use toghether with a high Insulin Fraction (> 2)" = "Використовувати Dynamic CR. Dynamic ratio також впливатиме на CR:\n\n Коли ratio > 1: dynCR = (newRatio - 1) / 2 + 1.\nКоли ratio <1: dynCR = CR/dynCR.\n\nНе використовуйте спільно з високим Insulin Fraction (> 2)";
 
+/* Enable Dyn ISF */
+"Activate Dynamic Sensitivity (ISF)" = "Активація динамічної чутливості (ISF)";
+
+/* Enable Dyn CR */
+"Activate Dynamic Carb Ratio (CR)" = "Активація динамічного співвідношення вуглеводів (CR)";
+
 /* Headline "Adjust Dynamic ISF constant" */
 "Adjust Dynamic ISF constant" = "Налаштувати константу Динамічного ISF";
 
 /* Adjust Dynamic ISF constant */
-"Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula there is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users" = "Налаштуйте динамічні коефіцієнти за константою. За замовчуванням 0,5. Чим вище значення, тим більшою буде корекція вашого ISF для високого або низького рівня ГК. Максимальна корекція визначається параметрами min/max Автосенс. Для сигмоподібної функції спочатку рекомендується коригуючий коефіцієнт 0,4 - 0,5. Для логарифмічної формули threre є менш узгодженим, але починати з 0,5 - 0,8 є більш прийнятним для більшості користувачів";
+"Individual adjustment of the computed dynamic ratios. Default is 0.5. The higher the value, the larger the correction of your ISF/CR will be for a high or a low blood glucose. Maximum/minumum correction is determined by the Autosens min/max settings.\n\nFor Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with.\n\nFor the logaritmic formula threre is less consensus, but starting around 0.8 is probably appropiate for most adult users. For younger users it's recommended to start even lower when using logaritmic formula, to avoid overly aggressive treatment." = "Індивідуальне налаштування розрахованих динамічних коефіцієнтів. За замовчуванням 0,5. Чим вище значення, тим більшою буде корекція вашого ISF/CR для високого або низького рівня глюкози в крові. Максимальна/мінімальна корекція визначається мінімальними/максимальними налаштуваннями Autosens.\n\nДля сигмоїдної функції спочатку рекомендується коригувальний коефіцієнт 0,4–0,5.\n\nДля логаритмічної формули три є менш узгодженими, але починаючи приблизно з 0,8 ймовірно підходить для більшості дорослих користувачів. Для молодших користувачів рекомендується починати ще нижче при використанні логарифмічної формули, щоб уникнути занадто агресивного лікування.";
 
-
-/* Headline "Use Sigmoid Function" */
+/* Headline Use Sigmoid Function */
 "Use Sigmoid Function" = "Використовувати Сігмоїдну Функцію";
+
+/* Which dyn ISF function to use */
+"Formula" = "Формула";
+
+/* Extra Safety Features when using dyn ISF */
+"Safety" = "Загальна безпека";
 
 /* Use Sigmoid Function */
 "Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function." = "Використовуйте сигмоїдну функцію для ISF (та для CR, якщо ввімкнено), замість стандартної логарифмічної формули. У налаштуваннях потрібно ввімкнути параметр Dynamic ISF\n\nПараметр Adjustment регулює нахил кривої (Y: динамічне співвідношення, X: рівень глюкози в крові). Менше значення ==> менш крутий == менш агресивний.\n\nПараметри autosens.min/max визначають максимальні/мінімальні межі для динамічного коефіцієнта І наскільки динамічне співвідношення регулюється. Якщо AF – це нахил кривої, autosens.min/max – це висота графіка, Y-інтервал, де Y: динамічне співвідношення. Крива завжди матиме сигмоподібну форму, незалежно від того, які налаштування autosens.min/max використовуються, тобто ці налаштування мають великі наслідки для результату обчисленої динамічної ISF. Будьте обережні, встановлюючи занадто високе значення autosens.max. З правильним налаштуванням ISF профілю вам, ймовірно, ніколи не знадобиться, щоб воно було вищим за 1,5\n\nОбмеження Autosens.max > 1,5 не рекомендується під час використання сигмоїдної функції.";
 
+/* Headline Threshold Setting */
+"Threshold Setting" = "Порогове значення";
 
-/* Headline "Threshold Setting" */
-"Threshold Setting (mg/dl)" = "Порогове Значення (мг/дл)";
+/* Dynamic ISF Setting Title */
+"Minimum Threshold Setting" = "Налаштування Мінімального Порогу";
 
-/* Threshold Setting */
-"The default threshold in FAX depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl." = "Поріг, мг/дл, у FAX за замовчуванням залежить від Вашої поточної мінімальної мети BG, таким чином:\n\nЯкщо мінімальна мета BG = 5 ммоль/л -> поріг = 3,6 ммоль/л,\n\n мінімальна мета BG = 5.6 ммоль/л -> поріг = 3,9 ммоль/л, мінімальна мета BG = 6.1 ммоль/л -> поріг = 4,2 ммоль/л, якщо мінімальна мета BG = 7.2 ммоль/л -> поріг = 4,7 ммоль/л.\n\nЦе налаштування дозволяє збільшити рівень порога для більш безпечної роботи з dynISF. Валідним буде значення 65 мг/дл = 3,6 ммоль/л <= Threshold Setting <= 120 мг/дл = 6,7 ммоль/л.";
+/* Minimum Threshold Setting, Part 1 */
+"This setting lets you choose a level below which no insulin will be given.\n\nThe threshold is using the largest amount of your threshold setting and the computed threshold:\n\nTarget Glucose - (Target Glucose - 40) / 2\n, here using mg/dl as glucose unit.\n\nFor example, if your Target Glucose is " = "Цей параметр дає змогу вибрати рівень, нижче якого інсулін не вводитиметься.\n\nПорогове значення використовує найбільшу кількість вашого порогового налаштування та обчисленого порогу:\n\nЦільовий рівень глюкози - (Цільовий рівень глюкози - 40) / 2\n , тут використовується мг/дл як одиниця глюкози.\n\nНаприклад, якщо ваш цільовий рівень глюкози";
+
+/* Minimum Threshold Setting, Part 2 */
+"the threshold will be " = "поріг буде";
+
+/* Minimum Threshold Setting, Part 3 */
+"unless your threshold setting is set higher:" = "якщо ваше порогове значення не встановлено вище:";
+
+/* Threshold Table Columns Title */
+"Setting" = "Налаштування";
+
+/* Threshold Table Columns Title */
+"Threshold" = "Поріг";
+
+/* Header */
+"Calculator settings" = "Налаштування калькулятора";
+
+/* Bolus Calculator Setting */
+"Use alternate Bolus Calculator" = "Використати альтернативний болюсний калькулятор";
+
+/* Bolus Calculator Setting */
+"Fatty Meals" = "Жирна їжа";
+
+/* Bolus Calculator Setting */
+"Apply factor for fatty meals" = "Застосувати коефіцієнт жирної їжі";
+
+/* Bolus Calculator Footer */
+"The new alternate bolus calculator is another approach to the default bolus calculator in iAPS. If the toggle is on you use this bolus calculator and not the original iAPS calculator. At the end of the calculation a custom factor is applied as it is supposed to be when using smbs (default 0.8).\n\nYou can also add the option in your bolus calculator to apply another (!) customizable factor at the end of the calculation which could be useful for fatty meals, e.g Pizza (default 0.7)." = "Новий альтернативний болюсний калькулятор є іншим підходом до стандартного болюсного калькулятора в iAPS. Якщо перемикач увімкнено, ви використовуєте цей болюсний калькулятор, а не оригінальний калькулятор iAPS. Наприкінці обчислення застосовано спеціальний коефіцієнт, як це має бути під час використання smbs (за замовчуванням 0,8).\n\nВи також можете додати опцію у своєму болюсному калькуляторі, щоб застосувати інший (!) настроюваний коефіцієнт наприкінці обчислення, яке може бути корисним для жирних страв, наприклад, піци (за замовчуванням 0,7).";
+
+/* UI/UX option */
+"Display Predictions" = "Показати передбачення";
+
+/* UI/UX option */
+"Smaller iPhone Screens" = "Менші екрани iPhone";
+
+/* UI/UX option */
+"Display and allow Fat and Protein entries" = "Відобразити та дозволити записи жиру та білка";
+
+/* UI/UX option */
+"Add Meal View settings " = "Додайте налаштування перегляду їжі";
+
+/* UI/UX option */
+"Display Temp Targets Button" = "Показувати кнопку тимчасові цілі";
+
+/* UI/UX option */
+"Home View Button Panel " = "Панель кнопок домашнього перегляду";
+
+/* UI/UX title */
+"Home Chart settings " = "Налаштування домашньої діаграми";
+
+/* UI/UX title */
+"Statistics settings " = "Налаштування статистики ";
+
+/* UI/UX title */
+"Override HbA1c Unit" = "Замінити одиницю HbA1c";
+
+/* UI/UX option */
+"In case you're using both profiles and temp targets" = "Якщо ви використовуєте профілі та тимчасові цілі";
+
+/* UI/UX option */
+"Always Color Glucose Value (green, yellow etc)" = "Завжди кольорове значення глюкози (зелений, жовтий тощо)";
+
+/* UI/UX option */
+"Header settings" = "Налаштування заголовка";
+/* UI/UX option */
+"Normally glucose is colored red only when over or under your notification limits for high/low" = "Зазвичай рівень глюкози забарвлюється в червоний колір лише тоді, коли рівень сповіщень перевищує або перебуває нижче для високого/низького рівня";
+
+/* UI/UX option */
+"Horizontal Scroll View Visible hours" = "Горизонтальна прокрутка Видимі години";
+
+/* UI/UX option */
+"Display Time Interval Setting Button" = "Відображення Кнопки Налаштування Інтервалу Часу";
+
+/* Setting title */
+"Bolus Calculator" = "Калькулятор Болюса";
+
+/* Setting title */
+"Dynamic ISF" = "Динамічний ISF";
+
+/* Notification option */
+"Live Activity" = "Дії наживо";
+
+/* Notification option */
+"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "Дії наживо відображає рівень глюкози в крові в прямому ефірі на екрані блокування та на динамічному острові (якщо доступний)";
+
+/* Notification option */
+"Show Live activity" = "Показати дії наживо";
+
+/* Live Activity Footer */
+"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "Дії наживо відображає рівень глюкози в крові в прямому ефірі на екрані блокування та на динамічному острові (якщо доступний)";
+
+/* Live Activity Footer when off */
+"Live activities are turned OFF in system settings. To enable live activities, go to Settings app -> iAPS -> Turn live Activities ON.\n\n" = "Активність у реальному часі вимкнено в налаштуваннях системи. Щоб увімкнути дії в реальному часі, перейдіть у додаток Налаштування -> iAPS -> УВІМКНУТИ дії в реальному часі.\n\n";
 
 /* Headline "Weighted Average of TDD. Weight of past 24 hours:" */
 "Weighted Average of TDD. Weight of past 24 hours:" = "Виважене Середнє Значення TDD. Вага останніх 24 годин:";

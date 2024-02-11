@@ -46,6 +46,9 @@
 /*  */
 "Agree and continue" = "Akkoord en doorgaan";
 
+/* Bolus progress view */
+"of" = "van";
+
 /* Headline in enacted pop up (at: at what time) */
 "Enacted at" = "Toegediend op";
 
@@ -336,7 +339,7 @@ Enact a temp Basal or a temp target */
 "Use local glucose server" = "Lokale glucose server gebruiken";
 
 /* Enable Statistics */
-"This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n" = "This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n";
+"This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n" = "Dit maakt het uploaden van statistics.json naar Nightscout mogelijk, wat gebruikt kan worden door het Community Statistics and Demographics Project.\n\nDeelname aan Community Statistics is opt-in en vereist aparte registratie op:\n";
 
 /*  */
 "Edit settings json" = "Bewerk instellingen json";
@@ -579,10 +582,10 @@ Enact a temp Basal or a temp target */
 "Temp Targets" = "Tijdelijk streefdoel";
 
 /* Delete carbs from data table and Nightscout */
-"Delete Carbs?" = "Delete Carbs?";
+"Delete Carbs?" = "Koolhydraten verwijderen?";
 
 /* Delete insulin from pump history and Nightscout */
-"Delete Insulin?" = "Delete Insulin?";
+"Delete Insulin?" = "Insuline verwijderen?";
 
 /* Treatments list */
 "Treatments" = "Behandelingen";
@@ -1334,8 +1337,11 @@ Enact a temp Basal or a temp target */
 /* */
 "Save as Profile" = "Bewaar als profiel";
 
-/* */
-"Return to Normal" = "Terug naar normaal";
+/* Alert */
+"Cancel Profile Override" = "Profieloverschrijving annuleren?";
+
+/* Alert */
+"Cancel Temp Target" = "Annuleer tijdelijk doel";
 
 /* Alert */
 "Return to Normal?" = "Terug naar normaal?";
@@ -1484,7 +1490,7 @@ Enact a temp Basal or a temp target */
 "Pair Pod" = "Koppel Pod";
 
 /* Text for previous pod information row */
-"Previous Pod Information" = "Vorige Pod informatie";
+"Previous Pod Information" = "Informatie vorige Pod";
 
 /* Text for confidence reminders navigation link */
 "Confidence Reminders" = "Bevestigingsmeldingen";
@@ -1537,7 +1543,7 @@ Enact a temp Basal or a temp target */
 "No Reminder" = "Geen herinnering";
 
 /* */
-"Scheduled Reminder" = "Geplande herinnering";
+"Scheduled Reminder" = "Geplande melding";
 
 /* */
 "Low Reservoir Reminder" = "Laag reservoir herinnering";
@@ -1586,7 +1592,7 @@ Enact a temp Basal or a temp target */
 "Add Omnipod Dash" = "Omnipod Dash toevoegen";
 
 /* */
-"Insert Cannula" = "Plaats canule";
+"Insert Cannula" = "Plaats canulle";
 
 /* */
 "Check Cannula" = "Check canule";
@@ -2035,13 +2041,9 @@ Enact a temp Basal or a temp target */
 "Enable Dynamic ISF" = "Dynamische ISF inschakelen";
 
 /* Enable Dynamic ISF */
-"Calculate a new ISF with every loop cycle. New ISF will be based on current BG, TDD of insulin (past 24 hours or a weighted average) and an Adjustment Factor (default is 1).\n\nDynamic ISF and CR ratios will be limited by your autosens.min/max limits.\n\nDynamic ratio replaces the autosens.ratio: New ISF = Static ISF / Dynamic ratio,\nDynamic ratio = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes" = "Bereken bij elke loopcyclus een nieuwe ISF (Insulin Sensitivity Factor). De nieuwe ISF wordt bepaald door de huidige bloedsuikerspiegel (BG), de totale dagelijkse dosis insuline (TDD) van de afgelopen 24 uur of een gemiddelde daarvan, en een aanpassingsfactor (standaard 1). De dynamische ISF en CR (Carb Ratio) worden beperkt door de minimum- en maximumwaarden die zijn ingesteld in uw autosens.min/max grenzen. De dynamische ratio vervangt de autosens.ratio:/n/n
-Nieuwe ISF = Statische ISF / Dynamische ratio,
-Dynamische ratio = profielgevoeligheid * aanpassingsfactor * TDD * Logaritme (BG/insulineFactor+1) / 1800,
-InsulineFactor = 120 - Tijd tot insulinepiek in minuten./n/n
-Eenvoudiger gezegd, het systeem past de insulinegevoeligheid aan op basis van je recente insulinegebruik en huidige bloedsuikerspiegel. De aanpassingen zijn beperkt binnen bepaalde grenzen die je hebt ingesteld";
+"Calculate a new Insulin Sensitivity Setting (ISF) upon every loop cycle. The new ISF will be based on your current Glucose, total daily dose of insulin (TDD, past 24 hours of all delivered insulin) and an individual Adjustment Factor (recommendation to start with is 0.5 if using Sigmoid Function and 0.8 if not).\n\nAll of the Dynamic ISF and CR adjustments will be limited by your autosens.min/max limits." = "Bereken een nieuwe instelling voor de insulinegevoeligheid (ISF) bij elke cyclus van de loop. De nieuwe ISF wordt gebaseerd op je huidige glucose, totale dagelijkse dosis insuline (TDD, afgelopen 24 uur van alle toegediende insuline) en een individuele aanpassingsfactor (aanbevolen wordt om te beginnen met 0,5 als u de Sigmoid-functie gebruikt en 0,8 als dat niet het geval is).\n\nAlle dynamische ISF- en CR-aanpassingen worden beperkt door je autosens.min/max-limieten.";
 
-/* Headline "Enable Dynamic CR" */
+/* Headline Enable Dynamic CR */
 "Enable Dynamic CR" = "Dynamische CR inschakelen";
 
 /* Enable Dynamic CR */
@@ -2051,25 +2053,130 @@ Als de verhouding < 1 is: dynCR = CR/dynCR.
 Gebruik dit niet samen met een hoge insuline fractie (> 2).\n\n
 Eenvoudig gezegd, de Dynamische Carb Ratio past de koolhydraatverhouding aan op basis van je recente verhoudingen. Het zorgt ervoor dat de aanpassingen niet te groot zijn en werkt niet goed als je een hoge insuline fractie hebt.";
 
+/* Enable Dyn ISF */
+"Activate Dynamic Sensitivity (ISF)" = "Dynamische gevoeligheid (ISF) activeren";
+
+/* Enable Dyn CR */
+"Activate Dynamic Carb Ratio (CR)" = "Dynamische koolhydraat verhouding activeren (CR)";
+
 /* Headline "Adjust Dynamic ISF constant" */
 "Adjust Dynamic ISF constant" = "Dynamische ISF-constante aanpassen";
 
 /* Adjust Dynamic ISF constant */
-"Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula there is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users" = "Verander de dynamische verhoudingen met een vaste waarde, die standaard op 0,5 staat. Als je deze waarde verhoogt, zal de aanpassing van je ISF voor hoge of lage bloedsuikerwaarden groter zijn. De grootte van de correctie is beperkt door de instellingen voor Autosens min/max. Voor de Sigmoid-functie wordt een startwaarde van 0,4 tot 0,5 aanbevolen. Voor de logaritmische formule is er geen vastgestelde norm, maar voor de meeste gebruikers is een waarde tussen 0,5 en 0,8 passender.";
+"Individual adjustment of the computed dynamic ratios. Default is 0.5. The higher the value, the larger the correction of your ISF/CR will be for a high or a low blood glucose. Maximum/minumum correction is determined by the Autosens min/max settings.\n\nFor Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with.\n\nFor the logaritmic formula threre is less consensus, but starting around 0.8 is probably appropiate for most adult users. For younger users it's recommended to start even lower when using logaritmic formula, to avoid overly aggressive treatment." = "Individuele aanpassing van de berekende dynamische verhoudingen. De standaardwaarde is 0,5. Hoe hoger de waarde, hoe groter de correctie van je ISF/CR zal zijn voor een hoge of lage bloedglucosewaarde.\n\nDe maximale/minimale correctie wordt bepaald door de Autosens min/max instellingen.\\Voor de Sigmoid functie wordt een aanpassingsfactor van 0.4 - 0.5 aanbevolen om mee te beginnen.n\nVoor de logaritmische formule is er minder overeenstemming, maar beginnen rond de 0.8 is waarschijnlijk goed voor de meeste volwassen gebruikers. Voor jongere gebruikers is het aan te raden om nog lager te beginnen met de logaritmische formule, om een te agressieve behandeling te voorkomen.";
 
-
-/* Headline "Use Sigmoid Function" */
+/* Headline Use Sigmoid Function */
 "Use Sigmoid Function" = "Gebruik Sigmoid functie";
+
+/* Which dyn ISF function to use */
+"Formula" = "Formule";
+
+/* Extra Safety Features when using dyn ISF */
+"Safety" = "Veiligheid";
 
 /* Use Sigmoid Function */
 "Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function." = "Gebruikt een Sigmoid functie voor ISF (en voor CR, indien ingeschakeld), in plaats van de standaard logaritmische formule. Vereist een geactiveerde dynamische ISF instelling.\n\nDe instelling aanpassing past de helling van de curve aan (Y: Dynamische verhouding, X: Bloedglucose). Een lagere waarde ==> minder steil = minder agressief.\n\nDe autosens.min/max instellingen bepalen zowel de max/min grenzen voor de dynamische ratio als hoeveel de dynamische ratio wordt aangepast. Als AF de helling van de curve is, is autosens.min/max de hoogte van de grafiek, het Y-interval, waarbij Y: dynamische verhouding. De curve zal altijd een sigmoïde vorm hebben, ongeacht de autosens.min/max instellingen, wat betekent dat deze instellingen grote gevolgen hebben voor het resultaat van de berekende dynamische ISF. Wees voorzichtig met het instellen van een te hoge autosens.max waarde. Met een goede profiel-ISF instelling zal het waarschijnlijk nooit nodig zijn deze hoger in te stellen dan 1,5.\n\nEen Autosens max grens > 1,5 is niet aan te raden bij gebruik van de Sigmoid functie.";
 
+/* Headline Threshold Setting */
+"Threshold Setting" = "Grenswaarde instellingen";
 
-/* Headline "Threshold Setting" */
-"Threshold Setting (mg/dl)" = "Drempelinstelling (mg/dl)";
+/* Dynamic ISF Setting Title */
+"Minimum Threshold Setting" = "Instelling minimale grenswaarde";
 
-/* Threshold Setting */
-"The default threshold in FAX depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl." = "De standaard drempelwaarde in iAPS hangt af van je huidige minimum bloedsuikerdoel. Hier is hoe het werkt:\n\n Als je minimum doel 5,0 mmol/l is, dan is de drempel 3,6 mmol/l. Bij een minimum doel van 5,5 mmol/l, wordt de drempel 3,8 mmol/l. Als je minimum doel 6,1 mmol/l is, blijft de drempel 3,8 mmol/l. Bij een minimum doel van 7,2 mmol/l, wordt de drempel 4,7 mmol/l.\n\nJe kunt deze instelling aanpassen en een hogere drempelwaarde kiezen voor het herhalen met dynISF. De geldige waarden hiervoor zijn tussen 3,6 mmol/l en 6,6 mmol/l.";
+/* Minimum Threshold Setting, Part 1 */
+"This setting lets you choose a level below which no insulin will be given.\n\nThe threshold is using the largest amount of your threshold setting and the computed threshold:\n\nTarget Glucose - (Target Glucose - 40) / 2\n, here using mg/dl as glucose unit.\n\nFor example, if your Target Glucose is " = "Met deze instelling kun je een grenswaarde kiezen waaronder geen insuline wordt toegediend. De grenswaarde is de grootste waarde van je grenswaarde-instelling en de berekende grenswaarde: \n\nStreefwaarde Glucose - (Streefwaarde Glucose - 2,2) / 2 = 1,1) \n---> hier met mmol/l als glucose-eenheid ";
+
+/* Minimum Threshold Setting, Part 2 */
+"the threshold will be " = "de grenswaarde wordt ";
+
+/* Minimum Threshold Setting, Part 3 */
+"unless your threshold setting is set higher:" = "tenzij uw grenswaarde hoger is ingesteld:";
+
+/* Threshold Table Columns Title */
+"Setting" = "Instelling";
+
+/* Threshold Table Columns Title */
+"Threshold" = "Grenswaarde";
+
+/* Header */
+"Calculator settings" = "Calculator instellingen";
+
+/* Bolus Calculator Setting */
+"Use alternate Bolus Calculator" = "Gebruik alternatieve Bolus Calculator";
+
+/* Bolus Calculator Setting */
+"Fatty Meals" = "Vette maaltijd";
+
+/* Bolus Calculator Setting */
+"Apply factor for fatty meals" = "Pas factor toe voor vette maaltijden";
+
+/* Bolus Calculator Footer */
+"The new alternate bolus calculator is another approach to the default bolus calculator in iAPS. If the toggle is on you use this bolus calculator and not the original iAPS calculator. At the end of the calculation a custom factor is applied as it is supposed to be when using smbs (default 0.8).\n\nYou can also add the option in your bolus calculator to apply another (!) customizable factor at the end of the calculation which could be useful for fatty meals, e.g Pizza (default 0.7)." = "De nieuwe alternatieve boluscalculator is een andere benadering van de standaard boluscalculator in iAPS. Als de knop aan staat, gebruik je deze boluscalculator en niet de originele iAPS-calculator. Aan het einde van de berekening wordt een aangepaste factor toegepast, zoals het hoort bij het gebruik van smbs (standaard 0,8).\n\nJe kunt ook de optie toevoegen in je boluscalculator om een andere (!) aanpasbare factor toe te passen aan het einde van de berekening, wat handig kan zijn voor vette maaltijden, zoals pizza (standaard 0,7).";
+
+/* UI/UX option */
+"Display Predictions" = "Geef voorspellingen weer";
+
+/* UI/UX option */
+"Smaller iPhone Screens" = "Kleinere iPhone schermen";
+
+/* UI/UX option */
+"Display and allow Fat and Protein entries" = "Vet- en proteïne weergeven en toestaan";
+
+/* UI/UX option */
+"Add Meal View settings " = "Maaltijdweergave instellingen toevoegen ";
+
+/* UI/UX option */
+"Display Temp Targets Button" = "Toon tijdelijke doelen knop";
+
+/* UI/UX option */
+"Home View Button Panel " = "Beginscherm knoppaneel ";
+
+/* UI/UX title */
+"Home Chart settings " = "Home grafiek instellingen ";
+
+/* UI/UX title */
+"Statistics settings " = "Statistiek instellingen ";
+
+/* UI/UX title */
+"Override HbA1c Unit" = "HbA1c eenheid overschrijven";
+
+/* UI/UX option */
+"In case you're using both profiles and temp targets" = "In het geval dat je zowel profielen als tijdelijke doelen gebruikt";
+
+/* UI/UX option */
+"Always Color Glucose Value (green, yellow etc)" = "Glucose waarde altijd in kleur (rood, groen, geel enz.) weergeven";
+
+/* UI/UX option */
+"Header settings" = "Instellingen voor kopteksten";
+/* UI/UX option */
+"Normally glucose is colored red only when over or under your notification limits for high/low" = "Normaal gesproken wordt glucose alleen rood gekleurd als je de notificatiegrens hebt overschreden voor hoog/laag";
+
+/* UI/UX option */
+"Horizontal Scroll View Visible hours" = "Horizontale scrolweergave zichtbare uren";
+
+/* UI/UX option */
+"Display Time Interval Setting Button" = "Display Time Interval Setting Button";
+
+/* Setting title */
+"Bolus Calculator" = "Bolus calculator";
+
+/* Setting title */
+"Dynamic ISF" = "Dynamische ISF";
+
+/* Notification option */
+"Live Activity" = "Live activiteit";
+
+/* Notification option */
+"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "De 'Live activiteit' toont bloedglucose op het vergrendelscherm en op het Dynamische Island (indien beschikbaar).\n\nDynamic Island vervangt de traditionele statische 'notch' (inkeping) aan de bovenkant van de iPhone-schermen";
+
+/* Notification option */
+"Show Live activity" = "Toon live activiteit";
+
+/* Live Activity Footer */
+"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "De 'Live activiteit' toont bloedglucose op het vergrendelscherm en op het Dynamische Island (indien beschikbaar).\n\nDynamic Island vervangt de traditionele statische 'notch' (inkeping) aan de bovenkant van de iPhone-schermen";
+
+/* Live Activity Footer when off */
+"Live activities are turned OFF in system settings. To enable live activities, go to Settings app -> iAPS -> Turn live Activities ON.\n\n" = "Live activiteiten zijn uitgeschakeld in systeem instellingen. Ga naar Instellingen -> iAPS -> Live activiteiten\n\n om live activiteiten in te schakelen.";
 
 /* Headline "Weighted Average of TDD. Weight of past 24 hours:" */
 "Weighted Average of TDD. Weight of past 24 hours:" = "Gewogen gemiddelde van TDD van afgelopen 24 uur:";
