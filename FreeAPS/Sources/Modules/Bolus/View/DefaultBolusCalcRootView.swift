@@ -158,35 +158,14 @@ extension Bolus {
                         state.waitForSuggestion = waitForSuggestion
                     }
                 }
-
-                .onDisappear {
-                    if fetch, hasFatOrProtein, !keepForNextWiew, !state.useCalc {
-                        state.delete(deleteTwice: true, meal: meal)
-                    } else if fetch, !keepForNextWiew, !state.useCalc {
-                        state.delete(deleteTwice: false, meal: meal)
-                    }
-                }
-
                 .navigationTitle("Enact Bolus")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
-                        if fetch {
-                            Button {
-                                keepForNextWiew = true
-                                state.backToCarbsView(complexEntry: true, meal, override: false)
-                            } label: {
-                                HStack {
-                                    Image(systemName: "chevron.backward")
-                                    Text("Meal")
-                                }
-                            }
-                        } else {
-                            Button {
-                                state.hideModal()
-                            } label: {
-                                Text("Close")
-                            }
+                        Button {
+                            state.hideModal()
+                        } label: {
+                            Text("Close")
                         }
                     }
                 }

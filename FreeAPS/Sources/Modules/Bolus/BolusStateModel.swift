@@ -49,6 +49,7 @@ extension Bolus {
         @Published var deltaBG: Decimal = 0
         @Published var targetDifferenceInsulin: Decimal = 0
         @Published var targetDifference: Decimal = 0
+        @Published var wholeCob: Decimal = 0
         @Published var wholeCobInsulin: Decimal = 0
         @Published var iobInsulinReduction: Decimal = 0
         @Published var wholeCalc: Decimal = 0
@@ -73,7 +74,6 @@ extension Bolus {
         @Published var protein: Decimal = 0
         @Published var note: String = ""
 
-        // @Published var carbs: Decimal = 0
         @Published var date = Date()
         // @Published var protein: Decimal = 0
         // @Published var fat: Decimal = 0
@@ -192,7 +192,8 @@ extension Bolus {
             fifteenMinInsulin = (deltaBG * conversion) / isf
 
             // determine whole COB for which we want to dose insulin for and then determine insulin for wholeCOB
-            wholeCobInsulin = cob / carbRatio
+            wholeCob = cob + carbs
+            wholeCobInsulin = wholeCob / carbRatio
 
             // determine how much the calculator reduces/ increases the bolus because of IOB
             iobInsulinReduction = (-1) * iob
@@ -292,44 +293,44 @@ extension Bolus {
             }
         }
 
-        func backToCarbsView(complexEntry: Bool, _ meal: FetchedResults<Meals>, override _: Bool) {
-            delete(deleteTwice: complexEntry, meal: meal)
-            // showModal(for: .addCarbs(editMode: complexEntry, override: override))
-        }
+//        func backToCarbsView(complexEntry: Bool, _ meal: FetchedResults<Meals>, override _: Bool) {
+//            delete(deleteTwice: complexEntry, meal: meal)
+//            // showModal(for: .addCarbs(editMode: complexEntry, override: override))
+//        }
 
-        func delete(deleteTwice: Bool, meal: FetchedResults<Meals>) {
-            guard let meals = meal.first else {
-                return
-            }
-
-            var date = Date()
-
-            if let mealDate = meals.actualDate {
-                date = mealDate
-            } else if let mealdate = meals.createdAt {
-                date = mealdate
-            }
-
-            let mealArray = DataTable.Treatment(
-                units: units,
-                type: .carbs,
-                date: date,
-                id: meals.id ?? "",
-                isFPU: deleteTwice ? true : false,
-                fpuID: deleteTwice ? (meals.fpuID ?? "") : ""
-            )
-
-            print(
-                "meals 2: ID: " + mealArray.id.description + " FPU ID: " + (mealArray.fpuID ?? "")
-                    .description
-            )
-
-            if deleteTwice {
-                nsManager.deleteCarbs(mealArray, complexMeal: true)
-            } else {
-                nsManager.deleteCarbs(mealArray, complexMeal: false)
-            }
-        }
+//        func delete(deleteTwice: Bool, meal: FetchedResults<Meals>) {
+//            guard let meals = meal.first else {
+//                return
+//            }
+//
+//            var date = Date()
+//
+//            if let mealDate = meals.actualDate {
+//                date = mealDate
+//            } else if let mealdate = meals.createdAt {
+//                date = mealdate
+//            }
+//
+//            let mealArray = DataTable.Treatment(
+//                units: units,
+//                type: .carbs,
+//                date: date,
+//                id: meals.id ?? "",
+//                isFPU: deleteTwice ? true : false,
+//                fpuID: deleteTwice ? (meals.fpuID ?? "") : ""
+//            )
+//
+//            print(
+//                "meals 2: ID: " + mealArray.id.description + " FPU ID: " + (mealArray.fpuID ?? "")
+//                    .description
+//            )
+//
+//            if deleteTwice {
+//                nsManager.deleteCarbs(mealArray, complexMeal: true)
+//            } else {
+//                nsManager.deleteCarbs(mealArray, complexMeal: false)
+//            }
+//        }
 
         func addCarbs(_ continue_: Bool, fetch: Bool) {
             guard carbs > 0 || fat > 0 || protein > 0 else { return }
@@ -355,7 +356,6 @@ extension Bolus {
             } else if carbs > 0 {
                 saveToCoreData(carbsToStore)
                 apsManager.determineBasalSync()
-                // showModal(for: .bolus(waitForSuggestion: true, fetch: true, editMode: false, override: false))
             } else {
                 hideModal()
             }

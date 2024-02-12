@@ -10,32 +10,24 @@ extension Bolus {
         let fetch: Bool
         let editMode: Bool
         let override: Bool
+
         @StateObject var state: StateModel
+
         @State private var showInfo = false
         @State private var showAlert = false
         @State private var exceededMaxBolus = false
-        @State private var keepForNextWiew: Bool = false
-        @State private var calcButtonPressed: Bool = false
         @State private var autofocus: Bool = true
         @State private var calculatorDetent = PresentationDetent.medium
         @State var pushed = false
         @State var isPromptPresented = false
         @State var dish: String = ""
         @State var saved = false
-        @State private var treatmentsViewMode: TreatmentsViewMode = .calcMode
-
-        @FocusState private var isFocused: Bool
 
         @Environment(\.managedObjectContext) var moc
 
         private enum Config {
             static let dividerHeight: CGFloat = 2
             static let spacing: CGFloat = 3
-        }
-
-        private enum TreatmentsViewMode {
-            case editMode
-            case calcMode
         }
 
         @Environment(\.colorScheme) var colorScheme
@@ -339,16 +331,6 @@ extension Bolus {
                         }
                     }
 
-                    // Optional meal note
-                    //                    HStack {
-                    //                        Image(systemName: "note.text.badge.plus").foregroundColor(.secondary)
-                    //                        TextField("", text: $state.note).multilineTextAlignment(.trailing)
-                    //                        if state.note != "", isFocused {
-                    //                            Button { isFocused = false } label: { Image(systemName: "keyboard.chevron.compact.down") }
-                    //                                .controlSize(.mini)
-                    //                        }
-                    //                    }
-                    //                    .focused($isFocused)
                     .popover(isPresented: $isPromptPresented) {
                         presetPopover
                     }
@@ -356,25 +338,11 @@ extension Bolus {
                     HStack {
                         Spacer()
                         Button {
-                            if treatmentsViewMode == .calcMode {
-                                state.addCarbs(override, fetch: editMode)
-                                treatmentsViewMode = .editMode
-                                calcButtonPressed.toggle()
-                            } else {
-                                state.backToCarbsView(complexEntry: true, meal, override: false)
-                                treatmentsViewMode = .calcMode
-                            }
+                            // to do
+                            state.insulinCalculated = state.calculateInsulin()
                         }
                         label: {
-                            // Text((state.skipBolus && !override && !editMode) ? "Save" : "Calculate Bolus")
-                            // if carbs > 0 and it is the first entry then go into edit mode
-                            // conditionally change text to 'edit meal'
-                            // Text(!editMode ? "Calculate" : "Edit Meal")
-                            if treatmentsViewMode == .calcMode {
-                                Text("Calculate")
-                            } else {
-                                Text("Edit meal")
-                            }
+                            Text("Calculate")
                         }.disabled(empty)
 
                         Spacer()
@@ -476,14 +444,9 @@ extension Bolus {
                 if state.amount > 0 {
                     Section {
                         Button {
-                            keepForNextWiew = true
                             state.add()
                             state.hideModal()
-                            /// check if user pressed the calc button or just wanted to enter carbs
-                            /// otherwise carb entry is doubled
-                            if !calcButtonPressed {
-                                state.addCarbs(override, fetch: editMode)
-                            }
+                            state.addCarbs(override, fetch: editMode)
                         }
                         label: { Text(exceededMaxBolus ? "Max Bolus exceeded!" : "Enact bolus") }
                             .frame(maxWidth: .infinity, alignment: .center)
@@ -495,13 +458,8 @@ extension Bolus {
                 if state.amount <= 0 {
                     Section {
                         Button {
-                            keepForNextWiew = true
                             state.hideModal()
-                            /// check if user pressed the calc button or just wanted to enter carbs
-                            /// otherwise carb entry is doubled
-                            if !calcButtonPressed {
-                                state.addCarbs(override, fetch: editMode)
-                            }
+                            state.addCarbs(override, fetch: editMode)
                         }
                         label: { Text("Continue without bolus") }.frame(maxWidth: .infinity, alignment: .center)
                     }.listRowBackground(Color.chart)
@@ -526,13 +484,7 @@ extension Bolus {
                         state.insulinCalculated = state.calculateInsulin()
                     }
                 }
-                .onDisappear {
-                    if hasFatOrProtein, !keepForNextWiew, state.useCalc, treatmentsViewMode == .editMode {
-                        state.delete(deleteTwice: true, meal: meal)
-                    } else if !keepForNextWiew, state.useCalc, treatmentsViewMode == .editMode {
-                        state.delete(deleteTwice: false, meal: meal)
-                    }
-                }
+
                 .sheet(isPresented: $showInfo) {
                     calculationsDetailView
                         .presentationDetents(
@@ -680,7 +632,7 @@ extension Bolus {
                 HStack {
                     Text("COB:").foregroundColor(.secondary)
                     Text(
-                        state.cob
+                        state.wholeCob
                             .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits))) +
                             NSLocalizedString(" g", comment: "grams")
                     )
