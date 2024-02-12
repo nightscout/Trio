@@ -390,26 +390,18 @@ extension Bolus {
                         }
                     }
 
-                    if state.waitForSuggestion {
-                        HStack {
-                            Text("Wait please").foregroundColor(.secondary)
-                            Spacer()
-                            ActivityIndicator(isAnimating: .constant(true), style: .medium) // fix iOS 15 bug
-                        }
-                    } else {
-                        HStack {
-                            Text("Recommended Bolus")
-                            Spacer()
-                            Text(
-                                formatter
-                                    .string(from: Double(state.insulinCalculated) as NSNumber) ?? ""
-                            )
-                            Text(
-                                NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
-                            ).foregroundColor(.secondary)
-                        }.contentShape(Rectangle())
-                            .onTapGesture { state.amount = state.insulinCalculated }
-                    }
+                    HStack {
+                        Text("Recommended Bolus")
+                        Spacer()
+                        Text(
+                            formatter
+                                .string(from: Double(state.insulinCalculated) as NSNumber) ?? ""
+                        )
+                        Text(
+                            NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
+                        ).foregroundColor(.secondary)
+                    }.contentShape(Rectangle())
+                        .onTapGesture { state.amount = state.insulinCalculated }
 
                     HStack {
                         Text("Bolus")
@@ -471,8 +463,6 @@ extension Bolus {
                 })
                 .onAppear {
                     configureView {
-                        state.waitForSuggestionInitial = waitForSuggestion
-                        state.waitForSuggestion = waitForSuggestion
                         state.insulinCalculated = state.calculateInsulin()
                     }
                 }
