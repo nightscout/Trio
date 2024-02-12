@@ -332,7 +332,7 @@ extension Bolus {
 //            }
 //        }
 
-        func addCarbs(_ continue_: Bool, fetch: Bool) {
+        func addCarbs() {
             guard carbs > 0 || fat > 0 || protein > 0 else { return }
             carbs = min(carbs, maxCarbs)
             id_ = UUID().uuidString
@@ -350,7 +350,7 @@ extension Bolus {
             )]
             carbsStorage.storeCarbs(carbsToStore)
 
-            if skipBolus, !continue_, !fetch {
+            if skipBolus {
                 apsManager.determineBasalSync()
                 showModal(for: nil)
             } else if carbs > 0 {

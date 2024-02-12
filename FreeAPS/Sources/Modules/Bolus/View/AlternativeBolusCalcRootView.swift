@@ -6,10 +6,6 @@ import Swinject
 extension Bolus {
     struct AlternativeBolusCalcRootView: BaseView {
         let resolver: Resolver
-        let waitForSuggestion: Bool
-        let fetch: Bool
-        let editMode: Bool
-        let override: Bool
 
         @StateObject var state: StateModel
 
@@ -398,26 +394,18 @@ extension Bolus {
                         }
                     }
 
-                    if state.waitForSuggestion {
-                        HStack {
-                            Text("Wait please").foregroundColor(.secondary)
-                            Spacer()
-                            ActivityIndicator(isAnimating: .constant(true), style: .medium) // fix iOS 15 bug
-                        }
-                    } else {
-                        HStack {
-                            Text("Recommended Bolus")
-                            Spacer()
-                            Text(
-                                formatter
-                                    .string(from: Double(state.insulinCalculated) as NSNumber) ?? ""
-                            )
-                            Text(
-                                NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
-                            ).foregroundColor(.secondary)
-                        }.contentShape(Rectangle())
-                            .onTapGesture { state.amount = state.insulinCalculated }
-                    }
+                    HStack {
+                        Text("Recommended Bolus")
+                        Spacer()
+                        Text(
+                            formatter
+                                .string(from: Double(state.insulinCalculated) as NSNumber) ?? ""
+                        )
+                        Text(
+                            NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
+                        ).foregroundColor(.secondary)
+                    }.contentShape(Rectangle())
+                        .onTapGesture { state.amount = state.insulinCalculated }
 
                     HStack {
                         Text("Bolus")
@@ -446,7 +434,7 @@ extension Bolus {
                         Button {
                             state.add()
                             state.hideModal()
-                            state.addCarbs(override, fetch: editMode)
+                            state.addCarbs()
                         }
                         label: { Text(exceededMaxBolus ? "Max Bolus exceeded!" : "Enact bolus") }
                             .frame(maxWidth: .infinity, alignment: .center)
@@ -459,7 +447,7 @@ extension Bolus {
                     Section {
                         Button {
                             state.hideModal()
-                            state.addCarbs(override, fetch: editMode)
+                            state.addCarbs()
                         }
                         label: { Text("Continue without bolus") }.frame(maxWidth: .infinity, alignment: .center)
                     }.listRowBackground(Color.chart)
@@ -479,8 +467,6 @@ extension Bolus {
                 })
                 .onAppear {
                     configureView {
-                        state.waitForSuggestionInitial = waitForSuggestion
-                        state.waitForSuggestion = waitForSuggestion
                         state.insulinCalculated = state.calculateInsulin()
                     }
                 }
@@ -488,7 +474,7 @@ extension Bolus {
                 .sheet(isPresented: $showInfo) {
                     calculationsDetailView
                         .presentationDetents(
-                            [fetch ? .large : .fraction(0.9), .large],
+                            [.fraction(0.9), .large],
                             selection: $calculatorDetent
                         )
                 }
@@ -838,52 +824,6 @@ extension Bolus {
                         calcSettingsSecondRow
 
                         DividerCustom()
-
-                        if fetch {
-                            // meal entries as grid rows
-
-                            GridRow {
-                                if let carbs = meal.first?.carbs, carbs > 0 {
-                                    Text("Carbs").foregroundColor(.secondary)
-                                    Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
-                                    HStack {
-                                        Text(carbs.formatted())
-                                        Text("g").foregroundColor(.secondary)
-                                    }.gridCellAnchor(.trailing)
-                                }
-                            }
-
-                            GridRow {
-                                if let fat = meal.first?.fat, fat > 0 {
-                                    Text("Fat").foregroundColor(.secondary)
-                                    Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
-                                    HStack {
-                                        Text(fat.formatted())
-                                        Text("g").foregroundColor(.secondary)
-                                    }.gridCellAnchor(.trailing)
-                                }
-                            }
-
-                            GridRow {
-                                if let protein = meal.first?.protein, protein > 0 {
-                                    Text("Protein").foregroundColor(.secondary)
-                                    Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
-                                    HStack {
-                                        Text(protein.formatted())
-                                        Text("g").foregroundColor(.secondary)
-                                    }.gridCellAnchor(.trailing)
-                                }
-                            }
-
-                            GridRow {
-                                if let note = meal.first?.note, note != "" {
-                                    Text("Note").foregroundColor(.secondary)
-                                    Text(note).foregroundColor(.secondary).gridCellColumns(2).gridCellAnchor(.trailing)
-                                }
-                            }
-
-                            DividerCustom()
-                        }
 
                         GridRow {
                             Text("Detailed Calculation Steps").gridCellColumns(3).gridCellAnchor(.center)
