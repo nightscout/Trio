@@ -18,6 +18,7 @@ extension Bolus {
         @State var isPromptPresented = false
         @State var dish: String = ""
         @State var saved = false
+        @State var isCalculating: Bool = false
 
         @Environment(\.managedObjectContext) var moc
 
@@ -334,11 +335,19 @@ extension Bolus {
                     HStack {
                         Spacer()
                         Button {
-                            // to do
+                            isCalculating = true
                             state.insulinCalculated = state.calculateInsulin()
+
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                isCalculating = false
+                            }
                         }
                         label: {
-                            Text("Calculate")
+                            if !isCalculating {
+                                Text("Calculate")
+                            } else {
+                                ProgressView().progressViewStyle(CircularProgressViewStyle())
+                            }
                         }.disabled(empty)
 
                         Spacer()
@@ -348,8 +357,6 @@ extension Bolus {
                 Section {
                     mealPresets
                 }.listRowBackground(Color.chart)
-
-                // MARK: ADDING END
 
                 Section {
                     HStack {

@@ -293,45 +293,6 @@ extension Bolus {
             }
         }
 
-//        func backToCarbsView(complexEntry: Bool, _ meal: FetchedResults<Meals>, override _: Bool) {
-//            delete(deleteTwice: complexEntry, meal: meal)
-//            // showModal(for: .addCarbs(editMode: complexEntry, override: override))
-//        }
-
-//        func delete(deleteTwice: Bool, meal: FetchedResults<Meals>) {
-//            guard let meals = meal.first else {
-//                return
-//            }
-//
-//            var date = Date()
-//
-//            if let mealDate = meals.actualDate {
-//                date = mealDate
-//            } else if let mealdate = meals.createdAt {
-//                date = mealdate
-//            }
-//
-//            let mealArray = DataTable.Treatment(
-//                units: units,
-//                type: .carbs,
-//                date: date,
-//                id: meals.id ?? "",
-//                isFPU: deleteTwice ? true : false,
-//                fpuID: deleteTwice ? (meals.fpuID ?? "") : ""
-//            )
-//
-//            print(
-//                "meals 2: ID: " + mealArray.id.description + " FPU ID: " + (mealArray.fpuID ?? "")
-//                    .description
-//            )
-//
-//            if deleteTwice {
-//                nsManager.deleteCarbs(mealArray, complexMeal: true)
-//            } else {
-//                nsManager.deleteCarbs(mealArray, complexMeal: false)
-//            }
-//        }
-
         func addCarbs() {
             guard carbs > 0 || fat > 0 || protein > 0 else { return }
             carbs = min(carbs, maxCarbs)
