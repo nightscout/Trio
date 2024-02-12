@@ -299,59 +299,44 @@ extension MainChartView {
                 }
                 /// glucose point mark
                 /// filtering for high and low bounds in settings
-                ForEach(glucose.filter { $0.sgv ?? 0 > Int(highGlucose) }) { item in
+                ForEach(glucose) { item in
                     if let sgv = item.sgv {
                         let sgvLimited = max(sgv, 0)
 
-                        PointMark(
-                            x: .value("Time", item.dateString, unit: .second),
-                            y: .value("Value", Decimal(sgvLimited) * conversionFactor)
-                        ).foregroundStyle(Color.orange.gradient).symbolSize(25)
-
                         if smooth {
-                            PointMark(
-                                x: .value("Time", item.dateString, unit: .second),
-                                y: .value("Value", Decimal(sgvLimited) * conversionFactor)
-                            ).foregroundStyle(Color.orange.gradient).symbolSize(25)
-                                .interpolationMethod(.cardinal)
-                        }
-                    }
-                }
-
-                ForEach(glucose.filter { $0.sgv ?? 0 < Int(lowGlucose) }) { item in
-                    if let sgv = item.sgv {
-                        let sgvLimited = max(sgv, 0)
-
-                        PointMark(
-                            x: .value("Time", item.dateString, unit: .second),
-                            y: .value("Value", Decimal(sgvLimited) * conversionFactor)
-                        ).foregroundStyle(Color.red.gradient).symbolSize(25)
-
-                        if smooth {
-                            PointMark(
-                                x: .value("Time", item.dateString, unit: .second),
-                                y: .value("Value", Decimal(sgvLimited) * conversionFactor)
-                            ).foregroundStyle(Color.red.gradient).symbolSize(25)
-                                .interpolationMethod(.cardinal)
-                        }
-                    }
-                }
-
-                ForEach(glucose.filter { $0.sgv ?? 0 >= Int(lowGlucose) && $0.sgv ?? 0 <= Int(highGlucose) }) { item in
-                    if let sgv = item.sgv {
-                        let sgvLimited = max(sgv, 0)
-
-                        PointMark(
-                            x: .value("Time", item.dateString, unit: .second),
-                            y: .value("Value", Decimal(sgvLimited) * conversionFactor)
-                        ).foregroundStyle(Color.green.gradient).symbolSize(25)
-
-                        if smooth {
-                            PointMark(
-                                x: .value("Time", item.dateString, unit: .second),
-                                y: .value("Value", Decimal(sgvLimited) * conversionFactor)
-                            ).foregroundStyle(Color.green.gradient).symbolSize(25)
-                                .interpolationMethod(.cardinal)
+                            if sgvLimited > Int(highGlucose) {
+                                PointMark(
+                                    x: .value("Time", item.dateString, unit: .second),
+                                    y: .value("Value", Decimal(sgvLimited) * conversionFactor)
+                                ).foregroundStyle(Color.orange.gradient).symbolSize(25).interpolationMethod(.cardinal)
+                            } else if sgvLimited < Int(lowGlucose) {
+                                PointMark(
+                                    x: .value("Time", item.dateString, unit: .second),
+                                    y: .value("Value", Decimal(sgvLimited) * conversionFactor)
+                                ).foregroundStyle(Color.red.gradient).symbolSize(25).interpolationMethod(.cardinal)
+                            } else {
+                                PointMark(
+                                    x: .value("Time", item.dateString, unit: .second),
+                                    y: .value("Value", Decimal(sgvLimited) * conversionFactor)
+                                ).foregroundStyle(Color.green.gradient).symbolSize(25).interpolationMethod(.cardinal)
+                            }
+                        } else {
+                            if sgvLimited > Int(highGlucose) {
+                                PointMark(
+                                    x: .value("Time", item.dateString, unit: .second),
+                                    y: .value("Value", Decimal(sgvLimited) * conversionFactor)
+                                ).foregroundStyle(Color.orange.gradient).symbolSize(25)
+                            } else if sgvLimited < Int(lowGlucose) {
+                                PointMark(
+                                    x: .value("Time", item.dateString, unit: .second),
+                                    y: .value("Value", Decimal(sgvLimited) * conversionFactor)
+                                ).foregroundStyle(Color.red.gradient).symbolSize(25)
+                            } else {
+                                PointMark(
+                                    x: .value("Time", item.dateString, unit: .second),
+                                    y: .value("Value", Decimal(sgvLimited) * conversionFactor)
+                                ).foregroundStyle(Color.green.gradient).symbolSize(25)
+                            }
                         }
                     }
                 }
