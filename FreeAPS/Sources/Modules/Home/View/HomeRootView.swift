@@ -943,7 +943,7 @@ extension Home {
                     tabBarButton(index: 1, systemName: historySFSymbol, label: "History")
                     Spacer()
                     Button(action: {
-                        state.showModal(for: .bolus(waitForSuggestion: true, fetch: false, editMode: false, override: false))
+                        state.showModal(for: .bolus(waitForSuggestion: true, fetch: false))
                     }) {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 45))

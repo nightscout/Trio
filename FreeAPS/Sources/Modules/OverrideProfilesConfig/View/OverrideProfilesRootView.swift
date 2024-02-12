@@ -491,7 +491,7 @@ extension OverrideProfilesConfig {
                 high = high?.asMmolL
             }
             let isSelected = preset.id == selectedPresetID
-            
+
             return ZStack(alignment: .trailing, content: {
                 HStack {
                     VStack {
@@ -505,7 +505,7 @@ extension OverrideProfilesConfig {
                             )
                             .foregroundColor(.secondary)
                             .font(.caption)
-                            
+
                             Text(state.units.rawValue)
                                 .foregroundColor(.secondary)
                                 .font(.caption)
@@ -518,7 +518,7 @@ extension OverrideProfilesConfig {
                             Text("min")
                                 .foregroundColor(.secondary)
                                 .font(.caption)
-                            
+
                             Spacer()
                         }.padding(.top, 2)
                     }
@@ -527,31 +527,31 @@ extension OverrideProfilesConfig {
                         state.enactPreset(id: preset.id)
                         selectedPresetID = preset.id
                         showCheckmark.toggle()
-                        
-                        //deactivate showCheckmark after 3 seconds
+
+                        // deactivate showCheckmark after 3 seconds
                         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                             showCheckmark = false
                         }
                     }
-        
-                Image(systemName: "xmark.circle").foregroundColor(showCheckmark && isSelected ? Color.clear : Color.secondary)
-                    .contentShape(Rectangle())
-                    .padding(.vertical)
-                    .onTapGesture {
-                        removeAlert = Alert(
-                            title: Text("Are you sure?"),
-                            message: Text("Delete preset \"\(preset.displayName)\""),
-                            primaryButton: .destructive(Text("Delete"), action: { state.removePreset(id: preset.id) }),
-                            secondaryButton: .cancel()
-                        )
-                        isRemoveAlertPresented = true
-                    }
-                    .alert(isPresented: $isRemoveAlertPresented) {
-                        removeAlert!
-                    }
+
+                    Image(systemName: "xmark.circle").foregroundColor(showCheckmark && isSelected ? Color.clear : Color.secondary)
+                        .contentShape(Rectangle())
+                        .padding(.vertical)
+                        .onTapGesture {
+                            removeAlert = Alert(
+                                title: Text("Are you sure?"),
+                                message: Text("Delete preset \"\(preset.displayName)\""),
+                                primaryButton: .destructive(Text("Delete"), action: { state.removePreset(id: preset.id) }),
+                                secondaryButton: .cancel()
+                            )
+                            isRemoveAlertPresented = true
+                        }
+                        .alert(isPresented: $isRemoveAlertPresented) {
+                            removeAlert!
+                        }
                 }
                 if showCheckmark && isSelected {
-                    //show checkmark to indicate if the preset was actually pressed
+                    // show checkmark to indicate if the preset was actually pressed
                     Image(systemName: "checkmark.circle.fill")
                         .imageScale(.large)
                         .fontWeight(.bold)
@@ -613,14 +613,14 @@ extension OverrideProfilesConfig {
                             state.hideModal()
                             showCheckmark.toggle()
                             selectedPresetID = preset.id
-                            
-                            //deactivate showCheckmark after 3 seconds
+
+                            // deactivate showCheckmark after 3 seconds
                             DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                               showCheckmark = false
-                           }
+                                showCheckmark = false
+                            }
                         }
                     }
-                    //show checkmark to indicate if the preset was actually pressed
+                    // show checkmark to indicate if the preset was actually pressed
                     if showCheckmark && isSelected {
                         Image(systemName: "checkmark.circle.fill")
                             .imageScale(.large)

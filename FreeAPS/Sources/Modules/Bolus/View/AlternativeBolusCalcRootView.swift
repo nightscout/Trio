@@ -7,9 +7,6 @@ extension Bolus {
     struct AlternativeBolusCalcRootView: BaseView {
         let resolver: Resolver
         let waitForSuggestion: Bool
-        let fetch: Bool
-        let editMode: Bool
-        let override: Bool
 
         @StateObject var state: StateModel
 
@@ -31,11 +28,6 @@ extension Bolus {
         }
 
         @Environment(\.colorScheme) var colorScheme
-
-        @FetchRequest(
-            entity: Meals.entity(),
-            sortDescriptors: [NSSortDescriptor(key: "createdAt", ascending: false)]
-        ) var meal: FetchedResults<Meals>
 
         @FetchRequest(
             entity: Presets.entity(),
@@ -446,7 +438,7 @@ extension Bolus {
                         Button {
                             state.add()
                             state.hideModal()
-                            state.addCarbs(override, fetch: editMode)
+                            state.addCarbs()
                         }
                         label: { Text(exceededMaxBolus ? "Max Bolus exceeded!" : "Enact bolus") }
                             .frame(maxWidth: .infinity, alignment: .center)
@@ -459,7 +451,7 @@ extension Bolus {
                     Section {
                         Button {
                             state.hideModal()
-                            state.addCarbs(override, fetch: editMode)
+                            state.addCarbs()
                         }
                         label: { Text("Continue without bolus") }.frame(maxWidth: .infinity, alignment: .center)
                     }.listRowBackground(Color.chart)
@@ -488,7 +480,7 @@ extension Bolus {
                 .sheet(isPresented: $showInfo) {
                     calculationsDetailView
                         .presentationDetents(
-                            [fetch ? .large : .fraction(0.9), .large],
+                            [.fraction(0.9), .large],
                             selection: $calculatorDetent
                         )
                 }
@@ -839,49 +831,41 @@ extension Bolus {
 
                         DividerCustom()
 
-                        if fetch {
-                            // meal entries as grid rows
-
+                        // meal entries as grid rows
+                        if state.carbs > 0 {
                             GridRow {
-                                if let carbs = meal.first?.carbs, carbs > 0 {
-                                    Text("Carbs").foregroundColor(.secondary)
-                                    Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
-                                    HStack {
-                                        Text(carbs.formatted())
-                                        Text("g").foregroundColor(.secondary)
-                                    }.gridCellAnchor(.trailing)
-                                }
+                                Text("Carbs").foregroundColor(.secondary)
+                                Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
+                                HStack {
+                                    Text(state.carbs.formatted())
+                                    Text("g").foregroundColor(.secondary)
+                                }.gridCellAnchor(.trailing)
                             }
+                        }
 
+                        if state.fat > 0 {
                             GridRow {
-                                if let fat = meal.first?.fat, fat > 0 {
-                                    Text("Fat").foregroundColor(.secondary)
-                                    Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
-                                    HStack {
-                                        Text(fat.formatted())
-                                        Text("g").foregroundColor(.secondary)
-                                    }.gridCellAnchor(.trailing)
-                                }
+                                Text("Fat").foregroundColor(.secondary)
+                                Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
+                                HStack {
+                                    Text(state.fat.formatted())
+                                    Text("g").foregroundColor(.secondary)
+                                }.gridCellAnchor(.trailing)
                             }
+                        }
 
+                        if state.protein > 0 {
                             GridRow {
-                                if let protein = meal.first?.protein, protein > 0 {
-                                    Text("Protein").foregroundColor(.secondary)
-                                    Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
-                                    HStack {
-                                        Text(protein.formatted())
-                                        Text("g").foregroundColor(.secondary)
-                                    }.gridCellAnchor(.trailing)
-                                }
+                                Text("Protein").foregroundColor(.secondary)
+                                Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
+                                HStack {
+                                    Text(state.protein.formatted())
+                                    Text("g").foregroundColor(.secondary)
+                                }.gridCellAnchor(.trailing)
                             }
+                        }
 
-                            GridRow {
-                                if let note = meal.first?.note, note != "" {
-                                    Text("Note").foregroundColor(.secondary)
-                                    Text(note).foregroundColor(.secondary).gridCellColumns(2).gridCellAnchor(.trailing)
-                                }
-                            }
-
+                        if state.carbs > 0 || state.protein > 0 || state.fat > 0 {
                             DividerCustom()
                         }
 
@@ -941,50 +925,6 @@ extension Bolus {
 
         private var disabled: Bool {
             state.amount <= 0 || state.amount > state.maxBolus
-        }
-
-        var changed: Bool {
-            ((meal.first?.carbs ?? 0) > 0) || ((meal.first?.fat ?? 0) > 0) || ((meal.first?.protein ?? 0) > 0)
-        }
-
-        var hasFatOrProtein: Bool {
-            ((meal.first?.fat ?? 0) > 0) || ((meal.first?.protein ?? 0) > 0)
-        }
-
-        var mealEntries: some View {
-            VStack {
-                if let carbs = meal.first?.carbs, carbs > 0 {
-                    HStack {
-                        Text("Carbs").foregroundColor(.secondary)
-                        Spacer()
-                        Text(carbs.formatted())
-                        Text("g").foregroundColor(.secondary)
-                    }
-                }
-                if let fat = meal.first?.fat, fat > 0 {
-                    HStack {
-                        Text("Fat").foregroundColor(.secondary)
-                        Spacer()
-                        Text(fat.formatted())
-                        Text("g").foregroundColor(.secondary)
-                    }
-                }
-                if let protein = meal.first?.protein, protein > 0 {
-                    HStack {
-                        Text("Protein").foregroundColor(.secondary)
-                        Spacer()
-                        Text(protein.formatted())
-                        Text("g").foregroundColor(.secondary)
-                    }
-                }
-                if let note = meal.first?.note, note != "" {
-                    HStack {
-                        Text("Note").foregroundColor(.secondary)
-                        Spacer()
-                        Text(note).foregroundColor(.secondary)
-                    }
-                }
-            }
         }
     }
 
