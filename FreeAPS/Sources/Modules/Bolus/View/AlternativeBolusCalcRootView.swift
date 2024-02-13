@@ -280,7 +280,7 @@ extension Bolus {
                             "0",
                             value: $state.carbs,
                             formatter: formatter,
-                            autofocus: true,
+                            autofocus: false,
                             cleanInput: true
                         )
                         Text("g").foregroundColor(.secondary)
