@@ -632,7 +632,7 @@ extension Bolus {
                 }
 
                 Text(
-                    state.cob
+                    state.wholeCob
                         .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits)))
                         + " / " +
                         state.carbRatio.formatted()
