@@ -6,7 +6,6 @@ import Swinject
 extension Bolus {
     struct AlternativeBolusCalcRootView: BaseView {
         let resolver: Resolver
-        let waitForSuggestion: Bool
 
         @StateObject var state: StateModel
 
@@ -602,7 +601,7 @@ extension Bolus {
 
                 let iobFormatted = self.insulinRounder(state.iob).formatted()
                 HStack {
-                    Text((state.iob != 0 ? "-" : "") + (state.iob >= 0 ? iobFormatted : "(" + iobFormatted + ")"))
+                    Text((state.iob >= 0 ? "-" : "") + (state.iob >= 0 ? iobFormatted : "(" + iobFormatted + ")"))
                     Text("U").foregroundColor(.secondary)
                 }.fontWeight(.bold)
                     .gridColumnAlignment(.trailing)
@@ -774,7 +773,7 @@ extension Bolus {
                 HStack {
                     Text(self.insulinRounder(state.insulinCalculated).formatted())
                         .fontWeight(.bold)
-                        .foregroundColor(.blue)
+                        .foregroundColor(state.wholeCalc >= state.maxBolus ? Color.loopRed : Color.blue)
                     Text("U").foregroundColor(.secondary)
                 }
                 .gridColumnAlignment(.trailing)
@@ -785,25 +784,37 @@ extension Bolus {
         var calcResultFormulaRow: some View {
             GridRow(alignment: .bottom) {
                 if state.useFattyMealCorrectionFactor {
-                    Text("Factor x Fatty Meal Factor x Full Bolus")
-                        .foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
-                        .font(.caption)
-                        .gridCellAnchor(.center)
-                        .gridCellColumns(3)
+                    Group {
+                        Text("Factor x Fatty Meal Factor x Full Bolus")
+                            .foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
+                            +
+                            Text(state.wholeCalc > state.maxBolus ? " ≈ Max Bolus" : "").foregroundColor(Color.loopRed)
+                    }
+                    .font(.caption)
+                    .gridCellAnchor(.center)
+                    .gridCellColumns(3)
                 } else if state.useSuperBolus {
-                    Text("(Factor x Full Bolus) + Super Bolus")
-                        .foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
-                        .font(.caption)
-                        .gridCellAnchor(.center)
-                        .gridCellColumns(3)
+                    Group {
+                        Text("(Factor x Full Bolus) + Super Bolus")
+                            .foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
+                            +
+                            Text(state.wholeCalc > state.maxBolus ? " ≈ Max Bolus" : "").foregroundColor(Color.loopRed)
+                    }
+                    .font(.caption)
+                    .gridCellAnchor(.center)
+                    .gridCellColumns(3)
                 } else {
                     Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
-                    Text("Factor x Full Bolus")
-                        .foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
-                        .font(.caption)
-                        .padding(.top, 5)
-                        .gridCellAnchor(.leading)
-                        .gridCellColumns(2)
+                    Group {
+                        Text("Factor x Full Bolus")
+                            .foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
+                            +
+                            Text(state.wholeCalc > state.maxBolus ? " ≈ Max Bolus" : "").foregroundColor(Color.loopRed)
+                    }
+                    .font(.caption)
+                    .padding(.top, 5)
+                    .gridCellAnchor(.leading)
+                    .gridCellColumns(2)
                 }
             }
         }

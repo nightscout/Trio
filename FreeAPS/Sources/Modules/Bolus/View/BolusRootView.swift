@@ -13,7 +13,6 @@ extension Bolus {
                 // show alternative bolus calc based on toggle in bolus calc settings
                 AlternativeBolusCalcRootView(
                     resolver: resolver,
-                    waitForSuggestion: waitForSuggestion,
                     state: state
                 )
             } else {
