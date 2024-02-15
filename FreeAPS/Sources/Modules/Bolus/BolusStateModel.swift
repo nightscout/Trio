@@ -233,7 +233,7 @@ extension Bolus {
                 .roundBolus(amount: max(insulinCalculated, 0))
         }
 
-        func add() {
+        func add() async {
             guard amount > 0 else {
                 showModal(for: nil)
                 return
@@ -241,13 +241,17 @@ extension Bolus {
 
             let maxAmount = Double(min(amount, provider.pumpSettings().maxBolus))
 
-            unlockmanager.unlock()
-                .sink { _ in } receiveValue: { [weak self] _ in
-                    guard let self = self else { return }
-                    self.apsManager.enactBolus(amount: maxAmount, isSMB: false)
-                    self.showModal(for: nil)
+            do {
+                let authenticated = try await unlockmanager.unlock()
+                if authenticated {
+                    apsManager.enactBolus(amount: maxAmount, isSMB: false)
+                    showModal(for: nil)
+                } else {
+                    print("authentication failed")
                 }
-                .store(in: &lifetime)
+            } catch {
+                print("authentication error: \(error.localizedDescription)")
+            }
         }
 
         func setupInsulinRequired() {

@@ -2,7 +2,7 @@ import Combine
 import LocalAuthentication
 
 protocol UnlockManager {
-    func unlock() -> AnyPublisher<Void, Error>
+    func unlock() async throws -> Bool
 }
 
 struct UnlockError: Error {
@@ -10,31 +10,15 @@ struct UnlockError: Error {
 }
 
 final class BaseUnlockManager: UnlockManager {
-    func unlock() -> AnyPublisher<Void, Error> {
-        Future { promise in
-            let context = LAContext()
-            var error: NSError?
+    func unlock() async throws -> Bool {
+        let context = LAContext()
+        let reason = "We need to make sure you are the owner of the device."
 
-            let handler: (Bool, Error?) -> Void = { success, error in
-                if success {
-                    promise(.success(()))
-                } else {
-                    promise(.failure(UnlockError(error: error)))
-                }
-            }
-
-            let reason = "We need to make sure you are the owner of the device."
-
-            if context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) {
-                context.evaluatePolicy(
-                    .deviceOwnerAuthentication,
-                    localizedReason: reason,
-                    reply: handler
-                )
-            } else {
-                handler(true, nil)
-            }
+        do {
+            _ = try await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason)
+            return true
+        } catch {
+            throw UnlockError(error: error)
         }
-        .eraseToAnyPublisher()
     }
 }

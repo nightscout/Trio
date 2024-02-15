@@ -160,13 +160,17 @@ extension DataTable {
             provider.deleteCarbs(treatment)
         }
 
-        func deleteInsulin(_ treatment: Treatment) {
-            unlockmanager.unlock()
-                .sink { _ in } receiveValue: { [weak self] _ in
-                    guard let self = self else { return }
-                    self.provider.deleteInsulin(treatment)
+        func deleteInsulin(_ treatment: Treatment) async {
+            do {
+                let authenticated = try await unlockmanager.unlock()
+                if authenticated {
+                    provider.deleteInsulin(treatment)
+                } else {
+                    print("authentication failed")
                 }
-                .store(in: &lifetime)
+            } catch {
+                print("authentication error: \(error.localizedDescription)")
+            }
         }
 
         func deleteGlucose(_ glucose: Glucose) {
@@ -219,38 +223,47 @@ extension DataTable {
             saveToHealth.append(saveToJSON)
         }
 
-        func addExternalInsulin() {
+        func addExternalInsulin() async {
             guard externalInsulinAmount > 0 else {
                 showModal(for: nil)
                 return
             }
 
-            externalInsulinAmount = min(externalInsulinAmount, maxBolus * 3) // Allow for 3 * Max Bolus for external insulin
-            unlockmanager.unlock()
-                .sink { _ in } receiveValue: { [weak self] _ in
-                    guard let self = self else { return }
-                    pumpHistoryStorage.storeEvents(
-                        [
-                            PumpHistoryEvent(
-                                id: UUID().uuidString,
-                                type: .bolus,
-                                timestamp: externalInsulinDate,
-                                amount: externalInsulinAmount,
-                                duration: nil,
-                                durationMin: nil,
-                                rate: nil,
-                                temp: nil,
-                                carbInput: nil,
-                                isExternal: true
-                            )
-                        ]
-                    )
-                    debug(.default, "External insulin saved to pumphistory.json")
+            externalInsulinAmount = min(externalInsulinAmount, maxBolus * 3)
 
-                    // Reset amount to 0 for next entry.
-                    externalInsulinAmount = 0
+            do {
+                let authenticated = try await unlockmanager.unlock()
+                if authenticated {
+                    storeExternalInsulinEvent()
+                } else {
+                    print("authentication failed")
                 }
-                .store(in: &lifetime)
+            } catch {
+                print("authentication error: \(error.localizedDescription)")
+            }
+        }
+
+        private func storeExternalInsulinEvent() {
+            pumpHistoryStorage.storeEvents(
+                [
+                    PumpHistoryEvent(
+                        id: UUID().uuidString,
+                        type: .bolus,
+                        timestamp: externalInsulinDate,
+                        amount: externalInsulinAmount,
+                        duration: nil,
+                        durationMin: nil,
+                        rate: nil,
+                        temp: nil,
+                        carbInput: nil,
+                        isExternal: true
+                    )
+                ]
+            )
+            debug(.default, "External insulin saved to pumphistory.json")
+
+            // Reset amount to 0 for next entry.
+            externalInsulinAmount = 0
         }
     }
 }

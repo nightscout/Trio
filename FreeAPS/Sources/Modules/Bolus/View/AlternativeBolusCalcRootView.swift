@@ -434,10 +434,13 @@ extension Bolus {
                 if state.amount > 0 {
                     Section {
                         Button {
-                            state.add()
-                            state.hideModal()
-                            state.addCarbs()
+                            Task {
+                                await state.add()
+                                state.hideModal()
+                                state.addCarbs()
+                            }
                         }
+
                         label: { Text(exceededMaxBolus ? "Max Bolus exceeded!" : "Enact bolus") }
                             .frame(maxWidth: .infinity, alignment: .center)
                             .disabled(disabled)

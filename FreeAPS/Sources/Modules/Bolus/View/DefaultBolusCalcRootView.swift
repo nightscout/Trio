@@ -117,9 +117,11 @@ extension Bolus {
                 if state.amount > 0 {
                     Section {
                         Button {
-                            keepForNextWiew = true
-                            state.add()
-                            state.hideModal()
+                            Task {
+                                await state.add()
+                                state.hideModal()
+                                keepForNextWiew = true
+                            }
                         }
                         label: { Text(!(state.amount > state.maxBolus) ? "Enact bolus" : "Max Bolus exceeded!") }
                             .frame(maxWidth: .infinity, alignment: .center)

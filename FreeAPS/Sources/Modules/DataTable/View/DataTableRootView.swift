@@ -322,7 +322,11 @@ extension DataTable {
                     if state.historyLayout == .twoTabs, treatmentToDelete.type == .carbs || treatmentToDelete.type == .fpus {
                         state.deleteCarbs(treatmentToDelete)
                     } else {
-                        state.deleteInsulin(treatmentToDelete)
+                        Task {
+                            do {
+                                await state.deleteInsulin(treatmentToDelete)
+                            }
+                        }
                     }
                 }
             } message: {
@@ -434,11 +438,14 @@ extension DataTable {
                         Section {
                             HStack {
                                 Button {
-                                    state.addExternalInsulin()
-                                    isAmountUnconfirmed = false
-                                    showExternalInsulin = false
-                                }
-                                label: {
+                                    Task {
+                                        do {
+                                            await state.addExternalInsulin()
+                                            isAmountUnconfirmed = false
+                                            showExternalInsulin = false
+                                        }
+                                    }
+                                } label: {
                                     Text("Log external insulin")
                                 }
                                 .foregroundStyle(foregroundColor)
