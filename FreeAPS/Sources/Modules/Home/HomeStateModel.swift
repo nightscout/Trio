@@ -209,10 +209,6 @@ extension Home {
                 .store(in: &lifetime)
         }
 
-        func addCarbs() {
-            showModal(for: .addCarbs(editMode: false, override: false))
-        }
-
         func runLoop() {
             provider.heartbeatNow()
         }

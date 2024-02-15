@@ -30,11 +30,6 @@ extension Bolus {
         @Environment(\.colorScheme) var colorScheme
 
         @FetchRequest(
-            entity: Meals.entity(),
-            sortDescriptors: [NSSortDescriptor(key: "createdAt", ascending: false)]
-        ) var meal: FetchedResults<Meals>
-
-        @FetchRequest(
             entity: Presets.entity(),
             sortDescriptors: [NSSortDescriptor(key: "dish", ascending: true)]
         ) var carbPresets: FetchedResults<Presets>
@@ -613,7 +608,7 @@ extension Bolus {
 
                 let iobFormatted = self.insulinRounder(state.iob).formatted()
                 HStack {
-                    Text((state.iob != 0 ? "-" : "") + (state.iob >= 0 ? iobFormatted : "(" + iobFormatted + ")"))
+                    Text((state.iob >= 0 ? "-" : "") + (state.iob >= 0 ? iobFormatted : "(" + iobFormatted + ")"))
                     Text("U").foregroundColor(.secondary)
                 }.fontWeight(.bold)
                     .gridColumnAlignment(.trailing)
@@ -785,7 +780,7 @@ extension Bolus {
                 HStack {
                     Text(self.insulinRounder(state.insulinCalculated).formatted())
                         .fontWeight(.bold)
-                        .foregroundColor(.blue)
+                        .foregroundColor(state.wholeCalc >= state.maxBolus ? Color.loopRed : Color.blue)
                     Text("U").foregroundColor(.secondary)
                 }
                 .gridColumnAlignment(.trailing)
@@ -796,25 +791,37 @@ extension Bolus {
         var calcResultFormulaRow: some View {
             GridRow(alignment: .bottom) {
                 if state.useFattyMealCorrectionFactor {
-                    Text("Factor x Fatty Meal Factor x Full Bolus")
-                        .foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
-                        .font(.caption)
-                        .gridCellAnchor(.center)
-                        .gridCellColumns(3)
+                    Group {
+                        Text("Factor x Fatty Meal Factor x Full Bolus")
+                            .foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
+                            +
+                            Text(state.wholeCalc > state.maxBolus ? " ≈ Max Bolus" : "").foregroundColor(Color.loopRed)
+                    }
+                    .font(.caption)
+                    .gridCellAnchor(.center)
+                    .gridCellColumns(3)
                 } else if state.useSuperBolus {
-                    Text("(Factor x Full Bolus) + Super Bolus")
-                        .foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
-                        .font(.caption)
-                        .gridCellAnchor(.center)
-                        .gridCellColumns(3)
+                    Group {
+                        Text("(Factor x Full Bolus) + Super Bolus")
+                            .foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
+                            +
+                            Text(state.wholeCalc > state.maxBolus ? " ≈ Max Bolus" : "").foregroundColor(Color.loopRed)
+                    }
+                    .font(.caption)
+                    .gridCellAnchor(.center)
+                    .gridCellColumns(3)
                 } else {
                     Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
-                    Text("Factor x Full Bolus")
-                        .foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
-                        .font(.caption)
-                        .padding(.top, 5)
-                        .gridCellAnchor(.leading)
-                        .gridCellColumns(2)
+                    Group {
+                        Text("Factor x Full Bolus")
+                            .foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
+                            +
+                            Text(state.wholeCalc > state.maxBolus ? " ≈ Max Bolus" : "").foregroundColor(Color.loopRed)
+                    }
+                    .font(.caption)
+                    .padding(.top, 5)
+                    .gridCellAnchor(.leading)
+                    .gridCellColumns(2)
                 }
             }
         }
@@ -831,6 +838,44 @@ extension Bolus {
                         calcSettingsSecondRow
 
                         DividerCustom()
+
+                        // meal entries as grid rows
+                        if state.carbs > 0 {
+                            GridRow {
+                                Text("Carbs").foregroundColor(.secondary)
+                                Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
+                                HStack {
+                                    Text(state.carbs.formatted())
+                                    Text("g").foregroundColor(.secondary)
+                                }.gridCellAnchor(.trailing)
+                            }
+                        }
+
+                        if state.fat > 0 {
+                            GridRow {
+                                Text("Fat").foregroundColor(.secondary)
+                                Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
+                                HStack {
+                                    Text(state.fat.formatted())
+                                    Text("g").foregroundColor(.secondary)
+                                }.gridCellAnchor(.trailing)
+                            }
+                        }
+
+                        if state.protein > 0 {
+                            GridRow {
+                                Text("Protein").foregroundColor(.secondary)
+                                Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
+                                HStack {
+                                    Text(state.protein.formatted())
+                                    Text("g").foregroundColor(.secondary)
+                                }.gridCellAnchor(.trailing)
+                            }
+                        }
+
+                        if state.carbs > 0 || state.protein > 0 || state.fat > 0 {
+                            DividerCustom()
+                        }
 
                         GridRow {
                             Text("Detailed Calculation Steps").gridCellColumns(3).gridCellAnchor(.center)
@@ -888,50 +933,6 @@ extension Bolus {
 
         private var disabled: Bool {
             state.amount <= 0 || state.amount > state.maxBolus
-        }
-
-        var changed: Bool {
-            ((meal.first?.carbs ?? 0) > 0) || ((meal.first?.fat ?? 0) > 0) || ((meal.first?.protein ?? 0) > 0)
-        }
-
-        var hasFatOrProtein: Bool {
-            ((meal.first?.fat ?? 0) > 0) || ((meal.first?.protein ?? 0) > 0)
-        }
-
-        var mealEntries: some View {
-            VStack {
-                if let carbs = meal.first?.carbs, carbs > 0 {
-                    HStack {
-                        Text("Carbs").foregroundColor(.secondary)
-                        Spacer()
-                        Text(carbs.formatted())
-                        Text("g").foregroundColor(.secondary)
-                    }
-                }
-                if let fat = meal.first?.fat, fat > 0 {
-                    HStack {
-                        Text("Fat").foregroundColor(.secondary)
-                        Spacer()
-                        Text(fat.formatted())
-                        Text("g").foregroundColor(.secondary)
-                    }
-                }
-                if let protein = meal.first?.protein, protein > 0 {
-                    HStack {
-                        Text("Protein").foregroundColor(.secondary)
-                        Spacer()
-                        Text(protein.formatted())
-                        Text("g").foregroundColor(.secondary)
-                    }
-                }
-                if let note = meal.first?.note, note != "" {
-                    HStack {
-                        Text("Note").foregroundColor(.secondary)
-                        Spacer()
-                        Text(note).foregroundColor(.secondary)
-                    }
-                }
-            }
         }
     }
 

@@ -6,8 +6,6 @@ extension Bolus {
         let resolver: Resolver
         let waitForSuggestion: Bool
         let fetch: Bool
-        let editMode: Bool
-        let override: Bool
         @StateObject var state = StateModel()
 
         var body: some View {
