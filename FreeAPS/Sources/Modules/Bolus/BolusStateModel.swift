@@ -180,13 +180,12 @@ extension Bolus {
 
         // CALCULATIONS FOR THE BOLUS CALCULATOR
         func calculateInsulin() -> Decimal {
-
-            //ensure that isf is in mg/dL
+            // ensure that isf is in mg/dL
             var conversion: Decimal {
                 units == .mmolL ? 0.0555 : 1
             }
             let isfForCalculation = isf / conversion
-            
+
             // insulin needed for the current blood glucose
             targetDifference = (currentBG - target)
             targetDifferenceInsulin = targetDifference / isfForCalculation
@@ -234,7 +233,7 @@ extension Bolus {
             return apsManager
                 .roundBolus(amount: max(insulinCalculated, 0))
         }
-        
+
         func add() async {
             guard amount > 0 else {
                 showModal(for: nil)
@@ -247,7 +246,6 @@ extension Bolus {
                 let authenticated = try await unlockmanager.unlock()
                 if authenticated {
                     apsManager.enactBolus(amount: maxAmount, isSMB: false)
-                    showModal(for: nil)
                 } else {
                     print("authentication failed")
                 }
