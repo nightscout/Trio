@@ -538,6 +538,7 @@ extension Bolus {
 
                 Text("Glucose:").foregroundColor(.secondary)
 
+                let targetDifference = state.units == .mmolL ? state.targetDifference.asMmolL : state.targetDifference
                 let firstRow = currentBG
                     .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits)))
 
@@ -545,7 +546,7 @@ extension Bolus {
                     target
                     .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits)))
                     + " = " +
-                    state.targetDifference
+                    targetDifference
                     .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits)))
 
                 Text(firstRow).frame(minWidth: 0, alignment: .leading).foregroundColor(.secondary)
@@ -571,7 +572,8 @@ extension Bolus {
                         state.units.rawValue
                 )
 
-                let secondRow = state.targetDifference
+                let targetDifference = state.units == .mmolL ? state.targetDifference.asMmolL : state.targetDifference
+                let secondRow = targetDifference
                     .formatted(
                         .number.grouping(.never).rounded()
                             .precision(.fractionLength(fractionDigits))
@@ -579,7 +581,7 @@ extension Bolus {
                     + " / " +
                     state.isf.formatted()
                     + " ≈ " +
-                    self.insulinRounder(state.targetDifferenceInsulin).formatted()
+                self.insulinRounder(state.targetDifferenceInsulin).formatted()
 
                 Text(secondRow).foregroundColor(.secondary).gridColumnAlignment(.leading)
 
@@ -675,7 +677,7 @@ extension Bolus {
                         + " / " +
                         state.isf.formatted()
                         + " ≈ " +
-                        self.insulinRounder(state.fifteenMinInsulin).formatted()
+                    self.insulinRounder(state.fifteenMinInsulin).formatted()
                 )
                 .foregroundColor(.secondary)
                 .gridColumnAlignment(.leading)

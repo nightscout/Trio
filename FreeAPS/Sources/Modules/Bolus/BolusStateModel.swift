@@ -180,16 +180,19 @@ extension Bolus {
 
         // CALCULATIONS FOR THE BOLUS CALCULATOR
         func calculateInsulin() -> Decimal {
-            var conversion: Decimal = 1.0
-            if units == .mmolL {
-                conversion = 0.0555
+
+            //ensure that isf is in mg/dL
+            var conversion: Decimal {
+                units == .mmolL ? 0.0555 : 1
             }
+            let isfForCalculation = isf / conversion
+            
             // insulin needed for the current blood glucose
-            targetDifference = (currentBG - target) * conversion
-            targetDifferenceInsulin = targetDifference / isf
+            targetDifference = (currentBG - target)
+            targetDifferenceInsulin = targetDifference / isfForCalculation
 
             // more or less insulin because of bg trend in the last 15 minutes
-            fifteenMinInsulin = (deltaBG * conversion) / isf
+            fifteenMinInsulin = deltaBG / isfForCalculation
 
             // determine whole COB for which we want to dose insulin for and then determine insulin for wholeCOB
             wholeCob = cob + carbs
@@ -224,7 +227,6 @@ extension Bolus {
             } else {
                 insulinCalculated = result
             }
-
             // display no negative insulinCalculated
             insulinCalculated = max(insulinCalculated, 0)
             insulinCalculated = min(insulinCalculated, maxBolus)
@@ -232,7 +234,7 @@ extension Bolus {
             return apsManager
                 .roundBolus(amount: max(insulinCalculated, 0))
         }
-
+        
         func add() async {
             guard amount > 0 else {
                 showModal(for: nil)
