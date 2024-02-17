@@ -786,6 +786,7 @@ extension Home {
                     )
             }
         }
+
 //
 //        @ViewBuilder func tabBarButton(index: Int, systemName: String, label: String) -> some View {
 //            Button(action: {
@@ -872,14 +873,14 @@ extension Home {
                         .tabItem {
                             Label(
                                 "Profile",
-                                systemImage: state.isTempTargetActive || overrideString != nil ? "person.fill" : "person"
+                                systemImage: "person.fill"
                             ) }
 
                     NavigationStack { Settings.RootView(resolver: resolver) }
                         .tabItem {
                             Label(
-                                "Settings",
-                                systemImage: "gear"
+                                "Menu",
+                                systemImage: "text.justify"
                             ) }
                 }
                 .tint(Color.tabBar)
