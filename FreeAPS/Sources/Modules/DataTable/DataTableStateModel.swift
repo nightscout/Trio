@@ -276,6 +276,7 @@ extension DataTable.StateModel:
     GlucoseObserver
 {
     func settingsDidChange(_: FreeAPSSettings) {
+        historyLayout = settingsManager.settings.historyLayout
         setupTreatments()
     }
 
