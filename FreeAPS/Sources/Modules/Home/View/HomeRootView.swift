@@ -744,9 +744,9 @@ extension Home {
                     timeInterval.padding(.top, 15).padding(.bottom, 20)
 
                     if let progress = state.bolusProgress {
-                        bolusView(geo, progress).padding(.bottom, 25)
+                        bolusView(geo, progress).padding(.bottom, 30)
                     } else {
-                        profileView(geo).padding(.bottom, 25)
+                        profileView(geo).padding(.bottom, 30)
                     }
                 }
 
