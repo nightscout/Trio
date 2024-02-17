@@ -847,12 +847,12 @@ extension Home {
                         .padding(.horizontal, 10)
                         .frame(maxHeight: UIScreen.main.bounds.height / 2.2)
 
-                    timeInterval.padding(.top, 15).padding(.bottom, 30)
+                    timeInterval.padding(.top, 15).padding(.bottom, 20)
 
                     if let progress = state.bolusProgress {
-                        bolusView(geo, progress)
+                        bolusView(geo, progress).padding(.bottom, 20)
                     } else {
-                        profileView(geo)
+                        profileView(geo).padding(.bottom, 20)
                     }
                 }
 
@@ -963,8 +963,47 @@ extension Home {
             }.blur(radius: isMenuPresented ? 5 : 0)
         }
 
+        @ViewBuilder func tabBar() -> some View {
+            ZStack(alignment: .bottom) {
+                TabView {
+                    mainView()
+                        .tabItem { Label("Home", systemImage: "house") }
+
+                    NavigationStack { DataTable.RootView(resolver: resolver) }
+                        .tabItem { Label("History", systemImage: historySFSymbol) }
+
+                    Spacer()
+
+                    NavigationStack { OverrideProfilesConfig.RootView(resolver: resolver) }
+                        .tabItem {
+                            Label(
+                                "Profile",
+                                systemImage: state.isTempTargetActive || overrideString != nil ? "person.fill" : "person"
+                            ) }
+
+                    NavigationStack { Settings.RootView(resolver: resolver) }
+                        .tabItem {
+                            Label(
+                                "Settings",
+                                systemImage: "gear"
+                            ) }
+                }
+                .tint(Color.tabBar)
+
+                Button(
+                    action: {
+                        state.showModal(for: .bolus(waitForSuggestion: false, fetch: false)) },
+                    label: {
+                        Image(systemName: "plus.circle.fill").font(.system(size: 40)).foregroundStyle(Color.gray)
+                            .padding(.bottom, 2)
+                    }
+                )
+            }
+        }
+
         var body: some View {
-            customTabBar()
+            // customTabBar()
+            tabBar()
         }
 
         private var popup: some View {
