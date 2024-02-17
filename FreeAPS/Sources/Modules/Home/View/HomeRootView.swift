@@ -1000,7 +1000,7 @@ extension Home {
                             .padding(.bottom, 1)
                     }
                 )
-            }
+            }.ignoresSafeArea(.keyboard, edges: .bottom)
         }
 
         var body: some View {
