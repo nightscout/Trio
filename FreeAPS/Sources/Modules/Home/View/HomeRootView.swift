@@ -850,9 +850,9 @@ extension Home {
                     timeInterval.padding(.top, 15).padding(.bottom, 20)
 
                     if let progress = state.bolusProgress {
-                        bolusView(geo, progress).padding(.bottom, 20)
+                        bolusView(geo, progress).padding(.bottom, 25)
                     } else {
-                        profileView(geo).padding(.bottom, 20)
+                        profileView(geo).padding(.bottom, 25)
                     }
                 }
 
@@ -994,8 +994,10 @@ extension Home {
                     action: {
                         state.showModal(for: .bolus(waitForSuggestion: false, fetch: false)) },
                     label: {
-                        Image(systemName: "plus.circle.fill").font(.system(size: 40)).foregroundStyle(Color.gray)
-                            .padding(.bottom, 2)
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 45))
+                            .foregroundStyle(Color.tabBar)
+                            .padding(.bottom, 1)
                     }
                 )
             }
