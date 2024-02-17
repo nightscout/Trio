@@ -741,7 +741,7 @@ extension Home {
                         .padding(.horizontal, 10)
                         .frame(maxHeight: UIScreen.main.bounds.height / 2.2)
 
-                    timeInterval.padding(.top, 15).padding(.bottom, 20)
+                    timeInterval.padding(.top, 15).padding(.bottom, 15)
 
                     if let progress = state.bolusProgress {
                         bolusView(geo, progress).padding(.bottom, 30)
@@ -890,7 +890,7 @@ extension Home {
                         state.showModal(for: .bolus(waitForSuggestion: false, fetch: false)) },
                     label: {
                         Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 45))
+                            .font(.system(size: 40))
                             .foregroundStyle(Color.tabBar)
                             .padding(.bottom, 1)
                     }
