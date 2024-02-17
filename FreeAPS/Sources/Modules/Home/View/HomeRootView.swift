@@ -704,112 +704,6 @@ extension Home {
                 }.clipShape(RoundedRectangle(cornerRadius: 15))
         }
 
-//        @ViewBuilder func menuSymbols(action: @escaping () -> Void, systemName: String) -> some View {
-//            Button(
-//                action: action,
-//                label: {
-//                    HStack {
-//                        Image(systemName: systemName)
-//                            .font(.system(size: 21))
-//                            .foregroundStyle(colorScheme == .dark ? .white : .black)
-//                    }.padding(.top, 1)
-//                }
-//            )
-//        }
-//
-//        @ViewBuilder func menuElements(action: @escaping () -> Void, title: String) -> some View {
-//            Button(
-//                action: action,
-//                label: {
-//                    HStack {
-//                        Text(title)
-//                            .font(.system(size: 19))
-//                            .foregroundStyle(colorScheme == .dark ? .white : .black)
-//                        Spacer()
-//                        Image(systemName: "arrow.right")
-//                            .font(.system(size: 21))
-//                            .foregroundStyle(colorScheme == .dark ? .white : .black)
-//                    }.padding(.top, 1)
-//                }
-//            )
-//        }
-//
-//        @ViewBuilder func sideMenuView() -> some View {
-//            ZStack {
-//                RoundedRectangle(cornerRadius: 8)
-//                    .fill(color)
-//                    .shadow(
-//                        color: Color.black.opacity(0.33),
-//                        radius: 3
-//                    )
-//                    .ignoresSafeArea(edges: .all)
-//
-//                VStack(alignment: .leading) {
-//                    Button {
-//                        isMenuPresented.toggle()
-//                    } label: {
-//                        HStack {
-//                            Image(systemName: "arrow.left")
-//                                .font(.system(size: 30))
-//                                .foregroundStyle(colorScheme == .dark ? .white : .black)
-//                            Text("Menu")
-//                                .font(.system(size: 30)).fontWeight(.bold)
-//                                .foregroundStyle(colorScheme == .dark ? .white : .black)
-//                        }
-//                    }
-//                    .padding(.top, 60)
-//
-//                    HStack(spacing: 15) {
-//                        VStack(alignment: .leading, spacing: 25, content: {
-        ////                            menuSymbols(action: { state.showModal(for: .statistics) }, systemName: "chart.bar.xaxis")
-        ////                                .padding(.top, 20)
-//
-//                            menuSymbols(action: {
-//                                if state.pumpDisplayState != nil {
-//                                    state.setupPump = true
-//                                }
-//                            }, systemName: "cross.vial.fill")
-//
-//                            menuSymbols(action: {
-//                                if state.alarm == nil {
-//                                    state.openCGM()
-//                                } else {
-//                                    state.showModal(for: .snooze)
-//                                }
-//                            }, systemName: "sensor.tag.radiowaves.forward.fill")
-//
-//                            menuSymbols(action: { state.showModal(for: .addTempTarget) }, systemName: "target")
-//
-//                            Spacer()
-//                        })
-//                        VStack(alignment: .leading, spacing: 25, content: {
-//                            menuElements(action: { state.showModal(for: .statistics) }, title: "Statistics")
-//                                .padding(.top, 20)
-//
-//                            menuElements(action: {
-//                                if state.pumpDisplayState != nil {
-//                                    state.setupPump = true
-//                                }
-//                            }, title: "Pump Settings")
-//
-//                            menuElements(action: {
-//                                if state.alarm == nil {
-//                                    state.openCGM()
-//                                } else {
-//                                    state.showModal(for: .snooze)
-//                                }
-//                            }, title: "CGM")
-//
-//                            menuElements(action: { state.showModal(for: .addTempTarget) }, title: "Temp targets")
-//
-//                            Spacer()
-//                        })
-//                    }
-//                }.padding(.horizontal, 25)
-//            }
-//            .frame(width: UIScreen.main.bounds.width / 1.2, height: UIScreen.main.bounds.height - 20)
-//        }
-
         @ViewBuilder func mainView() -> some View {
             GeometryReader { geo in
                 VStack(spacing: 0) {
@@ -892,76 +786,76 @@ extension Home {
                     )
             }
         }
-
-        @ViewBuilder func tabBarButton(index: Int, systemName: String, label: String) -> some View {
-            Button(action: {
-                selectedTab = index
-            }) {
-                ZStack(alignment: .bottom, content: {
-                    VStack {
-                        Image(systemName: systemName)
-                            .font(.system(size: 22))
-                            .foregroundStyle(selectedTab == index ? Color(.label) : Color.gray)
-                        Text(label)
-                            .font(.caption2)
-                            .foregroundStyle(selectedTab == index ? Color(.label) : Color.gray)
-                            .padding(.top, 1)
-                    }
-                    if selectedTab == index {
-                        Capsule()
-                            .frame(width: 25, height: 5)
-                            .foregroundStyle(Color(.label))
-                            .offset(y: 10)
-                    }
-                })
-            }
-        }
-
-        @ViewBuilder func customTabBar() -> some View {
-            VStack {
-                ZStack {
-                    switch selectedTab {
-                    case 0:
-                        mainView()
-                    case 1:
-                        NavigationStack { DataTable.RootView(resolver: resolver) }
-                    case 2:
-                        NavigationStack { OverrideProfilesConfig.RootView(resolver: resolver) }
-                    case 3:
-                        NavigationStack { Settings.RootView(resolver: resolver) }
-                    default:
-                        mainView()
-                    }
-                }
-                HStack {
-                    tabBarButton(
-                        index: 0,
-                        systemName: selectedTab == 0 ? "house.fill" : "house",
-                        label: "Home"
-                    )
-                    Spacer()
-                    tabBarButton(index: 1, systemName: historySFSymbol, label: "History")
-                    Spacer()
-                    Button(action: {
-                        state.showModal(for: .bolus(waitForSuggestion: false, fetch: false))
-                    }) {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 45))
-                            .foregroundStyle(Color.tabBar)
-                            .padding(.bottom, 2)
-                    }
-                    Spacer()
-                    tabBarButton(
-                        index: 2,
-                        systemName: selectedTab == 2 ? "person.fill" : "person",
-                        label: "Profile"
-                    )
-                    Spacer()
-                    tabBarButton(index: 3, systemName: "text.justify", label: "Menu")
-                }
-                .padding(.horizontal, 20)
-            }.blur(radius: isMenuPresented ? 5 : 0)
-        }
+//
+//        @ViewBuilder func tabBarButton(index: Int, systemName: String, label: String) -> some View {
+//            Button(action: {
+//                selectedTab = index
+//            }) {
+//                ZStack(alignment: .bottom, content: {
+//                    VStack {
+//                        Image(systemName: systemName)
+//                            .font(.system(size: 22))
+//                            .foregroundStyle(selectedTab == index ? Color(.label) : Color.gray)
+//                        Text(label)
+//                            .font(.caption2)
+//                            .foregroundStyle(selectedTab == index ? Color(.label) : Color.gray)
+//                            .padding(.top, 1)
+//                    }
+//                    if selectedTab == index {
+//                        Capsule()
+//                            .frame(width: 25, height: 5)
+//                            .foregroundStyle(Color(.label))
+//                            .offset(y: 10)
+//                    }
+//                })
+//            }
+//        }
+//
+//        @ViewBuilder func customTabBar() -> some View {
+//            VStack {
+//                ZStack {
+//                    switch selectedTab {
+//                    case 0:
+//                        mainView()
+//                    case 1:
+//                        NavigationStack { DataTable.RootView(resolver: resolver) }
+//                    case 2:
+//                        NavigationStack { OverrideProfilesConfig.RootView(resolver: resolver) }
+//                    case 3:
+//                        NavigationStack { Settings.RootView(resolver: resolver) }
+//                    default:
+//                        mainView()
+//                    }
+//                }
+//                HStack {
+//                    tabBarButton(
+//                        index: 0,
+//                        systemName: selectedTab == 0 ? "house.fill" : "house",
+//                        label: "Home"
+//                    )
+//                    Spacer()
+//                    tabBarButton(index: 1, systemName: historySFSymbol, label: "History")
+//                    Spacer()
+//                    Button(action: {
+//                        state.showModal(for: .bolus(waitForSuggestion: false, fetch: false))
+//                    }) {
+//                        Image(systemName: "plus.circle.fill")
+//                            .font(.system(size: 45))
+//                            .foregroundStyle(Color.tabBar)
+//                            .padding(.bottom, 2)
+//                    }
+//                    Spacer()
+//                    tabBarButton(
+//                        index: 2,
+//                        systemName: selectedTab == 2 ? "person.fill" : "person",
+//                        label: "Profile"
+//                    )
+//                    Spacer()
+//                    tabBarButton(index: 3, systemName: "text.justify", label: "Menu")
+//                }
+//                .padding(.horizontal, 20)
+//            }.blur(radius: isMenuPresented ? 5 : 0)
+//        }
 
         @ViewBuilder func tabBar() -> some View {
             ZStack(alignment: .bottom) {
