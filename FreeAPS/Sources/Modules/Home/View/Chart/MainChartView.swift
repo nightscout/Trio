@@ -158,13 +158,6 @@ struct MainChartView: View {
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }
                     .onAppear {
-                        calculateBoluses()
-                        calculateBasals()
-                        calculateTempBasals()
-                        calculateFpus()
-                        calculateCarbs()
-                        calculatePredictions()
-                        calculateTTs()
                         updateStartEndMarkers()
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }
