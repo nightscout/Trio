@@ -893,6 +893,7 @@ extension Home {
                             .font(.system(size: 40))
                             .foregroundStyle(Color.tabBar)
                             .padding(.bottom, 1)
+                            .padding(.horizontal, 20)
                     }
                 )
             }.ignoresSafeArea(.keyboard, edges: .bottom)
