@@ -581,7 +581,7 @@ extension Bolus {
                     + " / " +
                     state.isf.formatted()
                     + " ≈ " +
-                self.insulinRounder(state.targetDifferenceInsulin).formatted()
+                    self.insulinRounder(state.targetDifferenceInsulin).formatted()
 
                 Text(secondRow).foregroundColor(.secondary).gridColumnAlignment(.leading)
 
@@ -677,7 +677,7 @@ extension Bolus {
                         + " / " +
                         state.isf.formatted()
                         + " ≈ " +
-                    self.insulinRounder(state.fifteenMinInsulin).formatted()
+                        self.insulinRounder(state.fifteenMinInsulin).formatted()
                 )
                 .foregroundColor(.secondary)
                 .gridColumnAlignment(.leading)

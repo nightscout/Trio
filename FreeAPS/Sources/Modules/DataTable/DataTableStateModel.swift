@@ -20,6 +20,9 @@ extension DataTable {
         @Published var maxBolus: Decimal = 0
         @Published var externalInsulinAmount: Decimal = 0
         @Published var externalInsulinDate = Date()
+        @Published var waitForSuggestion: Bool = false
+        @Published var showExternalInsulin: Bool = false
+        @Published var addButtonPressed: Bool = false
 
         var units: GlucoseUnits = .mmolL
         var historyLayout: HistoryLayout = .twoTabs
@@ -35,6 +38,7 @@ extension DataTable {
             broadcaster.register(TempTargetsObserver.self, observer: self)
             broadcaster.register(CarbsObserver.self, observer: self)
             broadcaster.register(GlucoseObserver.self, observer: self)
+            broadcaster.register(SuggestionObserver.self, observer: self)
         }
 
         private func setupTreatments() {
@@ -265,8 +269,8 @@ extension DataTable {
 
             // Reset amount to 0 for next entry.
             externalInsulinAmount = 0
-            
-            //perform determine basal sync
+
+            // perform determine basal sync
             apsManager.determineBasalSync()
         }
     }
@@ -298,5 +302,16 @@ extension DataTable.StateModel:
 
     func glucoseDidUpdate(_: [BloodGlucose]) {
         setupGlucose()
+    }
+}
+
+extension DataTable.StateModel: SuggestionObserver {
+    func suggestionDidUpdate(_: Suggestion) {
+        DispatchQueue.main.async {
+            self.waitForSuggestion = false
+            if self.addButtonPressed {
+                self.showExternalInsulin = false
+            }
+        }
     }
 }

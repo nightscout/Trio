@@ -12,7 +12,6 @@ extension DataTable {
         @State private var alertTreatmentToDelete: Treatment?
         @State private var alertGlucoseToDelete: Glucose?
 
-        @State private var showExternalInsulin: Bool = false
         @State private var showFutureEntries: Bool = false // default to hide future entries
         @State private var showManualGlucose: Bool = false
         @State private var isAmountUnconfirmed: Bool = true
@@ -109,7 +108,7 @@ extension DataTable {
                     ToolbarItem(placement: .topBarTrailing) {
                         switch state.mode {
                         case .treatments: addButton({
-                                showExternalInsulin = true
+                                state.showExternalInsulin = true
                                 state.externalInsulinDate = Date()
                             })
                         case .meals: EmptyView()
@@ -123,8 +122,11 @@ extension DataTable {
                 .sheet(isPresented: $showManualGlucose) {
                     addGlucoseView()
                 }
-                .sheet(isPresented: $showExternalInsulin, onDismiss: { if isAmountUnconfirmed { state.externalInsulinAmount = 0
-                    state.externalInsulinDate = Date() } }) {
+                .sheet(
+                    isPresented: $state.showExternalInsulin,
+                    onDismiss: { if isAmountUnconfirmed { state.externalInsulinAmount = 0
+                        state.externalInsulinDate = Date() } }
+                ) {
                     addExternalInsulinView()
                 }
         }
@@ -441,8 +443,9 @@ extension DataTable {
                                     Task {
                                         do {
                                             await state.addExternalInsulin()
+                                            state.waitForSuggestion = true
+                                            state.addButtonPressed = true
                                             isAmountUnconfirmed = false
-                                            showExternalInsulin = false
                                         }
                                     }
                                 } label: {
@@ -465,12 +468,15 @@ extension DataTable {
                     }.scrollContentBackground(.hidden).background(color)
                 }
                 .onAppear(perform: configureView)
+                .onDisappear {
+                    state.addButtonPressed = false
+                }
                 .navigationTitle("External Insulin")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         Button("Close") {
-                            showExternalInsulin = false
+                            state.showExternalInsulin = false
                             state.externalInsulinAmount = 0
                         }
                     }
