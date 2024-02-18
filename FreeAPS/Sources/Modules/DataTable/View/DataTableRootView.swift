@@ -467,10 +467,10 @@ extension DataTable {
                             }
                             .listRowBackground(listBackgroundColor).tint(.white)
                         }.scrollContentBackground(.hidden).background(color)
-                    }
+                    }.blur(radius: state.waitForSuggestion ? 5 : 0)
 
                     if state.waitForSuggestion {
-                        CustomProgressView(text: "Adding Insulin...")
+                        CustomProgressView(text: "Updating IOB")
                     }
                 }
                 .onAppear(perform: configureView)
