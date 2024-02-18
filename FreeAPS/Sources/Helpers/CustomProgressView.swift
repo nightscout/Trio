@@ -16,7 +16,7 @@ struct CustomProgressView: View {
                     radius: 3
                 )
                 .padding(.horizontal, 10)
-                .frame(maxHeight: UIScreen.main.bounds.height / 6)
+                .frame(maxHeight: UIScreen.main.bounds.height / 11)
 
             ProgressView {
                 Text(text)

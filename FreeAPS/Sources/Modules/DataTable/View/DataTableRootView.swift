@@ -394,78 +394,84 @@ extension DataTable {
 
         @ViewBuilder func addExternalInsulinView() -> some View {
             NavigationView {
-                VStack {
-                    Form {
-                        Section {
-                            HStack {
-                                Text("Amount")
-                                Spacer()
-                                DecimalTextField(
-                                    "0",
-                                    value: $state.externalInsulinAmount,
-                                    formatter: insulinFormatter,
-                                    autofocus: true,
-                                    cleanInput: true
-                                )
-                                Text("U").foregroundColor(.secondary)
-                            }
-                        }.listRowBackground(Color.chart)
-
-                        Section {
-                            DatePicker("Date", selection: $state.externalInsulinDate, in: ...Date())
-                        }.listRowBackground(Color.chart)
-
-                        let amountWarningCondition = (state.externalInsulinAmount > state.maxBolus)
-
-                        var listBackgroundColor: Color {
-                            if amountWarningCondition {
-                                return Color.red
-                            } else if state.externalInsulinAmount <= 0 || state.externalInsulinAmount > state.maxBolus * 3 {
-                                return Color(.systemGray4)
-                            } else {
-                                return Color(.systemBlue)
-                            }
-                        }
-
-                        var foregroundColor: Color {
-                            if amountWarningCondition {
-                                return Color.white
-                            } else if state.externalInsulinAmount <= 0 || state.externalInsulinAmount > state.maxBolus * 3 {
-                                return Color.secondary
-                            } else {
-                                return Color.white
-                            }
-                        }
-
-                        Section {
-                            HStack {
-                                Button {
-                                    Task {
-                                        do {
-                                            await state.addExternalInsulin()
-                                            state.waitForSuggestion = true
-                                            state.addButtonPressed = true
-                                            isAmountUnconfirmed = false
-                                        }
-                                    }
-                                } label: {
-                                    Text("Log external insulin")
+                ZStack(alignment: .center) {
+                    VStack {
+                        Form {
+                            Section {
+                                HStack {
+                                    Text("Amount")
+                                    Spacer()
+                                    DecimalTextField(
+                                        "0",
+                                        value: $state.externalInsulinAmount,
+                                        formatter: insulinFormatter,
+                                        autofocus: true,
+                                        cleanInput: true
+                                    )
+                                    Text("U").foregroundColor(.secondary)
                                 }
-                                .foregroundStyle(foregroundColor)
-                                .frame(maxWidth: .infinity, alignment: .center)
-                                .disabled(
-                                    state.externalInsulinAmount <= 0 || state.externalInsulinAmount > state.maxBolus * 3
-                                )
+                            }.listRowBackground(Color.chart)
+
+                            Section {
+                                DatePicker("Date", selection: $state.externalInsulinDate, in: ...Date())
+                            }.listRowBackground(Color.chart)
+
+                            let amountWarningCondition = (state.externalInsulinAmount > state.maxBolus)
+
+                            var listBackgroundColor: Color {
+                                if amountWarningCondition {
+                                    return Color.red
+                                } else if state.externalInsulinAmount <= 0 || state.externalInsulinAmount > state.maxBolus * 3 {
+                                    return Color(.systemGray4)
+                                } else {
+                                    return Color(.systemBlue)
+                                }
                             }
-                        }
-                        header: {
-                            if amountWarningCondition
-                            {
-                                Text("⚠️ Warning! The entered insulin amount is greater than your Max Bolus setting!")
+
+                            var foregroundColor: Color {
+                                if amountWarningCondition {
+                                    return Color.white
+                                } else if state.externalInsulinAmount <= 0 || state.externalInsulinAmount > state.maxBolus * 3 {
+                                    return Color.secondary
+                                } else {
+                                    return Color.white
+                                }
                             }
-                        }
-                        .listRowBackground(listBackgroundColor).tint(.white)
-                    }.scrollContentBackground(.hidden).background(color)
+
+                            Section {
+                                HStack {
+                                    Button {
+                                        Task {
+                                            do {
+                                                await state.addExternalInsulin()
+                                                state.waitForSuggestion = true
+                                                state.addButtonPressed = true
+                                                isAmountUnconfirmed = false
+                                            }
+                                        }
+                                    } label: {
+                                        Text("Log external insulin")
+                                    }
+                                    .foregroundStyle(foregroundColor)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                    .disabled(
+                                        state.externalInsulinAmount <= 0 || state.externalInsulinAmount > state.maxBolus * 3
+                                    )
+                                }
+                            }
+                            header: {
+                                if amountWarningCondition
+                                {
+                                    Text("⚠️ Warning! The entered insulin amount is greater than your Max Bolus setting!")
+                                }
+                            }
+                            .listRowBackground(listBackgroundColor).tint(.white)
+                        }.scrollContentBackground(.hidden).background(color)
+                    }
+
+                    if state.waitForSuggestion {
+                        CustomProgressView(text: "Adding Insulin...")
+                    }
                 }
                 .onAppear(perform: configureView)
                 .onDisappear {
