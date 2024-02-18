@@ -4,6 +4,7 @@ import SwiftUI
 extension DataTable {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() var broadcaster: Broadcaster!
+        @Injected() var apsManager: APSManager!
         @Injected() var unlockmanager: UnlockManager!
         @Injected() private var storage: FileStorage!
         @Injected() var pumpHistoryStorage: PumpHistoryStorage!
@@ -264,6 +265,9 @@ extension DataTable {
 
             // Reset amount to 0 for next entry.
             externalInsulinAmount = 0
+            
+            //perform determine basal sync
+            apsManager.determineBasalSync()
         }
     }
 }
