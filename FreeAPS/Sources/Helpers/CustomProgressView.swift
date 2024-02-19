@@ -26,9 +26,16 @@ struct CustomProgressView: View {
                     Color(red: 0.3411764706, green: 0.6666666667, blue: 0.9254901961),
                     Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902)
                 ], startPoint: .leading, endPoint: .trailing), lineWidth: 3)
-                .frame(width: 30, height: 3)
-                .offset(x: self.animate ? 110 : -110, y: 0)
-                .animation(Animation.linear(duration: 1).repeatForever(autoreverses: false), value: UUID())
+                .frame(width: 250, height: 3)
+                .mask(
+                    RoundedRectangle(cornerRadius: 3)
+                        .frame(width: 80, height: 3)
+                        .offset(x: self.animate ? 110 : -110, y: 0)
+                        .animation(
+                            Animation.linear(duration: 1.5)
+                                .repeatForever(autoreverses: false), value: UUID()
+                        )
+                )
         }
         .onAppear {
             self.animate.toggle()
