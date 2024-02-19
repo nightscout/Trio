@@ -30,9 +30,9 @@ struct CustomProgressView: View {
                 .mask(
                     RoundedRectangle(cornerRadius: 3)
                         .frame(width: 80, height: 3)
-                        .offset(x: self.animate ? 110 : -110, y: 0)
+                        .offset(x: self.animate ? 180 : -180, y: 0)
                         .animation(
-                            Animation.linear(duration: 1.5)
+                            Animation.linear(duration: 2)
                                 .repeatForever(autoreverses: false), value: UUID()
                         )
                 )
