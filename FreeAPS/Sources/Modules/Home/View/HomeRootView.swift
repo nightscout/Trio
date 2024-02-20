@@ -690,10 +690,8 @@ extension Home {
                     Spacer()
 
                     Button {
-                        Task {
-                            state.waitForSuggestion = true
-                            state.cancelBolus()
-                        }
+                        state.waitForSuggestion = true
+                        state.cancelBolus()
                     } label: {
                         Image(systemName: "xmark.app")
                             .font(.system(size: 25))
