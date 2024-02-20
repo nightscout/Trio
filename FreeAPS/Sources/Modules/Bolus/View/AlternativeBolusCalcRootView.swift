@@ -437,10 +437,10 @@ extension Bolus {
                         Section {
                             Button {
                                 Task {
-                                    state.waitForSuggestion = true
-                                    state.addButtonPressed = true
                                     await state.add()
+                                    state.waitForSuggestion = true
                                     state.addCarbs()
+                                    state.addButtonPressed = true
                                 }
                             }
 
