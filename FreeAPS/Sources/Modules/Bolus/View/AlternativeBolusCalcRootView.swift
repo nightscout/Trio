@@ -512,7 +512,7 @@ extension Bolus {
             case (false, true):
                 return "Updating COB..."
             case (true, false):
-                return "Updating COB..."
+                return "Updating IOB..."
             default:
                 return "Updating Treatments..."
             }
