@@ -436,37 +436,45 @@ extension MainChartView {
                 ).foregroundStyle(Color.clear)
                 /// temp basal rects
                 ForEach(TempBasals) { temp in
-                                 /// calculate end time of temp basal adding duration to start time
-                                 let end = temp.timestamp + (temp.durationMin ?? 0).minutes.timeInterval
-                                 let now = Date()
+                    /// calculate end time of temp basal adding duration to start time
+                    let end = temp.timestamp + (temp.durationMin ?? 0).minutes.timeInterval
+                    let now = Date()
 
-                                 /// ensure that temp basals that are set cannot exceed current date -> i.e. scheduled temp basals are not shown
-                                 /// we could display scheduled temp basals with opacity etc... in the future
-                                 let maxEndTime = min(end, now)
+                    /// ensure that temp basals that are set cannot exceed current date -> i.e. scheduled temp basals are not shown
+                    /// we could display scheduled temp basals with opacity etc... in the future
+                    let maxEndTime = min(end, now)
 
-                                 /// find next basal entry and if available set end of current entry to start of next entry
-                                 if let nextTemp = TempBasals.first(where: { $0.timestamp > temp.timestamp }) {
-                                     let nextTempStart = nextTemp.timestamp
+                    /// find next basal entry and if available set end of current entry to start of next entry
+                    if let nextTemp = TempBasals.first(where: { $0.timestamp > temp.timestamp }) {
+                        let nextTempStart = nextTemp.timestamp
 
-                                     RectangleMark(
-                                         xStart: .value("start", temp.timestamp),
-                                         xEnd: .value("end", nextTempStart),
-                                         yStart: .value("rate-start", 0),
-                                         yEnd: .value("rate-end", temp.rate ?? 0)
-                                     ).foregroundStyle(Color.insulin.opacity(0.2))
-                                     LineMark(x: .value("Start Date", temp.timestamp), y: .value("Amount", temp.rate ?? 0)).lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
-                                     LineMark(x: .value("End Date", nextTempStart), y: .value("Amount", temp.rate ?? 0)).lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
-                                 } else {
-                                     RectangleMark(
-                                         xStart: .value("start", temp.timestamp),
-                                         xEnd: .value("end", maxEndTime),
-                                         yStart: .value("rate-start", 0),
-                                         yEnd: .value("rate-end", temp.rate ?? 0)
-                                     ).foregroundStyle(Color.insulin.opacity(0.2))
-                                     LineMark(x: .value("Start Date", temp.timestamp), y: .value("Amount", temp.rate ?? 0)).lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
-                                     LineMark(x: .value("End Date", maxEndTime), y: .value("Amount", temp.rate ?? 0)).lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
-                                 }
-                             }
+                        RectangleMark(
+                            xStart: .value("start", temp.timestamp),
+                            xEnd: .value("end", nextTempStart),
+                            yStart: .value("rate-start", 0),
+                            yEnd: .value("rate-end", temp.rate ?? 0)
+                        ).foregroundStyle(Color.insulin.opacity(0.2))
+                        
+                        LineMark(x: .value("Start Date", temp.timestamp), y: .value("Amount", temp.rate ?? 0))
+                            .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+                        
+                        LineMark(x: .value("End Date", nextTempStart), y: .value("Amount", temp.rate ?? 0))
+                            .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+                    } else {
+                        RectangleMark(
+                            xStart: .value("start", temp.timestamp),
+                            xEnd: .value("end", maxEndTime),
+                            yStart: .value("rate-start", 0),
+                            yEnd: .value("rate-end", temp.rate ?? 0)
+                        ).foregroundStyle(Color.insulin.opacity(0.2))
+                        
+                        LineMark(x: .value("Start Date", temp.timestamp), y: .value("Amount", temp.rate ?? 0))
+                            .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+                        
+                        LineMark(x: .value("End Date", maxEndTime), y: .value("Amount", temp.rate ?? 0))
+                            .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+                    }
+                }
                 /// dashed profile line
                 ForEach(BasalProfiles, id: \.self) { profile in
                     LineMark(
