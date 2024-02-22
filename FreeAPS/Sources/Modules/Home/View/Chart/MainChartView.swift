@@ -26,7 +26,6 @@ private struct Prediction: Hashable {
 private struct Carb: Hashable {
     let amount: Decimal
     let timestamp: Date
-    let nearestGlucose: BloodGlucose
 }
 
 private struct ChartBolus: Hashable {
@@ -454,10 +453,10 @@ extension MainChartView {
                             yStart: .value("rate-start", 0),
                             yEnd: .value("rate-end", temp.rate ?? 0)
                         ).foregroundStyle(Color.insulin.opacity(0.2))
-                        
+
                         LineMark(x: .value("Start Date", temp.timestamp), y: .value("Amount", temp.rate ?? 0))
                             .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
-                        
+
                         LineMark(x: .value("End Date", nextTempStart), y: .value("Amount", temp.rate ?? 0))
                             .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
                     } else {
@@ -467,10 +466,10 @@ extension MainChartView {
                             yStart: .value("rate-start", 0),
                             yEnd: .value("rate-end", temp.rate ?? 0)
                         ).foregroundStyle(Color.insulin.opacity(0.2))
-                        
+
                         LineMark(x: .value("Start Date", temp.timestamp), y: .value("Amount", temp.rate ?? 0))
                             .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
-                        
+
                         LineMark(x: .value("End Date", maxEndTime), y: .value("Amount", temp.rate ?? 0))
                             .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
                     }
@@ -612,8 +611,7 @@ extension MainChartView {
         let realCarbs = carbs.filter { !($0.isFPU ?? false) }
 
         realCarbs.forEach { carb in
-            let bg = timeToNearestGlucose(time: carb.createdAt.timeIntervalSince1970)
-            calculatedCarbs.append(Carb(amount: carb.carbs, timestamp: carb.createdAt, nearestGlucose: bg))
+            calculatedCarbs.append(Carb(amount: carb.carbs, timestamp: carb.actualDate ?? carb.createdAt))
         }
         ChartCarbs = calculatedCarbs
     }
@@ -625,12 +623,8 @@ extension MainChartView {
         let fpus = carbs.filter { $0.isFPU ?? false }
 
         fpus.forEach { fpu in
-            let bg = timeToNearestGlucose(
-                time: TimeInterval(rawValue: (fpu.actualDate?.timeIntervalSince1970)!) ?? fpu.createdAt
-                    .timeIntervalSince1970
-            )
             calculatedFpus
-                .append(Carb(amount: fpu.carbs, timestamp: fpu.actualDate ?? Date(), nearestGlucose: bg))
+                .append(Carb(amount: fpu.carbs, timestamp: fpu.actualDate ?? Date()))
         }
         ChartFpus = calculatedFpus
     }
