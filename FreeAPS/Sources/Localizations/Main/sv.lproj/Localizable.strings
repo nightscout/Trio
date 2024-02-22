@@ -2224,3 +2224,6 @@ Enact a temp Basal or a temp target */
 
 /* Headline "Adjustment Factor" */
 "Adjustment Factor" = "Justeringskonstant";
+
+/* Menu */
+"Menu" = "Menu";

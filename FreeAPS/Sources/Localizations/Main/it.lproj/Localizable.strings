@@ -2214,3 +2214,6 @@ Regola la costante ISF dinamica.";
 
 /* Headline "Adjustment Factor" */
 "Adjustment Factor" = "Fattore Regolazione";
+
+/* Menu */
+"Menu" = "Menu";

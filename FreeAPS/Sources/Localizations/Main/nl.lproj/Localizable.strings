@@ -2216,3 +2216,6 @@ Eenvoudig gezegd, de Dynamische Carb Ratio past de koolhydraatverhouding aan op 
 
 /* Headline "Adjustment Factor" */
 "Adjustment Factor" = "Aanpassingsfactor";
+
+/* Menu */
+"Menu" = "Menu";
