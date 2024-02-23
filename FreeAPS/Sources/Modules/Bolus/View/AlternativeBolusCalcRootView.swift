@@ -473,7 +473,7 @@ extension Bolus {
                                 if !state.externalInsulin {
                                     Text(exceededMaxBolus ? "Max Bolus exceeded!" : "Enact bolus")
                                 } else {
-                                    Text("Log external insulin")
+                                    Text(exceededMaxBolus ? "Max Bolus exceeded!" : "Log external insulin")
                                 }
                             }
                             .frame(maxWidth: .infinity, alignment: .center)
@@ -496,12 +496,9 @@ extension Bolus {
                                 // show loading bar only when carbs are actually added
                                 if state.carbs > 0 {
                                     state.waitForSuggestion = true
-                                } else {
-                                    // otherwise close view, because hideModal() is otherwise only excecuted after a suggestion update, see StateModal
-                                    state.hideModal()
+                                    state.addCarbs()
+                                    state.addButtonPressed = true
                                 }
-                                state.addButtonPressed = true
-                                state.addCarbs()
                             }
                             label: { Text("Continue without bolus") }
                                 .frame(maxWidth: .infinity, alignment: .center)
