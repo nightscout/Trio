@@ -57,8 +57,6 @@ extension Bolus {
                 Section {
                     if state.waitForSuggestion {
                         Text("Please wait")
-                    } else {
-                        predictionChart
                     }
                 } header: { Text("Predictions") }.listRowBackground(Color.chart)
 
@@ -178,15 +176,6 @@ extension Bolus {
 
         var disabled: Bool {
             state.amount <= 0 || state.amount > state.maxBolus
-        }
-
-        var predictionChart: some View {
-            ZStack {
-                PredictionView(
-                    predictions: $state.predictions, units: $state.units, eventualBG: $state.evBG, target: $state.target,
-                    displayPredictions: $state.displayPredictions
-                )
-            }
         }
 
         var changed: Bool {

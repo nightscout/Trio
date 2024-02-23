@@ -53,7 +53,7 @@ struct FreeAPSSettings: JSON, Equatable {
     var fattyMealFactor: Decimal = 0.7
     var sweetMeals: Bool = false
     var sweetMealFactor: Decimal = 2
-    var displayPredictions: Bool = true
+    var displayPresets: Bool = true
     var useLiveActivity: Bool = false
     var historyLayout: HistoryLayout = .twoTabs
     var lockScreenView: LockScreenView = .simple
@@ -278,8 +278,8 @@ extension FreeAPSSettings: Decodable {
             settings.onlyAutotuneBasals = onlyAutotuneBasals
         }
 
-        if let displayPredictions = try? container.decode(Bool.self, forKey: .displayPredictions) {
-            settings.displayPredictions = displayPredictions
+        if let displayPresets = try? container.decode(Bool.self, forKey: .displayPresets) {
+            settings.displayPresets = displayPresets
         }
 
         if let useLiveActivity = try? container.decode(Bool.self, forKey: .useLiveActivity) {

@@ -62,7 +62,7 @@ extension BolusCalculatorConfig {
                 } header: { Text("Calculator settings") }
 
                 Section {
-                    Toggle("Display Predictions", isOn: $state.displayPredictions)
+                    Toggle("Display Presets", isOn: $state.displayPresets)
 
                 } header: { Text("Smaller iPhone Screens") }
 

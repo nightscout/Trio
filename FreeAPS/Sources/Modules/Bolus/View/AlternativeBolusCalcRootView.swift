@@ -349,9 +349,11 @@ extension Bolus {
                     }
                 } header: { Text("Carbs") }.listRowBackground(Color.chart)
 
-                Section {
-                    mealPresets
-                }.listRowBackground(Color.chart)
+                if state.displayPresets {
+                    Section {
+                        mealPresets
+                    }.listRowBackground(Color.chart)
+                }
 
                 Section {
                     HStack {
@@ -483,15 +485,6 @@ extension Bolus {
                             selection: $calculatorDetent
                         )
                 }
-        }
-
-        var predictionChart: some View {
-            ZStack {
-                PredictionView(
-                    predictions: $state.predictions, units: $state.units, eventualBG: $state.evBG, target: $state.target,
-                    displayPredictions: $state.displayPredictions
-                )
-            }
         }
 
         var calcSettingsFirstRow: some View {
