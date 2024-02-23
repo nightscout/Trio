@@ -348,7 +348,7 @@ extension Bolus {
 
                                 Spacer()
                             }
-                        }
+                        }.listRowBackground(Color.chart)
 
                         if state.displayPresets {
                             Section {
@@ -434,7 +434,7 @@ extension Bolus {
                                     exceededMaxBolus = false
                                 }
                             }
-                        }
+                        }.listRowBackground(Color.chart)
 
                         if state.amount > 0 {
                             Section {
