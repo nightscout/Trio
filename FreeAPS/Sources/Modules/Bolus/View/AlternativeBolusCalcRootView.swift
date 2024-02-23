@@ -461,7 +461,7 @@ extension Bolus {
             }.scrollContentBackground(.hidden).background(color)
                 .blur(radius: showInfo ? 3 : 0)
                 .navigationTitle("Treatments")
-                .navigationBarTitleDisplayMode(.large)
+                .navigationBarTitleDisplayMode(.inline)
                 .toolbar(content: {
                     ToolbarItem(placement: .topBarLeading) {
                         Button {
