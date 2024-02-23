@@ -75,18 +75,19 @@ extension Bolus {
         @Published var note: String = ""
 
         @Published var date = Date()
-        // @Published var protein: Decimal = 0
-        // @Published var fat: Decimal = 0
+
         @Published var carbsRequired: Decimal?
         @Published var useFPUconversion: Bool = false
         @Published var dish: String = ""
         @Published var selection: Presets?
         @Published var summation: [String] = []
         @Published var maxCarbs: Decimal = 0
-        // @Published var note: String = ""
+
         @Published var id_: String = ""
         @Published var summary: String = ""
         @Published var skipBolus: Bool = false
+
+        @Published var externalInsulin: Bool = false
 
         let now = Date.now
 

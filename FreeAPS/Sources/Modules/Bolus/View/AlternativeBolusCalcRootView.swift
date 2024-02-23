@@ -434,6 +434,14 @@ extension Bolus {
 
                 if state.amount > 0 {
                     Section {
+                        HStack {
+                            Text("External insulin")
+                            Spacer()
+                            Toggle("", isOn: $state.externalInsulin).toggleStyle(Checkbox())
+                        }
+                    }
+
+                    Section {
                         Button {
                             Task {
                                 await state.add()
