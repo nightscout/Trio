@@ -453,6 +453,7 @@ extension Bolus {
                                 if !state.externalInsulin {
                                     Task {
                                         await state.add()
+
                                         state.waitForSuggestion = true
                                         state.addCarbs()
                                         state.addButtonPressed = true
@@ -461,6 +462,7 @@ extension Bolus {
                                     Task {
                                         do {
                                             await state.addExternalInsulin()
+
                                             state.waitForSuggestion = true
                                             state.addCarbs()
                                             state.addButtonPressed = true

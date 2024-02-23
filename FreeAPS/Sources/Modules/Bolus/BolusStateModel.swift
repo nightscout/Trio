@@ -512,9 +512,6 @@ extension Bolus {
             )
             debug(.default, "External insulin saved to pumphistory.json")
 
-            // Reset amount to 0 for next entry.
-            amount = 0
-
             // perform determine basal sync
             apsManager.determineBasalSync()
         }
