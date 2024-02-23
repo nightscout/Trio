@@ -161,6 +161,7 @@ extension DataTable {
 
         func deleteCarbs(_ treatment: Treatment) {
             provider.deleteCarbs(treatment)
+            apsManager.determineBasalSync()
         }
 
         func deleteInsulin(_ treatment: Treatment) async {
@@ -168,6 +169,7 @@ extension DataTable {
                 let authenticated = try await unlockmanager.unlock()
                 if authenticated {
                     provider.deleteInsulin(treatment)
+                    apsManager.determineBasalSync()
                 } else {
                     print("authentication failed")
                 }

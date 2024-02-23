@@ -264,240 +264,258 @@ extension Bolus {
         }
 
         var body: some View {
-            VStack {
-                Form {
-                    Section {
-                        HStack {
-                            Text("Carbs").fontWeight(.semibold)
-                            Spacer()
-                            DecimalTextField(
-                                "0",
-                                value: $state.carbs,
-                                formatter: formatter,
-                                autofocus: false,
-                                cleanInput: true
-                            )
-                            Text("g").foregroundColor(.secondary)
-                        }
-
-                        if state.useFPUconversion {
-                            proteinAndFat()
-                        }
-
-                        // Summary when combining presets
-                        if state.waitersNotepad() != "" {
-                            HStack {
-                                Text("Total")
-                                let test = state.waitersNotepad().components(separatedBy: ", ").removeDublicates()
-                                HStack(spacing: 0) {
-                                    ForEach(test, id: \.self) {
-                                        Text($0).foregroundStyle(Color.randomGreen()).font(.footnote)
-                                        Text($0 == test[test.count - 1] ? "" : ", ")
-                                    }
-                                }.frame(maxWidth: .infinity, alignment: .trailing)
-                            }
-                        }
-
-                        // Time
-                        HStack {
-                            Text("Time").foregroundStyle(Color.secondary)
-                            Spacer()
-                            if !pushed {
-                                Button {
-                                    pushed = true
-                                } label: { Text("Now") }.buttonStyle(.borderless).foregroundColor(.secondary)
-                                    .padding(.trailing, 5)
-                            } else {
-                                Button { state.date = state.date.addingTimeInterval(-15.minutes.timeInterval) }
-                                label: { Image(systemName: "minus.circle") }.tint(.blue).buttonStyle(.borderless)
-                                DatePicker(
-                                    "Time",
-                                    selection: $state.date,
-                                    displayedComponents: [.hourAndMinute]
-                                ).controlSize(.mini)
-                                    .labelsHidden()
-                                Button {
-                                    state.date = state.date.addingTimeInterval(15.minutes.timeInterval)
-                                }
-                                label: { Image(systemName: "plus.circle") }.tint(.blue).buttonStyle(.borderless)
-                            }
-                        }
-
-                        .popover(isPresented: $isPromptPresented) {
-                            presetPopover
-                        }
-
-                        HStack {
-                            Spacer()
-                            Button {
-                                isCalculating = true
-                                state.insulinCalculated = state.calculateInsulin()
-
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                    isCalculating = false
-                                }
-                            }
-                            label: {
-                                if !isCalculating {
-                                    Text("Calculate")
-                                } else {
-                                    ProgressView().progressViewStyle(CircularProgressViewStyle())
-                                }
-                            }.disabled(empty)
-
-                            Spacer()
-                        }
-                    }
-
-                    if state.displayPresets {
+            ZStack(alignment: .center) {
+                VStack {
+                    Form {
                         Section {
-                            mealPresets
-                        }.listRowBackground(Color.chart)
-                    }
-
-                    Section {
-                        HStack {
-                            Button(action: {
-                                showInfo.toggle()
-                            }, label: {
-                                Image(systemName: "info.circle")
-                                Text("Calculations")
-                            })
-                                .foregroundStyle(.blue)
-                                .font(.footnote)
-                                .buttonStyle(PlainButtonStyle())
-                                .frame(maxWidth: .infinity, alignment: .leading)
-
-                            if state.fattyMeals {
+                            HStack {
+                                Text("Carbs").fontWeight(.semibold)
                                 Spacer()
-                                Toggle(isOn: $state.useFattyMealCorrectionFactor) {
-                                    Text("Fatty Meal")
+                                DecimalTextField(
+                                    "0",
+                                    value: $state.carbs,
+                                    formatter: formatter,
+                                    autofocus: false,
+                                    cleanInput: true
+                                )
+                                Text("g").foregroundColor(.secondary)
+                            }
+
+                            if state.useFPUconversion {
+                                proteinAndFat()
+                            }
+
+                            // Summary when combining presets
+                            if state.waitersNotepad() != "" {
+                                HStack {
+                                    Text("Total")
+                                    let test = state.waitersNotepad().components(separatedBy: ", ").removeDublicates()
+                                    HStack(spacing: 0) {
+                                        ForEach(test, id: \.self) {
+                                            Text($0).foregroundStyle(Color.randomGreen()).font(.footnote)
+                                            Text($0 == test[test.count - 1] ? "" : ", ")
+                                        }
+                                    }.frame(maxWidth: .infinity, alignment: .trailing)
                                 }
-                                .toggleStyle(CheckboxToggleStyle())
-                                .font(.footnote)
-                                .onChange(of: state.useFattyMealCorrectionFactor) { _ in
+                            }
+
+                            // Time
+                            HStack {
+                                Text("Time").foregroundStyle(Color.secondary)
+                                Spacer()
+                                if !pushed {
+                                    Button {
+                                        pushed = true
+                                    } label: { Text("Now") }.buttonStyle(.borderless).foregroundColor(.secondary)
+                                        .padding(.trailing, 5)
+                                } else {
+                                    Button { state.date = state.date.addingTimeInterval(-15.minutes.timeInterval) }
+                                    label: { Image(systemName: "minus.circle") }.tint(.blue).buttonStyle(.borderless)
+                                    DatePicker(
+                                        "Time",
+                                        selection: $state.date,
+                                        displayedComponents: [.hourAndMinute]
+                                    ).controlSize(.mini)
+                                        .labelsHidden()
+                                    Button {
+                                        state.date = state.date.addingTimeInterval(15.minutes.timeInterval)
+                                    }
+                                    label: { Image(systemName: "plus.circle") }.tint(.blue).buttonStyle(.borderless)
+                                }
+                            }
+
+                            .popover(isPresented: $isPromptPresented) {
+                                presetPopover
+                            }
+
+                            HStack {
+                                Spacer()
+                                Button {
+                                    isCalculating = true
                                     state.insulinCalculated = state.calculateInsulin()
-                                    if state.useFattyMealCorrectionFactor {
-                                        state.useSuperBolus = false
+
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                        isCalculating = false
+                                    }
+                                }
+                                label: {
+                                    if !isCalculating {
+                                        Text("Calculate")
+                                    } else {
+                                        ProgressView().progressViewStyle(CircularProgressViewStyle())
+                                    }
+                                }.disabled(empty)
+
+                                Spacer()
+                            }
+                        }
+
+                        if state.displayPresets {
+                            Section {
+                                mealPresets
+                            }.listRowBackground(Color.chart)
+                        }
+
+                        Section {
+                            HStack {
+                                Button(action: {
+                                    showInfo.toggle()
+                                }, label: {
+                                    Image(systemName: "info.circle")
+                                    Text("Calculations")
+                                })
+                                    .foregroundStyle(.blue)
+                                    .font(.footnote)
+                                    .buttonStyle(PlainButtonStyle())
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                                if state.fattyMeals {
+                                    Spacer()
+                                    Toggle(isOn: $state.useFattyMealCorrectionFactor) {
+                                        Text("Fatty Meal")
+                                    }
+                                    .toggleStyle(CheckboxToggleStyle())
+                                    .font(.footnote)
+                                    .onChange(of: state.useFattyMealCorrectionFactor) { _ in
+                                        state.insulinCalculated = state.calculateInsulin()
+                                        if state.useFattyMealCorrectionFactor {
+                                            state.useSuperBolus = false
+                                        }
+                                    }
+                                }
+                                if state.sweetMeals {
+                                    Spacer()
+                                    Toggle(isOn: $state.useSuperBolus) {
+                                        Text("Super Bolus")
+                                    }
+                                    .toggleStyle(CheckboxToggleStyle())
+                                    .font(.footnote)
+                                    .onChange(of: state.useSuperBolus) { _ in
+                                        state.insulinCalculated = state.calculateInsulin()
+                                        if state.useSuperBolus {
+                                            state.useFattyMealCorrectionFactor = false
+                                        }
                                     }
                                 }
                             }
-                            if state.sweetMeals {
+
+                            HStack {
+                                Text("Recommended Bolus")
                                 Spacer()
-                                Toggle(isOn: $state.useSuperBolus) {
-                                    Text("Super Bolus")
-                                }
-                                .toggleStyle(CheckboxToggleStyle())
-                                .font(.footnote)
-                                .onChange(of: state.useSuperBolus) { _ in
-                                    state.insulinCalculated = state.calculateInsulin()
-                                    if state.useSuperBolus {
-                                        state.useFattyMealCorrectionFactor = false
-                                    }
+                                Text(
+                                    formatter
+                                        .string(from: Double(state.insulinCalculated) as NSNumber) ?? ""
+                                )
+                                Text(
+                                    NSLocalizedString(
+                                        " U",
+                                        comment: "Unit in number of units delivered (keep the space character!)"
+                                    )
+                                ).foregroundColor(.secondary)
+                            }.contentShape(Rectangle())
+                                .onTapGesture { state.amount = state.insulinCalculated }
+
+                            HStack {
+                                Text("Bolus")
+                                Spacer()
+                                DecimalTextField(
+                                    "0",
+                                    value: $state.amount,
+                                    formatter: formatter,
+                                    autofocus: false,
+                                    cleanInput: true
+                                )
+                                Text(exceededMaxBolus ? "😵" : " U").foregroundColor(.secondary)
+                            }
+                            .onChange(of: state.amount) { newValue in
+                                if newValue > state.maxBolus {
+                                    exceededMaxBolus = true
+                                } else {
+                                    exceededMaxBolus = false
                                 }
                             }
                         }
 
-                        HStack {
-                            Text("Recommended Bolus")
-                            Spacer()
-                            Text(
-                                formatter
-                                    .string(from: Double(state.insulinCalculated) as NSNumber) ?? ""
-                            )
-                            Text(
-                                NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
-                            ).foregroundColor(.secondary)
-                        }.contentShape(Rectangle())
-                            .onTapGesture { state.amount = state.insulinCalculated }
-
-                        HStack {
-                            Text("Bolus")
-                            Spacer()
-                            DecimalTextField(
-                                "0",
-                                value: $state.amount,
-                                formatter: formatter,
-                                autofocus: false,
-                                cleanInput: true
-                            )
-                            Text(exceededMaxBolus ? "😵" : " U").foregroundColor(.secondary)
-                        }
-                        .onChange(of: state.amount) { newValue in
-                            if newValue > state.maxBolus {
-                                exceededMaxBolus = true
-                            } else {
-                                exceededMaxBolus = false
+                        if state.amount > 0 {
+                            Section {
+                                HStack {
+                                    Text("External insulin")
+                                    Spacer()
+                                    Toggle("", isOn: $state.externalInsulin).toggleStyle(Checkbox())
+                                }
                             }
                         }
                     }
-
+                }.safeAreaInset(edge: .bottom, spacing: 0) {
                     if state.amount > 0 {
                         Section {
-                            HStack {
-                                Text("External insulin")
-                                Spacer()
-                                Toggle("", isOn: $state.externalInsulin).toggleStyle(Checkbox())
-                            }
-                        }
-                    }
-                }
-            }.safeAreaInset(edge: .bottom, spacing: 0) {
-                if state.amount > 0 {
-                    Section {
-                        Button {
-                            if !state.externalInsulin {
-                                Task {
-                                    await state.add()
-                                    state.hideModal()
-                                    state.addCarbs()
-                                }
-                            } else {
-                                Task {
-                                    do {
-                                        await state.addExternalInsulin()
-                                        state.hideModal()
+                            Button {
+                                if !state.externalInsulin {
+                                    Task {
+                                        state.waitForSuggestion = true
+                                        await state.add()
                                         state.addCarbs()
+                                        state.addButtonPressed = true
+                                    }
+                                } else {
+                                    Task {
+                                        do {
+                                            state.waitForSuggestion = true
+                                            await state.addExternalInsulin()
+                                            state.addCarbs()
+                                            state.addButtonPressed = true
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        label: {
-                            if !state.externalInsulin {
-                                Text(exceededMaxBolus ? "Max Bolus exceeded!" : "Enact bolus")
-                            } else {
-                                Text("Log external insulin")
+                            label: {
+                                if !state.externalInsulin {
+                                    Text(exceededMaxBolus ? "Max Bolus exceeded!" : "Enact bolus")
+                                } else {
+                                    Text("Log external insulin")
+                                }
                             }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .frame(minHeight: 50)
-                        .disabled(state.externalInsulin ? limitManualBolus : limitPumpBolus)
-                        .background(logExternalInsulinBackground)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                        .tint(logExternalInsulinForeground)
-                        .padding()
-                    } header: {
-                        if state.amount > state.maxBolus
-                        {
-                            Text("⚠️ Warning! The entered insulin amount is greater than your Max Bolus setting!")
-                        }
-                    }
-                }
-                if state.amount <= 0 {
-                    Section {
-                        Button {
-                            state.hideModal()
-                            state.addCarbs()
-                        }
-                        label: { Text("Continue without bolus") }
                             .frame(maxWidth: .infinity, alignment: .center)
                             .frame(minHeight: 50)
-                            .background(Color(.systemBlue))
+                            .disabled(state.externalInsulin ? limitManualBolus : limitPumpBolus)
+                            .background(logExternalInsulinBackground)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
-                            .tint(.white)
+                            .tint(logExternalInsulinForeground)
                             .padding()
-                    }.listRowBackground(Color.chart)
+                        } header: {
+                            if state.amount > state.maxBolus
+                            {
+                                Text("⚠️ Warning! The entered insulin amount is greater than your Max Bolus setting!")
+                            }
+                        }
+                    }
+                    if state.amount <= 0 {
+                        Section {
+                            Button {
+                                // show loading bar only when carbs are actually added
+                                if state.carbs > 0 {
+                                    state.waitForSuggestion = true
+                                } else {
+                                    // otherwise close view, because hideModal() is otherwise only excecuted after a suggestion update, see StateModal
+                                    state.hideModal()
+                                }
+                                state.addButtonPressed = true
+                                state.addCarbs()
+                            }
+                            label: { Text("Continue without bolus") }
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .frame(minHeight: 50)
+                                .background(Color(.systemBlue))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                .tint(.white)
+                                .padding()
+                        }.listRowBackground(Color.chart)
+                    }
+                }.blur(radius: state.waitForSuggestion ? 5 : 0)
+
+                if state.waitForSuggestion {
+                    CustomProgressView(text: progressText)
                 }
             }
             .scrollContentBackground(.hidden).background(color)
@@ -518,13 +536,28 @@ extension Bolus {
                     state.insulinCalculated = state.calculateInsulin()
                 }
             }
-
+            .onDisappear {
+                state.addButtonPressed = false
+            }
             .sheet(isPresented: $showInfo) {
                 calculationsDetailView
                     .presentationDetents(
                         [.fraction(0.9), .large],
                         selection: $calculatorDetent
                     )
+            }
+        }
+
+        var progressText: String {
+            switch (state.amount > 0, state.carbs > 0) {
+            case (true, true):
+                return "Updating COB and IOB..."
+            case (false, true):
+                return "Updating COB..."
+            case (true, false):
+                return "Updating IOB..."
+            default:
+                return "Updating Treatments..."
             }
         }
 

@@ -72,6 +72,8 @@ extension Home {
 
         @Published var selectedTab: Int = 0
 
+        @Published var waitForSuggestion: Bool = false
+
         let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
 
         override func subscribe() {
@@ -215,6 +217,9 @@ extension Home {
 
         func cancelBolus() {
             apsManager.cancelBolus()
+
+            // perform determine basal sync, otherwise you have could end up with too much iob when opening the calculator again
+            apsManager.determineBasalSync()
         }
 
         func cancelProfile() {
@@ -438,6 +443,7 @@ extension Home.StateModel:
         self.suggestion = suggestion
         carbsRequired = suggestion.carbsReq
         setStatusTitle()
+        waitForSuggestion = false
     }
 
     func settingsDidChange(_ settings: FreeAPSSettings) {

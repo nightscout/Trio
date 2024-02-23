@@ -690,6 +690,7 @@ extension Home {
                     Spacer()
 
                     Button {
+                        state.waitForSuggestion = true
                         state.cancelBolus()
                     } label: {
                         Image(systemName: "xmark.app")
@@ -787,77 +788,6 @@ extension Home {
             }
         }
 
-//
-//        @ViewBuilder func tabBarButton(index: Int, systemName: String, label: String) -> some View {
-//            Button(action: {
-//                selectedTab = index
-//            }) {
-//                ZStack(alignment: .bottom, content: {
-//                    VStack {
-//                        Image(systemName: systemName)
-//                            .font(.system(size: 22))
-//                            .foregroundStyle(selectedTab == index ? Color(.label) : Color.gray)
-//                        Text(label)
-//                            .font(.caption2)
-//                            .foregroundStyle(selectedTab == index ? Color(.label) : Color.gray)
-//                            .padding(.top, 1)
-//                    }
-//                    if selectedTab == index {
-//                        Capsule()
-//                            .frame(width: 25, height: 5)
-//                            .foregroundStyle(Color(.label))
-//                            .offset(y: 10)
-//                    }
-//                })
-//            }
-//        }
-//
-//        @ViewBuilder func customTabBar() -> some View {
-//            VStack {
-//                ZStack {
-//                    switch selectedTab {
-//                    case 0:
-//                        mainView()
-//                    case 1:
-//                        NavigationStack { DataTable.RootView(resolver: resolver) }
-//                    case 2:
-//                        NavigationStack { OverrideProfilesConfig.RootView(resolver: resolver) }
-//                    case 3:
-//                        NavigationStack { Settings.RootView(resolver: resolver) }
-//                    default:
-//                        mainView()
-//                    }
-//                }
-//                HStack {
-//                    tabBarButton(
-//                        index: 0,
-//                        systemName: selectedTab == 0 ? "house.fill" : "house",
-//                        label: "Home"
-//                    )
-//                    Spacer()
-//                    tabBarButton(index: 1, systemName: historySFSymbol, label: "History")
-//                    Spacer()
-//                    Button(action: {
-//                        state.showModal(for: .bolus(waitForSuggestion: false, fetch: false))
-//                    }) {
-//                        Image(systemName: "plus.circle.fill")
-//                            .font(.system(size: 45))
-//                            .foregroundStyle(Color.tabBar)
-//                            .padding(.bottom, 2)
-//                    }
-//                    Spacer()
-//                    tabBarButton(
-//                        index: 2,
-//                        systemName: selectedTab == 2 ? "person.fill" : "person",
-//                        label: "Profile"
-//                    )
-//                    Spacer()
-//                    tabBarButton(index: 3, systemName: "text.justify", label: "Menu")
-//                }
-//                .padding(.horizontal, 20)
-//            }.blur(radius: isMenuPresented ? 5 : 0)
-//        }
-
         @ViewBuilder func tabBar() -> some View {
             ZStack(alignment: .bottom) {
                 TabView {
@@ -896,12 +826,17 @@ extension Home {
                             .padding(.horizontal, 20)
                     }
                 )
-            }.ignoresSafeArea(.keyboard, edges: .bottom)
+            }.ignoresSafeArea(.keyboard, edges: .bottom).blur(radius: state.waitForSuggestion ? 8 : 0)
         }
 
         var body: some View {
-            // customTabBar()
-            tabBar()
+            ZStack(alignment: .center) {
+                tabBar()
+
+                if state.waitForSuggestion {
+                    CustomProgressView(text: "Updating IOB...")
+                }
+            }
         }
 
         private var popup: some View {
