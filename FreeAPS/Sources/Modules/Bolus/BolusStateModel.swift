@@ -36,6 +36,8 @@ extension Bolus {
         @Published var waitForSuggestion: Bool = false
         @Published var carbRatio: Decimal = 0
 
+        @Published var addButtonPressed: Bool = false
+
         var waitForSuggestionInitial: Bool = false
 
         // added for bolus calculator
@@ -315,14 +317,13 @@ extension Bolus {
             )]
             carbsStorage.storeCarbs(carbsToStore)
 
-            if skipBolus {
-                apsManager.determineBasalSync()
-                showModal(for: nil)
-            } else if carbs > 0 {
+            if carbs > 0 {
                 saveToCoreData(carbsToStore)
-                apsManager.determineBasalSync()
-            } else {
-                hideModal()
+
+                // only perform determine basal sync if the user doesn't use the pump bolus, otherwise the enact bolus func in the APSManger does a sync
+                if amount <= 0 {
+                    apsManager.determineBasalSync()
+                }
             }
         }
 
@@ -475,6 +476,9 @@ extension Bolus.StateModel: SuggestionObserver {
     func suggestionDidUpdate(_: Suggestion) {
         DispatchQueue.main.async {
             self.waitForSuggestion = false
+            if self.addButtonPressed {
+                self.hideModal()
+            }
         }
         setupInsulinRequired()
     }

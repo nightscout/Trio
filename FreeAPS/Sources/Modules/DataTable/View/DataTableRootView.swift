@@ -74,61 +74,68 @@ extension DataTable {
         }
 
         var body: some View {
-            VStack {
-                Picker("Mode", selection: $state.mode) {
-                    ForEach(
-                        Mode.allCases.filter({ state.historyLayout == .twoTabs ? $0 != .meals : true }).indexed(),
-                        id: \.1
-                    ) { index, item in
-                        if state.historyLayout == .threeTabs && item == .treatments {
-                            Text("Insulin")
-                                .tag(index)
-                        } else {
-                            Text(item.name)
-                                .tag(index)
+            ZStack(alignment: .center) {
+                VStack {
+                    Picker("Mode", selection: $state.mode) {
+                        ForEach(
+                            Mode.allCases.filter({ state.historyLayout == .twoTabs ? $0 != .meals : true }).indexed(),
+                            id: \.1
+                        ) { index, item in
+                            if state.historyLayout == .threeTabs && item == .treatments {
+                                Text("Insulin")
+                                    .tag(index)
+                            } else {
+                                Text(item.name)
+                                    .tag(index)
+                            }
                         }
                     }
-                }
-                .pickerStyle(SegmentedPickerStyle())
-                .padding(.horizontal)
+                    .pickerStyle(SegmentedPickerStyle())
+                    .padding(.horizontal)
 
-                Form {
-                    switch state.mode {
-                    case .treatments: treatmentsList
-                    case .glucose: glucoseList
-                    case .meals: state.historyLayout == .threeTabs ? AnyView(mealsList) : AnyView(EmptyView())
-                    }
-                }.scrollContentBackground(.hidden)
-                    .background(color)
-            }.background(color)
-                .onAppear(perform: configureView)
-                .navigationTitle("History")
-                .navigationBarTitleDisplayMode(.large)
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
+                    Form {
                         switch state.mode {
-                        case .treatments: addButton({
-                                state.showExternalInsulin = true
-                                state.externalInsulinDate = Date()
-                            })
-                        case .meals: EmptyView()
-                        case .glucose: addButton({
-                                showManualGlucose = true
-                                state.manualGlucose = 0
-                            })
+                        case .treatments: treatmentsList
+                        case .glucose: glucoseList
+                        case .meals: state.historyLayout == .threeTabs ? AnyView(mealsList) : AnyView(EmptyView())
                         }
+                    }.scrollContentBackground(.hidden)
+                        .background(color)
+                }.blur(radius: state.waitForSuggestion ? 8 : 0)
+
+                if state.waitForSuggestion {
+                    CustomProgressView(text: "Updating History...")
+                }
+            }
+            .background(color)
+            .onAppear(perform: configureView)
+            .navigationTitle("History")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    switch state.mode {
+                    case .treatments: addButton({
+                            state.showExternalInsulin = true
+                            state.externalInsulinDate = Date()
+                        })
+                    case .meals: EmptyView()
+                    case .glucose: addButton({
+                            showManualGlucose = true
+                            state.manualGlucose = 0
+                        })
                     }
                 }
-                .sheet(isPresented: $showManualGlucose) {
-                    addGlucoseView()
-                }
-                .sheet(
-                    isPresented: $state.showExternalInsulin,
-                    onDismiss: { if isAmountUnconfirmed { state.externalInsulinAmount = 0
-                        state.externalInsulinDate = Date() } }
-                ) {
-                    addExternalInsulinView()
-                }
+            }
+            .sheet(isPresented: $showManualGlucose) {
+                addGlucoseView()
+            }
+            .sheet(
+                isPresented: $state.showExternalInsulin,
+                onDismiss: { if isAmountUnconfirmed { state.externalInsulinAmount = 0
+                    state.externalInsulinDate = Date() } }
+            ) {
+                addExternalInsulinView()
+            }
         }
 
         @ViewBuilder func addButton(_ action: @escaping () -> Void) -> some View {
@@ -323,10 +330,12 @@ extension DataTable {
 
                     if state.historyLayout == .twoTabs, treatmentToDelete.type == .carbs || treatmentToDelete.type == .fpus {
                         state.deleteCarbs(treatmentToDelete)
+                        state.waitForSuggestion = true
                     } else {
                         Task {
                             do {
                                 await state.deleteInsulin(treatmentToDelete)
+                                state.waitForSuggestion = true
                             }
                         }
                     }
@@ -386,6 +395,7 @@ extension DataTable {
                     }
 
                     state.deleteCarbs(treatmentToDelete)
+                    state.waitForSuggestion = true
                 }
             } message: {
                 Text("\n" + NSLocalizedString(alertMessage, comment: ""))
