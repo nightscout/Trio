@@ -18,8 +18,6 @@ extension DataTable {
         @Published var meals: [Treatment] = []
         @Published var manualGlucose: Decimal = 0
         @Published var maxBolus: Decimal = 0
-        @Published var externalInsulinAmount: Decimal = 0
-        @Published var externalInsulinDate = Date()
         @Published var waitForSuggestion: Bool = false
         @Published var showExternalInsulin: Bool = false
         @Published var addButtonPressed: Bool = false
@@ -226,52 +224,6 @@ extension DataTable {
             // Save to Health
             var saveToHealth = [BloodGlucose]()
             saveToHealth.append(saveToJSON)
-        }
-
-        func addExternalInsulin() async {
-            guard externalInsulinAmount > 0 else {
-                showModal(for: nil)
-                return
-            }
-
-            externalInsulinAmount = min(externalInsulinAmount, maxBolus * 3)
-
-            do {
-                let authenticated = try await unlockmanager.unlock()
-                if authenticated {
-                    storeExternalInsulinEvent()
-                } else {
-                    print("authentication failed")
-                }
-            } catch {
-                print("authentication error: \(error.localizedDescription)")
-            }
-        }
-
-        private func storeExternalInsulinEvent() {
-            pumpHistoryStorage.storeEvents(
-                [
-                    PumpHistoryEvent(
-                        id: UUID().uuidString,
-                        type: .bolus,
-                        timestamp: externalInsulinDate,
-                        amount: externalInsulinAmount,
-                        duration: nil,
-                        durationMin: nil,
-                        rate: nil,
-                        temp: nil,
-                        carbInput: nil,
-                        isExternal: true
-                    )
-                ]
-            )
-            debug(.default, "External insulin saved to pumphistory.json")
-
-            // Reset amount to 0 for next entry.
-            externalInsulinAmount = 0
-
-            // perform determine basal sync
-            apsManager.determineBasalSync()
         }
     }
 }

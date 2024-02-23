@@ -443,18 +443,39 @@ extension Bolus {
 
                     Section {
                         Button {
-                            Task {
-                                await state.add()
-                                state.hideModal()
-                                state.addCarbs()
+                            if !state.externalInsulin {
+                                Task {
+                                    await state.add()
+                                    state.hideModal()
+                                    state.addCarbs()
+                                }
+                            } else {
+                                Task {
+                                    do {
+                                        await state.addExternalInsulin()
+                                        state.hideModal()
+                                        state.addCarbs()
+                                    }
+                                }
                             }
                         }
 
-                        label: { Text(exceededMaxBolus ? "Max Bolus exceeded!" : "Enact bolus") }
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .disabled(disabled)
-                            .listRowBackground(!disabled ? Color(.systemBlue) : Color(.systemGray4))
-                            .tint(.white)
+                        label: {
+                            if !state.externalInsulin {
+                                Text(exceededMaxBolus ? "Max Bolus exceeded!" : "Enact bolus")
+                            } else {
+                                Text("Log external insulin")
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .disabled(state.externalInsulin ? limitManualBolus : limitPumpBolus)
+                        .listRowBackground(logExternalInsulinBackground)
+                        .tint(logExternalInsulinForeground)
+                    } header: {
+                        if state.amount > state.maxBolus
+                        {
+                            Text("⚠️ Warning! The entered insulin amount is greater than your Max Bolus setting!")
+                        }
                     }
                 }
                 if state.amount <= 0 {
@@ -936,8 +957,34 @@ extension Bolus {
             return Decimal(floor(100 * toRound) / 100)
         }
 
-        private var disabled: Bool {
+        private var limitPumpBolus: Bool {
             state.amount <= 0 || state.amount > state.maxBolus
+        }
+
+        // MARK: DEFINITIONS FOR ADDING EXTERNAL INSULIN
+
+        private var limitManualBolus: Bool {
+            state.amount <= 0 || state.amount > state.maxBolus * 3
+        }
+
+        private var logExternalInsulinBackground: Color {
+            if state.amount > state.maxBolus {
+                return Color.red
+            } else if state.amount <= 0 || state.amount > state.maxBolus * 3 {
+                return Color(.systemGray4)
+            } else {
+                return Color(.systemBlue)
+            }
+        }
+
+        private var logExternalInsulinForeground: Color {
+            if state.amount > state.maxBolus {
+                return Color.white
+            } else if state.amount <= 0 || state.amount > state.maxBolus * 3 {
+                return Color.secondary
+            } else {
+                return Color.white
+            }
         }
     }
 

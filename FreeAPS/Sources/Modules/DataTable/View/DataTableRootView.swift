@@ -107,10 +107,7 @@ extension DataTable {
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
                         switch state.mode {
-                        case .treatments: addButton({
-                                state.showExternalInsulin = true
-                                state.externalInsulinDate = Date()
-                            })
+                        case .treatments: EmptyView()
                         case .meals: EmptyView()
                         case .glucose: addButton({
                                 showManualGlucose = true
@@ -122,13 +119,13 @@ extension DataTable {
                 .sheet(isPresented: $showManualGlucose) {
                     addGlucoseView()
                 }
-                .sheet(
-                    isPresented: $state.showExternalInsulin,
-                    onDismiss: { if isAmountUnconfirmed { state.externalInsulinAmount = 0
-                        state.externalInsulinDate = Date() } }
-                ) {
-                    addExternalInsulinView()
-                }
+//                .sheet(
+//                    isPresented: $state.showExternalInsulin,
+//                    onDismiss: { if isAmountUnconfirmed { state.externalInsulinAmount = 0
+//                        state.externalInsulinDate = Date() } }
+//                ) {
+//                    addExternalInsulinView()
+//                }
         }
 
         @ViewBuilder func addButton(_ action: @escaping () -> Void) -> some View {
@@ -389,104 +386,6 @@ extension DataTable {
                 }
             } message: {
                 Text("\n" + NSLocalizedString(alertMessage, comment: ""))
-            }
-        }
-
-        @ViewBuilder func addExternalInsulinView() -> some View {
-            NavigationView {
-                ZStack(alignment: .center) {
-                    VStack {
-                        Form {
-                            Section {
-                                HStack {
-                                    Text("Amount")
-                                    Spacer()
-                                    DecimalTextField(
-                                        "0",
-                                        value: $state.externalInsulinAmount,
-                                        formatter: insulinFormatter,
-                                        autofocus: true,
-                                        cleanInput: true
-                                    )
-                                    Text("U").foregroundColor(.secondary)
-                                }
-                            }.listRowBackground(Color.chart)
-
-                            Section {
-                                DatePicker("Date", selection: $state.externalInsulinDate, in: ...Date())
-                            }.listRowBackground(Color.chart)
-
-                            let amountWarningCondition = (state.externalInsulinAmount > state.maxBolus)
-
-                            var listBackgroundColor: Color {
-                                if amountWarningCondition {
-                                    return Color.red
-                                } else if state.externalInsulinAmount <= 0 || state.externalInsulinAmount > state.maxBolus * 3 {
-                                    return Color(.systemGray4)
-                                } else {
-                                    return Color(.systemBlue)
-                                }
-                            }
-
-                            var foregroundColor: Color {
-                                if amountWarningCondition {
-                                    return Color.white
-                                } else if state.externalInsulinAmount <= 0 || state.externalInsulinAmount > state.maxBolus * 3 {
-                                    return Color.secondary
-                                } else {
-                                    return Color.white
-                                }
-                            }
-
-                            Section {
-                                HStack {
-                                    Button {
-                                        Task {
-                                            do {
-                                                await state.addExternalInsulin()
-                                                state.waitForSuggestion = true
-                                                state.addButtonPressed = true
-                                                isAmountUnconfirmed = false
-                                            }
-                                        }
-                                    } label: {
-                                        Text("Log external insulin")
-                                    }
-                                    .foregroundStyle(foregroundColor)
-                                    .frame(maxWidth: .infinity, alignment: .center)
-                                    .disabled(
-                                        state.externalInsulinAmount <= 0 || state.externalInsulinAmount > state.maxBolus * 3
-                                    )
-                                }
-                            }
-                            header: {
-                                if amountWarningCondition
-                                {
-                                    Text("⚠️ Warning! The entered insulin amount is greater than your Max Bolus setting!")
-                                }
-                            }
-                            .listRowBackground(listBackgroundColor).tint(.white)
-                        }.scrollContentBackground(.hidden).background(color)
-                    }.blur(radius: state.waitForSuggestion ? 5 : 0)
-
-                    if state.waitForSuggestion {
-                        CustomProgressView(text: "Updating IOB")
-                    }
-                }
-                .onAppear(perform: configureView)
-                .onDisappear {
-                    state.addButtonPressed = false
-                }
-                .navigationTitle("External Insulin")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button("Close") {
-                            state.showExternalInsulin = false
-                            state.externalInsulinAmount = 0
-                        }
-                    }
-                }
             }
         }
 

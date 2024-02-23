@@ -469,6 +469,54 @@ extension Bolus {
                 print("meals 1: ID: " + (save.id ?? "").description + " FPU ID: " + (save.fpuID ?? "").description)
             }
         }
+
+        // MARK: EXTERNAL INSULIN
+
+        func addExternalInsulin() async {
+            guard amount > 0 else {
+                showModal(for: nil)
+                return
+            }
+
+            amount = min(amount, maxBolus * 3)
+
+            do {
+                let authenticated = try await unlockmanager.unlock()
+                if authenticated {
+                    storeExternalInsulinEvent()
+                } else {
+                    print("authentication failed")
+                }
+            } catch {
+                print("authentication error: \(error.localizedDescription)")
+            }
+        }
+
+        private func storeExternalInsulinEvent() {
+            pumpHistoryStorage.storeEvents(
+                [
+                    PumpHistoryEvent(
+                        id: UUID().uuidString,
+                        type: .bolus,
+                        timestamp: date,
+                        amount: amount,
+                        duration: nil,
+                        durationMin: nil,
+                        rate: nil,
+                        temp: nil,
+                        carbInput: nil,
+                        isExternal: true
+                    )
+                ]
+            )
+            debug(.default, "External insulin saved to pumphistory.json")
+
+            // Reset amount to 0 for next entry.
+            amount = 0
+
+            // perform determine basal sync
+            apsManager.determineBasalSync()
+        }
     }
 }
 
