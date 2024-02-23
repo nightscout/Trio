@@ -452,16 +452,16 @@ extension Bolus {
                             Button {
                                 if !state.externalInsulin {
                                     Task {
-                                        state.waitForSuggestion = true
                                         await state.add()
+                                        state.waitForSuggestion = true
                                         state.addCarbs()
                                         state.addButtonPressed = true
                                     }
                                 } else {
                                     Task {
                                         do {
-                                            state.waitForSuggestion = true
                                             await state.addExternalInsulin()
+                                            state.waitForSuggestion = true
                                             state.addCarbs()
                                             state.addButtonPressed = true
                                         }
@@ -495,10 +495,13 @@ extension Bolus {
                             Button {
                                 // show loading bar only when carbs are actually added
                                 if state.carbs > 0 {
-                                    state.waitForSuggestion = true
                                     state.addCarbs()
-                                    state.addButtonPressed = true
+                                    state.waitForSuggestion = true
+                                } else {
+                                    // hide modal because its otherwise only hided after a suggestion update, see StateModal
+                                    state.hideModal()
                                 }
+                                state.addButtonPressed = true
                             }
                             label: { Text("Continue without bolus") }
                                 .frame(maxWidth: .infinity, alignment: .center)
