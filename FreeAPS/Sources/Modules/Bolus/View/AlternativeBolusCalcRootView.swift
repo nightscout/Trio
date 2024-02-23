@@ -347,7 +347,7 @@ extension Bolus {
 
                         Spacer()
                     }
-                } header: { Text("Carbs") }.listRowBackground(Color.chart)
+                }
 
                 if state.displayPresets {
                     Section {
@@ -430,8 +430,7 @@ extension Bolus {
                             exceededMaxBolus = false
                         }
                     }
-
-                } header: { Text("Bolus") }.listRowBackground(Color.chart)
+                }
 
                 if state.amount > 0 {
                     Section {
