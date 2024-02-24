@@ -374,9 +374,8 @@ extension MainChartView {
                 ) { _ in
                     calculatePredictions()
                 }
-                .frame(
-                    minHeight: UIScreen.main.bounds.height / 3.6
-                )
+                .frame(minHeight: UIScreen.main.bounds.height * 0.25)
+                .frame(maxHeight: UIScreen.main.bounds.height * 0.35)
                 .frame(width: fullWidth(viewWidth: screenSize.width))
                 .chartXScale(domain: startMarker ... endMarker)
                 .chartXAxis {
@@ -517,7 +516,7 @@ extension MainChartView {
                             yStart: .value("suspend-start", 0),
                             yEnd: .value("suspend-end", suspensionMarkHeight)
                         )
-                        .foregroundStyle(Color.loopGray)
+                        .foregroundStyle(Color.loopGray.opacity(0.3))
                     }
                 }
             }.onChange(of: tempBasals) { _ in
@@ -538,9 +537,8 @@ extension MainChartView {
             }.onChange(of: basalProfile) { _ in
                 calculateTempBasals()
             }
-            .frame(
-                minHeight: UIScreen.main.bounds.height / 9.8
-            )
+            .frame(minHeight: UIScreen.main.bounds.height * 0.05)
+            .frame(maxHeight: UIScreen.main.bounds.height * 0.08)
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .rotationEffect(.degrees(180))
             .scaleEffect(x: -1, y: 1)
