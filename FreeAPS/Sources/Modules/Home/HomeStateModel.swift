@@ -236,20 +236,17 @@ extension Home {
                 guard let self = self else { return }
                 let filteredGlucose = self.provider.filteredGlucose(hours: self.filteredHours)
 
-                for glucose in filteredGlucose {
-                    if glucose.type == GlucoseType.manual.rawValue {
-                        self.manualGlucose.append(glucose)
-                    } else {
-                        self.glucose.append(glucose)
-                    }
-                }
+                self.glucose += filteredGlucose
+                self.manualGlucose += filteredGlucose.filter { $0.type == GlucoseType.manual.rawValue }
 
                 self.recentGlucose = self.glucose.last
+
                 if self.glucose.count >= 2 {
                     self.glucoseDelta = (self.recentGlucose?.glucose ?? 0) - (self.glucose[self.glucose.count - 2].glucose ?? 0)
                 } else {
                     self.glucoseDelta = nil
                 }
+
                 self.alarm = self.provider.glucoseStorage.alarm
             }
         }
