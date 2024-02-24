@@ -708,8 +708,8 @@ extension Home {
         @ViewBuilder func mainView() -> some View {
             GeometryReader { geo in
                 VStack(spacing: 0) {
-                    Spacer()
-                        .frame(height: UIScreen.main.bounds.height / 16)
+//                    Spacer()
+//                        .frame(height: UIScreen.main.bounds.height / 40)
 
                     ZStack {
                         /// glucose bobble
@@ -740,8 +740,8 @@ extension Home {
                             radius: 3
                         )
                         .padding(.horizontal, 10)
-                        .frame(maxHeight: UIScreen.main.bounds.height / 2.4)
-                        .frame(minHeight: UIScreen.main.bounds.height / 3)
+                        .frame(maxHeight: UIScreen.main.bounds.height * 0.45)
+                        .frame(minHeight: UIScreen.main.bounds.height * 0.4)
 
                     timeInterval.padding(.top, 20).padding(.bottom, 20)
 

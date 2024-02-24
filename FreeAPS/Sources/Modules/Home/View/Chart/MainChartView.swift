@@ -362,9 +362,9 @@ extension MainChartView {
                     calculatePredictions()
                 }
                 .frame(
-                    minHeight: UIScreen.main.bounds.height / 5
+                    minHeight: UIScreen.main.bounds.height * 0.25
                 )
-                .frame(maxHeight: UIScreen.main.bounds.height / 3.5)
+                .frame(maxHeight: UIScreen.main.bounds.height * 0.35)
                 .frame(width: fullWidth(viewWidth: screenSize.width))
                 // .chartYScale(domain: minValue ... maxValue)
                 .chartXScale(domain: startMarker ... endMarker)
@@ -507,9 +507,9 @@ extension MainChartView {
                 calculateTempBasals()
             }
             .frame(
-                minHeight: UIScreen.main.bounds.height / 15
+                minHeight: UIScreen.main.bounds.height * 0.05
             )
-            .frame(maxHeight: UIScreen.main.bounds.height / 12)
+            .frame(maxHeight: UIScreen.main.bounds.height * 0.08)
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .rotationEffect(.degrees(180))
             .scaleEffect(x: -1, y: 1)
