@@ -425,7 +425,7 @@ extension Bolus {
                                     autofocus: false,
                                     cleanInput: true
                                 )
-                                Text(exceededMaxBolus ? "😵" : " U").foregroundColor(.secondary)
+                                Text(" U").foregroundColor(.secondary)
                             }
                             .onChange(of: state.amount) { newValue in
                                 if newValue > state.maxBolus {
@@ -471,7 +471,7 @@ extension Bolus {
                                     state.addCarbs()
                                     state.waitForSuggestion = true
                                 } else {
-                                    // hide modal because its otherwise only hided after a suggestion update, see StateModal
+                                    // hide modal because its otherwise only hidden after a suggestion update, see StateModal
                                     state.hideModal()
                                 }
                                 state.addButtonPressed = true
@@ -482,9 +482,9 @@ extension Bolus {
                                     !state
                                         .externalInsulin ? (exceededMaxBolus ? "Max Bolus exceeded!" : "Enact bolus") :
                                         (exceededMaxBolus ? "Max Bolus exceeded!" : "Log external insulin")
-                                ).font(.system(size: 17, design: .rounded)).fontWeight(.bold)
+                                ).font(.system(size: 17, design: .rounded))
                             } else {
-                                Text("Continue without bolus").font(.system(size: 17, design: .rounded)).fontWeight(.bold)
+                                Text("Continue without bolus").font(.system(size: 17, design: .rounded))
                             }
                         }
                         .frame(maxWidth: .infinity, alignment: .center)
@@ -493,7 +493,7 @@ extension Bolus {
                         .background(state.amount > 0 ? logExternalInsulinBackground : Color(.systemBlue))
                         .shadow(radius: 3)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
-                        .tint(state.amount > 0 ? logExternalInsulinForeground : .white)
+                        .foregroundStyle(state.amount > 0 ? logExternalInsulinForeground : .white)
                         .padding()
                     }
                     .listRowBackground(Color.chart)
