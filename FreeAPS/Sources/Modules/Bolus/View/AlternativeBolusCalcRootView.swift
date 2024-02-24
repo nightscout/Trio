@@ -443,7 +443,7 @@ extension Bolus {
                                     Spacer()
                                     Toggle("", isOn: $state.externalInsulin).toggleStyle(Checkbox())
                                 }
-                            }
+                            }.listRowBackground(Color.chart)
                         }
                     }
                 }.safeAreaInset(edge: .bottom, spacing: 0) {
