@@ -101,6 +101,8 @@ struct MainChartView: View {
     @State private var minValue: Int = 45
     @State private var maxValue: Int = 270
 
+    @Environment(\.colorScheme) var colorScheme
+
     private var bolusFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
@@ -516,7 +518,7 @@ extension MainChartView {
                             yStart: .value("suspend-start", 0),
                             yEnd: .value("suspend-end", suspensionMarkHeight)
                         )
-                        .foregroundStyle(Color.loopGray.opacity(0.3))
+                        .foregroundStyle(Color.loopGray.opacity(colorScheme == .dark ? 0.3 : 0.8))
                     }
                 }
             }.onChange(of: tempBasals) { _ in
