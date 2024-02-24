@@ -731,7 +731,7 @@ extension Home {
                     mealPanel(geo).padding(.top, 30).padding(.bottom, 20)
 
                     RoundedRectangle(cornerRadius: 15)
-                        .fill(Color("Chart"))
+                        .fill(Color.chart)
                         .overlay(mainChart)
                         .clipShape(RoundedRectangle(cornerRadius: 15))
                         .shadow(
@@ -740,9 +740,10 @@ extension Home {
                             radius: 3
                         )
                         .padding(.horizontal, 10)
-                        .frame(maxHeight: UIScreen.main.bounds.height / 2.2)
+                        .frame(maxHeight: UIScreen.main.bounds.height / 2.4)
+                        .frame(minHeight: UIScreen.main.bounds.height / 3)
 
-                    timeInterval.padding(.top, 15).padding(.bottom, 15)
+                    timeInterval.padding(.top, 20).padding(.bottom, 20)
 
                     if let progress = state.bolusProgress {
                         bolusView(geo, progress).padding(.bottom, 30)
@@ -750,9 +751,7 @@ extension Home {
                         profileView(geo).padding(.bottom, 30)
                     }
                 }
-
                 .background(color)
-                .edgesIgnoringSafeArea(.all)
             }
             .onChange(of: state.hours) { _ in
                 highlightButtons()
@@ -793,6 +792,8 @@ extension Home {
                 TabView {
                     mainView()
                         .tabItem { Label("Home", systemImage: "house") }
+                        .toolbarBackground(colorScheme == .dark ? Color.bgDarkerDarkBlue : Color.white, for: .tabBar)
+                        .toolbarBackground(.visible, for: .tabBar)
 
                     NavigationStack { DataTable.RootView(resolver: resolver) }
                         .tabItem { Label("History", systemImage: historySFSymbol) }
