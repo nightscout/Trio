@@ -12,7 +12,7 @@ extension Home {
         private let timer = DispatchTimer(timeInterval: 5)
         private(set) var filteredHours = 24
         @Published var glucose: [BloodGlucose] = []
-        @Published var isManual: [BloodGlucose] = []
+        @Published var manualGlucose: [BloodGlucose] = []
         @Published var announcement: [Announcement] = []
         @Published var suggestion: Suggestion?
         @Published var uploadStats = false
@@ -234,8 +234,16 @@ extension Home {
         private func setupGlucose() {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
-                self.isManual = self.provider.manualGlucose(hours: self.filteredHours)
-                self.glucose = self.provider.filteredGlucose(hours: self.filteredHours)
+                let filteredGlucose = self.provider.filteredGlucose(hours: self.filteredHours)
+
+                for glucose in filteredGlucose {
+                    if glucose.type == GlucoseType.manual.rawValue {
+                        self.manualGlucose.append(glucose)
+                    } else {
+                        self.glucose.append(glucose)
+                    }
+                }
+
                 self.recentGlucose = self.glucose.last
                 if self.glucose.count >= 2 {
                     self.glucoseDelta = (self.recentGlucose?.glucose ?? 0) - (self.glucose[self.glucose.count - 2].glucose ?? 0)

@@ -358,6 +358,7 @@ extension Home {
 
                 MainChartView(
                     glucose: $state.glucose,
+                    manualGlucose: $state.manualGlucose,
                     units: $state.units,
                     eventualBG: $state.eventualBG,
                     suggestion: $state.suggestion,

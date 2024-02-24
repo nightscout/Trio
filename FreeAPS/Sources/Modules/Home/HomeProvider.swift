@@ -33,13 +33,6 @@ extension Home {
             }
         }
 
-        func manualGlucose(hours: Int) -> [BloodGlucose] {
-            glucoseStorage.recent().filter {
-                $0.type == GlucoseType.manual.rawValue &&
-                    $0.dateString.addingTimeInterval(hours.hours.timeInterval) > Date()
-            }
-        }
-
         func pumpHistory(hours: Int) -> [PumpHistoryEvent] {
             pumpHistoryStorage.recent().filter {
                 $0.timestamp.addingTimeInterval(hours.hours.timeInterval) > Date()
