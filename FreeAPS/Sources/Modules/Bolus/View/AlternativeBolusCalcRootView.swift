@@ -447,54 +447,25 @@ extension Bolus {
                         }
                     }
                 }.safeAreaInset(edge: .bottom, spacing: 0) {
-                    if state.amount > 0 {
-                        Section {
-                            Button {
+                    Section {
+                        Button {
+                            if state.amount > 0 {
                                 if !state.externalInsulin {
                                     Task {
                                         await state.add()
-
                                         state.waitForSuggestion = true
-                                        state.addCarbs()
-                                        state.addButtonPressed = true
                                     }
                                 } else {
                                     Task {
                                         do {
                                             await state.addExternalInsulin()
-
                                             state.waitForSuggestion = true
-                                            state.addCarbs()
-                                            state.addButtonPressed = true
                                         }
                                     }
                                 }
-                            }
-
-                            label: {
-                                if !state.externalInsulin {
-                                    Text(exceededMaxBolus ? "Max Bolus exceeded!" : "Enact bolus")
-                                } else {
-                                    Text(exceededMaxBolus ? "Max Bolus exceeded!" : "Log external insulin")
-                                }
-                            }
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .frame(minHeight: 50)
-                            .disabled(state.externalInsulin ? limitManualBolus : limitPumpBolus)
-                            .background(logExternalInsulinBackground)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                            .tint(logExternalInsulinForeground)
-                            .padding()
-                        } header: {
-                            if state.amount > state.maxBolus
-                            {
-                                Text("⚠️ Warning! The entered insulin amount is greater than your Max Bolus setting!")
-                            }
-                        }
-                    }
-                    if state.amount <= 0 {
-                        Section {
-                            Button {
+                                state.addCarbs()
+                                state.addButtonPressed = true
+                            } else {
                                 // show loading bar only when carbs are actually added
                                 if state.carbs > 0 {
                                     state.addCarbs()
@@ -505,15 +476,28 @@ extension Bolus {
                                 }
                                 state.addButtonPressed = true
                             }
-                            label: { Text("Continue without bolus") }
-                                .frame(maxWidth: .infinity, alignment: .center)
-                                .frame(minHeight: 50)
-                                .background(Color(.systemBlue))
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                                .tint(.white)
-                                .padding()
-                        }.listRowBackground(Color.chart)
+                        } label: {
+                            if state.amount > 0 {
+                                Text(
+                                    !state
+                                        .externalInsulin ? (exceededMaxBolus ? "Max Bolus exceeded!" : "Enact bolus") :
+                                        (exceededMaxBolus ? "Max Bolus exceeded!" : "Log external insulin")
+                                ).font(.system(size: 17, design: .rounded)).fontWeight(.bold)
+                            } else {
+                                Text("Continue without bolus").font(.system(size: 17, design: .rounded)).fontWeight(.bold)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .frame(minHeight: 50)
+                        .disabled(state.amount > 0 ? (state.externalInsulin ? limitManualBolus : limitPumpBolus) : false)
+                        .background(state.amount > 0 ? logExternalInsulinBackground : Color(.systemBlue))
+                        .shadow(radius: 3)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .tint(state.amount > 0 ? logExternalInsulinForeground : .white)
+                        .padding()
                     }
+                    .listRowBackground(Color.chart)
+
                 }.blur(radius: state.waitForSuggestion ? 5 : 0)
 
                 if state.waitForSuggestion {
