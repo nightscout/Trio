@@ -350,7 +350,6 @@ extension MainChartView {
                 .onChange(of: glucose) { _ in
                     calculatePredictions()
                     calculateFpus()
-                    // counter()
                 }
                 .onChange(of: carbs) { _ in
                     calculateCarbs()
@@ -379,7 +378,6 @@ extension MainChartView {
                     minHeight: UIScreen.main.bounds.height / 3.6
                 )
                 .frame(width: fullWidth(viewWidth: screenSize.width))
-                // .chartYScale(domain: minValue ... maxValue)
                 .chartXScale(domain: startMarker ... endMarker)
                 .chartXAxis {
                     AxisMarks(values: .stride(by: .hour, count: screenHours == 24 ? 4 : 2)) { _ in
@@ -447,6 +445,11 @@ extension MainChartView {
                     /// we could display scheduled temp basals with opacity etc... in the future
                     let maxEndTime = min(end, now)
 
+                    /// set mark height to 0 when insulin delivery is suspended
+                    let isInsulinSuspended = suspensions
+                        .first(where: { $0.timestamp >= temp.timestamp && $0.timestamp <= maxEndTime }) != nil
+                    let rate = (temp.rate ?? 0) * (isInsulinSuspended ? 0 : 1)
+
                     /// find next basal entry and if available set end of current entry to start of next entry
                     if let nextTemp = TempBasals.first(where: { $0.timestamp > temp.timestamp }) {
                         let nextTempStart = nextTemp.timestamp
@@ -455,29 +458,30 @@ extension MainChartView {
                             xStart: .value("start", temp.timestamp),
                             xEnd: .value("end", nextTempStart),
                             yStart: .value("rate-start", 0),
-                            yEnd: .value("rate-end", temp.rate ?? 0)
+                            yEnd: .value("rate-end", rate)
                         ).foregroundStyle(Color.insulin.opacity(0.2))
 
-                        LineMark(x: .value("Start Date", temp.timestamp), y: .value("Amount", temp.rate ?? 0))
+                        LineMark(x: .value("Start Date", temp.timestamp), y: .value("Amount", rate))
                             .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
 
-                        LineMark(x: .value("End Date", nextTempStart), y: .value("Amount", temp.rate ?? 0))
+                        LineMark(x: .value("End Date", nextTempStart), y: .value("Amount", rate))
                             .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
                     } else {
                         RectangleMark(
                             xStart: .value("start", temp.timestamp),
                             xEnd: .value("end", maxEndTime),
                             yStart: .value("rate-start", 0),
-                            yEnd: .value("rate-end", temp.rate ?? 0)
+                            yEnd: .value("rate-end", rate)
                         ).foregroundStyle(Color.insulin.opacity(0.2))
 
-                        LineMark(x: .value("Start Date", temp.timestamp), y: .value("Amount", temp.rate ?? 0))
+                        LineMark(x: .value("Start Date", temp.timestamp), y: .value("Amount", rate))
                             .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
 
-                        LineMark(x: .value("End Date", maxEndTime), y: .value("Amount", temp.rate ?? 0))
+                        LineMark(x: .value("End Date", maxEndTime), y: .value("Amount", rate))
                             .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
                     }
                 }
+
                 /// dashed profile line
                 ForEach(BasalProfiles, id: \.self) { profile in
                     LineMark(
@@ -490,6 +494,31 @@ extension MainChartView {
                         y: .value("Amount", profile.amount),
                         series: .value("profile", "profile")
                     ).lineStyle(.init(lineWidth: 2.5, dash: [2, 4])).foregroundStyle(Color.insulin)
+                }
+
+                /// pump suspensions
+                ForEach(suspensions) { suspension in
+                    let now = Date()
+
+                    if suspension.type == EventType.pumpSuspend {
+                        let suspensionStart = suspension.timestamp
+                        let suspensionEnd = min(
+                            suspensions
+                                .first(where: { $0.timestamp > suspension.timestamp && $0.type == EventType.pumpResume })?
+                                .timestamp ?? now,
+                            now
+                        )
+                        let basalProfileDuringSuspension = BasalProfiles.first(where: { $0.startDate <= suspensionStart })
+                        let suspensionMarkHeight = basalProfileDuringSuspension?.amount ?? 1
+
+                        RectangleMark(
+                            xStart: .value("start", suspensionStart),
+                            xEnd: .value("end", suspensionEnd),
+                            yStart: .value("suspend-start", 0),
+                            yEnd: .value("suspend-end", suspensionMarkHeight)
+                        )
+                        .foregroundStyle(Color.loopGray)
+                    }
                 }
             }.onChange(of: tempBasals) { _ in
                 calculateBasals()
@@ -858,56 +887,6 @@ extension MainChartView {
         startMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 - 86400))
         endMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 + 10800))
     }
-
-    /// get y axis scale
-    /// but only call the function every 60min, i.e. every 12th glucose value
-//    private func counter() {
-//        glucoseUpdateCount += 1
-//        if glucoseUpdateCount >= maxUpdateCount {
-//            maxValue = glucose.compactMap(\.glucose).max() ?? Config.maxGlucose
-//
-//            if let maxPredValue = maxPredValue() {
-//                maxValue = max(maxValue, maxPredValue)
-//            }
-//
-//            minValue = glucose.compactMap(\.glucose).min() ?? Config.minGlucose
-//            if let minPredValue = minPredValue() {
-//                minValue = min(minValue, minPredValue)
-//            }
-//
-//            if minValue > Config.minGlucose {
-//                minValue = Config.minGlucose
-//            }
-//
-//            if maxValue < Config.maxGlucose {
-//                maxValue = Config.maxGlucose
-//            }
-//
-//            glucoseUpdateCount = 0
-//        }
-//    }
-
-//    private func maxPredValue() -> Int? {
-//        [
-//            suggestion?.predictions?.cob ?? [],
-//            suggestion?.predictions?.iob ?? [],
-//            suggestion?.predictions?.zt ?? [],
-//            suggestion?.predictions?.uam ?? []
-//        ].flatMap {
-//            $0
-//        }.max()
-//    }
-//
-//    private func minPredValue() -> Int? {
-//        [
-//            suggestion?.predictions?.cob ?? [],
-//            suggestion?.predictions?.iob ?? [],
-//            suggestion?.predictions?.zt ?? [],
-//            suggestion?.predictions?.uam ?? []
-//        ].flatMap {
-//            $0
-//        }.min()
-//    }
 
     private func calculateBasals() {
         let dayAgoTime = Date().addingTimeInterval(-1.days.timeInterval).timeIntervalSince1970
