@@ -60,6 +60,7 @@ struct MainChartView: View {
     }
 
     @Binding var glucose: [BloodGlucose]
+    @Binding var manualGlucose: [BloodGlucose]
     @Binding var units: GlucoseUnits
     @Binding var eventualBG: Int?
     @Binding var suggestion: Suggestion?
@@ -332,6 +333,19 @@ extension MainChartView {
                         }
                     }
                 }
+                /// manual glucose mark
+                ForEach(manualGlucose) { item in
+                    if let manualGlucose = item.glucose {
+                        PointMark(
+                            x: .value("Time", item.dateString, unit: .second),
+                            y: .value("Value", Decimal(manualGlucose) * conversionFactor)
+                        )
+                        .symbol {
+                            Image(systemName: "drop.fill").font(.system(size: 10)).symbolRenderingMode(.monochrome)
+                                .foregroundStyle(.red)
+                        }
+                    }
+                }
             }.id("MainChart")
                 .onChange(of: glucose) { _ in
                     calculatePredictions()
@@ -377,16 +391,6 @@ extension MainChartView {
                         AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
                     }
                 }
-//                .chartYAxis {
-//                    AxisMarks { _ in
-//                        if displayYgridLines {
-//                            AxisGridLine(stroke: .init(lineWidth: 0.3, dash: [2, 3]))
-//                        } else {
-//                            AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
-//                        }
-//                        AxisValueLabel()
-//                    }
-//                }
                 .chartYAxis {
                     AxisMarks(position: .trailing) { value in
                         let upperLimit = units == .mgdL ? 400 : 22.2
