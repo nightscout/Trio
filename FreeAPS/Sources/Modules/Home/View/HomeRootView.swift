@@ -464,7 +464,7 @@ extension Home {
                         (numberFormatter.string(from: (state.suggestion?.iob ?? 0) as NSNumber) ?? "0") +
                             NSLocalizedString(" U", comment: "Insulin unit")
                     )
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
                 }
 
                 Spacer()
@@ -477,7 +477,7 @@ extension Home {
                         (numberFormatter.string(from: (state.suggestion?.cob ?? 0) as NSNumber) ?? "0") +
                             NSLocalizedString(" g", comment: "gram of carbs")
                     )
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
                 }
 
                 Spacer()
@@ -485,13 +485,13 @@ extension Home {
                 HStack {
                     if state.pumpSuspended {
                         Text("Pump suspended")
-                            .font(.system(size: 12, weight: .bold)).foregroundColor(.loopGray)
+                            .font(.system(size: 12, weight: .bold, design: .rounded)).foregroundColor(.loopGray)
                     } else if let tempBasalString = tempBasalString {
                         Image(systemName: "drop.circle")
                             .font(.system(size: 16))
                             .foregroundColor(.insulinTintColor)
                         Text(tempBasalString)
-                            .font(.system(size: 16, weight: .bold))
+                            .font(.system(size: 16, weight: .bold, design: .rounded))
                     }
                 }
                 if !state.tins {
@@ -500,7 +500,7 @@ extension Home {
                         "TDD: " + (numberFormatter.string(from: (state.suggestion?.tdd ?? 0) as NSNumber) ?? "0") +
                             NSLocalizedString(" U", comment: "Insulin unit")
                     )
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
                 } else {
                     Spacer()
                     HStack {
@@ -508,7 +508,7 @@ extension Home {
                             "TINS: \(state.roundedTotalBolus)" +
                                 NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
                         )
-                        .font(.system(size: 16, weight: .bold))
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
                         .onChange(of: state.hours) { _ in
                             state.roundedTotalBolus = state.calculateTINS()
                         }
