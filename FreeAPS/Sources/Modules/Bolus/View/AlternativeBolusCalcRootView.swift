@@ -447,57 +447,7 @@ extension Bolus {
                         }
                     }
                 }.safeAreaInset(edge: .bottom, spacing: 0) {
-                    Section {
-                        Button {
-                            if state.amount > 0 {
-                                if !state.externalInsulin {
-                                    Task {
-                                        await state.add()
-                                        state.waitForSuggestion = true
-                                    }
-                                } else {
-                                    Task {
-                                        do {
-                                            await state.addExternalInsulin()
-                                            state.waitForSuggestion = true
-                                        }
-                                    }
-                                }
-                                state.addCarbs()
-                                state.addButtonPressed = true
-                            } else {
-                                // show loading bar only when carbs are actually added
-                                if state.carbs > 0 {
-                                    state.addCarbs()
-                                    state.waitForSuggestion = true
-                                } else {
-                                    // hide modal because its otherwise only hidden after a suggestion update, see StateModal
-                                    state.hideModal()
-                                }
-                                state.addButtonPressed = true
-                            }
-                        } label: {
-                            if state.amount > 0 {
-                                Text(
-                                    !state
-                                        .externalInsulin ? (exceededMaxBolus ? "Max Bolus exceeded!" : "Enact bolus") :
-                                        (exceededMaxBolus ? "Max Bolus exceeded!" : "Log external insulin")
-                                ).font(.system(size: 17, design: .rounded))
-                            } else {
-                                Text("Continue without bolus").font(.system(size: 17, design: .rounded))
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .frame(minHeight: 50)
-                        .disabled(state.amount > 0 ? (state.externalInsulin ? limitManualBolus : limitPumpBolus) : false)
-                        .background(state.amount > 0 ? logExternalInsulinBackground : Color(.systemBlue))
-                        .shadow(radius: 3)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                        .foregroundStyle(state.amount > 0 ? logExternalInsulinForeground : .white)
-                        .padding()
-                    }
-                    .listRowBackground(Color.chart)
-
+                    stickyButton
                 }.blur(radius: state.waitForSuggestion ? 5 : 0)
 
                 if state.waitForSuggestion {
@@ -545,6 +495,59 @@ extension Bolus {
             default:
                 return "Updating Treatments..."
             }
+        }
+
+        var stickyButton: some View {
+            Section {
+                Button {
+                    if state.amount > 0 {
+                        if !state.externalInsulin {
+                            Task {
+                                await state.add()
+                                state.waitForSuggestion = true
+                            }
+                        } else {
+                            Task {
+                                do {
+                                    await state.addExternalInsulin()
+                                    state.waitForSuggestion = true
+                                }
+                            }
+                        }
+                        state.addCarbs()
+                        state.addButtonPressed = true
+                    } else {
+                        // show loading bar only when carbs are actually added
+                        if state.carbs > 0 {
+                            state.addCarbs()
+                            state.waitForSuggestion = true
+                        } else {
+                            // hide modal because its otherwise only hidden after a suggestion update, see StateModal
+                            state.hideModal()
+                        }
+                        state.addButtonPressed = true
+                    }
+                } label: {
+                    if state.amount > 0 {
+                        Text(
+                            !state
+                                .externalInsulin ? (exceededMaxBolus ? "Max Bolus exceeded!" : "Enact bolus") :
+                                (exceededMaxBolus ? "Max Bolus exceeded!" : "Log external insulin")
+                        ).font(.system(size: 17, design: .rounded))
+                    } else {
+                        Text("Continue without bolus").font(.system(size: 17, design: .rounded))
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+                .frame(minHeight: 50)
+                .disabled(state.amount > 0 ? (state.externalInsulin ? limitManualBolus : limitPumpBolus) : false)
+                .background(state.amount > 0 ? logExternalInsulinBackground : Color(.systemBlue))
+                .shadow(radius: 3)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .foregroundStyle(state.amount > 0 ? logExternalInsulinForeground : .white)
+                .padding()
+            }
+            .listRowBackground(Color.chart)
         }
 
         var calcSettingsFirstRow: some View {
