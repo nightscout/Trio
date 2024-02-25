@@ -119,21 +119,17 @@ extension DataTable {
                 .sheet(isPresented: $showManualGlucose) {
                     addGlucoseView()
                 }
-//                .sheet(
-//                    isPresented: $state.showExternalInsulin,
-//                    onDismiss: { if isAmountUnconfirmed { state.externalInsulinAmount = 0
-//                        state.externalInsulinDate = Date() } }
-//                ) {
-//                    addExternalInsulinView()
-//                }
         }
 
         @ViewBuilder func addButton(_ action: @escaping () -> Void) -> some View {
             Button(
                 action: action,
                 label: {
-                    Image(systemName: "plus")
-                        .font(.system(size: 20))
+                    HStack {
+                        Text("Add Glucose")
+                        Image(systemName: "plus")
+                            .font(.system(size: 20))
+                    }
                 }
             )
         }
