@@ -98,6 +98,7 @@ extension Bolus {
         override func subscribe() {
             setupInsulinRequired()
             broadcaster.register(SuggestionObserver.self, observer: self)
+            broadcaster.register(BolusFailureObserver.self, observer: self)
             units = settingsManager.settings.units
             percentage = settingsManager.settings.insulinReqPercentage
             threshold = provider.suggestion?.threshold ?? 0
@@ -518,7 +519,7 @@ extension Bolus {
     }
 }
 
-extension Bolus.StateModel: SuggestionObserver {
+extension Bolus.StateModel: SuggestionObserver, BolusFailureObserver {
     func suggestionDidUpdate(_: Suggestion) {
         DispatchQueue.main.async {
             self.waitForSuggestion = false
@@ -527,5 +528,14 @@ extension Bolus.StateModel: SuggestionObserver {
             }
         }
         setupInsulinRequired()
+    }
+
+    func bolusDidFail() {
+        DispatchQueue.main.async {
+            self.waitForSuggestion = false
+            if self.addButtonPressed {
+                self.hideModal()
+            }
+        }
     }
 }
