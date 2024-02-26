@@ -257,7 +257,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
                 let predicate = HKQuery.predicateForObjects(
                     withMetadataKey: HKMetadataKeySyncIdentifier,
                     operatorType: .equalTo,
-                    value: syncID
+                    value: syncID.id
                 )
                 self.healthKitStore.deleteObjects(of: sampleType, predicate: predicate) { _, _, error in
                     guard let error = error else { return }
