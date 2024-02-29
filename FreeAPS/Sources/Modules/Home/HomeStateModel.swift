@@ -236,8 +236,8 @@ extension Home {
                 guard let self = self else { return }
                 let filteredGlucose = self.provider.filteredGlucose(hours: self.filteredHours)
 
-                self.glucose += filteredGlucose
-                self.manualGlucose += filteredGlucose.filter { $0.type == GlucoseType.manual.rawValue }
+                self.glucose = filteredGlucose
+                self.manualGlucose = filteredGlucose.filter { $0.type == GlucoseType.manual.rawValue }
 
                 self.recentGlucose = self.glucose.last
 
