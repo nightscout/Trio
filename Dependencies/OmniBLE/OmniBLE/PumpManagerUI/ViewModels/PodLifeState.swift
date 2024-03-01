@@ -72,7 +72,7 @@ enum PodLifeState {
     var nextPodLifecycleAction: DashUIScreen {
         switch self {
         case .podActivating, .noPod:
-            return .pairPod
+            return .pairAndPrime
         default:
             return .deactivate
         }

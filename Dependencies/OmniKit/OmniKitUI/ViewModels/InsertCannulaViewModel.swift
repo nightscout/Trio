@@ -13,9 +13,14 @@ import OmniKit
 public protocol CannulaInserter {
     func insertCannula(completion: @escaping (Result<TimeInterval,OmnipodPumpManagerError>) -> ())
     func checkCannulaInsertionFinished(completion: @escaping (OmnipodPumpManagerError?) -> Void)
+    var cannulaInsertionSuccessfullyStarted: Bool { get }
 }
 
-extension OmnipodPumpManager: CannulaInserter {}
+extension OmnipodPumpManager: CannulaInserter {
+    public var cannulaInsertionSuccessfullyStarted: Bool {
+        return state.podState?.setupProgress.cannulaInsertionSuccessfullyStarted == true
+    }
+}
 
 class InsertCannulaViewModel: ObservableObject, Identifiable {
 
@@ -29,9 +34,9 @@ class InsertCannulaViewModel: ObservableObject, Identifiable {
         
         var actionButtonAccessibilityLabel: String {
             switch self {
-            case .ready, .startingInsertion:
+            case .ready:
                 return LocalizedString("Slide Button to insert Cannula", comment: "Insert cannula slider button accessibility label while ready to pair")
-            case .inserting:
+            case .inserting, .startingInsertion:
                 return LocalizedString("Inserting. Please wait.", comment: "Insert cannula action button accessibility label while pairing")
             case .checkingInsertion:
                 return LocalizedString("Checking Insertion", comment: "Insert cannula action button accessibility label checking insertion")
@@ -142,22 +147,15 @@ class InsertCannulaViewModel: ObservableObject, Identifiable {
     
     init(cannulaInserter: CannulaInserter) {
         self.cannulaInserter = cannulaInserter
+
+        // If resuming, don't wait for the button action
+        if cannulaInserter.cannulaInsertionSuccessfullyStarted {
+            insertCannula()
+        }
     }
-    
-//    private func handleEvent(_ event: ActivationStep2Event) {
-//        switch event {
-//        case .insertingCannula:
-//            let finishTime = TimeInterval(Pod.estimatedCannulaInsertionDuration)
-//            state = .inserting(finishTime: CACurrentMediaTime() + finishTime)
-//        case .step2Completed:
-//            state = .finished
-//        default:
-//            break
-//        }
-//    }
-    
+
     private func checkCannulaInsertionFinished() {
-        state = .startingInsertion
+        state = .checkingInsertion
         cannulaInserter.checkCannulaInsertionFinished() { (error) in
             DispatchQueue.main.async {
                 if let error = error {
@@ -171,7 +169,7 @@ class InsertCannulaViewModel: ObservableObject, Identifiable {
     
     private func insertCannula() {
         state = .startingInsertion
-        
+
         cannulaInserter.insertCannula { (result) in
             DispatchQueue.main.async {
                 switch(result) {
@@ -189,14 +187,6 @@ class InsertCannulaViewModel: ObservableObject, Identifiable {
                     self.state = .error(error)
                 }
             }
-
-            
-//            switch status {
-//            case .error(let error):
-//                self.state = .error(error)
-//            case .event(let event):
-//                self.handleEvent(event)
-//            }
         }
     }
     
@@ -214,7 +204,6 @@ class InsertCannulaViewModel: ObservableObject, Identifiable {
             insertCannula()
         }
     }
-    
 }
 
 public extension OmnipodPumpManagerError {

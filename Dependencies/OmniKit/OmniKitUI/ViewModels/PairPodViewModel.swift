@@ -39,7 +39,7 @@ class PairPodViewModel: ObservableObject, Identifiable {
     enum PairPodViewModelState {
         case ready
         case pairing
-        case priming(finishTime: CFTimeInterval)
+        case priming(finishTime: CFTimeInterval?)
         case error(OmnipodPairingError)
         case finished
         
@@ -85,14 +85,6 @@ class PairPodViewModel: ObservableObject, Identifiable {
         }
         
         var navBarButtonAction: NavBarButtonAction {
-//            switch self {
-//            case .error(_, let podCommState):
-//                if podCommState == .activating {
-//                    return .discard
-//                }
-//            default:
-//                break
-//            }
             return .cancel
         }
         
@@ -119,7 +111,11 @@ class PairPodViewModel: ObservableObject, Identifiable {
             case .pairing:
                 return .indeterminantProgress
             case .priming(let finishTime):
-                return .timedProgress(finishTime: finishTime)
+                if let finishTime {
+                    return .timedProgress(finishTime: finishTime)
+                } else {
+                    return .indeterminantProgress
+                }
             case .finished:
                 return .completed
             }
@@ -152,7 +148,7 @@ class PairPodViewModel: ObservableObject, Identifiable {
     @Published var state: PairPodViewModelState = .ready
     
     var podIsActivated: Bool {
-        return false // podPairer.podCommState != .noPod
+        return podPairer.podCommState != .noPod
     }
     
     var backButtonHidden: Bool {
@@ -175,12 +171,22 @@ class PairPodViewModel: ObservableObject, Identifiable {
 
     init(podPairer: PodPairer) {
         self.podPairer = podPairer
+
+        // If resuming, don't wait for the button action
+        if podPairer.podCommState == .activating {
+            pairAndPrime()
+        }
     }
-        
-    private func pair() {
-        state = .pairing
-        
-        podPairer.pair { (status) in
+
+    private func pairAndPrime() {
+        if podPairer.podCommState == .noPod {
+            state = .pairing
+        } else {
+            // Already paired, so resume with the prime
+            state = .priming(finishTime: nil)
+        }
+
+        podPairer.pairAndPrimePod { (status) in
             DispatchQueue.main.async {
                 switch status {
                 case .failure(let error):
@@ -208,14 +214,14 @@ class PairPodViewModel: ObservableObject, Identifiable {
                 self.didRequestDeactivation?()
             } else {
                 // Retry
-                pair()
+                pairAndPrime()
             }
         case .finished:
             didFinish?()
         default:
-            pair()
+            pairAndPrime()
         }
-    }    
+    }
 }
 
 // Pairing recovery suggestions
@@ -246,15 +252,16 @@ enum OmnipodPairingError : LocalizedError {
 }
 
 public protocol PodPairer {
-    func pair(completion: @escaping (PumpManagerResult<TimeInterval>) -> Void)
+    func pairAndPrimePod(completion: @escaping (PumpManagerResult<TimeInterval>) -> Void)
     func discardPod(completion: @escaping (Bool) -> ())
+    var podCommState: PodCommState { get }
 }
 
 extension OmnipodPumpManager: PodPairer {
     public func discardPod(completion: @escaping (Bool) -> ()) {
     }
     
-    public func pair(completion: @escaping (PumpManagerResult<TimeInterval>) -> Void) {
+    public func pairAndPrimePod(completion: @escaping (PumpManagerResult<TimeInterval>) -> Void) {
         pairAndPrime(completion: completion)
     }
 }
