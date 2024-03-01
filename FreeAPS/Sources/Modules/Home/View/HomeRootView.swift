@@ -791,8 +791,14 @@ extension Home {
         @ViewBuilder func tabBar() -> some View {
             ZStack(alignment: .bottom) {
                 TabView {
+                    let carbsRequiredBadge: String? = {
+                        guard let carbsRequired = state.carbsRequired else { return nil }
+                        return carbsRequired > 0 ? numberFormatter.string(from: carbsRequired as NSNumber) : nil
+                    }()
+
                     mainView()
                         .tabItem { Label("Home", systemImage: "house") }
+                        .badge(carbsRequiredBadge)
                         .toolbarBackground(colorScheme == .dark ? Color.bgDarkerDarkBlue : Color.white, for: .tabBar)
                         .toolbarBackground(.visible, for: .tabBar)
 
