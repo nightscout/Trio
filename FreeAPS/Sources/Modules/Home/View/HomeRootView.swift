@@ -359,6 +359,8 @@ extension Home {
                 MainChartView(
                     glucose: $state.glucose,
                     manualGlucose: $state.manualGlucose,
+                    carbsForChart: $state.carbsForChart,
+                    fpusForChart: $state.fpusForChart,
                     units: $state.units,
                     eventualBG: $state.eventualBG,
                     suggestion: $state.suggestion,
@@ -371,7 +373,6 @@ extension Home {
                     autotunedBasalProfile: $state.autotunedBasalProfile,
                     basalProfile: $state.basalProfile,
                     tempTargets: $state.tempTargets,
-                    carbs: $state.carbs,
                     smooth: $state.smooth,
                     highGlucose: $state.highGlucose,
                     lowGlucose: $state.lowGlucose,
@@ -744,12 +745,12 @@ extension Home {
                         .frame(maxHeight: UIScreen.main.bounds.height * 0.45)
                         .frame(minHeight: UIScreen.main.bounds.height * 0.4)
 
-                    timeInterval.padding(.top, 20).padding(.bottom, 20)
+                    timeInterval.padding(.top, 20).padding(.bottom, 40)
 
                     if let progress = state.bolusProgress {
-                        bolusView(geo, progress).padding(.bottom, 30)
+                        bolusView(geo, progress).padding(.bottom, 10)
                     } else {
-                        profileView(geo).padding(.bottom, 30)
+                        profileView(geo).padding(.bottom, 10)
                     }
                 }
                 .background(color)
@@ -793,14 +794,13 @@ extension Home {
                 TabView {
                     let carbsRequiredBadge: String? = {
                         guard let carbsRequired = state.carbsRequired else { return nil }
-                        return carbsRequired > 0 ? numberFormatter.string(from: carbsRequired as NSNumber) : nil
+                        return carbsRequired > 0 ? "\(numberFormatter.string(from: carbsRequired as NSNumber) ?? "") " +
+                            NSLocalizedString("g", comment: "Short representation of grams") : nil
                     }()
 
-                    mainView()
+                    NavigationStack { mainView() }
                         .tabItem { Label("Home", systemImage: "house") }
                         .badge(carbsRequiredBadge)
-                        .toolbarBackground(colorScheme == .dark ? Color.bgDarkerDarkBlue : Color.white, for: .tabBar)
-                        .toolbarBackground(.visible, for: .tabBar)
 
                     NavigationStack { DataTable.RootView(resolver: resolver) }
                         .tabItem { Label("History", systemImage: historySFSymbol) }

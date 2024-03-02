@@ -74,34 +74,45 @@ extension DataTable {
         }
 
         var body: some View {
-            VStack {
-                Picker("Mode", selection: $state.mode) {
-                    ForEach(
-                        Mode.allCases.filter({ state.historyLayout == .twoTabs ? $0 != .meals : true }).indexed(),
-                        id: \.1
-                    ) { index, item in
-                        if state.historyLayout == .threeTabs && item == .treatments {
-                            Text("Insulin")
-                                .tag(index)
-                        } else {
-                            Text(item.name)
-                                .tag(index)
+            ZStack(alignment: .center, content: {
+                VStack {
+                    Picker("Mode", selection: $state.mode) {
+                        ForEach(
+                            Mode.allCases.filter({ state.historyLayout == .twoTabs ? $0 != .meals : true }).indexed(),
+                            id: \.1
+                        ) { index, item in
+                            if state.historyLayout == .threeTabs && item == .treatments {
+                                Text("Insulin")
+                                    .tag(index)
+                            } else {
+                                Text(item.name)
+                                    .tag(index)
+                            }
                         }
                     }
-                }
-                .pickerStyle(SegmentedPickerStyle())
-                .padding(.horizontal)
+                    .pickerStyle(SegmentedPickerStyle())
+                    .padding(.horizontal)
 
-                Form {
-                    switch state.mode {
-                    case .treatments: treatmentsList
-                    case .glucose: glucoseList
-                    case .meals: state.historyLayout == .threeTabs ? AnyView(mealsList) : AnyView(EmptyView())
-                    }
-                }.scrollContentBackground(.hidden)
-                    .background(color)
-            }.background(color)
+                    Form {
+                        switch state.mode {
+                        case .treatments: treatmentsList
+                        case .glucose: glucoseList
+                        case .meals: state.historyLayout == .threeTabs ? AnyView(mealsList) : AnyView(EmptyView())
+                        }
+                    }.scrollContentBackground(.hidden)
+                        .background(color)
+                }.blur(radius: state.waitForSuggestion ? 8 : 0)
+
+                if state.waitForSuggestion {
+                    CustomProgressView(text: progressText.rawValue)
+                }
+            })
+                .background(color)
                 .onAppear(perform: configureView)
+                .onDisappear {
+                    state.carbEntryDeleted = false
+                    state.insulinEntryDeleted = false
+                }
                 .navigationTitle("History")
                 .navigationBarTitleDisplayMode(.large)
                 .toolbar {
@@ -132,6 +143,17 @@ extension DataTable {
                     }
                 }
             )
+        }
+
+        private var progressText: ProgressText {
+            switch (state.carbEntryDeleted, state.insulinEntryDeleted) {
+            case (true, false):
+                return .updatingCOB
+            case(false, true):
+                return .updatingIOB
+            default:
+                return .updatingHistory
+            }
         }
 
         private var treatmentsList: some View {
@@ -315,13 +337,9 @@ extension DataTable {
                     }
 
                     if state.historyLayout == .twoTabs, treatmentToDelete.type == .carbs || treatmentToDelete.type == .fpus {
-                        state.deleteCarbs(treatmentToDelete)
+                        state.invokeCarbDeletionTask(treatmentToDelete)
                     } else {
-                        Task {
-                            do {
-                                await state.deleteInsulin(treatmentToDelete)
-                            }
-                        }
+                        state.invokeInsulinDeletionTask(treatmentToDelete)
                     }
                 }
             } message: {
@@ -377,8 +395,7 @@ extension DataTable {
                         debug(.default, "Cannot gracefully unwrap alertTreatmentToDelete!")
                         return
                     }
-
-                    state.deleteCarbs(treatmentToDelete)
+                    state.invokeCarbDeletionTask(treatmentToDelete)
                 }
             } message: {
                 Text("\n" + NSLocalizedString(alertMessage, comment: ""))
