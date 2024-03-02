@@ -1,5 +1,6 @@
 import Charts
 import CoreData
+import LoopKitUI
 import SwiftUI
 import Swinject
 
@@ -11,7 +12,6 @@ extension Bolus {
 
         @State private var showInfo = false
         @State private var showAlert = false
-        @State private var exceededMaxBolus = false
         @State private var autofocus: Bool = true
         @State private var calculatorDetent = PresentationDetent.medium
         @State var pushed = false
@@ -423,16 +423,10 @@ extension Bolus {
                                     value: $state.amount,
                                     formatter: formatter,
                                     autofocus: false,
-                                    cleanInput: true
+                                    cleanInput: true,
+                                    textColor: .systemBlue
                                 )
                                 Text(" U").foregroundColor(.secondary)
-                            }
-                            .onChange(of: state.amount) { newValue in
-                                if newValue > state.maxBolus {
-                                    exceededMaxBolus = true
-                                } else {
-                                    exceededMaxBolus = false
-                                }
                             }
                         }.listRowBackground(Color.chart)
 
@@ -451,7 +445,7 @@ extension Bolus {
                 }.blur(radius: state.waitForSuggestion ? 5 : 0)
 
                 if state.waitForSuggestion {
-                    CustomProgressView(text: progressText)
+                    CustomProgressView(text: progressText.rawValue)
                 }
             }
             .scrollContentBackground(.hidden).background(color)
@@ -484,70 +478,50 @@ extension Bolus {
             }
         }
 
-        var progressText: String {
+        var progressText: ProgressText {
             switch (state.amount > 0, state.carbs > 0) {
             case (true, true):
-                return "Updating COB and IOB..."
+                return .updatingIOBandCOB
             case (false, true):
-                return "Updating COB..."
+                return .updatingCOB
             case (true, false):
-                return "Updating IOB..."
+                return .updatingIOB
             default:
-                return "Updating Treatments..."
+                return .updatingTreatments
             }
         }
 
         var stickyButton: some View {
-            Section {
-                Button {
-                    if state.amount > 0 {
-                        if !state.externalInsulin {
-                            Task {
-                                await state.add()
-                                state.waitForSuggestion = true
-                            }
-                        } else {
-                            Task {
-                                do {
-                                    await state.addExternalInsulin()
-                                    state.waitForSuggestion = true
-                                }
-                            }
-                        }
-                        state.addCarbs()
-                        state.addButtonPressed = true
-                    } else {
-                        // show loading bar only when carbs are actually added
-                        if state.carbs > 0 {
-                            state.addCarbs()
-                            state.waitForSuggestion = true
-                        } else {
-                            // hide modal because its otherwise only hidden after a suggestion update, see StateModal
-                            state.hideModal()
-                        }
-                        state.addButtonPressed = true
+            ZStack {
+                Rectangle()
+                    .frame(width: UIScreen.main.bounds.width, height: 120).offset(y: 40)
+                    .shadow(
+                        color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
+                            Color.black.opacity(0.33),
+                        radius: 3
+                    )
+                    .foregroundStyle(Color.chart)
+
+                Section {
+                    Button {
+                        state.invokeTreatmentsTask()
+                    } label: {
+                        taskButtonLabel
                     }
-                } label: {
-                    if state.amount > 0 {
-                        Text(
-                            !state
-                                .externalInsulin ? (exceededMaxBolus ? "Max Bolus exceeded!" : "Enact bolus") :
-                                (exceededMaxBolus ? "Max Bolus exceeded!" : "Log external insulin")
-                        ).font(.system(size: 17, design: .rounded))
-                    } else {
-                        Text("Continue without bolus").font(.system(size: 17, design: .rounded))
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .center)
-                .frame(minHeight: 50)
-                .disabled(state.amount > 0 ? (state.externalInsulin ? limitManualBolus : limitPumpBolus) : false)
-                .background(state.amount > 0 ? logExternalInsulinBackground : Color(.systemBlue))
-                .shadow(radius: 3)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .foregroundStyle(state.amount > 0 ? logExternalInsulinForeground : .white)
-                .padding()
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .frame(minHeight: 50)
+                    .disabled(disableTaskButton)
+                    .background(
+                        (state.externalInsulin ? externalBolusLimit : pumpBolusLimit) ? Color(.systemRed) :
+                            Color(.systemBlue)
+                    )
+                    .shadow(radius: 3)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .foregroundStyle(Color.white)
+                    .padding()
+                }.offset(y: 20)
+                    .listRowBackground(Color.chart)
             }
-            .listRowBackground(Color.chart)
         }
 
         var calcSettingsFirstRow: some View {
@@ -983,7 +957,7 @@ extension Bolus {
                         .padding(.top)
                 }
                 .padding([.horizontal, .bottom])
-                .font(.system(size: 15))
+                .font(.subheadline)
             }
         }
 
@@ -992,34 +966,27 @@ extension Bolus {
             return Decimal(floor(100 * toRound) / 100)
         }
 
-        private var limitPumpBolus: Bool {
-            state.amount <= 0 || state.amount > state.maxBolus
-        }
-
-        // MARK: DEFINITIONS FOR ADDING EXTERNAL INSULIN
-
-        private var limitManualBolus: Bool {
-            state.amount <= 0 || state.amount > state.maxBolus * 3
-        }
-
-        private var logExternalInsulinBackground: Color {
-            if state.amount > state.maxBolus {
-                return Color.red
-            } else if state.amount <= 0 || state.amount > state.maxBolus * 3 {
-                return Color(.systemGray4)
+        private var taskButtonLabel: some View {
+            if state.amount > 0 {
+                Text(
+                    !state.externalInsulin ? (pumpBolusLimit ? "Pump bolus exceeds max bolus!" : "Enact bolus") :
+                        (externalBolusLimit ? "Manual bolus exceeds max bolus!" : "Log external insulin")
+                ).font(.headline)
             } else {
-                return Color(.systemBlue)
+                Text("Continue without bolus").font(.headline)
             }
         }
 
-        private var logExternalInsulinForeground: Color {
-            if state.amount > state.maxBolus {
-                return Color.white
-            } else if state.amount <= 0 || state.amount > state.maxBolus * 3 {
-                return Color.secondary
-            } else {
-                return Color.white
-            }
+        private var pumpBolusLimit: Bool {
+            state.amount > state.maxBolus
+        }
+
+        private var externalBolusLimit: Bool {
+            state.amount > state.maxBolus * 3
+        }
+
+        private var disableTaskButton: Bool {
+            state.amount > 0 ? (state.externalInsulin ? externalBolusLimit : pumpBolusLimit) : false
         }
     }
 

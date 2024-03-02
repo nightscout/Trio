@@ -9,4 +9,4 @@ APP_ICON = pod_colorful
 APP_URL_SCHEME = freeaps-x
 
 #include? "ConfigOverride.xcconfig"
-//#include? "../../ConfigOverride.xcconfig"
+#include? "../../ConfigOverride.xcconfig"

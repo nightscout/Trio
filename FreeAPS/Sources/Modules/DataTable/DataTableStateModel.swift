@@ -19,8 +19,9 @@ extension DataTable {
         @Published var manualGlucose: Decimal = 0
         @Published var maxBolus: Decimal = 0
         @Published var waitForSuggestion: Bool = false
-        @Published var showExternalInsulin: Bool = false
-        @Published var addButtonPressed: Bool = false
+
+        @Published var insulinEntryDeleted: Bool = false
+        @Published var carbEntryDeleted: Bool = false
 
         var units: GlucoseUnits = .mmolL
         var historyLayout: HistoryLayout = .twoTabs
@@ -159,9 +160,25 @@ extension DataTable {
             }
         }
 
+        func invokeCarbDeletionTask(_ treatment: Treatment) {
+            carbEntryDeleted = true
+            waitForSuggestion = true
+            deleteCarbs(treatment)
+        }
+
         func deleteCarbs(_ treatment: Treatment) {
             provider.deleteCarbs(treatment)
             apsManager.determineBasalSync()
+        }
+
+        @MainActor func invokeInsulinDeletionTask(_ treatment: Treatment) {
+            Task {
+                do {
+                    await deleteInsulin(treatment)
+                    insulinEntryDeleted = true
+                    waitForSuggestion = true
+                }
+            }
         }
 
         func deleteInsulin(_ treatment: Treatment) async {
@@ -263,9 +280,6 @@ extension DataTable.StateModel: SuggestionObserver {
     func suggestionDidUpdate(_: Suggestion) {
         DispatchQueue.main.async {
             self.waitForSuggestion = false
-            if self.addButtonPressed {
-                self.showExternalInsulin = false
-            }
         }
     }
 }

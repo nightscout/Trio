@@ -238,7 +238,30 @@ extension Bolus {
                 .roundBolus(amount: max(insulinCalculated, 0))
         }
 
-        func add() async {
+        @MainActor func invokeTreatmentsTask() {
+            Task {
+                if amount > 0 {
+                    if !externalInsulin {
+                        await add()
+                    } else {
+                        do {
+                            await addExternalInsulin()
+                        }
+                    }
+                    waitForSuggestion = true
+                } else {
+                    if carbs > 0 {
+                        waitForSuggestion = true
+                    } else {
+                        hideModal()
+                    }
+                }
+                addCarbs()
+                addButtonPressed = true
+            }
+        }
+
+        @MainActor func add() async {
             guard amount > 0 else {
                 showModal(for: nil)
                 return
@@ -254,7 +277,13 @@ extension Bolus {
                     print("authentication failed")
                 }
             } catch {
-                print("authentication error: \(error.localizedDescription)")
+                print("authentication error for pump bolus: \(error.localizedDescription)")
+                DispatchQueue.main.async {
+                    self.waitForSuggestion = false
+                    if self.addButtonPressed {
+                        self.hideModal()
+                    }
+                }
             }
         }
 
@@ -474,7 +503,7 @@ extension Bolus {
 
         // MARK: EXTERNAL INSULIN
 
-        func addExternalInsulin() async {
+        @MainActor func addExternalInsulin() async {
             guard amount > 0 else {
                 showModal(for: nil)
                 return
@@ -490,7 +519,13 @@ extension Bolus {
                     print("authentication failed")
                 }
             } catch {
-                print("authentication error: \(error.localizedDescription)")
+                print("authentication error for external insulin: \(error.localizedDescription)")
+                DispatchQueue.main.async {
+                    self.waitForSuggestion = false
+                    if self.addButtonPressed {
+                        self.hideModal()
+                    }
+                }
             }
         }
 
