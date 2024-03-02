@@ -582,9 +582,9 @@ extension MainChartView {
                         .font(.system(size: 10, weight: .bold)).foregroundColor(.zt)
                 }
                 Group {
-                    Circle().fill(Color.loopYellow).frame(width: 8, height: 8).padding(.leading, 8)
+                    Circle().fill(Color.orange).frame(width: 8, height: 8).padding(.leading, 8)
                     Text("COB")
-                        .font(.system(size: 10, weight: .bold)).foregroundColor(.loopYellow)
+                        .font(.system(size: 10, weight: .bold)).foregroundColor(Color.orange)
                 }
                 Group {
                     Circle().fill(Color.uam).frame(width: 8, height: 8)
