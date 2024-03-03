@@ -266,7 +266,7 @@ extension MainChartView {
                             x: .value("Time", info.timestamp, unit: .second),
                             y: .value("Value", Decimal(y) * conversionFactor),
                             series: .value("cob", "cob")
-                        ).foregroundStyle(Color.orange).symbolSize(16)
+                        ).foregroundStyle(Color.loopYellow).symbolSize(16)
                     }
                     if info.type == .iob {
                         LineMark(
