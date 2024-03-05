@@ -259,25 +259,27 @@ extension Home {
         }
 
         private func setupGlucose() {
-                  DispatchQueue.main.async { [weak self] in
-                      guard let self = self else { return }
-                      let filteredGlucose = self.provider.filteredGlucose(hours: self.filteredHours)
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                let filteredGlucose = self.provider.filteredGlucose(hours: self.filteredHours)
 
-                      self.glucose = filteredGlucose
-                      self.manualGlucose = filteredGlucose.filter { $0.type == GlucoseType.manual.rawValue }
+                self.glucose = filteredGlucose
+                self.manualGlucose = filteredGlucose.filter { $0.type == GlucoseType.manual.rawValue }
 
-                      self.recentGlucose = self.glucose.last
+                self.recentGlucose = self.glucose.last
 
-                      if self.glucose.count >= 2 {
-                          self.glucoseDelta = (self.recentGlucose?.glucose ?? 0) - (self.glucose[self.glucose.count - 2].glucose ?? 0)
-                      } else {
-                          self.glucoseDelta = nil
-                      }
+                if self.glucose.count >= 2 {
+                    self
+                        .glucoseDelta = (self.recentGlucose?.glucose ?? 0) -
+                        (self.glucose[self.glucose.count - 2].glucose ?? 0)
+                } else {
+                    self.glucoseDelta = nil
+                }
 
-                      self.alarm = self.provider.glucoseStorage.alarm
-                  }
-              }
-        
+                self.alarm = self.provider.glucoseStorage.alarm
+            }
+        }
+
         private func setupBasals() {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }

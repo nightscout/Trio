@@ -182,7 +182,9 @@ extension Bolus {
             deltaBG = delta
         }
 
-        // CALCULATIONS FOR THE BOLUS CALCULATOR
+        // MARK: CALCULATIONS FOR THE BOLUS CALCULATOR
+
+        /// Calculate insulin recommendation
         func calculateInsulin() -> Decimal {
             // ensure that isf is in mg/dL
             var conversion: Decimal {
