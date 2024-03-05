@@ -59,7 +59,7 @@ Open-iAPS app runs on iPhone or iPod. An iPhone 8 or newer is required. Minimum 
 
 # Documentation
 
-[Discord Open-iAPS - Server ](https://discord.gg/s5b6E4vHs3)
+[Discord Open-iAPS - Server ](https://discord.gg/dbe5Twav8D)
 
 [Open-iAPS documentation (under development, not existing yet)](https://open-iaps.readthedocs.io/en/latest/)
 
@@ -88,4 +88,4 @@ Code contributions as PRs are welcome!
 
 Translators can click the Crowdin link above.
 
-For questions or contributions, please join our [Discord server](https://discord.gg/s5b6E4vHs3).
+For questions or contributions, please join our [Discord server](https://discord.gg/dbe5Twav8D).
