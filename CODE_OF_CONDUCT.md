@@ -58,9 +58,7 @@ representative at an online or offline event.
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement at
-jon.m@live.se.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the Discord server admins. Please join our Discord server to contac them directly for any enforcement issues.
 All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the
