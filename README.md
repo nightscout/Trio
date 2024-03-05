@@ -2,13 +2,13 @@
 
 ## Introduction
 
-Open-iAPS - an artificial pancreas system for iOS based on [Open-iAPS-oref Reference](https://github.com/nightscout/open-iaps-oref) algorithms (Master 0.7.1) and Ivan Valkous stale Swift repo, freeaps.git.
+Open-iAPS - an automated insulin delivery system for iOS based on [Open-iAPS-oref Reference](https://github.com/nightscout/open-iaps-oref) algorithms (Master 0.7.1) and Ivan Valkou's stale Swift repo, freeaps.git.
 
 The project has seen substantial contributions from many developers, leading to a range of new features and enhancements.
 
 Following the release of version 3.0.0, due to differing views on development and code quality, there was a significant shift in the project's direction. This led to the separation from the [Artificial-Pancreas/iAPS](https://github.com/Artificial-Pancreas/iAPS) repository, and the birth of Open-iAPS as a distinct entity. This transition marks a new phase for the project, symbolizing both its evolution and the dynamic nature of collaborative development.
 
-Open-iAPS continues to leverage a variety of frameworks from the Loop community and remains at the forefront of DIY diabetes management solutions, constantly evolving with valuable contributions from its community.
+Open-iAPS continues to leverage a variety of frameworks from the DIY looping community and remains at the forefront of DIY diabetes management solutions, constantly evolving with valuable contributions from its community.
 
 ## To download this repo:
 
@@ -40,7 +40,7 @@ https://loopkit.github.io/loopdocs/gh-actions/gh-overview/
 - Medtronic 523 or 723 (firmware 2.4 or lower)
 - Medtronic Worldwide Veo 554 or 754 (firmware 2.6A or lower)
 - Medtronic Canadian/Australian Veo 554 or 754 (firmware 2.7A or lower)
-- Dana RS (SOON)
+- Dana RS (COMING SOON)
 
 # CGM Sensors
 
@@ -63,6 +63,8 @@ Open-iAPS app runs on iPhone or iPod. An iPhone 8 or newer is required. Minimum 
 
 [Open-iAPS documentation (under development, not existing yet)](https://open-iaps.readthedocs.io/en/latest/)
 
+[Open-iAPS Website (under development)](https://iaps-app.org)
+
 [OpenAPS documentation](https://openaps.readthedocs.io/en/latest/)
 
 [Crowdin Project for translation of Open-iAPS (not existing yet)](https://crowdin.com/project/open-iaps)  
@@ -72,6 +74,13 @@ Open-iAPS app runs on iPhone or iPod. An iPhone 8 or newer is required. Minimum 
 
 [ADD DASH PUMP and SETTINGS](https://loopkit.github.io/loopdocs/loop-3/omnipod/)
 
+# Support
+
+[Open-iAPS Facebook Group](https://m.facebook.com/groups/1351938092206709/)
+
+[Loop and Learn Facebook Group](https://m.facebook.com/groups/LOOPandLEARN/)
+
+[Looped Facebook Group](https://m.facebook.com/groups/TheLoopedGroup/)
 
 # Contribute
 
