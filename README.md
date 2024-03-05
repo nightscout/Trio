@@ -2,9 +2,10 @@
 
 ## Introduction
 
-Open-iAPS - an automated insulin delivery system for iOS based on [Open-iAPS-oref Reference](https://github.com/nightscout/open-iaps-oref) algorithms (Master 0.7.1) and Ivan Valkou's stale Swift repo, freeaps.git.
+Open-iAPS - an automated insulin delivery system for iOS based on the OpenAPS algorithm with [adaptations for Open iAPS](https://github.com/nightscout/open-iaps-oref).
 
-The project has seen substantial contributions from many developers, leading to a range of new features and enhancements.
+The project started as Ivan Valkou's FreeAPS X implementation of the OpenAPS algorithm for iPhone, and later forked and rebranded as iAPS.
+The project has since seen substantial contributions from many developers, leading to a range of new features and enhancements.
 
 Following the release of version 3.0.0, due to differing views on development and code quality, there was a significant shift in the project's direction. This led to the separation from the [Artificial-Pancreas/iAPS](https://github.com/Artificial-Pancreas/iAPS) repository, and the birth of Open-iAPS as a distinct entity. This transition marks a new phase for the project, symbolizing both its evolution and the dynamic nature of collaborative development.
 
@@ -69,8 +70,6 @@ Open-iAPS app runs on iPhone or iPod. An iPhone 8 or newer is required. Minimum 
 
 [Crowdin Project for translation of Open-iAPS (not existing yet)](https://crowdin.com/project/open-iaps)  
 [![Crowdin (not existing yet)](https://badges.crowdin.net/iaps/localized.svg)](https://crowdin.com/project/open-iaps)
-
-[Middleware code for Open-iAPS (not existing yet)](https://github.com/nightscout/middleware)
 
 [ADD DASH PUMP and SETTINGS](https://loopkit.github.io/loopdocs/loop-3/omnipod/)
 
