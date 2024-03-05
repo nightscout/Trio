@@ -117,14 +117,10 @@ extension DataTable {
                 .navigationBarTitleDisplayMode(.large)
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
-                        switch state.mode {
-                        case .treatments: EmptyView()
-                        case .meals: EmptyView()
-                        case .glucose: addButton({
-                                showManualGlucose = true
-                                state.manualGlucose = 0
-                            })
-                        }
+                        addButton({
+                            showManualGlucose = true
+                            state.manualGlucose = 0
+                        })
                     }
                 }
                 .sheet(isPresented: $showManualGlucose) {
