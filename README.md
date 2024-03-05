@@ -4,11 +4,11 @@
 
 Open-iAPS - an artificial pancreas system for iOS based on [Open-iAPS-oref Reference](https://github.com/nightscout/open-iaps-oref) algorithms (Master 0.7.1) and Ivan Valkous stale Swift repo, freeaps.git.
 
-Thousands of commits later, with many new and unique features added, the iOS app has been renamed to iAPS under a new organisation, Artificial Pancreas.
+The project has seen substantial contributions from many developers, leading to a range of new features and enhancements.
 
-//TODO: ADD Open-iAPS bit
+Following the release of version [2.3.3](https://github.com/Artificial-Pancreas/iAPS/releases/tag/v2.3.3), due to differing views on development and code quality, there was a significant shift in the project's direction. This led to the separation from the [Artificial-Pancreas/iAPS](https://github.com/Artificial-Pancreas/iAPS) repository, and the birth of Open-iAPS as a distinct entity. This transition marks a new phase for the project, symbolizing both its evolution and the dynamic nature of collaborative development.
 
-Open-iAPS uses lot of frameworks published by the Loop community.
+Open-iAPS continues to leverage a variety of frameworks from the Loop community and remains at the forefront of DIY diabetes management solutions, constantly evolving with valuable contributions from its community.
 
 ## To download this repo:
 
