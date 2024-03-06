@@ -14,6 +14,7 @@ extension Bolus {
         @Injected() var settings: SettingsManager!
         @Injected() var nsManager: NightscoutManager!
         @Injected() var carbsStorage: CarbsStorage!
+        @Injected() var glucoseStorage: GlucoseStorage!
 
         @Published var suggestion: Suggestion?
         @Published var predictions: Predictions?
@@ -260,6 +261,13 @@ extension Bolus {
                 }
                 addCarbs()
                 addButtonPressed = true
+
+                // if glucose data is stale end the custom loading animation by hiding the modal
+                //alternatively only set waitforSuggestion to false...
+                let lastGlucoseDate = glucoseStorage.lastGlucoseDate()
+                guard lastGlucoseDate >= Date().addingTimeInterval(-12.minutes.timeInterval) else {
+                    return hideModal()
+                }
             }
         }
 

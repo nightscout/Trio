@@ -156,7 +156,7 @@ extension DataTable {
             List {
                 HStack {
                     if state.historyLayout == .twoTabs {
-                        Text("Insulin").foregroundStyle(.secondary)
+                        Text("Treatments").foregroundStyle(.secondary)
                         Spacer()
                         filterEntriesButton
                     } else {

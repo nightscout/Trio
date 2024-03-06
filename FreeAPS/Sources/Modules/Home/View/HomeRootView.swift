@@ -732,18 +732,7 @@ extension Home {
 
                     mealPanel(geo).padding(.top, 30).padding(.bottom, 20)
 
-                    RoundedRectangle(cornerRadius: 15)
-                        .fill(Color.chart)
-                        .overlay(mainChart)
-                        .clipShape(RoundedRectangle(cornerRadius: 15))
-                        .shadow(
-                            color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
-                                Color.black.opacity(0.33),
-                            radius: 3
-                        )
-                        .padding(.horizontal, 10)
-                        .frame(maxHeight: UIScreen.main.bounds.height * 0.45)
-                        .frame(minHeight: UIScreen.main.bounds.height * 0.4)
+                    mainChart
 
                     timeInterval.padding(.top, 20).padding(.bottom, 40)
 
