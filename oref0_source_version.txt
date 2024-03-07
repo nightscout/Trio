@@ -1,6 +1,8 @@
-oref0 branch: dev - git version: 47d2485
+oref0 branch: dev - git version: acf203c
 
 Last commits:
+acf203c Merge pull request #6 from nightscout/webpack-cp_patch-1
+1fda0fa webpack-cp.sh: Set apsDIR=../Open-iAPS, fix path for source files
 47d2485 Merge pull request #3 from nightscout/webpack-cp_patch-1
 4f6de7c Update webpack-cp.sh     - echo "copying /lib/ source files to Open-iAPS/open-iaps-oref"     - append last 30 commits to oref0_source_version.txt     - copy source files to open-iaps-oref directory     - add informational .txt about open-iaps-oref source files when copying files     - update comments with the correct filename (webpack-cp.sh)
 97b012a Merge pull request #9 from JeremyStorring/time-issues
@@ -29,5 +31,3 @@ a9bdbb1 Missing Override variable
 02fa14d Set ceiling of threshold to 120 mg/dL
 5d17562 Update mods to oref2. Some older fixes not pushed to repo (Looping when high and override SMB settings time end bug etc.) Only run the TDD computation when not needed (dynISF enabled and when not any missing data).
 b5c4b39 Don't fetch settings not validated
-1571f51 Display TDD
-e50acde Display SMB Ratio (when changed)
