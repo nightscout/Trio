@@ -214,12 +214,12 @@ extension MainChartView {
                 }
 
                 /// show glucose value when hovering over it
-                if let selection {
-                    RuleMark(x: .value("Selection", selection, unit: .minute))
+                if let selectedGlucose {
+                    RuleMark(x: .value("Selection", selectedGlucose.dateString, unit: .minute))
                         .foregroundStyle(Color.tabBar)
-                        .offset(yStart: -50)
+                        .offset(yStart: 70)
                         .lineStyle(.init(lineWidth: 2, dash: [5]))
-                        .annotation(position: .bottom) {
+                        .annotation(position: .top) {
                             selectionPopover
                         }
                 }
@@ -250,7 +250,7 @@ extension MainChartView {
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .chartXScale(domain: startMarker ... endMarker)
             .chartXAxis { mainChartXAxis }
-            .chartXAxis(.hidden)
+            // .chartXAxis(.hidden)
             .chartYAxis { mainChartYAxis }
             .chartYScale(domain: minValue ... maxValue)
             .backport.chartXSelection(value: $selection)
@@ -258,10 +258,10 @@ extension MainChartView {
     }
 
     @ViewBuilder var selectionPopover: some View {
-        if let selection, let sgv = selectedGlucose?.sgv {
+        if let sgv = selectedGlucose?.sgv {
             let glucoseToShow = Decimal(sgv) * conversionFactor
             VStack {
-                Text(selection.formatted(.dateTime.hour().minute(.twoDigits)))
+                Text(selectedGlucose?.dateString.formatted(.dateTime.hour().minute(.twoDigits)) ?? "")
                 HStack {
                     Text(glucoseToShow.formatted(.number.precision(units == .mmolL ? .fractionLength(1) : .fractionLength(0))))
                         .fontWeight(.bold)
@@ -307,7 +307,7 @@ extension MainChartView {
             .frame(height: UIScreen.main.bounds.height * 0.08)
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .chartXScale(domain: startMarker ... endMarker)
-            .chartXAxis { mainChartXAxis }
+            .chartXAxis { basalChartXAxis }
             .chartYAxis { basalChartYAxis }
         }
     }
@@ -897,6 +897,16 @@ extension MainChartView {
     }
 
     private var mainChartXAxis: some AxisContent {
+        AxisMarks(values: .stride(by: .hour, count: screenHours == 24 ? 4 : 2)) { _ in
+            if displayXgridLines {
+                AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
+            } else {
+                AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
+            }
+        }
+    }
+
+    private var basalChartXAxis: some AxisContent {
         AxisMarks(values: .stride(by: .hour, count: screenHours == 24 ? 4 : 2)) { _ in
             if displayXgridLines {
                 AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
