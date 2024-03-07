@@ -14,6 +14,7 @@ extension Bolus {
         @Injected() var settings: SettingsManager!
         @Injected() var nsManager: NightscoutManager!
         @Injected() var carbsStorage: CarbsStorage!
+        @Injected() var glucoseStorage: GlucoseStorage!
 
         @Published var suggestion: Suggestion?
         @Published var predictions: Predictions?
@@ -182,7 +183,9 @@ extension Bolus {
             deltaBG = delta
         }
 
-        // CALCULATIONS FOR THE BOLUS CALCULATOR
+        // MARK: CALCULATIONS FOR THE BOLUS CALCULATOR
+
+        /// Calculate insulin recommendation
         func calculateInsulin() -> Decimal {
             // ensure that isf is in mg/dL
             var conversion: Decimal {
@@ -258,6 +261,13 @@ extension Bolus {
                 }
                 addCarbs()
                 addButtonPressed = true
+
+                // if glucose data is stale end the custom loading animation by hiding the modal
+                //alternatively only set waitforSuggestion to false...
+                let lastGlucoseDate = glucoseStorage.lastGlucoseDate()
+                guard lastGlucoseDate >= Date().addingTimeInterval(-12.minutes.timeInterval) else {
+                    return hideModal()
+                }
             }
         }
 

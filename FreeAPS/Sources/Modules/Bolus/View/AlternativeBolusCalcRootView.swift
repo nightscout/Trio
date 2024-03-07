@@ -10,15 +10,15 @@ extension Bolus {
 
         @StateObject var state: StateModel
 
-        @State private var showInfo = false
+        @State private var showInfo: Bool = false
         @State private var showAlert = false
         @State private var autofocus: Bool = true
         @State private var calculatorDetent = PresentationDetent.medium
-        @State var pushed = false
-        @State var isPromptPresented = false
-        @State var dish: String = ""
-        @State var saved = false
-        @State var isCalculating: Bool = false
+        @State private var pushed: Bool = false
+        @State private var isPromptPresented: Bool = false
+        @State private var dish: String = ""
+        @State private var saved: Bool = false
+        @State private var debounce: DispatchWorkItem?
 
         @Environment(\.managedObjectContext) var moc
 
@@ -81,7 +81,18 @@ extension Bolus {
         }
 
         private var empty: Bool {
-            state.carbs <= 0 && state.fat <= 0 && state.protein <= 0
+            state.useFPUconversion ? (state.carbs <= 0 && state.fat <= 0 && state.protein <= 0) : (state.carbs <= 0)
+        }
+
+        /// Handles macro input (carb, fat, protein) in a debounced fashion.
+        func handleDebouncedInput() {
+            debounce?.cancel()
+            debounce = DispatchWorkItem { [self] in
+                state.insulinCalculated = state.calculateInsulin()
+            }
+            if let debounce = debounce {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35, execute: debounce)
+            }
         }
 
         private var presetPopover: some View {
@@ -277,7 +288,11 @@ extension Bolus {
                                     formatter: formatter,
                                     autofocus: false,
                                     cleanInput: true
-                                )
+                                ).onChange(of: state.carbs) { _ in
+                                    if state.carbs > 0 {
+                                        handleDebouncedInput()
+                                    }
+                                }
                                 Text("g").foregroundColor(.secondary)
                             }
 
@@ -326,27 +341,6 @@ extension Bolus {
 
                             .popover(isPresented: $isPromptPresented) {
                                 presetPopover
-                            }
-
-                            HStack {
-                                Spacer()
-                                Button {
-                                    isCalculating = true
-                                    state.insulinCalculated = state.calculateInsulin()
-
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                        isCalculating = false
-                                    }
-                                }
-                                label: {
-                                    if !isCalculating {
-                                        Text("Calculate")
-                                    } else {
-                                        ProgressView().progressViewStyle(CircularProgressViewStyle())
-                                    }
-                                }.disabled(empty)
-
-                                Spacer()
                             }
                         }.listRowBackground(Color.chart)
 
@@ -428,17 +422,15 @@ extension Bolus {
                                 )
                                 Text(" U").foregroundColor(.secondary)
                             }
-                        }.listRowBackground(Color.chart)
 
-                        if state.amount > 0 {
-                            Section {
+                            if state.amount > 0 {
                                 HStack {
                                     Text("External insulin")
                                     Spacer()
                                     Toggle("", isOn: $state.externalInsulin).toggleStyle(Checkbox())
                                 }
-                            }.listRowBackground(Color.chart)
-                        }
+                            }
+                        }.listRowBackground(Color.chart)
                     }
                 }.safeAreaInset(edge: .bottom, spacing: 0) {
                     stickyButton
@@ -502,25 +494,24 @@ extension Bolus {
                     )
                     .foregroundStyle(Color.chart)
 
-                Section {
-                    Button {
-                        state.invokeTreatmentsTask()
-                    } label: {
-                        taskButtonLabel
-                    }
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .frame(minHeight: 50)
-                    .disabled(disableTaskButton)
-                    .background(
-                        (state.externalInsulin ? externalBolusLimit : pumpBolusLimit) ? Color(.systemRed) :
-                            Color(.systemBlue)
-                    )
-                    .shadow(radius: 3)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .foregroundStyle(Color.white)
-                    .padding()
-                }.offset(y: 20)
-                    .listRowBackground(Color.chart)
+                Button {
+                    state.invokeTreatmentsTask()
+                } label: {
+                    taskButtonLabel
+                        .font(.headline)
+                        .foregroundStyle(Color.white)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .frame(minHeight: 50)
+                }
+                .disabled(disableTaskButton)
+                .background(
+                    (state.externalInsulin ? externalBolusLimit : pumpBolusLimit) ? Color(.systemRed) :
+                        Color(.systemBlue)
+                )
+                .shadow(radius: 3)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .padding()
+                .offset(y: 20)
             }
         }
 
@@ -971,9 +962,9 @@ extension Bolus {
                 Text(
                     !state.externalInsulin ? (pumpBolusLimit ? "Pump bolus exceeds max bolus!" : "Enact bolus") :
                         (externalBolusLimit ? "Manual bolus exceeds max bolus!" : "Log external insulin")
-                ).font(.headline)
+                )
             } else {
-                Text("Continue without bolus").font(.headline)
+                Text(state.carbs > 0 ? "Log carbs only" : "Continue without logging treatments")
             }
         }
 
