@@ -265,6 +265,10 @@ extension MainChartView {
                 HStack {
                     Text(glucoseToShow.formatted(.number.precision(units == .mmolL ? .fractionLength(1) : .fractionLength(0))))
                         .fontWeight(.bold)
+                        .foregroundStyle(
+                            Decimal(sgv) < lowGlucose ? Color
+                                .red : (Decimal(sgv) > highGlucose ? Color.orange : Color.primary)
+                        )
                     Text(units.rawValue).foregroundColor(.secondary)
                 }
             }
