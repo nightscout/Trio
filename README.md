@@ -29,7 +29,7 @@ Instructions in greater detail, but not Open-iAPS-specific:
 https://loopkit.github.io/loopdocs/gh-actions/gh-overview/
 
 ## Please understand that Open-iAPS is:
-- highly experimental and evolving rapidly.
+- an open-source system developed by enthusiasts and for use at your own risk
 - not CE or FDA approved for therapy.
 
 # Pumps
