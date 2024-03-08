@@ -28,7 +28,7 @@ https://github.com/nightscout/Open-iAPS/blob/main/fastlane/testflight.md
 Instructions in greater detail, but not Open-iAPS-specific:  
 https://loopkit.github.io/loopdocs/gh-actions/gh-overview/
 
-## Please understand that iAPS is:
+## Please understand that Open-iAPS is:
 - highly experimental and evolving rapidly.
 - not CE or FDA approved for therapy.
 
