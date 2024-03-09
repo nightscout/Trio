@@ -45,11 +45,12 @@ https://loopkit.github.io/loopdocs/gh-actions/gh-overview/
 
 # CGM Sensors
 
-- Dexcom G5
-- Dexcom G6
+- Dexcom G5  
+- Dexcom G6   
 - Dexcom ONE
-- Dexcom G7
-- Libre 1
+- Dexcom ONE+   
+- Dexcom G7   
+- Libre 1   
 - Libre 2 (European)
 - Medtronic Enlite
 - Nightscout as CGM
