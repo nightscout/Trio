@@ -2,12 +2,12 @@
 
 ## Introduction
 
-Open-iAPS - an automated insulin delivery system for iOS based on the OpenAPS algorithm with [adaptations for Open iAPS](https://github.com/nightscout/open-iaps-oref).
+Open-iAPS - an automated insulin delivery system for iOS based on the OpenAPS algorithm with [adaptations for Open-iAPS](https://github.com/nightscout/open-iaps-oref).
 
 The project started as Ivan Valkou's FreeAPS X implementation of the OpenAPS algorithm for iPhone, and later forked and rebranded as iAPS.
 The project has since seen substantial contributions from many developers, leading to a range of new features and enhancements.
 
-Following the release of version 3.0.0, due to differing views on development and code quality, there was a significant shift in the project's direction. This led to the separation from the [Artificial-Pancreas/iAPS](https://github.com/Artificial-Pancreas/iAPS) repository, and the birth of Open-iAPS as a distinct entity. This transition marks a new phase for the project, symbolizing both its evolution and the dynamic nature of collaborative development.
+Following the release of version 3.0.0, due to differing views on development, open source, and peer review, there was a significant shift in the project's direction. This led to the separation from the [Artificial-Pancreas/iAPS](https://github.com/Artificial-Pancreas/iAPS) repository, and the birth of Open-iAPS as a distinct entity. This transition marks a new phase for the project, symbolizing both its evolution and the dynamic nature of collaborative development.
 
 Open-iAPS continues to leverage a variety of frameworks from the DIY looping community and remains at the forefront of DIY diabetes management solutions, constantly evolving with valuable contributions from its community.
 
@@ -28,8 +28,8 @@ https://github.com/nightscout/Open-iAPS/blob/main/fastlane/testflight.md
 Instructions in greater detail, but not Open-iAPS-specific:  
 https://loopkit.github.io/loopdocs/gh-actions/gh-overview/
 
-## Please understand that iAPS is:
-- highly experimental and evolving rapidly.
+## Please understand that Open-iAPS is:
+- an open-source system developed by enthusiasts and for use at your own risk
 - not CE or FDA approved for therapy.
 
 # Pumps
