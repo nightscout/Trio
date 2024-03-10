@@ -77,7 +77,7 @@ struct LiveActivity: Widget {
                 ForEach(context.state.chart.indices, id: \.self) { index in
                     LineMark(
                         x: .value("Time", context.state.chartDate[index] ?? Date()),
-                        y: .value("Value", context.state.chart[index])
+                        y: .value("Value", context.state.chart[index] ?? 0)
                     ).foregroundStyle(Color.green.gradient).symbolSize(12)
                 }
             }.chartPlotStyle { plotContent in
