@@ -958,13 +958,40 @@ extension Bolus {
         }
 
         private var taskButtonLabel: some View {
-            if state.amount > 0 {
-                Text(
-                    !state.externalInsulin ? (pumpBolusLimit ? "Pump bolus exceeds max bolus!" : "Enact bolus") :
-                        (externalBolusLimit ? "Manual bolus exceeds max bolus!" : "Log external insulin")
+            let hasInsulin = state.amount > 0
+            let hasCarbs = state.carbs > 0
+            let hasFatOrProtein = state.fat > 0 || state.protein > 0
+
+            switch (hasInsulin, hasCarbs, hasFatOrProtein) {
+            case (true, true, true):
+                return Text(
+                    state
+                        .externalInsulin ? (
+                            externalBolusLimit ? "Manual bolus exceeds max bolus!" : "Log meal and external insulin"
+                        ) :
+                        (pumpBolusLimit ? "Pump bolus exceeds max bolus!" : "Log meal and enact bolus")
                 )
-            } else {
-                Text(state.carbs > 0 ? "Log carbs only" : "Continue without logging treatments")
+            case (true, true, false):
+                return Text(
+                    state
+                        .externalInsulin ?
+                        (externalBolusLimit ? "Manual bolus exceeds max bolus!" : "Log carbs and external insulin") :
+                        (pumpBolusLimit ? "Pump bolus exceeds max bolus!" : "Log carbs and enact bolus")
+                )
+            case (true, false, false):
+                return Text(
+                    state
+                        .externalInsulin ? (externalBolusLimit ? "Manual bolus exceeds max bolus!" : "Log external insulin") :
+                        (pumpBolusLimit ? "Pump bolus exceeds max bolus!" : "Enact bolus")
+                )
+            case (false, true, true):
+                return Text("Log meal")
+            case (false, true, false):
+                return Text("Log carbs")
+            case (false, false, true):
+                return Text("Log FPUs")
+            default:
+                return Text("Continue without logging treatments")
             }
         }
 
