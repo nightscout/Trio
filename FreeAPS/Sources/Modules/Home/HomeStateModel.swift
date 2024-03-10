@@ -426,7 +426,10 @@ extension Home {
         }
 
         private func setupCurrentPumpTimezone() {
-            timeZone = provider.pumpTimeZone()
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                self.timeZone = self.provider.pumpTimeZone()
+            }
         }
 
         func openCGM() {
