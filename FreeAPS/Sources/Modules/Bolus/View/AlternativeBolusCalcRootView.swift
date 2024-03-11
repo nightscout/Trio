@@ -978,6 +978,13 @@ extension Bolus {
                         (externalBolusLimit ? "Manual bolus exceeds max bolus!" : "Log carbs and external insulin") :
                         (pumpBolusLimit ? "Pump bolus exceeds max bolus!" : "Log carbs and enact bolus")
                 )
+            case (true, false, true):
+                return Text(
+                    state
+                        .externalInsulin ?
+                        (externalBolusLimit ? "Manual bolus exceeds max bolus!" : "Log FPUs and external insulin") :
+                        (pumpBolusLimit ? "Pump bolus exceeds max bolus!" : "Log FPUs and enact bolus")
+                )
             case (true, false, false):
                 return Text(
                     state
