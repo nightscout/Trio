@@ -1,16 +1,16 @@
 /* Title of the reset confirmation sheet */
-"Are you sure you want to reset this transmitter?" = "Are you sure you want to reset this transmitter?";
+"Are you sure you want to reset this transmitter?" = "בטוח שברצונך לאתחל את משדר זה?";
 
 /* Title of button to cancel reset */
-"Cancel" = "Cancel";
+"Cancel" = "ביטול";
 
 /* Message of the reset confirmation sheet */
-"It will take up to 10 minutes to complete." = "It will take up to 10 minutes to complete.";
+"It will take up to 10 minutes to complete." = "התהליך יסתיים עד 10 דקות.";
 
 /* Reset button title
    Title of button to begin reset */
-"Reset" = "Reset";
+"Reset" = "איתחול";
 
 /* Notification title for background completion notification */
-"Transmitter Reset Complete" = "Transmitter Reset Complete";
+"Transmitter Reset Complete" = "איתחול משדר הסתיים";
 

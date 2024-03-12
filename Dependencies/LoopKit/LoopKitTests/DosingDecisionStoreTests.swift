@@ -103,7 +103,9 @@ class DosingDecisionStorePersistenceTests: PersistenceControllerTestCase, Dosing
                 object.data = try PropertyListEncoder().encode(StoredDosingDecision.test)
                 object.date = dateFormatter.date(from: "2100-01-02T03:03:00Z")!
                 object.modificationCounter = 123
-                try assertDosingDecisionObjectEncodable(object, encodesJSON: """
+
+                let data = try encoder.encode(object)
+                XCTAssertEqual(String(data: data, encoding: .utf8), """
 {
   "data" : {
     "automaticDoseRecommendation" : {
@@ -115,7 +117,6 @@ class DosingDecisionStorePersistenceTests: PersistenceControllerTestCase, Dosing
     },
     "carbEntry" : {
       "absorptionTime" : 18000,
-      "createdByCurrentApp" : true,
       "foodType" : "Pizza",
       "provenanceIdentifier" : "com.loopkit.loop",
       "quantity" : 29,
@@ -128,9 +129,8 @@ class DosingDecisionStorePersistenceTests: PersistenceControllerTestCase, Dosing
     },
     "carbsOnBoard" : {
       "endDate" : "2020-05-14T23:18:41Z",
-      "quantity" : 45.5,
-      "quantityUnit" : "g",
-      "startDate" : "2020-05-14T22:48:41Z"
+      "startDate" : "2020-05-14T22:48:41Z",
+      "value" : 45.5
     },
     "cgmManagerStatus" : {
       "device" : {
@@ -250,7 +250,7 @@ class DosingDecisionStorePersistenceTests: PersistenceControllerTestCase, Dosing
         "pendingInsulin" : 0.75
       }
     },
-    "manualBolusRequested" : 0.80000000000000004,
+    "manualBolusRequested" : 0.8,
     "manualGlucoseSample" : {
       "condition" : "aboveRange",
       "device" : {
@@ -263,20 +263,18 @@ class DosingDecisionStorePersistenceTests: PersistenceControllerTestCase, Dosing
         "softwareVersion" : "Device Software Version",
         "udiDeviceIdentifier" : "Device UDI Device Identifier"
       },
-      "isDisplayOnly" : false,
       "provenanceIdentifier" : "com.loopkit.loop",
       "quantity" : 400,
       "startDate" : "2020-05-14T22:09:00Z",
       "syncIdentifier" : "d3876f59-adb3-4a4f-8b29-315cda22062e",
       "syncVersion" : 1,
       "trend" : 7,
-      "trendRate" : -10.199999999999999,
+      "trendRate" : -10.2,
       "uuid" : "DA0CED44-E4F1-49C4-BAF8-6EFA6D75525F",
       "wasUserEntered" : true
     },
     "originalCarbEntry" : {
       "absorptionTime" : 18000,
-      "createdByCurrentApp" : true,
       "foodType" : "Pizza",
       "provenanceIdentifier" : "com.loopkit.loop",
       "quantity" : 19,
@@ -370,11 +368,6 @@ class DosingDecisionStorePersistenceTests: PersistenceControllerTestCase, Dosing
                 XCTFail("Unexpected failure: \(error)")
             }
         }
-    }
-
-    private func assertDosingDecisionObjectEncodable(_ original: DosingDecisionObject, encodesJSON string: String) throws {
-        let data = try encoder.encode(original)
-        XCTAssertEqual(String(data: data, encoding: .utf8), string)
     }
 
     private let dateFormatter = ISO8601DateFormatter()
@@ -718,7 +711,9 @@ class DosingDecisionStoreCriticalEventLogTests: PersistenceControllerTestCase {
 
 class StoredDosingDecisionCodableTests: XCTestCase {
     func testCodable() throws {
-        try assertStoredDosingDecisionCodable(StoredDosingDecision.test, encodesJSON: """
+
+        let data = try encoder.encode(StoredDosingDecision.test)
+        XCTAssertEqual(String(data: data, encoding: .utf8), """
 {
   "automaticDoseRecommendation" : {
     "basalAdjustment" : {
@@ -729,7 +724,6 @@ class StoredDosingDecisionCodableTests: XCTestCase {
   },
   "carbEntry" : {
     "absorptionTime" : 18000,
-    "createdByCurrentApp" : true,
     "foodType" : "Pizza",
     "provenanceIdentifier" : "com.loopkit.loop",
     "quantity" : 29,
@@ -742,9 +736,8 @@ class StoredDosingDecisionCodableTests: XCTestCase {
   },
   "carbsOnBoard" : {
     "endDate" : "2020-05-14T23:18:41Z",
-    "quantity" : 45.5,
-    "quantityUnit" : "g",
-    "startDate" : "2020-05-14T22:48:41Z"
+    "startDate" : "2020-05-14T22:48:41Z",
+    "value" : 45.5
   },
   "cgmManagerStatus" : {
     "device" : {
@@ -864,7 +857,7 @@ class StoredDosingDecisionCodableTests: XCTestCase {
       "pendingInsulin" : 0.75
     }
   },
-  "manualBolusRequested" : 0.80000000000000004,
+  "manualBolusRequested" : 0.8,
   "manualGlucoseSample" : {
     "condition" : "aboveRange",
     "device" : {
@@ -877,20 +870,18 @@ class StoredDosingDecisionCodableTests: XCTestCase {
       "softwareVersion" : "Device Software Version",
       "udiDeviceIdentifier" : "Device UDI Device Identifier"
     },
-    "isDisplayOnly" : false,
     "provenanceIdentifier" : "com.loopkit.loop",
     "quantity" : 400,
     "startDate" : "2020-05-14T22:09:00Z",
     "syncIdentifier" : "d3876f59-adb3-4a4f-8b29-315cda22062e",
     "syncVersion" : 1,
     "trend" : 7,
-    "trendRate" : -10.199999999999999,
+    "trendRate" : -10.2,
     "uuid" : "DA0CED44-E4F1-49C4-BAF8-6EFA6D75525F",
     "wasUserEntered" : true
   },
   "originalCarbEntry" : {
     "absorptionTime" : 18000,
-    "createdByCurrentApp" : true,
     "foodType" : "Pizza",
     "provenanceIdentifier" : "com.loopkit.loop",
     "quantity" : 19,
@@ -1095,23 +1086,23 @@ fileprivate extension StoredDosingDecision {
                                                         quantity: HKQuantity(unit: .milligramsPerDeciliter, doubleValue: 119.5)),
                                  HistoricalGlucoseValue(startDate: dateFormatter.date(from: "2020-05-14T22:38:15Z")!,
                                                         quantity: HKQuantity(unit: .milligramsPerDeciliter, doubleValue: 121.8))]
-        let originalCarbEntry = StoredCarbEntry(uuid: UUID(uuidString: "18CF3948-0B3D-4B12-8BFE-14986B0E6784")!,
+        let originalCarbEntry = StoredCarbEntry(startDate: dateFormatter.date(from: "2020-01-02T03:00:23Z")!,
+                                                quantity: HKQuantity(unit: .gram(), doubleValue: 19),
+                                                uuid: UUID(uuidString: "18CF3948-0B3D-4B12-8BFE-14986B0E6784")!,
                                                 provenanceIdentifier: "com.loopkit.loop",
                                                 syncIdentifier: "2B03D96C-6F5D-4140-99CD-80C3E64D6010",
                                                 syncVersion: 1,
-                                                startDate: dateFormatter.date(from: "2020-01-02T03:00:23Z")!,
-                                                quantity: HKQuantity(unit: .gram(), doubleValue: 19),
                                                 foodType: "Pizza",
                                                 absorptionTime: .hours(5),
                                                 createdByCurrentApp: true,
                                                 userCreatedDate: dateFormatter.date(from: "2020-05-14T22:06:12Z")!,
                                                 userUpdatedDate: nil)
-        let carbEntry = StoredCarbEntry(uuid: UUID(uuidString: "135CDABE-9343-7242-4233-1020384789AE")!,
+        let carbEntry = StoredCarbEntry(startDate: dateFormatter.date(from: "2020-01-02T03:00:23Z")!,
+                                        quantity: HKQuantity(unit: .gram(), doubleValue: 29),
+                                        uuid: UUID(uuidString: "135CDABE-9343-7242-4233-1020384789AE")!,
                                         provenanceIdentifier: "com.loopkit.loop",
                                         syncIdentifier: "2B03D96C-6F5D-4140-99CD-80C3E64D6010",
                                         syncVersion: 2,
-                                        startDate: dateFormatter.date(from: "2020-01-02T03:00:23Z")!,
-                                        quantity: HKQuantity(unit: .gram(), doubleValue: 29),
                                         foodType: "Pizza",
                                         absorptionTime: .hours(5),
                                         createdByCurrentApp: true,
@@ -1139,7 +1130,7 @@ fileprivate extension StoredDosingDecision {
                                                       healthKitEligibleDate: nil)
         let carbsOnBoard = CarbValue(startDate: dateFormatter.date(from: "2020-05-14T22:48:41Z")!,
                                      endDate: dateFormatter.date(from: "2020-05-14T23:18:41Z")!,
-                                     quantity: HKQuantity(unit: .gram(), doubleValue: 45.5))
+                                     value: 45.5)
         let insulinOnBoard = InsulinValue(startDate: dateFormatter.date(from: "2020-05-14T22:38:26Z")!, value: 1.5)
         let glucoseTargetRangeSchedule = GlucoseRangeSchedule(rangeSchedule: DailyQuantitySchedule(unit: .milligramsPerDeciliter,
                                                                                                    dailyItems: [RepeatingScheduleValue(startTime: .hours(0), value: DoubleRange(minValue: 100.0, maxValue: 110.0)),

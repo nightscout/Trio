@@ -190,14 +190,14 @@
    Text for confidence reminders navigation link */
 "Confidence Reminders" = "Напоминания об уверенности";
 
-/* No comment provided by engineer. */
-"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Напоминания об уверенности - это звуковые сигналы, подаваемые подом, которые можно использовать для подтверждения выбранных команд.";
+/* Help text for BeepPreferenceSelectionView */
+"Confidence reminders are beeps from the pod which can be used to acknowledge selected commands." = "Напоминания об уверенности - это звуковые сигналы, подаваемые подом, которые можно использовать для подтверждения выбранных команд.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Напоминания будут звучать для инициированных вами команд, таких как болюс, отмена болюса, приостановка, возобновление, напоминания о сохранении уведомлений и т.д. Когда Loop автоматически регулирует подачу инсулина, напоминания не будут использоваться.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When Loop automatically adjusts delivery, no confidence reminders are used." = "Напоминания будут звучать для инициированных вами команд, таких как болюс, отмена болюса, приостановка, возобновление, напоминания о сохранении уведомлений и т.д. Когда Loop автоматически регулирует подачу инсулина, напоминания не будут использоваться.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Напоминания будут звучать, когда Loop автоматически регулирует подачу инсулина, а также для команд, которые вы инициируете.";
+"Confidence reminders will sound when Loop automatically adjusts delivery as well as for commands you initiate." = "Напоминания будут звучать, когда Loop автоматически регулирует подачу инсулина, а также для команд, которые вы инициируете.";
 
 /* Section header for configuration section */
 "Configuration" = "Конфигурация";
@@ -337,9 +337,6 @@
 /* Alert title for error when updating low reservoir reminder */
 "Failed to Update Low Reservoir Reminder" = "Не удалось обновить напоминание о низком уровне резервуара";
 
-/* Pod life HUD view label */
-"Fault" = "Сбой";
-
 /* Pod state when fault event has occurred */
 "Fault event occurred" = "Произошло событие неисправности";
 
@@ -410,7 +407,7 @@
 "Insulin\nSuspended" = "Подача инсулина остановлена";
 
 /* Title of insulin delivery section */
-"Insulin Delivery" = "Insulin Delivery";
+"Insulin Delivery" = "Подача инсулина";
 
 /* The action string on pod status page when pod faulted
    The default notification body for AlarmCodes */
@@ -695,9 +692,6 @@
    Label for pod insertion row */
 "Pod Activated" = "Под активирован";
 
-/* Label describing pod age view */
-"Pod Age" = "Pod проработал";
-
 /* Error message shown when user cannot pair because pod is already paired */
 "Pod already paired" = "Omnipod уже сопряжен";
 
@@ -817,8 +811,7 @@
 /* Pod state when ready for cannula insertion */
 "Ready to insert cannula" = "Готов к установке катетера";
 
-/* Label describing time remaining view
-   Label for remaining time of manual basal */
+/* Label for remaining time of manual basal */
 "Remaining" = "Остается";
 
 /* Pod pairing reminder initialized */
@@ -833,8 +826,7 @@
 /* Title for Omnipod DASH PumpManager deletion action sheet. */
 "Remove Pump" = "Удалите помпу";
 
-/* Label indicating pod replacement necessary
-   Settings page link description when next lifecycle action is to replace pod */
+/* Settings page link description when next lifecycle action is to replace pod */
 "Replace Pod" = "Заменить Pod";
 
 /* Pump Event title for UnfinalizedDose with doseType of .resume */
@@ -962,7 +954,7 @@
 "Temp Basal" = "ВБС";
 
 /* Error message shown when temp basal could not be set due to existing temp basal in progress */
-"Temp basal in progress" = "Пока еще работает временный базал";
+"Temp basal in progress" = "Пока еще работает ВБС";
 
 /* Delivery status when temp basal is running */
 "Temp basal running" = "Подается временный базал";
@@ -1054,7 +1046,7 @@
 "twoNotUsed" = "twoNotUsed";
 
 /* Units for showing temp basal rate */
-"U/hr" = "U/hr";
+"U/hr" = "Ед/ч";
 
 /* Title of delivery uncertainty recovery page */
 "Unable to Reach Pod" = "Невозможно связаться с подом";

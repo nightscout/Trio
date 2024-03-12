@@ -23,7 +23,7 @@ extension MockPumpManager: PumpManagerUI {
 
     public var smallImage: UIImage? { return UIImage(named: "Pump Simulator", in: Bundle(for: MockPumpManagerSettingsViewController.self), compatibleWith: nil) }
     
-    public static func setupViewController(initialSettings settings: PumpManagerSetupSettings, bluetoothProvider: BluetoothProvider, colorPalette: LoopUIColorPalette, allowDebugFeatures: Bool, allowedInsulinTypes: [InsulinType]) -> SetupUIResult<PumpManagerViewController, PumpManagerUI> {
+    public static func setupViewController(initialSettings settings: PumpManagerSetupSettings, bluetoothProvider: BluetoothProvider, colorPalette: LoopUIColorPalette, allowDebugFeatures: Bool, prefersToSkipUserInteraction: Bool,  allowedInsulinTypes: [InsulinType]) -> SetupUIResult<PumpManagerViewController, PumpManagerUI> {
         let mockPumpManager = MockPumpManager()
         mockPumpManager.setMaximumTempBasalRate(settings.maxBasalRateUnitsPerHour)
         mockPumpManager.syncBasalRateSchedule(items: settings.basalSchedule.items, completion: { _ in })
@@ -31,8 +31,11 @@ extension MockPumpManager: PumpManagerUI {
     }
 
     public func settingsViewController(bluetoothProvider: BluetoothProvider, colorPalette: LoopUIColorPalette, allowDebugFeatures: Bool, allowedInsulinTypes: [InsulinType]) -> PumpManagerViewController {
-        let settings = MockPumpManagerSettingsViewController(pumpManager: self, supportedInsulinTypes: allowedInsulinTypes)
-        let nav = PumpManagerSettingsNavigationViewController(rootViewController: settings)
+        let settings = MockPumpManagerSettingsView(pumpManager: self, supportedInsulinTypes: allowedInsulinTypes, appName: appName, allowDebugFeatures: allowDebugFeatures)
+        let hostingController = DismissibleHostingController(content: settings, isModalInPresentation: false, colorPalette: colorPalette)
+        hostingController.navigationItem.backButtonDisplayMode = .generic
+        let nav = PumpManagerSettingsNavigationViewController(rootViewController: hostingController)
+        nav.navigationBar.prefersLargeTitles = true
         return nav
     }
     
@@ -50,8 +53,6 @@ extension MockPumpManager: PumpManagerUI {
     public static func createHUDView(rawValue: HUDProvider.HUDViewRawState) -> BaseHUDView? {
         return MockHUDProvider.createHUDView(rawValue: rawValue)
     }
-    
-    
 }
 
 public enum MockPumpStatusBadge: DeviceStatusBadge {

@@ -1,24 +1,24 @@
 /* Class = "UINavigationItem"; title = "Reset Complete"; ObjectID = "3SD-s3-7OM"; */
-"3SD-s3-7OM.title" = "Reset Complete";
+"3SD-s3-7OM.title" = "איתחול הסתיים";
 
 /* Class = "UINavigationItem"; title = "Reset Transmitter"; ObjectID = "7nc-6t-4hZ"; */
-"7nc-6t-4hZ.title" = "Reset Transmitter";
+"7nc-6t-4hZ.title" = "איתחול משדר";
 
 /* Class = "UITextView"; text = "This tool can reset the clock on a transmitter that has reached its expiration date, allowing new sensor sessions to again be started.\nThis may have unintended consequences for data services, such as Clarity and Share, especially when using a reset transmitter with the same account.\nResetting cannot be undone.\nUse at your own risk."; ObjectID = "cJ3-Gc-pnc"; */
-"cJ3-Gc-pnc.text" = "This tool can reset the clock on a transmitter that has reached its expiration date, allowing new sensor sessions to again be started.\nThis may have unintended consequences for data services, such as Clarity and Share, especially when using a reset transmitter with the same account.\nResetting cannot be undone.\nUse at your own risk.";
+"cJ3-Gc-pnc.text" = "כלי זה מאתחל את השעון של משדר שפג, ומאפשר לחדש את התקשורת עם החיישן. זה עשוי לגרום לבעיות לא צפויות בשירותי מידע, כמו Clarity ו-Share, במיוחד אם מאתחלים משדר באותו חשבון.\nאיתחול היא פעולה בלתי הפיכה.\nהשימוש על אחריותך בלבד.";
 
 /* Class = "UITextField"; placeholder = "Enter the 6-digit ID"; ObjectID = "G4a-ia-wQC"; */
-"G4a-ia-wQC.placeholder" = "Enter the 6-digit ID";
+"G4a-ia-wQC.placeholder" = "הכנס את המזהה בן 6 ספרות";
 
 /* Class = "UILabel"; text = "[Error goes here. And it can get very long and that's OK]"; ObjectID = "gYy-Zz-y12"; */
-"gYy-Zz-y12.text" = "[Error goes here. And it can get very long and that's OK]";
+"gYy-Zz-y12.text" = "[השגיאה תופיע פה. היא יכולה להיות ארוכה מאוד וזה בסדר]";
 
 /* Class = "UIButton"; normalTitle = "Reset"; ObjectID = "LBC-6R-q79"; */
-"LBC-6R-q79.normalTitle" = "Reset";
+"LBC-6R-q79.normalTitle" = "איתחול";
 
 /* Class = "UITextView"; text = "The transmitter has been successfully reset. Connect it to the app to begin a new sensor session."; ObjectID = "MbK-kj-ejl"; */
-"MbK-kj-ejl.text" = "The transmitter has been successfully reset. Connect it to the app to begin a new sensor session.";
+"MbK-kj-ejl.text" = "המשדר אותחל בהצלחה. חבר אותו לאפליקציה כדי לחדש את התקשורת עם החיישן.";
 
 /* Class = "UITableViewSection"; headerTitle = "Transmitter ID"; ObjectID = "vNG-r7-RbP"; */
-"vNG-r7-RbP.headerTitle" = "Transmitter ID";
+"vNG-r7-RbP.headerTitle" = "מזהה משדר";
 

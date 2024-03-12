@@ -19,6 +19,8 @@ public struct GlucoseFixtureValue: GlucoseSampleValue {
     public let provenanceIdentifier: String
     public let condition: GlucoseCondition?
     public let trendRate: HKQuantity?
+    public var trend: LoopKit.GlucoseTrend?
+    public var syncIdentifier: String?
 
     public init(startDate: Date, quantity: HKQuantity, isDisplayOnly: Bool, wasUserEntered: Bool, provenanceIdentifier: String?, condition: GlucoseCondition?, trendRate: HKQuantity?) {
         self.startDate = startDate
@@ -108,7 +110,7 @@ class GlucoseMathTests: XCTestCase {
         let input = loadInputFixture("momentum_effect_bouncing_glucose_input")
         let output = loadOutputFixture("momentum_effect_bouncing_glucose_output")
 
-        let effects = input.linearMomentumEffect()
+        let effects = input.linearMomentumEffect(duration: .minutes(30))
         let unit = HKUnit.milligramsPerDeciliter
 
         XCTAssertEqual(output.count, effects.count)
@@ -123,7 +125,7 @@ class GlucoseMathTests: XCTestCase {
         let input = loadInputFixture("momentum_effect_rising_glucose_input")
         let output = loadOutputFixture("momentum_effect_rising_glucose_output")
 
-        let effects = input.linearMomentumEffect()
+        let effects = input.linearMomentumEffect(duration: .minutes(30))
         let unit = HKUnit.milligramsPerDeciliter
 
         XCTAssertEqual(output.count, effects.count)
@@ -138,7 +140,7 @@ class GlucoseMathTests: XCTestCase {
         let input = loadInputFixture("momentum_effect_rising_glucose_double_entries_input")
         let output = loadOutputFixture("momentum_effect_rising_glucose_output")
 
-        let effects = input.linearMomentumEffect()
+        let effects = input.linearMomentumEffect(duration: .minutes(30))
         let unit = HKUnit.milligramsPerDeciliter
 
         XCTAssertEqual(output.count, effects.count)
@@ -153,7 +155,7 @@ class GlucoseMathTests: XCTestCase {
         let input = loadInputFixture("momentum_effect_falling_glucose_input")
         let output = loadOutputFixture("momentum_effect_falling_glucose_output")
 
-        let effects = input.linearMomentumEffect()
+        let effects = input.linearMomentumEffect(duration: .minutes(30))
         let unit = HKUnit.milligramsPerDeciliter
 
         XCTAssertEqual(output.count, effects.count)
@@ -170,7 +172,7 @@ class GlucoseMathTests: XCTestCase {
         input.append(contentsOf: input)
         input.sort(by: <)
 
-        let effects = input.linearMomentumEffect()
+        let effects = input.linearMomentumEffect(duration: .minutes(30))
         let unit = HKUnit.milligramsPerDeciliter
 
         XCTAssertEqual(output.count, effects.count)
@@ -185,7 +187,7 @@ class GlucoseMathTests: XCTestCase {
         let input = loadInputFixture("momentum_effect_stable_glucose_input")
         let output = loadOutputFixture("momentum_effect_stable_glucose_output")
 
-        let effects = input.linearMomentumEffect()
+        let effects = input.linearMomentumEffect(duration: .minutes(30))
         let unit = HKUnit.milligramsPerDeciliter
 
         XCTAssertEqual(output.count, effects.count)
@@ -303,7 +305,7 @@ class GlucoseMathTests: XCTestCase {
         let input = loadInputFixture("momentum_effect_impossible_rising_glucose_input")
         let output = loadOutputFixture("momentum_effect_impossible_rising_glucose_output")
 
-        let effects = input.linearMomentumEffect()
+        let effects = input.linearMomentumEffect(duration: .minutes(30))
         let unit = HKUnit.milligramsPerDeciliter
 
         XCTAssertEqual(output.count, effects.count)

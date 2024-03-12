@@ -97,9 +97,6 @@
    Title for ExpirationReminderSetupView */
 "Expiration Reminder" = "Lembrete de Expiração";
 
-/* Pod life HUD view label */
-"Fault" = "Falha";
-
 /* Description for finish setup */
 "Finish setup " = "Concluir configuração";
 
@@ -167,9 +164,6 @@
 /* Recover suggestion shown when no pod is paired */
 "Please pair a new pod" = "Emparelhe um novo pod";
 
-/* Label describing pod age view */
-"Pod Age" = "Idade do Pod";
-
 /* Error message shown when user cannot pair because pod is already paired */
 "Pod already paired" = "Pod já emparelhado";
 
@@ -210,12 +204,10 @@
 /* Pod state when ready for cannula insertion */
 "Ready to insert cannula" = "Pronto para inserir a cânula";
 
-/* Label describing time remaining view
-   Label for remaining time of manual basal */
+/* Label for remaining time of manual basal */
 "Remaining" = "Restante";
 
-/* Label indicating pod replacement necessary
-   Settings page link description when next lifecycle action is to replace pod */
+/* Settings page link description when next lifecycle action is to replace pod */
 "Replace Pod" = "Substituir Pod";
 
 /* The format string describing a resume. (1: Time)(2: Scheduled certainty */

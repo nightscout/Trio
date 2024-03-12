@@ -2,7 +2,7 @@
 "CFBundleDisplayName" = "Reset";
 
 /* Bundle name */
-"CFBundleName" = "ResetTransmitter";
+"CFBundleName" = "Transmitter zurücksetzen";
 
 /* Privacy - Bluetooth Always Usage Description */
 "NSBluetoothAlwaysUsageDescription" = "Bluetooth wird verwendet für die Kommunikation mit CGM-Geräten";

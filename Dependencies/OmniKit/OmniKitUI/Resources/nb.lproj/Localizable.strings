@@ -7,9 +7,6 @@
 /* Unit format string for an RSSI value in decibles */
 "%@ dB" = "%@ dB";
 
-/* No comment provided by engineer. */
-"%@ has recovered communication with the pod on your body.\n\nInsulin delivery records have been updated and should match what has actually been delivered.\n\nYou may continue to use %@ normally now." = "%1$@ har gjenopprettet kommunikasjonen med pod på kroppen din.\n\nInsulintilførselsjournaler er oppdatert og bør samsvare med det som faktisk ble levert. \n\n Du kan fortsette å bruke %2$@ normalt nå.";
-
 /* Format string for delivered insulin. (1: The localized amount)
    Format string for insulin remaining in reservoir. (1: The localized amount) */
 "%@ U" = "%@ E";
@@ -36,7 +33,7 @@
 "%@U" = "%@E";
 
 /* Summary string for temporary basal rate configuration page */
-"%1$@ for %2$@" = "%1$@ i %2$@";
+"%1$@ for %2$@" = "%1$@ for %2$@";
 
 /* Format string for main text of delivery uncertainty recovery page. (1: app name)(2: date of command)(3: app name) */
 "%1$@ has been unable to communicate with the pod on your body since %2$@.\n\nWithout communication with the pod, the app cannot continue to send commands for insulin delivery or display accurate, recent information about your active insulin or the insulin being delivered by the Pod.\n\nMonitor your glucose closely for the next 6 or more hours, as there may or may not be insulin actively working in your body that %3$@ cannot display." = "%1$@ har ikke vært i stand til å kommunisere med pod på kroppen din siden %2$@ . \n\n Uten kommunikasjon med pod kan ikke appen fortsette å sende kommandoer for insulintilførsel eller vise nøyaktig, fersk informasjon om ditt aktive insulin eller insulinet som leveres av pod. \n\n Overvåk blodsukkerverdi nøye de neste 6 timene eller mer, siden det kan være insulin som virker aktivt i kroppen din som %3$@ ikke kan vise.";
@@ -60,7 +57,7 @@
 "1 hour" = "1 time";
 
 /* Button text for 1 hour 30 minute suspend duration */
-"1 hour 30 minutes" = "1 time 30 minutter";
+"1 hour 30 minutes" = "1 time og 30 minutter";
 
 /* Button text for 2 hour suspend duration */
 "2 hours" = "2 timer";
@@ -120,7 +117,7 @@
 "Cancel Manual Basal" = "Avbryt manuell basal";
 
 /* Insert cannula action button accessibility label when cannula insertion succeeded */
-"Cannula inserted successfully. Continue." = "Kanyle skutt inn vellykket. Fortsett.";
+"Cannula inserted successfully. Continue." = "Kanylen ble satt inn. Fortsette.";
 
 /* The action string on pod status page when pod expired */
 "Change Pod now. Insulin delivery will stop 8 hours after the Pod has expired or when no more insulin remains." = "Bytt Pod nå. Insulintilførselen vil stoppe 8 timer etter at pod har utløpt eller når det ikke er mer insulin igjen.";
@@ -153,7 +150,7 @@
 "Confidence Reminders" = "Bekreftelser";
 
 /* Help text for BeepPreferenceSelectionView */
-"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced.";
+"Confidence reminders are beeps from the pod which can be used to acknowledge selected commands." = "Tillitspåminnelser er pip fra pod som kan brukes til å bekrefte valgte kommandoer.";
 
 /* The title of the configuration section in settings */
 "Configuration" = "Konfigurasjon";
@@ -178,9 +175,6 @@
 
 /* Button title to deactivate pod because of fault during setup */
 "Deactivate" = "Deaktiver";
-
-/* Action button description for deactivate while pod still active */
-"Slide to Deactivate Pod" = "Slide to Deactivate Pod";
 
 /* Button title for pod deactivation
    Button title to deactivate pod */
@@ -218,7 +212,7 @@
    Text for discard pod button */
 "Discard Pod" = "Kast Pod";
 
-/* No comment provided by engineer. */
+/* Title of done button on OmnipodSettingsView */
 "Done" = "Ferdig";
 
 /* Title text for button to enable bolus beeps */
@@ -351,6 +345,9 @@
 /* description label for last status date pod details row */
 "Last Status" = "Siste status";
 
+/* Text body for page showing insulin uncertainty has been recovered. */
+"Loop has recovered communication with the pod on your body.\n\nInsulin delivery records have been updated and should match what has actually been delivered.\n\nYou may continue to use Loop normally now." = "Loop har gjenopprettet kommunikasjonen med poden på kroppen din. \n\n Insulintilførselsjournaler er oppdatert og bør samsvare med det som faktisk ble levert. \n\n Du kan fortsette å bruke Loop normalt nå.";
+
 /* Description text on manual temp basal action sheet */
 "Loop will not automatically adjust your insulin delivery until the temporary basal rate finishes or is canceled." = "Loop vil ikke automatisk justere insulintilførselen før den midlertidige basaldosen er ferdig eller avbrytes.";
 
@@ -440,13 +437,16 @@
 "Pair pod." = "Sammenkoble pod.";
 
 /* Label text indicating pairing finished. */
-"Paired" = "Sammenkoblbet";
+"Paired" = "Sammenkoblet";
 
 /* Pairing action button accessibility label while pairing */
 "Pairing." = "Kobler sammen.";
 
 /* Pod pairing action button text while pairing */
 "Pairing..." = "Kobler sammen...";
+
+/* The text of the loading label when pairing */
+"Pairing…" = "Kobler sammen...";
 
 /* No comment provided by engineer. */
 "Percent = %lf" = "Prosent = %lf";
@@ -538,7 +538,7 @@
 "Pump Time" = "Pumpetid";
 
 /* Label text for basal rate summary */
-"Rate" = "Ratio";
+"Rate" = "Rate";
 
 /* Label describing time remaining view */
 "Remaining" = "Gjenstående";
@@ -550,7 +550,7 @@
 "Remove Pump" = "Fjern pumpen";
 
 /* Label text for step two of attach pod instructions */
-"Remove the Pod's clear needle cap and check cannula. Then remove paper backing." = "Remove the Pod's clear needle cap and check cannula. Then remove paper backing.";
+"Remove the pod's needle cap and check cannula. Then remove paper backing." = "Fjern kanylehetten til pod og sjekk kanylen. Fjern deretter plasterbeskyttelsen.";
 
 /* Label indicating pod replacement necessary
    The title of the command to replace pod */
@@ -731,6 +731,8 @@
 /* Title of delivery uncertainty recovery page */
 "Unable to Reach Pod" = "Kan ikke nå pod";
 
+/* Title for pending command recovery screen */
+"Unable To Reach Pod" = "Kan ikke nå pod";
 
 /* Alert format string for a failure to set temporary basal. (1: error description) */
 "Unable to set a temporary basal rate: %1$@" = "Klarte ikke å angi en midlertidig basal: %1$@";
@@ -768,40 +770,3 @@
 /* Alert message body for confirm pod attachment */
 "Your Pod may still be delivering Insulin.\nRemove it from your body, then tap “Continue.“" = "Pod kan fortsatt levere insulin.\nFjern den fra kroppen din, og trykk deretter på \"Fortsett\".";
 
-/* Title string for SilencePodPreference.enabled */
-"Silenced" = "Silenced";
-
-/* Description for SilencePodPreference.disabled */
-"Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled." = "Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled.";
-
-/* Description for SilencePodPreference.enabled */
-"All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts." = "All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts.";
-
-/* Help text for Silence Pod view */
-/* navigation title for Silnce Pod" */
-
-"Silence Pod mode suppresses all Pod alert and confirmation reminder beeping.
-Silence Pod" = "Silence Pod";
-
-/* title for pod details page */
-"Pod Details" = "Pod Details";
-
-/* Text for previous pod details row" */
-"Previous Pod Details" = "Previous Pod Details";
-
-/* Text for pump manager details navigation link */
-"Pump Manager Details" = "Pump Manager Details";
-
-/* button title when retrieving pump manager details */
-"Retrieving Pump Manager Details..." = "Retrieving Pump Manager Details...";
-/* button title to refresh pump manager details */
-"Refresh Pump Manager Details" = "Refresh Pump Manager Details";
-
-/* Alert title for error when updating silence pod preference */
-"Failed to update silence pod preference." = "Failed to update silence pod preference.";
-
-/* Section header for diagnostic section */
-"Diagnostics" = "Diagnostics";
-
-/* Text for read pod status navigation link */
-"Read Pod Status" = "Read Pod Status";

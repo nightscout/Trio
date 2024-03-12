@@ -72,7 +72,7 @@ enum PodLifeState {
     var nextPodLifecycleAction: DashUIScreen {
         switch self {
         case .podActivating, .noPod:
-            return .pairPod
+            return .pairAndPrime
         default:
             return .deactivate
         }
@@ -85,7 +85,7 @@ enum PodLifeState {
         case .podDeactivating:
             return LocalizedString("Finish deactivation", comment: "Settings page link description when next lifecycle action is to finish deactivation")
         default:
-            return LocalizedString("Deactivate Pod", comment: "Settings page link description when next lifecycle action is to deactivate pod")
+            return LocalizedString("Replace Pod", comment: "Settings page link description when next lifecycle action is to replace pod")
         }
     }
     

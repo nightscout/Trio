@@ -132,8 +132,7 @@ extension BasalDeliveryTable: CustomDebugStringConvertible {
 // Round basal rate by rounding down to pulse size boundary,
 // but basal rates within a small delta will be rounded up.
 // Rounds down to 0 for both non-Eros and Eros (temp basals).
-func roundToSupportedBasalRate(rate: Double) -> Double
-{
+func roundToSupportedBasalRate(rate: Double) -> Double {
     let delta = 0.01
     let supportedBasalRates: [Double] = (0...600).map { Double($0) / Double(Pod.pulsesPerUnit) }
     return supportedBasalRates.last(where: { $0 <= rate + delta }) ?? 0
@@ -198,13 +197,14 @@ public struct RateEntry {
         let maxPulsesPerEntry: Double = 0xffff / 10 // max # of 1/10th pulses encoded in a 2-byte value
         var entries = [RateEntry]()
         let rrate = roundToSupportedBasalTimingRate(rate: rate)
+        let numHalfHours = max(Int(round(duration.minutes / 30)), 1) // shortest basal duration is 30m
         
-        var remainingSegments = Int(round(duration.minutes / 30))
+        var remainingSegments = numHalfHours
         
         let pulsesPerSegment = round(rrate / Pod.pulseSize) / 2
         let maxSegmentsPerEntry = pulsesPerSegment > 0 ? Int(maxPulsesPerEntry / pulsesPerSegment) : 1
         
-        var remainingPulses = rrate * duration.hours / Pod.pulseSize
+        var remainingPulses = rrate * Double(numHalfHours) / 2 / Pod.pulseSize
 
         while (remainingSegments > 0) {
             let entry: RateEntry

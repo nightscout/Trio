@@ -227,7 +227,7 @@ public class G7CGMManager: CGMManager {
     public func getSoundBaseURL() -> URL? { return nil }
     public func getSounds() -> [Alert.Sound] { return [] }
 
-    public let managerIdentifier: String = "G7CGMManager"
+    public static let pluginIdentifier: String = "G7CGMManager"
 
     public let localizedTitle = LocalizedString("Dexcom G7", comment: "CGM display title")
 
@@ -247,14 +247,14 @@ public class G7CGMManager: CGMManager {
         sensor.scanForNewSensor()
     }
 
-    public var device: HKDevice? {
+    private var device: HKDevice? {
         return HKDevice(
-            name: "CGMBLEKit",
+            name: state.sensorID ?? "Unknown",
             manufacturer: "Dexcom",
             model: "G7",
             hardwareVersion: nil,
             firmwareVersion: nil,
-            softwareVersion: String(G7SensorKitVersionNumber),
+            softwareVersion: "CGMBLEKit" + String(G7SensorKitVersionNumber),
             localIdentifier: nil,
             udiDeviceIdentifier: "00386270001863"
         )
@@ -293,6 +293,16 @@ extension G7CGMManager: G7SensorDelegate {
             mutateState { state in
                 state.sensorID = name
                 state.activatedAt = activatedAt
+            }
+            let event = PersistedCgmEvent(
+                date: activatedAt,
+                type: .sensorStart,
+                deviceIdentifier: name,
+                expectedLifetime: .hours(24 * 10 + 12),
+                warmupPeriod: .hours(2)
+            )
+            delegate.notify { delegate in
+                delegate?.cgmManager(self, hasNew: [event])
             }
         }
 

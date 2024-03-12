@@ -23,7 +23,7 @@ struct LowReservoirReminderSetupView: View {
     var insulinQuantityFormatter = QuantityFormatter(for: .internationalUnit())
 
     func formatValue(_ value: Int) -> String {
-        return insulinQuantityFormatter.string(from: HKQuantity(unit: .internationalUnit(), doubleValue: Double(value)), for: .internationalUnit()) ?? ""
+        return insulinQuantityFormatter.string(from: HKQuantity(unit: .internationalUnit(), doubleValue: Double(value))) ?? ""
     }
 
     var body: some View {
@@ -50,7 +50,7 @@ struct LowReservoirReminderSetupView: View {
             }
             .padding()
         }
-        .navigationBarTitle(LocalizedString("Low Reservoir", comment: "navigation bar title for low reservoir"), displayMode: .automatic)
+        .navigationBarTitle(LocalizedString("Low Reservoir", comment: "Navigation bar title for LowReservoirReminderSetupView"), displayMode: .automatic)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(LocalizedString("Cancel", comment: "Cancel button title"), action: {

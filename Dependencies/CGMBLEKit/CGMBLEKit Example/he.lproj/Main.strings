@@ -1,26 +1,26 @@
 /* Class = "UILabel"; text = "Run alongside G5 app"; ObjectID = "3i8-2m-QFG"; */
-"3i8-2m-QFG.text" = "Run alongside G5 app";
+"3i8-2m-QFG.text" = "רוץ לצד אפליקציית G5";
 
 /* Class = "UILabel"; text = "Transmitter ID"; ObjectID = "5y6-vU-qC3"; */
-"5y6-vU-qC3.text" = "Transmitter ID";
+"5y6-vU-qC3.text" = "מזהה משדר";
 
 /* Class = "UILabel"; text = "Waiting for first reading"; ObjectID = "9p7-LX-EMK"; */
-"9p7-LX-EMK.text" = "Waiting for first reading";
+"9p7-LX-EMK.text" = "ממתין לקריאה ראשונה";
 
 /* Class = "UITextField"; text = "500000"; ObjectID = "e0T-ru-tWD"; */
 "e0T-ru-tWD.text" = "500000";
 
 /* Class = "UIButton"; normalTitle = "Start"; ObjectID = "HEQ-Bp-kx7"; */
-"HEQ-Bp-kx7.normalTitle" = "Start";
+"HEQ-Bp-kx7.normalTitle" = "התחל";
 
 /* Class = "UIButton"; normalTitle = "Calibrate"; ObjectID = "HYW-Ex-7LC"; */
-"HYW-Ex-7LC.normalTitle" = "Calibrate";
+"HYW-Ex-7LC.normalTitle" = "כייל";
 
 /* Class = "UIButton"; normalTitle = "Stop"; ObjectID = "JAM-9K-KeE"; */
-"JAM-9K-KeE.normalTitle" = "Stop";
+"JAM-9K-KeE.normalTitle" = "עצור";
 
 /* Class = "UILabel"; text = "Stay connected"; ObjectID = "NSs-9e-3Sl"; */
-"NSs-9e-3Sl.text" = "Stay connected";
+"NSs-9e-3Sl.text" = "הישאר מחובר";
 
 /* Class = "UILabel"; text = "––"; ObjectID = "zAF-A7-1Oc"; */
 "zAF-A7-1Oc.text" = "––";

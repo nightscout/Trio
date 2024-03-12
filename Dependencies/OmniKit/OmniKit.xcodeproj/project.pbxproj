@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		275A98C02AE456EA0097F476 /* SlideButton in Frameworks */ = {isa = PBXBuildFile; productRef = 275A98BF2AE456EA0097F476 /* SlideButton */; };
+		B9CCBCC02BA07F49001B64F5 /* RileyLinkBLEKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C1229C1729C7E5BC0066A89C /* RileyLinkBLEKit.framework */; };
+		B9CCBCC12BA07F49001B64F5 /* RileyLinkKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C1229C1829C7E5BC0066A89C /* RileyLinkKit.framework */; };
+		B9CCBCC22BA07F49001B64F5 /* RileyLinkKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C1229C1929C7E5BC0066A89C /* RileyLinkKitUI.framework */; };
+		B9CCBCC62BA080C9001B64F5 /* LoopKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B9CCBCC52BA080C9001B64F5 /* LoopKitUI.framework */; };
+		B9CCBCC72BA080C9001B64F5 /* OmniKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C124016C29C7D87A00B32844 /* OmniKit.framework */; };
 		C1229C1A29C7E5BC0066A89C /* RileyLinkBLEKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C1229C1729C7E5BC0066A89C /* RileyLinkBLEKit.framework */; };
 		C1229C1B29C7E5BC0066A89C /* RileyLinkBLEKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C1229C1729C7E5BC0066A89C /* RileyLinkBLEKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		C1229C1C29C7E5BC0066A89C /* RileyLinkKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C1229C1829C7E5BC0066A89C /* RileyLinkKit.framework */; };
@@ -25,7 +31,7 @@
 		C12401BB29C7D8E900B32844 /* TempBasalExtraCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018129C7D8E900B32844 /* TempBasalExtraCommand.swift */; };
 		C12401BC29C7D8E900B32844 /* DeactivatePodCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018229C7D8E900B32844 /* DeactivatePodCommand.swift */; };
 		C12401BD29C7D8E900B32844 /* AcknowledgeAlertCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018329C7D8E900B32844 /* AcknowledgeAlertCommand.swift */; };
-		C12401BE29C7D8E900B32844 /* PodInfoConfiguredAlerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018429C7D8E900B32844 /* PodInfoConfiguredAlerts.swift */; };
+		C12401BE29C7D8E900B32844 /* PodInfoTriggeredAlerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018429C7D8E900B32844 /* PodInfoTriggeredAlerts.swift */; };
 		C12401BF29C7D8E900B32844 /* MessageBlock.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018529C7D8E900B32844 /* MessageBlock.swift */; };
 		C12401C029C7D8E900B32844 /* PlaceholderMessageBlock.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018629C7D8E900B32844 /* PlaceholderMessageBlock.swift */; };
 		C12401C129C7D8E900B32844 /* PodInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018729C7D8E900B32844 /* PodInfo.swift */; };
@@ -84,7 +90,6 @@
 		C124027329C7DA9700B32844 /* RileyLinkListDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124022A29C7DA9700B32844 /* RileyLinkListDataSource.swift */; };
 		C124027429C7DA9700B32844 /* PodLifeState.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124022B29C7DA9700B32844 /* PodLifeState.swift */; };
 		C124027529C7DA9700B32844 /* OmnipodSettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124022C29C7DA9700B32844 /* OmnipodSettingsViewModel.swift */; };
-		C124027629C7DA9700B32844 /* PodLifeHUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124022E29C7DA9700B32844 /* PodLifeHUDView.swift */; };
 		C124027729C7DA9700B32844 /* CheckInsertedCannulaView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124022F29C7DA9700B32844 /* CheckInsertedCannulaView.swift */; };
 		C124027829C7DA9700B32844 /* HUDAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C124023029C7DA9700B32844 /* HUDAssets.xcassets */; };
 		C124027929C7DA9700B32844 /* RoundedCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124023229C7DA9700B32844 /* RoundedCard.swift */; };
@@ -98,7 +103,6 @@
 		C124028229C7DA9700B32844 /* UncertaintyRecoveredView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124023B29C7DA9700B32844 /* UncertaintyRecoveredView.swift */; };
 		C124028329C7DA9700B32844 /* InsulinTypeConfirmation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124023C29C7DA9700B32844 /* InsulinTypeConfirmation.swift */; };
 		C124028429C7DA9700B32844 /* ManualTempBasalEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124023D29C7DA9700B32844 /* ManualTempBasalEntryView.swift */; };
-		C124028529C7DA9700B32844 /* PodLifeHUDView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C124023E29C7DA9700B32844 /* PodLifeHUDView.xib */; };
 		C124028629C7DA9700B32844 /* NotificationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124023F29C7DA9700B32844 /* NotificationSettingsView.swift */; };
 		C124028729C7DA9700B32844 /* OmnipodSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124024029C7DA9700B32844 /* OmnipodSettingsView.swift */; };
 		C124028829C7DA9700B32844 /* PodSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124024129C7DA9700B32844 /* PodSetupView.swift */; };
@@ -152,19 +156,47 @@
 		C12EDA1629C7DFF100435701 /* HKUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = C12EDA1529C7DFF100435701 /* HKUnit.swift */; };
 		C12EDA1829C7E01800435701 /* TimeZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = C12EDA1729C7E01800435701 /* TimeZone.swift */; };
 		C12EDA1B29C7E06900435701 /* OSLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = C12EDA1A29C7E06900435701 /* OSLog.swift */; };
-		CEC751DD29D8834B006E9D24 /* RileyLinkBLEKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C1229C1729C7E5BC0066A89C /* RileyLinkBLEKit.framework */; };
-		CEC751DE29D8834B006E9D24 /* RileyLinkKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C1229C1829C7E5BC0066A89C /* RileyLinkKit.framework */; };
-		CEC751DF29D8834B006E9D24 /* RileyLinkKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C1229C1929C7E5BC0066A89C /* RileyLinkKitUI.framework */; };
-		CEC751E329D88392006E9D24 /* LoopKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEC751E229D88392006E9D24 /* LoopKitUI.framework */; };
-		CEF2639B29D88516009921F1 /* OmniKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C124016C29C7D87A00B32844 /* OmniKit.framework */; };
-		D845A1352AF89DEC00EA0853 /* SilencePodPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = D845A1342AF89DEC00EA0853 /* SilencePodPreference.swift */; };
-		D845A1462AF8A4DA00EA0853 /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D845A1452AF8A4DA00EA0853 /* ActivityView.swift */; };
-		D845A1482AF8A4E400EA0853 /* FirstAppear.swift in Sources */ = {isa = PBXBuildFile; fileRef = D845A1472AF8A4E400EA0853 /* FirstAppear.swift */; };
-		D845A14A2AF8A4EF00EA0853 /* PlayTestBeepsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D845A1492AF8A4EF00EA0853 /* PlayTestBeepsView.swift */; };
-		D845A14E2AF8A4FB00EA0853 /* ReadPodStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D845A14B2AF8A4FB00EA0853 /* ReadPodStatusView.swift */; };
-		D845A14F2AF8A4FB00EA0853 /* ReadPulseLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D845A14C2AF8A4FB00EA0853 /* ReadPulseLogView.swift */; };
-		D845A1502AF8A4FB00EA0853 /* PumpManagerDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D845A14D2AF8A4FB00EA0853 /* PumpManagerDetailsView.swift */; };
-		D845A1522AF8A51000EA0853 /* SilencePodSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D845A1512AF8A51000EA0853 /* SilencePodSelectionView.swift */; };
+		D80339732A500489004FF953 /* PodInfoPulseLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124017E29C7D8E900B32844 /* PodInfoPulseLog.swift */; };
+		D80339742A50049B004FF953 /* VersionResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124017F29C7D8E900B32844 /* VersionResponse.swift */; };
+		D80339752A5004AE004FF953 /* PodInfoActivationTime.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018029C7D8E900B32844 /* PodInfoActivationTime.swift */; };
+		D80339762A5004B7004FF953 /* TempBasalExtraCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018129C7D8E900B32844 /* TempBasalExtraCommand.swift */; };
+		D80339772A5004C0004FF953 /* DeactivatePodCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018229C7D8E900B32844 /* DeactivatePodCommand.swift */; };
+		D80339782A5004C8004FF953 /* AcknowledgeAlertCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018329C7D8E900B32844 /* AcknowledgeAlertCommand.swift */; };
+		D80339792A5004D1004FF953 /* PodInfoTriggeredAlerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018429C7D8E900B32844 /* PodInfoTriggeredAlerts.swift */; };
+		D803397A2A5004D9004FF953 /* MessageBlock.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018529C7D8E900B32844 /* MessageBlock.swift */; };
+		D803397B2A5004E1004FF953 /* PlaceholderMessageBlock.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018629C7D8E900B32844 /* PlaceholderMessageBlock.swift */; };
+		D803397C2A5004EB004FF953 /* PodInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018729C7D8E900B32844 /* PodInfo.swift */; };
+		D803397D2A5004F3004FF953 /* BolusExtraCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018829C7D8E900B32844 /* BolusExtraCommand.swift */; };
+		D803397E2A5004FA004FF953 /* FaultConfigCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018929C7D8E900B32844 /* FaultConfigCommand.swift */; };
+		D803397F2A500501004FF953 /* PodInfoPulseLogPlus.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018A29C7D8E900B32844 /* PodInfoPulseLogPlus.swift */; };
+		D80339802A500509004FF953 /* StatusResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018B29C7D8E900B32844 /* StatusResponse.swift */; };
+		D80339812A500510004FF953 /* GetStatusCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018C29C7D8E900B32844 /* GetStatusCommand.swift */; };
+		D80339822A500519004FF953 /* BasalScheduleExtraCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018D29C7D8E900B32844 /* BasalScheduleExtraCommand.swift */; };
+		D80339832A500520004FF953 /* CancelDeliveryCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018E29C7D8E900B32844 /* CancelDeliveryCommand.swift */; };
+		D80339842A500528004FF953 /* AssignAddressCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124018F29C7D8E900B32844 /* AssignAddressCommand.swift */; };
+		D80339852A50052F004FF953 /* BeepConfigCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124019029C7D8E900B32844 /* BeepConfigCommand.swift */; };
+		D80339862A500537004FF953 /* ErrorResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124019129C7D8E900B32844 /* ErrorResponse.swift */; };
+		D80339872A500540004FF953 /* SetupPodCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124019229C7D8E900B32844 /* SetupPodCommand.swift */; };
+		D80339882A500548004FF953 /* DetailedStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124019329C7D8E900B32844 /* DetailedStatus.swift */; };
+		D80339892A500553004FF953 /* PodInfoResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124019429C7D8E900B32844 /* PodInfoResponse.swift */; };
+		D803398A2A50055B004FF953 /* SetInsulinScheduleCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124019529C7D8E900B32844 /* SetInsulinScheduleCommand.swift */; };
+		D803398B2A500563004FF953 /* ConfigureAlertsCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124019629C7D8E900B32844 /* ConfigureAlertsCommand.swift */; };
+		D803398C2A500589004FF953 /* AlertSlot.swift in Sources */ = {isa = PBXBuildFile; fileRef = C12401A129C7D8E900B32844 /* AlertSlot.swift */; };
+		D803398D2A5005FE004FF953 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124019929C7D8E900B32844 /* Message.swift */; };
+		D803398E2A500613004FF953 /* CRC16.swift in Sources */ = {isa = PBXBuildFile; fileRef = C12401A429C7D8E900B32844 /* CRC16.swift */; };
+		D803398F2A500625004FF953 /* BeepType.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124017B29C7D8E900B32844 /* BeepType.swift */; };
+		D80339902A500638004FF953 /* Pod.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124019B29C7D8E900B32844 /* Pod.swift */; };
+		D80339912A500659004FF953 /* Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = C12ED9FF29C7DD2300435701 /* Data.swift */; };
+		D80339922A500668004FF953 /* FaultEventCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124019829C7D8E900B32844 /* FaultEventCode.swift */; };
+		D80339932A500685004FF953 /* InsulinTableEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = C12401A229C7D8E900B32844 /* InsulinTableEntry.swift */; };
+		D80339942A500694004FF953 /* BolusDeliveryTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = C12401A629C7D8E900B32844 /* BolusDeliveryTable.swift */; };
+		D80339952A5006A7004FF953 /* PodProgressStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = C12401A329C7D8E900B32844 /* PodProgressStatus.swift */; };
+		D80339962A5006ED004FF953 /* BasalSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = C12401A529C7D8E900B32844 /* BasalSchedule.swift */; };
+		D80339972A500705004FF953 /* BasalDeliveryTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = C124019D29C7D8E900B32844 /* BasalDeliveryTable.swift */; };
+		D80339982A50085C004FF953 /* TimeInterval.swift in Sources */ = {isa = PBXBuildFile; fileRef = C12EDA0329C7DDC800435701 /* TimeInterval.swift */; };
+		D803399A2A500D3D004FF953 /* CRC8.swift in Sources */ = {isa = PBXBuildFile; fileRef = C12401B229C7D8E900B32844 /* CRC8.swift */; };
+		D803399B2A50122F004FF953 /* Packet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C12401B329C7D8E900B32844 /* Packet.swift */; };
+		D803399C2A50128D004FF953 /* LocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = C12EDA0129C7DD4700435701 /* LocalizedString.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -219,8 +251,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		193F1E4B2B44C21E00525770 /* hu */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hu; path = hu.lproj/Localizable.strings; sourceTree = "<group>"; };
-		193F1E4C2B44C21E00525770 /* hu */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hu; path = hu.lproj/Localizable.strings; sourceTree = "<group>"; };
+		B9CCBCC52BA080C9001B64F5 /* LoopKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LoopKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		C10E1EE62AE59EDC00B4E993 /* hi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hi; path = hi.lproj/Localizable.strings; sourceTree = "<group>"; };
 		C1229C1729C7E5BC0066A89C /* RileyLinkBLEKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = RileyLinkBLEKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C1229C1829C7E5BC0066A89C /* RileyLinkKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = RileyLinkKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C1229C1929C7E5BC0066A89C /* RileyLinkKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = RileyLinkKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -238,7 +270,7 @@
 		C124018129C7D8E900B32844 /* TempBasalExtraCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TempBasalExtraCommand.swift; sourceTree = "<group>"; };
 		C124018229C7D8E900B32844 /* DeactivatePodCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeactivatePodCommand.swift; sourceTree = "<group>"; };
 		C124018329C7D8E900B32844 /* AcknowledgeAlertCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AcknowledgeAlertCommand.swift; sourceTree = "<group>"; };
-		C124018429C7D8E900B32844 /* PodInfoConfiguredAlerts.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PodInfoConfiguredAlerts.swift; sourceTree = "<group>"; };
+		C124018429C7D8E900B32844 /* PodInfoTriggeredAlerts.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PodInfoTriggeredAlerts.swift; sourceTree = "<group>"; };
 		C124018529C7D8E900B32844 /* MessageBlock.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageBlock.swift; sourceTree = "<group>"; };
 		C124018629C7D8E900B32844 /* PlaceholderMessageBlock.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaceholderMessageBlock.swift; sourceTree = "<group>"; };
 		C124018729C7D8E900B32844 /* PodInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PodInfo.swift; sourceTree = "<group>"; };
@@ -321,7 +353,6 @@
 		C124022A29C7DA9700B32844 /* RileyLinkListDataSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RileyLinkListDataSource.swift; sourceTree = "<group>"; };
 		C124022B29C7DA9700B32844 /* PodLifeState.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PodLifeState.swift; sourceTree = "<group>"; };
 		C124022C29C7DA9700B32844 /* OmnipodSettingsViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OmnipodSettingsViewModel.swift; sourceTree = "<group>"; };
-		C124022E29C7DA9700B32844 /* PodLifeHUDView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PodLifeHUDView.swift; sourceTree = "<group>"; };
 		C124022F29C7DA9700B32844 /* CheckInsertedCannulaView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CheckInsertedCannulaView.swift; sourceTree = "<group>"; };
 		C124023029C7DA9700B32844 /* HUDAssets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = HUDAssets.xcassets; sourceTree = "<group>"; };
 		C124023229C7DA9700B32844 /* RoundedCard.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RoundedCard.swift; sourceTree = "<group>"; };
@@ -335,7 +366,6 @@
 		C124023B29C7DA9700B32844 /* UncertaintyRecoveredView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UncertaintyRecoveredView.swift; sourceTree = "<group>"; };
 		C124023C29C7DA9700B32844 /* InsulinTypeConfirmation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InsulinTypeConfirmation.swift; sourceTree = "<group>"; };
 		C124023D29C7DA9700B32844 /* ManualTempBasalEntryView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ManualTempBasalEntryView.swift; sourceTree = "<group>"; };
-		C124023E29C7DA9700B32844 /* PodLifeHUDView.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = PodLifeHUDView.xib; sourceTree = "<group>"; };
 		C124023F29C7DA9700B32844 /* NotificationSettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationSettingsView.swift; sourceTree = "<group>"; };
 		C124024029C7DA9700B32844 /* OmnipodSettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OmnipodSettingsView.swift; sourceTree = "<group>"; };
 		C124024129C7DA9700B32844 /* PodSetupView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PodSetupView.swift; sourceTree = "<group>"; };
@@ -411,15 +441,6 @@
 		C12EDA1529C7DFF100435701 /* HKUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HKUnit.swift; sourceTree = "<group>"; };
 		C12EDA1729C7E01800435701 /* TimeZone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeZone.swift; sourceTree = "<group>"; };
 		C12EDA1A29C7E06900435701 /* OSLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSLog.swift; sourceTree = "<group>"; };
-		CEC751E229D88392006E9D24 /* LoopKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LoopKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		D845A1342AF89DEC00EA0853 /* SilencePodPreference.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SilencePodPreference.swift; sourceTree = "<group>"; };
-		D845A1452AF8A4DA00EA0853 /* ActivityView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
-		D845A1472AF8A4E400EA0853 /* FirstAppear.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FirstAppear.swift; sourceTree = "<group>"; };
-		D845A1492AF8A4EF00EA0853 /* PlayTestBeepsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayTestBeepsView.swift; sourceTree = "<group>"; };
-		D845A14B2AF8A4FB00EA0853 /* ReadPodStatusView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReadPodStatusView.swift; sourceTree = "<group>"; };
-		D845A14C2AF8A4FB00EA0853 /* ReadPulseLogView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReadPulseLogView.swift; sourceTree = "<group>"; };
-		D845A14D2AF8A4FB00EA0853 /* PumpManagerDetailsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PumpManagerDetailsView.swift; sourceTree = "<group>"; };
-		D845A1512AF8A51000EA0853 /* SilencePodSelectionView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SilencePodSelectionView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -434,9 +455,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEC751DD29D8834B006E9D24 /* RileyLinkBLEKit.framework in Frameworks */,
-				CEC751DE29D8834B006E9D24 /* RileyLinkKit.framework in Frameworks */,
-				CEC751DF29D8834B006E9D24 /* RileyLinkKitUI.framework in Frameworks */,
+				B9CCBCC02BA07F49001B64F5 /* RileyLinkBLEKit.framework in Frameworks */,
+				B9CCBCC12BA07F49001B64F5 /* RileyLinkKit.framework in Frameworks */,
+				B9CCBCC22BA07F49001B64F5 /* RileyLinkKitUI.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -444,8 +465,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEF2639B29D88516009921F1 /* OmniKit.framework in Frameworks */,
-				CEC751E329D88392006E9D24 /* LoopKitUI.framework in Frameworks */,
+				B9CCBCC72BA080C9001B64F5 /* OmniKit.framework in Frameworks */,
+				B9CCBCC62BA080C9001B64F5 /* LoopKitUI.framework in Frameworks */,
+				275A98C02AE456EA0097F476 /* SlideButton in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -538,26 +560,25 @@
 		C124017A29C7D8E900B32844 /* OmnipodCommon */ = {
 			isa = PBXGroup;
 			children = (
-				C12401A129C7D8E900B32844 /* AlertSlot.swift */,
-				C124019D29C7D8E900B32844 /* BasalDeliveryTable.swift */,
-				C124019C29C7D8E900B32844 /* BasalSchedule+LoopKit.swift */,
-				C12401A529C7D8E900B32844 /* BasalSchedule.swift */,
-				C124019A29C7D8E900B32844 /* BeepPreference.swift */,
 				C124017B29C7D8E900B32844 /* BeepType.swift */,
-				C12401A629C7D8E900B32844 /* BolusDeliveryTable.swift */,
-				C12401A429C7D8E900B32844 /* CRC16.swift */,
-				C124019829C7D8E900B32844 /* FaultEventCode.swift */,
-				C12401A229C7D8E900B32844 /* InsulinTableEntry.swift */,
-				C124019929C7D8E900B32844 /* Message.swift */,
-				C124017D29C7D8E900B32844 /* MessageBlocks */,
-				C124019E29C7D8E900B32844 /* PendingCommand.swift */,
-				C124019B29C7D8E900B32844 /* Pod.swift */,
-				C124019729C7D8E900B32844 /* PodDoseProgressEstimator.swift */,
-				C124019F29C7D8E900B32844 /* PodInsulinMeasurements.swift */,
-				C12401A329C7D8E900B32844 /* PodProgressStatus.swift */,
 				C124017C29C7D8E900B32844 /* PumpManagerAlert.swift */,
+				C124017D29C7D8E900B32844 /* MessageBlocks */,
+				C124019729C7D8E900B32844 /* PodDoseProgressEstimator.swift */,
+				C124019829C7D8E900B32844 /* FaultEventCode.swift */,
+				C124019929C7D8E900B32844 /* Message.swift */,
+				C124019A29C7D8E900B32844 /* BeepPreference.swift */,
+				C124019B29C7D8E900B32844 /* Pod.swift */,
+				C124019C29C7D8E900B32844 /* BasalSchedule+LoopKit.swift */,
+				C124019D29C7D8E900B32844 /* BasalDeliveryTable.swift */,
+				C124019E29C7D8E900B32844 /* PendingCommand.swift */,
+				C124019F29C7D8E900B32844 /* PodInsulinMeasurements.swift */,
 				C12401A029C7D8E900B32844 /* ReservoirLevel.swift */,
-				D845A1342AF89DEC00EA0853 /* SilencePodPreference.swift */,
+				C12401A129C7D8E900B32844 /* AlertSlot.swift */,
+				C12401A229C7D8E900B32844 /* InsulinTableEntry.swift */,
+				C12401A329C7D8E900B32844 /* PodProgressStatus.swift */,
+				C12401A429C7D8E900B32844 /* CRC16.swift */,
+				C12401A529C7D8E900B32844 /* BasalSchedule.swift */,
+				C12401A629C7D8E900B32844 /* BolusDeliveryTable.swift */,
 				C12401A729C7D8E900B32844 /* UnfinalizedDose.swift */,
 			);
 			path = OmnipodCommon;
@@ -566,31 +587,31 @@
 		C124017D29C7D8E900B32844 /* MessageBlocks */ = {
 			isa = PBXGroup;
 			children = (
-				C124017E29C7D8E900B32844 /* PodInfoPulseLog.swift */,
-				C124017F29C7D8E900B32844 /* VersionResponse.swift */,
-				C124018029C7D8E900B32844 /* PodInfoActivationTime.swift */,
-				C124018129C7D8E900B32844 /* TempBasalExtraCommand.swift */,
-				C124018229C7D8E900B32844 /* DeactivatePodCommand.swift */,
 				C124018329C7D8E900B32844 /* AcknowledgeAlertCommand.swift */,
-				C124018429C7D8E900B32844 /* PodInfoConfiguredAlerts.swift */,
+				C124018F29C7D8E900B32844 /* AssignAddressCommand.swift */,
+				C124018D29C7D8E900B32844 /* BasalScheduleExtraCommand.swift */,
+				C124019029C7D8E900B32844 /* BeepConfigCommand.swift */,
+				C124018829C7D8E900B32844 /* BolusExtraCommand.swift */,
+				C124018E29C7D8E900B32844 /* CancelDeliveryCommand.swift */,
+				C124019629C7D8E900B32844 /* ConfigureAlertsCommand.swift */,
+				C124018229C7D8E900B32844 /* DeactivatePodCommand.swift */,
+				C124019329C7D8E900B32844 /* DetailedStatus.swift */,
+				C124019129C7D8E900B32844 /* ErrorResponse.swift */,
+				C124018929C7D8E900B32844 /* FaultConfigCommand.swift */,
+				C124018C29C7D8E900B32844 /* GetStatusCommand.swift */,
 				C124018529C7D8E900B32844 /* MessageBlock.swift */,
 				C124018629C7D8E900B32844 /* PlaceholderMessageBlock.swift */,
 				C124018729C7D8E900B32844 /* PodInfo.swift */,
-				C124018829C7D8E900B32844 /* BolusExtraCommand.swift */,
-				C124018929C7D8E900B32844 /* FaultConfigCommand.swift */,
+				C124018029C7D8E900B32844 /* PodInfoActivationTime.swift */,
+				C124017E29C7D8E900B32844 /* PodInfoPulseLog.swift */,
 				C124018A29C7D8E900B32844 /* PodInfoPulseLogPlus.swift */,
-				C124018B29C7D8E900B32844 /* StatusResponse.swift */,
-				C124018C29C7D8E900B32844 /* GetStatusCommand.swift */,
-				C124018D29C7D8E900B32844 /* BasalScheduleExtraCommand.swift */,
-				C124018E29C7D8E900B32844 /* CancelDeliveryCommand.swift */,
-				C124018F29C7D8E900B32844 /* AssignAddressCommand.swift */,
-				C124019029C7D8E900B32844 /* BeepConfigCommand.swift */,
-				C124019129C7D8E900B32844 /* ErrorResponse.swift */,
-				C124019229C7D8E900B32844 /* SetupPodCommand.swift */,
-				C124019329C7D8E900B32844 /* DetailedStatus.swift */,
 				C124019429C7D8E900B32844 /* PodInfoResponse.swift */,
+				C124018429C7D8E900B32844 /* PodInfoTriggeredAlerts.swift */,
 				C124019529C7D8E900B32844 /* SetInsulinScheduleCommand.swift */,
-				C124019629C7D8E900B32844 /* ConfigureAlertsCommand.swift */,
+				C124019229C7D8E900B32844 /* SetupPodCommand.swift */,
+				C124018B29C7D8E900B32844 /* StatusResponse.swift */,
+				C124018129C7D8E900B32844 /* TempBasalExtraCommand.swift */,
+				C124017F29C7D8E900B32844 /* VersionResponse.swift */,
 			);
 			path = MessageBlocks;
 			sourceTree = "<group>";
@@ -598,11 +619,11 @@
 		C12401A929C7D8E900B32844 /* PumpManager */ = {
 			isa = PBXGroup;
 			children = (
-				C12401AB29C7D8E900B32844 /* DetailedStatus+OmniKit.swift */,
-				C12401AE29C7D8E900B32844 /* OmnipodPumpManager.swift */,
-				C12401AD29C7D8E900B32844 /* OmnipodPumpManagerState.swift */,
 				C12401AA29C7D8E900B32844 /* PodComms.swift */,
+				C12401AB29C7D8E900B32844 /* DetailedStatus+OmniKit.swift */,
 				C12401AC29C7D8E900B32844 /* PodCommsSession.swift */,
+				C12401AD29C7D8E900B32844 /* OmnipodPumpManagerState.swift */,
+				C12401AE29C7D8E900B32844 /* OmnipodPumpManager.swift */,
 				C12401AF29C7D8E900B32844 /* PodState.swift */,
 			);
 			path = PumpManager;
@@ -688,13 +709,13 @@
 		C124022529C7DA9700B32844 /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
-				C124022929C7DA9700B32844 /* DeactivatePodViewModel.swift */,
+				C124022629C7DA9700B32844 /* PairPodViewModel.swift */,
 				C124022729C7DA9700B32844 /* DeliveryUncertaintyRecoveryViewModel.swift */,
 				C124022829C7DA9700B32844 /* InsertCannulaViewModel.swift */,
-				C124022C29C7DA9700B32844 /* OmnipodSettingsViewModel.swift */,
-				C124022629C7DA9700B32844 /* PairPodViewModel.swift */,
-				C124022B29C7DA9700B32844 /* PodLifeState.swift */,
+				C124022929C7DA9700B32844 /* DeactivatePodViewModel.swift */,
 				C124022A29C7DA9700B32844 /* RileyLinkListDataSource.swift */,
+				C124022B29C7DA9700B32844 /* PodLifeState.swift */,
+				C124022C29C7DA9700B32844 /* OmnipodSettingsViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -702,7 +723,6 @@
 		C124022D29C7DA9700B32844 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				D845A1452AF8A4DA00EA0853 /* ActivityView.swift */,
 				C124024629C7DA9700B32844 /* AttachPodView.swift */,
 				C124024C29C7DA9700B32844 /* BasalStateView.swift */,
 				C124024429C7DA9700B32844 /* BeepPreferenceSelectionView.swift */,
@@ -712,7 +732,6 @@
 				C124023129C7DA9700B32844 /* DesignElements */,
 				C124023A29C7DA9700B32844 /* ExpirationReminderPickerView.swift */,
 				C124024529C7DA9700B32844 /* ExpirationReminderSetupView.swift */,
-				D845A1472AF8A4E400EA0853 /* FirstAppear.swift */,
 				C124023629C7DA9700B32844 /* InsertCannulaView.swift */,
 				C124023C29C7DA9700B32844 /* InsulinTypeConfirmation.swift */,
 				C124023529C7DA9700B32844 /* LowReservoirReminderEditView.swift */,
@@ -722,17 +741,11 @@
 				C124024929C7DA9700B32844 /* OmnipodReservoirView.swift */,
 				C124024029C7DA9700B32844 /* OmnipodSettingsView.swift */,
 				C124024329C7DA9700B32844 /* PairPodView.swift */,
-				D845A1492AF8A4EF00EA0853 /* PlayTestBeepsView.swift */,
 				C124024829C7DA9700B32844 /* PodDetailsView.swift */,
-				C124022E29C7DA9700B32844 /* PodLifeHUDView.swift */,
 				C124024129C7DA9700B32844 /* PodSetupView.swift */,
-				D845A14D2AF8A4FB00EA0853 /* PumpManagerDetailsView.swift */,
-				D845A14B2AF8A4FB00EA0853 /* ReadPodStatusView.swift */,
-				D845A14C2AF8A4FB00EA0853 /* ReadPulseLogView.swift */,
 				C124023729C7DA9700B32844 /* RileyLinkSetupView.swift */,
 				C124024729C7DA9700B32844 /* ScheduledExpirationReminderEditView.swift */,
 				C124023829C7DA9700B32844 /* SetupCompleteView.swift */,
-				D845A1512AF8A51000EA0853 /* SilencePodSelectionView.swift */,
 				C124024D29C7DA9700B32844 /* TimeView.swift */,
 				C124023B29C7DA9700B32844 /* UncertaintyRecoveredView.swift */,
 			);
@@ -753,7 +766,6 @@
 			isa = PBXGroup;
 			children = (
 				C12ED9C429C7DB7200435701 /* OmnipodReservoirView.xib */,
-				C124023E29C7DA9700B32844 /* PodLifeHUDView.xib */,
 				C124023029C7DA9700B32844 /* HUDAssets.xcassets */,
 				C124026729C7DA9700B32844 /* OmniKitUI.xcassets */,
 				C124024F29C7DA9700B32844 /* Localizable.strings */,
@@ -794,7 +806,7 @@
 		C12ED9F329C7DCE100435701 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				CEC751E229D88392006E9D24 /* LoopKitUI.framework */,
+				B9CCBCC52BA080C9001B64F5 /* LoopKitUI.framework */,
 				C1229C1729C7E5BC0066A89C /* RileyLinkBLEKit.framework */,
 				C1229C1829C7E5BC0066A89C /* RileyLinkKit.framework */,
 				C1229C1929C7E5BC0066A89C /* RileyLinkKitUI.framework */,
@@ -846,6 +858,7 @@
 				C1229C6729C7F0840066A89C /* Sources */,
 				C1229C6829C7F0840066A89C /* Frameworks */,
 				C1229C6929C7F0840066A89C /* CopyFiles */,
+				C18DAD682AE58BDD00FAB288 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -888,6 +901,9 @@
 			dependencies = (
 			);
 			name = OmniKitUI;
+			packageProductDependencies = (
+				275A98BF2AE456EA0097F476 /* SlideButton */,
+			);
 			productName = OmniKitUI;
 			productReference = C124020B29C7D92700B32844 /* OmniKitUI.framework */;
 			productType = "com.apple.product-type.framework";
@@ -940,7 +956,7 @@
 				BuildIndependentTargetsInParallel = 1;
 				CLASSPREFIX = "";
 				LastSwiftUpdateCheck = 1420;
-				LastUpgradeCheck = 1420;
+				LastUpgradeCheck = 1430;
 				ORGANIZATIONNAME = "LoopKit Authors";
 				TargetAttributes = {
 					C1229C6A29C7F0840066A89C = {
@@ -990,9 +1006,11 @@
 				nl,
 				ro,
 				hi,
-				hu,
 			);
 			mainGroup = C124016229C7D87A00B32844;
+			packageReferences = (
+				275A98BE2AE456EA0097F476 /* XCRemoteSwiftPackageReference "SlideButton" */,
+			);
 			productRefGroup = C124016D29C7D87A00B32844 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -1020,7 +1038,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C124028529C7DA9700B32844 /* PodLifeHUDView.xib in Resources */,
 				C12ED9C529C7DB7200435701 /* OmnipodReservoirView.xib in Resources */,
 				C124029629C7DA9700B32844 /* OmniKitUI.xcassets in Resources */,
 				C124029529C7DA9700B32844 /* Localizable.strings in Resources */,
@@ -1042,6 +1059,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C18DAD682AE58BDD00FAB288 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -1049,6 +1073,47 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D803399C2A50128D004FF953 /* LocalizedString.swift in Sources */,
+				D803399B2A50122F004FF953 /* Packet.swift in Sources */,
+				D803399A2A500D3D004FF953 /* CRC8.swift in Sources */,
+				D80339982A50085C004FF953 /* TimeInterval.swift in Sources */,
+				D80339972A500705004FF953 /* BasalDeliveryTable.swift in Sources */,
+				D80339962A5006ED004FF953 /* BasalSchedule.swift in Sources */,
+				D80339952A5006A7004FF953 /* PodProgressStatus.swift in Sources */,
+				D80339942A500694004FF953 /* BolusDeliveryTable.swift in Sources */,
+				D80339932A500685004FF953 /* InsulinTableEntry.swift in Sources */,
+				D80339922A500668004FF953 /* FaultEventCode.swift in Sources */,
+				D80339912A500659004FF953 /* Data.swift in Sources */,
+				D80339902A500638004FF953 /* Pod.swift in Sources */,
+				D803398F2A500625004FF953 /* BeepType.swift in Sources */,
+				D803398E2A500613004FF953 /* CRC16.swift in Sources */,
+				D803398D2A5005FE004FF953 /* Message.swift in Sources */,
+				D803398C2A500589004FF953 /* AlertSlot.swift in Sources */,
+				D803398B2A500563004FF953 /* ConfigureAlertsCommand.swift in Sources */,
+				D803398A2A50055B004FF953 /* SetInsulinScheduleCommand.swift in Sources */,
+				D80339892A500553004FF953 /* PodInfoResponse.swift in Sources */,
+				D80339882A500548004FF953 /* DetailedStatus.swift in Sources */,
+				D80339872A500540004FF953 /* SetupPodCommand.swift in Sources */,
+				D80339862A500537004FF953 /* ErrorResponse.swift in Sources */,
+				D80339852A50052F004FF953 /* BeepConfigCommand.swift in Sources */,
+				D80339842A500528004FF953 /* AssignAddressCommand.swift in Sources */,
+				D80339832A500520004FF953 /* CancelDeliveryCommand.swift in Sources */,
+				D80339822A500519004FF953 /* BasalScheduleExtraCommand.swift in Sources */,
+				D80339812A500510004FF953 /* GetStatusCommand.swift in Sources */,
+				D80339802A500509004FF953 /* StatusResponse.swift in Sources */,
+				D803397F2A500501004FF953 /* PodInfoPulseLogPlus.swift in Sources */,
+				D803397E2A5004FA004FF953 /* FaultConfigCommand.swift in Sources */,
+				D803397D2A5004F3004FF953 /* BolusExtraCommand.swift in Sources */,
+				D803397C2A5004EB004FF953 /* PodInfo.swift in Sources */,
+				D803397B2A5004E1004FF953 /* PlaceholderMessageBlock.swift in Sources */,
+				D803397A2A5004D9004FF953 /* MessageBlock.swift in Sources */,
+				D80339792A5004D1004FF953 /* PodInfoTriggeredAlerts.swift in Sources */,
+				D80339782A5004C8004FF953 /* AcknowledgeAlertCommand.swift in Sources */,
+				D80339772A5004C0004FF953 /* DeactivatePodCommand.swift in Sources */,
+				D80339762A5004B7004FF953 /* TempBasalExtraCommand.swift in Sources */,
+				D80339752A5004AE004FF953 /* PodInfoActivationTime.swift in Sources */,
+				D80339742A50049B004FF953 /* VersionResponse.swift in Sources */,
+				D80339732A500489004FF953 /* PodInfoPulseLog.swift in Sources */,
 				C1229C7229C7F0950066A89C /* main.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1083,8 +1148,7 @@
 				C12401E329C7D8E900B32844 /* PodComms.swift in Sources */,
 				C12401D429C7D8E900B32844 /* BeepPreference.swift in Sources */,
 				C12401B829C7D8E900B32844 /* PodInfoPulseLog.swift in Sources */,
-				D845A1352AF89DEC00EA0853 /* SilencePodPreference.swift in Sources */,
-				C12401BE29C7D8E900B32844 /* PodInfoConfiguredAlerts.swift in Sources */,
+				C12401BE29C7D8E900B32844 /* PodInfoTriggeredAlerts.swift in Sources */,
 				C12401E529C7D8E900B32844 /* PodCommsSession.swift in Sources */,
 				C12401DE29C7D8E900B32844 /* CRC16.swift in Sources */,
 				C12401C729C7D8E900B32844 /* BasalScheduleExtraCommand.swift in Sources */,
@@ -1130,16 +1194,13 @@
 				C124028B29C7DA9700B32844 /* BeepPreferenceSelectionView.swift in Sources */,
 				C12EDA1429C7DFBF00435701 /* TimeInterval.swift in Sources */,
 				C124028D29C7DA9700B32844 /* AttachPodView.swift in Sources */,
-				D845A14F2AF8A4FB00EA0853 /* ReadPulseLogView.swift in Sources */,
 				C124027229C7DA9700B32844 /* DeactivatePodViewModel.swift in Sources */,
 				C124028C29C7DA9700B32844 /* ExpirationReminderSetupView.swift in Sources */,
-				D845A1462AF8A4DA00EA0853 /* ActivityView.swift in Sources */,
 				C124029029C7DA9700B32844 /* OmnipodReservoirView.swift in Sources */,
 				C124027C29C7DA9700B32844 /* LowReservoirReminderEditView.swift in Sources */,
 				C124028129C7DA9700B32844 /* ExpirationReminderPickerView.swift in Sources */,
 				C124028329C7DA9700B32844 /* InsulinTypeConfirmation.swift in Sources */,
 				C124029129C7DA9700B32844 /* DeliveryUncertaintyRecoveryView.swift in Sources */,
-				D845A1502AF8A4FB00EA0853 /* PumpManagerDetailsView.swift in Sources */,
 				C124028229C7DA9700B32844 /* UncertaintyRecoveredView.swift in Sources */,
 				C124027E29C7DA9700B32844 /* RileyLinkSetupView.swift in Sources */,
 				C124027429C7DA9700B32844 /* PodLifeState.swift in Sources */,
@@ -1147,16 +1208,12 @@
 				C124027329C7DA9700B32844 /* RileyLinkListDataSource.swift in Sources */,
 				C124029329C7DA9700B32844 /* BasalStateView.swift in Sources */,
 				C124027A29C7DA9700B32844 /* LeadingImage.swift in Sources */,
-				D845A14E2AF8A4FB00EA0853 /* ReadPodStatusView.swift in Sources */,
 				C124028729C7DA9700B32844 /* OmnipodSettingsView.swift in Sources */,
 				C124028929C7DA9700B32844 /* LowReservoirReminderSetupView.swift in Sources */,
 				C124027029C7DA9700B32844 /* DeliveryUncertaintyRecoveryViewModel.swift in Sources */,
 				C12EDA0E29C7DEFD00435701 /* NumberFormatter.swift in Sources */,
-				D845A1522AF8A51000EA0853 /* SilencePodSelectionView.swift in Sources */,
 				C12EDA1229C7DF4B00435701 /* IdentifiableClass.swift in Sources */,
-				D845A1482AF8A4E400EA0853 /* FirstAppear.swift in Sources */,
 				C124027529C7DA9700B32844 /* OmnipodSettingsViewModel.swift in Sources */,
-				C124027629C7DA9700B32844 /* PodLifeHUDView.swift in Sources */,
 				C124029729C7DA9700B32844 /* OmnipodUICoordinator.swift in Sources */,
 				C124028429C7DA9700B32844 /* ManualTempBasalEntryView.swift in Sources */,
 				C124027729C7DA9700B32844 /* CheckInsertedCannulaView.swift in Sources */,
@@ -1165,7 +1222,6 @@
 				C124028A29C7DA9700B32844 /* PairPodView.swift in Sources */,
 				C124029229C7DA9700B32844 /* DeactivatePodView.swift in Sources */,
 				C124027929C7DA9700B32844 /* RoundedCard.swift in Sources */,
-				D845A14A2AF8A4EF00EA0853 /* PlayTestBeepsView.swift in Sources */,
 				C124026F29C7DA9700B32844 /* PairPodViewModel.swift in Sources */,
 				C124026E29C7DA9700B32844 /* FrameworkLocalText.swift in Sources */,
 				C124028F29C7DA9700B32844 /* PodDetailsView.swift in Sources */,
@@ -1259,7 +1315,7 @@
 				C124020229C7D90B00B32844 /* fi */,
 				C124020329C7D90B00B32844 /* nl */,
 				C124020429C7D90B00B32844 /* ro */,
-				193F1E4B2B44C21E00525770 /* hu */,
+				C10E1EE62AE59EDC00B4E993 /* hi */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -1290,7 +1346,6 @@
 				C124026429C7DA9700B32844 /* nl */,
 				C124026529C7DA9700B32844 /* ro */,
 				C124026629C7DA9700B32844 /* hi */,
-				193F1E4C2B44C21E00525770 /* hu */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -1301,8 +1356,10 @@
 		C1229C7029C7F0840066A89C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = UY678SP37Q;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1314,8 +1371,10 @@
 		C1229C7129C7F0840066A89C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = UY678SP37Q;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1328,6 +1387,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -1397,6 +1457,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -1459,6 +1520,8 @@
 		C124017429C7D87A00B32844 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -1466,6 +1529,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -1475,9 +1539,14 @@
 					"@loader_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++20";
 				PRODUCT_BUNDLE_IDENTIFIER = org.loopkit.OmniKit;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1487,6 +1556,8 @@
 		C124017529C7D87A00B32844 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -1494,6 +1565,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -1503,9 +1575,14 @@
 					"@loader_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++20";
 				PRODUCT_BUNDLE_IDENTIFIER = org.loopkit.OmniKit;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1515,6 +1592,8 @@
 		C124021029C7D92700B32844 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = NO;
+				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -1522,6 +1601,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -1531,9 +1611,14 @@
 					"@loader_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++20";
 				PRODUCT_BUNDLE_IDENTIFIER = org.loopkit.OmniKitUI;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_VERSION = 5.0;
@@ -1544,6 +1629,8 @@
 		C124021129C7D92700B32844 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = NO;
+				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -1551,6 +1638,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -1560,9 +1648,14 @@
 					"@loader_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++20";
 				PRODUCT_BUNDLE_IDENTIFIER = org.loopkit.OmniKitUI;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_VERSION = 5.0;
@@ -1574,13 +1667,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEFINES_MODULE = YES;
+				DEFINES_MODULE = NO;
 				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = OmniKitPlugin/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -1591,9 +1686,14 @@
 					"@loader_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++20";
 				PRODUCT_BUNDLE_IDENTIFIER = org.loopkit.OmniKitPlugin;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -1606,13 +1706,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEFINES_MODULE = YES;
+				DEFINES_MODULE = NO;
 				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = OmniKitPlugin/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -1623,9 +1725,14 @@
 					"@loader_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++20";
 				PRODUCT_BUNDLE_IDENTIFIER = org.loopkit.OmniKitPlugin;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1643,6 +1750,9 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.loopkit.OmniKitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1659,6 +1769,9 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.loopkit.OmniKitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1723,6 +1836,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		275A98BE2AE456EA0097F476 /* XCRemoteSwiftPackageReference "SlideButton" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/no-comment/SlideButton";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		275A98BF2AE456EA0097F476 /* SlideButton */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 275A98BE2AE456EA0097F476 /* XCRemoteSwiftPackageReference "SlideButton" */;
+			productName = SlideButton;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C124016329C7D87A00B32844 /* Project object */;
 }

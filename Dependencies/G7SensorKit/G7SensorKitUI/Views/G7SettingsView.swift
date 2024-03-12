@@ -12,13 +12,15 @@ import G7SensorKit
 import LoopKitUI
 
 struct G7SettingsView: View {
-
-    private var durationFormatter: RelativeDateTimeFormatter = {
-        let formatter = RelativeDateTimeFormatter()
+    
+    private var sessionLengthFormatter: DateComponentsFormatter = {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.day, .hour, .minute]
         formatter.unitsStyle = .full
+        formatter.maximumUnitCount = 2
         return formatter
     }()
-
+    
     @Environment(\.guidanceColors) private var guidanceColors
     @Environment(\.glucoseTintColor) private var glucoseTintColor
 
@@ -39,6 +41,8 @@ struct G7SettingsView: View {
 
         formatter.dateStyle = .short
         formatter.timeStyle = .short
+        formatter.locale = Locale.current
+        formatter.setLocalizedDateFormatFromTemplate("E, MMM d, hh:mm")
 
         return formatter
     }()
@@ -72,7 +76,7 @@ struct G7SettingsView: View {
                 }
             }
 
-            Section(LocalizedString("Last Reading", comment: "")) {
+            Section("Last Reading") {
                 LabeledValueView(label: LocalizedString("Glucose", comment: "Field label"),
                                  value: viewModel.lastGlucoseString)
                 LabeledDateView(label: LocalizedString("Time", comment: "Field label"),
@@ -82,7 +86,7 @@ struct G7SettingsView: View {
                                  value: viewModel.lastGlucoseTrendString)
             }
 
-            Section(LocalizedString("Bluetooth", comment: "")) {
+            Section("Bluetooth") {
                 if let name = viewModel.sensorName {
                     HStack {
                         Text(LocalizedString("Name", comment: "title for g7 settings row showing BLE Name"))
@@ -114,7 +118,7 @@ struct G7SettingsView: View {
                 }
             }
 
-            Section(LocalizedString("Configuration", comment: "")) {
+            Section("Configuration") {
                 HStack {
                     Toggle(LocalizedString("Upload Readings", comment: "title for g7 config settings to upload readings"), isOn: $viewModel.uploadReadings)
                 }
@@ -122,7 +126,7 @@ struct G7SettingsView: View {
 
             Section () {
                 if !self.viewModel.scanning {
-                    Button(LocalizedString("Scan for new sensor", comment: ""), action: {
+                    Button("Scan for new sensor", action: {
                         self.viewModel.scanForNewSensor()
                     })
                 }
@@ -174,7 +178,7 @@ struct G7SettingsView: View {
 
                 Spacer()
                 if let referenceDate = viewModel.progressReferenceDate {
-                    Text(durationFormatter.localizedString(for: referenceDate, relativeTo: Date()))
+                    Text(sessionLengthFormatter.string(from: referenceDate.timeIntervalSince(Date())) ?? "")
                         .foregroundColor(.secondary)
                 }
             }

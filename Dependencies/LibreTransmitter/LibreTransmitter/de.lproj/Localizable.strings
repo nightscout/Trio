@@ -1,0 +1,34 @@
+/* error description for PairingError.decryptionError */
+"Could not decrypt sensor contents" = "Konnte den Sensorinhalt nicht dekodieren";
+
+/* error description for PairingError.noPatchInfo */
+"Could not get patch info" = "Konnte keine Path-Info bekommen";
+
+/* error description for PairingError.noSensorData */
+"Could not get sensor data" = "Konnte keine Sensordaten bekommen";
+
+/* error description for PairingError.noTagInfo */
+"Could not get tag info" = "Konnte keine Tag-Info bekommen";
+
+/* The title of the Dexcom Share service
+   Title for the CGMManager option */
+"Dexcom Share" = "Dexcom Share";
+
+/* No comment provided by engineer. */
+"Hold the top of your iPhone near the sensor to pair" = "Halte das Oberteil des Telefons nah an den Sensor um ihn zu koppeln";
+
+/* Sensor state description for the non-valid state */
+"Needs Attention" = "Erfordert Aufmerksamkeit";
+
+/* Sensor state description for the valid state */
+"OK" = "OK";
+
+/* error description for PairingError.nfcNotSupported */
+"Phone NFC not supported!" = "Das NFC des Telefons wird nicht unterstützt";
+
+/* The short unit display string for international units of insulin */
+"U" = "IE";
+
+/* Recovery suggestion for PairingError.nfcNotSupported */
+"Your phone or app is not enabled for NFC communications, which is needed to pair to libre2 sensors" = "Dein Telefon oder Deine App ist nicht für die NFC-Kommunikation freigeschaltet, die zum Koppeln mit Libre2-Sensoren erforderlich ist";
+

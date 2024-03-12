@@ -20,8 +20,7 @@ class GlucoseStoreTests: PersistenceControllerTestCase {
         super.setUp()
         
         healthStore = HKHealthStoreMock()
-        glucoseStore = GlucoseStore(healthStore: healthStore,
-                                    cacheStore: cacheStore,
+        glucoseStore = GlucoseStore(cacheStore: cacheStore,
                                     provenanceIdentifier: Bundle.main.bundleIdentifier!)
         let semaphore = DispatchSemaphore(value: 0)
         cacheStore.onReady { (error) in
@@ -126,9 +125,7 @@ class GlucoseStoreRemoteDataServiceQueryTests: PersistenceControllerTestCase {
     override func setUp() {
         super.setUp()
         
-        healthStore = HKHealthStoreMock()
-        glucoseStore = GlucoseStore(healthStore: healthStore,
-                                    cacheStore: cacheStore,
+        glucoseStore = GlucoseStore(cacheStore: cacheStore,
                                     provenanceIdentifier: Bundle.main.bundleIdentifier!)
         let semaphore = DispatchSemaphore(value: 0)
         cacheStore.onReady { (error) in
@@ -347,8 +344,7 @@ class GlucoseStoreCriticalEventLogExportTests: PersistenceControllerTestCase {
                        NewGlucoseSample(date: dateFormatter.date(from: "2100-01-02T03:06:00Z")!, quantity: HKQuantity(unit: .milligramsPerDeciliter, doubleValue: 114), condition: nil, trend: .up, trendRate: HKQuantity(unit: .milligramsPerDeciliterPerMinute, doubleValue: 1.0), isDisplayOnly: false, wasUserEntered: false, syncIdentifier: "FF1C4F01-3558-4FB2-957E-FA1522C4735E", syncVersion: 4),
                        NewGlucoseSample(date: dateFormatter.date(from: "2100-01-02T03:02:00Z")!, quantity: HKQuantity(unit: .milligramsPerDeciliter, doubleValue: 400), condition: .aboveRange, trend: .upUpUp, trendRate: HKQuantity(unit: .milligramsPerDeciliterPerMinute, doubleValue: 1.0), isDisplayOnly: false, wasUserEntered: false, syncIdentifier: "71B699D7-0E8F-4B13-B7A1-E7751EB78E74", syncVersion: 5)]
 
-        glucoseStore = GlucoseStore(healthStore: HKHealthStoreMock(),
-                                    cacheStore: cacheStore,
+        glucoseStore = GlucoseStore(cacheStore: cacheStore,
                                     provenanceIdentifier: Bundle.main.bundleIdentifier!)
 
         let dispatchGroup = DispatchGroup()
@@ -397,8 +393,8 @@ class GlucoseStoreCriticalEventLogExportTests: PersistenceControllerTestCase {
         XCTAssertEqual(outputStream.string, """
             [
             {"isDisplayOnly":false,"modificationCounter":1,"provenanceIdentifier":"com.apple.dt.xctest.tool","startDate":"2100-01-02T03:08:00.000Z","syncIdentifier":"18CF3948-0B3D-4B12-8BFE-14986B0E6784","syncVersion":1,"unitString":"mg/dL","value":111,"wasUserEntered":false},
-            {"isDisplayOnly":false,"modificationCounter":3,"provenanceIdentifier":"com.apple.dt.xctest.tool","startDate":"2100-01-02T03:04:00.000Z","syncIdentifier":"2B03D96C-6F5D-4140-99CD-80C3E64D6010","syncVersion":3,"trend":3,"trendRateUnit":"mg/min·dL","trendRateValue":1,"unitString":"mg/dL","value":113,"wasUserEntered":false},
-            {"isDisplayOnly":false,"modificationCounter":4,"provenanceIdentifier":"com.apple.dt.xctest.tool","startDate":"2100-01-02T03:06:00.000Z","syncIdentifier":"FF1C4F01-3558-4FB2-957E-FA1522C4735E","syncVersion":4,"trend":3,"trendRateUnit":"mg/min·dL","trendRateValue":1,"unitString":"mg/dL","value":114,"wasUserEntered":false}
+            {"isDisplayOnly":false,"modificationCounter":3,"provenanceIdentifier":"com.apple.dt.xctest.tool","startDate":"2100-01-02T03:04:00.000Z","syncIdentifier":"2B03D96C-6F5D-4140-99CD-80C3E64D6010","syncVersion":3,"trend":3,"trendRateValue":1,"unitString":"mg/dL","value":113,"wasUserEntered":false},
+            {"isDisplayOnly":false,"modificationCounter":4,"provenanceIdentifier":"com.apple.dt.xctest.tool","startDate":"2100-01-02T03:06:00.000Z","syncIdentifier":"FF1C4F01-3558-4FB2-957E-FA1522C4735E","syncVersion":4,"trend":3,"trendRateValue":1,"unitString":"mg/dL","value":114,"wasUserEntered":false}
             ]
             """
         )

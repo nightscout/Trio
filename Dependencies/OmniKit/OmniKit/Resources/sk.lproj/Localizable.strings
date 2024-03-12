@@ -1,9 +1,6 @@
 /* Description for an inactive alert modifier */
 " (inactive)" = "{neaktívne}";
 
-/* Format string for low battery alert body for RileyLink. (1: device name) */
-"\"%1$@\" has a low battery" = "\"%1$@\" má slabú batériu";
-
 /* Unit format string for an RSSI value in decibles */
 "%@ dB" = "%@ dB";
 
@@ -17,9 +14,6 @@
 /* Description for auto-off */
 "Auto-off" = "Automatické vypnutie";
 
-/* Description for auto-off alarm */
-"Auto-off alarm" = "Alarm auto-vypnutý";
-
 /* Pod state when basal initialized */
 "Basal initialized" = "Bazál inciovaný";
 
@@ -27,7 +21,7 @@
 "Below 50 units" = "Menej ako 50 jednotiek";
 
 /* Pump Event title for UnfinalizedDose with doseType of .bolus */
-"Bolus" = "Dávka";
+"Bolus" = "Bolus";
 
 /* Error message shown when operation could not be completed due to existing bolus in progress */
 "Bolus in progress" = "Prebieha bolus";
@@ -53,32 +47,20 @@
 /* Alert content body for podExpiring pod alert */
 "Change Pod now. Pod has been active for 72 hours." = "Vymeniť pod teraz. Pod bol aktívny 72 hodín.";
 
-/* Format string for invalid message error code (1: error code number) */
-"Command error %1$u" = "Chyba príkazu %1$u";
-
-/* Status highlight that delivery is uncertain. */
-"Comms Issue" = "Problém s komunikáciou";
-
 /* Error message when command is rejected because an unacknowledged command is pending. */
 "Communication issue: Unacknowledged command pending." = "Problém s komunikáciou: Čaká sa na potvrdenie príkazu.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Tieto upozornenia s pípnutím zo zariadenia Pod zaznejú pri spustení príkazov, ako je bolus, zrušenie bolusu, pozastavenie, obnovenie, uloženie pripomienky s upozornením atď. Keď aplikácia automaticky zmení správu, nepoužívajú sa žiadne oznámenia.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When Loop automatically adjusts delivery, no confidence reminders are used." = "Pripomienky spoľahlivosti zaznejú pri príkazoch, ktoré spustíte, ako je bolus, zrušenie bolusu, pozastavenie, obnovenie, uloženie upozornení atď. Keď Loop automaticky upraví podanie, nepoužijú sa žiadne pripomenutia spoľahlivosti.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Tieto zvukové upozornenia zo zariadenia Pod zaznejú, keď aplikácia automaticky upraví dodávku, ako aj pri príkazoch, ktoré iniciujete.";
-
-/* The title for AlarmCode.other notification */
-"Critical Pod Error" = "Kritická chyba zariadenia Pod";
+"Confidence reminders will sound when Loop automatically adjusts delivery as well as for commands you initiate." = "Keď Loop automaticky upraví podávanie, ako aj prevedie príkazy, ktoré iniciujete, zaznejú pripomenutia spoľahlivosti.";
 
 /* Recovery suggestion when unexpected address received */
 "Crosstalk possible. Please move to a new location" = "Možné presluchy. Presuňte sa na iné miesto";
 
 /* Pod state when pod has been deactivated */
 "Deactivated" = "Deaktivované";
-
-/* Title string for BeepPreference.silent */
-"Disabled" = "Vypnuté";
 
 /* Description for Empty reservoir pod fault */
 "Empty reservoir" = "Prázdna nádrž";
@@ -89,11 +71,11 @@
 /* Pod state error event logged shutting down */
 "Error event logged, shutting down" = "Zaprotokolovaná udalosť chyby, vypína sa";
 
+/* Description for expiration advisory */
+"Expiration advisory" = "Upozornenie na vypršanie platnosti";
+
 /* Description for expiration alert */
 "Expiration alert" = "Varovanie o expirácii";
-
-/* Title string for BeepPreference.extended */
-"Extended" = "Rozšírený";
 
 /* Delivery status when extended bolus is running */
 "Extended bolus running" = "Prebieha predĺžený bolus";
@@ -103,12 +85,6 @@
 
 /* Pod state when fault event has occurred */
 "Fault event occurred" = "Vyskytla sa chybová udalosť";
-
-/* Status highlight that when pod is deactivating. */
-"Finish Deactivation" = "Dokončiť deaktiváciu";
-
-/* Status highlight that when pod is activating. */
-"Finish Pairing" = "Dokončiť párovanie";
 
 /* Description for finish setup */
 "Finish setup " = "Dokončiť nastavenie";
@@ -124,9 +100,6 @@
 
 /* The default notification body for AlarmCodes */
 "Insulin delivery stopped. Change Pod now." = "Podávanie inzulínu sa zastavilo. Vymeňte modul teraz.";
-
-/* Status highlight that insulin delivery was suspended. */
-"Insulin Suspended" = "Inzulín Suspendovaný";
 
 /* Error description for OmniBLEPumpManagerError.insulinTypeNotConfigured */
 "Insulin type not configured" = "Typ inzulínu nie je nakonfigurovaný";
@@ -149,6 +122,9 @@
 /* Error description for OmniBLEPumpManagerError.invalidSetting */
 "Invalid Setting" = "Neplatné nastavenie";
 
+/* Pod state when running with fifty or less units */
+"Low reservoir" = "Nízka hladina v rezervoári";
+
 /* Alert content title for lowReservoir pod alert */
 "Low Reservoir" = "Nízka hladina v rezervoári";
 
@@ -160,6 +136,9 @@
 
 /* Title for RileyLink low battery alert */
 "Low RileyLink Battery" = "Nízky stav batérie RileyLinku";
+
+/* Recovery suggestion for PodCommsError.noPodsFound */
+"Make sure your pod is filled and nearby." = "Uistite sa, že je váš pod naplnený a v blízkosti.";
 
 /* Recovery suggestion when no RileyLink is available */
 "Make sure your RileyLink is nearby and powered on" = "Uistite sa, že je váš RileyLink v blízkosti a je zapnutý";
@@ -215,17 +194,24 @@
 /* Description for Occlusion detected pod fault */
 "Occlusion detected" = "Zistená oklúzia";
 
+/* The title for Occlusion alarm notification */
+"Occlusion Detected" = "Zistená oklúzia";
+
+/* Acknowledge button label for RileyLink low battery alert
+   Alert acknowledgment OK button */
+"OK" = "OK";
+
 /* Generic title of the omnipod pump manager */
 "Omnipod" = "Omnipod";
+
+/* Pod state oneNotUsed */
+"oneNotUsed" = "jednoNepoužité";
 
 /* Pod status after pairing */
 "Paired" = "Spárované";
 
 /* Pod status when pairing completed */
 "Pairing completed" = "Párovanie je dokončené";
-
-/* Description for MessageError parsingError. (1: decription of error), (2: hexadecimal data starting at offset) */
-"Parsing Error: %1$@ in (%2$@)" = "Chyba pri analyzovaní: %1$@ v (%2$@)";
 
 /* Recovery suggestion on unexpected pod change */
 "Please bring only original pod in range or deactivate original pod" = "Prosím, majte iba pôvodný pod v dosahu alebo deaktivujte pôvodný pod";
@@ -245,6 +231,9 @@
 /* Recovery suggestion when pairing signal strength is too low */
 "Please reposition the RileyLink relative to the pod" = "Zmeňte polohu RileyLink vzhľadom k podu";
 
+/* Recovery suggestion when no response is received from pod */
+"Please try repositioning the pod or the RileyLink and try again" = "Skúste premiestniť modul alebo RileyLink a skúste znova";
+
 /* Error message shown when user cannot pair because pod is already paired */
 "Pod already paired" = "Pod je už spárovaný";
 
@@ -263,8 +252,11 @@
 /* Description for Pod expired pod fault */
 "Pod expired" = "Pod vypršal";
 
-/* Format string for alert content body for userPodExpiration pod alert. (1: time until expiration) */
-"Pod expires in %1$@." = "Pod vyprší za %1$@.";
+/* Alert content title for podExpireImminent pod alert
+   Alert content title for podExpiring pod alert
+   Status highlight message for podExpired alarm.
+   The title for Pod Expired alarm notification */
+"Pod Expired" = "Pod expiroval";
 
 /* Format string for pod fault code */
 "Pod Fault: %1$@" = "Chyba podu: %1$@";
@@ -312,17 +304,14 @@
 /* Pod pairing reminder initialized */
 "Reminder initialized" = "Pripomienka bola inicializovaná";
 
-/* Pump Event title for UnfinalizedDose with doseType of .resume */
-"Resume" = "Pokračovať";
-
 /* Recovery suggestion when pod is suspended */
 "Resume delivery" = "Obnoviť podávanie inzulínu";
 
 /* Alert content title for suspendEnded pod alert */
 "Resume Insulin" = "Obnoviť podávanie inzulínu";
 
-/* The format string describing a resume. (1: Time)(2: Scheduled certainty */
-"Resume: %1$@ %2$@" = "Obnoviť: %1$@ %2$@";
+/* Delivery status when scheduled basal is running */
+"Scheduled basal" = "Naplánovaný bazál ";
 
 /* Delivery status when basal is running */
 "Scheduled Basal" = "Naplánovaný bazál";
@@ -348,9 +337,6 @@
 
 /* Description for suspend time expired */
 "Suspend time expired" = "Čas pozastavenia vypršal";
-
-/* Delivery status when insulin delivery is suspended */
-"Suspended" = "Pozastavené";
 
 /* The format string describing a suspend. (1: Time)(2: Scheduled certainty */
 "Suspend: %1$@ %2$@" = "Pozastaviť: %1$@ %2$@";
@@ -385,6 +371,9 @@
 /* Alert content body for timeOffsetChangeDetected pod alert */
 "The time on your pump is different from the current time. You can review the pump time and and sync to current time in settings." = "Čas na pumpe sa líši od aktuálneho času. V nastaveniach môžete skontrolovať čas pumpy a synchronizovať sa s aktuálnym časom.";
 
+/* Pod state threeNotUsed */
+"threeNotUsed" = "triNepoužité";
+
 /* Alert content title for timeOffsetChangeDetected pod alert */
 "Time Change Detected" = "Zistila sa zmena času";
 
@@ -396,6 +385,9 @@
 
 /* Recovery suggestion when ack received instead of response */
 "Try again" = "Skúste znova";
+
+/* Pod state twoNotUsed */
+"twoNotUsed" = "dveNepoužité";
 
 /* String describing a dose that was possibly scheduled */
 "Uncertain" = "Neisté";
@@ -426,3 +418,4 @@
 
 /* Description waiting for pairing reminder */
 "Waiting for pairing reminder" = "Čaká sa na pripomienku párovania";
+

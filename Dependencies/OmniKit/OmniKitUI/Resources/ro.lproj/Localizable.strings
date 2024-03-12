@@ -7,9 +7,6 @@
 /* Unit format string for an RSSI value in decibles */
 "%@ dB" = "%@ dB";
 
-/* No comment provided by engineer. */
-"%@ has recovered communication with the pod on your body.\n\nInsulin delivery records have been updated and should match what has actually been delivered.\n\nYou may continue to use %@ normally now." = "%1$@ a restabilit comunicarea cu Pod-ul de pe corpul tău. \n\n Înregistrările privind administrarea de insulină au fost actualizate și ar trebui să se potrivească cu ceea ce a fost administrat efectiv. \n\n Puteți continua să utilizați %2$@ în mod normal acum.";
-
 /* Format string for delivered insulin. (1: The localized amount)
    Format string for insulin remaining in reservoir. (1: The localized amount) */
 "%@ U" = "%@ U";
@@ -153,7 +150,7 @@
 "Confidence Reminders" = "Mementouri de confimare";
 
 /* Help text for BeepPreferenceSelectionView */
-"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Memento-urile de confirmare sunt semnale sonore de la Pod care pot fi folosite pentru confirmarea comenzilor selectate.";
+"Confidence reminders are beeps from the pod which can be used to acknowledge selected commands." = "Memento-urile de confirmare sunt semnale sonore de la Pod care pot fi folosite pentru confirmarea comenzilor selectate.";
 
 /* The title of the configuration section in settings */
 "Configuration" = "Configurare";
@@ -215,7 +212,7 @@
    Text for discard pod button */
 "Discard Pod" = "Renunțați la Pod";
 
-/* No comment provided by engineer. */
+/* Title of done button on OmnipodSettingsView */
 "Done" = "Realizat";
 
 /* Title text for button to enable bolus beeps */
@@ -347,6 +344,9 @@
 
 /* description label for last status date pod details row */
 "Last Status" = "Ultima stare";
+
+/* Text body for page showing insulin uncertainty has been recovered. */
+"Loop has recovered communication with the pod on your body.\n\nInsulin delivery records have been updated and should match what has actually been delivered.\n\nYou may continue to use Loop normally now." = "Loop a restabilit comunicarea cu Pod-ul de pe corpul tău.\n\nÎnregistrările legate de administrarea insulinei au fost actualizate și ar trebui să corespundă cu ceea ce a fost administrat de fapt.\n\nPuteți continua acum să utilizați Loop în mod normal.";
 
 /* Description text on manual temp basal action sheet */
 "Loop will not automatically adjust your insulin delivery until the temporary basal rate finishes or is canceled." = "Loop nu va ajusta automat administrarea de insulină până când rata bazală temporară nu se termină sau nu este anulată.";
@@ -550,7 +550,7 @@
 "Remove Pump" = "Ștergeți pompa";
 
 /* Label text for step two of attach pod instructions */
-"Remove the Pod's clear needle cap and check cannula. Then remove paper backing." = "Scoateți capacul acului de pe Pod și verificați canula. Apoi înlăturați eticheta de hârtie de pe spate.";
+"Remove the pod's needle cap and check cannula. Then remove paper backing." = "Scoateți capacul acului de pe Pod și verificați canula. Apoi înlăturați eticheta de hârtie de pe spate.";
 
 /* Label indicating pod replacement necessary
    The title of the command to replace pod */

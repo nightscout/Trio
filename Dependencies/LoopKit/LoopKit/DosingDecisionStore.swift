@@ -85,6 +85,33 @@ public class DosingDecisionStore {
         delegate?.dosingDecisionStoreHasUpdatedDosingDecisionData(self)
         completion?(nil)
     }
+
+    public func fetchLatestDosingDecision(reason: String? = nil) async throws -> StoredDosingDecision? {
+        return try await withCheckedThrowingContinuation { continuation in
+            dataAccessQueue.async {
+                self.store.managedObjectContext.performAndWait {
+                    let request: NSFetchRequest<DosingDecisionObject> = DosingDecisionObject.fetchRequest()
+                    if let reason {
+                        request.predicate = NSPredicate(format: "reason == %@", reason)
+                    }
+                    request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+                    request.fetchLimit = 1
+
+                    do {
+                        let dosingDecisionObjects = try self.store.managedObjectContext.fetch(request)
+
+                        let dosingDecisions = dosingDecisionObjects.compactMap { object in
+                            return self.decodeDosingDecision(fromData: object.data)
+                        }
+                        continuation.resume(returning: dosingDecisions.first)
+                    } catch {
+                        continuation.resume(throwing: error)
+                    }
+                }
+            }
+        }
+    }
+
     
     private static var encoder: PropertyListEncoder = {
         let encoder = PropertyListEncoder()
@@ -464,7 +491,7 @@ extension DosingDecisionStore: CriticalEventLog {
         return result!
     }
 
-    public func export(startDate: Date, endDate: Date, to stream: OutputStream, progress: Progress) -> Error? {
+    public func export(startDate: Date, endDate: Date, to stream: DataOutputStream, progress: Progress) -> Error? {
         let encoder = JSONStreamEncoder(stream: stream)
         var modificationCounter: Int64 = 0
         var fetching = true

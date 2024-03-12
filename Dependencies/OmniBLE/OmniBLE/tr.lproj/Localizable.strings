@@ -190,14 +190,14 @@
    Text for confidence reminders navigation link */
 "Confidence Reminders" = "Emniyet Hatırlatıcıları";
 
-/* No comment provided by engineer. */
-"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Emniyet hatırlatıcıları, poddan gelen ve seçilen komutları onaylamak için kullanılabilen bip sesleridir.";
+/* Help text for BeepPreferenceSelectionView */
+"Confidence reminders are beeps from the pod which can be used to acknowledge selected commands." = "Emniyet hatırlatıcıları, poddan gelen ve seçilen komutları onaylamak için kullanılabilen bip sesleridir.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Emniyet hatırlatıcıları, bolus, bolus iptali, askıya alma, devam ettirme, bildirim hatırlatıcılarını kaydetme gibi başlattığınız komutlar için çalacaktır. Loop iletimi otomatik olarak ayarladığında emniyet hatırlatıcıları kullanılmaz.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When Loop automatically adjusts delivery, no confidence reminders are used." = "Emniyet hatırlatıcıları, bolus, bolus iptali, askıya alma, devam ettirme, bildirim hatırlatıcılarını kaydetme gibi başlattığınız komutlar için çalacaktır. Loop iletimi otomatik olarak ayarladığında emniyet hatırlatıcıları kullanılmaz.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Emniyet hatırlatıcıları, Başlattığınız komutların yanı sıra Loop iletimi otomatik olarak ayarladığında çalacaktır.";
+"Confidence reminders will sound when Loop automatically adjusts delivery as well as for commands you initiate." = "Emniyet hatırlatıcıları, Başlattığınız komutların yanı sıra Loop iletimi otomatik olarak ayarladığında çalacaktır.";
 
 /* Section header for configuration section */
 "Configuration" = "Konfigürasyon";
@@ -336,9 +336,6 @@
 
 /* Alert title for error when updating low reservoir reminder */
 "Failed to Update Low Reservoir Reminder" = "Düşük Rezervuar Hatırlatıcısı Güncellenemedi";
-
-/* Pod life HUD view label */
-"Fault" = "Hata";
 
 /* Pod state when fault event has occurred */
 "Fault event occurred" = "Hata meydana geldi";
@@ -695,9 +692,6 @@
    Label for pod insertion row */
 "Pod Activated" = "Pod Etkinleştirildi";
 
-/* Label describing pod age view */
-"Pod Age" = "Pod Yaşı";
-
 /* Error message shown when user cannot pair because pod is already paired */
 "Pod already paired" = "Pod zaten eşleştirilmiş";
 
@@ -817,8 +811,7 @@
 /* Pod state when ready for cannula insertion */
 "Ready to insert cannula" = "Kanül yerleştirmeye hazır";
 
-/* Label describing time remaining view
-   Label for remaining time of manual basal */
+/* Label for remaining time of manual basal */
 "Remaining" = "Kalan";
 
 /* Pod pairing reminder initialized */
@@ -833,8 +826,7 @@
 /* Title for Omnipod DASH PumpManager deletion action sheet. */
 "Remove Pump" = "Pompayı Çıkar";
 
-/* Label indicating pod replacement necessary
-   Settings page link description when next lifecycle action is to replace pod */
+/* Settings page link description when next lifecycle action is to replace pod */
 "Replace Pod" = "Pod'u Değiştir";
 
 /* Pump Event title for UnfinalizedDose with doseType of .resume */
@@ -990,6 +982,9 @@
 
 /* Alert content body for suspendEnded pod alert */
 "The insulin suspension period has ended.\n\nYou can resume delivery from the banner on the home screen or from your pump settings screen. You will be reminded again in 15 minutes." = "İnsülin askıya alma süresi sona ermiştir.\n\nAna ekran üzerinden veya pompa ayarları ekranınızdan iletime devam edebilirsiniz. 15 dakika içinde tekrar hatırlatılacaktır.";
+
+/* Description text for critical alerts */
+"The reminders above will not sound if your device is in Silent or Do Not Disturb mode.\n\nThere are other critical Pod alerts and alarms that will sound even if your device is set to Silent or Do Not Disturb mode." = "Cihazınız Sessiz veya Rahatsız Etmeyin modundaysa yukarıdaki hatırlatıcılar çalmaz.\n\nCihazınız Sessiz veya Rahatsız Etmeyin moduna ayarlanmış olsa bile çalacak başka kritik Pod uyarıları ve alarmları da vardır.";
 
 /* Message for pod sync time action sheet */
 "The time on your pump is different from the current time. Do you want to update the time on your pump to the current time?" = "Pompanızdaki saat geçerli saatten farklı. Pompanızdaki saati geçerli saate güncellemek istiyor musunuz?";

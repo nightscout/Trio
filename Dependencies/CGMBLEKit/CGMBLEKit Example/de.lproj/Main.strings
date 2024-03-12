@@ -17,7 +17,7 @@
 "HYW-Ex-7LC.normalTitle" = "Kalibrieren";
 
 /* Class = "UIButton"; normalTitle = "Stop"; ObjectID = "JAM-9K-KeE"; */
-"JAM-9K-KeE.normalTitle" = "Stop";
+"JAM-9K-KeE.normalTitle" = "Stopp";
 
 /* Class = "UILabel"; text = "Stay connected"; ObjectID = "NSs-9e-3Sl"; */
 "NSs-9e-3Sl.text" = "Verbunden bleiben";

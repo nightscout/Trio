@@ -1,0 +1,226 @@
+/* No comment provided by engineer. */
+"%@" = "%@";
+
+/* No comment provided by engineer. */
+"%@%" = "%1$@ %2$";
+
+/* Text describing heading for additional notification types for third party transmitters */
+"Additional notification types" = "Tipi di notifica aggiuntivi";
+
+/* Text informing user of potentially large reports */
+"Adds a lot of data to the Issue Report " = "Aggiunge molti dati al rapporto sui problemi";
+
+/* Text describing always notify glucose option in notificationsettingsview */
+"Always Notify Glucose" = "Comunicare sempre il glucosio";
+
+/* Confirmation message for deleting a CGM */
+"Are you sure you want to delete this CGM?" = "Sei sicuro di voler eliminare questo CGM?";
+
+/* Text describing question to remove the cgmmanager from loop */
+"Are you sure you want to remove this cgm from loop?" = "Sei sicuro di voler rimuovere questo CGM da loop?";
+
+/* Text of Authenticate button in AuthView */
+"Authenticate" = "Autenticare";
+
+/* Text confirming user is authenticated in AuthView */
+"Authenticated" = "Autenticato";
+
+/* Text describing header for backfill options in glucosesettingsview */
+"Backfill options" = "Opzioni di riempimento";
+
+/* Bluetooth Transmitter connection option */
+"Bluetooth Transmitters" = "Trasmettitori Bluetooth";
+
+/* The title of the cancel action in an action sheet */
+"Cancel" = "Cancella";
+
+/* Text describing click to snooze label in snoozeview */
+"Click to Snooze Alerts" = "Clicca per silenziare avvisi";
+
+/* Text describing options for connecting to sensor or transmitter */
+"Connection options" = "Opzioni di connessione";
+
+/* Title of cell to set credentials */
+"Credentials" = "Credenziali";
+
+/* No comment provided by engineer. */
+"Critical alarm volume" = "Volume di allarme critico";
+
+/* No comment provided by engineer. */
+"Critical alarms will always be sent with volume at minimum 60%" = "Gli allarmi critici saranno sempre inviati con un volume minimo del 60%.";
+
+/* Title describing glucose date */
+"Date" = "Data";
+
+/* Unit for singular day in sensor liferemaining */
+"day" = "giorno";
+
+/* Unit for plural days in sensor life remaining */
+"days" = "giorni";
+
+/* Text describing header for debug options in glucosesettingsview */
+"Debug options" = "Opzioni di debug";
+
+/* Action text for deleting cgmmanager */
+"Delete" = "cancella";
+
+/* Button title to delete CGM
+   Title text for the button to remove a CGM from Loop */
+"Delete CGM" = "Elimina CGM";
+
+/* Text describing header for device info section */
+"Device Info" = "Info dispositivo";
+
+/* Text of Sensor Setup Button in AuthView */
+"Disconnect & Continue Setup" = "Disconnettersi e continuare l'installazione";
+
+/* Label text for step 4 of connection setup */
+"Fair warning: The sensor will be not be using the manufacturer's algorithm, and some safety mitigations present in the manufacturers algorithm might be missing when you use this." = "Attenzione: Il sensore non utilizzerà l'algoritmo del produttore e alcune mitigazioni di sicurezza presenti nell'algoritmo del produttore potrebbero mancare quando si utilizza questo.";
+
+/* Text for discovered number of devices
+   Text for discovered number of devices \(devicesCount) */
+"Found devices:" = "Dispositivi trovati:";
+
+/* The short unit display string for grams */
+"g" = "g";
+
+/* Title describing glucose value */
+"Glucose" = "Glicemie";
+
+/* Text describing header for notification visibility in notificationsettingsview */
+"Glucose Notification visibility" = "Visibilità della notifica del glucosio";
+
+/* No comment provided by engineer. */
+"Got it!" = "Ho capito!";
+
+/* Text describing High glucose label in alarmsettingsview */
+"High" = "Alto";
+
+/* Unit for singular hour in sensor life remaining */
+"hour" = "ora";
+
+/* Unit for plural hours in sensor life remaining */
+"hours" = "ore";
+
+/* Text describing header for Blood Sugar prediction section */
+"Last Blood Sugar prediction" = "Ultima previsione glicemia";
+
+/* Text describing header for last measurement section */
+"Last measurement" = "Ultima misurazione";
+
+/* Section title for latest glucose reading */
+"Latest Reading" = "Ultima lettura";
+
+/* Libre 2 connection option */
+"Libre 2 Direct" = "Libre 2 Direct";
+
+/* Text header for Libre Transmitters choice */
+"Libre Transmitters" = "Trasmettitore libre";
+
+/* Text describing Low glucose label in alarmsettingsview */
+"Low" = "Basso";
+
+/* The short unit display string for milligrams of glucose per decilter */
+"mg/dL" = "mg/dl";
+
+/* Unit for singular minute in sensor life remaining */
+"minute" = "minuto";
+
+/* Unit for plural minutes in sensor life remaining */
+"minutes" = "minuti";
+
+/* No comment provided by engineer. */
+"Misc" = "Varie";
+
+/* The short unit display string for millimoles of glucose per liter */
+"mmol/L" = "mmol/l";
+
+/* Text describing no connection label in settingsview */
+"No Connection: " = "Nessuna connessione";
+
+/* Text describing option for letting user choose notifying for every reading, every second reading etc */
+"Notify per reading" = "Notifica per lettura";
+
+/* Outside US share server option title */
+"Outside US" = "Fuori USA";
+
+/* Button title for pairing sensor */
+"Pair Sensor" = "Accoppia il sensore";
+
+/* Button title for pairing sensor when pairing */
+"Pairing..." = "Accoppiamento...";
+
+/* The title of the Dexcom share password credential */
+"Password" = "Parola d'ordine";
+
+/* Text for pausing glucose alarms */
+"Pause Glucose alarms" = "Mettere in pausa gli allarmi del glucosio";
+
+/* Label text for step 3 of AuthView */
+"Proceed to pair new sensor in the next screens. Note that you will loose connection to any existing sensor or transmitter" = "Procedere con l'associazione del nuovo sensore nelle schermate successive. Tieni presente che perderai la connessione a qualsiasi sensore o trasmettitore esistente";
+
+/* Text describing header for remote data storage */
+"Remote data storage" = "Archiviazione dati remota";
+
+/* No comment provided by engineer. */
+"Replace sensor immediately to continue receving glucose values" = "Sostituire immediatamente il sensore per continuare a ricevere i valori del glucosio";
+
+/* Text describing Save button in calibrationeditview */
+"Save" = "Salva";
+
+/* Text describing schedule in alarmsettingsview
+   Text describing schedule in alarmsettingsview\(i+1) */
+"Schedule " = "Programma";
+
+/* Text describing user choice of selecting which transmitter to connect to */
+"Select the third party transmitter you want to connect to" = "Seleziona il trasmettitore di terze parti a cui desideri connetterti";
+
+/* Label text for step 2 of connection setup */
+"Select the type of setup you want." = "Seleziona il tipo di configurazione che desideri.";
+
+/* Text describing sensor expires in label in settingsview */
+"Sensor expires in " = "Il sensore scade tra";
+
+/* No comment provided by engineer. */
+"Sensor is expired" = "Il sensore è scaduto";
+
+/* Text describing Sensor serial label in settingsview */
+"Sensor Serial" = "Seriale sensore";
+
+/* Text describing Sensor state label in settingsview */
+"Sensor State" = "Stato sensore";
+
+/* The title of the Dexcom share server URL credential */
+"Server" = "Server";
+
+/* No comment provided by engineer. */
+"some faultAction" = "qualche colpaAzione";
+
+/* No comment provided by engineer. */
+"Strength" = "Forza";
+
+/* Text warning user there is no undo for deleting cgmmanager */
+"There is no undo. Deleting requires authentication!" = "Non è possibile annullare. L'eliminazione richiede l'autenticazione!";
+
+/* Very short text describing separation between start and end datetimes */
+"To " = "a";
+
+/* Title describing glucose trend */
+"Trend" = "Andamento";
+
+/* The short unit display string for international units of insulin */
+"U" = "U";
+
+/* No comment provided by engineer. */
+"Unit override" = "Sostituzione dell'unità";
+
+/* U.S. share server option title */
+"US" = "USA";
+
+/* The title of the Dexcom share username credential */
+"Username" = "Nome Utente";
+
+/* Text describing technical details about the validity of calibrations 
+   Text describing technical details about the validity of calibrations \(newParams.isValidForFooterWithReverseCRCs) */
+"Valid for footer: " = "Valido per il piè di pagina:";
+

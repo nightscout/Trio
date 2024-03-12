@@ -265,7 +265,7 @@ public struct MySentryPumpStatusMessageBody: DecodableMessageBody, MessageBody, 
     }
 
     public var description: String {
-        return "MySentryPumpStatus(seq:\(sequence), pumpDate:\(pumpDateComponents), batt:\(batteryRemainingPercent), iob:\(iob), reservoir:\(reservoirRemainingUnits), reservoir_percent:\(reservoirRemainingPercent), reservoir_minutes:\(reservoirRemainingMinutes), glucose_trend:\(glucoseTrend), glucose_date:\(glucoseDateComponents), glucose:\(glucose), previous_glucose:\(previousGlucose), sensor_age:\(sensorAgeHours), sensor_remaining:\(sensorRemainingHours), clock_type:\(clockType), next_cal:\(nextSensorCalibrationDateComponents))"
+        return "MySentryPumpStatus(seq:\(sequence), pumpDate:\(pumpDateComponents), batt:\(batteryRemainingPercent), iob:\(iob), reservoir:\(reservoirRemainingUnits), reservoir_percent:\(reservoirRemainingPercent), reservoir_minutes:\(reservoirRemainingMinutes), glucose_trend:\(glucoseTrend), glucose_date:\(String(describing: glucoseDateComponents)), glucose:\(glucose), previous_glucose:\(previousGlucose), sensor_age:\(sensorAgeHours), sensor_remaining:\(sensorRemainingHours), clock_type:\(clockType), next_cal:\(String(describing: nextSensorCalibrationDateComponents)))"
     }
 }
 

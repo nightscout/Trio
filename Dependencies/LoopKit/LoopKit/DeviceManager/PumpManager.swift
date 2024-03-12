@@ -17,22 +17,6 @@ public protocol PumpManagerStatusObserver: AnyObject {
     func pumpManager(_ pumpManager: PumpManager, didUpdate status: PumpManagerStatus, oldStatus: PumpManagerStatus)
 }
 
-public enum BolusActivationType: String, Codable {
-    case manualNoRecommendation
-    case manualRecommendationAccepted
-    case manualRecommendationChanged
-    case automatic
-
-    public var isAutomatic: Bool {
-        self == .automatic
-    }
-
-    static public func activationTypeFor(recommendedAmount: Double?, bolusAmount: Double) -> BolusActivationType {
-        guard let recommendedAmount = recommendedAmount else { return .manualNoRecommendation }
-        return recommendedAmount =~ bolusAmount ? .manualRecommendationAccepted : .manualRecommendationChanged
-    }
-}
-
 public protocol PumpManagerDelegate: DeviceManagerDelegate, PumpManagerStatusObserver {
     func pumpManagerBLEHeartbeatDidFire(_ pumpManager: PumpManager)
 
@@ -60,18 +44,23 @@ public protocol PumpManagerDelegate: DeviceManagerDelegate, PumpManagerStatusObs
     /// For pumps with a user interface and dosing history capabilities, lastReconciliation should be reflective of the last time we reconciled fully with pump history, and know
     /// that we have accounted for any external doses. It is possible for the pump to report reservoir data beyond the date of lastReconciliation, and Loop can use it for
     /// calculating IOB.
-    func pumpManager(_ pumpManager: PumpManager, hasNewPumpEvents events: [NewPumpEvent], lastReconciliation: Date?, completion: @escaping (_ error: Error?) -> Void)
+    func pumpManager(_ pumpManager: PumpManager, hasNewPumpEvents events: [NewPumpEvent], lastReconciliation: Date?, replacePendingEvents: Bool, completion: @escaping (_ error: Error?) -> Void)
 
     func pumpManager(_ pumpManager: PumpManager, didReadReservoirValue units: Double, at date: Date, completion: @escaping (_ result: Result<(newValue: ReservoirValue, lastValue: ReservoirValue?, areStoredValuesContinuous: Bool), Error>) -> Void)
 
     func pumpManager(_ pumpManager: PumpManager, didAdjustPumpClockBy adjustment: TimeInterval)
 
     func pumpManagerDidUpdateState(_ pumpManager: PumpManager)
+    
+    func pumpManager(_ pumpManager: PumpManager, didRequestBasalRateScheduleChange basalRateSchedule: BasalRateSchedule, completion: @escaping (Error?) -> Void)
 
     func startDateToFilterNewPumpEvents(for manager: PumpManager) -> Date
 
     /// Indicates the system time offset from a trusted time source. If the return value is added to the system time, the result is the trusted time source value. If the trusted time source is earlier than the system time, the return value is negative.
     var detectedSystemTimeOffset: TimeInterval { get }
+
+    /// Indicates if automatic dosing has been enabled
+    var automaticDosingEnabled: Bool { get }
 }
 
 
@@ -139,7 +128,7 @@ public protocol PumpManager: DeviceManager {
     
     /// The most-recent status
     var status: PumpManagerStatus { get }
-    
+
     /// Adds an observer of changes in PumpManagerStatus
     ///
     /// Observers are held by weak reference.
@@ -228,6 +217,13 @@ public protocol PumpManager: DeviceManager {
     ///   - completion: A closure called after the command is complete
     ///   - result: The delivery limits set or an error describing why the command failed
     func syncDeliveryLimits(limits deliveryLimits: DeliveryLimits, completion: @escaping (_ result: Result<DeliveryLimits, Error>) -> Void)
+    
+    ///
+    /// Warn the pump manager that it will be deactivated
+    ///
+    /// - Parameters:
+    ///   - completion: A closure called after preparations are complete
+    func prepareForDeactivation(_ completion: @escaping (Error?) -> Void)
 }
 
 
@@ -238,6 +234,10 @@ public extension PumpManager {
 
     func roundToSupportedBolusVolume(units: Double) -> Double {
         return supportedBolusVolumes.filter({$0 <= units}).max() ?? 0
+    }
+    
+    func prepareForDeactivation(_ completion: @escaping (Error?) -> Void) {
+        notifyDelegateOfDeactivation() { completion(nil) }
     }
 
     /// Convenience wrapper for notifying the delegate of deactivation on the delegate queue
@@ -250,5 +250,4 @@ public extension PumpManager {
             completion()
         }
     }
-
 }

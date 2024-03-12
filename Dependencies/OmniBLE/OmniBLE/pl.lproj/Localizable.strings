@@ -190,14 +190,14 @@
    Text for confidence reminders navigation link */
 "Confidence Reminders" = "Przypomnienia (sygnały dźwiękowe) z POD'a";
 
-/* No comment provided by engineer. */
-"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Przypomnienia potwierdzające to sygnały dźwiękowe, z których można korzystać w celu potwierdzania wybranych poleceń.";
+/* Help text for BeepPreferenceSelectionView */
+"Confidence reminders are beeps from the pod which can be used to acknowledge selected commands." = "Przypomnienia potwierdzające to sygnały dźwiękowe, z których można korzystać w celu potwierdzania wybranych poleceń.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Przypomnienia (sygnały dźwiękowe) będą emitowane w przypadku poleceń, które zainicjujesz, takich jak bolus, anulowanie bolusa, wstrzymanie, wznowienie, zapisanie przypomnień o powiadomieniach itp. Kiedy Loop automatycznie dostosowuje podawanie, nie są używane żadne sygnały dźwiękowe.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When Loop automatically adjusts delivery, no confidence reminders are used." = "Przypomnienia (sygnały dźwiękowe) będą emitowane w przypadku poleceń, które zainicjujesz, takich jak bolus, anulowanie bolusa, wstrzymanie, wznowienie, zapisanie przypomnień o powiadomieniach itp. Kiedy Loop automatycznie dostosowuje podawanie, nie są używane żadne sygnały dźwiękowe.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Przypomnienia potwierdzające są emitowane, gdy Loop automatycznie dostosowuje podawanie insuliny, a także w przypadku poleceń inicjowanych przez użytkownika.";
+"Confidence reminders will sound when Loop automatically adjusts delivery as well as for commands you initiate." = "Przypomnienia potwierdzające są emitowane, gdy Loop automatycznie dostosowuje podawanie insuliny, a także w przypadku poleceń inicjowanych przez użytkownika.";
 
 /* Section header for configuration section */
 "Configuration" = "Konfiguracja";
@@ -337,9 +337,6 @@
 /* Alert title for error when updating low reservoir reminder */
 "Failed to Update Low Reservoir Reminder" = "Nie udało się zaktualizować przypomnienia o niskim poziomie w zbiorniczku";
 
-/* Pod life HUD view label */
-"Fault" = "Usterka";
-
 /* Pod state when fault event has occurred */
 "Fault event occurred" = "Wystąpiła usterka";
 
@@ -386,7 +383,7 @@
 "Incorrect Response" = "Nieprawidłowa odpowiedź";
 
 /* Pod inititialized */
-"Initialized" = "Zainicjalizowany";
+"Initialized" = "Zainicjowany";
 
 /* Cannula insertion button text while ready to insert
    Insert cannula action button accessibility label while ready to pair
@@ -407,10 +404,10 @@
 "Inserting..." = "Wprowadzanie...";
 
 /* Text shown in insulin delivery space when insulin suspended */
-"Insulin\nSuspended" = "Podawanie insuliny zawieszone";
+"Insulin\nSuspended" = "Podawanie\nzawieszone";
 
 /* Title of insulin delivery section */
-"Insulin Delivery" = "Insulin Delivery";
+"Insulin Delivery" = "Podaż insuliny";
 
 /* The action string on pod status page when pod faulted
    The default notification body for AlarmCodes */
@@ -423,7 +420,7 @@
 "Insulin Remaining" = "Pozostała ilość insuliny";
 
 /* Status highlight that insulin delivery was suspended. */
-"Insulin Suspended" = "Podawanie insuliny zawieszone";
+"Insulin Suspended" = "Podawanie Zawieszone";
 
 /* Text for confidence reminders navigation link
    Title for insulin type selection screen */
@@ -564,7 +561,7 @@
 "No Pod" = "Brak POD'a";
 
 /* Error message shown when no pod is paired */
-"No pod paired" = "Brak sparowanego PODa";
+"No pod paired" = "Brak sparowanego POD'a";
 
 /* Error message for PodCommsError.noPodsFound */
 "No pods found" = "Nie znaleziono POD'a";
@@ -573,7 +570,7 @@
 "No Reminder" = "Brak przypomnienia";
 
 /* Error message shown when no response from pod was received */
-"No response from pod" = "Brak odpowiedzi z PODa";
+"No response from pod" = "Brak odpowiedzi z POD'a";
 
 /* Error message shown when no response from pod was received */
 "No RileyLink available" = "Brak dostępnego RileyLink";
@@ -582,7 +579,7 @@
 "No, Continue With Pod" = "Nie, kontynuuj parowanie z POD'em";
 
 /* Button text to cancel pump time sync */
-"No, Keep Pump As Is" = "Nie, pozostaw pompę bez zmian";
+"No, Keep Pump As Is" = "Nie, pozostaw bez zmian";
 
 /* Delivery status when basal is running
    Pod state when running above fifty units */
@@ -662,7 +659,7 @@
 "Please bring only original pod in range or deactivate original pod" = "Używaj tylko oryginalny POD w zasięgu sygnału albo dezaktywuj oryginalny POD";
 
 /* Recovery suggestion when no response is received from pod */
-"Please bring your pod closer to the RileyLink and try again" = "Umieść PODa bliżej RileyLink i spróbuj ponownie";
+"Please bring your pod closer to the RileyLink and try again" = "Umieść POD'a bliżej RileyLink i spróbuj ponownie";
 
 /* Alert message body for confirm pod attachment */
 "Please confirm that the Pod is securely attached to your body.\n\nThe cannula can be inserted only once with each Pod. Tap “Confirm” when Pod is attached." = "Potwierdź, że POD jest poprawnie przymocowany do ciała. \n\nKaniulę można wprowadzić tylko raz w każdym POD'dzie. Stuknij „Potwierdź”, gdy POD jest przymocowany.";
@@ -680,7 +677,7 @@
 "Please finish pairing your pod." = "Dokończ parowanie POD'a.";
 
 /* Recover suggestion shown when no pod is paired */
-"Please pair a new pod" = "Sparuj nowego PODa";
+"Please pair a new pod" = "Sparuj nowego POD'a";
 
 /* Recovery suggestion when pairing signal strength is too high */
 "Please reposition iPhone further from the pod" = "Odsuń dalej POD'a od iPhone'a";
@@ -695,9 +692,6 @@
    Label for pod insertion row */
 "Pod Activated" = "POD aktywowany";
 
-/* Label describing pod age view */
-"Pod Age" = "Wiek POD'a";
-
 /* Error message shown when user cannot pair because pod is already paired */
 "Pod already paired" = "POD już sparowany";
 
@@ -705,17 +699,17 @@
 "Pod already primed" = "POD już napełniony";
 
 /* Deactivate pod action button accessibility label when deactivation complete */
-"Pod deactivated successfully. Continue." = "POD został dezaktywowany pomyślnie. Kontynuować.";
+"Pod deactivated successfully. Continue." = "POD został pomyślnie dezaktywowany. Kontynuować.";
 
 /* Error message for reservoir view during general pod fault
    Status highlight message for other alarm. */
 "Pod Error" = "Błąd POD'a";
 
 /* Description for expiration advisory alarm */
-"Pod expiration advisory alarm" = "Alarm informujący o upływie terminu ważności PODa";
+"Pod expiration advisory alarm" = "Alarm informujący o upływie terminu ważności POD'a";
 
 /* The title for pod expiration notification */
-"Pod Expiration Notice" = "Powiadomienie o upływie terminu ważności PODa";
+"Pod Expiration Notice" = "Powiadomienie o upływie terminu ważności POD'a";
 
 /* Alert content title for userPodExpiration pod alert */
 "Pod Expiration Reminder" = "Przypomnienie o terminie ważności POD'a";
@@ -744,7 +738,7 @@
 "Pod Fault Details" = "Szczegóły usterki POD'a";
 
 /* Format string for pod fault code */
-"Pod Fault: %1$@" = "Usterka PODa: 1$@";
+"Pod Fault: %1$@" = "Usterka POD'a: %1$@";
 
 /* Error message when cannula insertion fails because the pod is in an unexpected state */
 "Pod is not in a state ready for cannula insertion." = "POD nie znajduje się w stanie gotowości do wprowadzenia kaniuli.";
@@ -775,7 +769,7 @@
 "Pod Setup" = "Konfiguracja POD'a";
 
 /* Pod state when prime or cannula insertion has not completed in the time allotted */
-"Pod setup window expired" = "Upłynął termin ważności okna konfiguracji PODa";
+"Pod setup window expired" = "Upłynął termin ważności okna konfiguracji POD'a";
 
 /* Description for pod suspended reminder */
 "Pod suspended reminder" = "Przypomnienie o zawieszeniu POD'a";
@@ -817,8 +811,7 @@
 /* Pod state when ready for cannula insertion */
 "Ready to insert cannula" = "Gotowy do wprowadzenia kaniuli";
 
-/* Label describing time remaining view
-   Label for remaining time of manual basal */
+/* Label for remaining time of manual basal */
 "Remaining" = "Pozostało";
 
 /* Pod pairing reminder initialized */
@@ -833,12 +826,11 @@
 /* Title for Omnipod DASH PumpManager deletion action sheet. */
 "Remove Pump" = "Usuń pompę";
 
-/* Label indicating pod replacement necessary
-   Settings page link description when next lifecycle action is to replace pod */
+/* Settings page link description when next lifecycle action is to replace pod */
 "Replace Pod" = "Wymień POD'a";
 
 /* Pump Event title for UnfinalizedDose with doseType of .resume */
-"Resume" = "Wznów";
+"Resume" = "Wznowiono";
 
 /* Recovery suggestion when pod is suspended */
 "Resume delivery" = "Wznów podawanie";
@@ -881,7 +873,7 @@
 "Scheduled Reminder" = "Zaplanowane przypomnienie";
 
 /* Title text for insulin type confirmation page */
-"Select the type of insulin that you will be using in this pod." = "Wybierz rodzaj insuliny, której będziesz używać w tym POD.";
+"Select the type of insulin that you will be using in this pod." = "Wybierz rodzaj insuliny, której będziesz używać w tym POD'dzie.";
 
 /* description label for sequence number pod details row */
 "Sequence Number" = "Numer sekwencji";
@@ -913,7 +905,7 @@
 "Skip Omnipod Onboarding?" = "Pominąć instalację Omnipod’a?";
 
 /* Pump Event title for UnfinalizedDose with doseType of .suspend */
-"Suspend" = "Wstrzymaj";
+"Suspend" = "Wstrzymano";
 
 /* Title for suspend duration selection action sheet */
 "Suspend Delivery" = "Wstrzymaj podawanie";
@@ -959,7 +951,7 @@
 "Tap below to start cannula insertion." = "Stuknij poniżej, aby rozpocząć wprowadzanie kaniuli.";
 
 /* Pump Event title for UnfinalizedDose with doseType of .tempBasal */
-"Temp Basal" = "Tymczasowa dawka podstawowa";
+"Temp Basal" = "Tymczasowa dawka podst.";
 
 /* Error message shown when temp basal could not be set due to existing temp basal in progress */
 "Temp basal in progress" = "Tymczasowa dawka podstawowa w toku";
@@ -995,13 +987,13 @@
 "The reminders above will not sound if your device is in Silent or Do Not Disturb mode.\n\nThere are other critical Pod alerts and alarms that will sound even if your device is set to Silent or Do Not Disturb mode." = "Powyższe przypomnienia nie będą się pojawiały, jeśli urządzenie jest w trybie cichym lub nie przeszkadzać. \n\nIstnieją inne krytyczne alerty i alarmy POD'ów, które będą emitowane, nawet jeśli urządzenie jest ustawione w trybie cichym lub nie przeszkadzać.";
 
 /* Message for pod sync time action sheet */
-"The time on your pump is different from the current time. Do you want to update the time on your pump to the current time?" = "Czas na pompie różni się od aktualnego czasu. Czy chcesz zaktualizować czas na pompie do aktualnego czasu?";
+"The time on your pump is different from the current time. Do you want to update the time on your pump to the current time?" = "Czas na pompie różni się od aktualnego. Czy chcesz zaktualizować czas na pompie?";
 
 /* Alert content body for timeOffsetChangeDetected pod alert */
-"The time on your pump is different from the current time. You can review the pump time and and sync to current time in settings." = "Czas na pompie różni się od aktualnego czasu. W ustawieniach można sprawdzić czas pompy i zsynchronizować go z aktualnym czasem.";
+"The time on your pump is different from the current time. You can review the pump time and and sync to current time in settings." = "Czas na pompie różni się od aktualnego. W ustawieniach można sprawdzić czas pompy i zsynchronizować go z aktualnym czasem.";
 
 /* description for time change detected notice */
-"The time on your pump is different from the current time. Your pump’s time controls your scheduled therapy settings. Scroll down to Pump Time row to review the time difference and configure your pump." = "Czas na pompie różni się od aktualnego czasu. Czas pompy steruje ustawieniami zaplanowanej terapii. Przewiń w dół do wiersza Czas pompy, aby przejrzeć różnicę czasu i skonfigurować pompę.";
+"The time on your pump is different from the current time. Your pump’s time controls your scheduled therapy settings. Scroll down to Pump Time row to review the time difference and configure your pump." = "Czas na pompie różni się od aktualnego. Czas pompy steruje ustawieniami zaplanowanej terapii. Przewiń w dół do wiersza Czas pompy, aby przejrzeć różnicę czasu i skonfigurować pompę.";
 
 /* Description of proper cannula insertion */
 "The window on the top of the Pod should be colored pink when the cannula is properly inserted into the skin." = "Okienko na górze POD'a powinno zabarwić się na różowo, gdy kaniula jest prawidłowo wprowadzona pod skórę.";
@@ -1010,7 +1002,7 @@
 "There was a problem communicating with the pod. If this problem persists, tap Discard Pod. You can then activate a new Pod." = "Wystąpił problem z komunikacją z POD'em. Jeśli problem się utrzymuje, wybierz opcję Odrzuć POD'a. Następnie możesz aktywować nowy POD.";
 
 /* Footer text for scheduled reminder area */
-"This is a reminder that you scheduled when you paired your current Pod." = "To jest przypomnienie, które zaplanowałeś podczas parowania bieżącego Poda.";
+"This is a reminder that you scheduled when you paired your current Pod." = "To jest przypomnienie, które zaplanowałeś podczas parowania bieżącego POD'a.";
 
 /* Alert format string for missing temp basal configuration. */
 "This PumpManager has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to therapy settings -> delivery limits and set a new maximum basal rate." = "Nie ustalono limitu podaży dla dawki podstawowej. Wróć do ustawień terapii i ustaw nowy limit maksymalnej dawki podstawowej (bazy).";
@@ -1029,7 +1021,7 @@
 "Time Change Detected" = "Wykryto zmianę czasu";
 
 /* The format string for pod expiration notification body (1: time until expiration) */
-"Time to replace your pod! Your pod will expire in %1$@" = "Pora wymienić PODa! Termin ważności PODa upłynie za %1$@";
+"Time to replace your pod! Your pod will expire in %1$@" = "Pora wymienić POD'a ! Termin ważności POD'a upłynie za %1$@";
 
 /* Error message description for PeripheralManagerError.timeout */
 "Timeout" = "Koniec czasu";
@@ -1054,7 +1046,7 @@
 "twoNotUsed" = "twoNotUsed";
 
 /* Units for showing temp basal rate */
-"U/hr" = "J/godz";
+"U/hr" = "J/h";
 
 /* Title of delivery uncertainty recovery page */
 "Unable to Reach Pod" = "Nie można połączyć się z Podem";
@@ -1123,7 +1115,7 @@
 "You will now begin the process of configuring your reminders, filling your Pod with insulin, pairing to your device and placing it on your body." = "Rozpoczynasz proces konfigurowania przypomnień (dźwięków emitowanych przez POD'a), napełniania POD'a insuliną, parowania z telefonem i umieszczania go na ciele.";
 
 /* Format string for instructions for setup complete view. (1: app name) */
-"Your Pod is ready for use.\n\n%1$@ will remind you to change your pod before it expires. You can change this to a time convenient for you." = "Twój POD jest gotowy do użycia. \n\n%1$@ przypomni Ci o zmianie POD'a przed jego wygaśnięciem. Możesz dokonać zmiany na dogodny dla Ciebie termin.";
+"Your Pod is ready for use.\n\n%1$@ will remind you to change your pod before it expires. You can change this to a time convenient for you." = "Twój POD jest gotowy do użycia. \n\n%1$@ przypomni Ci o zmianie POD'a przed jego wygaśnięciem. Możesz zmienić termin przypomnienia.";
 
 /* Alert message body for confirm pod attachment */
 "Your Pod may still be delivering Insulin.\nRemove it from your body, then tap “Continue.“" = "Twój POD może nadal dostarczać insulinę.\nUsuń go z ciała, a następnie wybierz \"Kontynuuj\".";

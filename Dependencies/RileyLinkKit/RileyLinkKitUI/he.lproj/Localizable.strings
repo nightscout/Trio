@@ -1,0 +1,95 @@
+/* Unit format string for an RSSI value in decibles */
+"%@ dB" = "%@ dB";
+
+/* Unit format string for an value in percent */
+"%@%%" = "%@%%";
+
+/* The title of the section for alerts */
+"Alert" = "התראה";
+
+/* Text indicating LED Mode is auto */
+"Auto" = "אוטומטי";
+
+/* The title of the cell showing battery level */
+"Battery level" = "מצב הסוללה";
+
+/* The title of the section describing commands */
+"Commands" = "פקודות";
+
+/* The connected state */
+"Connected" = "מחובר";
+
+/* The in-progress connecting state */
+"Connecting" = "מתחבר";
+
+/* The title of the cell for connection LED */
+"Connection LED" = "נורית חיבור";
+
+/* The title of the cell showing BLE connection state */
+"Connection State" = "מצב החיבור";
+
+/* The title of the cell for connection vibration */
+"Connection Vibration" = "רטט חיבור";
+
+/* The title of the section describing the device */
+"Device" = "Device";
+
+/* The title of the devices table section in RileyLink settings */
+"Devices" = "Devices";
+
+/* The disconnected state */
+"Disconnected" = "מנותק";
+
+/* The in-progress disconnecting state */
+"Disconnecting" = "מתנתק";
+
+/* The title of the cell for sounding device finding piezo */
+"Find Device" = "Find Device";
+
+/* The title of the cell showing firmware version */
+"Firmware" = "קושחה";
+
+/* The title of the cell showing current rileylink frequency */
+"Frequency" = "Frequency";
+
+/* Progress message for getting statistics. */
+"Get Statistics…" = "Get Statistics…";
+
+/* The title of the cell showing Lighten Red LED */
+"Lighten Red LED" = "הבהב נורית אדומה";
+
+/* The title of the cell showing Lighten Yellow LED */
+"Lighten Yellow LED" = "הבהב נורית צהובה";
+
+/* The title of the cell showing battery level */
+"Low Battery Alert" = "התראת סוללה נמוכה";
+
+/* The title of the cell showing device name */
+"Name" = "Name";
+
+/* Detail text when battery alert disabled.
+   Text indicating LED Mode is off */
+"Off" = "כבוי";
+
+/* Text indicating LED Mode is on */
+"On" = "דולק";
+
+/* RileyLink setup description */
+"RileyLink allows for communication with the pump over Bluetooth Low Energy." = "ריילי לינק מאפשר תקשורת עם המשאבה באמצעות בלוטוס' באנרגיה נמוכה (BLE).";
+
+/* The title of the cell showing BLE signal strength (RSSI) */
+"Signal Strength" = "עוצמת אות";
+
+/* The title of the section for orangelink commands
+   The title of the section for rileylink commands */
+"Test Commands" = "בדוק פקודות";
+
+/* The title of the cell showing Test Vibration */
+"Test Vibration" = "בדוק רטט";
+
+/* The title of the cell showing uptime */
+"Uptime" = "Uptime";
+
+/* The title of the cell showing ORL */
+"Voltage" = "מתח";
+

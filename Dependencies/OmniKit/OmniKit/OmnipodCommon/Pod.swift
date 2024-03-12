@@ -30,6 +30,9 @@ public struct Pod {
     // Units per second for priming/cannula insertion
     public static let primeDeliveryRate: Double = Pod.pulseSize / Pod.secondsPerPrimePulse
 
+    // User configured time before expiration advisory (PDM allows 1-24 hours)
+    public static let expirationAlertWindow = TimeInterval(hours: 2)
+
     // Expiration advisory window: time after expiration alert, and end of service imminent alarm
     public static let expirationAdvisoryWindow = TimeInterval(hours: 7)
 
@@ -95,7 +98,7 @@ public struct Pod {
     public static let defaultLowReservoirReminder: Double = 10
 
     // Allowed Low Reservoir reminder values
-    public static let allowedLowReservoirReminderValues = Array(stride(from: 10, through: 50, by: 1))
+    public static let allowedLowReservoirReminderValues = Array(stride(from: 1, through: 50, by: 1))
 }
 
 // DeliveryStatus used in StatusResponse and DetailedStatus
@@ -109,6 +112,10 @@ public enum DeliveryStatus: UInt8, CustomStringConvertible {
     case extendedBolusRunning = 9
     case extendedBolusAndTempBasal = 10
     
+    public var suspended: Bool {
+        return self == .suspended
+    }
+
     public var bolusing: Bool {
         return self == .bolusInProgress || self == .bolusAndTempBasal || self == .extendedBolusRunning || self == .extendedBolusAndTempBasal
     }
@@ -117,7 +124,7 @@ public enum DeliveryStatus: UInt8, CustomStringConvertible {
         return self == .tempBasalRunning || self == .bolusAndTempBasal || self == .extendedBolusAndTempBasal
     }
 
-    public var extendedBolusRunninng: Bool {
+    public var extendedBolusRunning: Bool {
         return self == .extendedBolusRunning || self == .extendedBolusAndTempBasal
     }
 

@@ -11,7 +11,7 @@
 "Low Battery" = "Lavt batterinivå";
 
 /* Describes a functioning transmitter */
-"OK" = "Ok";
+"OK" = "OK";
 
 /* invlid config error description */
 "Peripheral command was invalid" = "Perifer kommando var ugyldig";
@@ -39,3 +39,4 @@
 
 /* Error description */
 "Unknown characteristic" = "Ukjent karakteristikk";
+

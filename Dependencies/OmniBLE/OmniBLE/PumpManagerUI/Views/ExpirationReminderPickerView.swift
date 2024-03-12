@@ -52,7 +52,7 @@ struct ExpirationReminderPickerView: View {
     
     private func expirationReminderHourString(_ value: Int) -> String {
         if value > 0 {
-            return expirationDefaultFormatter.string(from: HKQuantity(unit: .hour(), doubleValue: Double(value)), for: .hour())!
+            return expirationDefaultFormatter.string(from: HKQuantity(unit: .hour(), doubleValue: Double(value)))!
         } else {
             return LocalizedString("No Reminder", comment: "Value text for no expiration reminder")
         }
@@ -61,6 +61,6 @@ struct ExpirationReminderPickerView: View {
 
 struct ExpirationReminderPickerView_Previews: PreviewProvider {
     static var previews: some View {
-        ExpirationReminderPickerView(expirationReminderDefault: .constant(2), showingHourPicker: true)
+        ExpirationReminderPickerView(expirationReminderDefault: .constant(2))
     }
 }

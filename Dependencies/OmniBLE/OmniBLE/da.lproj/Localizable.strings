@@ -190,14 +190,14 @@
    Text for confidence reminders navigation link */
 "Confidence Reminders" = "Påmindelse om succesfulde aktiviteter";
 
-/* No comment provided by engineer. */
-"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Påmindelse om succesfulde aktiviteter er bip fra Pod'en, som kan bruges til at bekræfte valgte kommandoer.";
+/* Help text for BeepPreferenceSelectionView */
+"Confidence reminders are beeps from the pod which can be used to acknowledge selected commands." = "Påmindelse om succesfulde aktiviteter er bip fra Pod'en, som kan bruges til at bekræfte valgte kommandoer.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Påmindelser om succesfulde handlinger vil lyde for de kommandoer du sætter igang, annulleret, suspenderet, genoptaget bolus, gemme notifikationspåmindelser etc. Når Loop automatisk justerer tilførslen, bliver påmindelser om succesfulde handlinger ikke benyttet.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When Loop automatically adjusts delivery, no confidence reminders are used." = "Påmindelser om succesfulde handlinger vil lyde for de kommandoer du sætter igang, annulleret, suspenderet, genoptaget bolus, gemme notifikationspåmindelser etc. Når Loop automatisk justerer tilførslen, bliver påmindelser om succesfulde handlinger ikke benyttet.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Påmindelser om succesfulde handlinger vil lyde, når Loop automatisk justerer tilførslen og de kommandoer, du sætter igang.";
+"Confidence reminders will sound when Loop automatically adjusts delivery as well as for commands you initiate." = "Påmindelser om succesfulde handlinger vil lyde, når Loop automatisk justerer tilførslen og de kommandoer, du sætter igang.";
 
 /* Section header for configuration section */
 "Configuration" = "Konfiguration";
@@ -336,9 +336,6 @@
 
 /* Alert title for error when updating low reservoir reminder */
 "Failed to Update Low Reservoir Reminder" = "Kunne ikke opdatere påmindelse om lavt reservoir";
-
-/* Pod life HUD view label */
-"Fault" = "Fejl";
 
 /* Pod state when fault event has occurred */
 "Fault event occurred" = "Fejlhændelse indtraf";
@@ -695,9 +692,6 @@
    Label for pod insertion row */
 "Pod Activated" = "Pod aktiveret";
 
-/* Label describing pod age view */
-"Pod Age" = "Pod-alder";
-
 /* Error message shown when user cannot pair because pod is already paired */
 "Pod already paired" = "Pod allerede parret";
 
@@ -817,8 +811,7 @@
 /* Pod state when ready for cannula insertion */
 "Ready to insert cannula" = "Klar til kanyleindførsel";
 
-/* Label describing time remaining view
-   Label for remaining time of manual basal */
+/* Label for remaining time of manual basal */
 "Remaining" = "Tilbage";
 
 /* Pod pairing reminder initialized */
@@ -833,8 +826,7 @@
 /* Title for Omnipod DASH PumpManager deletion action sheet. */
 "Remove Pump" = "Fjern pumpe";
 
-/* Label indicating pod replacement necessary
-   Settings page link description when next lifecycle action is to replace pod */
+/* Settings page link description when next lifecycle action is to replace pod */
 "Replace Pod" = "Udskift Pod";
 
 /* Pump Event title for UnfinalizedDose with doseType of .resume */
@@ -990,6 +982,9 @@
 
 /* Alert content body for suspendEnded pod alert */
 "The insulin suspension period has ended.\n\nYou can resume delivery from the banner on the home screen or from your pump settings screen. You will be reminded again in 15 minutes." = "Perioden for suspension af insulin er afsluttet.\n\nDu kan genoptage afgivelsen fra den øverste del af startskærmen eller fra skærmen med pumpeindstillinger. Du vil blive mindet om dette igen om 15 minutter.";
+
+/* Description text for critical alerts */
+"The reminders above will not sound if your device is in Silent or Do Not Disturb mode.\n\nThere are other critical Pod alerts and alarms that will sound even if your device is set to Silent or Do Not Disturb mode." = "Ovenstående påmindelser lyder ikke, hvis din enhed er i lydløs tilstand eller i tilstand \"Forstyr ikke\".\n\nDer er andre kritiske Pod-alarmer og alarmer, der lyder, selv om enheden er indstillet til lydløs tilstand eller tilstand \"Forstyr ikke\".";
 
 /* Message for pod sync time action sheet */
 "The time on your pump is different from the current time. Do you want to update the time on your pump to the current time?" = "Tiden på din pumpe er forskellig fra den aktuelle tid. Vil du opdatere tiden på din pumpe til det aktuelle tidspunkt?";

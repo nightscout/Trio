@@ -10,50 +10,50 @@ import LoopKit
 import ShareClient
 import os.log
 
-
-public struct TransmitterManagerState: RawRepresentable, Equatable {
-    public typealias RawValue = CGMManager.RawStateValue
-
-    public static let version = 1
-
-    public var transmitterID: String
-
-    public var passiveModeEnabled: Bool = true
-    
-    public var shouldSyncToRemoteService: Bool
-
-    public init(transmitterID: String, shouldSyncToRemoteService: Bool = false) {
-        self.transmitterID = transmitterID
-        self.shouldSyncToRemoteService = shouldSyncToRemoteService
-    }
-
-    public init?(rawValue: RawValue) {
-        guard let transmitterID = rawValue["transmitterID"] as? String
-        else {
-            return nil
-        }
-        
-        let shouldSyncToRemoteService = rawValue["shouldSyncToRemoteService"] as? Bool ?? false
-
-        self.init(transmitterID: transmitterID, shouldSyncToRemoteService: shouldSyncToRemoteService)
-    }
-
-    public var rawValue: RawValue {
-        return [
-            "transmitterID": transmitterID,
-            "shouldSyncToRemoteService": shouldSyncToRemoteService,
-        ]
-    }
-}
-
-
 public protocol TransmitterManagerObserver: AnyObject {
     func transmitterManagerDidUpdateLatestReading(_ manager: TransmitterManager)
 }
 
 
 public class TransmitterManager: TransmitterDelegate {
-    private var state: TransmitterManagerState
+
+    var state: TransmitterManagerState {
+        get {
+            return lockedState.value
+        }
+    }
+    private func setState(_ changes: (_ state: inout TransmitterManagerState) -> Void) -> Void {
+        return setStateWithResult(changes)
+    }
+
+    @discardableResult
+    private func mutateState(_ changes: (_ state: inout TransmitterManagerState) -> Void) -> TransmitterManagerState {
+        return setStateWithResult({ (state) -> TransmitterManagerState in
+            changes(&state)
+            return state
+        })
+    }
+
+    private func setStateWithResult<ReturnType>(_ changes: (_ state: inout TransmitterManagerState) -> ReturnType) -> ReturnType {
+        var oldValue: TransmitterManagerState!
+        var returnType: ReturnType!
+        let newValue = lockedState.mutate { (state) in
+            oldValue = state
+            returnType = changes(&state)
+        }
+
+        if oldValue != newValue {
+            self.stateDidUpdate()
+        }
+
+        return returnType
+    }
+
+    func stateDidUpdate() {
+        // to be implemented in subclass
+    }
+
+    private let lockedState: Locked<TransmitterManagerState>
 
     private let observers = WeakSynchronizedSet<TransmitterManagerObserver>()
 
@@ -68,8 +68,8 @@ public class TransmitterManager: TransmitterDelegate {
     }
 
     public required init(state: TransmitterManagerState) {
-        self.state = state
-        self.transmitter = Transmitter(id: state.transmitterID, passiveModeEnabled: state.passiveModeEnabled)
+        self.lockedState = Locked(state)
+        self.transmitter = Transmitter(id: state.transmitterID, activationDate: state.transmitterStartDate, passiveModeEnabled: state.passiveModeEnabled)
         self.shareManager = ShareClientManager()
 
         self.transmitter.delegate = self
@@ -152,8 +152,9 @@ public class TransmitterManager: TransmitterDelegate {
             return state.shouldSyncToRemoteService
         }
         set {
-            self.state.shouldSyncToRemoteService = newValue
-            notifyDelegateOfStateChange()
+            self.mutateState { state in
+                state.shouldSyncToRemoteService = newValue
+            }
         }
     }
 
@@ -307,6 +308,39 @@ public class TransmitterManager: TransmitterDelegate {
             return
         }
 
+        var events: [PersistedCgmEvent] = []
+
+        if state.transmitterStartDate == nil {
+            mutateState { state in
+                state.transmitterStartDate = glucose.activationDate
+            }
+            events.append(PersistedCgmEvent(
+                date: glucose.activationDate,
+                type: .transmitterStart,
+                deviceIdentifier: transmitter.ID,
+                expectedLifetime: .hours(24 * 90)
+            ))
+        }
+
+        if state.sensorStartOffset != glucose.timeMessage.sessionStartTime {
+            mutateState { state in
+                state.sensorStartOffset = glucose.timeMessage.sessionStartTime
+            }
+            events.append(PersistedCgmEvent(
+                date: glucose.sessionStartDate,
+                type: .sensorStart,
+                deviceIdentifier: transmitter.ID,
+                expectedLifetime: .hours(24 * 10),
+                warmupPeriod: .hours(2)
+            ))
+        }
+
+        if !events.isEmpty {
+            shareManager.delegate.notify { delegate in
+                delegate?.cgmManager(self.shareManager, hasNew: events)
+            }
+        }
+
         latestReading = glucose
 
         logDeviceCommunication("New reading: \(glucose.readDate)", type: .receive)
@@ -395,7 +429,7 @@ extension TransmitterManager {
 
 
 public class G5CGMManager: TransmitterManager, CGMManager {
-    public let managerIdentifier: String = "DexG5Transmitter"
+    public static let pluginIdentifier: String = "DexG5Transmitter"
 
     public let localizedTitle = LocalizedString("Dexcom G5", comment: "CGM display title")
 
@@ -407,7 +441,7 @@ public class G5CGMManager: TransmitterManager, CGMManager {
 
     public override var device: HKDevice? {
         return HKDevice(
-            name: "CGMBLEKit",
+            name: transmitter.ID,
             manufacturer: "Dexcom",
             model: "G5 Mobile",
             hardwareVersion: nil,
@@ -421,12 +455,18 @@ public class G5CGMManager: TransmitterManager, CGMManager {
     override func logDeviceCommunication(_ message: String, type: DeviceLogEntryType = .send) {
         self.cgmManagerDelegate?.deviceManager(self, logEventForDeviceIdentifier: transmitter.ID, type: type, message: message, completion: nil)
     }
-    
+
+    override func stateDidUpdate() {
+        shareManager.delegate.notify { delegate in
+            delegate?.cgmManagerDidUpdateState(self)
+            delegate?.cgmManager(self, didUpdate: self.cgmManagerStatus)
+        }
+    }
 }
 
 
 public class G6CGMManager: TransmitterManager, CGMManager {
-    public let managerIdentifier: String = "DexG6Transmitter"
+    public static let pluginIdentifier: String = "DexG6Transmitter"
 
     public let localizedTitle = LocalizedString("Dexcom G6", comment: "CGM display title")
 
@@ -451,6 +491,13 @@ public class G6CGMManager: TransmitterManager, CGMManager {
     
     override func logDeviceCommunication(_ message: String, type: DeviceLogEntryType = .send) {
         self.cgmManagerDelegate?.deviceManager(self, logEventForDeviceIdentifier: transmitter.ID, type: type, message: message, completion: nil)
+    }
+
+    override func stateDidUpdate() {
+        shareManager.delegate.notify { delegate in
+            delegate?.cgmManagerDidUpdateState(self)
+            delegate?.cgmManager(self, didUpdate: self.cgmManagerStatus)
+        }
     }
 }
 

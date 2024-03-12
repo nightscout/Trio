@@ -23,26 +23,20 @@ Title text for the button to remove a CGM from Loop */
 /* Section title for latest glucose calibration */
 "Latest Calibration" = "Viimeisin kalibrointi";
 
-/* Section title for latest glucose reading */
-"Latest Reading" = "Viimeisin lukema";
-
 /* Section title for latest connection date */
 "Latest Connection" = "Viimeisin yhteys";
+
+/* Section title for latest glucose reading */
+"Latest Reading" = "Viimeisin lukema";
 
 /* Button title to open CGM app */
 "Open App" = "Avaa sovellus";
 
-/* Title describing sensor session age */
-"Session Age" = "Session ikä";
-
 /* Section title for remote data synchronization */
 "Remote Data Synchronization" = "Etätietojen synkronointi";
 
-/* Title describing sensor expiration */
-"Sensor Expires" = "Sensor Expires";
-
-/* Title describing past sensor expiration */
-"Sensor Expired" = "Sensor Expired";
+/* Title describing sensor session age */
+"Session Age" = "Session ikä";
 
 /* Title describing CGM calibration and battery state */
 "Status" = "Tila";
@@ -58,3 +52,4 @@ Title text for the button to remove a CGM from Loop */
 
 /* The title text for the upload glucose switch cell */
 "Upload Readings" = "Lataa lukemat";
+

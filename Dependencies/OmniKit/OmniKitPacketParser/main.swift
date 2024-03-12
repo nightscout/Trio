@@ -277,6 +277,12 @@ class XcodeLogParser {
     }
 }
 
+if CommandLine.argc <= 1 {
+    print("No file names specified in command arguments to parse!")
+    print("Set the Xcode Arguments Passed on Launch using Product->Scheme->Edit Scheme...")
+    print("to specify the full path to rtl, Loop Report, or Xcode log file(s) to parse.\n")
+    exit(1)
+}
 
 for filename in CommandLine.arguments[1...] {
     let rtlOmniParser = RTLOmniLineParser()
@@ -287,7 +293,7 @@ for filename in CommandLine.arguments[1...] {
     do {
         let data = try String(contentsOfFile: filename, encoding: .utf8)
         let lines = data.components(separatedBy: .newlines)
-        
+
         for line in lines {
             switch line {
             case Regex("ID1:[0-9a-fA-F]+ PTYPE:"):
@@ -298,17 +304,14 @@ for filename in CommandLine.arguments[1...] {
                 // 2018-12-27 01:46:56 +0000 send 1f0e41a6101f1a0e81ed50b102010a0101a000340034170d000208000186a00000000000000111
                 loopIssueReportParser.parseLine(line)
             case Regex("RL (Send|Recv) ?\\(single\\): [0-9a-fA-F]+"):
-//              2019-02-09 08:23:27.605518-0800 Loop[2978:2294033] [PeripheralManager+RileyLink] RL Send (single): 17050005000000000002580000281f0c27a4591f0c27a447
-//              2019-02-09 08:23:28.262888-0800 Loop[2978:2294816] [PeripheralManager+RileyLink] RL Recv(single): dd0c2f1f079e674b1f079e6769
+                // 2019-02-09 08:23:27.605518-0800 Loop[2978:2294033] [PeripheralManager+RileyLink] RL Send (single): 17050005000000000002580000281f0c27a4591f0c27a447
+                // 2019-02-09 08:23:28.262888-0800 Loop[2978:2294816] [PeripheralManager+RileyLink] RL Recv(single): dd0c2f1f079e674b1f079e6769
                 xcodeLogParser.parseLine(line)
             default:
                 break
             }
-            
-
         }
     } catch let error {
         print("Error: \(error)")
     }
 }
-

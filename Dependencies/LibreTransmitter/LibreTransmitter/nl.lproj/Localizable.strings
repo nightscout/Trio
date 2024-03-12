@@ -1,0 +1,19 @@
+/* The title of the Dexcom Share service
+   Title for the CGMManager option */
+"Dexcom Share" = "Dexcom Share";
+
+/* The short unit display string for grams */
+"g" = "g";
+
+/* The short unit display string for milligrams of glucose per decilter */
+"mg/dL" = "mg/dL";
+
+/* The short unit display string for millimoles of glucose per liter */
+"mmol/L" = "mmol/L";
+
+/* Sensor state description for the non-valid state */
+"Needs Attention" = "Aandacht vereist";
+
+/* Sensor state description for the valid state */
+"OK" = "OK";
+

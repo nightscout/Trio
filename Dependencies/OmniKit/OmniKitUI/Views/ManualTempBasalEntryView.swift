@@ -40,20 +40,18 @@ struct ManualTempBasalEntryView: View {
     }
 
     private static let rateFormatter: QuantityFormatter = {
-        let quantityFormatter = QuantityFormatter()
-        quantityFormatter.setPreferredNumberFormatter(for: .internationalUnitsPerHour)
+        let quantityFormatter = QuantityFormatter(for: .internationalUnitsPerHour)
         quantityFormatter.numberFormatter.minimumFractionDigits = 2
         return quantityFormatter
     }()
 
     private var rateUnitsLabel: some View {
-        Text(QuantityFormatter().string(from: .internationalUnitsPerHour))
+        Text(QuantityFormatter(for: .internationalUnitsPerHour).localizedUnitStringWithPlurality())
             .foregroundColor(Color(.secondaryLabel))
     }
 
     private static let durationFormatter: QuantityFormatter = {
-        let quantityFormatter = QuantityFormatter()
-        quantityFormatter.setPreferredNumberFormatter(for: .hour())
+        let quantityFormatter = QuantityFormatter(for: .hour())
         quantityFormatter.numberFormatter.minimumFractionDigits = 1
         quantityFormatter.numberFormatter.maximumFractionDigits = 1
         quantityFormatter.unitStyle = .long
@@ -61,18 +59,16 @@ struct ManualTempBasalEntryView: View {
     }()
 
     private var durationUnitsLabel: some View {
-        Text(QuantityFormatter().string(from: .hour()))
+        Text(QuantityFormatter(for: .hour()).localizedUnitStringWithPlurality())
             .foregroundColor(Color(.secondaryLabel))
     }
 
     func formatRate(_ rate: Double) -> String {
-        let unit = HKUnit.internationalUnitsPerHour
-        return ManualTempBasalEntryView.rateFormatter.string(from: HKQuantity(unit: unit, doubleValue: rate), for: unit) ?? ""
+        return ManualTempBasalEntryView.rateFormatter.string(from: HKQuantity(unit: .internationalUnitsPerHour, doubleValue: rate)) ?? ""
     }
 
     func formatDuration(_ duration: TimeInterval) -> String {
-        let unit = HKUnit.hour()
-        return ManualTempBasalEntryView.durationFormatter.string(from: HKQuantity(unit: unit, doubleValue: duration.hours), for: unit) ?? ""
+        return ManualTempBasalEntryView.durationFormatter.string(from: HKQuantity(unit: .hour(), doubleValue: duration.hours)) ?? ""
     }
 
     var body: some View {
@@ -95,7 +91,7 @@ struct ManualTempBasalEntryView: View {
                     .frame(maxHeight: 162.0)
                     .alert(isPresented: $showingMissingConfigAlert, content: { missingConfigAlert })
                     Section {
-                        Text(LocalizedString("Your insulin delivery will not be automatically adjusted until the temporary basal rate finishes or is canceled.", comment: "Description text on manual temp basal action sheet"))
+                        Text(LocalizedString("Loop will not automatically adjust your insulin delivery until the temporary basal rate finishes or is canceled.", comment: "Description text on manual temp basal action sheet"))
                             .font(.footnote)
                             .foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -147,7 +143,7 @@ struct ManualTempBasalEntryView: View {
     var missingConfigAlert: SwiftUI.Alert {
         return SwiftUI.Alert(
             title: Text(LocalizedString("Missing Config", comment: "Alert title for missing temp basal configuration")),
-            message: Text(LocalizedString("This Pump has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to Pump Settings in the settings CONFIGURATION section to set a new Max Basal.", comment: "Alert format string for missing temp basal configuration."))
+            message: Text(LocalizedString("This Pump has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to Therapy Settings -> Delivery Limits and set a new Maximum Basal Rate.", comment: "Alert format string for missing temp basal configuration."))
         )
     }
 
@@ -158,4 +154,7 @@ struct ManualTempBasalEntryView: View {
         }
         .accessibility(identifier: "button_cancel")
     }
+
 }
+
+

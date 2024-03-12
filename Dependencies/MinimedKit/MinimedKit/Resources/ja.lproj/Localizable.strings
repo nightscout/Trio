@@ -41,7 +41,7 @@
 /* Pump error code returned when command refused */
 "Command refused" = "コマンド拒否";
 
-/* No comment provided by engineer. */
+/* Description for PumpOpsError.crosstalk */
 "Comms with another pump detected" = "他のポンプが検出";
 
 /* Error description */
@@ -86,13 +86,13 @@
 /* The notification title for a low pump battery */
 "Pump Battery Low" = "ポンプの電池が不足";
 
-/* No comment provided by engineer. */
+/* Description for PumpOpsError.noResponse */
 "Pump did not respond" = "ポンプが反応しません";
 
 /* Error description */
 "Pump Error" = "ポンプエラー";
 
-/* No comment provided by engineer. */
+/* Description for PumpOpsError.pumpSuspended */
 "Pump is suspended" = "ポンプが停止しています";
 
 /* The notification title for an empty pump reservoir */

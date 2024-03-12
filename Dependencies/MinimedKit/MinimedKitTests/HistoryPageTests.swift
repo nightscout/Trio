@@ -166,7 +166,7 @@ class HistoryPageTests: XCTestCase {
             
             let prime = events[21] as! PrimePumpEvent
             XCTAssertEqual(prime.amount, 5.4)
-            XCTAssertEqual(prime.primeType, "manual")
+            XCTAssertEqual(prime.primeType, .manual)
             XCTAssertEqual(prime.programmedAmount, 0.0)
             XCTAssertEqual(prime.timestamp, DateComponents(gregorianYear: 2016, month: 2, day: 21, hour: 20, minute: 5, second: 7))
             

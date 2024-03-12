@@ -12,7 +12,7 @@ import HealthKit
 
 class StoredGlucoseSampleInitializerTests: XCTestCase {
     func testQuantitySampleInitializer() {
-        let type = HKQuantityType.quantityType(forIdentifier: .bloodGlucose)!
+        let type = HealthKitSampleStore.glucoseType
         let startDate = dateFormatter.date(from: "2020-01-02T03:04:05Z")!
         let quantity = HKQuantity(unit: .milligramsPerDeciliter, doubleValue: 123.4)
         let metadata: [String: Any] = [
@@ -120,7 +120,6 @@ class StoredGlucoseSampleManagedObjectInitializerTests: PersistenceControllerTes
             managedObject.device = device
             managedObject.condition = .aboveRange
             managedObject.trend = .downDownDown
-            managedObject.trendRateUnit = HKUnit.milligramsPerDeciliterPerMinute.unitString
             managedObject.trendRateValue = -4.0
             managedObject.healthKitEligibleDate = startDate.addingTimeInterval(.hours(3))
             let sample = StoredGlucoseSample(managedObject: managedObject)

@@ -29,7 +29,7 @@ class G7SettingsViewModel: ObservableObject {
         }
     }
     
-    var displayGlucoseUnitObservable: DisplayGlucoseUnitObservable
+    let displayGlucosePreference: DisplayGlucosePreference
 
     private var lastReading: G7GlucoseMessage?
 
@@ -39,15 +39,6 @@ class G7SettingsViewModel: ObservableObject {
         formatter.timeStyle = .short
         return formatter
     }()
-
-    private lazy var glucoseFormatter: QuantityFormatter = {
-        let formatter = QuantityFormatter()
-        formatter.setPreferredNumberFormatter(for: displayGlucoseUnitObservable.displayGlucoseUnit)
-        formatter.numberFormatter.notANumberSymbol = "–"
-        return formatter
-    }()
-
-    private let quantityFormatter = QuantityFormatter()
 
     private var cgmManager: G7CGMManager
 
@@ -68,9 +59,9 @@ class G7SettingsViewModel: ObservableObject {
         }
     }
 
-    init(cgmManager: G7CGMManager, displayGlucoseUnitObservable: DisplayGlucoseUnitObservable) {
+    init(cgmManager: G7CGMManager, displayGlucosePreference: DisplayGlucosePreference) {
         self.cgmManager = cgmManager
-        self.displayGlucoseUnitObservable = displayGlucoseUnitObservable
+        self.displayGlucosePreference = displayGlucosePreference
         updateValues()
 
         self.cgmManager.addStateObserver(self, queue: DispatchQueue.main)
@@ -188,19 +179,13 @@ class G7SettingsViewModel: ObservableObject {
         case .some(.aboveRange):
             return LocalizedString("HIGH", comment: "String displayed instead of a glucose value above the CGM range")
         default:
-            quantityFormatter.setPreferredNumberFormatter(for: displayGlucoseUnitObservable.displayGlucoseUnit)
-            let valueStr = quantityFormatter.string(from: quantity, for: displayGlucoseUnitObservable.displayGlucoseUnit, includeUnit: false) ?? ""
-            return String(format: "%@ %@", valueStr, displayGlucoseUnitObservable.displayGlucoseUnit.shortLocalizedUnitString())
+            return displayGlucosePreference.formatter.string(from: quantity)!
         }
     }
 
     var lastGlucoseTrendString: String {
         if let lastReading = lastReading, lastReading.hasReliableGlucose, let trendRate = lastReading.trendRate {
-            let glucoseUnitPerMinute = displayGlucoseUnitObservable.displayGlucoseUnit.unitDivided(by: .minute())
-            // This seemingly strange replacement of glucose units is only to display the unit string correctly
-            let trendPerMinute = HKQuantity(unit: displayGlucoseUnitObservable.displayGlucoseUnit, doubleValue: trendRate.doubleValue(for: glucoseUnitPerMinute))
-            let formatted = glucoseFormatter.string(from: trendPerMinute, for: displayGlucoseUnitObservable.displayGlucoseUnit)!
-            return String(format: LocalizedString("%@/min", comment: "Format string for glucose trend per minute. (1: glucose value and unit)"), formatted)
+            return displayGlucosePreference.minuteRateFormatter.string(from: trendRate)!
         } else {
             return ""
         }

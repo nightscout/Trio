@@ -9,11 +9,17 @@
 import Foundation
 
 public struct PrimePumpEvent: TimestampedPumpEvent {
+
+    enum PrimeType: String {
+        case manual
+        case fixed
+    }
+
     public let length: Int
     public let rawData: Data
     public let timestamp: DateComponents
     let amount: Double
-    let primeType: String
+    let primeType: PrimeType
     let programmedAmount: Double
     
     public init?(availableData: Data, pumpModel: PumpModel) {
@@ -32,7 +38,7 @@ public struct PrimePumpEvent: TimestampedPumpEvent {
         timestamp = DateComponents(pumpEventData: availableData, offset: 5)
         amount = Double(d(4) << 2) / 40.0
         programmedAmount = Double(d(2) << 2) / 40.0
-        primeType = programmedAmount == 0 ? "manual" : "fixed"
+        primeType = programmedAmount == 0 ? .manual : .fixed
     }
     
     public var dictionaryRepresentation: [String: Any] {
@@ -40,7 +46,7 @@ public struct PrimePumpEvent: TimestampedPumpEvent {
             "_type": "Prime",
             "amount": amount,
             "programmedAmount": programmedAmount,
-            "primeType": primeType,
+            "primeType": primeType.rawValue,
         ]
     }
 }

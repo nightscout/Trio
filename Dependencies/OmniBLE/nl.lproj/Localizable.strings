@@ -1,0 +1,139 @@
+/* Description for an inactive alert modifier */
+" (inactive)" = " (inactief)";
+
+/* Pod state when activation not completed in the time allowed */
+"Activation time exceeded" = "Activeringstijd overschreden";
+
+/* Description for auto-off */
+"Auto-off" = "Automatisch uitschakelen";
+
+/* Pod state when basal initialized */
+"Basal initialized" = "Basaal geïnitialiseerd";
+
+/* Delivery status when bolusing */
+"Bolusing" = "Bolussen";
+
+/* Delivery status when bolusing and temp basal is running */
+"Bolusing with temp basal" = "Bolussen met tijdelijk basaal";
+
+/* Pod state when deactivated */
+"Deactivated" = "Gedeactiveerd";
+
+/* Description for Empty reservoir pod fault */
+"Empty reservoir" = "Reservoir leeg";
+
+/* Description for expiration alert */
+"Expiration alert" = "Vervaldatum melding";
+
+/* Delivery status when extended bolus is running */
+"Extended bolus running" = "Verlengde bolus actief";
+
+/* Delivery status when extended bolus and temp basal is running */
+"Extended bolus running with temp basal" = "Verlengde bolus met tijdelijk basaal actief";
+
+/* Pod state when fault event has occurred */
+"Fault event occurred" = "Fout opgetreden";
+
+/* Description for finish setup reminder */
+"Finish setup reminder" = "Herinnering voor voltooien installatie";
+
+/* Pod initialized */
+"Initialized" = "Geinitialiseerd";
+
+/* Pod state when inserting cannula */
+"Inserting cannula" = "Canule aan het inbrengen";
+
+/* The format string for Internal pod fault (1: The fault code value) */
+"Internal pod fault %1$03d" = "Interne podfout %1$03d";
+
+/* Description for MessageError invalidAddress */
+"Invalid address: (%1$@)" = "Ongeldig adres: (%1$@)";
+
+/* Description for MessageError invalidCrc */
+"Invalid CRC" = "Ongeldige CRC";
+
+/* Pod state when running with fifty or less units */
+"Low reservoir" = "Reservoir bijna leeg";
+
+/* Format string for description for low reservoir advisory (1: reminder units) */
+"Low reservoir advisory (%1$gU)" = "Reservoir bijna leeg (%1$gE)";
+
+/* Pod memory initialized */
+"Memory initialized" = "Geheugen geïnitialiseerd";
+
+/* Pod alert state when no alerts are active */
+"No alerts" = "Geen waarschuwingen";
+
+/* Description for Fault Event Code .noFaults */
+"No faults" = "Geen fouten";
+
+/* Pod state when running above fifty units */
+"Normal" = "Normaal";
+
+/* Description for MessageError notEnoughData */
+"Not enough data" = "Onvoldoende gegevens";
+
+/* Description for Occlusion detected pod fault */
+"Occlusion detected" = "Verstopping gedetecteerd";
+
+/* Pod state oneNotUsed */
+"oneNotUsed" = "eenNietGebruikt";
+
+/* Pod status when pairing completed */
+"Pairing completed" = "Koppelen voltooid";
+
+/* Description for MessageError parsingError. (1: decription of error), (2: hexadecimal data starting at offset) */
+"Parsing Error: %1$@ in (%2$@)" = "Parseerfout: %1$@ in (%2$@)";
+
+/* Description for Pod expired pod fault */
+"Pod expired" = "Pod verlopen";
+
+/* Description for pod suspended reminder */
+"Pod suspended reminder" = "Herinnering onderbroken Pod";
+
+/* Delivery status when pod is priming
+   Pod status when priming */
+"Priming" = "Voorbereiden";
+
+/* Pod state when priming completed */
+"Priming completed" = "Voorbereiding voltooid";
+
+/* Pod pairing reminder initialized */
+"Reminder initialized" = "Herinnering geïnitialiseerd";
+
+/* Delivery status when scheduled basal is running */
+"Scheduled basal" = "Gepland basaal";
+
+/* Description for shutdown imminent */
+"Shutdown imminent" = "Afsluiting nadert";
+
+/* Description for suspend time expired */
+"Suspend time expired" = "Onderbrekingstijd verstreken";
+
+/* Delivery status when insulin delivery is suspended */
+"Suspended" = "Onderbroken";
+
+/* Delivery status when temp basal is running */
+"Temp basal running" = "Tijdelijk basaal actief";
+
+/* Pod state threeNotUsed */
+"threeNotUsed" = "drieNietGebruikt";
+
+/* Pod state twoNotUsed */
+"twoNotUsed" = "tweeNietGebruikt";
+
+/* Description for MessageError invalidSequence */
+"Unexpected message sequence number" = "Onverwacht volgnummer van bericht";
+
+/* The format string for Unknown pod fault (1: The fault code value) */
+"Unknown pod fault %1$03d" = "Onbekende podfout %1$03d";
+
+/* Format string for description of MessageError unknownValue. (1: value) (2: Type) */
+"Unknown Value (%1$@) for type %2$@" = "Onbekende waarde (%1$@) voor type %2$@";
+
+/* Format string for description of MessageError validationFailed. (1: description of validation failure) */
+"Validation failed: %1$@" = "Validatie mislukt: %1$@";
+
+/* Description waiting for pairing reminder */
+"Waiting for pairing reminder" = "Wacht op herinnering om te verbinden";
+

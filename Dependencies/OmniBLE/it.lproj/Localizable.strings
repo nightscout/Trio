@@ -1,0 +1,142 @@
+/* Description for an inactive alert modifier */
+" (inactive)" = "(inattivo)";
+
+/* Pod state when activation not completed in the time allowed */
+"Activation time exceeded" = "Tempo di attivazione superato";
+
+/* Description for auto-off */
+"Auto-off" = "Auto spegnimento";
+
+/* Pod state when basal initialized */
+"Basal initialized" = "Basale inizializzata";
+
+/* Delivery status when bolusing */
+"Bolusing" = "Bolo in corso";
+
+/* Delivery status when bolusing and temp basal is running */
+"Bolusing with temp basal" = "Bolo con basale temporanea";
+
+/* Pod state when deactivated */
+"Deactivated" = "Disattivato";
+
+/* Description for Empty reservoir pod fault */
+"Empty reservoir" = "Serbatoio vuoto";
+
+/* Description for expiration advisory */
+"Expiration advisory" = "Avviso di scadenza";
+
+/* Description for expiration alert */
+"Expiration alert" = "Avviso scadenza";
+
+/* Delivery status when extended bolus is running */
+"Extended bolus running" = "Bolo prolungato in esecuzione";
+
+/* Delivery status when extended bolus and temp basal is running */
+"Extended bolus running with temp basal" = "Bolo prolungato in esecuzione con Basale Temporanea";
+
+/* Pod state when fault event has occurred */
+"Fault event occurred" = "Si è verificato un errore";
+
+/* Description for finish setup reminder */
+"Finish setup reminder" = "Promemoria configurazione completa";
+
+/* Pod initialized */
+"Initialized" = "Inizializzato";
+
+/* Pod state when inserting cannula */
+"Inserting cannula" = "Inserendo canula";
+
+/* The format string for Internal pod fault (1: The fault code value) */
+"Internal pod fault %1$03d" = "Errore interno Pod %1$03d";
+
+/* Description for MessageError invalidAddress */
+"Invalid address: (%1$@)" = "Indirizzo invalido";
+
+/* Description for MessageError invalidCrc */
+"Invalid CRC" = "CRC invalido";
+
+/* Pod state when running with fifty or less units */
+"Low reservoir" = "Livello Serbatoio basso";
+
+/* Format string for description for low reservoir advisory (1: reminder units) */
+"Low reservoir advisory (%1$gU)" = "Notifica serbatoio basso (%1$gU)";
+
+/* Pod memory initialized */
+"Memory initialized" = "Memoria inizializzata";
+
+/* Pod alert state when no alerts are active */
+"No alerts" = "Nessun avviso";
+
+/* Description for Fault Event Code .noFaults */
+"No faults" = "Nessun errore";
+
+/* Pod state when running above fifty units */
+"Normal" = "Normale";
+
+/* Description for MessageError notEnoughData */
+"Not enough data" = "Non abbastanza dati";
+
+/* Description for Occlusion detected pod fault */
+"Occlusion detected" = "Occlusione rilevata";
+
+/* Pod state oneNotUsed */
+"oneNotUsed" = "unoNonUsato";
+
+/* Pod status when pairing completed */
+"Pairing completed" = "Accoppiamento completato";
+
+/* Description for MessageError parsingError. (1: decription of error), (2: hexadecimal data starting at offset) */
+"Parsing Error: %1$@ in (%2$@)" = "Errore di analisi: %1$@ in ( %2$@ )";
+
+/* Description for Pod expired pod fault */
+"Pod expired" = "Pod scaduto";
+
+/* Description for pod suspended reminder */
+"Pod suspended reminder" = "Promemoria sospensione Pod";
+
+/* Delivery status when pod is priming
+   Pod status when priming */
+"Priming" = "Accoppiando ";
+
+/* Pod state when priming completed */
+"Priming completed" = "Accoppiamento completato ";
+
+/* Pod pairing reminder initialized */
+"Reminder initialized" = "Promemoria inizializzato";
+
+/* Delivery status when scheduled basal is running */
+"Scheduled basal" = "Basale Programmata";
+
+/* Description for shutdown imminent */
+"Shutdown imminent" = "Chiusura imminente";
+
+/* Description for suspend time expired */
+"Suspend time expired" = "il tempo della sospensione e' scaduto";
+
+/* Delivery status when insulin delivery is suspended */
+"Suspended" = "Sospeso";
+
+/* Delivery status when temp basal is running */
+"Temp basal running" = "Velocità basale temporanea in esecuzione";
+
+/* Pod state threeNotUsed */
+"threeNotUsed" = "treNonUsato";
+
+/* Pod state twoNotUsed */
+"twoNotUsed" = "dueNonUsato";
+
+/* Description for MessageError invalidSequence */
+"Unexpected message sequence number" = "Notifica inaspettata di sequenza numerica ";
+
+/* The format string for Unknown pod fault (1: The fault code value) */
+"Unknown pod fault %1$03d" = "Errore Pod sconosciuto %1$03d";
+
+/* Format string for description of MessageError unknownValue. (1: value) (2: Type) */
+"Unknown Value (%1$@) for type %2$@" = "Valore sconosciuto%1$@per tipo%2$@";
+
+/* Format string for description of MessageError validationFailed. (1: description of validation failure) */
+"Validation failed: %1$@" = "Convalida fallita: %1$@";
+
+/* Description waiting for pairing reminder */
+"Waiting for pairing reminder" = "In attesa del promemoria di abbinamento";
+

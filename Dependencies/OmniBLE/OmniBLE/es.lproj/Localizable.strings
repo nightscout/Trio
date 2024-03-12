@@ -190,14 +190,14 @@
    Text for confidence reminders navigation link */
 "Confidence Reminders" = "Recordatorios de confianza";
 
-/* No comment provided by engineer. */
-"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Los recordatorios de confianza son pitidos que emite el Pod que pueden utilizarse para tener certeza de que se han seleccionado comandos.";
+/* Help text for BeepPreferenceSelectionView */
+"Confidence reminders are beeps from the pod which can be used to acknowledge selected commands." = "Los recordatorios de confianza son pitidos que emite el Pod que pueden utilizarse para tener certeza de que se han seleccionado comandos.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Los recordatorios de confianza sonarán para los comandos que seleccione, como bolo, cancelar bolo, suspender, reanudar, guardar recordatorios de notificación, etc. Cuando Loop ajusta automáticamente la administración de insulina, no se utilizan recordatorios de confianza.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When Loop automatically adjusts delivery, no confidence reminders are used." = "Los recordatorios de confianza sonarán para los comandos que seleccione, como bolo, cancelar bolo, suspender, reanudar, guardar recordatorios de notificación, etc. Cuando Loop ajusta automáticamente la administración de insulina, no se utilizan recordatorios de confianza.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Recordatorios de confianza sonarán cuando Loop  automáticamente ajuste la administración de insulina, así como para los comandos que selecciones.";
+"Confidence reminders will sound when Loop automatically adjusts delivery as well as for commands you initiate." = "Recordatorios de confianza sonarán cuando Loop  automáticamente ajuste la administración de insulina, así como para los comandos que selecciones.";
 
 /* Section header for configuration section */
 "Configuration" = "Configuración";
@@ -336,9 +336,6 @@
 
 /* Alert title for error when updating low reservoir reminder */
 "Failed to Update Low Reservoir Reminder" = "No se ha podido actualizar el recordatorio de Reserva Baja";
-
-/* Pod life HUD view label */
-"Fault" = "Fallo";
 
 /* Pod state when fault event has occurred */
 "Fault event occurred" = "Se ha producido un fallo";
@@ -695,9 +692,6 @@
    Label for pod insertion row */
 "Pod Activated" = "Pod Activado";
 
-/* Label describing pod age view */
-"Pod Age" = "Tiempo de Uso del Pod";
-
 /* Error message shown when user cannot pair because pod is already paired */
 "Pod already paired" = "Ya hay un pod emparejado";
 
@@ -817,8 +811,7 @@
 /* Pod state when ready for cannula insertion */
 "Ready to insert cannula" = "Listo para insertar la cánula";
 
-/* Label describing time remaining view
-   Label for remaining time of manual basal */
+/* Label for remaining time of manual basal */
 "Remaining" = "Restante";
 
 /* Pod pairing reminder initialized */
@@ -833,8 +826,7 @@
 /* Title for Omnipod DASH PumpManager deletion action sheet. */
 "Remove Pump" = "Retire la bomba";
 
-/* Label indicating pod replacement necessary
-   Settings page link description when next lifecycle action is to replace pod */
+/* Settings page link description when next lifecycle action is to replace pod */
 "Replace Pod" = "Reemplace el Pod";
 
 /* Pump Event title for UnfinalizedDose with doseType of .resume */

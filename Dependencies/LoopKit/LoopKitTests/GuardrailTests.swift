@@ -31,11 +31,11 @@ class GuardrailTests: XCTestCase {
         let correctionRangeInputs = [ nil, correctionRangeSchedule120, correctionRangeSchedule80 ]
         let preMealInputs = [ nil, preMealTargetRange120, preMealTargetRange85 ]
         let workoutInputs = [ nil, workoutTargetRange120, workoutTargetRange90 ]
-        let expected: [Double] = [ 110, 110, 90,
-                                   110, 110, 90,
+        let expected: [Double] = [ 110.9, 110.9, 90,
+                                   110.9, 110.9, 90,
                                    85, 85, 85,
-                                   110, 110, 90,
-                                   110, 110, 90,
+                                   110.9, 110.9, 90,
+                                   110.9, 110.9, 90,
                                    85, 85, 85,
                                    80, 80, 80,
                                    80, 80, 80,
@@ -54,7 +54,7 @@ class GuardrailTests: XCTestCase {
     
     func testMinCorrectionRangeValue() {
         let suspendThresholdInputs: [Double?] = [ nil, 80, 88 ]
-        let expected: [Double] = [ 87, 87, 88 ]
+        let expected: [Double] = [ 86.1, 86.1, 88 ]
         for (index, suspendThreshold) in suspendThresholdInputs.enumerated() {
             XCTAssertEqual(expected[index], Guardrail.minCorrectionRangeValue(suspendThreshold: suspendThreshold.map { GlucoseThreshold(unit: .milligramsPerDeciliter, value: $0) }).doubleValue(for: .milligramsPerDeciliter), "Index \(index) failed")
         }
@@ -65,10 +65,10 @@ class GuardrailTests: XCTestCase {
         let expectedAndTest: [(SafetyClassification, Double)] = [
             (SafetyClassification.withinRecommendedRange, 100),
             (SafetyClassification.withinRecommendedRange, 115),
-            (SafetyClassification.outsideRecommendedRange(.belowRecommended), 100.nextDown),
-            (SafetyClassification.outsideRecommendedRange(.aboveRecommended), 115.nextUp),
-            (SafetyClassification.outsideRecommendedRange(.maximum), 180),
-            (SafetyClassification.outsideRecommendedRange(.minimum), 87),
+            (SafetyClassification.outsideRecommendedRange(.belowRecommended), 99),
+            (SafetyClassification.outsideRecommendedRange(.aboveRecommended), 116),
+            (SafetyClassification.outsideRecommendedRange(.maximum), 180.9),
+            (SafetyClassification.outsideRecommendedRange(.minimum), 86.1),
         ]
         
         for test in expectedAndTest {
@@ -79,10 +79,10 @@ class GuardrailTests: XCTestCase {
     func testWorkoutCorrectionRange() {
         let correctionRangeInputs = [ 70...80, 70...85, 70...90 ]
         let suspendThresholdInputs: [Double?] = [ nil, 81, 91 ]
-        let expectedLow: [Double] = [ 87, 87, 91,
-                                      87, 87, 91,
+        let expectedLow: [Double] = [ 86.1, 86.1, 91,
+                                      86.1, 86.1, 91,
                                       90, 90, 91 ]
-        let expectedMin: [Double] = [ 87, 87, 91, 87, 87, 91, 87, 87, 91 ]
+        let expectedMin: [Double] = [ 86.1, 86.1, 91, 86.1, 86.1, 91, 86.1, 86.1, 91 ]
 
         var index = 0
         for correctionRange in correctionRangeInputs {
@@ -98,10 +98,10 @@ class GuardrailTests: XCTestCase {
     func testPreMealCorrectionRange() {
         let correctionRangeInputs = [ 60...80, 100...110, 150...180 ]
         let suspendThresholdInputs: [Double?] = [ nil, 90 ]
-        let expectedRecommendedHigh: [Double] = [ 67, 90,
+        let expectedRecommendedHigh: [Double] = [ 66.1, 90,
                                                   100, 100,
                                                   130, 130 ]
-        let expectedMin: [Double] = [ 67, 90, 67, 90, 67, 90 ]
+        let expectedMin: [Double] = [ 66.1, 90, 66.1, 90, 66.1, 90 ]
 
         var index = 0
         for correctionRange in correctionRangeInputs {
@@ -268,25 +268,25 @@ class GuardrailTests: XCTestCase {
 
     func testAllValuesOfQuantity() {
         var guardrail = Guardrail.carbRatio
-        var allValues = guardrail.allValues(
-            stridingBy: HKQuantity(unit: .gramsPerUnit, doubleValue: 0.1),
-            unit: .gramsPerUnit)
+        var unit: HKUnit = .gramsPerUnit
+        var increment = 0.1
+        var allValues = guardrail.allValues(forUnit: unit)
         var expectedValues = Array(stride(
-            from: guardrail.absoluteBounds.lowerBound.doubleValue(for: .gramsPerUnit, withRounding: true),
-            through: guardrail.absoluteBounds.upperBound.doubleValue(for: .gramsPerUnit, withRounding: true),
-            by: 0.1
-        ))
+            from: guardrail.absoluteBounds.lowerBound.doubleValue(for: unit, withRounding: true),
+            through: guardrail.absoluteBounds.upperBound.doubleValue(for: unit, withRounding: true),
+            by: increment
+        )).map { unit.round(value: $0, fractionDigits: unit.maxFractionDigits) }
         XCTAssertEqual(allValues, expectedValues)
 
         guardrail = Guardrail.insulinSensitivity
-        allValues = guardrail.allValues(
-            stridingBy: HKQuantity(unit: HKUnit.milligramsPerDeciliter.unitDivided(by: .internationalUnit()), doubleValue: 1),
-            unit: HKUnit.milligramsPerDeciliter.unitDivided(by: .internationalUnit()))
+        unit = HKUnit.milligramsPerDeciliter.unitDivided(by: .internationalUnit())
+        increment = 1
+        allValues = guardrail.allValues(forUnit: unit)
         expectedValues = Array(stride(
-            from: guardrail.absoluteBounds.lowerBound.doubleValue(for: HKUnit.milligramsPerDeciliter.unitDivided(by: .internationalUnit()), withRounding: true),
-            through: guardrail.absoluteBounds.upperBound.doubleValue(for: HKUnit.milligramsPerDeciliter.unitDivided(by: .internationalUnit()), withRounding: true),
-            by: 1
-        ))
+            from: guardrail.absoluteBounds.lowerBound.doubleValue(for: unit, withRounding: true),
+            through: guardrail.absoluteBounds.upperBound.doubleValue(for: unit, withRounding: true),
+            by: increment
+        )).map { unit.round(value: $0, fractionDigits: unit.maxFractionDigits) }
         XCTAssertEqual(allValues, expectedValues)
     }
 }

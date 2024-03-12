@@ -29,9 +29,6 @@
 /* Description for apidra insulin type */
 "Apidra (insulin glulisine) is a rapid-acting insulin made by Sanofi-aventis " = "Апидра (инсулин глюлизин) - это инсулин быстрого действия, производимый Sanofi-aventis ";
 
-/* The error description describing when Health sharing was denied */
-"Authorization Denied" = "Авторизация не состоялась";
-
 /* Title for basal dose type */
 "Basal" = "Базал";
 
@@ -73,6 +70,15 @@
 
 /* Generic pump error description */
 "Device Refused" = "Устройство отклонено";
+
+/* Accessibility label for device status critical state */
+"Device Status Critical" = "Критическое состояние устройства";
+
+/* Accessibility label for device status normal state */
+"Device Status Normal" = "Нормальное состояние устройства";
+
+/* Accessibility label for device status warning state */
+"Device Status Warning" = "Предупреждение о состоянии устройства";
 
 /* Recovery suggestion for a no data error */
 "Ensure carb data exists for the specified date" = "Убедитесь, что данные об углеводах имеются на указанную дату";
@@ -151,11 +157,17 @@
 /* Descriptive text for maximum bolus */
 "Maximum Bolus is the highest bolus amount you can deliver at one time to cover carbs or bring down high glucose." = "Максимальный болюс - это наибольший болюс, который вы можете ввести за один раз, чтобы покрыть углеводы или снизить высокий уровень глюкозы.";
 
+/* The short unit display string for milligrams per liter per minute */
+"mg/dL/min" = "мг/дл/мин";
+
 /* The short unit display string for milligrams per deciliter per U */
 "mg/dL/U" = "mg/dL/U";
 
 /* The short unit display string for millimoles per liter */
 "mmol/L" = "mmol/L";
+
+/* The short unit display string for millimoles per liter per minute */
+"mmol/L/min" = "ммоль/л/мин";
 
 /* The short unit display string for millimoles per liter per U */
 "mmol/L/U" = "mmol/L/U";
@@ -183,9 +195,6 @@
 
 /* Descriptive text for saving settings outside the recommended range */
 "One or more of the values you have entered is outside of what is typically recommended for most people." = "Одно или несколько введенных вами значений выходят за рамки того, что обычно рекомендуется для большинства людей.";
-
-/* The error recovery suggestion when Health sharing was denied */
-"Please re-enable sharing in Health" = "Пожалуйста повторно разрешите совместное использование в разделе Здоровье";
 
 /* Title for pre-meal mode */
 "Pre-Meal" = "До еды";

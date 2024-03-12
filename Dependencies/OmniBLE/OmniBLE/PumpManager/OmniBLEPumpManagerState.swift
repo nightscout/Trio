@@ -30,8 +30,6 @@ public struct OmniBLEPumpManagerState: RawRepresentable, Equatable {
 
     public var unstoredDoses: [UnfinalizedDose]
 
-    public var silencePod: Bool
-
     public var confirmationBeeps: BeepPreference
     
     public var controllerId: UInt32 = 0
@@ -98,7 +96,6 @@ public struct OmniBLEPumpManagerState: RawRepresentable, Equatable {
         self.timeZone = timeZone
         self.basalSchedule = basalSchedule
         self.unstoredDoses = []
-        self.silencePod = false
         self.confirmationBeeps = .manualCommands
         if controllerId != nil && podId != nil {
             self.controllerId = controllerId!
@@ -195,8 +192,6 @@ public struct OmniBLEPumpManagerState: RawRepresentable, Equatable {
             self.unstoredDoses = []
         }
 
-        self.silencePod = rawValue["silencePod"] as? Bool ?? false
-
         if let rawBeeps = rawValue["confirmationBeeps"] as? BeepPreference.RawValue, let confirmationBeeps = BeepPreference(rawValue: rawBeeps) {
             self.confirmationBeeps = confirmationBeeps
         } else {
@@ -251,7 +246,6 @@ public struct OmniBLEPumpManagerState: RawRepresentable, Equatable {
             "timeZone": timeZone.secondsFromGMT(),
             "basalSchedule": basalSchedule.rawValue,
             "unstoredDoses": unstoredDoses.map { $0.rawValue },
-            "silencePod": silencePod,
             "confirmationBeeps": confirmationBeeps.rawValue,
             "activeAlerts": activeAlerts.map { $0.rawValue },
             "podAttachmentConfirmed": podAttachmentConfirmed,
@@ -305,24 +299,20 @@ extension OmniBLEPumpManagerState: CustomDebugStringConvertible {
             "* tempBasalEngageState: \(String(describing: tempBasalEngageState))",
             "* lastPumpDataReportDate: \(String(describing: lastPumpDataReportDate))",
             "* isPumpDataStale: \(String(describing: isPumpDataStale))",
-            "* silencePod: \(String(describing: silencePod))",
             "* confirmationBeeps: \(String(describing: confirmationBeeps))",
             "* controllerId: \(String(format: "%08X", controllerId))",
             "* podId: \(String(format: "%08X", podId))",
             "* insulinType: \(String(describing: insulinType))",
-            "* scheduledExpirationReminderOffset: \(String(describing: scheduledExpirationReminderOffset?.timeIntervalStr))",
-            "* defaultExpirationReminderOffset: \(defaultExpirationReminderOffset.timeIntervalStr)",
+            "* scheduledExpirationReminderOffset: \(String(describing: scheduledExpirationReminderOffset))",
+            "* defaultExpirationReminderOffset: \(defaultExpirationReminderOffset)",
             "* lowReservoirReminderValue: \(lowReservoirReminderValue)",
             "* podAttachmentConfirmed: \(podAttachmentConfirmed)",
             "* activeAlerts: \(activeAlerts)",
             "* alertsWithPendingAcknowledgment: \(alertsWithPendingAcknowledgment)",
             "* acknowledgedTimeOffsetAlert: \(acknowledgedTimeOffsetAlert)",
             "* initialConfigurationCompleted: \(initialConfigurationCompleted)",
-            "",
-            "* PodState: " + (podState == nil ? "nil" : String(describing: podState!)),
-            "",
-            "* PreviousPodState: " + (previousPodState == nil ? "nil" : String(describing: previousPodState!)),
-            "",
+            String(reflecting: podState),
+            "* PreviousPodState: \(String(reflecting: previousPodState))"
         ].joined(separator: "\n")
     }
 }

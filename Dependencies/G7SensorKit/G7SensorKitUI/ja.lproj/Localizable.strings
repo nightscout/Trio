@@ -1,9 +1,6 @@
 /* No glucose value representation (3 dashes for mg/dL) */
 "– – –" = "---";
 
-/* Format string for glucose trend per minute. (1: glucose value and unit) */
-"%@/min" = "%@/分";
-
 /* No comment provided by engineer. */
 "Are you sure you want to delete this CGM?" = "このCGMを削除しますか?";
 

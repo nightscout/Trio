@@ -8,10 +8,10 @@
 "Glucose data is unavailable" = "Данные глюкозы недоступны";
 
 /* Describes a low battery */
-"Low Battery" = "Батарейка садится";
+"Low Battery" = "Низкий заряд батарейки";
 
 /* Describes a functioning transmitter */
-"OK" = "ОК";
+"OK" = "OK";
 
 /* invlid config error description */
 "Peripheral command was invalid" = "Неправильно сформирован запрос.";
@@ -39,3 +39,4 @@
 
 /* Error description */
 "Unknown characteristic" = "Неизвестная характеристика";
+

@@ -16,24 +16,24 @@ public class ShareClientSettingsViewController: UITableViewController {
 
     public let cgmManager: ShareClientManager
 
-    private let displayGlucoseUnitObservable: DisplayGlucoseUnitObservable
+    private let displayGlucosePreference: DisplayGlucosePreference
 
     private lazy var cancellables = Set<AnyCancellable>()
 
     private var glucoseUnit: HKUnit {
-        displayGlucoseUnitObservable.displayGlucoseUnit
+        displayGlucosePreference.unit
     }
 
     public let allowsDeletion: Bool
 
-    public init(cgmManager: ShareClientManager, displayGlucoseUnitObservable: DisplayGlucoseUnitObservable, allowsDeletion: Bool) {
+    public init(cgmManager: ShareClientManager, displayGlucosePreference: DisplayGlucosePreference, allowsDeletion: Bool) {
         self.cgmManager = cgmManager
-        self.displayGlucoseUnitObservable = displayGlucoseUnitObservable
+        self.displayGlucosePreference = displayGlucosePreference
         self.allowsDeletion = allowsDeletion
 
         super.init(style: .grouped)
 
-        displayGlucoseUnitObservable.$displayGlucoseUnit
+        displayGlucosePreference.$unit
             .sink { [weak self] _ in self?.tableView.reloadData() }
             .store(in: &cancellables)
     }
@@ -99,12 +99,6 @@ public class ShareClientSettingsViewController: UITableViewController {
         }
     }
 
-    private lazy var glucoseFormatter: QuantityFormatter = {
-        let formatter = QuantityFormatter()
-        formatter.setPreferredNumberFormatter(for: glucoseUnit)
-        return formatter
-    }()
-
     private lazy var dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateStyle = .long
@@ -133,8 +127,8 @@ public class ShareClientSettingsViewController: UITableViewController {
             case .glucose:
                 cell.textLabel?.text = LocalizedString("Glucose", comment: "Title describing glucose value")
 
-                if let quantity = glucose?.quantity, let formatted = glucoseFormatter.string(from: quantity, for: glucoseUnit) {
-                    cell.detailTextLabel?.text = formatted
+                if let quantity = glucose?.quantity {
+                    cell.detailTextLabel?.text = displayGlucosePreference.format(quantity)
                 } else {
                     cell.detailTextLabel?.text = SettingsTableViewCell.NoValueString
                 }

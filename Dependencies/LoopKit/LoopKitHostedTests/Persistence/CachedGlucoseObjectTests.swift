@@ -39,7 +39,6 @@ class CachedGlucoseObjectOperationsTests: PersistenceControllerTestCase {
             XCTAssertEqual(object.wasUserEntered, false)
             XCTAssertEqual(object.condition, .belowRange)
             XCTAssertEqual(object.trend, .flat)
-            XCTAssertEqual(object.trendRateUnit, HKUnit.milligramsPerDeciliterPerMinute.unitString)
             XCTAssertEqual(object.trendRateValue, 0.1)
             XCTAssertEqual(object.modificationCounter, 1)
             XCTAssertEqual(object.device, device)
@@ -49,7 +48,7 @@ class CachedGlucoseObjectOperationsTests: PersistenceControllerTestCase {
 
     func testCreateFromQuantitySample() {
         cacheStore.managedObjectContext.performAndWait {
-            let type = HKQuantityType.quantityType(forIdentifier: .bloodGlucose)!
+            let type = HealthKitSampleStore.glucoseType
             let startDate = dateFormatter.date(from: "2020-02-03T04:05:06Z")!
             let quantity = HKQuantity(unit: .milligramsPerDeciliter, doubleValue: 123.4)
             let device = HKDevice(name: "NAME", manufacturer: "MANUFACTURER", model: "MODEL", hardwareVersion: "HARDWAREVERSION", firmwareVersion: "FIRMWAREVERSION", softwareVersion: "SOFTWAREVERSION", localIdentifier: "LOCALIDENTIFIER", udiDeviceIdentifier: "UDIDEVICEIDENTIFIER")
@@ -60,7 +59,6 @@ class CachedGlucoseObjectOperationsTests: PersistenceControllerTestCase {
                 HKMetadataKeyWasUserEntered: true,
                 MetadataKeyGlucoseCondition: "belowRange",
                 MetadataKeyGlucoseTrend: "→",
-                MetadataKeyGlucoseTrendRateUnit: HKUnit.milligramsPerDeciliterPerMinute.unitString,
                 MetadataKeyGlucoseTrendRateValue: 0.1
             ]
             let quantitySample = HKQuantitySample(type: type, quantity: quantity, start: startDate, end: startDate, device: device, metadata: metadata)
@@ -77,7 +75,6 @@ class CachedGlucoseObjectOperationsTests: PersistenceControllerTestCase {
             XCTAssertEqual(object.wasUserEntered, true)
             XCTAssertEqual(object.condition, .belowRange)
             XCTAssertEqual(object.trend, .flat)
-            XCTAssertEqual(object.trendRateUnit, HKUnit.milligramsPerDeciliterPerMinute.unitString)
             XCTAssertEqual(object.trendRateValue, 0.1)
             XCTAssertEqual(object.modificationCounter, 1)
             XCTAssertEqual(object.device, device)
@@ -87,7 +84,7 @@ class CachedGlucoseObjectOperationsTests: PersistenceControllerTestCase {
     
     func testToHKQuantitySample() {
         cacheStore.managedObjectContext.performAndWait {
-            let type = HKQuantityType.quantityType(forIdentifier: .bloodGlucose)!
+            let type = HealthKitSampleStore.glucoseType
             let startDate = dateFormatter.date(from: "2020-02-03T04:05:06Z")!
             let quantity = HKQuantity(unit: .milligramsPerDeciliter, doubleValue: 123.4)
             let device = HKDevice(name: "NAME", manufacturer: "MANUFACTURER", model: "MODEL", hardwareVersion: "HARDWAREVERSION", firmwareVersion: "FIRMWAREVERSION", softwareVersion: "SOFTWAREVERSION", localIdentifier: "LOCALIDENTIFIER", udiDeviceIdentifier: "UDIDEVICEIDENTIFIER")
@@ -98,7 +95,6 @@ class CachedGlucoseObjectOperationsTests: PersistenceControllerTestCase {
                 HKMetadataKeyWasUserEntered: true,
                 MetadataKeyGlucoseCondition: "belowRange",
                 MetadataKeyGlucoseTrend: "→",
-                MetadataKeyGlucoseTrendRateUnit: HKUnit.milligramsPerDeciliterPerMinute.unitString,
                 MetadataKeyGlucoseTrendRateValue: 0.1
             ]
             let quantitySample = HKQuantitySample(type: type, quantity: quantity, start: startDate, end: startDate, device: device, metadata: metadata)

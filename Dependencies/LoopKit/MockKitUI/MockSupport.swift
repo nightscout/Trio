@@ -12,8 +12,7 @@ import LoopKitUI
 import SwiftUI
 
 public class MockSupport: SupportUI {
-
-    public static let supportIdentifier = "MockSupport"
+    public static let pluginIdentifier = "MockSupport"
     
     var versionUpdate: VersionUpdate?
     var alertIssuer: AlertIssuer? {
@@ -33,19 +32,20 @@ public class MockSupport: SupportUI {
         return rawValue
     }
    
-    public func checkVersion(bundleIdentifier: String, currentVersion: String, completion: @escaping (Result<VersionUpdate?, Error>) -> Void) {
-        maybeIssueAlert(versionUpdate ?? .none)
-        completion(.success(versionUpdate))
+    public func checkVersion(bundleIdentifier: String, currentVersion: String) async -> VersionUpdate? {
+        maybeIssueAlert(versionUpdate ?? .noUpdateNeeded)
+        return versionUpdate
     }
     
     public weak var delegate: SupportUIDelegate?
 
-    public func configurationMenuItems() -> [AnyView] {
+    public func configurationMenuItems() -> [LoopKitUI.CustomMenuItem] {
         return []
     }
 
-    public func supportMenuItem(supportInfoProvider: SupportInfoProvider, urlHandler: @escaping (URL) -> Void) -> AnyView? {
-        return AnyView(SupportMenuItem(mockSupport: self))
+    @ViewBuilder
+    public func supportMenuItem(supportInfoProvider: SupportInfoProvider, urlHandler: @escaping (URL) -> Void) -> some View {
+        SupportMenuItem(mockSupport: self)
     }
     
     public func softwareUpdateView(bundleIdentifier: String, currentVersion: String, guidanceColors: GuidanceColors, openAppStore: (() -> Void)?) -> AnyView? {
@@ -55,6 +55,14 @@ public class MockSupport: SupportUI {
             }
         )
     }
+    
+    public func getScenarios(from scenarioURLs: [URL]) -> [LoopScenario] {
+        scenarioURLs.map { LoopScenario(name: $0.lastPathComponent, url: $0) }
+    }
+    
+    public func loopWillReset() {}
+    
+    public func loopDidReset() {}
 }
 
 extension MockSupport {
@@ -73,7 +81,7 @@ extension MockSupport {
             return
         }
         
-        let alertIdentifier = Alert.Identifier(managerIdentifier: MockSupport.supportIdentifier, alertIdentifier: versionUpdate.rawValue)
+        let alertIdentifier = Alert.Identifier(managerIdentifier: MockSupport.pluginIdentifier, alertIdentifier: versionUpdate.rawValue)
         let alertContent: LoopKit.Alert.Content
         if firstAlert {
             alertContent = Alert.Content(title: versionUpdate.localizedDescription,

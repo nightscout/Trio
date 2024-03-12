@@ -51,8 +51,12 @@ public struct UnfinalizedDose: RawRepresentable, Equatable, CustomStringConverti
     }
 
     public var progress: Double {
-        let elapsed = -startTime.timeIntervalSinceNow
-        return min(elapsed / duration, 1)
+        progress(at: Date())
+    }
+    
+    public func progress(at date: Date) -> Double {
+        let elapsed = -startTime.timeIntervalSince(date)
+        return min(max(elapsed, 0) / duration, 1)
     }
 
     public var finished: Bool {
@@ -65,6 +69,10 @@ public struct UnfinalizedDose: RawRepresentable, Equatable, CustomStringConverti
             return 0
         }
         return units / duration.hours
+    }
+    
+    public func isFinished(at date: Date) -> Bool {
+        return progress(at: date) >= 1
     }
 
     public var finalizedUnits: Double? {
@@ -118,7 +126,9 @@ public struct UnfinalizedDose: RawRepresentable, Equatable, CustomStringConverti
         }
 
         scheduledUnits = units
-        let newDuration = date.timeIntervalSince(startTime)
+
+        // Guard against negative duration if clock has changed
+        let newDuration = max(0, date.timeIntervalSince(startTime))
 
         switch doseType {
         case .bolus:

@@ -43,9 +43,22 @@ public struct PodInfoPulseLogPlus : PodInfo {
         self.nEntries = nEntries
         self.maxEntries = maxEntries
         self.faultEventCode = FaultEventCode(rawValue: encodedData[1])
-        self.timeFaultEvent = TimeInterval(minutes: Double((Int(encodedData[2] & 0b1) << 8) + Int(encodedData[3])))
-        self.timeActivation = TimeInterval(minutes: Double((Int(encodedData[4] & 0b1) << 8) + Int(encodedData[5])))
+        self.timeFaultEvent = TimeInterval(minutes: Double((Int(encodedData[2]) << 8) + Int(encodedData[3])))
+        self.timeActivation = TimeInterval(minutes: Double((Int(encodedData[4]) << 8) + Int(encodedData[5])))
         self.pulseLog = createPulseLog(encodedData: encodedData, logStartByteOffset: logStartByteOffset, nEntries: self.nEntries)
         self.data = encodedData
     }
+}
+
+func pulseLogPlusString(podInfoPulseLogPlus: PodInfoPulseLogPlus) -> String {
+    var result: [String] = []
+
+    result.append(String(format: "Pod Active: %@", podInfoPulseLogPlus.timeActivation.timeIntervalStr))
+    result.append(String(format: "Fault Time: %@", podInfoPulseLogPlus.timeFaultEvent.timeIntervalStr))
+    result.append(String(format: "%@\n", String(describing: podInfoPulseLogPlus.faultEventCode)))
+
+    let lastPulseNumber = Int(podInfoPulseLogPlus.nEntries)
+    result.append(pulseLogString(pulseLogEntries: podInfoPulseLogPlus.pulseLog, lastPulseNumber: lastPulseNumber))
+
+    return result.joined(separator: "\n")
 }

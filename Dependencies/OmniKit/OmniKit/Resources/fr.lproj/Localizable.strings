@@ -63,10 +63,10 @@
 "Communication issue: Unacknowledged command pending." = "Problème de communication : Commande en attente sans accusé de réception.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Les rappels de confiance retentissent pour les commandes que vous initiez, comme le bolus, l'annulation du bolus, la suspension, la reprise, l'enregistrement des rappels de notification, etc. Lorsque l'application ajuste automatiquement l'administration, aucun rappel de confiance n'est utilisé.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When Loop automatically adjusts delivery, no confidence reminders are used." = "Les rappels de confiance retentiront pour les commandes que vous initiez, comme administrer ou annuler un bolus, suspendre, reprendre, enregistrer les rappels de notification, etc. Lorsque Loop ajuste automatiquement l'administration, aucun rappel de confiance n’est utilisé.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Des rappels de confiance retentissent lorsque l'application ajuste automatiquement la livraison ainsi que pour les commandes que vous lancez.";
+"Confidence reminders will sound when Loop automatically adjusts delivery as well as for commands you initiate." = "Des rappels de confiance retentiront lorsque Loop ajustera automatiquement l'administration ainsi que pour les commandes que vous lancez.";
 
 /* The title for AlarmCode.other notification */
 "Critical Pod Error" = "Erreur critique du Pod";
@@ -83,11 +83,20 @@
 /* Description for Empty reservoir pod fault */
 "Empty reservoir" = "Réservoir vide";
 
+/* The title for Empty Reservoir alarm notification */
+"Empty Reservoir" = "Réservoir vide";
+
 /* Error message shown when empty response from pod was received */
 "Empty response from pod" = "Réponse vide du Pod";
 
+/* Title string for BeepPreference.manualCommands */
+"Enabled" = "Activé";
+
 /* Pod state error event logged shutting down */
 "Error event logged, shutting down" = "Erreur enregistrée, arrêt en cours";
+
+/* Description for expiration advisory */
+"Expiration advisory" = "Avertissement d'expiration";
 
 /* Description for expiration alert */
 "Expiration alert" = "Alerte d'expiration";
@@ -149,6 +158,9 @@
 /* Error description for OmniBLEPumpManagerError.invalidSetting */
 "Invalid Setting" = "Paramètre invalide";
 
+/* Pod state when running with fifty or less units */
+"Low reservoir" = "Réservoir bas";
+
 /* Alert content title for lowReservoir pod alert */
 "Low Reservoir" = "Réservoir bas";
 
@@ -160,6 +172,9 @@
 
 /* Title for RileyLink low battery alert */
 "Low RileyLink Battery" = "Batterie RileyLink faible";
+
+/* Recovery suggestion for PodCommsError.noPodsFound */
+"Make sure your pod is filled and nearby." = "Assurez-vous que votre Pod est rempli et à proximité.";
 
 /* Recovery suggestion when no RileyLink is available */
 "Make sure your RileyLink is nearby and powered on" = "Assurez-vous que votre RileyLink est à proximité et allumé";
@@ -215,8 +230,21 @@
 /* Description for Occlusion detected pod fault */
 "Occlusion detected" = "Occlusion détectée";
 
+/* The title for Occlusion alarm notification */
+"Occlusion Detected" = "Occlusion détectée";
+
+/* Action button default text for PodAlerts */
+"Ok" = "Ok";
+
+/* Acknowledge button label for RileyLink low battery alert
+   Alert acknowledgment OK button */
+"OK" = "OK";
+
 /* Generic title of the omnipod pump manager */
 "Omnipod" = "Omnipod";
+
+/* Pod state oneNotUsed */
+"oneNotUsed" = "oneNotUsed";
 
 /* Pod status after pairing */
 "Paired" = "Appairé";
@@ -245,6 +273,9 @@
 /* Recovery suggestion when pairing signal strength is too low */
 "Please reposition the RileyLink relative to the pod" = "Veuillez repositionner le RileyLink par rapport au Pod";
 
+/* Recovery suggestion when no response is received from pod */
+"Please try repositioning the pod or the RileyLink and try again" = "Veuillez essayer de repositionner le Pod ou le RileyLink et essayez à nouveau";
+
 /* Error message shown when user cannot pair because pod is already paired */
 "Pod already paired" = "Pod déjà appairé";
 
@@ -260,8 +291,17 @@
 /* The title for pod expiration notification */
 "Pod Expiration Notice" = "Notification de l'expiration du Pod";
 
+/* Alert content title for userPodExpiration pod alert */
+"Pod Expiration Reminder" = "Rappel d'expiration du Pod";
+
 /* Description for Pod expired pod fault */
 "Pod expired" = "Pod expiré";
+
+/* Alert content title for podExpireImminent pod alert
+   Alert content title for podExpiring pod alert
+   Status highlight message for podExpired alarm.
+   The title for Pod Expired alarm notification */
+"Pod Expired" = "Pod expiré";
 
 /* Format string for alert content body for userPodExpiration pod alert. (1: time until expiration) */
 "Pod expires in %1$@." = "Péremption du Pod dans %1$@.";
@@ -324,6 +364,9 @@
 /* The format string describing a resume. (1: Time)(2: Scheduled certainty */
 "Resume: %1$@ %2$@" = "Reprise : %1$@ %2$@";
 
+/* Delivery status when scheduled basal is running */
+"Scheduled basal" = "Basal programmé";
+
 /* Delivery status when basal is running */
 "Scheduled Basal" = "Basal programmé";
 
@@ -348,9 +391,6 @@
 
 /* Description for suspend time expired */
 "Suspend time expired" = "Délai de suspension expiré";
-
-/* Delivery status when insulin delivery is suspended */
-"Suspended" = "Suspendu";
 
 /* The format string describing a suspend. (1: Time)(2: Scheduled certainty */
 "Suspend: %1$@ %2$@" = "Suspension : %1$@ %2$@";
@@ -385,6 +425,9 @@
 /* Alert content body for timeOffsetChangeDetected pod alert */
 "The time on your pump is different from the current time. You can review the pump time and and sync to current time in settings." = "L'heure de votre pompe est différente de l'heure actuelle. Vous pouvez vérifier l'heure de la pompe et la synchroniser avec l'heure actuelle dans les paramètres.";
 
+/* Pod state threeNotUsed */
+"threeNotUsed" = "threeNotUsed";
+
 /* Alert content title for timeOffsetChangeDetected pod alert */
 "Time Change Detected" = "Changement d'heure détecté";
 
@@ -396,6 +439,9 @@
 
 /* Recovery suggestion when ack received instead of response */
 "Try again" = "Réessayer";
+
+/* Pod state twoNotUsed */
+"twoNotUsed" = "twoNotUsed";
 
 /* String describing a dose that was possibly scheduled */
 "Uncertain" = "Incertain";
@@ -426,3 +472,4 @@
 
 /* Description waiting for pairing reminder */
 "Waiting for pairing reminder" = "En attente d'appairage";
+

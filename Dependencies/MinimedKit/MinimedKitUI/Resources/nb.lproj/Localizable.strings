@@ -28,14 +28,17 @@
 /* Text to confirm delete this pump */
 "Are you sure you want to delete this Pump?" = "Er du sikker på at du vil slette denne pumpen?";
 
+/* No comment provided by engineer. */
+"Battery Chemistry" = "Batterikjemi";
+
 /* The format string describing pump battery voltage: (1: battery voltage) */
-"Battery: %1$@ volts\n" = "Batteri: %1$@ volt\n";
+"Battery: %1$@ volts\n" = "Batteri: %1$@ volt";
 
 /* The label indicating the best radio frequency */
 "Best Frequency" = "Beste frekvens";
 
 /* The format string describing pump bolusing state: (1: bolusing) */
-"Bolusing: %1$@\n" = "Gir bolus: %1$@\n";
+"Bolusing: %1$@\n" = "Gir bolus: %1$@";
 
 /* Cancel button title */
 "Cancel" = "Avbryt";
@@ -71,6 +74,9 @@
 /* Description for option to not use MySentry */
 "Do not use MySentry" = "Ikke bruk MySentry";
 
+/* No comment provided by engineer. */
+"Done" = "Ferdig";
+
 /* The alert title for a resume error */
 "Error Resuming" = "Feil ved gjenopptagelse";
 
@@ -96,7 +102,7 @@
 "Insulin\nSuspended" = "Insulintilførsel utsatt";
 
 /* Title of insulin delivery section */
-"Insulin Delivery" = "Insulintilførsel";
+"Insulin Delivery" = "Gitt insulin";
 
 /* Instructions on selecting an insulin data source */
 "Insulin delivery can be determined from the pump by either interpreting the event history or comparing the reservoir volume over time. Reading event history allows for a more accurate status graph and uploading up-to-date treatment data to Nightscout, at the cost of faster pump battery drain and the possibility of a higher radio error rate compared to reading only reservoir volume. If the selected source cannot be used for any reason, the system will attempt to fall back to the other option." = "Insulintilførsel kan hentes fra pumpa, enten ved å tolke hendelsehistorikken, eller ved å sammenligne reservoarvolumet over tid. Ved å lese hendelsehistorikken får man mer nøyaktig statuskurve og kan laste opp oppdaterte hendelser til Nightscout. Ulempen er høyere batteriforbruk i pumpa, og muligheten for større antall feil ved radiokommunikasjon - sammenlignet med å bare lese reservoarvolumet. Hvis den valgte kilden av noen grunn ikke kan brukes, vill systemet prøve den andre måten.";
@@ -123,7 +129,7 @@
 "No, Keep Pump As Is" = "Nei, behold pumpen som den er";
 
 /* Pump find device instruction */
-"On your pump, go to the Find Device screen and select \"Find Device\".\n\nMain Menu >\nUtilities >\nConnect Devices >\nOther Devices >\nOn >\nFind Device" = "På pumpen, gå til \"Find Device\"-skjermen og velg \"Find Device\".\n\nMain Menu >\nUtilities >\nConnect Devices >\nOther Devices >\nOn >\nFind Device";
+"On your pump, go to the Find Device screen and select \"Find Device\".\n\nMain Menu >\nUtilities >\nConnect Devices >\nOther Devices >\nOn >\nFind Device" = "On your pump, go to the Find Device screen and select \"Find Device\".\n\nMain Menu >\nUtilities >\nConnect Devices >\nOther Devices >\nOn >\nFind Device";
 
 /* navigation title for pump battery type selection
    Text for medtronic pump preferred data source */
@@ -179,7 +185,7 @@
 "Suspend Delivery" = "Pause leveranse";
 
 /* The format string describing pump suspended state: (1: suspended) */
-"Suspended: %1$@\n" = "Pauset: %1$@\n";
+"Suspended: %1$@\n" = "Pauset: %1$@";
 
 /* Title text for button when insulin delivery is in the process of being stopped */
 "Suspending" = "Pauser";
@@ -218,3 +224,4 @@
 
 /* Button text to confirm pump time sync */
 "Yes, Sync to Current Time" = "Ja, Synkroniser til gjeldende tid";
+

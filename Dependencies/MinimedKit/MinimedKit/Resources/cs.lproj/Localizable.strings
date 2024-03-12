@@ -37,3 +37,9 @@
 /* Status highlight when communications with the pod haven't happened recently. */
 "Signal Loss" = "Ztráta signálu";
 
+/* The format string description of a TempBasalDurationPumpEvent. (1: The duration of the temp basal in minutes) */
+"Temporary Basal: %1$d min" = "Dočasný bazál: %1$d min";
+
+/* The format string description of a TempBasalPumpEvent. (1: The rate of the temp basal in percent) */
+"Temporary Basal: %1$d%%" = "Dočasný bazál: %1$d%%";
+

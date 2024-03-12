@@ -24,7 +24,7 @@
 "Outside US" = "Poza USA";
 
 /* The title of the Dexcom share password credential */
-"Password" = "Contraseña";
+"Password" = "Hasło";
 
 /* The title of the Dexcom share server URL credential */
 "Server" = "Serwer";

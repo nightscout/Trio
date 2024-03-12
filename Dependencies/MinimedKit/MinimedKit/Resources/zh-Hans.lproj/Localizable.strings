@@ -22,7 +22,7 @@
 /* Pump error code returned when command refused */
 "Command refused" = "当前无法执行命令";
 
-/* No comment provided by engineer. */
+/* Description for PumpOpsError.crosstalk */
 "Comms with another pump detected" = "发现其他胰岛素泵";
 
 /* Error description */
@@ -55,13 +55,13 @@
 /* Describing the North America pump region */
 "North America" = "北美";
 
-/* No comment provided by engineer. */
+/* Description for PumpOpsError.noResponse */
 "Pump did not respond" = "胰岛素泵无响应";
 
 /* Error description */
 "Pump Error" = "胰岛素泵错误";
 
-/* No comment provided by engineer. */
+/* Description for PumpOpsError.pumpSuspended */
 "Pump is suspended" = "胰岛素泵暂停输注";
 
 /* No comment provided by engineer. */
@@ -96,3 +96,4 @@
 
 /* Describing the worldwide pump region */
 "World-Wide" = "全球";
+

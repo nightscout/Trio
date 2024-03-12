@@ -53,7 +53,7 @@
 "Comms Recovered" = "Komunikace obnovena";
 
 /* Help text for BeepPreferenceSelectionView */
-"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Ujištující upozornění jsou pípnutí podu, které lze použít k potvrzení zadaných příkazů.";
+"Confidence reminders are beeps from the pod which can be used to acknowledge selected commands." = "Ujištující upozornění jsou pípnutí podu, které lze použít k potvrzení zadaných příkazů.";
 
 /* The title of the configuration section in settings */
 "Configuration" = "Konfigurace";
@@ -100,7 +100,7 @@
    Text for discard pod button */
 "Discard Pod" = "Vyřadit pod";
 
-/* No comment provided by engineer. */
+/* Title of done button on OmnipodSettingsView */
 "Done" = "Hotovo";
 
 /* Title text for button to enable bolus beeps */
@@ -121,6 +121,9 @@
 
 /* description label for last status date pod details row */
 "Last Status" = "Poslední stav";
+
+/* Text body for page showing insulin uncertainty has been recovered. */
+"Loop has recovered communication with the pod on your body.\n\nInsulin delivery records have been updated and should match what has actually been delivered.\n\nYou may continue to use Loop normally now." = "Loop obnovil komunikaci s Vaším podem.\n\nZáznamy o dávkách inzulínu byly aktualizovány a měly by souhlasit s tím, co bylo ve skutečnosti dodáno.\n\nNyní můžete pokračovat v běžném používání Loopu.";
 
 /* Description text on manual temp basal action sheet */
 "Loop will not automatically adjust your insulin delivery until the temporary basal rate finishes or is canceled." = "Loop automaticky neupraví výdej inzulínu, dokud nastavení dočasné bazální dávky neskončí nebo nebude zrušeno.";

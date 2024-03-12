@@ -87,6 +87,9 @@
 /* Pod state when pod has been deactivated */
 "Deactivated" = "Deactivated";
 
+/* Button text to confirm Omnipod DASH PumpManager deletion */
+"Delete Omnipod DASH" = "מחק Ominipod DASH";
+
 /* Description for Empty reservoir pod fault */
 "Empty reservoir" = "Empty reservoir";
 
@@ -108,9 +111,6 @@
 /* navigation bar title for expiration reminder
    Title for ExpirationReminderSetupView */
 "Expiration Reminder" = "Expiration Reminder";
-
-/* Pod life HUD view label */
-"Fault" = "Fault";
 
 /* Description for finish setup */
 "Finish setup " = "Finish setup ";
@@ -140,10 +140,13 @@
 "Insulin Delivery" = "Insulin Delivery";
 
 /* The format string for Internal pod fault (1: The fault code value) */
-"Internal pod fault %1$03d" = "Internal pod fault %1$03d";
+"Internal pod fault %1$03d" = "תקלת פוד %1$03d";
 
 /* The format string describing a bolus that was interrupted. (1: The amount delivered)(2: The amount scheduled)(3: Start time of the dose)(4: duration)(5: scheduled certainty) */
 "InterruptedBolus: %1$@ U (%2$@ U scheduled) %3$@ %4$@ %5$@" = "InterruptedBolus: %1$@ U (%2$@ U scheduled) %3$@ %4$@ %5$@";
+
+/* description label for last status date pod details row */
+"Last Status" = "מצב אחרון";
 
 /* Description for low reservoir alarm */
 "Low reservoir advisory alarm" = "Low reservoir advisory alarm";
@@ -191,9 +194,6 @@
 /* Recover suggestion shown when no pod is paired */
 "Please pair a new pod" = "Please pair a new pod";
 
-/* Label describing pod age view */
-"Pod Age" = "Pod Age";
-
 /* Error message shown when user cannot pair because pod is already paired */
 "Pod already paired" = "Pod already paired";
 
@@ -238,12 +238,10 @@
 /* Pod state when ready for cannula insertion */
 "Ready to insert cannula" = "Ready to insert cannula";
 
-/* Label describing time remaining view
-   Label for remaining time of manual basal */
+/* Label for remaining time of manual basal */
 "Remaining" = "Remaining";
 
-/* Label indicating pod replacement necessary
-   Settings page link description when next lifecycle action is to replace pod */
+/* Settings page link description when next lifecycle action is to replace pod */
 "Replace Pod" = "Replace Pod";
 
 /* The format string describing a resume. (1: Time)(2: Scheduled certainty */
@@ -332,7 +330,7 @@
 "Unfinished deactivation" = "השבתה לא הושלמה";
 
 /* The format string for Unknown pod fault (1: The fault code value) */
-"Unknown pod fault %1$03d" = "Unknown pod fault %1$03d";
+"Unknown pod fault %1$03d" = "תקלת פוד לא ידועה %1$03d";
 
 /* Recovery suggestion when operation could not be completed due to existing bolus in progress */
 "Wait for existing bolus to finish, or cancel bolus" = "Wait for existing bolus to finish, or cancel bolus";

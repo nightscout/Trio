@@ -80,7 +80,7 @@
 /* Pump error code returned when command refused */
 "Command refused" = "Comandă refuzată";
 
-/* No comment provided by engineer. */
+/* Description for PumpOpsError.crosstalk */
 "Comms with another pump detected" = "S-a detectat o comunicare cu altă pompă.";
 
 /* Error description */
@@ -182,13 +182,13 @@
 /* The notification title for a low pump battery */
 "Pump Battery Low" = "Nivel scăzut baterie pompă";
 
-/* No comment provided by engineer. */
+/* Description for PumpOpsError.noResponse */
 "Pump did not respond" = "Pumpa nu a răspuns";
 
 /* Error description */
 "Pump Error" = "Eroare pompă";
 
-/* No comment provided by engineer. */
+/* Description for PumpOpsError.pumpSuspended */
 "Pump is suspended" = "Pompa este suspendată";
 
 /* Error description when failure due to pump suspended */

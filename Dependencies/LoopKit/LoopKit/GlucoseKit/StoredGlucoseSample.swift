@@ -10,6 +10,8 @@ import HealthKit
 public struct StoredGlucoseSample: GlucoseSampleValue, Equatable {
     public let uuid: UUID?  // Note this is the UUID from HealthKit.  Nil if not (yet) stored in HealthKit.
 
+    public static let defaultProvenanceIdentifier = "com.LoopKit.Loop"
+
     // MARK: - HealthKit Sync Support
 
     public let provenanceIdentifier: String
@@ -49,19 +51,19 @@ public struct StoredGlucoseSample: GlucoseSampleValue, Equatable {
     }
 
     public init(
-        uuid: UUID?,
-        provenanceIdentifier: String,
-        syncIdentifier: String?,
-        syncVersion: Int?,
+        uuid: UUID? = nil,
+        provenanceIdentifier: String = Self.defaultProvenanceIdentifier,
+        syncIdentifier: String? = nil,
+        syncVersion: Int? = nil,
         startDate: Date,
         quantity: HKQuantity,
-        condition: GlucoseCondition?,
-        trend: GlucoseTrend?,
-        trendRate: HKQuantity?,
-        isDisplayOnly: Bool,
-        wasUserEntered: Bool,
-        device: HKDevice?,
-        healthKitEligibleDate: Date?) {
+        condition: GlucoseCondition? = nil,
+        trend: GlucoseTrend? = nil,
+        trendRate: HKQuantity? = nil,
+        isDisplayOnly: Bool = false,
+        wasUserEntered: Bool = false,
+        device: HKDevice? = nil,
+        healthKitEligibleDate: Date? = nil) {
         self.uuid = uuid
         self.provenanceIdentifier = provenanceIdentifier
         self.syncIdentifier = syncIdentifier
@@ -100,8 +102,14 @@ extension StoredGlucoseSample {
 extension StoredGlucoseSample: Codable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.init(uuid: try container.decodeIfPresent(UUID.self, forKey: .uuid),
-                  provenanceIdentifier: try container.decode(String.self, forKey: .provenanceIdentifier),
+
+        let uuid = try container.decodeIfPresent(UUID.self, forKey: .uuid)
+        let provenanceIdentifier = try container.decodeIfPresent(String.self, forKey: .provenanceIdentifier) ?? Self.defaultProvenanceIdentifier
+        let wasUserEntered = try container.decodeIfPresent(Bool.self, forKey: .wasUserEntered) ?? false
+        let isDisplayOnly = try container.decodeIfPresent(Bool.self, forKey: .isDisplayOnly) ?? false
+
+        self.init(uuid: uuid,
+                  provenanceIdentifier: provenanceIdentifier,
                   syncIdentifier: try container.decodeIfPresent(String.self, forKey: .syncIdentifier),
                   syncVersion: try container.decodeIfPresent(Int.self, forKey: .syncVersion),
                   startDate: try container.decode(Date.self, forKey: .startDate),
@@ -109,8 +117,8 @@ extension StoredGlucoseSample: Codable {
                   condition: try container.decodeIfPresent(GlucoseCondition.self, forKey: .condition),
                   trend: try container.decodeIfPresent(GlucoseTrend.self, forKey: .trend),
                   trendRate: try container.decodeIfPresent(Double.self, forKey: .trendRate).map { HKQuantity(unit: .milligramsPerDeciliterPerMinute, doubleValue: $0) },
-                  isDisplayOnly: try container.decode(Bool.self, forKey: .isDisplayOnly),
-                  wasUserEntered: try container.decode(Bool.self, forKey: .wasUserEntered),
+                  isDisplayOnly: isDisplayOnly,
+                  wasUserEntered: wasUserEntered,
                   device: try container.decodeIfPresent(CodableDevice.self, forKey: .device).map { $0.device },
                   healthKitEligibleDate: try container.decodeIfPresent(Date.self, forKey: .healthKitEligibleDate))
     }
@@ -118,7 +126,9 @@ extension StoredGlucoseSample: Codable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encodeIfPresent(uuid, forKey: .uuid)
-        try container.encode(provenanceIdentifier, forKey: .provenanceIdentifier)
+        if provenanceIdentifier != Self.defaultProvenanceIdentifier {
+            try container.encode(provenanceIdentifier, forKey: .provenanceIdentifier)
+        }
         try container.encodeIfPresent(syncIdentifier, forKey: .syncIdentifier)
         try container.encodeIfPresent(syncVersion, forKey: .syncVersion)
         try container.encode(startDate, forKey: .startDate)
@@ -126,8 +136,12 @@ extension StoredGlucoseSample: Codable {
         try container.encodeIfPresent(condition, forKey: .condition)
         try container.encodeIfPresent(trend, forKey: .trend)
         try container.encodeIfPresent(trendRate?.doubleValue(for: .milligramsPerDeciliterPerMinute), forKey: .trendRate)
-        try container.encode(isDisplayOnly, forKey: .isDisplayOnly)
-        try container.encode(wasUserEntered, forKey: .wasUserEntered)
+        if isDisplayOnly {
+            try container.encode(isDisplayOnly, forKey: .isDisplayOnly)
+        }
+        if wasUserEntered {
+            try container.encode(wasUserEntered, forKey: .wasUserEntered)
+        }
         try container.encodeIfPresent(device.map { CodableDevice($0) }, forKey: .device)
         try container.encodeIfPresent(healthKitEligibleDate, forKey: .healthKitEligibleDate)
     }

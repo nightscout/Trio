@@ -20,7 +20,7 @@ public struct G7GlucoseMessage: SensorMessage, Equatable {
     public let sequence: UInt16
     public let trend: Double?
     public let data: Data
-    public let age: UInt8 // Amount of time elapsed (seconds) from sensor reading to BLE comms
+    public let age: UInt16 // Amount of time elapsed (seconds) from sensor reading to BLE comms
 
     public var hasReliableGlucose: Bool {
         return algorithmState.hasReliableGlucose
@@ -68,12 +68,12 @@ public struct G7GlucoseMessage: SensorMessage, Equatable {
     }
 
     init?(data: Data) {
-        //    0  1  2 3 4 5  6 7  8  9 10 11 1213 14 15 1617 18
-        //         TTTTTTTT SQSQ       AG    BGBG SS TR PRPR C
-        // 0x4e 00 d5070000 0900 00 01 05 00 6100 06 01 ffff 0e
+        //    0  1  2 3 4 5  6 7  8  9 1011 1213 14 15 1617 18
+        //         TTTTTTTT SQSQ       AGAG BGBG SS TR PRPR C
+        // 0x4e 00 d5070000 0900 00 01 0500 6100 06 01 ffff 0e
         // TTTTTTTT = timestamp
         //     SQSQ = sequence
-        //       AG = age
+        //     AGAG = age
         //     BGBG = glucose
         //       SS = algorithm state
         //       TR = trend
@@ -92,7 +92,7 @@ public struct G7GlucoseMessage: SensorMessage, Equatable {
 
         sequence = data[6..<8].to(UInt16.self)
 
-        age = data[10]
+        age = data[10..<12].to(UInt16.self)
 
         let glucoseData = data[12..<14].to(UInt16.self)
         if glucoseData != 0xffff {

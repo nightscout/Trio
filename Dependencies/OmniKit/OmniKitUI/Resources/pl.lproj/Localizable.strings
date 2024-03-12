@@ -7,9 +7,6 @@
 /* Unit format string for an RSSI value in decibles */
 "%@ dB" = "%@ dB";
 
-/* No comment provided by engineer. */
-"%@ has recovered communication with the pod on your body.\n\nInsulin delivery records have been updated and should match what has actually been delivered.\n\nYou may continue to use %@ normally now." = "%1$@ odzyskał łączność z POD'em, na twoim ciele. \n\nLogi podawania insuliny zostały zaktualizowane i powinny być zgodne z faktycznie podanymi. \n\nMożesz nadal normalnie używać %2$@ .";
-
 /* Format string for delivered insulin. (1: The localized amount)
    Format string for insulin remaining in reservoir. (1: The localized amount) */
 "%@ U" = "%@ J";
@@ -21,7 +18,7 @@
 "%@ U of %@ U (%@)" = "%1$@ J z %2$@ J (%3$@)";
 
 /* Format string for temp basal rate. (1: The localized amount) */
-"%@ U/hour" = "%@ J/godzina";
+"%@ U/hour" = "%@ J/godzinę";
 
 /* Appends a full-stop to a statement */
 "%@." = "%@.";
@@ -45,7 +42,7 @@
 "%1$@ units remaining at %2$@" = "%1$@ jednostek pozostaje w %2$@";
 
 /* Format string providing instructions for replacing pod due to a fault. (1: The fault description) */
-"%1$@. Insulin delivery has stopped. Please deactivate and remove pod." = "%1$@. Podawanie insuliny zostało zatrzymane. Deaktywuj i zdejmij PODa";
+"%1$@. Insulin delivery has stopped. Please deactivate and remove pod." = "%1$@. Podawanie insuliny zostało zatrzymane. Deaktywuj i zdejmij POD'a";
 
 /* The format string for displaying an offset from a time zone: (1: GMT)(2: -)(3: 4:00) */
 "%1$@%2$@%3$@" = "%1$@%2$@%3$@";
@@ -84,7 +81,7 @@
 "Are you sure you want to cancel Pod setup?" = "Czy na pewno chcesz anulować konfigurację POD'a?";
 
 /* Confirmation message for shutting down a pod */
-"Are you sure you want to shutdown this pod?" = "Czy na pewno chcesz wyłączyć tego PODa?";
+"Are you sure you want to shutdown this pod?" = "Czy na pewno chcesz wyłączyć tego POD'a?";
 
 /* No comment provided by engineer. */
 "Are you sure you want to skip Omnipod Onboarding?" = "Czy na pewno chcesz pominąć instalację Omnipod’a?";
@@ -153,7 +150,7 @@
 "Confidence Reminders" = "Przypomnienia (sygnały dźwiękowe) z POD'a";
 
 /* Help text for BeepPreferenceSelectionView */
-"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced.";
+"Confidence reminders are beeps from the pod which can be used to acknowledge selected commands." = "Przypomnienia potwierdzające to sygnały dźwiękowe, z których można korzystać w celu potwierdzania wybranych poleceń.";
 
 /* The title of the configuration section in settings */
 "Configuration" = "Konfiguracja";
@@ -178,9 +175,6 @@
 
 /* Button title to deactivate pod because of fault during setup */
 "Deactivate" = "Dezaktywuj";
-
-/* Action button description for deactivate while pod still active */
-"Slide to Deactivate Pod" = "Slide to Deactivate Pod";
 
 /* Button title for pod deactivation
    Button title to deactivate pod */
@@ -218,7 +212,7 @@
    Text for discard pod button */
 "Discard Pod" = "Odrzuć POD'a";
 
-/* No comment provided by engineer. */
+/* Title of done button on OmnipodSettingsView */
 "Done" = "Gotowe";
 
 /* Title text for button to enable bolus beeps */
@@ -282,7 +276,7 @@
 "Finish deactivation" = "Zakończ dezaktywację";
 
 /* The title of the command to finish pod setup */
-"Finish pod setup" = "Zakończ konfigurację PODa";
+"Finish pod setup" = "Zakończ konfigurację POD'a";
 
 /* Action button title to continue at Setup Complete */
 "Finish Setup" = "Zakończ konfigurację";
@@ -300,10 +294,10 @@
 "If you cancel Pod setup, the current Pod will be deactivated and will be unusable." = "Jeśli anulujesz konfigurację POD'a, bieżący POD zostanie dezaktywowany i nie będzie można go używać.";
 
 /* Instructions when deactivating pod that has been paired, but not attached. */
-"Incompletely set up pod must be deactivated before pairing with a new one. Please deactivate and discard pod." = "Niekompletną konfigurację PODa należy deaktywować przed sparowaniem z nowym. Deaktywuj i wyrzuć PODa.";
+"Incompletely set up pod must be deactivated before pairing with a new one. Please deactivate and discard pod." = "Niekompletnie skonfigurowanego POD'a należy deaktywować przed sparowaniem z nowym. Deaktywuj i usuń POD'a.";
 
 /* Instructions when deactivating pod that has been paired and possibly attached. */
-"Incompletely set up pod must be deactivated before pairing with a new one. Please deactivate and remove pod." = "Niekompletną konfigurację PODa należy deaktywować przed sparowaniem z nowym. Deaktywuj i usuń PODa.";
+"Incompletely set up pod must be deactivated before pairing with a new one. Please deactivate and remove pod." = "Niekompletnie skonfigurowanego POD'a należy deaktywować przed sparowaniem z nowym. Deaktywuj i usuń POD'a.";
 
 /* Button title to insert cannula during setup */
 "Insert Cannula" = "Wprowadź kaniulę";
@@ -318,13 +312,13 @@
 "Inserting..." = "Wprowadzanie...";
 
 /* Text shown in insulin delivery space when insulin suspended */
-"Insulin\nSuspended" = "Podawanie insuliny zawieszone";
+"Insulin\nSuspended" = "Podawanie\nzawieszone";
 
 /* The title of the cell showing delivered insulin */
 "Insulin Delivered" = "Insulina podana";
 
 /* Title of insulin delivery section */
-"Insulin Delivery" = "Insulin Delivery";
+"Insulin Delivery" = "Podaż insuliny";
 
 /* The action string on pod status page when pod faulted */
 "Insulin delivery stopped. Change Pod now." = "Podawanie insuliny zostało zatrzymane. Wymień POD'a.";
@@ -350,6 +344,9 @@
 
 /* description label for last status date pod details row */
 "Last Status" = "Ostatni status";
+
+/* Text body for page showing insulin uncertainty has been recovered. */
+"Loop has recovered communication with the pod on your body.\n\nInsulin delivery records have been updated and should match what has actually been delivered.\n\nYou may continue to use Loop normally now." = "Loop odzyskał łączność z POD'em na twoim ciele. \n\nPodane dawki insuliny zostały zaktualizowane i powinny być zgodne z faktycznie dostarczonymi. \n\nMożesz teraz normalnie korzystać z Loop.";
 
 /* Description text on manual temp basal action sheet */
 "Loop will not automatically adjust your insulin delivery until the temporary basal rate finishes or is canceled." = "Pętla nie będzie automatycznie dostosowywać dawki insuliny, dopóki tymczasowa dawka podstawowa nie zakończy się lub nie zostanie anulowana.";
@@ -409,7 +406,7 @@
 "No, Continue With Pod" = "Nie, kontynuuj parowanie z POD'em";
 
 /* Button text to cancel pump time sync */
-"No, Keep Pump As Is" = "Nie, pozostaw pompę bez zmian";
+"No, Keep Pump As Is" = "Nie, pozostaw bez zmian";
 
 /* The detail text for bolus delivery when no bolus is being delivered */
 "None" = "Brak";
@@ -428,7 +425,7 @@
 "Pair" = "Paruj";
 
 /* The title of the command to pair new pod */
-"Pair New Pod" = "Sparuj nowego PODa";
+"Pair New Pod" = "Sparuj nowego POD'a";
 
 /* Navigation bar title for PairPodView
    Pod pairing action button text while ready to pair
@@ -447,6 +444,9 @@
 
 /* Pod pairing action button text while pairing */
 "Pairing..." = "Parowanie…";
+
+/* The text of the loading label when pairing */
+"Pairing…" = "Parowanie…";
 
 /* No comment provided by engineer. */
 "Percent = %lf" = "Procent = %lf";
@@ -480,7 +480,7 @@
 "Pod Age" = "Wiek POD'a";
 
 /* Deactivate pod action button accessibility label when deactivation complete */
-"Pod deactivated successfully. Continue." = "POD został dezaktywowany pomyślnie. Kontynuować.";
+"Pod deactivated successfully. Continue." = "POD został pomyślnie dezaktywowany. Kontynuować.";
 
 /* Error message for reservoir view during general pod fault */
 "Pod Error" = "Błąd POD'a";
@@ -508,7 +508,7 @@
 "Pod paired successfully. Continue." = "Pod został pomyślnie sparowany. Kontynuować.";
 
 /* Title of the pod settings view controller */
-"Pod Settings" = "Ustawienia PODa";
+"Pod Settings" = "Ustawienia POD'a";
 
 /* Title for PodSetupView */
 "Pod Setup" = "Konfiguracja POD'a";
@@ -550,14 +550,14 @@
 "Remove Pump" = "Usuń pompę";
 
 /* Label text for step two of attach pod instructions */
-"Remove the Pod's clear needle cap and check cannula. Then remove paper backing." = "Remove the Pod's clear needle cap and check cannula. Then remove paper backing.";
+"Remove the pod's needle cap and check cannula. Then remove paper backing." = "Usuń osłonę igły i sprawdź kaniulę. Następnie usuń papierowe zabezpieczenie kleju.";
 
 /* Label indicating pod replacement necessary
    The title of the command to replace pod */
 "Replace Pod" = "Wymień POD'a";
 
 /* The title of the command to replace pod when there is a pod fault */
-"Replace Pod Now" = "Wymień PODa teraz";
+"Replace Pod Now" = "Wymień POD'a teraz";
 
 /* The title of the cell showing reservoir status */
 "Reservoir" = "Zbiorniczek";
@@ -574,7 +574,7 @@
 "Retry" = "Spróbuj ponownie";
 
 /* Button title for retrying pod deactivation */
-"Retry Pod Deactivation" = "Ponów deaktywację PODa";
+"Retry Pod Deactivation" = "Ponów deaktywację POD'a";
 
 /* bodyText for RileyLinkSetupView */
 "RileyLink allows for communication with the pump over Bluetooth" = "RileyLink umożliwia komunikację z pompą przez Bluetooth";
@@ -603,7 +603,7 @@
 "Scheduled Reminder" = "Zaplanowane przypomnienie";
 
 /* Title text for insulin type confirmation page */
-"Select the type of insulin that you will be using in this pod." = "Wybierz rodzaj insuliny, której będziesz używać w tym POD.";
+"Select the type of insulin that you will be using in this pod." = "Wybierz rodzaj insuliny, której będziesz używać w tym POD'dzie.";
 
 /* description label for sequence number pod details row */
 "Sequence Number" = "Numer sekwencji";
@@ -687,7 +687,7 @@
 "The reminders above will not sound if your device is in Silent or Do Not Disturb mode.\n\nThere are other critical Pod alerts and alarms that will sound even if your device is set to Silent or Do Not Disturb mode." = "Powyższe przypomnienia nie będą się pojawiały, jeśli urządzenie jest w trybie cichym lub nie przeszkadzać. \n\nIstnieją inne krytyczne alerty i alarmy POD'ów, które będą emitowane, nawet jeśli urządzenie jest ustawione w trybie cichym lub nie przeszkadzać.";
 
 /* Message for pod sync time action sheet */
-"The time on your pump is different from the current time. Do you want to update the time on your pump to the current time?" = "Czas na pompie różni się od aktualnego czasu. Czy chcesz zaktualizować czas na pompie do aktualnego czasu?";
+"The time on your pump is different from the current time. Do you want to update the time on your pump to the current time?" = "Czas na pompie różni się od aktualnego. Czy chcesz zaktualizować czas na pompie?";
 
 /* description for time change detected notice */
 "The time on your pump is different from the current time. Your pump’s time controls your scheduled therapy settings. Scroll down to Pump Time row to review the time difference and configure your pump." = "Czas na pompie różni się od aktualnego czasu. Czas pompy steruje ustawieniami zaplanowanej terapii. Przewiń w dół do wiersza Czas pompy, aby przejrzeć różnicę czasu i skonfigurować pompę.";
@@ -723,14 +723,16 @@
 "Total Delivery" = "Łącznie podano";
 
 /* Units for showing temp basal rate */
-"U/hr" = "J/godz";
+"U/hr" = "J/h";
 
 /* Instructions when pod cannot be deactivated */
-"Unable to deactivate pod. Please continue and pair a new one." = "Deaktywacja PODa niemożliwa. Kontynuuj i sparuj nowy.";
+"Unable to deactivate pod. Please continue and pair a new one." = "Deaktywacja POD'a niemożliwa. Kontynuuj i sparuj nowy.";
 
 /* Title of delivery uncertainty recovery page */
 "Unable to Reach Pod" = "Nie można połączyć się z Podem";
 
+/* Title for pending command recovery screen */
+"Unable To Reach Pod" = "Nie można połączyć się z Podem";
 
 /* Alert format string for a failure to set temporary basal. (1: error description) */
 "Unable to set a temporary basal rate: %1$@" = "Nie można ustawić tymczasowej dawki podstawowej: %1$@";
@@ -763,45 +765,8 @@
 "You will now begin the process of configuring your reminders, filling your Pod with insulin, pairing to your device and placing it on your body." = "Rozpoczynasz proces konfigurowania przypomnień (dźwięków emitowanych przez POD'a), napełniania POD'a insuliną, parowania z telefonem i umieszczania go na ciele.";
 
 /* Format string for instructions for setup complete view. (1: app name) */
-"Your Pod is ready for use.\n\n%1$@ will remind you to change your pod before it expires. You can change this to a time convenient for you." = "Twój POD jest gotowy do użycia. \n\n%1$@ przypomni Ci o zmianie POD'a przed jego wygaśnięciem. Możesz dokonać zmiany na dogodny dla Ciebie termin.";
+"Your Pod is ready for use.\n\n%1$@ will remind you to change your pod before it expires. You can change this to a time convenient for you." = "Twój POD jest gotowy do użycia. \n\n%1$@ przypomni Ci o zmianie POD'a przed jego wygaśnięciem. Możesz zmienić termin przypomnienia.";
 
 /* Alert message body for confirm pod attachment */
 "Your Pod may still be delivering Insulin.\nRemove it from your body, then tap “Continue.“" = "Twój POD może nadal dostarczać insulinę.\nUsuń go z ciała, a następnie wybierz \"Kontynuuj\".";
 
-/* Title string for SilencePodPreference.enabled */
-"Silenced" = "Silenced";
-
-/* Description for SilencePodPreference.disabled */
-"Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled." = "Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled.";
-
-/* Description for SilencePodPreference.enabled */
-"All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts." = "All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts.";
-
-/* Help text for Silence Pod view */
-/* navigation title for Silnce Pod" */
-
-"Silence Pod mode suppresses all Pod alert and confirmation reminder beeping.
-Silence Pod" = "Silence Pod";
-
-/* title for pod details page */
-"Pod Details" = "Pod Details";
-
-/* Text for previous pod details row" */
-"Previous Pod Details" = "Previous Pod Details";
-
-/* Text for pump manager details navigation link */
-"Pump Manager Details" = "Pump Manager Details";
-
-/* button title when retrieving pump manager details */
-"Retrieving Pump Manager Details..." = "Retrieving Pump Manager Details...";
-/* button title to refresh pump manager details */
-"Refresh Pump Manager Details" = "Refresh Pump Manager Details";
-
-/* Alert title for error when updating silence pod preference */
-"Failed to update silence pod preference." = "Failed to update silence pod preference.";
-
-/* Section header for diagnostic section */
-"Diagnostics" = "Diagnostics";
-
-/* Text for read pod status navigation link */
-"Read Pod Status" = "Read Pod Status";

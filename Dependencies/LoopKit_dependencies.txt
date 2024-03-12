@@ -1,0 +1,30 @@
+LoopKit dependencies are copied from LoopWorkspace dev:
+ce74cf4 Bring in OmniBLE updates
+
+CGMBLEKit:
+4eb3c94 Updated translations from Lokalise on Sun Oct 22 11:55:50 CDT 2023 (#190)
+
+dexcom-share-client-swift:
+0f93513 Merge pull request #41 from LoopKit/tidepool-sync
+
+G7SensorKit:
+83d8aaf Merge pull request #20 from LoopKit/tidepool-sync
+
+LibreTransmitter:
+c01eba6 Merge pull request #13 from LoopKit/translations
+
+LoopKit:
+2f535b3 Add Simulator Settings Row to DIY version for pump and CGM simulators (#525)
+
+MinimedKit:
+d29ee36 Updated translations from Lokalise on Sun Oct 22 11:55:50 CDT 2023 (#11)
+
+OmniBLE:
+bfe2795 Improved verification and checking to prevent possible 0x31 pod faults (#110)
+
+OmniKit:
+a78fdcd Pod setup restart fixes and improvements (Loop issue #2117) (#27)
+
+RileyLinkKit:
+a0e419d Update build settings to avoid macos build during translation import
+

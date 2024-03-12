@@ -1,0 +1,1646 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 54;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		270C1429266047490063405B /* NotificationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 270C1428266047490063405B /* NotificationSettingsView.swift */; };
+		271A39F52975844B0005FEDA /* NotificationHelperOverride.swift in Sources */ = {isa = PBXBuildFile; fileRef = 271A39F42975844B0005FEDA /* NotificationHelperOverride.swift */; };
+		2735A6E029637DEA00D4E868 /* LibreTransmitter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 432B0E881CDFC3C50045347B /* LibreTransmitter.framework */; };
+		2735A6E129637DEA00D4E868 /* LibreTransmitter.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 432B0E881CDFC3C50045347B /* LibreTransmitter.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		2735A6E429637DEA00D4E868 /* LibreTransmitterUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43A8EC82210E664300A81379 /* LibreTransmitterUI.framework */; };
+		2735A6E529637DEA00D4E868 /* LibreTransmitterUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 43A8EC82210E664300A81379 /* LibreTransmitterUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		27394069296C2A48001DD18D /* libresensor200.png in Resources */ = {isa = PBXBuildFile; fileRef = 27394068296C2A48001DD18D /* libresensor200.png */; };
+		273BFDB925A73C580042E1EC /* LibreTransmitter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 432B0E881CDFC3C50045347B /* LibreTransmitter.framework */; };
+		274557C82979EA38003B027B /* LoggerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 274557C72979EA38003B027B /* LoggerExtension.swift */; };
+		274557C92979EA38003B027B /* LoggerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 274557C72979EA38003B027B /* LoggerExtension.swift */; };
+		2746C73C26D91FC900E31BD9 /* Libre2DirectTransmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2746C73B26D91FC900E31BD9 /* Libre2DirectTransmitter.swift */; };
+		2746C73F26DCF83700E31BD9 /* Features.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2746C73D26DCF83400E31BD9 /* Features.swift */; };
+		2746C74226DD0F8800E31BD9 /* Libre2DirectSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2746C74126DD0F8800E31BD9 /* Libre2DirectSetup.swift */; };
+		274E71D3297ED77300FCFECD /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 274E71D2297ED77300FCFECD /* AuthView.swift */; };
+		274E71D52986D4A600FCFECD /* CriticalAlarmsVolumeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 274E71D42986D4A600FCFECD /* CriticalAlarmsVolumeView.swift */; };
+		275786AB26753CC400845D0E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 275786AA26753CC400845D0E /* SettingsView.swift */; };
+		275EC993265AEE970043210E /* NumericTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 275EC992265AEE970043210E /* NumericTextField.swift */; };
+		275EC998265AF64E0043210E /* StatusMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 275EC997265AF64E0043210E /* StatusMessage.swift */; };
+		275EC9AB265EDC280043210E /* GlucoseSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 275EC9AA265EDC280043210E /* GlucoseSettingsView.swift */; };
+		2764E86126FC6DC10016A585 /* Features.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2746C73D26DCF83400E31BD9 /* Features.swift */; };
+		276EF5E7264B1FCE00571021 /* AlarmSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 276EF5E6264B1FCE00571021 /* AlarmSettingsView.swift */; };
+		276EF5F22652F84F00571021 /* HashableClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 276EF5F12652F84F00571021 /* HashableClass.swift */; };
+		277773A72639EF2B00431547 /* BlueButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 277773A62639EF2B00431547 /* BlueButtonStyle.swift */; };
+		277773AC2639EFB800431547 /* ErrorTextFieldStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 277773AB2639EFB800431547 /* ErrorTextFieldStyle.swift */; };
+		277773B62639F51300431547 /* CustomDataPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 277773B52639F51300431547 /* CustomDataPickerView.swift */; };
+		27850CE725672C0C0020D109 /* DataExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850CD925672C0C0020D109 /* DataExtensions.swift */; };
+		27850CE925672C0C0020D109 /* TimeIntervalExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850CDA25672C0C0020D109 /* TimeIntervalExtensions.swift */; };
+		27850CEA25672C0C0020D109 /* TimeIntervalExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850CDA25672C0C0020D109 /* TimeIntervalExtensions.swift */; };
+		27850CEB25672C0C0020D109 /* DoubleExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850CDB25672C0C0020D109 /* DoubleExtensions.swift */; };
+		27850CEC25672C0C0020D109 /* DoubleExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850CDB25672C0C0020D109 /* DoubleExtensions.swift */; };
+		27850CED25672C0C0020D109 /* DateExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850CDC25672C0C0020D109 /* DateExtensions.swift */; };
+		27850CEE25672C0C0020D109 /* DateExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850CDC25672C0C0020D109 /* DateExtensions.swift */; };
+		27850CEF25672C0C0020D109 /* CollectionExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850CDD25672C0C0020D109 /* CollectionExtensions.swift */; };
+		27850CF025672C0C0020D109 /* CollectionExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850CDD25672C0C0020D109 /* CollectionExtensions.swift */; };
+		27850CF125672C0C0020D109 /* LocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850CDE25672C0C0020D109 /* LocalizedString.swift */; };
+		27850CF225672C0C0020D109 /* LocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850CDE25672C0C0020D109 /* LocalizedString.swift */; };
+		27850CF325672C0C0020D109 /* UserDefaults+GlucoseSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850CE025672C0C0020D109 /* UserDefaults+GlucoseSettings.swift */; };
+		27850CF425672C0C0020D109 /* UserDefaults+GlucoseSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850CE025672C0C0020D109 /* UserDefaults+GlucoseSettings.swift */; };
+		27850CF525672C0C0020D109 /* UserDefaults+Alarmsettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850CE125672C0C0020D109 /* UserDefaults+Alarmsettings.swift */; };
+		27850CF625672C0C0020D109 /* UserDefaults+Alarmsettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850CE125672C0C0020D109 /* UserDefaults+Alarmsettings.swift */; };
+		27850CF725672C0C0020D109 /* UserDefaults+Bluetooth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850CE225672C0C0020D109 /* UserDefaults+Bluetooth.swift */; };
+		27850CF825672C0C0020D109 /* UserDefaults+Bluetooth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850CE225672C0C0020D109 /* UserDefaults+Bluetooth.swift */; };
+		27850CF925672C0C0020D109 /* UIApplication+metadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850CE325672C0C0020D109 /* UIApplication+metadata.swift */; };
+		27850CFA25672C0C0020D109 /* UIApplication+metadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850CE325672C0C0020D109 /* UIApplication+metadata.swift */; };
+		27850CFB25672C0C0020D109 /* GlucoseSchedules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850CE425672C0C0020D109 /* GlucoseSchedules.swift */; };
+		27850CFC25672C0C0020D109 /* GlucoseSchedules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850CE425672C0C0020D109 /* GlucoseSchedules.swift */; };
+		27850CFD25672C0C0020D109 /* HKUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850CE525672C0C0020D109 /* HKUnit.swift */; };
+		27850CFE25672C0C0020D109 /* HKUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850CE525672C0C0020D109 /* HKUnit.swift */; };
+		27850D0E25672CA60020D109 /* ConcreteGlucoseDisplayable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850D0B25672CA60020D109 /* ConcreteGlucoseDisplayable.swift */; };
+		27850D1025672CA60020D109 /* LibreGlucose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850D0C25672CA60020D109 /* LibreGlucose.swift */; };
+		27850D1225672CA60020D109 /* NotificationHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850D0D25672CA60020D109 /* NotificationHelper.swift */; };
+		27850D4E25672DFB0020D109 /* LibreTransmitterSetupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850D2425672DFB0020D109 /* LibreTransmitterSetupViewController.swift */; };
+		27850D6325672DFB0020D109 /* miaomiao-small.png in Resources */ = {isa = PBXBuildFile; fileRef = 27850D4025672DFB0020D109 /* miaomiao-small.png */; };
+		27850D6425672DFB0020D109 /* libresensor.png in Resources */ = {isa = PBXBuildFile; fileRef = 27850D4125672DFB0020D109 /* libresensor.png */; };
+		27850D6525672DFB0020D109 /* bubble.png in Resources */ = {isa = PBXBuildFile; fileRef = 27850D4225672DFB0020D109 /* bubble.png */; };
+		27850D6925672DFB0020D109 /* icons8-up-50.png in Resources */ = {isa = PBXBuildFile; fileRef = 27850D4625672DFB0020D109 /* icons8-up-50.png */; };
+		27850D6A25672DFB0020D109 /* icons8-down-arrow-50.png in Resources */ = {isa = PBXBuildFile; fileRef = 27850D4725672DFB0020D109 /* icons8-down-arrow-50.png */; };
+		27850D6C25672DFB0020D109 /* SnoozeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850D4A25672DFB0020D109 /* SnoozeView.swift */; };
+		27850D6D25672DFB0020D109 /* BluetoothSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850D4B25672DFB0020D109 /* BluetoothSelection.swift */; };
+		27850D9125672F020020D109 /* CBPeripheralExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850BC7256725E70020D109 /* CBPeripheralExtensions.swift */; };
+		27850D9225672F020020D109 /* LibreTransmitterMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850BC6256725E70020D109 /* LibreTransmitterMetadata.swift */; };
+		27850D9825672F130020D109 /* BubbleTransmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850BCC256725E80020D109 /* BubbleTransmitter.swift */; };
+		27850D9E25672F170020D109 /* UUIDContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850BCE256725E80020D109 /* UUIDContainer.swift */; };
+		27850D9F25672F190020D109 /* LibreTransmitterProxyProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850BCB256725E80020D109 /* LibreTransmitterProxyProtocol.swift */; };
+		27850DA525672F1C0020D109 /* LibreTransmitterProxyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850BCD256725E80020D109 /* LibreTransmitterProxyManager.swift */; };
+		27850DA625672F1E0020D109 /* MiaomiaoTransmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850BCA256725E70020D109 /* MiaomiaoTransmitter.swift */; };
+		27850DB825672F4B0020D109 /* Calibration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850BA1256724EF0020D109 /* Calibration.swift */; };
+		27850DBE25672F530020D109 /* LibreError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850BA0256724EF0020D109 /* LibreError.swift */; };
+		27850DC425672F640020D109 /* GlucoseSmoothing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850BA5256724F00020D109 /* GlucoseSmoothing.swift */; };
+		27850DC525672F640020D109 /* GlucoseFromRaw.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850BA4256724EF0020D109 /* GlucoseFromRaw.swift */; };
+		27850DCB25672F770020D109 /* SensorSerialNumber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850BAC256724F10020D109 /* SensorSerialNumber.swift */; };
+		27850DCC25672F770020D109 /* Measurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850BA8256724F00020D109 /* Measurement.swift */; };
+		27850DCD25672F780020D109 /* SensorState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850BAD256724F10020D109 /* SensorState.swift */; };
+		27850DCE25672F780020D109 /* SensorData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850BAA256724F00020D109 /* SensorData.swift */; };
+		27850DCF25672F780020D109 /* CRC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850BAB256724F10020D109 /* CRC.swift */; };
+		27850DD025672F780020D109 /* PreLibre2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850BA9256724F00020D109 /* PreLibre2.swift */; };
+		27850E4B25673CE60020D109 /* miaomiao-small.png in Resources */ = {isa = PBXBuildFile; fileRef = 27850D4025672DFB0020D109 /* miaomiao-small.png */; };
+		27850E5125673CF40020D109 /* libresensor.png in Resources */ = {isa = PBXBuildFile; fileRef = 27850D4125672DFB0020D109 /* libresensor.png */; };
+		27850E5725673CF70020D109 /* bubble.png in Resources */ = {isa = PBXBuildFile; fileRef = 27850D4225672DFB0020D109 /* bubble.png */; };
+		2793EBE6260BDE43001A35A3 /* CalibrationEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2793EBE5260BDE43001A35A3 /* CalibrationEditView.swift */; };
+		27A5912726E0E32C00A7EE36 /* ModeSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27A5912626E0E32C00A7EE36 /* ModeSelectionView.swift */; };
+		27B2150526E2C4EB000C322D /* Sensor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27B2150326E2BDBB000C322D /* Sensor.swift */; };
+		27DD8F23268FA0F500649010 /* TransmitterInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27DD8F22268FA0F500649010 /* TransmitterInfo.swift */; };
+		27DD8F24268FA13F00649010 /* HashableClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 276EF5F12652F84F00571021 /* HashableClass.swift */; };
+		27DD8F26268FA75A00649010 /* SensorInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27DD8F25268FA75A00649010 /* SensorInfo.swift */; };
+		27DD8F28268FA79800649010 /* GlucoseInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27DD8F27268FA79800649010 /* GlucoseInfo.swift */; };
+		27DD8F2A269106A100649010 /* ViewExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27DD8F29269106A100649010 /* ViewExtensions.swift */; };
+		27ED67B82698EF38003E5DAB /* AlarmStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27ED67B72698EF38003E5DAB /* AlarmStatus.swift */; };
+		27ED67BA26990D6B003E5DAB /* GenericObservableObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27ED67B926990D6B003E5DAB /* GenericObservableObject.swift */; };
+		27F93B2A2816B7FF00EE39A7 /* LibreTransmitterManager+Libre2EU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27F93B292816B7FF00EE39A7 /* LibreTransmitterManager+Libre2EU.swift */; };
+		27F93B2C2816B93900EE39A7 /* LibreTransmitterManager+Transmitters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27F93B2B2816B93900EE39A7 /* LibreTransmitterManager+Transmitters.swift */; };
+		27FED6CC26C275A8001BD5E4 /* ic_bubble_mini_3-2.png in Resources */ = {isa = PBXBuildFile; fileRef = 27FED6CB26C275A8001BD5E4 /* ic_bubble_mini_3-2.png */; };
+		27FED6CD26C275A8001BD5E4 /* ic_bubble_mini_3-2.png in Resources */ = {isa = PBXBuildFile; fileRef = 27FED6CB26C275A8001BD5E4 /* ic_bubble_mini_3-2.png */; };
+		432B0E8C1CDFC3C50045347B /* LibreTransmitter.h in Headers */ = {isa = PBXBuildFile; fileRef = 432B0E8B1CDFC3C50045347B /* LibreTransmitter.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		43A8EC7C210E661400A81379 /* LoopKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43A8EC7B210E661400A81379 /* LoopKit.framework */; };
+		43A8EC86210E664300A81379 /* LibreTransmitterUI.h in Headers */ = {isa = PBXBuildFile; fileRef = 43A8EC84210E664300A81379 /* LibreTransmitterUI.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		43A8EC8A210E664C00A81379 /* LoopKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43A8EC7B210E661400A81379 /* LoopKit.framework */; };
+		43A8EC8C210E665700A81379 /* LoopKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43A8EC8B210E665600A81379 /* LoopKitUI.framework */; };
+		43A8EC91210E676500A81379 /* LibreTransmitterManager+UI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43A8EC8E210E676500A81379 /* LibreTransmitterManager+UI.swift */; };
+		43A8EC95210E67B000A81379 /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43A8EC94210E67B000A81379 /* HealthKit.framework */; };
+		43A8EC9D210E68CE00A81379 /* LibreTransmitterManagerV3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43A8EC9C210E68CE00A81379 /* LibreTransmitterManagerV3.swift */; };
+		43AB511B21330D1400B3D58D /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 43AB511921330D1400B3D58D /* Localizable.strings */; };
+		43AB5127213315D300B3D58D /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 43AB5125213315D300B3D58D /* Localizable.strings */; };
+		B40BF26623ABD4E700A43CEE /* LibreTransmitterPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40BF26523ABD4E700A43CEE /* LibreTransmitterPlugin.swift */; };
+		B40BF26823ABD55200A43CEE /* OSLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40BF26723ABD55200A43CEE /* OSLog.swift */; };
+		B40BF26923ABD55200A43CEE /* OSLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40BF26723ABD55200A43CEE /* OSLog.swift */; };
+		C1AF1D122A4BC18400F46A26 /* MockSensorData.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1AF1D112A4BC18400F46A26 /* MockSensorData.swift */; };
+		C1AF1D152A4BC23D00F46A26 /* TimeInterval.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1AF1D142A4BC23D00F46A26 /* TimeInterval.swift */; };
+		C1AF65982A49C902008D0690 /* SelectionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1AF65972A49C902008D0690 /* SelectionState.swift */; };
+		C1BDBAED2A4397E200A787D1 /* OSLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40BF26723ABD55200A43CEE /* OSLog.swift */; };
+		C1BDBAEE2A4397E200A787D1 /* LibreTransmitterPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40BF26523ABD4E700A43CEE /* LibreTransmitterPlugin.swift */; };
+		C1BDBAF02A4397E200A787D1 /* LibreTransmitter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 432B0E881CDFC3C50045347B /* LibreTransmitter.framework */; };
+		C1BDBAF52A4397E200A787D1 /* LibreTransmitter.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 432B0E881CDFC3C50045347B /* LibreTransmitter.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		C1BDBB002A45051B00A787D1 /* LibreDemoPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1BDBAFC2A43985000A787D1 /* LibreDemoPlugin.swift */; };
+		C1BDBB022A45064F00A787D1 /* LibreDemoCGMManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1BDBAFD2A43992A00A787D1 /* LibreDemoCGMManager.swift */; };
+		C1BDBB032A45158A00A787D1 /* SensorPairingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2746C74426DF636900E31BD9 /* SensorPairingService.swift */; };
+		C1BDBB042A45159100A787D1 /* SensorPairing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2746C74626DF63C800E31BD9 /* SensorPairing.swift */; };
+		C1C318CD2A47468D00C6F29F /* BluetoothSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850BC8256725E70020D109 /* BluetoothSearch.swift */; };
+		C1C318CE2A4746A800C6F29F /* GenericThrottler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27F1592E26CAF6BE00EBA666 /* GenericThrottler.swift */; };
+		C1C318D22A475C0E00C6F29F /* LibreTransmitterUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43A8EC82210E664300A81379 /* LibreTransmitterUI.framework */; };
+		C1C318D32A475C0E00C6F29F /* LibreTransmitterUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 43A8EC82210E664300A81379 /* LibreTransmitterUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		C1C318D52A47638E00C6F29F /* FakeSensorPairingData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2709A6F229E5E0D3004355A3 /* FakeSensorPairingData.swift */; };
+		C1C318D62A47638E00C6F29F /* MockBluetoothSearcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C318CF2A4748A100C6F29F /* MockBluetoothSearcher.swift */; };
+		C1C318D72A47638E00C6F29F /* MockSensorPairingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1BDBAFE2A44FFD800A787D1 /* MockSensorPairingService.swift */; };
+		C1C318D92A478E0000C6F29F /* HKUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C318D82A478E0000C6F29F /* HKUnit.swift */; };
+		C1D819B32AC9B60100C9416E /* LimitedQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27850BA2256724EF0020D109 /* LimitedQueue.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		2735A6E229637DEA00D4E868 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 432B0E7F1CDFC3C50045347B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 432B0E871CDFC3C50045347B;
+			remoteInfo = LibreTransmitter;
+		};
+		2735A6E629637DEA00D4E868 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 432B0E7F1CDFC3C50045347B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 43A8EC81210E664300A81379;
+			remoteInfo = LibreTransmitterUI;
+		};
+		A9E521F6225E949400EDDEF2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 432B0E7F1CDFC3C50045347B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 432B0E871CDFC3C50045347B;
+			remoteInfo = LibreTransmitter;
+		};
+		C1BDBAE92A4397E200A787D1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 432B0E7F1CDFC3C50045347B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 432B0E871CDFC3C50045347B;
+			remoteInfo = LibreTransmitter;
+		};
+		C1BDBAEB2A4397E200A787D1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 432B0E7F1CDFC3C50045347B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 43A8EC81210E664300A81379;
+			remoteInfo = LibreTransmitterUI;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		2735A6E829637DEA00D4E868 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				2735A6E129637DEA00D4E868 /* LibreTransmitter.framework in Embed Frameworks */,
+				2735A6E529637DEA00D4E868 /* LibreTransmitterUI.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1BDBAF42A4397E200A787D1 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				C1BDBAF52A4397E200A787D1 /* LibreTransmitter.framework in Embed Frameworks */,
+				C1C318D32A475C0E00C6F29F /* LibreTransmitterUI.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		2709A6F229E5E0D3004355A3 /* FakeSensorPairingData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeSensorPairingData.swift; sourceTree = "<group>"; };
+		270C1428266047490063405B /* NotificationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsView.swift; sourceTree = "<group>"; };
+		271A39F42975844B0005FEDA /* NotificationHelperOverride.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationHelperOverride.swift; sourceTree = "<group>"; };
+		27394068296C2A48001DD18D /* libresensor200.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = libresensor200.png; sourceTree = "<group>"; };
+		274557C72979EA38003B027B /* LoggerExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggerExtension.swift; sourceTree = "<group>"; };
+		2746C73B26D91FC900E31BD9 /* Libre2DirectTransmitter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Libre2DirectTransmitter.swift; sourceTree = "<group>"; };
+		2746C73D26DCF83400E31BD9 /* Features.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features.swift; sourceTree = "<group>"; };
+		2746C74126DD0F8800E31BD9 /* Libre2DirectSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Libre2DirectSetup.swift; sourceTree = "<group>"; };
+		2746C74426DF636900E31BD9 /* SensorPairingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorPairingService.swift; sourceTree = "<group>"; };
+		2746C74626DF63C800E31BD9 /* SensorPairing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorPairing.swift; sourceTree = "<group>"; };
+		274E71D2297ED77300FCFECD /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
+		274E71D42986D4A600FCFECD /* CriticalAlarmsVolumeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CriticalAlarmsVolumeView.swift; sourceTree = "<group>"; };
+		275786AA26753CC400845D0E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		275EC992265AEE970043210E /* NumericTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumericTextField.swift; sourceTree = "<group>"; };
+		275EC997265AF64E0043210E /* StatusMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMessage.swift; sourceTree = "<group>"; };
+		275EC9AA265EDC280043210E /* GlucoseSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseSettingsView.swift; sourceTree = "<group>"; };
+		276EF5E6264B1FCE00571021 /* AlarmSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmSettingsView.swift; sourceTree = "<group>"; };
+		276EF5F12652F84F00571021 /* HashableClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HashableClass.swift; sourceTree = "<group>"; };
+		277773A62639EF2B00431547 /* BlueButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlueButtonStyle.swift; sourceTree = "<group>"; };
+		277773AB2639EFB800431547 /* ErrorTextFieldStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorTextFieldStyle.swift; sourceTree = "<group>"; };
+		277773B52639F51300431547 /* CustomDataPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomDataPickerView.swift; sourceTree = "<group>"; };
+		27850BA0256724EF0020D109 /* LibreError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibreError.swift; sourceTree = "<group>"; };
+		27850BA1256724EF0020D109 /* Calibration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Calibration.swift; sourceTree = "<group>"; };
+		27850BA2256724EF0020D109 /* LimitedQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LimitedQueue.swift; sourceTree = "<group>"; };
+		27850BA4256724EF0020D109 /* GlucoseFromRaw.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseFromRaw.swift; sourceTree = "<group>"; };
+		27850BA5256724F00020D109 /* GlucoseSmoothing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseSmoothing.swift; sourceTree = "<group>"; };
+		27850BA6256724F00020D109 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		27850BA8256724F00020D109 /* Measurement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Measurement.swift; sourceTree = "<group>"; };
+		27850BA9256724F00020D109 /* PreLibre2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreLibre2.swift; sourceTree = "<group>"; };
+		27850BAA256724F00020D109 /* SensorData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorData.swift; sourceTree = "<group>"; };
+		27850BAB256724F10020D109 /* CRC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRC.swift; sourceTree = "<group>"; };
+		27850BAC256724F10020D109 /* SensorSerialNumber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorSerialNumber.swift; sourceTree = "<group>"; };
+		27850BAD256724F10020D109 /* SensorState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorState.swift; sourceTree = "<group>"; };
+		27850BC6256725E70020D109 /* LibreTransmitterMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibreTransmitterMetadata.swift; sourceTree = "<group>"; };
+		27850BC7256725E70020D109 /* CBPeripheralExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBPeripheralExtensions.swift; sourceTree = "<group>"; };
+		27850BC8256725E70020D109 /* BluetoothSearch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothSearch.swift; sourceTree = "<group>"; };
+		27850BCA256725E70020D109 /* MiaomiaoTransmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiaomiaoTransmitter.swift; sourceTree = "<group>"; };
+		27850BCB256725E80020D109 /* LibreTransmitterProxyProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibreTransmitterProxyProtocol.swift; sourceTree = "<group>"; };
+		27850BCC256725E80020D109 /* BubbleTransmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BubbleTransmitter.swift; sourceTree = "<group>"; };
+		27850BCD256725E80020D109 /* LibreTransmitterProxyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibreTransmitterProxyManager.swift; sourceTree = "<group>"; };
+		27850BCE256725E80020D109 /* UUIDContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUIDContainer.swift; sourceTree = "<group>"; };
+		27850CD225672BA40020D109 /* capture-build-details.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "capture-build-details.sh"; sourceTree = "<group>"; };
+		27850CD925672C0C0020D109 /* DataExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataExtensions.swift; sourceTree = "<group>"; };
+		27850CDA25672C0C0020D109 /* TimeIntervalExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TimeIntervalExtensions.swift; sourceTree = "<group>"; };
+		27850CDB25672C0C0020D109 /* DoubleExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DoubleExtensions.swift; sourceTree = "<group>"; };
+		27850CDC25672C0C0020D109 /* DateExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DateExtensions.swift; sourceTree = "<group>"; };
+		27850CDD25672C0C0020D109 /* CollectionExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollectionExtensions.swift; sourceTree = "<group>"; };
+		27850CDE25672C0C0020D109 /* LocalizedString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocalizedString.swift; sourceTree = "<group>"; };
+		27850CE025672C0C0020D109 /* UserDefaults+GlucoseSettings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UserDefaults+GlucoseSettings.swift"; sourceTree = "<group>"; };
+		27850CE125672C0C0020D109 /* UserDefaults+Alarmsettings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UserDefaults+Alarmsettings.swift"; sourceTree = "<group>"; };
+		27850CE225672C0C0020D109 /* UserDefaults+Bluetooth.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UserDefaults+Bluetooth.swift"; sourceTree = "<group>"; };
+		27850CE325672C0C0020D109 /* UIApplication+metadata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIApplication+metadata.swift"; sourceTree = "<group>"; };
+		27850CE425672C0C0020D109 /* GlucoseSchedules.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GlucoseSchedules.swift; sourceTree = "<group>"; };
+		27850CE525672C0C0020D109 /* HKUnit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HKUnit.swift; sourceTree = "<group>"; };
+		27850D0B25672CA60020D109 /* ConcreteGlucoseDisplayable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConcreteGlucoseDisplayable.swift; sourceTree = "<group>"; };
+		27850D0C25672CA60020D109 /* LibreGlucose.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LibreGlucose.swift; sourceTree = "<group>"; };
+		27850D0D25672CA60020D109 /* NotificationHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationHelper.swift; sourceTree = "<group>"; };
+		27850D2425672DFB0020D109 /* LibreTransmitterSetupViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LibreTransmitterSetupViewController.swift; sourceTree = "<group>"; };
+		27850D4025672DFB0020D109 /* miaomiao-small.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "miaomiao-small.png"; sourceTree = "<group>"; };
+		27850D4125672DFB0020D109 /* libresensor.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = libresensor.png; sourceTree = "<group>"; };
+		27850D4225672DFB0020D109 /* bubble.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = bubble.png; sourceTree = "<group>"; };
+		27850D4625672DFB0020D109 /* icons8-up-50.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-up-50.png"; sourceTree = "<group>"; };
+		27850D4725672DFB0020D109 /* icons8-down-arrow-50.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-down-arrow-50.png"; sourceTree = "<group>"; };
+		27850D4A25672DFB0020D109 /* SnoozeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SnoozeView.swift; sourceTree = "<group>"; };
+		27850D4B25672DFB0020D109 /* BluetoothSelection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BluetoothSelection.swift; sourceTree = "<group>"; };
+		2793EBE5260BDE43001A35A3 /* CalibrationEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationEditView.swift; sourceTree = "<group>"; };
+		27A5912626E0E32C00A7EE36 /* ModeSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModeSelectionView.swift; sourceTree = "<group>"; };
+		27B2150326E2BDBB000C322D /* Sensor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sensor.swift; sourceTree = "<group>"; };
+		27DD8F22268FA0F500649010 /* TransmitterInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransmitterInfo.swift; sourceTree = "<group>"; };
+		27DD8F25268FA75A00649010 /* SensorInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorInfo.swift; sourceTree = "<group>"; };
+		27DD8F27268FA79800649010 /* GlucoseInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseInfo.swift; sourceTree = "<group>"; };
+		27DD8F29269106A100649010 /* ViewExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewExtensions.swift; sourceTree = "<group>"; };
+		27ED67B72698EF38003E5DAB /* AlarmStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmStatus.swift; sourceTree = "<group>"; };
+		27ED67B926990D6B003E5DAB /* GenericObservableObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericObservableObject.swift; sourceTree = "<group>"; };
+		27F1592E26CAF6BE00EBA666 /* GenericThrottler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericThrottler.swift; sourceTree = "<group>"; };
+		27F93B292816B7FF00EE39A7 /* LibreTransmitterManager+Libre2EU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LibreTransmitterManager+Libre2EU.swift"; sourceTree = "<group>"; };
+		27F93B2B2816B93900EE39A7 /* LibreTransmitterManager+Transmitters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LibreTransmitterManager+Transmitters.swift"; sourceTree = "<group>"; };
+		27FED6CB26C275A8001BD5E4 /* ic_bubble_mini_3-2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ic_bubble_mini_3-2.png"; sourceTree = "<group>"; };
+		432B0E881CDFC3C50045347B /* LibreTransmitter.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LibreTransmitter.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		432B0E8B1CDFC3C50045347B /* LibreTransmitter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LibreTransmitter.h; sourceTree = "<group>"; };
+		432B0E8D1CDFC3C50045347B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		432B0E971CDFC3C50045347B /* LibreTransmitterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibreTransmitterTests.swift; sourceTree = "<group>"; };
+		432B0E991CDFC3C50045347B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		43A8EC7B210E661400A81379 /* LoopKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LoopKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		43A8EC82210E664300A81379 /* LibreTransmitterUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LibreTransmitterUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		43A8EC84210E664300A81379 /* LibreTransmitterUI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LibreTransmitterUI.h; sourceTree = "<group>"; };
+		43A8EC85210E664300A81379 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		43A8EC8B210E665600A81379 /* LoopKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LoopKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		43A8EC8E210E676500A81379 /* LibreTransmitterManager+UI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "LibreTransmitterManager+UI.swift"; sourceTree = "<group>"; };
+		43A8EC94210E67B000A81379 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
+		43A8EC9C210E68CE00A81379 /* LibreTransmitterManagerV3.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LibreTransmitterManagerV3.swift; sourceTree = "<group>"; };
+		43AB511A21330D1400B3D58D /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
+		43AB511C21330D6800B3D58D /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
+		43AB511D21330D6B00B3D58D /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
+		43AB511E21330D7000B3D58D /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		43AB511F21330D7800B3D58D /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
+		43AB512021330D7E00B3D58D /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/Localizable.strings; sourceTree = "<group>"; };
+		43AB512121330D8600B3D58D /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/Localizable.strings; sourceTree = "<group>"; };
+		43AB512221330D8A00B3D58D /* nb */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nb; path = nb.lproj/Localizable.strings; sourceTree = "<group>"; };
+		43AB512321330D8E00B3D58D /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
+		43AB512421330D9400B3D58D /* pl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pl; path = pl.lproj/Localizable.strings; sourceTree = "<group>"; };
+		43AB5126213315D300B3D58D /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
+		43AB51282133161100B3D58D /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
+		43AB51292133161200B3D58D /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
+		43AB512A2133161300B3D58D /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		43AB512B2133161600B3D58D /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
+		43AB512C2133161700B3D58D /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/Localizable.strings; sourceTree = "<group>"; };
+		43AB512D2133161800B3D58D /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/Localizable.strings; sourceTree = "<group>"; };
+		43AB512E2133161900B3D58D /* nb */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nb; path = nb.lproj/Localizable.strings; sourceTree = "<group>"; };
+		43AB512F2133161A00B3D58D /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
+		43AB51302133161A00B3D58D /* pl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pl; path = pl.lproj/Localizable.strings; sourceTree = "<group>"; };
+		7D9BF1232336FF88005DCFD6 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
+		7D9BF1242336FF89005DCFD6 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
+		7D9BF1252336FF8F005DCFD6 /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-BR.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		7D9BF1262336FF8F005DCFD6 /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-BR.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		7D9BF1272336FF96005DCFD6 /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = sv.lproj/Localizable.strings; sourceTree = "<group>"; };
+		7D9BF1282336FF96005DCFD6 /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = sv.lproj/Localizable.strings; sourceTree = "<group>"; };
+		7D9BF1292336FF9C005DCFD6 /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = vi.lproj/Localizable.strings; sourceTree = "<group>"; };
+		7D9BF12A2336FF9C005DCFD6 /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = vi.lproj/Localizable.strings; sourceTree = "<group>"; };
+		7D9BF12B2336FFA2005DCFD6 /* ro */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ro; path = ro.lproj/Localizable.strings; sourceTree = "<group>"; };
+		7D9BF12C2336FFA2005DCFD6 /* ro */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ro; path = ro.lproj/Localizable.strings; sourceTree = "<group>"; };
+		7D9BF12D2336FFA9005DCFD6 /* fi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fi; path = fi.lproj/Localizable.strings; sourceTree = "<group>"; };
+		7D9BF12E2336FFA9005DCFD6 /* fi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fi; path = fi.lproj/Localizable.strings; sourceTree = "<group>"; };
+		7D9BF12F2336FFAF005DCFD6 /* da */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = da; path = da.lproj/Localizable.strings; sourceTree = "<group>"; };
+		7D9BF1302336FFAF005DCFD6 /* da */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = da; path = da.lproj/Localizable.strings; sourceTree = "<group>"; };
+		A9ED4DAE225EB9390080DEBA /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = Platforms/WatchOS.platform/Developer/SDKs/WatchOS.sdk/System/Library/Frameworks/HealthKit.framework; sourceTree = DEVELOPER_DIR; };
+		B40BF25E23ABD47400A43CEE /* LibreTransmitterPlugin.loopplugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LibreTransmitterPlugin.loopplugin; sourceTree = BUILT_PRODUCTS_DIR; };
+		B40BF26023ABD47400A43CEE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B40BF26423ABD4E600A43CEE /* LibreTransmitterPlugin-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "LibreTransmitterPlugin-Bridging-Header.h"; sourceTree = "<group>"; };
+		B40BF26523ABD4E700A43CEE /* LibreTransmitterPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibreTransmitterPlugin.swift; sourceTree = "<group>"; };
+		B40BF26723ABD55200A43CEE /* OSLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSLog.swift; sourceTree = "<group>"; };
+		C1AF1D112A4BC18400F46A26 /* MockSensorData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockSensorData.swift; sourceTree = "<group>"; };
+		C1AF1D142A4BC23D00F46A26 /* TimeInterval.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeInterval.swift; sourceTree = "<group>"; };
+		C1AF65972A49C902008D0690 /* SelectionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionState.swift; sourceTree = "<group>"; };
+		C1BDBAE22A4397AA00A787D1 /* LibreDemoPlugin.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LibreDemoPlugin.h; sourceTree = "<group>"; };
+		C1BDBAFA2A4397E200A787D1 /* LibreDemoPlugin.loopplugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LibreDemoPlugin.loopplugin; sourceTree = BUILT_PRODUCTS_DIR; };
+		C1BDBAFB2A4397E200A787D1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = /Users/pete/dev/LoopWorkspace/LibreTransmitter/Info.plist; sourceTree = "<absolute>"; };
+		C1BDBAFC2A43985000A787D1 /* LibreDemoPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibreDemoPlugin.swift; sourceTree = "<group>"; };
+		C1BDBAFD2A43992A00A787D1 /* LibreDemoCGMManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibreDemoCGMManager.swift; sourceTree = "<group>"; };
+		C1BDBAFE2A44FFD800A787D1 /* MockSensorPairingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockSensorPairingService.swift; sourceTree = "<group>"; };
+		C1C318CF2A4748A100C6F29F /* MockBluetoothSearcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockBluetoothSearcher.swift; sourceTree = "<group>"; };
+		C1C318D82A478E0000C6F29F /* HKUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HKUnit.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		432B0E841CDFC3C50045347B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				43A8EC95210E67B000A81379 /* HealthKit.framework in Frameworks */,
+				43A8EC7C210E661400A81379 /* LoopKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		43A8EC7E210E664300A81379 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				273BFDB925A73C580042E1EC /* LibreTransmitter.framework in Frameworks */,
+				43A8EC8C210E665700A81379 /* LoopKitUI.framework in Frameworks */,
+				43A8EC8A210E664C00A81379 /* LoopKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B40BF25B23ABD47400A43CEE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2735A6E029637DEA00D4E868 /* LibreTransmitter.framework in Frameworks */,
+				2735A6E429637DEA00D4E868 /* LibreTransmitterUI.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1BDBAEF2A4397E200A787D1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C1BDBAF02A4397E200A787D1 /* LibreTransmitter.framework in Frameworks */,
+				C1C318D22A475C0E00C6F29F /* LibreTransmitterUI.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		2746C74026DD0F5600E31BD9 /* Setup */ = {
+			isa = PBXGroup;
+			children = (
+				27850D4B25672DFB0020D109 /* BluetoothSelection.swift */,
+				2746C74126DD0F8800E31BD9 /* Libre2DirectSetup.swift */,
+				27A5912626E0E32C00A7EE36 /* ModeSelectionView.swift */,
+				274E71D2297ED77300FCFECD /* AuthView.swift */,
+			);
+			path = Setup;
+			sourceTree = "<group>";
+		};
+		2746C74326DF635300E31BD9 /* SensorPairing */ = {
+			isa = PBXGroup;
+			children = (
+				2746C74426DF636900E31BD9 /* SensorPairingService.swift */,
+				2746C74626DF63C800E31BD9 /* SensorPairing.swift */,
+			);
+			path = SensorPairing;
+			sourceTree = "<group>";
+		};
+		276EF5EB2652F49C00571021 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				275EC992265AEE970043210E /* NumericTextField.swift */,
+				275EC997265AF64E0043210E /* StatusMessage.swift */,
+				27DD8F29269106A100649010 /* ViewExtensions.swift */,
+				27ED67B926990D6B003E5DAB /* GenericObservableObject.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		277773B02639F33400431547 /* Styles */ = {
+			isa = PBXGroup;
+			children = (
+				277773A62639EF2B00431547 /* BlueButtonStyle.swift */,
+				277773AB2639EFB800431547 /* ErrorTextFieldStyle.swift */,
+			);
+			path = Styles;
+			sourceTree = "<group>";
+		};
+		277773B42639F4E300431547 /* AlarmSettings */ = {
+			isa = PBXGroup;
+			children = (
+				277773B52639F51300431547 /* CustomDataPickerView.swift */,
+				276EF5E6264B1FCE00571021 /* AlarmSettingsView.swift */,
+				274E71D42986D4A600FCFECD /* CriticalAlarmsVolumeView.swift */,
+			);
+			path = AlarmSettings;
+			sourceTree = "<group>";
+		};
+		27850B9F256724EE0020D109 /* LibreSensor */ = {
+			isa = PBXGroup;
+			children = (
+				27850BA7256724F00020D109 /* SensorContents */,
+				2746C74326DF635300E31BD9 /* SensorPairing */,
+				27850BA3256724EF0020D109 /* GlucoseAlgorithm */,
+				27850BA0256724EF0020D109 /* LibreError.swift */,
+				27850BA2256724EF0020D109 /* LimitedQueue.swift */,
+				27850BA1256724EF0020D109 /* Calibration.swift */,
+			);
+			path = LibreSensor;
+			sourceTree = "<group>";
+		};
+		27850BA3256724EF0020D109 /* GlucoseAlgorithm */ = {
+			isa = PBXGroup;
+			children = (
+				27850BA5256724F00020D109 /* GlucoseSmoothing.swift */,
+				27850BA4256724EF0020D109 /* GlucoseFromRaw.swift */,
+				27850BA6256724F00020D109 /* .gitignore */,
+			);
+			path = GlucoseAlgorithm;
+			sourceTree = "<group>";
+		};
+		27850BA7256724F00020D109 /* SensorContents */ = {
+			isa = PBXGroup;
+			children = (
+				27B2150326E2BDBB000C322D /* Sensor.swift */,
+				27850BAA256724F00020D109 /* SensorData.swift */,
+				27850BAB256724F10020D109 /* CRC.swift */,
+				27850BA8256724F00020D109 /* Measurement.swift */,
+				27850BA9256724F00020D109 /* PreLibre2.swift */,
+				27850BAC256724F10020D109 /* SensorSerialNumber.swift */,
+				27850BAD256724F10020D109 /* SensorState.swift */,
+			);
+			path = SensorContents;
+			sourceTree = "<group>";
+		};
+		27850BC5256725E70020D109 /* Bluetooth */ = {
+			isa = PBXGroup;
+			children = (
+				27850BC8256725E70020D109 /* BluetoothSearch.swift */,
+				27F1592E26CAF6BE00EBA666 /* GenericThrottler.swift */,
+				27850BC9256725E70020D109 /* Transmitter */,
+				27850BC6256725E70020D109 /* LibreTransmitterMetadata.swift */,
+				27850BC7256725E70020D109 /* CBPeripheralExtensions.swift */,
+			);
+			path = Bluetooth;
+			sourceTree = "<group>";
+		};
+		27850BC9256725E70020D109 /* Transmitter */ = {
+			isa = PBXGroup;
+			children = (
+				27850BCE256725E80020D109 /* UUIDContainer.swift */,
+				27850BCB256725E80020D109 /* LibreTransmitterProxyProtocol.swift */,
+				27850BCD256725E80020D109 /* LibreTransmitterProxyManager.swift */,
+				2746C73B26D91FC900E31BD9 /* Libre2DirectTransmitter.swift */,
+				27850BCC256725E80020D109 /* BubbleTransmitter.swift */,
+				27850BCA256725E70020D109 /* MiaomiaoTransmitter.swift */,
+			);
+			path = Transmitter;
+			sourceTree = "<group>";
+		};
+		27850CD125672BA40020D109 /* Scripts */ = {
+			isa = PBXGroup;
+			children = (
+				27850CD225672BA40020D109 /* capture-build-details.sh */,
+			);
+			path = Scripts;
+			sourceTree = "<group>";
+		};
+		27850CD825672C0C0020D109 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				27850CD925672C0C0020D109 /* DataExtensions.swift */,
+				27850CDA25672C0C0020D109 /* TimeIntervalExtensions.swift */,
+				27850CDB25672C0C0020D109 /* DoubleExtensions.swift */,
+				27850CDC25672C0C0020D109 /* DateExtensions.swift */,
+				27850CDD25672C0C0020D109 /* CollectionExtensions.swift */,
+				276EF5F12652F84F00571021 /* HashableClass.swift */,
+				274557C72979EA38003B027B /* LoggerExtension.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		27850CDF25672C0C0020D109 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				27850CE025672C0C0020D109 /* UserDefaults+GlucoseSettings.swift */,
+				27850CE125672C0C0020D109 /* UserDefaults+Alarmsettings.swift */,
+				27850CE225672C0C0020D109 /* UserDefaults+Bluetooth.swift */,
+				27850CE325672C0C0020D109 /* UIApplication+metadata.swift */,
+				27850CE425672C0C0020D109 /* GlucoseSchedules.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		27850D2125672DFB0020D109 /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				27850D2425672DFB0020D109 /* LibreTransmitterSetupViewController.swift */,
+			);
+			path = Controllers;
+			sourceTree = "<group>";
+		};
+		27850D3E25672DFB0020D109 /* Graphics */ = {
+			isa = PBXGroup;
+			children = (
+				27394068296C2A48001DD18D /* libresensor200.png */,
+				27FED6CB26C275A8001BD5E4 /* ic_bubble_mini_3-2.png */,
+				27850D4625672DFB0020D109 /* icons8-up-50.png */,
+				27850D4725672DFB0020D109 /* icons8-down-arrow-50.png */,
+				27850D4025672DFB0020D109 /* miaomiao-small.png */,
+				27850D4125672DFB0020D109 /* libresensor.png */,
+				27850D4225672DFB0020D109 /* bubble.png */,
+			);
+			path = Graphics;
+			sourceTree = "<group>";
+		};
+		27850D4825672DFB0020D109 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				2746C74026DD0F5600E31BD9 /* Setup */,
+				27ECD6E2268D087F00AC412B /* Settings */,
+				276EF5EB2652F49C00571021 /* Utilities */,
+				277773B02639F33400431547 /* Styles */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		27ECD6E2268D087F00AC412B /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				275786AA26753CC400845D0E /* SettingsView.swift */,
+				27850D4A25672DFB0020D109 /* SnoozeView.swift */,
+				2793EBE5260BDE43001A35A3 /* CalibrationEditView.swift */,
+				275EC9AA265EDC280043210E /* GlucoseSettingsView.swift */,
+				270C1428266047490063405B /* NotificationSettingsView.swift */,
+				277773B42639F4E300431547 /* AlarmSettings */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		27ED67B62698EEEF003E5DAB /* Observables */ = {
+			isa = PBXGroup;
+			children = (
+				27DD8F22268FA0F500649010 /* TransmitterInfo.swift */,
+				27DD8F25268FA75A00649010 /* SensorInfo.swift */,
+				27DD8F27268FA79800649010 /* GlucoseInfo.swift */,
+				27ED67B72698EF38003E5DAB /* AlarmStatus.swift */,
+				C1AF65972A49C902008D0690 /* SelectionState.swift */,
+			);
+			path = Observables;
+			sourceTree = "<group>";
+		};
+		432B0E7E1CDFC3C50045347B = {
+			isa = PBXGroup;
+			children = (
+				2746C73D26DCF83400E31BD9 /* Features.swift */,
+				27850CD125672BA40020D109 /* Scripts */,
+				27850BC5256725E70020D109 /* Bluetooth */,
+				27850B9F256724EE0020D109 /* LibreSensor */,
+				43AB51342133176B00B3D58D /* Common */,
+				432B0E8A1CDFC3C50045347B /* LibreTransmitter */,
+				432B0E961CDFC3C50045347B /* LibreTransmitterTests */,
+				43A8EC83210E664300A81379 /* LibreTransmitterUI */,
+				B40BF25F23ABD47400A43CEE /* LibreTransmitterPlugin */,
+				C1BDBAE12A4397AA00A787D1 /* LibreDemoPlugin */,
+				432B0E891CDFC3C50045347B /* Products */,
+				43A8EC7A210E661300A81379 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		432B0E891CDFC3C50045347B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				432B0E881CDFC3C50045347B /* LibreTransmitter.framework */,
+				43A8EC82210E664300A81379 /* LibreTransmitterUI.framework */,
+				B40BF25E23ABD47400A43CEE /* LibreTransmitterPlugin.loopplugin */,
+				C1BDBAFA2A4397E200A787D1 /* LibreDemoPlugin.loopplugin */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		432B0E8A1CDFC3C50045347B /* LibreTransmitter */ = {
+			isa = PBXGroup;
+			children = (
+				C1C318D42A47637100C6F29F /* Mocks */,
+				27ED67B62698EEEF003E5DAB /* Observables */,
+				27850D0B25672CA60020D109 /* ConcreteGlucoseDisplayable.swift */,
+				27850D0D25672CA60020D109 /* NotificationHelper.swift */,
+				271A39F42975844B0005FEDA /* NotificationHelperOverride.swift */,
+				27850D0C25672CA60020D109 /* LibreGlucose.swift */,
+				43AB5125213315D300B3D58D /* Localizable.strings */,
+				43A8EC9C210E68CE00A81379 /* LibreTransmitterManagerV3.swift */,
+				27F93B2B2816B93900EE39A7 /* LibreTransmitterManager+Transmitters.swift */,
+				27F93B292816B7FF00EE39A7 /* LibreTransmitterManager+Libre2EU.swift */,
+				432B0E8B1CDFC3C50045347B /* LibreTransmitter.h */,
+				432B0E8D1CDFC3C50045347B /* Info.plist */,
+				B40BF26723ABD55200A43CEE /* OSLog.swift */,
+			);
+			path = LibreTransmitter;
+			sourceTree = "<group>";
+		};
+		432B0E961CDFC3C50045347B /* LibreTransmitterTests */ = {
+			isa = PBXGroup;
+			children = (
+				432B0E971CDFC3C50045347B /* LibreTransmitterTests.swift */,
+				432B0E991CDFC3C50045347B /* Info.plist */,
+			);
+			path = LibreTransmitterTests;
+			sourceTree = "<group>";
+		};
+		43A8EC7A210E661300A81379 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				43A8EC94210E67B000A81379 /* HealthKit.framework */,
+				A9ED4DAE225EB9390080DEBA /* HealthKit.framework */,
+				43A8EC8B210E665600A81379 /* LoopKitUI.framework */,
+				43A8EC7B210E661400A81379 /* LoopKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		43A8EC83210E664300A81379 /* LibreTransmitterUI */ = {
+			isa = PBXGroup;
+			children = (
+				27850D2125672DFB0020D109 /* Controllers */,
+				27850D3E25672DFB0020D109 /* Graphics */,
+				27850D4825672DFB0020D109 /* Views */,
+				43AB511921330D1400B3D58D /* Localizable.strings */,
+				43A8EC84210E664300A81379 /* LibreTransmitterUI.h */,
+				43A8EC8E210E676500A81379 /* LibreTransmitterManager+UI.swift */,
+				43A8EC85210E664300A81379 /* Info.plist */,
+			);
+			path = LibreTransmitterUI;
+			sourceTree = "<group>";
+		};
+		43AB51342133176B00B3D58D /* Common */ = {
+			isa = PBXGroup;
+			children = (
+				27850CD825672C0C0020D109 /* Extensions */,
+				27850CE525672C0C0020D109 /* HKUnit.swift */,
+				27850CDE25672C0C0020D109 /* LocalizedString.swift */,
+				27850CDF25672C0C0020D109 /* Settings */,
+			);
+			path = Common;
+			sourceTree = "<group>";
+		};
+		B40BF25F23ABD47400A43CEE /* LibreTransmitterPlugin */ = {
+			isa = PBXGroup;
+			children = (
+				B40BF26023ABD47400A43CEE /* Info.plist */,
+				B40BF26523ABD4E700A43CEE /* LibreTransmitterPlugin.swift */,
+				B40BF26423ABD4E600A43CEE /* LibreTransmitterPlugin-Bridging-Header.h */,
+			);
+			path = LibreTransmitterPlugin;
+			sourceTree = "<group>";
+		};
+		C1AF1D132A4BC22A00F46A26 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				C1C318D82A478E0000C6F29F /* HKUnit.swift */,
+				C1AF1D142A4BC23D00F46A26 /* TimeInterval.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		C1BDBAE12A4397AA00A787D1 /* LibreDemoPlugin */ = {
+			isa = PBXGroup;
+			children = (
+				C1AF1D132A4BC22A00F46A26 /* Extensions */,
+				C1BDBAFB2A4397E200A787D1 /* Info.plist */,
+				C1BDBAE22A4397AA00A787D1 /* LibreDemoPlugin.h */,
+				C1BDBAFC2A43985000A787D1 /* LibreDemoPlugin.swift */,
+				C1BDBAFD2A43992A00A787D1 /* LibreDemoCGMManager.swift */,
+			);
+			path = LibreDemoPlugin;
+			sourceTree = "<group>";
+		};
+		C1C318D42A47637100C6F29F /* Mocks */ = {
+			isa = PBXGroup;
+			children = (
+				C1BDBAFE2A44FFD800A787D1 /* MockSensorPairingService.swift */,
+				2709A6F229E5E0D3004355A3 /* FakeSensorPairingData.swift */,
+				C1C318CF2A4748A100C6F29F /* MockBluetoothSearcher.swift */,
+				C1AF1D112A4BC18400F46A26 /* MockSensorData.swift */,
+			);
+			path = Mocks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		432B0E851CDFC3C50045347B /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				432B0E8C1CDFC3C50045347B /* LibreTransmitter.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		43A8EC7F210E664300A81379 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				43A8EC86210E664300A81379 /* LibreTransmitterUI.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		432B0E871CDFC3C50045347B /* LibreTransmitter */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 432B0E9C1CDFC3C50045347B /* Build configuration list for PBXNativeTarget "LibreTransmitter" */;
+			buildPhases = (
+				432B0E851CDFC3C50045347B /* Headers */,
+				432B0E831CDFC3C50045347B /* Sources */,
+				432B0E841CDFC3C50045347B /* Frameworks */,
+				432B0E861CDFC3C50045347B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LibreTransmitter;
+			productName = LibreTransmitter;
+			productReference = 432B0E881CDFC3C50045347B /* LibreTransmitter.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		43A8EC81210E664300A81379 /* LibreTransmitterUI */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 43A8EC87210E664300A81379 /* Build configuration list for PBXNativeTarget "LibreTransmitterUI" */;
+			buildPhases = (
+				43A8EC7F210E664300A81379 /* Headers */,
+				43A8EC7D210E664300A81379 /* Sources */,
+				43A8EC7E210E664300A81379 /* Frameworks */,
+				43A8EC80210E664300A81379 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A9E521F7225E949400EDDEF2 /* PBXTargetDependency */,
+			);
+			name = LibreTransmitterUI;
+			productName = LibreTransmitterUI;
+			productReference = 43A8EC82210E664300A81379 /* LibreTransmitterUI.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		B40BF25D23ABD47400A43CEE /* LibreTransmitterPlugin */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B40BF26323ABD47400A43CEE /* Build configuration list for PBXNativeTarget "LibreTransmitterPlugin" */;
+			buildPhases = (
+				B40BF25A23ABD47400A43CEE /* Sources */,
+				B40BF25B23ABD47400A43CEE /* Frameworks */,
+				B40BF25C23ABD47400A43CEE /* Resources */,
+				27BA139728019DE200681D31 /* Run script capture-build-details */,
+				2735A6E829637DEA00D4E868 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				2735A6E329637DEA00D4E868 /* PBXTargetDependency */,
+				2735A6E729637DEA00D4E868 /* PBXTargetDependency */,
+			);
+			name = LibreTransmitterPlugin;
+			productName = LibreTransmitterPlugin;
+			productReference = B40BF25E23ABD47400A43CEE /* LibreTransmitterPlugin.loopplugin */;
+			productType = "com.apple.product-type.bundle";
+		};
+		C1BDBAE72A4397E200A787D1 /* LibreDemoPlugin */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C1BDBAF72A4397E200A787D1 /* Build configuration list for PBXNativeTarget "LibreDemoPlugin" */;
+			buildPhases = (
+				C1BDBAEC2A4397E200A787D1 /* Sources */,
+				C1BDBAEF2A4397E200A787D1 /* Frameworks */,
+				C1BDBAF22A4397E200A787D1 /* Resources */,
+				C1BDBAF42A4397E200A787D1 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C1BDBAE82A4397E200A787D1 /* PBXTargetDependency */,
+				C1BDBAEA2A4397E200A787D1 /* PBXTargetDependency */,
+			);
+			name = LibreDemoPlugin;
+			productName = LibreTransmitterPlugin;
+			productReference = C1BDBAFA2A4397E200A787D1 /* LibreDemoPlugin.loopplugin */;
+			productType = "com.apple.product-type.bundle";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		432B0E7F1CDFC3C50045347B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastSwiftUpdateCheck = 0730;
+				LastUpgradeCheck = 1500;
+				ORGANIZATIONNAME = "LoopKit Authors";
+				TargetAttributes = {
+					432B0E871CDFC3C50045347B = {
+						CreatedOnToolsVersion = 7.3.1;
+						LastSwiftMigration = 1020;
+					};
+					43A8EC81210E664300A81379 = {
+						CreatedOnToolsVersion = 9.4.1;
+						LastSwiftMigration = 1020;
+						ProvisioningStyle = Automatic;
+					};
+					B40BF25D23ABD47400A43CEE = {
+						CreatedOnToolsVersion = 11.0;
+						LastSwiftMigration = 1100;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 432B0E821CDFC3C50045347B /* Build configuration list for PBXProject "LibreTransmitter" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				fr,
+				de,
+				"zh-Hans",
+				es,
+				it,
+				nl,
+				nb,
+				ru,
+				pl,
+				ja,
+				"pt-BR",
+				sv,
+				vi,
+				ro,
+				fi,
+				da,
+			);
+			mainGroup = 432B0E7E1CDFC3C50045347B;
+			productRefGroup = 432B0E891CDFC3C50045347B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				432B0E871CDFC3C50045347B /* LibreTransmitter */,
+				43A8EC81210E664300A81379 /* LibreTransmitterUI */,
+				B40BF25D23ABD47400A43CEE /* LibreTransmitterPlugin */,
+				C1BDBAE72A4397E200A787D1 /* LibreDemoPlugin */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		432B0E861CDFC3C50045347B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				27850E5125673CF40020D109 /* libresensor.png in Resources */,
+				27850E5725673CF70020D109 /* bubble.png in Resources */,
+				43AB5127213315D300B3D58D /* Localizable.strings in Resources */,
+				27FED6CC26C275A8001BD5E4 /* ic_bubble_mini_3-2.png in Resources */,
+				27850E4B25673CE60020D109 /* miaomiao-small.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		43A8EC80210E664300A81379 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				27FED6CD26C275A8001BD5E4 /* ic_bubble_mini_3-2.png in Resources */,
+				43AB511B21330D1400B3D58D /* Localizable.strings in Resources */,
+				27850D6325672DFB0020D109 /* miaomiao-small.png in Resources */,
+				27394069296C2A48001DD18D /* libresensor200.png in Resources */,
+				27850D6925672DFB0020D109 /* icons8-up-50.png in Resources */,
+				27850D6425672DFB0020D109 /* libresensor.png in Resources */,
+				27850D6525672DFB0020D109 /* bubble.png in Resources */,
+				27850D6A25672DFB0020D109 /* icons8-down-arrow-50.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B40BF25C23ABD47400A43CEE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1BDBAF22A4397E200A787D1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		27BA139728019DE200681D31 /* Run script capture-build-details */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Run script capture-build-details";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n\"${SRCROOT}/Scripts/capture-build-details.sh\"\n\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		432B0E831CDFC3C50045347B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				27850CF125672C0C0020D109 /* LocalizedString.swift in Sources */,
+				27850D1025672CA60020D109 /* LibreGlucose.swift in Sources */,
+				27850D9E25672F170020D109 /* UUIDContainer.swift in Sources */,
+				27850DCE25672F780020D109 /* SensorData.swift in Sources */,
+				C1C318D72A47638E00C6F29F /* MockSensorPairingService.swift in Sources */,
+				2746C73C26D91FC900E31BD9 /* Libre2DirectTransmitter.swift in Sources */,
+				27F93B2C2816B93900EE39A7 /* LibreTransmitterManager+Transmitters.swift in Sources */,
+				C1AF65982A49C902008D0690 /* SelectionState.swift in Sources */,
+				27850CFB25672C0C0020D109 /* GlucoseSchedules.swift in Sources */,
+				C1C318CD2A47468D00C6F29F /* BluetoothSearch.swift in Sources */,
+				27850D9125672F020020D109 /* CBPeripheralExtensions.swift in Sources */,
+				27850DA625672F1E0020D109 /* MiaomiaoTransmitter.swift in Sources */,
+				B40BF26823ABD55200A43CEE /* OSLog.swift in Sources */,
+				43A8EC9D210E68CE00A81379 /* LibreTransmitterManagerV3.swift in Sources */,
+				274557C82979EA38003B027B /* LoggerExtension.swift in Sources */,
+				C1C318CE2A4746A800C6F29F /* GenericThrottler.swift in Sources */,
+				27850D9825672F130020D109 /* BubbleTransmitter.swift in Sources */,
+				27850DCD25672F780020D109 /* SensorState.swift in Sources */,
+				27B2150526E2C4EB000C322D /* Sensor.swift in Sources */,
+				27850D0E25672CA60020D109 /* ConcreteGlucoseDisplayable.swift in Sources */,
+				27850DC525672F640020D109 /* GlucoseFromRaw.swift in Sources */,
+				27850CEB25672C0C0020D109 /* DoubleExtensions.swift in Sources */,
+				C1BDBB042A45159100A787D1 /* SensorPairing.swift in Sources */,
+				27850CEF25672C0C0020D109 /* CollectionExtensions.swift in Sources */,
+				27850DB825672F4B0020D109 /* Calibration.swift in Sources */,
+				27850CED25672C0C0020D109 /* DateExtensions.swift in Sources */,
+				27850DBE25672F530020D109 /* LibreError.swift in Sources */,
+				27DD8F24268FA13F00649010 /* HashableClass.swift in Sources */,
+				C1C318D62A47638E00C6F29F /* MockBluetoothSearcher.swift in Sources */,
+				27850D9F25672F190020D109 /* LibreTransmitterProxyProtocol.swift in Sources */,
+				27850DCC25672F770020D109 /* Measurement.swift in Sources */,
+				C1BDBB032A45158A00A787D1 /* SensorPairingService.swift in Sources */,
+				27850DCB25672F770020D109 /* SensorSerialNumber.swift in Sources */,
+				C1C318D52A47638E00C6F29F /* FakeSensorPairingData.swift in Sources */,
+				27850DA525672F1C0020D109 /* LibreTransmitterProxyManager.swift in Sources */,
+				27850CF725672C0C0020D109 /* UserDefaults+Bluetooth.swift in Sources */,
+				C1AF1D122A4BC18400F46A26 /* MockSensorData.swift in Sources */,
+				271A39F52975844B0005FEDA /* NotificationHelperOverride.swift in Sources */,
+				27850CE725672C0C0020D109 /* DataExtensions.swift in Sources */,
+				27850D1225672CA60020D109 /* NotificationHelper.swift in Sources */,
+				27850CF325672C0C0020D109 /* UserDefaults+GlucoseSettings.swift in Sources */,
+				27850CE925672C0C0020D109 /* TimeIntervalExtensions.swift in Sources */,
+				C1D819B32AC9B60100C9416E /* LimitedQueue.swift in Sources */,
+				27DD8F28268FA79800649010 /* GlucoseInfo.swift in Sources */,
+				27850DD025672F780020D109 /* PreLibre2.swift in Sources */,
+				27DD8F23268FA0F500649010 /* TransmitterInfo.swift in Sources */,
+				27850CF525672C0C0020D109 /* UserDefaults+Alarmsettings.swift in Sources */,
+				27850D9225672F020020D109 /* LibreTransmitterMetadata.swift in Sources */,
+				27DD8F26268FA75A00649010 /* SensorInfo.swift in Sources */,
+				27850DC425672F640020D109 /* GlucoseSmoothing.swift in Sources */,
+				27F93B2A2816B7FF00EE39A7 /* LibreTransmitterManager+Libre2EU.swift in Sources */,
+				27850DCF25672F780020D109 /* CRC.swift in Sources */,
+				2764E86126FC6DC10016A585 /* Features.swift in Sources */,
+				27ED67B82698EF38003E5DAB /* AlarmStatus.swift in Sources */,
+				27850CFD25672C0C0020D109 /* HKUnit.swift in Sources */,
+				27850CF925672C0C0020D109 /* UIApplication+metadata.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		43A8EC7D210E664300A81379 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				274E71D52986D4A600FCFECD /* CriticalAlarmsVolumeView.swift in Sources */,
+				2746C74226DD0F8800E31BD9 /* Libre2DirectSetup.swift in Sources */,
+				27ED67BA26990D6B003E5DAB /* GenericObservableObject.swift in Sources */,
+				27850CFE25672C0C0020D109 /* HKUnit.swift in Sources */,
+				27850D4E25672DFB0020D109 /* LibreTransmitterSetupViewController.swift in Sources */,
+				276EF5F22652F84F00571021 /* HashableClass.swift in Sources */,
+				27850CF825672C0C0020D109 /* UserDefaults+Bluetooth.swift in Sources */,
+				275786AB26753CC400845D0E /* SettingsView.swift in Sources */,
+				275EC9AB265EDC280043210E /* GlucoseSettingsView.swift in Sources */,
+				274E71D3297ED77300FCFECD /* AuthView.swift in Sources */,
+				27850CEA25672C0C0020D109 /* TimeIntervalExtensions.swift in Sources */,
+				275EC998265AF64E0043210E /* StatusMessage.swift in Sources */,
+				27850D6C25672DFB0020D109 /* SnoozeView.swift in Sources */,
+				274557C92979EA38003B027B /* LoggerExtension.swift in Sources */,
+				276EF5E7264B1FCE00571021 /* AlarmSettingsView.swift in Sources */,
+				27850D6D25672DFB0020D109 /* BluetoothSelection.swift in Sources */,
+				270C1429266047490063405B /* NotificationSettingsView.swift in Sources */,
+				2793EBE6260BDE43001A35A3 /* CalibrationEditView.swift in Sources */,
+				27850CF225672C0C0020D109 /* LocalizedString.swift in Sources */,
+				27850CF625672C0C0020D109 /* UserDefaults+Alarmsettings.swift in Sources */,
+				27850CEE25672C0C0020D109 /* DateExtensions.swift in Sources */,
+				27850CF425672C0C0020D109 /* UserDefaults+GlucoseSettings.swift in Sources */,
+				27A5912726E0E32C00A7EE36 /* ModeSelectionView.swift in Sources */,
+				2746C73F26DCF83700E31BD9 /* Features.swift in Sources */,
+				27850CEC25672C0C0020D109 /* DoubleExtensions.swift in Sources */,
+				277773AC2639EFB800431547 /* ErrorTextFieldStyle.swift in Sources */,
+				277773B62639F51300431547 /* CustomDataPickerView.swift in Sources */,
+				43A8EC91210E676500A81379 /* LibreTransmitterManager+UI.swift in Sources */,
+				27850CFA25672C0C0020D109 /* UIApplication+metadata.swift in Sources */,
+				27850CF025672C0C0020D109 /* CollectionExtensions.swift in Sources */,
+				277773A72639EF2B00431547 /* BlueButtonStyle.swift in Sources */,
+				27850CFC25672C0C0020D109 /* GlucoseSchedules.swift in Sources */,
+				27DD8F2A269106A100649010 /* ViewExtensions.swift in Sources */,
+				275EC993265AEE970043210E /* NumericTextField.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B40BF25A23ABD47400A43CEE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B40BF26923ABD55200A43CEE /* OSLog.swift in Sources */,
+				B40BF26623ABD4E700A43CEE /* LibreTransmitterPlugin.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1BDBAEC2A4397E200A787D1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C1C318D92A478E0000C6F29F /* HKUnit.swift in Sources */,
+				C1AF1D152A4BC23D00F46A26 /* TimeInterval.swift in Sources */,
+				C1BDBAED2A4397E200A787D1 /* OSLog.swift in Sources */,
+				C1BDBB002A45051B00A787D1 /* LibreDemoPlugin.swift in Sources */,
+				C1BDBAEE2A4397E200A787D1 /* LibreTransmitterPlugin.swift in Sources */,
+				C1BDBB022A45064F00A787D1 /* LibreDemoCGMManager.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		2735A6E329637DEA00D4E868 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 432B0E871CDFC3C50045347B /* LibreTransmitter */;
+			targetProxy = 2735A6E229637DEA00D4E868 /* PBXContainerItemProxy */;
+		};
+		2735A6E729637DEA00D4E868 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 43A8EC81210E664300A81379 /* LibreTransmitterUI */;
+			targetProxy = 2735A6E629637DEA00D4E868 /* PBXContainerItemProxy */;
+		};
+		A9E521F7225E949400EDDEF2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 432B0E871CDFC3C50045347B /* LibreTransmitter */;
+			targetProxy = A9E521F6225E949400EDDEF2 /* PBXContainerItemProxy */;
+		};
+		C1BDBAE82A4397E200A787D1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 432B0E871CDFC3C50045347B /* LibreTransmitter */;
+			targetProxy = C1BDBAE92A4397E200A787D1 /* PBXContainerItemProxy */;
+		};
+		C1BDBAEA2A4397E200A787D1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 43A8EC81210E664300A81379 /* LibreTransmitterUI */;
+			targetProxy = C1BDBAEB2A4397E200A787D1 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		43AB511921330D1400B3D58D /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				43AB511A21330D1400B3D58D /* Base */,
+				43AB511C21330D6800B3D58D /* fr */,
+				43AB511D21330D6B00B3D58D /* de */,
+				43AB511E21330D7000B3D58D /* zh-Hans */,
+				43AB511F21330D7800B3D58D /* es */,
+				43AB512021330D7E00B3D58D /* it */,
+				43AB512121330D8600B3D58D /* nl */,
+				43AB512221330D8A00B3D58D /* nb */,
+				43AB512321330D8E00B3D58D /* ru */,
+				43AB512421330D9400B3D58D /* pl */,
+				7D9BF1242336FF89005DCFD6 /* ja */,
+				7D9BF1262336FF8F005DCFD6 /* pt-BR */,
+				7D9BF1282336FF96005DCFD6 /* sv */,
+				7D9BF12A2336FF9C005DCFD6 /* vi */,
+				7D9BF12C2336FFA2005DCFD6 /* ro */,
+				7D9BF12E2336FFA9005DCFD6 /* fi */,
+				7D9BF1302336FFAF005DCFD6 /* da */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		43AB5125213315D300B3D58D /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				43AB5126213315D300B3D58D /* Base */,
+				43AB51282133161100B3D58D /* fr */,
+				43AB51292133161200B3D58D /* de */,
+				43AB512A2133161300B3D58D /* zh-Hans */,
+				43AB512B2133161600B3D58D /* es */,
+				43AB512C2133161700B3D58D /* it */,
+				43AB512D2133161800B3D58D /* nl */,
+				43AB512E2133161900B3D58D /* nb */,
+				43AB512F2133161A00B3D58D /* ru */,
+				43AB51302133161A00B3D58D /* pl */,
+				7D9BF1232336FF88005DCFD6 /* ja */,
+				7D9BF1252336FF8F005DCFD6 /* pt-BR */,
+				7D9BF1272336FF96005DCFD6 /* sv */,
+				7D9BF1292336FF9C005DCFD6 /* vi */,
+				7D9BF12B2336FFA2005DCFD6 /* ro */,
+				7D9BF12D2336FFA9005DCFD6 /* fi */,
+				7D9BF12F2336FFAF005DCFD6 /* da */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		432B0E9A1CDFC3C50045347B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 2;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				LOCALIZED_STRING_MACRO_NAMES = (
+					NSLocalizedString,
+					CFLocalizedString,
+					LocalizedString,
+				);
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+				WATCHOS_DEPLOYMENT_TARGET = 4.0;
+			};
+			name = Debug;
+		};
+		432B0E9B1CDFC3C50045347B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 2;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				LOCALIZED_STRING_MACRO_NAMES = (
+					NSLocalizedString,
+					CFLocalizedString,
+					LocalizedString,
+				);
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+				WATCHOS_DEPLOYMENT_TARGET = 4.0;
+			};
+			name = Release;
+		};
+		432B0E9D1CDFC3C50045347B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "";
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 2;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				INFOPLIST_FILE = LibreTransmitter/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu99 gnu++11";
+				PRODUCT_BUNDLE_IDENTIFIER = com.mddub.LibreTransmitter;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		432B0E9E1CDFC3C50045347B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "";
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 2;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				INFOPLIST_FILE = LibreTransmitter/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu99 gnu++11";
+				PRODUCT_BUNDLE_IDENTIFIER = com.mddub.LibreTransmitter;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		43A8EC88210E664300A81379 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 2;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = LibreTransmitterUI/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
+				PRODUCT_BUNDLE_IDENTIFIER = com.loopkit.LibreTransmitterUI;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		43A8EC89210E664300A81379 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 2;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = LibreTransmitterUI/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
+				PRODUCT_BUNDLE_IDENTIFIER = com.loopkit.LibreTransmitterUI;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		B40BF26123ABD47400A43CEE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = LibreTransmitterPlugin/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = mh_dylib;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.loopkit.LibreTransmitterPlugin;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "LibreTransmitterPlugin/LibreTransmitterPlugin-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				WRAPPER_EXTENSION = loopplugin;
+			};
+			name = Debug;
+		};
+		B40BF26223ABD47400A43CEE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = LibreTransmitterPlugin/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = mh_dylib;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.loopkit.LibreTransmitterPlugin;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "LibreTransmitterPlugin/LibreTransmitterPlugin-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				WRAPPER_EXTENSION = loopplugin;
+			};
+			name = Release;
+		};
+		C1BDBAF82A4397E200A787D1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_NSPrincipalClass = LibreDemoPlugin;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = mh_dylib;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.loopkit.LibreDemoPlugin;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "LibreTransmitterPlugin/LibreTransmitterPlugin-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				WRAPPER_EXTENSION = loopplugin;
+			};
+			name = Debug;
+		};
+		C1BDBAF92A4397E200A787D1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_NSPrincipalClass = LibreDemoPlugin;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = mh_dylib;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.loopkit.LibreDemoPlugin;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "LibreTransmitterPlugin/LibreTransmitterPlugin-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				WRAPPER_EXTENSION = loopplugin;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		432B0E821CDFC3C50045347B /* Build configuration list for PBXProject "LibreTransmitter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				432B0E9A1CDFC3C50045347B /* Debug */,
+				432B0E9B1CDFC3C50045347B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		432B0E9C1CDFC3C50045347B /* Build configuration list for PBXNativeTarget "LibreTransmitter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				432B0E9D1CDFC3C50045347B /* Debug */,
+				432B0E9E1CDFC3C50045347B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		43A8EC87210E664300A81379 /* Build configuration list for PBXNativeTarget "LibreTransmitterUI" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				43A8EC88210E664300A81379 /* Debug */,
+				43A8EC89210E664300A81379 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B40BF26323ABD47400A43CEE /* Build configuration list for PBXNativeTarget "LibreTransmitterPlugin" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B40BF26123ABD47400A43CEE /* Debug */,
+				B40BF26223ABD47400A43CEE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C1BDBAF72A4397E200A787D1 /* Build configuration list for PBXNativeTarget "LibreDemoPlugin" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C1BDBAF82A4397E200A787D1 /* Debug */,
+				C1BDBAF92A4397E200A787D1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 432B0E7F1CDFC3C50045347B /* Project object */;
+}

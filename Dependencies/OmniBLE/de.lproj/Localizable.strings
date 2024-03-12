@@ -1,0 +1,76 @@
+/* Description for finish setup reminder */
+"Finish setup reminder" = "Erinnerung zum Abschluss der Einrichtung";
+
+/* Pod initialized */
+"Initialized" = "Initialisiert";
+
+/* Description for MessageError invalidAddress */
+"Invalid address: (%1$@)" = "Ungültige Adresse: (%1$@)";
+
+/* Description for MessageError invalidCrc */
+"Invalid CRC" = "Ungültige CRC";
+
+/* Pod state when running with fifty or less units */
+"Low reservoir" = "Niedriges Reservoir";
+
+/* Format string for description for low reservoir advisory (1: reminder units) */
+"Low reservoir advisory (%1$gU)" = "Hinweis auf niedriges Reservoir (%1$g IE)";
+
+/* Pod memory initialized */
+"Memory initialized" = "Speicher initialisiert";
+
+/* Pod alert state when no alerts are active */
+"No alerts" = "Keine Alarme";
+
+/* Description for Fault Event Code .noFaults */
+"No faults" = "Keine Fehler";
+
+/* Pod state when running above fifty units */
+"Normal" = "Normal";
+
+/* Description for MessageError notEnoughData */
+"Not enough data" = "Nicht genügend Daten";
+
+/* Description for Occlusion detected pod fault */
+"Occlusion detected" = "Verstopfung erkannt";
+
+/* Pod status when pairing completed */
+"Pairing completed" = "Kopplung abgeschlossen";
+
+/* Description for Pod expired pod fault */
+"Pod expired" = "Pod abgelaufen";
+
+/* Delivery status when pod is priming
+   Pod status when priming */
+"Priming" = "Befüllen";
+
+/* Pod state when priming completed */
+"Priming completed" = "Befüllen abgeschlossen";
+
+/* Description for shutdown imminent */
+"Shutdown imminent" = "Direkt herunterfahren";
+
+/* Description for suspend time expired */
+"Suspend time expired" = "Anhaltezeit abgelaufen";
+
+/* Delivery status when insulin delivery is suspended */
+"Suspended" = "Angehalten";
+
+/* Delivery status when temp basal is running */
+"Temp basal running" = "Temp Basal läuft";
+
+/* Description for MessageError invalidSequence */
+"Unexpected message sequence number" = "Unerwartete Nachrichtensequenznummer";
+
+/* The format string for Unknown pod fault (1: The fault code value) */
+"Unknown pod fault %1$03d" = "Unbekannter Podfehler: %1$03d";
+
+/* Format string for description of MessageError unknownValue. (1: value) (2: Type) */
+"Unknown Value (%1$@) for type %2$@" = "Unbekannter Wert (%1$@) für den Typ %2$@";
+
+/* Format string for description of MessageError validationFailed. (1: description of validation failure) */
+"Validation failed: %1$@" = "Überprüfung fehlgeschlagen: %1$@";
+
+/* Description waiting for pairing reminder */
+"Waiting for pairing reminder" = "Warten auf Kopplungserinnerung";
+

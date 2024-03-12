@@ -17,6 +17,7 @@ public struct GuardrailConstrainedQuantityView: View {
     var unit: HKUnit
     var guardrail: Guardrail<HKQuantity>
     var isEditing: Bool
+    var isSupportedValue: Bool
     var formatter: NumberFormatter
     var iconSpacing: CGFloat
     var isUnitLabelVisible: Bool
@@ -29,6 +30,7 @@ public struct GuardrailConstrainedQuantityView: View {
         unit: HKUnit,
         guardrail: Guardrail<HKQuantity>,
         isEditing: Bool,
+        isSupportedValue: Bool = true,
         iconSpacing: CGFloat = 8,
         isUnitLabelVisible: Bool = true,
         forceDisableAnimations: Bool = false
@@ -37,10 +39,10 @@ public struct GuardrailConstrainedQuantityView: View {
         self.unit = unit
         self.guardrail = guardrail
         self.isEditing = isEditing
+        self.isSupportedValue = isSupportedValue
         self.iconSpacing = iconSpacing
         self.formatter = {
-            let quantityFormatter = QuantityFormatter()
-            quantityFormatter.setPreferredNumberFormatter(for: unit)
+            let quantityFormatter = QuantityFormatter(for: unit)
             return quantityFormatter.numberFormatter
         }()
         self.isUnitLabelVisible = isUnitLabelVisible
@@ -92,6 +94,8 @@ public struct GuardrailConstrainedQuantityView: View {
         guard let value = value else {
             return .primary
         }
+        
+        guard isSupportedValue else { return guidanceColors.critical }
 
         switch guardrail.classification(for: value) {
         case .withinRecommendedRange:

@@ -1,0 +1,107 @@
+/* Unit format string for an RSSI value in decibles */
+"%@ dB" = "%@ dB";
+
+/* Unit format string for an value in percent */
+"%@%%" = "%@%%";
+
+/* The title of the section for alerts */
+"Alert" = "Alerta";
+
+/* Text indicating LED Mode is auto */
+"Auto" = "Automático";
+
+/* The title of the cell showing battery level */
+"Battery level" = "Nivel de bateria";
+
+/* The title of the section describing commands */
+"Commands" = "Comandos";
+
+/* The connected state */
+"Connected" = "Conectado";
+
+/* The in-progress connecting state */
+"Connecting" = "Conectando";
+
+/* The title of the cell for connection LED */
+"Connection LED" = "LED Conexión";
+
+/* The title of the section for connection monitoring */
+"Connection Monitoring" = "Supervisión De conexiones";
+
+/* The title of the cell showing BLE connection state */
+"Connection State" = "Estado de Conexión";
+
+/* The title of the cell for connection vibration */
+"Connection Vibration" = "Conexión Vibración";
+
+/* The title of the section describing the device */
+"Device" = "Dispositivo";
+
+/* The title of the devices table section in RileyLink settings */
+"Devices" = "Dispositivos";
+
+/* The disconnected state */
+"Disconnected" = "Desconectado";
+
+/* The in-progress disconnecting state */
+"Disconnecting" = "Desconectando";
+
+/* The title of the cell for sounding device finding piezo */
+"Find Device" = "Encontrar Dispositivo";
+
+/* The title of the cell showing firmware version */
+"Firmware" = "Firmware";
+
+/* The title of the cell showing current rileylink frequency */
+"Frequency" = "Frequencia";
+
+/* The title of the command to fetch RileyLink statistics */
+"Get RileyLink Statistics" = "Obtener Estadísticas de RileyLink";
+
+/* Progress message for getting statistics. */
+"Get Statistics…" = "Obtener Estadísticas…";
+
+/* The title of the cell showing Lighten Red LED */
+"Lighten Red LED" = "Aclarar el LED rojo";
+
+/* The title of the cell showing Lighten Yellow LED */
+"Lighten Yellow LED" = "Aclarar LED amarillo";
+
+/* The title of the cell showing battery level */
+"Low Battery Alert" = "Alerta de Batería Baja";
+
+/* The title of the cell showing device name */
+"Name" = "Nombre";
+
+/* Detail text when battery alert disabled.
+   Text indicating LED Mode is off */
+"Off" = "Apagado";
+
+/* Text indicating LED Mode is on */
+"On" = "Encendido";
+
+/* RileyLink setup description */
+"RileyLink allows for communication with the pump over Bluetooth Low Energy." = "RileyLink permite la comunicación con la microinfusora a través del uso de Bluetooth de baja energía.";
+
+/* The title of the cell showing BLE signal strength (RSSI) */
+"Signal Strength" = "Intensidad de señal";
+
+/* The title of the section for orangelink commands
+   The title of the section for rileylink commands */
+"Test Commands" = "Prueba de Comandos";
+
+/* The title of the cell showing Test Vibration */
+"Test Vibration" = "Prueba de Vibración";
+
+/* The title of the command to update diagnostic LEDs */
+"Toggle Diagnostic LEDs" = "Pasar diagnóstico LEDs";
+
+/* Progress message for changing diagnostic LED mode */
+"Updating diagnostic LEDs mode" = "Actualización del modo LED de diagnóstico";
+
+/* The title of the cell showing uptime */
+"Uptime" = "Uptime";
+
+/* The title of the cell showing ORL */
+"Voltage" = "Voltaje";
+

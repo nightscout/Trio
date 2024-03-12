@@ -17,10 +17,10 @@
 "Peripheral command was invalid" = "Polecenie urządzenia peryferyjnego było nieprawidłowe";
 
 /* Timeout error description */
-"Peripheral did not respond in time" = "Urz. peryferyjne nie odpowiada";
+"Peripheral did not respond in time" = "Urządzenie peryferyjne nie odpowiada";
 
 /* Not ready error description */
-"Peripheral isnʼt connected" = "Urz. peryferyjne jest niepodłączone";
+"Peripheral isnʼt connected" = "Urządzenie peryferyjne nie jest podłączone";
 
 /* The description of sensor calibration state when sensor calibration is ok. */
 "Sensor calibration is OK" = "Kalibracja sensora powiodła się";
@@ -39,3 +39,4 @@
 
 /* Error description */
 "Unknown characteristic" = "Nieznany błąd";
+

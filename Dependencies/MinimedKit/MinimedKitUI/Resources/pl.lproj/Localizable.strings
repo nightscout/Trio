@@ -28,6 +28,9 @@
 /* Text to confirm delete this pump */
 "Are you sure you want to delete this Pump?" = "Czy na pewno chcesz usunąć tę pompę?";
 
+/* No comment provided by engineer. */
+"Battery Chemistry" = "Rodzaj baterii";
+
 /* The format string describing pump battery voltage: (1: battery voltage) */
 "Battery: %1$@ volts\n" = "Bateria: %1$@ V\n";
 
@@ -50,7 +53,7 @@
 "Changing time…" = "Zmiana czasu…";
 
 /* Instructions on selecting battery chemistry type */
-"Choose the type of battery you are using in your pump for better alerting about low battery conditions." = "Wybierz typ baterii używanej w pompie, aby lepiej ostrzegać o niskim stanie baterii.";
+"Choose the type of battery you are using in your pump for better alerting about low battery conditions." = "Wybierz rodzaj baterii używanej w pompie, aby lepiej ostrzegać o niskim stanie baterii.";
 
 /* The title of the configuration section in MinimedPumpManager settings */
 "Configuration" = "Konfiguracja";
@@ -70,6 +73,9 @@
 
 /* Description for option to not use MySentry */
 "Do not use MySentry" = "Nie używaj MySentry";
+
+/* No comment provided by engineer. */
+"Done" = "Gotowe";
 
 /* The alert title for a resume error */
 "Error Resuming" = "Błąd wznawiania";
@@ -93,13 +99,13 @@
 "Firmware Version" = "Wersja oprogramowania";
 
 /* Text shown in insulin delivery space when insulin suspended */
-"Insulin\nSuspended" = "Podawanie insuliny zawieszone";
+"Insulin\nSuspended" = "Podawanie\nzawieszone";
 
 /* Title of insulin delivery section */
-"Insulin Delivery" = "Insulin Delivery";
+"Insulin Delivery" = "Podaż insuliny";
 
 /* Instructions on selecting an insulin data source */
-"Insulin delivery can be determined from the pump by either interpreting the event history or comparing the reservoir volume over time. Reading event history allows for a more accurate status graph and uploading up-to-date treatment data to Nightscout, at the cost of faster pump battery drain and the possibility of a higher radio error rate compared to reading only reservoir volume. If the selected source cannot be used for any reason, the system will attempt to fall back to the other option." = "Podaż insuliny jest ustalana dzięki pobieraniu danych z pompy. Może się to odbywać na dwa sposoby: poprzez interpretację historii zdarzeń lub poprzez porównywanie objętości zbiornika na insulinę w czasie. Interpretacja historii zdarzeń pozwala na dokładniejsze odwzorowanie wykresu statusu i wysyłanie aktualnych danych dotyczących leczenia do Nightscouta. Odbywa się to kosztem szybszego zużycia baterii i większym ryzykiem błędu transmisji radiowej względem drugiego sposobu, czyli porównywania objętości zbiornika na insulinę w czasie. Jeśli wybrany sposób z jakiegoś powodu nie może być użyty, system podejmie próbę powrotu do drugiej opcji.";
+"Insulin delivery can be determined from the pump by either interpreting the event history or comparing the reservoir volume over time. Reading event history allows for a more accurate status graph and uploading up-to-date treatment data to Nightscout, at the cost of faster pump battery drain and the possibility of a higher radio error rate compared to reading only reservoir volume. If the selected source cannot be used for any reason, the system will attempt to fall back to the other option." = "Podaż insuliny jest ustalana dzięki pobieraniu danych z pompy. Może się to odbywać na dwa sposoby: poprzez interpretację historii zdarzeń lub poprzez porównywanie objętości zbiornika na insulinę w czasie. Interpretacja historii zdarzeń pozwala na dokładniejsze odwzorowanie wykresu statusu i wysyłanie aktualnych danych dotyczących leczenia do Nightscout'a. Odbywa się to kosztem szybszego zużycia baterii i większym ryzykiem błędu transmisji radiowej względem drugiego sposobu, czyli porównywania objętości zbiornika na insulinę w czasie. Jeśli wybrany sposób z jakiegoś powodu nie może być użyty, system podejmie próbę powrotu do drugiej opcji.";
 
 /* Header for insulin remaining on pod settings screen */
 "Insulin Remaining" = "Pozostała ilość insuliny";
@@ -120,7 +126,7 @@
 "No response" = "Brak odpowiedzi";
 
 /* Button text to cancel pump time sync */
-"No, Keep Pump As Is" = "Nie, pozostaw pompę bez zmian";
+"No, Keep Pump As Is" = "Nie, pozostaw bez zmian";
 
 /* Pump find device instruction */
 "On your pump, go to the Find Device screen and select \"Find Device\".\n\nMain Menu >\nUtilities >\nConnect Devices >\nOther Devices >\nOn >\nFind Device" = "W pompie przejdź do ekranu Znajdź urządzenie i wybierz opcję „Znajdź urządzenie”.\n\nMain Menu >\nUtilities >\nConnect Devices >\nOther Devices >\nOn >\nFind Device";
@@ -188,7 +194,7 @@
 "Sync to Current Time" = "Synchronizuj z bieżącym czasem";
 
 /* Message for pod sync time action sheet */
-"The time on your pump is different from the current time. Do you want to update the time on your pump to the current time?" = "Czas na pompie różni się od aktualnego czasu. Czy chcesz zaktualizować czas na pompie do aktualnego czasu?";
+"The time on your pump is different from the current time. Do you want to update the time on your pump to the current time?" = "Czas na pompie różni się od aktualnego. Czy chcesz zaktualizować czas na pompie?";
 
 /* Title for pod sync time action sheet. */
 "Time Change Detected" = "Wykryto zmianę czasu";
@@ -200,7 +206,7 @@
 "Tuning radio…" = "Dostrajanie radia…";
 
 /* Units for showing temp basal rate */
-"U/hr" = "J/godz";
+"U/hr" = "J/h";
 
 /* Text to indicate battery percentage is unknown */
 "unknown" = "nieznany";
@@ -218,3 +224,4 @@
 
 /* Button text to confirm pump time sync */
 "Yes, Sync to Current Time" = "Tak, zsynchronizuj z bieżącym czasem";
+

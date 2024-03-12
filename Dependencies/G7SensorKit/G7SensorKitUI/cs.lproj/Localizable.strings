@@ -1,9 +1,6 @@
 /* No glucose value representation (3 dashes for mg/dL) */
 "– – –" = "– – –";
 
-/* Format string for glucose trend per minute. (1: glucose value and unit) */
-"%@/min" = "%@/min";
-
 /* Button text to cancel G7 setup */
 "Cancel" = "Zrušit";
 

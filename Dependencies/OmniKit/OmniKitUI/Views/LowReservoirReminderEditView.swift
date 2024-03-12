@@ -89,7 +89,7 @@ struct LowReservoirReminderEditView: View {
     }
     
     func formatValue(_ value: Int) -> String {
-        return insulinQuantityFormatter.string(from: HKQuantity(unit: .internationalUnit(), doubleValue: Double(value)), for: .internationalUnit()) ?? ""
+        return insulinQuantityFormatter.string(from: HKQuantity(unit: .internationalUnit(), doubleValue: Double(value))) ?? ""
     }
     
     var saveButtonText: String {

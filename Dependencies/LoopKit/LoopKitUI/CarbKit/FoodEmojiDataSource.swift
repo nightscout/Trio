@@ -10,7 +10,7 @@ public func CarbAbsorptionInputController() -> EmojiInputController {
 }
 
 
-private class FoodEmojiDataSource: EmojiDataSource {
+final class FoodEmojiDataSource: EmojiDataSource {
     private static let fast: [String] = {
         var fast = [
             "🍭", // lollipop
@@ -79,7 +79,6 @@ private class FoodEmojiDataSource: EmojiDataSource {
             "🫑", // bell pepper
             "🧅", // onion
             "🧄", // garlic
-            "🥔", // potato
             "🥒", // cucumber
             "🥗", // green salad
             "🥬", // leafy green

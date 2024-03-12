@@ -146,21 +146,6 @@ public final class DoseStore {
 
     public let insulinDeliveryStore: InsulinDeliveryStore
 
-    /// The HealthKit sample type managed by this store
-    public var sampleType: HKSampleType {
-        return insulinDeliveryStore.sampleType
-    }
-
-    /// True if the store requires authorization
-    public var authorizationRequired: Bool {
-        return insulinDeliveryStore.authorizationRequired
-    }
-
-    /// True if the user has explicitly denied access to any required share types
-    public var sharingDenied: Bool {
-        return insulinDeliveryStore.sharingDenied
-    }
-
     /// The representation of the insulin pump for Health storage
     public var device: HKDevice? {
         get {
@@ -179,6 +164,10 @@ public final class DoseStore {
     /// Choose a lower or higher sync version if the same sample might be written twice (e.g. from an extension and from an app) for deterministic conflict resolution
     public let syncVersion: Int
 
+    public var hkSampleStore: HealthKitSampleStore? {
+        return insulinDeliveryStore.hkSampleStore
+    }
+
     /// Window for retrieving historical doses that might be used to reconcile current events
     private let pumpEventReconciliationWindow = TimeInterval(hours: 24)
 
@@ -188,11 +177,8 @@ public final class DoseStore {
     /// Initializes and configures a new store
     ///
     /// - Parameters:
-    ///   - healthStore: The HealthKit store for reading & writing insulin delivery
-    ///   - observeHealthKitSamplesFromOtherApps: Whether or not this Store should read HealthKit data written by other apps
-    ///   - storeSamplesToHealthKit: Whether or not this Store should store samples in HealthKit
+    ///   - healthKitSampleStore: The HealthKit store for reading & writing insulin delivery
     ///   - cacheStore: The cache store for reading & writing short-term intermediate data
-    ///   - observationEnabled: Whether the store should observe changes from HealthKit
     ///   - cacheLength: Maximum age of data to keep in the store.
     ///   - insulinModelProvider: A factory for producing insulin models based on insulin type
     ///   - longestEffectDuration: This determines the oldest age of doses to be retrieved for calculating glucose effects
@@ -202,14 +188,11 @@ public final class DoseStore {
     ///   - syncVersion: A version number for determining resolution in de-duplication
     ///   - lastPumpEventsReconciliation: The date the PumpManger last reconciled with the pump
     ///   - provenanceIdentifier: An id to store with new doses, indicating the provenance of the dose, usually the app's bundle identifier.
-    ///   - readyCallback: A closure that will be called after initialization.
+    ///   - onReady: A closure that will be called after initialization.
     ///   - test_currentDate: Used for testing to mock current time
     public init(
-        healthStore: HKHealthStore,
-        observeHealthKitSamplesFromOtherApps: Bool = true,
-        storeSamplesToHealthKit: Bool = true,
+        healthKitSampleStore: HealthKitSampleStore? = nil,
         cacheStore: PersistenceController,
-        observationEnabled: Bool = true,
         cacheLength: TimeInterval = 24 /* hours */ * 60 /* minutes */ * 60 /* seconds */,
         insulinModelProvider: InsulinModelProvider,
         longestEffectDuration: TimeInterval,
@@ -223,11 +206,8 @@ public final class DoseStore {
         test_currentDate: Date? = nil
     ) {
         self.insulinDeliveryStore = InsulinDeliveryStore(
-            healthStore: healthStore,
-            observeHealthKitSamplesFromOtherApps: observeHealthKitSamplesFromOtherApps,
-            storeSamplesToHealthKit: storeSamplesToHealthKit,
+            healthKitSampleStore: healthKitSampleStore,
             cacheStore: cacheStore,
-            observationEnabled: observationEnabled,
             cacheLength: cacheLength,
             provenanceIdentifier: provenanceIdentifier,
             test_currentDate: test_currentDate
@@ -692,10 +672,11 @@ extension DoseStore {
 
      - parameter events: An array of new pump events. Pump events should have end times reflective of when delivery is actually expected to be finished, as doses that end prior to a reservoir reading are ignored when reservoir data is being used.
      - parameter lastReconciliation: The date that pump events were most recently reconciled against recorded pump history. Pump events are assumed to be reflective of delivery up until this point in time. If reservoir values are recorded after this time, they may be used to supplement event based delivery.
+     - parameter replacePendingEvents: If true, any existing pending events will be removed.
      - parameter completion: A closure called after the events are saved. The closure takes a single argument:
      - parameter error: An error object explaining why the events could not be saved.
      */
-    public func addPumpEvents(_ events: [NewPumpEvent], lastReconciliation: Date?, completion: @escaping (_ error: DoseStoreError?) -> Void) {
+    public func addPumpEvents(_ events: [NewPumpEvent], lastReconciliation: Date?, replacePendingEvents: Bool = true, completion: @escaping (_ error: DoseStoreError?) -> Void) {
         lastPumpEventsReconciliation = lastReconciliation
 
         guard events.count > 0 else {
@@ -714,14 +695,15 @@ extension DoseStore {
             var firstMutableDate: Date?
             var primeValueAdded = false
 
-            // Remove any stored mutable pumpEvents; any that are still valid should be included in events
-            do {
-                try self.purgePumpEventObjects(matching: NSPredicate(format: "mutable == YES"))
-            } catch let error {
-                completion(DoseStoreError(error: .coreDataError(error as NSError)))
-                return
+            if replacePendingEvents {
+                do {
+                    try self.purgePumpEventObjects(matching: NSPredicate(format: "mutable == YES"))
+                } catch let error {
+                    completion(DoseStoreError(error: .coreDataError(error as NSError)))
+                    return
+                }
             }
-            
+
             // Remove old doses
             self.purgePumpEventObjects(before: self.cacheStartDate, completion: { error in
                 if let error = error {
@@ -876,6 +858,14 @@ extension DoseStore {
                 }
             }
         }
+    }
+
+    /**
+     Synchronizes entries from a remote authoritative store.  Any existing doses with matching syncIdentifier will be replaced.
+     - parameter entries: An array of dose entries to add.
+     */
+    public func syncDoseEntries(_ entries: [DoseEntry], updateExistingRecords: Bool = true) async throws {
+        try await self.insulinDeliveryStore.syncDoseEntries(entries, updateExistingRecords: updateExistingRecords)
     }
 
     /// Deletes one particular manually entered dose from the store
@@ -1088,17 +1078,13 @@ extension DoseStore {
     /// - Returns: An array of doses from pump events
     /// - Throws: An error describing the failure to fetch objects
     private func getNormalizedPumpEventDoseEntries(start: Date, end: Date? = nil) throws -> [DoseEntry] {
-        guard let basalProfile = self.basalProfileApplyingOverrideHistory else {
-            throw DoseStoreError.configurationError
-        }
-
         let queryStart = start.addingTimeInterval(-pumpEventReconciliationWindow)
 
         let doses = try getPumpEventObjects(
             matching: NSPredicate(format: "date >= %@ && doseType != nil", queryStart as NSDate),
             chronological: true
         ).compactMap({ $0.dose })
-        let normalizedDoses = doses.reconciled().annotated(with: basalProfile)
+        let normalizedDoses = doses.reconciled()
 
         return normalizedDoses.filterDateRange(start, end)
     }
@@ -1129,11 +1115,7 @@ extension DoseStore {
     /// - Returns: An array of doses from pump events
     /// - Throws: An error describing the failure to fetch objects
     private func getNormalizedPumpEventDoseEntriesForSavingToInsulinDeliveryStore(basalStart: Date, end: Date) throws -> [DoseEntry] {
-        guard let basalProfile = self.basalProfileApplyingOverrideHistory else {
-            throw DoseStoreError.configurationError
-        }
-
-        self.log.info("Fetching Pumpevents between %{public}@ and %{public}@ for saving to InsulinDeliveryStore", String(describing: basalStart), String(describing: end))
+        self.log.info("Fetching Pump events between %{public}@ and %{public}@ for saving to InsulinDeliveryStore", String(describing: basalStart), String(describing: end))
 
         // Make sure we look far back enough to have prior temp basal records to reconcile
         // resumption of temp basal after suspend/resume.
@@ -1149,7 +1131,7 @@ extension DoseStore {
         // Ignore any doses which have not yet ended by the specified date.
         // Also, since we are retrieving dosing history older than basalStart for
         // reconciliation purposes, we need to filter that out after reconciliation.
-        let normalizedDoses = doses.reconciled().filter({ $0.endDate <= end || $0.isMutable }).annotated(with: basalProfile).filter({ $0.startDate >= basalStart || $0.type == .bolus })
+        let normalizedDoses = doses.reconciled().filter({ $0.endDate <= end || $0.isMutable }).filter({ $0.startDate >= basalStart || $0.type == .bolus })
 
         return normalizedDoses
     }
@@ -1208,6 +1190,12 @@ extension DoseStore {
     ///   - completion: A closure called once the entries have been retrieved
     ///   - result: An array of dose entries, in chronological order by startDate
     public func getNormalizedDoseEntries(start: Date, end: Date? = nil, completion: @escaping (_ result: DoseStoreResult<[DoseEntry]>) -> Void) {
+
+        guard let basalProfile = self.basalProfileApplyingOverrideHistory else {
+            completion(.failure(.configurationError))
+            return
+        }
+
         insulinDeliveryStore.getDoseEntries(start: start, end: end, includeMutable: true) { (result) in
             switch result {
             case .failure(let error):
@@ -1217,7 +1205,7 @@ extension DoseStore {
 
                 self.persistenceController.managedObjectContext.perform {
                     do {
-                        let doses: [DoseEntry]
+                        var doses: [DoseEntry]
 
                         // Reservoir data is used only if it's continuous and the pumpmanager hasn't reconciled since the last reservoir reading
                         if self.areReservoirValuesValid, let reservoirEndDate = self.lastStoredReservoirValue?.startDate, reservoirEndDate > self.lastPumpEventsReconciliation ?? .distantPast {
@@ -1230,7 +1218,17 @@ extension DoseStore {
                             // Deduplicates doses by syncIdentifier
                             doses = insulinDeliveryDoses.appendedUnion(with: try self.getNormalizedPumpEventDoseEntries(start: filteredStart, end: end))
                         }
-                        completion(.success(doses))
+
+                        // Extend an unfinished suspend out to end time
+                        doses = doses.map { dose in
+                            var dose = dose
+                            if dose.type == .suspend && dose.startDate == dose.endDate {
+                                dose.endDate = end ?? Date()
+                            }
+                            return dose
+                        }
+
+                        completion(.success(doses.annotated(with: basalProfile)))
                     } catch let error as DoseStoreError {
                         completion(.failure(error))
                     } catch {
@@ -1240,6 +1238,38 @@ extension DoseStore {
             }
         }
     }
+
+    /// Retrieves most recent bolus
+    ///
+    /// - Parameters:
+    ///   - returns: A DoseEntry representing the most recent bolus, or nil, if there is no recent bolus
+    public func getLatestBolus() async throws -> DoseEntry? {
+        return try await insulinDeliveryStore.getBoluses().first
+    }
+
+    /// Retrieves boluses
+    ///
+    /// - Parameters:
+    ///   - start:If non-nil, select boluses that ended after start.
+    ///   - end: If non-nil, select boluses that started before end.
+    ///   - limit: If non-nill, specify the max number of boluses to return.
+    ///   - returns: A list of DoseEntry objects representing the boluses that match the query parameters
+    public func getBoluses(start: Date? = nil, end: Date? = nil) async throws -> [DoseEntry] {
+        return try await insulinDeliveryStore.getBoluses(start: start, end: end)
+    }
+
+    /// Retrieves doses overlapping supplied range
+    ///
+    /// - Parameters:
+    ///   - start:If non-nil, select boluses that ended after start.
+    ///   - end: If non-nil, select boluses that started before end.
+    ///   - limit: If non-nill, specify the max number of boluses to return.
+    ///   - returns: A list of DoseEntry objects representing the basal doses that match the query parameters
+    public func getDoses(start: Date? = nil, end: Date? = nil) async throws -> [DoseEntry] {
+        return try await insulinDeliveryStore.getDoses(start: start, end: end)
+    }
+
+
 
     /// Retrieves the maximum insulin on-board value from the two timeline values nearest to the specified date
     ///
@@ -1326,7 +1356,7 @@ extension DoseStore {
                     return dose.trimmed(to: basalDosingEnd)
                 }
 
-                let glucoseEffects = trimmedDoses.glucoseEffects(insulinModelProvider: self.insulinModelProvider, longestEffectDuration: self.longestEffectDuration, insulinSensitivity: insulinSensitivitySchedule)
+                let glucoseEffects = trimmedDoses.glucoseEffects(insulinModelProvider: self.insulinModelProvider, longestEffectDuration: self.longestEffectDuration, insulinSensitivity: insulinSensitivitySchedule, from: start, to: end)
                 completion(.success(glucoseEffects.filterDateRange(start, end)))
             }
         }
@@ -1586,7 +1616,7 @@ extension DoseStore: CriticalEventLog {
         return result!
     }
 
-    public func export(startDate: Date, endDate: Date, to stream: OutputStream, progress: Progress) -> Error? {
+    public func export(startDate: Date, endDate: Date, to stream: DataOutputStream, progress: Progress) -> Error? {
         let encoder = JSONStreamEncoder(stream: stream)
         var modificationCounter: Int64 = 0
         var fetching = true

@@ -9,6 +9,11 @@
 import Foundation
 import HealthKit
 
+public struct GlucoseMath {
+    public static let momentumDataInterval: TimeInterval = .minutes(15)
+    public static let momentumDuration: TimeInterval = .minutes(15)
+    public static let defaultDelta: TimeInterval = .minutes(5)
+}
 
 fileprivate extension Collection where Element == (x: Double, y: Double) {
     /**
@@ -46,23 +51,10 @@ fileprivate extension Collection where Element == (x: Double, y: Double) {
 
 extension BidirectionalCollection where Element: GlucoseSampleValue, Index == Int {
 
-    /// Whether the collection contains no calibration entries
+    /// Whether the collection contains any calibration entries
     /// Runtime: O(n)
-    var isCalibrated: Bool {
-        return filter({ $0.isDisplayOnly }).count == 0
-    }
-
-    /// Filters a timeline of glucose samples to only include those after the last calibration.
-    func filterAfterCalibration() -> [Element] {
-        var postCalibration = true
-
-        return reversed().filter({ (sample) in
-            if sample.isDisplayOnly {
-                postCalibration = false
-            }
-
-            return postCalibration
-        }).reversed()
+    public func containsCalibrations() -> Bool {
+        return filter({ $0.isDisplayOnly }).count > 0
     }
 
     /// Whether the collection can be considered continuous
@@ -87,16 +79,19 @@ extension BidirectionalCollection where Element: GlucoseSampleValue, Index == In
     /// - Parameters:
     ///   - duration: The duration of the effects
     ///   - delta: The time differential for the returned values
-    ///   - velocityMaximum: The limit on how fast the momentum effect can rise. Defaults to 4 mg/dL/min based on physiological rates
+    ///   - velocityMaximum: The limit on how fast the momentum effect can be. Defaults to 4 mg/dL/min based on physiological rates, if nil passed.
     /// - Returns: An array of glucose effects
-    func linearMomentumEffect(
-        duration: TimeInterval = TimeInterval(minutes: 30),
-        delta: TimeInterval = TimeInterval(minutes: 5),
-        velocityMaximum: HKQuantity = HKQuantity(unit: HKUnit.milligramsPerDeciliter.unitDivided(by: .minute()), doubleValue: 4.0)
+    public func linearMomentumEffect(
+        duration: TimeInterval = GlucoseMath.momentumDuration,
+        delta: TimeInterval = GlucoseMath.defaultDelta,
+        velocityMaximum: HKQuantity? = nil
     ) -> [GlucoseEffect] {
+
+        let velocityMax = velocityMaximum ?? HKQuantity(unit: HKUnit.milligramsPerDeciliter.unitDivided(by: .minute()), doubleValue: 4.0)
+
         guard
             self.count > 2,  // Linear regression isn't much use without 3 or more entries.
-            isContinuous() && isCalibrated && hasSingleProvenance,
+            isContinuous() && !containsCalibrations() && hasSingleProvenance,
             let firstSample = self.first,
             let lastSample = self.last,
             let (startDate, endDate) = LoopMath.simulationDateRangeForSamples([lastSample], duration: duration, delta: delta)
@@ -116,7 +111,7 @@ extension BidirectionalCollection where Element: GlucoseSampleValue, Index == In
             return []
         }
 
-        let limitedSlope = Swift.min(slope, velocityMaximum.doubleValue(for: unit.unitDivided(by: .second())))
+        let limitedSlope = Swift.min(slope, velocityMax.doubleValue(for: unit.unitDivided(by: .second())))
         
         var date = startDate
         var values = [GlucoseEffect]()
@@ -153,25 +148,41 @@ extension Collection where Element: GlucoseSampleValue, Index == Int {
     ///
     /// - Parameter effects: Glucose effects to be countered, in chronological order
     /// - Returns: An array of velocities describing the change in glucose samples compared to the specified effects
-    func counteractionEffects(to effects: [GlucoseEffect]) -> [GlucoseEffectVelocity] {
+    public func counteractionEffects(to effects: [GlucoseEffect]) -> [GlucoseEffectVelocity] {
         let mgdL = HKUnit.milligramsPerDeciliter
         let velocityUnit = GlucoseEffectVelocity.perSecondUnit
         var velocities = [GlucoseEffectVelocity]()
 
         var effectIndex = 0
-        var startGlucose: Element! = self.first
 
-        for endGlucose in self.dropFirst() {
+        guard self.count > 0, effects.count > 0 else {
+            return []
+        }
+
+        let startGlucoseIdx = self.firstIndex { $0.startDate >= effects.first!.startDate }
+
+        guard var startGlucoseIdx else {
+            return []
+        }
+
+        var endGlucoseIdx = startGlucoseIdx + 1
+
+        while endGlucoseIdx != self.endIndex {
             // Find a valid change in glucose, requiring identical provenance and no calibration
+            let startGlucose = self[startGlucoseIdx]
+            let endGlucose = self[endGlucoseIdx]
+
             let glucoseChange = endGlucose.quantity.doubleValue(for: mgdL) - startGlucose.quantity.doubleValue(for: mgdL)
             let timeInterval = endGlucose.startDate.timeIntervalSince(startGlucose.startDate)
 
             guard timeInterval > .minutes(4) else {
+                endGlucoseIdx += 1
                 continue
             }
 
             defer {
-                startGlucose = endGlucose
+                startGlucoseIdx = endGlucoseIdx
+                endGlucoseIdx += 1
             }
 
             guard startGlucose.provenanceIdentifier == endGlucose.provenanceIdentifier,

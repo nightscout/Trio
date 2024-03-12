@@ -12,7 +12,7 @@ import LoopKit
 import SwiftUI
 
 public struct TherapySettingsView: View {
-    @EnvironmentObject private var displayGlucoseUnitObservable: DisplayGlucoseUnitObservable
+    @EnvironmentObject private var displayGlucosePreference: DisplayGlucosePreference
     @Environment(\.chartColorPalette) var chartColorPalette
     @Environment(\.dismissAction) var dismissAction
     @Environment(\.appName) private var appName
@@ -237,8 +237,7 @@ extension TherapySettingsView {
     private var preMealCorrectionRangeSection: Card {
         card(for: .preMealCorrectionRangeOverride) {
             let correctionRangeOverrides = self.viewModel.correctionRangeOverrides
-            if let schedule = self.viewModel.glucoseTargetRangeSchedule
-            {
+            if let schedule = self.viewModel.glucoseTargetRangeSchedule {
                 SectionDivider()
                 CorrectionRangeOverridesRangeItem(
                     value: correctionRangeOverrides,
@@ -254,8 +253,7 @@ extension TherapySettingsView {
     private var workoutCorrectionRangeSection: Card {
         card(for: .workoutCorrectionRangeOverride) {
             let correctionRangeOverrides = self.viewModel.correctionRangeOverrides
-            if let schedule = self.viewModel.glucoseTargetRangeSchedule
-            {
+            if let schedule = self.viewModel.glucoseTargetRangeSchedule {
                 SectionDivider()
                 CorrectionRangeOverridesRangeItem(
                     value: correctionRangeOverrides,
@@ -411,7 +409,7 @@ extension TherapySettingsView {
     
     private var supportSection: some View {
         Section {
-            NavigationLink(destination: Text("Therapy Settings Support Placeholder")) {
+            NavigationLink(destination: DemoPlaceHolderView(appName: appName)) {
                 HStack {
                     Text("Get help with Therapy Settings", comment: "Support button for Therapy Settings")
                         .foregroundColor(.primary)
@@ -428,48 +426,30 @@ extension TherapySettingsView {
 
 extension TherapySettingsView {
 
-    func screen(for setting: TherapySetting) -> (_ dismiss: @escaping () -> Void) -> AnyView {
+    @ViewBuilder
+    func screen(for setting: TherapySetting, dismiss: @escaping () -> Void) -> some View {
         switch setting {
         case .suspendThreshold:
-            return { dismiss in
-                AnyView(SuspendThresholdEditor(mode: mode, therapySettingsViewModel: viewModel, didSave: dismiss).environment(\.dismissAction, dismiss))
-            }
+            SuspendThresholdEditor(mode: mode, therapySettingsViewModel: viewModel, didSave: dismiss)
         case .glucoseTargetRange:
-            return { dismiss in
-                AnyView(CorrectionRangeScheduleEditor(mode: mode, therapySettingsViewModel: viewModel, didSave: dismiss).environment(\.dismissAction, dismiss))
-            }
+           CorrectionRangeScheduleEditor(mode: mode, therapySettingsViewModel: viewModel, didSave: dismiss)
         case .preMealCorrectionRangeOverride:
-            return { dismiss in
-                AnyView(CorrectionRangeOverridesEditor(mode: mode, therapySettingsViewModel: viewModel, preset: .preMeal, didSave: dismiss).environment(\.dismissAction, dismiss))
-            }
+            CorrectionRangeOverridesEditor(mode: mode, therapySettingsViewModel: viewModel, preset: .preMeal, didSave: dismiss)
         case .workoutCorrectionRangeOverride:
-            return { dismiss in
-                AnyView(CorrectionRangeOverridesEditor(mode: mode, therapySettingsViewModel: viewModel, preset: .workout, didSave: dismiss).environment(\.dismissAction, dismiss))
-            }
+           CorrectionRangeOverridesEditor(mode: mode, therapySettingsViewModel: viewModel, preset: .workout, didSave: dismiss)
         case .basalRate:
-            return { dismiss in
-                AnyView(BasalRateScheduleEditor(mode: mode, therapySettingsViewModel: viewModel, didSave: dismiss).environment(\.dismissAction, dismiss))
-            }
+            BasalRateScheduleEditor(mode: mode, therapySettingsViewModel: viewModel, didSave: dismiss)
         case .deliveryLimits:
-            return { dismiss in
-                AnyView(DeliveryLimitsEditor(mode: mode, therapySettingsViewModel: viewModel, didSave: dismiss).environment(\.dismissAction, dismiss))
-            }
+            DeliveryLimitsEditor(mode: mode, therapySettingsViewModel: viewModel, didSave: dismiss)
         case .insulinModel:
-            return { dismiss in
-                AnyView(InsulinModelSelection(mode: mode, therapySettingsViewModel: viewModel, chartColors: chartColorPalette, didSave: dismiss).environment(\.dismissAction, dismiss))
-            }
+            InsulinModelSelection(mode: mode, therapySettingsViewModel: viewModel, chartColors: chartColorPalette, didSave: dismiss)
         case .carbRatio:
-            return { dismiss in
-                AnyView(CarbRatioScheduleEditor(mode: mode, therapySettingsViewModel: viewModel, didSave: dismiss).environment(\.dismissAction, dismiss))
-            }
+            CarbRatioScheduleEditor(mode: mode, therapySettingsViewModel: viewModel, didSave: dismiss)
         case .insulinSensitivity:
-            return { dismiss in
-                AnyView(InsulinSensitivityScheduleEditor(mode: mode, therapySettingsViewModel: viewModel, didSave: dismiss).environment(\.dismissAction, dismiss))
-            }
+            InsulinSensitivityScheduleEditor(mode: mode, therapySettingsViewModel: viewModel, didSave: dismiss)
         case .none:
-            break
+            EmptyView()
         }
-        return { _ in AnyView(Text("\(setting.title)")) }
     }
 }
 
@@ -477,7 +457,7 @@ extension TherapySettingsView {
 extension TherapySettingsView {
     
     private var glucoseUnit: HKUnit {
-        displayGlucoseUnitObservable.displayGlucoseUnit
+        displayGlucosePreference.unit
     }
     
     private var sensitivityUnit: HKUnit {
@@ -486,11 +466,16 @@ extension TherapySettingsView {
     
     private func card<Content>(for therapySetting: TherapySetting, @ViewBuilder content: @escaping () -> Content) -> Card where Content: View {
         Card {
-            SectionWithTapToEdit(isEnabled: mode != .acceptanceFlow,
-                                 title: therapySetting.title,
-                                 descriptiveText: therapySetting.descriptiveText(appName: appName),
-                                 destination: screen(for: therapySetting),
-                                 content: content)
+            SectionWithTapToEdit(
+                isEnabled: mode != .acceptanceFlow,
+                title: therapySetting.title,
+                descriptiveText: therapySetting.descriptiveText(appName: appName),
+                destination: { dismiss in
+                    screen(for: therapySetting, dismiss: dismiss)
+                        .environment(\.dismissAction, dismiss)
+                },
+                content: content
+            )
         }
     }
 }
@@ -650,12 +635,12 @@ public struct TherapySettingsView_Previews: PreviewProvider {
                 .colorScheme(.light)
                 .previewDevice(PreviewDevice(rawValue: "iPhone SE 2"))
                 .previewDisplayName("SE light (onboarding)")
-                .environmentObject(DisplayGlucoseUnitObservable(displayGlucoseUnit: .milligramsPerDeciliter))
+                .environmentObject(DisplayGlucosePreference(displayGlucoseUnit: .milligramsPerDeciliter))
             TherapySettingsView(mode: .settings, viewModel: preview_viewModel())
                 .colorScheme(.light)
                 .previewDevice(PreviewDevice(rawValue: "iPhone SE 2"))
                 .previewDisplayName("SE light (settings)")
-                .environmentObject(DisplayGlucoseUnitObservable(displayGlucoseUnit: .milligramsPerDeciliter))
+                .environmentObject(DisplayGlucosePreference(displayGlucoseUnit: .milligramsPerDeciliter))
             TherapySettingsView(mode: .settings, viewModel: preview_viewModel())
                 .colorScheme(.dark)
                 .previewDevice(PreviewDevice(rawValue: "iPhone XS Max"))
@@ -664,7 +649,7 @@ public struct TherapySettingsView_Previews: PreviewProvider {
                 .colorScheme(.light)
                 .previewDevice(PreviewDevice(rawValue: "iPhone SE 2"))
                 .previewDisplayName("SE light (Empty TherapySettings)")
-                .environmentObject(DisplayGlucoseUnitObservable(displayGlucoseUnit: .millimolesPerLiter))
+                .environmentObject(DisplayGlucosePreference(displayGlucoseUnit: .millimolesPerLiter))
         }
     }
 }

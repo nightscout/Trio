@@ -102,13 +102,20 @@ public protocol RemoteDataService: Service {
      - Parameter completion: The completion function to call with any success or failure.
      */
     func uploadSettingsData(_ stored: [StoredSettings], completion: @escaping (_ result: Result<Bool, Error>) -> Void)
-    
+
     /**
-     Validates a push notification originated from this data service.
-     - Parameter notification: The push notification dictionary
-     - Returns: Success
+     Upload cgm event data to the remote data service.
+
+     - Parameter stored: The stored alert data to upload.
+     - Parameter completion: The completion function to call with any success or failure.
      */
-    func validatePushNotificationSource(_ notification: [String: AnyObject]) -> Result<Void, Error>
+    func uploadCgmEventData(_ stored: [PersistedCgmEvent], completion: @escaping (_ result: Result<Bool, Error>) -> Void)
+
+    /**
+     Handle a push notification
+     - Parameter notification: The push notification dictionary
+     */
+    func remoteNotificationWasReceived(_ notification: [String: AnyObject]) async throws
 
 }
 
@@ -120,17 +127,4 @@ public extension RemoteDataService {
     var glucoseDataLimit: Int? { return nil }
     var pumpEventDataLimit: Int? { return nil }
     var settingsDataLimit: Int? { return nil }
-
-    func validatePushNotificationSource(_ notification: [String: AnyObject]) -> Result<Void, Error> { return .failure(PushNotificationValidationError.notificationsNotSupported) }
-}
-
-enum PushNotificationValidationError: LocalizedError {
-    case notificationsNotSupported
-    
-    var errorDescription: String? {
-        switch self {
-        case .notificationsNotSupported:
-            return "Service does not handle push notifications"
-        }
-    }
 }

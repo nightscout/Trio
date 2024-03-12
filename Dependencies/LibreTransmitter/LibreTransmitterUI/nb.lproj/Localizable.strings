@@ -1,0 +1,226 @@
+/* No comment provided by engineer. */
+"%@" = "%@";
+
+/* No comment provided by engineer. */
+"%@%" = "%1$@ %2$";
+
+/* Text describing heading for additional notification types for third party transmitters */
+"Additional notification types" = "Ytterligere varslingstyper";
+
+/* Text informing user of potentially large reports */
+"Adds a lot of data to the Issue Report " = "Legger til mye data i problemrapporten";
+
+/* Text describing always notify glucose option in notificationsettingsview */
+"Always Notify Glucose" = "Gi alltid beskjed om glukose";
+
+/* Confirmation message for deleting a CGM */
+"Are you sure you want to delete this CGM?" = "AEr du sikker på at du vil slette CGM?";
+
+/* Text describing question to remove the cgmmanager from loop */
+"Are you sure you want to remove this cgm from loop?" = "Er du sikker på at du vil fjerne denne cgm-en fra loop?";
+
+/* Text of Authenticate button in AuthView */
+"Authenticate" = "Autentiser";
+
+/* Text confirming user is authenticated in AuthView */
+"Authenticated" = "Autentisert";
+
+/* Text describing header for backfill options in glucosesettingsview */
+"Backfill options" = "Alternativer for tilbakefylling";
+
+/* Bluetooth Transmitter connection option */
+"Bluetooth Transmitters" = "Bluetooth-sendere";
+
+/* The title of the cancel action in an action sheet */
+"Cancel" = "Avbryt";
+
+/* Text describing click to snooze label in snoozeview */
+"Click to Snooze Alerts" = "Klikk for å slumre varsler";
+
+/* Text describing options for connecting to sensor or transmitter */
+"Connection options" = "Tilkoblingsmuligheter";
+
+/* Title of cell to set credentials */
+"Credentials" = "Påloggingsinformasjon";
+
+/* No comment provided by engineer. */
+"Critical alarm volume" = "Kritisk alarmvolum";
+
+/* No comment provided by engineer. */
+"Critical alarms will always be sent with volume at minimum 60%" = "Kritiske alarmer sendes alltid med volum på minimum 60 %.";
+
+/* Title describing glucose date */
+"Date" = "Dato";
+
+/* Unit for singular day in sensor liferemaining */
+"day" = "dag";
+
+/* Unit for plural days in sensor life remaining */
+"days" = "dager";
+
+/* Text describing header for debug options in glucosesettingsview */
+"Debug options" = "Feilsøkingsalternativer";
+
+/* Action text for deleting cgmmanager */
+"Delete" = "Slett";
+
+/* Button title to delete CGM
+   Title text for the button to remove a CGM from Loop */
+"Delete CGM" = "Slett CGM";
+
+/* Text describing header for device info section */
+"Device Info" = "Enhetsinformasjon";
+
+/* Text of Sensor Setup Button in AuthView */
+"Disconnect & Continue Setup" = "Koble fra og fortsett installasjonen";
+
+/* Label text for step 4 of connection setup */
+"Fair warning: The sensor will be not be using the manufacturer's algorithm, and some safety mitigations present in the manufacturers algorithm might be missing when you use this." = "Rettferdig advarsel: Sensoren vil ikke bruke produsentens algoritme, og noen sikkerhetsbegrensninger som finnes i produsentens algoritme kan mangle når du bruker denne.";
+
+/* Text for discovered number of devices
+   Text for discovered number of devices \(devicesCount) */
+"Found devices:" = "Funnet enheter:";
+
+/* The short unit display string for grams */
+"g" = "g";
+
+/* Title describing glucose value */
+"Glucose" = "Blodsukker";
+
+/* Text describing header for notification visibility in notificationsettingsview */
+"Glucose Notification visibility" = "Synlighet for glukosevarsling";
+
+/* No comment provided by engineer. */
+"Got it!" = "Nå har jeg det!";
+
+/* Text describing High glucose label in alarmsettingsview */
+"High" = "Høy";
+
+/* Unit for singular hour in sensor life remaining */
+"hour" = "time";
+
+/* Unit for plural hours in sensor life remaining */
+"hours" = "timer";
+
+/* Text describing header for Blood Sugar prediction section */
+"Last Blood Sugar prediction" = "Siste blodsukkerprediksjon";
+
+/* Text describing header for last measurement section */
+"Last measurement" = "Forrige avlesning";
+
+/* Section title for latest glucose reading */
+"Latest Reading" = "Siste måling";
+
+/* Libre 2 connection option */
+"Libre 2 Direct" = "Libre 2 Direct";
+
+/* Text header for Libre Transmitters choice */
+"Libre Transmitters" = "Libre sendere";
+
+/* Text describing Low glucose label in alarmsettingsview */
+"Low" = "Lav";
+
+/* The short unit display string for milligrams of glucose per decilter */
+"mg/dL" = "mg/dL";
+
+/* Unit for singular minute in sensor life remaining */
+"minute" = "minutt";
+
+/* Unit for plural minutes in sensor life remaining */
+"minutes" = "minutter";
+
+/* No comment provided by engineer. */
+"Misc" = "Diverse";
+
+/* The short unit display string for millimoles of glucose per liter */
+"mmol/L" = "mmol/L";
+
+/* Text describing no connection label in settingsview */
+"No Connection: " = "Ingen forbindelse:";
+
+/* Text describing option for letting user choose notifying for every reading, every second reading etc */
+"Notify per reading" = "Varsle per avlesning";
+
+/* Outside US share server option title */
+"Outside US" = "Utenfor USA";
+
+/* Button title for pairing sensor */
+"Pair Sensor" = "Par sensor";
+
+/* Button title for pairing sensor when pairing */
+"Pairing..." = "Kobler sammen...";
+
+/* The title of the Dexcom share password credential */
+"Password" = "Passord";
+
+/* Text for pausing glucose alarms */
+"Pause Glucose alarms" = "Sett glukosealarmer på pause";
+
+/* Label text for step 3 of AuthView */
+"Proceed to pair new sensor in the next screens. Note that you will loose connection to any existing sensor or transmitter" = "Fortsett med å parre den nye sensoren i de neste skjermbildene. Vær oppmerksom på at du vil miste forbindelsen til eksisterende sensorer eller sendere.";
+
+/* Text describing header for remote data storage */
+"Remote data storage" = "Ekstern datalagring";
+
+/* No comment provided by engineer. */
+"Replace sensor immediately to continue receving glucose values" = "Skift ut sensoren umiddelbart for å fortsette å motta glukoseverdier";
+
+/* Text describing Save button in calibrationeditview */
+"Save" = "Lagre";
+
+/* Text describing schedule in alarmsettingsview
+   Text describing schedule in alarmsettingsview\(i+1) */
+"Schedule " = "Tidsplan";
+
+/* Text describing user choice of selecting which transmitter to connect to */
+"Select the third party transmitter you want to connect to" = "Velg tredjepartssenderen du ønsker å koble til";
+
+/* Label text for step 2 of connection setup */
+"Select the type of setup you want." = "Velg hvilken type oppsett du ønsker.";
+
+/* Text describing sensor expires in label in settingsview */
+"Sensor expires in " = "Sensoren utløper om";
+
+/* No comment provided by engineer. */
+"Sensor is expired" = "Sensoren er utløpt";
+
+/* Text describing Sensor serial label in settingsview */
+"Sensor Serial" = "Sensor Seriell";
+
+/* Text describing Sensor state label in settingsview */
+"Sensor State" = "Sensorens tilstand";
+
+/* The title of the Dexcom share server URL credential */
+"Server" = "Tjener";
+
+/* No comment provided by engineer. */
+"some faultAction" = "noen faultAction";
+
+/* No comment provided by engineer. */
+"Strength" = "Styrke";
+
+/* Text warning user there is no undo for deleting cgmmanager */
+"There is no undo. Deleting requires authentication!" = "Det er ikke mulig å angre. Sletting krever autentisering!";
+
+/* Very short text describing separation between start and end datetimes */
+"To " = "Til";
+
+/* Title describing glucose trend */
+"Trend" = "Trend";
+
+/* The short unit display string for international units of insulin */
+"U" = "E";
+
+/* No comment provided by engineer. */
+"Unit override" = "Overstyring av enhet";
+
+/* U.S. share server option title */
+"US" = "USA";
+
+/* The title of the Dexcom share username credential */
+"Username" = "Brukernavn";
+
+/* Text describing technical details about the validity of calibrations 
+   Text describing technical details about the validity of calibrations \(newParams.isValidForFooterWithReverseCRCs) */
+"Valid for footer: " = "Gyldig for bunntekst:";
+

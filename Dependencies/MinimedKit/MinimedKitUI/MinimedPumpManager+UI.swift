@@ -14,12 +14,13 @@ import RileyLinkKitUI
 
 
 extension MinimedPumpManager: PumpManagerUI {
+
     
     public static var onboardingImage: UIImage? {
         return UIImage.pumpImage(in: nil, isLargerModel: false, isSmallImage: true)
     }
 
-    static public func setupViewController(initialSettings settings: PumpManagerSetupSettings, bluetoothProvider: BluetoothProvider, colorPalette: LoopUIColorPalette, allowDebugFeatures: Bool, allowedInsulinTypes: [InsulinType]) -> SetupUIResult<PumpManagerViewController, PumpManagerUI> {
+    static public func setupViewController(initialSettings settings: PumpManagerSetupSettings, bluetoothProvider: BluetoothProvider, colorPalette: LoopUIColorPalette, allowDebugFeatures: Bool, prefersToSkipUserInteraction: Bool, allowedInsulinTypes: [InsulinType]) -> SetupUIResult<PumpManagerViewController, PumpManagerUI> {
         let navVC = MinimedPumpManagerSetupViewController.instantiateFromStoryboard()
         navVC.supportedInsulinTypes = allowedInsulinTypes
         let didConfirm: (InsulinType) -> Void = { [weak navVC] (confirmedType) in

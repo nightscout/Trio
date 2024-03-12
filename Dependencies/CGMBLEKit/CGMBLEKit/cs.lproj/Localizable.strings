@@ -10,6 +10,9 @@
 /* Timeout error description */
 "Peripheral did not respond in time" = "Periferní zařízení nereagovalo včas";
 
+/* The description of sensor calibration state when raw value is unknown. (1: missing data details) */
+"Sensor is in unknown state %1$d" = "Senzor je v neznámém stavu %1$d";
+
 /* The description of sensor calibration state when sensor sensor is stopped. */
 "Sensor is stopped" = "Senzor je zastaven";
 

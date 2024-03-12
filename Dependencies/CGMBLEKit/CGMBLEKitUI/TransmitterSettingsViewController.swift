@@ -17,23 +17,19 @@ class TransmitterSettingsViewController: UITableViewController {
 
     let cgmManager: TransmitterManager & CGMManagerUI
 
-    private let displayGlucoseUnitObservable: DisplayGlucoseUnitObservable
+    private let displayGlucosePreference: DisplayGlucosePreference
 
     private lazy var cancellables = Set<AnyCancellable>()
 
-    private var glucoseUnit: HKUnit {
-        displayGlucoseUnitObservable.displayGlucoseUnit
-    }
-
-    init(cgmManager: TransmitterManager & CGMManagerUI, displayGlucoseUnitObservable: DisplayGlucoseUnitObservable) {
+    init(cgmManager: TransmitterManager & CGMManagerUI, displayGlucosePreference: DisplayGlucosePreference) {
         self.cgmManager = cgmManager
-        self.displayGlucoseUnitObservable = displayGlucoseUnitObservable
+        self.displayGlucosePreference = displayGlucosePreference
 
         super.init(style: .grouped)
 
         cgmManager.addObserver(self, queue: .main)
 
-        displayGlucoseUnitObservable.$displayGlucoseUnit
+        displayGlucosePreference.$unit
             .sink { [weak self] _ in self?.tableView.reloadData() }
             .store(in: &cancellables)
     }
@@ -147,12 +143,6 @@ class TransmitterSettingsViewController: UITableViewController {
         }
     }
 
-    private lazy var glucoseFormatter: QuantityFormatter = {
-        let formatter = QuantityFormatter()
-        formatter.setPreferredNumberFormatter(for: glucoseUnit)
-        return formatter
-    }()
-
     private lazy var dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateStyle = .long
@@ -163,14 +153,22 @@ class TransmitterSettingsViewController: UITableViewController {
     
     private lazy var sensorExpirationFullFormatter: DateFormatter = {
         let formatter = DateFormatter()
-        formatter.dateStyle = .full
-        formatter.timeStyle = .short
-        formatter.doesRelativeDateFormatting = true
-        //formatter.dateFormat = "E, MMM d 'at' h:mm a"
+        //formatter.dateStyle = .full
+        //formatter.timeStyle = .short
+        //formatter.doesRelativeDateFormatting = true
+        formatter.setLocalizedDateFormatFromTemplate("E, MMM d, hh:mm")
         return formatter
     }()
     
     private lazy var sensorExpirationRelativeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .long
+        formatter.timeStyle = .none
+        formatter.doesRelativeDateFormatting = true
+        return formatter
+    }()
+    
+    private lazy var sensorExpirationRelativeFormatterWithTime: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateStyle = .long
         formatter.timeStyle = .short
@@ -181,7 +179,7 @@ class TransmitterSettingsViewController: UITableViewController {
     private lazy var sensorExpAbsFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateStyle = .long
-        formatter.timeStyle = .short
+        formatter.timeStyle = .none
         formatter.doesRelativeDateFormatting = false
         return formatter
     }()
@@ -227,21 +225,14 @@ class TransmitterSettingsViewController: UITableViewController {
 
             switch LatestReadingRow(rawValue: indexPath.row)! {
             case .glucose:
-                cell.setGlucose(glucose?.glucose, unit: glucoseUnit, formatter: glucoseFormatter, isDisplayOnly: glucose?.isDisplayOnly ?? false)
+                cell.setGlucose(glucose?.glucose, formatter: displayGlucosePreference.formatter, isDisplayOnly: glucose?.isDisplayOnly ?? false)
             case .date:
                 cell.setGlucoseDate(glucose?.readDate, formatter: dateFormatter)
             case .trend:
                 cell.textLabel?.text = LocalizedString("Trend", comment: "Title describing glucose trend")
 
                 if let trendRate = glucose?.trendRate {
-                    let glucoseUnitPerMinute = glucoseUnit.unitDivided(by: .minute())
-                    let trendPerMinute = HKQuantity(unit: glucoseUnit, doubleValue: trendRate.doubleValue(for: glucoseUnitPerMinute))
-
-                    if let formatted = glucoseFormatter.string(from: trendPerMinute, for: glucoseUnit) {
-                        cell.detailTextLabel?.text = String(format: LocalizedString("%@/min", comment: "Format string for glucose trend per minute. (1: glucose value and unit)"), formatted)
-                    } else {
-                        cell.detailTextLabel?.text = SettingsTableViewCell.NoValueString
-                    }
+                    cell.detailTextLabel?.text = displayGlucosePreference.formatMinuteRate(trendRate)
                 } else {
                     cell.detailTextLabel?.text = SettingsTableViewCell.NoValueString
                 }
@@ -262,7 +253,7 @@ class TransmitterSettingsViewController: UITableViewController {
 
             switch LatestCalibrationRow(rawValue: indexPath.row)! {
             case .glucose:
-                cell.setGlucose(calibration?.glucose, unit: glucoseUnit, formatter: glucoseFormatter, isDisplayOnly: false)
+                cell.setGlucose(calibration?.glucose, formatter: displayGlucosePreference.formatter  , isDisplayOnly: false)
             case .date:
                 cell.setGlucoseDate(calibration?.date, formatter: dateFormatter)
             }
@@ -323,7 +314,7 @@ class TransmitterSettingsViewController: UITableViewController {
                         if sensorExpirationRelativeFormatter.string(from: sessionExp) == sensorExpAbsFormatter.string(from: sessionExp) {
                             cell.detailTextLabel?.text = sensorExpirationFullFormatter.string(from: sessionExp)
                         } else {
-                            cell.detailTextLabel?.text = sensorExpirationRelativeFormatter.string(from: sessionExp)
+                            cell.detailTextLabel?.text = sensorExpirationRelativeFormatterWithTime.string(from: sessionExp)
                         }
                     } else {
                         cell.detailTextLabel?.text = SettingsTableViewCell.NoValueString
@@ -443,7 +434,7 @@ class TransmitterSettingsViewController: UITableViewController {
         case .share:
             switch ShareRow(rawValue: indexPath.row)! {
             case .settings:
-                let vc = ShareClientSettingsViewController(cgmManager: cgmManager.shareManager, displayGlucoseUnitObservable: displayGlucoseUnitObservable, allowsDeletion: false)
+                let vc = ShareClientSettingsViewController(cgmManager: cgmManager.shareManager, displayGlucosePreference: displayGlucosePreference, allowsDeletion: false)
                 show(vc, sender: nil)
                 return // Don't deselect
             case .openApp:
@@ -532,14 +523,14 @@ private extension UIAlertController {
 
 
 private extension SettingsTableViewCell {
-    func setGlucose(_ glucose: HKQuantity?, unit: HKUnit, formatter: QuantityFormatter, isDisplayOnly: Bool) {
+    func setGlucose(_ glucose: HKQuantity?, formatter: QuantityFormatter, isDisplayOnly: Bool) {
         if isDisplayOnly {
             textLabel?.text = LocalizedString("Glucose (Adjusted)", comment: "Describes a glucose value adjusted to reflect a recent calibration")
         } else {
             textLabel?.text = LocalizedString("Glucose", comment: "Title describing glucose value")
         }
 
-        if let quantity = glucose, let formatted = formatter.string(from: quantity, for: unit) {
+        if let quantity = glucose, let formatted = formatter.string(from: quantity) {
             detailTextLabel?.text = formatted
         } else {
             detailTextLabel?.text = SettingsTableViewCell.NoValueString

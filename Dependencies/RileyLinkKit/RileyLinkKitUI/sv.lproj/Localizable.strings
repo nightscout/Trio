@@ -1,0 +1,61 @@
+/* Unit format string for an RSSI value in decibles */
+"%@ dB" = "%@ dB";
+
+/* Unit format string for an value in percent */
+"%@%%" = "%@%%";
+
+/* The title of the section describing commands */
+"Commands" = "Kommandon";
+
+/* The connected state */
+"Connected" = "Ansluten";
+
+/* The in-progress connecting state */
+"Connecting" = "Ansluter";
+
+/* The title of the cell showing BLE connection state */
+"Connection State" = "Anslutningsstatus";
+
+/* The title of the section describing the device */
+"Device" = "Enhet";
+
+/* The title of the devices table section in RileyLink settings */
+"Devices" = "Enheter";
+
+/* The disconnected state */
+"Disconnected" = "Frånkopplad";
+
+/* The in-progress disconnecting state */
+"Disconnecting" = "Kopplar från";
+
+/* The title of the cell for sounding device finding piezo */
+"Find Device" = "Hitta enhet";
+
+/* The title of the cell showing firmware version */
+"Firmware" = "Firmware";
+
+/* The title of the cell showing current rileylink frequency */
+"Frequency" = "Frekvens";
+
+/* Progress message for getting statistics. */
+"Get Statistics…" = "Hämtar statistik…";
+
+/* The title of the cell showing device name */
+"Name" = "Namn";
+
+/* Detail text when battery alert disabled.
+   Text indicating LED Mode is off */
+"Off" = "Av";
+
+/* Text indicating LED Mode is on */
+"On" = "På";
+
+/* RileyLink setup description */
+"RileyLink allows for communication with the pump over Bluetooth Low Energy." = "RileyLink kommunicerar med pumpen via Bluetooth lågenergianslutning.";
+
+/* The title of the cell showing BLE signal strength (RSSI) */
+"Signal Strength" = "Signalstyrka";
+
+/* The title of the cell showing uptime */
+"Uptime" = "Körs sedan";
+

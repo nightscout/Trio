@@ -63,10 +63,10 @@
 "Communication issue: Unacknowledged command pending." = "İletişim sorunu: Onaylanmamış komut beklemede.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When Loop automatically adjusts delivery, no confidence reminders are used." = "Emniyet hatırlatıcıları, bolus, bolus iptali, askıya alma, devam ettirme, bildirim hatırlatıcılarını kaydetme gibi başlattığınız komutlar için çalacaktır. Loop iletimi otomatik olarak ayarladığında emniyet hatırlatıcıları kullanılmaz.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate.";
+"Confidence reminders will sound when Loop automatically adjusts delivery as well as for commands you initiate." = "Emniyet hatırlatıcıları, Başlattığınız komutların yanı sıra Loop iletimi otomatik olarak ayarladığında çalacaktır.";
 
 /* The title for AlarmCode.other notification */
 "Critical Pod Error" = "Kritik Pod Hatası";
@@ -83,11 +83,20 @@
 /* Description for Empty reservoir pod fault */
 "Empty reservoir" = "Boş rezervuar";
 
+/* The title for Empty Reservoir alarm notification */
+"Empty Reservoir" = "Boş Rezervuar";
+
 /* Error message shown when empty response from pod was received */
 "Empty response from pod" = "Pod'dan boş yanıt";
 
+/* Title string for BeepPreference.manualCommands */
+"Enabled" = "Etkin";
+
 /* Pod state error event logged shutting down */
 "Error event logged, shutting down" = "Hata olayı kaydedildi, kapatılıyor";
+
+/* Description for expiration advisory */
+"Expiration advisory" = "Süre sonu tavsiyesi";
 
 /* Description for expiration alert */
 "Expiration alert" = "Süre sonu uyarısı";
@@ -149,6 +158,9 @@
 /* Error description for OmniBLEPumpManagerError.invalidSetting */
 "Invalid Setting" = "Geçersiz Ayar";
 
+/* Pod state when running with fifty or less units */
+"Low reservoir" = "Düşük rezervuar";
+
 /* Alert content title for lowReservoir pod alert */
 "Low Reservoir" = "Düşük Rezervuar";
 
@@ -160,6 +172,9 @@
 
 /* Title for RileyLink low battery alert */
 "Low RileyLink Battery" = "Düşük RileyLink Pili";
+
+/* Recovery suggestion for PodCommsError.noPodsFound */
+"Make sure your pod is filled and nearby." = "Podunuzun dolu ve yakında olduğundan emin olun.";
 
 /* Recovery suggestion when no RileyLink is available */
 "Make sure your RileyLink is nearby and powered on" = "RileyLink'inizin yakında olduğundan ve açık olduğundan emin olun";
@@ -215,8 +230,21 @@
 /* Description for Occlusion detected pod fault */
 "Occlusion detected" = "Tıkanma tespit edildi";
 
+/* The title for Occlusion alarm notification */
+"Occlusion Detected" = "Tıkanma tespit edildi";
+
+/* Action button default text for PodAlerts */
+"Ok" = "Tamam";
+
+/* Acknowledge button label for RileyLink low battery alert
+   Alert acknowledgment OK button */
+"OK" = "Tamam";
+
 /* Generic title of the omnipod pump manager */
 "Omnipod" = "Omnipod";
+
+/* Pod state oneNotUsed */
+"oneNotUsed" = "birNotKullanıldı";
 
 /* Pod status after pairing */
 "Paired" = "Eşleştirilmiş";
@@ -245,6 +273,9 @@
 /* Recovery suggestion when pairing signal strength is too low */
 "Please reposition the RileyLink relative to the pod" = "Lütfen RileyLink'i pod'a göre yeniden konumlandırın";
 
+/* Recovery suggestion when no response is received from pod */
+"Please try repositioning the pod or the RileyLink and try again" = "Lütfen pod'un veya RileyLink'in konumunu değiştirip tekrar deneyin";
+
 /* Error message shown when user cannot pair because pod is already paired */
 "Pod already paired" = "Pod zaten eşleştirilmiş";
 
@@ -260,8 +291,17 @@
 /* The title for pod expiration notification */
 "Pod Expiration Notice" = "Pod Süre Sonu Bildirimi";
 
+/* Alert content title for userPodExpiration pod alert */
+"Pod Expiration Reminder" = "Pod Süre Sonu Hatırlatıcısı";
+
 /* Description for Pod expired pod fault */
 "Pod expired" = "Pod'un süresi doldu";
+
+/* Alert content title for podExpireImminent pod alert
+   Alert content title for podExpiring pod alert
+   Status highlight message for podExpired alarm.
+   The title for Pod Expired alarm notification */
+"Pod Expired" = "Pod Süresi Doldu";
 
 /* Format string for alert content body for userPodExpiration pod alert. (1: time until expiration) */
 "Pod expires in %1$@." = "Pod'un süresi %1$@ içinde doluyor.";
@@ -324,6 +364,9 @@
 /* The format string describing a resume. (1: Time)(2: Scheduled certainty */
 "Resume: %1$@ %2$@" = "Devam: %1$@ %2$@";
 
+/* Delivery status when scheduled basal is running */
+"Scheduled basal" = "Programlanan Bazal";
+
 /* Delivery status when basal is running */
 "Scheduled Basal" = "Programlanan Bazal";
 
@@ -348,9 +391,6 @@
 
 /* Description for suspend time expired */
 "Suspend time expired" = "Askıya alma süresi doldu";
-
-/* Delivery status when insulin delivery is suspended */
-"Suspended" = "Askıya alındı";
 
 /* The format string describing a suspend. (1: Time)(2: Scheduled certainty */
 "Suspend: %1$@ %2$@" = "Askıya alma: %1$@ %2$@";
@@ -385,6 +425,9 @@
 /* Alert content body for timeOffsetChangeDetected pod alert */
 "The time on your pump is different from the current time. You can review the pump time and and sync to current time in settings." = "Pompanızdaki saat, geçerli saatten farklı. Pompa süresini gözden geçirebilir ve ayarlarda geçerli saate eşitleyebilirsiniz.";
 
+/* Pod state threeNotUsed */
+"threeNotUsed" = "üçNotKullanıldı";
+
 /* Alert content title for timeOffsetChangeDetected pod alert */
 "Time Change Detected" = "Zaman Değişikliği Algılandı";
 
@@ -396,6 +439,9 @@
 
 /* Recovery suggestion when ack received instead of response */
 "Try again" = "Tekrar deneyin";
+
+/* Pod state twoNotUsed */
+"twoNotUsed" = "ikiNotKullanıldı";
 
 /* String describing a dose that was possibly scheduled */
 "Uncertain" = "Belirsiz";
@@ -426,3 +472,4 @@
 
 /* Description waiting for pairing reminder */
 "Waiting for pairing reminder" = "Eşleştirme hatırlatıcısı bekleniyor";
+

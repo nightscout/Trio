@@ -11,10 +11,11 @@ import Foundation
 import LoopKit
 
 public final class MockService: Service {
-    
-    public static let serviceIdentifier = "MockService"
+    public static let pluginIdentifier = "MockService"
     
     public static let localizedTitle = "Simulator"
+    
+    public weak var stateDelegate: StatefulPluggableDelegate?
     
     public weak var serviceDelegate: ServiceDelegate?
     
@@ -59,11 +60,11 @@ public final class MockService: Service {
     public func completeCreate() {}
     
     public func completeUpdate() {
-        serviceDelegate?.serviceDidUpdateState(self)
+        stateDelegate?.pluginDidUpdateState(self)
     }
     
     public func completeDelete() {
-        serviceDelegate?.serviceWantsDeletion(self)
+        stateDelegate?.pluginWantsDeletion(self)
     }
     
     public func clearHistory() {
@@ -83,6 +84,10 @@ public final class MockService: Service {
 }
 
 extension MockService: AnalyticsService {
+    public func recordIdentify(_ property: String, array: [String]) {
+        record("[AnalyticsService] Identify: \(property) \(array)")
+    }
+
     public func recordAnalyticsEvent(_ name: String, withProperties properties: [AnyHashable: Any]?, outOfSession: Bool) {
         if analytics {
             record("[AnalyticsService] \(name) \(String(describing: properties)) \(outOfSession)")
@@ -109,7 +114,6 @@ extension MockService: LoggingService {
 }
 
 extension MockService: RemoteDataService {
-
     public func uploadTemporaryOverrideData(updated: [TemporaryScheduleOverride], deleted: [TemporaryScheduleOverride], completion: @escaping (Result<Bool, Error>) -> Void) {
         if remoteData {
             record("[RemoteDataService] Upload temporary override data (updated: \(updated.count), deleted: \(deleted.count))")
@@ -167,9 +171,14 @@ extension MockService: RemoteDataService {
         }
         completion(.success(false))
     }
-    
-    public func validatePushNotificationSource(_ notification: [String : AnyObject]) -> Result<Void, Error> {
-        return .success(Void())
+
+    public func uploadCgmEventData(_ stored: [LoopKit.PersistedCgmEvent], completion: @escaping (Result<Bool, Error>) -> Void) {
+        if remoteData {
+            record("[RemoteDataService] Upload cgm event data (stored: \(stored.count))")
+        }
+        completion(.success(false))
     }
     
+    public func remoteNotificationWasReceived(_ notification: [String: AnyObject]) async throws {
+    }
 }

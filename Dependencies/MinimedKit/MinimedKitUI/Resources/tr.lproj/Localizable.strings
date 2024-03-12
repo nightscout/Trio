@@ -28,6 +28,9 @@
 /* Text to confirm delete this pump */
 "Are you sure you want to delete this Pump?" = "Bu Pompayı silmek istediğinizden emin misiniz?";
 
+/* No comment provided by engineer. */
+"Battery Chemistry" = "Pil Kimyası";
+
 /* The format string describing pump battery voltage: (1: battery voltage) */
 "Battery: %1$@ volts\n" = "Pil: %1$@ volt\n";
 
@@ -70,6 +73,9 @@
 
 /* Description for option to not use MySentry */
 "Do not use MySentry" = "MySentry'i kullanmayın";
+
+/* No comment provided by engineer. */
+"Done" = "Tamamlandı";
 
 /* The alert title for a resume error */
 "Error Resuming" = "Sürdürme Hatası";
@@ -130,7 +136,7 @@
 "Preferred Data Source" = "Tercih Edilen Veri Kaynağı";
 
 /* Text for medtronic pump battery percent remaining */
-"Pump Battery Remaining" = "Pump Battery Remaining";
+"Pump Battery Remaining" = "Kalan Pompa Pili";
 
 /* navigation title for pump battery type selection
    Text for medtronic pump battery type */
@@ -203,7 +209,7 @@
 "U/hr" = "Ü/sa";
 
 /* Text to indicate battery percentage is unknown */
-"unknown" = "unknown";
+"unknown" = "Bilinmeyen";
 
 /* Text shown in basal rate space when delivery status is unknown */
 "Unknown" = "Bilinmeyen";
@@ -218,3 +224,4 @@
 
 /* Button text to confirm pump time sync */
 "Yes, Sync to Current Time" = "Evet, Geçerli Saatle Senkronize Et";
+

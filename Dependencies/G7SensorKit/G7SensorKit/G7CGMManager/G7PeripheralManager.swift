@@ -131,7 +131,7 @@ extension G7PeripheralManager {
                         self.log.error("No delegate set configured")
                     }
                 } catch let error {
-                    self.log.error("Error applying peripheral configuration: %@", String(describing: error))
+                    self.log.error("Error applying peripheral configuration: %{public}@", String(describing: error))
                     // Will retry
                 }
 

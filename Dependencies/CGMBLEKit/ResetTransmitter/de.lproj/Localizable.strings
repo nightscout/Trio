@@ -1,5 +1,5 @@
 /* Title of the reset confirmation sheet */
-"Are you sure you want to reset this transmitter?" = "Möchten Sie das CGM wirklich löschen?";
+"Are you sure you want to reset this transmitter?" = "Möchtest Du das CGM wirklich löschen?";
 
 /* Title of button to cancel reset */
 "Cancel" = "Abbrechen";
@@ -9,8 +9,8 @@
 
 /* Reset button title
    Title of button to begin reset */
-"Reset" = "Reset";
+"Reset" = "Zurücksetzen";
 
 /* Notification title for background completion notification */
-"Transmitter Reset Complete" = "TZurücksetzen des Transmitters abgeschlossen";
+"Transmitter Reset Complete" = "Zurücksetzen des Transmitters abgeschlossen";
 

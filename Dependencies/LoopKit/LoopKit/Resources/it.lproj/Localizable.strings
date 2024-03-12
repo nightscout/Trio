@@ -29,9 +29,6 @@
 /* Description for apidra insulin type */
 "Apidra (insulin glulisine) is a rapid-acting insulin made by Sanofi-aventis " = "Apidra (insulina glulisina) è un'insulina ad azione rapida prodotta da Sanofi-aventis";
 
-/* The error description describing when Health sharing was denied */
-"Authorization Denied" = "Autorizzazione negata";
-
 /* Title for basal dose type */
 "Basal" = "Basale";
 
@@ -73,6 +70,15 @@
 
 /* Generic pump error description */
 "Device Refused" = "Il dispositivo è stato rifiutato";
+
+/* Accessibility label for device status critical state */
+"Device Status Critical" = "Stato del dispositivo critico";
+
+/* Accessibility label for device status normal state */
+"Device Status Normal" = "Sato del device normale";
+
+/* Accessibility label for device status warning state */
+"Device Status Warning" = "Avviso sullo stato del dispositivo";
 
 /* Recovery suggestion for a no data error */
 "Ensure carb data exists for the specified date" = "Assicurati che i dati sui carboidrati esistano per la data specificata";
@@ -151,11 +157,17 @@
 /* Descriptive text for maximum bolus */
 "Maximum Bolus is the highest bolus amount you can deliver at one time to cover carbs or bring down high glucose." = "Il bolo massimo e' il valore piu' alto di bolo che puo'essere erogato tutto in una volta per coprire i carboidrati inseriti o per abbassare una iperglicemia";
 
+/* The short unit display string for milligrams per liter per minute */
+"mg/dL/min" = "mg/dl/min";
+
 /* The short unit display string for milligrams per deciliter per U */
 "mg/dL/U" = "mg/dL/U";
 
 /* The short unit display string for millimoles per liter */
 "mmol/L" = "mmol/L";
+
+/* The short unit display string for millimoles per liter per minute */
+"mmol/L/min" = "mmol/L/min";
 
 /* The short unit display string for millimoles per liter per U */
 "mmol/L/U" = "mmol/L/U";
@@ -183,9 +195,6 @@
 
 /* Descriptive text for saving settings outside the recommended range */
 "One or more of the values you have entered is outside of what is typically recommended for most people." = "Uno o più dei valori inseriti non rientrano in quelli generalmente consigliati per la maggior parte delle persone.";
-
-/* The error recovery suggestion when Health sharing was denied */
-"Please re-enable sharing in Health" = "Per favore, riattiva la condivisione in Salute";
 
 /* Title for pre-meal mode */
 "Pre-Meal" = "Pre-Pasto";

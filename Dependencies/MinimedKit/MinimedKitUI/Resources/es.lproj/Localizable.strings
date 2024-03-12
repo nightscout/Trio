@@ -129,9 +129,6 @@
    Text for medtronic pump preferred data source */
 "Preferred Data Source" = "Fuente de Datos Preferida";
 
-/* Text for medtronic pump battery percent remaining */
-"Pump Battery Remaining" = "Pump Battery Remaining";
-
 /* navigation title for pump battery type selection
    Text for medtronic pump battery type */
 "Pump Battery Type" = "Tipo de batería de microinfusora";
@@ -202,9 +199,6 @@
 /* Units for showing temp basal rate */
 "U/hr" = "U/hra";
 
-/* Text to indicate battery percentage is unknown */
-"unknown" = "unknown";
-
 /* Text shown in basal rate space when delivery status is unknown */
 "Unknown" = "Desconocido";
 
@@ -218,3 +212,4 @@
 
 /* Button text to confirm pump time sync */
 "Yes, Sync to Current Time" = "Sí, sincronizar con la hora actual";
+

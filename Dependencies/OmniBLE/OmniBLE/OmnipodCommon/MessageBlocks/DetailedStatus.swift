@@ -169,7 +169,7 @@ extension TimeInterval {
         if hours != 0 {
             str += String(format: "%uh", hours)
         }
-        if minutes != 0 || hours != 0 {
+        if minutes != 0 {
             str += String(format: "%um", minutes)
         }
         if seconds != 0 || str.isEmpty {

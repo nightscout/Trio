@@ -331,41 +331,6 @@
 			remoteGlobalIDString = C1E34B0029C7ABCB009A50A5;
 			remoteInfo = MinimedKitUI;
 		};
-		CEC751C729D88240006E9D24 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CEC751BF29D88240006E9D24 /* OmniKit.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = C124016C29C7D87A00B32844;
-			remoteInfo = OmniKit;
-		};
-		CEC751C929D88240006E9D24 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CEC751BF29D88240006E9D24 /* OmniKit.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = C124020B29C7D92700B32844;
-			remoteInfo = OmniKitUI;
-		};
-		CEC751CB29D88240006E9D24 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CEC751BF29D88240006E9D24 /* OmniKit.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = C124021729C7D93D00B32844;
-			remoteInfo = OmniKitPlugin;
-		};
-		CEC751CD29D88240006E9D24 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CEC751BF29D88240006E9D24 /* OmniKit.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = C12ED9CA29C7DBA900435701;
-			remoteInfo = OmniKitTests;
-		};
-		CEC751CF29D88240006E9D24 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CEC751BF29D88240006E9D24 /* OmniKit.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = C1229C6B29C7F0840066A89C;
-			remoteInfo = OmniKitPacketParser;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -387,9 +352,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		193F1E522B44C22A00525770 /* hu */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hu; path = hu.lproj/MinimedPumpManager.strings; sourceTree = "<group>"; };
-		193F1E532B44C22A00525770 /* hu */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hu; path = hu.lproj/Localizable.strings; sourceTree = "<group>"; };
-		193F1E542B44C22A00525770 /* hu */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hu; path = hu.lproj/Localizable.strings; sourceTree = "<group>"; };
 		C1229C2129C7ECA70066A89C /* TimeInterval.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeInterval.swift; sourceTree = "<group>"; };
 		C1229C2329C7ECEB0066A89C /* Data.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data.swift; sourceTree = "<group>"; };
 		C13CC34129C7B73A007F25DE /* MinimedKitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MinimedKitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -475,6 +437,7 @@
 		C13CC3DA29C7B8EB007F25DE /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = vi.lproj/MinimedPumpManager.strings; sourceTree = "<group>"; };
 		C13CC3DC29C7BA48007F25DE /* OSLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSLog.swift; sourceTree = "<group>"; };
 		C1BF2DB929C8007300EB8987 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		C1D2F16D2AE58C4500BF4457 /* hi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hi; path = hi.lproj/Localizable.strings; sourceTree = "<group>"; };
 		C1E3491129C7A866009A50A5 /* MinimedKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MinimedKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C1E3491429C7A866009A50A5 /* MinimedKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MinimedKit.h; sourceTree = "<group>"; };
 		C1E3492529C7A98B009A50A5 /* CalBGForGHGlucoseEvent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CalBGForGHGlucoseEvent.swift; sourceTree = "<group>"; };
@@ -743,7 +706,6 @@
 		C1E34B9329C7B59B009A50A5 /* RileyLinkKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = RileyLinkKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C1E34B9729C7B5A3009A50A5 /* LoopKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LoopKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C1E34BA129C7B652009A50A5 /* RileyLinkBLEKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = RileyLinkBLEKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		CEC751BF29D88240006E9D24 /* OmniKit.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = OmniKit.xcodeproj; path = ../OmniKit/OmniKit.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -907,7 +869,6 @@
 		C1E3490729C7A866009A50A5 = {
 			isa = PBXGroup;
 			children = (
-				CEC751BF29D88240006E9D24 /* OmniKit.xcodeproj */,
 				C1E3491329C7A866009A50A5 /* MinimedKit */,
 				C1E34B0229C7ABCB009A50A5 /* MinimedKitUI */,
 				C1E34B5C29C7AD01009A50A5 /* MinimedKitPlugin */,
@@ -987,28 +948,28 @@
 		C1E3494429C7A98C009A50A5 /* PumpManager */ = {
 			isa = PBXGroup;
 			children = (
-				C1E3494529C7A98C009A50A5 /* MinimedPumpManagerState.swift */,
-				C1E3494629C7A98C009A50A5 /* MinimedPumpManagerRecents.swift */,
-				C1E3494729C7A98C009A50A5 /* EnliteSensorDisplayable.swift */,
-				C1E3494829C7A98C009A50A5 /* PumpOpsSession+LoopKit.swift */,
 				C1E3494929C7A98C009A50A5 /* BasalProfile.swift */,
-				C1E3494A29C7A98C009A50A5 /* HistoryPage+PumpOpsSession.swift */,
-				C1E3494B29C7A98C009A50A5 /* ReservoirReading.swift */,
-				C1E3494C29C7A98C009A50A5 /* PumpMessageSender.swift */,
-				C1E3494D29C7A98C009A50A5 /* MinimedPumpManagerError.swift */,
 				C1E3494E29C7A98C009A50A5 /* DoseStore.swift */,
-				C1E3494F29C7A98C009A50A5 /* PumpSettings.swift */,
-				C1E3495029C7A98C009A50A5 /* PumpOps.swift */,
-				C1E34B8029C7B155009A50A5 /* PumpOpsSession.swift */,
-				C1E3495129C7A98C009A50A5 /* PumpMessage+PumpOpsSession.swift */,
+				C1E3494729C7A98C009A50A5 /* EnliteSensorDisplayable.swift */,
+				C1E3494A29C7A98C009A50A5 /* HistoryPage+PumpOpsSession.swift */,
 				C1E3495229C7A98C009A50A5 /* InsulinDataSource.swift */,
 				C1E3495329C7A98C009A50A5 /* MinimedDoseProgressEstimator.swift */,
-				C1E3495429C7A98C009A50A5 /* MinimedPumpMessageSender.swift */,
 				C1E3495529C7A98C009A50A5 /* MinimedPumpManager.swift */,
-				C1E3495629C7A98C009A50A5 /* UnfinalizedDose.swift */,
-				C1E3495729C7A98C009A50A5 /* RileyLinkDevice.swift */,
+				C1E3494D29C7A98C009A50A5 /* MinimedPumpManagerError.swift */,
+				C1E3494629C7A98C009A50A5 /* MinimedPumpManagerRecents.swift */,
+				C1E3494529C7A98C009A50A5 /* MinimedPumpManagerState.swift */,
+				C1E3495429C7A98C009A50A5 /* MinimedPumpMessageSender.swift */,
+				C1E3495129C7A98C009A50A5 /* PumpMessage+PumpOpsSession.swift */,
+				C1E3494C29C7A98C009A50A5 /* PumpMessageSender.swift */,
+				C1E3495029C7A98C009A50A5 /* PumpOps.swift */,
 				C1E3495829C7A98C009A50A5 /* PumpOpsError.swift */,
+				C1E34B8029C7B155009A50A5 /* PumpOpsSession.swift */,
+				C1E3494829C7A98C009A50A5 /* PumpOpsSession+LoopKit.swift */,
+				C1E3494F29C7A98C009A50A5 /* PumpSettings.swift */,
 				C1E3495929C7A98C009A50A5 /* PumpState.swift */,
+				C1E3494B29C7A98C009A50A5 /* ReservoirReading.swift */,
+				C1E3495729C7A98C009A50A5 /* RileyLinkDevice.swift */,
+				C1E3495629C7A98C009A50A5 /* UnfinalizedDose.swift */,
 			);
 			path = PumpManager;
 			sourceTree = "<group>";
@@ -1294,18 +1255,6 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		CEC751C029D88240006E9D24 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				CEC751C829D88240006E9D24 /* OmniKit.framework */,
-				CEC751CA29D88240006E9D24 /* OmniKitUI.framework */,
-				CEC751CC29D88240006E9D24 /* OmniKitPlugin.loopplugin */,
-				CEC751CE29D88240006E9D24 /* OmniKitTests.xctest */,
-				CEC751D029D88240006E9D24 /* OmniKitPacketParser */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -1466,17 +1415,11 @@
 				"zh-Hans",
 				fr,
 				pl,
-				hu,
+				hi,
 			);
 			mainGroup = C1E3490729C7A866009A50A5;
 			productRefGroup = C1E3491229C7A866009A50A5 /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = CEC751C029D88240006E9D24 /* Products */;
-					ProjectRef = CEC751BF29D88240006E9D24 /* OmniKit.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				C1E3491029C7A866009A50A5 /* MinimedKit */,
@@ -1486,44 +1429,6 @@
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXReferenceProxy section */
-		CEC751C829D88240006E9D24 /* OmniKit.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = OmniKit.framework;
-			remoteRef = CEC751C729D88240006E9D24 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		CEC751CA29D88240006E9D24 /* OmniKitUI.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = OmniKitUI.framework;
-			remoteRef = CEC751C929D88240006E9D24 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		CEC751CC29D88240006E9D24 /* OmniKitPlugin.loopplugin */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = OmniKitPlugin.loopplugin;
-			remoteRef = CEC751CB29D88240006E9D24 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		CEC751CE29D88240006E9D24 /* OmniKitTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = OmniKitTests.xctest;
-			remoteRef = CEC751CD29D88240006E9D24 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		CEC751D029D88240006E9D24 /* OmniKitPacketParser */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = OmniKitPacketParser;
-			remoteRef = CEC751CF29D88240006E9D24 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		C13CC33F29C7B73A007F25DE /* Resources */ = {
@@ -1911,7 +1816,6 @@
 				C13CC3D829C7B8E9007F25DE /* sv */,
 				C13CC3D929C7B8E9007F25DE /* tr */,
 				C13CC3DA29C7B8EB007F25DE /* vi */,
-				193F1E522B44C22A00525770 /* hu */,
 			);
 			name = MinimedPumpManager.storyboard;
 			sourceTree = "<group>";
@@ -1941,7 +1845,6 @@
 				C1E34AF829C7A9BC009A50A5 /* fi */,
 				C1E34AF929C7A9BC009A50A5 /* nl */,
 				C1E34AFA29C7A9BC009A50A5 /* ro */,
-				193F1E532B44C22A00525770 /* hu */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -1971,7 +1874,7 @@
 				C1E34B5429C7AC6F009A50A5 /* tr */,
 				C1E34B5529C7AC70009A50A5 /* vi */,
 				C1BF2DB929C8007300EB8987 /* en */,
-				193F1E542B44C22A00525770 /* hu */,
+				C1D2F16D2AE58C4500BF4457 /* hi */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -1989,6 +1892,9 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.loopkit.MinimedKitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -2005,6 +1911,9 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.loopkit.MinimedKitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -2144,6 +2053,7 @@
 		C1E3491929C7A866009A50A5 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -2163,6 +2073,9 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.loopkit.MinimedKit;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -2172,6 +2085,7 @@
 		C1E3491A29C7A866009A50A5 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -2191,6 +2105,9 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.loopkit.MinimedKit;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -2220,6 +2137,9 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.loopkit.MinimedKitUI;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -2251,6 +2171,9 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.loopkit.MinimedKitUI;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_VERSION = 5.0;
@@ -2282,6 +2205,9 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.loopkit.MinimedKitPlugin;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -2314,6 +2240,9 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.loopkit.MinimedKitPlugin;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

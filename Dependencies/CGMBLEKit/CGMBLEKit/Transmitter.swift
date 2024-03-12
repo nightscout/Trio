@@ -98,9 +98,10 @@ public final class Transmitter: BluetoothManagerDelegate {
 
     private let delegateQueue = DispatchQueue(label: "com.loudnate.CGMBLEKit.delegateQueue", qos: .unspecified)
 
-    public init(id: String, peripheralIdentifier: UUID? = nil, passiveModeEnabled: Bool = false) {
+    public init(id: String, activationDate: Date?, peripheralIdentifier: UUID? = nil, passiveModeEnabled: Bool = false) {
         self.id = TransmitterID(id: id)
         self.passiveModeEnabled = passiveModeEnabled
+        self.activationDate = activationDate
 
         bluetoothManager.peripheralIdentifier = peripheralIdentifier
         bluetoothManager.delegate = self

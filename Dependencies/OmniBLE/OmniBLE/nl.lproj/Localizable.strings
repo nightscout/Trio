@@ -79,10 +79,10 @@
 "Attemping to re-establish communication" = "Poging om de communicatie te herstellen";
 
 /* Description for auto-off */
-"Auto-off" = "Automatische uitschakeling";
+"Auto-off" = "Automatisch uitschakelen";
 
 /* Description for auto-off alarm */
-"Auto-off alarm" = "Auto-uit alarm";
+"Auto-off alarm" = "Alarm automatisch uit";
 
 /* Back button text on DeliveryUncertaintyRecoveryView */
 "Back" = "Terug";
@@ -144,7 +144,7 @@
 "Cannula inserted successfully. Continue." = "Canule succesvol ingebracht. Ga verder.";
 
 /* Pod state when inserting cannula */
-"Cannula inserting" = "Canule ingebracht";
+"Cannula inserting" = "Canule wordt ingebracht";
 
 /* String describing a dose that was certainly scheduled */
 "Certain" = "Zeker";
@@ -190,14 +190,14 @@
    Text for confidence reminders navigation link */
 "Confidence Reminders" = "Bevestigingsherinneringen";
 
-/* No comment provided by engineer. */
-"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Bevestigingsherinneringen zijn piepjes van de pod die kunnen worden gebruikt ter bevestiging van de geselecteerde opdrachten.";
+/* Help text for BeepPreferenceSelectionView */
+"Confidence reminders are beeps from the pod which can be used to acknowledge selected commands." = "Bevestigingsherinneringen zijn piepjes van de pod die kunnen worden gebruikt ter bevestiging van de geselecteerde opdrachten.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Bevestigingsherinneringen zijn hoorbaar voor opdrachten die je start, zoals bolussen, bolus annuleren, onderbreken, hervatten, meldingsherinneringen opslaan, enz. Wanneer Loop de toediening automatisch aanpast, zijn er geen bevestigingsherinneringen hoorbaar.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When Loop automatically adjusts delivery, no confidence reminders are used." = "Bevestigingsherinneringen zijn hoorbaar voor opdrachten die je start, zoals bolussen, bolus annuleren, onderbreken, hervatten, meldingsherinneringen opslaan, enz. Wanneer Loop de toediening automatisch aanpast, zijn er geen bevestigingsherinneringen hoorbaar.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Bevestigingsherinneringen zijn hoorbaar wanneer Loop de toediening automatisch aanpast, evenals voor opdrachten die je geeft.";
+"Confidence reminders will sound when Loop automatically adjusts delivery as well as for commands you initiate." = "Bevestigingsherinneringen zijn hoorbaar wanneer Loop de toediening automatisch aanpast, evenals voor opdrachten die je geeft.";
 
 /* Section header for configuration section */
 "Configuration" = "Configuratie";
@@ -298,7 +298,7 @@
 "Expiration advisory" = "Vervaldatum melding";
 
 /* Description for expiration alert */
-"Expiration alert" = "Alarm vervaltijd";
+"Expiration alert" = "Vervaldatum melding";
 
 /* navigation bar title for expiration reminder
    Title for ExpirationReminderSetupView */
@@ -337,11 +337,8 @@
 /* Alert title for error when updating low reservoir reminder */
 "Failed to Update Low Reservoir Reminder" = "Bijwerken Reservoir Bijna Leeg Herinnering Mislukt";
 
-/* Pod life HUD view label */
-"Fault" = "Fout";
-
 /* Pod state when fault event has occurred */
-"Fault event occurred" = "Fout is opgetreden";
+"Fault event occurred" = "Fout opgetreden";
 
 /* Label text for step 1 of pair pod instructions */
 "Fill a new pod with U-100 Insulin (leave blue Pod needle cap on)." = "Vul een nieuwe pod met U-100 insuline (laat de blauwe Podnaalddop zitten).";
@@ -362,7 +359,7 @@
 "Finish setup " = "Voltooi installatie";
 
 /* Description for finish setup reminder */
-"Finish setup reminder" = "Voltooi instelling van herinnering";
+"Finish setup reminder" = "Herinnering voor voltooien installatie";
 
 /* description label for firmware version pod details row */
 "Firmware Version" = "Firmwareversie";
@@ -392,13 +389,13 @@
    Insert cannula action button accessibility label while ready to pair
    navigation bar title for insert cannula
    Title for insert cannula screen */
-"Insert Cannula" = "Canule Inbrengen";
+"Insert Cannula" = "Breng Canule In";
 
 /* Label text indicating insertion finished. */
 "Inserted" = "Ingebracht";
 
 /* Pod state when inserting cannula */
-"Inserting cannula" = "Canule inbrengen";
+"Inserting cannula" = "Canule aan het inbrengen";
 
 /* Insert cannula action button accessibility label while pairing */
 "Inserting. Please wait." = "Aan het inbrengen. Wacht even.";
@@ -478,7 +475,7 @@
 "Low Reservoir" = "Reservoir Bijna Leeg";
 
 /* Format string for description for low reservoir advisory (1: reminder units) */
-"Low reservoir advisory (%1$gU)" = "Reservoir Bijna Leeg Advies (%1$gE)";
+"Low reservoir advisory (%1$gU)" = "Reservoir bijna leeg (%1$gE)";
 
 /* Description for low reservoir alarm */
 "Low reservoir advisory alarm" = "Reservoir bijna leeg alarm";
@@ -695,9 +692,6 @@
    Label for pod insertion row */
 "Pod Activated" = "Pod Geactiveerd";
 
-/* Label describing pod age view */
-"Pod Age" = "Podleeftijd";
-
 /* Error message shown when user cannot pair because pod is already paired */
 "Pod already paired" = "Pod al gekoppeld";
 
@@ -721,7 +715,7 @@
 "Pod Expiration Reminder" = "Herinnering Vervaldatum Pod";
 
 /* Description for Pod expired pod fault */
-"Pod expired" = "Pod is verlopen";
+"Pod expired" = "Pod verlopen";
 
 /* Alert content title for podExpireImminent pod alert
    Alert content title for podExpiring pod alert
@@ -797,7 +791,7 @@
 "Priming" = "Voorbereiden";
 
 /* Pod state when priming completed */
-"Priming completed" = "Voorbereiden voltooid";
+"Priming completed" = "Voorbereiding voltooid";
 
 /* Pairing action button accessibility label while priming */
 "Priming. Please wait." = "Voorbereiden. Wacht even.";
@@ -817,8 +811,7 @@
 /* Pod state when ready for cannula insertion */
 "Ready to insert cannula" = "Gereed voor inbrengen canule";
 
-/* Label describing time remaining view
-   Label for remaining time of manual basal */
+/* Label for remaining time of manual basal */
 "Remaining" = "Resterend";
 
 /* Pod pairing reminder initialized */
@@ -833,8 +826,7 @@
 /* Title for Omnipod DASH PumpManager deletion action sheet. */
 "Remove Pump" = "Verwijder Pomp";
 
-/* Label indicating pod replacement necessary
-   Settings page link description when next lifecycle action is to replace pod */
+/* Settings page link description when next lifecycle action is to replace pod */
 "Replace Pod" = "Vervang Pod";
 
 /* Pump Event title for UnfinalizedDose with doseType of .resume */

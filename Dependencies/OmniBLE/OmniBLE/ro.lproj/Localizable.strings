@@ -190,14 +190,14 @@
    Text for confidence reminders navigation link */
 "Confidence Reminders" = "Mementouri de confimare";
 
-/* No comment provided by engineer. */
-"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Memento-urile de confirmare sunt semnale sonore de la Pod care pot fi folosite pentru confirmarea comenzilor selectate.";
+/* Help text for BeepPreferenceSelectionView */
+"Confidence reminders are beeps from the pod which can be used to acknowledge selected commands." = "Memento-urile de confirmare sunt semnale sonore de la Pod care pot fi folosite pentru confirmarea comenzilor selectate.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Mementourile de confirmare vor suna pentru comenzile pe care le inițiați, precum bolus, anualarea bolusului, suspendare, reluare, salvarea mementourilor de confirmare etc. Când Loop ajustează automat administrarea, nu sunt folosite mementouri de confirmare.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When Loop automatically adjusts delivery, no confidence reminders are used." = "Mementourile de confirmare vor suna pentru comenzile pe care le inițiați, precum bolus, anualarea bolusului, suspendare, reluare, salvarea mementourilor de confirmare etc. Când Loop ajustează automat administrarea, nu sunt folosite mementouri de confirmare.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Mementourile de confirmare vor suna atunci când Loop ajustează automat administrare, precum și pentru comenzile pe care le inițiați.";
+"Confidence reminders will sound when Loop automatically adjusts delivery as well as for commands you initiate." = "Mementourile de confirmare vor suna atunci când Loop ajustează automat administrare, precum și pentru comenzile pe care le inițiați.";
 
 /* Section header for configuration section */
 "Configuration" = "Configurare";
@@ -336,9 +336,6 @@
 
 /* Alert title for error when updating low reservoir reminder */
 "Failed to Update Low Reservoir Reminder" = "Nu s-a reușit actualizarea memento-ului privind rezervorul scăzut";
-
-/* Pod life HUD view label */
-"Fault" = "Defecțiune";
 
 /* Pod state when fault event has occurred */
 "Fault event occurred" = "A avut loc un eveniment de eroare";
@@ -695,9 +692,6 @@
    Label for pod insertion row */
 "Pod Activated" = "Pod activat";
 
-/* Label describing pod age view */
-"Pod Age" = "Vechime Pod";
-
 /* Error message shown when user cannot pair because pod is already paired */
 "Pod already paired" = "Pod deja asociat";
 
@@ -817,8 +811,7 @@
 /* Pod state when ready for cannula insertion */
 "Ready to insert cannula" = "Pregătit pentru inserarea canulei";
 
-/* Label describing time remaining view
-   Label for remaining time of manual basal */
+/* Label for remaining time of manual basal */
 "Remaining" = "Rămas";
 
 /* Pod pairing reminder initialized */
@@ -833,8 +826,7 @@
 /* Title for Omnipod DASH PumpManager deletion action sheet. */
 "Remove Pump" = "Ștergeți pompa";
 
-/* Label indicating pod replacement necessary
-   Settings page link description when next lifecycle action is to replace pod */
+/* Settings page link description when next lifecycle action is to replace pod */
 "Replace Pod" = "Înlocuiți Pod-ul";
 
 /* Pump Event title for UnfinalizedDose with doseType of .resume */

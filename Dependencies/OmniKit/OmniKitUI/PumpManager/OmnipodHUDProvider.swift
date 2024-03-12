@@ -21,7 +21,7 @@ public enum ReservoirAlertState {
 
 internal class OmnipodHUDProvider: NSObject, HUDProvider {
     var managerIdentifier: String {
-        return pumpManager.managerIdentifier
+        return pumpManager.pluginIdentifier
     }
 
     private let pumpManager: OmnipodPumpManager

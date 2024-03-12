@@ -1,0 +1,142 @@
+/* Description for an inactive alert modifier */
+" (inactive)" = " (inactive)";
+
+/* Pod state when activation not completed in the time allowed */
+"Activation time exceeded" = "Przekroczono czas aktywacji";
+
+/* Description for auto-off */
+"Auto-off" = "Automatyczne wyłączanie";
+
+/* Pod state when basal initialized */
+"Basal initialized" = "Zainicjowano bazę";
+
+/* Delivery status when bolusing */
+"Bolusing" = "Podawanie bolusa";
+
+/* Delivery status when bolusing and temp basal is running */
+"Bolusing with temp basal" = "Podawanie bolusa z dawką podstawową";
+
+/* Pod state when deactivated */
+"Deactivated" = "Deaktywowany";
+
+/* Description for Empty reservoir pod fault */
+"Empty reservoir" = "Pusty zbiorniczek";
+
+/* Description for expiration advisory */
+"Expiration advisory" = "Ostrzeżenie o wygaśnięciu";
+
+/* Description for expiration alert */
+"Expiration alert" = "Alert o upływie terminu ważności";
+
+/* Delivery status when extended bolus is running */
+"Extended bolus running" = "Trwa podawanie bolusa przedłużonego";
+
+/* Delivery status when extended bolus and temp basal is running */
+"Extended bolus running with temp basal" = "Bolus przedłużony uruchomiony z tymczasową bazą";
+
+/* Pod state when fault event has occurred */
+"Fault event occurred" = "Wystąpiła usterka";
+
+/* Description for finish setup reminder */
+"Finish setup reminder" = "Przypomnienie o zakończeniu konfiguracji";
+
+/* Pod initialized */
+"Initialized" = "Zainicjowany";
+
+/* Pod state when inserting cannula */
+"Inserting cannula" = "Wprowadzanie kaniuli";
+
+/* The format string for Internal pod fault (1: The fault code value) */
+"Internal pod fault %1$03d" = "Wewnętrzny błąd POD'a %1$03d";
+
+/* Description for MessageError invalidAddress */
+"Invalid address: (%1$@)" = "Nieprawidłowy adres: ( %1$@ )";
+
+/* Description for MessageError invalidCrc */
+"Invalid CRC" = "Nieprawidłowy CRC";
+
+/* Pod state when running with fifty or less units */
+"Low reservoir" = "Niski poziom w zbiorniczku";
+
+/* Format string for description for low reservoir advisory (1: reminder units) */
+"Low reservoir advisory (%1$gU)" = "Ostrzeżenie o niskim poziomie w zbiorniczku (%1$gU)";
+
+/* Pod memory initialized */
+"Memory initialized" = "Zainicjowano pamięć";
+
+/* Pod alert state when no alerts are active */
+"No alerts" = "Brak alertów";
+
+/* Description for Fault Event Code .noFaults */
+"No faults" = "Brak usterek";
+
+/* Pod state when running above fifty units */
+"Normal" = "Normalny";
+
+/* Description for MessageError notEnoughData */
+"Not enough data" = "Za mało danych";
+
+/* Description for Occlusion detected pod fault */
+"Occlusion detected" = "Wykryto niedrożność";
+
+/* Pod state oneNotUsed */
+"oneNotUsed" = "oneNotUsed";
+
+/* Pod status when pairing completed */
+"Pairing completed" = "Parowanie zakończone";
+
+/* Description for MessageError parsingError. (1: decription of error), (2: hexadecimal data starting at offset) */
+"Parsing Error: %1$@ in (%2$@)" = "Błąd analizy: %1$@ w (%2$@)";
+
+/* Description for Pod expired pod fault */
+"Pod expired" = "Termin ważności POD'a upłynął";
+
+/* Description for pod suspended reminder */
+"Pod suspended reminder" = "Przypomnienie o zawieszeniu POD'a";
+
+/* Delivery status when pod is priming
+   Pod status when priming */
+"Priming" = "Napełnianie";
+
+/* Pod state when priming completed */
+"Priming completed" = "Wypełnianie zakończone";
+
+/* Pod pairing reminder initialized */
+"Reminder initialized" = "Zainicjowano przypomnienie";
+
+/* Delivery status when scheduled basal is running */
+"Scheduled basal" = "Zaplanowana dawka podstawowa";
+
+/* Description for shutdown imminent */
+"Shutdown imminent" = "Zbliża się zamknięcie";
+
+/* Description for suspend time expired */
+"Suspend time expired" = "Upłynął czas zawieszenia";
+
+/* Delivery status when insulin delivery is suspended */
+"Suspended" = "Zawieszony";
+
+/* Delivery status when temp basal is running */
+"Temp basal running" = "Tymczasowa dawka podstawowa uruchomiona";
+
+/* Pod state threeNotUsed */
+"threeNotUsed" = "threeNotUsed";
+
+/* Pod state twoNotUsed */
+"twoNotUsed" = "twoNotUsed";
+
+/* Description for MessageError invalidSequence */
+"Unexpected message sequence number" = "Nieoczekiwany numer kolejny komunikatu";
+
+/* The format string for Unknown pod fault (1: The fault code value) */
+"Unknown pod fault %1$03d" = "Nieznany błąd POD'a %1$03d";
+
+/* Format string for description of MessageError unknownValue. (1: value) (2: Type) */
+"Unknown Value (%1$@) for type %2$@" = "Nieznana wartość (%1$@) dla typu %2$@";
+
+/* Format string for description of MessageError validationFailed. (1: description of validation failure) */
+"Validation failed: %1$@" = "Weryfikacja nie powiodła się: %1$@";
+
+/* Description waiting for pairing reminder */
+"Waiting for pairing reminder" = "Poczekaj na przypomnienie o parowaniu";
+

@@ -10,6 +10,7 @@ import Foundation
 import LoopKit
 
 class MockPumpManagerDelegate: PumpManagerDelegate {
+    var automaticDosingEnabled = true
 
     var historyFetchStartDate = Date()
 
@@ -29,7 +30,7 @@ class MockPumpManagerDelegate: PumpManagerDelegate {
 
     var reportedPumpEvents: [(events: [NewPumpEvent], lastReconciliation: Date?)] = []
     
-    func pumpManager(_ pumpManager: PumpManager, hasNewPumpEvents events: [NewPumpEvent], lastReconciliation: Date?, completion: @escaping (Error?) -> Void) {
+    func pumpManager(_ pumpManager: PumpManager, hasNewPumpEvents events: [NewPumpEvent], lastReconciliation: Date?, replacePendingEvents: Bool, completion: @escaping (Error?) -> Void) {
         reportedPumpEvents.append((events: events, lastReconciliation: lastReconciliation))
         completion(nil)
     }
@@ -50,6 +51,8 @@ class MockPumpManagerDelegate: PumpManagerDelegate {
     func pumpManager(_ pumpManager: PumpManager, didAdjustPumpClockBy adjustment: TimeInterval) {}
 
     func pumpManagerDidUpdateState(_ pumpManager: PumpManager) {}
+    
+    func pumpManager(_ pumpManager: PumpManager, didRequestBasalRateScheduleChange basalRateSchedule: BasalRateSchedule, completion: @escaping (Error?) -> Void) { }
 
     func startDateToFilterNewPumpEvents(for manager: PumpManager) -> Date {
         return historyFetchStartDate
