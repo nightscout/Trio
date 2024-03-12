@@ -91,13 +91,13 @@ extension BinaryInteger {
 }
 
 func pulseLogString(pulseLogEntries: [UInt32], lastPulseNumber: Int) -> String {
-    var str: String = "Pulse eeeeee0a pppliiib cccccccc dfgggggg"
+    var str: String = "Pulse eeeeee0a pppliiib cccccccc dfgggggg\n"
     var index = pulseLogEntries.count - 1
     var pulseNumber = lastPulseNumber
     while index >= 0 {
-        str += String(format: "\n%04d:", pulseNumber) + UInt32(pulseLogEntries[index]).binaryDescription
+        str += String(format: "%04d:", pulseNumber) + UInt32(pulseLogEntries[index]).binaryDescription + "\n"
         index -= 1
         pulseNumber -= 1
     }
-    return str
+    return str + "\n"
 }

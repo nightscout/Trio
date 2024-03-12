@@ -25,9 +25,6 @@
 /* Pod state when pod has been deactivated */
 "Deactivated" = "Deactivated";
 
-/* Action button description for deactivate while pod still active */
-"Slide to Deactivate Pod" = "Slide to Deactivate Pod";
-
 /* Description for Empty reservoir pod fault */
 "Empty reservoir" = "Empty reservoir";
 
@@ -179,6 +176,3 @@
 
 /* Description waiting for pairing reminder */
 "Waiting for pairing reminder" = "Waiting for pairing reminder";
-
-/* DASH Pod time ago since last status */
-"%@ ago" = "%@ ago";

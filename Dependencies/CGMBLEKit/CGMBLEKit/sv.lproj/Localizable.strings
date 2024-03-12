@@ -14,10 +14,10 @@
 "OK" = "OK";
 
 /* invlid config error description */
-"Peripheral command was invalid" = "Enhetskommando var ogiltigt";
+"Peripheral command was invalid" = "Perifert kommando var ogiltigt";
 
 /* Timeout error description */
-"Peripheral did not respond in time" = "Enheten svarade inte inom utsatt tid";
+"Peripheral did not respond in time" = "Enhet svarade inte inom utsatt tid";
 
 /* Not ready error description */
 "Peripheral isnʼt connected" = "Enheten är inte ansluten";
@@ -39,3 +39,4 @@
 
 /* Error description */
 "Unknown characteristic" = "Okänd data";
+

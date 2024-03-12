@@ -36,7 +36,7 @@
 "%@U" = "%@E";
 
 /* Summary string for temporary basal rate configuration page */
-"%1$@ for %2$@" = "%1$@ i %2$@";
+"%1$@ for %2$@" = "%1$@ for %2$@";
 
 /* Format string for main text of delivery uncertainty recovery page. (1: app name)(2: date of command)(3: app name) */
 "%1$@ has been unable to communicate with the pod on your body since %2$@.\n\nWithout communication with the pod, the app cannot continue to send commands for insulin delivery or display accurate, recent information about your active insulin or the insulin being delivered by the Pod.\n\nMonitor your glucose closely for the next 6 or more hours, as there may or may not be insulin actively working in your body that %3$@ cannot display." = "%1$@ har ikke vært i stand til å kommunisere med pod på kroppen din siden %2$@ . \n\n Uten kommunikasjon med pod kan ikke appen fortsette å sende kommandoer for insulintilførsel eller vise nøyaktig, fersk informasjon om ditt aktive insulin eller insulinet som leveres av pod. \n\n Overvåk blodsukkerverdi nøye de neste 6 timene eller mer, siden det kan være insulin som virker aktivt i kroppen din som %3$@ ikke kan vise.";
@@ -153,7 +153,7 @@
 "Confidence Reminders" = "Bekreftelser";
 
 /* Help text for BeepPreferenceSelectionView */
-"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced.";
+"Confidence reminders are beeps from the pod which can be used to acknowledge selected commands." = "Tillitspåminnelser er pip fra pod som kan brukes til å bekrefte valgte kommandoer.";
 
 /* The title of the configuration section in settings */
 "Configuration" = "Konfigurasjon";
@@ -178,9 +178,6 @@
 
 /* Button title to deactivate pod because of fault during setup */
 "Deactivate" = "Deaktiver";
-
-/* Action button description for deactivate while pod still active */
-"Slide to Deactivate Pod" = "Slide to Deactivate Pod";
 
 /* Button title for pod deactivation
    Button title to deactivate pod */
@@ -324,7 +321,7 @@
 "Insulin Delivered" = "Levert insulin";
 
 /* Title of insulin delivery section */
-"Insulin Delivery" = "Insulintilførsel";
+"Insulin Delivery" = "Insulin Delivery";
 
 /* The action string on pod status page when pod faulted */
 "Insulin delivery stopped. Change Pod now." = "Insulintilførselen stoppet. Bytt Pod nå.";
@@ -448,6 +445,9 @@
 /* Pod pairing action button text while pairing */
 "Pairing..." = "Kobler sammen...";
 
+/* The text of the loading label when pairing */
+"Pairing…" = "Kobler sammen...";
+
 /* No comment provided by engineer. */
 "Percent = %lf" = "Prosent = %lf";
 
@@ -538,7 +538,7 @@
 "Pump Time" = "Pumpetid";
 
 /* Label text for basal rate summary */
-"Rate" = "Ratio";
+"Rate" = "Rate";
 
 /* Label describing time remaining view */
 "Remaining" = "Gjenstående";
@@ -550,7 +550,7 @@
 "Remove Pump" = "Fjern pumpen";
 
 /* Label text for step two of attach pod instructions */
-"Remove the Pod's clear needle cap and check cannula. Then remove paper backing." = "Remove the Pod's clear needle cap and check cannula. Then remove paper backing.";
+"Remove the pod's needle cap and check cannula. Then remove paper backing." = "Fjern kanylehetten til pod og sjekk kanylen. Fjern deretter plasterbeskyttelsen.";
 
 /* Label indicating pod replacement necessary
    The title of the command to replace pod */
@@ -731,6 +731,8 @@
 /* Title of delivery uncertainty recovery page */
 "Unable to Reach Pod" = "Kan ikke nå pod";
 
+/* Title for pending command recovery screen */
+"Unable To Reach Pod" = "Kan ikke nå pod";
 
 /* Alert format string for a failure to set temporary basal. (1: error description) */
 "Unable to set a temporary basal rate: %1$@" = "Klarte ikke å angi en midlertidig basal: %1$@";
@@ -768,40 +770,3 @@
 /* Alert message body for confirm pod attachment */
 "Your Pod may still be delivering Insulin.\nRemove it from your body, then tap “Continue.“" = "Pod kan fortsatt levere insulin.\nFjern den fra kroppen din, og trykk deretter på \"Fortsett\".";
 
-/* Title string for SilencePodPreference.enabled */
-"Silenced" = "Silenced";
-
-/* Description for SilencePodPreference.disabled */
-"Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled." = "Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled.";
-
-/* Description for SilencePodPreference.enabled */
-"All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts." = "All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts.";
-
-/* Help text for Silence Pod view */
-/* navigation title for Silnce Pod" */
-
-"Silence Pod mode suppresses all Pod alert and confirmation reminder beeping.
-Silence Pod" = "Silence Pod";
-
-/* title for pod details page */
-"Pod Details" = "Pod Details";
-
-/* Text for previous pod details row" */
-"Previous Pod Details" = "Previous Pod Details";
-
-/* Text for pump manager details navigation link */
-"Pump Manager Details" = "Pump Manager Details";
-
-/* button title when retrieving pump manager details */
-"Retrieving Pump Manager Details..." = "Retrieving Pump Manager Details...";
-/* button title to refresh pump manager details */
-"Refresh Pump Manager Details" = "Refresh Pump Manager Details";
-
-/* Alert title for error when updating silence pod preference */
-"Failed to update silence pod preference." = "Failed to update silence pod preference.";
-
-/* Section header for diagnostic section */
-"Diagnostics" = "Diagnostics";
-
-/* Text for read pod status navigation link */
-"Read Pod Status" = "Read Pod Status";

@@ -19,14 +19,8 @@
 /* String format for value with units (1: value, 2: separator, 3: units) */
 "%1$@%2$@%3$@" = "%1$@%2$@%3$@";
 
-/* Text indicating ongoing pump time synchronization */
-"Adjusting Pump Time..." = "Adjusting Pump Time...";
-
 /* Instructions on selecting battery chemistry type */
 "Alkaline and Lithium batteries decay at differing rates. Alkaline tend to have a linear voltage drop over time whereas lithium cell batteries tend to maintain voltage until halfway through their lifespan. Under normal usage in a Non-MySentry compatible Minimed (x22/x15) insulin pump running Loop, Alkaline batteries last approximately 4 to 5 days. Lithium batteries last between 1-2 weeks. This selection will use different battery voltage decay rates for each of the battery chemistry types and alert the user when a battery is approximately 8 to 10 hours from failure." = "Alkaline and Lithium batteries decay at differing rates. Alkaline tend to have a linear voltage drop over time whereas lithium cell batteries tend to maintain voltage until halfway through their lifespan. Under normal usage in a Non-MySentry compatible Minimed (x22/x15) insulin pump running Loop, Alkaline batteries last approximately 4 to 5 days. Lithium batteries last between 1-2 weeks. This selection will use different battery voltage decay rates for each of the battery chemistry types and alert the user when a battery is approximately 8 to 10 hours from failure.";
-
-/* Text to confirm delete this pump */
-"Are you sure you want to delete this Pump?" = "Are you sure you want to delete this Pump?";
 
 /* The format string describing pump battery voltage: (1: battery voltage) */
 "Battery: %1$@ volts\n" = "Battery: %1$@ volts\n";
@@ -43,14 +37,8 @@
 /* Title text for suspend resume button when temp basal canceling */
 "Canceling Temp Basal" = "Canceling Temp Basal";
 
-/* Text shown in basal rate space when basal is changing */
-"Changing" = "Changing";
-
 /* Progress message for changing pump time. */
 "Changing time…" = "Changing time…";
-
-/* Instructions on selecting battery chemistry type */
-"Choose the type of battery you are using in your pump for better alerting about low battery conditions." = "Choose the type of battery you are using in your pump for better alerting about low battery conditions.";
 
 /* The title of the configuration section in MinimedPumpManager settings */
 "Configuration" = "Configuration";
@@ -68,17 +56,11 @@
 /* Header for devices section of RileyLinkSetupView */
 "Devices" = "Devices";
 
-/* Description for option to not use MySentry */
-"Do not use MySentry" = "Do not use MySentry";
-
 /* The alert title for a resume error */
 "Error Resuming" = "Error Resuming";
 
 /* The alert title for a suspend error */
 "Error Suspending" = "Error Suspending";
-
-/* The alert title for an error while synching time */
-"Error Syncing Time" = "Error Syncing Time";
 
 /* Progress message for fetching pump glucose. */
 "Fetching glucose…" = "Fetching glucose…";
@@ -92,35 +74,14 @@
 /* The title of the cell showing the pump firmware version */
 "Firmware Version" = "Firmware Version";
 
-/* Text shown in insulin delivery space when insulin suspended */
-"Insulin\nSuspended" = "Insulin\nSuspended";
-
 /* Title of insulin delivery section */
 "Insulin Delivery" = "Insulin Delivery";
 
 /* Instructions on selecting an insulin data source */
 "Insulin delivery can be determined from the pump by either interpreting the event history or comparing the reservoir volume over time. Reading event history allows for a more accurate status graph and uploading up-to-date treatment data to Nightscout, at the cost of faster pump battery drain and the possibility of a higher radio error rate compared to reading only reservoir volume. If the selected source cannot be used for any reason, the system will attempt to fall back to the other option." = "Insulin delivery can be determined from the pump by either interpreting the event history or comparing the reservoir volume over time. Reading event history allows for a more accurate status graph and uploading up-to-date treatment data to Nightscout, at the cost of faster pump battery drain and the possibility of a higher radio error rate compared to reading only reservoir volume. If the selected source cannot be used for any reason, the system will attempt to fall back to the other option.";
 
-/* Header for insulin remaining on pod settings screen */
-"Insulin Remaining" = "Insulin Remaining";
-
-/* Text for confidence reminders navigation link */
-"Insulin Type" = "Insulintyp";
-
-/* Format string fof navigation bar title for MinimedPumpSettingsView (1: model number) */
-"Medtronic %1$@" = "Medtronic %1$@";
-
-/* Instructions on selecting setting for MySentry */
-"Medtronic pump models 523, 723, 554, and 754 have a feature called 'MySentry' that periodically broadcasts the reservoir and pump battery levels.  Listening for these broadcasts allows Loop to communicate with the pump less frequently, which can increase pump battery life.  However, when using this feature the RileyLink stays awake more of the time and uses more of its own battery.  Enabling this may lengthen pump battery life, while disabling it may lengthen RileyLink battery life. This setting is ignored for other pump models." = "Medtronic pump models 523, 723, 554, and 754 have a feature called 'MySentry' that periodically broadcasts the reservoir and pump battery levels.  Listening for these broadcasts allows Loop to communicate with the pump less frequently, which can increase pump battery life.  However, when using this feature the RileyLink stays awake more of the time and uses more of its own battery.  Enabling this may lengthen pump battery life, while disabling it may lengthen RileyLink battery life. This setting is ignored for other pump models.";
-
-/* Value string for MySentry config when MySentry is not being used */
-"No" = "No";
-
 /* Message display when no response from tuning pump */
 "No response" = "No response";
-
-/* Button text to cancel pump time sync */
-"No, Keep Pump As Is" = "No, Keep Pump As Is";
 
 /* Pump find device instruction */
 "On your pump, go to the Find Device screen and select \"Find Device\".\n\nMain Menu >\nUtilities >\nConnect Devices >\nOther Devices >\nOn >\nFind Device" = "On your pump, go to the Find Device screen and select \"Find Device\".\n\nMain Menu >\nUtilities >\nConnect Devices >\nOther Devices >\nOn >\nFind Device";
@@ -129,18 +90,12 @@
    Text for medtronic pump preferred data source */
 "Preferred Data Source" = "Preferred Data Source";
 
-/* Text for medtronic pump battery percent remaining */
-"Pump Battery Remaining" = "Pump Battery Remaining";
-
 /* navigation title for pump battery type selection
    Text for medtronic pump battery type */
 "Pump Battery Type" = "Pump Battery Type";
 
 /* The title text for the pump ID config value */
 "Pump ID" = "מספר זיהוי המשאבה";
-
-/* The title of the command to change pump time zone */
-"Pump Time" = "Pump Time";
 
 /* Progress message for reading basal schedule */
 "Reading basal schedule…" = "Reading basal schedule…";
@@ -162,9 +117,6 @@
 
 /* Title of insulin delivery section */
 "Scheduled Basal" = "Scheduled Basal";
-
-/* Title text for insulin type confirmation page */
-"Select the type of insulin that you will be using in this pump." = "Select the type of insulin that you will be using in this pump.";
 
 /* Progress message for sending button press to pump. */
 "Sending button press…" = "Sending button press…";
@@ -202,19 +154,9 @@
 /* Units for showing temp basal rate */
 "U/hr" = "יח׳/שעה";
 
-/* Text to indicate battery percentage is unknown */
-"unknown" = "unknown";
-
 /* Text shown in basal rate space when delivery status is unknown */
 "Unknown" = "Unknown";
-
-/* Description for option to use MySentry
-   navigation title for pump battery type selection
-   Text for medtronic pump to use MySentry */
-"Use MySentry" = "Use MySentry";
 
 /* Value string for MySentry config when MySentry is being used */
 "Yes" = "כן";
 
-/* Button text to confirm pump time sync */
-"Yes, Sync to Current Time" = "Yes, Sync to Current Time";

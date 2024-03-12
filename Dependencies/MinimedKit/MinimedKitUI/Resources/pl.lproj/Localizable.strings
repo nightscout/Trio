@@ -28,6 +28,9 @@
 /* Text to confirm delete this pump */
 "Are you sure you want to delete this Pump?" = "Czy na pewno chcesz usunąć tę pompę?";
 
+/* No comment provided by engineer. */
+"Battery Chemistry" = "Chemia baterii";
+
 /* The format string describing pump battery voltage: (1: battery voltage) */
 "Battery: %1$@ volts\n" = "Bateria: %1$@ V\n";
 
@@ -70,6 +73,9 @@
 
 /* Description for option to not use MySentry */
 "Do not use MySentry" = "Nie używaj MySentry";
+
+/* No comment provided by engineer. */
+"Done" = "Gotowe";
 
 /* The alert title for a resume error */
 "Error Resuming" = "Błąd wznawiania";
@@ -218,3 +224,4 @@
 
 /* Button text to confirm pump time sync */
 "Yes, Sync to Current Time" = "Tak, zsynchronizuj z bieżącym czasem";
+

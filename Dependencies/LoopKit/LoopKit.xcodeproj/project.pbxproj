@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -984,10 +984,6 @@
 
 /* Begin PBXFileReference section */
 		14B33264293ED44C009B8746 /* GlucoseRangeSchedule+SafeBounds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GlucoseRangeSchedule+SafeBounds.swift"; sourceTree = "<group>"; };
-		193F1E422B44C1EE00525770 /* hu */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hu; path = hu.lproj/InsulinKit.strings; sourceTree = "<group>"; };
-		193F1E432B44C1EE00525770 /* hu */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hu; path = hu.lproj/LegacyInsulinDeliveryTableViewController.strings; sourceTree = "<group>"; };
-		193F1E442B44C1EF00525770 /* hu */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hu; path = hu.lproj/Localizable.strings; sourceTree = "<group>"; };
-		193F1E452B44C1EF00525770 /* hu */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hu; path = hu.lproj/Localizable.strings; sourceTree = "<group>"; };
 		1D096BF924C242300078B6B5 /* CheckmarkListItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckmarkListItem.swift; sourceTree = "<group>"; };
 		1D096BFF24C24C220078B6B5 /* InsulinModelProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InsulinModelProvider.swift; sourceTree = "<group>"; };
 		1D096C0024C24C220078B6B5 /* ExponentialInsulinModelPreset.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExponentialInsulinModelPreset.swift; sourceTree = "<group>"; };
@@ -3429,7 +3425,6 @@
 				ar,
 				hi,
 				sk,
-				hu,
 			);
 			mainGroup = 43D8FDC11C728FDF0073BE78;
 			packageReferences = (
@@ -4511,7 +4506,6 @@
 				C1D7162929C75EE200B5AB3B /* cs */,
 				C15A582629C7866600D3A5A1 /* ar */,
 				C1FDCC0629C786F90056E652 /* sk */,
-				193F1E442B44C1EF00525770 /* hu */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -4584,7 +4578,6 @@
 				F5E0BE1527E1DCC90033557E /* vi */,
 				C15A582729C7866600D3A5A1 /* ar */,
 				C1FDCC0729C786F90056E652 /* sk */,
-				193F1E422B44C1EE00525770 /* hu */,
 			);
 			name = InsulinKit.storyboard;
 			sourceTree = "<group>";
@@ -4694,7 +4687,6 @@
 				C15A582929C7866600D3A5A1 /* ar */,
 				C1FAB5C329C786B000D25073 /* hi */,
 				C1FDCC0929C786F90056E652 /* sk */,
-				193F1E452B44C1EF00525770 /* hu */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -4754,7 +4746,6 @@
 				F5E0BE1627E1DCC90033557E /* vi */,
 				C15A582829C7866600D3A5A1 /* ar */,
 				C1FDCC0829C786F90056E652 /* sk */,
-				193F1E432B44C1EE00525770 /* hu */,
 			);
 			name = LegacyInsulinDeliveryTableViewController.storyboard;
 			sourceTree = "<group>";

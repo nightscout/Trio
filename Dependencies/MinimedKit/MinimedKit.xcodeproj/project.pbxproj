@@ -331,41 +331,6 @@
 			remoteGlobalIDString = C1E34B0029C7ABCB009A50A5;
 			remoteInfo = MinimedKitUI;
 		};
-		CEC751C729D88240006E9D24 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CEC751BF29D88240006E9D24 /* OmniKit.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = C124016C29C7D87A00B32844;
-			remoteInfo = OmniKit;
-		};
-		CEC751C929D88240006E9D24 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CEC751BF29D88240006E9D24 /* OmniKit.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = C124020B29C7D92700B32844;
-			remoteInfo = OmniKitUI;
-		};
-		CEC751CB29D88240006E9D24 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CEC751BF29D88240006E9D24 /* OmniKit.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = C124021729C7D93D00B32844;
-			remoteInfo = OmniKitPlugin;
-		};
-		CEC751CD29D88240006E9D24 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CEC751BF29D88240006E9D24 /* OmniKit.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = C12ED9CA29C7DBA900435701;
-			remoteInfo = OmniKitTests;
-		};
-		CEC751CF29D88240006E9D24 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CEC751BF29D88240006E9D24 /* OmniKit.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = C1229C6B29C7F0840066A89C;
-			remoteInfo = OmniKitPacketParser;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -387,9 +352,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		193F1E522B44C22A00525770 /* hu */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hu; path = hu.lproj/MinimedPumpManager.strings; sourceTree = "<group>"; };
-		193F1E532B44C22A00525770 /* hu */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hu; path = hu.lproj/Localizable.strings; sourceTree = "<group>"; };
-		193F1E542B44C22A00525770 /* hu */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hu; path = hu.lproj/Localizable.strings; sourceTree = "<group>"; };
 		C1229C2129C7ECA70066A89C /* TimeInterval.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeInterval.swift; sourceTree = "<group>"; };
 		C1229C2329C7ECEB0066A89C /* Data.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data.swift; sourceTree = "<group>"; };
 		C13CC34129C7B73A007F25DE /* MinimedKitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MinimedKitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -743,7 +705,6 @@
 		C1E34B9329C7B59B009A50A5 /* RileyLinkKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = RileyLinkKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C1E34B9729C7B5A3009A50A5 /* LoopKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LoopKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C1E34BA129C7B652009A50A5 /* RileyLinkBLEKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = RileyLinkBLEKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		CEC751BF29D88240006E9D24 /* OmniKit.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = OmniKit.xcodeproj; path = ../OmniKit/OmniKit.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -907,7 +868,6 @@
 		C1E3490729C7A866009A50A5 = {
 			isa = PBXGroup;
 			children = (
-				CEC751BF29D88240006E9D24 /* OmniKit.xcodeproj */,
 				C1E3491329C7A866009A50A5 /* MinimedKit */,
 				C1E34B0229C7ABCB009A50A5 /* MinimedKitUI */,
 				C1E34B5C29C7AD01009A50A5 /* MinimedKitPlugin */,
@@ -1294,18 +1254,6 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		CEC751C029D88240006E9D24 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				CEC751C829D88240006E9D24 /* OmniKit.framework */,
-				CEC751CA29D88240006E9D24 /* OmniKitUI.framework */,
-				CEC751CC29D88240006E9D24 /* OmniKitPlugin.loopplugin */,
-				CEC751CE29D88240006E9D24 /* OmniKitTests.xctest */,
-				CEC751D029D88240006E9D24 /* OmniKitPacketParser */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -1466,17 +1414,10 @@
 				"zh-Hans",
 				fr,
 				pl,
-				hu,
 			);
 			mainGroup = C1E3490729C7A866009A50A5;
 			productRefGroup = C1E3491229C7A866009A50A5 /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = CEC751C029D88240006E9D24 /* Products */;
-					ProjectRef = CEC751BF29D88240006E9D24 /* OmniKit.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				C1E3491029C7A866009A50A5 /* MinimedKit */,
@@ -1486,44 +1427,6 @@
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXReferenceProxy section */
-		CEC751C829D88240006E9D24 /* OmniKit.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = OmniKit.framework;
-			remoteRef = CEC751C729D88240006E9D24 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		CEC751CA29D88240006E9D24 /* OmniKitUI.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = OmniKitUI.framework;
-			remoteRef = CEC751C929D88240006E9D24 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		CEC751CC29D88240006E9D24 /* OmniKitPlugin.loopplugin */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = OmniKitPlugin.loopplugin;
-			remoteRef = CEC751CB29D88240006E9D24 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		CEC751CE29D88240006E9D24 /* OmniKitTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = OmniKitTests.xctest;
-			remoteRef = CEC751CD29D88240006E9D24 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		CEC751D029D88240006E9D24 /* OmniKitPacketParser */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = OmniKitPacketParser;
-			remoteRef = CEC751CF29D88240006E9D24 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		C13CC33F29C7B73A007F25DE /* Resources */ = {
@@ -1911,7 +1814,6 @@
 				C13CC3D829C7B8E9007F25DE /* sv */,
 				C13CC3D929C7B8E9007F25DE /* tr */,
 				C13CC3DA29C7B8EB007F25DE /* vi */,
-				193F1E522B44C22A00525770 /* hu */,
 			);
 			name = MinimedPumpManager.storyboard;
 			sourceTree = "<group>";
@@ -1941,7 +1843,6 @@
 				C1E34AF829C7A9BC009A50A5 /* fi */,
 				C1E34AF929C7A9BC009A50A5 /* nl */,
 				C1E34AFA29C7A9BC009A50A5 /* ro */,
-				193F1E532B44C22A00525770 /* hu */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -1971,7 +1872,6 @@
 				C1E34B5429C7AC6F009A50A5 /* tr */,
 				C1E34B5529C7AC70009A50A5 /* vi */,
 				C1BF2DB929C8007300EB8987 /* en */,
-				193F1E542B44C22A00525770 /* hu */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";

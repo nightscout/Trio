@@ -66,7 +66,7 @@
 "2 hours" = "2 heures";
 
 /* Button text for 30 minute suspend duration */
-"30 minutes" = "30 minutes";
+"30 minutes" = "30 minutes";
 
 /* The title of the cell showing the pod activated at time */
 "Active Time" = "Heure d’activation";
@@ -153,7 +153,7 @@
 "Confidence Reminders" = "Rappels de confiance";
 
 /* Help text for BeepPreferenceSelectionView */
-"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Les rappels de confiance sont des bips émis par le Pod qui peuvent être utilisés pour confirmer l'exécution des commandes sélectionnées.";
+"Confidence reminders are beeps from the pod which can be used to acknowledge selected commands." = "Les rappels de confiance sont des bips émis par le Pod qui peuvent être utilisés pour confirmer l'exécution des commandes sélectionnées.";
 
 /* The title of the configuration section in settings */
 "Configuration" = "Configuration";
@@ -178,9 +178,6 @@
 
 /* Button title to deactivate pod because of fault during setup */
 "Deactivate" = "Désactiver";
-
-/* Action button description for deactivate while pod still active */
-"Slide to Deactivate Pod" = "Slide to Deactivate Pod";
 
 /* Button title for pod deactivation
    Button title to deactivate pod */
@@ -448,6 +445,9 @@
 /* Pod pairing action button text while pairing */
 "Pairing..." = "Appairage en cours...";
 
+/* The text of the loading label when pairing */
+"Pairing…" = "Appairage en cours...";
+
 /* No comment provided by engineer. */
 "Percent = %lf" = "Pourcentage = %lf";
 
@@ -550,7 +550,7 @@
 "Remove Pump" = "Retirer la pompe";
 
 /* Label text for step two of attach pod instructions */
-"Remove the Pod's clear needle cap and check cannula. Then remove paper backing." = "Retirez le capuchon transparent de l'aiguille du Pod et vérifiez la canule. Retirer ensuite le support papier. Retirer le capuchon de l'aiguille du pod et vérifier la canule. Retirer ensuite le support papier. Texte de l'étiquette pour la deuxième étape des instructions de fixation du pod.";
+"Remove the pod's needle cap and check cannula. Then remove paper backing." = "Retirez le capuchon d'aiguille du pod et vérifiez la canule. Retirez ensuite le film en papier de l'autocollant.";
 
 /* Label indicating pod replacement necessary
    The title of the command to replace pod */
@@ -683,9 +683,6 @@
 /* Footer text for low reservoir value row */
 "The App notifies you when the amount of insulin in the Pod reaches this level." = "L'application vous avertit quand la quantité d'insuline restante dans le pod atteint cette limite";
 
-/* Description text for critical alerts */
-"The reminders above will not sound if your device is in Silent or Do Not Disturb mode.\n\nThere are other critical Pod alerts and alarms that will sound even if your device is set to Silent or Do Not Disturb mode." = "Les rappels ci-dessus ne sonneront pas si votre appareil est en mode silencieux ou Ne pas déranger.\n\nIl y a d'autres alertes et alarmes de Pod critiques qui sonneront même si votre appareil est réglé sur mode Silencieux ou Ne pas déranger.";
-
 /* Message for pod sync time action sheet */
 "The time on your pump is different from the current time. Do you want to update the time on your pump to the current time?" = "L'heure de votre pompe est différente de l'heure actuelle. Voulez vous mettre à jour l'heure de votre pompe avec l'heure actuelle ?";
 
@@ -731,6 +728,8 @@
 /* Title of delivery uncertainty recovery page */
 "Unable to Reach Pod" = "Impossible de joindre le Pod";
 
+/* Title for pending command recovery screen */
+"Unable To Reach Pod" = "Impossible de joindre le Pod";
 
 /* Alert format string for a failure to set temporary basal. (1: error description) */
 "Unable to set a temporary basal rate: %1$@" = "Impossible de définir un débit basal temporaire: %1$@";
@@ -768,40 +767,3 @@
 /* Alert message body for confirm pod attachment */
 "Your Pod may still be delivering Insulin.\nRemove it from your body, then tap “Continue.“" = "Votre Pod peut encore délivrer de l'insuline.\nRetirez-le de votre corps, puis appuyez sur \"Continuer\".";
 
-/* Title string for SilencePodPreference.enabled */
-"Silenced" = "Réduit au silence";
-
-/* Description for SilencePodPreference.disabled */
-"Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled." = "Mode de fonctionnement normal où les bips audio Pod sont utilisés pour toutes les alertes de Pod et quand les rappels de confiance sont activés.";
-
-/* Description for SilencePodPreference.enabled */
-"All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts." = "Toutes les alertes de Pod n'utilisent aucun bip et les bips de rappel de confirmation sont supprimés. Le Pod ne sera disponible que pour les défauts fataux du Pod et lors de la lecture des bips de test.\n\n⚠️Warning - Chaque fois que le Pod est réduit au silence, il doit être maintenu à portée Bluetooth de cet appareil pour recevoir des notifications pour les alertes de Pod.";
-
-/* Help text for Silence Pod view */
-/* navigation title for Silnce Pod" */
-
-"Silence Pod mode suppresses all Pod alert and confirmation reminder beeping.
-Silence Pod" = "Pod silencieux";
-
-/* title for pod details page */
-"Pod Details" = "Détails du Pod";
-
-/* Text for previous pod details row" */
-"Previous Pod Details" = "Détails du Pod précédent";
-
-/* Text for pump manager details navigation link */
-"Pump Manager Details" = "Détails du Gestionnaire de Pompes";
-
-/* button title when retrieving pump manager details */
-"Retrieving Pump Manager Details..." = "Récupération des détails du gestionnaire de pompe...";
-/* button title to refresh pump manager details */
-"Refresh Pump Manager Details" = "Actualiser les détails du Gestionnaire de Pompe";
-
-/* Alert title for error when updating silence pod preference */
-"Failed to update silence pod preference." = "Impossible de mettre à jour les préférences de rappel de confiance.";
-
-/* Section header for diagnostic section */
-"Diagnostics" = "Diagnostiques";
-
-/* Text for read pod status navigation link */
-"Read Pod Status" = "Lire l’état de la pompe";

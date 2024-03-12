@@ -44,7 +44,7 @@ struct SetupCompleteView: View {
                     .fixedSize(horizontal: false, vertical: true)
                 Divider()
                 VStack(alignment: .leading) {
-                    Text(LocalizedString("Scheduled Reminder", comment: "Scheduled reminder card title on SetupCompleteView"))
+                    Text(LocalizedString("Scheduled Reminder", comment: "Title of SetupCompleteView"))
                     Divider()
                     NavigationLink(
                         destination: ScheduledExpirationReminderEditView(
@@ -84,7 +84,7 @@ struct SetupCompleteView: View {
             .zIndex(1)
         }
         .animation(.default)
-        .navigationBarTitle(LocalizedString("Setup Complete", comment: "Title of SetupCompleteView"), displayMode: .automatic)
+        .navigationBarTitle("Setup Complete", displayMode: .automatic)
     }
     
     private func scheduledReminderDateString(_ scheduledDate: Date?) -> String {

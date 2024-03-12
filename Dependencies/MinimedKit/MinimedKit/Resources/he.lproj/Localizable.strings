@@ -1,3 +1,9 @@
+/* Low reservoir alert format string. (1: Number of units remaining) */
+"%1$@ U left" = "%1$@ U left";
+
+/* Low reservoir alert with time remaining format string. (1: Number of units remaining)(2: approximate time remaining) */
+"%1$@ U left: %2$@" = "%1$@ U left: %2$@";
+
 /* Communications error for a bolus currently running */
 "A bolus is already in progress" = "A bolus is already in progress";
 
@@ -13,8 +19,21 @@
 /* The format string description of a BasalProfileStartPumpEvent. (1: The index of the profile)(2: The basal rate) */
 "Basal Profile %1$@: %2$@ U/hour" = "Basal Profile %1$@: %2$@ U/hour";
 
+/* Event title for bolus
+   Pump Event title for UnfinalizedDose with doseType of .bolus */
+"Bolus" = "Bolus";
+
 /* Pump error code when bolus is in progress */
 "Bolus in progress" = "Bolus in progress";
+
+/* The notification alert describing a low pump battery */
+"Change the pump battery immediately" = "Change the pump battery immediately";
+
+/* The notification alert describing an empty pump reservoir */
+"Change the pump reservoir now" = "Change the pump reservoir now";
+
+/* Event title for ChangeTimePumpEvent */
+"Change Time" = "Change Time";
 
 /* Suggestions for diagnosing a command refused pump error */
 "Check that the pump is not suspended or priming, or has a percent temp basal type" = "Check that the pump is not suspended or priming, or has a percent temp basal type";
@@ -31,6 +50,9 @@
 /* Error description */
 "Device Error" = "Device Error";
 
+/* Default alert dismissal */
+"Dismiss" = "Dismiss";
+
 /* Describing the pump history insulin data source */
 "Event History" = "Event History";
 
@@ -40,11 +62,17 @@
 /* Describing the battery chemistry as Lithium */
 "Lithium" = "Lithium";
 
+/* Event title for JournalEntryPumpLowBatteryPumpEvent */
+"Low Battery" = "סוללה חלשה";
+
 /* Recovery suggestion */
 "Make sure your RileyLink is nearby and powered on" = "Make sure your RileyLink is nearby and powered on";
 
 /* Pump error code describing max setting exceeded */
 "Max setting exceeded" = "Max setting exceeded";
+
+/* Event title for JournalEntryMealMarkerPumpEvent */
+"Meal" = "ארוחה";
 
 /* Pump title (1: model number) */
 "Minimed %@" = "Minimed %@";
@@ -55,6 +83,12 @@
 /* Describing the North America pump region */
 "North America" = "North America";
 
+/* Acknowledge button label for RileyLink low battery alert */
+"OK" = "OK";
+
+/* The notification title for a low pump battery */
+"Pump Battery Low" = "Pump Battery Low";
+
 /* No comment provided by engineer. */
 "Pump did not respond" = "Pump did not respond";
 
@@ -63,6 +97,12 @@
 
 /* No comment provided by engineer. */
 "Pump is suspended" = "Pump is suspended";
+
+/* The notification title for an empty pump reservoir */
+"Pump Reservoir Empty" = "Pump Reservoir Empty";
+
+/* The notification title for a low pump reservoir */
+"Pump Reservoir Low" = "Pump Reservoir Low";
 
 /* No comment provided by engineer. */
 "Pump responded unexpectedly" = "Pump responded unexpectedly";
@@ -75,6 +115,12 @@
 
 /* Error description */
 "RileyLink radio tune failed" = "RileyLink radio tune failed";
+
+/* Event title for starting scheduled basal */
+"Scheduled Basal" = "Scheduled Basal";
+
+/* Status highlight when communications with the pod haven't happened recently. */
+"Signal Loss" = "אובדן אות";
 
 /* The format string description of a TempBasalPumpEvent. (1: The rate of the temp basal in minutes) */
 "Temporary Basal: %1$.3f U/hour" = "Temporary Basal: %1$.3f U/hour";
@@ -96,3 +142,4 @@
 
 /* Describing the worldwide pump region */
 "World-Wide" = "World-Wide";
+

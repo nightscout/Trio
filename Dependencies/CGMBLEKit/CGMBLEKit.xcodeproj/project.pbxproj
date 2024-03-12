@@ -346,9 +346,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		193F1E3F2B44C1CE00525770 /* hu */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hu; path = hu.lproj/TransmitterManagerSetup.strings; sourceTree = "<group>"; };
-		193F1E402B44C1CE00525770 /* hu */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hu; path = hu.lproj/Localizable.strings; sourceTree = "<group>"; };
-		193F1E412B44C1CE00525770 /* hu */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hu; path = hu.lproj/Localizable.strings; sourceTree = "<group>"; };
 		43026D3E2131C5C600A332E2 /* LocalizedString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocalizedString.swift; sourceTree = "<group>"; };
 		43026D472131C99500A332E2 /* base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
 		43026D492131CA8C00A332E2 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
@@ -1246,7 +1243,6 @@
 				ar,
 				cs,
 				hi,
-				hu,
 			);
 			mainGroup = 43CABDE91C3506F100005705;
 			productRefGroup = 43CABDF41C3506F100005705 /* Products */;
@@ -1620,7 +1616,6 @@
 				C15A581729C7866600D3A5A1 /* ar */,
 				C121D8C929C7866D00DA0520 /* cs */,
 				C1FAB5B929C786B000D25073 /* hi */,
-				193F1E402B44C1CE00525770 /* hu */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -1651,7 +1646,6 @@
 				C15A581829C7866600D3A5A1 /* ar */,
 				C121D8CA29C7866D00DA0520 /* cs */,
 				C1FAB5BA29C786B000D25073 /* hi */,
-				193F1E412B44C1CE00525770 /* hu */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -1719,7 +1713,6 @@
 				F5E0BE1727E1DE3E0033557E /* he */,
 				C1C247802995823200371B88 /* sk */,
 				C15A581929C7866600D3A5A1 /* ar */,
-				193F1E3F2B44C1CE00525770 /* hu */,
 			);
 			name = TransmitterManagerSetup.storyboard;
 			sourceTree = "<group>";

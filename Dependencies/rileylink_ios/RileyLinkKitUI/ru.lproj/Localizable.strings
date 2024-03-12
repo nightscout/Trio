@@ -62,10 +62,10 @@
 "Get Statistics…" = "Получить статистику…";
 
 /* The title of the cell showing Lighten Red LED */
-"Lighten Red LED" = "Светло-красный светодиод";
+"Lighten Red LED" = "Lighten Red LED";
 
 /* The title of the cell showing Lighten Yellow LED */
-"Lighten Yellow LED" = "Светло-желтый светодиод";
+"Lighten Yellow LED" = "Lighten Yellow LED";
 
 /* The title of the cell showing battery level */
 "Low Battery Alert" = "Низкий заряд";
@@ -100,7 +100,8 @@
 "Updating diagnostic LEDs mode" = "Изменить режим светодиодов";
 
 /* The title of the cell showing uptime */
-"Uptime" = "Время работы";
+"Uptime" = "Uptime";
 
 /* The title of the cell showing ORL */
 "Voltage" = "Напряжение";
+

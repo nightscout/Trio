@@ -1,20 +1,8 @@
-/* CGM display title */
-"Dexcom G5" = "Dexcom G 5";
-
-/* CGM display title */
-"Dexcom G6" = "Dexcom G6";
-
 /* Error description for unreliable state */
 "Glucose data is unavailable" = "葡萄糖数据不可用";
 
 /* Describes a low battery */
 "Low Battery" = "电量低";
-
-/* Describes a functioning transmitter */
-"OK" = "Ok";
-
-/* invlid config error description */
-"Peripheral command was invalid" = "Peripheral command was invalid";
 
 /* Timeout error description */
 "Peripheral did not respond in time" = "外设没有及时响应";
@@ -39,3 +27,4 @@
 
 /* Error description */
 "Unknown characteristic" = "未知特性";
+

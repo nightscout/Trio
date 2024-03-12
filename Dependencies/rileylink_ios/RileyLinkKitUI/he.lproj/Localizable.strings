@@ -25,9 +25,6 @@
 /* The title of the cell for connection LED */
 "Connection LED" = "נורית חיבור";
 
-/* The title of the section for connection monitoring */
-"Connection Monitoring" = "Connection Monitoring";
-
 /* The title of the cell showing BLE connection state */
 "Connection State" = "מצב החיבור";
 
@@ -54,9 +51,6 @@
 
 /* The title of the cell showing current rileylink frequency */
 "Frequency" = "Frequency";
-
-/* The title of the command to fetch RileyLink statistics */
-"Get RileyLink Statistics" = "Get RileyLink Statistics";
 
 /* Progress message for getting statistics. */
 "Get Statistics…" = "Get Statistics…";
@@ -93,14 +87,9 @@
 /* The title of the cell showing Test Vibration */
 "Test Vibration" = "בדוק רטט";
 
-/* The title of the command to update diagnostic LEDs */
-"Toggle Diagnostic LEDs" = "Toggle Diagnostic LEDs";
-
-/* Progress message for changing diagnostic LED mode */
-"Updating diagnostic LEDs mode" = "Updating diagnostic LEDs mode";
-
 /* The title of the cell showing uptime */
 "Uptime" = "Uptime";
 
 /* The title of the cell showing ORL */
 "Voltage" = "מתח";
+

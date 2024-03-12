@@ -10,14 +10,24 @@ import Foundation
 import LoopKitUI
 
 public protocol PodDeactivater {
-    func deactivatePod(completion: @escaping (OmniBLEPumpManagerError?) -> Void)
-    func forgetPod(completion: @escaping () -> Void)
+    func deactivatePod(completion: @escaping (OmniBLEPumpManagerError?) -> ())
+    func forgetPod(completion: @escaping () -> ())
 }
 
 extension OmniBLEPumpManager: PodDeactivater {}
 
 
 class DeactivatePodViewModel: ObservableObject, Identifiable {
+    
+    public var podAttachedToBody: Bool
+    
+    var instructionText: String {
+        if podAttachedToBody {
+            return LocalizedString("Please deactivate the pod. When deactivation is complete, you may remove it and pair a new pod.", comment: "Instructions for deactivate pod when pod is on body")
+        } else {
+            return LocalizedString("Please deactivate the pod. When deactivation is complete, you may pair a new pod.", comment: "Instructions for deactivate pod when pod not on body")
+        }
+    }
     
     enum DeactivatePodViewModelState {
         case active
@@ -114,38 +124,9 @@ class DeactivatePodViewModel: ObservableObject, Identifiable {
     
     var podDeactivator: PodDeactivater
 
-    var podAttachedToBody: Bool
-
-    var instructionText: String
-
-    init(podDeactivator: PodDeactivater, podAttachedToBody: Bool, fault: DetailedStatus?) {
-
-        var text: String = ""
-        if let faultEventCode = fault?.faultEventCode {
-            let notificationString = faultEventCode.notificationTitle
-            switch faultEventCode.faultType {
-            case .exceededMaximumPodLife80Hrs, .reservoirEmpty, .occluded:
-                // Just prepend a simple sentence with the notification string for these faults.
-                // Other occluded related 0x6? faults will be treated as a general pod error as per the PDM.
-                text = String(format: "%@. ", notificationString)
-            default:
-                // Display the fault code in decimal and hex, the fault description and the pdmRef string for other errors.
-                text = String(format: "⚠️ %1$@ (0x%2$02X)\n%3$@\n", notificationString, faultEventCode.rawValue, faultEventCode.faultDescription)
-                if let pdmRef = fault?.pdmRef {
-                    text += LocalizedString("Ref: ", comment: "PDM Ref string line") + pdmRef + "\n\n"
-                }
-            }
-        }
-
-        if podAttachedToBody {
-            text += LocalizedString("Please deactivate the pod. When deactivation is complete, you may remove it and pair a new pod.", comment: "Instructions for deactivate pod when pod is on body")
-        } else {
-            text += LocalizedString("Please deactivate the pod. When deactivation is complete, you may pair a new pod.", comment: "Instructions for deactivate pod when pod not on body")
-        }
-
+    init(podDeactivator: PodDeactivater, podAttachedToBody: Bool) {
         self.podDeactivator = podDeactivator
         self.podAttachedToBody = podAttachedToBody
-        self.instructionText = text
     }
     
     public func continueButtonTapped() {
@@ -156,7 +137,7 @@ class DeactivatePodViewModel: ObservableObject, Identifiable {
             podDeactivator.deactivatePod { (error) in
                 DispatchQueue.main.async {
                     if let error = error {
-                        self.state = .resultError(DeactivationError.OmniBLEPumpManagerError(error))
+                        self.state = .resultError(DeactivationError.OmnipodPumpManagerError(error))
                     } else {
                         self.discardPod(navigateOnCompletion: false)
                     }
@@ -179,18 +160,18 @@ class DeactivatePodViewModel: ObservableObject, Identifiable {
 }
 
 enum DeactivationError : LocalizedError {
-    case OmniBLEPumpManagerError(OmniBLEPumpManagerError)
+    case OmnipodPumpManagerError(OmniBLEPumpManagerError)
     
     var recoverySuggestion: String? {
         switch self {
-        case .OmniBLEPumpManagerError:
+        case .OmnipodPumpManagerError:
             return LocalizedString("There was a problem communicating with the pod. If this problem persists, tap Discard Pod. You can then activate a new Pod.", comment: "Format string for recovery suggestion during deactivate pod.")
         }
     }
     
     var errorDescription: String? {
         switch self {
-        case .OmniBLEPumpManagerError(let error):
+        case .OmnipodPumpManagerError(let error):
             return error.errorDescription
         }
     }

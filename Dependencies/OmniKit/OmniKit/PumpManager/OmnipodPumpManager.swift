@@ -143,6 +143,14 @@ public class OmnipodPumpManager: RileyLinkPumpManager {
         return setStateWithResult(changes)
     }
 
+    @discardableResult
+    private func mutateState(_ changes: (_ state: inout OmnipodPumpManagerState) -> Void) -> OmnipodPumpManagerState {
+        return setStateWithResult({ (state) -> OmnipodPumpManagerState in
+            changes(&state)
+            return state
+        })
+    }
+
     private func setStateWithResult<ReturnType>(_ changes: (_ state: inout OmnipodPumpManagerState) -> ReturnType) -> ReturnType {
         var oldValue: OmnipodPumpManagerState!
         var returnType: ReturnType!
@@ -274,14 +282,12 @@ public class OmnipodPumpManager: RileyLinkPumpManager {
     override public var debugDescription: String {
         let lines = [
             "## OmnipodPumpManager",
-            "",
-            super.debugDescription,
             "podComms: \(String(reflecting: podComms))",
-            "statusObservers.count: \(statusObservers.cleanupDeallocatedElements().count)",
-            "status: \(String(describing: status))",
-            "",
-            "podStateObservers.count: \(podStateObservers.cleanupDeallocatedElements().count)",
             "state: \(String(reflecting: state))",
+            "status: \(String(describing: status))",
+            "podStateObservers.count: \(podStateObservers.cleanupDeallocatedElements().count)",
+            "statusObservers.count: \(statusObservers.cleanupDeallocatedElements().count)",
+            super.debugDescription,
         ]
         return lines.joined(separator: "\n")
     }
@@ -542,21 +548,10 @@ extension OmnipodPumpManager {
         return false
     }
 
-    private var podTime: TimeInterval {
-        get {
-            guard let podState = state.podState else {
-                return 0
-            }
-            let elapsed = -(podState.podTimeUpdated?.timeIntervalSinceNow ?? 0)
-            let podActiveTime = podState.podTime + elapsed
-            return podActiveTime
-        }
-    }
-
     // Returns a suitable beep command MessageBlock based the current beep preferences and
     // whether there is an unfinializedDose for a manual temp basal &/or a manual bolus.
     private func beepMessageBlock(beepType: BeepType) -> MessageBlock? {
-        guard self.beepPreference.shouldBeepForManualCommand && !self.silencePod else {
+        guard self.beepPreference.shouldBeepForManualCommand else {
             return nil
         }
 
@@ -637,13 +632,6 @@ extension OmnipodPumpManager {
     public var beepPreference: BeepPreference {
         get {
             return state.confirmationBeeps
-        }
-    }
-
-    // Thread-safe
-    public var silencePod: Bool {
-        get {
-            return state.silencePod
         }
     }
 
@@ -888,13 +876,15 @@ extension OmnipodPumpManager {
                         }
                     }
 
-                    let expirationReminderTime = Pod.nominalPodLife - self.state.defaultExpirationReminderOffset
+                    let expiration = self.podExpiresAt ?? Date().addingTimeInterval(Pod.nominalPodLife)
+                    let timeUntilExpirationReminder = expiration.addingTimeInterval(-self.state.defaultExpirationReminderOffset).timeIntervalSince(self.dateGenerator())
+
                     let alerts: [PodAlert] = [
-                        .expirationReminder(offset: self.podTime, absAlertTime: self.state.defaultExpirationReminderOffset > 0 ? expirationReminderTime : 0),
-                        .lowReservoir(units: self.state.lowReservoirReminderValue)
+                        .expirationReminder(self.state.defaultExpirationReminderOffset > 0 ? timeUntilExpirationReminder : 0),
+                        .lowReservoir(self.state.lowReservoirReminderValue)
                     ]
 
-                    let finishWait = try messageSender.insertCannula(optionalAlerts: alerts, silent: self.silencePod)
+                    let finishWait = try messageSender.insertCannula(optionalAlerts: alerts)
                     completion(.success(finishWait))
                 } catch let error {
                     completion(.failure(.communication(error)))
@@ -958,62 +948,6 @@ extension OmnipodPumpManager {
         }
     }
 
-    public func getDetailedStatus(completion: ((_ result: PumpManagerResult<DetailedStatus>) -> Void)? = nil) {
-
-        // use hasSetupPod here instead of hasActivePod as DetailedStatus can be read with a faulted Pod
-        guard self.hasSetupPod else {
-            completion?(.failure(PumpManagerError.configuration(OmnipodPumpManagerError.noPodPaired)))
-            return
-        }
-
-        let rileyLinkSelector = self.rileyLinkDeviceProvider.firstConnectedDevice
-        podComms.runSession(withName: "Get detailed status", using: rileyLinkSelector) { (result) in
-            do {
-                switch result {
-                case .success(let session):
-                    let beepBlock = self.beepMessageBlock(beepType: .bipBip)
-                    let detailedStatus = try session.getDetailedStatus(beepBlock: beepBlock)
-                    session.dosesForStorage({ (doses) -> Bool in
-                        self.store(doses: doses, in: session)
-                    })
-                    completion?(.success(detailedStatus))
-                case .failure(let error):
-                    throw error
-                }
-            } catch let error {
-                completion?(.failure(.communication(error as? LocalizedError)))
-                self.log.error("Failed to fetch detailed status: %{public}@", String(describing: error))
-            }
-        }
-    }
-
-    public func acknowledgePodAlerts(_ alertsToAcknowledge: AlertSet, completion: @escaping (_ alerts: AlertSet?) -> Void) {
-        guard self.hasActivePod else {
-            completion(nil)
-            return
-        }
-
-        let rileyLinkSelector = self.rileyLinkDeviceProvider.firstConnectedDevice
-        self.podComms.runSession(withName: "Acknowledge Alerts", using: rileyLinkSelector) { (result) in
-            let session: PodCommsSession
-            switch result {
-            case .success(let s):
-                session = s
-            case .failure:
-                completion(nil)
-                return
-            }
-
-            do {
-                let beepBlock = self.beepMessageBlock(beepType: .bipBip)
-                let alerts = try session.acknowledgeAlerts(alerts: alertsToAcknowledge, beepBlock: beepBlock)
-                completion(alerts)
-            } catch {
-                completion(nil)
-            }
-        }
-    }
-
     public func setTime(completion: @escaping (OmnipodPumpManagerError?) -> Void) {
         
         guard state.hasActivePod else {
@@ -1032,7 +966,7 @@ extension OmnipodPumpManager {
             switch result {
             case .success(let session):
                 do {
-                    let beep = self.silencePod ? false : self.beepPreference.shouldBeepForManualCommand
+                    let beep = self.beepPreference.shouldBeepForManualCommand
                     let _ = try session.setTime(timeZone: timeZone, basalSchedule: self.state.basalSchedule, date: Date(), acknowledgementBeep: beep)
                     self.setState { (state) in
                         state.timeZone = timeZone
@@ -1089,7 +1023,7 @@ extension OmnipodPumpManager {
                     case .success:
                         break
                     }
-                    let beep = self.silencePod ? false : self.beepPreference.shouldBeepForManualCommand
+                    let beep = self.beepPreference.shouldBeepForManualCommand
                     let _ = try session.setBasalSchedule(schedule: schedule, scheduleOffset: scheduleOffset, acknowledgementBeep: beep)
 
                     self.setState { (state) in
@@ -1152,12 +1086,12 @@ extension OmnipodPumpManager {
         self.podComms.runSession(withName: "Play Test Beeps", using: rileyLinkSelector) { (result) in
             switch result {
             case .success(let session):
-                // preserve the pod's completion beep state which gets reset playing beeps
-                let enabled: Bool = self.silencePod ? false : self.beepPreference.shouldBeepForManualCommand
+                // preserve Pod completion beep state for any unfinalized manual insulin delivery
+                let beep = self.beepPreference.shouldBeepForManualCommand
                 let result = session.beepConfig(
                     beepType: .bipBeepBipBeepBipBeepBipBeep,
-                    tempBasalCompletionBeep: enabled && self.hasUnfinalizedManualTempBasal,
-                    bolusCompletionBeep: enabled && self.hasUnfinalizedManualBolus
+                    tempBasalCompletionBeep: beep && self.hasUnfinalizedManualTempBasal,
+                    bolusCompletionBeep: beep && self.hasUnfinalizedManualBolus
                 )
 
                 switch result {
@@ -1211,21 +1145,17 @@ extension OmnipodPumpManager {
     }
 
     public func setConfirmationBeeps(newPreference: BeepPreference, completion: @escaping (OmnipodPumpManagerError?) -> Void) {
-
-        // If there isn't an active pod or the pod is currently silenced,
-        // just need to update the internal state without any pod commands.
-        let name = String(format: "Set Beep Preference to %@", String(describing: newPreference))
-        if !self.hasActivePod || self.silencePod {
-            self.log.default("%{public}@ for internal state only", name)
+        self.log.default("Set Confirmation Beeps to %s", String(describing: newPreference))
+        guard self.hasActivePod else {
             self.setState { state in
-                state.confirmationBeeps = newPreference
+                state.confirmationBeeps = newPreference // set here to allow changes on a faulted Pod
             }
             completion(nil)
             return
         }
 
         let rileyLinkSelector = self.rileyLinkDeviceProvider.firstConnectedDevice
-        self.podComms.runSession(withName: name, using: rileyLinkSelector) { (result) in
+        self.podComms.runSession(withName: "Set Confirmation Beeps Preference", using: rileyLinkSelector) { (result) in
             switch result {
             case .success(let session):
                 // enable/disable Pod completion beep state for any unfinalized manual insulin delivery
@@ -1247,76 +1177,6 @@ extension OmnipodPumpManager {
                     completion(.communication(error))
                 }
             case .failure(let error):
-                completion(.communication(error))
-            }
-        }
-    }
-
-    // Reconfigures all active alerts in pod to be silent or not as well as sets/clears the
-    // self.silencePod state variable which silences all confirmation beeping when enabled.
-    public func setSilencePod(silencePod: Bool, completion: @escaping (OmnipodPumpManagerError?) -> Void) {
-
-        let name = String(format: "%@ Pod", silencePod ? "Silence" : "Unsilence")
-        // allow Silence Pod changes without an active Pod
-        guard self.hasActivePod else {
-            self.log.default("%{public}@", name)
-            self.setState { state in
-                state.silencePod = silencePod
-            }
-            completion(nil)
-            return
-        }
-
-        let rileyLinkSelector = self.rileyLinkDeviceProvider.firstConnectedDevice
-        self.podComms.runSession(withName: name, using: rileyLinkSelector) { (result) in
-
-            let session: PodCommsSession
-            switch result {
-            case .success(let s):
-                session = s
-            case .failure(let error):
-                completion(.communication(error))
-                return
-            }
-
-            guard let configuredAlerts = self.state.podState?.configuredAlerts,
-                  let activeAlertSlots = self.state.podState?.activeAlertSlots,
-                  let reservoirLevel = self.state.podState?.lastInsulinMeasurements?.reservoirLevel?.rawValue else
-            {
-                self.log.error("Missing podState") // should never happen
-                completion(OmnipodPumpManagerError.noPodPaired)
-                return
-            }
-
-            let beepBlock: MessageBlock?
-            if !self.beepPreference.shouldBeepForManualCommand {
-                // No enabled completion beeps to worry about for any in-progress manual delivery
-                beepBlock = nil
-            } else if silencePod {
-                // Disable completion beeps for any in-progress manual delivery w/o beeping
-                beepBlock = BeepConfigCommand(beepType: .noBeepNonCancel)
-            } else {
-                // Emit a confirmation beep and enable completion beeps for any in-progress manual delivery
-                beepBlock = BeepConfigCommand(
-                    beepType: .bipBip,
-                    tempBasalCompletionBeep: self.hasUnfinalizedManualTempBasal,
-                    bolusCompletionBeep: self.hasUnfinalizedManualBolus
-                )
-            }
-
-            let podAlerts = regeneratePodAlerts(silent: silencePod, configuredAlerts: configuredAlerts, activeAlertSlots: activeAlertSlots, currentPodTime: self.podTime, currentReservoirLevel: reservoirLevel)
-            do {
-                // Since non-responsive pod comms are currently only resolved for insulin related commands,
-                // it's possible that a previous pod alert was successfully configured will lose its response
-                // and thus the alert won't get reset when reconfiguring pod alerts with a new silence pod state.
-                // So acknowledge all alerts now to be absolutely sure that no triggered alert will be forgotten.
-                try session.configureAlerts(podAlerts, acknowledgeAll: true, beepBlock: beepBlock)
-                self.setState { (state) in
-                    state.silencePod = silencePod
-                }
-                completion(nil)
-            } catch {
-                self.log.error("Configure alerts %{public}@ failed: %{public}@", String(describing: podAlerts), String(describing: error))
                 completion(.communication(error))
             }
         }
@@ -1413,7 +1273,7 @@ extension OmnipodPumpManager: PumpManager {
 
     public var defaultExpirationReminderOffset: TimeInterval {
         set {
-            setState { (state) in
+            mutateState { (state) in
                 state.defaultExpirationReminderOffset = newValue
             }
         }
@@ -1424,7 +1284,7 @@ extension OmnipodPumpManager: PumpManager {
 
     public var lowReservoirReminderValue: Double {
         set {
-            setState { (state) in
+            mutateState { (state) in
                 state.lowReservoirReminderValue = newValue
             }
         }
@@ -1435,7 +1295,7 @@ extension OmnipodPumpManager: PumpManager {
 
     public var podAttachmentConfirmed: Bool {
         set {
-            setState { (state) in
+            mutateState { (state) in
                 state.podAttachmentConfirmed = newValue
             }
         }
@@ -1446,7 +1306,7 @@ extension OmnipodPumpManager: PumpManager {
 
     public var initialConfigurationCompleted: Bool {
         set {
-            setState { (state) in
+            mutateState { (state) in
                 state.initialConfigurationCompleted = newValue
             }
         }
@@ -1531,7 +1391,7 @@ extension OmnipodPumpManager: PumpManager {
 
             // Use a beepBlock for the confirmation beep to avoid getting 3 beeps using cancel command beeps!
             let beepBlock = self.beepMessageBlock(beepType: .beeeeeep)
-            let result = session.suspendDelivery(suspendReminder: suspendReminder, silent: self.silencePod, beepBlock: beepBlock)
+            let result = session.suspendDelivery(suspendReminder: suspendReminder, beepBlock: beepBlock)
             switch result {
             case .certainFailure(let error):
                 self.log.error("Failed to suspend: %{public}@", String(describing: error))
@@ -1577,8 +1437,8 @@ extension OmnipodPumpManager: PumpManager {
 
             do {
                 let scheduleOffset = self.state.timeZone.scheduleOffset(forDate: Date())
-                let beep = self.silencePod ? false : self.beepPreference.shouldBeepForManualCommand
-                let _ = try session.resumeBasal(schedule: self.state.basalSchedule, scheduleOffset: scheduleOffset, acknowledgementBeep: beep)
+                let beep = self.beepPreference.shouldBeepForManualCommand
+                let _ = try session.resumeBasal(schedule: self.state.basalSchedule, scheduleOffset: scheduleOffset, acknowledgementBeep: beep, completionBeep: beep)
                 self.clearSuspendReminder()
                 session.dosesForStorage() { (doses) -> Bool in
                     return self.store(doses: doses, in: session)
@@ -1654,14 +1514,8 @@ extension OmnipodPumpManager: PumpManager {
         // Round to nearest supported volume
         let enactUnits = roundToSupportedBolusVolume(units: units)
 
-        let acknowledgementBeep, completionBeep: Bool
-        if self.silencePod {
-            acknowledgementBeep = false
-            completionBeep = false
-        } else {
-            acknowledgementBeep = self.beepPreference.shouldBeepForCommand(automatic: activationType.isAutomatic)
-            completionBeep = beepPreference.shouldBeepForManualCommand && !activationType.isAutomatic
-        }
+        let acknowledgementBeep = self.beepPreference.shouldBeepForCommand(automatic: activationType.isAutomatic)
+        let completionBeep = beepPreference.shouldBeepForManualCommand && !activationType.isAutomatic
 
         let rileyLinkSelector = self.rileyLinkDeviceProvider.firstConnectedDevice
         self.podComms.runSession(withName: "Bolus", using: rileyLinkSelector) { (result) in
@@ -1747,7 +1601,7 @@ extension OmnipodPumpManager: PumpManager {
                 }
 
                 // when cancelling a bolus use the built-in type 6 beeeeeep to match PDM if confirmation beeps are enabled
-                let beepType: BeepType = self.beepPreference.shouldBeepForManualCommand && !self.silencePod ? .beeeeeep : .noBeepCancel
+                let beepType: BeepType = self.beepPreference.shouldBeepForManualCommand ? .beeeeeep : .noBeepCancel
                 let result = session.cancelDelivery(deliveryType: .bolus, beepType: beepType)
                 switch result {
                 case .certainFailure(let error):
@@ -1783,14 +1637,8 @@ extension OmnipodPumpManager: PumpManager {
         // Round to nearest supported rate
         let rate = roundToSupportedBasalRate(unitsPerHour: unitsPerHour)
 
-        let acknowledgementBeep, completionBeep: Bool
-        if self.silencePod {
-            acknowledgementBeep = false
-            completionBeep = false
-        } else {
-            acknowledgementBeep = beepPreference.shouldBeepForCommand(automatic: automatic)
-            completionBeep = beepPreference.shouldBeepForManualCommand && !automatic
-        }
+        let acknowledgementBeep = beepPreference.shouldBeepForCommand(automatic: automatic)
+        let completionBeep = beepPreference.shouldBeepForManualCommand && !automatic
 
         let rileyLinkSelector = self.rileyLinkDeviceProvider.firstConnectedDevice
         self.podComms.runSession(withName: "Enact Temp Basal", using: rileyLinkSelector) { (result) in
@@ -1820,12 +1668,9 @@ extension OmnipodPumpManager: PumpManager {
                 return
             }
 
-            // Did the last message have comms issues or is the last delivery status not verified correctly?
-            let uncertainDeliveryStatus = self.state.podState?.lastCommsOK == false || self.state.podState?.deliveryStatusVerified == false
-
             // Do the cancel temp basal command if currently running a temp basal OR
-            // if resuming scheduled basal delivery OR if the delivery status is uncertain.
-            if self.state.podState?.unfinalizedTempBasal != nil || resumingScheduledBasal || uncertainDeliveryStatus {
+            // if resuming scheduled basal delivery.
+            if self.state.podState?.unfinalizedTempBasal != nil || resumingScheduledBasal {
                 let status: StatusResponse
 
                 // if resuming scheduled basal delivery & an acknowledgement beep is needed, use the cancel TB beep
@@ -1923,7 +1768,7 @@ extension OmnipodPumpManager: PumpManager {
     }
 
     public func syncDeliveryLimits(limits deliveryLimits: DeliveryLimits, completion: @escaping (Result<DeliveryLimits, Error>) -> Void) {
-        setState { state in
+        mutateState { state in
             if let rate = deliveryLimits.maximumBasalRate?.doubleValue(for: .internationalUnitsPerHour) {
                 state.maximumTempBasalRate = rate
                 completion(.success(deliveryLimits))
@@ -1969,25 +1814,16 @@ extension OmnipodPumpManager: PumpManager {
                 return
             }
 
-            let podTime = self.podTime
-            var expirationReminderPodTime: TimeInterval = 0 // default to expiration reminder alert inactive
-
-            // If the interval before expiration is not a positive value (e.g., it's in the past),
-            // then the pod alert will get the default alert time of 0 making this alert inactive.
+            var timeUntilReminder : TimeInterval = 0
             if let intervalBeforeExpiration = intervalBeforeExpiration, intervalBeforeExpiration > 0 {
-                let timeUntilReminder = expiresAt.addingTimeInterval(-intervalBeforeExpiration).timeIntervalSince(self.dateGenerator())
-                // Only bother to set an expiration reminder pod alert if it is still at least a couple of minutes in the future
-                if timeUntilReminder > .minutes(2) {
-                    expirationReminderPodTime = podTime + timeUntilReminder
-                    self.log.debug("Update Expiration timeUntilReminder=%@, podTime=%@, expirationReminderPodTime=%@", timeUntilReminder.timeIntervalStr, podTime.timeIntervalStr, expirationReminderPodTime.timeIntervalStr)
-                }
+                timeUntilReminder = expiresAt.addingTimeInterval(-intervalBeforeExpiration).timeIntervalSince(self.dateGenerator())
             }
 
-            let expirationReminder = PodAlert.expirationReminder(offset: podTime, absAlertTime: expirationReminderPodTime, silent: self.silencePod)
+            let expirationReminder = PodAlert.expirationReminder(timeUntilReminder)
             do {
                 let beepBlock = self.beepMessageBlock(beepType: .beep)
                 try session.configureAlerts([expirationReminder], beepBlock: beepBlock)
-                self.setState({ (state) in
+                self.mutateState({ (state) in
                     state.scheduledExpirationReminderOffset = intervalBeforeExpiration
                 })
                 completion(nil)
@@ -2011,8 +1847,7 @@ extension OmnipodPumpManager: PumpManager {
             expiration.addingTimeInterval(.hours(Double(i)))
         }
         let now = dateGenerator()
-        // Have a couple minutes of slop to avoid confusion trying to set an expiration reminder too close to now
-        return allDates.filter { $0.timeIntervalSince(now) > .minutes(2) }
+        return allDates.filter { $0.timeIntervalSince(now) > 0 }
     }
 
     public var scheduledExpirationReminder: Date? {
@@ -2025,26 +1860,9 @@ extension OmnipodPumpManager: PumpManager {
         return expiration.addingTimeInterval(-.hours(round(offset.hours)))
     }
 
-    // Updates the low reservior reminder value both for the current pod (when applicable) and for future pods
     public func updateLowReservoirReminder(_ value: Int, completion: @escaping (OmnipodPumpManagerError?) -> Void) {
-
-        let supportedValue = min(max(0, Double(value)), Pod.maximumReservoirReading)
-        let setLowReservoirReminderValue = {
-            self.log.default("Set Low Reservoir Reminder to %d U", value)
-            self.lowReservoirReminderValue = supportedValue
-            completion(nil)
-        }
-
         guard self.hasActivePod else {
-            // no active pod, just set the internal state for the next pod
-            setLowReservoirReminderValue()
-            return
-        }
-
-        guard let currentReservoirLevel = self.reservoirLevel?.rawValue, currentReservoirLevel > supportedValue else {
-            // Since the new low reservoir alert level is not below the current reservoir value,
-            // just set the internal state for the next pod to prevent an immediate low reservoir alert.
-            setLowReservoirReminderValue()
+            completion(OmnipodPumpManagerError.noPodPaired)
             return
         }
 
@@ -2060,11 +1878,13 @@ extension OmnipodPumpManager: PumpManager {
                 return
             }
 
-            let lowReservoirReminder = PodAlert.lowReservoir(units: supportedValue, silent: self.silencePod)
+            let lowReservoirReminder = PodAlert.lowReservoir(Double(value))
             do {
                 let beepBlock = self.beepMessageBlock(beepType: .beep)
                 try session.configureAlerts([lowReservoirReminder], beepBlock: beepBlock)
-                self.lowReservoirReminderValue = supportedValue
+                self.mutateState({ (state) in
+                    state.lowReservoirReminderValue = Double(value)
+                })
                 completion(nil)
             } catch {
                 completion(.communication(error))
@@ -2089,7 +1909,7 @@ extension OmnipodPumpManager: PumpManager {
             }
         }
 
-        self.setState { (state) in
+        self.mutateState { (state) in
             state.activeAlerts.insert(alert)
         }
     }
@@ -2105,7 +1925,7 @@ extension OmnipodPumpManager: PumpManager {
                 delegate?.retractAlert(identifier: repeatingIdentifier)
             }
         }
-        self.setState { (state) in
+        self.mutateState { (state) in
             state.activeAlerts.remove(alert)
         }
     }
@@ -2126,8 +1946,6 @@ extension OmnipodPumpManager: PumpManager {
                 }
             } else {
                 log.error("Unconfigured alert slot triggered: %{public}@", String(describing: slot))
-                let pumpManagerAlert = PumpManagerAlert.unexpectedAlert(triggeringSlot: slot)
-                issueAlert(alert: pumpManagerAlert)
             }
         }
         for alert in removed {
@@ -2136,24 +1954,34 @@ extension OmnipodPumpManager: PumpManager {
     }
 
     private func getPumpManagerAlert(for podAlert: PodAlert, slot: AlertSlot) -> PumpManagerAlert? {
+        guard let podState = state.podState, let expiresAt = podState.expiresAt else {
+            preconditionFailure("trying to lookup alert info without podState")
+        }
+
+        guard !podAlert.isIgnored else {
+            return nil
+        }
 
         switch podAlert {
-        case .shutdownImminent:
-            return PumpManagerAlert.podExpireImminent(triggeringSlot: slot)
+        case .podSuspendedReminder:
+            return PumpManagerAlert.suspendInProgress(triggeringSlot: slot)
         case .expirationReminder:
-            guard let podState = state.podState, let expiresAt = podState.expiresAt else {
-                preconditionFailure("trying to lookup expiresAt")
+            guard let offset = state.scheduledExpirationReminderOffset, offset > 0 else {
+                return nil
             }
             let timeToExpiry = TimeInterval(hours: expiresAt.timeIntervalSince(dateGenerator()).hours.rounded())
             return PumpManagerAlert.userPodExpiration(triggeringSlot: slot, scheduledExpirationReminderOffset: timeToExpiry)
-        case .lowReservoir(let units, _):
-            return PumpManagerAlert.lowReservoir(triggeringSlot: slot, lowReservoirReminderValue: units)
-        case .suspendTimeExpired:
-            return PumpManagerAlert.suspendEnded(triggeringSlot: slot)
         case .expired:
             return PumpManagerAlert.podExpiring(triggeringSlot: slot)
+        case .shutdownImminent:
+            return PumpManagerAlert.podExpireImminent(triggeringSlot: slot)
+        case .lowReservoir(let units):
+            return PumpManagerAlert.lowReservoir(triggeringSlot: slot, lowReservoirReminderValue: units)
+        case .finishSetupReminder, .waitingForPairingReminder:
+            return PumpManagerAlert.finishSetupReminder(triggeringSlot: slot)
+        case .suspendTimeExpired:
+            return PumpManagerAlert.suspendEnded(triggeringSlot: slot)
         default:
-            // No PumpManagerAlerts are used for any other pod alerts (including suspendInProgress).
             return nil
         }
     }
@@ -2171,7 +1999,7 @@ extension OmnipodPumpManager: PumpManager {
                         } catch {
                             return
                         }
-                        self.setState { state in
+                        self.mutateState { state in
                             state.activeAlerts.remove(alert)
                             state.alertsWithPendingAcknowledgment.remove(alert)
                         }
@@ -2295,7 +2123,7 @@ extension OmnipodPumpManager: PodCommsDelegate {
             }
         } else {
             // Resetting podState
-            setState { state in
+            mutateState { state in
                 state.updatePodStateFromPodComms(podState)
             }
         }
@@ -2314,13 +2142,6 @@ extension OmnipodPumpManager {
             if alert.alertIdentifier == alertIdentifier {
                 // If this alert was triggered by the pod find the slot to clear it.
                 if let slot = alert.triggeringSlot {
-                    if case .some(.suspended) = self.state.podState?.suspendState, slot == .slot6SuspendTimeExpired {
-                        // Don't clear this pod alert here with the pod still suspended so that the suspend time expired
-                        // pod alert beeping will continue until the pod is resumed which will then deactivate this alert.
-                        log.default("Skipping acknowledgement of suspend time expired alert with a suspended pod")
-                        completion(nil)
-                        return
-                    }
                     let rileyLinkSelector = self.rileyLinkDeviceProvider.firstConnectedDevice
                     self.podComms.runSession(withName: "Acknowledge Alert", using: rileyLinkSelector) { (result) in
                         switch result {
@@ -2329,18 +2150,18 @@ extension OmnipodPumpManager {
                                 let beepBlock = self.beepMessageBlock(beepType: .beep)
                                 let _ = try session.acknowledgeAlerts(alerts: AlertSet(slots: [slot]), beepBlock: beepBlock)
                             } catch {
-                                self.setState { state in
+                                self.mutateState { state in
                                     state.alertsWithPendingAcknowledgment.insert(alert)
                                 }
                                 completion(error)
                                 return
                             }
-                            self.setState { state in
+                            self.mutateState { state in
                                 state.activeAlerts.remove(alert)
                             }
                             completion(nil)
                         case .failure(let error):
-                            self.setState { state in
+                            self.mutateState { state in
                                 state.alertsWithPendingAcknowledgment.insert(alert)
                             }
                             completion(error)
@@ -2349,7 +2170,7 @@ extension OmnipodPumpManager {
                     }
                 } else {
                     // Non-pod alert
-                    self.setState { state in
+                    self.mutateState { state in
                         state.activeAlerts.remove(alert)
                         if alert == .timeOffsetChangeDetected {
                             state.acknowledgedTimeOffsetAlert = true
@@ -2378,7 +2199,7 @@ extension FaultEventCode {
         case .exceededMaximumPodLife80Hrs:
             return LocalizedString("Pod Expired", comment: "The title for Pod Expired alarm notification")
         default:
-            return String(format: LocalizedString("Critical Pod Fault %1$03d", comment: "The title for AlarmCode.other notification: (1: fault code value)"), self.rawValue)
+            return LocalizedString("Critical Pod Error", comment: "The title for AlarmCode.other notification")
         }
     }
 

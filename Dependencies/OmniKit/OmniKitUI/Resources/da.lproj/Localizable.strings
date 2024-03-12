@@ -36,7 +36,7 @@
 "%@U" = "%@E";
 
 /* Summary string for temporary basal rate configuration page */
-"%1$@ for %2$@" = "%1$@ i %2$@";
+"%1$@ for %2$@" = "%1$@ for %2$@";
 
 /* Format string for main text of delivery uncertainty recovery page. (1: app name)(2: date of command)(3: app name) */
 "%1$@ has been unable to communicate with the pod on your body since %2$@.\n\nWithout communication with the pod, the app cannot continue to send commands for insulin delivery or display accurate, recent information about your active insulin or the insulin being delivered by the Pod.\n\nMonitor your glucose closely for the next 6 or more hours, as there may or may not be insulin actively working in your body that %3$@ cannot display." = "%1$@ har ikke været i stand til at kommunikere med Pod'en på din krop siden %2$@.\n\nUden kommunikation med Pod'en kan appen ikke fortsætte med at sende kommandoer for insulintilførsel eller vise nøjagtige, nylige oplysninger om dit aktive insulin eller det insulin, der leveres af Pod'en.\n\nOvervåg din glukose nøje i de næste 6 eller flere timer, da der måske eller måske ikke er insulin, der aktivt arbejder i din krop, som %3$@ ikke kan vise.";
@@ -153,7 +153,7 @@
 "Confidence Reminders" = "Påmindelse om succesfulde aktiviteter";
 
 /* Help text for BeepPreferenceSelectionView */
-"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced.";
+"Confidence reminders are beeps from the pod which can be used to acknowledge selected commands." = "Påmindelse om succesfulde aktiviteter er bip fra Pod'en, som kan bruges til at bekræfte valgte kommandoer.";
 
 /* The title of the configuration section in settings */
 "Configuration" = "Konfiguration";
@@ -178,9 +178,6 @@
 
 /* Button title to deactivate pod because of fault during setup */
 "Deactivate" = "Deaktiver";
-
-/* Action button description for deactivate while pod still active */
-"Slide to Deactivate Pod" = "Slide to Deactivate Pod";
 
 /* Button title for pod deactivation
    Button title to deactivate pod */
@@ -448,6 +445,9 @@
 /* Pod pairing action button text while pairing */
 "Pairing..." = "Parrer...";
 
+/* The text of the loading label when pairing */
+"Pairing…" = "Parres…";
+
 /* No comment provided by engineer. */
 "Percent = %lf" = "Procent = %lf";
 
@@ -511,7 +511,7 @@
 "Pod Settings" = "Pod-Indstillinger";
 
 /* Title for PodSetupView */
-"Pod Setup" = "Pumpe Setup";
+"Pod Setup" = "Pod Setup";
 
 /* Label text for step one of attach pod instructions */
 "Prepare site." = "Forbered indstikssted.";
@@ -538,7 +538,7 @@
 "Pump Time" = "Pumpetid";
 
 /* Label text for basal rate summary */
-"Rate" = "Værdi";
+"Rate" = "Rate";
 
 /* Label describing time remaining view */
 "Remaining" = "Tilbage";
@@ -550,7 +550,7 @@
 "Remove Pump" = "Fjern pumpe";
 
 /* Label text for step two of attach pod instructions */
-"Remove the Pod's clear needle cap and check cannula. Then remove paper backing." = "Remove the Pod's clear needle cap and check cannula. Then remove paper backing.";
+"Remove the pod's needle cap and check cannula. Then remove paper backing." = "Fjern Pod'ens nålehætte og kontroller kanyle. Fjern derefter papirbagsiden.";
 
 /* Label indicating pod replacement necessary
    The title of the command to replace pod */
@@ -683,9 +683,6 @@
 /* Footer text for low reservoir value row */
 "The App notifies you when the amount of insulin in the Pod reaches this level." = "Appen giver dig besked, når mængden af insulin i Pod'en når dette niveau.";
 
-/* Description text for critical alerts */
-"The reminders above will not sound if your device is in Silent or Do Not Disturb mode.\n\nThere are other critical Pod alerts and alarms that will sound even if your device is set to Silent or Do Not Disturb mode." = "Påmindelserne ovenfor vil ikke lyde, hvis din enhed er i lydløs tilstand eller Forstyr ikke.\n\nDer er andre kritiske Pod alarmer og alarmer, der vil lyde, selvom din enhed er indstillet til Lydløs eller Forstyr ikke.";
-
 /* Message for pod sync time action sheet */
 "The time on your pump is different from the current time. Do you want to update the time on your pump to the current time?" = "Tiden på din pumpe er forskellig fra den aktuelle tid. Vil du opdatere tiden på din pumpe til det aktuelle tidspunkt?";
 
@@ -731,6 +728,8 @@
 /* Title of delivery uncertainty recovery page */
 "Unable to Reach Pod" = "Kan ikke få kontakt til pumpen";
 
+/* Title for pending command recovery screen */
+"Unable To Reach Pod" = "Kan ikke få kontakt til pumpen";
 
 /* Alert format string for a failure to set temporary basal. (1: error description) */
 "Unable to set a temporary basal rate: %1$@" = "Kan ikke indstille en midlertidig basalrate: %1$@";
@@ -768,40 +767,3 @@
 /* Alert message body for confirm pod attachment */
 "Your Pod may still be delivering Insulin.\nRemove it from your body, then tap “Continue.“" = "Din Pod leverer muligvis stadig insulin.\nFjern den fra din krop og tryk derefter på \"Fortsæt\".";
 
-/* Title string for SilencePodPreference.enabled */
-"Silenced" = "Silenced";
-
-/* Description for SilencePodPreference.disabled */
-"Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled." = "Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled.";
-
-/* Description for SilencePodPreference.enabled */
-"All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts." = "All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts.";
-
-/* Help text for Silence Pod view */
-/* navigation title for Silnce Pod" */
-
-"Silence Pod mode suppresses all Pod alert and confirmation reminder beeping.
-Silence Pod" = "Silence Pod";
-
-/* title for pod details page */
-"Pod Details" = "Pod Details";
-
-/* Text for previous pod details row" */
-"Previous Pod Details" = "Previous Pod Details";
-
-/* Text for pump manager details navigation link */
-"Pump Manager Details" = "Pump Manager Details";
-
-/* button title when retrieving pump manager details */
-"Retrieving Pump Manager Details..." = "Retrieving Pump Manager Details...";
-/* button title to refresh pump manager details */
-"Refresh Pump Manager Details" = "Refresh Pump Manager Details";
-
-/* Alert title for error when updating silence pod preference */
-"Failed to update silence pod preference." = "Failed to update silence pod preference.";
-
-/* Section header for diagnostic section */
-"Diagnostics" = "Diagnostics";
-
-/* Text for read pod status navigation link */
-"Read Pod Status" = "Read Pod Status";

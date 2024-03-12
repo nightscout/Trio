@@ -2,19 +2,19 @@
 "– – –" = "– – –";
 
 /* Format string for glucose trend per minute. (1: glucose value and unit) */
-"%@/min" = "%@/dak";
+"%@/min" = "%@/dk";
 
 /* No comment provided by engineer. */
-"Are you sure you want to delete this CGM?" = "Are you sure you want to delete this CGM?";
+"Are you sure you want to delete this CGM?" = "Bu CGM'i silmek istediğinizden emin misiniz?";
 
 /* No comment provided by engineer. */
 "Bluetooth" = "Bluetooth";
 
 /* Button text to cancel G7 setup */
-"Cancel" = "Vazgeç";
+"Cancel" = "İptal";
 
 /* No comment provided by engineer. */
-"Configuration" = "Yapılandırma";
+"Configuration" = "Konfigürasyon";
 
 /* title for g7 settings connection status when connected */
 "Connected" = "Bağlandı";
@@ -26,20 +26,20 @@
 "Continue" = "Devam et";
 
 /* Button label for removing CGM */
-"Delete CGM" = "CGM'i Sil";
+"Delete CGM" = "CGM Sil";
 
 /* Navigation bar title for G7SettingsView
    Title on WelcomeView */
 "Dexcom G7" = "Dexcom G7";
 
 /* No comment provided by engineer. */
-"Done" = "Tamam";
+"Done" = "Tamamlandı";
 
 /* Field label */
-"Glucose" = "Glikoz";
+"Glucose" = "Kan şekeri";
 
 /* title for g7 settings row showing sensor grace period end time */
-"Grace Period End" = "Yetkisiz Kullanım Sonu";
+"Grace Period End" = "Ek süre sonu";
 
 /* G7 Progress bar label when sensor grace period progress showing */
 "Grace period remaining" = "Kalan ek süre";
@@ -48,13 +48,13 @@
 "HIGH" = "YÜKSEK";
 
 /* title for g7 settings row showing sensor last connect time */
-"Last Connect" = "Son Bağlantı";
+"Last Connect" = "Son bağlantı";
 
 /* No comment provided by engineer. */
-"Last Reading" = "Son Okuma Değeri";
+"Last Reading" = "Son Okuma";
 
 /* Descriptive text on G7StartupView */
-"iAPS can read G7 CGM data, but you must still use the Dexcom G7 App for pairing, calibration, and other sensor management." = "iAPS, G7 CGM verilerini okuyabilir ancak yine de eşleştirme, kalibrasyon ve diğer sensör yönetimi için Dexcom G7 Uygulamasını kullanmanız gerekir.";
+"Loop can read G7 CGM data, but you must still use the Dexcom G7 App for pairing, calibration, and other sensor management." = "Loop, G7 CGM verilerini okuyabilir, ancak eşleştirme, kalibrasyon ve diğer sensör yönetimi için yine de Dexcom G7 Uygulamasını kullanmanız gerekir.";
 
 /* String displayed instead of a glucose value below the CGM range */
 "LOW" = "DÜŞÜK";
@@ -63,49 +63,49 @@
 "Name" = "İsim";
 
 /* No comment provided by engineer. */
-"Scan for new sensor" = "Yeni sensör için tara";
+"Scan for new sensor" = "Yeni sensör için tarama";
 
 /* title for g7 settings connection status when scanning */
-"Scanning" = "Taranıyor";
+"Scanning" = "Aranıyor";
 
 /* G7 Status highlight text for searching for sensor */
-"Searching for\nSensor" = "Sensör\nAranıyor";
+"Searching for\nSensor" = "Sensör aranıyor";
 
 /* G7 Progress bar label when searching for sensor */
 "Searching for sensor" = "Sensör aranıyor";
 
 /* G7 Status highlight text for sensor expired */
-"Sensor\nExpired" = "Sensör\nSüresi Doldu";
+"Sensor\nExpired" = "Sensörün süresi doldu";
 
 /* G7 Status highlight text for sensor failed */
-"Sensor\nFailed" = "Sensör\nArızalı";
+"Sensor\nFailed" = "Sensör Hatası";
 
 /* G7 Status highlight text for sensor error */
-"Sensor\nIssue" = "Sensör\nSorunu";
+"Sensor\nIssue" = "Sensör problemi";
 
 /* G7 Status highlight text for sensor warmup */
-"Sensor\nWarmup" = "Sensör\nIsınıyor";
+"Sensor\nWarmup" = "Sensör ısınma";
 
 /* title for g7 settings row showing sensor expiration time */
-"Sensor Expiration" = "Sensör Süre Sonu";
+"Sensor Expiration" = "Sensör ömrü";
 
 /* G7 Progress bar label when sensor expired */
-"Sensor expired" = "Sensör süresi doldu";
+"Sensor expired" = "Sensörün süresi doldu";
 
 /* G7 Progress bar label when sensor lifetime progress showing */
-"Sensor expires" = "Sensör süresi doluyor";
+"Sensor expires" = "Sensörün süresi doluyor";
 
 /* G7 Progress bar label when sensor failed */
-"Sensor failed" = "Sensör arızalı";
+"Sensor failed" = "Sensör hatası";
 
 /* title for g7 settings row showing sensor start time */
-"Sensor Start" = "Sensörü başlatın";
+"Sensor Start" = "Sensör başlangıcı";
 
 /* G7 Status highlight text for signal loss */
-"Signal\nLoss" = "Sinyal\nKaybı";
+"Signal\nLoss" = "Sinyal\nKayıp";
 
 /* Field label */
-"Time" = "Saat";
+"Time" = "Zaman";
 
 /* Field label */
 "Trend" = "Eğilim";
@@ -115,3 +115,4 @@
 
 /* G7 Progress bar label when sensor in warmup */
 "Warmup completes" = "Isınma tamamlandı";
+

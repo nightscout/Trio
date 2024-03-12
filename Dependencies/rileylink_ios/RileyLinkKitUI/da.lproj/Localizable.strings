@@ -103,4 +103,5 @@
 "Uptime" = "Oppetid";
 
 /* The title of the cell showing ORL */
-"Voltage" = "Spænding";
+"Voltage" = "Voltage";
+

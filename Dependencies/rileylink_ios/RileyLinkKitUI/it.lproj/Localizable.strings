@@ -84,7 +84,7 @@
 "RileyLink allows for communication with the pump over Bluetooth Low Energy." = "RileyLink consente la comunicazione con il microinfusore tramite Bluetooth Low Energy.";
 
 /* The title of the cell showing BLE signal strength (RSSI) */
-"Signal Strength" = "Potenza segnale";
+"Signal Strength" = "Potenza Segnale";
 
 /* The title of the section for orangelink commands
    The title of the section for rileylink commands */
@@ -100,7 +100,8 @@
 "Updating diagnostic LEDs mode" = "Aggiornamento modalità LED diagnostici";
 
 /* The title of the cell showing uptime */
-"Uptime" = "Tempo attività";
+"Uptime" = "Tempo Attività";
 
 /* The title of the cell showing ORL */
 "Voltage" = "Voltaggio";
+

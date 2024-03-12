@@ -8,7 +8,7 @@
 "Alert" = "Upozornenie";
 
 /* Text indicating LED Mode is auto */
-"Auto" = "Automatická ";
+"Auto" = "Auto";
 
 /* The title of the cell showing battery level */
 "Battery level" = "Stav batérie";
@@ -99,8 +99,6 @@
 /* Progress message for changing diagnostic LED mode */
 "Updating diagnostic LEDs mode" = "Aktualizuje sa režim diagnostických LED diód";
 
-/* The title of the cell showing uptime */
-"Uptime" = "Doba prevádzky";
-
 /* The title of the cell showing ORL */
 "Voltage" = "Napätie";
+

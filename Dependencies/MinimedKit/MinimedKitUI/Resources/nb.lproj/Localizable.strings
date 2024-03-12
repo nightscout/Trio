@@ -96,7 +96,7 @@
 "Insulin\nSuspended" = "Insulintilførsel utsatt";
 
 /* Title of insulin delivery section */
-"Insulin Delivery" = "Insulintilførsel";
+"Insulin Delivery" = "Insulin Delivery";
 
 /* Instructions on selecting an insulin data source */
 "Insulin delivery can be determined from the pump by either interpreting the event history or comparing the reservoir volume over time. Reading event history allows for a more accurate status graph and uploading up-to-date treatment data to Nightscout, at the cost of faster pump battery drain and the possibility of a higher radio error rate compared to reading only reservoir volume. If the selected source cannot be used for any reason, the system will attempt to fall back to the other option." = "Insulintilførsel kan hentes fra pumpa, enten ved å tolke hendelsehistorikken, eller ved å sammenligne reservoarvolumet over tid. Ved å lese hendelsehistorikken får man mer nøyaktig statuskurve og kan laste opp oppdaterte hendelser til Nightscout. Ulempen er høyere batteriforbruk i pumpa, og muligheten for større antall feil ved radiokommunikasjon - sammenlignet med å bare lese reservoarvolumet. Hvis den valgte kilden av noen grunn ikke kan brukes, vill systemet prøve den andre måten.";
@@ -123,7 +123,7 @@
 "No, Keep Pump As Is" = "Nei, behold pumpen som den er";
 
 /* Pump find device instruction */
-"On your pump, go to the Find Device screen and select \"Find Device\".\n\nMain Menu >\nUtilities >\nConnect Devices >\nOther Devices >\nOn >\nFind Device" = "På pumpen, gå til \"Find Device\"-skjermen og velg \"Find Device\".\n\nMain Menu >\nUtilities >\nConnect Devices >\nOther Devices >\nOn >\nFind Device";
+"On your pump, go to the Find Device screen and select \"Find Device\".\n\nMain Menu >\nUtilities >\nConnect Devices >\nOther Devices >\nOn >\nFind Device" = "On your pump, go to the Find Device screen and select \"Find Device\".\n\nMain Menu >\nUtilities >\nConnect Devices >\nOther Devices >\nOn >\nFind Device";
 
 /* navigation title for pump battery type selection
    Text for medtronic pump preferred data source */
@@ -218,3 +218,4 @@
 
 /* Button text to confirm pump time sync */
 "Yes, Sync to Current Time" = "Ja, Synkroniser til gjeldende tid";
+

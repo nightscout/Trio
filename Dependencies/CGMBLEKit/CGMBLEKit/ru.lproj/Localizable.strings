@@ -11,7 +11,7 @@
 "Low Battery" = "Батарейка садится";
 
 /* Describes a functioning transmitter */
-"OK" = "ОК";
+"OK" = "OK";
 
 /* invlid config error description */
 "Peripheral command was invalid" = "Неправильно сформирован запрос.";
@@ -39,3 +39,4 @@
 
 /* Error description */
 "Unknown characteristic" = "Неизвестная характеристика";
+

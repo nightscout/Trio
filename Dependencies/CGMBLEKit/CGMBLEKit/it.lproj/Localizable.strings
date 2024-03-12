@@ -17,25 +17,26 @@
 "Peripheral command was invalid" = "Il comando della periferica non era valido";
 
 /* Timeout error description */
-"Peripheral did not respond in time" = "La periferica non ha risposto entro il tempo limite";
+"Peripheral did not respond in time" = "La periferica non ha risposto nel tempo limite";
 
 /* Not ready error description */
-"Peripheral isnʼt connected" = "La periferica non è connessa";
+"Peripheral isnʼt connected" = "La periferica non e' connessa";
 
 /* The description of sensor calibration state when sensor calibration is ok. */
-"Sensor calibration is OK" = "La calibrazione del sensore è valida";
+"Sensor calibration is OK" = "La calibrazione del sensore e' valida";
 
 /* The description of sensor calibration state when raw value is unknown. (1: missing data details) */
-"Sensor is in unknown state %1$d" = "Il Sensore è in un stato %1$d sconosciuto";
+"Sensor is in unknown state %1$d" = "Il Sensore e' in un stato%1$d sconosciuto";
 
 /* The description of sensor calibration state when sensor sensor is stopped. */
-"Sensor is stopped" = "Il Sensore è fermo";
+"Sensor is stopped" = "Il Sensore e' fermato";
 
 /* The description of sensor calibration state when sensor sensor is warming up. */
-"Sensor is warming up" = "Il sensore è in fase di avvio";
+"Sensor is warming up" = "Il Sensore si sta riscaldando";
 
 /* The description of sensor calibration state when sensor needs calibration. */
 "Sensor needs calibration" = "Il sensore necessita di calibrazione";
 
 /* Error description */
 "Unknown characteristic" = "Caratteristica sconosciuta";
+

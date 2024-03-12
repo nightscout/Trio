@@ -26,13 +26,13 @@
 "Connection LED" = "Verbindings-LED";
 
 /* The title of the section for connection monitoring */
-"Connection Monitoring" = "Controle van de verbinding";
+"Connection Monitoring" = "Verbindingsbewaking";
 
 /* The title of the cell showing BLE connection state */
 "Connection State" = "Verbindingsstatus";
 
 /* The title of the cell for connection vibration */
-"Connection Vibration" = "Verbinding vibraties";
+"Connection Vibration" = "Verbinding Trilling";
 
 /* The title of the section describing the device */
 "Device" = "Apparaat";
@@ -47,7 +47,7 @@
 "Disconnecting" = "Ontkoppelen";
 
 /* The title of the cell for sounding device finding piezo */
-"Find Device" = "Zoek apparaat";
+"Find Device" = "Zoek Apparaat";
 
 /* The title of the cell showing firmware version */
 "Firmware" = "Firmware";
@@ -56,19 +56,19 @@
 "Frequency" = "Frequentie";
 
 /* The title of the command to fetch RileyLink statistics */
-"Get RileyLink Statistics" = "RileyLink statistieken ophalen";
+"Get RileyLink Statistics" = "RileyLink Statistieken Ophalen";
 
 /* Progress message for getting statistics. */
-"Get Statistics…" = "Statistieken ophalen...";
+"Get Statistics…" = "Statistieken Ophalen...";
 
 /* The title of the cell showing Lighten Red LED */
-"Lighten Red LED" = "Rode LED verlichten";
+"Lighten Red LED" = "Rode LED Verlichten";
 
 /* The title of the cell showing Lighten Yellow LED */
-"Lighten Yellow LED" = "Gele LED verlichten";
+"Lighten Yellow LED" = "Gele LED Verlichten";
 
 /* The title of the cell showing battery level */
-"Low Battery Alert" = "Alarm: batterij bijna leeg";
+"Low Battery Alert" = "Batterij Bijna Leeg Alarm";
 
 /* The title of the cell showing device name */
 "Name" = "Naam";
@@ -88,19 +88,20 @@
 
 /* The title of the section for orangelink commands
    The title of the section for rileylink commands */
-"Test Commands" = "Commando's testen";
+"Test Commands" = "Commando's Testen";
 
 /* The title of the cell showing Test Vibration */
-"Test Vibration" = "Test vibraties";
+"Test Vibration" = "Test Trillingen";
 
 /* The title of the command to update diagnostic LEDs */
-"Toggle Diagnostic LEDs" = "Schakelen tussen diagnostische LED's";
+"Toggle Diagnostic LEDs" = "Tokkel de Diagnostische LED's";
 
 /* Progress message for changing diagnostic LED mode */
 "Updating diagnostic LEDs mode" = "Diagnostische LED-modus aan het bijstellen";
 
 /* The title of the cell showing uptime */
-"Uptime" = "Tijd";
+"Uptime" = "Uptime";
 
 /* The title of the cell showing ORL */
-"Voltage" = "Voltage";
+"Voltage" = "Spanning";
+

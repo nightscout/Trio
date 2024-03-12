@@ -35,7 +35,7 @@
 "Best Frequency" = "Beste Frequenz";
 
 /* The format string describing pump bolusing state: (1: bolusing) */
-"Bolusing: %1$@\n" = "Bolusabgabe: %1$@\n";
+"Bolusing: %1$@\n" = "Bolusing: %1$@\n";
 
 /* Cancel button title */
 "Cancel" = "Abbrechen";
@@ -90,13 +90,13 @@
 "Fetching pump model…" = "Pumpenmodell abrufen…";
 
 /* The title of the cell showing the pump firmware version */
-"Firmware Version" = "Firmware-Version";
+"Firmware Version" = "Firmware Version";
 
 /* Text shown in insulin delivery space when insulin suspended */
 "Insulin\nSuspended" = "Insulinabgabe\nunterbrochen";
 
 /* Title of insulin delivery section */
-"Insulin Delivery" = "Insulinabgabe";
+"Insulin Delivery" = "Insulin Delivery";
 
 /* Instructions on selecting an insulin data source */
 "Insulin delivery can be determined from the pump by either interpreting the event history or comparing the reservoir volume over time. Reading event history allows for a more accurate status graph and uploading up-to-date treatment data to Nightscout, at the cost of faster pump battery drain and the possibility of a higher radio error rate compared to reading only reservoir volume. If the selected source cannot be used for any reason, the system will attempt to fall back to the other option." = "Die Insulinabgabe kann von der Pumpe bestimmt werden, indem entweder die Ereignishistorie interpretiert wird oder das Reservoirvolumen über die Zeit verglichen wird. Das Lesen der Ereignishistorie ermöglicht eine genauere Statusgrafik und das Hochladen aktueller Behandlungsdaten in Nightscout, auf Kosten einer schnelleren Pumpenbatterieentleerung und der Möglichkeit einer höheren Funkfehlerrate im Vergleich zum Lesen des Reservoirvolumens. Wenn das ausgewählte Gerät aus irgendeinem Grund nicht verwendet werden kann, versucht das System, auf die andere Option zurückzugreifen.";
@@ -123,7 +123,7 @@
 "No, Keep Pump As Is" = "Nein, Pumpe so lassen wie sie ist";
 
 /* Pump find device instruction */
-"On your pump, go to the Find Device screen and select \"Find Device\".\n\nMain Menu >\nUtilities >\nConnect Devices >\nOther Devices >\nOn >\nFind Device" = "Gehen Sie auf Ihrer Pumpe zum Menü \"Geräte anschließen\" und wählen Sie „Geräte finden\".\n\nHauptmenü Insulinpumpe >\nZusatzfunktionen >\nGeräte anschließen >\nAndere Geräte >\nEin >\nGerät finden";
+"On your pump, go to the Find Device screen and select \"Find Device\".\n\nMain Menu >\nUtilities >\nConnect Devices >\nOther Devices >\nOn >\nFind Device" = "On your pump, go to the Find Device screen and select \"Find Device\".\n\nMain Menu >\nUtilities >\nConnect Devices >\nOther Devices >\nOn >\nFind Device";
 
 /* navigation title for pump battery type selection
    Text for medtronic pump preferred data source */
@@ -218,3 +218,4 @@
 
 /* Button text to confirm pump time sync */
 "Yes, Sync to Current Time" = "Ja, mit aktueller Zeit synchronisieren";
+

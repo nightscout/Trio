@@ -153,7 +153,7 @@
 "Confidence Reminders" = "Sicherheitserinnerung";
 
 /* Help text for BeepPreferenceSelectionView */
-"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Vertrauenserinnerungen sind Pieptöne vom Pod, die verwendet werden können, um ausgewählte Befehle zu bestätigen.";
+"Confidence reminders are beeps from the pod which can be used to acknowledge selected commands." = "Vertrauenserinnerungen sind Pieptöne vom Pod, die verwendet werden können, um ausgewählte Befehle zu bestätigen.";
 
 /* The title of the configuration section in settings */
 "Configuration" = "Konfiguration";
@@ -178,9 +178,6 @@
 
 /* Button title to deactivate pod because of fault during setup */
 "Deactivate" = "Deaktivieren";
-
-/* Action button description for deactivate while pod still active */
-"Slide to Deactivate Pod" = "Slide to Deactivate Pod";
 
 /* Button title for pod deactivation
    Button title to deactivate pod */
@@ -324,7 +321,7 @@
 "Insulin Delivered" = "Abgegebenes Insulin";
 
 /* Title of insulin delivery section */
-"Insulin Delivery" = "Insulinabgabe";
+"Insulin Delivery" = "Insulin Delivery";
 
 /* The action string on pod status page when pod faulted */
 "Insulin delivery stopped. Change Pod now." = "Insulinabgabe wurde gestoppt. Pod jetzt wechseln.";
@@ -448,8 +445,11 @@
 /* Pod pairing action button text while pairing */
 "Pairing..." = "Koppeln…";
 
+/* The text of the loading label when pairing */
+"Pairing…" = "Koppeln…";
+
 /* No comment provided by engineer. */
-"Percent = %lf" = "Prozent = %lf";
+"Percent = %lf" = "Percent = %lf";
 
 /* The title of the cell showing the pod pi version */
 "PI Version" = "PI-Version";
@@ -538,7 +538,7 @@
 "Pump Time" = "Uhrzeit der Pumpe";
 
 /* Label text for basal rate summary */
-"Rate" = "BR";
+"Rate" = "Rate";
 
 /* Label describing time remaining view */
 "Remaining" = "Verbleibend";
@@ -550,7 +550,7 @@
 "Remove Pump" = "Pumpe löschen";
 
 /* Label text for step two of attach pod instructions */
-"Remove the Pod's clear needle cap and check cannula. Then remove paper backing." = "Entfernen Sie die Pod-Nadel Kappe und prüfen Sie die Kanüle. Danach die Klebefolien auf der Rückseite entfernen.";
+"Remove the pod's needle cap and check cannula. Then remove paper backing." = "Entferne die Nadelkappe des Pods und überprüfe die Kanüle. Dann entferne die Papierträger.";
 
 /* Label indicating pod replacement necessary
    The title of the command to replace pod */
@@ -731,6 +731,8 @@
 /* Title of delivery uncertainty recovery page */
 "Unable to Reach Pod" = "Pod kann nicht erreicht werden";
 
+/* Title for pending command recovery screen */
+"Unable To Reach Pod" = "Pod kann nicht erreicht werden";
 
 /* Alert format string for a failure to set temporary basal. (1: error description) */
 "Unable to set a temporary basal rate: %1$@" = "Eine temporäre Basalrate kann nicht gesetzt werden: %1$@";
@@ -768,40 +770,3 @@
 /* Alert message body for confirm pod attachment */
 "Your Pod may still be delivering Insulin.\nRemove it from your body, then tap “Continue.“" = "Ihr Pod gibt möglicherweise immer noch Insulin ab.\nEntfernen Sie ihn vom Körper und tippen dann auf „Weiter“.";
 
-/* Title string for SilencePodPreference.enabled */
-"Silenced" = "Stille";
-
-/* Description for SilencePodPreference.disabled */
-"Normal operation mode where audible Pod beeps are used for all Pod alerts and when confidence reminders are enabled." = "Normaler Operationsmodus, in dem hörbare Pod Signale für alle Pod Alarme verwendet werden und wenn Vertrauenserinnerungen aktiviert sind.";
-
-/* Description for SilencePodPreference.enabled */
-"All Pod alerts use no beeps and confirmation reminder beeps are suppressed. The Pod will only beep for fatal Pod faults and when playing test beeps.\n\n⚠️Warning - Whenever the Pod is silenced it must be kept within Bluetooth range of this device to receive notifications for Pod alerts." = "Alle Pod Alarme verwenden keine Signale und Bestätigungssignale werden unterdrückt. Der Pod springt nur bei tödlichen Pod-Fehlern und beim Abspielen von Testsignalen.\n\nWarnung: Warnung - Wann immer der Pod zum Schweigen gebracht wird, muss er innerhalb des Bluetooth-Bereichs dieses Geräts gehalten werden, um Benachrichtigungen für Pod-Benachrichtigungen zu erhalten.";
-
-/* Help text for Silence Pod view */
-/* navigation title for Silnce Pod" */
-
-"Silence Pod mode suppresses all Pod alert and confirmation reminder beeping.
-Silence Pod" = "Stille Pod";
-
-/* title for pod details page */
-"Pod Details" = "Pod-Details";
-
-/* Text for previous pod details row" */
-"Previous Pod Details" = "Vorherige Pod-Details";
-
-/* Text for pump manager details navigation link */
-"Pump Manager Details" = "Pump-Manager Details";
-
-/* button title when retrieving pump manager details */
-"Retrieving Pump Manager Details..." = "Pumpenmanager Details abrufen...";
-/* button title to refresh pump manager details */
-"Refresh Pump Manager Details" = "Pumpenmanager Details aktualisieren";
-
-/* Alert title for error when updating silence pod preference */
-"Failed to update silence pod preference." = "Fehler beim Aktualisieren der Stille Pod Einstellung.";
-
-/* Section header for diagnostic section */
-"Diagnostics" = "Diagnose-Infos";
-
-/* Text for read pod status navigation link */
-"Read Pod Status" = "Pod-Status ablesen";

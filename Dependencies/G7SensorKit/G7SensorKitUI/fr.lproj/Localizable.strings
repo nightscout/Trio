@@ -2,10 +2,10 @@
 "– – –" = "– – –";
 
 /* Format string for glucose trend per minute. (1: glucose value and unit) */
-"%@/min" = "%@min";
+"%@/min" = "%@/min";
 
 /* No comment provided by engineer. */
-"Are you sure you want to delete this CGM?" = "Are you sure you want to delete this CGM?";
+"Are you sure you want to delete this CGM?" = "Voulez-vous vraiment supprimer ce CGM?";
 
 /* No comment provided by engineer. */
 "Bluetooth" = "Bluetooth";
@@ -26,7 +26,7 @@
 "Continue" = "Continuer";
 
 /* Button label for removing CGM */
-"Delete CGM" = "Supprimer CGM";
+"Delete CGM" = "Effacer le CGM";
 
 /* Navigation bar title for G7SettingsView
    Title on WelcomeView */
@@ -39,79 +39,80 @@
 "Glucose" = "Glycémie";
 
 /* title for g7 settings row showing sensor grace period end time */
-"Grace Period End" = "Fin de la Période de Grâce";
+"Grace Period End" = "Fin du délai de grâce";
 
 /* G7 Progress bar label when sensor grace period progress showing */
-"Grace period remaining" = "Période de grâce restante";
+"Grace period remaining" = "Délai de grâce restant";
 
 /* String displayed instead of a glucose value above the CGM range */
-"HIGH" = "HIGH";
+"HIGH" = "HAUT";
 
 /* title for g7 settings row showing sensor last connect time */
-"Last Connect" = "Dernière Connexion";
+"Last Connect" = "Dernière connexion";
 
 /* No comment provided by engineer. */
-"Last Reading" = "Last Reading";
+"Last Reading" = "Dernière lecture";
 
 /* Descriptive text on G7StartupView */
-"iAPS can read G7 CGM data, but you must still use the Dexcom G7 App for pairing, calibration, and other sensor management." = "iAPS peut lire les données G7 de la CGM mais vous devez toujours utiliser l'application Dexcom G7 pour associer, calibrer et gérer les capteurs.";
+"Loop can read G7 CGM data, but you must still use the Dexcom G7 App for pairing, calibration, and other sensor management." = "Loop peut lire les données du CGM G7, mais vous devrez continuer à utiliser l'application Dexcom G7 pour l'appairage, l'étalonnage et d'autres opérations de gestion du capteur.";
 
 /* String displayed instead of a glucose value below the CGM range */
-"LOW" = "LOW";
+"LOW" = "BAS";
 
 /* title for g7 settings row showing BLE Name */
 "Name" = "Nom";
 
 /* No comment provided by engineer. */
-"Scan for new sensor" = "Rechercher un nouveau capteur";
+"Scan for new sensor" = "Recherche du nouveau capteur";
 
 /* title for g7 settings connection status when scanning */
-"Scanning" = "Balayage";
+"Scanning" = "Recherche...";
 
 /* G7 Status highlight text for searching for sensor */
-"Searching for\nSensor" = "Recherche d'un\ncapteur";
+"Searching for\nSensor" = "Recherche de capteur";
 
 /* G7 Progress bar label when searching for sensor */
-"Searching for sensor" = "Recherche d’un capteur";
+"Searching for sensor" = "Recherche de capteur";
 
 /* G7 Status highlight text for sensor expired */
-"Sensor\nExpired" = "Capteur\n expiré";
+"Sensor\nExpired" = "Capteur expiré";
 
 /* G7 Status highlight text for sensor failed */
-"Sensor\nFailed" = "Capteur\na échoué";
+"Sensor\nFailed" = "Capteur\nDéfaillant";
 
 /* G7 Status highlight text for sensor error */
-"Sensor\nIssue" = "Capteur\nproblème";
+"Sensor\nIssue" = "Problème de capteur";
 
 /* G7 Status highlight text for sensor warmup */
-"Sensor\nWarmup" = "Capteur\nRéchauffement";
+"Sensor\nWarmup" = "Préchauffage du capteur";
 
 /* title for g7 settings row showing sensor expiration time */
-"Sensor Expiration" = "Capteur expiré";
+"Sensor Expiration" = "Expiration du capteur";
 
 /* G7 Progress bar label when sensor expired */
-"Sensor expired" = "Sensor expired";
+"Sensor expired" = "Capteur expiré";
 
 /* G7 Progress bar label when sensor lifetime progress showing */
-"Sensor expires" = "Capteur expiré";
+"Sensor expires" = "Capteur expire";
 
 /* G7 Progress bar label when sensor failed */
-"Sensor failed" = "Capteura échoué";
+"Sensor failed" = "Erreur de capteur";
 
 /* title for g7 settings row showing sensor start time */
-"Sensor Start" = "Démarrer le capteur";
+"Sensor Start" = "Démarrage du capteur";
 
 /* G7 Status highlight text for signal loss */
-"Signal\nLoss" = "Signal\nPerte";
+"Signal\nLoss" = "Perte de signal";
 
 /* Field label */
 "Time" = "Heure";
 
 /* Field label */
-"Trend" = "Trend";
+"Trend" = "Tendance";
 
 /* title for g7 config settings to upload readings */
-"Upload Readings" = "Upload Readings";
+"Upload Readings" = "Envoyer les données";
 
 /* G7 Progress bar label when sensor in warmup */
-"Warmup completes" = "L'échauffement est terminé";
+"Warmup completes" = "Préchauffage terminé";
+

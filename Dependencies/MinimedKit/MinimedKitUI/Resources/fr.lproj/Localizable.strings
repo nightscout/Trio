@@ -123,20 +123,11 @@
 "No, Keep Pump As Is" = "Non, garder la pompe telle quelle";
 
 /* Pump find device instruction */
-"On your pump, go to the Find Device screen and select \"Find Device\".\n\nMain Menu >\nUtilities >\nConnect Devices >\nOther Devices >\nOn >\nFind Device" = "User
-vertaal naar Frans inclusief codes: Key: On your pump, go to the Find Device screen and select \\\"Find Device\\\".\n\nMain Menu >\nUtilities >\nConnect Devices >\nOther Devices >\nOn >\nFind Device
-On your pump, go to the Find Device screen and select \\\"Find Device\\\".\n\nMain Menu >\nUtilities >\nConnect Devices >\nOther Devices >\nOn >\nFind Device
-Pump find device instruction
-
-ChatGPT
-Clé : Sur votre pompe, allez à l'écran Rechercher un appareil et sélectionnez\\ \"Rechercher un appareil\\\".\n\nMenu principal >\nUtilitaires >\nConnecter les appareils >\nAutres appareils >\nActivé >\nRechercher un appareil\n\nSur votre pompe, allez à l'écran Rechercher un appareil et sélectionnez \\ \"Rechercher un appareil\\\".\n\nMenu principal >\nUtilitaires >\nConnecter les appareils >\nAutres appareils >\nActivé >\nRechercher un appareil\n\nInstructions de recherche d'appareil de la pompe";
+"On your pump, go to the Find Device screen and select \"Find Device\".\n\nMain Menu >\nUtilities >\nConnect Devices >\nOther Devices >\nOn >\nFind Device" = "On your pump, go to the Find Device screen and select \"Find Device\".\n\nMain Menu >\nUtilities >\nConnect Devices >\nOther Devices >\nOn >\nFind Device";
 
 /* navigation title for pump battery type selection
    Text for medtronic pump preferred data source */
 "Preferred Data Source" = "Source de données préférée";
-
-/* Text for medtronic pump battery percent remaining */
-"Pump Battery Remaining" = "Batterie Pompe restante";
 
 /* navigation title for pump battery type selection
    Text for medtronic pump battery type */
@@ -208,9 +199,6 @@ Clé : Sur votre pompe, allez à l'écran Rechercher un appareil et sélectionne
 /* Units for showing temp basal rate */
 "U/hr" = "U/h";
 
-/* Text to indicate battery percentage is unknown */
-"unknown" = "inconnu";
-
 /* Text shown in basal rate space when delivery status is unknown */
 "Unknown" = "Inconnu";
 
@@ -224,3 +212,4 @@ Clé : Sur votre pompe, allez à l'écran Rechercher un appareil et sélectionne
 
 /* Button text to confirm pump time sync */
 "Yes, Sync to Current Time" = "Oui, synchroniser avec l'heure actuelle";
+

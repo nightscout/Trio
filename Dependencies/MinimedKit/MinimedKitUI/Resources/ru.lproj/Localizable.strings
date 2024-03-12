@@ -90,13 +90,13 @@
 "Fetching pump model…" = "Получаю модель помпы…";
 
 /* The title of the cell showing the pump firmware version */
-"Firmware Version" = "Версия прошивки";
+"Firmware Version" = "Firmware Version";
 
 /* Text shown in insulin delivery space when insulin suspended */
-"Insulin\nSuspended" = "Подача\nприостановлена";
+"Insulin\nSuspended" = "Подача инсулина остановлена";
 
 /* Title of insulin delivery section */
-"Insulin Delivery" = "Подача инсулина";
+"Insulin Delivery" = "Insulin Delivery";
 
 /* Instructions on selecting an insulin data source */
 "Insulin delivery can be determined from the pump by either interpreting the event history or comparing the reservoir volume over time. Reading event history allows for a more accurate status graph and uploading up-to-date treatment data to Nightscout, at the cost of faster pump battery drain and the possibility of a higher radio error rate compared to reading only reservoir volume. If the selected source cannot be used for any reason, the system will attempt to fall back to the other option." = "Подача инсулина может определяться с помпы путем интерпретации истории событий или сравнением изменения объемов резервуара за прошедшее время. Чтение истории событий позволяет вычертить более точный график состояния и загрузить в Nightscout актуальные данные лечения/назначений (за счет более быстрого истощения батареи помпы и более высокого процента ошибок радиосвязи) по сравнению со считыванием данных только об объеме резервуара.";
@@ -200,7 +200,7 @@
 "Tuning radio…" = "Настраивается радиочастота…";
 
 /* Units for showing temp basal rate */
-"U/hr" = "Ед/ч";
+"U/hr" = "U/hr";
 
 /* Text to indicate battery percentage is unknown */
 "unknown" = "Неизвестно";
@@ -218,3 +218,4 @@
 
 /* Button text to confirm pump time sync */
 "Yes, Sync to Current Time" = "Да, синхронизировать с текущим временем";
+
