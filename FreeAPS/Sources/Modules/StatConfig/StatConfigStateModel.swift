@@ -10,6 +10,7 @@ extension StatConfig {
         @Published var yGridLines: Bool = false
         @Published var oneDimensionalGraph = false
         @Published var rulerMarks: Bool = false
+        @Published var lockScreenView: LockScreenView = .simple
 
         var units: GlucoseUnits = .mmolL
 
@@ -22,6 +23,7 @@ extension StatConfig {
             subscribeSetting(\.yGridLines, on: $yGridLines) { yGridLines = $0 }
             subscribeSetting(\.rulerMarks, on: $rulerMarks) { rulerMarks = $0 }
             subscribeSetting(\.oneDimensionalGraph, on: $oneDimensionalGraph) { oneDimensionalGraph = $0 }
+            subscribeSetting(\.lockScreenView, on: $lockScreenView) { lockScreenView = $0 }
 
             subscribeSetting(\.low, on: $low, initial: {
                 let value = max(min($0, 90), 40)
