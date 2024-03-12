@@ -17,9 +17,6 @@
       location = "group:Dependencies/LoopKit/LoopKit.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:Dependencies/MKRingProgressView/MKRingProgressView.xcodeproj">
-   </FileRef>
-   <FileRef
       location = "group:Dependencies/rileylink_ios/RileyLink.xcodeproj">
    </FileRef>
    <FileRef

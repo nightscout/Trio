@@ -11,6 +11,15 @@
         }
       },
       {
+        "package": "MKRingProgressView",
+        "repositoryURL": "https://github.com/maxkonovalov/MKRingProgressView.git",
+        "state": {
+          "branch": "master",
+          "revision": "660888aab1d2ab0ed7eb9eb53caec12af4955fa7",
+          "version": null
+        }
+      },
+      {
         "package": "swift-algorithms",
         "repositoryURL": "https://github.com/apple/swift-algorithms",
         "state": {
