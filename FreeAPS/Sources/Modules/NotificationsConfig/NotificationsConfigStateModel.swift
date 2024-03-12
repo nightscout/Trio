@@ -10,6 +10,7 @@ extension NotificationsConfig {
         @Published var highGlucose: Decimal = 0
         @Published var carbsRequiredThreshold: Decimal = 0
         @Published var useLiveActivity = false
+        @Published var lockScreenView: LockScreenView = .simple
         var units: GlucoseUnits = .mmolL
 
         override func subscribe() {
@@ -22,7 +23,7 @@ extension NotificationsConfig {
             subscribeSetting(\.addSourceInfoToGlucoseNotifications, on: $addSourceInfoToGlucoseNotifications) {
                 addSourceInfoToGlucoseNotifications = $0 }
             subscribeSetting(\.useLiveActivity, on: $useLiveActivity) { useLiveActivity = $0 }
-
+            subscribeSetting(\.lockScreenView, on: $lockScreenView) { lockScreenView = $0 }
             subscribeSetting(\.lowGlucose, on: $lowGlucose, initial: {
                 let value = max(min($0, 400), 40)
                 lowGlucose = units == .mmolL ? value.asMmolL : value
