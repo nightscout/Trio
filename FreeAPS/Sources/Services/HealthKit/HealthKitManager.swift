@@ -111,8 +111,6 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
         injectServices(resolver)
         guard isAvailableOnCurrentDevice,
               Config.healthBGObject != nil else { return }
-//        createBGObserver()
-//        enableBackgroundDelivery()
 
         broadcaster.register(CarbsObserver.self, observer: self)
         broadcaster.register(PumpHistoryObserver.self, observer: self)
