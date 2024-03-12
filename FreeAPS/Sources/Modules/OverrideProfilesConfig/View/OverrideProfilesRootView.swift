@@ -40,23 +40,6 @@ extension OverrideProfilesConfig {
             formatter.roundingMode = .halfUp
             return formatter
         }
-        
-        private var color: LinearGradient {
-            colorScheme == .dark ?  LinearGradient(
-                gradient: Gradient(colors: [
-                    // RGB(10, 34, 55)
-                    Color(red: 0.03921568627, green: 0.1333333333, blue: 0.2156862745),
-                    // RGB(3, 15, 28)
-                    Color(red: 0.011, green: 0.058, blue: 0.109),
-                    // RGB(10, 34, 55)
-                    Color(red: 0.03921568627, green: 0.1333333333, blue: 0.2156862745)
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(gradient: Gradient(colors: [Color.gray.opacity(0.1)]), startPoint: .top, endPoint: .bottom)
-        }
 
         var presetPopover: some View {
             Form {
