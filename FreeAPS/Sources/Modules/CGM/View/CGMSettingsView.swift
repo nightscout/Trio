@@ -11,17 +11,17 @@ extension CGM {
         weak var completionDelegate: CompletionDelegate?
 
         func makeUIViewController(context _: UIViewControllerRepresentableContext<CGMSettingsView>) -> UIViewController {
-            let displayGlucoseUnitObservable: DisplayGlucoseUnitObservable
+            let displayGlucosePreference: DisplayGlucosePreference
             switch unit {
             case .mgdL:
-                displayGlucoseUnitObservable = DisplayGlucoseUnitObservable(displayGlucoseUnit: .milligramsPerDeciliter)
+                displayGlucosePreference = DisplayGlucosePreference(displayGlucoseUnit: .milligramsPerDeciliter)
             case .mmolL:
-                displayGlucoseUnitObservable = DisplayGlucoseUnitObservable(displayGlucoseUnit: .millimolesPerLiter)
+                displayGlucosePreference = DisplayGlucosePreference(displayGlucoseUnit: .millimolesPerLiter)
             }
 
             var vc = cgmManager.settingsViewController(
                 bluetoothProvider: bluetoothManager,
-                displayGlucoseUnitObservable: displayGlucoseUnitObservable,
+                displayGlucosePreference: displayGlucosePreference,
                 colorPalette: .default,
                 allowDebugFeatures: false
             )

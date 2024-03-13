@@ -5,6 +5,9 @@
       location = "group:FreeAPS.xcodeproj">
    </FileRef>
    <FileRef
+      location = "group:Dependencies/RileyLinkKit/RileyLinkKit.xcodeproj">
+   </FileRef>
+   <FileRef
       location = "group:Dependencies/G7SensorKit/G7SensorKit.xcodeproj">
    </FileRef>
    <FileRef
@@ -15,9 +18,6 @@
    </FileRef>
    <FileRef
       location = "group:Dependencies/LoopKit/LoopKit.xcodeproj">
-   </FileRef>
-   <FileRef
-      location = "group:Dependencies/RileyLinkKit/RileyLinkKit.xcodeproj">
    </FileRef>
    <FileRef
       location = "group:Dependencies/OmniBLE/OmniBLE.xcodeproj">

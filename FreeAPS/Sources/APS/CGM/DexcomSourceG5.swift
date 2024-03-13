@@ -97,7 +97,7 @@ extension DexcomSourceG5: CGMManagerDelegate {
 
     func cgmManagerWantsDeletion(_ manager: CGMManager) {
         dispatchPrecondition(condition: .onQueue(.main))
-        debug(.deviceManager, " CGM Manager with identifier \(manager.managerIdentifier) wants deletion")
+        debug(.deviceManager, " CGM Manager with identifier \(manager.pluginIdentifier) wants deletion")
         glucoseManager?.cgmGlucoseSourceType = nil
     }
 
@@ -106,6 +106,13 @@ extension DexcomSourceG5: CGMManagerDelegate {
         processCGMReadingResult(manager, readingResult: readingResult) {
             debug(.deviceManager, "DEXCOM - Direct return done")
         }
+    }
+
+    func cgmManager(_: LoopKit.CGMManager, hasNew events: [LoopKit.PersistedCgmEvent]) {
+        dispatchPrecondition(condition: .onQueue(processQueue))
+        // TODO: Events in APS ?
+        // currently only display in log the date of the event
+        events.forEach { debug(.deviceManager, "events from CGM at \($0.date)") }
     }
 
     func startDateToFilterNewData(for _: CGMManager) -> Date? {

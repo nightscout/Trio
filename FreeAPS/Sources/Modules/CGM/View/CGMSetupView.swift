@@ -21,26 +21,26 @@ extension CGM {
                 CGMManagerUI
             >?
 
-            let displayGlucoseUnitObservable: DisplayGlucoseUnitObservable
+            let displayGlucosePreference: DisplayGlucosePreference
             switch unit {
             case .mgdL:
-                displayGlucoseUnitObservable = DisplayGlucoseUnitObservable(displayGlucoseUnit: .milligramsPerDeciliter)
+                displayGlucosePreference = DisplayGlucosePreference(displayGlucoseUnit: .milligramsPerDeciliter)
             case .mmolL:
-                displayGlucoseUnitObservable = DisplayGlucoseUnitObservable(displayGlucoseUnit: .millimolesPerLiter)
+                displayGlucosePreference = DisplayGlucosePreference(displayGlucoseUnit: .millimolesPerLiter)
             }
 
             switch CGMType {
             case .dexcomG5:
                 setupViewController = G5CGMManager.setupViewController(
                     bluetoothProvider: bluetoothManager,
-                    displayGlucoseUnitObservable: displayGlucoseUnitObservable,
+                    displayGlucosePreference: displayGlucosePreference,
                     colorPalette: .default,
                     allowDebugFeatures: false
                 )
             case .dexcomG6:
                 setupViewController = G6CGMManager.setupViewController(
                     bluetoothProvider: bluetoothManager,
-                    displayGlucoseUnitObservable: displayGlucoseUnitObservable,
+                    displayGlucosePreference: displayGlucosePreference,
                     colorPalette: .default,
                     allowDebugFeatures: false
                 )
@@ -48,9 +48,10 @@ extension CGM {
                 setupViewController =
                     G7CGMManager.setupViewController(
                         bluetoothProvider: bluetoothManager,
-                        displayGlucoseUnitObservable: displayGlucoseUnitObservable,
+                        displayGlucosePreference: displayGlucosePreference,
                         colorPalette: .default,
-                        allowDebugFeatures: false
+                        allowDebugFeatures: false,
+                        prefersToSkipUserInteraction: false
                     )
             default:
                 break
