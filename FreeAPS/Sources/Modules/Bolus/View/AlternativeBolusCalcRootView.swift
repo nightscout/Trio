@@ -998,7 +998,7 @@ extension Bolus {
             case (false, false, true):
                 return Text("Log FPUs")
             default:
-                return Text("Continue without logging treatments")
+                return Text("Continue without treatment")
             }
         }
 
