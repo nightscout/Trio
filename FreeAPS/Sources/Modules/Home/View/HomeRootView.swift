@@ -788,7 +788,7 @@ extension Home {
                     }()
 
                     NavigationStack { mainView() }
-                        .tabItem { Label("Home", systemImage: "house") }
+                        .tabItem { Label("Main", systemImage: "chart.xyaxis.line") }
                         .badge(carbsRequiredBadge)
 
                     NavigationStack { DataTable.RootView(resolver: resolver) }
