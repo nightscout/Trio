@@ -72,9 +72,9 @@ extension LiveActivityAttributes.ContentState {
 
         let chartDate = chart.map(\.date)
 
-        /// glucose limits from settings
-        let highGlucose = settings.highGlucose
-        let lowGlucose = settings.lowGlucose
+        /// glucose limits from UI settings
+        let highGlucose = settings.high / Decimal(conversionFactor)
+        let lowGlucose = settings.low / Decimal(conversionFactor)
 
         let cob = suggestion.cob ?? 0
         let iob = suggestion.iob ?? 0
