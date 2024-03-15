@@ -43,7 +43,7 @@ struct LoopView: View {
             }
         }
         .strikethrough(!closedLoop || manualTempBasal, pattern: .solid, color: color)
-        .font(.system(size: 16, weight: .bold))
+        .font(.system(size: 16, weight: .bold, design: .rounded))
         .foregroundColor(color)
     }
 

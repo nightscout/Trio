@@ -4,6 +4,7 @@ import SwiftUI
 extension DataTable {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() var broadcaster: Broadcaster!
+        @Injected() var apsManager: APSManager!
         @Injected() var unlockmanager: UnlockManager!
         @Injected() private var storage: FileStorage!
         @Injected() var pumpHistoryStorage: PumpHistoryStorage!
@@ -17,8 +18,10 @@ extension DataTable {
         @Published var meals: [Treatment] = []
         @Published var manualGlucose: Decimal = 0
         @Published var maxBolus: Decimal = 0
-        @Published var externalInsulinAmount: Decimal = 0
-        @Published var externalInsulinDate = Date()
+        @Published var waitForSuggestion: Bool = false
+
+        @Published var insulinEntryDeleted: Bool = false
+        @Published var carbEntryDeleted: Bool = false
 
         var units: GlucoseUnits = .mmolL
         var historyLayout: HistoryLayout = .twoTabs
@@ -34,6 +37,7 @@ extension DataTable {
             broadcaster.register(TempTargetsObserver.self, observer: self)
             broadcaster.register(CarbsObserver.self, observer: self)
             broadcaster.register(GlucoseObserver.self, observer: self)
+            broadcaster.register(SuggestionObserver.self, observer: self)
         }
 
         private func setupTreatments() {
@@ -156,8 +160,25 @@ extension DataTable {
             }
         }
 
+        func invokeCarbDeletionTask(_ treatment: Treatment) {
+            carbEntryDeleted = true
+            waitForSuggestion = true
+            deleteCarbs(treatment)
+        }
+
         func deleteCarbs(_ treatment: Treatment) {
             provider.deleteCarbs(treatment)
+            apsManager.determineBasalSync()
+        }
+
+        @MainActor func invokeInsulinDeletionTask(_ treatment: Treatment) {
+            Task {
+                do {
+                    await deleteInsulin(treatment)
+                    insulinEntryDeleted = true
+                    waitForSuggestion = true
+                }
+            }
         }
 
         func deleteInsulin(_ treatment: Treatment) async {
@@ -165,6 +186,7 @@ extension DataTable {
                 let authenticated = try await unlockmanager.unlock()
                 if authenticated {
                     provider.deleteInsulin(treatment)
+                    apsManager.determineBasalSync()
                 } else {
                     print("authentication failed")
                 }
@@ -222,49 +244,6 @@ extension DataTable {
             var saveToHealth = [BloodGlucose]()
             saveToHealth.append(saveToJSON)
         }
-
-        func addExternalInsulin() async {
-            guard externalInsulinAmount > 0 else {
-                showModal(for: nil)
-                return
-            }
-
-            externalInsulinAmount = min(externalInsulinAmount, maxBolus * 3)
-
-            do {
-                let authenticated = try await unlockmanager.unlock()
-                if authenticated {
-                    storeExternalInsulinEvent()
-                } else {
-                    print("authentication failed")
-                }
-            } catch {
-                print("authentication error: \(error.localizedDescription)")
-            }
-        }
-
-        private func storeExternalInsulinEvent() {
-            pumpHistoryStorage.storeEvents(
-                [
-                    PumpHistoryEvent(
-                        id: UUID().uuidString,
-                        type: .bolus,
-                        timestamp: externalInsulinDate,
-                        amount: externalInsulinAmount,
-                        duration: nil,
-                        durationMin: nil,
-                        rate: nil,
-                        temp: nil,
-                        carbInput: nil,
-                        isExternal: true
-                    )
-                ]
-            )
-            debug(.default, "External insulin saved to pumphistory.json")
-
-            // Reset amount to 0 for next entry.
-            externalInsulinAmount = 0
-        }
     }
 }
 
@@ -276,6 +255,7 @@ extension DataTable.StateModel:
     GlucoseObserver
 {
     func settingsDidChange(_: FreeAPSSettings) {
+        historyLayout = settingsManager.settings.historyLayout
         setupTreatments()
     }
 
@@ -293,5 +273,13 @@ extension DataTable.StateModel:
 
     func glucoseDidUpdate(_: [BloodGlucose]) {
         setupGlucose()
+    }
+}
+
+extension DataTable.StateModel: SuggestionObserver {
+    func suggestionDidUpdate(_: Suggestion) {
+        DispatchQueue.main.async {
+            self.waitForSuggestion = false
+        }
     }
 }

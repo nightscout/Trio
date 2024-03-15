@@ -24,7 +24,7 @@ enum OmnipodUIScreen {
     case lowReservoirReminderSetup
     case insulinTypeSelection
     case rileyLinkSetup
-    case pairPod
+    case pairAndPrime
     case insertCannula
     case confirmAttachment
     case checkInsertedCannula
@@ -45,8 +45,8 @@ enum OmnipodUIScreen {
         case .insulinTypeSelection:
             return .rileyLinkSetup
         case .rileyLinkSetup:
-            return .pairPod
-        case .pairPod:
+            return .pairAndPrime
+        case .pairAndPrime:
             return .confirmAttachment
         case .confirmAttachment:
             return .insertCannula
@@ -61,7 +61,7 @@ enum OmnipodUIScreen {
         case .uncertaintyRecovered:
             return nil
         case .deactivate:
-            return .pairPod
+            return .pairAndPrime
         case .settings:
             return nil
         }
@@ -199,7 +199,7 @@ class OmnipodUICoordinator: UINavigationController, PumpManagerOnboarding, Compl
 
             let view = OmnipodSettingsView(viewModel: viewModel, rileyLinkListDataSource: rileyLinkListDataSource, handleRileyLinkSelection: handleRileyLinkSelection, supportedInsulinTypes: allowedInsulinTypes)
             return hostingController(rootView: view)
-        case .pairPod:
+        case .pairAndPrime:
             pumpManagerOnboardingDelegate?.pumpManagerOnboarding(didCreatePumpManager: pumpManager)
 
             let viewModel = PairPodViewModel(podPairer: pumpManager)
@@ -410,13 +410,13 @@ class OmnipodUICoordinator: UINavigationController, PumpManagerOnboarding, Compl
             if pumpManager.podAttachmentConfirmed {
                 return .insertCannula
             } else {
-                return .confirmAttachment
+                return .pairAndPrime // need to finish the priming
             }
         } else if !pumpManager.isOnboarded {
             if !pumpManager.initialConfigurationCompleted {
                 return .firstRunScreen
             }
-            return .pairPod
+            return .pairAndPrime // pair and prime a new pod
         } else {
             return .settings
         }

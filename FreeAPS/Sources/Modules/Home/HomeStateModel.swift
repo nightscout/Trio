@@ -12,7 +12,7 @@ extension Home {
         private let timer = DispatchTimer(timeInterval: 5)
         private(set) var filteredHours = 24
         @Published var glucose: [BloodGlucose] = []
-        @Published var isManual: [BloodGlucose] = []
+        @Published var manualGlucose: [BloodGlucose] = []
         @Published var announcement: [Announcement] = []
         @Published var suggestion: Suggestion?
         @Published var uploadStats = false
@@ -72,6 +72,11 @@ extension Home {
 
         @Published var selectedTab: Int = 0
 
+        @Published var waitForSuggestion: Bool = false
+
+        @Published var carbsForChart: [CarbsEntry] = []
+        @Published var fpusForChart: [CarbsEntry] = []
+
         let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
 
         override func subscribe() {
@@ -87,6 +92,8 @@ extension Home {
             setupReservoir()
             setupAnnouncements()
             setupCurrentPumpTimezone()
+            filterCarbs()
+            filterFpus()
 
             suggestion = provider.suggestion
             uploadStats = settingsManager.settings.uploadStats
@@ -209,12 +216,37 @@ extension Home {
                 .store(in: &lifetime)
         }
 
+        func filterCarbs() {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                let allCarbs = self.provider.carbs(hours: self.filteredHours)
+                let filteredCarbs = allCarbs.filter { !($0.isFPU ?? false) }
+
+                self.carbsForChart.removeAll()
+                self.carbsForChart.append(contentsOf: filteredCarbs)
+            }
+        }
+
+        func filterFpus() {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                let allCarbs = self.provider.carbs(hours: self.filteredHours)
+                let filteredFpus = allCarbs.filter { $0.isFPU ?? false }
+
+                self.fpusForChart.removeAll()
+                self.fpusForChart.append(contentsOf: filteredFpus)
+            }
+        }
+
         func runLoop() {
             provider.heartbeatNow()
         }
 
         func cancelBolus() {
             apsManager.cancelBolus()
+
+            // perform determine basal sync, otherwise you have could end up with too much iob when opening the calculator again
+            apsManager.determineBasalSync()
         }
 
         func cancelProfile() {
@@ -229,14 +261,21 @@ extension Home {
         private func setupGlucose() {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
-                self.isManual = self.provider.manualGlucose(hours: self.filteredHours)
-                self.glucose = self.provider.filteredGlucose(hours: self.filteredHours)
+                let filteredGlucose = self.provider.filteredGlucose(hours: self.filteredHours)
+
+                self.glucose = filteredGlucose
+                self.manualGlucose = filteredGlucose.filter { $0.type == GlucoseType.manual.rawValue }
+
                 self.recentGlucose = self.glucose.last
+
                 if self.glucose.count >= 2 {
-                    self.glucoseDelta = (self.recentGlucose?.glucose ?? 0) - (self.glucose[self.glucose.count - 2].glucose ?? 0)
+                    self
+                        .glucoseDelta = (self.recentGlucose?.glucose ?? 0) -
+                        (self.glucose[self.glucose.count - 2].glucose ?? 0)
                 } else {
                     self.glucoseDelta = nil
                 }
+
                 self.alarm = self.provider.glucoseStorage.alarm
             }
         }
@@ -387,7 +426,10 @@ extension Home {
         }
 
         private func setupCurrentPumpTimezone() {
-            timeZone = provider.pumpTimeZone()
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                self.timeZone = self.provider.pumpTimeZone()
+            }
         }
 
         func openCGM() {
@@ -438,6 +480,7 @@ extension Home.StateModel:
         self.suggestion = suggestion
         carbsRequired = suggestion.carbsReq
         setStatusTitle()
+        waitForSuggestion = false
     }
 
     func settingsDidChange(_ settings: FreeAPSSettings) {
@@ -480,6 +523,8 @@ extension Home.StateModel:
 
     func carbsDidUpdate(_: [CarbsEntry]) {
         setupCarbs()
+        filterFpus()
+        filterCarbs()
     }
 
     func enactedSuggestionDidUpdate(_ suggestion: Suggestion) {

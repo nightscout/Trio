@@ -23,19 +23,6 @@ private struct Prediction: Hashable {
     let type: PredictionType
 }
 
-private struct Carb: Hashable {
-    let amount: Decimal
-    let timestamp: Date
-    let nearestGlucose: BloodGlucose
-}
-
-private struct ChartBolus: Hashable {
-    let amount: Decimal
-    let timestamp: Date
-    let nearestGlucose: BloodGlucose
-    let yPosition: Decimal
-}
-
 private struct ChartTempTarget: Hashable {
     let amount: Decimal
     let start: Date
@@ -61,6 +48,9 @@ struct MainChartView: View {
     }
 
     @Binding var glucose: [BloodGlucose]
+    @Binding var manualGlucose: [BloodGlucose]
+    @Binding var carbsForChart: [CarbsEntry]
+    @Binding var fpusForChart: [CarbsEntry]
     @Binding var units: GlucoseUnits
     @Binding var eventualBG: Int?
     @Binding var suggestion: Suggestion?
@@ -73,7 +63,6 @@ struct MainChartView: View {
     @Binding var autotunedBasalProfile: [BasalProfileEntry]
     @Binding var basalProfile: [BasalProfileEntry]
     @Binding var tempTargets: [TempTarget]
-    @Binding var carbs: [CarbsEntry]
     @Binding var smooth: Bool
     @Binding var highGlucose: Decimal
     @Binding var lowGlucose: Decimal
@@ -90,16 +79,15 @@ struct MainChartView: View {
     @State private var TempBasals: [PumpHistoryEvent] = []
     @State private var ChartTempTargets: [ChartTempTarget] = []
     @State private var Predictions: [Prediction] = []
-    @State private var ChartCarbs: [Carb] = []
-    @State private var ChartFpus: [Carb] = []
-    @State private var ChartBoluses: [ChartBolus] = []
     @State private var count: Decimal = 1
     @State private var startMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 - 86400))
     @State private var endMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 + 10800))
-    @State private var glucoseUpdateCount = 0
-    @State private var maxUpdateCount = 2
-    @State private var minValue: Int = 45
-    @State private var maxValue: Int = 270
+    @State private var minValue: Decimal = 45
+    @State private var maxValue: Decimal = 270
+    @State private var selection: Date? = nil
+
+    @Environment(\.colorScheme) var colorScheme
+    @Environment(\.calendar) var calendar
 
     private var bolusFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -133,20 +121,31 @@ struct MainChartView: View {
         units == .mgdL ? 30 : 1.66
     }
 
+    private var selectedGlucose: BloodGlucose? {
+        if let selection = selection {
+            let lowerBound = selection.addingTimeInterval(-120)
+            let upperBound = selection.addingTimeInterval(120)
+            return glucose.first { $0.dateString >= lowerBound && $0.dateString <= upperBound }
+        } else {
+            return nil
+        }
+    }
+
     var body: some View {
         VStack {
             ScrollViewReader { scroller in
                 ScrollView(.horizontal, showsIndicators: false) {
-                    VStack(spacing: 2) {
-                        BasalChart()
-
-                        MainChart()
+                    VStack(spacing: 0) {
+                        mainChart
+                        basalChart
 
                     }.onChange(of: screenHours) { _ in
                         updateStartEndMarkers()
+                        yAxisChartData()
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }.onChange(of: glucose) { _ in
                         updateStartEndMarkers()
+                        yAxisChartData()
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }
                     .onChange(of: suggestion) { _ in
@@ -157,14 +156,10 @@ struct MainChartView: View {
                         updateStartEndMarkers()
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }
+                    .onChange(of: units) { _ in
+                        yAxisChartData()
+                    }
                     .onAppear {
-                        calculateBoluses()
-                        calculateBasals()
-                        calculateTempBasals()
-                        calculateFpus()
-                        calculateCarbs()
-                        calculatePredictions()
-                        calculateTTs()
                         updateStartEndMarkers()
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }
@@ -175,318 +170,126 @@ struct MainChartView: View {
     }
 }
 
-// MARK: Components
+// MARK: - Components
+
+struct Backport<Content: View> {
+    let content: Content
+}
+
+extension View {
+    var backport: Backport<Self> { Backport(content: self) }
+}
+
+extension Backport {
+    @ViewBuilder func chartXSelection(value: Binding<Date?>) -> some View {
+        if #available(iOS 17, *) {
+            content.chartXSelection(value: value)
+        } else {
+            content
+        }
+    }
+}
 
 extension MainChartView {
-    private func MainChart() -> some View {
+    private var mainChart: some View {
         VStack {
             Chart {
+                drawStartRuleMark()
+                drawEndRuleMark()
+                drawCurrentTimeMarker()
+                drawCarbs()
+                drawFpus()
+                drawBoluses()
+                drawTempTargets()
+                drawPredictions()
+                drawGlucose()
+                drawManualGlucose()
+
                 /// high and low treshold lines
                 if thresholdLines {
                     RuleMark(y: .value("High", highGlucose * conversionFactor)).foregroundStyle(Color.loopYellow)
-                        .lineStyle(.init(lineWidth: 1))
+                        .lineStyle(.init(lineWidth: 1, dash: [5]))
                     RuleMark(y: .value("Low", lowGlucose * conversionFactor)).foregroundStyle(Color.loopRed)
-                        .lineStyle(.init(lineWidth: 1))
+                        .lineStyle(.init(lineWidth: 1, dash: [5]))
                 }
-                RuleMark(
-                    x: .value(
-                        "",
-                        Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970)),
-                        unit: .second
-                    )
-                ).lineStyle(.init(lineWidth: 2, dash: [3])).foregroundStyle(Color.insulin)
-                RuleMark(
-                    x: .value(
-                        "",
-                        startMarker,
-                        unit: .second
-                    )
-                ).foregroundStyle(Color.clear)
-                RuleMark(
-                    x: .value(
-                        "",
-                        endMarker,
-                        unit: .second
-                    )
-                ).foregroundStyle(Color.clear)
-                /// carbs
-                ForEach(ChartCarbs, id: \.self) { carb in
-                    let carbAmount = carb.amount
-                    let yPosition = units == .mgdL ? 60 : 3.33
 
-                    PointMark(
-                        x: .value("Time", carb.timestamp, unit: .second),
-                        y: .value("Value", yPosition)
-                    )
-                    .symbolSize((Config.carbsSize + CGFloat(carbAmount) * Config.carbsScale) * 10)
-                    .foregroundStyle(Color.orange)
-                    .annotation(position: .bottom) {
-                        Text(carbsFormatter.string(from: carbAmount as NSNumber)!).font(.caption2).foregroundStyle(Color.orange)
-                    }
-                }
-                /// fpus
-                ForEach(ChartFpus, id: \.self) { fpu in
-                    let fpuAmount = fpu.amount
-                    let size = (Config.fpuSize + CGFloat(fpuAmount) * Config.carbsScale) * 1.8
-                    let yPosition = units == .mgdL ? 60 : 3.33
-
-                    PointMark(
-                        x: .value("Time", fpu.timestamp, unit: .second),
-                        y: .value("Value", yPosition)
-                    )
-                    .symbolSize(size)
-                    .foregroundStyle(Color.brown)
-                }
-                /// smbs in triangle form
-                ForEach(ChartBoluses, id: \.self) { bolus in
-                    let bolusAmount = bolus.amount
-                    let size = (Config.bolusSize + CGFloat(bolusAmount) * Config.bolusScale) * 1.8
-
-                    PointMark(
-                        x: .value("Time", bolus.timestamp, unit: .second),
-                        y: .value("Value", bolus.yPosition)
-                    )
-                    .symbol {
-                        Image(systemName: "arrowtriangle.down.fill").font(.system(size: size)).foregroundStyle(Color.insulin)
-                    }
-                    .annotation(position: .top) {
-                        Text(bolusFormatter.string(from: bolusAmount as NSNumber)!).font(.caption2).foregroundStyle(Color.insulin)
-                    }
-                }
-                /// temp targets
-                ForEach(ChartTempTargets, id: \.self) { target in
-                    let targetLimited = min(max(target.amount, 0), upperLimit)
-
-                    RuleMark(
-                        xStart: .value("Start", target.start),
-                        xEnd: .value("End", target.end),
-                        y: .value("Value", targetLimited)
-                    )
-                    .foregroundStyle(Color.purple.opacity(0.5)).lineStyle(.init(lineWidth: 8))
-                }
-                /// predictions
-                ForEach(Predictions, id: \.self) { info in
-                    let y = max(info.amount, 0)
-
-                    if info.type == .uam {
-                        LineMark(
-                            x: .value("Time", info.timestamp, unit: .second),
-                            y: .value("Value", Decimal(y) * conversionFactor),
-                            series: .value("uam", "uam")
-                        ).foregroundStyle(Color.uam).symbolSize(16)
-                    }
-                    if info.type == .cob {
-                        LineMark(
-                            x: .value("Time", info.timestamp, unit: .second),
-                            y: .value("Value", Decimal(y) * conversionFactor),
-                            series: .value("cob", "cob")
-                        ).foregroundStyle(Color.orange).symbolSize(16)
-                    }
-                    if info.type == .iob {
-                        LineMark(
-                            x: .value("Time", info.timestamp, unit: .second),
-                            y: .value("Value", Decimal(y) * conversionFactor),
-                            series: .value("iob", "iob")
-                        ).foregroundStyle(Color.insulin).symbolSize(16)
-                    }
-                    if info.type == .zt {
-                        LineMark(
-                            x: .value("Time", info.timestamp, unit: .second),
-                            y: .value("Value", Decimal(y) * conversionFactor),
-                            series: .value("zt", "zt")
-                        ).foregroundStyle(Color.zt).symbolSize(16)
-                    }
-                }
-                /// glucose point mark
-                /// filtering for high and low bounds in settings
-                ForEach(glucose) { item in
-                    if let sgv = item.sgv {
-                        let sgvLimited = max(sgv, 0)
-
-                        if smooth {
-                            if sgvLimited > Int(highGlucose) {
-                                PointMark(
-                                    x: .value("Time", item.dateString, unit: .second),
-                                    y: .value("Value", Decimal(sgvLimited) * conversionFactor)
-                                ).foregroundStyle(Color.orange.gradient).symbolSize(25).interpolationMethod(.cardinal)
-                            } else if sgvLimited < Int(lowGlucose) {
-                                PointMark(
-                                    x: .value("Time", item.dateString, unit: .second),
-                                    y: .value("Value", Decimal(sgvLimited) * conversionFactor)
-                                ).foregroundStyle(Color.red.gradient).symbolSize(25).interpolationMethod(.cardinal)
-                            } else {
-                                PointMark(
-                                    x: .value("Time", item.dateString, unit: .second),
-                                    y: .value("Value", Decimal(sgvLimited) * conversionFactor)
-                                ).foregroundStyle(Color.green.gradient).symbolSize(25).interpolationMethod(.cardinal)
-                            }
-                        } else {
-                            if sgvLimited > Int(highGlucose) {
-                                PointMark(
-                                    x: .value("Time", item.dateString, unit: .second),
-                                    y: .value("Value", Decimal(sgvLimited) * conversionFactor)
-                                ).foregroundStyle(Color.orange.gradient).symbolSize(25)
-                            } else if sgvLimited < Int(lowGlucose) {
-                                PointMark(
-                                    x: .value("Time", item.dateString, unit: .second),
-                                    y: .value("Value", Decimal(sgvLimited) * conversionFactor)
-                                ).foregroundStyle(Color.red.gradient).symbolSize(25)
-                            } else {
-                                PointMark(
-                                    x: .value("Time", item.dateString, unit: .second),
-                                    y: .value("Value", Decimal(sgvLimited) * conversionFactor)
-                                ).foregroundStyle(Color.green.gradient).symbolSize(25)
-                            }
+                /// show glucose value when hovering over it
+                if let selectedGlucose {
+                    RuleMark(x: .value("Selection", selectedGlucose.dateString, unit: .minute))
+                        .foregroundStyle(Color.tabBar)
+                        .offset(yStart: 70)
+                        .lineStyle(.init(lineWidth: 2, dash: [5]))
+                        .annotation(position: .top) {
+                            selectionPopover
                         }
-                    }
                 }
-            }.id("MainChart")
-                .onChange(of: glucose) { _ in
-                    calculatePredictions()
-                    calculateFpus()
-                    // counter()
-                }
-                .onChange(of: carbs) { _ in
-                    calculateCarbs()
-                    calculateFpus()
-                }
-                .onChange(of: boluses) { _ in
-                    calculateBoluses()
-                    state.roundedTotalBolus = state.calculateTINS()
-                }
-                .onChange(of: tempTargets) { _ in
-                    calculateTTs()
-                }
-                .onChange(of: didAppearTrigger) { _ in
-                    calculatePredictions()
-                    calculateTTs()
-                }.onChange(of: suggestion) { _ in
-                    calculatePredictions()
-                }
-                .onReceive(
-                    Foundation.NotificationCenter.default
-                        .publisher(for: UIApplication.willEnterForegroundNotification)
-                ) { _ in
-                    calculatePredictions()
-                }
-                .frame(
-                    minHeight: UIScreen.main.bounds.height / 3.6
-                )
-                .frame(width: fullWidth(viewWidth: screenSize.width))
-                // .chartYScale(domain: minValue ... maxValue)
-                .chartXScale(domain: startMarker ... endMarker)
-                .chartXAxis {
-                    AxisMarks(values: .stride(by: .hour, count: screenHours == 24 ? 4 : 2)) { _ in
-                        if displayXgridLines {
-                            AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
-                        } else {
-                            AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
-                        }
-                        AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
-                    }
-                }
-//                .chartYAxis {
-//                    AxisMarks { _ in
-//                        if displayYgridLines {
-//                            AxisGridLine(stroke: .init(lineWidth: 0.3, dash: [2, 3]))
-//                        } else {
-//                            AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
-//                        }
-//                        AxisValueLabel()
-//                    }
-//                }
-                .chartYAxis {
-                    AxisMarks(position: .trailing) { value in
-                        let upperLimit = units == .mgdL ? 400 : 22.2
-
-                        if displayXgridLines {
-                            AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
-                        } else {
-                            AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
-                        }
-
-                        if let glucoseValue = value.as(Double.self), glucoseValue > 0, glucoseValue < upperLimit {
-                            /// fix offset between the two charts...
-                            if units == .mmolL {
-                                AxisTick(length: 7, stroke: .init(lineWidth: 7)).foregroundStyle(Color.clear)
-                            }
-                            AxisValueLabel()
-                        }
-                    }
-                }
+            }
+            .id("MainChart")
+            .onChange(of: glucose) { _ in
+                calculatePredictions()
+            }
+            .onChange(of: boluses) { _ in
+                state.roundedTotalBolus = state.calculateTINS()
+            }
+            .onChange(of: tempTargets) { _ in
+                calculateTTs()
+            }
+            .onChange(of: didAppearTrigger) { _ in
+                calculatePredictions()
+                calculateTTs()
+            }.onChange(of: suggestion) { _ in
+                calculatePredictions()
+            }
+            .onReceive(
+                Foundation.NotificationCenter.default
+                    .publisher(for: UIApplication.willEnterForegroundNotification)
+            ) { _ in
+                calculatePredictions()
+            }
+            .frame(minHeight: UIScreen.main.bounds.height * 0.2)
+            .frame(width: fullWidth(viewWidth: screenSize.width))
+            .chartXScale(domain: startMarker ... endMarker)
+            .chartXAxis { mainChartXAxis }
+            // .chartXAxis(.hidden)
+            .chartYAxis { mainChartYAxis }
+            .chartYScale(domain: minValue ... maxValue)
+            .backport.chartXSelection(value: $selection)
         }
     }
 
-    func BasalChart() -> some View {
+    @ViewBuilder var selectionPopover: some View {
+        if let sgv = selectedGlucose?.sgv {
+            let glucoseToShow = Decimal(sgv) * conversionFactor
+            VStack {
+                Text(selectedGlucose?.dateString.formatted(.dateTime.hour().minute(.twoDigits)) ?? "")
+                HStack {
+                    Text(glucoseToShow.formatted(.number.precision(units == .mmolL ? .fractionLength(1) : .fractionLength(0))))
+                        .fontWeight(.bold)
+                        .foregroundStyle(
+                            Decimal(sgv) < lowGlucose ? Color
+                                .red : (Decimal(sgv) > highGlucose ? Color.orange : Color.primary)
+                        )
+                    Text(units.rawValue).foregroundColor(.secondary)
+                }
+            }
+            .padding(6)
+            .background {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.gray.opacity(0.1))
+                    .shadow(color: .blue, radius: 2)
+            }
+        }
+    }
+
+    private var basalChart: some View {
         VStack {
             Chart {
-                RuleMark(
-                    x: .value(
-                        "",
-                        Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970)),
-                        unit: .second
-                    )
-                ).lineStyle(.init(lineWidth: 2, dash: [3])).foregroundStyle(Color.insulin)
-                RuleMark(
-                    x: .value(
-                        "",
-                        startMarker,
-                        unit: .second
-                    )
-                ).foregroundStyle(Color.clear)
-                RuleMark(
-                    x: .value(
-                        "",
-                        endMarker,
-                        unit: .second
-                    )
-                ).foregroundStyle(Color.clear)
-                /// temp basal rects
-                ForEach(TempBasals) { temp in
-                                 /// calculate end time of temp basal adding duration to start time
-                                 let end = temp.timestamp + (temp.durationMin ?? 0).minutes.timeInterval
-                                 let now = Date()
-
-                                 /// ensure that temp basals that are set cannot exceed current date -> i.e. scheduled temp basals are not shown
-                                 /// we could display scheduled temp basals with opacity etc... in the future
-                                 let maxEndTime = min(end, now)
-
-                                 /// find next basal entry and if available set end of current entry to start of next entry
-                                 if let nextTemp = TempBasals.first(where: { $0.timestamp > temp.timestamp }) {
-                                     let nextTempStart = nextTemp.timestamp
-
-                                     RectangleMark(
-                                         xStart: .value("start", temp.timestamp),
-                                         xEnd: .value("end", nextTempStart),
-                                         yStart: .value("rate-start", 0),
-                                         yEnd: .value("rate-end", temp.rate ?? 0)
-                                     ).foregroundStyle(Color.insulin.opacity(0.2))
-                                     LineMark(x: .value("Start Date", temp.timestamp), y: .value("Amount", temp.rate ?? 0)).lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
-                                     LineMark(x: .value("End Date", nextTempStart), y: .value("Amount", temp.rate ?? 0)).lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
-                                 } else {
-                                     RectangleMark(
-                                         xStart: .value("start", temp.timestamp),
-                                         xEnd: .value("end", maxEndTime),
-                                         yStart: .value("rate-start", 0),
-                                         yEnd: .value("rate-end", temp.rate ?? 0)
-                                     ).foregroundStyle(Color.insulin.opacity(0.2))
-                                     LineMark(x: .value("Start Date", temp.timestamp), y: .value("Amount", temp.rate ?? 0)).lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
-                                     LineMark(x: .value("End Date", maxEndTime), y: .value("Amount", temp.rate ?? 0)).lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
-                                 }
-                             }
-                /// dashed profile line
-                ForEach(BasalProfiles, id: \.self) { profile in
-                    LineMark(
-                        x: .value("Start Date", profile.startDate),
-                        y: .value("Amount", profile.amount),
-                        series: .value("profile", "profile")
-                    ).lineStyle(.init(lineWidth: 2, dash: [2, 4])).foregroundStyle(Color.insulin)
-                    LineMark(
-                        x: .value("End Date", profile.endDate ?? endMarker),
-                        y: .value("Amount", profile.amount),
-                        series: .value("profile", "profile")
-                    ).lineStyle(.init(lineWidth: 2.5, dash: [2, 4])).foregroundStyle(Color.insulin)
-                }
+                drawStartRuleMark()
+                drawEndRuleMark()
+                drawCurrentTimeMarker()
+                drawTempBasals()
+                drawBasalProfile()
+                drawSuspensions()
             }.onChange(of: tempBasals) { _ in
                 calculateBasals()
                 calculateTempBasals()
@@ -505,71 +308,325 @@ extension MainChartView {
             }.onChange(of: basalProfile) { _ in
                 calculateTempBasals()
             }
-            .frame(
-                minHeight: UIScreen.main.bounds.height / 9.8
-            )
+            .frame(height: UIScreen.main.bounds.height * 0.08)
             .frame(width: fullWidth(viewWidth: screenSize.width))
-            .rotationEffect(.degrees(180))
-            .scaleEffect(x: -1, y: 1)
             .chartXScale(domain: startMarker ... endMarker)
-            .chartXAxis(.hidden)
-            .chartXAxis {
-                AxisMarks(values: .stride(by: .hour, count: screenHours == 24 ? 4 : 2)) { _ in
-                }
-            }
-            .chartYAxis {
-                AxisMarks(position: .trailing) { _ in
-                    AxisTick(length: 25, stroke: .init(lineWidth: 4))
-                        .foregroundStyle(Color.clear)
-                }
-            }
+            .chartXAxis { basalChartXAxis }
+            .chartYAxis { basalChartYAxis }
         }
     }
 
     var legendPanel: some View {
-        ZStack {
-            HStack(alignment: .center) {
-                Spacer()
+        HStack(spacing: 10) {
+            Spacer()
 
-                Group {
-                    Circle().fill(Color.loopGreen).frame(width: 8, height: 8)
-                    Text("BG")
-                        .font(.system(size: 10, weight: .bold)).foregroundColor(.loopGreen)
-                }
-                Group {
-                    Circle().fill(Color.insulin).frame(width: 8, height: 8)
-                        .padding(.leading, 8)
-                    Text("IOB")
-                        .font(.system(size: 10, weight: .bold)).foregroundColor(.insulin)
-                }
-                Group {
-                    Circle().fill(Color.zt).frame(width: 8, height: 8)
-                        .padding(.leading, 8)
-                    Text("ZT")
-                        .font(.system(size: 10, weight: .bold)).foregroundColor(.zt)
-                }
-                Group {
-                    Circle().fill(Color.loopYellow).frame(width: 8, height: 8).padding(.leading, 8)
-                    Text("COB")
-                        .font(.system(size: 10, weight: .bold)).foregroundColor(.loopYellow)
-                }
-                Group {
-                    Circle().fill(Color.uam).frame(width: 8, height: 8)
-                        .padding(.leading, 8)
-                    Text("UAM")
-                        .font(.system(size: 10, weight: .bold)).foregroundColor(.uam)
-                }
-                Spacer()
-            }
-            .padding(.horizontal, 10)
-            .frame(maxWidth: .infinity)
+            LegendItem(color: .loopGreen, label: "BG")
+            LegendItem(color: .insulin, label: "IOB")
+            LegendItem(color: .zt, label: "ZT")
+            LegendItem(color: .loopYellow, label: "COB")
+            LegendItem(color: .uam, label: "UAM")
+
+            Spacer()
         }
+        .padding(.horizontal, 10)
+        .frame(maxWidth: .infinity)
     }
 }
 
-// MARK: Calculations
+// MARK: - Calculations
 
 extension MainChartView {
+    private func drawBoluses() -> some ChartContent {
+        /// smbs in triangle form
+        ForEach(boluses) { bolus in
+            let bolusAmount = bolus.amount ?? 0
+            let glucose = timeToNearestGlucose(time: bolus.timestamp.timeIntervalSince1970)
+            let yPosition = (Decimal(glucose.sgv ?? defaultBolusPosition) * conversionFactor) + bolusOffset
+            let size = (Config.bolusSize + CGFloat(bolusAmount) * Config.bolusScale) * 1.8
+
+            return PointMark(
+                x: .value("Time", bolus.timestamp, unit: .second),
+                y: .value("Value", yPosition)
+            )
+            .symbol {
+                Image(systemName: "arrowtriangle.down.fill").font(.system(size: size)).foregroundStyle(Color.insulin)
+            }
+            .annotation(position: .top) {
+                Text(bolusFormatter.string(from: bolusAmount as NSNumber)!).font(.caption2)
+                    .foregroundStyle(Color.insulin)
+            }
+        }
+    }
+
+    private func drawCarbs() -> some ChartContent {
+        /// carbs
+        ForEach(carbsForChart) { carb in
+            let carbAmount = carb.carbs
+            let yPosition = units == .mgdL ? 60 : 3.33
+
+            PointMark(
+                x: .value("Time", carb.actualDate ?? Date(), unit: .second),
+                y: .value("Value", yPosition)
+            )
+            .symbolSize((Config.carbsSize + CGFloat(carbAmount) * Config.carbsScale) * 10)
+            .foregroundStyle(Color.orange)
+            .annotation(position: .bottom) {
+                Text(carbsFormatter.string(from: carbAmount as NSNumber)!).font(.caption2)
+                    .foregroundStyle(Color.orange)
+            }
+        }
+    }
+
+    private func drawFpus() -> some ChartContent {
+        /// fpus
+        ForEach(fpusForChart) { fpu in
+            let fpuAmount = fpu.carbs
+            let size = (Config.fpuSize + CGFloat(fpuAmount) * Config.carbsScale) * 1.8
+            let yPosition = units == .mgdL ? 60 : 3.33
+
+            PointMark(
+                x: .value("Time", fpu.actualDate ?? Date(), unit: .second),
+                y: .value("Value", yPosition)
+            )
+            .symbolSize(size)
+            .foregroundStyle(Color.brown)
+        }
+    }
+
+    private func drawGlucose() -> some ChartContent {
+        /// glucose point mark
+        /// filtering for high and low bounds in settings
+        ForEach(glucose) { item in
+            if let sgv = item.sgv {
+                let sgvLimited = max(sgv, 0)
+
+                if smooth {
+                    if sgvLimited > Int(highGlucose) {
+                        PointMark(
+                            x: .value("Time", item.dateString, unit: .second),
+                            y: .value("Value", Decimal(sgvLimited) * conversionFactor)
+                        ).foregroundStyle(Color.orange.gradient).symbolSize(25).interpolationMethod(.cardinal)
+                    } else if sgvLimited < Int(lowGlucose) {
+                        PointMark(
+                            x: .value("Time", item.dateString, unit: .second),
+                            y: .value("Value", Decimal(sgvLimited) * conversionFactor)
+                        ).foregroundStyle(Color.red.gradient).symbolSize(25).interpolationMethod(.cardinal)
+                    } else {
+                        PointMark(
+                            x: .value("Time", item.dateString, unit: .second),
+                            y: .value("Value", Decimal(sgvLimited) * conversionFactor)
+                        ).foregroundStyle(Color.green.gradient).symbolSize(25).interpolationMethod(.cardinal)
+                    }
+                } else {
+                    if sgvLimited > Int(highGlucose) {
+                        PointMark(
+                            x: .value("Time", item.dateString, unit: .second),
+                            y: .value("Value", Decimal(sgvLimited) * conversionFactor)
+                        ).foregroundStyle(Color.orange.gradient).symbolSize(25)
+                    } else if sgvLimited < Int(lowGlucose) {
+                        PointMark(
+                            x: .value("Time", item.dateString, unit: .second),
+                            y: .value("Value", Decimal(sgvLimited) * conversionFactor)
+                        ).foregroundStyle(Color.red.gradient).symbolSize(25)
+                    } else {
+                        PointMark(
+                            x: .value("Time", item.dateString, unit: .second),
+                            y: .value("Value", Decimal(sgvLimited) * conversionFactor)
+                        ).foregroundStyle(Color.green.gradient).symbolSize(25)
+                    }
+                }
+            }
+        }
+    }
+
+    private func drawPredictions() -> some ChartContent {
+        /// predictions
+        ForEach(Predictions, id: \.self) { info in
+            let y = max(info.amount, 0)
+
+            if info.type == .uam {
+                LineMark(
+                    x: .value("Time", info.timestamp, unit: .second),
+                    y: .value("Value", Decimal(y) * conversionFactor),
+                    series: .value("uam", "uam")
+                ).foregroundStyle(Color.uam).symbolSize(16)
+            }
+            if info.type == .cob {
+                LineMark(
+                    x: .value("Time", info.timestamp, unit: .second),
+                    y: .value("Value", Decimal(y) * conversionFactor),
+                    series: .value("cob", "cob")
+                ).foregroundStyle(Color.orange).symbolSize(16)
+            }
+            if info.type == .iob {
+                LineMark(
+                    x: .value("Time", info.timestamp, unit: .second),
+                    y: .value("Value", Decimal(y) * conversionFactor),
+                    series: .value("iob", "iob")
+                ).foregroundStyle(Color.insulin).symbolSize(16)
+            }
+            if info.type == .zt {
+                LineMark(
+                    x: .value("Time", info.timestamp, unit: .second),
+                    y: .value("Value", Decimal(y) * conversionFactor),
+                    series: .value("zt", "zt")
+                ).foregroundStyle(Color.zt).symbolSize(16)
+            }
+        }
+    }
+
+    private func drawCurrentTimeMarker() -> some ChartContent {
+        RuleMark(
+            x: .value(
+                "",
+                Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970)),
+                unit: .second
+            )
+        ).lineStyle(.init(lineWidth: 2, dash: [3])).foregroundStyle(Color(.systemGray2))
+    }
+
+    private func drawStartRuleMark() -> some ChartContent {
+        RuleMark(
+            x: .value(
+                "",
+                startMarker,
+                unit: .second
+            )
+        ).foregroundStyle(Color.clear)
+    }
+
+    private func drawEndRuleMark() -> some ChartContent {
+        RuleMark(
+            x: .value(
+                "",
+                endMarker,
+                unit: .second
+            )
+        ).foregroundStyle(Color.clear)
+    }
+
+    private func drawTempTargets() -> some ChartContent {
+        /// temp targets
+        ForEach(ChartTempTargets, id: \.self) { target in
+            let targetLimited = min(max(target.amount, 0), upperLimit)
+
+            RuleMark(
+                xStart: .value("Start", target.start),
+                xEnd: .value("End", target.end),
+                y: .value("Value", targetLimited)
+            )
+            .foregroundStyle(Color.purple.opacity(0.5)).lineStyle(.init(lineWidth: 8))
+        }
+    }
+
+    private func drawManualGlucose() -> some ChartContent {
+        /// manual glucose mark
+        ForEach(manualGlucose) { item in
+            if let manualGlucose = item.glucose {
+                PointMark(
+                    x: .value("Time", item.dateString, unit: .second),
+                    y: .value("Value", Decimal(manualGlucose) * conversionFactor)
+                )
+                .symbol {
+                    Image(systemName: "drop.fill").font(.system(size: 10)).symbolRenderingMode(.monochrome)
+                        .foregroundStyle(.red)
+                }
+            }
+        }
+    }
+
+    private func drawSuspensions() -> some ChartContent {
+        /// pump suspensions
+        ForEach(suspensions) { suspension in
+            let now = Date()
+
+            if suspension.type == EventType.pumpSuspend {
+                let suspensionStart = suspension.timestamp
+                let suspensionEnd = min(
+                    suspensions
+                        .first(where: { $0.timestamp > suspension.timestamp && $0.type == EventType.pumpResume })?
+                        .timestamp ?? now,
+                    now
+                )
+                let basalProfileDuringSuspension = BasalProfiles.first(where: { $0.startDate <= suspensionStart })
+                let suspensionMarkHeight = basalProfileDuringSuspension?.amount ?? 1
+
+                RectangleMark(
+                    xStart: .value("start", suspensionStart),
+                    xEnd: .value("end", suspensionEnd),
+                    yStart: .value("suspend-start", 0),
+                    yEnd: .value("suspend-end", suspensionMarkHeight)
+                )
+                .foregroundStyle(Color.loopGray.opacity(colorScheme == .dark ? 0.3 : 0.8))
+            }
+        }
+    }
+
+    private func drawTempBasals() -> some ChartContent {
+        /// temp basal rects
+        ForEach(TempBasals) { temp in
+            /// calculate end time of temp basal adding duration to start time
+            let end = temp.timestamp + (temp.durationMin ?? 0).minutes.timeInterval
+            let now = Date()
+
+            /// ensure that temp basals that are set cannot exceed current date -> i.e. scheduled temp basals are not shown
+            /// we could display scheduled temp basals with opacity etc... in the future
+            let maxEndTime = min(end, now)
+
+            /// set mark height to 0 when insulin delivery is suspended
+            let isInsulinSuspended = suspensions
+                .first(where: { $0.timestamp >= temp.timestamp && $0.timestamp <= maxEndTime }) != nil
+            let rate = (temp.rate ?? 0) * (isInsulinSuspended ? 0 : 1)
+
+            /// find next basal entry and if available set end of current entry to start of next entry
+            if let nextTemp = TempBasals.first(where: { $0.timestamp > temp.timestamp }) {
+                let nextTempStart = nextTemp.timestamp
+
+                RectangleMark(
+                    xStart: .value("start", temp.timestamp),
+                    xEnd: .value("end", nextTempStart),
+                    yStart: .value("rate-start", 0),
+                    yEnd: .value("rate-end", rate)
+                ).foregroundStyle(Color.insulin.opacity(0.2))
+
+                LineMark(x: .value("Start Date", temp.timestamp), y: .value("Amount", rate))
+                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+
+                LineMark(x: .value("End Date", nextTempStart), y: .value("Amount", rate))
+                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+            } else {
+                RectangleMark(
+                    xStart: .value("start", temp.timestamp),
+                    xEnd: .value("end", maxEndTime),
+                    yStart: .value("rate-start", 0),
+                    yEnd: .value("rate-end", rate)
+                ).foregroundStyle(Color.insulin.opacity(0.2))
+
+                LineMark(x: .value("Start Date", temp.timestamp), y: .value("Amount", rate))
+                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+
+                LineMark(x: .value("End Date", maxEndTime), y: .value("Amount", rate))
+                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+            }
+        }
+    }
+
+    private func drawBasalProfile() -> some ChartContent {
+        /// dashed profile line
+        ForEach(BasalProfiles, id: \.self) { profile in
+            LineMark(
+                x: .value("Start Date", profile.startDate),
+                y: .value("Amount", profile.amount),
+                series: .value("profile", "profile")
+            ).lineStyle(.init(lineWidth: 2, dash: [2, 4])).foregroundStyle(Color.insulin)
+            LineMark(
+                x: .value("End Date", profile.endDate ?? endMarker),
+                y: .value("Amount", profile.amount),
+                series: .value("profile", "profile")
+            ).lineStyle(.init(lineWidth: 2.5, dash: [2, 4])).foregroundStyle(Color.insulin)
+        }
+    }
+
     /// calculates the glucose value thats the nearest to parameter 'time'
     /// if time is later than all the arrays values return the last element of BloodGlucose
     private func timeToNearestGlucose(time: TimeInterval) -> BloodGlucose {
@@ -601,53 +658,6 @@ extension MainChartView {
 
     private func fullWidth(viewWidth: CGFloat) -> CGFloat {
         viewWidth * CGFloat(hours) / CGFloat(min(max(screenHours, 2), 24))
-    }
-
-    private func calculateCarbs() {
-        var calculatedCarbs: [Carb] = []
-
-        /// check if carbs are not fpus before adding them to the chart
-        /// this solves the problem of a first CARB entry with the amount of the single fpu entries that was made at current time when adding ONLY fpus
-        let realCarbs = carbs.filter { !($0.isFPU ?? false) }
-
-        realCarbs.forEach { carb in
-            let bg = timeToNearestGlucose(time: carb.createdAt.timeIntervalSince1970)
-            calculatedCarbs.append(Carb(amount: carb.carbs, timestamp: carb.createdAt, nearestGlucose: bg))
-        }
-        ChartCarbs = calculatedCarbs
-    }
-
-    private func calculateFpus() {
-        var calculatedFpus: [Carb] = []
-
-        /// check for only fpus
-        let fpus = carbs.filter { $0.isFPU ?? false }
-
-        fpus.forEach { fpu in
-            let bg = timeToNearestGlucose(
-                time: TimeInterval(rawValue: (fpu.actualDate?.timeIntervalSince1970)!) ?? fpu.createdAt
-                    .timeIntervalSince1970
-            )
-            calculatedFpus
-                .append(Carb(amount: fpu.carbs, timestamp: fpu.actualDate ?? Date(), nearestGlucose: bg))
-        }
-        ChartFpus = calculatedFpus
-    }
-
-    private func calculateBoluses() {
-        var calculatedBoluses: [ChartBolus] = []
-        boluses.forEach { bolus in
-            let bg = timeToNearestGlucose(time: bolus.timestamp.timeIntervalSince1970)
-            let yPosition = (Decimal(bg.sgv ?? defaultBolusPosition) * conversionFactor) + bolusOffset
-            calculatedBoluses
-                .append(ChartBolus(
-                    amount: bolus.amount ?? 0,
-                    timestamp: bolus.timestamp,
-                    nearestGlucose: bg,
-                    yPosition: yPosition
-                ))
-        }
-        ChartBoluses = calculatedBoluses
     }
 
     /// calculations for temp target bar mark
@@ -709,69 +719,38 @@ extension MainChartView {
         ChartTempTargets = calculatedTTs
     }
 
-    private func calculatePredictions() {
+    private func addPredictions(_ predictions: [Int], type: PredictionType, deliveredAt: Date, endMarker: Date) -> [Prediction] {
         var calculatedPredictions: [Prediction] = []
-        let uam = suggestion?.predictions?.uam ?? []
-        let iob = suggestion?.predictions?.iob ?? []
-        let cob = suggestion?.predictions?.cob ?? []
-        let zt = suggestion?.predictions?.zt ?? []
-        guard let deliveredAt = suggestion?.deliverAt else {
-            return
-        }
-        uam.indices.forEach { index in
+        predictions.indices.forEach { index in
             let predTime = Date(
-                timeIntervalSince1970: deliveredAt.timeIntervalSince1970 + TimeInterval(index) * 5.minutes
-                    .timeInterval
+                timeIntervalSince1970: deliveredAt.timeIntervalSince1970 + TimeInterval(index) * 5.minutes.timeInterval
             )
             if predTime.timeIntervalSince1970 < endMarker.timeIntervalSince1970 {
                 calculatedPredictions.append(
-                    Prediction(amount: uam[index], timestamp: predTime, type: .uam)
+                    Prediction(amount: predictions[index], timestamp: predTime, type: type)
                 )
             }
         }
-        iob.indices.forEach { index in
-            let predTime = Date(
-                timeIntervalSince1970: deliveredAt.timeIntervalSince1970 + TimeInterval(index) * 5.minutes
-                    .timeInterval
-            )
-            if predTime.timeIntervalSince1970 < endMarker.timeIntervalSince1970 {
-                calculatedPredictions.append(
-                    Prediction(amount: iob[index], timestamp: predTime, type: .iob)
-                )
-            }
-        }
-        cob.indices.forEach { index in
-            let predTime = Date(
-                timeIntervalSince1970: deliveredAt.timeIntervalSince1970 + TimeInterval(index) * 5.minutes
-                    .timeInterval
-            )
-            if predTime.timeIntervalSince1970 < endMarker.timeIntervalSince1970 {
-                calculatedPredictions.append(
-                    Prediction(amount: cob[index], timestamp: predTime, type: .cob)
-                )
-            }
-        }
-        zt.indices.forEach { index in
-            let predTime = Date(
-                timeIntervalSince1970: deliveredAt.timeIntervalSince1970 + TimeInterval(index) * 5.minutes
-                    .timeInterval
-            )
-            if predTime.timeIntervalSince1970 < endMarker.timeIntervalSince1970 {
-                calculatedPredictions.append(
-                    Prediction(amount: zt[index], timestamp: predTime, type: .zt)
-                )
-            }
-        }
-        Predictions = calculatedPredictions
+        return calculatedPredictions
     }
 
-    private func getLastUam() -> Int {
-        let uam = suggestion?.predictions?.uam ?? []
-        return uam.last ?? 0
+    private func calculatePredictions() {
+        guard let suggestion = suggestion, let deliveredAt = suggestion.deliverAt else { return }
+        let uamPredictions = suggestion.predictions?.uam ?? []
+        let iobPredictions = suggestion.predictions?.iob ?? []
+        let cobPredictions = suggestion.predictions?.cob ?? []
+        let ztPredictions = suggestion.predictions?.zt ?? []
+
+        let uam = addPredictions(uamPredictions, type: .uam, deliveredAt: deliveredAt, endMarker: endMarker)
+        let iob = addPredictions(iobPredictions, type: .iob, deliveredAt: deliveredAt, endMarker: endMarker)
+        let cob = addPredictions(cobPredictions, type: .cob, deliveredAt: deliveredAt, endMarker: endMarker)
+        let zt = addPredictions(ztPredictions, type: .zt, deliveredAt: deliveredAt, endMarker: endMarker)
+
+        Predictions = uam + iob + cob + zt
     }
 
     private func calculateTempBasals() {
-        var basals = tempBasals
+        let basals = tempBasals
         var returnTempBasalRates: [PumpHistoryEvent] = []
         var finished: [Int: Bool] = [:]
         basals.indices.forEach { i in
@@ -860,60 +839,8 @@ extension MainChartView {
         endMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 + 10800))
     }
 
-    /// get y axis scale
-    /// but only call the function every 60min, i.e. every 12th glucose value
-//    private func counter() {
-//        glucoseUpdateCount += 1
-//        if glucoseUpdateCount >= maxUpdateCount {
-//            maxValue = glucose.compactMap(\.glucose).max() ?? Config.maxGlucose
-//
-//            if let maxPredValue = maxPredValue() {
-//                maxValue = max(maxValue, maxPredValue)
-//            }
-//
-//            minValue = glucose.compactMap(\.glucose).min() ?? Config.minGlucose
-//            if let minPredValue = minPredValue() {
-//                minValue = min(minValue, minPredValue)
-//            }
-//
-//            if minValue > Config.minGlucose {
-//                minValue = Config.minGlucose
-//            }
-//
-//            if maxValue < Config.maxGlucose {
-//                maxValue = Config.maxGlucose
-//            }
-//
-//            glucoseUpdateCount = 0
-//        }
-//    }
-
-//    private func maxPredValue() -> Int? {
-//        [
-//            suggestion?.predictions?.cob ?? [],
-//            suggestion?.predictions?.iob ?? [],
-//            suggestion?.predictions?.zt ?? [],
-//            suggestion?.predictions?.uam ?? []
-//        ].flatMap {
-//            $0
-//        }.max()
-//    }
-//
-//    private func minPredValue() -> Int? {
-//        [
-//            suggestion?.predictions?.cob ?? [],
-//            suggestion?.predictions?.iob ?? [],
-//            suggestion?.predictions?.zt ?? [],
-//            suggestion?.predictions?.uam ?? []
-//        ].flatMap {
-//            $0
-//        }.min()
-//    }
-
     private func calculateBasals() {
         let dayAgoTime = Date().addingTimeInterval(-1.days.timeInterval).timeIntervalSince1970
-        let firstTempTime = (tempBasals.first?.timestamp ?? Date()).timeIntervalSince1970
-
         let regularPoints = findRegularBasalPoints(
             timeBegin: dayAgoTime,
             timeEnd: endMarker.timeIntervalSince1970,
@@ -946,5 +873,92 @@ extension MainChartView {
             )
         }
         BasalProfiles = basals
+    }
+
+    // MARK: - Chart formatting
+
+    private func yAxisChartData() {
+        let glucoseMapped = glucose.compactMap(\.glucose)
+        guard let minGlucose = glucoseMapped.min(), let maxGlucose = glucoseMapped.max() else {
+            // default values
+            minValue = 45 * conversionFactor - 20 * conversionFactor
+            maxValue = 270 * conversionFactor + 50 * conversionFactor
+            return
+        }
+
+        minValue = Decimal(minGlucose) * conversionFactor - 20 * conversionFactor
+        maxValue = Decimal(maxGlucose) * conversionFactor + 50 * conversionFactor
+
+        debug(.default, "min \(minValue)")
+        debug(.default, "max \(maxValue)")
+    }
+
+    private func basalChartPlotStyle(_ plotContent: ChartPlotContent) -> some View {
+        plotContent
+            .rotationEffect(.degrees(180))
+            .scaleEffect(x: -1, y: 1)
+            .chartXAxis(.hidden)
+    }
+
+    private var mainChartXAxis: some AxisContent {
+        AxisMarks(values: .stride(by: .hour, count: screenHours == 24 ? 4 : 2)) { _ in
+            if displayXgridLines {
+                AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
+            } else {
+                AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
+            }
+        }
+    }
+
+    private var basalChartXAxis: some AxisContent {
+        AxisMarks(values: .stride(by: .hour, count: screenHours == 24 ? 4 : 2)) { _ in
+            if displayXgridLines {
+                AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
+            } else {
+                AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
+            }
+            AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
+                .font(.footnote)
+        }
+    }
+
+    private var mainChartYAxis: some AxisContent {
+        AxisMarks(position: .trailing) { value in
+
+            if displayXgridLines {
+                AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
+            } else {
+                AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
+            }
+
+            if let glucoseValue = value.as(Double.self), glucoseValue > 0 {
+                /// fix offset between the two charts...
+                if units == .mmolL {
+                    AxisTick(length: 7, stroke: .init(lineWidth: 7)).foregroundStyle(Color.clear)
+                }
+                AxisValueLabel().font(.footnote)
+            }
+        }
+    }
+
+    private var basalChartYAxis: some AxisContent {
+        AxisMarks(position: .trailing) { _ in
+            AxisTick(length: units == .mmolL ? 25 : 27, stroke: .init(lineWidth: 4))
+                .foregroundStyle(Color.clear).font(.footnote)
+        }
+    }
+}
+
+struct LegendItem: View {
+    var color: Color
+    var label: String
+
+    var body: some View {
+        Group {
+            Circle().fill(color).frame(width: 8, height: 8)
+            Text(label)
+                .font(.system(size: 10, weight: .bold))
+                .foregroundColor(color)
+        }
     }
 }

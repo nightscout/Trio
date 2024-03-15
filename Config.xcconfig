@@ -1,5 +1,5 @@
 APP_DISPLAY_NAME = iAPS
-APP_VERSION = 2.3.2
+APP_VERSION = 2.3.3
 APP_BUILD_NUMBER = 1
 COPYRIGHT_NOTICE =
 DEVELOPER_TEAM = ##TEAM_ID##
@@ -9,4 +9,4 @@ APP_ICON = pod_colorful
 APP_URL_SCHEME = freeaps-x
 
 #include? "ConfigOverride.xcconfig"
-//#include? "../../ConfigOverride.xcconfig"
+#include? "../../ConfigOverride.xcconfig"

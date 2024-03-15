@@ -12,7 +12,6 @@ extension DataTable {
         @State private var alertTreatmentToDelete: Treatment?
         @State private var alertGlucoseToDelete: Glucose?
 
-        @State private var showExternalInsulin: Bool = false
         @State private var showFutureEntries: Bool = false // default to hide future entries
         @State private var showManualGlucose: Bool = false
         @State private var isAmountUnconfirmed: Bool = true
@@ -75,57 +74,57 @@ extension DataTable {
         }
 
         var body: some View {
-            VStack {
-                Picker("Mode", selection: $state.mode) {
-                    ForEach(
-                        Mode.allCases.filter({ state.historyLayout == .twoTabs ? $0 != .meals : true }).indexed(),
-                        id: \.1
-                    ) { index, item in
-                        if state.historyLayout == .threeTabs && item == .treatments {
-                            Text("Insulin")
-                                .tag(index)
-                        } else {
-                            Text(item.name)
-                                .tag(index)
+            ZStack(alignment: .center, content: {
+                VStack {
+                    Picker("Mode", selection: $state.mode) {
+                        ForEach(
+                            Mode.allCases.filter({ state.historyLayout == .twoTabs ? $0 != .meals : true }).indexed(),
+                            id: \.1
+                        ) { index, item in
+                            if state.historyLayout == .threeTabs && item == .treatments {
+                                Text("Insulin")
+                                    .tag(index)
+                            } else {
+                                Text(item.name)
+                                    .tag(index)
+                            }
                         }
                     }
-                }
-                .pickerStyle(SegmentedPickerStyle())
-                .padding(.horizontal)
+                    .pickerStyle(SegmentedPickerStyle())
+                    .padding(.horizontal)
 
-                Form {
-                    switch state.mode {
-                    case .treatments: treatmentsList
-                    case .glucose: glucoseList
-                    case .meals: state.historyLayout == .threeTabs ? AnyView(mealsList) : AnyView(EmptyView())
-                    }
-                }.scrollContentBackground(.hidden)
-                    .background(color)
-            }.background(color)
+                    Form {
+                        switch state.mode {
+                        case .treatments: treatmentsList
+                        case .glucose: glucoseList
+                        case .meals: state.historyLayout == .threeTabs ? AnyView(mealsList) : AnyView(EmptyView())
+                        }
+                    }.scrollContentBackground(.hidden)
+                        .background(color)
+                }.blur(radius: state.waitForSuggestion ? 8 : 0)
+
+                if state.waitForSuggestion {
+                    CustomProgressView(text: progressText.rawValue)
+                }
+            })
+                .background(color)
                 .onAppear(perform: configureView)
+                .onDisappear {
+                    state.carbEntryDeleted = false
+                    state.insulinEntryDeleted = false
+                }
                 .navigationTitle("History")
                 .navigationBarTitleDisplayMode(.large)
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
-                        switch state.mode {
-                        case .treatments: addButton({
-                                showExternalInsulin = true
-                                state.externalInsulinDate = Date()
-                            })
-                        case .meals: EmptyView()
-                        case .glucose: addButton({
-                                showManualGlucose = true
-                                state.manualGlucose = 0
-                            })
-                        }
+                        addButton({
+                            showManualGlucose = true
+                            state.manualGlucose = 0
+                        })
                     }
                 }
                 .sheet(isPresented: $showManualGlucose) {
                     addGlucoseView()
-                }
-                .sheet(isPresented: $showExternalInsulin, onDismiss: { if isAmountUnconfirmed { state.externalInsulinAmount = 0
-                    state.externalInsulinDate = Date() } }) {
-                    addExternalInsulinView()
                 }
         }
 
@@ -133,17 +132,31 @@ extension DataTable {
             Button(
                 action: action,
                 label: {
-                    Image(systemName: "plus")
-                        .font(.system(size: 20))
+                    HStack {
+                        Text("Add Glucose")
+                        Image(systemName: "plus")
+                            .font(.system(size: 20))
+                    }
                 }
             )
+        }
+
+        private var progressText: ProgressText {
+            switch (state.carbEntryDeleted, state.insulinEntryDeleted) {
+            case (true, false):
+                return .updatingCOB
+            case(false, true):
+                return .updatingIOB
+            default:
+                return .updatingHistory
+            }
         }
 
         private var treatmentsList: some View {
             List {
                 HStack {
                     if state.historyLayout == .twoTabs {
-                        Text("Insulin").foregroundStyle(.secondary)
+                        Text("Treatments").foregroundStyle(.secondary)
                         Spacer()
                         filterEntriesButton
                     } else {
@@ -320,13 +333,9 @@ extension DataTable {
                     }
 
                     if state.historyLayout == .twoTabs, treatmentToDelete.type == .carbs || treatmentToDelete.type == .fpus {
-                        state.deleteCarbs(treatmentToDelete)
+                        state.invokeCarbDeletionTask(treatmentToDelete)
                     } else {
-                        Task {
-                            do {
-                                await state.deleteInsulin(treatmentToDelete)
-                            }
-                        }
+                        state.invokeInsulinDeletionTask(treatmentToDelete)
                     }
                 }
             } message: {
@@ -382,99 +391,10 @@ extension DataTable {
                         debug(.default, "Cannot gracefully unwrap alertTreatmentToDelete!")
                         return
                     }
-
-                    state.deleteCarbs(treatmentToDelete)
+                    state.invokeCarbDeletionTask(treatmentToDelete)
                 }
             } message: {
                 Text("\n" + NSLocalizedString(alertMessage, comment: ""))
-            }
-        }
-
-        @ViewBuilder func addExternalInsulinView() -> some View {
-            NavigationView {
-                VStack {
-                    Form {
-                        Section {
-                            HStack {
-                                Text("Amount")
-                                Spacer()
-                                DecimalTextField(
-                                    "0",
-                                    value: $state.externalInsulinAmount,
-                                    formatter: insulinFormatter,
-                                    autofocus: true,
-                                    cleanInput: true
-                                )
-                                Text("U").foregroundColor(.secondary)
-                            }
-                        }.listRowBackground(Color.chart)
-
-                        Section {
-                            DatePicker("Date", selection: $state.externalInsulinDate, in: ...Date())
-                        }.listRowBackground(Color.chart)
-
-                        let amountWarningCondition = (state.externalInsulinAmount > state.maxBolus)
-
-                        var listBackgroundColor: Color {
-                            if amountWarningCondition {
-                                return Color.red
-                            } else if state.externalInsulinAmount <= 0 || state.externalInsulinAmount > state.maxBolus * 3 {
-                                return Color(.systemGray4)
-                            } else {
-                                return Color(.systemBlue)
-                            }
-                        }
-
-                        var foregroundColor: Color {
-                            if amountWarningCondition {
-                                return Color.white
-                            } else if state.externalInsulinAmount <= 0 || state.externalInsulinAmount > state.maxBolus * 3 {
-                                return Color.secondary
-                            } else {
-                                return Color.white
-                            }
-                        }
-
-                        Section {
-                            HStack {
-                                Button {
-                                    Task {
-                                        do {
-                                            await state.addExternalInsulin()
-                                            isAmountUnconfirmed = false
-                                            showExternalInsulin = false
-                                        }
-                                    }
-                                } label: {
-                                    Text("Log external insulin")
-                                }
-                                .foregroundStyle(foregroundColor)
-                                .frame(maxWidth: .infinity, alignment: .center)
-                                .disabled(
-                                    state.externalInsulinAmount <= 0 || state.externalInsulinAmount > state.maxBolus * 3
-                                )
-                            }
-                        }
-                        header: {
-                            if amountWarningCondition
-                            {
-                                Text("⚠️ Warning! The entered insulin amount is greater than your Max Bolus setting!")
-                            }
-                        }
-                        .listRowBackground(listBackgroundColor).tint(.white)
-                    }.scrollContentBackground(.hidden).background(color)
-                }
-                .onAppear(perform: configureView)
-                .navigationTitle("External Insulin")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button("Close") {
-                            showExternalInsulin = false
-                            state.externalInsulinAmount = 0
-                        }
-                    }
-                }
             }
         }
 

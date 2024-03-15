@@ -19,7 +19,7 @@ enum DashUIScreen {
     case expirationReminderSetup
     case lowReservoirReminderSetup
     case insulinTypeSelection
-    case pairPod
+    case pairAndPrime
     case insertCannula
     case confirmAttachment
     case checkInsertedCannula
@@ -38,8 +38,8 @@ enum DashUIScreen {
         case .lowReservoirReminderSetup:
             return .insulinTypeSelection
         case .insulinTypeSelection:
-            return .pairPod
-        case .pairPod:
+            return .pairAndPrime
+        case .pairAndPrime:
             return .confirmAttachment
         case .confirmAttachment:
             return .insertCannula
@@ -54,7 +54,7 @@ enum DashUIScreen {
         case .uncertaintyRecovered:
             return nil
         case .deactivate:
-            return .pairPod
+            return .pairAndPrime
         case .settings:
             return nil
         }
@@ -171,7 +171,7 @@ class DashUICoordinator: UINavigationController, PumpManagerOnboarding, Completi
             }
             let view = OmniBLESettingsView(viewModel: viewModel, supportedInsulinTypes: allowedInsulinTypes)
             return hostingController(rootView: view)
-        case .pairPod:
+        case .pairAndPrime:
             pumpManagerOnboardingDelegate?.pumpManagerOnboarding(didCreatePumpManager: pumpManager)
 
             let viewModel = PairPodViewModel(podPairer: pumpManager)
@@ -185,7 +185,7 @@ class DashUICoordinator: UINavigationController, PumpManagerOnboarding, Completi
             viewModel.didRequestDeactivation = { [weak self] in
                 self?.navigateTo(.deactivate)
             }
-            
+
             let view = hostingController(rootView: PairPodView(viewModel: viewModel))
             view.navigationItem.title = LocalizedString("Pair Pod", comment: "Title for pod pairing screen")
             view.navigationItem.backButtonDisplayMode = .generic
@@ -350,13 +350,13 @@ class DashUICoordinator: UINavigationController, PumpManagerOnboarding, Completi
             if pumpManager.podAttachmentConfirmed {
                 return .insertCannula
             } else {
-                return .confirmAttachment
+                return .pairAndPrime // need to finish the priming
             }
         } else if !pumpManager.isOnboarded {
             if !pumpManager.initialConfigurationCompleted {
                 return .firstRunScreen
             }
-            return .pairPod
+            return .pairAndPrime // pair and prime a new pod
         } else {
             return .settings
         }

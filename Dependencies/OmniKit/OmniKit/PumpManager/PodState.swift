@@ -41,6 +41,10 @@ public enum SetupProgress: Int {
     public var needsCannulaInsertion: Bool {
         return self.rawValue < SetupProgress.completed.rawValue
     }
+
+    public var cannulaInsertionSuccessfullyStarted: Bool {
+        return self.rawValue > SetupProgress.startingInsertCannula.rawValue
+    }
 }
 
 // TODO: Mutating functions aren't guaranteed to synchronize read/write calls.
@@ -107,11 +111,10 @@ public struct PodState: RawRepresentable, Equatable, CustomDebugStringConvertibl
         return false
     }
 
-    // the following two vars are not persistent across app restarts
-    public var deliveryStatusVerified: Bool
-    public var lastCommsOK: Bool
+    var lastDeliveryStatusReceived: DeliveryStatus? // this variable is not persistent across app restarts
 
-    public init(address: UInt32, pmVersion: String, piVersion: String, lot: UInt32, tid: UInt32, packetNumber: Int = 0, messageNumber: Int = 0, insulinType: InsulinType) {
+    public init(address: UInt32, pmVersion: String, piVersion: String, lot: UInt32, tid: UInt32, packetNumber: Int = 0, messageNumber: Int = 0, insulinType: InsulinType, initialDeliveryStatus: DeliveryStatus? = nil)
+    {
         self.address = address
         self.nonceState = NonceState(lot: lot, tid: tid)
         self.pmVersion = pmVersion
@@ -128,9 +131,8 @@ public struct PodState: RawRepresentable, Equatable, CustomDebugStringConvertibl
         self.setupProgress = .addressAssigned
         self.configuredAlerts = [.slot7Expired: .waitingForPairingReminder]
         self.insulinType = insulinType
-        self.deliveryStatusVerified = false
-        self.lastCommsOK = false
         self.podTime = 0
+        self.lastDeliveryStatusReceived = initialDeliveryStatus // can be non-nil when testing
     }
     
     public var unfinishedSetup: Bool {
@@ -285,21 +287,20 @@ public struct PodState: RawRepresentable, Equatable, CustomDebugStringConvertibl
     
     private mutating func updateDeliveryStatus(deliveryStatus: DeliveryStatus, podProgressStatus: PodProgressStatus, bolusNotDelivered: Double, at date: Date) {
 
-        deliveryStatusVerified = true
-        // See if the pod deliveryStatus indicates an active bolus or temp basal that the PodState isn't tracking (possible Loop restart)
-        if deliveryStatus.bolusing && unfinalizedBolus == nil { // active bolus that Loop doesn't know about?
+        // save the current pod delivery state for verification before any insulin delivery command
+        self.lastDeliveryStatusReceived = deliveryStatus
+
+        // See if the pod's deliveryStatus indicates some insulin delivery that podState isn't tracking
+        if deliveryStatus.bolusing && unfinalizedBolus == nil { // active bolus that we aren't tracking
             if podProgressStatus.readyForDelivery {
-                deliveryStatusVerified = false // remember that we had inconsistent (bolus) delivery status
                 // Create an unfinalizedBolus with the remaining bolus amount to capture what we can.
                 unfinalizedBolus = UnfinalizedDose(bolusAmount: bolusNotDelivered, startTime: date, scheduledCertainty: .certain, insulinType: insulinType, automatic: false)
             }
         }
-        if deliveryStatus.tempBasalRunning && unfinalizedTempBasal == nil { // active temp basal that app isn't tracking
-            deliveryStatusVerified = false // remember that we had inconsistent (temp basal) delivery status
+        if deliveryStatus.tempBasalRunning && unfinalizedTempBasal == nil { // active temp basal that we aren't tracking
             // unfinalizedTempBasal = UnfinalizedDose(tempBasalRate: 0, startTime: Date(), duration: .minutes(30), isHighTemp: false, scheduledCertainty: .certain, insulinType: insulinType)
         }
-        if deliveryStatus != .suspended && isSuspended { // active basal that app isn't tracking
-            deliveryStatusVerified = false // remember that we had inconsistent (basal) delivery status
+        if deliveryStatus != .suspended && isSuspended { // active basal that we aren't tracking
             let resumeStartTime = Date()
             suspendState = .resumed(resumeStartTime)
             unfinalizedResume = UnfinalizedDose(resumeStartTime: resumeStartTime, scheduledCertainty: .certain, insulinType: insulinType)
@@ -492,8 +493,7 @@ public struct PodState: RawRepresentable, Equatable, CustomDebugStringConvertibl
             self.insulinType = .novolog
         }
 
-        self.deliveryStatusVerified = false
-        self.lastCommsOK = false
+        self.lastDeliveryStatusReceived = nil
     }
     
     public var rawValue: RawValue {

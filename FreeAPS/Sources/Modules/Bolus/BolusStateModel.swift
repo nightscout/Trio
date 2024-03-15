@@ -14,6 +14,7 @@ extension Bolus {
         @Injected() var settings: SettingsManager!
         @Injected() var nsManager: NightscoutManager!
         @Injected() var carbsStorage: CarbsStorage!
+        @Injected() var glucoseStorage: GlucoseStorage!
 
         @Published var suggestion: Suggestion?
         @Published var predictions: Predictions?
@@ -35,6 +36,8 @@ extension Bolus {
         @Published var minPredBG: Decimal = 0
         @Published var waitForSuggestion: Bool = false
         @Published var carbRatio: Decimal = 0
+
+        @Published var addButtonPressed: Bool = false
 
         var waitForSuggestionInitial: Bool = false
 
@@ -60,7 +63,7 @@ extension Bolus {
         @Published var fattyMeals: Bool = false
         @Published var fattyMealFactor: Decimal = 0
         @Published var useFattyMealCorrectionFactor: Bool = false
-        @Published var displayPredictions: Bool = true
+        @Published var displayPresets: Bool = true
 
         @Published var currentBasal: Decimal = 0
         @Published var sweetMeals: Bool = false
@@ -75,18 +78,19 @@ extension Bolus {
         @Published var note: String = ""
 
         @Published var date = Date()
-        // @Published var protein: Decimal = 0
-        // @Published var fat: Decimal = 0
+
         @Published var carbsRequired: Decimal?
         @Published var useFPUconversion: Bool = false
         @Published var dish: String = ""
         @Published var selection: Presets?
         @Published var summation: [String] = []
         @Published var maxCarbs: Decimal = 0
-        // @Published var note: String = ""
+
         @Published var id_: String = ""
         @Published var summary: String = ""
         @Published var skipBolus: Bool = false
+
+        @Published var externalInsulin: Bool = false
 
         let now = Date.now
 
@@ -95,6 +99,7 @@ extension Bolus {
         override func subscribe() {
             setupInsulinRequired()
             broadcaster.register(SuggestionObserver.self, observer: self)
+            broadcaster.register(BolusFailureObserver.self, observer: self)
             units = settingsManager.settings.units
             percentage = settingsManager.settings.insulinReqPercentage
             threshold = provider.suggestion?.threshold ?? 0
@@ -106,7 +111,7 @@ extension Bolus {
             fattyMealFactor = settings.settings.fattyMealFactor
             sweetMeals = settings.settings.sweetMeals
             sweetMealFactor = settings.settings.sweetMealFactor
-            displayPredictions = settings.settings.displayPredictions
+            displayPresets = settings.settings.displayPresets
 
             carbsRequired = provider.suggestion?.carbsReq
             maxCarbs = settings.settings.maxCarbs
@@ -178,7 +183,9 @@ extension Bolus {
             deltaBG = delta
         }
 
-        // CALCULATIONS FOR THE BOLUS CALCULATOR
+        // MARK: CALCULATIONS FOR THE BOLUS CALCULATOR
+
+        /// Calculate insulin recommendation
         func calculateInsulin() -> Decimal {
             // ensure that isf is in mg/dL
             var conversion: Decimal {
@@ -234,7 +241,37 @@ extension Bolus {
                 .roundBolus(amount: max(insulinCalculated, 0))
         }
 
-        func add() async {
+        @MainActor func invokeTreatmentsTask() {
+            Task {
+                if amount > 0 {
+                    if !externalInsulin {
+                        await add()
+                    } else {
+                        do {
+                            await addExternalInsulin()
+                        }
+                    }
+                    waitForSuggestion = true
+                } else {
+                    if carbs > 0 {
+                        waitForSuggestion = true
+                    } else {
+                        hideModal()
+                    }
+                }
+                addCarbs()
+                addButtonPressed = true
+
+                // if glucose data is stale end the custom loading animation by hiding the modal
+                // alternatively only set waitforSuggestion to false...
+                let lastGlucoseDate = glucoseStorage.lastGlucoseDate()
+                guard lastGlucoseDate >= Date().addingTimeInterval(-12.minutes.timeInterval) else {
+                    return hideModal()
+                }
+            }
+        }
+
+        @MainActor func add() async {
             guard amount > 0 else {
                 showModal(for: nil)
                 return
@@ -250,7 +287,13 @@ extension Bolus {
                     print("authentication failed")
                 }
             } catch {
-                print("authentication error: \(error.localizedDescription)")
+                print("authentication error for pump bolus: \(error.localizedDescription)")
+                DispatchQueue.main.async {
+                    self.waitForSuggestion = false
+                    if self.addButtonPressed {
+                        self.hideModal()
+                    }
+                }
             }
         }
 
@@ -315,14 +358,13 @@ extension Bolus {
             )]
             carbsStorage.storeCarbs(carbsToStore)
 
-            if skipBolus {
-                apsManager.determineBasalSync()
-                showModal(for: nil)
-            } else if carbs > 0 {
+            if carbs > 0 {
                 saveToCoreData(carbsToStore)
-                apsManager.determineBasalSync()
-            } else {
-                hideModal()
+
+                // only perform determine basal sync if the user doesn't use the pump bolus, otherwise the enact bolus func in the APSManger does a sync
+                if amount <= 0 {
+                    apsManager.determineBasalSync()
+                }
             }
         }
 
@@ -468,14 +510,77 @@ extension Bolus {
                 print("meals 1: ID: " + (save.id ?? "").description + " FPU ID: " + (save.fpuID ?? "").description)
             }
         }
+
+        // MARK: EXTERNAL INSULIN
+
+        @MainActor func addExternalInsulin() async {
+            guard amount > 0 else {
+                showModal(for: nil)
+                return
+            }
+
+            amount = min(amount, maxBolus * 3)
+
+            do {
+                let authenticated = try await unlockmanager.unlock()
+                if authenticated {
+                    storeExternalInsulinEvent()
+                } else {
+                    print("authentication failed")
+                }
+            } catch {
+                print("authentication error for external insulin: \(error.localizedDescription)")
+                DispatchQueue.main.async {
+                    self.waitForSuggestion = false
+                    if self.addButtonPressed {
+                        self.hideModal()
+                    }
+                }
+            }
+        }
+
+        private func storeExternalInsulinEvent() {
+            pumpHistoryStorage.storeEvents(
+                [
+                    PumpHistoryEvent(
+                        id: UUID().uuidString,
+                        type: .bolus,
+                        timestamp: date,
+                        amount: amount,
+                        duration: nil,
+                        durationMin: nil,
+                        rate: nil,
+                        temp: nil,
+                        carbInput: nil,
+                        isExternal: true
+                    )
+                ]
+            )
+            debug(.default, "External insulin saved to pumphistory.json")
+
+            // perform determine basal sync
+            apsManager.determineBasalSync()
+        }
     }
 }
 
-extension Bolus.StateModel: SuggestionObserver {
+extension Bolus.StateModel: SuggestionObserver, BolusFailureObserver {
     func suggestionDidUpdate(_: Suggestion) {
         DispatchQueue.main.async {
             self.waitForSuggestion = false
+            if self.addButtonPressed {
+                self.hideModal()
+            }
         }
         setupInsulinRequired()
+    }
+
+    func bolusDidFail() {
+        DispatchQueue.main.async {
+            self.waitForSuggestion = false
+            if self.addButtonPressed {
+                self.hideModal()
+            }
+        }
     }
 }

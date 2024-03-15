@@ -77,7 +77,7 @@ struct CurrentGlucoseView: View {
                                     .string(from: Double(units == .mmolL ? $0.asMmolL : Decimal($0)) as NSNumber)! }
                             ?? "--"
                     )
-                    .font(.system(size: 40, weight: .bold))
+                    .font(.system(size: 40, weight: .bold, design: .rounded))
                     .foregroundColor(alarm == nil ? colourGlucoseText : .loopRed)
                 }
                 HStack {

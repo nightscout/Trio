@@ -358,6 +358,9 @@ extension Home {
 
                 MainChartView(
                     glucose: $state.glucose,
+                    manualGlucose: $state.manualGlucose,
+                    carbsForChart: $state.carbsForChart,
+                    fpusForChart: $state.fpusForChart,
                     units: $state.units,
                     eventualBG: $state.eventualBG,
                     suggestion: $state.suggestion,
@@ -370,7 +373,6 @@ extension Home {
                     autotunedBasalProfile: $state.autotunedBasalProfile,
                     basalProfile: $state.basalProfile,
                     tempTargets: $state.tempTargets,
-                    carbs: $state.carbs,
                     smooth: $state.smooth,
                     highGlucose: $state.highGlucose,
                     lowGlucose: $state.lowGlucose,
@@ -463,7 +465,7 @@ extension Home {
                         (numberFormatter.string(from: (state.suggestion?.iob ?? 0) as NSNumber) ?? "0") +
                             NSLocalizedString(" U", comment: "Insulin unit")
                     )
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
                 }
 
                 Spacer()
@@ -476,7 +478,7 @@ extension Home {
                         (numberFormatter.string(from: (state.suggestion?.cob ?? 0) as NSNumber) ?? "0") +
                             NSLocalizedString(" g", comment: "gram of carbs")
                     )
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
                 }
 
                 Spacer()
@@ -484,13 +486,13 @@ extension Home {
                 HStack {
                     if state.pumpSuspended {
                         Text("Pump suspended")
-                            .font(.system(size: 12, weight: .bold)).foregroundColor(.loopGray)
+                            .font(.system(size: 12, weight: .bold, design: .rounded)).foregroundColor(.loopGray)
                     } else if let tempBasalString = tempBasalString {
                         Image(systemName: "drop.circle")
                             .font(.system(size: 16))
                             .foregroundColor(.insulinTintColor)
                         Text(tempBasalString)
-                            .font(.system(size: 16, weight: .bold))
+                            .font(.system(size: 16, weight: .bold, design: .rounded))
                     }
                 }
                 if !state.tins {
@@ -499,7 +501,7 @@ extension Home {
                         "TDD: " + (numberFormatter.string(from: (state.suggestion?.tdd ?? 0) as NSNumber) ?? "0") +
                             NSLocalizedString(" U", comment: "Insulin unit")
                     )
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
                 } else {
                     Spacer()
                     HStack {
@@ -507,7 +509,7 @@ extension Home {
                             "TINS: \(state.roundedTotalBolus)" +
                                 NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
                         )
-                        .font(.system(size: 16, weight: .bold))
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
                         .onChange(of: state.hours) { _ in
                             state.roundedTotalBolus = state.calculateTINS()
                         }
@@ -690,6 +692,7 @@ extension Home {
                     Spacer()
 
                     Button {
+                        state.waitForSuggestion = true
                         state.cancelBolus()
                     } label: {
                         Image(systemName: "xmark.app")
@@ -707,8 +710,8 @@ extension Home {
         @ViewBuilder func mainView() -> some View {
             GeometryReader { geo in
                 VStack(spacing: 0) {
-                    Spacer()
-                        .frame(height: UIScreen.main.bounds.height / 16)
+//                    Spacer()
+//                        .frame(height: UIScreen.main.bounds.height / 40)
 
                     ZStack {
                         /// glucose bobble
@@ -729,29 +732,17 @@ extension Home {
 
                     mealPanel(geo).padding(.top, 30).padding(.bottom, 20)
 
-                    RoundedRectangle(cornerRadius: 15)
-                        .fill(Color("Chart"))
-                        .overlay(mainChart)
-                        .clipShape(RoundedRectangle(cornerRadius: 15))
-                        .shadow(
-                            color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
-                                Color.black.opacity(0.33),
-                            radius: 3
-                        )
-                        .padding(.horizontal, 10)
-                        .frame(maxHeight: UIScreen.main.bounds.height / 2.2)
+                    mainChart
 
-                    timeInterval.padding(.top, 15).padding(.bottom, 30)
+                    timeInterval.padding(.top, 20).padding(.bottom, 40)
 
                     if let progress = state.bolusProgress {
-                        bolusView(geo, progress)
+                        bolusView(geo, progress).padding(.bottom, 10)
                     } else {
-                        profileView(geo)
+                        profileView(geo).padding(.bottom, 10)
                     }
                 }
-
                 .background(color)
-                .edgesIgnoringSafeArea(.all)
             }
             .onChange(of: state.hours) { _ in
                 highlightButtons()
@@ -787,80 +778,62 @@ extension Home {
             }
         }
 
-        @ViewBuilder func tabBarButton(index: Int, systemName: String, label: String) -> some View {
-            Button(action: {
-                selectedTab = index
-            }) {
-                ZStack(alignment: .bottom, content: {
-                    VStack {
-                        Image(systemName: systemName)
-                            .font(.system(size: 22))
-                            .foregroundStyle(selectedTab == index ? Color(.label) : Color.gray)
-                        Text(label)
-                            .font(.caption2)
-                            .foregroundStyle(selectedTab == index ? Color(.label) : Color.gray)
-                            .padding(.top, 1)
-                    }
-                    if selectedTab == index {
-                        Capsule()
-                            .frame(width: 25, height: 5)
-                            .foregroundStyle(Color(.label))
-                            .offset(y: 10)
-                    }
-                })
-            }
-        }
+        @ViewBuilder func tabBar() -> some View {
+            ZStack(alignment: .bottom) {
+                TabView {
+                    let carbsRequiredBadge: String? = {
+                        guard let carbsRequired = state.carbsRequired else { return nil }
+                        return carbsRequired > 0 ? "\(numberFormatter.string(from: carbsRequired as NSNumber) ?? "") " +
+                            NSLocalizedString("g", comment: "Short representation of grams") : nil
+                    }()
 
-        @ViewBuilder func customTabBar() -> some View {
-            VStack {
-                ZStack {
-                    switch selectedTab {
-                    case 0:
-                        mainView()
-                    case 1:
-                        NavigationStack { DataTable.RootView(resolver: resolver) }
-                    case 2:
-                        NavigationStack { OverrideProfilesConfig.RootView(resolver: resolver) }
-                    case 3:
-                        NavigationStack { Settings.RootView(resolver: resolver) }
-                    default:
-                        mainView()
-                    }
+                    NavigationStack { mainView() }
+                        .tabItem { Label("Main", systemImage: "chart.xyaxis.line") }
+                        .badge(carbsRequiredBadge)
+
+                    NavigationStack { DataTable.RootView(resolver: resolver) }
+                        .tabItem { Label("History", systemImage: historySFSymbol) }
+
+                    Spacer()
+
+                    NavigationStack { OverrideProfilesConfig.RootView(resolver: resolver) }
+                        .tabItem {
+                            Label(
+                                "Profile",
+                                systemImage: "person.fill"
+                            ) }
+
+                    NavigationStack { Settings.RootView(resolver: resolver) }
+                        .tabItem {
+                            Label(
+                                "Menu",
+                                systemImage: "text.justify"
+                            ) }
                 }
-                HStack {
-                    tabBarButton(
-                        index: 0,
-                        systemName: selectedTab == 0 ? "house.fill" : "house",
-                        label: "Home"
-                    )
-                    Spacer()
-                    tabBarButton(index: 1, systemName: historySFSymbol, label: "History")
-                    Spacer()
-                    Button(action: {
-                        state.showModal(for: .bolus(waitForSuggestion: false, fetch: false))
-                    }) {
+                .tint(Color.tabBar)
+
+                Button(
+                    action: {
+                        state.showModal(for: .bolus(waitForSuggestion: false, fetch: false)) },
+                    label: {
                         Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 45))
+                            .font(.system(size: 40))
                             .foregroundStyle(Color.tabBar)
-                            .padding(.bottom, 2)
+                            .padding(.bottom, 1)
+                            .padding(.horizontal, 20)
                     }
-                    Spacer()
-                    tabBarButton(
-                        index: 2,
-                        systemName: selectedTab == 2 ? "person.fill" : "person",
-                        label: "Profile"
-                    )
-                    Spacer()
-                    tabBarButton(index: 3, systemName: "text.justify", label: "Menu")
-                }
-                .padding(.horizontal, 20)
-            }
-            .ignoresSafeArea(.keyboard, edges: .bottom)
-            .blur(radius: isMenuPresented ? 5 : 0)
+                )
+            }.ignoresSafeArea(.keyboard, edges: .bottom).blur(radius: state.waitForSuggestion ? 8 : 0)
         }
 
         var body: some View {
-            customTabBar()
+            ZStack(alignment: .center) {
+                tabBar()
+
+                if state.waitForSuggestion {
+                    CustomProgressView(text: "Updating IOB...")
+                }
+            }
         }
 
         private var popup: some View {

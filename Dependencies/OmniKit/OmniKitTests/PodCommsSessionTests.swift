@@ -20,7 +20,7 @@ class PodCommsSessionTests: XCTestCase {
 
 
     override func setUp() {
-        podState = PodState(address: address, pmVersion: "2.7.0", piVersion: "2.7.0", lot: 43620, tid: 560313, insulinType: .novolog)
+        podState = PodState(address: address, pmVersion: "2.7.0", piVersion: "2.7.0", lot: 43620, tid: 560313, insulinType: .novolog, initialDeliveryStatus: .scheduledBasal)
         mockTransport = MockMessageTransport(address: podState.address, messageNumber: 5)
     }
 
@@ -34,6 +34,9 @@ class PodCommsSessionTests: XCTestCase {
             // 2018-05-26T09:11:08.580347 pod Message(1f16b11e seq:06 [OmniKitPacketParser.ErrorResponse(blockType: OmniKitPacketParser.MessageBlockType.errorResponse, errorReponseType: OmniKitPacketParser.ErrorResponse.ErrorReponseType.badNonce, nonceSearchKey: 43492, data: 5 bytes)])
             mockTransport.addResponse(try ErrorResponse(encodedData: Data(hexadecimalString: "060314a9e403f5")!))
             mockTransport.addResponse(try StatusResponse(encodedData: Data(hexadecimalString: "1d5800d1a8140012e3ff8018")!))
+            // These responses are for session.bolus() which verifies that the pod is not bolusing before sending a bolus command
+            mockTransport.addResponse(try StatusResponse(encodedData: Data(hexadecimalString: "1d180160a800001cd3ff001e")!)) // not bolusing
+            mockTransport.addResponse(try StatusResponse(encodedData: Data(hexadecimalString: "1d580160e014001cd7ff81ce")!)) // bolus successfully started
         } catch (let error) {
             XCTFail("message decoding threw error: \(error)")
             return
@@ -61,11 +64,12 @@ class PodCommsSessionTests: XCTestCase {
             XCTFail("message sending error: \(error)")
         }
 
-        // Try sending another bolus command: nonce should be 676940027
+        // Try sending another bolus command: nonce should be 545302454
         XCTAssertEqual(545302454, lastPodStateUpdate!.currentNonce)
 
         let _ = session.bolus(units: 2, automatic: false)
-        let bolusTry3 = mockTransport.sentMessages[2].messageBlocks[0] as! SetInsulinScheduleCommand
+        let lastSentMessageIndex = mockTransport.sentMessages.endIndex - 1
+        let bolusTry3 = mockTransport.sentMessages[lastSentMessageIndex].messageBlocks[0] as! SetInsulinScheduleCommand
         XCTAssertEqual(545302454, bolusTry3.nonce)
 
     }

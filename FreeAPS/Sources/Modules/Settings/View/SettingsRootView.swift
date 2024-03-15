@@ -176,7 +176,7 @@ extension Settings {
                     ShareSheet(activityItems: state.logItems())
                 }
                 .onAppear(perform: configureView)
-                .navigationTitle("Menü")
+                .navigationTitle("Menu")
                 .navigationBarTitleDisplayMode(.large)
                 .onDisappear(perform: { state.uploadProfileAndSettings(false) })
         }

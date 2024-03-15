@@ -2217,3 +2217,6 @@ Un 1.0 de valor permite un ajuste completo con el nuevo factor de sensibilidad d
 
 /* Headline "Adjustment Factor" */
 "Adjustment Factor" = "Adjustment Factor";
+
+/* Menu */
+"Menu" = "Menú";

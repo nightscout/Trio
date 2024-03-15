@@ -2216,3 +2216,6 @@ Enact a temp Basal or a temp target */
 
 /* Headline "Adjustment Factor" */
 "Adjustment Factor" = "Düzeltme Katsayısı";
+
+/* Menu */
+"Menu" = "Menu";

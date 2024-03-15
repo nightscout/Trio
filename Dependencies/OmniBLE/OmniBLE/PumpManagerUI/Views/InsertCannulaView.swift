@@ -120,10 +120,11 @@ struct InsertCannulaView: View {
             secondaryButton: .default(FrameworkLocalText("No, Continue With Pod", comment: "Continue pairing button title of in pairing cancel modal"))
         )
     }
+
 }
 
 class MockCannulaInserter: CannulaInserter {
-    public func insertCannula(completion: @escaping (Result<TimeInterval,OmniBLEPumpManagerError>) -> Void) {
+    func insertCannula(completion: @escaping (Result<TimeInterval,OmniBLEPumpManagerError>) -> Void) {
         let mockDelay = TimeInterval(seconds: 3)
         let result :Result<TimeInterval, OmniBLEPumpManagerError> = .success(mockDelay)
         completion(result)
@@ -132,6 +133,8 @@ class MockCannulaInserter: CannulaInserter {
     func checkCannulaInsertionFinished(completion: @escaping (OmniBLEPumpManagerError?) -> Void) {
         completion(nil)
     }
+
+    var cannulaInsertionSuccessfullyStarted: Bool = false
 }
 
 struct InsertCannulaView_Previews: PreviewProvider {

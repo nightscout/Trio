@@ -8,6 +8,7 @@ struct DecimalTextField: UIViewRepresentable {
     private var autofocus: Bool
     private var cleanInput: Bool
     private var useButtons: Bool
+    private var textColor: UIColor?
 
     init(
         _ placeholder: String,
@@ -15,7 +16,8 @@ struct DecimalTextField: UIViewRepresentable {
         formatter: NumberFormatter,
         autofocus: Bool = false,
         cleanInput: Bool = false,
-        useButtons: Bool = true
+        useButtons: Bool = true,
+        textColor: UIColor? = nil
     ) {
         self.placeholder = placeholder
         _value = value
@@ -23,6 +25,7 @@ struct DecimalTextField: UIViewRepresentable {
         self.autofocus = autofocus
         self.cleanInput = cleanInput
         self.useButtons = useButtons
+        self.textColor = textColor
     }
 
     func makeUIView(context: Context) -> UITextField {
@@ -32,6 +35,10 @@ struct DecimalTextField: UIViewRepresentable {
         textfield.placeholder = placeholder
         textfield.text = cleanInput ? "" : formatter.string(for: value) ?? placeholder
         textfield.textAlignment = .right
+
+        if let textColor = textColor {
+            textfield.textColor = textColor
+        }
 
         lazy var toolBar: UIToolbar = {
             let tool: UIToolbar = .init(frame: .init(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 35))

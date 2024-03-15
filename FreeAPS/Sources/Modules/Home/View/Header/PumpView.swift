@@ -46,13 +46,13 @@ struct PumpView: View {
                         .font(.system(size: 16))
                         .foregroundColor(reservoirColor)
                     if reservoir == 0xDEAD_BEEF {
-                        Text("50+ " + NSLocalizedString("U", comment: "Insulin unit")).font(.system(size: 15))
+                        Text("50+ " + NSLocalizedString("U", comment: "Insulin unit")).font(.system(size: 15, design: .rounded))
                     } else {
                         Text(
                             reservoirFormatter
                                 .string(from: reservoir as NSNumber)! + NSLocalizedString(" U", comment: "Insulin unit")
                         )
-                        .font(.system(size: 16))
+                        .font(.system(size: 16, design: .rounded))
                     }
                 }
 
@@ -69,7 +69,7 @@ struct PumpView: View {
                     Image(systemName: "battery.100")
                         .font(.system(size: 16))
                         .foregroundColor(batteryColor)
-                    Text("\(Int(battery.percent ?? 100)) %").font(.system(size: 16))
+                    Text("\(Int(battery.percent ?? 100)) %").font(.system(size: 16, design: .rounded))
                 }
             }
 
@@ -79,7 +79,7 @@ struct PumpView: View {
                         .font(.system(size: 16))
                         .foregroundColor(timerColor)
 
-                    Text(remainingTimeString(time: date.timeIntervalSince(timerDate))).font(.system(size: 16))
+                    Text(remainingTimeString(time: date.timeIntervalSince(timerDate))).font(.system(size: 16, design: .rounded))
                 }
             }
         }
