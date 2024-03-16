@@ -783,7 +783,8 @@ extension Home {
                 TabView {
                     let carbsRequiredBadge: String? = {
                         guard let carbsRequired = state.carbsRequired else { return nil }
-                        return carbsRequired > 0 ? "\(numberFormatter.string(from: carbsRequired as NSNumber) ?? "") " +
+                        return carbsRequired > state.settingsManager.settings
+                            .carbsRequiredThreshold ? "\(numberFormatter.string(from: carbsRequired as NSNumber) ?? "") " +
                             NSLocalizedString("g", comment: "Short representation of grams") : nil
                     }()
 
