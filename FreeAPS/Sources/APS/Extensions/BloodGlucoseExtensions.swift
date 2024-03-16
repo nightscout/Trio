@@ -47,5 +47,4 @@ extension BloodGlucose.Direction {
             self = .none
         }
     }
-
 }

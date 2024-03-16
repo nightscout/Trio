@@ -183,4 +183,3 @@ extension LibreTransmitterSource: CGMManagerDelegate {
 
     func recordRetractedAlert(_: LoopKit.Alert, at _: Date) {}
 }
-

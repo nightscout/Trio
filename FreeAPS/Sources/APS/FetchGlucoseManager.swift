@@ -19,7 +19,6 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     @Injected() var nightscoutManager: NightscoutManager!
     @Injected() var apsManager: APSManager!
     @Injected() var settingsManager: SettingsManager!
-    @Injected() var libreTransmitter: LibreTransmitterSource!
     @Injected() var healthKitManager: HealthKitManager!
     @Injected() var deviceDataManager: DeviceDataManager!
 
@@ -30,6 +29,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     private lazy var dexcomSourceG5 = DexcomSourceG5(glucoseStorage: glucoseStorage, glucoseManager: self)
     private lazy var dexcomSourceG6 = DexcomSourceG6(glucoseStorage: glucoseStorage, glucoseManager: self)
     private lazy var dexcomSourceG7 = DexcomSourceG7(glucoseStorage: glucoseStorage, glucoseManager: self)
+    private lazy var libreSource = LibreTransmitterSource(glucoseStorage: glucoseStorage, glucoseManager: self)
     private lazy var simulatorSource = GlucoseSimulatorSource()
 
     init(resolver: Resolver) {
@@ -55,7 +55,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         case .simulator:
             glucoseSource = simulatorSource
         case .libreTransmitter:
-            glucoseSource = libreTransmitter
+            glucoseSource = libreSource
         case .glucoseDirect:
             glucoseSource = AppGroupSource(from: "GlucoseDirect", cgmType: .glucoseDirect)
         case .enlite:
@@ -63,12 +63,6 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         }
         // update the config
         cgmGlucoseSourceType = settingsManager.settings.cgm
-
-        if settingsManager.settings.cgm != .libreTransmitter {
-            libreTransmitter.manager = nil
-        } else {
-            libreTransmitter.glucoseManager = self
-        }
     }
 
     /// function called when a callback is fired by CGM BLE - no more used
