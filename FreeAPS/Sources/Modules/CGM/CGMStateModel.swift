@@ -6,7 +6,6 @@ import SwiftUI
 
 extension CGM {
     final class StateModel: BaseStateModel<Provider> {
-        @Injected() var libreSource: LibreTransmitterSource!
         @Injected() var cgmManager: FetchGlucoseManager!
         @Injected() var calendarManager: CalendarManager!
 

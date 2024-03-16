@@ -2,6 +2,8 @@ import CGMBLEKit
 import CGMBLEKitUI
 import G7SensorKit
 import G7SensorKitUI
+import LibreTransmitter
+import LibreTransmitterUI
 import LoopKit
 import LoopKitUI
 import SwiftUI
@@ -53,6 +55,14 @@ extension CGM {
                         allowDebugFeatures: false,
                         prefersToSkipUserInteraction: false
                     )
+            case .libreTransmitter:
+                setupViewController = LibreTransmitterManagerV3.setupViewController(
+                    bluetoothProvider: bluetoothManager,
+                    displayGlucosePreference: displayGlucosePreference,
+                    colorPalette: .default,
+                    allowDebugFeatures: false,
+                    prefersToSkipUserInteraction: false
+                )
             default:
                 break
             }
