@@ -1,9 +1,0 @@
-/* Title displayed during backfill response */
-"Backfill" = "מילוי לאחור";
-
-/* Title displayed during error response */
-"Error" = "שגיאה";
-
-/* Title displayed during unknown data response */
-"Unknown Data" = "מידע לא ידוע";
-

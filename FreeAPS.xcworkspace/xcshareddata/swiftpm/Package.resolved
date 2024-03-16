@@ -2,29 +2,11 @@
   "object": {
     "pins": [
       {
-        "package": "CryptoSwift",
-        "repositoryURL": "https://github.com/krzyzanowskim/CryptoSwift",
-        "state": {
-          "branch": null,
-          "revision": "19b3c3ceed117c5cc883517c4e658548315ba70b",
-          "version": "1.6.0"
-        }
-      },
-      {
         "package": "MKRingProgressView",
         "repositoryURL": "https://github.com/maxkonovalov/MKRingProgressView.git",
         "state": {
           "branch": "master",
           "revision": "660888aab1d2ab0ed7eb9eb53caec12af4955fa7",
-          "version": null
-        }
-      },
-      {
-        "package": "SlideButton",
-        "repositoryURL": "https://github.com/no-comment/SlideButton",
-        "state": {
-          "branch": "main",
-          "revision": "5eacebba4d7deeb693592bc9a62ab2d2181e133b",
           "version": null
         }
       },

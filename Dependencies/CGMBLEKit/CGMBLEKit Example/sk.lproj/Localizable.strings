@@ -1,6 +1,0 @@
-/* Title displayed during error response */
-"Error" = "Chyba";
-
-/* Title displayed during unknown data response */
-"Unknown Data" = "Neznáme dáta";
-
