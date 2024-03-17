@@ -1,9 +1,0 @@
-/* Title displayed during backfill response */
-"Backfill" = "Completare retroactivă";
-
-/* Title displayed during error response */
-"Error" = "Eroare";
-
-/* Title displayed during unknown data response */
-"Unknown Data" = "Date necunoscute";
-

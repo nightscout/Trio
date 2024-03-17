@@ -1,9 +1,0 @@
-/* Title displayed during backfill response */
-"Backfill" = "Dolgu";
-
-/* Title displayed during error response */
-"Error" = "Hata";
-
-/* Title displayed during unknown data response */
-"Unknown Data" = "Bilinmeyen Veri";
-

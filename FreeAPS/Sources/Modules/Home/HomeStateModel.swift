@@ -357,8 +357,8 @@ extension Home {
                 url = URL(string: "spikeapp://")!
             case "http://127.0.0.1:17580":
                 url = URL(string: "diabox://")!
-            case CGMType.libreTransmitter.appURL?.absoluteString:
-                showModal(for: .libreConfig)
+//            case CGMType.libreTransmitter.appURL?.absoluteString:
+//                showModal(for: .libreConfig)
             default: break
             }
             UIApplication.shared.open(url, options: [:], completionHandler: nil)

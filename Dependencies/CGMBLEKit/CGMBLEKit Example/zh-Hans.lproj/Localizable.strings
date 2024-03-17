@@ -1,9 +1,0 @@
-/* Title displayed during backfill response */
-"Backfill" = "数据回填";
-
-/* Title displayed during error response */
-"Error" = "错误";
-
-/* Title displayed during unknown data response */
-"Unknown Data" = "未知数据";
-
