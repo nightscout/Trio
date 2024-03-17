@@ -14,28 +14,28 @@ extension CGM {
             NavigationView {
                 Form {
                     Section(header: Text("CGM")) {
-                        Picker("Type", selection: $state.cgm) {
-                            ForEach(CGMType.allCases) { type in
+                        Picker("Type", selection: $state.cgmCurrent) {
+                            ForEach(state.listOfCGM) { type in
                                 VStack(alignment: .leading) {
                                     Text(type.displayName)
                                     Text(type.subtitle).font(.caption).foregroundColor(.secondary)
                                 }.tag(type)
                             }
                         }
-                        if let link = state.cgm.externalLink {
+                        if let link = state.cgmCurrent.type.externalLink {
                             Button("About this source") {
                                 UIApplication.shared.open(link, options: [:], completionHandler: nil)
                             }
                         }
                     }
-                    if [.dexcomG5, .dexcomG6, .dexcomG7, .libreTransmitter].contains(state.cgm) {
+                    if state.cgmCurrent.type == .plugin {
                         Section {
                             Button("CGM Configuration") {
                                 setupCGM.toggle()
                             }
                         }
                     }
-                    if state.cgm == .xdrip {
+                    if state.cgmCurrent.type == .xdrip {
                         Section(header: Text("Heartbeat")) {
                             VStack(alignment: .leading) {
                                 if let cgmTransmitterDeviceAddress = state.cgmTransmitterDeviceAddress {
@@ -67,20 +67,25 @@ extension CGM {
                 .navigationTitle("CGM")
                 .navigationBarTitleDisplayMode(.automatic)
                 .sheet(isPresented: $setupCGM) {
-                    if let cgmFetchManager = state.cgmManager, cgmFetchManager.glucoseSource.cgmType == state.cgm {
+                    if let cgmFetchManager = state.cgmManager,
+                       let cgmManager = cgmFetchManager.cgmManager,
+                       state.cgmCurrent.type == cgmFetchManager.cgmGlucoseSourceType,
+                       state.cgmCurrent.id == cgmFetchManager.cgmGlucosePluginId
+                    {
                         CGMSettingsView(
-                            cgmManager: cgmFetchManager.glucoseSource.cgmManager!,
+                            cgmManager: cgmManager,
                             bluetoothManager: state.provider.apsManager.bluetoothManager!,
                             unit: state.settingsManager.settings.units,
                             completionDelegate: state
                         )
                     } else {
                         CGMSetupView(
-                            CGMType: state.cgm,
+                            CGMType: state.cgmCurrent,
                             bluetoothManager: state.provider.apsManager.bluetoothManager!,
                             unit: state.settingsManager.settings.units,
                             completionDelegate: state,
-                            setupDelegate: state
+                            setupDelegate: state,
+                            pluginCGMManager: self.state.pluginCGMManager
                         )
                     }
                 }

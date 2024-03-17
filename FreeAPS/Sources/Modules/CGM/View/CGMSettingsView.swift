@@ -5,7 +5,7 @@ import UIKit
 
 extension CGM {
     struct CGMSettingsView: UIViewControllerRepresentable {
-        let cgmManager: CGMManagerUI
+        let cgmManager: CGMManagerUI?
         let bluetoothManager: BluetoothStateManager
         let unit: GlucoseUnits
         weak var completionDelegate: CompletionDelegate?
@@ -18,6 +18,8 @@ extension CGM {
             case .mmolL:
                 displayGlucosePreference = DisplayGlucosePreference(displayGlucoseUnit: .millimolesPerLiter)
             }
+
+            guard let cgmManager = cgmManager else { return UIViewController() }
 
             var vc = cgmManager.settingsViewController(
                 bluetoothProvider: bluetoothManager,

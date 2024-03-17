@@ -1,17 +1,14 @@
-import CGMBLEKit
 import Combine
 import Foundation
 import LoopKit
 import LoopKitUI
-import ShareClient
 
-final class DexcomSourceG5: GlucoseSource {
+final class PluginSource: GlucoseSource {
     private let processQueue = DispatchQueue(label: "DexcomSource.processQueue")
     private let glucoseStorage: GlucoseStorage!
     var glucoseManager: FetchGlucoseManager?
 
     var cgmManager: CGMManagerUI?
-    var cgmType: CGMType = .dexcomG5
 
     var cgmHasValidSensorSession: Bool = false
 
@@ -20,18 +17,10 @@ final class DexcomSourceG5: GlucoseSource {
     init(glucoseStorage: GlucoseStorage, glucoseManager: FetchGlucoseManager) {
         self.glucoseStorage = glucoseStorage
         self.glucoseManager = glucoseManager
-        cgmManager = G5CGMManager
-            .init(state: TransmitterManagerState(
-                transmitterID: UserDefaults.standard
-                    .dexcomTransmitterID ?? "000000",
-                shouldSyncToRemoteService: glucoseManager.settingsManager.settings.uploadGlucose
-            ))
-        cgmManager?.cgmManagerDelegate = self
-    }
 
-    var transmitterID: String {
-        guard let cgmG5Manager = cgmManager as? G5CGMManager else { return "000000" }
-        return cgmG5Manager.transmitter.ID
+        cgmManager = glucoseManager.cgmManager
+        cgmManager?.delegateQueue = processQueue
+        cgmManager?.cgmManagerDelegate = self
     }
 
     func fetch(_: DispatchTimer?) -> AnyPublisher<[BloodGlucose], Never> {
@@ -66,7 +55,7 @@ final class DexcomSourceG5: GlucoseSource {
     }
 }
 
-extension DexcomSourceG5: CGMManagerDelegate {
+extension PluginSource: CGMManagerDelegate {
     func deviceManager(
         _: LoopKit.DeviceManager,
         logEventForDeviceIdentifier deviceIdentifier: String?,
@@ -96,15 +85,16 @@ extension DexcomSourceG5: CGMManagerDelegate {
     func recordRetractedAlert(_: LoopKit.Alert, at _: Date) {}
 
     func cgmManagerWantsDeletion(_ manager: CGMManager) {
-        dispatchPrecondition(condition: .onQueue(.main))
+        dispatchPrecondition(condition: .onQueue(processQueue))
         debug(.deviceManager, " CGM Manager with identifier \(manager.pluginIdentifier) wants deletion")
+        // TODO:
         glucoseManager?.cgmGlucoseSourceType = nil
     }
 
     func cgmManager(_ manager: CGMManager, hasNew readingResult: CGMReadingResult) {
-        dispatchPrecondition(condition: .onQueue(.main))
+        dispatchPrecondition(condition: .onQueue(processQueue))
         processCGMReadingResult(manager, readingResult: readingResult) {
-            debug(.deviceManager, "DEXCOM - Direct return done")
+            debug(.deviceManager, "CGM PLUGIN - Direct return done")
         }
     }
 
@@ -116,18 +106,17 @@ extension DexcomSourceG5: CGMManagerDelegate {
     }
 
     func startDateToFilterNewData(for _: CGMManager) -> Date? {
-        dispatchPrecondition(condition: .onQueue(.main))
+        dispatchPrecondition(condition: .onQueue(processQueue))
         return glucoseStorage.lastGlucoseDate()
-        //  return glucoseStore.latestGlucose?.startDate
     }
 
-    func cgmManagerDidUpdateState(_ manager: CGMManager) {
+    func cgmManagerDidUpdateState(_: CGMManager) {
         dispatchPrecondition(condition: .onQueue(processQueue))
-        guard let g5Manager = manager as? TransmitterManager else {
-            return
-        }
-        glucoseManager?.settingsManager.settings.uploadGlucose = g5Manager.shouldSyncToRemoteService
-        UserDefaults.standard.dexcomTransmitterID = g5Manager.rawState["transmitterID"] as? String
+//        guard let g6Manager = manager as? TransmitterManager else {
+//            return
+//        }
+//        glucoseManager?.settingsManager.settings.uploadGlucose = g6Manager.shouldSyncToRemoteService
+//        UserDefaults.standard.dexcomTransmitterID = g6Manager.rawState["transmitterID"] as? String
     }
 
     func credentialStoragePrefix(for _: CGMManager) -> String {
@@ -136,7 +125,7 @@ extension DexcomSourceG5: CGMManagerDelegate {
     }
 
     func cgmManager(_: CGMManager, didUpdate status: CGMManagerStatus) {
-        DispatchQueue.main.async {
+        processQueue.async {
             if self.cgmHasValidSensorSession != status.hasValidSensorSession {
                 self.cgmHasValidSensorSession = status.hasValidSensorSession
             }
@@ -148,9 +137,10 @@ extension DexcomSourceG5: CGMManagerDelegate {
         readingResult: CGMReadingResult,
         completion: @escaping () -> Void
     ) {
-        debug(.deviceManager, "DEXCOM - Process CGM Reading Result launched")
+        debug(.deviceManager, "PLUGIN CGM - Process CGM Reading Result launched with \(readingResult)")
         switch readingResult {
         case let .newData(values):
+
             let bloodGlucose = values.compactMap { newGlucoseSample -> BloodGlucose? in
                 let quantity = newGlucoseSample.quantity
                 let value = Int(quantity.doubleValue(for: .milligramsPerDeciliter))
@@ -164,8 +154,10 @@ extension DexcomSourceG5: CGMManagerDelegate {
                     filtered: nil,
                     noise: nil,
                     glucose: value,
-                    type: "sgv",
-                    transmitterID: self.transmitterID
+                    type: "sgv"
+//                    activationDate: activationDate,
+//                    sessionStartDate: sessionStartDate
+//                    transmitterID: self.transmitterID
                 )
             }
             promise?(.success(bloodGlucose))
@@ -184,8 +176,8 @@ extension DexcomSourceG5: CGMManagerDelegate {
     }
 }
 
-extension DexcomSourceG5 {
+extension PluginSource {
     func sourceInfo() -> [String: Any]? {
-        [GlucoseSourceKey.description.rawValue: "Dexcom tramsmitter ID: \(transmitterID)"]
+        [GlucoseSourceKey.description.rawValue: "Plugin CGM source"]
     }
 }

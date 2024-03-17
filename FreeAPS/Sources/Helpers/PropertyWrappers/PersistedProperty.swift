@@ -48,3 +48,53 @@ import Foundation
         }
     }
 }
+
+@propertyWrapper public struct PersistedProperty<Value> {
+    let key: String
+    let storageURL: URL
+
+    public init(key: String) {
+        self.key = key
+
+        let documents: URL
+
+        guard let localDocuments = try? FileManager.default.url(
+            for: .documentDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil,
+            create: true
+        ) else {
+            preconditionFailure("Could not get a documents directory URL.")
+        }
+        documents = localDocuments
+        storageURL = documents.appendingPathComponent(key + ".plist")
+    }
+
+    public var wrappedValue: Value? {
+        get {
+            do {
+                let data = try Data(contentsOf: storageURL)
+
+                guard let value = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? Value
+                else {
+                    return nil
+                }
+                return value
+            } catch {}
+            return nil
+        }
+        set {
+            guard let newValue = newValue else {
+                do {
+                    try FileManager.default.removeItem(at: storageURL)
+                } catch {}
+                return
+            }
+            do {
+                let data = try PropertyListSerialization.data(fromPropertyList: newValue, format: .binary, options: 0)
+                try data.write(to: storageURL, options: .atomic)
+
+            } catch {}
+        }
+    }
+}
