@@ -1570,11 +1570,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
     rT.reason += tddReason;
 
-    //If SMB delivery ratio is other than default 0.5
-    if (profile.smb_delivery_ratio != 0.5) {
-        rT.reason += ", SMB Ratio: " + profile.smb_delivery_ratio;
-    }
-
     rT.reason += "; "; // reason.conclusion started
 // Use minGuardBG to prevent overdosing in hypo-risk situations
     // use naive_eventualBG if above 40, but switch to minGuardBG if both eventualBGs hit floor of 39
@@ -1946,7 +1941,7 @@ var maxDelta_bg_threshold;
             //if (profile.bolus_increment) { bolusIncrement=profile.bolus_increment };
             var roundSMBTo = 1 / bolusIncrement;
 
-            var smb_ratio = profile.smb_delivery_ratio;
+            var smb_ratio = Math.min(profile.smb_delivery_ratio, 1);
 
             if (smb_ratio > 0.5) {
                 console.error("SMB Delivery Ratio increased from default 0.5 to " + round(smb_ratio,2))

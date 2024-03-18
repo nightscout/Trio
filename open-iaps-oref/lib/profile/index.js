@@ -20,7 +20,7 @@ function defaults ( ) {
     , sensitivity_raises_target: false // raise BG target when autosens detects sensitivity
     , resistance_lowers_target: false // lower BG target when autosens detects resistance
     , exercise_mode: false // when true, > 100 mg/dL high temp target adjusts sensitivityRatio for exercise_mode. This majorly changes the behavior of high temp targets from before. synonmym for high_temptarget_raises_sensitivity
-    , half_basal_exercise_target: 160 // when temptarget is 150 mg/dL *and* exercise_mode=true, run 50% basal at this level (120 = 75%; 140 = 60%)
+    , half_basal_exercise_target: 160 // when temptarget is 160 mg/dL *and* exercise_mode=true, run 50% basal at this level (120 = 75%; 140 = 60%)
     // create maxCOB and default it to 120 because that's the most a typical body can absorb over 4 hours.
     // (If someone enters more carbs or stacks more; OpenAPS will just truncate dosing based on 120.
     // Essentially, this just limits AMA/SMB as a safety cap against excessive COB entry)
