@@ -131,7 +131,7 @@ extension Home {
             )
             .onTapGesture {
                 if state.alarm == nil {
-                    state.openCGM()
+                    state.setupCGM = true
                 } else {
                     state.showModal(for: .snooze)
                 }
@@ -142,7 +142,7 @@ extension Home {
                 if state.alarm == nil {
                     state.showModal(for: .snooze)
                 } else {
-                    state.openCGM()
+                    state.setupCGM = true
                 }
             }
         }

@@ -9,6 +9,7 @@ extension Home {
         @Injected() var broadcaster: Broadcaster!
         @Injected() var apsManager: APSManager!
         @Injected() var nightscoutManager: NightscoutManager!
+        @Injected() var fetchGlucoseManager: FetchGlucoseManager!
         private let timer = DispatchTimer(timeInterval: 5)
         private(set) var filteredHours = 24
         @Published var glucose: [BloodGlucose] = []
@@ -38,6 +39,7 @@ extension Home {
         @Published var pumpExpiresAtDate: Date?
         @Published var tempTarget: TempTarget?
         @Published var setupPump = false
+        @Published var setupCGM = false
         @Published var errorMessage: String? = nil
         @Published var errorDate: Date? = nil
         @Published var bolusProgress: Decimal?
@@ -185,6 +187,46 @@ extension Home {
                             setupDelegate: self
                         ).asAny()
                         self.router.mainSecondaryModalView.send(view)
+                    } else {
+                        self.router.mainSecondaryModalView.send(nil)
+                    }
+                }
+                .store(in: &lifetime)
+            
+            /// display the correct link / behavior when click on the CGM home veiw
+            /// 3 cases :
+            /// - url is available with direct deeplink
+            /// - type nightscout > deeplink depends of the http address
+            /// - type plugin > display the screen of settings
+            $setupCGM
+                .sink { [weak self] show in
+                    guard let self = self else { return }
+                    if show {
+                        if let deeplink = self.settingsManager.settings.cgm.appURL {
+                            UIApplication.shared.open(deeplink, options: [:], completionHandler: nil)
+                            self.router.mainSecondaryModalView.send(nil)
+                        } else if self.settingsManager.settings.cgm == .nightscout, var url = self.nightscoutManager.cgmURL {
+                            switch url.absoluteString {
+                            case "http://127.0.0.1:1979":
+                                url = URL(string: "spikeapp://")!
+                            case "http://127.0.0.1:17580":
+                                url = URL(string: "diabox://")!
+                            default: break
+                            }
+                            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                            self.router.mainSecondaryModalView.send(nil)
+                        } else if let fetchGlucoseManger = self.fetchGlucoseManager,
+                                  let cgmGlucoseManager = fetchGlucoseManger.cgmManager,
+                                  let bluetoothProvider = self.provider.apsManager.bluetoothManager
+                        {
+                            let view = CGM.CGMSettingsView(
+                                cgmManager: cgmGlucoseManager,
+                                bluetoothManager: bluetoothProvider,
+                                unit: settingsManager.settings.units,
+                                completionDelegate: self
+                            ).asAny()
+                            router.mainSecondaryModalView.send(view)
+                        }
                     } else {
                         self.router.mainSecondaryModalView.send(nil)
                     }
@@ -349,20 +391,7 @@ extension Home {
             tempTarget = provider.tempTarget()
         }
 
-        func openCGM() {
-            guard var url = nightscoutManager.cgmURL else { return }
-
-            switch url.absoluteString {
-            case "http://127.0.0.1:1979":
-                url = URL(string: "spikeapp://")!
-            case "http://127.0.0.1:17580":
-                url = URL(string: "diabox://")!
-//            case CGMType.libreTransmitter.appURL?.absoluteString:
-//                showModal(for: .libreConfig)
-            default: break
-            }
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
-        }
+        
 
         func infoPanelTTPercentage(_ hbt_: Double, _ target: Decimal) -> Decimal {
             guard hbt_ != 0 || target != 0 else {
@@ -456,6 +485,7 @@ extension Home.StateModel:
 extension Home.StateModel: CompletionDelegate {
     func completionNotifyingDidComplete(_: CompletionNotifying) {
         setupPump = false
+        setupCGM = false
     }
 }
 
