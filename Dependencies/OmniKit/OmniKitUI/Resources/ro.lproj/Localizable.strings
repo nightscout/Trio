@@ -183,6 +183,12 @@
    Button title to deactivate pod */
 "Deactivate Pod" = "Dezactivează Pod";
 
+/* */
+"Slide to Insert Cannula" = "Slide to Insert Cannula";
+
+/* */
+"Slide to Deactivate Pod" = "Slide to Deactivate Pod";
+
 /* Label text showing pod is deactivated */
 "Deactivated" = "Dezactivat";
 

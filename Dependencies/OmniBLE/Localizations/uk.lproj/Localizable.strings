@@ -402,6 +402,12 @@
 /* Deactivate pod action button */
 "Deactivate Pod" = "Деактивувати Pod";
 
+/* */
+"Slide to Insert Cannula" = "Готовий до введення канюлі";
+
+/* */
+"Slide to Deactivate Pod" = "Проведіть, щоб деактивувати Pod";
+
 /* Deactivate pod action button accessibility label while deactivating */
 "Deactivating." = "Деактивувати.";
 
@@ -485,6 +491,9 @@
 
 /* Label text for step two of insert cannula instructions */
 "Wait until insertion is completed." = "Дочекайтеся завершення введення канюлі.";
+
+/* Label text for step one of insert cannula instructions */
+"Slide the switch below to start cannula insertion." = "Посуньте перемикач нижче, щоб розпочати введення канюлі.";
 
 /* Label text indicating insertion finished. */
 "Inserted" = "Введено";
@@ -606,10 +615,6 @@
 
 /* Description for BeepPreference.extended */
 "Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Нагадування про довіру лунатимуть, коли Loop автоматично регулює доставку, а також для команд, які ви ініціюєте.";
-
-/* Description for BeepPreference.extended */
-"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Нагадування про довіру лунатимуть, коли Loop автоматично регулює доставку, а також для команд, які ви ініціюєте.";
->>>>>>> 7f4d47c8 (Crowdin (#334))
 
 /* Label text for temporary basal rate summary */
 "Rate" = "Швидкість";
@@ -824,3 +829,18 @@
 
 /* Text for read pod status navigation link */
 "Read Pod Status" = "Отримати статус Pod'у";
+
+/* Title of done button on OmnipodSettingsView */
+"Done" = "Готово";
+
+/* Title for the pod diagnostic view */
+"Pod Diagnostics" = "Діагностика Pod'у";
+
+/* Text for read pulse log plus title */
+"Read Pulse Log Plus" = "Читати Журнал Подій";
+
+/* Text for read activation time title */
+"Read Activation Time" = "Прочитайте час активації";
+
+/* Text for read triggered alerts title */
+"Read Triggered Alerts" = "Читайте Тригерні Сповіщення";

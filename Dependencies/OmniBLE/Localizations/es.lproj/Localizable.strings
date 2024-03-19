@@ -75,10 +75,10 @@
 "Pod Activated" = "Pod Activated";
 
 /* */
-"Notification Settings" = "Notification Settings";
+"Notification Settings" = "Configuración de las notificaciones";
 
 /* */
-"Confidence Reminders" = "Confidence Reminders";
+"Confidence Reminders" = "Recordatorios de confianza";
 
 /* Text for suspend resume button when insulin delivery active */
 "Suspend Insulin Delivery" = "Suspend Insulin Delivery";
@@ -93,7 +93,7 @@
 "No Pod" = "No Pod";
 
 /* Settings page link description when next lifecycle action is to pair new pod */
-"Pair Pod" = "Pair Pod";
+"Pair Pod" = "Emparejar Pod";
 
 /* Pairing action button accessibility label while ready to pair */
 "Pair pod." = "Pair pod.";
@@ -117,7 +117,7 @@
 "day" = "day";
 
 /* Unit for plural days in pod life remaining */
-"days" = "days";
+"days" = "días";
 
 /* Unit for singular hour in pod life remaining */
 "hour" = "hour";
@@ -240,7 +240,7 @@
 "Signal Loss" = "Signal Loss";
 
 /* Status highlight when manual temp basal is running. */
-"Manual Basal" = "Manual Basal";
+"Manual Basal" = "Basal temporal manual";
 
 /* */
 "Insert Cannula" = "Insertar Cánula";
@@ -285,13 +285,13 @@
 "Set Confirmation Beeps Preference" = "Set Confirmation Beeps Preference";
 
 /* */
-"Suspend" = "Suspend";
+"Suspend" = "Suspender";
 
 /* */
 "Failed to suspend: %{public}@" = "Failed to suspend: %{public}@";
 
 /* */
-"Resume" = "Resume";
+"Resume" = "Reanudar";
 
 /* */
 "Bolus" = "Bolo";
@@ -402,6 +402,12 @@
 /* Deactivate pod action button */
 "Deactivate Pod" = "Desactivar Pod";
 
+/* */
+"Slide to Insert Cannula" = "Slide to Insert Cannula";
+
+/* */
+"Slide to Deactivate Pod" = "Slide to Deactivate Pod";
+
 /* Deactivate pod action button accessibility label while deactivating */
 "Deactivating." = "Deactivating.";
 
@@ -433,7 +439,7 @@
 "Change Pod now. Insulin delivery will stop 8 hours after the Pod has expired or when no more insulin remains." = "Change Pod now. Insulin delivery will stop 8 hours after the Pod has expired or when no more insulin remains.";
 
 /* Label text for step 1 of pair pod instructions */
-"Remove the Pod's blue needle cap and check cannula. Then remove paper backing." = "Remove the Pod's blue needle cap and check cannula. Then remove paper backing.";
+"Fill a new pod with U-100 Insulin (leave blue Pod needle cap on)." = "Fill a new pod with U-100 Insulin (leave blue Pod needle cap on).";
 
 /* Label text for step 1 of pair pod instructions */
 "Remove the Pod's blue needle cap and check cannula. Then remove paper backing." = "Remove the Pod's blue needle cap and check cannula. Then remove paper backing.";
@@ -469,7 +475,7 @@
 "Continue" = "Continuar";
 
 /* */
-"Attach Pod" = "Attach Pod";
+"Attach Pod" = "Adherir Pod";
 
 /* Alert title for confirm pod attachment */
 "Confirm Pod Attachment" = "Confirm Pod Attachment";
@@ -486,6 +492,9 @@
 /* Label text for step two of insert cannula instructions */
 "Wait until insertion is completed." = "Wait until insertion is completed.";
 
+/* Label text for step one of insert cannula instructions */
+"Slide the switch below to start cannula insertion." = "Slide the switch below to start cannula insertion.";
+
 /* Label text indicating insertion finished. */
 "Inserted" = "Inserted";
 
@@ -499,7 +508,7 @@
 "The window on the top of the Pod should be colored pink when the cannula is properly inserted into the skin." = "The window on the top of the Pod should be colored pink when the cannula is properly inserted into the skin.";
 
 /* Button label for user to answer cannula was properly inserted  */
-"Yes" = "Yes";
+"Yes" = "Sí";
 
 /* Button label for user to answer cannula was not properly inserted */
 "No" = "No";
@@ -511,7 +520,7 @@
 "Priming..." = "Priming...";
 
 /* */
-"Deactivating..." = "Deactivating...";
+"Deactivating..." = "Desactivando...";
 
 /* Pod state when pod has been deactivated */
 "Deactivated" = "Deactivated";
@@ -573,7 +582,7 @@
 /* Description text for critical alerts */
 "The reminders above will not sound if your device is in Silent or Do Not Disturb mode.\n\nThere are other critical Pod alerts and alarms that will sound even if your device is set to Silent or Do Not Disturb mode." = "The reminders above will not sound if your device is in Silent or Do Not Disturb mode.\n\nThere are other critical Pod alerts and alarms that will sound even if you device is set to Silent or Do Not Disturb mode.";
 /* navigation title for notification settings */
-"Notification Settings" = "Notification Settings";
+"Notification Settings" = "Configuración de las notificaciones";
 
 /* Label for scheduled reminder value row */
 "Time" = "Tiempo";
@@ -590,16 +599,16 @@
 "Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains." = "Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains.";
 
 /* Title string for BeepPreference.silent */
-"Disabled" = "Disabled";
+"Disabled" = "Desactivado";
 
 /* Title string for BeepPreference.manualCommands */
 "Enabled" = "Habilitado";
 
 /* Title string for BeepPreference.extended */
-"Extended" = "Extended";
+"Extended" = "Extendido";
 
 /* Description for BeepPreference.silent */
-"No confidence reminders are used." = "No confidence reminders are used.";
+"No confidence reminders are used." = "No se utilizan recordatorios de confianza.";
 
 /* Description for BeepPreference.manualCommands */
 "Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used.";
@@ -643,7 +652,7 @@
 "Expiration Reminder Default" = "Expiration Reminder Default";
 
 /* Text for previous pod information row */
-"Previous Pod Information" = "Previous Pod Information";
+"Previous Pod Information" = "Información del Pod anterior";
 
 /* Text shown in insulin remaining space when no pod is paired (Please keep the '\n' while translating!) */
 "No\nDelivery" = "No\nDelivery";
@@ -820,3 +829,18 @@
 
 /* Text for read pod status navigation link */
 "Read Pod Status" = "Read Pod Status";
+
+/* Title of done button on OmnipodSettingsView */
+"Done" = "Hecho";
+
+/* Title for the pod diagnostic view */
+"Pod Diagnostics" = "Pod Diagnostics";
+
+/* Text for read pulse log plus title */
+"Read Pulse Log Plus" = "Read Pulse Log Plus";
+
+/* Text for read activation time title */
+"Read Activation Time" = "Read Activation Time";
+
+/* Text for read triggered alerts title */
+"Read Triggered Alerts" = "Read Triggered Alerts";

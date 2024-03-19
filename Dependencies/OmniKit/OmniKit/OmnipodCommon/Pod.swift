@@ -95,7 +95,7 @@ public struct Pod {
     public static let defaultLowReservoirReminder: Double = 10
 
     // Allowed Low Reservoir reminder values
-    public static let allowedLowReservoirReminderValues = Array(stride(from: 10, through: 50, by: 1))
+    public static let allowedLowReservoirReminderValues = Array(stride(from: 1, through: 50, by: 1))
 }
 
 // DeliveryStatus used in StatusResponse and DetailedStatus
@@ -108,16 +108,20 @@ public enum DeliveryStatus: UInt8, CustomStringConvertible {
     case bolusAndTempBasal = 6
     case extendedBolusRunning = 9
     case extendedBolusAndTempBasal = 10
-    
+
+    public var suspended: Bool {
+        return self == .suspended
+    }
+
     public var bolusing: Bool {
         return self == .bolusInProgress || self == .bolusAndTempBasal || self == .extendedBolusRunning || self == .extendedBolusAndTempBasal
     }
-    
+
     public var tempBasalRunning: Bool {
         return self == .tempBasalRunning || self == .bolusAndTempBasal || self == .extendedBolusAndTempBasal
     }
 
-    public var extendedBolusRunninng: Bool {
+    public var extendedBolusRunning: Bool {
         return self == .extendedBolusRunning || self == .extendedBolusAndTempBasal
     }
 

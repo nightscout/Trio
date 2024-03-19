@@ -171,6 +171,12 @@
    Title for deactivate pod screen */
 "Deactivate Pod" = "Deaktivovať pod";
 
+/* */
+"Slide to Insert Cannula" = "Slide to Insert Cannula";
+
+/* */
+"Slide to Deactivate Pod" = "Slide to Deactivate Pod";
+
 /* Pod state when pod has been deactivated */
 "Deactivated" = "Deaktivované";
 

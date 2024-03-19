@@ -186,6 +186,15 @@
    Button title to deactivate pod */
 "Deactivate Pod" = "Deactivate Pod";
 
+/* */
+"Slide to Insert Cannula" = "Slide to Insert Cannula";
+
+/* */
+"Slide to Deactivate Pod" = "Slide to Deactivate Pod";
+
+/* Label text for step one of insert cannula instructions */
+"Slide the switch below to start cannula insertion." = "Slide the switch below to start cannula insertion.";
+
 /* Label text showing pod is deactivated */
 "Deactivated" = "Deactivated";
 
@@ -276,7 +285,7 @@
 "Fault" = "Fault";
 
 /* Label text for step 1 of pair pod instructions */
-"Fill a new pod with U-100 Insulin (leave Pod needle cap on). Listen for 2 beeps." = "Fill a new pod with U-100 Insulin (leave Pod needle cap on). Listen for 2 beeps.";
+"Fill a new pod with U-100 Insulin (leave clear Pod needle cap on). Listen for 2 beeps." = "Fill a new pod with U-100 Insulin (leave clear Pod needle cap on). Listen for 2 beeps.";
 
 /* Settings page link description when next lifecycle action is to finish deactivation */
 "Finish deactivation" = "Finish deactivation";
@@ -806,3 +815,15 @@
 
 /* Text for read pod status navigation link */
 "Read Pod Status" = "Read Pod Status";
+
+/* Title for the pod diagnostic view */
+"Pod Diagnostics" = "Pod Diagnostics";
+
+/* Text for read pulse log plus title */
+"Read Pulse Log Plus" = "Read Pulse Log Plus";
+
+/* Text for read activation time title */
+"Read Activation Time" = "Read Activation Time";
+
+/* Text for read triggered alerts title */
+"Read Triggered Alerts" = "Read Triggered Alerts";

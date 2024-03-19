@@ -402,6 +402,12 @@
 /* Deactivate pod action button */
 "Deactivate Pod" = "Deaktivovať Pod";
 
+/* */
+"Slide to Insert Cannula" = "Pripravené na zavedenie kanyly";
+
+/* */
+"Slide to Deactivate Pod" = "Posunutím deaktivujte pod";
+
 /* Deactivate pod action button accessibility label while deactivating */
 "Deactivating." = "Deaktivuje sa.";
 
@@ -436,7 +442,7 @@
 "Fill a new pod with U-100 Insulin (leave blue Pod needle cap on)." = "Naplňte nový pod s inzulínom U-100 (modrý uzáver ihly pod nechajte nasadený).";
 
 /* Label text for step 1 of pair pod instructions */
-"Remove the Pod's blue needle cap and check cannula. Then remove paper backing." = "Remove the Pod's blue needle cap and check cannula. Then remove paper backing.";
+"Remove the Pod's blue needle cap and check cannula. Then remove paper backing." = "Remove the blue needle Pod cover and inspect the cannula. Then remove the paper pad.";
 
 /* Label text for step 2 of pair pod instructions */
 "Listen for 2 beeps." = "Počúvajte 2 pípnutia.";
@@ -485,6 +491,9 @@
 
 /* Label text for step two of insert cannula instructions */
 "Wait until insertion is completed." = "Počkajte kým nie je zavedenie ukončené.";
+
+/* Label text for step one of insert cannula instructions */
+"Slide the switch below to start cannula insertion." = "Posunutím spínača nižšie spustite zavádzanie kanyly.";
 
 /* Label text indicating insertion finished. */
 "Inserted" = "Vložené do tela";
@@ -820,3 +829,18 @@
 
 /* Text for read pod status navigation link */
 "Read Pod Status" = "Zistiť stav Podu";
+
+/* Title of done button on OmnipodSettingsView */
+"Done" = "Hotovo";
+
+/* Title for the pod diagnostic view */
+"Pod Diagnostics" = "Pod Diagnostics";
+
+/* Text for read pulse log plus title */
+"Read Pulse Log Plus" = "Read Pulse Log Plus";
+
+/* Text for read activation time title */
+"Read Activation Time" = "Read Activation Time";
+
+/* Text for read triggered alerts title */
+"Read Triggered Alerts" = "Read Triggered Alerts";

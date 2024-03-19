@@ -180,11 +180,20 @@
 "Deactivate" = "Deaktivovať";
 
 /* Action button description for deactivate while pod still active */
-"Slide to Deactivate Pod" = "Slide to Deactivate Pod";
+"Slide to Deactivate Pod" = "Posunutím deaktivujte pod";
 
 /* Button title for pod deactivation
    Button title to deactivate pod */
 "Deactivate Pod" = "Deaktivovať pod";
+
+/* */
+"Slide to Insert Cannula" = "Pripravené na zavedenie kanyly";
+
+/* */
+"Slide to Deactivate Pod" = "Posunutím deaktivujte pod";
+
+/* Label text for step one of insert cannula instructions */
+"Slide the switch below to start cannula insertion." = "Posunutím spínača nižšie spustite zavádzanie kanyly.";
 
 /* Label text showing pod is deactivated */
 "Deactivated" = "Deaktivované";
@@ -276,7 +285,7 @@
 "Fault" = "Chyba";
 
 /* Label text for step 1 of pair pod instructions */
-"Fill a new pod with U-100 Insulin (leave Pod needle cap on). Listen for 2 beeps." = "Naplňte nový pod inzulínom U-100 (kryt ihly ponechajte nasadený). Budete počuť 2 pípnutia.";
+"Fill a new pod with U-100 Insulin (leave clear Pod needle cap on). Listen for 2 beeps." = "Naplňte nový pod inzulínom U-100 (kryt ihly ponechajte nasadený). Budete počuť 2 pípnutia.";
 
 /* Settings page link description when next lifecycle action is to finish deactivation */
 "Finish deactivation" = "Dokončiť deaktiváciu";
@@ -805,3 +814,15 @@ Silence Pod" = "Umlčané";
 
 /* Text for read pod status navigation link */
 "Read Pod Status" = "Zistiť stav Podu";
+
+/* Title for the pod diagnostic view */
+"Pod Diagnostics" = "Pod Diagnostics";
+
+/* Text for read pulse log plus title */
+"Read Pulse Log Plus" = "Read Pulse Log Plus";
+
+/* Text for read activation time title */
+"Read Activation Time" = "Read Activation Time";
+
+/* Text for read triggered alerts title */
+"Read Triggered Alerts" = "Read Triggered Alerts";

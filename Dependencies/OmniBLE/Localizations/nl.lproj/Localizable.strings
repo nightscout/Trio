@@ -402,6 +402,12 @@
 /* Deactivate pod action button */
 "Deactivate Pod" = "Deactiveer Pod";
 
+/* */
+"Slide to Insert Cannula" = "Slide om canule in te brengen";
+
+/* */
+"Slide to Deactivate Pod" = "Veeg om Pod te deactiveren";
+
 /* Deactivate pod action button accessibility label while deactivating */
 "Deactivating." = "Deactiveren.";
 
@@ -436,7 +442,7 @@
 "Fill a new pod with U-100 Insulin (leave blue Pod needle cap on)." = "Vul een nieuwe Pod met U-100 insuline. Verwijder de blauwe naalddop niet.";
 
 /* Label text for step 1 of pair pod instructions */
-"Remove the Pod's blue needle cap and check cannula. Then remove paper backing." = "Remove the Pod's blue needle cap and check cannula. Then remove paper backing.";
+"Remove the Pod's blue needle cap and check cannula. Then remove paper backing." = "Verwijder de blauwe naalddop van de Pod en controleer de canule. Verwijder vervolgens de beschermlaag van de hechtstrip.";
 
 /* Label text for step 2 of pair pod instructions */
 "Listen for 2 beeps." = "Luister naar 2 piepjes.";
@@ -485,6 +491,9 @@
 
 /* Label text for step two of insert cannula instructions */
 "Wait until insertion is completed." = "Wacht tot het inbrengen is voltooid.";
+
+/* Label text for step one of insert cannula instructions */
+"Slide the switch below to start cannula insertion." = "Schuif om canule te starten.";
 
 /* Label text indicating insertion finished. */
 "Inserted" = "Ingebracht";
@@ -673,7 +682,7 @@
 "Pod Activated" = "Pod geactiveerd";
 
 /* description label for active time pod details row */
-"Active Time" = "Activatie tijd";
+"Active Time" = "Actieve duur";
 
 /* description label for last status date pod details row */
 "Last Status" = "Laatste status";
@@ -709,7 +718,7 @@
 "The App notifies you when the amount of insulin in the Pod reaches this level (50-10 U).\n\nScroll to set the number of units at which you would like to be reminded." = "iAPS geeft een melding als de hoeveelheid insuline in de Pod dit niveau bereikt (50-10 E).\n\nScroll om in te stellen bij welk aantal eenheden je wilt worden herinnerd.";
 
 /* Label text for low reservoir value row */
-"Low Reservoir" = "Reservoir bijna leeg";
+"Low Reservoir" = "Laag reservoir niveau";
 
 /* */
 "Save" = "Opslaan";
@@ -820,3 +829,18 @@
 
 /* Text for read pod status navigation link */
 "Read Pod Status" = "Lees pompstatus";
+
+/* Title of done button on OmnipodSettingsView */
+"Done" = "OK";
+
+/* Title for the pod diagnostic view */
+"Pod Diagnostics" = "Diagnostische Pod gegevens";
+
+/* Text for read pulse log plus title */
+"Read Pulse Log Plus" = "Pulslog uitlezen";
+
+/* Text for read activation time title */
+"Read Activation Time" = "Activatietijd lezen";
+
+/* Text for read triggered alerts title */
+"Read Triggered Alerts" = "Lees geactiveerde waarschuwingen";

@@ -84,6 +84,12 @@
    Button title to deactivate pod */
 "Deactivate Pod" = "ポッドを無効にする";
 
+/* */
+"Slide to Insert Cannula" = "Slide to Insert Cannula";
+
+/* */
+"Slide to Deactivate Pod" = "Slide to Deactivate Pod";
+
 /* Label text showing pod is deactivated */
 "Deactivated" = "停止されました";
 

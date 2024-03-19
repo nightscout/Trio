@@ -41,7 +41,7 @@ class DeactivatePodViewModel: ObservableObject, Identifiable {
         var actionButtonDescription: String {
             switch self {
             case .active:
-                return LocalizedString("Deactivate Pod", comment: "Action button description for deactivate while pod still active")
+                return LocalizedString("Slide to Deactivate Pod", comment: "Action button description for deactivate while pod still active")
             case .resultError:
                 return LocalizedString("Retry", comment: "Action button description for deactivate after failed attempt")
             case .deactivating:
@@ -100,6 +100,15 @@ class DeactivatePodViewModel: ObservableObject, Identifiable {
     }
     
     @Published var state: DeactivatePodViewModelState = .active
+
+    public var stateNeedsDeliberateUserAcceptance : Bool {
+        switch state {
+        case .active:
+            true
+        default:
+            false
+        }
+    }
 
     var error: DeactivationError? {
         if case .resultError(let error) = self.state {

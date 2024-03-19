@@ -54,8 +54,17 @@
    Title for deactivate pod screen */
 "Deactivate Pod" = "解除Pod";
 
+/* */
+"Slide to Insert Cannula" = "Slide to Insert Cannula";
+
+/* */
+"Slide to Deactivate Pod" = "Slide to Deactivate Pod";
+
 /* Pod state when pod has been deactivated */
 "Deactivated" = "已解除";
+
+/* Action button description for deactivate while pod still active */
+"Slide to Deactivate Pod" = "Slide to Deactivate Pod";
 
 /* Description for Empty reservoir pod fault */
 "Empty reservoir" = "胰岛素储量为零";

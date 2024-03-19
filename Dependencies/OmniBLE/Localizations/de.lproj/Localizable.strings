@@ -273,10 +273,10 @@
 "Play Test Beeps" = "Testtöne abspielen";
 
 /* */
-"Skipping Read Pulse Log due to bolus still in progress." = "Überspringe Lese Pulse Protokoll wegen noch laufendem Bolus.";
+"Skipping Read Pulse Log due to bolus still in progress." = "Impuls-Log kann nicht gelesen werden da die Pumpe zurzeit einen Bolus verabreicht.";
 
 /* */
-"Read Pulse Log" = "Pulse-Log lesen";
+"Read Pulse Log" = "Impuls-Log lesen";
 
 /* */
 "Set Confirmation Beeps to %s" = "Bestätigungston auf %s setzen";
@@ -402,6 +402,12 @@
 /* Deactivate pod action button */
 "Deactivate Pod" = "Pod deaktivieren";
 
+/* */
+"Slide to Insert Cannula" = "Streichen um die Kanüle einzuführen";
+
+/* */
+"Slide to Deactivate Pod" = "Streichen um den Pod zu deaktivieren";
+
 /* Deactivate pod action button accessibility label while deactivating */
 "Deactivating." = "Deaktivierung.";
 
@@ -436,7 +442,7 @@
 "Fill a new pod with U-100 Insulin (leave blue Pod needle cap on)." = "Füllen Sie einen neuen Pod mit U-100 Insulin (lassen Sie blaue Nadelabdeckung auf dem Pod).";
 
 /* Label text for step 1 of pair pod instructions */
-"Remove the Pod's blue needle cap and check cannula. Then remove paper backing." = "Entfernen Sie blaue Pod-Nadel Kappe und prüfen Sie die Kanüle. Danach die Klebefolien auf der Rückseite entfernen.";
+"Remove the Pod's blue needle cap and check cannula. Then remove paper backing." = "Entfernen Sie die blaue Pod-Nadel Kappe und prüfen Sie die Kanüle. Danach die Klebefolien auf der Rückseite entfernen.";
 
 /* Label text for step 2 of pair pod instructions */
 "Listen for 2 beeps." = "Auf 2 Signaltöne warten.";
@@ -485,6 +491,9 @@
 
 /* Label text for step two of insert cannula instructions */
 "Wait until insertion is completed." = "Warten Sie, bis die Einführung abgeschlossen ist.";
+
+/* Label text for step one of insert cannula instructions */
+"Slide the switch below to start cannula insertion." = "Verschieben Sie den Schalter unten, um mit der Kanüleneinfügen zu beginnen.";
 
 /* Label text indicating insertion finished. */
 "Inserted" = "Eingeführt";
@@ -606,10 +615,6 @@
 
 /* Description for BeepPreference.extended */
 "Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Vertrauenserinnerungen ertönen, wenn Loop die Lieferung automatisch anpasst, sowie für von Ihnen initiierte Befehle.";
-
-/* Description for BeepPreference.extended */
-"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Vertrauenserinnerungen ertönen, wenn Loop die Lieferung automatisch anpasst, sowie für von Ihnen initiierte Befehle.";
->>>>>>> 420dc4ed (Crowdin (#362))
 
 /* Label text for temporary basal rate summary */
 "Rate" = "BR";
@@ -824,3 +829,18 @@
 
 /* Text for read pod status navigation link */
 "Read Pod Status" = "Pod-Status ablesen";
+
+/* Title of done button on OmnipodSettingsView */
+"Done" = "Fertig";
+
+/* Title for the pod diagnostic view */
+"Pod Diagnostics" = "Diagnose-Infos";
+
+/* Text for read pulse log plus title */
+"Read Pulse Log Plus" = "Erweiterten Impuls-Log lesen";
+
+/* Text for read activation time title */
+"Read Activation Time" = "Aktivierungsinformationen";
+
+/* Text for read triggered alerts title */
+"Read Triggered Alerts" = "Ausgelöste Warnungen";

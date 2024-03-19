@@ -186,6 +186,15 @@
    Button title to deactivate pod */
 "Deactivate Pod" = "Деактивировать Pod";
 
+/* */
+"Slide to Insert Cannula" = "Сдвиньте, чтобы вставить канюлю";
+
+/* */
+"Slide to Deactivate Pod" = "Сдвиньте для деактивации";
+
+/* Label text for step one of insert cannula instructions */
+"Slide the switch below to start cannula insertion." = "Сдвиньте переключатель ниже, чтобы начать введение канюли.";
+
 /* Label text showing pod is deactivated */
 "Deactivated" = "Не активен";
 
@@ -276,7 +285,7 @@
 "Fault" = "Сбой";
 
 /* Label text for step 1 of pair pod instructions */
-"Fill a new pod with U-100 Insulin (leave Pod needle cap on). Listen for 2 beeps." = "Заправьте новый под инсулином (не менее 100 единиц, крышка канюли должна быть на месте). Дождитесь 2 звуковых сигналов.";
+"Fill a new pod with U-100 Insulin (leave clear Pod needle cap on). Listen for 2 beeps." = "Заполните новый Под U-100 инсулином (оставьте синюю защитную крышку Пода). Прослушайте 2 звуковых сигнала.";
 
 /* Settings page link description when next lifecycle action is to finish deactivation */
 "Finish deactivation" = "Завершение деактивации";
@@ -805,3 +814,15 @@ Silence Pod" = "Беззвучный Под";
 
 /* Text for read pod status navigation link */
 "Read Pod Status" = "Получить статус Пода";
+
+/* Title for the pod diagnostic view */
+"Pod Diagnostics" = "Диагностика пода";
+
+/* Text for read pulse log plus title */
+"Read Pulse Log Plus" = "Расширенный журнал импульсов";
+
+/* Text for read activation time title */
+"Read Activation Time" = "Прочитать время активации";
+
+/* Text for read triggered alerts title */
+"Read Triggered Alerts" = "Прочитать сработавшие оповещения";

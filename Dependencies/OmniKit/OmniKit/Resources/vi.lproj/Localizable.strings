@@ -368,7 +368,7 @@
 "Tank power activated" = "Pod được kích hoạt";
 
 /* Pump Event title for UnfinalizedDose with doseType of .tempBasal */
-"Temp Basal" = "Liều cơ bản tạm thời";
+"Temp Basal" = "Temp Basal";
 
 /* Error message shown when temp basal could not be set due to existing temp basal in progress */
 "Temp basal in progress" = "Liều basal tạm thời đang tiến hành";

@@ -97,6 +97,12 @@
    Title for deactivate pod screen */
 "Deactivate Pod" = "Inaktivera podd";
 
+/* */
+"Slide to Insert Cannula" = "Svep för att föra in kanyl";
+
+/* */
+"Slide to Deactivate Pod" = "Svep för att inaktivera";
+
 /* Pod state when pod has been deactivated */
 "Deactivated" = "Inaktiverad";
 

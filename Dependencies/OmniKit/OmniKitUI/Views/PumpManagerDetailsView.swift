@@ -14,7 +14,11 @@ struct PumpManagerDetailsView: View {
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
 
-    private var toRun: ((_ completion: @escaping (_ result: String) -> Void) -> Void)?
+    var toRun: ((_ completion: @escaping (_ result: String) -> Void) -> Void)?
+
+    private let title = LocalizedString("Pump Manager Details", comment: "navigation title for pump manager details")
+    private let actionString = LocalizedString("Retrieving Pump Manager Details...", comment: "button title when retrieving pump manager details")
+    private let buttonTitle = LocalizedString("Refresh Pump Manager Details", comment: "button title to refresh pump manager details")
 
     @State private var displayString: String = ""
     @State private var error: Error? = nil
@@ -61,7 +65,7 @@ struct PumpManagerDetailsView: View {
             .background(Color(UIColor.secondarySystemGroupedBackground).shadow(radius: 5))
         }
         .insetGroupedListStyle()
-        .navigationTitle(LocalizedString("Pump Manager Details", comment: "navigation title for pump manager details"))
+        .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
         .onFirstAppear {
             asyncAction()
@@ -81,9 +85,9 @@ struct PumpManagerDetailsView: View {
 
     private var buttonText: String {
         if executing {
-            return LocalizedString("Retrieving Pump Manager Details...", comment: "button title when retrieving pump manager details")
+            return actionString
         } else {
-            return LocalizedString("Refresh Pump Manager Details", comment: "button title to refresh pump manager details")
+            return buttonTitle
         }
     }
 }

@@ -404,6 +404,13 @@
 /* Deactivate pod action button */
 "Deactivate Pod" = "Deactivate Pod";
 
+/* */
+"Slide to Insert Cannula" = "Slide to Insert Cannula";
+
+/* */
+"Slide to Deactivate Pod" = "Slide to Deactivate Pod";
+
+
 /* Deactivate pod action button accessibility label while deactivating */
 "Deactivating." = "Deactivating.";
 

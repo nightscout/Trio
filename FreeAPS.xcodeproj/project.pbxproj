@@ -365,6 +365,7 @@
 		D6D02515BBFBE64FEBE89856 /* DataTableRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 881E04BA5E0A003DE8E0A9C6 /* DataTableRootView.swift */; };
 		D6DEC113821A7F1056C4AA1E /* NightscoutConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F2A13DF0EDEEEDC4106AA2A /* NightscoutConfigDataFlow.swift */; };
 		D76333C9256787610B3B4875 /* AutotuneConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D295A3F870E826BE371C0BB5 /* AutotuneConfigStateModel.swift */; };
+		D8DA5CD12B49EEF000C54E6C /* SlideButton in Frameworks */ = {isa = PBXBuildFile; productRef = D8DA5CD02B49EEF000C54E6C /* SlideButton */; };
 		DBA5254DBB2586C98F61220C /* ISFEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F9F137F126D9F8DEB799F26 /* ISFEditorProvider.swift */; };
 		DD399FB31EACB9343C944C4C /* PreferencesEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CA3E609094E064C99A4752C /* PreferencesEditorStateModel.swift */; };
 		E00EEC0327368630002FF094 /* ServiceAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00EEBFD27368630002FF094 /* ServiceAssembly.swift */; };
@@ -912,6 +913,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CEC751D829D88262006E9D24 /* MinimedKitUI.framework in Frameworks */,
+                D8DA5CD12B49EEF000C54E6C /* SlideButton in Frameworks */,
 				CEC751D629D88262006E9D24 /* MinimedKit.framework in Frameworks */,
 				CEC751D429D88257006E9D24 /* OmniKitUI.framework in Frameworks */,
 				CEC751D229D88257006E9D24 /* OmniKit.framework in Frameworks */,
@@ -2286,6 +2288,7 @@
 				3818AA46274C255A00843DB3 /* LibreTransmitter */,
 				38DF1788276FC8C400B3528F /* SwiftMessages */,
 				CEB434FC28B90B7C00B70274 /* SwiftCharts */,
+                D8DA5CD02B49EEF000C54E6C /* SlideButton */,
 			);
 			productName = FreeAPS;
 			productReference = 388E595825AD948C0019842D /* FreeAPS.app */;
@@ -2407,6 +2410,7 @@
 				3833B46B26012030003021B3 /* XCRemoteSwiftPackageReference "swift-algorithms" */,
 				38DF1787276FC8C300B3528F /* XCRemoteSwiftPackageReference "SwiftMessages" */,
 				CEB434FB28B90B7C00B70274 /* XCRemoteSwiftPackageReference "SwiftCharts" */,
+				D8DA5CCF2B49EEF000C54E6C /* XCRemoteSwiftPackageReference "SlideButton" */,
 			);
 			productRefGroup = 388E595925AD948C0019842D /* Products */;
 			projectDirPath = "";
@@ -3424,6 +3428,14 @@
 				kind = branch;
 			};
 		};
+		D8DA5CCF2B49EEF000C54E6C /* XCRemoteSwiftPackageReference "SlideButton" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/no-comment/SlideButton";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -3460,6 +3472,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = CEB434FB28B90B7C00B70274 /* XCRemoteSwiftPackageReference "SwiftCharts" */;
 			productName = SwiftCharts;
+		};
+		D8DA5CD02B49EEF000C54E6C /* SlideButton */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D8DA5CCF2B49EEF000C54E6C /* XCRemoteSwiftPackageReference "SlideButton" */;
+			productName = SlideButton;
 		};
 /* End XCSwiftPackageProductDependency section */
 

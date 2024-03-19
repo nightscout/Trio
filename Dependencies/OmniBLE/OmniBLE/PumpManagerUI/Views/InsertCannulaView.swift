@@ -8,6 +8,7 @@
 
 import SwiftUI
 import LoopKitUI
+import SlideButton
 
 struct InsertCannulaView: View {
     
@@ -24,7 +25,7 @@ struct InsertCannulaView: View {
 
                 HStack {
                     InstructionList(instructions: [
-                        LocalizedString("Tap below to start cannula insertion.", comment: "Label text for step one of insert cannula instructions"),
+                        LocalizedString("Slide the switch below to start cannula insertion.", comment: "Label text for step one of insert cannula instructions"),
                         LocalizedString("Wait until insertion is completed.", comment: "Label text for step two of insert cannula instructions"),
                     ])
                     .disabled(viewModel.state.instructionsDisabled)
@@ -65,29 +66,45 @@ struct InsertCannulaView: View {
                 }
                 
                 if (self.viewModel.error == nil || self.viewModel.error?.recoverable == true) {
-                    Button(action: {
-                        self.viewModel.continueButtonTapped()
-                    }) {
-                        Text(self.viewModel.state.nextActionButtonDescription)
-                            .accessibility(identifier: "button_next_action")
-                            .accessibility(label: Text(self.viewModel.state.actionButtonAccessibilityLabel))
-                            .actionButtonStyle(.primary)
-                    }
+                    actionButton
                     .disabled(self.viewModel.state.isProcessing)
-                    .animation(nil)
                     .zIndex(1)
                 }
             }
             .transition(AnyTransition.opacity.combined(with: .move(edge: .bottom)))
             .padding()
         }
-        .animation(.default)
         .alert(isPresented: $cancelModalIsPresented) { cancelPairingModal }
         .navigationBarTitle(LocalizedString("Insert Cannula", comment: "navigation bar title for insert cannula"), displayMode: .automatic)
         .navigationBarBackButtonHidden(true)
         .navigationBarItems(trailing: cancelButton)
     }
-    
+
+    var actionText : some View {
+        Text(self.viewModel.state.nextActionButtonDescription)
+            .accessibility(identifier: "button_next_action")
+            .accessibility(label: Text(self.viewModel.state.actionButtonAccessibilityLabel))
+            .font(.headline)
+    }
+
+    @ViewBuilder
+    var actionButton: some View {
+        if self.viewModel.stateNeedsDeliberateUserAcceptance {
+            SlideButton(action: {
+                self.viewModel.continueButtonTapped()
+            }) {
+                actionText
+            }
+        } else {
+            Button(action: {
+                self.viewModel.continueButtonTapped()
+            }) {
+                actionText
+                    .actionButtonStyle(.primary)
+            }
+        }
+    }
+
     var cancelButton: some View {
         Button(LocalizedString("Cancel", comment: "Cancel button text in navigation bar on insert cannula screen")) {
             cancelModalIsPresented = true
@@ -104,4 +121,26 @@ struct InsertCannulaView: View {
         )
     }
 
+}
+
+class MockCannulaInserter: CannulaInserter {
+    func insertCannula(completion: @escaping (Result<TimeInterval,OmniBLEPumpManagerError>) -> Void) {
+        let mockDelay = TimeInterval(seconds: 3)
+        let result :Result<TimeInterval, OmniBLEPumpManagerError> = .success(mockDelay)
+        completion(result)
+    }
+
+    func checkCannulaInsertionFinished(completion: @escaping (OmniBLEPumpManagerError?) -> Void) {
+        completion(nil)
+    }
+
+    var cannulaInsertionSuccessfullyStarted: Bool = false
+}
+
+struct InsertCannulaView_Previews: PreviewProvider {
+    static var mockInserter = MockCannulaInserter()
+    static var model = InsertCannulaViewModel(cannulaInserter: mockInserter)
+    static var previews: some View {
+        InsertCannulaView(viewModel: model)
+    }
 }

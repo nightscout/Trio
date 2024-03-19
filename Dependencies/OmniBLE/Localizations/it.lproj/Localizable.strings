@@ -402,6 +402,12 @@
 /* Deactivate pod action button */
 "Deactivate Pod" = "Disattiva Pod";
 
+/* */
+"Slide to Insert Cannula" = "Scorri per inserire la Cannula";
+
+/* */
+"Slide to Deactivate Pod" = "Scorri per Disattivare il Pod";
+
 /* Deactivate pod action button accessibility label while deactivating */
 "Deactivating." = "Deattivazione.";
 
@@ -436,7 +442,7 @@
 "Fill a new pod with U-100 Insulin (leave blue Pod needle cap on)." = "Riempi un nuovo pod con U-100 Insulina (lascia il cappuccio blu dell’ago sul pod).";
 
 /* Label text for step 1 of pair pod instructions */
-"Remove the Pod's blue needle cap and check cannula. Then remove paper backing." = "Remove the Pod's blue needle cap and check cannula. Then remove paper backing.";
+"Remove the Pod's blue needle cap and check cannula. Then remove paper backing." = "Rimuovere il cappuccio blu dell'ago del Pod e controllare la cannula. Quindi rimuovere le due coperture di carta.";
 
 /* Label text for step 2 of pair pod instructions */
 "Listen for 2 beeps." = "Ascolta per 2 bip.";
@@ -485,6 +491,9 @@
 
 /* Label text for step two of insert cannula instructions */
 "Wait until insertion is completed." = "Aspetta fino a che l'inserimento è completo.";
+
+/* Label text for step one of insert cannula instructions */
+"Slide the switch below to start cannula insertion." = "Scorri l'interruttore sottostante per avviare l'inserimento della cannula.";
 
 /* Label text indicating insertion finished. */
 "Inserted" = "Inserito";
@@ -820,3 +829,18 @@
 
 /* Text for read pod status navigation link */
 "Read Pod Status" = "Leggi stato microinfusore";
+
+/* Title of done button on OmnipodSettingsView */
+"Done" = "Fine";
+
+/* Title for the pod diagnostic view */
+"Pod Diagnostics" = "Diagnostica pod";
+
+/* Text for read pulse log plus title */
+"Read Pulse Log Plus" = "Leggi i dati dei battiti";
+
+/* Text for read activation time title */
+"Read Activation Time" = "Leggi Il Tempo Di Attivazione";
+
+/* Text for read triggered alerts title */
+"Read Triggered Alerts" = "Leggi avvisi non letti";

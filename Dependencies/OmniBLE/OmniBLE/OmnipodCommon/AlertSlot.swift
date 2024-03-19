@@ -58,7 +58,7 @@ public struct AlertConfiguration {
 
     static let length = 6
 
-    public init(alertType: AlertSlot, active: Bool = true, duration: TimeInterval = 0, trigger: AlertTrigger, beepRepeat: BeepRepeat, beepType: BeepType, silent: Bool = false, autoOffModifier: Bool = false)
+    public init(alertType: AlertSlot, active: Bool = true, duration: TimeInterval = 0, trigger: AlertTrigger, beepRepeat: BeepRepeat, beepType: BeepType, silent: Bool, autoOffModifier: Bool = false)
     {
         self.slot = alertType
         self.active = active
@@ -180,7 +180,7 @@ public enum PodAlert: CustomStringConvertible, RawRepresentable, Equatable {
 
         // slot1NotUsed
         case .notUsed:
-            return AlertConfiguration(alertType: .slot1NotUsed, duration: .minutes(55), trigger: .timeUntilAlert(.minutes(5)), beepRepeat: .every5Minutes, beepType: .noBeepNonCancel)
+            return AlertConfiguration(alertType: .slot1NotUsed, duration: .minutes(55), trigger: .timeUntilAlert(.minutes(5)), beepRepeat: .every5Minutes, beepType: .noBeepNonCancel, silent: false)
 
         // slot2ShutdownImminent
         case .shutdownImminent(let offset, let absAlertTime, let silent):
@@ -277,12 +277,12 @@ public enum PodAlert: CustomStringConvertible, RawRepresentable, Equatable {
             // After pod is powered up, beep every 10 minutes for up to 2 hours before pairing before failing
             let totalDuration: TimeInterval = .hours(2)
             let startOffset: TimeInterval = .minutes(10)
-            return AlertConfiguration(alertType: .slot7Expired, duration: totalDuration - startOffset, trigger: .timeUntilAlert(startOffset), beepRepeat: .every5Minutes, beepType: .bipBeepBipBeepBipBeepBipBeep)
+            return AlertConfiguration(alertType: .slot7Expired, duration: totalDuration - startOffset, trigger: .timeUntilAlert(startOffset), beepRepeat: .every5Minutes, beepType: .bipBeepBipBeepBipBeepBipBeep, silent: false)
         case .finishSetupReminder:
             // After pod is paired, beep every 5 minutes for up to 1 hour for pod setup to complete before failing
             let totalDuration: TimeInterval = .hours(1)
             let startOffset: TimeInterval = .minutes(5)
-            return AlertConfiguration(alertType: .slot7Expired, duration: totalDuration - startOffset, trigger: .timeUntilAlert(startOffset), beepRepeat: .every5Minutes, beepType: .bipBeepBipBeepBipBeepBipBeep)
+            return AlertConfiguration(alertType: .slot7Expired, duration: totalDuration - startOffset, trigger: .timeUntilAlert(startOffset), beepRepeat: .every5Minutes, beepType: .bipBeepBipBeepBipBeepBipBeep, silent: false)
         case .expired(let offset, let absAlertTime, let duration, let silent):
             // Normally used to alert at Pod.nominalPodLife (72 hours) for Pod.expirationAdvisoryWindow (7 hours)
             // 2 sets of beeps repeating every 60 minutes

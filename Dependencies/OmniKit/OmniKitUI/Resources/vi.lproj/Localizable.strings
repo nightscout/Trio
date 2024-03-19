@@ -186,6 +186,15 @@
    Button title to deactivate pod */
 "Deactivate Pod" = "Hủy kích hoạt Pod";
 
+/* */
+"Slide to Insert Cannula" = "Trượt để chèn ống thông";
+
+/* */
+"Slide to Deactivate Pod" = "Trượt để vô hiệu hóa Pod";
+
+/* Label text for step one of insert cannula instructions */
+"Slide the switch below to start cannula insertion." = "Trượt bên dưới để bắt đầu chèn Cannula.";
+
 /* Label text showing pod is deactivated */
 "Deactivated" = "Đã hủy kích hoạt";
 
@@ -267,7 +276,7 @@
 "Failed to update confidence reminder preference." = "Không cập nhật được tùy chọn lời nhắc về độ tin cậy.";
 
 /* Alert title for error when updating expiration reminder */
-"Failed to Update Expiration Reminder" = "Failed to Update Expiration Reminder";
+"Failed to Update Expiration Reminder" = "Không thể cập nhật lời nhắc hết hạn";
 
 /* Alert title for error when updating low reservoir reminder */
 "Failed to Update Low Reservoir Reminder" = "Thất bại cập nhật lời nhắc gần hết thuốc";
@@ -276,7 +285,7 @@
 "Fault" = "Lỗi";
 
 /* Label text for step 1 of pair pod instructions */
-"Fill a new pod with U-100 Insulin (leave Pod needle cap on). Listen for 2 beeps." = "Dùng loại insulin U-100 cho pod. Lắng nghe 2 tiếng bíp.";
+"Fill a new pod with U-100 Insulin (leave clear Pod needle cap on). Listen for 2 beeps." = "Dùng loại insulin U-100 cho pod (để nguyên nắp kim trong của Pod). Lắng nghe 2 tiếng bíp.";
 
 /* Settings page link description when next lifecycle action is to finish deactivation */
 "Finish deactivation" = "Hoàn tất việc ngưng kích hoạt";
@@ -502,7 +511,7 @@
 "Pod Fault Details" = "Thông tin lỗi Pod";
 
 /* Error message for reservoir view when pod occlusion checks failed */
-"Pod Occlusion" = "Pod Occlusion";
+"Pod Occlusion" = "Pod bị tắc nghẽn";
 
 /* Pairing action button accessibility label when pairing succeeded */
 "Pod paired successfully. Continue." = "Pod ghép đôi thành công. Tiếp tục.";
@@ -790,12 +799,12 @@ Silence Pod" = "Pod im lặng";
 "Previous Pod Details" = "Thông tin của Pod trước đó";
 
 /* Text for pump manager details navigation link */
-"Pump Manager Details" = "Pump Manager Details";
+"Pump Manager Details" = "Chi tiết về Trình quản lý Máy bơm";
 
 /* button title when retrieving pump manager details */
 "Retrieving Pump Manager Details..." = "Đang truy xuất thông tin Pump Manager...";
 /* button title to refresh pump manager details */
-"Refresh Pump Manager Details" = "Làm mới Pump Manager Details";
+"Refresh Pump Manager Details" = "Làm mới chi tiết Trình quản lý máy bơm";
 
 /* Alert title for error when updating silence pod preference */
 "Failed to update silence pod preference." = "Không thể cập nhật im lặng cho pod.";
@@ -805,3 +814,15 @@ Silence Pod" = "Pod im lặng";
 
 /* Text for read pod status navigation link */
 "Read Pod Status" = "Đọc tình trạng pod";
+
+/* Title for the pod diagnostic view */
+"Pod Diagnostics" = "Chẩn đoán Pod";
+
+/* Text for read pulse log plus title */
+"Read Pulse Log Plus" = "Read Pulse Log Plus";
+
+/* Text for read activation time title */
+"Read Activation Time" = "Đọc thời gian kích hoạt";
+
+/* Text for read triggered alerts title */
+"Read Triggered Alerts" = "Đọc cảnh báo được kích hoạt";
