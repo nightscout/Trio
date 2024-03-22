@@ -233,9 +233,9 @@
       </BuildActionEntries>
    </BuildAction>
    <TestAction
-      buildConfiguration = "Release"
-      selectedDebuggerIdentifier = ""
-      selectedLauncherIdentifier = "Xcode.IDEFoundation.Launcher.PosixSpawn"
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
          <TestableReference
@@ -246,6 +246,86 @@
                BuildableName = "FreeAPSTests.xctest"
                BlueprintName = "FreeAPSTests"
                ReferencedContainer = "container:FreeAPS.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "43CABDFC1C3506F100005705"
+               BuildableName = "CGMBLEKitTests.xctest"
+               BlueprintName = "CGMBLEKitTests"
+               ReferencedContainer = "container:CGMBLEKit/CGMBLEKit.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C17F50CD291EAC3800555EB5"
+               BuildableName = "G7SensorKitTests.xctest"
+               BlueprintName = "G7SensorKitTests"
+               ReferencedContainer = "container:G7SensorKit/G7SensorKit.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "43D8FDD41C728FDF0073BE78"
+               BuildableName = "LoopKitTests.xctest"
+               BlueprintName = "LoopKitTests"
+               ReferencedContainer = "container:LoopKit/LoopKit.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "B4CEE2DF257129780093111B"
+               BuildableName = "MockKitTests.xctest"
+               BlueprintName = "MockKitTests"
+               ReferencedContainer = "container:LoopKit/LoopKit.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C13CC34029C7B73A007F25DE"
+               BuildableName = "MinimedKitTests.xctest"
+               BlueprintName = "MinimedKitTests"
+               ReferencedContainer = "container:MinimedKit/MinimedKit.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "84752E8A26ED0FFE009FD801"
+               BuildableName = "OmniBLETests.xctest"
+               BlueprintName = "OmniBLETests"
+               ReferencedContainer = "container:OmniBLE/OmniBLE.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C12ED9C929C7DBA900435701"
+               BuildableName = "OmniKitTests.xctest"
+               BlueprintName = "OmniKitTests"
+               ReferencedContainer = "container:OmniKit/OmniKit.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "431CE7761F98564200255374"
+               BuildableName = "RileyLinkBLEKitTests.xctest"
+               BlueprintName = "RileyLinkBLEKitTests"
+               ReferencedContainer = "container:RileyLinkKit/RileyLinkKit.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
