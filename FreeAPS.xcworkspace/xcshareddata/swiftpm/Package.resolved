@@ -80,6 +80,15 @@
         "revision" : "13d2d7065253eea1e9ce4d9263cf51c783fdf3f0",
         "version" : "2.8.5"
       }
+    },
+    {
+      "identity" : "tidepoolkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tidepool-org/TidepoolKit",
+      "state" : {
+        "branch" : "dev",
+        "revision" : "b8185353c0f46a055f6d5681bb3f18ec86a5b974"
+      }
     }
   ],
   "version" : 2

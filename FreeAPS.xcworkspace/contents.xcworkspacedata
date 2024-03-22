@@ -31,4 +31,7 @@
    <FileRef
       location = "group:G7SensorKit/G7SensorKit.xcodeproj">
    </FileRef>
+   <FileRef
+      location = "group:TidepoolService/TidepoolService.xcodeproj">
+   </FileRef>
 </Workspace>
