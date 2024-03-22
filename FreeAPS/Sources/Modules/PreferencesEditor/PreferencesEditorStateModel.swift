@@ -410,18 +410,18 @@ extension PreferencesEditor {
                     ),
                     settable: self
                 ),
-                Field(
-                    displayName: NSLocalizedString(
-                        "Autotune ISF Adjustment Fraction",
-                        comment: "Autotune ISF Adjustment Fraction"
-                    ),
-                    type: .decimal(keypath: \.autotuneISFAdjustmentFraction),
-                    infoText: NSLocalizedString(
-                        "The default of 0.5 for this value keeps autotune ISF closer to pump ISF via a weighted average of fullNewISF and pumpISF. 1.0 allows full adjustment, 0 is no adjustment from pump ISF.",
-                        comment: "Autotune ISF Adjustment Fraction"
-                    ),
-                    settable: self
-                ),
+                /* Field(
+                        displayName: NSLocalizedString(
+                            "Autotune ISF Adjustment Fraction",
+                            comment: "Autotune ISF Adjustment Fraction"
+                        ),
+                        type: .decimal(keypath: \.autotuneISFAdjustmentFraction),
+                        infoText: NSLocalizedString(
+                            "The default of 0.5 for this value keeps autotune ISF closer to pump ISF via a weighted average of fullNewISF and pumpISF. 1.0 allows full adjustment, 0 is no adjustment from pump ISF.",
+                            comment: "Autotune ISF Adjustment Fraction"
+                        ),
+                        settable: self
+                    ), */
                 Field(
                     displayName: NSLocalizedString("Remaining Carbs Fraction", comment: "Remaining Carbs Fraction"),
                     type: .decimal(keypath: \.remainingCarbsFraction),
