@@ -139,7 +139,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             var smoothedValues = oldGlucoses + filtered
             // smooth with 3 repeats
             for _ in 1 ... 3 {
-                smoothedValues.smoothSavitzkyGolayQuaDratic(withFilterWidth: 3)
+                smoothedValues.smoothSavitzkyGolayQuaDratic(withFilterWidth: 1)  // use width of 1, meaning only 3 values are used representing 10min
             }
             // find the new values only
             filtered = smoothedValues.filter { $0.dateString > syncDate }
