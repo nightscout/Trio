@@ -34,3 +34,6 @@
 	path = LibreTransmitter
 	url = https://github.com/LoopKit/LibreTransmitter.git
 	branch = main
+[submodule "TidepoolService"]
+	path = TidepoolService
+	url = https://github.com/LoopKit/TidepoolService.git
