@@ -1,6 +1,6 @@
 # Using Github Actions + FastLane to deploy to TestFlight: the "Browser Build" method
 
-These instructions allow you to build iAPS without having access to a Mac. They also allow you to easily install iAPS on phones that are not connected to your computer. So you can send builds and updates to those you care for easily, or have an easy to access backup if you run iAPS for yourself. You do not need to worry about correct Xcode/Mac versions either. An app built using this method can easily be deployed to newer versions of iOS, as soon as they are available.
+These instructions allow you to build Open-iAPS without having access to a Mac. They also allow you to easily install Open-iAPS on phones that are not connected to your computer. So you can send builds and updates to those you care for easily, or have an easy to access backup if you run Open-iAPS for yourself. You do not need to worry about correct Xcode/Mac versions either. An app built using this method can easily be deployed to newer versions of iOS, as soon as they are available.
 
 The setup steps are somewhat involved, but nearly all are one time steps. Subsequent builds are trivial. Your app must be updated once every 90 days, but it's a simple click to make a new build and can be done from anywhere.
 
@@ -12,7 +12,7 @@ There are more detailed instructions in LoopDocs for doing Browser Builds of Loo
 
 ## Prerequisites
 
-* A [github account](https://github.com/signup). The free level comes with plenty of storage and free compute time to build iAPS, multiple times a day, if you wanted to.
+* A [github account](https://github.com/signup). The free level comes with plenty of storage and free compute time to build Open-iAPS, multiple times a day, if you wanted to.
 * A paid [Apple Developer account](https://developer.apple.com). You may be able to use the free version, but that has not been tested.
 * Some time. Set aside a couple of hours to perform the setup. 
 * Use the same GitHub account for all "Browser Builds" of the various DIY apps.
@@ -34,8 +34,8 @@ This step is common for all "Browser Builds", and should be done only once. Plea
 This is also a common step for all "browser builds", do this step only once
 1. Create a [new empty repository](https://github.com/new) titled `Match-Secrets`. It should be private.
 
-## Setup Github iAPS repository
-1. Fork https://github.com/Artificial-Pancreas/iAPS into your account. If you already have a fork of iAPS in GitHub, you can't make another one. You can continue to work with your existing fork, or delete that from GitHub and then and fork https://github.com/Artificial-Pancreas/iAPS.
+## Setup Github Open-iAPS repository
+1. Fork https://github.com/nightscout/Open-iAPS into your account. If you already have a fork of Open-iAPS in GitHub, you can't make another one. You can continue to work with your existing fork, or delete that from GitHub and then and fork https://github.com/nightscout/Open-iAPS.
 
 If you have previously built Loop or another app using the "browser build" method, you can can re-use your previous personal access token (`GH_PAT`) and skip ahead to `step 2`.
 1. Create a [new personal access token](https://github.com/settings/tokens/new):
@@ -44,7 +44,7 @@ If you have previously built Loop or another app using the "browser build" metho
     * Select the `repo` permission scope.
     * Click "Generate token".
     * Copy the token and record it. It will be used below as `GH_PAT`.
-1. In the forked iAPS repo, go to Settings -> Secrets -> Actions.
+1. In the forked Open-iAPS repo, go to Settings -> Secrets -> Actions.
 1. For each of the following secrets, tap on "New repository secret", then add the name of the secret, along with the value you recorded for it:
     * `TEAMID`
     * `FASTLANE_KEY_ID`
@@ -55,23 +55,23 @@ If you have previously built Loop or another app using the "browser build" metho
 
 ## Validate repository secrets
 
-1. Click on the "Actions" tab of your iAPS repository.
+1. Click on the "Actions" tab of your Open-iAPS repository.
 1. Select "1. Validate Secrets".
 1. Click "Run Workflow", and tap the green button.
 1. Wait, and within a minute or two you should see a green checkmark indicating the workflow succeeded.
 1. The workflow will check if the required secrets are added and that they are correctly formatted. If errors are detected, please check the run log for details. 
 
-## Add Identifiers for iAPS App
+## Add Identifiers for Open-iAPS App
 
-1. Click on the "Actions" tab of your iAPS repository.
+1. Click on the "Actions" tab of your Open-iAPS repository.
 1. Select "2. Add Identifiers".
 1. Click "Run Workflow", and tap the green button.
 1. Wait, and within a minute or two you should see a green checkmark indicating the workflow succeeded.
 
 ## Create App Group
 
-If you have already built iAPS via Xcode using this Apple ID, you can skip on to [Create iAPS App in App Store Connect](#create-FreeAPS-X-app-in-app-store-connect).
-_Please note that in default builds of iAPS, the app group is actually identical to the one used with Loop, so please enter these details exactly as described below. This is to ease the setup of apps such as Xdrip4iOS. It may require some caution if transfering between iAPS and Loop._
+If you have already built Open-iAPS via Xcode using this Apple ID, you can skip on to [Create Open-iAPS App in App Store Connect](#create-FreeAPS-X-app-in-app-store-connect).
+_Please note that in default builds of Open-iAPS, the app group is actually identical to the one used with Loop, so please enter these details exactly as described below. This is to ease the setup of apps such as Xdrip4iOS. It may require some caution if transfering between Open-iAPS and Loop._
 
 1. Go to [Register an App Group](https://developer.apple.com/account/resources/identifiers/applicationGroup/add/) on the apple developer site.
 1. For Description, use "Loop App Group".
@@ -93,9 +93,9 @@ _Please note that in default builds of iAPS, the app group is actually identical
 1. Click "Confirm".
 1. Remember to do this for each of the identifiers above.
 
-## Create iAPS App in App Store Connect
+## Create Open-iAPS App in App Store Connect
 
-If you have created a iAPS app in App Store Connect before, you can skip this section as well.
+If you have created a Open-iAPS app in App Store Connect before, you can skip this section as well.
 
 1. Go to the [apps list](https://appstoreconnect.apple.com/apps) on App Store Connect and click the blue "plus" icon to create a New App.
     * Select "iOS".
@@ -110,18 +110,18 @@ You do not need to fill out the next form. That is for submitting to the app sto
 
 ## Create Building Certficates
 
-1. Go back to the "Actions" tab of your iAPS repository in github.
+1. Go back to the "Actions" tab of your Open-iAPS repository in github.
 1. Select "3. Create Certificates".
 1. Click "Run Workflow", and tap the green button.
 1. Wait, and within a minute or two you should see a green checkmark indicating the workflow succeeded.
 
-## Build iAPS!
+## Build Open-iAPS!
 
-1. Click on the "Actions" tab of your iAPS repository.
-1. Select "4. Build iAPS". _Are you working on a previuos fork of iAPS and not seeing any GitHub workflows in the Actions tab? You may have to change the default branch so that it contains the .github/workflows files, or merge these changes into your default branch (typically `master`)._
+1. Click on the "Actions" tab of your Open-iAPS repository.
+1. Select "4. Build Open-iAPS". _Are you working on a previuos fork of Open-iAPS and not seeing any GitHub workflows in the Actions tab? You may have to change the default branch so that it contains the .github/workflows files, or merge these changes into your default branch (typically `master`)._
 1. Click "Run Workflow", select your branch, and tap the green button.
 1. You have some time now. Go enjoy a coffee. The build should take about 15 minutes.
 1. Your app should eventually appear on [App Store Connect](https://appstoreconnect.apple.com/apps).
-1. For each phone/person you would like to support iAPS on:
+1. For each phone/person you would like to support Open-iAPS on:
     * Add them in [Users and Access](https://appstoreconnect.apple.com/access/users) on App Store Connect.
     * Add them to your TestFlight Internal Testing group.

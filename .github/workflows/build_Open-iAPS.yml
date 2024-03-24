@@ -1,5 +1,5 @@
-name: 4. Build iAPS
-run-name: Build iAPS (${{ github.ref_name }})
+name: 4. Build Open-iAPS
+run-name: Build Open-iAPS (${{ github.ref_name }})
 on:
   workflow_dispatch:
   
@@ -12,7 +12,7 @@ on:
     - cron: '0 6 1 * *' # Builds the app on the 1st of every month at 06:00 UTC
 
 env:  
-  UPSTREAM_REPO: Artificial-Pancreas/iAPS
+  UPSTREAM_REPO: nightscout/Open-iAPS
   UPSTREAM_BRANCH: ${{ github.ref_name }} # branch on upstream repository to sync from (replace with specific branch name if needed)
   TARGET_BRANCH: ${{ github.ref_name }} # target branch on fork to be kept in sync, and target branch on upstream to be kept alive (replace with specific branch name if needed)
   ALIVE_BRANCH: alive
@@ -56,7 +56,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        if [[ "$(gh api -H "Accept: application/vnd.github+json" /repos/${{ github.repository_owner }}/iAPS/branches | jq --raw-output 'any(.name=="alive")')" == "true" ]]; then
+        if [[ "$(gh api -H "Accept: application/vnd.github+json" /repos/${{ github.repository }}/branches | jq --raw-output 'any(.name=="alive")')" == "true" ]]; then
           echo "Branch 'alive' exists."
           echo "ALIVE_BRANCH_EXISTS=true" >> $GITHUB_ENV # Set ALIVE_BRANCH_EXISTS to true
         else
@@ -69,18 +69,18 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        # Get ref for Artificial-Pancreas/iAPS:dev
+        # Get ref for nightscout/Open-iAPS:main
         SHA=$(curl -sS https://api.github.com/repos/${{ env.UPSTREAM_REPO }}/git/refs \
-          | jq '.[] | select(.ref == "refs/heads/dev" ) | .object.sha' \
+          | jq '.[] | select(.ref == "refs/heads/main" ) | .object.sha' \
           | tr -d '"'
         );
         
-        # Create alive branch based on Artificial-Pancreas/iAPS:dev
+        # Create alive branch based on nightscout/Open-iAPS:main
         gh api \
           --method POST \
           -H "Authorization: token $GITHUB_TOKEN" \
           -H "Accept: application/vnd.github.v3+json" \
-          /repos/${{ github.repository_owner }}/iAPS/git/refs \
+          /repos/${{ github.repository }}/git/refs \
           -f ref='refs/heads/alive' \
           -f sha=$SHA
   
@@ -106,7 +106,7 @@ jobs:
     - name: Sync upstream changes
       if: | # do not run the upstream sync action on the upstream repository
         needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true' &&
-        vars.SCHEDULED_SYNC != 'false' && github.repository_owner != 'Artificial-Pancreas'
+        vars.SCHEDULED_SYNC != 'false' && github.repository_owner != 'nightscout'
       id: sync
       uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.1
       with:
@@ -148,13 +148,13 @@ jobs:
       if: needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION != 'true'
       run: |
         echo "### :calendar: Scheduled Sync and Build Disabled :mobile_phone_off:" >> $GITHUB_STEP_SUMMARY
-        echo "You have not yet configured the scheduled sync and build for iAPS's browser build." >> $GITHUB_STEP_SUMMARY
-        echo "Synchronizing your fork of <code>iAPS</code> with the upstream repository <code>Artificial-Pancreas/iAPS</code> will be skipped." >> $GITHUB_STEP_SUMMARY
-        echo "If you want to enable automatic builds and updates for your iAPS, please follow the instructions \
-              under the following path <code>iAPS/fastlane/testflight.md</code>." >> $GITHUB_STEP_SUMMARY
+        echo "You have not yet configured the scheduled sync and build for Open-iAPS's browser build." >> $GITHUB_STEP_SUMMARY
+        echo "Synchronizing your fork of <code>Open-iAPS</code> with the upstream repository <code>nightscout/Open-iAPS</code> will be skipped." >> $GITHUB_STEP_SUMMARY
+        echo "If you want to enable automatic builds and updates for your Open-iAPS, please follow the instructions \
+              under the following path <code>Open-iAPS/fastlane/testflight.md</code>." >> $GITHUB_STEP_SUMMARY
    
   
-  # Builds iAPS
+  # Builds Open-iAPS
   build:
     name: Build
     needs: [validate, check_alive_and_permissions, check_latest_from_upstream]
@@ -184,7 +184,7 @@ jobs:
       - name: Sync upstream changes
         if: | # do not run the upstream sync action on the upstream repository
           needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true' &&
-          vars.SCHEDULED_SYNC != 'false' && github.repository_owner != 'Artificial-Pancreas'
+          vars.SCHEDULED_SYNC != 'false' && github.repository_owner != 'nightscout'
         id: sync
         uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.1
         with:
@@ -230,7 +230,7 @@ jobs:
       - name: Install project dependencies
         run: bundle install
       
-      # Build signed iAPS IPA file
+      # Build signed Open-iAPS IPA file
       - name: Fastlane Build & Archive
         run: bundle exec fastlane build_iAPS        
         env:
