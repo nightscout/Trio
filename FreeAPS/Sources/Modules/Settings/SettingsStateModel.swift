@@ -8,6 +8,7 @@ extension Settings {
         @Injected() private var fileManager: FileManager!
         @Injected() private var nightscoutManager: NightscoutManager!
         @Injected() var pluginManager: PluginManager!
+        @Injected() var fetchCgmManager: FetchGlucoseManager!
 
         @Published var closedLoop = false
         @Published var debugOptions = false
@@ -105,5 +106,6 @@ extension Settings.StateModel: ServiceOnboardingDelegate {
 extension Settings.StateModel: CompletionDelegate {
     func completionNotifyingDidComplete(_: CompletionNotifying) {
         setupTidePool = false
+        provider.tidePoolManager.forceUploadData(device: fetchCgmManager.cgmManager?.cgmManagerStatus.device)
     }
 }

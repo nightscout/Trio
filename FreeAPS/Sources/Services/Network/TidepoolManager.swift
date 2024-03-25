@@ -13,6 +13,7 @@ protocol TidePoolManager {
     func deleteInsulin(at date: Date)
 //    func uploadStatus()
     func uploadGlucose(device: HKDevice?)
+    func forceUploadData(device: HKDevice?)
 //    func uploadStatistics(dailystat: Statistics)
 //    func uploadPreferences(_ preferences: Preferences)
 //    func uploadProfileAndSettings(_: Bool)
@@ -343,6 +344,13 @@ final class BaseTidePoolManager: TidePoolManager, Injectable {
                     }
                 }
         }
+    }
+
+    /// force to uploads all data in TidePool Service
+    func forceUploadData(device: HKDevice?) {
+        uploadDose()
+        uploadCarbs()
+        uploadGlucose(device: device)
     }
 }
 
