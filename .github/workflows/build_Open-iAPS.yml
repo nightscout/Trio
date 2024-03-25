@@ -67,13 +67,20 @@ jobs:
     - name: Create alive branch
       if: env.ALIVE_BRANCH_EXISTS == 'false'
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GH_PAT }}
       run: |
-        # Get ref for nightscout/Open-iAPS:main
-        SHA=$(curl -sS https://api.github.com/repos/${{ env.UPSTREAM_REPO }}/git/refs \
-          | jq '.[] | select(.ref == "refs/heads/main" ) | .object.sha' \
-          | tr -d '"'
-        );
+        # get ref for nightscout/Open-iAPS:main
+        response=$(curl --request GET \
+                          --url "https://api.github.com/repos/${{ env.UPSTREAM_REPO }}/git/refs/heads/main" \
+                          --header "Authorization: Bearer $GITHUB_TOKEN" \
+                          --silent)
+        echo "API Response: $response"
+        SHA=$(echo "$response" | jq -r '.object.sha')
+        if [ "$SHA" = "null" ]; then
+            echo "Error: Unable to retrieve SHA for the main branch."
+            exit 1
+        fi
+        echo "SHA of main branch: $SHA";
         
         # Create alive branch based on nightscout/Open-iAPS:main
         gh api \
