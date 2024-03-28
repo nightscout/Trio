@@ -1,6 +1,6 @@
 # FAQ
 
-## How to get the Medtronic pump ready?
+## fffHow to get the Medtronic pump ready?
 
 - Set your temporary basal to units (not percents!).
 - Turn on the remote control with any ID (for example 00000).
