@@ -8,8 +8,8 @@
 ## Can I use Bolus assistant on a Medtronic pump?
 
 - You may, but you shouldn't to avoid control conflicts.
-- Carbs, entered through the bolus assistant on pump won't be counted in FreeAPS X.
-- Insulin, delivered through the bolus assistant on pump will be counted in FreeAPS X
+- Carbs, entered through the bolus assistant on pump won't be counted in Open-iAPS.
+- Insulin, delivered through the bolus assistant on pump will be counted in Open-iAPS.
 
 ## Does the insulin model affect anything when connecting the pump?
 
