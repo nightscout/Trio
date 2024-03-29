@@ -197,11 +197,11 @@ final class BaseTidePoolManager: TidePoolManager, Injectable {
                     ) *
                         (last.scheduledBasalRate?.doubleValue(for: .internationalUnitsPerHour) ?? 0.0)
                     result.append(DoseEntry(
-                        type: .tempBasal,
+                        type: .basal,
                         startDate: last.startDate,
                         endDate: event.timestamp,
                         value: value,
-                        unit: last.unit,
+                        unit: .units,
                         deliveredUnits: value,
                         syncIdentifier: last.syncIdentifier,
                         // scheduledBasalRate: last.scheduledBasalRate,
@@ -237,7 +237,7 @@ final class BaseTidePoolManager: TidePoolManager, Injectable {
                         endDate: Calendar.current.date(byAdding: .minute, value: durationMin, to: last.startDate) ?? last
                             .startDate,
                         value: value,
-                        unit: last.unit,
+                        unit: .units,
                         deliveredUnits: value,
                         syncIdentifier: last.syncIdentifier,
                         scheduledBasalRate: last.scheduledBasalRate,
