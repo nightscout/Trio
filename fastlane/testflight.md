@@ -101,7 +101,8 @@ If you have created a iAPS app in App Store Connect before, you can skip this se
     * Select "iOS".
     * Select a name: this will have to be unique, so you may have to try a few different names here, but it will not be the name you see on your phone, so it's not that important.
     * Select your primary language.
-    * Choose the bundle ID that matches `ru.artpancreas.TEAMID.FreeAPS`, with TEAMID matching your team id.
+    * Choose the bundle ID that matches the `BUNDLE_IDENTIFIER` in your `Config.xcconfig` file
+       * this is typically `org.nightscout.TEAMID.openiaps` with `TEAMID` matching your team id
     * SKU can be anything; e.g. "123".
     * Select "Full Access".
 1. Click Create
