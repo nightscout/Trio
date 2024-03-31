@@ -147,24 +147,12 @@ struct LiveActivity: Widget {
                 }
             }
         }
-        .foregroundStyle(context.isStale ? Color.primary.opacity(0.5) : Color.primary)
+        .foregroundStyle(
+            context.state.lockScreenView == "Simple" ? (context.isStale ? Color.primary.opacity(0.5) : Color.primary) :
+                (context.isStale ? Color.white.opacity(0.5) : Color.white)
+        )
 
         return (stack, characters)
-    }
-
-    @ViewBuilder func bobble(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
-        @State var angularGradient = AngularGradient(colors: [
-            Color(red: 0.7215686275, green: 0.3411764706, blue: 1),
-            Color(red: 0.6235294118, green: 0.4235294118, blue: 0.9803921569),
-            Color(red: 0.4862745098, green: 0.5450980392, blue: 0.9529411765),
-            Color(red: 0.3411764706, green: 0.6666666667, blue: 0.9254901961),
-            Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902),
-            Color(red: 0.7215686275, green: 0.3411764706, blue: 1)
-        ], center: .center, startAngle: .degrees(270), endAngle: .degrees(-90))
-        let triangleColor = Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902)
-
-        WidgetBobble(gradient: angularGradient, color: triangleColor)
-            .rotationEffect(.degrees(context.state.rotationDegrees))
     }
 
     @ViewBuilder func chart(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
@@ -239,13 +227,10 @@ struct LiveActivity: Widget {
                     VStack(alignment: .center) {
                         Spacer()
                         ZStack {
-                            bobble(context: context)
-                                .scaleEffect(0.6)
-                                .clipped()
                             VStack {
-                                bgLabel(context: context).font(.title2).imageScale(.small)
+                                bgAndTrend(context: context, size: .expanded).0.font(.largeTitle)
                                 changeLabel(context: context).font(.callout)
-                            }
+                            }.frame(width: 130, height: 130)
                         }.scaleEffect(0.85).offset(y: 18)
                         mealLabel(context: context).padding(.bottom, 8)
                         updatedLabel(context: context).font(.caption).padding(.bottom, 50)
