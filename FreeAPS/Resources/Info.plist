@@ -36,7 +36,6 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>$(APP_URL_SCHEME)</string>
-				<string>freeaps-x</string>
 			</array>
 		</dict>
 	</array>
