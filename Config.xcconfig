@@ -8,5 +8,5 @@ APP_GROUP_ID = group.com.$(DEVELOPMENT_TEAM).loopkit.LoopGroup
 APP_ICON = OiAPS_Icon
 APP_URL_SCHEME = freeaps-x
 
+#include? "../../ConfigOverride.xcconfig"
 #include? "ConfigOverride.xcconfig"
-//#include? "../../ConfigOverride.xcconfig"
