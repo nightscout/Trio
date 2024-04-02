@@ -10,5 +10,6 @@ final class APSAssembly: Assembly {
         container.register(FetchAnnouncementsManager.self) { r in BaseFetchAnnouncementsManager(resolver: r) }
         container.register(BluetoothStateManager.self) { r in BaseBluetoothStateManager(resolver: r) }
         container.register(PluginManager.self) { r in BasePluginManager(resolver: r) }
+        container.register(CalibrationService.self) { r in BaseCalibrationService(resolver: r) }
     }
 }
