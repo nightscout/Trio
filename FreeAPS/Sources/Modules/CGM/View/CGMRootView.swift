@@ -47,6 +47,12 @@ extension CGM {
                             }
                         }
                     }
+                    if state.cgmCurrent.type == .plugin && state.cgmCurrent.id.contains("Libre") {
+                        Section(header: Text("Calibrations")) {
+                            Text("Calibrations").navigationLink(to: .calibrations, from: self)
+                        }
+                    }
+
                     Section(header: Text("Calendar")) {
                         Toggle("Create events in calendar", isOn: $state.createCalendarEvents)
                         if state.calendarIDs.isNotEmpty {
