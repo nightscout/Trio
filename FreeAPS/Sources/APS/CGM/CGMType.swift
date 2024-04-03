@@ -60,7 +60,7 @@ enum CGMType: String, JSON, CaseIterable, Identifiable {
         case .simulator:
             return nil
 //        case .libreTransmitter:
-//            return URL(string: "freeaps-x://libre-transmitter")!
+//            return URL(string: "Open-iAPS://libre-transmitter")!
         case .plugin:
             return nil
         }
