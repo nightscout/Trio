@@ -3,6 +3,7 @@ import Foundation
 struct CarbsEntry: JSON, Equatable, Hashable {
     let id: String?
     let createdAt: Date
+    let actualDate: Date?
     let carbs: Decimal
     let fat: Decimal?
     let protein: Decimal?
@@ -27,6 +28,7 @@ extension CarbsEntry {
     private enum CodingKeys: String, CodingKey {
         case id = "_id"
         case createdAt = "created_at"
+        case actualDate
         case carbs
         case fat
         case protein
