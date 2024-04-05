@@ -174,13 +174,12 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     func deleteCarbs(at date: Date, isFPU: Bool?, fpuID: String?, syncID: String) {
-        // remove in AH
-        healthkitManager.deleteCarbs(syncID: syncID, isFPU: isFPU, fpuID: fpuID)
-
         guard let nightscout = nightscoutAPI, isUploadEnabled else {
             carbsStorage.deleteCarbs(at: date)
             return
         }
+
+        healthkitManager.deleteCarbs(syncID: syncID, fpuID: fpuID ?? "")
 
         if let isFPU = isFPU, isFPU {
             guard let fpuID = fpuID else { return }
