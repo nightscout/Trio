@@ -1943,8 +1943,8 @@ var maxDelta_bg_threshold;
 
             var smb_ratio = Math.min(profile.smb_delivery_ratio, 1);
 
-            if (smb_ratio > 0.5) {
-                console.error("SMB Delivery Ratio increased from default 0.5 to " + round(smb_ratio,2))
+            if (smb_ratio != 0.5) {
+                console.error("SMB Delivery Ratio changed from default 0.5 to " + round(smb_ratio,2))
             }
             var microBolus = Math.min(insulinReq*smb_ratio, maxBolus);
 

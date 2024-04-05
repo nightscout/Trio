@@ -1,6 +1,8 @@
-oref0 branch: dev - git version: f932754
+oref0 branch: dev - git version: 1990e37
 
 Last commits:
+1990e37 Merge pull request #9 from nightscout/smb_ratio_log
+4b7676c determine-basal.js smb_ratio log: if (smb_ratio != 0.5)
 f932754 Merge pull request #4 from nightscout/duplicate_SMBratio
 975245b Add missing max limit = 1 for smb_ratio
 8a6051c Merge pull request #5 from nightscout/half_basal_target
@@ -29,5 +31,3 @@ b8f5997 Merge pull request #6 from JeremyStorring/min_bg_threshold
 fc0e748 Address review comments from Robert
 30549a0 Merge pull request #3 from bjornoleh/webpack
 1276c59 Merge pull request #2 from bjornoleh/revert_1370
-3ff4e0a Rename script to webpack-cp.sh, commit webpack.config.js
-6cf69ec Revert "Tzachi shared node phase2 (#1370)"
