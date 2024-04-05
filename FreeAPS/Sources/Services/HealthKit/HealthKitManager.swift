@@ -19,9 +19,9 @@ protocol HealthKitManager: GlucoseSource {
     func saveIfNeeded(carbs: [CarbsEntry])
     /// Save Insulin to Health store
     func saveIfNeeded(pumpEvents events: [PumpHistoryEvent])
-    /// Create observer for data passing beetwen Health Store and iAPS
+    /// Create observer for data passing beetwen Health Store and Open-iAPS
     func createBGObserver()
-    /// Enable background delivering objects from Apple Health to iAPS
+    /// Enable background delivering objects from Apple Health to Open-iAPS
     func enableBackgroundDelivery()
     /// Delete glucose with syncID
     func deleteGlucose(syncID: String)
@@ -46,7 +46,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
         static let healthInsulinObject = HKObjectType.quantityType(forIdentifier: .insulinDelivery)
 
         // Meta-data key of FreeASPX data in HealthStore
-        static let freeAPSMetaKey = "From iAPS"
+        static let freeAPSMetaKey = "From Open-iAPS"
     }
 
     @Injected() private var glucoseStorage: GlucoseStorage!
