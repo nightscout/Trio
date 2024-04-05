@@ -623,7 +623,6 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
                 withMetadataKey: HKMetadataKeySyncIdentifier,
                 allowedValues: ids
             )
-            print("found IDs: " + ids.description)
             healthKitStore.deleteObjects(of: sampleType, predicate: predicate) { _, _, error in
                 guard let error = error else { return }
                 warning(.service, "Cannot delete sample with fpuID: \(fpuID)", error: error)
