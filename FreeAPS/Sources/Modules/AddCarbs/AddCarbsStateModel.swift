@@ -38,7 +38,6 @@ extension AddCarbs {
                 [CarbsEntry(
                     id: UUID().uuidString,
                     createdAt: Date.now,
-                    actualDate: date,
                     carbs: carbs,
                     fat: fat,
                     protein: protein,
