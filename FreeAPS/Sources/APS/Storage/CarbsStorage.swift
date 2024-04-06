@@ -81,7 +81,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     } else { useDate = useDate.addingTimeInterval(interval.minutes.timeInterval) }
 
                     let eachCarbEntry = CarbsEntry(
-                        id: UUID().uuidString, createdAt: entries.last?.createdAt ?? Date(), actualDate: useDate,
+                        id: UUID().uuidString, createdAt: entries.last?.createdAt ?? Date(),
                         carbs: equivalent, fat: 0, protein: 0, note: nil,
                         enteredBy: CarbsEntry.manual, isFPU: true,
                         fpuID: fpuID
