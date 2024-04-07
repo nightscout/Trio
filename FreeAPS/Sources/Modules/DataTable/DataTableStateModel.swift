@@ -38,13 +38,19 @@ extension DataTable {
                             return Treatment(
                                 units: units,
                                 type: .carbs,
-                                date: $0.createdAt,
+                                date: $0.actualDate ?? $0.createdAt,
                                 amount: $0.carbs,
                                 id: id,
                                 note: $0.note
                             )
                         } else {
-                            return Treatment(units: units, type: .carbs, date: $0.createdAt, amount: $0.carbs, note: $0.note)
+                            return Treatment(
+                                units: units,
+                                type: .carbs,
+                                date: $0.actualDate ?? $0.createdAt,
+                                amount: $0.carbs,
+                                note: $0.note
+                            )
                         }
                     }
 
@@ -54,7 +60,7 @@ extension DataTable {
                         Treatment(
                             units: units,
                             type: .fpus,
-                            date: $0.createdAt,
+                            date: $0.actualDate ?? $0.createdAt,
                             amount: $0.carbs,
                             id: $0.id,
                             isFPU: $0.isFPU,
