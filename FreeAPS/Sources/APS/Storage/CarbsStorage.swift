@@ -81,7 +81,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     } else { useDate = useDate.addingTimeInterval(interval.minutes.timeInterval) }
 
                     let eachCarbEntry = CarbsEntry(
-                        id: UUID().uuidString, createdAt: entries.last?.createdAt ?? Date(),
+                        id: UUID().uuidString, createdAt: useDate,
                         carbs: equivalent, fat: 0, protein: 0, note: nil,
                         enteredBy: CarbsEntry.manual, isFPU: true,
                         fpuID: fpuID
@@ -92,7 +92,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                 // Save the array
                 if carbEquivalents > 0 {
                     self.storage.transaction { storage in
-                        storage.append(futureCarbArray, to: file, uniqBy: \.createdAt)
+                        storage.append(futureCarbArray, to: file, uniqBy: \.id)
                         uniqEvents = storage.retrieve(file, as: [CarbsEntry].self)?
                             .filter { $0.createdAt.addingTimeInterval(1.days.timeInterval) > Date() }
                             .sorted { $0.createdAt > $1.createdAt } ?? []
