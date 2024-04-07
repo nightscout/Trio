@@ -37,7 +37,7 @@ extension AddCarbs {
             carbsStorage.storeCarbs(
                 [CarbsEntry(
                     id: UUID().uuidString,
-                    createdAt: Date.now,
+                    createdAt: date,
                     carbs: carbs,
                     fat: fat,
                     protein: protein,
