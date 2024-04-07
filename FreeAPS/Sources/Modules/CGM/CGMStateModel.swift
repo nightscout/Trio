@@ -23,6 +23,8 @@ extension CGM {
         @Injected() var cgmManager: FetchGlucoseManager!
         @Injected() var calendarManager: CalendarManager!
         @Injected() var pluginCGMManager: PluginManager!
+        @Injected() private var broadcaster: Broadcaster!
+        @Injected() var nightscoutManager: NightscoutManager!
 
         @Published var setupCGM: Bool = false
         @Published var cgmCurrent = cgmDefaultName
@@ -33,6 +35,7 @@ extension CGM {
         @Persisted(key: "CalendarManager.currentCalendarID") var storedCalendarID: String? = nil
         @Published var cgmTransmitterDeviceAddress: String? = nil
         @Published var listOfCGM: [cgmName] = []
+        @Published var url: URL?
 
         override func subscribe() {
             // collect the list of CGM available with plugins and CGMType defined manually
@@ -63,6 +66,17 @@ extension CGM {
                     displayName: settingsManager.settings.cgm.displayName,
                     subtitle: settingsManager.settings.cgm.subtitle
                 )
+            }
+
+            url = nightscoutManager.cgmURL
+            switch url?.absoluteString {
+            case "http://127.0.0.1:1979":
+                url = URL(string: "spikeapp://")!
+            case "http://127.0.0.1:17580":
+                url = URL(string: "diabox://")!
+            //            case CGMType.libreTransmitter.appURL?.absoluteString:
+            //                showModal(for: .libreConfig)
+            default: break
             }
 
             currentCalendarID = storedCalendarID ?? ""
@@ -139,6 +153,11 @@ extension CGM.StateModel: CompletionDelegate {
         settingsManager.settings.uploadGlucose = cgmManager.shouldSyncToRemoteService
 
         // update if required the Glucose source
+        DispatchQueue.main.async {
+            self.broadcaster.notify(GlucoseObserver.self, on: .main) {
+                $0.glucoseDidUpdate([])
+            }
+        }
     }
 }
 
