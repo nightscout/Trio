@@ -69,7 +69,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                 // Only use delay in first loop
                 var firstIndex = true
                 // New date for each carb equivalent
-                var useDate = entries.last?.actualDate ?? Date()
+                var useDate = entries.last?.createdAt ?? Date()
                 // Group and Identify all FPUs together
                 let fpuID = UUID().uuidString
                 // Create an array of all future carb equivalents.
@@ -104,7 +104,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             if entries.last?.carbs ?? 0 > 0 {
                 uniqEvents = []
                 self.storage.transaction { storage in
-                    storage.append(entries, to: file, uniqBy: \.actualDate)
+                    storage.append(entries, to: file, uniqBy: \.createdAt)
                     uniqEvents = storage.retrieve(file, as: [CarbsEntry].self)?
                         .filter { $0.createdAt.addingTimeInterval(1.days.timeInterval) > Date() }
                         .sorted { $0.createdAt > $1.createdAt } ?? []
@@ -118,7 +118,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             var carbDate = Date()
             if entries.isNotEmpty {
                 cbs = entries[0].carbs
-                carbDate = entries[0].actualDate ?? entries[0].createdAt
+                carbDate = entries[0].createdAt
             }
             if cbs != 0 {
                 self.coredataContext.perform {
@@ -148,7 +148,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         processQueue.sync {
             var allValues = storage.retrieve(OpenAPS.Monitor.carbHistory, as: [CarbsEntry].self) ?? []
 
-            guard let entryIndex = allValues.firstIndex(where: { $0.createdAt == date || $0.actualDate == date }) else {
+            guard let entryIndex = allValues.firstIndex(where: { $0.createdAt == date }) else {
                 return
             }
 
@@ -182,7 +182,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                 absolute: nil,
                 rate: nil,
                 eventType: .nsCarbCorrection,
-                createdAt: $0.actualDate ?? $0.createdAt,
+                createdAt: $0.createdAt,
                 enteredBy: CarbsEntry.manual,
                 bolus: nil,
                 insulin: nil,
