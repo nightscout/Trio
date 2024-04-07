@@ -5,6 +5,7 @@ import Swinject
 extension CGM {
     struct RootView: BaseView {
         let resolver: Resolver
+        let displayClose: Bool
         @StateObject var state = StateModel()
         @State private var setupCGM = false
 
@@ -47,6 +48,20 @@ extension CGM {
                             }
                         }
                     }
+                    
+
+                    if state.cgmCurrent.type == .nightscout {
+                        Section(header: Text("Nightscout")) {
+                            if state.url != nil {
+                                Button(state.url!.absoluteString) {
+                                    UIApplication.shared.open(state.url!, options: [:], completionHandler: nil)
+                                }
+                            } else {
+                                Text("You need to configure Nightscout URL")
+                            }
+                        }
+                    }
+
                     Section(header: Text("Calendar")) {
                         Toggle("Create events in calendar", isOn: $state.createCalendarEvents)
                         if state.calendarIDs.isNotEmpty {
@@ -66,6 +81,7 @@ extension CGM {
                 .onAppear(perform: configureView)
                 .navigationTitle("CGM")
                 .navigationBarTitleDisplayMode(.automatic)
+                .navigationBarItems(leading: displayClose ? Button("Close", action: state.hideModal) : nil)
                 .sheet(isPresented: $setupCGM) {
                     if let cgmFetchManager = state.cgmManager,
                        let cgmManager = cgmFetchManager.cgmManager,
