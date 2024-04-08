@@ -69,7 +69,7 @@ Open-iAPS app runs on iPhone or iPod. An iPhone 8 or newer is required. Minimum 
 
 [OpenAPS documentation](https://openaps.readthedocs.io/en/latest/)
 
-[Crowdin Project for translation of Open-iAPS (_available soon_)](https://crowdin.com/project/open-iaps)  
+[Crowdin Project for translation of Open-iAPS (_available soon_)](https://crowdin.com/project/open-iaps)
 
 # Support
 
