@@ -1,9 +1,0 @@
-/* The connected state */
-"Connected" = "कनेक्ट हो गया";
-
-/* The in-progress connecting state */
-"Connecting" = "कनेक्ट हो रहा है";
-
-/* The title of the cell showing device name */
-"Name" = "नाम";
-

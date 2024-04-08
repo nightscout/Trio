@@ -1,0 +1,36 @@
+[submodule "LoopKit"]
+	path = LoopKit
+	url = https://github.com/LoopKit/LoopKit.git
+	branch = dev
+[submodule "CGMBLEKit"]
+	path = CGMBLEKit
+	url = https://github.com/LoopKit/CGMBLEKit.git
+	branch = dev
+[submodule "dexcom-share-client-swift"]
+	path = dexcom-share-client-swift
+	url = https://github.com/LoopKit/dexcom-share-client-swift.git
+	branch = dev
+[submodule "RileyLinkKit"]
+	path = RileyLinkKit
+	url = https://github.com/LoopKit/RileyLinkKit
+	branch = dev
+[submodule "OmniBLE"]
+	path = OmniBLE
+	url = https://github.com/LoopKit/OmniBLE.git
+	branch = dev
+[submodule "G7SensorKit"]
+	path = G7SensorKit
+	url = https://github.com/LoopKit/G7SensorKit.git
+	branch = main
+[submodule "OmniKit"]
+	path = OmniKit
+	url = https://github.com/LoopKit/OmniKit.git
+	branch = main
+[submodule "MinimedKit"]
+	path = MinimedKit
+	url = https://github.com/LoopKit/MinimedKit.git
+	branch = main
+[submodule "LibreTransmitter"]
+	path = LibreTransmitter
+	url = https://github.com/LoopKit/LibreTransmitter.git
+	branch = main

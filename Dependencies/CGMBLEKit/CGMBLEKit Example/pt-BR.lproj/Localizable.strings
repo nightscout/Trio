@@ -1,9 +1,0 @@
-/* Title displayed during backfill response */
-"Backfill" = "Preenchimento";
-
-/* Title displayed during error response */
-"Error" = "Erro";
-
-/* Title displayed during unknown data response */
-"Unknown Data" = "Dados Desconhecidos";
-

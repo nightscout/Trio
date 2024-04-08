@@ -531,7 +531,6 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
 
     var glucoseManager: FetchGlucoseManager?
     var cgmManager: CGMManagerUI?
-    var cgmType: CGMType = .nightscout
 
     func fetch(_: DispatchTimer?) -> AnyPublisher<[BloodGlucose], Never> {
         Future { [weak self] promise in
