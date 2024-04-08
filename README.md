@@ -11,7 +11,7 @@ Following the release of version 3.0.0, the project's direction significantly ch
 
 Open-iAPS continues to leverage a variety of frameworks from the DIY looping community and remains at the forefront of DIY diabetes management solutions, constantly evolving with valuable contributions from its community.
 
-## To download this repo:
+## To Download this Repo:
 
 In Terminal:  
 ```
@@ -23,12 +23,10 @@ xed .
 Or using the GitHub interface:
 Download and open in Xcode directly using the Code button: "Open with Xcode".
 
-## To build directly in GitHub, without using Xcode:
+## To Build Open-iAPS:
 
-Instructions:  
-https://github.com/nightscout/Open-iAPS/blob/main/fastlane/testflight.md   
-Instructions in greater detail, but not Open-iAPS-specific:  
-https://loopkit.github.io/loopdocs/gh-actions/gh-overview/
+Build with [GitHub](https://github.com/nightscout/Open-iAPS-docs/edit/Operate-Folder-Updates/docs/EN/operate/build.md#build-open-iaps-with-github) | [Xcode](https://github.com/nightscout/Open-iAPS-docs/edit/Operate-Folder-Updates/docs/EN/operate/build.md#build-open-iaps-with-script)\
+Update with [GitHub](https://github.com/nightscout/Open-iAPS-docs/edit/Operate-Folder-Updates/docs/EN/operate/build.md#update-open-iaps-with-github) | [Xcode](https://github.com/nightscout/Open-iAPS-docs/edit/Operate-Folder-Updates/docs/EN/operate/build.md#update-open-iaps-with-xcode)
 
 ## Please understand that Open-iAPS is:
 - an open-source system developed by enthusiasts and for use at your own risk
@@ -43,7 +41,7 @@ https://loopkit.github.io/loopdocs/gh-actions/gh-overview/
 - Medtronic 523 or 723 (firmware 2.4 or lower)
 - Medtronic Worldwide Veo 554 or 754 (firmware 2.6A or lower)
 - Medtronic Canadian/Australian Veo 554 or 754 (firmware 2.7A or lower)
-- Dana RS (COMING SOON)
+- Dana RS (_coming soon!_)
 
 # CGM Sensors
 
@@ -71,7 +69,7 @@ Open-iAPS app runs on iPhone or iPod. An iPhone 8 or newer is required. Minimum 
 
 [OpenAPS documentation](https://openaps.readthedocs.io/en/latest/)
 
-[Crowdin Project for translation of Open-iAPS (_not existing yet_)](https://crowdin.com/project/open-iaps)  
+[Crowdin Project for translation of Open-iAPS (_available soon_)](https://crowdin.com/project/open-iaps)  
 
 # Support
 
@@ -85,6 +83,6 @@ Open-iAPS app runs on iPhone or iPod. An iPhone 8 or newer is required. Minimum 
 
 Code contributions as PRs are welcome!
 
-Translators can click the Crowdin link [here (_not available yet_)](https://crowdin.com/project/open-iaps).
+Translators can click the Crowdin link [here (_available soon_)](https://crowdin.com/project/open-iaps).
 
 For questions or contributions, please join our [Discord server](https://discord.gg/dbe5Twav8D).
