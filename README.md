@@ -4,19 +4,21 @@
 
 Open-iAPS - an automated insulin delivery system for iOS based on the OpenAPS algorithm with [adaptations for Open-iAPS](https://github.com/nightscout/open-iaps-oref).
 
-The project started as Ivan Valkou's FreeAPS X implementation of the OpenAPS algorithm for iPhone, and later forked and rebranded as iAPS.
-The project has since seen substantial contributions from many developers, leading to a range of new features and enhancements.
+The project started as Ivan Valkou's FreeAPS X implementation of the OpenAPS algorithm for iPhone and later forked and rebranded as iAPS.
+Since then, many developers have contributed substantial work, leading to a range of new features and enhancements.
 
-Following the release of version 3.0.0, due to differing views on development, open source, and peer review, there was a significant shift in the project's direction. This led to the separation from the [Artificial-Pancreas/iAPS](https://github.com/Artificial-Pancreas/iAPS) repository, and the birth of Open-iAPS as a distinct entity. This transition marks a new phase for the project, symbolizing both its evolution and the dynamic nature of collaborative development.
+Following the release of version 3.0.0, the project's direction significantly changed due to differing views on development, open source, and peer review. This led to the separation from the [Artificial-Pancreas/iAPS](https://github.com/Artificial-Pancreas/iAPS) repository and the birth of Open-iAPS as a distinct entity. This transition marks the project's new phase, symbolizing its evolution and the collaborative development's dynamic nature.
 
 Open-iAPS continues to leverage a variety of frameworks from the DIY looping community and remains at the forefront of DIY diabetes management solutions, constantly evolving with valuable contributions from its community.
 
 ## To download this repo:
 
 In Terminal:  
-git clone --branch=main https://github.com/nightscout/Open-iAPS.git  
-cd Open-iAPS  
+```
+git clone --branch=main https://github.com/nightscout/Open-iAPS.git 
+cd Open-iAPS 
 xed .
+```
 
 Or using the GitHub interface:
 Download and open in Xcode directly using the Code button: "Open with Xcode".
@@ -30,7 +32,7 @@ https://loopkit.github.io/loopdocs/gh-actions/gh-overview/
 
 ## Please understand that Open-iAPS is:
 - an open-source system developed by enthusiasts and for use at your own risk
-- not CE or FDA approved for therapy.
+- not CE or FDA-approved for therapy.
 
 # Pumps
 
@@ -61,18 +63,15 @@ Open-iAPS app runs on iPhone or iPod. An iPhone 8 or newer is required. Minimum 
 
 # Documentation
 
-[Discord Open-iAPS - Server ](https://discord.gg/dbe5Twav8D)
+[Discord Open-iAPS - Server](https://discord.gg/dbe5Twav8D)
 
-[Open-iAPS documentation (under development, not existing yet)](https://open-iaps.readthedocs.io/en/latest/)
+[Open-iAPS documentation (_under development_)](https://open-iaps.readthedocs.io/en/latest/)
 
-[Open-iAPS Website (under development)](https://iaps-app.org)
+[Open-iAPS Website (_under development_)](https://iaps-app.org)
 
 [OpenAPS documentation](https://openaps.readthedocs.io/en/latest/)
 
-[Crowdin Project for translation of Open-iAPS (not existing yet)](https://crowdin.com/project/open-iaps)  
-[![Crowdin (not existing yet)](https://badges.crowdin.net/iaps/localized.svg)](https://crowdin.com/project/open-iaps)
-
-[ADD DASH PUMP and SETTINGS](https://loopkit.github.io/loopdocs/loop-3/omnipod/)
+[Crowdin Project for translation of Open-iAPS (_not existing yet_)](https://crowdin.com/project/open-iaps)  
 
 # Support
 
@@ -86,6 +85,6 @@ Open-iAPS app runs on iPhone or iPod. An iPhone 8 or newer is required. Minimum 
 
 Code contributions as PRs are welcome!
 
-Translators can click the Crowdin link above.
+Translators can click the Crowdin link [here (_not available yet_)](https://crowdin.com/project/open-iaps).
 
 For questions or contributions, please join our [Discord server](https://discord.gg/dbe5Twav8D).
