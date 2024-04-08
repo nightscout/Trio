@@ -231,7 +231,7 @@ struct LiveActivity: Widget {
                                 bgAndTrend(context: context, size: .expanded).0.font(.largeTitle)
                                 changeLabel(context: context).font(.callout)
                             }.frame(width: 130, height: 130)
-                        }.scaleEffect(0.85).offset(y: 18)
+                        }.scaleEffect(0.85).offset(y: 30)
                         mealLabel(context: context).padding(.bottom, 8)
                         updatedLabel(context: context).font(.caption).padding(.bottom, 70)
                     }
