@@ -233,7 +233,7 @@ struct LiveActivity: Widget {
                             }.frame(width: 130, height: 130)
                         }.scaleEffect(0.85).offset(y: 18)
                         mealLabel(context: context).padding(.bottom, 8)
-                        updatedLabel(context: context).font(.caption).padding(.bottom, 50)
+                        updatedLabel(context: context).font(.caption).padding(.bottom, 70)
                     }
                 }
                 .privacySensitive()
