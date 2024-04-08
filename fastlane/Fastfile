@@ -127,7 +127,7 @@ platform :ios do
     )
     update_code_signing_settings(
       path: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
-      profile_name: mapping["ru.artpancreas.#{TEAMID}.FreeAPS.LiveActivity"],
+      profile_name: mapping["#{BUNDLE_ID}.FreeAPS.LiveActivity"],
       code_sign_identity: "iPhone Distribution",
       targets: ["LiveActivityExtension"]
     )
@@ -197,7 +197,7 @@ platform :ios do
       Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS
     ])
 
-    configure_bundle_id("LiveActivityExtension", "ru.artpancreas.#{TEAMID}.FreeAPS.LiveActivity", [
+    configure_bundle_id("LiveActivityExtension", "#{BUNDLE_ID}.LiveActivity", [
       Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS
     ])
     
