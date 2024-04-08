@@ -16,12 +16,12 @@ extension Settings {
                 header: {
                     if let expirationDate = Bundle.main.profileExpiration {
                         Text(
-                            "iAPS v\(state.versionNumber) (\(state.buildNumber))\nBranch: \(state.branch) \(state.copyrightNotice)" +
+                            "Open-iAPS v\(state.versionNumber) (\(state.buildNumber))\nBranch: \(state.branch) \(state.copyrightNotice)" +
                                 "\nBuild Expires: " + expirationDate
                         ).textCase(nil)
                     } else {
                         Text(
-                            "iAPS v\(state.versionNumber) (\(state.buildNumber))\nBranch: \(state.branch) \(state.copyrightNotice)"
+                            "Open-iAPS v\(state.versionNumber) (\(state.buildNumber))\nBranch: \(state.branch) \(state.copyrightNotice)"
                         )
                     }
                 }

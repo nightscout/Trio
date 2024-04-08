@@ -3,6 +3,7 @@ import Foundation
 struct CarbsEntry: JSON, Equatable, Hashable {
     let id: String?
     let createdAt: Date
+    let actualDate: Date?
     let carbs: Decimal
     let fat: Decimal?
     let protein: Decimal?
@@ -11,7 +12,7 @@ struct CarbsEntry: JSON, Equatable, Hashable {
     let isFPU: Bool?
     let fpuID: String?
 
-    static let manual = "freeaps-x"
+    static let manual = "Open-iAPS"
     static let appleHealth = "applehealth"
 
     static func == (lhs: CarbsEntry, rhs: CarbsEntry) -> Bool {
@@ -27,6 +28,7 @@ extension CarbsEntry {
     private enum CodingKeys: String, CodingKey {
         case id = "_id"
         case createdAt = "created_at"
+        case actualDate
         case carbs
         case fat
         case protein
