@@ -78,8 +78,10 @@ extension Bolus {
                     header: { Text("Bolus") }
                     Section {
                         Button { state.add() }
-                        label: { Text("Enact bolus") }
-                            .disabled(state.amount <= 0)
+                        label: { Text(!(state.amount > state.maxBolus) ? "Enact bolus" : "Max Bolus exceeded!") }
+                            .disabled(
+                                state.amount <= 0 || state.amount > state.maxBolus
+                            )
                     }
                     Section {
                         if waitForSuggestion {
@@ -88,16 +90,34 @@ extension Bolus {
                         } else {
                             Button { isAddInsulinAlertPresented = true }
                             label: { Text("Add insulin without actually bolusing") }
-                                .disabled(state.amount <= 0)
+                                .disabled(state.amount <= 0 || state.amount > state.maxBolus * 3)
                         }
                     }
                     .alert(isPresented: $isAddInsulinAlertPresented) {
-                        Alert(
-                            title: Text("Are you sure?"),
-                            message: Text(
-                                NSLocalizedString("Add", comment: "Add insulin without bolusing alert") + " " + formatter
-                                    .string(from: state.amount as NSNumber)! + NSLocalizedString(" U", comment: "Insulin unit") +
-                                    NSLocalizedString(" without bolusing", comment: "Add insulin without bolusing alert")
+                        let isOverMax = state.amount > state.maxBolus ? true : false
+                        let addOverMax = NSLocalizedString(
+                            "\nAmount is more than your Max Bolus setting! \nAre you sure you want to add ",
+                            comment: "Alert"
+                        )
+                        let addUnderMax = NSLocalizedString("Add", comment: "Add insulin without bolusing alert")
+                        let insulinUnit = NSLocalizedString(" U", comment: "Insulin unit")
+                        let withoutBolusing = NSLocalizedString(
+                            " without bolusing",
+                            comment: "Add insulin without bolusing alert"
+                        )
+                        let insulinAmount = formatter.string(from: state.amount as NSNumber)!
+
+                        let overMaxBolusString = addOverMax + insulinAmount + insulinUnit + withoutBolusing + "?"
+                        let underMaxBolusString = addUnderMax + " " + insulinAmount + insulinUnit + withoutBolusing
+
+                        // Actual alert
+                        return Alert(
+                            title: Text(
+                                isOverMax ? "Warning" : "Are you sure?"
+                            ),
+                            message:
+                            Text(
+                                isOverMax ? overMaxBolusString : underMaxBolusString
                             ),
                             primaryButton: .destructive(
                                 Text("Add"),
