@@ -44,7 +44,13 @@ extension DataTable {
                                 note: $0.note
                             )
                         } else {
-                            return Treatment(units: units, type: .carbs, date: $0.createdAt, amount: $0.carbs, note: $0.note)
+                            return Treatment(
+                                units: units,
+                                type: .carbs,
+                                date: $0.createdAt,
+                                amount: $0.carbs,
+                                note: $0.note
+                            )
                         }
                     }
 

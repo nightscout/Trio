@@ -8,6 +8,7 @@ struct CurrentGlucoseView: View {
     @Binding var alarm: GlucoseAlarm?
     @Binding var lowGlucose: Decimal
     @Binding var highGlucose: Decimal
+    @Binding var cgmAvailable: Bool
 
     private var glucoseFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -45,38 +46,51 @@ struct CurrentGlucoseView: View {
     }
 
     var body: some View {
-        VStack(alignment: .center) {
-            HStack {
-                Text(
-                    (recentGlucose?.glucose ?? 100) == 400 ? "HIGH" : recentGlucose?.glucose
-                        .map {
-                            glucoseFormatter
-                                .string(from: Double(units == .mmolL ? $0.asMmolL : Decimal($0)) as NSNumber)! }
-                        ?? "--"
-                )
-                .font(.title).fontWeight(.bold)
-                .foregroundColor(alarm == nil ? colorOfGlucose : .loopRed)
-
-                image
-            }
-            HStack {
-                let minutesAgo = -1 * (recentGlucose?.dateString.timeIntervalSinceNow ?? 0) / 60
-                let text = timaAgoFormatter.string(for: Double(minutesAgo)) ?? ""
-                Text(
-                    minutesAgo <= 1 ? "< 1 " + NSLocalizedString("min", comment: "Short form for minutes") : (
-                        text + " " +
-                            NSLocalizedString("min", comment: "Short form for minutes") + " "
+        if cgmAvailable {
+            VStack(alignment: .center) {
+                HStack {
+                    Text(
+                        (recentGlucose?.glucose ?? 100) == 400 ? "HIGH" : recentGlucose?.glucose
+                            .map {
+                                glucoseFormatter
+                                    .string(from: Double(units == .mmolL ? $0.asMmolL : Decimal($0)) as NSNumber)! }
+                            ?? "--"
                     )
-                )
-                .font(.caption2).foregroundColor(.secondary)
+                    .font(.title).fontWeight(.bold)
+                    .foregroundColor(alarm == nil ? colorOfGlucose : .loopRed)
 
-                Text(
-                    delta
-                        .map {
-                            deltaFormatter.string(from: Double(units == .mmolL ? $0.asMmolL : Decimal($0)) as NSNumber)!
-                        } ?? "--"
-                )
-                .font(.caption2).foregroundColor(.secondary)
+                    image
+                }
+                HStack {
+                    let minutesAgo = -1 * (recentGlucose?.dateString.timeIntervalSinceNow ?? 0) / 60
+                    let text = timaAgoFormatter.string(for: Double(minutesAgo)) ?? ""
+                    Text(
+                        minutesAgo <= 1 ? "< 1 " + NSLocalizedString("min", comment: "Short form for minutes") : (
+                            text + " " +
+                                NSLocalizedString("min", comment: "Short form for minutes") + " "
+                        )
+                    )
+                    .font(.caption2).foregroundColor(.secondary)
+
+                    Text(
+                        delta
+                            .map {
+                                deltaFormatter.string(from: Double(units == .mmolL ? $0.asMmolL : Decimal($0)) as NSNumber)!
+                            } ?? "--"
+                    )
+                    .font(.caption2).foregroundColor(.secondary)
+                }.frame(alignment: .top)
+            }
+        } else {
+            VStack(alignment: .center, spacing: 12) {
+                HStack
+                    {
+                        // no cgm defined so display a generic CGM
+                        Image(systemName: "sensor.tag.radiowaves.forward.fill").font(.body).imageScale(.large)
+                    }
+                HStack {
+                    Text("Add CGM").font(.caption).bold()
+                }
             }.frame(alignment: .top)
         }
     }

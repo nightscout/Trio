@@ -277,6 +277,10 @@
 		CA370FC152BC98B3D1832968 /* BasalProfileEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF8BCB0C37DEB5EC377B9612 /* BasalProfileEditorRootView.swift */; };
 		CC6C406E2ACDD69E009B8058 /* RawFetchedProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC6C406D2ACDD69E009B8058 /* RawFetchedProfile.swift */; };
 		CD78BB94E43B249D60CC1A1B /* NotificationsConfigRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22963BD06A9C83959D4914E4 /* NotificationsConfigRootView.swift */; };
+		CE1F6DD92BADF4620064EB8D /* PluginManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1F6DD82BADF4620064EB8D /* PluginManagerTests.swift */; };
+		CE1F6DDB2BAE08B60064EB8D /* TidepoolManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1F6DDA2BAE08B60064EB8D /* TidepoolManager.swift */; };
+		CE1F6DE72BAF1A180064EB8D /* BuildDetails.plist in Resources */ = {isa = PBXBuildFile; fileRef = CE1F6DE62BAF1A180064EB8D /* BuildDetails.plist */; };
+		CE1F6DE92BAF37C90064EB8D /* TidePoolConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1F6DE82BAF37C90064EB8D /* TidePoolConfigView.swift */; };
 		CE2FAD3A297D93F0001A872C /* BloodGlucoseExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE2FAD39297D93F0001A872C /* BloodGlucoseExtensions.swift */; };
 		CE48C86428CA69D5007C0598 /* OmniBLEPumpManagerExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE48C86328CA69D5007C0598 /* OmniBLEPumpManagerExtensions.swift */; };
 		CE48C86628CA6B48007C0598 /* OmniPodManagerExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE48C86528CA6B48007C0598 /* OmniPodManagerExtensions.swift */; };
@@ -320,6 +324,13 @@
 		CEB434E728B9053300B70274 /* LoopUIColorPalette+Default.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB434E628B9053300B70274 /* LoopUIColorPalette+Default.swift */; };
 		CEB434FD28B90B7C00B70274 /* SwiftCharts in Frameworks */ = {isa = PBXBuildFile; productRef = CEB434FC28B90B7C00B70274 /* SwiftCharts */; };
 		CEB434FE28B90B8C00B70274 /* SwiftCharts in Embed Frameworks */ = {isa = PBXBuildFile; productRef = CEB434FC28B90B7C00B70274 /* SwiftCharts */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		CEE9A6552BBB418300EB5194 /* CalibrationsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE9A64F2BBB418300EB5194 /* CalibrationsProvider.swift */; };
+		CEE9A6562BBB418300EB5194 /* CalibrationsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE9A6512BBB418300EB5194 /* CalibrationsRootView.swift */; };
+		CEE9A6572BBB418300EB5194 /* CalibrationsChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE9A6522BBB418300EB5194 /* CalibrationsChart.swift */; };
+		CEE9A6582BBB418300EB5194 /* CalibrationsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE9A6532BBB418300EB5194 /* CalibrationsStateModel.swift */; };
+		CEE9A6592BBB418300EB5194 /* CalibrationsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE9A6542BBB418300EB5194 /* CalibrationsDataFlow.swift */; };
+		CEE9A65C2BBB41C800EB5194 /* CalibrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE9A65B2BBB41C800EB5194 /* CalibrationService.swift */; };
+		CEE9A65E2BBC9F6500EB5194 /* CalibrationsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE9A65D2BBC9F6500EB5194 /* CalibrationsTests.swift */; };
 		D2165E9D78EFF692C1DED1C6 /* AddTempTargetDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8A42073A2D03A278914448 /* AddTempTargetDataFlow.swift */; };
 		D6D02515BBFBE64FEBE89856 /* DataTableRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 881E04BA5E0A003DE8E0A9C6 /* DataTableRootView.swift */; };
 		D6DEC113821A7F1056C4AA1E /* NightscoutConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F2A13DF0EDEEEDC4106AA2A /* NightscoutConfigDataFlow.swift */; };
@@ -760,6 +771,10 @@
 		C377490C77661D75E8C50649 /* ManualTempBasalRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ManualTempBasalRootView.swift; sourceTree = "<group>"; };
 		C8D1A7CA8C10C4403D4BBFA7 /* BolusDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BolusDataFlow.swift; sourceTree = "<group>"; };
 		CC6C406D2ACDD69E009B8058 /* RawFetchedProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawFetchedProfile.swift; sourceTree = "<group>"; };
+		CE1F6DD82BADF4620064EB8D /* PluginManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginManagerTests.swift; sourceTree = "<group>"; };
+		CE1F6DDA2BAE08B60064EB8D /* TidepoolManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TidepoolManager.swift; sourceTree = "<group>"; };
+		CE1F6DE62BAF1A180064EB8D /* BuildDetails.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = BuildDetails.plist; sourceTree = "<group>"; };
+		CE1F6DE82BAF37C90064EB8D /* TidePoolConfigView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TidePoolConfigView.swift; sourceTree = "<group>"; };
 		CE2FAD39297D93F0001A872C /* BloodGlucoseExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BloodGlucoseExtensions.swift; sourceTree = "<group>"; };
 		CE398D012977349800DF218F /* CryptoKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoKit.framework; path = System/Library/Frameworks/CryptoKit.framework; sourceTree = SDKROOT; };
 		CE398D17297C9EE800DF218F /* G7SensorKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = G7SensorKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -805,6 +820,13 @@
 		CEC751D329D88257006E9D24 /* OmniKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = OmniKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEC751D529D88262006E9D24 /* MinimedKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = MinimedKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEC751D729D88262006E9D24 /* MinimedKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = MinimedKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CEE9A64F2BBB418300EB5194 /* CalibrationsProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CalibrationsProvider.swift; sourceTree = "<group>"; };
+		CEE9A6512BBB418300EB5194 /* CalibrationsRootView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CalibrationsRootView.swift; sourceTree = "<group>"; };
+		CEE9A6522BBB418300EB5194 /* CalibrationsChart.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CalibrationsChart.swift; sourceTree = "<group>"; };
+		CEE9A6532BBB418300EB5194 /* CalibrationsStateModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CalibrationsStateModel.swift; sourceTree = "<group>"; };
+		CEE9A6542BBB418300EB5194 /* CalibrationsDataFlow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CalibrationsDataFlow.swift; sourceTree = "<group>"; };
+		CEE9A65B2BBB41C800EB5194 /* CalibrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationService.swift; sourceTree = "<group>"; };
+		CEE9A65D2BBC9F6500EB5194 /* CalibrationsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationsTests.swift; sourceTree = "<group>"; };
 		CFCFE0781F9074C2917890E8 /* ManualTempBasalStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ManualTempBasalStateModel.swift; sourceTree = "<group>"; };
 		D0BDC6993C1087310EDFC428 /* CREditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CREditorRootView.swift; sourceTree = "<group>"; };
 		D295A3F870E826BE371C0BB5 /* AutotuneConfigStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AutotuneConfigStateModel.swift; sourceTree = "<group>"; };
@@ -1072,6 +1094,7 @@
 		3811DE0325C9D31700A708ED /* Modules */ = {
 			isa = PBXGroup;
 			children = (
+				CEE9A64D2BBB411C00EB5194 /* Calibrations */,
 				190EBCC229FF134900BA767D /* StatConfig */,
 				CE94597C29E9E1CD0047C9C6 /* WatchConfig */,
 				19F95FF129F10F9C00314DDC /* Stat */,
@@ -1200,6 +1223,7 @@
 			isa = PBXGroup;
 			children = (
 				3811DE3C25C9D4A100A708ED /* SettingsRootView.swift */,
+				CE1F6DE82BAF37C90064EB8D /* TidePoolConfigView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -1239,6 +1263,7 @@
 				3811DE9725C9D88300A708ED /* NightscoutManager.swift */,
 				38FE826925CC82DB001FF17A /* NetworkService.swift */,
 				38FE826C25CC8461001FF17A /* NightscoutAPI.swift */,
+				CE1F6DDA2BAE08B60064EB8D /* TidepoolManager.swift */,
 			);
 			path = Network;
 			sourceTree = "<group>";
@@ -1402,6 +1427,7 @@
 		3856933F270B57A00002C50D /* CGM */ = {
 			isa = PBXGroup;
 			children = (
+				CEE9A65A2BBB41AD00EB5194 /* Calibrations */,
 				F816825F28DB441800054060 /* BluetoothTransmitter.swift */,
 				F816825D28DB441200054060 /* HeartBeatManager.swift */,
 				38569346270B5DFB0002C50D /* AppGroupSource.swift */,
@@ -1437,6 +1463,7 @@
 		388E594F25AD948C0019842D = {
 			isa = PBXGroup;
 			children = (
+				CE1F6DE62BAF1A180064EB8D /* BuildDetails.plist */,
 				FEFA5C0D299F810B00765C17 /* Core_Data.xcdatamodeld */,
 				38F3783A2613555C009DB701 /* Config.xcconfig */,
 				3818AA42274BBC1100843DB3 /* ConfigOverride.xcconfig */,
@@ -1740,6 +1767,8 @@
 			children = (
 				38FCF3F125E9028E0078B0D1 /* Info.plist */,
 				38FCF3F825E902C20078B0D1 /* FileStorageTests.swift */,
+				CE1F6DD82BADF4620064EB8D /* PluginManagerTests.swift */,
+				CEE9A65D2BBC9F6500EB5194 /* CalibrationsTests.swift */,
 			);
 			path = FreeAPSTests;
 			sourceTree = "<group>";
@@ -2002,6 +2031,34 @@
 				CEB434E228B8F9DB00B70274 /* BluetoothStateManager.swift */,
 			);
 			path = Bluetooth;
+			sourceTree = "<group>";
+		};
+		CEE9A64D2BBB411C00EB5194 /* Calibrations */ = {
+			isa = PBXGroup;
+			children = (
+				CEE9A6542BBB418300EB5194 /* CalibrationsDataFlow.swift */,
+				CEE9A64F2BBB418300EB5194 /* CalibrationsProvider.swift */,
+				CEE9A6532BBB418300EB5194 /* CalibrationsStateModel.swift */,
+				CEE9A6502BBB418300EB5194 /* View */,
+			);
+			path = Calibrations;
+			sourceTree = "<group>";
+		};
+		CEE9A6502BBB418300EB5194 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				CEE9A6512BBB418300EB5194 /* CalibrationsRootView.swift */,
+				CEE9A6522BBB418300EB5194 /* CalibrationsChart.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		CEE9A65A2BBB41AD00EB5194 /* Calibrations */ = {
+			isa = PBXGroup;
+			children = (
+				CEE9A65B2BBB41C800EB5194 /* CalibrationService.swift */,
+			);
+			path = Calibrations;
 			sourceTree = "<group>";
 		};
 		D533BF261CDC1C3F871E7BFD /* NightscoutConfig */ = {
@@ -2296,6 +2353,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				198377D2266BFFF6004DE65E /* Localizable.strings in Resources */,
+				CE1F6DE72BAF1A180064EB8D /* BuildDetails.plist in Resources */,
 				38DF178D27733E6800B3528F /* snow.sks in Resources */,
 				388E597225AD9CF10019842D /* json in Resources */,
 				38DF178E27733E6800B3528F /* Assets.xcassets in Resources */,
@@ -2430,6 +2488,7 @@
 				383420D925FFEB3F002D46C1 /* Popup.swift in Sources */,
 				3811DE3025C9D49500A708ED /* HomeStateModel.swift in Sources */,
 				38BF021725E7CBBC00579895 /* PumpManagerExtensions.swift in Sources */,
+				CEE9A6552BBB418300EB5194 /* CalibrationsProvider.swift in Sources */,
 				19F95FF529F10FCF00314DDC /* StatProvider.swift in Sources */,
 				38F3B2EF25ED8E2A005C48AA /* TempTargetsStorage.swift in Sources */,
 				19B0EF2128F6D66200069496 /* Statistics.swift in Sources */,
@@ -2450,14 +2509,17 @@
 				382C133725F13A1E00715CE1 /* InsulinSensitivities.swift in Sources */,
 				19D466A529AA2BD4004D5F33 /* FPUConfigProvider.swift in Sources */,
 				383948D625CD4D8900E91849 /* FileStorage.swift in Sources */,
+				CEE9A6572BBB418300EB5194 /* CalibrationsChart.swift in Sources */,
 				3811DE4125C9D4A100A708ED /* SettingsRootView.swift in Sources */,
 				38192E04261B82FA0094D973 /* ReachabilityManager.swift in Sources */,
 				38E44539274E411700EC9A94 /* Disk+UIImage.swift in Sources */,
 				388E595C25AD948C0019842D /* FreeAPSApp.swift in Sources */,
 				38FEF3FC2737E53800574A46 /* MainStateModel.swift in Sources */,
 				38569348270B5DFB0002C50D /* GlucoseSource.swift in Sources */,
+				CEE9A6582BBB418300EB5194 /* CalibrationsStateModel.swift in Sources */,
 				CEB434E328B8F9DB00B70274 /* BluetoothStateManager.swift in Sources */,
 				3811DE4225C9D4A100A708ED /* SettingsDataFlow.swift in Sources */,
+				CEE9A6562BBB418300EB5194 /* CalibrationsRootView.swift in Sources */,
 				3811DE2525C9D48300A708ED /* MainRootView.swift in Sources */,
 				CE94598229E9E3D30047C9C6 /* WatchConfigProvider.swift in Sources */,
 				38E44535274E411700EC9A94 /* Disk+Data.swift in Sources */,
@@ -2491,6 +2553,7 @@
 				38569347270B5DFB0002C50D /* CGMType.swift in Sources */,
 				3821ED4C25DD18BA00BC42AD /* Constants.swift in Sources */,
 				384E803425C385E60086DB71 /* JavaScriptWorker.swift in Sources */,
+				CE1F6DE92BAF37C90064EB8D /* TidePoolConfigView.swift in Sources */,
 				3811DE5D25C9D4D500A708ED /* Publisher.swift in Sources */,
 				E00EEC0727368630002FF094 /* APSAssembly.swift in Sources */,
 				38B4F3AF25E2979F00E76A18 /* IndexedCollection.swift in Sources */,
@@ -2505,6 +2568,7 @@
 				CE95BF5A2BA62E4A00DC3DE3 /* PluginSource.swift in Sources */,
 				3811DE5C25C9D4D500A708ED /* Formatters.swift in Sources */,
 				3871F39F25ED895A0013ECB5 /* Decimal+Extensions.swift in Sources */,
+				CEE9A6592BBB418300EB5194 /* CalibrationsDataFlow.swift in Sources */,
 				3811DE3525C9D49500A708ED /* HomeRootView.swift in Sources */,
 				38E98A2925F52C9300C0CED0 /* Error+Extensions.swift in Sources */,
 				38EA05DA261F6E7C0064E39B /* SimpleLogReporter.swift in Sources */,
@@ -2561,6 +2625,7 @@
 				CE7CA3532A064973004BE681 /* tempPresetIntent.swift in Sources */,
 				D6DEC113821A7F1056C4AA1E /* NightscoutConfigDataFlow.swift in Sources */,
 				38E98A3025F52FF700C0CED0 /* Config.swift in Sources */,
+				CE1F6DDB2BAE08B60064EB8D /* TidepoolManager.swift in Sources */,
 				BD2B464E0745FBE7B79913F4 /* NightscoutConfigProvider.swift in Sources */,
 				9825E5E923F0B8FA80C8C7C7 /* NightscoutConfigStateModel.swift in Sources */,
 				38A43598262E0E4900E80935 /* FetchAnnouncementsManager.swift in Sources */,
@@ -2615,6 +2680,7 @@
 				69B9A368029F7EB39F525422 /* CREditorStateModel.swift in Sources */,
 				38E44538274E411700EC9A94 /* Disk+[Data].swift in Sources */,
 				98641AF4F92123DA668AB931 /* CREditorRootView.swift in Sources */,
+				CEE9A65C2BBB41C800EB5194 /* CalibrationService.swift in Sources */,
 				38E4453D274E411700EC9A94 /* Disk+Errors.swift in Sources */,
 				38E98A2325F52C9300C0CED0 /* Signpost.swift in Sources */,
 				CE7CA3542A064973004BE681 /* TempPresetsIntentRequest.swift in Sources */,
@@ -2722,6 +2788,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEE9A65E2BBC9F6500EB5194 /* CalibrationsTests.swift in Sources */,
+				CE1F6DD92BADF4620064EB8D /* PluginManagerTests.swift in Sources */,
 				38FCF3F925E902C20078B0D1 /* FileStorageTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
