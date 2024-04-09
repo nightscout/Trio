@@ -51,7 +51,8 @@ extension CGM {
                     if state.cgmCurrent.type == .plugin && state.cgmCurrent.id.contains("Libre") {
                         Section(header: Text("Calibrations")) {
                             Text("Calibrations").navigationLink(to: .calibrations, from: self)
-                    
+                        }
+                    }
 
                     if state.cgmCurrent.type == .nightscout {
                         Section(header: Text("Nightscout")) {
