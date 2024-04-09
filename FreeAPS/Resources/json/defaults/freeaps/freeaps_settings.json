@@ -41,5 +41,6 @@
   "oneDimensionalGraph" : false,
   "rulerMarks" : false,
   "maxCarbs": 1000,
-  "displayFatAndProteinOnWatch": false
+  "displayFatAndProteinOnWatch": false,
+  "lockScreenView": "simple"
 }

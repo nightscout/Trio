@@ -84,7 +84,8 @@ platform :ios do
       app_identifier: [
         "#{BUNDLE_ID}",
         "#{BUNDLE_ID}.watchkitapp",
-        "#{BUNDLE_ID}.watchkitapp.watchkitextension"
+        "#{BUNDLE_ID}.watchkitapp.watchkitextension",
+        "#{BUNDLE_ID}.FreeAPS.LiveActivity"
       ]
     )
 
@@ -123,6 +124,12 @@ platform :ios do
       profile_name: mapping["#{BUNDLE_ID}.watchkitapp"],
       code_sign_identity: "iPhone Distribution",
       targets: ["FreeAPSWatch"]
+    )
+    update_code_signing_settings(
+      path: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
+      profile_name: mapping["#{BUNDLE_ID}.LiveActivity"],
+      code_sign_identity: "iPhone Distribution",
+      targets: ["LiveActivityExtension"]
     )
 
     gym(
@@ -189,6 +196,10 @@ platform :ios do
     configure_bundle_id("FreeAPSWatch", "#{BUNDLE_ID}.watchkitapp", [
       Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS
     ])
+
+    configure_bundle_id("LiveActivityExtension", "#{BUNDLE_ID}.LiveActivity", [
+      Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS
+    ])
     
   end
 
@@ -212,6 +223,7 @@ platform :ios do
         "#{BUNDLE_ID}",
         "#{BUNDLE_ID}.watchkitapp.watchkitextension",
         "#{BUNDLE_ID}.watchkitapp",
+        "#{BUNDLE_ID}.LiveActivity"
       ]
     )
   end
