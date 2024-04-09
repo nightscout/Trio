@@ -127,7 +127,7 @@ platform :ios do
     )
     update_code_signing_settings(
       path: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
-      profile_name: mapping["#{BUNDLE_ID}.FreeAPS.LiveActivity"],
+      profile_name: mapping["#{BUNDLE_ID}.LiveActivity"],
       code_sign_identity: "iPhone Distribution",
       targets: ["LiveActivityExtension"]
     )
