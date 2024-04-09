@@ -1,0 +1,22 @@
+[
+  {
+    "enact/smb-enacted.json": {
+      "device": "pump",
+      "input": "enact/smb-suggested.json",
+      "use": "set_temp_basal",
+      "reporter": "JSON"
+    },
+    "type": "report",
+    "name": "enact/smb-enacted.json"
+  },
+  {
+    "enact/bolused.json": {
+      "device": "pump",
+      "input": "enact/smb-suggested.json",
+      "use": "bolus",
+      "reporter": "JSON"
+    },
+    "type": "report",
+    "name": "enact/bolused.json"
+  }
+]

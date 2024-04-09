@@ -131,7 +131,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
     var glucoseManager: FetchGlucoseManager?
     var cgmManager: CGMManagerUI?
-    var cgmType: CGMType = .nightscout
 
     func fetch(_: DispatchTimer?) -> AnyPublisher<[BloodGlucose], Never> {
         fetchGlucose(since: glucoseStorage.syncDate())
@@ -336,11 +335,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
         var openapsStatus: OpenAPSStatus
 
-        // Only upload suggested in Open Loop Mode. Only upload enacted in Closed Loop Mode.
+        // Only upload suggested in Open Loop Mode. Upload suggested and enacted in Closed Loop Mode.
         if loopIsClosed {
             openapsStatus = OpenAPSStatus(
                 iob: iob?.first,
-                suggested: nil,
+                suggested: suggested,
                 enacted: enacted,
                 version: "0.7.1"
             )

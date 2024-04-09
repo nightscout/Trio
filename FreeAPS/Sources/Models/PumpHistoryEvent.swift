@@ -1,4 +1,5 @@
 import Foundation
+import LoopKit
 
 struct PumpHistoryEvent: JSON, Equatable {
     let id: String
@@ -80,5 +81,31 @@ extension PumpHistoryEvent {
         case temp
         case carbInput = "carb_input"
         case note
+    }
+}
+
+extension EventType {
+    func mapEventTypeToPumpEventType() -> PumpEventType? {
+        switch self {
+        case .prime:
+            return PumpEventType.prime
+        case .pumpResume:
+            return PumpEventType.resume
+        case .rewind:
+            return PumpEventType.rewind
+        case .pumpSuspend:
+            return PumpEventType.suspend
+        case .nsBatteryChange,
+             .pumpBattery:
+            return PumpEventType.replaceComponent(componentType: .pump)
+        case .nsInsulinChange:
+            return PumpEventType.replaceComponent(componentType: .reservoir)
+        case .nsSiteChange:
+            return PumpEventType.replaceComponent(componentType: .infusionSet)
+        case .pumpAlarm:
+            return PumpEventType.alarm
+        default:
+            return nil
+        }
     }
 }

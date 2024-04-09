@@ -1,9 +1,0 @@
-/* Title displayed during backfill response */
-"Backfill" = "Récupération des données antérieures";
-
-/* Title displayed during error response */
-"Error" = "Erreur";
-
-/* Title displayed during unknown data response */
-"Unknown Data" = "Donnée inconnue";
-
