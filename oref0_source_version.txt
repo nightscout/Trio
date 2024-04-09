@@ -1,6 +1,11 @@
-oref0 branch: dev - git version: 1990e37
+oref0 branch: dev - git version: 4438013
 
 Last commits:
+4438013 Merge pull request #11 from nightscout/issue-template
+d76ed48 Update config.yml
+8d4f4ff Merge pull request #14 from nightscout/revert_actualDate
+a42e58f Revert "actualDate" changes to lib/meal/history.js
+f10ef66 Edit  issue templates
 1990e37 Merge pull request #9 from nightscout/smb_ratio_log
 4b7676c determine-basal.js smb_ratio log: if (smb_ratio != 0.5)
 f932754 Merge pull request #4 from nightscout/duplicate_SMBratio
@@ -26,8 +31,3 @@ f295a47 fix from Deniz
 8d739f5 Merge pull request #7 from JeremyStorring/time-issues
 1f2b45f fix for time calcs
 b8f5997 Merge pull request #6 from JeremyStorring/min_bg_threshold
-256662c Adjusted min threshold, as min_bg for target of 80 is 60 (80 - (0.5*(80-40))
-838038a Merge pull request #4 from JeremyStorring/minify_fixes
-fc0e748 Address review comments from Robert
-30549a0 Merge pull request #3 from bjornoleh/webpack
-1276c59 Merge pull request #2 from bjornoleh/revert_1370
