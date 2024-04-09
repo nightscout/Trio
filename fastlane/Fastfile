@@ -85,7 +85,7 @@ platform :ios do
         "#{BUNDLE_ID}",
         "#{BUNDLE_ID}.watchkitapp",
         "#{BUNDLE_ID}.watchkitapp.watchkitextension",
-        "#{BUNDLE_ID}.FreeAPS.LiveActivity"
+        "#{BUNDLE_ID}.LiveActivity"
       ]
     )
 
