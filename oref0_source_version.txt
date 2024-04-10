@@ -1,10 +1,18 @@
-oref0 branch: dev - git version: 4438013
+oref0 branch: dev - git version: b89a39b
 
 Last commits:
+b89a39b Merge pull request #16 from bjornoleh/webpack-update
+b8aaf93 Merge pull request #15 from avouspierre/dev
+4aba4e0 webpack-cp.sh: git log --since=2024-01-01
+3c321e3 Remove old copy of minimised files previously committed
+deefc58 Simplify cp in webpack-cp.sh to use with copy-rename-webpack-plugin
 4438013 Merge pull request #11 from nightscout/issue-template
 d76ed48 Update config.yml
+4edc26c Merge remote-tracking branch 'upstream/dev' into dev
+f3faea6 allows to create Bundle directory for oiaps
 8d4f4ff Merge pull request #14 from nightscout/revert_actualDate
 a42e58f Revert "actualDate" changes to lib/meal/history.js
+444903e fix meal inputs with actualDate
 f10ef66 Edit  issue templates
 1990e37 Merge pull request #9 from nightscout/smb_ratio_log
 4b7676c determine-basal.js smb_ratio log: if (smb_ratio != 0.5)
@@ -31,3 +39,14 @@ f295a47 fix from Deniz
 8d739f5 Merge pull request #7 from JeremyStorring/time-issues
 1f2b45f fix for time calcs
 b8f5997 Merge pull request #6 from JeremyStorring/min_bg_threshold
+256662c Adjusted min threshold, as min_bg for target of 80 is 60 (80 - (0.5*(80-40))
+838038a Merge pull request #4 from JeremyStorring/minify_fixes
+fc0e748 Address review comments from Robert
+30549a0 Merge pull request #3 from bjornoleh/webpack
+1276c59 Merge pull request #2 from bjornoleh/revert_1370
+3ff4e0a Rename script to webpack-cp.sh, commit webpack.config.js
+6cf69ec Revert "Tzachi shared node phase2 (#1370)"
+05a1a2e Updated oref2 files based on findings in minimised files in iAPS v3.0.3
+a9bdbb1 Missing Override variable
+02fa14d Set ceiling of threshold to 120 mg/dL
+5d17562 Update mods to oref2. Some older fixes not pushed to repo (Looping when high and override SMB settings time end bug etc.) Only run the TDD computation when not needed (dynISF enabled and when not any missing data).
