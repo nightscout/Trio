@@ -1222,8 +1222,8 @@ Enact a temp Basal or a temp target */
 /* An Automatic delivered bolus (SMB) */
 "SMB" = "SMB";
 
-/* A manually entered dose of external insulin */
-"External Insulin" = "Externes Insulin";
+/* A manually entered dose of non-pump insulin */
+"Non-pump Insulin" = "Externes Insulin";
 
 /* Status highlight when manual temp basal is running. */
 "Manual Basal" = "Manuelle Temporäre Basalrate";
