@@ -1256,7 +1256,7 @@ private extension PumpManager {
                     debug(.apsManager, "Temp basal failed: \(unitsPerHour) for: \(duration)")
                     promise(.failure(error))
                 } else {
-                    debug(.apsManager, "Temp basal succeded: \(unitsPerHour) for: \(duration)")
+                    debug(.apsManager, "Temp basal succeeded: \(unitsPerHour) for: \(duration)")
                     promise(.success(nil))
                 }
             }
@@ -1275,7 +1275,7 @@ private extension PumpManager {
                     debug(.apsManager, "Bolus failed: \(units)")
                     promise(.failure(error))
                 } else {
-                    debug(.apsManager, "Bolus succeded: \(units)")
+                    debug(.apsManager, "Bolus succeeded: \(units)")
                     promise(.success(nil))
                 }
             }
@@ -1289,7 +1289,7 @@ private extension PumpManager {
             self.cancelBolus { result in
                 switch result {
                 case let .success(dose):
-                    debug(.apsManager, "Cancel Bolus succeded")
+                    debug(.apsManager, "Cancel Bolus succeeded")
                     promise(.success(dose))
                 case let .failure(error):
                     debug(.apsManager, "Cancel Bolus failed")
