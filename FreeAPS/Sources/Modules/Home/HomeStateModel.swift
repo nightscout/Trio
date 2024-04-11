@@ -353,7 +353,7 @@ extension Home {
         }
 
         func openCGM() {
-            showModal(for: .cgmDirect)
+            router.mainSecondaryModalView.send(router.view(for: .cgmDirect))
         }
 
         func infoPanelTTPercentage(_ hbt_: Double, _ target: Decimal) -> Decimal {
