@@ -427,7 +427,7 @@
 
 /* Text for confidence reminders navigation link
    Title for insulin type selection screen */
-"Insulin Type" = "Insulintyp";
+"Insulin Type" = "Insulin Type";
 
 /* Error description for OmniBLEPumpManagerError.insulinTypeNotConfigured */
 "Insulin type not configured" = "Insulintyp nicht konfiguriert";

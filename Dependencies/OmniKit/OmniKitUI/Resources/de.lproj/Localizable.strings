@@ -337,7 +337,7 @@
 
 /* Text for confidence reminders navigation link
    Title for insulin type selection screen */
-"Insulin Type" = "Insulintyp";
+"Insulin Type" = "Insulin Type";
 
 /* The error message shown when Loop's basal schedule has an unsupported rate */
 "Invalid entry" = "Ungültiger Eintrag";

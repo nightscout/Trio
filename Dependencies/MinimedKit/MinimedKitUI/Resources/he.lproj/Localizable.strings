@@ -105,7 +105,7 @@
 "Insulin Remaining" = "Insulin Remaining";
 
 /* Text for confidence reminders navigation link */
-"Insulin Type" = "Insulintyp";
+"Insulin Type" = "Insulin Type";
 
 /* Format string fof navigation bar title for MinimedPumpSettingsView (1: model number) */
 "Medtronic %1$@" = "Medtronic %1$@";

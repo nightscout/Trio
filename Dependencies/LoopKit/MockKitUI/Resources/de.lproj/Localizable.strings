@@ -42,7 +42,7 @@
 "How should the simulator respond to a version check?" = "Wie soll der Simulator auf eine Versionsprüfung reagieren?";
 
 /* Controller title for insulin type selection screen */
-"Insulin Type" = "Insulintyp";
+"Insulin Type" = "Insulin Type";
 
 /* Button title to acknowledge error
    Default acknowledgement */
