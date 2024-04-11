@@ -37,6 +37,7 @@ class BaseStateModel<Provider>: StateModel, Injectable where Provider: FreeAPS.P
 
     func hideModal() {
         router.mainModalScreen.send(nil)
+        router.mainSecondaryModalView.send(nil)
     }
 
     func view(for screen: Screen) -> AnyView {
