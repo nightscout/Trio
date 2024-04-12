@@ -61,6 +61,10 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
 
     init(resolver: Resolver) {
         injectServices(resolver)
+        // init at the start of the app
+        cgmGlucoseSourceType = settingsManager.settings.cgm
+        cgmGlucosePluginId = settingsManager.settings.cgmPluginIdentifier
+        // load cgmManager
         updateGlucoseSource(
             cgmGlucoseSourceType: settingsManager.settings.cgm,
             cgmGlucosePluginId: settingsManager.settings.cgmPluginIdentifier
@@ -82,10 +86,22 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         )
     }
 
+    func saveConfigManager() {
+        guard let cgmM = cgmManager else {
+            return
+        }
+        // save the config in rawCGMManager
+        rawCGMManager = cgmM.rawValue
+
+        // sync with upload glucose
+        settingsManager.settings.uploadGlucose = cgmM.shouldSyncToRemoteService
+    }
+
     func updateGlucoseSource(cgmGlucoseSourceType: CGMType, cgmGlucosePluginId: String, newManager: CGMManagerUI?) {
         // if changed, remove all calibrations
         if self.cgmGlucoseSourceType != cgmGlucoseSourceType || self.cgmGlucosePluginId != cgmGlucosePluginId {
             removeCalibrations()
+            cgmManager = nil
         }
 
         self.cgmGlucoseSourceType = cgmGlucoseSourceType
@@ -102,6 +118,8 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             removeCalibrations()
         } else if self.cgmGlucoseSourceType == .plugin, cgmManager == nil, let rawCGMManager = rawCGMManager {
             cgmManager = cgmManagerFromRawValue(rawCGMManager)
+        } else {
+            saveConfigManager()
         }
 
         switch self.cgmGlucoseSourceType {
@@ -282,7 +300,9 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     private func overcalibrate(entries: [BloodGlucose]) -> [BloodGlucose] {
         // overcalibrate
         var overcalibration: ((Int) -> (Double))?
-        processQueue.sync { overcalibration = calibrationService.calibrate }
+        processQueue.sync {
+            overcalibration = calibrationService.calibrate
+        }
 
         if let overcalibration = overcalibration {
             return entries.map { entry in
