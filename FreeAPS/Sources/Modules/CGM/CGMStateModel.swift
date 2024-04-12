@@ -140,7 +140,7 @@ extension CGM {
             case .plugin:
                 nameOfApp = "Open " + (cgmManager.cgmManager?.localizedTitle ?? "Application")
             default:
-                nameOfApp = "Open " + (cgmManager.cgmGlucoseSourceType?.displayName ?? "Application")
+                nameOfApp = "Open " + (cgmManager.cgmGlucoseSourceType.displayName ?? "Application")
             }
             return nameOfApp
         }
@@ -150,7 +150,7 @@ extension CGM {
             case .plugin:
                 return cgmManager.cgmManager?.appURL
             default:
-                return cgmManager.cgmGlucoseSourceType?.appURL
+                return cgmManager.cgmGlucoseSourceType.appURL
             }
         }
     }
