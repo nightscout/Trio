@@ -35,7 +35,13 @@ extension CGM {
                         {
                             Section {
                                 Button {
-                                    UIApplication.shared.open(appURL, options: [:], completionHandler: nil) }
+                                    UIApplication.shared.open(appURL, options: [:]) { success in
+                                        if !success {
+                                            self.router.alertMessage
+                                                .send(MessageContent(content: "Unable to open the app", type: .warning))
+                                        }
+                                    }
+                                }
 
                                 label: {
                                     Label(state.displayNameOfApp(), systemImage: "waveform.path.ecg.rectangle").font(.title3) }
@@ -46,7 +52,13 @@ extension CGM {
                         } else if state.cgmCurrent.type == .nightscout && state.url != nil {
                             Section {
                                 Button {
-                                    UIApplication.shared.open(state.url!, options: [:], completionHandler: nil) }
+                                    UIApplication.shared.open(state.url!, options: [:]) { success in
+                                        if !success {
+                                            self.router.alertMessage
+                                                .send(MessageContent(content: "No URL available", type: .warning))
+                                        }
+                                    }
+                                }
                                 label: { Label("Open URL", systemImage: "waveform.path.ecg.rectangle").font(.title3) }
                                     .frame(maxWidth: .infinity, alignment: .center)
                                     .buttonStyle(.bordered)
