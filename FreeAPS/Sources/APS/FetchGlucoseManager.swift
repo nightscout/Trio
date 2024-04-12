@@ -14,8 +14,8 @@ protocol FetchGlucoseManager: SourceInfoProvider {
     func removeCalibrations()
     var glucoseSource: GlucoseSource! { get }
     var cgmManager: CGMManagerUI? { get }
-    var cgmGlucoseSourceType: CGMType? { get set }
-    var cgmGlucosePluginId: String? { get }
+    var cgmGlucoseSourceType: CGMType { get set }
+    var cgmGlucosePluginId: String { get }
     var settingsManager: SettingsManager! { get }
     var shouldSyncToRemoteService: Bool { get }
 }
@@ -40,8 +40,8 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
 
     private var lifetime = Lifetime()
     private let timer = DispatchTimer(timeInterval: 1.minutes.timeInterval)
-    var cgmGlucoseSourceType: CGMType?
-    var cgmGlucosePluginId: String?
+    var cgmGlucoseSourceType: CGMType = .none
+    var cgmGlucosePluginId: String = ""
     var cgmManager: CGMManagerUI? {
         didSet {
             rawCGMManager = cgmManager?.rawValue
@@ -61,6 +61,10 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
 
     init(resolver: Resolver) {
         injectServices(resolver)
+        // init at the start of the app
+        cgmGlucoseSourceType = settingsManager.settings.cgm
+        cgmGlucosePluginId = settingsManager.settings.cgmPluginIdentifier
+        // load cgmManager
         updateGlucoseSource(
             cgmGlucoseSourceType: settingsManager.settings.cgm,
             cgmGlucosePluginId: settingsManager.settings.cgmPluginIdentifier
@@ -82,10 +86,22 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         )
     }
 
+    func saveConfigManager() {
+        guard let cgmM = cgmManager else {
+            return
+        }
+        // save the config in rawCGMManager
+        rawCGMManager = cgmM.rawValue
+
+        // sync with upload glucose
+        settingsManager.settings.uploadGlucose = cgmM.shouldSyncToRemoteService
+    }
+
     func updateGlucoseSource(cgmGlucoseSourceType: CGMType, cgmGlucosePluginId: String, newManager: CGMManagerUI?) {
         // if changed, remove all calibrations
         if self.cgmGlucoseSourceType != cgmGlucoseSourceType || self.cgmGlucosePluginId != cgmGlucosePluginId {
             removeCalibrations()
+            cgmManager = nil
         }
 
         self.cgmGlucoseSourceType = cgmGlucoseSourceType
@@ -102,11 +118,12 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             removeCalibrations()
         } else if self.cgmGlucoseSourceType == .plugin, cgmManager == nil, let rawCGMManager = rawCGMManager {
             cgmManager = cgmManagerFromRawValue(rawCGMManager)
+        } else {
+            saveConfigManager()
         }
 
         switch self.cgmGlucoseSourceType {
-        case nil,
-             .none?:
+        case .none:
             glucoseSource = nil
         case .xdrip:
             glucoseSource = AppGroupSource(from: "xDrip", cgmType: .xdrip)
@@ -127,7 +144,6 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     /// Upload cgmManager from raw value
     func cgmManagerFromRawValue(_ rawValue: [String: Any]) -> CGMManagerUI? {
         guard let rawState = rawValue["state"] as? CGMManager.RawStateValue,
-              let cgmGlucosePluginId = self.cgmGlucosePluginId,
               let Manager = pluginCGMManager.getCGMManagerTypeByIdentifier(cgmGlucosePluginId)
         else {
             return nil
@@ -244,9 +260,8 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     private func subscribe() {
         timer.publisher
             .receive(on: processQueue)
-            .flatMap { _ -> AnyPublisher<[BloodGlucose], Never> in
+            .flatMap { [self] _ -> AnyPublisher<[BloodGlucose], Never> in
                 debug(.nightscout, "FetchGlucoseManager timer heartbeat")
-                // self.updateGlucoseSource(manager: nil)
                 if let glucoseSource = self.glucoseSource {
                     return glucoseSource.fetch(self.timer).eraseToAnyPublisher()
                 } else {
@@ -282,7 +297,9 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     private func overcalibrate(entries: [BloodGlucose]) -> [BloodGlucose] {
         // overcalibrate
         var overcalibration: ((Int) -> (Double))?
-        processQueue.sync { overcalibration = calibrationService.calibrate }
+        processQueue.sync {
+            overcalibration = calibrationService.calibrate
+        }
 
         if let overcalibration = overcalibration {
             return entries.map { entry in

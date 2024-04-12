@@ -91,7 +91,7 @@ extension CGM {
                 .sink { [weak self] value in
                     guard let self = self else { return }
                     guard self.cgmManager.cgmGlucoseSourceType != nil else {
-                        self.settingsManager.settings.cgm = .nightscout
+                        self.settingsManager.settings.cgm = .none
                         return
                     }
                     if value.type != self.settingsManager.settings.cgm ||
@@ -103,6 +103,7 @@ extension CGM {
                             cgmGlucoseSourceType: value.type,
                             cgmGlucosePluginId: value.id
                         )
+                        self.setupCGM = false
                     }
                 }
                 .store(in: &lifetime)
@@ -132,6 +133,26 @@ extension CGM {
                 }
                 .store(in: &lifetime)
         }
+
+        func displayNameOfApp() -> String {
+            var nameOfApp = "Open Application"
+            switch cgmManager.cgmGlucoseSourceType {
+            case .plugin:
+                nameOfApp = "Open " + (cgmManager.cgmManager?.localizedTitle ?? "Application")
+            default:
+                nameOfApp = "Open " + (cgmManager.cgmGlucoseSourceType.displayName ?? "Application")
+            }
+            return nameOfApp
+        }
+
+        func urlOfApp() -> URL? {
+            switch cgmManager.cgmGlucoseSourceType {
+            case .plugin:
+                return cgmManager.cgmManager?.appURL
+            default:
+                return cgmManager.cgmGlucoseSourceType.appURL
+            }
+        }
     }
 }
 
@@ -149,9 +170,6 @@ extension CGM.StateModel: CompletionDelegate {
             cgmManager.updateGlucoseSource(cgmGlucoseSourceType: cgmCurrent.type, cgmGlucosePluginId: cgmCurrent.id)
         }
 
-        // refresh the upload options
-        settingsManager.settings.uploadGlucose = cgmManager.shouldSyncToRemoteService
-
         // update if required the Glucose source
         DispatchQueue.main.async {
             self.broadcaster.notify(GlucoseObserver.self, on: .main) {
@@ -163,9 +181,6 @@ extension CGM.StateModel: CompletionDelegate {
 
 extension CGM.StateModel: CGMManagerOnboardingDelegate {
     func cgmManagerOnboarding(didCreateCGMManager manager: LoopKitUI.CGMManagerUI) {
-        // update the setting of upload Glucose in services
-        settingsManager.settings.uploadGlucose = cgmManager.shouldSyncToRemoteService
-
         // update the glucose source
         cgmManager.updateGlucoseSource(
             cgmGlucoseSourceType: cgmCurrent.type,

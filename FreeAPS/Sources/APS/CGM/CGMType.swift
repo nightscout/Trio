@@ -51,16 +51,8 @@ enum CGMType: String, JSON, CaseIterable, Identifiable {
             return URL(string: "xdripswift://")!
         case .glucoseDirect:
             return URL(string: "libredirect://")!
-//        case .dexcomG5:
-//            return URL(string: "dexcomgcgm://")!
-//        case .dexcomG6:
-//            return URL(string: "dexcomg6://")!
-//        case .dexcomG7:
-//            return URL(string: "dexcomg7://")!
         case .simulator:
             return nil
-//        case .libreTransmitter:
-//            return URL(string: "Open-iAPS://libre-transmitter")!
         case .plugin:
             return nil
         }

@@ -218,6 +218,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
 
     var glucoseManager: FetchGlucoseManager?
     var cgmManager: CGMManagerUI?
+    var cgmType: CGMType = .enlite
 
     func fetchIfNeeded() -> AnyPublisher<[BloodGlucose], Never> {
         fetch(nil)
