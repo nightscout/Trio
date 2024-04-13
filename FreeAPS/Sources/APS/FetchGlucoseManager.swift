@@ -298,7 +298,9 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         // overcalibrate
         var overcalibration: ((Int) -> (Double))?
         processQueue.sync {
-            overcalibration = calibrationService.calibrate
+            if let cal = calibrationService {
+                overcalibration = cal.calibrate
+            }
         }
 
         if let overcalibration = overcalibration {
