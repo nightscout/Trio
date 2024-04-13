@@ -1035,7 +1035,7 @@ Enact a temp Basal or a temp target */
 "To prevent LOW required %d g of carbs" = "Pour éviter BAS %d g de glucides requis";
 
 /* */
-"iAPS not active" = "iAPS pas actif";
+"Open-iAPS Not Active" = "Open-iAPS pas actif";
 
 /* */
 "Last loop was more than %d min ago" = "Dernier bouclage depuis plus de %d min";

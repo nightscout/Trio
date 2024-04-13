@@ -1035,7 +1035,7 @@ Enact a temp Basal or a temp target */
 "To prevent LOW required %d g of carbs" = "För att förhindra ett lågt blodsocker krävs uppskattningsvis %d g kolhydrater";
 
 /* */
-"iAPS not active" = "iAPS är inte aktiv";
+"Open-iAPS Not Active" = "Open-iAPS är inte aktiv";
 
 /* */
 "Last loop was more than %d min ago" = "Senaste loop var för mer än %d min sedan";
