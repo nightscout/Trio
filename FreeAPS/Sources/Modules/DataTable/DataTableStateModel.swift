@@ -78,7 +78,7 @@ extension DataTable {
                             date: $0.timestamp,
                             amount: $0.amount,
                             idPumpEvent: $0.id,
-                            isNonPump: $0.isNonPumpInsulin
+                            isExternal: $0.isExternalInsulin
                         )
                     }
 

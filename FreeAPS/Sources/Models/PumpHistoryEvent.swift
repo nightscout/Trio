@@ -12,7 +12,7 @@ struct PumpHistoryEvent: JSON, Equatable {
     let temp: TempType?
     let carbInput: Int?
     let note: String?
-    let isNonPumpInsulin: Bool?
+    let isExternalInsulin: Bool?
 
     init(
         id: String,
@@ -25,7 +25,7 @@ struct PumpHistoryEvent: JSON, Equatable {
         temp: TempType? = nil,
         carbInput: Int? = nil,
         note: String? = nil,
-        isNonPumpInsulin: Bool? = nil
+        isExternalInsulin: Bool? = nil
     ) {
         self.id = id
         self.type = type
@@ -37,13 +37,13 @@ struct PumpHistoryEvent: JSON, Equatable {
         self.temp = temp
         self.carbInput = carbInput
         self.note = note
-        self.isNonPumpInsulin = isNonPumpInsulin
+        self.isExternalInsulin = isExternalInsulin
     }
 }
 
 enum EventType: String, JSON {
     case bolus = "Bolus"
-    case nonPumpInsulin = "Non-pump Insulin"
+    case externalInsulin = "External Insulin"
     case mealBolus = "Meal Bolus"
     case correctionBolus = "Correction Bolus"
     case snackBolus = "Snack Bolus"
@@ -85,7 +85,7 @@ extension PumpHistoryEvent {
         case temp
         case carbInput = "carb_input"
         case note
-        case isNonPumpInsulin
+        case isExternalInsulin
     }
 }
 
