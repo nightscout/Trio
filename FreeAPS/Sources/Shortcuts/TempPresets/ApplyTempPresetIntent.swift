@@ -34,7 +34,7 @@ import Foundation
         })
     }
 
-    func decimalToTimeString(decimal: Decimal) -> String {
+    private func decimalToTimeString(decimal: Decimal) -> String {
         let timeInterval = TimeInterval(decimal * 60) // seconds
 
         let formatter = DateComponentsFormatter()
