@@ -12,8 +12,17 @@ extension DataTable {
         @State private var isRemoveInsulinAlertPresented = false
         @State private var removeInsulinAlert: Alert?
         @State private var newGlucose = false
+        @State private var showExternalInsulin = false
+        @State private var isAmountUnconfirmed = true
 
         @Environment(\.colorScheme) var colorScheme
+
+        private var insulinFormatter: NumberFormatter {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            formatter.maximumFractionDigits = 2
+            return formatter
+        }
 
         private var glucoseFormatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -57,6 +66,14 @@ extension DataTable {
                 leading: Button("Close", action: state.hideModal),
                 trailing: state.mode == .glucose ? EditButton().asAny() : EmptyView().asAny()
             )
+            .sheet(isPresented: $showExternalInsulin, onDismiss: {
+                if isAmountUnconfirmed {
+                    state.externalInsulinAmount = 0
+                    state.externalInsulinDate = Date()
+                }
+            }) {
+                addExternalInsulinView
+            }
             .popup(isPresented: newGlucose, alignment: .top, direction: .bottom) {
                 VStack(spacing: 20) {
                     HStack {
@@ -90,8 +107,30 @@ extension DataTable {
 
         private var treatmentsList: some View {
             List {
-                ForEach(state.treatments) { item in
-                    treatmentView(item)
+                HStack {
+                    Spacer()
+                    Button(action: { showExternalInsulin = true
+                        state.externalInsulinDate = Date() }, label: {
+                        HStack {
+                            Text("Add")
+                                .foregroundColor(Color.secondary)
+                                .font(.caption)
+
+                            Image(systemName: "syringe")
+                                .foregroundColor(Color.accentColor)
+                        }.frame(maxWidth: .infinity, alignment: .trailing)
+
+                    }).buttonStyle(.borderless)
+                }
+
+                if !state.treatments.isEmpty {
+                    ForEach(state.treatments) { item in
+                        treatmentView(item)
+                    }
+                } else {
+                    HStack {
+                        Text("No data.")
+                    }
                 }
             }
         }
@@ -188,6 +227,70 @@ extension DataTable {
                             removeInsulinAlert!
                         }
                 }
+            }
+        }
+
+        var addExternalInsulinView: some View {
+            NavigationView {
+                VStack {
+                    Form {
+                        Section {
+                            HStack {
+                                Text("Amount")
+                                Spacer()
+                                DecimalTextField(
+                                    "0",
+                                    value: $state.externalInsulinAmount,
+                                    formatter: insulinFormatter,
+                                    autofocus: true,
+                                    cleanInput: true
+                                )
+                                Text("U").foregroundColor(.secondary)
+                            }
+                        }
+
+                        Section {
+                            DatePicker("Date", selection: $state.externalInsulinDate, in: ...Date())
+                        }
+
+                        let amountWarningCondition = (state.externalInsulinAmount > state.maxBolus) &&
+                            (state.externalInsulinAmount <= state.maxBolus * 3)
+
+                        Section {
+                            HStack {
+                                Button {
+                                    state.addExternalInsulin()
+                                    isAmountUnconfirmed = false
+                                    showExternalInsulin = false
+                                }
+                                label: {
+                                    Text("Log external insulin")
+                                }
+                                .foregroundColor(amountWarningCondition ? Color.white : Color.accentColor)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .disabled(
+                                    state.externalInsulinAmount <= 0 || state.externalInsulinAmount > state
+                                        .maxBolus * 3
+                                )
+                            }
+                        }
+                        header: {
+                            if amountWarningCondition
+                            {
+                                Text("⚠️ Warning! The entered insulin amount is greater than your Max Bolus setting!")
+                            }
+                        }
+                        .listRowBackground(
+                            amountWarningCondition ? Color
+                                .red : colorScheme == .dark ? Color(UIColor.secondarySystemBackground) : Color.white
+                        )
+                    }
+                }
+                .onAppear(perform: configureView)
+                .navigationTitle("External Insulin")
+                .navigationBarTitleDisplayMode(.inline)
+                .navigationBarItems(leading: Button("Close", action: { showExternalInsulin = false
+                    state.externalInsulinAmount = 0 }))
             }
         }
 
