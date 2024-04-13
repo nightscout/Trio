@@ -614,9 +614,6 @@ Enact a temp Basal or a temp target */
 /* Automatic delivered treatments */
 "Automatic" = "Automatic";
 
-/* Non-pump insulin treatments */
-"Non-Pump" = "Non-Pump";
-
 /* External insulin treatments */
 "External" = "External";
 
@@ -1224,7 +1221,7 @@ Enact a temp Basal or a temp target */
 "SMB" = "SMB";
 
 /* A manually entered dose of non-pump insulin */
-"Non-pump Insulin" = "Non-pump Insulin";
+"External Insulin" = "External Insulin";
 
 /* Status highlight when manual temp basal is running. */
 "Manual Basal" = "Manual Basal";

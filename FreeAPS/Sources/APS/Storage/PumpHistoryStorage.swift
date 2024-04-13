@@ -45,7 +45,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         rate: nil,
                         temp: nil,
                         carbInput: nil,
-                        isNonPumpInsulin: dose.manuallyEntered
+                        isExternalInsulin: dose.manuallyEntered
                     )]
                 case .tempBasal:
                     guard let dose = event.dose else { return [] }
@@ -211,8 +211,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     }
 
     func determineBolusEventType(for event: PumpHistoryEvent) -> EventType {
-        if event.isNonPumpInsulin ?? false {
-            return .nonPumpInsulin
+        if event.isExternalInsulin ?? false {
+            return .externalInsulin
         }
         return event.type
     }

@@ -66,7 +66,7 @@ enum DataTable {
         let isFPU: Bool?
         let fpuID: String?
         let note: String?
-        let isNonPump: Bool?
+        let isExternal: Bool?
 
         private var numberFormatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -94,7 +94,7 @@ enum DataTable {
             isFPU: Bool? = false,
             fpuID: String? = nil,
             note: String? = nil,
-            isNonPump: Bool? = nil
+            isExternal: Bool? = nil
         ) {
             self.units = units
             self.type = type
@@ -107,7 +107,7 @@ enum DataTable {
             self.isFPU = isFPU
             self.fpuID = fpuID
             self.note = note
-            self.isNonPump = isNonPump
+            self.isExternal = isExternal
         }
 
         static func == (lhs: Treatment, rhs: Treatment) -> Bool {
@@ -136,8 +136,8 @@ enum DataTable {
             case .bolus:
                 var bolusText = ""
 
-                if isNonPump ?? false {
-                    bolusText += " " + NSLocalizedString("Non-Pump", comment: "Non-pump Insulin")
+                if isExternal ?? false {
+                    bolusText += " " + NSLocalizedString("External", comment: "External Insulin")
                 }
 
                 return numberFormatter
