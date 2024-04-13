@@ -34,7 +34,7 @@ import Foundation
         })
     }
 
-    private func decimalToTimeString(decimal: Decimal) -> String {
+    private func decimalToTimeFormattedString(decimal: Decimal) -> String {
         let timeInterval = TimeInterval(decimal * 60) // seconds
 
         let formatter = DateComponentsFormatter()
@@ -59,14 +59,14 @@ import Foundation
             let displayName: String = presetToApply.name
             if confirmBeforeApplying {
                 try await requestConfirmation(
-                    result: .result(dialog: "Confirm to apply temporary target \(displayName)")
+                    result: .result(dialog: "Confirm to apply temporary target '\(displayName)'")
                 )
             }
 
             // TODO: enact the temp target
             let tempTarget = try intentRequest.findTempTarget(presetToApply)
             let finalTempTargetApply = try intentRequest.enactTempTarget(tempTarget)
-            let formattedTime = decimalToTimeString(decimal: finalTempTargetApply.duration)
+            let formattedTime = decimalToTimeFormattedString(decimal: finalTempTargetApply.duration)
             let displayDetail: String =
                 "Target '\(finalTempTargetApply.displayName)' applied for \(formattedTime)"
             return .result(
