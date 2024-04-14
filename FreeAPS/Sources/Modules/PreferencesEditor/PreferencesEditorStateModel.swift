@@ -108,7 +108,7 @@ extension PreferencesEditor {
                     displayName: NSLocalizedString("Adjustment Factor", comment: "Adjust Dynamic ISF constant"),
                     type: .decimal(keypath: \.adjustmentFactor),
                     infoText: NSLocalizedString(
-                        "Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula threre is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users",
+                        "Adjust Dynamic ratios by a constant. Default is 0.8. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings.",
                         comment: "Adjust Dynamic ISF constant"
                     ),
                     settable: self
@@ -119,6 +119,18 @@ extension PreferencesEditor {
                     infoText: NSLocalizedString(
                         "Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function.",
                         comment: "Use Sigmoid Function"
+                    ),
+                    settable: self
+                ),
+                Field(
+                    displayName: NSLocalizedString(
+                        "Sigmoid Adjustment Factor",
+                        comment: "Adjust Dynamic ISF constant for Sigmoid"
+                    ),
+                    type: .decimal(keypath: \.adjustmentFactorSigmoid),
+                    infoText: NSLocalizedString(
+                        "Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings.",
+                        comment: "Adjust Dynamic ISF constant for Sigmoid"
                     ),
                     settable: self
                 ),

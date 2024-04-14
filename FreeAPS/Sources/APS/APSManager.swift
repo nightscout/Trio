@@ -939,7 +939,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 } else if preferences.useNewFormula, !preferences.sigmoid,!preferences.enableDynamicCR {
                     algo_ = "Dynamic ISF: Logarithmic"
                 }
-                let af = preferences.adjustmentFactor
+                let af = preferences.sigmoid ? preferences.adjustmentFactorSigmoid : preferences.adjustmentFactor
                 let insulin_type = preferences.curve
                 let buildDate = Bundle.main.buildDate
                 let version = Bundle.main.releaseVersionNumber

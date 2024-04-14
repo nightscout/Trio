@@ -42,7 +42,8 @@ struct Preferences: JSON {
     var suspendZerosIOB: Bool = false
     var timestamp: Date?
     var maxDeltaBGthreshold: Decimal = 0.2
-    var adjustmentFactor: Decimal = 0.5
+    var adjustmentFactor: Decimal = 0.8
+    var adjustmentFactorSigmoid: Decimal = 0.5
     var sigmoid: Bool = false
     var enableDynamicCR: Bool = false
     var useNewFormula: Bool = false
@@ -98,6 +99,7 @@ extension Preferences {
         case suspendZerosIOB = "suspend_zeros_iob"
         case maxDeltaBGthreshold = "maxDelta_bg_threshold"
         case adjustmentFactor
+        case adjustmentFactorSigmoid
         case sigmoid
         case enableDynamicCR
         case useNewFormula
