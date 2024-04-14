@@ -482,7 +482,7 @@ extension Home {
                     Button { state.showModal(for: .addCarbs) }
                     label: {
                         ZStack(alignment: Alignment(horizontal: .trailing, vertical: .bottom)) {
-                            Image("carbs")
+                            Image(systemName: "fork.knife.circle.fill")
                                 .renderingMode(.template)
                                 .resizable()
                                 .frame(width: 24, height: 24)
@@ -500,7 +500,7 @@ extension Home {
                     Spacer()
                     Button { state.showModal(for: .addTempTarget) }
                     label: {
-                        Image("target")
+                        Image(systemName: "target")
                             .renderingMode(.template)
                             .resizable()
                             .frame(width: 24, height: 24)
@@ -511,7 +511,7 @@ extension Home {
                     Spacer()
                     Button { state.showModal(for: .bolus(waitForSuggestion: false)) }
                     label: {
-                        Image("bolus")
+                        Image(systemName: "syringe")
                             .renderingMode(.template)
                             .resizable()
                             .frame(width: 24, height: 24)
@@ -523,7 +523,7 @@ extension Home {
                     if state.allowManualTemp {
                         Button { state.showModal(for: .manualTempBasal) }
                         label: {
-                            Image("bolus1")
+                            Image(systemName: "cross.vial.fill")
                                 .renderingMode(.template)
                                 .resizable()
                                 .frame(width: 24, height: 24)
@@ -536,7 +536,7 @@ extension Home {
                     Button { state.showModal(for: .statistics)
                     }
                     label: {
-                        Image(systemName: "chart.xyaxis.line")
+                        Image(systemName: "chart.line.uptrend.xyaxis.circle.fill")
                             .renderingMode(.template)
                             .resizable()
                             .frame(width: 24, height: 24)
@@ -547,7 +547,7 @@ extension Home {
                     Spacer()
                     Button { state.showModal(for: .settings) }
                     label: {
-                        Image("settings1")
+                        Image(systemName: "gear.circle.fill")
                             .renderingMode(.template)
                             .resizable()
                             .frame(width: 24, height: 24)
