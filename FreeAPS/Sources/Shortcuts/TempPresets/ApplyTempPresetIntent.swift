@@ -3,10 +3,10 @@ import Foundation
 
 @available(iOS 16.0, *) struct ApplyTempPresetIntent: AppIntent {
     // Title of the action in the Shortcuts app
-    static var title: LocalizedStringResource = "Apply a temporary Preset"
+    static var title: LocalizedStringResource = "Apply a temporary target"
 
     // Description of the action in the Shortcuts app
-    static var description = IntentDescription("Allow to apply a specific temporary preset.")
+    static var description = IntentDescription("Enable a temporary target")
 
     internal var intentRequest: TempPresetsIntentRequest
 
@@ -34,6 +34,16 @@ import Foundation
         })
     }
 
+    private func decimalToTimeFormattedString(decimal: Decimal) -> String {
+        let timeInterval = TimeInterval(decimal * 60) // seconds
+
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.hour, .minute]
+        formatter.unitsStyle = .brief // example: 1h 10 min
+
+        return formatter.string(from: timeInterval) ?? ""
+    }
+
     @MainActor func perform() async throws -> some ProvidesDialog {
         do {
             let presetToApply: tempPreset
@@ -42,22 +52,23 @@ import Foundation
             } else {
                 presetToApply = try await $preset.requestDisambiguation(
                     among: intentRequest.fetchAll(),
-                    dialog: "What temp preset would you like ?"
+                    dialog: "Select Temporary Target"
                 )
             }
 
             let displayName: String = presetToApply.name
             if confirmBeforeApplying {
                 try await requestConfirmation(
-                    result: .result(dialog: "Are you sure to applying the temp target \(displayName) ?")
+                    result: .result(dialog: "Confirm to apply temporary target '\(displayName)'")
                 )
             }
 
             // TODO: enact the temp target
             let tempTarget = try intentRequest.findTempTarget(presetToApply)
             let finalTempTargetApply = try intentRequest.enactTempTarget(tempTarget)
+            let formattedTime = decimalToTimeFormattedString(decimal: finalTempTargetApply.duration)
             let displayDetail: String =
-                "the target \(finalTempTargetApply.displayName) is applying during \(finalTempTargetApply.duration) mn"
+                "Target '\(finalTempTargetApply.displayName)' applied for \(formattedTime)"
             return .result(
                 dialog: IntentDialog(stringLiteral: displayDetail)
             )

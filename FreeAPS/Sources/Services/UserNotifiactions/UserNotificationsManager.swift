@@ -126,8 +126,8 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
 
     private func scheduleMissingLoopNotifiactions(date _: Date) {
         ensureCanSendNotification {
-            let title = NSLocalizedString("iAPS not active", comment: "iAPS not active")
-            let body = NSLocalizedString("Last loop was more then %d min ago", comment: "Last loop was more then %d min ago")
+            let title = NSLocalizedString("Open-iAPS Not Active", comment: "Open-iAPS Not Active")
+            let body = NSLocalizedString("Last loop was more than %d min ago", comment: "Last loop was more than %d min ago")
 
             let firstInterval = 20 // min
             let secondInterval = 40 // min
