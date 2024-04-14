@@ -1,6 +1,13 @@
 import Foundation
 
-struct NigtscoutTreatment: JSON, Hashable, Equatable {
+func determineBolusEventType(for event: PumpHistoryEvent) -> EventType {
+    if event.isExternalInsulin ?? false {
+        return .nsExternalInsulin
+    }
+    return event.type
+}
+
+struct NightscoutTreatment: JSON, Hashable, Equatable {
     var duration: Int?
     var rawDuration: PumpHistoryEvent?
     var rawRate: PumpHistoryEvent?
@@ -21,10 +28,138 @@ struct NigtscoutTreatment: JSON, Hashable, Equatable {
 
     static let local = "Open-iAPS"
 
-    static let empty = NigtscoutTreatment(from: "{}")!
+    static let empty = NightscoutTreatment(from: "{}")!
 
-    static func == (lhs: NigtscoutTreatment, rhs: NigtscoutTreatment) -> Bool {
+    static func == (lhs: NightscoutTreatment, rhs: NightscoutTreatment) -> Bool {
         (lhs.createdAt ?? Date()) == (rhs.createdAt ?? Date())
+    }
+
+    static func from(event: PumpHistoryEvent, tempBasalDuration: PumpHistoryEvent? = nil) -> Self? {
+        var basalDurationEvent: PumpHistoryEvent?
+        if tempBasalDuration != nil, tempBasalDuration?.timestamp == event.timestamp, event.type == .tempBasal,
+           tempBasalDuration?.type == .tempBasalDuration
+        {
+            basalDurationEvent = tempBasalDuration
+        }
+        switch event.type {
+        case .tempBasal:
+            return NightscoutTreatment(
+                duration: basalDurationEvent?.durationMin,
+                rawDuration: basalDurationEvent,
+                rawRate: event,
+                absolute: event.rate,
+                rate: event.rate,
+                eventType: .nsTempBasal,
+                createdAt: event.timestamp,
+                enteredBy: NightscoutTreatment.local,
+                bolus: nil,
+                insulin: nil,
+                notes: nil,
+                carbs: nil,
+                fat: nil,
+                protein: nil,
+                targetTop: nil,
+                targetBottom: nil
+            )
+        case .bolus:
+            let eventType = determineBolusEventType(for: event)
+            return NightscoutTreatment(
+                duration: event.duration,
+                rawDuration: nil,
+                rawRate: nil,
+                absolute: nil,
+                rate: nil,
+                eventType: eventType,
+                createdAt: event.timestamp,
+                enteredBy: NightscoutTreatment.local,
+                bolus: event,
+                insulin: event.amount,
+                notes: nil,
+                carbs: nil,
+                fat: nil,
+                protein: nil,
+                targetTop: nil,
+                targetBottom: nil
+            )
+        case .journalCarbs:
+            return NightscoutTreatment(
+                duration: nil,
+                rawDuration: nil,
+                rawRate: nil,
+                absolute: nil,
+                rate: nil,
+                eventType: .nsCarbCorrection,
+                createdAt: event.timestamp,
+                enteredBy: NightscoutTreatment.local,
+                bolus: nil,
+                insulin: nil,
+                notes: nil,
+                carbs: Decimal(event.carbInput ?? 0),
+                fat: nil,
+                protein: nil,
+                targetTop: nil,
+                targetBottom: nil
+            )
+        case .prime:
+            return NightscoutTreatment(
+                duration: event.duration,
+                rawDuration: nil,
+                rawRate: nil,
+                absolute: nil,
+                rate: nil,
+                eventType: .nsSiteChange,
+                createdAt: event.timestamp,
+                enteredBy: NightscoutTreatment.local,
+                bolus: event,
+                insulin: nil,
+                notes: nil,
+                carbs: nil,
+                fat: nil,
+                protein: nil,
+                targetTop: nil,
+                targetBottom: nil
+            )
+        case .rewind:
+            return NightscoutTreatment(
+                duration: nil,
+                rawDuration: nil,
+                rawRate: nil,
+                absolute: nil,
+                rate: nil,
+                eventType: .nsInsulinChange,
+                createdAt: event.timestamp,
+                enteredBy: NightscoutTreatment.local,
+                bolus: nil,
+                insulin: nil,
+                notes: nil,
+                carbs: nil,
+                fat: nil,
+                protein: nil,
+                targetTop: nil,
+                targetBottom: nil
+            )
+        case .pumpAlarm:
+            return NightscoutTreatment(
+                duration: 30, // minutes
+                rawDuration: nil,
+                rawRate: nil,
+                absolute: nil,
+                rate: nil,
+                eventType: .nsAnnouncement,
+                createdAt: event.timestamp,
+                enteredBy: NightscoutTreatment.local,
+                bolus: nil,
+                insulin: nil,
+                notes: "Alarm \(String(describing: event.note)) \(event.type)",
+                carbs: nil,
+                fat: nil,
+                protein: nil,
+                targetTop: nil,
+                targetBottom: nil
+            )
+        default:
+            return nil
+        }
     }
 
     func hash(into hasher: inout Hasher) {
@@ -32,7 +167,7 @@ struct NigtscoutTreatment: JSON, Hashable, Equatable {
     }
 }
 
-extension NigtscoutTreatment {
+extension NightscoutTreatment {
     private enum CodingKeys: String, CodingKey {
         case duration
         case rawDuration = "raw_duration"
