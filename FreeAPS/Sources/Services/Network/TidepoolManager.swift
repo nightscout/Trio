@@ -255,6 +255,11 @@ final class BaseTidePoolManager: TidePoolManager, Injectable {
             switch event.type {
             case .bolus,
                  .externalInsulin:
+                /// logic :
+                /// automatic Bolus = true if it is a SMB. If event not defined but Is not External Insulin
+                /// manual entered : External Insulin OR not a SMB
+                let automaticBolus: Bool = event.isSMB ?? !(event.isExternalInsulin ?? false)
+                let manualEntered: Bool = (event.isExternalInsulin ?? false) || !automaticBolus
                 return DoseEntry(
                     type: .bolus,
                     startDate: event.timestamp,
@@ -265,8 +270,8 @@ final class BaseTidePoolManager: TidePoolManager, Injectable {
                     syncIdentifier: event.id,
                     scheduledBasalRate: nil,
                     insulinType: nil,
-                    automatic: !(event.isExternalInsulin ?? false),
-                    manuallyEntered: event.isExternalInsulin ?? false
+                    automatic: automaticBolus,
+                    manuallyEntered: manualEntered
                 )
             default: return nil
             }
