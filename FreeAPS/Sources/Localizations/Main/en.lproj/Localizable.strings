@@ -1220,7 +1220,7 @@ Enact a temp Basal or a temp target */
 /* An Automatic delivered bolus (SMB) */
 "SMB" = "SMB";
 
-/* A manually entered dose of external insulin */
+/* A manually entered dose of non-pump insulin */
 "External Insulin" = "External Insulin";
 
 /* Status highlight when manual temp basal is running. */
@@ -1372,7 +1372,7 @@ Enact a temp Basal or a temp target */
 "App Icons" = "App Icons";
 
 /* */
-"iAPS Icon" = "iAPS Icon";
+"Open-iAPS Icon" = "Open-iAPS Icon";
 
 /* Service Section */
 "Statistics and Home View" = "Statistics and Home View";

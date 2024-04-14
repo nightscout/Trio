@@ -83,51 +83,11 @@ extension Bolus {
                                 state.amount <= 0 || state.amount > state.maxBolus
                             )
                     }
-                    Section {
-                        if waitForSuggestion {
+                    if waitForSuggestion {
+                        Section {
                             Button { state.showModal(for: nil) }
                             label: { Text("Continue without bolus") }
-                        } else {
-                            Button { isAddInsulinAlertPresented = true }
-                            label: { Text("Add insulin without actually bolusing") }
-                                .disabled(state.amount <= 0 || state.amount > state.maxBolus * 3)
-                        }
-                    }
-                    .alert(isPresented: $isAddInsulinAlertPresented) {
-                        let isOverMax = state.amount > state.maxBolus ? true : false
-                        let addOverMax = NSLocalizedString(
-                            "\nAmount is more than your Max Bolus setting! \nAre you sure you want to add ",
-                            comment: "Alert"
-                        )
-                        let addUnderMax = NSLocalizedString("Add", comment: "Add insulin without bolusing alert")
-                        let insulinUnit = NSLocalizedString(" U", comment: "Insulin unit")
-                        let withoutBolusing = NSLocalizedString(
-                            " without bolusing",
-                            comment: "Add insulin without bolusing alert"
-                        )
-                        let insulinAmount = formatter.string(from: state.amount as NSNumber)!
-
-                        let overMaxBolusString = addOverMax + insulinAmount + insulinUnit + withoutBolusing + "?"
-                        let underMaxBolusString = addUnderMax + " " + insulinAmount + insulinUnit + withoutBolusing
-
-                        // Actual alert
-                        return Alert(
-                            title: Text(
-                                isOverMax ? "Warning" : "Are you sure?"
-                            ),
-                            message:
-                            Text(
-                                isOverMax ? overMaxBolusString : underMaxBolusString
-                            ),
-                            primaryButton: .destructive(
-                                Text("Add"),
-                                action: {
-                                    state.addWithoutBolus()
-                                    isAddInsulinAlertPresented = false
-                                }
-                            ),
-                            secondaryButton: .cancel()
-                        )
+                        }.frame(maxWidth: .infinity, alignment: .center)
                     }
                 }
             }
