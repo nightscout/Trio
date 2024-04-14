@@ -73,7 +73,6 @@ extension Bolus {
                 showModal(for: nil)
                 return
             }
-            amount = min(amount, maxBolus * 3) // Allow for 3 * Max Bolus for non-pump insulin
 
             pumpHistoryStorage.storeEvents(
                 [
@@ -86,7 +85,8 @@ extension Bolus {
                         durationMin: nil,
                         rate: nil,
                         temp: nil,
-                        carbInput: nil
+                        carbInput: nil,
+                        isExternalInsulin: true
                     )
                 ]
             )
