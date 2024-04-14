@@ -253,19 +253,20 @@ final class BaseTidePoolManager: TidePoolManager, Injectable {
 
         let boluses: [DoseEntry] = events.compactMap { event -> DoseEntry? in
             switch event.type {
-            case .bolus:
+            case .bolus,
+                 .externalInsulin:
                 return DoseEntry(
                     type: .bolus,
                     startDate: event.timestamp,
                     endDate: event.timestamp,
                     value: Double(event.amount!),
                     unit: .units,
-                    deliveredUnits: nil,
+                    deliveredUnits: Double(event.amount!),
                     syncIdentifier: event.id,
                     scheduledBasalRate: nil,
                     insulinType: nil,
-                    automatic: true,
-                    manuallyEntered: false
+                    automatic: !(event.isExternalInsulin ?? false),
+                    manuallyEntered: event.isExternalInsulin ?? false
                 )
             default: return nil
             }
