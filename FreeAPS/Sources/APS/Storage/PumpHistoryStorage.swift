@@ -45,6 +45,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         rate: nil,
                         temp: nil,
                         carbInput: nil,
+                        isSMB: dose.automatic,
                         isExternalInsulin: dose.manuallyEntered
                     )]
                 case .tempBasal:
