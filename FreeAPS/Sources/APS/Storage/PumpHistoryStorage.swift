@@ -224,9 +224,9 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 nextEvent = events[i + 1]
             }
             if event.type == .tempBasal, nextEvent?.type == .tempBasalDuration {
-                treatments.append(NightscoutTreatment.from(event: event, tempBasalDuration: nextEvent))
+                treatments.append(NightscoutTreatment(event: event, tempBasalDuration: nextEvent))
             } else {
-                treatments.append(NightscoutTreatment.from(event: event))
+                treatments.append(NightscoutTreatment(event: event))
             }
         }
 
