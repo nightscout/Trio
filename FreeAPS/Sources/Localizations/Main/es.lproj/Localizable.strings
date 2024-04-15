@@ -1052,7 +1052,7 @@ Enact a temp Basal or a temp target */
 "Bolus failed" = "Bolus failed";
 
 /* "Max Bolus Exceeded label" */
-"Max Bolus exceeded!" = "Max Bolus exceeded!";
+"Max Bolus exceeded!" = "¡Bolo máximo superado!";
 
 /* */
 "Bolus failed or inaccurate. Check pump history before repeating." = "Bolus failed or inaccurate. Check pump history before repeating.";
