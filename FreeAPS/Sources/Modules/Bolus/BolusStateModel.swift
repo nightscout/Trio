@@ -485,6 +485,7 @@ extension Bolus {
                 newCarbEntry.carbs = Double(carbs)
                 newCarbEntry.fat = Double(fat)
                 newCarbEntry.protein = Double(protein)
+                newCarbEntry.date = Date()
                 self.context.perform {
                     do {
                         try self.context.save()

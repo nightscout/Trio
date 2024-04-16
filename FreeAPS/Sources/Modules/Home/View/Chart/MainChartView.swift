@@ -92,7 +92,8 @@ struct MainChartView: View {
 
     @FetchRequest(
         entity: MealsStored.entity(),
-        sortDescriptors: [NSSortDescriptor(keyPath: \MealsStored.date, ascending: true)]
+        sortDescriptors: [NSSortDescriptor(keyPath: \MealsStored.date, ascending: true)],
+        predicate: NSPredicate.predicateForOneDayAgo
     ) var carbsFromPersistence: FetchedResults<MealsStored>
 
     private var bolusFormatter: NumberFormatter {
