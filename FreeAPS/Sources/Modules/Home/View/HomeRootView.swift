@@ -151,7 +151,6 @@ extension Home {
 
         var glucoseView: some View {
             CurrentGlucoseView(
-                recentGlucose: $state.recentGlucose,
                 timerDate: $state.timerDate,
                 delta: $state.glucoseDelta,
                 units: $state.units,

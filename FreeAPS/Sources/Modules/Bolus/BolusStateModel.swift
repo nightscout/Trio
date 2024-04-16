@@ -42,7 +42,6 @@ extension Bolus {
         var waitForSuggestionInitial: Bool = false
 
         // added for bolus calculator
-        @Published var recentGlucose: BloodGlucose?
         @Published var target: Decimal = 0
         @Published var cob: Decimal = 0
         @Published var iob: Decimal = 0
@@ -93,11 +92,14 @@ extension Bolus {
         @Published var externalInsulin: Bool = false
         @Published var showInfo: Bool = false
 
+        @Published var glucoseFromPersistence: [GlucoseStored] = []
+
         let now = Date.now
 
         let context = CoreDataStack.shared.persistentContainer.viewContext
 
         override func subscribe() {
+            fetchGlucose()
             setupInsulinRequired()
             broadcaster.register(SuggestionObserver.self, observer: self)
             broadcaster.register(BolusFailureObserver.self, observer: self)
@@ -139,49 +141,57 @@ extension Bolus {
             }
         }
 
+        // MARK: - Basal
+
         func getCurrentBasal() {
             let basalEntries = provider.getProfile()
-
+            let now = Date()
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "HH:mm:ss"
-            let currentTime = dateFormatter.string(from: Date())
 
-            // loop throug entries and get current basal entry
+            // iterate over basal entries
             for (index, entry) in basalEntries.enumerated() {
-                if let entryStartTimeDate = dateFormatter.date(from: entry.start) {
-                    var entryEndTimeDate: Date
+                guard let entryStartTime = dateFormatter.date(from: entry.start) else { continue }
 
-                    if index < basalEntries.count - 1 {
-                        let nextEntry = basalEntries[index + 1]
-                        if let nextEntryStartTimeDate = dateFormatter.date(from: nextEntry.start) {
-                            let timeDifference = nextEntryStartTimeDate.timeIntervalSince(entryStartTimeDate)
-                            entryEndTimeDate = entryStartTimeDate.addingTimeInterval(timeDifference)
-                        } else {
-                            continue
-                        }
-                    } else {
-                        entryEndTimeDate = Date()
-                    }
-                    // if currenTime is between start and end of basal entry -> basal = currentBasal
-                    if let currentTimeDate = dateFormatter.date(from: currentTime) {
-                        if currentTimeDate >= entryStartTimeDate, currentTimeDate <= entryEndTimeDate {
-                            if let basal = entry.rate as? Decimal {
-                                currentBasal = basal
-                                break
-                            }
-                        }
-                    }
+                let entryEndTime: Date
+                if index < basalEntries.count - 1,
+                   let nextEntryStartTime = dateFormatter.date(from: basalEntries[index + 1].start)
+                {
+                    // end of current entry should equal start of next entry
+                    entryEndTime = nextEntryStartTime
+                } else {
+                    // if it is the last entry use current time as end of entry
+                    entryEndTime = now
+                }
+
+                // proof if current time is between start and end of entry
+                if now >= entryStartTime, now < entryEndTime {
+                    currentBasal = entry.rate
+                    break
                 }
             }
         }
 
-        func getDeltaBG() {
-            let glucose = provider.fetchGlucose()
-            guard glucose.count >= 3 else { return }
-            let lastGlucose = glucose.first?.glucose ?? 0
-            let thirdLastGlucose = glucose[2]
-            let delta = Decimal(lastGlucose) - Decimal(thirdLastGlucose.glucose)
-            deltaBG = delta
+        // MARK: - Glucose
+
+        private func fetchGlucose() {
+            let fetchRequest: NSFetchRequest<GlucoseStored> = GlucoseStored.fetchRequest()
+            fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \GlucoseStored.date, ascending: false)]
+            fetchRequest.predicate = NSPredicate.predicateFor30MinAgo
+            fetchRequest.fetchLimit = 3
+            do {
+                glucoseFromPersistence = try context.fetch(fetchRequest)
+
+                let lastGlucose = glucoseFromPersistence.first?.glucose ?? 0
+                let thirdLastGlucose = glucoseFromPersistence.last?.glucose ?? 0
+                let delta = Decimal(lastGlucose) - Decimal(thirdLastGlucose)
+
+                currentBG = Decimal(lastGlucose)
+                deltaBG = delta
+
+            } catch {
+                debugPrint("Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch glucose")
+            }
         }
 
         // MARK: CALCULATIONS FOR THE BOLUS CALCULATOR
@@ -260,7 +270,6 @@ extension Bolus {
                 self.target = self.provider.suggestion?.current_target ?? 0
                 self.isf = self.provider.suggestion?.isf ?? 0
                 self.iob = self.provider.suggestion?.iob ?? 0
-                self.currentBG = (self.provider.suggestion?.bg ?? 0)
                 self.cob = self.provider.suggestion?.cob ?? 0
                 self.basal = self.provider.suggestion?.rate ?? 0
                 self.carbRatio = self.provider.suggestion?.carbRatio ?? 0
@@ -281,11 +290,8 @@ extension Bolus {
                 self.insulinRecommended = self.apsManager
                     .roundBolus(amount: max(self.insulinRecommended, 0))
 
-                if self.useCalc {
-                    self.getCurrentBasal()
-                    self.getDeltaBG()
-                    self.insulinCalculated = self.calculateInsulin()
-                }
+                self.getCurrentBasal()
+                self.insulinCalculated = self.calculateInsulin()
             }
         }
 

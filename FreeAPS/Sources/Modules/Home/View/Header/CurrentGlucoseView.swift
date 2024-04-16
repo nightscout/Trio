@@ -1,7 +1,8 @@
+import CoreData
 import SwiftUI
 
 struct CurrentGlucoseView: View {
-    @Binding var recentGlucose: BloodGlucose?
+//    @Binding var recentGlucose: BloodGlucose?
     @Binding var timerDate: Date
     @Binding var delta: Int?
     @Binding var units: GlucoseUnits
@@ -25,6 +26,13 @@ struct CurrentGlucoseView: View {
     ], center: .center, startAngle: .degrees(270), endAngle: .degrees(-90))
 
     @Environment(\.colorScheme) var colorScheme
+
+    @FetchRequest(
+        entity: GlucoseStored.entity(),
+        sortDescriptors: [NSSortDescriptor(keyPath: \GlucoseStored.date, ascending: false)],
+        predicate: NSPredicate.predicateFor30MinAgo,
+        animation: Animation.bouncy
+    ) var glucoseFromPersistence: FetchedResults<GlucoseStored>
 
     private var glucoseFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -70,18 +78,18 @@ struct CurrentGlucoseView: View {
 
             VStack(alignment: .center) {
                 HStack {
+                    let glucoseValue = glucoseFromPersistence.first?.glucose ?? 100
+                    let displayGlucose = convertGlucose(glucoseValue, to: units)
+
                     Text(
-                        (recentGlucose?.glucose ?? 100) == 400 ? "HIGH" : recentGlucose?.glucose
-                            .map {
-                                glucoseFormatter
-                                    .string(from: Double(units == .mmolL ? $0.asMmolL : Decimal($0)) as NSNumber)! }
-                            ?? "--"
+                        glucoseValue == 400 ? "HIGH" :
+                            glucoseFormatter.string(from: NSNumber(value: displayGlucose)) ?? "--"
                     )
                     .font(.system(size: 40, weight: .bold, design: .rounded))
                     .foregroundColor(alarm == nil ? colourGlucoseText : .loopRed)
                 }
                 HStack {
-                    let minutesAgo = -1 * (recentGlucose?.dateString.timeIntervalSinceNow ?? 0) / 60
+                    let minutesAgo = -1 * (glucoseFromPersistence.first?.date?.timeIntervalSinceNow ?? 0) / 60
                     let text = timaAgoFormatter.string(for: Double(minutesAgo)) ?? ""
                     Text(
                         minutesAgo <= 1 ? "< 1 " + NSLocalizedString("min", comment: "Short form for minutes") : (
@@ -101,46 +109,54 @@ struct CurrentGlucoseView: View {
                 }.frame(alignment: .top)
             }
         }
-        .onChange(of: recentGlucose?.direction) { newDirection in
+        .onChange(of: glucoseFromPersistence.first?.direction) { newDirection in
             withAnimation {
                 switch newDirection {
-                case .doubleUp,
-                     .singleUp,
-                     .tripleUp:
+                case "DoubleUp",
+                     "SingleUp",
+                     "TripleUp":
                     rotationDegrees = -90
-
-                case .fortyFiveUp:
+                case "FortyFiveUp":
                     rotationDegrees = -45
-
-                case .flat:
+                case "Flat":
                     rotationDegrees = 0
-
-                case .fortyFiveDown:
+                case "FortyFiveDown":
                     rotationDegrees = 45
-
-                case .doubleDown,
-                     .singleDown,
-                     .tripleDown:
+                case "DoubleDown",
+                     "SingleDown",
+                     "TripleDown":
                     rotationDegrees = 90
-
-                case .none,
-                     .notComputable,
-                     .rateOutOfRange:
+                case "NONE",
+                     "NOT COMPUTABLE",
+                     "RATE OUT OF RANGE":
                     rotationDegrees = 0
-
-                @unknown default:
+                default:
                     rotationDegrees = 0
                 }
             }
         }
     }
 
+    private func convertGlucose(_ value: Int16, to units: GlucoseUnits) -> Double {
+        switch units {
+        case .mmolL:
+            return Double(value) / 18.0
+        case .mgdL:
+            return Double(value)
+        }
+    }
+
     var colourGlucoseText: Color {
-        let whichGlucose = recentGlucose?.glucose ?? 0
+        // Fetch the first glucose reading and convert it to Int for comparison
+        let whichGlucose = Int(glucoseFromPersistence.first?.glucose ?? 0)
+
+        // Define default color based on the color scheme
         let defaultColor: Color = colorScheme == .dark ? .white : .black
 
+        // Ensure the thresholds are logical
         guard lowGlucose < highGlucose else { return .primary }
 
+        // Perform range checks using Int converted values
         switch whichGlucose {
         case 0 ..< Int(lowGlucose):
             return .loopRed

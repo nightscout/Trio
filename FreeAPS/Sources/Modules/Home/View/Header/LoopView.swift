@@ -1,3 +1,4 @@
+import CoreData
 import SwiftDate
 import SwiftUI
 import UIKit
