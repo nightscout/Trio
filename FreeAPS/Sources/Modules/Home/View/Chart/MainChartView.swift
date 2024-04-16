@@ -96,6 +96,13 @@ struct MainChartView: View {
         predicate: NSPredicate.predicateForOneDayAgo
     ) var carbsFromPersistence: FetchedResults<MealsStored>
 
+    @FetchRequest(
+        entity: InsulinStored.entity(),
+        sortDescriptors: [NSSortDescriptor(keyPath: \InsulinStored.date, ascending: true)],
+        predicate: NSPredicate.predicateForOneDayAgo,
+        animation: Animation.bouncy
+    ) var insulinFromPersistence: FetchedResults<InsulinStored>
+
     private var bolusFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
@@ -345,21 +352,23 @@ extension MainChartView {
 extension MainChartView {
     private func drawBoluses() -> some ChartContent {
         /// smbs in triangle form
-        ForEach(boluses) { bolus in
-            let bolusAmount = bolus.amount ?? 0
-            let glucose = timeToNearestGlucose(time: bolus.timestamp.timeIntervalSince1970)
+        ForEach(insulinFromPersistence) { bolus in
+            let bolusAmount = bolus.amount ?? 0 as NSDecimalNumber
+            let bolusDate = bolus.date ?? Date()
+            let glucose = timeToNearestGlucose(time: bolusDate.timeIntervalSince1970)
             let yPosition = (Decimal(glucose.sgv ?? defaultBolusPosition) * conversionFactor) + bolusOffset
-            let size = (Config.bolusSize + CGFloat(bolusAmount) * Config.bolusScale) * 1.8
+            let size = (Config.bolusSize + CGFloat(truncating: bolusAmount) * Config.bolusScale) * 1.8
 
-            return PointMark(
-                x: .value("Time", bolus.timestamp, unit: .second),
+            PointMark(
+                x: .value("Time", bolus.date ?? Date(), unit: .second),
                 y: .value("Value", yPosition)
             )
             .symbol {
                 Image(systemName: "arrowtriangle.down.fill").font(.system(size: size)).foregroundStyle(Color.insulin)
             }
             .annotation(position: .top) {
-                Text(bolusFormatter.string(from: bolusAmount as NSNumber)!).font(.caption2)
+                Text(bolusFormatter.string(from: bolusAmount) ?? "")
+                    .font(.caption2)
                     .foregroundStyle(Color.insulin)
             }
         }
