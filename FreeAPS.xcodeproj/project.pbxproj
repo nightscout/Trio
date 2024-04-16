@@ -1638,7 +1638,7 @@
 		388E594F25AD948C0019842D = {
 			isa = PBXGroup;
 			children = (
-				FEFA5C0D299F810B00765C17 /* Core_Data.xcdatamodeld */,
+				587A54C82BCDCE0F009D38E2 /* Model */,
 				38F3783A2613555C009DB701 /* Config.xcconfig */,
 				3818AA42274BBC1100843DB3 /* ConfigOverride.xcconfig */,
 				388E595A25AD948C0019842D /* FreeAPS */,
@@ -1735,7 +1735,6 @@
 		388E5A5A25B6F05F0019842D /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
-				FEFA5C10299F814A00765C17 /* CoreDataStack.swift */,
 				38F37827261260DC009DB701 /* Color+Extensions.swift */,
 				389ECE042601144100D86C4F /* ConcurrentMap.swift */,
 				38192E0C261BAF980094D973 /* ConvenienceExtensions.swift */,
@@ -1776,7 +1775,6 @@
 				38FCF3FC25E997A80078B0D1 /* PumpHistoryStorage.swift */,
 				38F3B2EE25ED8E2A005C48AA /* TempTargetsStorage.swift */,
 				CE82E02428E867BA00473A9C /* AlertStorage.swift */,
-				1956FB202AFF79E200C7B4FF /* CoreDataStorage.swift */,
 			);
 			path = Storage;
 			sourceTree = "<group>";
@@ -2040,6 +2038,16 @@
 				8CF5ACEE1F0859670E71B2C0 /* AutotuneConfigRootView.swift */,
 			);
 			path = View;
+			sourceTree = "<group>";
+		};
+		587A54C82BCDCE0F009D38E2 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				FEFA5C10299F814A00765C17 /* CoreDataStack.swift */,
+				1956FB202AFF79E200C7B4FF /* CoreDataStorage.swift */,
+				FEFA5C0D299F810B00765C17 /* Core_Data.xcdatamodeld */,
+			);
+			path = Model;
 			sourceTree = "<group>";
 		};
 		64271A287C92581EADCB47FA /* View */ = {

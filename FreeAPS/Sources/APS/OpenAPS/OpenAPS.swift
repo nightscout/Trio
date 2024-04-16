@@ -10,6 +10,7 @@ final class OpenAPS {
     private let storage: FileStorage
 
     let coredataContext = CoreDataStack.shared.persistentContainer.viewContext // newBackgroundContext()
+    let context = CoreDataStack.shared.persistentContainer.newBackgroundContext()
 
     init(storage: FileStorage) {
         self.storage = storage
@@ -82,6 +83,20 @@ final class OpenAPS {
                 if var suggestion = Suggestion(from: suggested) {
                     suggestion.timestamp = suggestion.deliverAt ?? clock
                     self.storage.save(suggestion, as: Enact.suggested)
+
+                    // save to core data asynchronously
+                    self.coredataContext.perform {
+                        let new = Determination(context: self.coredataContext)
+                        new.cob = suggestion.cob as? NSDecimalNumber
+                        new.iob = suggestion.iob as? NSDecimalNumber
+                        new.deliverAt = suggestion.deliverAt
+                        new.glucose = suggestion.bg as? NSDecimalNumber
+                        do {
+                            try self.coredataContext.save()
+                        } catch {
+                            print("failed")
+                        }
+                    }
 
                     // MARK: Save to CoreData also. To do: Remove JSON saving
 

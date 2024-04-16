@@ -42,6 +42,11 @@ extension Home {
         ) var fetchedPercent: FetchedResults<Override>
 
         @FetchRequest(
+            entity: Determination.entity(),
+            sortDescriptors: [NSSortDescriptor(key: "deliverAt", ascending: false)]
+        ) var determination: FetchedResults<Determination>
+
+        @FetchRequest(
             entity: OverridePresets.entity(),
             sortDescriptors: [NSSortDescriptor(key: "name", ascending: true)], predicate: NSPredicate(
                 format: "name != %@", "" as String
@@ -462,7 +467,7 @@ extension Home {
                         .font(.system(size: 16))
                         .foregroundColor(Color.insulin)
                     Text(
-                        (numberFormatter.string(from: (state.suggestion?.iob ?? 0) as NSNumber) ?? "0") +
+                        (numberFormatter.string(from: (determination.first?.iob ?? 0) as NSNumber) ?? "0") +
                             NSLocalizedString(" U", comment: "Insulin unit")
                     )
                     .font(.system(size: 16, weight: .bold, design: .rounded))
@@ -475,7 +480,7 @@ extension Home {
                         .font(.system(size: 16))
                         .foregroundColor(.loopYellow)
                     Text(
-                        (numberFormatter.string(from: (state.suggestion?.cob ?? 0) as NSNumber) ?? "0") +
+                        (numberFormatter.string(from: (determination.first?.cob ?? 0) as NSNumber) ?? "0") +
                             NSLocalizedString(" g", comment: "gram of carbs")
                     )
                     .font(.system(size: 16, weight: .bold, design: .rounded))
