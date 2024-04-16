@@ -91,6 +91,7 @@ extension Bolus {
         @Published var skipBolus: Bool = false
 
         @Published var externalInsulin: Bool = false
+        @Published var showInfo: Bool = false
 
         let now = Date.now
 
@@ -237,8 +238,12 @@ extension Bolus {
             insulinCalculated = max(insulinCalculated, 0)
             insulinCalculated = min(insulinCalculated, maxBolus)
 
-            return apsManager
-                .roundBolus(amount: max(insulinCalculated, 0))
+            guard let apsManager = apsManager else {
+                debug(.apsManager, "APSManager could not be gracefully unwrapped")
+                return insulinCalculated
+            }
+
+            return apsManager.roundBolus(amount: insulinCalculated)
         }
 
         func setupInsulinRequired() {
@@ -355,7 +360,7 @@ extension Bolus {
             newItem.date = Date()
             newItem.external = false
             newItem.isSMB = false
-            self.context.perform {
+            context.perform {
                 do {
                     try self.context.save()
                     debugPrint(
@@ -366,7 +371,6 @@ extension Bolus {
                         "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save pump insulin to core data"
                     )
                 }
-
             }
         }
 
@@ -418,9 +422,9 @@ extension Bolus {
             debug(.default, "External insulin saved to pumphistory.json")
 
             // save to core data asynchronously
-            self.context.perform {
+            context.perform {
                 let newItem = InsulinStored(context: self.context)
-                newItem.amount = (self.amount) as NSDecimalNumber
+                newItem.amount = self.amount as NSDecimalNumber
                 newItem.date = Date()
                 newItem.external = true
                 newItem.isSMB = false
@@ -435,7 +439,7 @@ extension Bolus {
                     )
                 }
             }
-            
+
             // perform determine basal sync
             apsManager.determineBasalSync()
         }

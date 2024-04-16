@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		041D1E995A6AE92E9289DC49 /* BolusDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8D1A7CA8C10C4403D4BBFA7 /* BolusDataFlow.swift */; };
 		0437CE46C12535A56504EC19 /* SnoozeRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5822B15939E719628E9FF7C /* SnoozeRootView.swift */; };
-		0CEA2EA070AB041AF3E3745B /* BolusRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10A0C32B0DAB52726EF9B6D9 /* BolusRootView.swift */; };
 		0D9A5E34A899219C5C4CDFAF /* DataTableStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9455FA2D92E77A6C4AFED8A3 /* DataTableStateModel.swift */; };
 		0F7A65FBD2CD8D6477ED4539 /* NotificationsConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E625985B47742D498CB1681A /* NotificationsConfigProvider.swift */; };
 		17A9D0899046B45E87834820 /* CREditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C8D5F457B5AFF763F8CF3DF /* CREditorProvider.swift */; };
@@ -269,6 +268,7 @@
 		53F2382465BF74DB1A967C8B /* PumpConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8630D58BDAD6D9C650B9B39 /* PumpConfigProvider.swift */; };
 		581516A42BCED84A00BF67D7 /* DebuggingIdentifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 581516A32BCED84A00BF67D7 /* DebuggingIdentifiers.swift */; };
 		581516A92BCEEDF800BF67D7 /* NSPredicates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 581516A82BCEEDF800BF67D7 /* NSPredicates.swift */; };
+		58237D9E2BCF0A6B00A47A79 /* PopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58237D9D2BCF0A6B00A47A79 /* PopupView.swift */; };
 		587DA1F62B77F3DD00B28F8A /* SettingsRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 587DA1F52B77F3DD00B28F8A /* SettingsRowView.swift */; };
 		5BFA1C2208114643B77F8CEB /* AddTempTargetProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEE53A13D26F101B332EFFC8 /* AddTempTargetProvider.swift */; };
 		5D16287A969E64D18CE40E44 /* PumpConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F60E97100041040446F44E7 /* PumpConfigStateModel.swift */; };
@@ -327,8 +327,7 @@
 		BD7DA9A92AE06E9200601B20 /* BolusCalculatorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7DA9A82AE06E9200601B20 /* BolusCalculatorStateModel.swift */; };
 		BD7DA9AC2AE06EB900601B20 /* BolusCalculatorConfigRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7DA9AB2AE06EB900601B20 /* BolusCalculatorConfigRootView.swift */; };
 		BDF530D82B40F8AC002CAF43 /* LockScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF530D72B40F8AC002CAF43 /* LockScreenView.swift */; };
-		BDFD165A2AE40438007F0DDA /* AlternativeBolusCalcRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFD16592AE40438007F0DDA /* AlternativeBolusCalcRootView.swift */; };
-		BDFD165C2AE40688007F0DDA /* DefaultBolusCalcRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFD165B2AE40688007F0DDA /* DefaultBolusCalcRootView.swift */; };
+		BDFD165A2AE40438007F0DDA /* BolusRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFD16592AE40438007F0DDA /* BolusRootView.swift */; };
 		BF1667ADE69E4B5B111CECAE /* ManualTempBasalProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 680C4420C9A345D46D90D06C /* ManualTempBasalProvider.swift */; };
 		C967DACD3B1E638F8B43BE06 /* ManualTempBasalStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFCFE0781F9074C2917890E8 /* ManualTempBasalStateModel.swift */; };
 		CA370FC152BC98B3D1832968 /* BasalProfileEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF8BCB0C37DEB5EC377B9612 /* BasalProfileEditorRootView.swift */; };
@@ -536,7 +535,6 @@
 /* Begin PBXFileReference section */
 		0274EE6439B1C3ED70730D41 /* PumpSettingsEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpSettingsEditorDataFlow.swift; sourceTree = "<group>"; };
 		0CA3E609094E064C99A4752C /* PreferencesEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PreferencesEditorStateModel.swift; sourceTree = "<group>"; };
-		10A0C32B0DAB52726EF9B6D9 /* BolusRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BolusRootView.swift; sourceTree = "<group>"; };
 		12204445D7632AF09264A979 /* PreferencesEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PreferencesEditorDataFlow.swift; sourceTree = "<group>"; };
 		19012CDB291D2CB900FB8210 /* LoopStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopStats.swift; sourceTree = "<group>"; };
 		190EBCC329FF136900BA767D /* StatConfigDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatConfigDataFlow.swift; sourceTree = "<group>"; };
@@ -834,6 +832,7 @@
 		505E09DC17A0C3D0AF4B66FE /* ISFEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ISFEditorStateModel.swift; sourceTree = "<group>"; };
 		581516A32BCED84A00BF67D7 /* DebuggingIdentifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebuggingIdentifiers.swift; sourceTree = "<group>"; };
 		581516A82BCEEDF800BF67D7 /* NSPredicates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSPredicates.swift; sourceTree = "<group>"; };
+		58237D9D2BCF0A6B00A47A79 /* PopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopupView.swift; sourceTree = "<group>"; };
 		587DA1F52B77F3DD00B28F8A /* SettingsRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRowView.swift; sourceTree = "<group>"; };
 		5B8A42073A2D03A278914448 /* AddTempTargetDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AddTempTargetDataFlow.swift; sourceTree = "<group>"; };
 		5C018D1680307A31C9ED7120 /* CGMStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CGMStateModel.swift; sourceTree = "<group>"; };
@@ -893,8 +892,7 @@
 		BD7DA9A82AE06E9200601B20 /* BolusCalculatorStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorStateModel.swift; sourceTree = "<group>"; };
 		BD7DA9AB2AE06EB900601B20 /* BolusCalculatorConfigRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorConfigRootView.swift; sourceTree = "<group>"; };
 		BDF530D72B40F8AC002CAF43 /* LockScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenView.swift; sourceTree = "<group>"; };
-		BDFD16592AE40438007F0DDA /* AlternativeBolusCalcRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlternativeBolusCalcRootView.swift; sourceTree = "<group>"; };
-		BDFD165B2AE40688007F0DDA /* DefaultBolusCalcRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultBolusCalcRootView.swift; sourceTree = "<group>"; };
+		BDFD16592AE40438007F0DDA /* BolusRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusRootView.swift; sourceTree = "<group>"; };
 		BF8BCB0C37DEB5EC377B9612 /* BasalProfileEditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BasalProfileEditorRootView.swift; sourceTree = "<group>"; };
 		C19984D62EFC0035A9E9644D /* BolusProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BolusProvider.swift; sourceTree = "<group>"; };
 		C377490C77661D75E8C50649 /* ManualTempBasalRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ManualTempBasalRootView.swift; sourceTree = "<group>"; };
@@ -2189,9 +2187,8 @@
 		B9488883C59C31550E0B4CEC /* View */ = {
 			isa = PBXGroup;
 			children = (
-				10A0C32B0DAB52726EF9B6D9 /* BolusRootView.swift */,
-				BDFD165B2AE40688007F0DDA /* DefaultBolusCalcRootView.swift */,
-				BDFD16592AE40438007F0DDA /* AlternativeBolusCalcRootView.swift */,
+				BDFD16592AE40438007F0DDA /* BolusRootView.swift */,
+				58237D9D2BCF0A6B00A47A79 /* PopupView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -2843,6 +2840,7 @@
 				190EBCCB29FF13CB00BA767D /* StatConfigRootView.swift in Sources */,
 				3811DEA925C9D88300A708ED /* AppearanceManager.swift in Sources */,
 				CE7950242997D81700FA576E /* CGMSettingsView.swift in Sources */,
+				58237D9E2BCF0A6B00A47A79 /* PopupView.swift in Sources */,
 				38D0B3D925EC07C400CB6E88 /* CarbsEntry.swift in Sources */,
 				38A9260525F012D8009E3739 /* CarbRatios.swift in Sources */,
 				38FCF3D625E8FDF40078B0D1 /* MD5.swift in Sources */,
@@ -2872,7 +2870,7 @@
 				193F6CDD2A512C8F001240FD /* Loops.swift in Sources */,
 				38B4F3CB25E502E200E76A18 /* WeakObjectSet.swift in Sources */,
 				38E989DD25F5021400C0CED0 /* PumpStatus.swift in Sources */,
-				BDFD165A2AE40438007F0DDA /* AlternativeBolusCalcRootView.swift in Sources */,
+				BDFD165A2AE40438007F0DDA /* BolusRootView.swift in Sources */,
 				38E98A2525F52C9300C0CED0 /* IssueReporter.swift in Sources */,
 				190EBCC429FF136900BA767D /* StatConfigDataFlow.swift in Sources */,
 				3811DEB025C9D88300A708ED /* BaseKeychain.swift in Sources */,
@@ -2994,9 +2992,7 @@
 				38E98A2D25F52DC400C0CED0 /* NSLocking+Extensions.swift in Sources */,
 				38569353270B5E350002C50D /* CGMRootView.swift in Sources */,
 				69A31254F2451C20361D172F /* BolusStateModel.swift in Sources */,
-				0CEA2EA070AB041AF3E3745B /* BolusRootView.swift in Sources */,
 				1967DFC029D053AC00759F30 /* IconSelection.swift in Sources */,
-				BDFD165C2AE40688007F0DDA /* DefaultBolusCalcRootView.swift in Sources */,
 				19D4E4EB29FC6A9F00351451 /* Charts.swift in Sources */,
 				FEFFA7A22929FE49007B8193 /* UIDevice+Extensions.swift in Sources */,
 				F90692D3274B9A130037068D /* AppleHealthKitRootView.swift in Sources */,

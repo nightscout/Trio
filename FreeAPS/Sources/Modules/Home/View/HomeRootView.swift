@@ -817,7 +817,7 @@ extension Home {
 
                 Button(
                     action: {
-                        state.showModal(for: .bolus(waitForSuggestion: false, fetch: false)) },
+                        state.showModal(for: .bolus) },
                     label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 40))

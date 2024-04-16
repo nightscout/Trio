@@ -15,7 +15,7 @@ enum Screen: Identifiable, Hashable {
     case targetsEditor
     case preferencesEditor
     case addTempTarget
-    case bolus(waitForSuggestion: Bool, fetch: Bool)
+    case bolus
     case manualTempBasal
     case autotuneConfig
     case dataTable
@@ -66,12 +66,8 @@ extension Screen {
             PreferencesEditor.RootView(resolver: resolver)
         case .addTempTarget:
             AddTempTarget.RootView(resolver: resolver)
-        case let .bolus(waitForSuggestion, fetch):
-            Bolus.RootView(
-                resolver: resolver,
-                waitForSuggestion: waitForSuggestion,
-                fetch: fetch
-            )
+        case .bolus:
+            Bolus.RootView(resolver: resolver)
         case .manualTempBasal:
             ManualTempBasal.RootView(resolver: resolver)
         case .autotuneConfig:
