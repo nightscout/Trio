@@ -116,7 +116,7 @@ extension Bolus {
                     Section {
                         Button {
                             Task {
-                                await state.add()
+//                                add()
                                 state.hideModal()
                                 keepForNextWiew = true
                             }

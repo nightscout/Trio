@@ -60,6 +60,13 @@
         <attribute name="tempBasal" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <relationship name="insulin" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Oref0Suggestion" inverseName="computedInsulinDistribution" inverseEntity="Oref0Suggestion"/>
     </entity>
+    <entity name="InsulinStored" representedClassName="InsulinStored" syncable="YES" codeGenerationType="class">
+        <attribute name="amount" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="external" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isSMB" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+    </entity>
     <entity name="LastLoop" representedClassName="LastLoop" syncable="YES" codeGenerationType="class">
         <attribute name="cob" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="iob" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>

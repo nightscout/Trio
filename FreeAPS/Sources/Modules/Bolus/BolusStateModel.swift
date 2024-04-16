@@ -94,8 +94,6 @@ extension Bolus {
 
         let now = Date.now
 
-        private let treatmentsVM = TreatmentsViewModel()
-
         let context = CoreDataStack.shared.persistentContainer.viewContext
 
         override func subscribe() {
@@ -243,62 +241,6 @@ extension Bolus {
                 .roundBolus(amount: max(insulinCalculated, 0))
         }
 
-        @MainActor func invokeTreatmentsTask() {
-            Task {
-                if amount > 0 {
-                    if !externalInsulin {
-                        await add()
-                    } else {
-                        do {
-                            await addExternalInsulin()
-                        }
-                    }
-                    waitForSuggestion = true
-                } else {
-                    if carbs > 0 {
-                        waitForSuggestion = true
-                    } else {
-                        hideModal()
-                    }
-                }
-                addCarbs()
-                addButtonPressed = true
-
-                // if glucose data is stale end the custom loading animation by hiding the modal
-                // alternatively only set waitforSuggestion to false...
-                let lastGlucoseDate = glucoseStorage.lastGlucoseDate()
-                guard lastGlucoseDate >= Date().addingTimeInterval(-12.minutes.timeInterval) else {
-                    return hideModal()
-                }
-            }
-        }
-
-        @MainActor func add() async {
-            guard amount > 0 else {
-                showModal(for: nil)
-                return
-            }
-
-            let maxAmount = Double(min(amount, provider.pumpSettings().maxBolus))
-
-            do {
-                let authenticated = try await unlockmanager.unlock()
-                if authenticated {
-                    apsManager.enactBolus(amount: maxAmount, isSMB: false)
-                } else {
-                    print("authentication failed")
-                }
-            } catch {
-                print("authentication error for pump bolus: \(error.localizedDescription)")
-                DispatchQueue.main.async {
-                    self.waitForSuggestion = false
-                    if self.addButtonPressed {
-                        self.hideModal()
-                    }
-                }
-            }
-        }
-
         func setupInsulinRequired() {
             DispatchQueue.main.async {
                 self.insulinRequired = self.provider.suggestion?.insulinReq ?? 0
@@ -342,11 +284,167 @@ extension Bolus {
             }
         }
 
+        // MARK: - Button tasks
+
+        @MainActor func invokeTreatmentsTask() {
+            Task {
+                let isInsulinGiven = amount > 0
+                let isCarbsPresent = carbs > 0
+
+                if isInsulinGiven {
+                    try await handleInsulin(isExternal: externalInsulin)
+                } else if isCarbsPresent {
+                    waitForSuggestion = true
+                } else {
+                    hideModal()
+                    return
+                }
+
+                saveMeal()
+                addButtonPressed = true
+
+                // if glucose data is stale end the custom loading animation by hiding the modal
+//                guard glucoseOfLast20Min.first?.date ?? now >= Date().addingTimeInterval(-12.minutes.timeInterval) else {
+//                    return hideModal()
+//                }
+            }
+        }
+
+        // MARK: - Insulin
+
+        @MainActor private func handleInsulin(isExternal: Bool) async throws {
+            if !isExternal {
+                await addPumpInsulin()
+            } else {
+                await addExternalInsulin()
+            }
+            waitForSuggestion = true
+        }
+
+        @MainActor func addPumpInsulin() async {
+            guard amount > 0 else {
+                showModal(for: nil)
+                return
+            }
+
+            let maxAmount = Double(min(amount, provider.pumpSettings().maxBolus))
+
+            do {
+                let authenticated = try await unlockmanager.unlock()
+                if authenticated {
+                    apsManager.enactBolus(amount: maxAmount, isSMB: false)
+                    savePumpInsulin(amount: amount)
+                } else {
+                    print("authentication failed")
+                }
+            } catch {
+                print("authentication error for pump bolus: \(error.localizedDescription)")
+                DispatchQueue.main.async {
+                    self.waitForSuggestion = false
+                    if self.addButtonPressed {
+                        self.hideModal()
+                    }
+                }
+            }
+        }
+
+        private func savePumpInsulin(amount: Decimal) {
+            let newItem = InsulinStored(context: context)
+            newItem.id = UUID()
+            newItem.amount = amount as NSDecimalNumber
+            newItem.date = Date()
+            newItem.external = false
+            newItem.isSMB = false
+            self.context.perform {
+                do {
+                    try self.context.save()
+                    debugPrint(
+                        "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved pump insulin to core data"
+                    )
+                } catch {
+                    debugPrint(
+                        "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save pump insulin to core data"
+                    )
+                }
+
+            }
+        }
+
+        // MARK: - EXTERNAL INSULIN
+
+        @MainActor func addExternalInsulin() async {
+            guard amount > 0 else {
+                showModal(for: nil)
+                return
+            }
+
+            amount = min(amount, maxBolus * 3)
+
+            do {
+                let authenticated = try await unlockmanager.unlock()
+                if authenticated {
+                    storeExternalInsulinEvent()
+                } else {
+                    print("authentication failed")
+                }
+            } catch {
+                print("authentication error for external insulin: \(error.localizedDescription)")
+                DispatchQueue.main.async {
+                    self.waitForSuggestion = false
+                    if self.addButtonPressed {
+                        self.hideModal()
+                    }
+                }
+            }
+        }
+
+        private func storeExternalInsulinEvent() {
+            pumpHistoryStorage.storeEvents(
+                [
+                    PumpHistoryEvent(
+                        id: UUID().uuidString,
+                        type: .bolus,
+                        timestamp: date,
+                        amount: amount,
+                        duration: nil,
+                        durationMin: nil,
+                        rate: nil,
+                        temp: nil,
+                        carbInput: nil,
+                        isExternal: true
+                    )
+                ]
+            )
+            debug(.default, "External insulin saved to pumphistory.json")
+
+            // save to core data asynchronously
+            self.context.perform {
+                let newItem = InsulinStored(context: self.context)
+                newItem.amount = (self.amount) as NSDecimalNumber
+                newItem.date = Date()
+                newItem.external = true
+                newItem.isSMB = false
+                do {
+                    try self.context.save()
+                    debugPrint(
+                        "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved carbs to core data"
+                    )
+                } catch {
+                    debugPrint(
+                        "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save carbs to core data"
+                    )
+                }
+            }
+            
+            // perform determine basal sync
+            apsManager.determineBasalSync()
+        }
+
         // MARK: - Carbs
 
         // we need to also fetch the data after we have saved them in order to update the array and the UI because of the MVVM Architecture
 
-        func addCarbs() {
+        func saveMeal() {
             guard carbs > 0 || fat > 0 || protein > 0 else { return }
             carbs = min(carbs, maxCarbs)
             id_ = UUID().uuidString
@@ -383,15 +481,17 @@ extension Bolus {
                 newCarbEntry.carbs = Double(carbs)
                 newCarbEntry.fat = Double(fat)
                 newCarbEntry.protein = Double(protein)
-                do {
-                    try self.context.save()
-                    debugPrint(
-                        "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved carbs to core data"
-                    )
-                } catch {
-                    debugPrint(
-                        "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save carbs to core data"
-                    )
+                self.context.perform {
+                    do {
+                        try self.context.save()
+                        debugPrint(
+                            "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved carbs to core data"
+                        )
+                    } catch {
+                        debugPrint(
+                            "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save carbs to core data"
+                        )
+                    }
                 }
             }
         }
@@ -521,57 +621,6 @@ extension Bolus {
                     self.id_ = mealToEdit.first?.id ?? ""
                 }
             }
-        }
-
-        // MARK: EXTERNAL INSULIN
-
-        @MainActor func addExternalInsulin() async {
-            guard amount > 0 else {
-                showModal(for: nil)
-                return
-            }
-
-            amount = min(amount, maxBolus * 3)
-
-            do {
-                let authenticated = try await unlockmanager.unlock()
-                if authenticated {
-                    storeExternalInsulinEvent()
-                } else {
-                    print("authentication failed")
-                }
-            } catch {
-                print("authentication error for external insulin: \(error.localizedDescription)")
-                DispatchQueue.main.async {
-                    self.waitForSuggestion = false
-                    if self.addButtonPressed {
-                        self.hideModal()
-                    }
-                }
-            }
-        }
-
-        private func storeExternalInsulinEvent() {
-            pumpHistoryStorage.storeEvents(
-                [
-                    PumpHistoryEvent(
-                        id: UUID().uuidString,
-                        type: .bolus,
-                        timestamp: date,
-                        amount: amount,
-                        duration: nil,
-                        durationMin: nil,
-                        rate: nil,
-                        temp: nil,
-                        carbInput: nil,
-                        isExternal: true
-                    )
-                ]
-            )
-            debug(.default, "External insulin saved to pumphistory.json")
-
-            // perform determine basal sync
-            apsManager.determineBasalSync()
         }
     }
 }
