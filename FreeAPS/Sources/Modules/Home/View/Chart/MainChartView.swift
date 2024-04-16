@@ -49,7 +49,6 @@ struct MainChartView: View {
 
     @Binding var glucose: [BloodGlucose]
     @Binding var manualGlucose: [BloodGlucose]
-    @Binding var carbsForChart: [CarbsEntry]
     @Binding var fpusForChart: [CarbsEntry]
     @Binding var units: GlucoseUnits
     @Binding var eventualBG: Int?
@@ -88,6 +87,13 @@ struct MainChartView: View {
 
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.calendar) var calendar
+
+    // MARK: - Core Data Fetch Requests
+
+    @FetchRequest(
+        entity: MealsStored.entity(),
+        sortDescriptors: [NSSortDescriptor(keyPath: \MealsStored.date, ascending: true)]
+    ) var carbsFromPersistence: FetchedResults<MealsStored>
 
     private var bolusFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -360,12 +366,12 @@ extension MainChartView {
 
     private func drawCarbs() -> some ChartContent {
         /// carbs
-        ForEach(carbsForChart) { carb in
+        ForEach(carbsFromPersistence) { carb in
             let carbAmount = carb.carbs
             let yPosition = units == .mgdL ? 60 : 3.33
 
             PointMark(
-                x: .value("Time", carb.actualDate ?? Date(), unit: .second),
+                x: .value("Time", carb.date ?? Date(), unit: .second),
                 y: .value("Value", yPosition)
             )
             .symbolSize((Config.carbsSize + CGFloat(carbAmount) * Config.carbsScale) * 10)

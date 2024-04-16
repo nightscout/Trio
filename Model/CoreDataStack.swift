@@ -5,6 +5,7 @@ class CoreDataStack: ObservableObject {
     init() {}
 
     static let shared = CoreDataStack()
+    static let identifier = "CoreDataStack"
 
     lazy var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "Core_Data")

@@ -77,7 +77,7 @@ extension Home {
         @Published var carbsForChart: [CarbsEntry] = []
         @Published var fpusForChart: [CarbsEntry] = []
 
-        let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
+        let context = CoreDataStack.shared.persistentContainer.viewContext
 
         override func subscribe() {
             setupGlucose()
@@ -250,11 +250,11 @@ extension Home {
         }
 
         func cancelProfile() {
-            coredataContext.perform { [self] in
-                let profiles = Override(context: self.coredataContext)
+            context.perform { [self] in
+                let profiles = Override(context: self.context)
                 profiles.enabled = false
                 profiles.date = Date()
-                try? self.coredataContext.save()
+                try? self.context.save()
             }
         }
 

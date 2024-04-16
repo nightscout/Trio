@@ -121,9 +121,7 @@ extension Home {
             colorScheme == .dark ? LinearGradient(
                 gradient: Gradient(colors: [
                     Color.bgDarkBlue,
-//                    Color.bgDarkBlue,
                     Color.bgDarkerDarkBlue
-//                    Color.bgDarkBlue
                 ]),
                 startPoint: .top,
                 endPoint: .bottom
@@ -364,7 +362,6 @@ extension Home {
                 MainChartView(
                     glucose: $state.glucose,
                     manualGlucose: $state.manualGlucose,
-                    carbsForChart: $state.carbsForChart,
                     fpusForChart: $state.fpusForChart,
                     units: $state.units,
                     eventualBG: $state.eventualBG,

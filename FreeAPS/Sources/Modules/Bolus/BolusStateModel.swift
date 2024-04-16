@@ -94,7 +94,9 @@ extension Bolus {
 
         let now = Date.now
 
-        let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
+        private let treatmentsVM = TreatmentsViewModel()
+
+        let context = CoreDataStack.shared.persistentContainer.viewContext
 
         override func subscribe() {
             setupInsulinRequired()
@@ -340,6 +342,10 @@ extension Bolus {
             }
         }
 
+        // MARK: - Carbs
+
+        // we need to also fetch the data after we have saved them in order to update the array and the UI because of the MVVM Architecture
+
         func addCarbs() {
             guard carbs > 0 || fat > 0 || protein > 0 else { return }
             carbs = min(carbs, maxCarbs)
@@ -359,7 +365,7 @@ extension Bolus {
             carbsStorage.storeCarbs(carbsToStore)
 
             if carbs > 0 {
-                saveToCoreData(carbsToStore)
+                saveCarbsToCoreData(carbsToStore)
 
                 // only perform determine basal sync if the user doesn't use the pump bolus, otherwise the enact bolus func in the APSManger does a sync
                 if amount <= 0 {
@@ -368,10 +374,34 @@ extension Bolus {
             }
         }
 
+        func saveCarbsToCoreData(_: [CarbsEntry]) {
+            context.performAndWait {
+                // create new object in the view context
+                let newCarbEntry = MealsStored(context: self.context)
+                newCarbEntry.id = UUID()
+                newCarbEntry.note = ""
+                newCarbEntry.carbs = Double(carbs)
+                newCarbEntry.fat = Double(fat)
+                newCarbEntry.protein = Double(protein)
+                do {
+                    try self.context.save()
+                    debugPrint(
+                        "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved carbs to core data"
+                    )
+                } catch {
+                    debugPrint(
+                        "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save carbs to core data"
+                    )
+                }
+            }
+        }
+
+        // MARK: - Presets
+
         func deletePreset() {
             if selection != nil {
-                try? coredataContext.delete(selection!)
-                try? coredataContext.save()
+                try? context.delete(selection!)
+                try? context.save()
                 carbs = 0
                 fat = 0
                 protein = 0
@@ -416,9 +446,9 @@ extension Bolus {
             var protein_: Decimal = 0.0
             var presetArray = [Presets]()
 
-            coredataContext.performAndWait {
+            context.performAndWait {
                 let requestPresets = Presets.fetchRequest() as NSFetchRequest<Presets>
-                try? presetArray = coredataContext.fetch(requestPresets)
+                try? presetArray = context.fetch(requestPresets)
             }
             var waitersNotepad = [String]()
             var stringValue = ""
@@ -476,13 +506,13 @@ extension Bolus {
 
         func loadEntries(_ editMode: Bool) {
             if editMode {
-                coredataContext.performAndWait {
+                context.performAndWait {
                     var mealToEdit = [Meals]()
                     let requestMeal = Meals.fetchRequest() as NSFetchRequest<Meals>
                     let sortMeal = NSSortDescriptor(key: "createdAt", ascending: false)
                     requestMeal.sortDescriptors = [sortMeal]
                     requestMeal.fetchLimit = 1
-                    try? mealToEdit = self.coredataContext.fetch(requestMeal)
+                    try? mealToEdit = self.context.fetch(requestMeal)
 
                     self.carbs = Decimal(mealToEdit.first?.carbs ?? 0)
                     self.fat = Decimal(mealToEdit.first?.fat ?? 0)
@@ -490,24 +520,6 @@ extension Bolus {
                     self.note = mealToEdit.first?.note ?? ""
                     self.id_ = mealToEdit.first?.id ?? ""
                 }
-            }
-        }
-
-        func saveToCoreData(_ stored: [CarbsEntry]) {
-            coredataContext.performAndWait {
-                let save = Meals(context: coredataContext)
-                if let entry = stored.first {
-                    save.createdAt = now
-                    save.actualDate = entry.actualDate ?? Date.now
-                    save.id = entry.id ?? ""
-                    save.fpuID = entry.fpuID ?? ""
-                    save.carbs = Double(entry.carbs)
-                    save.fat = Double(entry.fat ?? 0)
-                    save.protein = Double(entry.protein ?? 0)
-                    save.note = entry.note
-                    try? coredataContext.save()
-                }
-                print("meals 1: ID: " + (save.id ?? "").description + " FPU ID: " + (save.fpuID ?? "").description)
             }
         }
 
