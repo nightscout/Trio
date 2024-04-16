@@ -63,6 +63,13 @@ extension Home {
             sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
         ) var enactedSliderTT: FetchedResults<TempTargetsSlider>
 
+        @FetchRequest(
+            entity: GlucoseStored.entity(),
+            sortDescriptors: [NSSortDescriptor(keyPath: \GlucoseStored.date, ascending: true)],
+            predicate: NSPredicate.predicateFor30MinAgo,
+            animation: Animation.bouncy
+        ) var glucoseFromPersistence: FetchedResults<GlucoseStored>
+
         var bolusProgressFormatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal

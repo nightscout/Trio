@@ -66,28 +66,34 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                     }
                 }
 
-                // MARK: Save to CoreData.
+                // MARK: - Save to CoreData.
 
                 var bg_ = 0
-                var bgDate = Date()
-                var id = ""
                 var direction = ""
 
                 if glucose.isNotEmpty {
                     bg_ = glucose[0].glucose ?? 0
-                    bgDate = glucose[0].dateString
-                    id = glucose[0].id
                     direction = glucose[0].direction?.symbol ?? "↔︎"
                 }
 
                 if bg_ != 0 {
                     self.coredataContext.perform {
-                        let dataForForStats = Readings(context: self.coredataContext)
-                        dataForForStats.date = bgDate
-                        dataForForStats.glucose = Int16(bg_)
-                        dataForForStats.id = id
-                        dataForForStats.direction = direction
-                        try? self.coredataContext.save()
+                        let newItem = GlucoseStored(context: self.coredataContext)
+                        newItem.id = UUID()
+                        newItem.glucose = Int16(bg_)
+                        newItem.date = Date()
+                        newItem.direction = direction
+
+                        do {
+                            try self.coredataContext.save()
+                            debugPrint(
+                                "Glucose Storage: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved glucose to core data"
+                            )
+                        } catch {
+                            debugPrint(
+                                "Glucose Storage: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save glucose to core data"
+                            )
+                        }
                     }
                 }
             }

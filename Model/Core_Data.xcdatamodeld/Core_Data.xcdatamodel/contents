@@ -42,6 +42,12 @@
         <attribute name="enteredBy" optional="YES" attributeType="String"/>
         <attribute name="fat" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
     </entity>
+    <entity name="GlucoseStored" representedClassName="GlucoseStored" syncable="YES" codeGenerationType="class">
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="direction" optional="YES" attributeType="String"/>
+        <attribute name="glucose" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+    </entity>
     <entity name="HbA1c" representedClassName="HbA1c" syncable="YES" codeGenerationType="class">
         <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="hba1c" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
