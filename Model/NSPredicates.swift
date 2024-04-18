@@ -46,6 +46,11 @@ extension NSPredicate {
         return NSPredicate(format: "date >= %@", date as NSDate)
     }
 
+    static var predicateFor30MinAgoForDetermination: NSPredicate {
+        let date = Date.halfHourAgo
+        return NSPredicate(format: "deliverAt >= %@", date as NSDate)
+    }
+
     static var predicateFor120MinAgo: NSPredicate {
         let date = Date.twoHoursAgo
         return NSPredicate(format: "date >= %@", date as NSDate)

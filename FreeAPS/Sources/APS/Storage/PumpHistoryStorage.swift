@@ -26,6 +26,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         injectServices(resolver)
     }
 
+    private let context = CoreDataStack.shared.persistentContainer.viewContext
+
     func storePumpEvents(_ events: [NewPumpEvent]) {
         processQueue.async {
             let eventsToStore = events.flatMap { event -> [PumpHistoryEvent] in
@@ -35,6 +37,18 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                     guard let dose = event.dose else { return [] }
                     let amount = Decimal(string: dose.unitsInDeliverableIncrements.description)
                     let minutes = Int((dose.endDate - dose.startDate).timeInterval / 60)
+
+                    // MARK: - save to Core Data
+
+                    self.context.perform {
+                        let new = InsulinStored(context: self.context)
+                        new.amount = amount as? NSDecimalNumber
+                        new.date = Date()
+                        new.external = false
+                        new.id = UUID()
+                        new.isSMB = true
+                    }
+
                     return [PumpHistoryEvent(
                         id: id,
                         type: .bolus,

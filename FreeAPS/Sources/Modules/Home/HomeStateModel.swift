@@ -105,7 +105,6 @@ extension Home {
             carbsRequired = suggestion?.carbsReq
             alarm = provider.glucoseStorage.alarm
             manualTempBasal = apsManager.isManualTempBasal
-            setStatusTitle()
             setupCurrentTempTarget()
             smooth = settingsManager.settings.smoothGlucose
             maxValue = settingsManager.preferences.autosensMax
@@ -382,31 +381,6 @@ extension Home {
             }
         }
 
-        private func setStatusTitle() {
-            guard let suggestion = suggestion else {
-                statusTitle = "No suggestion"
-                return
-            }
-
-            let dateFormatter = DateFormatter()
-            dateFormatter.timeStyle = .short
-            if closedLoop,
-               let enactedSuggestion = enactedSuggestion,
-               let timestamp = enactedSuggestion.timestamp,
-               enactedSuggestion.deliverAt == suggestion.deliverAt, enactedSuggestion.recieved == true
-            {
-                statusTitle = NSLocalizedString("Enacted at", comment: "Headline in enacted pop up") + " " + dateFormatter
-                    .string(from: timestamp)
-            } else if let suggestedDate = suggestion.deliverAt {
-                statusTitle = NSLocalizedString("Suggested at", comment: "Headline in suggested pop up") + " " + dateFormatter
-                    .string(from: suggestedDate)
-            } else {
-                statusTitle = "Suggested"
-            }
-
-            eventualBG = suggestion.eventualBG
-        }
-
         private func setupReservoir() {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
@@ -479,7 +453,6 @@ extension Home.StateModel:
     func suggestionDidUpdate(_ suggestion: Suggestion) {
         self.suggestion = suggestion
         carbsRequired = suggestion.carbsReq
-        setStatusTitle()
         waitForSuggestion = false
     }
 
@@ -529,7 +502,6 @@ extension Home.StateModel:
 
     func enactedSuggestionDidUpdate(_ suggestion: Suggestion) {
         enactedSuggestion = suggestion
-        setStatusTitle()
     }
 
     func pumpBatteryDidChange(_: Battery) {

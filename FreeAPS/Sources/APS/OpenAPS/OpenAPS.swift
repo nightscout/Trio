@@ -16,7 +16,7 @@ final class OpenAPS {
         self.storage = storage
     }
 
-    func determineBasal(currentTemp: TempBasal, clock: Date = Date()) -> Future<Suggestion?, Never> {
+    func determineBasal(currentTemp: TempBasal, clock: Date = Date()) -> Future<Determination?, Never> {
         Future { promise in
             self.processQueue.async {
                 debug(.openAPS, "Start determineBasal")
@@ -64,7 +64,7 @@ final class OpenAPS {
                 // oref2
                 let oref2_variables = self.oref2()
 
-                let suggested = self.determineBasal(
+                let orefDetermination = self.determineBasal(
                     glucose: glucose,
                     currentTemp: tempBasal,
                     iob: iob,
@@ -78,54 +78,89 @@ final class OpenAPS {
                     basalProfile: basalProfile,
                     oref2_variables: oref2_variables
                 )
-                debug(.openAPS, "SUGGESTED: \(suggested)")
+                debug(.openAPS, "SUGGESTED: \(orefDetermination)")
 
-                if var suggestion = Suggestion(from: suggested) {
-                    suggestion.timestamp = suggestion.deliverAt ?? clock
-                    self.storage.save(suggestion, as: Enact.suggested)
+                if var determination = Determination(from: orefDetermination) {
+                    determination.timestamp = determination.deliverAt ?? clock
+                    self.storage.save(determination, as: Enact.suggested)
 
                     // save to core data asynchronously
                     self.coredataContext.perform {
-                        let new = Determination(context: self.coredataContext)
-                        new.cob = suggestion.cob as? NSDecimalNumber
-                        new.iob = suggestion.iob as? NSDecimalNumber
-                        new.deliverAt = suggestion.deliverAt
-                        new.glucose = suggestion.bg as? NSDecimalNumber
+                        let new = OrefDetermination(context: self.coredataContext)
+                        new.totalDailyDose = determination.tdd as? NSDecimalNumber
+                        new.insulinSensitivity = determination.isf as? NSDecimalNumber
+                        new.currentTarget = determination.current_target as? NSDecimalNumber
+                        new.eventualBG = determination.eventualBG as? NSDecimalNumber
+                        new.deliverAt = determination.deliverAt
+                        new.enacted = false
+                        new.insulinForManualBolus = determination.insulinForManualBolus as? NSDecimalNumber
+                        new.carbRatio = determination.carbRatio as? NSDecimalNumber
+                        new.glucose = determination.bg as? NSDecimalNumber
+                        new.reservoir = determination.reservoir as? NSDecimalNumber
+                        new.insulinReq = determination.insulinReq as? NSDecimalNumber
+                        new.temp = determination.temp?.rawValue ?? "absolute"
+                        new.rate = determination.rate as? NSDecimalNumber
+                        new.reason = determination.reason
+                        new.duration = Int16(determination.duration ?? 0)
+                        new.iob = determination.iob as? NSDecimalNumber
+                        new.treshold = determination.treshold as? NSDecimalNumber
+//                                                new.predBGs: [
+//                                                "zt": immutableDetermination.predictions?.zt ?? [],
+//                                                "cob": immutableDetermination.predictions?.cob ?? [],
+//                                                "iob": immutableDetermination.predictions?.iob ?? [],
+//                                                "uam": immutableDetermination.predictions?.uam ?? []
+//                                            ]
+                        new.minDelta = determination.minDelta as? NSDecimalNumber
+                        new.sensitivityRatio = determination.sensitivityRatio as? NSDecimalNumber
+                        new.expectedDelta = determination.expectedDelta as? NSDecimalNumber
+                        new.cob = Int16(Int(determination.cob ?? 0))
+                        new.manualBolusErrorString = determination.manualBolusErrorString as? NSDecimalNumber
+                        new.timestampEnacted = nil
+                        new.tempBasal = determination.insulin?.temp_basal as? NSDecimalNumber
+                        new.scheduledBasal = determination.insulin?.scheduled_basal as? NSDecimalNumber
+                        new.bolus = determination.insulin?.bolus as? NSDecimalNumber
+                        new.smbToDeliver = determination.units as? NSDecimalNumber
+                        new.carbsRequired = Int16(Int(determination.carbsReq ?? 0))
                         do {
                             try self.coredataContext.save()
+                            debugPrint(
+                                "OpenAPS: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved determination"
+                            )
                         } catch {
-                            print("failed")
+                            debugPrint(
+                                "OpenAPS: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) error while saving determination"
+                            )
                         }
                     }
 
                     // MARK: Save to CoreData also. To do: Remove JSON saving
 
-                    if suggestion.tdd ?? 0 > 0 {
+                    if determination.tdd ?? 0 > 0 {
                         self.coredataContext.perform {
                             let saveToTDD = TDD(context: self.coredataContext)
 
-                            saveToTDD.timestamp = suggestion.timestamp ?? Date()
-                            saveToTDD.tdd = (suggestion.tdd ?? 0) as NSDecimalNumber?
+                            saveToTDD.timestamp = determination.timestamp ?? Date()
+                            saveToTDD.tdd = (determination.tdd ?? 0) as NSDecimalNumber?
                             try? self.coredataContext.save()
 
                             let saveTarget = Target(context: self.coredataContext)
-                            saveTarget.current = (suggestion.current_target ?? 100) as NSDecimalNumber?
+                            saveTarget.current = (determination.current_target ?? 100) as NSDecimalNumber?
                             try? self.coredataContext.save()
                         }
 
-                        self.coredataContext.perform {
-                            let saveToInsulin = InsulinDistribution(context: self.coredataContext)
-
-                            saveToInsulin.bolus = (suggestion.insulin?.bolus ?? 0) as NSDecimalNumber?
-                            saveToInsulin.scheduledBasal = (suggestion.insulin?.scheduled_basal ?? 0) as NSDecimalNumber?
-                            saveToInsulin.tempBasal = (suggestion.insulin?.temp_basal ?? 0) as NSDecimalNumber?
-                            saveToInsulin.date = Date()
-
-                            try? self.coredataContext.save()
-                        }
+//                        self.coredataContext.perform {
+//                            let saveToInsulin = InsulinDistribution(context: self.coredataContext)
+//
+//                            saveToInsulin.bolus = (determination.insulin?.bolus ?? 0) as NSDecimalNumber?
+//                            saveToInsulin.scheduledBasal = (determination.insulin?.scheduled_basal ?? 0) as NSDecimalNumber?
+//                            saveToInsulin.tempBasal = (determination.insulin?.temp_basal ?? 0) as NSDecimalNumber?
+//                            saveToInsulin.date = Date()
+//
+//                            try? self.coredataContext.save()
+//                        }
                     }
 
-                    promise(.success(suggestion))
+                    promise(.success(determination))
                 } else {
                     promise(.success(nil))
                 }

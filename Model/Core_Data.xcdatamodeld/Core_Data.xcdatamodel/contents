@@ -30,13 +30,6 @@
         <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="enteredBy" optional="YES" attributeType="String"/>
     </entity>
-    <entity name="Determination" representedClassName="Determination" syncable="YES" codeGenerationType="class">
-        <attribute name="cob" optional="YES" attributeType="Decimal" defaultValueString="0"/>
-        <attribute name="deliverAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="enacted" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
-        <attribute name="glucose" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
-        <attribute name="iob" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
-    </entity>
     <entity name="Fat" representedClassName="Fat" syncable="YES" codeGenerationType="class">
         <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="enteredBy" optional="YES" attributeType="String"/>
@@ -107,6 +100,38 @@
     <entity name="Oref0Suggestion" representedClassName="Oref0Suggestion" syncable="YES" codeGenerationType="class">
         <relationship name="computedInsulinDistribution" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="InsulinDistribution" inverseName="insulin" inverseEntity="InsulinDistribution"/>
         <relationship name="computedTDD" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="TDD" inverseName="computed" inverseEntity="TDD"/>
+    </entity>
+    <entity name="OrefDetermination" representedClassName="OrefDetermination" syncable="YES" codeGenerationType="class">
+        <attribute name="bolus" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="carbRatio" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="carbsRequired" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="cob" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="currentTarget" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="deliverAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="duration" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="enacted" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="eventualBG" optional="YES" attributeType="Decimal" defaultValueString="0"/>
+        <attribute name="expectedDelta" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="glucose" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="insulinForManualBolus" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="insulinReq" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="insulinSensitivity" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="iob" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="manualBolusErrorString" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="minDelta" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="rate" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="reason" optional="YES" attributeType="String"/>
+        <attribute name="received" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="reservoir" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="scheduledBasal" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="sensitivityRatio" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="smbToDeliver" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="temp" optional="YES" attributeType="String"/>
+        <attribute name="tempBasal" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="timestampEnacted" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="totalDailyDose" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="treshold" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
     </entity>
     <entity name="Override" representedClassName="Override" syncable="YES" codeGenerationType="class">
         <attribute name="advancedSettings" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>

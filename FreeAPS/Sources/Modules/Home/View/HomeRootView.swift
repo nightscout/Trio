@@ -14,6 +14,7 @@ extension Home {
         @State var isMenuPresented = false
         @State var showTreatments = false
         @State var selectedTab: Int = 0
+        @State private var statusTitle: String = ""
 
         struct Buttons: Identifiable {
             let label: String
@@ -42,9 +43,11 @@ extension Home {
         ) var fetchedPercent: FetchedResults<Override>
 
         @FetchRequest(
-            entity: Determination.entity(),
-            sortDescriptors: [NSSortDescriptor(key: "deliverAt", ascending: false)]
-        ) var determination: FetchedResults<Determination>
+            entity: OrefDetermination.entity(),
+            sortDescriptors: [NSSortDescriptor(key: "deliverAt", ascending: false)],
+            predicate: NSPredicate.predicateFor30MinAgoForDetermination,
+            animation: Animation.bouncy
+        ) var determination: FetchedResults<OrefDetermination>
 
         @FetchRequest(
             entity: OverridePresets.entity(),
@@ -430,8 +433,6 @@ extension Home {
             VStack(alignment: .leading, spacing: 20) {
                 /// Loop view at bottomLeading
                 LoopView(
-                    suggestion: $state.suggestion,
-                    enactedSuggestion: $state.enactedSuggestion,
                     closedLoop: $state.closedLoop,
                     timerDate: $state.timerDate,
                     isLooping: $state.isLooping,
@@ -439,6 +440,7 @@ extension Home {
                     manualTempBasal: $state.manualTempBasal
                 ).onTapGesture {
                     state.isStatusPopupPresented = true
+                    setStatusTitle()
                 }.onLongPressGesture {
                     let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
                     impactHeavy.impactOccurred()
@@ -506,7 +508,7 @@ extension Home {
                 if !state.tins {
                     Spacer()
                     Text(
-                        "TDD: " + (numberFormatter.string(from: (state.suggestion?.tdd ?? 0) as NSNumber) ?? "0") +
+                        "TDD: " + (numberFormatter.string(from: (determination.first?.totalDailyDose ?? 0) as NSNumber) ?? "0") +
                             NSLocalizedString(" U", comment: "Insulin unit")
                     )
                     .font(.system(size: 16, weight: .bold, design: .rounded))
@@ -847,15 +849,15 @@ extension Home {
 
         private var popup: some View {
             VStack(alignment: .leading, spacing: 4) {
-                Text(state.statusTitle).font(.headline).foregroundColor(.white)
+                Text(statusTitle).font(.headline).foregroundColor(.white)
                     .padding(.bottom, 4)
-                if let suggestion = state.suggestion {
-                    TagCloudView(tags: suggestion.reasonParts).animation(.none, value: false)
+                if let determination = determination.first {
+                    TagCloudView(tags: determination.reasonParts).animation(.none, value: false)
 
-                    Text(suggestion.reasonConclusion.capitalizingFirstLetter()).font(.caption).foregroundColor(.white)
+                    Text(determination.reasonConclusion.capitalizingFirstLetter()).font(.caption).foregroundColor(.white)
 
                 } else {
-                    Text("No sugestion found").font(.body).foregroundColor(.white)
+                    Text("No determination found").font(.body).foregroundColor(.white)
                 }
 
                 if let errorMessage = state.errorMessage, let date = state.errorDate {
@@ -865,10 +867,30 @@ extension Home {
                         .padding(.bottom, 4)
                         .padding(.top, 8)
                     Text(errorMessage).font(.caption).foregroundColor(.loopRed)
-                } else if let suggestion = state.suggestion, (suggestion.bg ?? 100) == 400 {
+                } else if let determination = determination.first, (determination.glucose ?? 100) == 400 {
                     Text("Invalid CGM reading (HIGH).").font(.callout).bold().foregroundColor(.loopRed).padding(.top, 8)
                     Text("SMBs and High Temps Disabled.").font(.caption).foregroundColor(.white).padding(.bottom, 4)
                 }
+            }
+        }
+
+        private func setStatusTitle() {
+            guard let determination = determination.first else {
+                statusTitle = "No Oref determination"
+                return
+            }
+
+            let dateFormatter = DateFormatter()
+            dateFormatter.timeStyle = .short
+            if state.closedLoop
+            {
+                statusTitle = NSLocalizedString("Oref Determination enacted at", comment: "Headline in enacted pop up") + " " +
+                    dateFormatter
+                    .string(from: determination.timestamp ?? Date())
+            } else {
+                statusTitle = NSLocalizedString("Determinated at", comment: "Headline in suggested pop up") + " " +
+                    dateFormatter
+                    .string(from: determination.deliverAt ?? Date())
             }
         }
     }

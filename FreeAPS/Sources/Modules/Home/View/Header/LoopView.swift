@@ -8,8 +8,13 @@ struct LoopView: View {
         static let lag: TimeInterval = 30
     }
 
-    @Binding var suggestion: Suggestion?
-    @Binding var enactedSuggestion: Suggestion?
+    // TODO: -fetch only enacted determinations
+
+    @FetchRequest(
+        fetchRequest: OrefDetermination
+            .fetch(NSPredicate.predicateFor30MinAgoForDetermination)
+    ) var determination: FetchedResults<OrefDetermination>
+
     @Binding var closedLoop: Bool
     @Binding var timerDate: Date
     @Binding var isLooping: Bool
@@ -37,7 +42,7 @@ struct LoopView: View {
                 Text("looping")
             } else if manualTempBasal {
                 Text("Manual")
-            } else if actualSuggestion?.timestamp != nil {
+            } else if determination.first?.timestamp != nil {
                 Text(timeString)
             } else {
                 Text("--")
@@ -57,7 +62,7 @@ struct LoopView: View {
     }
 
     private var color: Color {
-        guard actualSuggestion?.timestamp != nil else {
+        guard determination.first?.timestamp != nil else {
             return .secondary
         }
         guard manualTempBasal == false else {
@@ -70,7 +75,7 @@ struct LoopView: View {
         let delta = timerDate.timeIntervalSince(lastLoopDate) - Config.lag
 
         if delta <= 5.minutes.timeInterval {
-            guard actualSuggestion?.deliverAt != nil else {
+            guard determination.first?.deliverAt != nil else {
                 return .loopYellow
             }
             return .loopGreen
@@ -87,14 +92,6 @@ struct LoopView: View {
             path.addPath(Rectangle().path(in: CGRect(x: rect.minX, y: rect.midY - 4, width: rect.width, height: 8)))
         }
         return path
-    }
-
-    private var actualSuggestion: Suggestion? {
-        if closedLoop, enactedSuggestion?.recieved == true {
-            return enactedSuggestion ?? suggestion
-        } else {
-            return suggestion
-        }
     }
 }
 

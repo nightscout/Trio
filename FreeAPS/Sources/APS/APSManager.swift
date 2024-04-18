@@ -80,7 +80,8 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
-    let coredataContext = CoreDataStack.shared.persistentContainer.newBackgroundContext()
+//    let coredataContext = CoreDataStack.shared.persistentContainer.newBackgroundContext()
+    let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
 
     private var openAPS: OpenAPS!
 
@@ -243,7 +244,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 self.nightscout.uploadStatus()
 
                 // Closed loop - enact suggested
-                return self.enactSuggested()
+                return self.enactDetermination()
             }
             .sink { [weak self] completion in
                 guard let self = self else { return }
@@ -358,16 +359,16 @@ final class BaseAPSManager: APSManager, Injectable {
             .flatMap { _ in self.autosens() }
             .flatMap { _ in self.dailyAutotune() }
             .flatMap { _ in self.openAPS.determineBasal(currentTemp: temp, clock: now) }
-            .map { suggestion -> Bool in
-                if let suggestion = suggestion {
+            .map { determination -> Bool in
+                if let determination = determination {
                     DispatchQueue.main.async {
-                        self.broadcaster.notify(SuggestionObserver.self, on: .main) {
-                            $0.suggestionDidUpdate(suggestion)
+                        self.broadcaster.notify(DeterminationObserver.self, on: .main) {
+                            $0.determinationDidUpdate(determination)
                         }
                     }
                 }
 
-                return suggestion != nil
+                return determination != nil
             }
             .eraseToAnyPublisher()
 
@@ -643,13 +644,20 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
-    private func enactSuggested() -> AnyPublisher<Void, Error> {
-        guard let suggested = storage.retrieve(OpenAPS.Enact.suggested, as: Suggestion.self) else {
-            return Fail(error: APSError.apsError(message: "Suggestion not found")).eraseToAnyPublisher()
+    private func fetchDetermination() -> OrefDetermination? {
+        do {
+            let results = try coredataContext.fetch(OrefDetermination.fetch(NSPredicate.predicateFor30MinAgoForDetermination))
+            debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved determination")
+            return results.first
+        } catch {
+            debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch determination")
+            return nil
         }
+    }
 
-        guard Date().timeIntervalSince(suggested.deliverAt ?? .distantPast) < Config.eхpirationInterval else {
-            return Fail(error: APSError.apsError(message: "Suggestion expired")).eraseToAnyPublisher()
+    private func enactDetermination() -> AnyPublisher<Void, Error> {
+        guard let determination = fetchDetermination() else {
+            return Fail(error: APSError.apsError(message: "Determination not found")).eraseToAnyPublisher()
         }
 
         guard let pump = pumpManager else {
@@ -667,14 +675,21 @@ final class BaseAPSManager: APSManager, Injectable {
                 return Fail(error: error).eraseToAnyPublisher()
             }
 
-            guard let rate = suggested.rate, let duration = suggested.duration else {
-                // It is OK, no temp required
+            if determination.rate == 0 || determination.duration == 0 {
                 debug(.apsManager, "No temp required")
                 return Just(()).setFailureType(to: Error.self)
                     .eraseToAnyPublisher()
             }
-            return pump.enactTempBasal(unitsPerHour: Double(rate), for: TimeInterval(duration * 60)).map { _ in
-                let temp = TempBasal(duration: duration, rate: rate, temp: .absolute, timestamp: Date())
+            return pump.enactTempBasal(
+                unitsPerHour: Double(truncating: determination.rate ?? 0),
+                for: TimeInterval(determination.duration * 60)
+            ).map { _ in
+                let temp = TempBasal(
+                    duration: Int(determination.duration),
+                    rate: ((determination.rate ?? 0) as NSDecimalNumber) as Decimal,
+                    temp: .absolute,
+                    timestamp: Date()
+                )
                 self.storage.save(temp, as: OpenAPS.Monitor.tempBasal)
                 return ()
             }
@@ -685,13 +700,12 @@ final class BaseAPSManager: APSManager, Injectable {
             if let error = self.verifyStatus() {
                 return Fail(error: error).eraseToAnyPublisher()
             }
-            guard let units = suggested.units else {
-                // It is OK, no bolus required
+            guard let smbToDeliver = determination.smbToDeliver else {
                 debug(.apsManager, "No bolus required")
                 return Just(()).setFailureType(to: Error.self)
                     .eraseToAnyPublisher()
             }
-            return pump.enactBolus(units: Double(units), automatic: true).map { _ in
+            return pump.enactBolus(units: Double(truncating: smbToDeliver), automatic: true).map { _ in
                 self.bolusProgress.send(0)
                 return ()
             }
@@ -702,28 +716,37 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     private func reportEnacted(received: Bool) {
-        if let suggestion = storage.retrieve(OpenAPS.Enact.suggested, as: Suggestion.self), suggestion.deliverAt != nil {
-            var enacted = suggestion
-            enacted.timestamp = Date()
-            enacted.recieved = received
-
-            storage.save(enacted, as: OpenAPS.Enact.enacted)
-
-            // Save to CoreData also. TO DO: Remove the JSON saving after some testing.
+        if let determination = fetchDetermination(), determination.deliverAt != nil {
             coredataContext.perform {
+                var enacted = determination
+                enacted.timestamp = Date()
+                enacted.received = received
+                do {
+                    try self.coredataContext.save()
+                    debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) updated determination")
+                } catch {
+                    debugPrint(
+                        "APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to update determination"
+                    )
+                }
+
+                // parse to determination
+//            let det = Determination(reason: enacted.reason, units: enacted.smbToDeliver, insulinReq: enacted.insulinReq, eventualBG: enacted.eventualBG, sensitivityRatio: enacted.sensitivityRatio, rate: enacted.rate, duration: enacted.duration, iob: enacted.iob, cob: enacted.cob, deliverAt: enacted.deliverAt, carbsReq: enacted.carbsRequired, temp: enacted.temp, bg: enacted.glucose, reservoir: enacted.reservoir, isf: enacted.insulinSensitivity, tdd: enacted.totalDailyDose, current_target: enacted.currentTarget, insulinForManualBolus: enacted.insulinForManualBolus, manualBolusErrorString: enacted.manualBolusErrorString, minDelta: enacted.minDelta, expectedDelta: enacted.expectedDelta, threshold: enacted.treshold, carbRatio: enacted.carbRatio)
+
                 let saveLastLoop = LastLoop(context: self.coredataContext)
                 saveLastLoop.iob = (enacted.iob ?? 0) as NSDecimalNumber
-                saveLastLoop.cob = (enacted.cob ?? 0) as NSDecimalNumber
+                saveLastLoop.cob = enacted.cob as? NSDecimalNumber
                 saveLastLoop.timestamp = (enacted.timestamp ?? .distantPast) as Date
                 try? self.coredataContext.save()
+
+                debug(.apsManager, "Determination enacted. Received: \(received)")
             }
 
-            debug(.apsManager, "Suggestion enacted. Received: \(received)")
-            DispatchQueue.main.async {
-                self.broadcaster.notify(EnactedSuggestionObserver.self, on: .main) {
-                    $0.enactedSuggestionDidUpdate(enacted)
-                }
-            }
+//            DispatchQueue.main.async {
+//                self.broadcaster.notify(EnactedDeterminationObserver.self, on: .main) {
+//                    $0.enactedSDeterminationDidUpdate(determinationParsed)
+//                }
+//            }
             nightscout.uploadStatus()
             statistics()
         }
