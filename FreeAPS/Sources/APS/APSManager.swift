@@ -765,7 +765,7 @@ final class BaseAPSManager: APSManager, Injectable {
         return Double(sorted[length / 2])
     }
 
-    private func tir(_ array: [Readings]) -> (TIR: Double, hypos: Double, hypers: Double, normal_: Double) {
+    private func tir(_ array: [GlucoseStored]) -> (TIR: Double, hypos: Double, hypers: Double, normal_: Double) {
         let glucose = array
         let justGlucoseArray = glucose.compactMap({ each in Int(each.glucose as Int16) })
         let totalReadings = justGlucoseArray.count
@@ -791,7 +791,7 @@ final class BaseAPSManager: APSManager, Injectable {
         )
     }
 
-    private func glucoseStats(_ fetchedGlucose: [Readings])
+    private func glucoseStats(_ fetchedGlucose: [GlucoseStored])
         -> (ifcc: Double, ngsp: Double, average: Double, median: Double, sd: Double, cv: Double, readings: Double)
     {
         let glucose = fetchedGlucose
@@ -883,6 +883,53 @@ final class BaseAPSManager: APSManager, Injectable {
         return output
     }
 
+    // fetch glucose for time interval
+    private func fetchGlucoseData(forPeriod period: String, withPredicate predicate: NSPredicate) -> [GlucoseStored] {
+        do {
+            let fetchedData = try coredataContext.fetch(GlucoseStored.fetch(predicate))
+            debugPrint(
+                "APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched glucose for \(period) period"
+            )
+            return fetchedData
+        } catch {
+            debugPrint(
+                "APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) error while fetching glucose for \(period) period"
+            )
+            return []
+        }
+    }
+
+//    private func fetchGlucose() {
+//        ///fetch 24h
+//        do {
+//            let glucose24h = try coredataContext.fetch(GlucoseStored.fetch(NSPredicate.predicateForOneDayAgo))
+//            debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched glucose for 24h period")
+//        } catch  {
+//            debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) error while fetching glucose for 24h period")
+//        }
+//        ///fetch one week
+//        do {
+//            let glucoseOneWeek = try coredataContext.fetch(GlucoseStored.fetch(NSPredicate.predicateForOneWeek))
+//            debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched glucose for 7d period")
+//        } catch {
+//            debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) error while fetching glucose for 7d")
+//        }
+//        ///fetch one month
+//        do {
+//            let glucoseOneMonth = try coredataContext.fetch(GlucoseStored.fetch(NSPredicate.predicateForOneMonth))
+//            debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched glucose for 30d period")
+//        } catch {
+//            debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) error while fetching glucose for 30d period")
+//        }
+//        ///total
+//        do {
+//            let glucoseTotal = try coredataContext.fetch(GlucoseStored.fetch(NSPredicate.predicateForThreeMonths))
+//            debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched glucose for 90d period")
+//        } catch {
+//            debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) error while fetching glucose for 90d period")
+//        }
+//    }
+
     // Add to statistics.JSON for upload to NS.
     private func statistics() {
         let now = Date()
@@ -891,7 +938,7 @@ final class BaseAPSManager: APSManager, Injectable {
             guard hour > 20 else {
                 return
             }
-            coredataContext.performAndWait { [self] in
+            coredataContext.perform { [self] in
                 var stats = [StatsData]()
                 let requestStats = StatsData.fetchRequest() as NSFetchRequest<StatsData>
                 let sortStats = NSSortDescriptor(key: "lastrun", ascending: false)
@@ -983,49 +1030,25 @@ final class BaseAPSManager: APSManager, Injectable {
                 } else if preferences.curve.rawValue == "ultra-rapid" {
                     iPa = 50
                 }
-                // CGM Readings
-                var glucose_24 = [Readings]() // Day
-                var glucose_7 = [Readings]() // Week
-                var glucose_30 = [Readings]() // Month
-                var glucose = [Readings]() // Total
-                let filter = DateFilter()
-                // 24h
-                let requestGFS_24 = Readings.fetchRequest() as NSFetchRequest<Readings>
-                let sortGlucose_24 = NSSortDescriptor(key: "date", ascending: false)
-                requestGFS_24.predicate = NSPredicate(format: "glucose > 0 AND date > %@", filter.day)
-                requestGFS_24.sortDescriptors = [sortGlucose_24]
-                try? glucose_24 = coredataContext.fetch(requestGFS_24)
-                // Week
-                let requestGFS_7 = Readings.fetchRequest() as NSFetchRequest<Readings>
-                let sortGlucose_7 = NSSortDescriptor(key: "date", ascending: false)
-                requestGFS_7.predicate = NSPredicate(format: "glucose > 0 AND date > %@", filter.week)
-                requestGFS_7.sortDescriptors = [sortGlucose_7]
-                try? glucose_7 = coredataContext.fetch(requestGFS_7)
-                // Month
-                let requestGFS_30 = Readings.fetchRequest() as NSFetchRequest<Readings>
-                let sortGlucose_30 = NSSortDescriptor(key: "date", ascending: false)
-                requestGFS_30.predicate = NSPredicate(format: "glucose > 0 AND date > %@", filter.month)
-                requestGFS_30.sortDescriptors = [sortGlucose_30]
-                try? glucose_30 = coredataContext.fetch(requestGFS_30)
-                // Total
-                let requestGFS = Readings.fetchRequest() as NSFetchRequest<Readings>
-                let sortGlucose = NSSortDescriptor(key: "date", ascending: false)
-                requestGFS.predicate = NSPredicate(format: "glucose > 0 AND date > %@", filter.total)
-                requestGFS.sortDescriptors = [sortGlucose]
-                try? glucose = coredataContext.fetch(requestGFS)
+
+                // Glucose Values
+                let glucose24h = fetchGlucoseData(forPeriod: "24h", withPredicate: NSPredicate.predicateForOneDayAgo)
+                let glucoseOneWeek = fetchGlucoseData(forPeriod: "7d", withPredicate: NSPredicate.predicateForOneWeek)
+                let glucoseOneMonth = fetchGlucoseData(forPeriod: "30d", withPredicate: NSPredicate.predicateForOneMonth)
+                let glucoseThreeMonths = fetchGlucoseData(forPeriod: "90d", withPredicate: NSPredicate.predicateForThreeMonths)
 
                 // First date
-                let previous = glucose.last?.date ?? Date()
+                let previous = glucoseThreeMonths.last?.date ?? Date()
                 // Last date (recent)
-                let current = glucose.first?.date ?? Date()
+                let current = glucoseThreeMonths.first?.date ?? Date()
                 // Total time in days
                 let numberOfDays = (current - previous).timeInterval / 8.64E4
 
                 // Get glucose computations for every case
-                let oneDayGlucose = glucoseStats(glucose_24)
-                let sevenDaysGlucose = glucoseStats(glucose_7)
-                let thirtyDaysGlucose = glucoseStats(glucose_30)
-                let totalDaysGlucose = glucoseStats(glucose)
+                let oneDayGlucose = glucoseStats(glucose24h)
+                let sevenDaysGlucose = glucoseStats(glucoseOneWeek)
+                let thirtyDaysGlucose = glucoseStats(glucoseOneMonth)
+                let totalDaysGlucose = glucoseStats(glucoseThreeMonths)
 
                 let median = Durations(
                     day: roundDecimal(Decimal(oneDayGlucose.median), 1),
@@ -1052,10 +1075,10 @@ final class BaseAPSManager: APSManager, Injectable {
                 var thirtyDays_: (TIR: Double, hypos: Double, hypers: Double, normal_: Double) = (0.0, 0.0, 0.0, 0.0)
                 var totalDays_: (TIR: Double, hypos: Double, hypers: Double, normal_: Double) = (0.0, 0.0, 0.0, 0.0)
                 // Get TIR computations for every case
-                oneDay_ = tir(glucose_24)
-                sevenDays_ = tir(glucose_7)
-                thirtyDays_ = tir(glucose_30)
-                totalDays_ = tir(glucose)
+                oneDay_ = tir(glucose24h)
+                sevenDays_ = tir(glucoseOneWeek)
+                thirtyDays_ = tir(glucoseOneMonth)
+                totalDays_ = tir(glucoseThreeMonths)
 
                 let tir = Durations(
                     day: roundDecimal(Decimal(oneDay_.TIR), 1),
