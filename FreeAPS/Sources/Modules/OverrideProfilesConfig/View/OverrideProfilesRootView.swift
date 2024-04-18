@@ -330,14 +330,13 @@ extension OverrideProfilesConfig {
         }
 
         private func unChanged() -> Bool {
-            let isChanged = (state.percentage == 100 && !state.override_target && !state.smbIsOff && !state.advancedSettings) ||
-                (!state._indefinite && state.duration == 0) || (state.override_target && state.target == 0) ||
-                (
-                    state.percentage == 100 && !state.override_target && !state.smbIsOff && state.isf && state.cr && state
-                        .smbMinutes == state.defaultSmbMinutes && state.uamMinutes == state.defaultUamMinutes
-                )
+            let defaultProfile = state.percentage == 100 && !state.override_target && !state.advancedSettings
+            let noDurationSpecified = !state._indefinite && state.duration == 0
+            let targetZeroWithOverride = state.override_target && state.target == 0
+            let allSettingsDefault = state.percentage == 100 && !state.override_target && !state.smbIsOff && !state
+                .smbIsScheduledOff && state.smbMinutes == state.defaultSmbMinutes && state.uamMinutes == state.defaultUamMinutes
 
-            return isChanged
+            return defaultProfile || noDurationSpecified || targetZeroWithOverride || allSettingsDefault
         }
 
         private func removeProfile(at offsets: IndexSet) {
