@@ -243,6 +243,10 @@ extension Home {
                         ""
                 )
 
+            if durationString == "", !indefinite {
+                return nil
+            }
+
             let smbToggleString = (
                 (fetchedPercent.first?.smbIsOff ?? false) || fetchedPercent.first?.smbIsScheduledOff ?? false
             ) ?
@@ -250,33 +254,13 @@ extension Home {
             let smbScheduleString = (fetchedPercent.first?.smbIsScheduledOff ?? false) &&
                 !(fetchedPercent.first?.smbIsOff ?? false) ?
                 " \(fetchedPercent.first?.start ?? 0)-\(fetchedPercent.first?.end ?? 0)" : ""
-            var comma1 = ", "
-            var comma2 = comma1
-            var comma3 = comma1
-            if targetString == "" || percentString == "" { comma1 = "" }
-            if durationString == "" { comma2 = "" }
-            if smbToggleString == "" { comma3 = "" }
+            let comma1 = (percentString == "" || (targetString == "" && durationString == "" && smbToggleString == ""))
+                ? "" : " , "
+            let comma2 = (targetString == "" || (durationString == "" && smbToggleString == ""))
+                ? "" : " , "
+            let comma3 = (durationString == "" || smbToggleString == "")
+                ? "" : " , "
 
-            if percentString == "", targetString == "" {
-                comma1 = ""
-                comma2 = ""
-            }
-            if percentString == "", targetString == "", smbToggleString == "" {
-                durationString = ""
-                comma1 = ""
-                comma2 = ""
-                comma3 = ""
-            }
-            if durationString == "" {
-                comma2 = ""
-            }
-            if smbToggleString == "" {
-                comma3 = ""
-            }
-
-            if durationString == "", !indefinite {
-                return nil
-            }
             return percentString + comma1 + targetString + comma2 + durationString + comma3 + smbToggleString + smbScheduleString
         }
 
