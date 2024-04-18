@@ -1,7 +1,5 @@
 extension Bolus {
     final class Provider: BaseProvider, BolusProvider {
-        let coreDataStorage = CoreDataStorage()
-
         var suggestion: Suggestion? {
             storage.retrieve(OpenAPS.Enact.suggested, as: Suggestion.self)
         }
@@ -16,11 +14,6 @@ extension Bolus {
             storage.retrieve(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self)
                 ?? [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile))
                 ?? []
-        }
-
-        func fetchGlucose() -> [Readings] {
-            let fetchGlucose = coreDataStorage.fetchGlucose(interval: DateFilter().twoHours)
-            return fetchGlucose
         }
     }
 }

@@ -18,6 +18,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
     @Injected() private var garmin: GarminManager!
 
     let coreDataStorage = CoreDataStorage()
+    let context = CoreDataStack.shared.persistentContainer.viewContext
 
     private var lifetime = Lifetime()
 
@@ -53,15 +54,26 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         configureState()
     }
 
+    private func fetchGlucose() -> [GlucoseStored] {
+        do {
+            let fetchedReadings = try context.fetch(GlucoseStored.fetch(NSPredicate.predicateFor120MinAgo))
+            debugPrint("Watch Manager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched glucose")
+            return fetchedReadings
+        } catch {
+            debugPrint("Watch Manager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch glucose")
+            return []
+        }
+    }
+
     private func configureState() {
         processQueue.async {
-            let readings = self.coreDataStorage.fetchGlucose(interval: DateFilter().twoHours)
-            let glucoseValues = self.glucoseText(readings)
+            let fetchedReadings = self.fetchGlucose()
+            let glucoseValues = self.glucoseText(fetchedReadings)
             self.state.glucose = glucoseValues.glucose
             self.state.trend = glucoseValues.trend
             self.state.delta = glucoseValues.delta
-            self.state.trendRaw = readings.first?.direction ?? "↔︎"
-            self.state.glucoseDate = readings.first?.date ?? .distantPast
+            self.state.trendRaw = fetchedReadings.first?.direction ?? "↔︎"
+            self.state.glucoseDate = fetchedReadings.first?.date ?? .distantPast
             self.state.lastLoopDate = self.enactedSuggestion?.recieved == true ? self.enactedSuggestion?.deliverAt : self
                 .apsManager.lastLoopDate
             self.state.lastLoopDateInterval = self.state.lastLoopDate.map {
@@ -90,7 +102,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
                         0
                     ))
             } else {
-                let recommended = self.newBolusCalc(delta: readings, suggestion: self.suggestion)
+                let recommended = self.newBolusCalc(delta: fetchedReadings, suggestion: self.suggestion)
                 self.state.bolusRecommended = self.apsManager
                     .roundBolus(amount: max(recommended, 0))
             }
@@ -151,7 +163,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         }
     }
 
-    private func glucoseText(_ glucose: [Readings]) -> (glucose: String, trend: String, delta: String) {
+    private func glucoseText(_ glucose: [GlucoseStored]) -> (glucose: String, trend: String, delta: String) {
         let glucoseValue = glucose.first?.glucose ?? 0
 
         guard !glucose.isEmpty else { return ("--", "--", "--") }
@@ -203,7 +215,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         )!
     }
 
-    private func newBolusCalc(delta: [Readings], suggestion _: Suggestion?) -> Decimal {
+    private func newBolusCalc(delta: [GlucoseStored], suggestion _: Suggestion?) -> Decimal {
         var conversion: Decimal = 1
         // Settings
         if settingsManager.settings.units == .mmolL {

@@ -4,7 +4,7 @@ import SwiftUI
 
 struct StatsView: View {
     @FetchRequest var fetchRequest: FetchedResults<LoopStatRecord>
-    @FetchRequest var fetchRequestReadings: FetchedResults<Readings>
+    @FetchRequest var glucose: FetchedResults<GlucoseStored>
 
     @State var headline: Color = .secondary
 
@@ -37,7 +37,7 @@ struct StatsView: View {
             predicate: NSPredicate(format: "interval > 0 AND start > %@", filter)
         )
 
-        _fetchRequestReadings = FetchRequest<Readings>(
+        _glucose = FetchRequest<GlucoseStored>(
             sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)],
             predicate: NSPredicate(format: "glucose > 0 AND date > %@", filter)
         )
@@ -130,7 +130,6 @@ struct StatsView: View {
             let useUnit: GlucoseUnits = (units == .mmolL && overrideUnit) ? .mgdL :
                 (units == .mgdL && overrideUnit || units == .mmolL) ? .mmolL : .mgdL
             let hba1cs = glucoseStats()
-            let glucose = fetchRequestReadings
             // First date
             let previous = glucose.last?.date ?? Date()
             // Last date (recent)
@@ -173,7 +172,6 @@ struct StatsView: View {
         HStack(spacing: 30) {
             let bgs = glucoseStats()
 
-            let glucose = fetchRequestReadings
             // First date
             let previous = glucose.last?.date ?? Date()
             // Last date (recent)
@@ -212,7 +210,6 @@ struct StatsView: View {
     private func glucoseStats()
         -> (ifcc: Double, ngsp: Double, average: Double, median: Double, sd: Double, cv: Double, readings: Double)
     {
-        let glucose = fetchRequestReadings
         // First date
         let previous = glucose.last?.date ?? Date()
         // Last date (recent)
@@ -264,7 +261,6 @@ struct StatsView: View {
     }
 
     private func tir() -> [(decimal: Decimal, string: String)] {
-        let glucose = fetchRequestReadings
         let justGlucoseArray = glucose.compactMap({ each in Int(each.glucose as Int16) })
         let totalReadings = justGlucoseArray.count
 

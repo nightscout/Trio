@@ -25,7 +25,7 @@ extension LiveActivityAttributes.ContentState {
         new bg: BloodGlucose,
         prev: BloodGlucose?,
         mmol: Bool,
-        chart: [Readings],
+        chart: [GlucoseStored],
         settings: FreeAPSSettings,
         suggestion: Suggestion
     ) {
@@ -284,10 +284,8 @@ extension LiveActivityBridge: GlucoseObserver {
             self.latestGlucose = glucose.last
         }
 
-        // fetch glucose for chart from Core Data
-        let coreDataStorage = CoreDataStorage()
-        let sixHoursAgo = Calendar.current.date(byAdding: .hour, value: -6, to: Date()) ?? Date()
-        let fetchGlucose = coreDataStorage.fetchGlucose(interval: sixHoursAgo as NSDate)
+        // fetch glucose for the last 6 hours for the LA chart from Core Data
+        let fetchedGlucose = fetchGlucose()
 
         guard let bg = glucose.last else {
             return
@@ -298,7 +296,7 @@ extension LiveActivityBridge: GlucoseObserver {
                 new: bg,
                 prev: latestGlucose,
                 mmol: settings.units == .mmolL,
-                chart: fetchGlucose,
+                chart: fetchedGlucose,
                 settings: settings,
                 suggestion: suggestion
             )
@@ -308,6 +306,19 @@ extension LiveActivityBridge: GlucoseObserver {
                     await self.pushUpdate(content)
                 }
             }
+        }
+    }
+
+    private func fetchGlucose() -> [GlucoseStored] {
+        let context = CoreDataStack.shared.persistentContainer.viewContext
+        do {
+            let fetchedGlucose = try context.fetch(GlucoseStored.fetch(NSPredicate.predicateForSixHoursAgo))
+            debugPrint("LA Bridge: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch glucose")
+
+            return fetchedGlucose
+        } catch {
+            debugPrint("LA Bridge: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch glucose")
+            return []
         }
     }
 }

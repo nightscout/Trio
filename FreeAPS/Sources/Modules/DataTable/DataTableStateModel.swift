@@ -200,7 +200,7 @@ extension DataTable {
             provider.deleteGlucose(id: id)
 
             let fetchRequest: NSFetchRequest<NSFetchRequestResult>
-            fetchRequest = NSFetchRequest(entityName: "Readings")
+            fetchRequest = NSFetchRequest(entityName: "GlucoseStored")
             fetchRequest.predicate = NSPredicate(format: "id == %@", id)
             let deleteRequest = NSBatchDeleteRequest(
                 fetchRequest: fetchRequest
@@ -214,7 +214,12 @@ extension DataTable {
                         into: [coredataContext]
                     )
                 }
-            } catch { /* To do: handle any thrown errors. */ }
+                debugPrint("Data Table State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) deleted glucose")
+            } catch {
+                debugPrint(
+                    "Data Table State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to delete glucose"
+                )
+            }
 
             // Deletes Manual Glucose
             if (glucose.glucose.type ?? "") == GlucoseType.manual.rawValue {

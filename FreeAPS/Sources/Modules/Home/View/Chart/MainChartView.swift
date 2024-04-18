@@ -85,6 +85,8 @@ struct MainChartView: View {
     @State private var maxValue: Decimal = 270
     @State private var selection: Date? = nil
 
+    private let now = Date.now
+
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.calendar) var calendar
 
@@ -142,11 +144,11 @@ struct MainChartView: View {
         units == .mgdL ? 30 : 1.66
     }
 
-    private var selectedGlucose: BloodGlucose? {
+    private var selectedGlucose: GlucoseStored? {
         if let selection = selection {
             let lowerBound = selection.addingTimeInterval(-120)
             let upperBound = selection.addingTimeInterval(120)
-            return glucose.first { $0.dateString >= lowerBound && $0.dateString <= upperBound }
+            return glucoseFromPersistence.first { $0.date ?? now >= lowerBound && $0.date ?? now <= upperBound }
         } else {
             return nil
         }
@@ -236,7 +238,7 @@ extension MainChartView {
 
                 /// show glucose value when hovering over it
                 if let selectedGlucose {
-                    RuleMark(x: .value("Selection", selectedGlucose.dateString, unit: .minute))
+                    RuleMark(x: .value("Selection", selectedGlucose.date ?? now, unit: .minute))
                         .foregroundStyle(Color.tabBar)
                         .offset(yStart: 70)
                         .lineStyle(.init(lineWidth: 2, dash: [5]))
@@ -279,10 +281,10 @@ extension MainChartView {
     }
 
     @ViewBuilder var selectionPopover: some View {
-        if let sgv = selectedGlucose?.sgv {
+        if let sgv = selectedGlucose?.glucose {
             let glucoseToShow = Decimal(sgv) * conversionFactor
             VStack {
-                Text(selectedGlucose?.dateString.formatted(.dateTime.hour().minute(.twoDigits)) ?? "")
+                Text(selectedGlucose?.date?.formatted(.dateTime.hour().minute(.twoDigits)) ?? "")
                 HStack {
                     Text(glucoseToShow.formatted(.number.precision(units == .mmolL ? .fractionLength(1) : .fractionLength(0))))
                         .fontWeight(.bold)
