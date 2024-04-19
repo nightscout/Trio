@@ -306,7 +306,7 @@ extension Bolus {
                                     let test = state.waitersNotepad().components(separatedBy: ", ").removeDublicates()
                                     HStack(spacing: 0) {
                                         ForEach(test, id: \.self) {
-                                            Text($0).foregroundStyle(Color.randomGreen()).font(.footnote)
+                                            Text($0).foregroundStyle(Color.blue).font(.footnote)
                                             Text($0 == test[test.count - 1] ? "" : ", ")
                                         }
                                     }.frame(maxWidth: .infinity, alignment: .trailing)

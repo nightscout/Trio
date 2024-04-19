@@ -2,9 +2,9 @@ import CoreData
 import Foundation
 
 extension GlucoseStored {
-    static func fetch(_ predicate: NSPredicate = .all) -> NSFetchRequest<GlucoseStored> {
+    static func fetch(_ predicate: NSPredicate = .all, ascending: Bool) -> NSFetchRequest<GlucoseStored> {
         let request = GlucoseStored.fetchRequest()
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \GlucoseStored.date, ascending: true)]
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \GlucoseStored.date, ascending: ascending)]
         request.predicate = predicate
         return request
     }

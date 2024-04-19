@@ -2,7 +2,7 @@ import CoreData
 import Foundation
 
 extension OrefDetermination {
-    static func fetch(_ predicate: NSPredicate = .all) -> NSFetchRequest<OrefDetermination> {
+    static func fetch(_ predicate: NSPredicate = .predicateForOneDayAgo) -> NSFetchRequest<OrefDetermination> {
         let request = OrefDetermination.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(keyPath: \OrefDetermination.deliverAt, ascending: false)]
         request.predicate = predicate
@@ -18,5 +18,12 @@ extension OrefDetermination {
 
     var reasonConclusion: String {
         reason?.components(separatedBy: "; ").last ?? ""
+    }
+}
+
+extension NSPredicate {
+    static var enactedDetermination: NSPredicate {
+        let date = Date.halfHourAgo
+        return NSPredicate(format: "enacted == true AND deliverAt >= %@", date as NSDate)
     }
 }

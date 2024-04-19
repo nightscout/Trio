@@ -82,6 +82,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
 //    let coredataContext = CoreDataStack.shared.persistentContainer.newBackgroundContext()
     let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
+    let privateContext = CoreDataStack.shared.persistentContainer.newBackgroundContext()
 
     private var openAPS: OpenAPS!
 
@@ -908,7 +909,7 @@ final class BaseAPSManager: APSManager, Injectable {
     // fetch glucose for time interval
     private func fetchGlucoseData(forPeriod period: String, withPredicate predicate: NSPredicate) -> [GlucoseStored] {
         do {
-            let fetchedData = try coredataContext.fetch(GlucoseStored.fetch(predicate))
+            let fetchedData = try coredataContext.fetch(GlucoseStored.fetch(predicate, ascending: false))
             debugPrint(
                 "APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched glucose for \(period) period"
             )
@@ -921,37 +922,6 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
-//    private func fetchGlucose() {
-//        ///fetch 24h
-//        do {
-//            let glucose24h = try coredataContext.fetch(GlucoseStored.fetch(NSPredicate.predicateForOneDayAgo))
-//            debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched glucose for 24h period")
-//        } catch  {
-//            debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) error while fetching glucose for 24h period")
-//        }
-//        ///fetch one week
-//        do {
-//            let glucoseOneWeek = try coredataContext.fetch(GlucoseStored.fetch(NSPredicate.predicateForOneWeek))
-//            debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched glucose for 7d period")
-//        } catch {
-//            debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) error while fetching glucose for 7d")
-//        }
-//        ///fetch one month
-//        do {
-//            let glucoseOneMonth = try coredataContext.fetch(GlucoseStored.fetch(NSPredicate.predicateForOneMonth))
-//            debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched glucose for 30d period")
-//        } catch {
-//            debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) error while fetching glucose for 30d period")
-//        }
-//        ///total
-//        do {
-//            let glucoseTotal = try coredataContext.fetch(GlucoseStored.fetch(NSPredicate.predicateForThreeMonths))
-//            debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched glucose for 90d period")
-//        } catch {
-//            debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) error while fetching glucose for 90d period")
-//        }
-//    }
-
     // Add to statistics.JSON for upload to NS.
     private func statistics() {
         let now = Date()
@@ -960,7 +930,7 @@ final class BaseAPSManager: APSManager, Injectable {
             guard hour > 20 else {
                 return
             }
-            coredataContext.perform { [self] in
+            privateContext.perform { [self] in
                 var stats = [StatsData]()
                 let requestStats = StatsData.fetchRequest() as NSFetchRequest<StatsData>
                 let sortStats = NSSortDescriptor(key: "lastrun", ascending: false)
@@ -974,15 +944,26 @@ final class BaseAPSManager: APSManager, Injectable {
                 let preferences = settingsManager.preferences
 
                 // Carbs
-                var carbs = [Carbohydrates]()
                 var carbTotal: Decimal = 0
-                let requestCarbs = Carbohydrates.fetchRequest() as NSFetchRequest<Carbohydrates>
+                let requestCarbs = MealsStored.fetchRequest() as NSFetchRequest<MealsStored>
                 let daysAgo = Date().addingTimeInterval(-1.days.timeInterval)
                 requestCarbs.predicate = NSPredicate(format: "carbs > 0 AND date > %@", daysAgo as NSDate)
-                let sortCarbs = NSSortDescriptor(key: "date", ascending: true)
-                requestCarbs.sortDescriptors = [sortCarbs]
-                try? carbs = coredataContext.fetch(requestCarbs)
-                carbTotal = carbs.map({ carbs in carbs.carbs as? Decimal ?? 0 }).reduce(0, +)
+                requestCarbs.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+
+                do {
+                    let carbs = try coredataContext.fetch(requestCarbs)
+                    carbTotal = carbs.reduce(0) { sum, meal in
+                        let mealCarbs = Decimal(string: "\(meal.carbs)") ?? Decimal.zero
+                        return sum + mealCarbs
+                    }
+                    debugPrint(
+                        "APSManager: statistics() -> \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched carbs"
+                    )
+                } catch {
+                    debugPrint(
+                        "APSManager: statistics() -> \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) error while fetching carbs"
+                    )
+                }
 
                 // TDD
                 var tdds = [TDD]()

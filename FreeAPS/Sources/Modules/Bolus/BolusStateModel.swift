@@ -473,36 +473,9 @@ extension Bolus {
             carbsStorage.storeCarbs(carbsToStore)
 
             if carbs > 0 {
-                saveCarbsToCoreData(carbsToStore)
-
                 // only perform determine basal sync if the user doesn't use the pump bolus, otherwise the enact bolus func in the APSManger does a sync
                 if amount <= 0 {
                     apsManager.determineBasalSync()
-                }
-            }
-        }
-
-        func saveCarbsToCoreData(_: [CarbsEntry]) {
-            context.performAndWait {
-                // create new object in the view context
-                let newCarbEntry = MealsStored(context: self.context)
-                newCarbEntry.id = UUID()
-                newCarbEntry.note = ""
-                newCarbEntry.carbs = Double(carbs)
-                newCarbEntry.fat = Double(fat)
-                newCarbEntry.protein = Double(protein)
-                newCarbEntry.date = Date()
-                self.context.perform {
-                    do {
-                        try self.context.save()
-                        debugPrint(
-                            "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved carbs to core data"
-                        )
-                    } catch {
-                        debugPrint(
-                            "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save carbs to core data"
-                        )
-                    }
                 }
             }
         }
@@ -613,25 +586,6 @@ extension Bolus {
                 }
             }
             return waitersNotepadString
-        }
-
-        func loadEntries(_ editMode: Bool) {
-            if editMode {
-                context.performAndWait {
-                    var mealToEdit = [Meals]()
-                    let requestMeal = Meals.fetchRequest() as NSFetchRequest<Meals>
-                    let sortMeal = NSSortDescriptor(key: "createdAt", ascending: false)
-                    requestMeal.sortDescriptors = [sortMeal]
-                    requestMeal.fetchLimit = 1
-                    try? mealToEdit = self.context.fetch(requestMeal)
-
-                    self.carbs = Decimal(mealToEdit.first?.carbs ?? 0)
-                    self.fat = Decimal(mealToEdit.first?.fat ?? 0)
-                    self.protein = Decimal(mealToEdit.first?.protein ?? 0)
-                    self.note = mealToEdit.first?.note ?? ""
-                    self.id_ = mealToEdit.first?.id ?? ""
-                }
-            }
         }
     }
 }

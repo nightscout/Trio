@@ -312,7 +312,7 @@ extension LiveActivityBridge: GlucoseObserver {
     private func fetchGlucose() -> [GlucoseStored] {
         let context = CoreDataStack.shared.persistentContainer.viewContext
         do {
-            let fetchedGlucose = try context.fetch(GlucoseStored.fetch(NSPredicate.predicateForSixHoursAgo))
+            let fetchedGlucose = try context.fetch(GlucoseStored.fetch(NSPredicate.predicateForSixHoursAgo, ascending: false))
             debugPrint("LA Bridge: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch glucose")
 
             return fetchedGlucose

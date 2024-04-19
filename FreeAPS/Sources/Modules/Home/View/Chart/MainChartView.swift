@@ -93,24 +93,29 @@ struct MainChartView: View {
     // MARK: - Core Data Fetch Requests
 
     @FetchRequest(
-        entity: MealsStored.entity(),
-        sortDescriptors: [NSSortDescriptor(keyPath: \MealsStored.date, ascending: true)],
-        predicate: NSPredicate.predicateForOneDayAgo
+        fetchRequest: MealsStored.fetch(NSPredicate.carbsForChart),
+        animation: Animation.bouncy
     ) var carbsFromPersistence: FetchedResults<MealsStored>
 
     @FetchRequest(
-        entity: InsulinStored.entity(),
-        sortDescriptors: [NSSortDescriptor(keyPath: \InsulinStored.date, ascending: true)],
-        predicate: NSPredicate.predicateForOneDayAgo,
+        fetchRequest: MealsStored.fetch(NSPredicate.fpusForChart),
+        animation: Animation.bouncy
+    ) var fpusFromPersistence: FetchedResults<MealsStored>
+
+    @FetchRequest(
+        fetchRequest: InsulinStored.fetch(NSPredicate.insulinForChart),
         animation: Animation.bouncy
     ) var insulinFromPersistence: FetchedResults<InsulinStored>
 
     @FetchRequest(
-        entity: GlucoseStored.entity(),
-        sortDescriptors: [NSSortDescriptor(keyPath: \GlucoseStored.date, ascending: true)],
-        predicate: NSPredicate.predicateForOneDayAgo,
+        fetchRequest: GlucoseStored.fetch(NSPredicate.predicateForOneDayAgo, ascending: false),
         animation: Animation.bouncy
     ) var glucoseFromPersistence: FetchedResults<GlucoseStored>
+
+    @FetchRequest(
+        fetchRequest: OrefDetermination.fetch(NSPredicate.enactedDetermination),
+        animation: Animation.bouncy
+    ) var determinations: FetchedResults<OrefDetermination>
 
     private var bolusFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -166,12 +171,12 @@ struct MainChartView: View {
                         updateStartEndMarkers()
                         yAxisChartData()
                         scroller.scrollTo("MainChart", anchor: .trailing)
-                    }.onChange(of: glucose) { _ in
+                    }.onChange(of: glucoseFromPersistence.map(\.id)) { _ in
                         updateStartEndMarkers()
                         yAxisChartData()
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }
-                    .onChange(of: suggestion) { _ in
+                    .onChange(of: determinations.map(\.id)) { _ in
                         updateStartEndMarkers()
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }
@@ -404,13 +409,13 @@ extension MainChartView {
 
     private func drawFpus() -> some ChartContent {
         /// fpus
-        ForEach(fpusForChart) { fpu in
+        ForEach(fpusFromPersistence) { fpu in
             let fpuAmount = fpu.carbs
             let size = (Config.fpuSize + CGFloat(fpuAmount) * Config.carbsScale) * 1.8
             let yPosition = units == .mgdL ? 60 : 3.33
 
             PointMark(
-                x: .value("Time", fpu.actualDate ?? Date(), unit: .second),
+                x: .value("Time", fpu.date ?? Date(), unit: .second),
                 y: .value("Value", yPosition)
             )
             .symbolSize(size)

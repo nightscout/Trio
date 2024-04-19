@@ -25,16 +25,6 @@
         <attribute name="median_7" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="median_30" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
     </entity>
-    <entity name="Carbohydrates" representedClassName="Carbohydrates" syncable="YES" codeGenerationType="class">
-        <attribute name="carbs" optional="YES" attributeType="Decimal" defaultValueString="0"/>
-        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="enteredBy" optional="YES" attributeType="String"/>
-    </entity>
-    <entity name="Fat" representedClassName="Fat" syncable="YES" codeGenerationType="class">
-        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="enteredBy" optional="YES" attributeType="String"/>
-        <attribute name="fat" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
-    </entity>
     <entity name="GlucoseStored" representedClassName="GlucoseStored" syncable="YES" codeGenerationType="class">
         <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="direction" optional="YES" attributeType="String"/>
@@ -78,22 +68,12 @@
         <attribute name="loopStatus" optional="YES" attributeType="String"/>
         <attribute name="start" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
-    <entity name="Meals" representedClassName="Meals" syncable="YES" codeGenerationType="class">
-        <attribute name="actualDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="carbs" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="fat" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="fpuID" optional="YES" attributeType="String"/>
-        <attribute name="id" optional="YES" attributeType="String"/>
-        <attribute name="note" optional="YES" attributeType="String"/>
-        <attribute name="protein" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-    </entity>
     <entity name="MealsStored" representedClassName="MealsStored" syncable="YES" codeGenerationType="class">
         <attribute name="carbs" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="fat" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isFPU" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="note" optional="YES" attributeType="String"/>
         <attribute name="protein" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
     </entity>
@@ -113,6 +93,7 @@
         <attribute name="eventualBG" optional="YES" attributeType="Decimal" defaultValueString="0"/>
         <attribute name="expectedDelta" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="glucose" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="insulinForManualBolus" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="insulinReq" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="insulinSensitivity" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
@@ -210,9 +191,5 @@
         <attribute name="hbt" optional="YES" attributeType="Double" defaultValueString="160" usesScalarValueType="YES"/>
         <attribute name="id" optional="YES" attributeType="String" defaultValueString="empy"/>
         <attribute name="isPreset" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
-    </entity>
-    <entity name="UXSettings" representedClassName="UXSettings" syncable="YES" codeGenerationType="class">
-        <attribute name="date" optional="YES" attributeType="Date" defaultDateTimeInterval="722095800" usesScalarValueType="NO"/>
-        <attribute name="hours" optional="YES" attributeType="Integer 16" defaultValueString="6" usesScalarValueType="YES"/>
     </entity>
 </model>

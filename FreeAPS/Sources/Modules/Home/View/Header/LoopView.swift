@@ -12,7 +12,7 @@ struct LoopView: View {
 
     @FetchRequest(
         fetchRequest: OrefDetermination
-            .fetch(NSPredicate.predicateFor30MinAgoForDetermination)
+            .fetch(NSPredicate.enactedDetermination)
     ) var determination: FetchedResults<OrefDetermination>
 
     @Binding var closedLoop: Bool
@@ -42,7 +42,7 @@ struct LoopView: View {
                 Text("looping")
             } else if manualTempBasal {
                 Text("Manual")
-            } else if determination.first?.timestamp != nil {
+            } else if determination.first?.deliverAt != nil { //previously the .timestamp property was used here because this only gets updated when the reportenacted function in the aps manager gets called
                 Text(timeString)
             } else {
                 Text("--")
@@ -62,7 +62,7 @@ struct LoopView: View {
     }
 
     private var color: Color {
-        guard determination.first?.timestamp != nil else {
+        guard determination.first?.deliverAt != nil else { //previously the .timestamp property was used here because this only gets updated when the reportenacted function in the aps manager gets called
             return .secondary
         }
         guard manualTempBasal == false else {

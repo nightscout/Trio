@@ -56,7 +56,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
 
     private func fetchGlucose() -> [GlucoseStored] {
         do {
-            let fetchedReadings = try context.fetch(GlucoseStored.fetch(NSPredicate.predicateFor120MinAgo))
+            let fetchedReadings = try context.fetch(GlucoseStored.fetch(NSPredicate.predicateFor120MinAgo, ascending: true))
             debugPrint("Watch Manager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched glucose")
             return fetchedReadings
         } catch {

@@ -87,6 +87,7 @@ final class OpenAPS {
                     // save to core data asynchronously
                     self.coredataContext.perform {
                         let new = OrefDetermination(context: self.coredataContext)
+                        new.id = UUID()
                         new.totalDailyDose = determination.tdd as? NSDecimalNumber
                         new.insulinSensitivity = determination.isf as? NSDecimalNumber
                         new.currentTarget = determination.current_target as? NSDecimalNumber
