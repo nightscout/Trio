@@ -718,9 +718,8 @@ final class BaseAPSManager: APSManager, Injectable {
     private func reportEnacted(received: Bool) {
         if let determination = fetchDetermination(), determination.deliverAt != nil {
             viewContext.perform {
-                var enacted = determination
-                enacted.timestamp = Date()
-                enacted.received = received
+                determination.timestamp = Date()
+                determination.received = received
                 do {
                     try self.viewContext.save()
                     debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) updated determination")
@@ -734,9 +733,9 @@ final class BaseAPSManager: APSManager, Injectable {
 //            let det = Determination(reason: enacted.reason, units: enacted.smbToDeliver, insulinReq: enacted.insulinReq, eventualBG: enacted.eventualBG, sensitivityRatio: enacted.sensitivityRatio, rate: enacted.rate, duration: enacted.duration, iob: enacted.iob, cob: enacted.cob, deliverAt: enacted.deliverAt, carbsReq: enacted.carbsRequired, temp: enacted.temp, bg: enacted.glucose, reservoir: enacted.reservoir, isf: enacted.insulinSensitivity, tdd: enacted.totalDailyDose, current_target: enacted.currentTarget, insulinForManualBolus: enacted.insulinForManualBolus, manualBolusErrorString: enacted.manualBolusErrorString, minDelta: enacted.minDelta, expectedDelta: enacted.expectedDelta, threshold: enacted.treshold, carbRatio: enacted.carbRatio)
 
                 let saveLastLoop = LastLoop(context: self.viewContext)
-                saveLastLoop.iob = (enacted.iob ?? 0) as NSDecimalNumber
-                saveLastLoop.cob = enacted.cob as? NSDecimalNumber
-                saveLastLoop.timestamp = (enacted.timestamp ?? .distantPast) as Date
+                saveLastLoop.iob = (determination.iob ?? 0) as NSDecimalNumber
+                saveLastLoop.cob = determination.cob as? NSDecimalNumber
+                saveLastLoop.timestamp = (determination.timestamp ?? .distantPast) as Date
                 try? self.viewContext.save()
 
                 debug(.apsManager, "Determination enacted. Received: \(received)")

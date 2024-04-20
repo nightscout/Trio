@@ -14,9 +14,7 @@ extension Home {
         @Published var glucose: [BloodGlucose] = []
         @Published var manualGlucose: [BloodGlucose] = []
         @Published var announcement: [Announcement] = []
-        @Published var suggestion: Suggestion?
         @Published var uploadStats = false
-        @Published var enactedSuggestion: Suggestion?
         @Published var recentGlucose: BloodGlucose?
         @Published var glucoseDelta: Int?
         @Published var tempBasals: [PumpHistoryEvent] = []
@@ -95,14 +93,11 @@ extension Home {
             filterCarbs()
             filterFpus()
 
-            suggestion = provider.suggestion
             uploadStats = settingsManager.settings.uploadStats
-            enactedSuggestion = provider.enactedSuggestion
             units = settingsManager.settings.units
             allowManualTemp = !settingsManager.settings.closedLoop
             closedLoop = settingsManager.settings.closedLoop
             lastLoopDate = apsManager.lastLoopDate
-            carbsRequired = suggestion?.carbsReq
             alarm = provider.glucoseStorage.alarm
             manualTempBasal = apsManager.isManualTempBasal
             setupCurrentTempTarget()
@@ -116,17 +111,14 @@ extension Home {
             thresholdLines = settingsManager.settings.rulerMarks
             tins = settingsManager.settings.tins
 
-            cob = provider.suggestion?.cob ?? 0
-
             broadcaster.register(GlucoseObserver.self, observer: self)
-            broadcaster.register(SuggestionObserver.self, observer: self)
+            broadcaster.register(DeterminationObserver.self, observer: self)
             broadcaster.register(SettingsObserver.self, observer: self)
             broadcaster.register(PumpHistoryObserver.self, observer: self)
             broadcaster.register(PumpSettingsObserver.self, observer: self)
             broadcaster.register(BasalProfileObserver.self, observer: self)
             broadcaster.register(TempTargetsObserver.self, observer: self)
             broadcaster.register(CarbsObserver.self, observer: self)
-            broadcaster.register(EnactedSuggestionObserver.self, observer: self)
             broadcaster.register(PumpBatteryObserver.self, observer: self)
             broadcaster.register(PumpReservoirObserver.self, observer: self)
 
@@ -434,14 +426,13 @@ extension Home {
 
 extension Home.StateModel:
     GlucoseObserver,
-    SuggestionObserver,
+    DeterminationObserver,
     SettingsObserver,
     PumpHistoryObserver,
     PumpSettingsObserver,
     BasalProfileObserver,
     TempTargetsObserver,
     CarbsObserver,
-    EnactedSuggestionObserver,
     PumpBatteryObserver,
     PumpReservoirObserver,
     PumpTimeZoneObserver
@@ -450,9 +441,7 @@ extension Home.StateModel:
         setupGlucose()
     }
 
-    func suggestionDidUpdate(_ suggestion: Suggestion) {
-        self.suggestion = suggestion
-        carbsRequired = suggestion.carbsReq
+    func determinationDidUpdate(_: Determination) {
         waitForSuggestion = false
     }
 
@@ -498,10 +487,6 @@ extension Home.StateModel:
         setupCarbs()
         filterFpus()
         filterCarbs()
-    }
-
-    func enactedSuggestionDidUpdate(_ suggestion: Suggestion) {
-        enactedSuggestion = suggestion
     }
 
     func pumpBatteryDidChange(_: Battery) {

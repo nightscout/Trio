@@ -8,11 +8,9 @@ struct LoopView: View {
         static let lag: TimeInterval = 30
     }
 
-    // TODO: -fetch only enacted determinations
-
     @FetchRequest(
         fetchRequest: OrefDetermination
-            .fetch(NSPredicate.predicateFor30MinAgoForDetermination)
+            .fetch(NSPredicate.enactedDetermination)
     ) var determination: FetchedResults<OrefDetermination>
 
     @Binding var closedLoop: Bool

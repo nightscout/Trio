@@ -45,7 +45,7 @@ extension Home {
         @FetchRequest(
             entity: OrefDetermination.entity(),
             sortDescriptors: [NSSortDescriptor(key: "deliverAt", ascending: false)],
-            predicate: NSPredicate.predicateFor30MinAgoForDetermination,
+            predicate: NSPredicate.enactedDetermination,
             animation: Animation.bouncy
         ) var determination: FetchedResults<OrefDetermination>
 
@@ -373,8 +373,6 @@ extension Home {
                     manualGlucose: $state.manualGlucose,
                     fpusForChart: $state.fpusForChart,
                     units: $state.units,
-                    eventualBG: $state.eventualBG,
-                    suggestion: $state.suggestion,
                     tempBasals: $state.tempBasals,
                     boluses: $state.boluses,
                     suspensions: $state.suspensions,
@@ -809,10 +807,14 @@ extension Home {
             ZStack(alignment: .bottom) {
                 TabView {
                     let carbsRequiredBadge: String? = {
-                        guard let carbsRequired = state.carbsRequired else { return nil }
-                        return carbsRequired > state.settingsManager.settings
-                            .carbsRequiredThreshold ? "\(numberFormatter.string(from: carbsRequired as NSNumber) ?? "") " +
-                            NSLocalizedString("g", comment: "Short representation of grams") : nil
+                        guard let carbsRequired = determination.first?.carbsRequired as? Decimal else { return nil }
+                        if carbsRequired > state.settingsManager.settings.carbsRequiredThreshold {
+                            let numberAsNSNumber = NSDecimalNumber(decimal: carbsRequired)
+                            let formattedNumber = numberFormatter.string(from: numberAsNSNumber) ?? ""
+                            return formattedNumber + " g"
+                        } else {
+                            return nil
+                        }
                     }()
 
                     NavigationStack { mainView() }
@@ -899,21 +901,9 @@ extension Home {
 
             let dateFormatter = DateFormatter()
             dateFormatter.timeStyle = .short
-            if state.closedLoop
-            {
-                statusTitle = NSLocalizedString("Oref Determination enacted at", comment: "Headline in enacted pop up") + " " +
-                    dateFormatter
-                    .string(from: determination.timestamp ?? Date())
-            } else {
-                statusTitle = NSLocalizedString("Determinated at", comment: "Headline in suggested pop up") + " " +
-                    dateFormatter
-                    .string(from: determination.deliverAt ?? Date())
-            }
-        }
-
-        func convertToMmolL(_ value: Decimal) -> Decimal {
-            // Example conversion rate, adjust according to your actual conversion logic
-            value / Decimal(18.01559)
+            statusTitle = NSLocalizedString("Oref Determination enacted at", comment: "Headline in enacted pop up") + " " +
+                dateFormatter
+                .string(from: determination.deliverAt ?? Date())
         }
     }
 }

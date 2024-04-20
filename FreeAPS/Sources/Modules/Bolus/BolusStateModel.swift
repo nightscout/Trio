@@ -198,7 +198,7 @@ extension Bolus {
 
         private func fetchDetermination() {
             do {
-                determination = try context.fetch(OrefDetermination.fetch(NSPredicate.predicateFor30MinAgoForDetermination))
+                determination = try context.fetch(OrefDetermination.fetch(NSPredicate.enactedDetermination))
                 debugPrint(
                     "Bolus State: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched determinations"
                 )

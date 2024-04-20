@@ -51,8 +51,6 @@ struct MainChartView: View {
     @Binding var manualGlucose: [BloodGlucose]
     @Binding var fpusForChart: [CarbsEntry]
     @Binding var units: GlucoseUnits
-    @Binding var eventualBG: Int?
-    @Binding var suggestion: Suggestion?
     @Binding var tempBasals: [PumpHistoryEvent]
     @Binding var boluses: [PumpHistoryEvent]
     @Binding var suspensions: [PumpHistoryEvent]
@@ -265,7 +263,8 @@ extension MainChartView {
             .onChange(of: didAppearTrigger) { _ in
                 calculatePredictions()
                 calculateTTs()
-            }.onChange(of: suggestion) { _ in
+            }
+            .onChange(of: determinations.map(\.id)) { _ in
                 calculatePredictions()
             }
             .onReceive(
@@ -761,18 +760,18 @@ extension MainChartView {
     }
 
     private func calculatePredictions() {
-        guard let suggestion = suggestion, let deliveredAt = suggestion.deliverAt else { return }
-        let uamPredictions = suggestion.predictions?.uam ?? []
-        let iobPredictions = suggestion.predictions?.iob ?? []
-        let cobPredictions = suggestion.predictions?.cob ?? []
-        let ztPredictions = suggestion.predictions?.zt ?? []
-
-        let uam = addPredictions(uamPredictions, type: .uam, deliveredAt: deliveredAt, endMarker: endMarker)
-        let iob = addPredictions(iobPredictions, type: .iob, deliveredAt: deliveredAt, endMarker: endMarker)
-        let cob = addPredictions(cobPredictions, type: .cob, deliveredAt: deliveredAt, endMarker: endMarker)
-        let zt = addPredictions(ztPredictions, type: .zt, deliveredAt: deliveredAt, endMarker: endMarker)
-
-        Predictions = uam + iob + cob + zt
+//        guard let suggestion = suggestion, let deliveredAt = suggestion.deliverAt else { return }
+//        let uamPredictions = suggestion.predictions?.uam ?? []
+//        let iobPredictions = suggestion.predictions?.iob ?? []
+//        let cobPredictions = suggestion.predictions?.cob ?? []
+//        let ztPredictions = suggestion.predictions?.zt ?? []
+//
+//        let uam = addPredictions(uamPredictions, type: .uam, deliveredAt: deliveredAt, endMarker: endMarker)
+//        let iob = addPredictions(iobPredictions, type: .iob, deliveredAt: deliveredAt, endMarker: endMarker)
+//        let cob = addPredictions(cobPredictions, type: .cob, deliveredAt: deliveredAt, endMarker: endMarker)
+//        let zt = addPredictions(ztPredictions, type: .zt, deliveredAt: deliveredAt, endMarker: endMarker)
+//
+//        Predictions = uam + iob + cob + zt
     }
 
     private func calculateTempBasals() {
