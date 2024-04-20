@@ -80,9 +80,8 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
-//    let coredataContext = CoreDataStack.shared.persistentContainer.newBackgroundContext()
-    let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
-    let privateContext = CoreDataStack.shared.persistentContainer.newBackgroundContext()
+    let viewContext = CoreDataStack.shared.viewContext
+    let privateContext = CoreDataStack.shared.backgroundContext
 
     private var openAPS: OpenAPS!
 
@@ -210,12 +209,12 @@ final class BaseAPSManager: APSManager, Injectable {
         var previousLoop = [LoopStatRecord]()
         var interval: Double?
 
-        coredataContext.performAndWait {
+        viewContext.performAndWait {
             let requestStats = LoopStatRecord.fetchRequest() as NSFetchRequest<LoopStatRecord>
             let sortStats = NSSortDescriptor(key: "end", ascending: false)
             requestStats.sortDescriptors = [sortStats]
             requestStats.fetchLimit = 1
-            try? previousLoop = coredataContext.fetch(requestStats)
+            try? previousLoop = viewContext.fetch(requestStats)
 
             if (previousLoop.first?.end ?? .distantFuture) < lastStartLoopDate {
                 interval = roundDouble((lastStartLoopDate - (previousLoop.first?.end ?? Date())).timeInterval / 60, 1)
@@ -647,7 +646,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
     private func fetchDetermination() -> OrefDetermination? {
         do {
-            let results = try coredataContext.fetch(OrefDetermination.fetch(NSPredicate.predicateFor30MinAgoForDetermination))
+            let results = try viewContext.fetch(OrefDetermination.fetch(NSPredicate.predicateFor30MinAgoForDetermination))
             debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved determination")
             return results.first
         } catch {
@@ -718,12 +717,12 @@ final class BaseAPSManager: APSManager, Injectable {
 
     private func reportEnacted(received: Bool) {
         if let determination = fetchDetermination(), determination.deliverAt != nil {
-            coredataContext.perform {
+            viewContext.perform {
                 var enacted = determination
                 enacted.timestamp = Date()
                 enacted.received = received
                 do {
-                    try self.coredataContext.save()
+                    try self.viewContext.save()
                     debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) updated determination")
                 } catch {
                     debugPrint(
@@ -734,11 +733,11 @@ final class BaseAPSManager: APSManager, Injectable {
                 // parse to determination
 //            let det = Determination(reason: enacted.reason, units: enacted.smbToDeliver, insulinReq: enacted.insulinReq, eventualBG: enacted.eventualBG, sensitivityRatio: enacted.sensitivityRatio, rate: enacted.rate, duration: enacted.duration, iob: enacted.iob, cob: enacted.cob, deliverAt: enacted.deliverAt, carbsReq: enacted.carbsRequired, temp: enacted.temp, bg: enacted.glucose, reservoir: enacted.reservoir, isf: enacted.insulinSensitivity, tdd: enacted.totalDailyDose, current_target: enacted.currentTarget, insulinForManualBolus: enacted.insulinForManualBolus, manualBolusErrorString: enacted.manualBolusErrorString, minDelta: enacted.minDelta, expectedDelta: enacted.expectedDelta, threshold: enacted.treshold, carbRatio: enacted.carbRatio)
 
-                let saveLastLoop = LastLoop(context: self.coredataContext)
+                let saveLastLoop = LastLoop(context: self.viewContext)
                 saveLastLoop.iob = (enacted.iob ?? 0) as NSDecimalNumber
                 saveLastLoop.cob = enacted.cob as? NSDecimalNumber
                 saveLastLoop.timestamp = (enacted.timestamp ?? .distantPast) as Date
-                try? self.coredataContext.save()
+                try? self.viewContext.save()
 
                 debug(.apsManager, "Determination enacted. Received: \(received)")
             }
@@ -909,7 +908,7 @@ final class BaseAPSManager: APSManager, Injectable {
     // fetch glucose for time interval
     private func fetchGlucoseData(forPeriod period: String, withPredicate predicate: NSPredicate) -> [GlucoseStored] {
         do {
-            let fetchedData = try coredataContext.fetch(GlucoseStored.fetch(predicate, ascending: false))
+            let fetchedData = try viewContext.fetch(GlucoseStored.fetch(predicate, ascending: false))
             debugPrint(
                 "APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched glucose for \(period) period"
             )
@@ -936,7 +935,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 let sortStats = NSSortDescriptor(key: "lastrun", ascending: false)
                 requestStats.sortDescriptors = [sortStats]
                 requestStats.fetchLimit = 1
-                try? stats = coredataContext.fetch(requestStats)
+                try? stats = privateContext.fetch(requestStats)
                 // Only save and upload once per day
                 guard (-1 * (stats.first?.lastrun ?? .distantPast).timeIntervalSinceNow.hours) > 22 else { return }
 
@@ -951,7 +950,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 requestCarbs.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
 
                 do {
-                    let carbs = try coredataContext.fetch(requestCarbs)
+                    let carbs = try privateContext.fetch(requestCarbs)
                     carbTotal = carbs.reduce(0) { sum, meal in
                         let mealCarbs = Decimal(string: "\(meal.carbs)") ?? Decimal.zero
                         return sum + mealCarbs
@@ -974,7 +973,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 let daysOf14Ago = Date().addingTimeInterval(-14.days.timeInterval)
                 requestTDD.predicate = NSPredicate(format: "timestamp > %@", daysOf14Ago as NSDate)
                 requestTDD.sortDescriptors = [sort]
-                try? tdds = coredataContext.fetch(requestTDD)
+                try? tdds = privateContext.fetch(requestTDD)
 
                 if !tdds.isEmpty {
                     currentTDD = tdds[0].tdd?.decimalValue ?? 0
@@ -1152,7 +1151,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 )
                 let sortLSR = NSSortDescriptor(key: "start", ascending: false)
                 requestLSR.sortDescriptors = [sortLSR]
-                try? lsr = coredataContext.fetch(requestLSR)
+                try? lsr = privateContext.fetch(requestLSR)
                 // Compute LoopStats for 24 hours
                 let oneDayLoops = loops(lsr)
                 let loopstat = LoopCycles(
@@ -1182,7 +1181,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 let requestInsulinDistribution = InsulinDistribution.fetchRequest() as NSFetchRequest<InsulinDistribution>
                 let sortInsulin = NSSortDescriptor(key: "date", ascending: false)
                 requestInsulinDistribution.sortDescriptors = [sortInsulin]
-                try? insulinDistribution = coredataContext.fetch(requestInsulinDistribution)
+                try? insulinDistribution = privateContext.fetch(requestInsulinDistribution)
                 insulin = Ins(
                     TDD: roundDecimal(currentTDD, 2),
                     bolus: insulinDistribution.first != nil ? ((insulinDistribution.first?.bolus ?? 0) as Decimal) : 0,
@@ -1223,16 +1222,16 @@ final class BaseAPSManager: APSManager, Injectable {
                 storage.save(dailystat, as: file)
                 nightscout.uploadStatistics(dailystat: dailystat)
 
-                let saveStatsCoreData = StatsData(context: self.coredataContext)
+                let saveStatsCoreData = StatsData(context: self.privateContext)
                 saveStatsCoreData.lastrun = Date()
-                try? self.coredataContext.save()
+                try? self.privateContext.save()
             }
         }
     }
 
     private func loopStats(loopStatRecord: LoopStats) {
-        coredataContext.perform {
-            let nLS = LoopStatRecord(context: self.coredataContext)
+        privateContext.perform {
+            let nLS = LoopStatRecord(context: self.privateContext)
 
             nLS.start = loopStatRecord.start
             nLS.end = loopStatRecord.end ?? Date()
@@ -1240,7 +1239,7 @@ final class BaseAPSManager: APSManager, Injectable {
             nLS.duration = loopStatRecord.duration ?? 0.0
             nLS.interval = loopStatRecord.interval ?? 0.0
 
-            try? self.coredataContext.save()
+            try? self.privateContext.save()
         }
     }
 

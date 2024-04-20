@@ -17,4 +17,17 @@ class CoreDataStack: ObservableObject {
 
         return container
     }()
+
+    // ensure thread safety by creating a NSManagedObjectContext for the main thread and for a background thread
+    lazy var backgroundContext: NSManagedObjectContext = {
+        let newbackgroundContext = CoreDataStack.shared.persistentContainer.newBackgroundContext()
+        newbackgroundContext.automaticallyMergesChangesFromParent = true
+        return newbackgroundContext
+    }()
+
+    lazy var viewContext: NSManagedObjectContext = {
+        let viewContext = CoreDataStack.shared.persistentContainer.viewContext
+        viewContext.automaticallyMergesChangesFromParent = true
+        return viewContext
+    }()
 }

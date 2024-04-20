@@ -26,7 +26,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         injectServices(resolver)
     }
 
-    private let context = CoreDataStack.shared.persistentContainer.viewContext
+    private let context = CoreDataStack.shared.viewContext
 
     func storePumpEvents(_ events: [NewPumpEvent]) {
         processQueue.async {

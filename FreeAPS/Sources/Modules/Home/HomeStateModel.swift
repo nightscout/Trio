@@ -77,7 +77,7 @@ extension Home {
         @Published var carbsForChart: [CarbsEntry] = []
         @Published var fpusForChart: [CarbsEntry] = []
 
-        let context = CoreDataStack.shared.persistentContainer.viewContext
+        let context = CoreDataStack.shared.viewContext
 
         override func subscribe() {
             setupGlucose()
