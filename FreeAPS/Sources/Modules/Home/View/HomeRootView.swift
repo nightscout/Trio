@@ -447,21 +447,38 @@ extension Home {
                     state.runLoop()
                 }
                 /// eventualBG string at bottomTrailing
-                if let eventualBG = state.eventualBG {
+
+                if let eventualBG = determination.first?.eventualBG {
+                    let bg = eventualBG as Decimal
                     HStack {
                         Image(systemName: "arrow.right.circle")
                             .font(.system(size: 16, weight: .bold))
                         Text(
                             numberFormatter.string(
                                 from: (
-                                    state.units == .mmolL ? eventualBG
-                                        .asMmolL : Decimal(eventualBG)
+                                    state.units == .mmolL ? bg
+                                        .asMmolL : bg
                                 ) as NSNumber
                             )!
                         )
                         .font(.system(size: 16))
                     }
                 }
+//                if let eventualBG = state.eventualBG {
+//                    HStack {
+//                        Image(systemName: "arrow.right.circle")
+//                            .font(.system(size: 16, weight: .bold))
+//                        Text(
+//                            numberFormatter.string(
+//                                from: (
+//                                    state.units == .mmolL ? eventualBG
+//                                        .asMmolL : Decimal(eventualBG)
+//                                ) as NSNumber
+//                            )!
+//                        )
+//                        .font(.system(size: 16))
+//                    }
+//                }
             }
         }
 
@@ -892,6 +909,11 @@ extension Home {
                     dateFormatter
                     .string(from: determination.deliverAt ?? Date())
             }
+        }
+
+        func convertToMmolL(_ value: Decimal) -> Decimal {
+            // Example conversion rate, adjust according to your actual conversion logic
+            value / Decimal(18.01559)
         }
     }
 }

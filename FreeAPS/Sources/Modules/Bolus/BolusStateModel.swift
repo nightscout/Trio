@@ -26,7 +26,7 @@ extension Bolus {
         @Published var threshold: Decimal = 0
         @Published var maxBolus: Decimal = 0
         @Published var errorString: Decimal = 0
-        @Published var evBG: Int = 0
+        @Published var evBG: Decimal = 0
         @Published var insulin: Decimal = 0
         @Published var isf: Decimal = 0
         @Published var error: Bool = false
@@ -43,7 +43,7 @@ extension Bolus {
 
         // added for bolus calculator
         @Published var target: Decimal = 0
-        @Published var cob: Decimal = 0
+        @Published var cob: Int16 = 0
         @Published var iob: Decimal = 0
 
         @Published var currentBG: Decimal = 0
@@ -93,6 +93,7 @@ extension Bolus {
         @Published var showInfo: Bool = false
 
         @Published var glucoseFromPersistence: [GlucoseStored] = []
+        @Published var determination: [OrefDetermination] = []
 
         let now = Date.now
 
@@ -100,8 +101,9 @@ extension Bolus {
 
         override func subscribe() {
             fetchGlucose()
+            fetchDetermination()
             setupInsulinRequired()
-            broadcaster.register(SuggestionObserver.self, observer: self)
+            broadcaster.register(DeterminationObserver.self, observer: self)
             broadcaster.register(BolusFailureObserver.self, observer: self)
             units = settingsManager.settings.units
             percentage = settingsManager.settings.insulinReqPercentage
@@ -194,6 +196,19 @@ extension Bolus {
             }
         }
 
+        private func fetchDetermination() {
+            do {
+                determination = try context.fetch(OrefDetermination.fetch(NSPredicate.predicateFor30MinAgoForDetermination))
+                debugPrint(
+                    "Bolus State: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched determinations"
+                )
+            } catch {
+                debugPrint(
+                    "Bolus State: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch determinations"
+                )
+            }
+        }
+
         // MARK: CALCULATIONS FOR THE BOLUS CALCULATOR
 
         /// Calculate insulin recommendation
@@ -205,14 +220,14 @@ extension Bolus {
             let isfForCalculation = isf / conversion
 
             // insulin needed for the current blood glucose
-            targetDifference = (currentBG - target)
+            targetDifference = currentBG - target
             targetDifferenceInsulin = targetDifference / isfForCalculation
 
             // more or less insulin because of bg trend in the last 15 minutes
             fifteenMinInsulin = deltaBG / isfForCalculation
 
             // determine whole COB for which we want to dose insulin for and then determine insulin for wholeCOB
-            wholeCob = cob + carbs
+            wholeCob = Decimal(cob) + carbs
             wholeCobInsulin = wholeCob / carbRatio
 
             // determine how much the calculator reduces/ increases the bolus because of IOB
@@ -258,38 +273,15 @@ extension Bolus {
 
         func setupInsulinRequired() {
             DispatchQueue.main.async {
-                self.insulinRequired = self.provider.suggestion?.insulinReq ?? 0
-
-                var conversion: Decimal = 1.0
-                if self.units == .mmolL {
-                    conversion = 0.0555
-                }
-
-                self.evBG = self.provider.suggestion?.eventualBG ?? 0
-                self.insulin = self.provider.suggestion?.insulinForManualBolus ?? 0
-                self.target = self.provider.suggestion?.current_target ?? 0
-                self.isf = self.provider.suggestion?.isf ?? 0
-                self.iob = self.provider.suggestion?.iob ?? 0
-                self.cob = self.provider.suggestion?.cob ?? 0
-                self.basal = self.provider.suggestion?.rate ?? 0
-                self.carbRatio = self.provider.suggestion?.carbRatio ?? 0
-
-                if self.settingsManager.settings.insulinReqPercentage != 100 {
-                    self.insulinRecommended = self.insulin * (self.settingsManager.settings.insulinReqPercentage / 100)
-                } else { self.insulinRecommended = self.insulin }
-
-                self.errorString = self.provider.suggestion?.manualBolusErrorString ?? 0
-                if self.errorString != 0 {
-                    self.error = true
-                    self.minGuardBG = (self.provider.suggestion?.minGuardBG ?? 0) * conversion
-                    self.minDelta = (self.provider.suggestion?.minDelta ?? 0) * conversion
-                    self.expectedDelta = (self.provider.suggestion?.expectedDelta ?? 0) * conversion
-                    self.minPredBG = (self.provider.suggestion?.minPredBG ?? 0) * conversion
-                } else { self.error = false }
-
-                self.insulinRecommended = self.apsManager
-                    .roundBolus(amount: max(self.insulinRecommended, 0))
-
+                self.insulinRequired = (self.determination.first?.insulinReq ?? 0) as Decimal
+                self.evBG = (self.determination.first?.eventualBG ?? 0) as Decimal
+                self.insulin = (self.determination.first?.insulinForManualBolus ?? 0) as Decimal
+                self.target = (self.determination.first?.currentTarget ?? 100) as Decimal
+                self.isf = (self.determination.first?.insulinSensitivity ?? 0) as Decimal
+                self.iob = (self.determination.first?.iob ?? 0) as Decimal
+                self.cob = (self.determination.first?.cob ?? 0) as Int16
+                self.basal = (self.determination.first?.tempBasal ?? 0) as Decimal
+                self.carbRatio = (self.determination.first?.carbRatio ?? 0) as Decimal
                 self.getCurrentBasal()
                 self.insulinCalculated = self.calculateInsulin()
             }
@@ -590,8 +582,8 @@ extension Bolus {
     }
 }
 
-extension Bolus.StateModel: SuggestionObserver, BolusFailureObserver {
-    func suggestionDidUpdate(_: Suggestion) {
+extension Bolus.StateModel: DeterminationObserver, BolusFailureObserver {
+    func determinationDidUpdate(_: Determination) {
         DispatchQueue.main.async {
             self.waitForSuggestion = false
             if self.addButtonPressed {

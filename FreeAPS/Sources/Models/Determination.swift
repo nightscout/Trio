@@ -72,7 +72,7 @@ protocol DeterminationObserver {
 
 // needed?
 protocol EnactedDeterminationObserver {
-    func enactedSDeterminationDidUpdate(_ determination: Determination)
+    func enactedDeterminationDidUpdate(_ determination: Determination)
 }
 
 extension Determination {
