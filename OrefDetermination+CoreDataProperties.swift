@@ -37,6 +37,23 @@ public extension OrefDetermination {
     @NSManaged var timestampEnacted: Date?
     @NSManaged var totalDailyDose: NSDecimalNumber?
     @NSManaged var treshold: NSDecimalNumber?
+    @NSManaged var forecasts: Set<Forecast>?
+}
+
+// MARK: Generated accessors for forecasts
+
+public extension OrefDetermination {
+    @objc(addForecastsObject:)
+    @NSManaged func addToForecasts(_ value: Forecast)
+
+    @objc(removeForecastsObject:)
+    @NSManaged func removeFromForecasts(_ value: Forecast)
+
+    @objc(addForecasts:)
+    @NSManaged func addToForecasts(_ values: NSSet)
+
+    @objc(removeForecasts:)
+    @NSManaged func removeFromForecasts(_ values: NSSet)
 }
 
 extension OrefDetermination: Identifiable {}

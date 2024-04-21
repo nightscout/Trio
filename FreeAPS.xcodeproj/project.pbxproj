@@ -381,6 +381,11 @@
 		CA370FC152BC98B3D1832968 /* BasalProfileEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF8BCB0C37DEB5EC377B9612 /* BasalProfileEditorRootView.swift */; };
 		CC41E29A2B1E1F460070974F /* HistoryLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC41E2992B1E1F460070974F /* HistoryLayout.swift */; };
 		CC6C406E2ACDD69E009B8058 /* RawFetchedProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC6C406D2ACDD69E009B8058 /* RawFetchedProfile.swift */; };
+		CC76E94C2BD471BA008BEB61 /* Forecast+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC76E9482BD471BA008BEB61 /* Forecast+CoreDataClass.swift */; };
+		CC76E94D2BD471BA008BEB61 /* Forecast+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC76E9492BD471BA008BEB61 /* Forecast+CoreDataProperties.swift */; };
+		CC76E94E2BD471BA008BEB61 /* ForecastValue+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC76E94A2BD471BA008BEB61 /* ForecastValue+CoreDataClass.swift */; };
+		CC76E94F2BD471BA008BEB61 /* ForecastValue+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC76E94B2BD471BA008BEB61 /* ForecastValue+CoreDataProperties.swift */; };
+		CC76E9512BD4812E008BEB61 /* Forecast+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC76E9502BD4812E008BEB61 /* Forecast+helper.swift */; };
 		CD78BB94E43B249D60CC1A1B /* NotificationsConfigRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22963BD06A9C83959D4914E4 /* NotificationsConfigRootView.swift */; };
 		CE1856F52ADC4858007E39C7 /* AddCarbPresetIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1856F42ADC4858007E39C7 /* AddCarbPresetIntent.swift */; };
 		CE1856F72ADC4869007E39C7 /* CarbPresetIntentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1856F62ADC4869007E39C7 /* CarbPresetIntentRequest.swift */; };
@@ -993,6 +998,11 @@
 		C8D1A7CA8C10C4403D4BBFA7 /* BolusDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BolusDataFlow.swift; sourceTree = "<group>"; };
 		CC41E2992B1E1F460070974F /* HistoryLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryLayout.swift; sourceTree = "<group>"; };
 		CC6C406D2ACDD69E009B8058 /* RawFetchedProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawFetchedProfile.swift; sourceTree = "<group>"; };
+		CC76E9482BD471BA008BEB61 /* Forecast+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Forecast+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
+		CC76E9492BD471BA008BEB61 /* Forecast+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Forecast+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
+		CC76E94A2BD471BA008BEB61 /* ForecastValue+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ForecastValue+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
+		CC76E94B2BD471BA008BEB61 /* ForecastValue+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ForecastValue+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
+		CC76E9502BD4812E008BEB61 /* Forecast+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Forecast+helper.swift"; sourceTree = "<group>"; };
 		CE1856F42ADC4858007E39C7 /* AddCarbPresetIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCarbPresetIntent.swift; sourceTree = "<group>"; };
 		CE1856F62ADC4869007E39C7 /* CarbPresetIntentRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbPresetIntentRequest.swift; sourceTree = "<group>"; };
 		CE2FAD39297D93F0001A872C /* BloodGlucoseExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BloodGlucoseExtensions.swift; sourceTree = "<group>"; };
@@ -2132,6 +2142,10 @@
 		5825D1052BD4056700F36E9B /* Classes+Properties */ = {
 			isa = PBXGroup;
 			children = (
+				CC76E9482BD471BA008BEB61 /* Forecast+CoreDataClass.swift */,
+				CC76E9492BD471BA008BEB61 /* Forecast+CoreDataProperties.swift */,
+				CC76E94A2BD471BA008BEB61 /* ForecastValue+CoreDataClass.swift */,
+				CC76E94B2BD471BA008BEB61 /* ForecastValue+CoreDataProperties.swift */,
 				5825D1062BD4058F00F36E9B /* BGaverages+CoreDataClass.swift */,
 				5825D1072BD4058F00F36E9B /* BGaverages+CoreDataProperties.swift */,
 				5825D1082BD4058F00F36E9B /* BGmedian+CoreDataClass.swift */,
@@ -2191,6 +2205,7 @@
 				58F107732BD1A4D000B1A680 /* Determination+helper.swift */,
 				5837A52F2BD2E3C700A5DC04 /* MealsStored+helper.swift */,
 				5837A5312BD2E81100A5DC04 /* InsulinStored+helper.swift */,
+				CC76E9502BD4812E008BEB61 /* Forecast+helper.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -2944,6 +2959,10 @@
 				5825D1452BD4058F00F36E9B /* Autosens_+CoreDataProperties.swift in Sources */,
 				19DC678529CA67A400FD9EC4 /* OverrideProfilesRootView.swift in Sources */,
 				5837A5302BD2E3C700A5DC04 /* MealsStored+helper.swift in Sources */,
+				CC76E94C2BD471BA008BEB61 /* Forecast+CoreDataClass.swift in Sources */,
+				CC76E94D2BD471BA008BEB61 /* Forecast+CoreDataProperties.swift in Sources */,
+				CC76E94E2BD471BA008BEB61 /* ForecastValue+CoreDataClass.swift in Sources */,
+				CC76E94F2BD471BA008BEB61 /* ForecastValue+CoreDataProperties.swift in Sources */,
 				389A572026079BAA00BC102F /* Interpolation.swift in Sources */,
 				19A910382A24EF3200C8951B /* ChartsView.swift in Sources */,
 				38B4F3C625E5017E00E76A18 /* NotificationCenter.swift in Sources */,
@@ -3090,6 +3109,7 @@
 				38E98A3725F5509500C0CED0 /* String+Extensions.swift in Sources */,
 				5825D13C2BD4058F00F36E9B /* ImportError+CoreDataClass.swift in Sources */,
 				5825D13F2BD4058F00F36E9B /* TDD+CoreDataProperties.swift in Sources */,
+				CC76E9512BD4812E008BEB61 /* Forecast+helper.swift in Sources */,
 				F90692D1274B99B60037068D /* HealthKitProvider.swift in Sources */,
 				19F95FF729F10FEE00314DDC /* StatStateModel.swift in Sources */,
 				5825D1432BD4058F00F36E9B /* Presets+CoreDataProperties.swift in Sources */,

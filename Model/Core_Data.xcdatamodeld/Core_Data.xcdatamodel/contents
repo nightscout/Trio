@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22222" systemVersion="22G120" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22757" systemVersion="23E224" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
     <entity name="Autosens_" representedClassName="Autosens_" syncable="YES">
         <attribute name="newisf" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="ratio" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
@@ -24,6 +24,18 @@
         <attribute name="median_1" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="median_7" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="median_30" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+    </entity>
+    <entity name="Forecast" representedClassName="Forecast" syncable="YES">
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="type" optional="YES" attributeType="String"/>
+        <relationship name="forecastValues" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ForecastValue" inverseName="forecast" inverseEntity="ForecastValue"/>
+        <relationship name="orefDetermination" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="OrefDetermination" inverseName="forecasts" inverseEntity="OrefDetermination"/>
+    </entity>
+    <entity name="ForecastValue" representedClassName="ForecastValue" syncable="YES">
+        <attribute name="index" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="value" optional="YES" attributeType="Integer 32" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <relationship name="forecast" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Forecast" inverseName="forecastValues" inverseEntity="Forecast"/>
     </entity>
     <entity name="GlucoseStored" representedClassName="GlucoseStored" syncable="YES">
         <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -113,6 +125,7 @@
         <attribute name="timestampEnacted" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="totalDailyDose" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="treshold" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <relationship name="forecasts" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Forecast" inverseName="orefDetermination" inverseEntity="Forecast"/>
     </entity>
     <entity name="Override" representedClassName="Override" syncable="YES">
         <attribute name="advancedSettings" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>

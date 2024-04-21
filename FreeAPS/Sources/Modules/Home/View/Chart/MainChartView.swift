@@ -115,6 +115,11 @@ struct MainChartView: View {
         animation: Animation.bouncy
     ) var determinations: FetchedResults<OrefDetermination>
 
+    @FetchRequest(
+        fetchRequest: Forecast.fetch(NSPredicate.forecastsForChart, sortedBy: "date", ascending: true),
+        animation: .default
+    ) var forecasts: FetchedResults<Forecast>
+
     private var bolusFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
@@ -227,7 +232,7 @@ extension MainChartView {
                 drawFpus()
                 drawBoluses()
                 drawTempTargets()
-                drawPredictions()
+//                drawPredictions()
                 drawGlucose()
                 drawManualGlucose()
 
@@ -252,7 +257,7 @@ extension MainChartView {
             }
             .id("MainChart")
             .onChange(of: glucose) { _ in
-                calculatePredictions()
+//                calculatePredictions()
             }
             .onChange(of: boluses) { _ in
                 state.roundedTotalBolus = state.calculateTINS()
@@ -261,17 +266,17 @@ extension MainChartView {
                 calculateTTs()
             }
             .onChange(of: didAppearTrigger) { _ in
-                calculatePredictions()
+//                calculatePredictions()
                 calculateTTs()
             }
             .onChange(of: determinations.map(\.id)) { _ in
-                calculatePredictions()
+//                calculatePredictions()
             }
             .onReceive(
                 Foundation.NotificationCenter.default
                     .publisher(for: UIApplication.willEnterForegroundNotification)
             ) { _ in
-                calculatePredictions()
+//                calculatePredictions()
             }
             .frame(minHeight: UIScreen.main.bounds.height * 0.2)
             .frame(width: fullWidth(viewWidth: screenSize.width))
@@ -464,39 +469,31 @@ extension MainChartView {
         }
     }
 
-    private func drawPredictions() -> some ChartContent {
-        /// predictions
-        ForEach(Predictions, id: \.self) { info in
-            let y = max(info.amount, 0)
+    private func drawPredictions() -> some View {
+        ForEach(forecasts, id: \.self) { forecast in
+            ForEach(forecast.forecastValuesArray) { value in
+                LineMark(
+                    x: .value("Time", value.timestamp),
+                    y: .value("Value", Decimal(value.value) * conversionFactor)
+                    //                    series: .value("Series", forecast.type)
+                )
+                //                .foregroundStyle(colorForType(PredictionType(rawValue: forecast.type ?? "") ?? .unknown))
+            }
+        }
+    }
 
-            if info.type == .uam {
-                LineMark(
-                    x: .value("Time", info.timestamp, unit: .second),
-                    y: .value("Value", Decimal(y) * conversionFactor),
-                    series: .value("uam", "uam")
-                ).foregroundStyle(Color.uam).symbolSize(16)
-            }
-            if info.type == .cob {
-                LineMark(
-                    x: .value("Time", info.timestamp, unit: .second),
-                    y: .value("Value", Decimal(y) * conversionFactor),
-                    series: .value("cob", "cob")
-                ).foregroundStyle(Color.orange).symbolSize(16)
-            }
-            if info.type == .iob {
-                LineMark(
-                    x: .value("Time", info.timestamp, unit: .second),
-                    y: .value("Value", Decimal(y) * conversionFactor),
-                    series: .value("iob", "iob")
-                ).foregroundStyle(Color.insulin).symbolSize(16)
-            }
-            if info.type == .zt {
-                LineMark(
-                    x: .value("Time", info.timestamp, unit: .second),
-                    y: .value("Value", Decimal(y) * conversionFactor),
-                    series: .value("zt", "zt")
-                ).foregroundStyle(Color.zt).symbolSize(16)
-            }
+    private func colorForType(_ type: PredictionType) -> Color {
+        switch type {
+        case .uam:
+            return .uam
+        case .cob:
+            return .orange
+        case .iob:
+            return .insulin
+        case .zt:
+            return .zt
+        default:
+            return .gray // Default color for unknown types
         }
     }
 
@@ -744,36 +741,6 @@ extension MainChartView {
         ChartTempTargets = calculatedTTs
     }
 
-    private func addPredictions(_ predictions: [Int], type: PredictionType, deliveredAt: Date, endMarker: Date) -> [Prediction] {
-        var calculatedPredictions: [Prediction] = []
-        predictions.indices.forEach { index in
-            let predTime = Date(
-                timeIntervalSince1970: deliveredAt.timeIntervalSince1970 + TimeInterval(index) * 5.minutes.timeInterval
-            )
-            if predTime.timeIntervalSince1970 < endMarker.timeIntervalSince1970 {
-                calculatedPredictions.append(
-                    Prediction(amount: predictions[index], timestamp: predTime, type: type)
-                )
-            }
-        }
-        return calculatedPredictions
-    }
-
-    private func calculatePredictions() {
-//        guard let suggestion = suggestion, let deliveredAt = suggestion.deliverAt else { return }
-//        let uamPredictions = suggestion.predictions?.uam ?? []
-//        let iobPredictions = suggestion.predictions?.iob ?? []
-//        let cobPredictions = suggestion.predictions?.cob ?? []
-//        let ztPredictions = suggestion.predictions?.zt ?? []
-//
-//        let uam = addPredictions(uamPredictions, type: .uam, deliveredAt: deliveredAt, endMarker: endMarker)
-//        let iob = addPredictions(iobPredictions, type: .iob, deliveredAt: deliveredAt, endMarker: endMarker)
-//        let cob = addPredictions(cobPredictions, type: .cob, deliveredAt: deliveredAt, endMarker: endMarker)
-//        let zt = addPredictions(ztPredictions, type: .zt, deliveredAt: deliveredAt, endMarker: endMarker)
-//
-//        Predictions = uam + iob + cob + zt
-    }
-
     private func calculateTempBasals() {
         let basals = tempBasals
         var returnTempBasalRates: [PumpHistoryEvent] = []
@@ -798,6 +765,21 @@ extension MainChartView {
             }
         }
         TempBasals = returnTempBasalRates
+    }
+
+    private func addPredictions(_ predictions: [Int], type: PredictionType, deliveredAt: Date, endMarker: Date) -> [Prediction] {
+        var calculatedPredictions: [Prediction] = []
+        predictions.indices.forEach { index in
+            let predTime = Date(
+                timeIntervalSince1970: deliveredAt.timeIntervalSince1970 + TimeInterval(index) * 5.minutes.timeInterval
+            )
+            if predTime.timeIntervalSince1970 < endMarker.timeIntervalSince1970 {
+                calculatedPredictions.append(
+                    Prediction(amount: predictions[index], timestamp: predTime, type: type)
+                )
+            }
+        }
+        return calculatedPredictions
     }
 
     private func findRegularBasalPoints(
