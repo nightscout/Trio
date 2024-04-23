@@ -426,6 +426,7 @@ extension Bolus {
             // save to core data asynchronously
             context.perform {
                 let newItem = InsulinStored(context: self.context)
+                newItem.id = UUID()
                 newItem.amount = self.amount as NSDecimalNumber
                 newItem.date = Date()
                 newItem.external = true

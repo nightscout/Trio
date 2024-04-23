@@ -161,7 +161,7 @@ struct MainChartView: View {
         VStack {
             ScrollViewReader { scroller in
                 ScrollView(.horizontal, showsIndicators: false) {
-                    VStack(spacing: 0) {
+                    LazyVStack(spacing: 0) {
                         mainChart
                         basalChart
 
@@ -273,7 +273,7 @@ extension MainChartView {
             ) { _ in
                 calculatePredictions()
             }
-            .frame(minHeight: UIScreen.main.bounds.height * 0.2)
+            .frame(minHeight: UIScreen.main.bounds.height * 0.3)
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .chartXScale(domain: startMarker ... endMarker)
             .chartXAxis { mainChartXAxis }
@@ -335,7 +335,7 @@ extension MainChartView {
             }.onChange(of: basalProfile) { _ in
                 calculateTempBasals()
             }
-            .frame(height: UIScreen.main.bounds.height * 0.08)
+            .frame(maxHeight: UIScreen.main.bounds.height * 0.05)
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .chartXScale(domain: startMarker ... endMarker)
             .chartXAxis { basalChartXAxis }
