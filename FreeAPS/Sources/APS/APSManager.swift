@@ -675,13 +675,13 @@ final class BaseAPSManager: APSManager, Injectable {
                 return Fail(error: error).eraseToAnyPublisher()
             }
 
-            if determination.rate == 0 || determination.duration == 0 {
+            guard let rate = determination.rate else {
                 debug(.apsManager, "No temp required")
                 return Just(()).setFailureType(to: Error.self)
                     .eraseToAnyPublisher()
             }
             return pump.enactTempBasal(
-                unitsPerHour: Double(truncating: determination.rate ?? 0),
+                unitsPerHour: Double(truncating: rate),
                 for: TimeInterval(determination.duration * 60)
             ).map { _ in
                 let temp = TempBasal(

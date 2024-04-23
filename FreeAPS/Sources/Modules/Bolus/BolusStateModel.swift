@@ -190,9 +190,13 @@ extension Bolus {
 
                 currentBG = Decimal(lastGlucose)
                 deltaBG = delta
-                debugPrint("Bolus State: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched glucose")
+                debugPrint(
+                    "Bolus State: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched glucose"
+                )
             } catch {
-                debugPrint("Bolus State: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch glucose")
+                debugPrint(
+                    "Bolus State: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch glucose"
+                )
             }
         }
 

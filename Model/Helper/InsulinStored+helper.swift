@@ -4,7 +4,7 @@ import Foundation
 extension InsulinStored {
     static func fetch(_ predicate: NSPredicate = .predicateForOneDayAgo) -> NSFetchRequest<InsulinStored> {
         let request = InsulinStored.fetchRequest()
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \InsulinStored.date, ascending: false)]
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \InsulinStored.date, ascending: true)]
         request.fetchLimit = 100
         request.predicate = predicate
         return request
