@@ -3,27 +3,15 @@ import Foundation
 import UIKit
 
 enum Icon_: String, CaseIterable, Identifiable {
-    case primary = "OiAPS_Icon"
-    case text = "iAPS"
-    case podBlack = "podTemplateBlack"
-    case popWhite = "podTemplateWhite"
-    case cyan = "iAPS_Loop_Cyan_Text"
-    case podColorful = "pod_colorful"
-    case podPurple
+    case primary = "oiapsBlack"
+    case text = "Open-iAPS"
     case catWithPod
     case catWithPodWhite = "catWithPodWhiteBG"
-    case loopWhiteText = "iAPS_Loop_White_Text"
-    case loopText = "iAPS_Loop_Text"
-    case black = "iAPS_Black_Black"
-    case clean = "iAPS_Clean"
-    case purple = "iAPS_Purple"
-    case glow = "iAPS_Glow_BG"
-    case gray = "iAPS_Gray"
-    case whiteAndGray = "iAPS_WhiteAndGray"
-    case grayAndLoopNoButtons = "iAPS_NoButtons_Gray_White_BG"
-    case purpleBG = "iAPS_Purple_BG"
-    case whiteBG = "iAPS_White_BG"
-    case loop = "iAPS_Loop"
+    case loop = "OiAPS_Loop"
+    case diabeetus
+    case oiapsWhite
+    case oiapsWhiteShadow
+    case oiapsColorBG
     var id: String { rawValue }
 }
 

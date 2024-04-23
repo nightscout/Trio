@@ -5,7 +5,7 @@ COPYRIGHT_NOTICE =
 DEVELOPER_TEAM = ##TEAM_ID##
 BUNDLE_IDENTIFIER = org.nightscout.$(DEVELOPMENT_TEAM).openiaps
 APP_GROUP_ID = group.com.$(DEVELOPMENT_TEAM).loopkit.LoopGroup
-APP_ICON = OiAPS_Icon
+APP_ICON = oiapsBlack
 APP_URL_SCHEME = Open-iAPS
 
 #include? "../../ConfigOverride.xcconfig"
