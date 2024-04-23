@@ -45,9 +45,11 @@ extension Home {
         @FetchRequest(
             entity: OrefDetermination.entity(),
             sortDescriptors: [NSSortDescriptor(key: "deliverAt", ascending: false)],
-            predicate: NSPredicate.enactedDetermination,
+            predicate: NSPredicate.predicateFor30MinAgoForDetermination,
             animation: Animation.bouncy
         ) var determination: FetchedResults<OrefDetermination>
+        
+        @FetchRequest(fetchRequest: OrefDetermination.fetch(NSPredicate.enactedDetermination), animation: Animation.bouncy) var enactedDeterminations: FetchedResults<OrefDetermination>
 
         @FetchRequest(
             entity: OverridePresets.entity(),
@@ -870,7 +872,7 @@ extension Home {
             VStack(alignment: .leading, spacing: 4) {
                 Text(statusTitle).font(.headline).foregroundColor(.white)
                     .padding(.bottom, 4)
-                if let determination = determination.first {
+                if let determination = enactedDeterminations.first {
                     TagCloudView(tags: determination.reasonParts).animation(.none, value: false)
 
                     Text(determination.reasonConclusion.capitalizingFirstLetter()).font(.caption).foregroundColor(.white)
