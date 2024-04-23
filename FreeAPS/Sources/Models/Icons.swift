@@ -4,14 +4,14 @@ import UIKit
 
 enum Icon_: String, CaseIterable, Identifiable {
     case primary = "oiapsBlack"
-    case text = "Open-iAPS"
+    case oiapsWhiteShadow
+    case oiapsColorBG
+    case oiapsWhite
+    case oiaps3D
+    case diabeetus
     case catWithPod
     case catWithPodWhite = "catWithPodWhiteBG"
     case loop = "OiAPS_Loop"
-    case diabeetus
-    case oiapsWhite
-    case oiapsWhiteShadow
-    case oiapsColorBG
     var id: String { rawValue }
 }
 
