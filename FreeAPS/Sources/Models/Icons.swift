@@ -4,7 +4,7 @@ import UIKit
 
 enum Icon_: String, CaseIterable, Identifiable {
     case primary = "oiapsBlack"
-    case oiapsWhiteShadow
+    case oiAPSWhiteShadow
     case oiapsColorBG
     case oiapsWhite
     case oiaps3D
