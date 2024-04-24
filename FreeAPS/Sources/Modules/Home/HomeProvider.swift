@@ -67,10 +67,6 @@ extension Home {
                 ?? PumpSettings(insulinActionCurve: 6, maxBolus: 10, maxBasal: 2)
         }
 
-        func pumpBattery() -> Battery? {
-            storage.retrieve(OpenAPS.Monitor.battery, as: Battery.self)
-        }
-
         func pumpReservoir() -> Decimal? {
             storage.retrieve(OpenAPS.Monitor.reservoir, as: Decimal.self)
         }

@@ -1367,7 +1367,26 @@ extension BaseAPSManager: PumpManagerStatusObserver {
             string: percent > 10 ? .normal : .low,
             display: status.pumpBatteryChargeRemaining != nil
         )
-        storage.save(battery, as: OpenAPS.Monitor.battery)
+
+        let batteryToStore = OpenAPS_Battery(context: privateContext)
+        batteryToStore.id = UUID()
+        batteryToStore.date = Date()
+        batteryToStore.percent = Int16(percent)
+        batteryToStore.voltage = nil
+        batteryToStore.status = percent > 10 ? "normal" : "low"
+        batteryToStore.display = status.pumpBatteryChargeRemaining != nil
+        privateContext.perform {
+            do {
+                try self.privateContext.save()
+                debugPrint(
+                    "APS Manager: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved battery infos to core data"
+                )
+            } catch {
+                debugPrint(
+                    "APS Manager: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save battery infos to core data"
+                )
+            }
+        }
         storage.save(status.pumpStatus, as: OpenAPS.Monitor.status)
     }
 }

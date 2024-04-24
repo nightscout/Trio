@@ -318,6 +318,9 @@
 		5837A5302BD2E3C700A5DC04 /* MealsStored+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5837A52F2BD2E3C700A5DC04 /* MealsStored+helper.swift */; };
 		5837A5322BD2E81100A5DC04 /* InsulinStored+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5837A5312BD2E81100A5DC04 /* InsulinStored+helper.swift */; };
 		587DA1F62B77F3DD00B28F8A /* SettingsRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 587DA1F52B77F3DD00B28F8A /* SettingsRowView.swift */; };
+		5887527C2BD986E1008B081D /* OpenAPSBattery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5887527B2BD986E1008B081D /* OpenAPSBattery.swift */; };
+		588752842BD9986A008B081D /* OpenAPS_Battery+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 588752822BD9986A008B081D /* OpenAPS_Battery+CoreDataClass.swift */; };
+		588752852BD9986A008B081D /* OpenAPS_Battery+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 588752832BD9986A008B081D /* OpenAPS_Battery+CoreDataProperties.swift */; };
 		58F107742BD1A4D000B1A680 /* Determination+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58F107732BD1A4D000B1A680 /* Determination+helper.swift */; };
 		5BFA1C2208114643B77F8CEB /* AddTempTargetProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEE53A13D26F101B332EFFC8 /* AddTempTargetProvider.swift */; };
 		5D16287A969E64D18CE40E44 /* PumpConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F60E97100041040446F44E7 /* PumpConfigStateModel.swift */; };
@@ -930,6 +933,9 @@
 		5837A52F2BD2E3C700A5DC04 /* MealsStored+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MealsStored+helper.swift"; sourceTree = "<group>"; };
 		5837A5312BD2E81100A5DC04 /* InsulinStored+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "InsulinStored+helper.swift"; sourceTree = "<group>"; };
 		587DA1F52B77F3DD00B28F8A /* SettingsRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRowView.swift; sourceTree = "<group>"; };
+		5887527B2BD986E1008B081D /* OpenAPSBattery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAPSBattery.swift; sourceTree = "<group>"; };
+		588752822BD9986A008B081D /* OpenAPS_Battery+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OpenAPS_Battery+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
+		588752832BD9986A008B081D /* OpenAPS_Battery+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OpenAPS_Battery+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		58F107732BD1A4D000B1A680 /* Determination+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Determination+helper.swift"; sourceTree = "<group>"; };
 		5B8A42073A2D03A278914448 /* AddTempTargetDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AddTempTargetDataFlow.swift; sourceTree = "<group>"; };
 		5C018D1680307A31C9ED7120 /* CGMStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CGMStateModel.swift; sourceTree = "<group>"; };
@@ -2132,6 +2138,8 @@
 		5825D1052BD4056700F36E9B /* Classes+Properties */ = {
 			isa = PBXGroup;
 			children = (
+				588752822BD9986A008B081D /* OpenAPS_Battery+CoreDataClass.swift */,
+				588752832BD9986A008B081D /* OpenAPS_Battery+CoreDataProperties.swift */,
 				5825D1062BD4058F00F36E9B /* BGaverages+CoreDataClass.swift */,
 				5825D1072BD4058F00F36E9B /* BGaverages+CoreDataProperties.swift */,
 				5825D1082BD4058F00F36E9B /* BGmedian+CoreDataClass.swift */,
@@ -2191,6 +2199,7 @@
 				58F107732BD1A4D000B1A680 /* Determination+helper.swift */,
 				5837A52F2BD2E3C700A5DC04 /* MealsStored+helper.swift */,
 				5837A5312BD2E81100A5DC04 /* InsulinStored+helper.swift */,
+				5887527B2BD986E1008B081D /* OpenAPSBattery.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -2926,8 +2935,10 @@
 				38E44539274E411700EC9A94 /* Disk+UIImage.swift in Sources */,
 				388E595C25AD948C0019842D /* FreeAPSApp.swift in Sources */,
 				5825D1522BD4058F00F36E9B /* LastLoop+CoreDataClass.swift in Sources */,
+				588752852BD9986A008B081D /* OpenAPS_Battery+CoreDataProperties.swift in Sources */,
 				38FEF3FC2737E53800574A46 /* MainStateModel.swift in Sources */,
 				5825D13A2BD4058F00F36E9B /* LoopStatRecord+CoreDataClass.swift in Sources */,
+				5887527C2BD986E1008B081D /* OpenAPSBattery.swift in Sources */,
 				38569348270B5DFB0002C50D /* GlucoseSource.swift in Sources */,
 				5825D15B2BD4058F00F36E9B /* OverridePresets+CoreDataProperties.swift in Sources */,
 				CEB434E328B8F9DB00B70274 /* BluetoothStateManager.swift in Sources */,
@@ -3179,6 +3190,7 @@
 				19E1F7EC29D082FE005C8D20 /* IconConfigStateModel.swift in Sources */,
 				5837A5322BD2E81100A5DC04 /* InsulinStored+helper.swift in Sources */,
 				711C0CB42CAABE788916BC9D /* ManualTempBasalDataFlow.swift in Sources */,
+				588752842BD9986A008B081D /* OpenAPS_Battery+CoreDataClass.swift in Sources */,
 				BF1667ADE69E4B5B111CECAE /* ManualTempBasalProvider.swift in Sources */,
 				583684062BD178DB00070A60 /* GlucoseStored+helper.swift in Sources */,
 				F90692D6274B9A450037068D /* HealthKitStateModel.swift in Sources */,

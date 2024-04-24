@@ -187,7 +187,6 @@ extension Home {
         var pumpView: some View {
             PumpView(
                 reservoir: $state.reservoir,
-                battery: $state.battery,
                 name: $state.pumpName,
                 expiresAtDate: $state.pumpExpiresAtDate,
                 timerDate: $state.timerDate,

@@ -86,7 +86,6 @@ extension Home {
             setupBasalProfile()
             setupTempTargets()
             setupCarbs()
-            setupBattery()
             setupReservoir()
             setupAnnouncements()
             setupCurrentPumpTimezone()
@@ -119,7 +118,6 @@ extension Home {
             broadcaster.register(BasalProfileObserver.self, observer: self)
             broadcaster.register(TempTargetsObserver.self, observer: self)
             broadcaster.register(CarbsObserver.self, observer: self)
-            broadcaster.register(PumpBatteryObserver.self, observer: self)
             broadcaster.register(PumpReservoirObserver.self, observer: self)
 
             animatedBackground = settingsManager.settings.animatedBackground
@@ -181,7 +179,6 @@ extension Home {
                         self.pumpExpiresAtDate = nil
                         self.setupPump = false
                     } else {
-                        self.setupBattery()
                         self.setupReservoir()
                     }
                 }
@@ -380,13 +377,6 @@ extension Home {
             }
         }
 
-        private func setupBattery() {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.battery = self.provider.pumpBattery()
-            }
-        }
-
         private func setupCurrentTempTarget() {
             tempTarget = provider.tempTarget()
         }
@@ -433,7 +423,6 @@ extension Home.StateModel:
     BasalProfileObserver,
     TempTargetsObserver,
     CarbsObserver,
-    PumpBatteryObserver,
     PumpReservoirObserver,
     PumpTimeZoneObserver
 {
@@ -487,10 +476,6 @@ extension Home.StateModel:
         setupCarbs()
         filterFpus()
         filterCarbs()
-    }
-
-    func pumpBatteryDidChange(_: Battery) {
-        setupBattery()
     }
 
     func pumpReservoirDidChange(_: Decimal) {
