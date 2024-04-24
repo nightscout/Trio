@@ -3094,6 +3094,9 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -3136,6 +3139,9 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -3161,7 +3167,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IBSC_MODULE = FreeAPSWatch_WatchKit_Extension;
 				INFOPLIST_FILE = FreeAPSWatch/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Open-iAPS;
+				INFOPLIST_KEY_CFBundleDisplayName = "Open-iAPS";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "$(BUNDLE_IDENTIFIER)";
 				MARKETING_VERSION = "$(APP_VERSION)";
@@ -3196,7 +3202,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IBSC_MODULE = FreeAPSWatch_WatchKit_Extension;
 				INFOPLIST_FILE = FreeAPSWatch/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Open-iAPS;
+				INFOPLIST_KEY_CFBundleDisplayName = "Open-iAPS";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "$(BUNDLE_IDENTIFIER)";
 				MARKETING_VERSION = "$(APP_VERSION)";
