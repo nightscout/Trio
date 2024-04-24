@@ -9,7 +9,7 @@ final class OpenAPS {
 
     private let storage: FileStorage
 
-    let viewContext = CoreDataStack.shared.viewContext
+    let context = CoreDataStack.shared.backgroundContext
 
     init(storage: FileStorage) {
         self.storage = storage
@@ -83,9 +83,9 @@ final class OpenAPS {
                     determination.timestamp = determination.deliverAt ?? clock
                     self.storage.save(determination, as: Enact.suggested)
 
-                    // save to core data asynchronously
-                    self.viewContext.perform {
-                        let new = OrefDetermination(context: self.viewContext)
+                    // save to core data asynchronously and on a private queue
+                    self.context.perform {
+                        let new = OrefDetermination(context: self.context)
                         new.id = UUID()
                         new.totalDailyDose = determination.tdd as? NSDecimalNumber
                         new.insulinSensitivity = determination.isf as? NSDecimalNumber
@@ -122,7 +122,7 @@ final class OpenAPS {
                         new.smbToDeliver = determination.units as? NSDecimalNumber
                         new.carbsRequired = Int16(Int(determination.carbsReq ?? 0))
                         do {
-                            try self.viewContext.save()
+                            try self.context.save()
                             debugPrint(
                                 "OpenAPS: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved determination"
                             )
@@ -136,16 +136,16 @@ final class OpenAPS {
                     // MARK: Save to CoreData also. To do: Remove JSON saving
 
                     if determination.tdd ?? 0 > 0 {
-                        self.viewContext.perform {
-                            let saveToTDD = TDD(context: self.viewContext)
+                        self.context.perform {
+                            let saveToTDD = TDD(context: self.context)
 
                             saveToTDD.timestamp = determination.timestamp ?? Date()
                             saveToTDD.tdd = (determination.tdd ?? 0) as NSDecimalNumber?
-                            try? self.viewContext.save()
+                            try? self.context.save()
 
-                            let saveTarget = Target(context: self.viewContext)
+                            let saveTarget = Target(context: self.context)
                             saveTarget.current = (determination.current_target ?? 100) as NSDecimalNumber?
-                            try? self.viewContext.save()
+                            try? self.context.save()
                         }
 
 //                        self.coredataContext.perform {
@@ -169,7 +169,7 @@ final class OpenAPS {
     }
 
     func oref2() -> RawJSON {
-        viewContext.performAndWait {
+        context.performAndWait {
             let preferences = storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self)
             var hbt_ = preferences?.halfBasalExerciseTarget ?? 160
             let wp = preferences?.weightPercentage ?? 1
@@ -184,28 +184,28 @@ final class OpenAPS {
             requestTDD.predicate = NSPredicate(format: "timestamp > %@ AND tdd > 0", tenDaysAgo as NSDate)
             let sortTDD = NSSortDescriptor(key: "timestamp", ascending: true)
             requestTDD.sortDescriptors = [sortTDD]
-            try? uniqueEvents = viewContext.fetch(requestTDD)
+            try? uniqueEvents = context.fetch(requestTDD)
 
             var sliderArray = [TempTargetsSlider]()
             let requestIsEnbled = TempTargetsSlider.fetchRequest() as NSFetchRequest<TempTargetsSlider>
             let sortIsEnabled = NSSortDescriptor(key: "date", ascending: false)
             requestIsEnbled.sortDescriptors = [sortIsEnabled]
             // requestIsEnbled.fetchLimit = 1
-            try? sliderArray = viewContext.fetch(requestIsEnbled)
+            try? sliderArray = context.fetch(requestIsEnbled)
 
             var overrideArray = [Override]()
             let requestOverrides = Override.fetchRequest() as NSFetchRequest<Override>
             let sortOverride = NSSortDescriptor(key: "date", ascending: false)
             requestOverrides.sortDescriptors = [sortOverride]
             // requestOverrides.fetchLimit = 1
-            try? overrideArray = viewContext.fetch(requestOverrides)
+            try? overrideArray = context.fetch(requestOverrides)
 
             var tempTargetsArray = [TempTargets]()
             let requestTempTargets = TempTargets.fetchRequest() as NSFetchRequest<TempTargets>
             let sortTT = NSSortDescriptor(key: "date", ascending: false)
             requestTempTargets.sortDescriptors = [sortTT]
             requestTempTargets.fetchLimit = 1
-            try? tempTargetsArray = viewContext.fetch(requestTempTargets)
+            try? tempTargetsArray = context.fetch(requestTempTargets)
 
             let total = uniqueEvents.compactMap({ each in each.tdd as? Decimal ?? 0 }).reduce(0, +)
             var indeces = uniqueEvents.count
@@ -251,13 +251,13 @@ final class OpenAPS {
                    !unlimited
                 {
                     useOverride = false
-                    let saveToCoreData = Override(context: self.viewContext)
+                    let saveToCoreData = Override(context: self.context)
                     saveToCoreData.enabled = false
                     saveToCoreData.date = Date()
                     saveToCoreData.duration = 0
                     saveToCoreData.indefinite = false
                     saveToCoreData.percentage = 100
-                    try? self.viewContext.save()
+                    try? self.context.save()
                 }
             }
 
