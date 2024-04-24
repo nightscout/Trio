@@ -48,8 +48,11 @@ extension Home {
             predicate: NSPredicate.predicateFor30MinAgoForDetermination,
             animation: Animation.bouncy
         ) var determination: FetchedResults<OrefDetermination>
-        
-        @FetchRequest(fetchRequest: OrefDetermination.fetch(NSPredicate.enactedDetermination), animation: Animation.bouncy) var enactedDeterminations: FetchedResults<OrefDetermination>
+
+        @FetchRequest(
+            fetchRequest: OrefDetermination.fetch(NSPredicate.enactedDetermination),
+            animation: Animation.bouncy
+        ) var enactedDeterminations: FetchedResults<OrefDetermination>
 
         @FetchRequest(
             entity: OverridePresets.entity(),

@@ -106,7 +106,7 @@ struct MainChartView: View {
     ) var insulinFromPersistence: FetchedResults<InsulinStored>
 
     @FetchRequest(
-        fetchRequest: GlucoseStored.fetch(NSPredicate.predicateForOneDayAgo, ascending: false),
+        fetchRequest: GlucoseStored.fetch(NSPredicate.predicateForOneDayAgo, ascending: true),
         animation: Animation.bouncy
     ) var glucoseFromPersistence: FetchedResults<GlucoseStored>
 
@@ -369,7 +369,7 @@ extension MainChartView {
             let bolusAmount = bolus.amount ?? 0 as NSDecimalNumber
             let bolusDate = bolus.date ?? Date()
             let glucose = timeToNearestGlucose(time: bolusDate.timeIntervalSince1970)
-            let yPosition = (Decimal(glucose.sgv ?? defaultBolusPosition) * conversionFactor) + bolusOffset
+            let yPosition = (Decimal(glucose.glucose) * conversionFactor) + bolusOffset
             let size = (Config.bolusSize + CGFloat(truncating: bolusAmount) * Config.bolusScale) * 1.8
 
             PointMark(
@@ -654,27 +654,22 @@ extension MainChartView {
 
     /// calculates the glucose value thats the nearest to parameter 'time'
     /// if time is later than all the arrays values return the last element of BloodGlucose
-    private func timeToNearestGlucose(time: TimeInterval) -> BloodGlucose {
+    private func timeToNearestGlucose(time: TimeInterval) -> GlucoseStored {
         /// If the glucose array is empty, return a default BloodGlucose object or handle it accordingly
-        guard let lastGlucose = glucose.last else {
-            return BloodGlucose(
-                date: 0,
-                dateString: Date(),
-                unfiltered: nil,
-                filtered: nil,
-                noise: nil,
-                type: nil
-            )
+        guard let lastGlucose = glucoseFromPersistence.last else {
+            return GlucoseStored()
         }
 
         /// If the last glucose entry is before the specified time, return the last entry
-        if lastGlucose.dateString.timeIntervalSince1970 < time {
+        if lastGlucose.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970 < time {
             return lastGlucose
         }
 
         /// Find the index of the first element in the array whose date is greater than the specified time
-        if let nextIndex = glucose.firstIndex(where: { $0.dateString.timeIntervalSince1970 > time }) {
-            return glucose[nextIndex]
+        if let nextIndex = glucoseFromPersistence
+            .firstIndex(where: { $0.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970 > time })
+        {
+            return glucoseFromPersistence[nextIndex]
         } else {
             /// If no such element is found, return the last element in the array
             return lastGlucose
