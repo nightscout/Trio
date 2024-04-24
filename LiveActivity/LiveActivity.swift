@@ -214,6 +214,12 @@ struct LiveActivity: Widget {
         if context.isStale {
             Text("No data available")
         } else {
+            // determine scale
+            let min = (context.state.chart.min() ?? 40 * (context.state.unit == " mmol/L" ? 0.0555 : 1)) - 20 *
+                (context.state.unit == " mmol/L" ? 0.0555 : 1)
+            let max = (context.state.chart.max() ?? 270 * (context.state.unit == " mmol/L" ? 0.0555 : 1)) + 50 *
+                (context.state.unit == " mmol/L" ? 0.0555 : 1)
+
             Chart {
                 RuleMark(y: .value("high", context.state.highGlucose))
                     .lineStyle(.init(lineWidth: 0.5, dash: [5]))
@@ -240,10 +246,12 @@ struct LiveActivity: Widget {
                 }
             }
             .chartYAxis {
-                AxisMarks(position: .leading) { _ in
+                AxisMarks(position: .trailing) { _ in
                     AxisGridLine(stroke: .init(lineWidth: 0.2, dash: [2, 3])).foregroundStyle(Color.white)
+                    AxisValueLabel().foregroundStyle(Color.white).font(.footnote)
                 }
             }
+            .chartYScale(domain: min ... max)
             .chartXAxis {
                 AxisMarks(position: .automatic) { _ in
                     AxisGridLine(stroke: .init(lineWidth: 0.2, dash: [2, 3])).foregroundStyle(Color.white)
