@@ -160,7 +160,6 @@ extension Home {
         var glucoseView: some View {
             CurrentGlucoseView(
                 timerDate: $state.timerDate,
-                delta: $state.glucoseDelta,
                 units: $state.units,
                 alarm: $state.alarm,
                 lowGlucose: $state.lowGlucose,

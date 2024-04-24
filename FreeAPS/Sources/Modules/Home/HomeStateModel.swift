@@ -15,7 +15,6 @@ extension Home {
         @Published var announcement: [Announcement] = []
         @Published var uploadStats = false
         @Published var recentGlucose: BloodGlucose?
-        @Published var glucoseDelta: Int?
         @Published var tempBasals: [PumpHistoryEvent] = []
         @Published var boluses: [PumpHistoryEvent] = []
         @Published var suspensions: [PumpHistoryEvent] = []
