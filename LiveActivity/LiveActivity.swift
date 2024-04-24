@@ -248,7 +248,7 @@ struct LiveActivity: Widget {
             .chartYAxis {
                 AxisMarks(position: .trailing) { _ in
                     AxisGridLine(stroke: .init(lineWidth: 0.2, dash: [2, 3])).foregroundStyle(Color.white)
-                    AxisValueLabel().foregroundStyle(Color.white).font(.footnote)
+                    AxisValueLabel().foregroundStyle(Color.secondary).font(.footnote)
                 }
             }
             .chartYScale(domain: min ... max)
