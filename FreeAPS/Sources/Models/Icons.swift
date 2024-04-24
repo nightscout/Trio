@@ -8,7 +8,7 @@ enum Icon_: String, CaseIterable, Identifiable {
     case oiapsColorBG
     case oiapsWhite
     case oiaps3D
-    case diabeetus
+    case wilford = "diabeetus"
     case catWithPod
     case catWithPodWhite = "catWithPodWhiteBG"
     case loop = "OiAPS_Loop"
