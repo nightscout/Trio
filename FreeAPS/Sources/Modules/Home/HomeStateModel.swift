@@ -11,7 +11,6 @@ extension Home {
         @Injected() var nightscoutManager: NightscoutManager!
         private let timer = DispatchTimer(timeInterval: 5)
         private(set) var filteredHours = 24
-        @Published var glucose: [BloodGlucose] = []
         @Published var manualGlucose: [BloodGlucose] = []
         @Published var announcement: [Announcement] = []
         @Published var uploadStats = false
@@ -24,7 +23,6 @@ extension Home {
         @Published var autotunedBasalProfile: [BasalProfileEntry] = []
         @Published var basalProfile: [BasalProfileEntry] = []
         @Published var tempTargets: [TempTarget] = []
-        @Published var carbs: [CarbsEntry] = []
         @Published var timerDate = Date()
         @Published var closedLoop = false
         @Published var pumpSuspended = false
@@ -42,7 +40,6 @@ extension Home {
         @Published var errorDate: Date? = nil
         @Published var bolusProgress: Decimal?
         @Published var eventualBG: Int?
-        @Published var carbsRequired: Decimal?
         @Published var allowManualTemp = false
         @Published var units: GlucoseUnits = .mmolL
         @Published var pumpDisplayState: PumpDisplayState?
@@ -65,32 +62,24 @@ extension Home {
         @Published var tins: Bool = false
         @Published var isTempTargetActive: Bool = false
 
-        @Published var cob: Decimal = 0
         @Published var roundedTotalBolus: String = ""
 
         @Published var selectedTab: Int = 0
 
         @Published var waitForSuggestion: Bool = false
 
-        @Published var carbsForChart: [CarbsEntry] = []
-        @Published var fpusForChart: [CarbsEntry] = []
-
         let context = CoreDataStack.shared.viewContext
 
         override func subscribe() {
-            setupGlucose()
             setupBasals()
             setupBoluses()
             setupSuspensions()
             setupPumpSettings()
             setupBasalProfile()
             setupTempTargets()
-            setupCarbs()
             setupReservoir()
             setupAnnouncements()
             setupCurrentPumpTimezone()
-            filterCarbs()
-            filterFpus()
 
             uploadStats = settingsManager.settings.uploadStats
             units = settingsManager.settings.units
@@ -117,7 +106,6 @@ extension Home {
             broadcaster.register(PumpSettingsObserver.self, observer: self)
             broadcaster.register(BasalProfileObserver.self, observer: self)
             broadcaster.register(TempTargetsObserver.self, observer: self)
-            broadcaster.register(CarbsObserver.self, observer: self)
             broadcaster.register(PumpReservoirObserver.self, observer: self)
 
             animatedBackground = settingsManager.settings.animatedBackground
@@ -204,28 +192,6 @@ extension Home {
                 .store(in: &lifetime)
         }
 
-        func filterCarbs() {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                let allCarbs = self.provider.carbs(hours: self.filteredHours)
-                let filteredCarbs = allCarbs.filter { !($0.isFPU ?? false) }
-
-                self.carbsForChart.removeAll()
-                self.carbsForChart.append(contentsOf: filteredCarbs)
-            }
-        }
-
-        func filterFpus() {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                let allCarbs = self.provider.carbs(hours: self.filteredHours)
-                let filteredFpus = allCarbs.filter { $0.isFPU ?? false }
-
-                self.fpusForChart.removeAll()
-                self.fpusForChart.append(contentsOf: filteredFpus)
-            }
-        }
-
         func runLoop() {
             provider.heartbeatNow()
         }
@@ -243,28 +209,6 @@ extension Home {
                 profiles.enabled = false
                 profiles.date = Date()
                 try? self.context.save()
-            }
-        }
-
-        private func setupGlucose() {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                let filteredGlucose = self.provider.filteredGlucose(hours: self.filteredHours)
-
-                self.glucose = filteredGlucose
-                self.manualGlucose = filteredGlucose.filter { $0.type == GlucoseType.manual.rawValue }
-
-                self.recentGlucose = self.glucose.last
-
-                if self.glucose.count >= 2 {
-                    self
-                        .glucoseDelta = (self.recentGlucose?.glucose ?? 0) -
-                        (self.glucose[self.glucose.count - 2].glucose ?? 0)
-                } else {
-                    self.glucoseDelta = nil
-                }
-
-                self.alarm = self.provider.glucoseStorage.alarm
             }
         }
 
@@ -356,13 +300,6 @@ extension Home {
             }
         }
 
-        private func setupCarbs() {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.carbs = self.provider.carbs(hours: self.filteredHours)
-            }
-        }
-
         private func setupAnnouncements() {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
@@ -422,12 +359,11 @@ extension Home.StateModel:
     PumpSettingsObserver,
     BasalProfileObserver,
     TempTargetsObserver,
-    CarbsObserver,
     PumpReservoirObserver,
     PumpTimeZoneObserver
 {
     func glucoseDidUpdate(_: [BloodGlucose]) {
-        setupGlucose()
+//        setupGlucose()
     }
 
     func determinationDidUpdate(_: Determination) {
@@ -449,8 +385,6 @@ extension Home.StateModel:
         displayYgridLines = settingsManager.settings.yGridLines
         thresholdLines = settingsManager.settings.rulerMarks
         tins = settingsManager.settings.tins
-
-        setupGlucose()
     }
 
     func pumpHistoryDidUpdate(_: [PumpHistoryEvent]) {
@@ -470,12 +404,6 @@ extension Home.StateModel:
 
     func tempTargetsDidUpdate(_: [TempTarget]) {
         setupTempTargets()
-    }
-
-    func carbsDidUpdate(_: [CarbsEntry]) {
-        setupCarbs()
-        filterFpus()
-        filterCarbs()
     }
 
     func pumpReservoirDidChange(_: Decimal) {

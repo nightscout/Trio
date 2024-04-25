@@ -47,9 +47,6 @@ struct MainChartView: View {
         static let minGlucose = 45
     }
 
-    @Binding var glucose: [BloodGlucose]
-    @Binding var manualGlucose: [BloodGlucose]
-    @Binding var fpusForChart: [CarbsEntry]
     @Binding var units: GlucoseUnits
     @Binding var tempBasals: [PumpHistoryEvent]
     @Binding var boluses: [PumpHistoryEvent]
@@ -106,9 +103,14 @@ struct MainChartView: View {
     ) var insulinFromPersistence: FetchedResults<InsulinStored>
 
     @FetchRequest(
-        fetchRequest: GlucoseStored.fetch(NSPredicate.predicateForOneDayAgo, ascending: true),
+        fetchRequest: GlucoseStored.fetch(NSPredicate.glucose, ascending: true),
         animation: Animation.bouncy
     ) var glucoseFromPersistence: FetchedResults<GlucoseStored>
+
+    @FetchRequest(
+        fetchRequest: GlucoseStored.fetch(NSPredicate.manualGlucose, ascending: true),
+        animation: Animation.bouncy
+    ) var manualGlucoseFromPersistence: FetchedResults<GlucoseStored>
 
     @FetchRequest(
         fetchRequest: OrefDetermination.fetch(NSPredicate.enactedDetermination),
@@ -251,7 +253,7 @@ extension MainChartView {
                 }
             }
             .id("MainChart")
-            .onChange(of: glucose) { _ in
+            .onChange(of: glucoseFromPersistence.map(\.id)) { _ in
                 calculatePredictions()
             }
             .onChange(of: boluses) { _ in
@@ -546,16 +548,15 @@ extension MainChartView {
 
     private func drawManualGlucose() -> some ChartContent {
         /// manual glucose mark
-        ForEach(manualGlucose) { item in
-            if let manualGlucose = item.glucose {
-                PointMark(
-                    x: .value("Time", item.dateString, unit: .second),
-                    y: .value("Value", Decimal(manualGlucose) * conversionFactor)
-                )
-                .symbol {
-                    Image(systemName: "drop.fill").font(.system(size: 10)).symbolRenderingMode(.monochrome)
-                        .foregroundStyle(.red)
-                }
+        ForEach(manualGlucoseFromPersistence) { item in
+            let manualGlucose = item.glucose
+            PointMark(
+                x: .value("Time", item.date ?? Date(), unit: .second),
+                y: .value("Value", Decimal(manualGlucose) * conversionFactor)
+            )
+            .symbol {
+                Image(systemName: "drop.fill").font(.system(size: 10)).symbolRenderingMode(.monochrome)
+                    .foregroundStyle(.red)
             }
         }
     }
@@ -898,7 +899,7 @@ extension MainChartView {
     // MARK: - Chart formatting
 
     private func yAxisChartData() {
-        let glucoseMapped = glucose.compactMap(\.glucose)
+        let glucoseMapped = glucoseFromPersistence.map(\.glucose)
         guard let minGlucose = glucoseMapped.min(), let maxGlucose = glucoseMapped.max() else {
             // default values
             minValue = 45 * conversionFactor - 20 * conversionFactor

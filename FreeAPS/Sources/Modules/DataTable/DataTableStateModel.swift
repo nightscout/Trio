@@ -10,7 +10,7 @@ extension DataTable {
         @Injected() var pumpHistoryStorage: PumpHistoryStorage!
         @Injected() var healthKitManager: HealthKitManager!
 
-        let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
+        let coredataContext = CoreDataStack.shared.viewContext
 
         @Published var mode: Mode = .treatments
         @Published var treatments: [Treatment] = []
@@ -229,6 +229,7 @@ extension DataTable {
 
         func addManualGlucose() {
             let glucose = units == .mmolL ? manualGlucose.asMgdL : manualGlucose
+            let glucoseAsInt = Int(glucose)
             let now = Date()
             let id = UUID().uuidString
 
@@ -248,6 +249,24 @@ extension DataTable {
             // Save to Health
             var saveToHealth = [BloodGlucose]()
             saveToHealth.append(saveToJSON)
+
+            // save to core data
+            let newItem = GlucoseStored(context: coredataContext)
+            newItem.id = UUID()
+            newItem.date = Date()
+            newItem.glucose = Int16(glucoseAsInt)
+            newItem.isManual = true
+
+            do {
+                try coredataContext.save()
+                debugPrint(
+                    "Data table state model: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) added manual glucose to core data"
+                )
+            } catch {
+                debugPrint(
+                    "Data table state model: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to add manual glucose to core data"
+                )
+            }
         }
     }
 }

@@ -330,22 +330,23 @@ final class BaseAPSManager: APSManager, Injectable {
 
     func determineBasal() -> AnyPublisher<Bool, Never> {
         debug(.apsManager, "Start determine basal")
-        guard let glucose = storage.retrieve(OpenAPS.Monitor.glucose, as: [BloodGlucose].self), glucose.isNotEmpty else {
+        let glucose = fetchGlucoseData(forPeriod: "30min", withPredicate: NSPredicate.predicateFor30MinAgo, fetchLimit: 4)
+        guard glucose.count > 2 else {
             debug(.apsManager, "Not enough glucose data")
             processError(APSError.glucoseError(message: "Not enough glucose data"))
             return Just(false).eraseToAnyPublisher()
         }
 
-        let lastGlucoseDate = glucoseStorage.lastGlucoseDate()
-        guard lastGlucoseDate >= Date().addingTimeInterval(-12.minutes.timeInterval) else {
+        let dateOfLastGlucose = glucose.first?.date
+        guard dateOfLastGlucose ?? Date() >= Date().addingTimeInterval(-12.minutes.timeInterval) else {
             debug(.apsManager, "Glucose data is stale")
             processError(APSError.glucoseError(message: "Glucose data is stale"))
             return Just(false).eraseToAnyPublisher()
         }
 
         // Only let glucose be flat when 400 mg/dl
-        if (glucoseStorage.recent().last?.glucose ?? 100) != 400 {
-            guard glucoseStorage.isGlucoseNotFlat() else {
+        if (glucose.first?.glucose ?? 100) != 400 {
+            guard !GlucoseStored.glucoseIsFlat(glucose) else {
                 debug(.apsManager, "Glucose data is too flat")
                 processError(APSError.glucoseError(message: "Glucose data is too flat"))
                 return Just(false).eraseToAnyPublisher()
@@ -905,9 +906,13 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     // fetch glucose for time interval
-    private func fetchGlucoseData(forPeriod period: String, withPredicate predicate: NSPredicate) -> [GlucoseStored] {
+    private func fetchGlucoseData(
+        forPeriod period: String,
+        withPredicate predicate: NSPredicate,
+        fetchLimit: Int? = nil
+    ) -> [GlucoseStored] {
         do {
-            let fetchedData = try viewContext.fetch(GlucoseStored.fetch(predicate, ascending: false))
+            let fetchedData = try privateContext.fetch(GlucoseStored.fetch(predicate, ascending: false, fetchLimit: fetchLimit))
             debugPrint(
                 "APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched glucose for \(period) period"
             )

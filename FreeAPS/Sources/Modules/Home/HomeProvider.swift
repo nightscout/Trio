@@ -27,12 +27,6 @@ extension Home {
             apsManager.heartbeat(date: Date())
         }
 
-        func filteredGlucose(hours: Int) -> [BloodGlucose] {
-            glucoseStorage.recent().filter {
-                $0.dateString.addingTimeInterval(hours.hours.timeInterval) > Date()
-            }
-        }
-
         func pumpHistory(hours: Int) -> [PumpHistoryEvent] {
             pumpHistoryStorage.recent().filter {
                 $0.timestamp.addingTimeInterval(hours.hours.timeInterval) > Date()

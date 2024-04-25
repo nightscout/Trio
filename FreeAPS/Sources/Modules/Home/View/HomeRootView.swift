@@ -373,9 +373,6 @@ extension Home {
                 }
 
                 MainChartView(
-                    glucose: $state.glucose,
-                    manualGlucose: $state.manualGlucose,
-                    fpusForChart: $state.fpusForChart,
                     units: $state.units,
                     tempBasals: $state.tempBasals,
                     boluses: $state.boluses,
