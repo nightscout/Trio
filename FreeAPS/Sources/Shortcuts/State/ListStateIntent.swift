@@ -3,17 +3,17 @@ import Foundation
 
 @available(iOS 16.0, *) struct ListStateIntent: AppIntent {
     // Title of the action in the Shortcuts app
-    static var title: LocalizedStringResource = "List last state available with Trio"
+    static var title = LocalizedStringResource("List last state available", table: "ShortcutsDetail")
 
     var stateIntent = StateIntentRequest()
 
     // Description of the action in the Shortcuts app
     static var description = IntentDescription(
-        "Allow to list the last Blood Glucose, trends, IOB and COB available in Trio"
+        LocalizedStringResource("Allow to list the last Blood Glucose, trends, IOB and COB available", table: "ShortcutsDetail")
     )
 
     static var parameterSummary: some ParameterSummary {
-        Summary("List all states of Trio")
+        Summary("List all states available currently", table: "ShortcutsDetail")
     }
 
     @MainActor func perform() async throws -> some ReturnsValue<StateResults> & ShowsSnippetView {
@@ -31,8 +31,6 @@ import Foundation
             cob: iob_cob.cob,
             unit: stateIntent.settingsManager.settings.units
         )
-        let iob_text = String(format: "%.2f", iob_cob.iob)
-        let cob_text = String(format: "%.2f", iob_cob.cob)
         return .result(
             value: BG,
             view: ListStateView(state: BG)
