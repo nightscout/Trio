@@ -29,3 +29,21 @@ import Swinject
         return tp
     }
 }
+
+@available(iOS 16.0, *) struct tempPresetsQuery: EntityQuery {
+    internal var intentRequest: TempPresetsIntentRequest
+
+    init() {
+        intentRequest = TempPresetsIntentRequest()
+    }
+
+    func entities(for identifiers: [tempPreset.ID]) async throws -> [tempPreset] {
+        let tempTargets = intentRequest.fetchIDs(identifiers)
+        return tempTargets
+    }
+
+    func suggestedEntities() async throws -> [tempPreset] {
+        let tempTargets = intentRequest.fetchAll()
+        return tempTargets
+    }
+}

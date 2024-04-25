@@ -312,6 +312,12 @@
 		CE7CA3582A064E2F004BE681 /* ListStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7CA3572A064E2F004BE681 /* ListStateView.swift */; };
 		CE82E02528E867BA00473A9C /* AlertStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE82E02428E867BA00473A9C /* AlertStorage.swift */; };
 		CE82E02728E869DF00473A9C /* AlertEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE82E02628E869DF00473A9C /* AlertEntry.swift */; };
+		CE8BEF092BD2F0A900AF390B /* AddCarbsPresetIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE8BEF082BD2F0A900AF390B /* AddCarbsPresetIntent.swift */; };
+		CE8BEF0B2BD2F0DC00AF390B /* CarbPresetIntentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE8BEF0A2BD2F0DC00AF390B /* CarbPresetIntentRequest.swift */; };
+		CE8BEF0D2BD2F52E00AF390B /* CreateAndApplyTempTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE8BEF0C2BD2F52E00AF390B /* CreateAndApplyTempTarget.swift */; };
+		CE8BEF112BD306AE00AF390B /* UnitIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE8BEF102BD306AE00AF390B /* UnitIntent.swift */; };
+		CE8BEF172BD6654900AF390B /* AppShortcuts.strings in Resources */ = {isa = PBXBuildFile; fileRef = CE8BEF192BD6654900AF390B /* AppShortcuts.strings */; };
+		CE8BEF1D2BD6740700AF390B /* ShortcutsDetail.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = CE8BEF1C2BD6740700AF390B /* ShortcutsDetail.xcstrings */; };
 		CE94597E29E9E1EE0047C9C6 /* GarminManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE94597D29E9E1EE0047C9C6 /* GarminManager.swift */; };
 		CE94598029E9E3BD0047C9C6 /* WatchConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE94597F29E9E3BD0047C9C6 /* WatchConfigDataFlow.swift */; };
 		CE94598229E9E3D30047C9C6 /* WatchConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE94598129E9E3D30047C9C6 /* WatchConfigProvider.swift */; };
@@ -841,6 +847,14 @@
 		CE7CA3572A064E2F004BE681 /* ListStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListStateView.swift; sourceTree = "<group>"; };
 		CE82E02428E867BA00473A9C /* AlertStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertStorage.swift; sourceTree = "<group>"; };
 		CE82E02628E869DF00473A9C /* AlertEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertEntry.swift; sourceTree = "<group>"; };
+		CE8BEF082BD2F0A900AF390B /* AddCarbsPresetIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCarbsPresetIntent.swift; sourceTree = "<group>"; };
+		CE8BEF0A2BD2F0DC00AF390B /* CarbPresetIntentRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbPresetIntentRequest.swift; sourceTree = "<group>"; };
+		CE8BEF0C2BD2F52E00AF390B /* CreateAndApplyTempTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateAndApplyTempTarget.swift; sourceTree = "<group>"; };
+		CE8BEF102BD306AE00AF390B /* UnitIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitIntent.swift; sourceTree = "<group>"; };
+		CE8BEF182BD6654900AF390B /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		CE8BEF1A2BD6654D00AF390B /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		CE8BEF1B2BD6656D00AF390B /* fi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fi; path = fi.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		CE8BEF1C2BD6740700AF390B /* ShortcutsDetail.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = ShortcutsDetail.xcstrings; sourceTree = "<group>"; };
 		CE94597929E9DF7B0047C9C6 /* ConnectIQ.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ConnectIQ.framework; path = "Dependencies/ios-armv7_arm64/ConnectIQ.framework"; sourceTree = "<group>"; };
 		CE94597D29E9E1EE0047C9C6 /* GarminManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminManager.swift; sourceTree = "<group>"; };
 		CE94597F29E9E3BD0047C9C6 /* WatchConfigDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConfigDataFlow.swift; sourceTree = "<group>"; };
@@ -1029,6 +1043,8 @@
 		198377CF266BFEDE004DE65E /* Localizations */ = {
 			isa = PBXGroup;
 			children = (
+				CE8BEF1E2BD6744300AF390B /* ShortcutsDetail */,
+				CE8BEF142BD6633900AF390B /* Shortcuts */,
 				19D440A926B6FEBD008DA6C8 /* Main */,
 			);
 			path = Localizations;
@@ -2054,6 +2070,7 @@
 		CE7CA3422A064973004BE681 /* Shortcuts */ = {
 			isa = PBXGroup;
 			children = (
+				CE8BEF072BD2F08300AF390B /* Carbs */,
 				CE7CA3432A064973004BE681 /* AppShortcuts.swift */,
 				CE7CA3442A064973004BE681 /* BaseIntentsRequest.swift */,
 				CE7CA3452A064973004BE681 /* TempPresets */,
@@ -2070,6 +2087,8 @@
 				CE7CA3482A064973004BE681 /* ListTempPresetsIntent.swift */,
 				CE7CA3492A064973004BE681 /* tempPresetIntent.swift */,
 				CE7CA34A2A064973004BE681 /* TempPresetsIntentRequest.swift */,
+				CE8BEF0C2BD2F52E00AF390B /* CreateAndApplyTempTarget.swift */,
+				CE8BEF102BD306AE00AF390B /* UnitIntent.swift */,
 			);
 			path = TempPresets;
 			sourceTree = "<group>";
@@ -2082,6 +2101,31 @@
 				CE7CA3572A064E2F004BE681 /* ListStateView.swift */,
 			);
 			path = State;
+			sourceTree = "<group>";
+		};
+		CE8BEF072BD2F08300AF390B /* Carbs */ = {
+			isa = PBXGroup;
+			children = (
+				CE8BEF082BD2F0A900AF390B /* AddCarbsPresetIntent.swift */,
+				CE8BEF0A2BD2F0DC00AF390B /* CarbPresetIntentRequest.swift */,
+			);
+			path = Carbs;
+			sourceTree = "<group>";
+		};
+		CE8BEF142BD6633900AF390B /* Shortcuts */ = {
+			isa = PBXGroup;
+			children = (
+				CE8BEF192BD6654900AF390B /* AppShortcuts.strings */,
+			);
+			path = Shortcuts;
+			sourceTree = "<group>";
+		};
+		CE8BEF1E2BD6744300AF390B /* ShortcutsDetail */ = {
+			isa = PBXGroup;
+			children = (
+				CE8BEF1C2BD6740700AF390B /* ShortcutsDetail.xcstrings */,
+			);
+			path = ShortcutsDetail;
 			sourceTree = "<group>";
 		};
 		CE94597C29E9E1CD0047C9C6 /* WatchConfig */ = {
@@ -2455,8 +2499,10 @@
 				388E597225AD9CF10019842D /* json in Resources */,
 				38DF178E27733E6800B3528F /* Assets.xcassets in Resources */,
 				19DA48E829CD339B00EEA1E7 /* Assets.xcassets in Resources */,
+				CE8BEF172BD6654900AF390B /* AppShortcuts.strings in Resources */,
 				388E596F25AD96040019842D /* javascript in Resources */,
 				B9CAAEFC2AE70836000F68BC /* branch.txt in Resources */,
+				CE8BEF1D2BD6740700AF390B /* ShortcutsDetail.xcstrings in Resources */,
 				1927C8E62744606D00347C69 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2636,6 +2682,7 @@
 				3811DF0225CA9FEA00A708ED /* Credentials.swift in Sources */,
 				19DC678529CA67A400FD9EC4 /* OverrideProfilesRootView.swift in Sources */,
 				389A572026079BAA00BC102F /* Interpolation.swift in Sources */,
+				CE8BEF092BD2F0A900AF390B /* AddCarbsPresetIntent.swift in Sources */,
 				19A910382A24EF3200C8951B /* ChartsView.swift in Sources */,
 				38B4F3C625E5017E00E76A18 /* NotificationCenter.swift in Sources */,
 				19D466A729AA2C22004D5F33 /* FPUConfigStateModel.swift in Sources */,
@@ -2726,6 +2773,7 @@
 				1935364028496F7D001E0B16 /* Oref2_variables.swift in Sources */,
 				CE2FAD3A297D93F0001A872C /* BloodGlucoseExtensions.swift in Sources */,
 				38E4453A274E411700EC9A94 /* Disk+[UIImage].swift in Sources */,
+				CE8BEF0B2BD2F0DC00AF390B /* CarbPresetIntentRequest.swift in Sources */,
 				72F1BD388F42FCA6C52E4500 /* ConfigEditorProvider.swift in Sources */,
 				E39E418C56A5A46B61D960EE /* ConfigEditorStateModel.swift in Sources */,
 				45717281F743594AA9D87191 /* ConfigEditorRootView.swift in Sources */,
@@ -2836,6 +2884,7 @@
 				711C0CB42CAABE788916BC9D /* ManualTempBasalDataFlow.swift in Sources */,
 				BF1667ADE69E4B5B111CECAE /* ManualTempBasalProvider.swift in Sources */,
 				F90692D6274B9A450037068D /* HealthKitStateModel.swift in Sources */,
+				CE8BEF0D2BD2F52E00AF390B /* CreateAndApplyTempTarget.swift in Sources */,
 				C967DACD3B1E638F8B43BE06 /* ManualTempBasalStateModel.swift in Sources */,
 				FE41E4D429463C660047FD55 /* NightscoutStatistics.swift in Sources */,
 				38E4453B274E411700EC9A94 /* Disk+VolumeInformation.swift in Sources */,
@@ -2845,6 +2894,7 @@
 				3083261C4B268E353F36CD0B /* AutotuneConfigDataFlow.swift in Sources */,
 				891DECF7BC20968D7F566161 /* AutotuneConfigProvider.swift in Sources */,
 				D76333C9256787610B3B4875 /* AutotuneConfigStateModel.swift in Sources */,
+				CE8BEF112BD306AE00AF390B /* UnitIntent.swift in Sources */,
 				A05235B9112E677ED03B6E8E /* AutotuneConfigRootView.swift in Sources */,
 				7F7B756BE8543965D9FDF1A2 /* DataTableDataFlow.swift in Sources */,
 				1D845DF2E3324130E1D95E67 /* DataTableProvider.swift in Sources */,
@@ -2997,6 +3047,16 @@
 				193F1E3C2B44C14800525770 /* vi */,
 			);
 			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		CE8BEF192BD6654900AF390B /* AppShortcuts.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				CE8BEF182BD6654900AF390B /* en */,
+				CE8BEF1A2BD6654D00AF390B /* fr */,
+				CE8BEF1B2BD6656D00AF390B /* fi */,
+			);
+			name = AppShortcuts.strings;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
@@ -3163,6 +3223,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -3205,6 +3266,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -3230,7 +3292,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IBSC_MODULE = FreeAPSWatch_WatchKit_Extension;
 				INFOPLIST_FILE = FreeAPSWatch/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Open-iAPS;
+				INFOPLIST_KEY_CFBundleDisplayName = "Open-iAPS";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "$(BUNDLE_IDENTIFIER)";
 				MARKETING_VERSION = "$(APP_VERSION)";
@@ -3265,7 +3327,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IBSC_MODULE = FreeAPSWatch_WatchKit_Extension;
 				INFOPLIST_FILE = FreeAPSWatch/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Open-iAPS;
+				INFOPLIST_KEY_CFBundleDisplayName = "Open-iAPS";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "$(BUNDLE_IDENTIFIER)";
 				MARKETING_VERSION = "$(APP_VERSION)";

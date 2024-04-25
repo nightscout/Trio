@@ -10,6 +10,9 @@ import Swinject
     @Injected() var settingsManager: SettingsManager!
     @Injected() var storage: TempTargetsStorage!
     @Injected() var fileStorage: FileStorage!
+    @Injected() var carbsStorage: CarbsStorage!
+    @Injected() var glucoseStorage: GlucoseStorage!
+    @Injected() private var apsManager: APSManager!
 
     let resolver: Resolver
 
