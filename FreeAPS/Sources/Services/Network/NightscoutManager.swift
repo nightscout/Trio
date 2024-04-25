@@ -369,7 +369,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         var status: NightscoutStatus
 
         status = NightscoutStatus(
-            device: NigtscoutTreatment.local,
+            device: NightscoutTreatment.local,
             openaps: openapsStatus,
             pump: pump,
             uploader: uploader
@@ -398,11 +398,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     func uploadPodAge() {
-        let uploadedPodAge = storage.retrieve(OpenAPS.Nightscout.uploadedPodAge, as: [NigtscoutTreatment].self) ?? []
+        let uploadedPodAge = storage.retrieve(OpenAPS.Nightscout.uploadedPodAge, as: [NightscoutTreatment].self) ?? []
         if let podAge = storage.retrieve(OpenAPS.Monitor.podAge, as: Date.self),
            uploadedPodAge.last?.createdAt == nil || podAge != uploadedPodAge.last!.createdAt!
         {
-            let siteTreatment = NigtscoutTreatment(
+            let siteTreatment = NightscoutTreatment(
                 duration: nil,
                 rawDuration: nil,
                 rawRate: nil,
@@ -410,7 +410,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 rate: nil,
                 eventType: .nsSiteChange,
                 createdAt: podAge,
-                enteredBy: NigtscoutTreatment.local,
+                enteredBy: NightscoutTreatment.local,
                 bolus: nil,
                 insulin: nil,
                 notes: nil,
@@ -528,7 +528,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             startDate: now,
             mills: Int(now.timeIntervalSince1970) * 1000,
             units: nsUnits,
-            enteredBy: NigtscoutTreatment.local,
+            enteredBy: NightscoutTreatment.local,
             store: [defaultProfile: ps]
         )
 
@@ -578,7 +578,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func uploadPumpHistory() {
-        uploadTreatments(pumpHistoryStorage.nightscoutTretmentsNotUploaded(), fileToSave: OpenAPS.Nightscout.uploadedPumphistory)
+        uploadTreatments(pumpHistoryStorage.nightscoutTreatmentsNotUploaded(), fileToSave: OpenAPS.Nightscout.uploadedPumphistory)
     }
 
     private func uploadCarbs() {
@@ -622,7 +622,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-    private func uploadTreatments(_ treatments: [NigtscoutTreatment], fileToSave: String) {
+    private func uploadTreatments(_ treatments: [NightscoutTreatment], fileToSave: String) {
         guard !treatments.isEmpty, let nightscout = nightscoutAPI, isUploadEnabled else {
             return
         }

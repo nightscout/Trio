@@ -214,7 +214,7 @@ final class BaseTidePoolManager: TidePoolManager, Injectable {
                     type: .tempBasal,
                     startDate: event.timestamp,
                     value: 0.0,
-                    unit: .unitsPerHour,
+                    unit: .units,
                     syncIdentifier: event.id,
                     scheduledBasalRate: HKQuantity(unit: .internationalUnitsPerHour, doubleValue: Double(event.rate!)),
                     insulinType: nil,
