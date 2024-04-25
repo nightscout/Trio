@@ -1,0 +1,36 @@
+/*
+  AppShortcuts.strings
+*/
+/* -------------------------------- */
+/* oiaps Temporary Target shortcut*/
+"Activate ${applicationName} temporary target" = "Activate ${applicationName} temporary target";
+
+/* oiaps Temporary Target shortcut Description */
+"${applicationName} apply a temporary target" = "${applicationName} apply a temporary target";
+
+/* oiaps Status shortcut */
+"List ${applicationName} state" = "List ${applicationName} state";
+
+/* oiaps Status shortcut Description*/
+"${applicationName} state" = "${applicationName} state";
+
+/* oiaps Add carbs shortcut */
+"Add carbs in ${applicationName}" = "Add carbs in ${applicationName}";
+
+/* oiaps Add carbs shortcut description */
+"${applicationName} allows to add carbs" = "${applicationName} allows to add carbs";
+
+/* oiaps Add carbs shortcut description */
+"${applicationName} allows to add carbs" = "${applicationName} allows to add carbs";
+
+/* oiaps Create and apply Temporary Target shortcut*/
+"Create and apply a temporary target in ${applicationName}" = "Create and apply a temporary target in ${applicationName}";
+
+/* oiaps Create and apply Temporary Target description*/
+"${applicationName} allows to create and apply a temporary target" = "${applicationName} allows to create and apply a temporary target";
+
+/* oiaps Temporary override shortcut*/
+"Activate ${applicationName} temporary override" = "Activate ${applicationName} temporary override";
+
+/* oiaps Temporary override shortcut Description */
+"${applicationName} apply a temporary override" = "${applicationName} apply a temporary override";

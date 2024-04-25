@@ -81,4 +81,45 @@ import Foundation
             try self.coredataContext.save()
         }
     }
+
+    /// function to enact a new temp target from date, target and duration information
+    func enactTempTarget(date: Date, target: Decimal, unit: UnitList?, duration: Decimal) throws -> TempTarget? {
+        // check the unit or take the settings unit
+        var glucoseUnit: GlucoseUnits
+        if let unit = unit {
+            switch unit {
+            case .mgL:
+                glucoseUnit = .mgdL
+            case .mmolL:
+                glucoseUnit = .mmolL
+            }
+        } else {
+            glucoseUnit = settingsManager.settings.units
+        }
+
+        // convert target if required the unit in regard of the settings unit
+        var targetCorrectUnit: Decimal = target
+        if glucoseUnit != settingsManager.settings.units {
+            targetCorrectUnit = (settingsManager.settings.units == .mgdL) ? target.asMgdL : target.asMmolL
+        }
+
+        coredataContext.performAndWait {
+            let saveToCoreData = TempTargets(context: coredataContext)
+            saveToCoreData.active = false
+            saveToCoreData.date = Date()
+            try? coredataContext.save()
+        }
+
+        let entry = TempTarget(
+            name: TempTarget.custom,
+            createdAt: date,
+            targetTop: targetCorrectUnit,
+            targetBottom: targetCorrectUnit,
+            duration: duration,
+            enteredBy: TempTarget.manual,
+            reason: TempTarget.custom
+        )
+        storage.storeTempTargets([entry])
+        return entry
+    }
 }
