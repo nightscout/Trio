@@ -45,9 +45,14 @@ extension Home {
         @FetchRequest(
             entity: OrefDetermination.entity(),
             sortDescriptors: [NSSortDescriptor(key: "deliverAt", ascending: false)],
-            predicate: NSPredicate.enactedDetermination,
+            predicate: NSPredicate.predicateFor30MinAgoForDetermination,
             animation: Animation.bouncy
         ) var determination: FetchedResults<OrefDetermination>
+
+        @FetchRequest(
+            fetchRequest: OrefDetermination.fetch(NSPredicate.enactedDetermination),
+            animation: Animation.bouncy
+        ) var enactedDeterminations: FetchedResults<OrefDetermination>
 
         @FetchRequest(
             entity: OverridePresets.entity(),
@@ -155,7 +160,6 @@ extension Home {
         var glucoseView: some View {
             CurrentGlucoseView(
                 timerDate: $state.timerDate,
-                delta: $state.glucoseDelta,
                 units: $state.units,
                 alarm: $state.alarm,
                 lowGlucose: $state.lowGlucose,
@@ -182,7 +186,6 @@ extension Home {
         var pumpView: some View {
             PumpView(
                 reservoir: $state.reservoir,
-                battery: $state.battery,
                 name: $state.pumpName,
                 expiresAtDate: $state.pumpExpiresAtDate,
                 timerDate: $state.timerDate,
@@ -369,9 +372,6 @@ extension Home {
                 }
 
                 MainChartView(
-                    glucose: $state.glucose,
-                    manualGlucose: $state.manualGlucose,
-                    fpusForChart: $state.fpusForChart,
                     units: $state.units,
                     tempBasals: $state.tempBasals,
                     boluses: $state.boluses,
@@ -870,7 +870,7 @@ extension Home {
             VStack(alignment: .leading, spacing: 4) {
                 Text(statusTitle).font(.headline).foregroundColor(.white)
                     .padding(.bottom, 4)
-                if let determination = determination.first {
+                if let determination = enactedDeterminations.first {
                     TagCloudView(tags: determination.reasonParts).animation(.none, value: false)
 
                     Text(determination.reasonConclusion.capitalizingFirstLetter()).font(.caption).foregroundColor(.white)

@@ -80,6 +80,7 @@ extension LiveActivityAttributes.ContentState {
         let iob = suggestion.iob ?? 0
 
         let lockScreenView = settings.lockScreenView.displayName
+        let unit = settings.units == .mmolL ? " mmol/L" : " mg/dL"
 
         self.init(
             bg: formattedBG,
@@ -93,7 +94,8 @@ extension LiveActivityAttributes.ContentState {
             lowGlucose: Double(lowGlucose),
             cob: cob,
             iob: iob,
-            lockScreenView: lockScreenView
+            lockScreenView: lockScreenView,
+            unit: unit
         )
     }
 }
@@ -230,7 +232,8 @@ extension LiveActivityAttributes.ContentState {
                         lowGlucose: Double(70),
                         cob: 0,
                         iob: 0,
-                        lockScreenView: "Simple"
+                        lockScreenView: "Simple",
+                        unit: "--"
                     ),
                     staleDate: Date.now.addingTimeInterval(60)
                 )

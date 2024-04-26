@@ -26,7 +26,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         injectServices(resolver)
     }
 
-    private let context = CoreDataStack.shared.viewContext
+    private let context = CoreDataStack.shared.backgroundContext
 
     func storePumpEvents(_ events: [NewPumpEvent]) {
         processQueue.async {
@@ -47,6 +47,17 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         new.external = false
                         new.id = UUID()
                         new.isSMB = true
+
+                        do {
+                            try self.context.save()
+                            debugPrint(
+                                "Pump History storage: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved smbs to core data"
+                            )
+                        } catch {
+                            debugPrint(
+                                "Pump History storage: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save smbs to core data"
+                            )
+                        }
                     }
 
                     return [PumpHistoryEvent(

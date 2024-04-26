@@ -1,14 +1,20 @@
+import CoreData
 import SwiftUI
 
 struct PumpView: View {
     @Binding var reservoir: Decimal?
-    @Binding var battery: Battery?
+//    @Binding var battery: Battery?
     @Binding var name: String
     @Binding var expiresAtDate: Date?
     @Binding var timerDate: Date
     @Binding var timeZone: TimeZone?
 
     @State var state: Home.StateModel
+
+    @FetchRequest(
+        fetchRequest: OpenAPS_Battery.fetch(NSPredicate.predicateFor30MinAgo),
+        animation: Animation.bouncy
+    ) var battery: FetchedResults<OpenAPS_Battery>
 
     @Environment(\.colorScheme) var colorScheme
 
@@ -64,12 +70,12 @@ struct PumpView: View {
                 }
             }
 
-            if let battery = battery, battery.display ?? false, expiresAtDate == nil {
+            if (battery.first?.display) != nil, expiresAtDate == nil {
                 HStack {
                     Image(systemName: "battery.100")
                         .font(.system(size: 16))
                         .foregroundColor(batteryColor)
-                    Text("\(Int(battery.percent ?? 100)) %").font(.system(size: 16, design: .rounded))
+                    Text("\(Int(battery.first?.percent ?? 100)) %").font(.system(size: 16, design: .rounded))
                 }
             }
 
@@ -110,11 +116,11 @@ struct PumpView: View {
     }
 
     private var batteryColor: Color {
-        guard let battery = battery, let percent = battery.percent else {
+        guard let battery = battery.first else {
             return .gray
         }
 
-        switch percent {
+        switch battery.percent {
         case ...10:
             return .red
         case ...20:

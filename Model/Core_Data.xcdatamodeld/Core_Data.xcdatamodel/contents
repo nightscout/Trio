@@ -42,6 +42,7 @@
         <attribute name="direction" optional="YES" attributeType="String"/>
         <attribute name="glucose" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isManual" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
     </entity>
     <entity name="HbA1c" representedClassName="HbA1c" syncable="YES">
         <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -88,6 +89,14 @@
         <attribute name="isFPU" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="note" optional="YES" attributeType="String"/>
         <attribute name="protein" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+    </entity>
+    <entity name="OpenAPS_Battery" representedClassName="OpenAPS_Battery" syncable="YES">
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="display" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="percent" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="status" optional="YES" attributeType="String"/>
+        <attribute name="voltage" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
     </entity>
     <entity name="Oref0Suggestion" representedClassName="Oref0Suggestion" syncable="YES">
         <relationship name="computedInsulinDistribution" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="InsulinDistribution" inverseName="insulin" inverseEntity="InsulinDistribution"/>

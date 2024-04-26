@@ -35,10 +35,12 @@ struct LiveActivity: Widget {
     @ViewBuilder private func changeLabel(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
         if !context.state.change.isEmpty {
             if context.isStale {
-                Text(context.state.change).foregroundStyle(.primary.opacity(0.5))
-                    .strikethrough(pattern: .solid, color: .red.opacity(0.6))
+                Text(context.state.change).foregroundStyle(.primary.opacity(0.5)).font(.headline)
+                    .strikethrough(pattern: .solid, color: .red.opacity(0.6)).font(.callout)
             } else {
-                Text(context.state.change)
+                HStack {
+                    Text(context.state.change).font(.headline)
+                }
             }
         } else {
             Text("--")
@@ -46,22 +48,52 @@ struct LiveActivity: Widget {
     }
 
     @ViewBuilder func mealLabel(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
-        VStack(alignment: .leading, spacing: 1, content: {
-            HStack {
-                Text("COB: ").font(.caption)
-                Text(
-                    (carbsFormatter.string(from: context.state.cob as NSNumber) ?? "--") +
-                        NSLocalizedString(" g", comment: "grams of carbs")
-                ).font(.caption).fontWeight(.bold)
-            }
-            HStack {
-                Text("IOB: ").font(.caption)
-                Text(
-                    (bolusFormatter.string(from: context.state.iob as NSNumber) ?? "--") +
-                        NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
-                ).font(.caption).fontWeight(.bold)
-            }
-        })
+        HStack {
+            VStack(alignment: .leading, spacing: 1, content: {
+                HStack {
+                    Image(systemName: "fork.knife")
+                        .font(.title3)
+                        .foregroundColor(.yellow)
+                }
+                HStack {
+                    Image(systemName: "syringe.fill")
+                        .font(.title3)
+                        .foregroundColor(.blue)
+                }
+            })
+            VStack(alignment: .trailing, spacing: 1, content: {
+                HStack {
+                    if context.isStale {
+                        Text(
+                            carbsFormatter.string(from: context.state.cob as NSNumber) ?? "--"
+                        ).fontWeight(.bold).font(.headline).strikethrough(pattern: .solid, color: .red.opacity(0.6))
+                            .font(.callout)
+                        Text(NSLocalizedString(" g", comment: "grams of carbs")).foregroundStyle(.secondary).font(.footnote)
+                    } else {
+                        Text(
+                            carbsFormatter.string(from: context.state.cob as NSNumber) ?? "--"
+                        ).fontWeight(.bold).font(.headline)
+                        Text(NSLocalizedString(" g", comment: "grams of carbs")).foregroundStyle(.secondary).font(.footnote)
+                    }
+                }
+                HStack {
+                    if context.isStale {
+                        Text(
+                            bolusFormatter.string(from: context.state.iob as NSNumber) ?? "--"
+                        ).font(.headline).fontWeight(.bold).strikethrough(pattern: .solid, color: .red.opacity(0.6))
+                            .font(.callout)
+                        Text(NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)"))
+                            .foregroundStyle(.secondary).font(.footnote)
+                    } else {
+                        Text(
+                            bolusFormatter.string(from: context.state.iob as NSNumber) ?? "--"
+                        ).font(.headline).fontWeight(.bold)
+                        Text(NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)"))
+                            .foregroundStyle(.secondary).font(.footnote)
+                    }
+                }
+            })
+        }
     }
 
     @ViewBuilder func trend(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
@@ -76,21 +108,31 @@ struct LiveActivity: Widget {
 
     private func updatedLabel(context: ActivityViewContext<LiveActivityAttributes>) -> Text {
         let text = Text("Updated: \(dateFormatter.string(from: context.state.date))")
+            .font(.caption2)
         if context.isStale {
+            // foregroundStyle is not available in <iOS 17 hence the check here
             if #available(iOSApplicationExtension 17.0, *) {
                 return text.bold().foregroundStyle(.red)
             } else {
                 return text.bold().foregroundColor(.red)
             }
         } else {
-            return text
+            if #available(iOSApplicationExtension 17.0, *) {
+                return text.bold().foregroundStyle(.secondary)
+            } else {
+                return text.bold().foregroundColor(.red)
+            }
         }
     }
 
-    private func bgLabel(context: ActivityViewContext<LiveActivityAttributes>) -> Text {
-        Text(context.state.bg)
-            .fontWeight(.bold)
-            .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
+    @ViewBuilder private func bgLabel(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
+        HStack(alignment: .center) {
+            Text(context.state.bg)
+                .fontWeight(.bold)
+                .font(.largeTitle)
+                .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
+            Text(context.state.unit).foregroundStyle(.secondary).font(.subheadline).offset(x: -5, y: 5)
+        }
     }
 
     private func bgAndTrend(context: ActivityViewContext<LiveActivityAttributes>, size: Size) -> (some View, Int) {
@@ -153,58 +195,66 @@ struct LiveActivity: Widget {
     }
 
     @ViewBuilder func bobble(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
-        @State var angularGradient = AngularGradient(colors: [
-            Color(red: 0.7215686275, green: 0.3411764706, blue: 1),
+        let gradient = LinearGradient(colors: [
             Color(red: 0.6235294118, green: 0.4235294118, blue: 0.9803921569),
             Color(red: 0.4862745098, green: 0.5450980392, blue: 0.9529411765),
             Color(red: 0.3411764706, green: 0.6666666667, blue: 0.9254901961),
-            Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902),
-            Color(red: 0.7215686275, green: 0.3411764706, blue: 1)
-        ], center: .center, startAngle: .degrees(270), endAngle: .degrees(-90))
-        let triangleColor = Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902)
+            Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902)
+        ], startPoint: .leading, endPoint: .trailing)
 
-        WidgetBobble(gradient: angularGradient, color: triangleColor)
-            .rotationEffect(.degrees(context.state.rotationDegrees))
+        if !context.isStale {
+            Image(systemName: "arrow.right")
+                .font(.title)
+                .rotationEffect(.degrees(context.state.rotationDegrees))
+                .foregroundStyle(gradient)
+        }
     }
 
     @ViewBuilder func chart(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
         if context.isStale {
             Text("No data available")
         } else {
+            // determine scale
+            let min = (context.state.chart.min() ?? 40 * (context.state.unit == " mmol/L" ? 0.0555 : 1)) - 20 *
+                (context.state.unit == " mmol/L" ? 0.0555 : 1)
+            let max = (context.state.chart.max() ?? 270 * (context.state.unit == " mmol/L" ? 0.0555 : 1)) + 50 *
+                (context.state.unit == " mmol/L" ? 0.0555 : 1)
+
             Chart {
+                RuleMark(y: .value("high", context.state.highGlucose))
+                    .lineStyle(.init(lineWidth: 0.5, dash: [5]))
+                RuleMark(y: .value("low", context.state.lowGlucose))
+                    .lineStyle(.init(lineWidth: 0.5, dash: [5]))
                 ForEach(context.state.chart.indices, id: \.self) { index in
                     let currentValue = context.state.chart[index]
                     if currentValue > context.state.highGlucose {
                         PointMark(
                             x: .value("Time", context.state.chartDate[index] ?? Date()),
                             y: .value("Value", currentValue)
-                        ).foregroundStyle(Color.orange.gradient).symbolSize(12)
+                        ).foregroundStyle(Color.orange.gradient).symbolSize(15)
                     } else if currentValue < context.state.lowGlucose {
                         PointMark(
                             x: .value("Time", context.state.chartDate[index] ?? Date()),
                             y: .value("Value", currentValue)
-                        ).foregroundStyle(Color.red.gradient).symbolSize(12)
+                        ).foregroundStyle(Color.red.gradient).symbolSize(15)
                     } else {
                         PointMark(
                             x: .value("Time", context.state.chartDate[index] ?? Date()),
                             y: .value("Value", currentValue)
-                        ).foregroundStyle(Color.green.gradient).symbolSize(12)
+                        ).foregroundStyle(Color.green.gradient).symbolSize(15)
                     }
                 }
-            }.chartPlotStyle { plotContent in
-                plotContent.background(.cyan.opacity(0.1))
             }
             .chartYAxis {
-                AxisMarks(position: .leading) { _ in
-                    AxisValueLabel().foregroundStyle(Color.white)
-                    AxisGridLine(stroke: .init(lineWidth: 0.1, dash: [2, 3])).foregroundStyle(Color.white)
+                AxisMarks(position: .trailing) { _ in
+                    AxisGridLine(stroke: .init(lineWidth: 0.2, dash: [2, 3])).foregroundStyle(Color.white)
+                    AxisValueLabel().foregroundStyle(Color.secondary).font(.footnote)
                 }
             }
+            .chartYScale(domain: min ... max)
             .chartXAxis {
                 AxisMarks(position: .automatic) { _ in
-                    AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
-                        .foregroundStyle(Color.white)
-                    AxisGridLine(stroke: .init(lineWidth: 0.1, dash: [2, 3])).foregroundStyle(Color.white)
+                    AxisGridLine(stroke: .init(lineWidth: 0.2, dash: [2, 3])).foregroundStyle(Color.white)
                 }
             }
         }
@@ -231,32 +281,24 @@ struct LiveActivity: Widget {
                 .background(BackgroundStyle.background.opacity(0.4))
                 .activityBackgroundTint(Color.clear)
             } else {
-                HStack(spacing: 2) {
-                    VStack {
-                        chart(context: context).frame(width: UIScreen.main.bounds.width / 1.8)
-                    }.padding(.all, 15)
-                    Divider().foregroundStyle(Color.white)
-                    VStack(alignment: .center) {
+                HStack(spacing: 12) {
+                    chart(context: context).frame(width: UIScreen.main.bounds.width / 1.8)
+                    VStack(alignment: .leading) {
                         Spacer()
-                        ZStack {
+                        bgLabel(context: context)
+                        HStack {
+                            changeLabel(context: context)
                             bobble(context: context)
-                                .scaleEffect(0.6)
-                                .clipped()
-                            VStack {
-                                bgLabel(context: context).font(.title2).imageScale(.small)
-                                changeLabel(context: context).font(.callout)
-                            }
-                        }.scaleEffect(0.85).offset(y: 18)
+                        }
                         mealLabel(context: context).padding(.bottom, 8)
-                        updatedLabel(context: context).font(.caption).padding(.bottom, 50)
+                        updatedLabel(context: context).padding(.bottom, 10)
                     }
                 }
                 .privacySensitive()
+                .padding(.all, 14)
                 .imageScale(.small)
-                .background(Color.white.opacity(0.2))
                 .foregroundColor(Color.white)
-                .activityBackgroundTint(Color.black.opacity(0.7))
-                .activitySystemActionForegroundColor(Color.white)
+                .activityBackgroundTint(Color.black)
             }
         } dynamicIsland: { context in
             DynamicIsland {

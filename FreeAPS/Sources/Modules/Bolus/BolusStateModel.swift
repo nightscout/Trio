@@ -190,9 +190,13 @@ extension Bolus {
 
                 currentBG = Decimal(lastGlucose)
                 deltaBG = delta
-
+                debugPrint(
+                    "Bolus State: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched glucose"
+                )
             } catch {
-                debugPrint("Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch glucose")
+                debugPrint(
+                    "Bolus State: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch glucose"
+                )
             }
         }
 
@@ -422,6 +426,7 @@ extension Bolus {
             // save to core data asynchronously
             context.perform {
                 let newItem = InsulinStored(context: self.context)
+                newItem.id = UUID()
                 newItem.amount = self.amount as NSDecimalNumber
                 newItem.date = Date()
                 newItem.external = true

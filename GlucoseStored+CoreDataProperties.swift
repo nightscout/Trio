@@ -10,6 +10,7 @@ public extension GlucoseStored {
     @NSManaged var direction: String?
     @NSManaged var glucose: Int16
     @NSManaged var id: UUID?
+    @NSManaged var isManual: Bool
 }
 
 extension GlucoseStored: Identifiable {}

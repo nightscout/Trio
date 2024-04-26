@@ -2,9 +2,7 @@ import CoreData
 import SwiftUI
 
 struct CurrentGlucoseView: View {
-//    @Binding var recentGlucose: BloodGlucose?
     @Binding var timerDate: Date
-    @Binding var delta: Int?
     @Binding var units: GlucoseUnits
     @Binding var alarm: GlucoseAlarm?
     @Binding var lowGlucose: Decimal
@@ -12,11 +10,6 @@ struct CurrentGlucoseView: View {
 
     @State private var rotationDegrees: Double = 0.0
     @State private var angularGradient = AngularGradient(colors: [
-        // 184, 87, 255
-        // 159, 108, 250
-        // 124, 139, 243
-        // 87, 170, 236
-        // 67, 187, 233
         Color(red: 0.7215686275, green: 0.3411764706, blue: 1),
         Color(red: 0.6235294118, green: 0.4235294118, blue: 0.9803921569),
         Color(red: 0.4862745098, green: 0.5450980392, blue: 0.9529411765),
@@ -101,9 +94,6 @@ struct CurrentGlucoseView: View {
 
                     Text(
                         delta
-                            .map {
-                                deltaFormatter.string(from: Double(units == .mmolL ? $0.asMmolL : Decimal($0)) as NSNumber)!
-                            } ?? "--"
                     )
                     .font(.caption2).foregroundColor(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
                 }.frame(alignment: .top)
@@ -144,6 +134,18 @@ struct CurrentGlucoseView: View {
         case .mgdL:
             return Double(value)
         }
+    }
+
+    private var delta: String {
+        guard glucoseFromPersistence.count >= 2 else {
+            return "--"
+        }
+
+        let lastGlucose = glucoseFromPersistence.first?.glucose ?? 0
+        let secondLastGlucose = glucoseFromPersistence.dropFirst().first?.glucose ?? 0
+        let delta = lastGlucose - secondLastGlucose
+        let deltaAsDecimal = Decimal(delta)
+        return deltaFormatter.string(from: deltaAsDecimal as NSNumber) ?? "--"
     }
 
     var colourGlucoseText: Color {

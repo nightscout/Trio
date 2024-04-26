@@ -73,6 +73,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     @SyncAccess private var pumpUpdateCancellable: AnyCancellable?
     private var pumpUpdatePromise: Future<Bool, Never>.Promise?
     @SyncAccess var loopInProgress: Bool = false
+    private let privateContext = CoreDataStack.shared.backgroundContext
 
     var pumpManager: PumpManagerUI? {
         didSet {
@@ -345,9 +346,25 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
             string: batteryPercent >= 10 ? .normal : .low,
             display: pumpManager.status.pumpBatteryChargeRemaining != nil
         )
-        storage.save(battery, as: OpenAPS.Monitor.battery)
-        broadcaster.notify(PumpBatteryObserver.self, on: processQueue) {
-            $0.pumpBatteryDidChange(battery)
+
+        let batteryToStore = OpenAPS_Battery(context: privateContext)
+        batteryToStore.id = UUID()
+        batteryToStore.date = Date()
+        batteryToStore.percent = Int16(batteryPercent)
+        batteryToStore.voltage = nil
+        batteryToStore.status = batteryPercent > 10 ? "normal" : "low"
+        batteryToStore.display = status.pumpBatteryChargeRemaining != nil
+        privateContext.perform {
+            do {
+                try self.privateContext.save()
+                debugPrint(
+                    "Device Data manager: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved battery infos to core data"
+                )
+            } catch {
+                debugPrint(
+                    "Device Data manager: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save battery infos to core data"
+                )
+            }
         }
         broadcaster.notify(PumpTimeZoneObserver.self, on: processQueue) {
             $0.pumpTimeZoneDidChange(status.timeZone)

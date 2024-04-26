@@ -47,9 +47,6 @@ struct MainChartView: View {
         static let minGlucose = 45
     }
 
-    @Binding var glucose: [BloodGlucose]
-    @Binding var manualGlucose: [BloodGlucose]
-    @Binding var fpusForChart: [CarbsEntry]
     @Binding var units: GlucoseUnits
     @Binding var tempBasals: [PumpHistoryEvent]
     @Binding var boluses: [PumpHistoryEvent]
@@ -106,9 +103,14 @@ struct MainChartView: View {
     ) var insulinFromPersistence: FetchedResults<InsulinStored>
 
     @FetchRequest(
-        fetchRequest: GlucoseStored.fetch(NSPredicate.predicateForOneDayAgo, ascending: false),
+        fetchRequest: GlucoseStored.fetch(NSPredicate.glucose, ascending: true),
         animation: Animation.bouncy
     ) var glucoseFromPersistence: FetchedResults<GlucoseStored>
+
+    @FetchRequest(
+        fetchRequest: GlucoseStored.fetch(NSPredicate.manualGlucose, ascending: true),
+        animation: Animation.bouncy
+    ) var manualGlucoseFromPersistence: FetchedResults<GlucoseStored>
 
     @FetchRequest(
         fetchRequest: OrefDetermination.fetch(NSPredicate.enactedDetermination),
@@ -166,7 +168,7 @@ struct MainChartView: View {
         VStack {
             ScrollViewReader { scroller in
                 ScrollView(.horizontal, showsIndicators: false) {
-                    VStack(spacing: 0) {
+                    LazyVStack(spacing: 0) {
                         mainChart
                         basalChart
 
@@ -256,7 +258,7 @@ extension MainChartView {
                 }
             }
             .id("MainChart")
-            .onChange(of: glucose) { _ in
+            .onChange(of: glucoseFromPersistence.map(\.id)) { _ in
 //                calculatePredictions()
             }
             .onChange(of: boluses) { _ in
@@ -278,7 +280,7 @@ extension MainChartView {
             ) { _ in
 //                calculatePredictions()
             }
-            .frame(minHeight: UIScreen.main.bounds.height * 0.2)
+            .frame(minHeight: UIScreen.main.bounds.height * 0.3)
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .chartXScale(domain: startMarker ... endMarker)
             .chartXAxis { mainChartXAxis }
@@ -340,7 +342,7 @@ extension MainChartView {
             }.onChange(of: basalProfile) { _ in
                 calculateTempBasals()
             }
-            .frame(height: UIScreen.main.bounds.height * 0.08)
+            .frame(maxHeight: UIScreen.main.bounds.height * 0.05)
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .chartXScale(domain: startMarker ... endMarker)
             .chartXAxis { basalChartXAxis }
@@ -374,7 +376,7 @@ extension MainChartView {
             let bolusAmount = bolus.amount ?? 0 as NSDecimalNumber
             let bolusDate = bolus.date ?? Date()
             let glucose = timeToNearestGlucose(time: bolusDate.timeIntervalSince1970)
-            let yPosition = (Decimal(glucose.sgv ?? defaultBolusPosition) * conversionFactor) + bolusOffset
+            let yPosition = (Decimal(glucose.glucose) * conversionFactor) + bolusOffset
             let size = (Config.bolusSize + CGFloat(truncating: bolusAmount) * Config.bolusScale) * 1.8
 
             PointMark(
@@ -572,16 +574,15 @@ extension MainChartView {
 
     private func drawManualGlucose() -> some ChartContent {
         /// manual glucose mark
-        ForEach(manualGlucose) { item in
-            if let manualGlucose = item.glucose {
-                PointMark(
-                    x: .value("Time", item.dateString, unit: .second),
-                    y: .value("Value", Decimal(manualGlucose) * conversionFactor)
-                )
-                .symbol {
-                    Image(systemName: "drop.fill").font(.system(size: 10)).symbolRenderingMode(.monochrome)
-                        .foregroundStyle(.red)
-                }
+        ForEach(manualGlucoseFromPersistence) { item in
+            let manualGlucose = item.glucose
+            PointMark(
+                x: .value("Time", item.date ?? Date(), unit: .second),
+                y: .value("Value", Decimal(manualGlucose) * conversionFactor)
+            )
+            .symbol {
+                Image(systemName: "drop.fill").font(.system(size: 10)).symbolRenderingMode(.monochrome)
+                    .foregroundStyle(.red)
             }
         }
     }
@@ -680,27 +681,22 @@ extension MainChartView {
 
     /// calculates the glucose value thats the nearest to parameter 'time'
     /// if time is later than all the arrays values return the last element of BloodGlucose
-    private func timeToNearestGlucose(time: TimeInterval) -> BloodGlucose {
+    private func timeToNearestGlucose(time: TimeInterval) -> GlucoseStored {
         /// If the glucose array is empty, return a default BloodGlucose object or handle it accordingly
-        guard let lastGlucose = glucose.last else {
-            return BloodGlucose(
-                date: 0,
-                dateString: Date(),
-                unfiltered: nil,
-                filtered: nil,
-                noise: nil,
-                type: nil
-            )
+        guard let lastGlucose = glucoseFromPersistence.last else {
+            return GlucoseStored()
         }
 
         /// If the last glucose entry is before the specified time, return the last entry
-        if lastGlucose.dateString.timeIntervalSince1970 < time {
+        if lastGlucose.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970 < time {
             return lastGlucose
         }
 
         /// Find the index of the first element in the array whose date is greater than the specified time
-        if let nextIndex = glucose.firstIndex(where: { $0.dateString.timeIntervalSince1970 > time }) {
-            return glucose[nextIndex]
+        if let nextIndex = glucoseFromPersistence
+            .firstIndex(where: { $0.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970 > time })
+        {
+            return glucoseFromPersistence[nextIndex]
         } else {
             /// If no such element is found, return the last element in the array
             return lastGlucose
@@ -914,7 +910,7 @@ extension MainChartView {
     // MARK: - Chart formatting
 
     private func yAxisChartData() {
-        let glucoseMapped = glucose.compactMap(\.glucose)
+        let glucoseMapped = glucoseFromPersistence.map(\.glucose)
         guard let minGlucose = glucoseMapped.min(), let maxGlucose = glucoseMapped.max() else {
             // default values
             minValue = 45 * conversionFactor - 20 * conversionFactor

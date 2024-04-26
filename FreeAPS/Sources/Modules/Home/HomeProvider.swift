@@ -27,12 +27,6 @@ extension Home {
             apsManager.heartbeat(date: Date())
         }
 
-        func filteredGlucose(hours: Int) -> [BloodGlucose] {
-            glucoseStorage.recent().filter {
-                $0.dateString.addingTimeInterval(hours.hours.timeInterval) > Date()
-            }
-        }
-
         func pumpHistory(hours: Int) -> [PumpHistoryEvent] {
             pumpHistoryStorage.recent().filter {
                 $0.timestamp.addingTimeInterval(hours.hours.timeInterval) > Date()
@@ -65,10 +59,6 @@ extension Home {
             storage.retrieve(OpenAPS.Settings.settings, as: PumpSettings.self)
                 ?? PumpSettings(from: OpenAPS.defaults(for: OpenAPS.Settings.settings))
                 ?? PumpSettings(insulinActionCurve: 6, maxBolus: 10, maxBasal: 2)
-        }
-
-        func pumpBattery() -> Battery? {
-            storage.retrieve(OpenAPS.Monitor.battery, as: Battery.self)
         }
 
         func pumpReservoir() -> Decimal? {
