@@ -1,6 +1,7 @@
-oref0 branch: dev - git version: b89a39b
+oref0 branch: separate_adjustment_factors - git version: 969586d
 
 Last commits:
+969586d Separate Adjustment Factors for Logarithmic and Sigmoid
 b89a39b Merge pull request #16 from bjornoleh/webpack-update
 b8aaf93 Merge pull request #15 from avouspierre/dev
 4aba4e0 webpack-cp.sh: git log --since=2024-01-01
