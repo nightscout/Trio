@@ -116,7 +116,7 @@ struct MainChartView: View {
     ) var determinations: FetchedResults<OrefDetermination>
 
     @FetchRequest(
-        fetchRequest: Forecast.fetch(NSPredicate.forecastsForChart, sortedBy: "date", ascending: true),
+        fetchRequest: Forecast.fetch(NSPredicate.predicateFor30MinAgo, ascending: false),
         animation: .default
     ) var forecasts: FetchedResults<Forecast>
 
@@ -232,7 +232,7 @@ extension MainChartView {
                 drawFpus()
                 drawBoluses()
                 drawTempTargets()
-//                drawPredictions()
+                drawPredictions()
                 drawGlucose()
                 drawManualGlucose()
 
@@ -469,15 +469,19 @@ extension MainChartView {
         }
     }
 
-    private func drawPredictions() -> some View {
-        ForEach(forecasts, id: \.self) { forecast in
-            ForEach(forecast.forecastValuesArray) { value in
+    private func timeForIndex(_ index: Int32) -> Date {
+        let currentTime = Date()
+        let timeInterval = TimeInterval(index * 300)
+        return currentTime.addingTimeInterval(timeInterval)
+    }
+
+    private func drawPredictions() -> some ChartContent {
+        ForEach(forecasts, id: \.id) { forecast in
+            ForEach(forecast.forecastValuesArray, id: \.self) { item in
                 LineMark(
-                    x: .value("Time", value.timestamp),
-                    y: .value("Value", Decimal(value.value) * conversionFactor)
-                    //                    series: .value("Series", forecast.type)
-                )
-                //                .foregroundStyle(colorForType(PredictionType(rawValue: forecast.type ?? "") ?? .unknown))
+                    x: .value("Time", timeForIndex(item.index)),
+                    y: .value("Value", Int(item.value))
+                ).foregroundStyle(by: .value("Predictions", forecast.type ?? ""))
             }
         }
     }
@@ -767,20 +771,20 @@ extension MainChartView {
         TempBasals = returnTempBasalRates
     }
 
-    private func addPredictions(_ predictions: [Int], type: PredictionType, deliveredAt: Date, endMarker: Date) -> [Prediction] {
-        var calculatedPredictions: [Prediction] = []
-        predictions.indices.forEach { index in
-            let predTime = Date(
-                timeIntervalSince1970: deliveredAt.timeIntervalSince1970 + TimeInterval(index) * 5.minutes.timeInterval
-            )
-            if predTime.timeIntervalSince1970 < endMarker.timeIntervalSince1970 {
-                calculatedPredictions.append(
-                    Prediction(amount: predictions[index], timestamp: predTime, type: type)
-                )
-            }
-        }
-        return calculatedPredictions
-    }
+//    private func addPredictions(_ predictions: [Int], type: PredictionType, deliveredAt: Date, endMarker: Date) -> [Prediction] {
+//        var calculatedPredictions: [Prediction] = []
+//        predictions.indices.forEach { index in
+//            let predTime = Date(
+//                timeIntervalSince1970: deliveredAt.timeIntervalSince1970 + TimeInterval(index) * 5.minutes.timeInterval
+//            )
+//            if predTime.timeIntervalSince1970 < endMarker.timeIntervalSince1970 {
+//                calculatedPredictions.append(
+//                    Prediction(amount: predictions[index], timestamp: predTime, type: type)
+//                )
+//            }
+//        }
+//        return calculatedPredictions
+//    }
 
     private func findRegularBasalPoints(
         timeBegin: TimeInterval,

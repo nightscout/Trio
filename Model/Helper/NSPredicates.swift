@@ -75,9 +75,4 @@ extension NSPredicate {
         let date = Date.threeMonthsAgo
         return NSPredicate(format: "date >= %@", date as NSDate)
     }
-
-    static var forecastsForChart: NSPredicate {
-        let oneDayAgo = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
-        return NSPredicate(format: "date >= %@", oneDayAgo as NSDate)
-    }
 }

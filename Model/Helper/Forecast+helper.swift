@@ -2,9 +2,10 @@ import CoreData
 import Foundation
 
 public extension Forecast {
-    static func fetch(_ predicate: NSPredicate, sortedBy keyPath: String, ascending: Bool) -> NSFetchRequest<Forecast> {
+    static func fetch(_ predicate: NSPredicate, ascending: Bool) -> NSFetchRequest<Forecast> {
         let request = NSFetchRequest<Forecast>(entityName: "Forecast")
-        request.sortDescriptors = [NSSortDescriptor(key: keyPath, ascending: ascending)]
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \Forecast.date, ascending: ascending)]
+        request.fetchLimit = 1
         request.predicate = predicate
         return request
     }
