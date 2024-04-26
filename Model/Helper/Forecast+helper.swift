@@ -7,11 +7,13 @@ public extension Forecast {
         request.sortDescriptors = [NSSortDescriptor(keyPath: \Forecast.date, ascending: ascending)]
         request.fetchLimit = 1
         request.predicate = predicate
+        request.returnsObjectsAsFaults = true
+
         return request
     }
 
     var forecastValuesArray: [ForecastValue] {
-        let set = forecastValues as? Set<ForecastValue> ?? []
+        let set = forecastValues ?? []
         return set.sorted { $0.index < $1.index }
     }
 }

@@ -111,6 +111,7 @@ final class OpenAPS {
                                 .forEach { type, values in
                                     if let values = values {
                                         let forecast = Forecast(context: self.viewContext)
+                                        forecast.id = UUID()
                                         forecast.type = type
                                         forecast.date = Date() // or use a specific timestamp if available
                                         forecast

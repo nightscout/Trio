@@ -475,13 +475,38 @@ extension MainChartView {
         return currentTime.addingTimeInterval(timeInterval)
     }
 
+    private func getForecasts(_ determination: OrefDetermination) -> [Forecast] {
+        guard let forecastSet = determination.forecasts, let forecasts = Array(forecastSet) as? [Forecast] else {
+            return []
+        }
+
+        return forecasts
+    }
+
+    private func getForecastValues(_ forecast: Forecast) -> [ForecastValue] {
+        guard let forecastValueSet = forecast.forecastValues,
+              let forecastValues = Array(forecastValueSet) as? [ForecastValue]
+        else {
+            return []
+        }
+
+        return forecastValues.sorted(by: { $0.index < $1.index })
+    }
+
     private func drawPredictions() -> some ChartContent {
-        ForEach(forecasts, id: \.id) { forecast in
-            ForEach(forecast.forecastValuesArray, id: \.self) { item in
-                LineMark(
-                    x: .value("Time", timeForIndex(item.index)),
-                    y: .value("Value", Int(item.value))
-                ).foregroundStyle(by: .value("Predictions", forecast.type ?? ""))
+        ForEach(determinations) { determination in
+            let forecasts = getForecasts(determination)
+
+            ForEach(forecasts) { forecast in
+                let forecastValues = getForecastValues(forecast)
+
+                ForEach(forecastValues) { forecastValue in
+                    LineMark(
+                        x: .value("Time", timeForIndex(forecastValue.index)),
+                        y: .value("Value", Int(forecastValue.value))
+                    )
+                    .foregroundStyle(by: .value("Predictions", forecast.type ?? ""))
+                }
             }
         }
     }
