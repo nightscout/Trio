@@ -9,6 +9,21 @@ import Foundation
         return formatter
     }
 
+    private var presetCarbsList: [carbPresetResult] {
+        var carbsList = [Presets]()
+        let requestcarbsList = Presets.fetchRequest() as NSFetchRequest<Presets>
+        try? carbsList = coredataContext.fetch(requestcarbsList)
+        return carbsList.map {
+            return carbPresetResult(
+                id: $0.id.hashValue,
+                name: $0.dish ?? "-",
+                carbs: $0.carbs as! Double,
+                fat: $0.fat as! Double,
+                protein: $0.protein as! Double
+            )
+        }
+    }
+
     func addCarbs(
         _ quantityCarbs: Double,
         _ quantityFat: Double,
@@ -42,5 +57,21 @@ import Foundation
             " \(carbsFormatted) g carbs and \(fatsFormatted) g fats and \(proteinsFormatted) g protein added at \(dateName)",
             table: "ShortcutsDetail"
         )
+    }
+
+    func listPresetCarbs() throws -> [carbPresetResult] {
+        presetCarbsList
+    }
+
+    func listPresetCarbs(_ id: [Int]) throws -> [carbPresetResult] {
+        presetCarbsList.filter {
+            id.contains($0.id)
+        }
+    }
+
+    func getCarbsPresetInfo(presetId: Int) throws -> carbPresetResult? {
+        presetCarbsList.first {
+            $0.id == presetId
+        }
     }
 }
