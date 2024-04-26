@@ -28,3 +28,9 @@
 
 /* oiaps Create and apply Temporary Target description*/
 "${applicationName} allows to create and apply a temporary target" = "${applicationName} allows to create and apply a temporary target";
+
+/* oiaps Temporary override shortcut*/
+"Activate ${applicationName} temporary override" = "Activate ${applicationName} temporary override";
+
+/* oiaps Temporary override shortcut Description */
+"${applicationName} apply a temporary override" = "${applicationName} apply a temporary override";

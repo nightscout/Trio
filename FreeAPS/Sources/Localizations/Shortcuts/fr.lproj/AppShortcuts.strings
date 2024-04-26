@@ -25,3 +25,9 @@
 
 /* oiaps Create and apply Temporary Target description*/
 "${applicationName} allows to create and apply a temporary target" = "${applicationName} permet de définir et appliquer une cible temporaire";
+
+/* oiaps Temporary override shortcut*/
+"Activate ${applicationName} temporary override" = "Activer une surcharge temporaire à ${applicationName}";
+
+/* oiaps Temporary override shortcut Description */
+"${applicationName} apply a temporary override" = "${applicationName} permet d'appliquer une surcharge temporaire";

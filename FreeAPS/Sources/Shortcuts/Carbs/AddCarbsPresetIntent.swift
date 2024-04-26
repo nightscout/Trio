@@ -55,13 +55,13 @@ import Swinject
 
     static var parameterSummary: some ParameterSummary {
         When(\.$confirmBeforeApplying, .equalTo, true, {
-            Summary("Applying \(\.$carbQuantity) at \(\.$dateAdded)", table: "ShortcutsDetail") {
+            Summary("Applying \(\.$carbQuantity) g at \(\.$dateAdded)", table: "ShortcutsDetail") {
                 \.$fatQuantity
                 \.$proteinQuantity
                 \.$confirmBeforeApplying
             }
         }, otherwise: {
-            Summary("Immediately applying \(\.$carbQuantity) at \(\.$dateAdded)", table: "ShortcutsDetail") {
+            Summary("Immediately applying \(\.$carbQuantity) g at \(\.$dateAdded)", table: "ShortcutsDetail") {
                 \.$fatQuantity
                 \.$proteinQuantity
             }
