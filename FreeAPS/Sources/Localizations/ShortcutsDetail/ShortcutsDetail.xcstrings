@@ -1,48 +1,18 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    " %@ g carbs and %@ g fats and %@ g protein added at %@" : {
+    " %@ g carbs and %@ g fats and %@ g proteins added at %@" : {
       "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " %1$@ g Kohlenhydrate und %2$@ g Fette und %3$@ g Eiweiß zugegeben bei %4$@"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : " %1$@ g carbs and %2$@ g fats and %3$@ g protein added at %4$@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " %1$@ g de hidratos de carbono y %2$@ g de grasas y %3$@ g de proteínas añadidos a %4$@"
+            "value" : " %1$@ g carbs and %2$@ g fats and %3$@ g proteins added at %4$@"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : " %1$@ g glucides et %2$@ g lipides et %3$@ g proteines ajoutés à %4$@"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " %1$@ g di carboidrati, %2$@ g di grassi e %3$@ g di proteine aggiunti a %4$@"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " %1$@ g koolhydraten en %2$@ g vetten en %3$@ g proteïne toegevoegd bij %4$@"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " %1$@ g kolhydrater och %2$@ g fett och %3$@ g protein tillsatt vid %4$@"
           }
         }
       }
@@ -287,42 +257,12 @@
         }
       }
     },
-    "Allow to list and choose a specific temporary Preset" : {
+    "Allow to list and choose a specific temporary targets" : {
       "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erlaubt die Auflistung und Auswahl einer bestimmten temporären Voreinstellung"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Permite listar y elegir una Preconfiguración temporal específica"
-          }
-        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Permet de lister et de choisir une cible glycémique temporaire"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Consente di elencare e scegliere un preset temporaneo specifico"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Een specifieke tijdelijke preset weergeven en kiezen"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gör det möjligt att lista och välja en specifik tillfällig förinställning"
+            "value" : "Permet de lister et de choisir une cible temporaire"
           }
         }
       }
@@ -851,6 +791,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Förinställda kolhydrater"
+          }
+        }
+      }
+    },
+    "Carbs Preset selection" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sélection des préréglages de repas"
           }
         }
       }
@@ -1705,42 +1655,12 @@
         }
       }
     },
-    "List Temporary Presets" : {
+    "List Temporary Targets" : {
       "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Temporäre Voreinstellungen auflisten"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lista de preajustes temporales"
-          }
-        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lister les cibles temporaires enregistrées"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elenco delle preimpostazioni temporanee"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lijst tijdelijke voorinstellingen"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lista tillfälliga förinställningar"
+            "value" : "Lister les cibles temporaires"
           }
         }
       }
@@ -1827,42 +1747,12 @@
         }
       }
     },
-    "Name" : {
+    "name" : {
       "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Name"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nombre"
-          }
-        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nom"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nome"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Naam"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Namn"
+            "value" : "nom"
           }
         }
       }
@@ -1903,6 +1793,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "inga tillsatta kolhydrater"
+          }
+        }
+      }
+    },
+    "Override choice" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choix d'une surcharge"
           }
         }
       }
@@ -1983,46 +1883,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Förinställt val"
-          }
-        }
-      }
-    },
-    "Preset selection" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Auswahl der Voreinstellung"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Selección preestablecida"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sélection d'une préréglage"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Selezione del preset"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Preset selectie"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Val av förinställning"
           }
         }
       }
@@ -2671,6 +2531,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tillämpat mål för %@"
+          }
+        }
+      }
+    },
+    "Target choice" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choix d'une cible"
+          }
+        }
+      }
+    },
+    "Temporary Override" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Surcharge temporaire"
           }
         }
       }

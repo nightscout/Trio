@@ -5,7 +5,7 @@ import Foundation
     static var defaultQuery = carbPresetResultQuery()
 
     var id: Int
-    @Property(title: LocalizedStringResource("Name", table: "ShortcutsDetail")) var name: String
+    @Property(title: LocalizedStringResource("name", table: "ShortcutsDetail")) var name: String
     @Property(title: LocalizedStringResource("carbs", table: "ShortcutsDetail")) var carbs: Double
     @Property(title: LocalizedStringResource("fat", table: "ShortcutsDetail")) var fat: Double
     @Property(title: LocalizedStringResource("protein", table: "ShortcutsDetail")) var protein: Double

@@ -21,15 +21,16 @@ import Foundation
 
     @Parameter(
         title: LocalizedStringResource("Carbs Preset", table: "ShortcutsDetail"),
-        description: LocalizedStringResource("Preset selection", table: "ShortcutsDetail")
+        description: LocalizedStringResource("Carbs Preset selection", table: "ShortcutsDetail")
     ) var preset: carbPresetResult?
 
     static var parameterSummary: some ParameterSummary {
-        Summary("Choose the Carb preset  \(\.$preset)", table: "ShortcutsDetail")
+        Summary("Choose the Carb preset \(\.$preset)", table: "ShortcutsDetail")
     }
 
     @MainActor func perform() async throws -> some ReturnsValue<carbPresetResult?>
     {
+        //     if let id = preset?.id, let presetChoice = try carbRequest.getCarbsPresetInfo(presetId: id) {
         if let presetChoice = preset {
             return .result(
                 value: presetChoice

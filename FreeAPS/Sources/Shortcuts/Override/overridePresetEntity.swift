@@ -13,7 +13,7 @@ import Swinject
         DisplayRepresentation(title: "\(name)")
     }
 
-    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Presets"
+    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Temporary Override"
 }
 
 @available(iOS 16.0, *) struct overridePresetsQuery: EntityQuery {

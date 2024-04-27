@@ -9,17 +9,17 @@ import Foundation
         return formatter
     }
 
-    private var presetCarbsList: [carbPresetResult] {
+    var presetCarbsList: [carbPresetResult] {
         var carbsList = [Presets]()
         let requestcarbsList = Presets.fetchRequest() as NSFetchRequest<Presets>
         try? carbsList = coredataContext.fetch(requestcarbsList)
-        return carbsList.map {
-            return carbPresetResult(
-                id: $0.id.hashValue,
+        return carbsList.compactMap {
+            carbPresetResult(
+                id: $0.objectID.hash,
                 name: $0.dish ?? "-",
-                carbs: $0.carbs as! Double,
-                fat: $0.fat as! Double,
-                protein: $0.protein as! Double
+                carbs: ($0.carbs ?? 0.0) as! Double,
+                fat: ($0.fat ?? 0.0) as! Double,
+                protein: ($0.protein ?? 0.0) as! Double
             )
         }
     }
@@ -45,8 +45,7 @@ import Foundation
                 protein: Decimal(quantityProtein),
                 note: "add with shortcuts",
                 enteredBy: CarbsEntry.manual,
-                isFPU: (quantityFat > 0 || quantityProtein > 0) ? true : false,
-                fpuID: (quantityFat > 0 || quantityProtein > 0) ? UUID().uuidString : nil
+                isFPU: false, fpuID: nil
             )]
         )
         let dateName = dateAdded.formatted()
@@ -54,7 +53,7 @@ import Foundation
         let fatsFormatted = numberFormatter.string(from: quantityFat as NSNumber) ?? "0"
         let proteinsFormatted = numberFormatter.string(from: quantityProtein as NSNumber) ?? "0"
         return LocalizedStringResource(
-            " \(carbsFormatted) g carbs and \(fatsFormatted) g fats and \(proteinsFormatted) g protein added at \(dateName)",
+            " \(carbsFormatted) g carbs and \(fatsFormatted) g fats and \(proteinsFormatted) g proteins added at \(dateName)",
             table: "ShortcutsDetail"
         )
     }
@@ -63,9 +62,9 @@ import Foundation
         presetCarbsList
     }
 
-    func listPresetCarbs(_ id: [Int]) throws -> [carbPresetResult] {
+    func listPresetCarbs(_ ids: [Int]) throws -> [carbPresetResult] {
         presetCarbsList.filter {
-            id.contains($0.id)
+            ids.contains($0.id)
         }
     }
 

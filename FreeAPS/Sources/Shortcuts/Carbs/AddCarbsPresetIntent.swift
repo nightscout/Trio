@@ -64,6 +64,7 @@ import Swinject
             Summary("Immediately applying \(\.$carbQuantity) g at \(\.$dateAdded)", table: "ShortcutsDetail") {
                 \.$fatQuantity
                 \.$proteinQuantity
+                \.$confirmBeforeApplying
             }
         })
     }

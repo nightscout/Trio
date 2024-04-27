@@ -27,11 +27,13 @@ import Foundation
 
     static var parameterSummary: some ParameterSummary {
         When(\ApplyOverrideIntent.$confirmBeforeApplying, .equalTo, true, {
-            Summary("Applying \(\.$preset)", table: "ShortcutsDetail") {
+            Summary("Applying \(\.$preset) override", table: "ShortcutsDetail") {
                 \.$confirmBeforeApplying
             }
         }, otherwise: {
-            Summary("Immediately applying \(\.$preset)", table: "ShortcutsDetail") {}
+            Summary("Immediately applying \(\.$preset) override", table: "ShortcutsDetail") {
+                \.$confirmBeforeApplying
+            }
         })
     }
 

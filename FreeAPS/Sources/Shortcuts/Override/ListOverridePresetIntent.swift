@@ -14,12 +14,12 @@ import Foundation
     )
 
     @Parameter(
-        title: LocalizedStringResource("Preset", table: "ShortcutsDetail"),
-        description: LocalizedStringResource("Preset choice", table: "ShortcutsDetail")
+        title: LocalizedStringResource("Temporary Override", table: "ShortcutsDetail"),
+        description: LocalizedStringResource("Override choice", table: "ShortcutsDetail")
     ) var preset: overridePreset?
 
     static var parameterSummary: some ParameterSummary {
-        Summary("Choose the temp preset  \(\.$preset)", table: "ShortcutsDetail")
+        Summary("Choose the temporary override  \(\.$preset)", table: "ShortcutsDetail")
     }
 
     @MainActor func perform() async throws -> some ReturnsValue<overridePreset> {
