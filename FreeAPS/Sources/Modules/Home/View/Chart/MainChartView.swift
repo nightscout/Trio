@@ -117,6 +117,11 @@ struct MainChartView: View {
         animation: Animation.bouncy
     ) var determinations: FetchedResults<OrefDetermination>
 
+    @FetchRequest(
+        fetchRequest: Forecast.fetch(NSPredicate.predicateFor30MinAgo, ascending: false),
+        animation: .default
+    ) var forecasts: FetchedResults<Forecast>
+
     private var bolusFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
@@ -166,7 +171,6 @@ struct MainChartView: View {
                     LazyVStack(spacing: 0) {
                         mainChart
                         basalChart
-
                     }.onChange(of: screenHours) { _ in
                         updateStartEndMarkers()
                         yAxisChartData()
@@ -229,7 +233,7 @@ extension MainChartView {
                 drawFpus()
                 drawBoluses()
                 drawTempTargets()
-                drawPredictions()
+                drawForecasts()
                 drawGlucose()
                 drawManualGlucose()
 
@@ -253,9 +257,6 @@ extension MainChartView {
                 }
             }
             .id("MainChart")
-            .onChange(of: glucoseFromPersistence.map(\.id)) { _ in
-                calculatePredictions()
-            }
             .onChange(of: boluses) { _ in
                 state.roundedTotalBolus = state.calculateTINS()
             }
@@ -263,26 +264,22 @@ extension MainChartView {
                 calculateTTs()
             }
             .onChange(of: didAppearTrigger) { _ in
-                calculatePredictions()
                 calculateTTs()
-            }
-            .onChange(of: determinations.map(\.id)) { _ in
-                calculatePredictions()
-            }
-            .onReceive(
-                Foundation.NotificationCenter.default
-                    .publisher(for: UIApplication.willEnterForegroundNotification)
-            ) { _ in
-                calculatePredictions()
             }
             .frame(minHeight: UIScreen.main.bounds.height * 0.3)
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .chartXScale(domain: startMarker ... endMarker)
             .chartXAxis { mainChartXAxis }
-            // .chartXAxis(.hidden)
+            .backport.chartXSelection(value: $selection)
             .chartYAxis { mainChartYAxis }
             .chartYScale(domain: minValue ... maxValue)
-            .backport.chartXSelection(value: $selection)
+            .chartForegroundStyleScale([
+                "zt": Color.zt,
+                "uam": Color.uam,
+                "cob": .orange,
+                "iob": .blue
+            ])
+            .chartLegend(.hidden)
         }
     }
 
@@ -466,39 +463,46 @@ extension MainChartView {
         }
     }
 
-    private func drawPredictions() -> some ChartContent {
-        /// predictions
-        ForEach(Predictions, id: \.self) { info in
-            let y = max(info.amount, 0)
+    private func timeForIndex(_ index: Int32) -> Date {
+        let currentTime = Date()
+        let timeInterval = TimeInterval(index * 300)
+        return currentTime.addingTimeInterval(timeInterval)
+    }
 
-            if info.type == .uam {
-                LineMark(
-                    x: .value("Time", info.timestamp, unit: .second),
-                    y: .value("Value", Decimal(y) * conversionFactor),
-                    series: .value("uam", "uam")
-                ).foregroundStyle(Color.uam).symbolSize(16)
+    private func getForecasts(_ determination: OrefDetermination) -> [Forecast] {
+        guard let forecastSet = determination.forecasts, let forecasts = Array(forecastSet) as? [Forecast] else {
+            return []
+        }
+
+        return forecasts
+    }
+
+    private func getForecastValues(_ forecast: Forecast) -> [ForecastValue] {
+        guard let forecastValueSet = forecast.forecastValues,
+              let forecastValues = Array(forecastValueSet) as? [ForecastValue]
+        else {
+            return []
+        }
+
+        return forecastValues.sorted(by: { $0.index < $1.index })
+    }
+
+    private func drawForecasts() -> some ChartContent {
+        /// for every determination in determinations get the forecasts
+        ForEach(determinations.flatMap { determination -> [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] in
+            let forecasts = getForecasts(determination) /// returns array of Forecast objects
+            /// now get the values for every forecast and add it to a tuple, identify it with an ID
+            return forecasts.flatMap { forecast in
+                getForecastValues(forecast).map { forecastValue in
+                    (id: UUID(), forecast: forecast, forecastValue: forecastValue)
+                }
             }
-            if info.type == .cob {
-                LineMark(
-                    x: .value("Time", info.timestamp, unit: .second),
-                    y: .value("Value", Decimal(y) * conversionFactor),
-                    series: .value("cob", "cob")
-                ).foregroundStyle(Color.orange).symbolSize(16)
-            }
-            if info.type == .iob {
-                LineMark(
-                    x: .value("Time", info.timestamp, unit: .second),
-                    y: .value("Value", Decimal(y) * conversionFactor),
-                    series: .value("iob", "iob")
-                ).foregroundStyle(Color.insulin).symbolSize(16)
-            }
-            if info.type == .zt {
-                LineMark(
-                    x: .value("Time", info.timestamp, unit: .second),
-                    y: .value("Value", Decimal(y) * conversionFactor),
-                    series: .value("zt", "zt")
-                ).foregroundStyle(Color.zt).symbolSize(16)
-            }
+        }, id: \.id) { tuple in
+            LineMark(
+                x: .value("Time", timeForIndex(tuple.forecastValue.index)),
+                y: .value("Value", Int(tuple.forecastValue.value))
+            )
+            .foregroundStyle(by: .value("Predictions", tuple.forecast.type ?? ""))
         }
     }
 
@@ -588,52 +592,36 @@ extension MainChartView {
         }
     }
 
-    private func drawTempBasals() -> some ChartContent {
-        /// temp basal rects
-        ForEach(TempBasals) { temp in
-            /// calculate end time of temp basal adding duration to start time
-            let end = temp.timestamp + (temp.durationMin ?? 0).minutes.timeInterval
-            let now = Date()
+    private func filteredTempBasals() -> [(start: Date, end: Date, rate: Double)] {
+        let now = Date()
+        return TempBasals.compactMap { temp -> (start: Date, end: Date, rate: Double)? in
+            let end = min(temp.timestamp + (temp.durationMin ?? 0).minutes.timeInterval, now)
+            let isInsulinSuspended = suspensions.contains { $0.timestamp >= temp.timestamp && $0.timestamp <= end }
 
-            /// ensure that temp basals that are set cannot exceed current date -> i.e. scheduled temp basals are not shown
-            /// we could display scheduled temp basals with opacity etc... in the future
-            let maxEndTime = min(end, now)
+            let rate = Double(temp.rate ?? Decimal.zero) * (isInsulinSuspended ? 0 : 1)
 
-            /// set mark height to 0 when insulin delivery is suspended
-            let isInsulinSuspended = suspensions
-                .first(where: { $0.timestamp >= temp.timestamp && $0.timestamp <= maxEndTime }) != nil
-            let rate = (temp.rate ?? 0) * (isInsulinSuspended ? 0 : 1)
-
-            /// find next basal entry and if available set end of current entry to start of next entry
-            if let nextTemp = TempBasals.first(where: { $0.timestamp > temp.timestamp }) {
-                let nextTempStart = nextTemp.timestamp
-
-                RectangleMark(
-                    xStart: .value("start", temp.timestamp),
-                    xEnd: .value("end", nextTempStart),
-                    yStart: .value("rate-start", 0),
-                    yEnd: .value("rate-end", rate)
-                ).foregroundStyle(Color.insulin.opacity(0.2))
-
-                LineMark(x: .value("Start Date", temp.timestamp), y: .value("Amount", rate))
-                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
-
-                LineMark(x: .value("End Date", nextTempStart), y: .value("Amount", rate))
-                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
-            } else {
-                RectangleMark(
-                    xStart: .value("start", temp.timestamp),
-                    xEnd: .value("end", maxEndTime),
-                    yStart: .value("rate-start", 0),
-                    yEnd: .value("rate-end", rate)
-                ).foregroundStyle(Color.insulin.opacity(0.2))
-
-                LineMark(x: .value("Start Date", temp.timestamp), y: .value("Amount", rate))
-                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
-
-                LineMark(x: .value("End Date", maxEndTime), y: .value("Amount", rate))
-                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+            // Check if there's a subsequent temp basal to determine the end time
+            guard let nextTemp = TempBasals.first(where: { $0.timestamp > temp.timestamp }) else {
+                return (temp.timestamp, end, rate)
             }
+            return (temp.timestamp, nextTemp.timestamp, rate)
+        }
+    }
+
+    private func drawTempBasals() -> some ChartContent {
+        ForEach(filteredTempBasals(), id: \.start) { basal in
+            RectangleMark(
+                xStart: .value("start", basal.start),
+                xEnd: .value("end", basal.end),
+                yStart: .value("rate-start", 0),
+                yEnd: .value("rate-end", basal.rate)
+            ).foregroundStyle(Color.insulin.opacity(0.2))
+
+            LineMark(x: .value("Start Date", basal.start), y: .value("Amount", basal.rate))
+                .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+
+            LineMark(x: .value("End Date", basal.end), y: .value("Amount", basal.rate))
+                .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
         }
     }
 
@@ -738,36 +726,6 @@ extension MainChartView {
         }
 
         ChartTempTargets = calculatedTTs
-    }
-
-    private func addPredictions(_ predictions: [Int], type: PredictionType, deliveredAt: Date, endMarker: Date) -> [Prediction] {
-        var calculatedPredictions: [Prediction] = []
-        predictions.indices.forEach { index in
-            let predTime = Date(
-                timeIntervalSince1970: deliveredAt.timeIntervalSince1970 + TimeInterval(index) * 5.minutes.timeInterval
-            )
-            if predTime.timeIntervalSince1970 < endMarker.timeIntervalSince1970 {
-                calculatedPredictions.append(
-                    Prediction(amount: predictions[index], timestamp: predTime, type: type)
-                )
-            }
-        }
-        return calculatedPredictions
-    }
-
-    private func calculatePredictions() {
-//        guard let suggestion = suggestion, let deliveredAt = suggestion.deliverAt else { return }
-//        let uamPredictions = suggestion.predictions?.uam ?? []
-//        let iobPredictions = suggestion.predictions?.iob ?? []
-//        let cobPredictions = suggestion.predictions?.cob ?? []
-//        let ztPredictions = suggestion.predictions?.zt ?? []
-//
-//        let uam = addPredictions(uamPredictions, type: .uam, deliveredAt: deliveredAt, endMarker: endMarker)
-//        let iob = addPredictions(iobPredictions, type: .iob, deliveredAt: deliveredAt, endMarker: endMarker)
-//        let cob = addPredictions(cobPredictions, type: .cob, deliveredAt: deliveredAt, endMarker: endMarker)
-//        let zt = addPredictions(ztPredictions, type: .zt, deliveredAt: deliveredAt, endMarker: endMarker)
-//
-//        Predictions = uam + iob + cob + zt
     }
 
     private func calculateTempBasals() {

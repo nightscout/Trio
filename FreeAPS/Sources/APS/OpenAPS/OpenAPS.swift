@@ -82,45 +82,63 @@ final class OpenAPS {
                 if var determination = Determination(from: orefDetermination) {
                     determination.timestamp = determination.deliverAt ?? clock
                     self.storage.save(determination, as: Enact.suggested)
-
-                    // save to core data asynchronously and on a private queue
+                    // save to core data asynchronously
                     self.context.perform {
-                        let new = OrefDetermination(context: self.context)
-                        new.id = UUID()
-                        new.totalDailyDose = determination.tdd as? NSDecimalNumber
-                        new.insulinSensitivity = determination.isf as? NSDecimalNumber
-                        new.currentTarget = determination.current_target as? NSDecimalNumber
-                        new.eventualBG = determination.eventualBG as? NSDecimalNumber
-                        new.deliverAt = determination.deliverAt
-                        new.enacted = false
-                        new.insulinForManualBolus = determination.insulinForManualBolus as? NSDecimalNumber
-                        new.carbRatio = determination.carbRatio as? NSDecimalNumber
-                        new.glucose = determination.bg as? NSDecimalNumber
-                        new.reservoir = determination.reservoir as? NSDecimalNumber
-                        new.insulinReq = determination.insulinReq as? NSDecimalNumber
-                        new.temp = determination.temp?.rawValue ?? "absolute"
-                        new.rate = determination.rate as? NSDecimalNumber
-                        new.reason = determination.reason
-                        new.duration = Int16(determination.duration ?? 0)
-                        new.iob = determination.iob as? NSDecimalNumber
-                        new.treshold = determination.treshold as? NSDecimalNumber
-//                                                new.predBGs: [
-//                                                "zt": immutableDetermination.predictions?.zt ?? [],
-//                                                "cob": immutableDetermination.predictions?.cob ?? [],
-//                                                "iob": immutableDetermination.predictions?.iob ?? [],
-//                                                "uam": immutableDetermination.predictions?.uam ?? []
-//                                            ]
-                        new.minDelta = determination.minDelta as? NSDecimalNumber
-                        new.sensitivityRatio = determination.sensitivityRatio as? NSDecimalNumber
-                        new.expectedDelta = determination.expectedDelta as? NSDecimalNumber
-                        new.cob = Int16(Int(determination.cob ?? 0))
-                        new.manualBolusErrorString = determination.manualBolusErrorString as? NSDecimalNumber
-                        new.timestampEnacted = nil
-                        new.tempBasal = determination.insulin?.temp_basal as? NSDecimalNumber
-                        new.scheduledBasal = determination.insulin?.scheduled_basal as? NSDecimalNumber
-                        new.bolus = determination.insulin?.bolus as? NSDecimalNumber
-                        new.smbToDeliver = determination.units as? NSDecimalNumber
-                        new.carbsRequired = Int16(Int(determination.carbsReq ?? 0))
+                        let newOrefDetermination = OrefDetermination(context: self.context)
+                        newOrefDetermination.id = UUID()
+                        newOrefDetermination.totalDailyDose = determination.tdd as? NSDecimalNumber
+                        newOrefDetermination.insulinSensitivity = determination.isf as? NSDecimalNumber
+                        newOrefDetermination.currentTarget = determination.current_target as? NSDecimalNumber
+                        newOrefDetermination.eventualBG = determination.eventualBG as? NSDecimalNumber
+                        newOrefDetermination.deliverAt = determination.deliverAt
+                        newOrefDetermination.enacted = false
+                        newOrefDetermination.insulinForManualBolus = determination.insulinForManualBolus as? NSDecimalNumber
+                        newOrefDetermination.carbRatio = determination.carbRatio as? NSDecimalNumber
+                        newOrefDetermination.glucose = determination.bg as? NSDecimalNumber
+                        newOrefDetermination.reservoir = determination.reservoir as? NSDecimalNumber
+                        newOrefDetermination.insulinReq = determination.insulinReq as? NSDecimalNumber
+                        newOrefDetermination.temp = determination.temp?.rawValue ?? "absolute"
+                        newOrefDetermination.rate = determination.rate as? NSDecimalNumber
+                        newOrefDetermination.reason = determination.reason
+                        newOrefDetermination.duration = Int16(determination.duration ?? 0)
+                        newOrefDetermination.iob = determination.iob as? NSDecimalNumber
+                        newOrefDetermination.treshold = determination.treshold as? NSDecimalNumber
+
+                        if let predictions = determination.predictions {
+                            // Create forecasts for each type
+                            ["iob": predictions.iob, "zt": predictions.zt, "cob": predictions.cob, "uam": predictions.uam]
+                                .forEach { type, values in
+                                    if let values = values {
+                                        let forecast = Forecast(context: self.context)
+                                        forecast.id = UUID()
+                                        forecast.type = type
+                                        forecast.date = Date() // or use a specific timestamp if available
+                                        forecast
+                                            .orefDetermination =
+                                            newOrefDetermination // Assuming a relationship from Forecast to OrefDetermination
+
+                                        for (index, value) in values.enumerated() {
+                                            let forecastValue = ForecastValue(context: self.context)
+                                            forecastValue.index = Int32(index)
+                                            forecastValue.value = Int32(value)
+                                            forecast.addToForecastValues(forecastValue)
+                                        }
+                                        newOrefDetermination.addToForecasts(forecast)
+                                    }
+                                }
+                        }
+
+                        newOrefDetermination.minDelta = determination.minDelta as? NSDecimalNumber
+                        newOrefDetermination.sensitivityRatio = determination.sensitivityRatio as? NSDecimalNumber
+                        newOrefDetermination.expectedDelta = determination.expectedDelta as? NSDecimalNumber
+                        newOrefDetermination.cob = Int16(Int(determination.cob ?? 0))
+                        newOrefDetermination.manualBolusErrorString = determination.manualBolusErrorString as? NSDecimalNumber
+                        newOrefDetermination.timestampEnacted = nil
+                        newOrefDetermination.tempBasal = determination.insulin?.temp_basal as? NSDecimalNumber
+                        newOrefDetermination.scheduledBasal = determination.insulin?.scheduled_basal as? NSDecimalNumber
+                        newOrefDetermination.bolus = determination.insulin?.bolus as? NSDecimalNumber
+                        newOrefDetermination.smbToDeliver = determination.units as? NSDecimalNumber
+                        newOrefDetermination.carbsRequired = Int16(Int(determination.carbsReq ?? 0))
                         do {
                             try self.context.save()
                             debugPrint(
@@ -701,5 +719,35 @@ final class OpenAPS {
             return ""
         }
         return (try? String(contentsOf: url)) ?? ""
+    }
+
+    func processAndSave(forecastData: [String: [Int]]) {
+        let context = self.context
+
+        let currentDate = Date()
+
+        for (type, values) in forecastData {
+            createForecast(type: type, values: values, date: currentDate, context: context)
+        }
+    }
+
+    func createForecast(type: String, values: [Int], date: Date, context: NSManagedObjectContext) {
+        let forecast = Forecast(context: context)
+        forecast.id = UUID()
+        forecast.date = date
+        forecast.type = type
+
+        for (index, value) in values.enumerated() {
+            let forecastValue = ForecastValue(context: context)
+            forecastValue.value = Int32(value)
+            forecastValue.index = Int32(index)
+            forecastValue.forecast = forecast
+        }
+
+        do {
+            try context.save()
+        } catch {
+            print("Failed to save forecast: \(error)")
+        }
     }
 }
