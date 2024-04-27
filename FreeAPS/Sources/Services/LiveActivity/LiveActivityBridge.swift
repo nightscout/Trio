@@ -41,7 +41,7 @@ extension LiveActivityAttributes.ContentState {
         mmol: Bool,
         chart: [GlucoseStored],
         settings: FreeAPSSettings,
-        suggestion: Suggestion
+        determination: OrefDetermination?
     ) {
         let glucose = bg.glucose
         let formattedBG = Self.formatGlucose(Int(glucose), mmol: mmol, forceSign: false)
@@ -76,12 +76,12 @@ extension LiveActivityAttributes.ContentState {
         let conversionFactor: Double = settings.units == .mmolL ? 18.0 : 1.0
         let convertedChartBG = chartBG.map { Double($0) / conversionFactor }
         let chartDate = chart.map(\.date)
-        
+
         /// glucose limits from UI settings, not from notifications settings
         let highGlucose = settings.high / Decimal(conversionFactor)
         let lowGlucose = settings.low / Decimal(conversionFactor)
-        let cob = suggestion.cob ?? 0
-        let iob = suggestion.iob ?? 0
+        let cob = determination?.cob ?? 0
+        let iob = determination?.iob ?? 0
         let lockScreenView = settings.lockScreenView.displayName
         let unit = settings.units == .mmolL ? " mmol/L" : " mg/dL"
 
@@ -95,8 +95,8 @@ extension LiveActivityAttributes.ContentState {
             rotationDegrees: rotationDegrees,
             highGlucose: Double(highGlucose),
             lowGlucose: Double(lowGlucose),
-            cob: cob,
-            iob: iob,
+            cob: Decimal(cob),
+            iob: iob as Decimal,
             lockScreenView: lockScreenView,
             unit: unit
         )
@@ -125,7 +125,6 @@ extension LiveActivityAttributes.ContentState {
 
 @available(iOS 16.2, *) final class LiveActivityBridge: Injectable, ObservableObject {
     @Injected() private var settingsManager: SettingsManager!
-    @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var storage: FileStorage!
 
@@ -136,10 +135,7 @@ extension LiveActivityAttributes.ContentState {
         settingsManager.settings
     }
 
-    var suggestion: Suggestion? {
-        storage.retrieve(OpenAPS.Enact.suggested, as: Suggestion.self)
-    }
-
+    private var determination: OrefDetermination?
     private var currentActivity: ActiveActivity?
     private var latestGlucose: GlucoseStored?
 
@@ -165,6 +161,7 @@ extension LiveActivityAttributes.ContentState {
         }
 
         monitorForLiveActivityAuthorizationChanges()
+        determination = fetchDetermination()
     }
 
     private func monitorForLiveActivityAuthorizationChanges() {
@@ -176,6 +173,19 @@ extension LiveActivityAttributes.ContentState {
                     }
                 }
             }
+        }
+    }
+
+    private func fetchDetermination() -> OrefDetermination {
+        let context = CoreDataStack.shared.viewContext
+        do {
+            let determinations = try context.fetch(OrefDetermination.fetch(NSPredicate.enactedDetermination))
+            debugPrint("LA Bridge: \(#function) \(DebuggingIdentifiers.succeeded) fetched determinations")
+            guard let latestDetermination = determinations.first else { return OrefDetermination() }
+            return latestDetermination
+        } catch {
+            debugPrint("LA Bridge: \(#function) \(DebuggingIdentifiers.failed) failed to fetch determinaions")
+            return OrefDetermination()
         }
     }
 
@@ -297,14 +307,14 @@ extension LiveActivityBridge: GlucoseStoredObserver {
             return
         }
 
-        if let suggestion = suggestion {
+        if let determination = determination {
             let content = LiveActivityAttributes.ContentState(
                 new: bg,
                 prev: latestGlucose,
                 mmol: settings.units == .mmolL,
                 chart: fetchedGlucose,
                 settings: settings,
-                suggestion: suggestion
+                determination: determination
             )
 
             if let content = content {
@@ -316,12 +326,12 @@ extension LiveActivityBridge: GlucoseStoredObserver {
     }
 
     private func fetchGlucose() -> [GlucoseStored] {
-        let context = CoreDataStack.shared.persistentContainer.viewContext
+        let context = CoreDataStack.shared.viewContext
         do {
             let fetchedGlucose = try context
                 .fetch(GlucoseStored.fetch(NSPredicate.predicateForSixHoursAgo, ascending: false, fetchLimit: 72))
             debugPrint(
-                "LA Bridge: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch glucose"
+                "LA Bridge: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched glucose"
             )
 
             return fetchedGlucose
