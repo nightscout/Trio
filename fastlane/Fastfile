@@ -134,7 +134,7 @@ platform :ios do
 
     gym(
       export_method: "app-store",
-      scheme: "FreeAPS X",
+      scheme: "Open-iAPS",
       output_name: "iAPS.ipa",
       configuration: "Release",
       destination: 'generic/platform=iOS',
