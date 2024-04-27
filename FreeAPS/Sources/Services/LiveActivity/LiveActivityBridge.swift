@@ -21,64 +21,67 @@ extension LiveActivityAttributes.ContentState {
             .string(from: mmol ? value.asMmolL as NSNumber : NSNumber(value: value))!
     }
 
+    static func calculateChange(chart: [GlucoseStored]) -> String {
+        guard chart.count > 2 else { return "" }
+        let lastGlucose = chart.first?.glucose ?? 0
+        let secondLastGlucose = chart.dropFirst().first?.glucose ?? 0
+        let delta = lastGlucose - secondLastGlucose
+        let deltaAsDecimal = Decimal(delta)
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 1
+        formatter.positivePrefix = "  +"
+        formatter.negativePrefix = "  -"
+        return formatter.string(from: deltaAsDecimal as NSNumber) ?? "--"
+    }
+
     init?(
-        new bg: BloodGlucose,
-        prev: BloodGlucose?,
+        new bg: GlucoseStored,
+        prev _: GlucoseStored?,
         mmol: Bool,
         chart: [GlucoseStored],
         settings: FreeAPSSettings,
         suggestion: Suggestion
     ) {
-        guard let glucose = bg.glucose else {
-            return nil
-        }
-
-        let formattedBG = Self.formatGlucose(glucose, mmol: mmol, forceSign: false)
-
+        let glucose = bg.glucose
+        let formattedBG = Self.formatGlucose(Int(glucose), mmol: mmol, forceSign: false)
         var rotationDegrees: Double = 0.0
 
         switch bg.direction {
-        case .doubleUp,
-             .singleUp,
-             .tripleUp:
+        case "DoubleUp",
+             "SingleUp",
+             "TripleUp":
             rotationDegrees = -90
-        case .fortyFiveUp:
+        case "FortyFiveUp":
             rotationDegrees = -45
-        case .flat:
+        case "Flat":
             rotationDegrees = 0
-        case .fortyFiveDown:
+        case "FortyFiveDown":
             rotationDegrees = 45
-        case .doubleDown,
-             .singleDown,
-             .tripleDown:
+        case "DoubleDown",
+             "SingleDown",
+             "TripleDown":
             rotationDegrees = 90
-        case .notComputable,
-             Optional.none,
-             .rateOutOfRange,
-             .some(.none):
+        case "NONE",
+             "NOT COMPUTABLE",
+             "RATE OUT OF RANGE":
+            rotationDegrees = 0
+        default:
             rotationDegrees = 0
         }
 
-        let trendString = bg.direction?.symbol
-
-        let change = prev?.glucose.map({
-            Self.formatGlucose(glucose - $0, mmol: mmol, forceSign: true)
-        }) ?? ""
-
+        let trendString = bg.direction?.symbol as? String
+        let change = Self.calculateChange(chart: chart)
         let chartBG = chart.map(\.glucose)
-
         let conversionFactor: Double = settings.units == .mmolL ? 18.0 : 1.0
         let convertedChartBG = chartBG.map { Double($0) / conversionFactor }
-
         let chartDate = chart.map(\.date)
-
+        
         /// glucose limits from UI settings, not from notifications settings
         let highGlucose = settings.high / Decimal(conversionFactor)
         let lowGlucose = settings.low / Decimal(conversionFactor)
-
         let cob = suggestion.cob ?? 0
         let iob = suggestion.iob ?? 0
-
         let lockScreenView = settings.lockScreenView.displayName
         let unit = settings.units == .mmolL ? " mmol/L" : " mg/dL"
 
@@ -86,7 +89,7 @@ extension LiveActivityAttributes.ContentState {
             bg: formattedBG,
             direction: trendString,
             change: change,
-            date: bg.dateString,
+            date: bg.date ?? Date(),
             chart: convertedChartBG,
             chartDate: chartDate,
             rotationDegrees: rotationDegrees,
@@ -138,12 +141,12 @@ extension LiveActivityAttributes.ContentState {
     }
 
     private var currentActivity: ActiveActivity?
-    private var latestGlucose: BloodGlucose?
+    private var latestGlucose: GlucoseStored?
 
     init(resolver: Resolver) {
         systemEnabled = activityAuthorizationInfo.areActivitiesEnabled
         injectServices(resolver)
-        broadcaster.register(GlucoseObserver.self, observer: self)
+        broadcaster.register(GlucoseStoredObserver.self, observer: self)
 
         Foundation.NotificationCenter.default.addObserver(
             forName: UIApplication.didEnterBackgroundNotification,
@@ -184,7 +187,7 @@ extension LiveActivityAttributes.ContentState {
         if settings.useLiveActivity {
             if currentActivity?.needsRecreation() ?? true
             {
-                glucoseDidUpdate(glucoseStorage.recent())
+                glucoseDidUpdate(fetchGlucose())
             }
         } else {
             Task {
@@ -268,8 +271,8 @@ extension LiveActivityAttributes.ContentState {
 }
 
 @available(iOS 16.2, *)
-extension LiveActivityBridge: GlucoseObserver {
-    func glucoseDidUpdate(_ glucose: [BloodGlucose]) {
+extension LiveActivityBridge: GlucoseStoredObserver {
+    func glucoseDidUpdate(_ glucose: [GlucoseStored]) {
         guard settings.useLiveActivity else {
             if currentActivity != nil {
                 Task {
@@ -281,16 +284,16 @@ extension LiveActivityBridge: GlucoseObserver {
 
         // backfill latest glucose if contained in this update
         if glucose.count > 1 {
-            latestGlucose = glucose[glucose.count - 2]
+            latestGlucose = glucose.dropFirst().first
         }
         defer {
-            self.latestGlucose = glucose.last
+            self.latestGlucose = glucose.first
         }
 
         // fetch glucose for the last 6 hours for the LA chart from Core Data
         let fetchedGlucose = fetchGlucose()
 
-        guard let bg = glucose.last else {
+        guard let bg = glucose.first else {
             return
         }
 
@@ -315,12 +318,17 @@ extension LiveActivityBridge: GlucoseObserver {
     private func fetchGlucose() -> [GlucoseStored] {
         let context = CoreDataStack.shared.persistentContainer.viewContext
         do {
-            let fetchedGlucose = try context.fetch(GlucoseStored.fetch(NSPredicate.predicateForSixHoursAgo, ascending: false))
-            debugPrint("LA Bridge: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch glucose")
+            let fetchedGlucose = try context
+                .fetch(GlucoseStored.fetch(NSPredicate.predicateForSixHoursAgo, ascending: false, fetchLimit: 72))
+            debugPrint(
+                "LA Bridge: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch glucose"
+            )
 
             return fetchedGlucose
         } catch {
-            debugPrint("LA Bridge: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch glucose")
+            debugPrint(
+                "LA Bridge: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch glucose"
+            )
             return []
         }
     }

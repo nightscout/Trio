@@ -46,3 +46,7 @@ extension NSPredicate {
         return NSPredicate(format: "isManual == %@ AND date >= %@", true as NSNumber, date as NSDate)
     }
 }
+
+protocol GlucoseStoredObserver {
+    func glucoseDidUpdate(_ glucose: [GlucoseStored])
+}
