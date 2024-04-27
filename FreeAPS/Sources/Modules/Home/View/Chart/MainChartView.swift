@@ -592,52 +592,36 @@ extension MainChartView {
         }
     }
 
-    private func drawTempBasals() -> some ChartContent {
-        /// temp basal rects
-        ForEach(TempBasals) { temp in
-            /// calculate end time of temp basal adding duration to start time
-            let end = temp.timestamp + (temp.durationMin ?? 0).minutes.timeInterval
-            let now = Date()
+    private func filteredTempBasals() -> [(start: Date, end: Date, rate: Double)] {
+        let now = Date()
+        return TempBasals.compactMap { temp -> (start: Date, end: Date, rate: Double)? in
+            let end = min(temp.timestamp + (temp.durationMin ?? 0).minutes.timeInterval, now)
+            let isInsulinSuspended = suspensions.contains { $0.timestamp >= temp.timestamp && $0.timestamp <= end }
 
-            /// ensure that temp basals that are set cannot exceed current date -> i.e. scheduled temp basals are not shown
-            /// we could display scheduled temp basals with opacity etc... in the future
-            let maxEndTime = min(end, now)
+            let rate = Double(temp.rate ?? Decimal.zero) * (isInsulinSuspended ? 0 : 1)
 
-            /// set mark height to 0 when insulin delivery is suspended
-            let isInsulinSuspended = suspensions
-                .first(where: { $0.timestamp >= temp.timestamp && $0.timestamp <= maxEndTime }) != nil
-            let rate = (temp.rate ?? 0) * (isInsulinSuspended ? 0 : 1)
-
-            /// find next basal entry and if available set end of current entry to start of next entry
-            if let nextTemp = TempBasals.first(where: { $0.timestamp > temp.timestamp }) {
-                let nextTempStart = nextTemp.timestamp
-
-                RectangleMark(
-                    xStart: .value("start", temp.timestamp),
-                    xEnd: .value("end", nextTempStart),
-                    yStart: .value("rate-start", 0),
-                    yEnd: .value("rate-end", rate)
-                ).foregroundStyle(Color.insulin.opacity(0.2))
-
-                LineMark(x: .value("Start Date", temp.timestamp), y: .value("Amount", rate))
-                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
-
-                LineMark(x: .value("End Date", nextTempStart), y: .value("Amount", rate))
-                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
-            } else {
-                RectangleMark(
-                    xStart: .value("start", temp.timestamp),
-                    xEnd: .value("end", maxEndTime),
-                    yStart: .value("rate-start", 0),
-                    yEnd: .value("rate-end", rate)
-                ).foregroundStyle(Color.insulin.opacity(0.2))
-
-                LineMark(x: .value("Start Date", temp.timestamp), y: .value("Amount", rate))
-                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
-
-                LineMark(x: .value("End Date", maxEndTime), y: .value("Amount", rate))
-                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+            // Check if there's a subsequent temp basal to determine the end time
+            guard let nextTemp = TempBasals.first(where: { $0.timestamp > temp.timestamp }) else {
+                return (temp.timestamp, end, rate)
             }
+            return (temp.timestamp, nextTemp.timestamp, rate)
+        }
+    }
+
+    private func drawTempBasals() -> some ChartContent {
+        ForEach(filteredTempBasals(), id: \.start) { basal in
+            RectangleMark(
+                xStart: .value("start", basal.start),
+                xEnd: .value("end", basal.end),
+                yStart: .value("rate-start", 0),
+                yEnd: .value("rate-end", basal.rate)
+            ).foregroundStyle(Color.insulin.opacity(0.2))
+
+            LineMark(x: .value("Start Date", basal.start), y: .value("Amount", basal.rate))
+                .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+
+            LineMark(x: .value("End Date", basal.end), y: .value("Amount", basal.rate))
+                .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
         }
     }
 
