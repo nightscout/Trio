@@ -176,16 +176,18 @@ extension LiveActivityAttributes.ContentState {
         }
     }
 
-    private func fetchDetermination() -> OrefDetermination {
+    private func fetchDetermination() -> OrefDetermination? {
         let context = CoreDataStack.shared.viewContext
         do {
             let determinations = try context.fetch(OrefDetermination.fetch(NSPredicate.enactedDetermination))
             debugPrint("LA Bridge: \(#function) \(DebuggingIdentifiers.succeeded) fetched determinations")
-            guard let latestDetermination = determinations.first else { return OrefDetermination() }
-            return latestDetermination
+            if let latestDetermination = determinations.first {
+                return latestDetermination
+            }
+            return nil
         } catch {
             debugPrint("LA Bridge: \(#function) \(DebuggingIdentifiers.failed) failed to fetch determinaions")
-            return OrefDetermination()
+            return nil
         }
     }
 
