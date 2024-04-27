@@ -171,7 +171,6 @@ struct MainChartView: View {
                     LazyVStack(spacing: 0) {
                         mainChart
                         basalChart
-
                     }.onChange(of: screenHours) { _ in
                         updateStartEndMarkers()
                         yAxisChartData()
@@ -234,7 +233,7 @@ extension MainChartView {
                 drawFpus()
                 drawBoluses()
                 drawTempTargets()
-                drawPredictions()
+                drawForecasts()
                 drawGlucose()
                 drawManualGlucose()
 
@@ -258,9 +257,6 @@ extension MainChartView {
                 }
             }
             .id("MainChart")
-            .onChange(of: glucoseFromPersistence.map(\.id)) { _ in
-//                calculatePredictions()
-            }
             .onChange(of: boluses) { _ in
                 state.roundedTotalBolus = state.calculateTINS()
             }
@@ -268,26 +264,22 @@ extension MainChartView {
                 calculateTTs()
             }
             .onChange(of: didAppearTrigger) { _ in
-//                calculatePredictions()
                 calculateTTs()
-            }
-            .onChange(of: determinations.map(\.id)) { _ in
-//                calculatePredictions()
-            }
-            .onReceive(
-                Foundation.NotificationCenter.default
-                    .publisher(for: UIApplication.willEnterForegroundNotification)
-            ) { _ in
-//                calculatePredictions()
             }
             .frame(minHeight: UIScreen.main.bounds.height * 0.3)
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .chartXScale(domain: startMarker ... endMarker)
             .chartXAxis { mainChartXAxis }
-            // .chartXAxis(.hidden)
+            .backport.chartXSelection(value: $selection)
             .chartYAxis { mainChartYAxis }
             .chartYScale(domain: minValue ... maxValue)
-            .backport.chartXSelection(value: $selection)
+            .chartForegroundStyleScale([
+                "zt": Color.zt,
+                "uam": Color.uam,
+                "cob": .orange,
+                "iob": .blue
+            ])
+            .chartLegend(.hidden)
         }
     }
 
@@ -495,36 +487,22 @@ extension MainChartView {
         return forecastValues.sorted(by: { $0.index < $1.index })
     }
 
-    private func drawPredictions() -> some ChartContent {
-        ForEach(determinations) { determination in
-            let forecasts = getForecasts(determination)
-
-            ForEach(forecasts) { forecast in
-                let forecastValues = getForecastValues(forecast)
-
-                ForEach(forecastValues) { forecastValue in
-                    LineMark(
-                        x: .value("Time", timeForIndex(forecastValue.index)),
-                        y: .value("Value", Int(forecastValue.value))
-                    )
-                    .foregroundStyle(by: .value("Predictions", forecast.type ?? ""))
+    private func drawForecasts() -> some ChartContent {
+        /// for every determination in determinations get the forecasts
+        ForEach(determinations.flatMap { determination -> [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] in
+            let forecasts = getForecasts(determination) /// returns array of Forecast objects
+            /// now get the values for every forecast and add it to a tuple, identify it with an ID
+            return forecasts.flatMap { forecast in
+                getForecastValues(forecast).map { forecastValue in
+                    (id: UUID(), forecast: forecast, forecastValue: forecastValue)
                 }
             }
-        }
-    }
-
-    private func colorForType(_ type: PredictionType) -> Color {
-        switch type {
-        case .uam:
-            return .uam
-        case .cob:
-            return .orange
-        case .iob:
-            return .insulin
-        case .zt:
-            return .zt
-        default:
-            return .gray // Default color for unknown types
+        }, id: \.id) { tuple in
+            LineMark(
+                x: .value("Time", timeForIndex(tuple.forecastValue.index)),
+                y: .value("Value", Int(tuple.forecastValue.value))
+            )
+            .foregroundStyle(by: .value("Predictions", tuple.forecast.type ?? ""))
         }
     }
 
@@ -791,21 +769,6 @@ extension MainChartView {
         }
         TempBasals = returnTempBasalRates
     }
-
-//    private func addPredictions(_ predictions: [Int], type: PredictionType, deliveredAt: Date, endMarker: Date) -> [Prediction] {
-//        var calculatedPredictions: [Prediction] = []
-//        predictions.indices.forEach { index in
-//            let predTime = Date(
-//                timeIntervalSince1970: deliveredAt.timeIntervalSince1970 + TimeInterval(index) * 5.minutes.timeInterval
-//            )
-//            if predTime.timeIntervalSince1970 < endMarker.timeIntervalSince1970 {
-//                calculatedPredictions.append(
-//                    Prediction(amount: predictions[index], timestamp: predTime, type: type)
-//                )
-//            }
-//        }
-//        return calculatedPredictions
-//    }
 
     private func findRegularBasalPoints(
         timeBegin: TimeInterval,
