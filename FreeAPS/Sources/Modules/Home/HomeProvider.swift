@@ -11,14 +11,6 @@ extension Home {
         @Injected() var carbsStorage: CarbsStorage!
         @Injected() var announcementStorage: AnnouncementsStorage!
 
-        var suggestion: Suggestion? {
-            storage.retrieve(OpenAPS.Enact.suggested, as: Suggestion.self)
-        }
-
-        var enactedSuggestion: Suggestion? {
-            storage.retrieve(OpenAPS.Enact.enacted, as: Suggestion.self)
-        }
-
         func pumpTimeZone() -> TimeZone? {
             apsManager.pumpManager?.status.timeZone
         }

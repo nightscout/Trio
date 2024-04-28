@@ -1,4 +1,5 @@
 import Combine
+import CoreData
 import Foundation
 import LoopKitUI
 import Swinject
@@ -62,6 +63,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private let context = CoreDataStack.shared.backgroundContext
+
+    private var lastTwoDeterminations: [OrefDetermination]?
 
     init(resolver: Resolver) {
         injectServices(resolver)
@@ -409,15 +412,209 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
+    private func fetchDeterminations() {
+        let fetchRequest: NSFetchRequest<OrefDetermination> = OrefDetermination.fetchRequest()
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \OrefDetermination.deliverAt, ascending: false)]
+        fetchRequest.predicate = NSPredicate.predicateFor30MinAgoForDetermination
+        fetchRequest.fetchLimit = 2
+        do {
+            lastTwoDeterminations = try context.fetch(fetchRequest)
+            debugPrint(
+                "Home State Model: \(#function) \(DebuggingIdentifiers.succeeded) fetched determinations from core data"
+            )
+        } catch {
+            debugPrint(
+                "Home State Model: \(#function) \(DebuggingIdentifiers.failed) failed to fetch determinations from core data"
+            )
+        }
+    }
+
     func uploadStatus() {
         let iob = storage.retrieve(OpenAPS.Monitor.iob, as: [IOBEntry].self)
-        var suggested = storage.retrieve(OpenAPS.Enact.suggested, as: Suggestion.self)
-        var enacted = storage.retrieve(OpenAPS.Enact.enacted, as: Suggestion.self)
 
-        if (suggested?.timestamp ?? .distantPast) > (enacted?.timestamp ?? .distantPast) {
-            enacted?.predictions = nil
-        } else {
-            suggested?.predictions = nil
+        let penultimateDetermination = lastTwoDeterminations?.last
+        let lastDetermination = lastTwoDeterminations?.first
+
+        var suggested: Determination?
+        var enacted: Determination?
+
+        if let lastDetermination = lastDetermination, let penultimateDetermination = penultimateDetermination {
+            if lastDetermination.enacted, penultimateDetermination.enacted {
+                suggested = Determination(
+                    reason: lastDetermination.reason ?? "",
+                    units: lastDetermination.smbToDeliver?.decimalValue,
+                    insulinReq: lastDetermination.insulinReq?.decimalValue,
+                    eventualBG: Int(truncating: lastDetermination.eventualBG ?? 0),
+                    sensitivityRatio: lastDetermination.sensitivityRatio?.decimalValue,
+                    rate: lastDetermination.rate?.decimalValue,
+                    duration: Int(lastDetermination.duration),
+                    iob: lastDetermination.iob?.decimalValue,
+                    cob: Decimal(lastDetermination.cob),
+                    predictions: nil,
+                    deliverAt: lastDetermination.deliverAt ?? Date(),
+                    carbsReq: Decimal(lastDetermination.carbsRequired),
+                    temp: TempType(rawValue: lastDetermination.temp ?? ""),
+                    bg: lastDetermination.glucose?.decimalValue,
+                    reservoir: lastDetermination.reservoir?.decimalValue,
+                    isf: lastDetermination.insulinSensitivity?.decimalValue,
+                    timestamp: lastDetermination.timestamp,
+                    recieved: lastDetermination.received,
+                    tdd: lastDetermination.totalDailyDose?.decimalValue ?? Decimal(0),
+                    insulin: Insulin(
+                        TDD: lastDetermination.totalDailyDose?.decimalValue ?? Decimal(0),
+                        bolus: lastDetermination.bolus?.decimalValue ?? Decimal(0),
+                        temp_basal: lastDetermination.tempBasal?.decimalValue ?? Decimal(0),
+                        scheduled_basal: lastDetermination.scheduledBasal?.decimalValue ?? Decimal(0)
+                    ),
+                    current_target: lastDetermination.currentTarget?.decimalValue ?? Decimal(0),
+                    insulinForManualBolus: lastDetermination.insulinForManualBolus?.decimalValue ?? Decimal(0),
+                    manualBolusErrorString: lastDetermination.manualBolusErrorString?.decimalValue ?? Decimal(0),
+                    minDelta: lastDetermination.minDelta?.decimalValue ?? Decimal(0),
+                    expectedDelta: lastDetermination.expectedDelta?.decimalValue ?? Decimal(0),
+                    minGuardBG: nil, minPredBG: nil, threshold: lastDetermination.treshold?.decimalValue ?? Decimal(0),
+                    carbRatio: lastDetermination.carbRatio?.decimalValue ?? Decimal(0)
+                )
+                enacted = Determination(
+                    reason: lastDetermination.reason ?? "",
+                    units: lastDetermination.smbToDeliver?.decimalValue,
+                    insulinReq: lastDetermination.insulinReq?.decimalValue,
+                    eventualBG: Int(truncating: lastDetermination.eventualBG ?? 0),
+                    sensitivityRatio: lastDetermination.sensitivityRatio?.decimalValue,
+                    rate: lastDetermination.rate?.decimalValue,
+                    duration: Int(lastDetermination.duration),
+                    iob: lastDetermination.iob?.decimalValue,
+                    cob: Decimal(lastDetermination.cob),
+                    predictions: nil,
+                    deliverAt: lastDetermination.deliverAt ?? Date(),
+                    carbsReq: Decimal(lastDetermination.carbsRequired),
+                    temp: TempType(rawValue: lastDetermination.temp ?? ""),
+                    bg: lastDetermination.glucose?.decimalValue,
+                    reservoir: lastDetermination.reservoir?.decimalValue,
+                    isf: lastDetermination.insulinSensitivity?.decimalValue,
+                    timestamp: lastDetermination.timestamp,
+                    recieved: lastDetermination.received,
+                    tdd: lastDetermination.totalDailyDose?.decimalValue ?? Decimal(0),
+                    insulin: Insulin(
+                        TDD: lastDetermination.totalDailyDose?.decimalValue ?? Decimal(0),
+                        bolus: lastDetermination.bolus?.decimalValue ?? Decimal(0),
+                        temp_basal: lastDetermination.tempBasal?.decimalValue ?? Decimal(0),
+                        scheduled_basal: lastDetermination.scheduledBasal?.decimalValue ?? Decimal(0)
+                    ),
+                    current_target: lastDetermination.currentTarget?.decimalValue ?? Decimal(0),
+                    insulinForManualBolus: lastDetermination.insulinForManualBolus?.decimalValue ?? Decimal(0),
+                    manualBolusErrorString: lastDetermination.manualBolusErrorString?.decimalValue ?? Decimal(0),
+                    minDelta: lastDetermination.minDelta?.decimalValue ?? Decimal(0),
+                    expectedDelta: lastDetermination.expectedDelta?.decimalValue ?? Decimal(0),
+                    minGuardBG: nil, minPredBG: nil, threshold: lastDetermination.treshold?.decimalValue ?? Decimal(0),
+                    carbRatio: lastDetermination.carbRatio?.decimalValue ?? Decimal(0)
+                )
+            }  else if !lastDetermination.enacted, penultimateDetermination.enacted {
+                suggested = Determination(
+                    reason: lastDetermination.reason ?? "",
+                    units: lastDetermination.smbToDeliver?.decimalValue,
+                    insulinReq: lastDetermination.insulinReq?.decimalValue,
+                    eventualBG: Int(truncating: lastDetermination.eventualBG ?? 0),
+                    sensitivityRatio: lastDetermination.sensitivityRatio?.decimalValue,
+                    rate: lastDetermination.rate?.decimalValue,
+                    duration: Int(lastDetermination.duration),
+                    iob: lastDetermination.iob?.decimalValue,
+                    cob: Decimal(lastDetermination.cob),
+                    predictions: nil,
+                    deliverAt: lastDetermination.deliverAt ?? Date(),
+                    carbsReq: Decimal(lastDetermination.carbsRequired),
+                    temp: TempType(rawValue: lastDetermination.temp ?? ""),
+                    bg: lastDetermination.glucose?.decimalValue,
+                    reservoir: lastDetermination.reservoir?.decimalValue,
+                    isf: lastDetermination.insulinSensitivity?.decimalValue,
+                    timestamp: lastDetermination.timestamp,
+                    recieved: lastDetermination.received,
+                    tdd: lastDetermination.totalDailyDose?.decimalValue ?? Decimal(0),
+                    insulin: Insulin(
+                        TDD: lastDetermination.totalDailyDose?.decimalValue ?? Decimal(0),
+                        bolus: lastDetermination.bolus?.decimalValue ?? Decimal(0),
+                        temp_basal: lastDetermination.tempBasal?.decimalValue ?? Decimal(0),
+                        scheduled_basal: lastDetermination.scheduledBasal?.decimalValue ?? Decimal(0)
+                    ),
+                    current_target: lastDetermination.currentTarget?.decimalValue ?? Decimal(0),
+                    insulinForManualBolus: lastDetermination.insulinForManualBolus?.decimalValue ?? Decimal(0),
+                    manualBolusErrorString: lastDetermination.manualBolusErrorString?.decimalValue ?? Decimal(0),
+                    minDelta: lastDetermination.minDelta?.decimalValue ?? Decimal(0),
+                    expectedDelta: lastDetermination.expectedDelta?.decimalValue ?? Decimal(0),
+                    minGuardBG: nil, minPredBG: nil, threshold: lastDetermination.treshold?.decimalValue ?? Decimal(0),
+                    carbRatio: lastDetermination.carbRatio?.decimalValue ?? Decimal(0)
+                )
+                enacted = Determination(
+                    reason: penultimateDetermination.reason ?? "",
+                    units: penultimateDetermination.smbToDeliver?.decimalValue,
+                    insulinReq: penultimateDetermination.insulinReq?.decimalValue,
+                    eventualBG: Int(truncating: penultimateDetermination.eventualBG ?? 0),
+                    sensitivityRatio: penultimateDetermination.sensitivityRatio?.decimalValue,
+                    rate: penultimateDetermination.rate?.decimalValue,
+                    duration: Int(penultimateDetermination.duration),
+                    iob: penultimateDetermination.iob?.decimalValue,
+                    cob: Decimal(penultimateDetermination.cob),
+                    predictions: nil,
+                    deliverAt: penultimateDetermination.deliverAt ?? Date(),
+                    carbsReq: Decimal(penultimateDetermination.carbsRequired),
+                    temp: TempType(rawValue: penultimateDetermination.temp ?? ""),
+                    bg: penultimateDetermination.glucose?.decimalValue,
+                    reservoir: penultimateDetermination.reservoir?.decimalValue,
+                    isf: penultimateDetermination.insulinSensitivity?.decimalValue,
+                    timestamp: penultimateDetermination.timestamp,
+                    recieved: penultimateDetermination.received,
+                    tdd: penultimateDetermination.totalDailyDose?.decimalValue ?? Decimal(0),
+                    insulin: Insulin(
+                        TDD: penultimateDetermination.totalDailyDose?.decimalValue ?? Decimal(0),
+                        bolus: penultimateDetermination.bolus?.decimalValue ?? Decimal(0),
+                        temp_basal: penultimateDetermination.tempBasal?.decimalValue ?? Decimal(0),
+                        scheduled_basal: penultimateDetermination.scheduledBasal?.decimalValue ?? Decimal(0)
+                    ),
+                    current_target: penultimateDetermination.currentTarget?.decimalValue ?? Decimal(0),
+                    insulinForManualBolus: penultimateDetermination.insulinForManualBolus?.decimalValue ?? Decimal(0),
+                    manualBolusErrorString: penultimateDetermination.manualBolusErrorString?.decimalValue ?? Decimal(0),
+                    minDelta: penultimateDetermination.minDelta?.decimalValue ?? Decimal(0),
+                    expectedDelta: penultimateDetermination.expectedDelta?.decimalValue ?? Decimal(0),
+                    minGuardBG: nil,
+                    minPredBG: nil,
+                    threshold: penultimateDetermination.treshold?.decimalValue ?? Decimal(0),
+                    carbRatio: penultimateDetermination.carbRatio?.decimalValue ?? Decimal(0)
+                )
+            } else if !lastDetermination.enacted, !penultimateDetermination.enacted {
+                suggested = Determination(
+                    reason: lastDetermination.reason ?? "",
+                    units: lastDetermination.smbToDeliver?.decimalValue,
+                    insulinReq: lastDetermination.insulinReq?.decimalValue,
+                    eventualBG: Int(truncating: lastDetermination.eventualBG ?? 0),
+                    sensitivityRatio: lastDetermination.sensitivityRatio?.decimalValue,
+                    rate: lastDetermination.rate?.decimalValue,
+                    duration: Int(lastDetermination.duration),
+                    iob: lastDetermination.iob?.decimalValue,
+                    cob: Decimal(lastDetermination.cob),
+                    predictions: nil,
+                    deliverAt: lastDetermination.deliverAt ?? Date(),
+                    carbsReq: Decimal(lastDetermination.carbsRequired),
+                    temp: TempType(rawValue: lastDetermination.temp ?? ""),
+                    bg: lastDetermination.glucose?.decimalValue,
+                    reservoir: lastDetermination.reservoir?.decimalValue,
+                    isf: lastDetermination.insulinSensitivity?.decimalValue,
+                    timestamp: lastDetermination.timestamp,
+                    recieved: lastDetermination.received,
+                    tdd: lastDetermination.totalDailyDose?.decimalValue ?? Decimal(0),
+                    insulin: Insulin(
+                        TDD: lastDetermination.totalDailyDose?.decimalValue ?? Decimal(0),
+                        bolus: lastDetermination.bolus?.decimalValue ?? Decimal(0),
+                        temp_basal: lastDetermination.tempBasal?.decimalValue ?? Decimal(0),
+                        scheduled_basal: lastDetermination.scheduledBasal?.decimalValue ?? Decimal(0)
+                    ),
+                    current_target: lastDetermination.currentTarget?.decimalValue ?? Decimal(0),
+                    insulinForManualBolus: lastDetermination.insulinForManualBolus?.decimalValue ?? Decimal(0),
+                    manualBolusErrorString: lastDetermination.manualBolusErrorString?.decimalValue ?? Decimal(0),
+                    minDelta: lastDetermination.minDelta?.decimalValue ?? Decimal(0),
+                    expectedDelta: lastDetermination.expectedDelta?.decimalValue ?? Decimal(0),
+                    minGuardBG: nil, minPredBG: nil, threshold: lastDetermination.treshold?.decimalValue ?? Decimal(0),
+                    carbRatio: lastDetermination.carbRatio?.decimalValue ?? Decimal(0)
+                )
+            }
         }
 
         let loopIsClosed = settingsManager.settings.closedLoop
@@ -442,7 +639,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
 
         let battery = fetchBattery()
-//        let battery = storage.retrieve(OpenAPS.Monitor.battery, as: Battery.self)
 
         var reservoir = Decimal(from: storage.retrieveRaw(OpenAPS.Monitor.reservoir) ?? "0")
         if reservoir == 0xDEAD_BEEF {

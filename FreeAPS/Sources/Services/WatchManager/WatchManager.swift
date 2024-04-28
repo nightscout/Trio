@@ -33,14 +33,12 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         }
 
         broadcaster.register(GlucoseObserver.self, observer: self)
-        broadcaster.register(SuggestionObserver.self, observer: self)
         broadcaster.register(SettingsObserver.self, observer: self)
         broadcaster.register(PumpHistoryObserver.self, observer: self)
         broadcaster.register(PumpSettingsObserver.self, observer: self)
         broadcaster.register(BasalProfileObserver.self, observer: self)
         broadcaster.register(TempTargetsObserver.self, observer: self)
         broadcaster.register(CarbsObserver.self, observer: self)
-        broadcaster.register(EnactedSuggestionObserver.self, observer: self)
         broadcaster.register(PumpBatteryObserver.self, observer: self)
         broadcaster.register(PumpReservoirObserver.self, observer: self)
         garmin.stateRequet = { [weak self] () -> Data in
@@ -65,17 +63,29 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         }
     }
 
+    private func fetchDetermination() -> [OrefDetermination] {
+        do {
+            let results = try context.fetch(OrefDetermination.fetch(NSPredicate.enactedDetermination))
+            debugPrint("Watch Manager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched determinations")
+            return results
+        } catch {
+            debugPrint("Watch Manager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch determinations")
+            return []
+        }
+    }
+
     private func configureState() {
         processQueue.async {
             let fetchedReadings = self.fetchGlucose()
             let glucoseValues = self.glucoseText(fetchedReadings)
+            let fetchedDeterminations = self.fetchDetermination()
+
             self.state.glucose = glucoseValues.glucose
             self.state.trend = glucoseValues.trend
             self.state.delta = glucoseValues.delta
             self.state.trendRaw = fetchedReadings.first?.direction ?? "↔︎"
             self.state.glucoseDate = fetchedReadings.first?.date ?? .distantPast
-            self.state.lastLoopDate = self.enactedSuggestion?.recieved == true ? self.enactedSuggestion?.deliverAt : self
-                .apsManager.lastLoopDate
+            self.state.lastLoopDate = fetchedDeterminations.first?.deliverAt
             self.state.lastLoopDateInterval = self.state.lastLoopDate.map {
                 guard $0.timeIntervalSince1970 > 0 else { return 0 }
                 return UInt64($0.timeIntervalSince1970)
@@ -308,10 +318,6 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
     private var suggestion: Suggestion? {
         storage.retrieve(OpenAPS.Enact.suggested, as: Suggestion.self)
     }
-
-    private var enactedSuggestion: Suggestion? {
-        storage.retrieve(OpenAPS.Enact.enacted, as: Suggestion.self)
-    }
 }
 
 extension BaseWatchManager: WCSessionDelegate {
@@ -412,22 +418,16 @@ extension BaseWatchManager: WCSessionDelegate {
 
 extension BaseWatchManager:
     GlucoseObserver,
-    SuggestionObserver,
     SettingsObserver,
     PumpHistoryObserver,
     PumpSettingsObserver,
     BasalProfileObserver,
     TempTargetsObserver,
     CarbsObserver,
-    EnactedSuggestionObserver,
     PumpBatteryObserver,
     PumpReservoirObserver
 {
     func glucoseDidUpdate(_: [BloodGlucose]) {
-        configureState()
-    }
-
-    func suggestionDidUpdate(_: Suggestion) {
         configureState()
     }
 
@@ -453,10 +453,6 @@ extension BaseWatchManager:
 
     func carbsDidUpdate(_: [CarbsEntry]) {
         // TODO:
-    }
-
-    func enactedSuggestionDidUpdate(_: Suggestion) {
-        configureState()
     }
 
     func pumpBatteryDidChange(_: Battery) {

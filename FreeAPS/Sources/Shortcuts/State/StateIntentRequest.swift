@@ -55,27 +55,27 @@ enum StateIntentError: Error {
 
 @available(iOS 16.0, *) final class StateIntentRequest: BaseIntentsRequest {
     let moc = CoreDataStack.shared.backgroundContext
-    
-    func getLastGlucose() throws -> (dateGlucose: Date, glucose: String, trend: String, delta: String)  {
+
+    func getLastGlucose() throws -> (dateGlucose: Date, glucose: String, trend: String, delta: String) {
         do {
-           let results = try moc.fetch(GlucoseStored.fetch(NSPredicate.predicateFor30MinAgo, ascending: false, fetchLimit: 2))
+            let results = try moc.fetch(GlucoseStored.fetch(NSPredicate.predicateFor30MinAgo, ascending: false, fetchLimit: 2))
             debugPrint("StateIntentRequest: \(#function) \(DebuggingIdentifiers.succeeded) fetched latest glucose")
-            
+
             guard let lastValue = results.first else { throw StateIntentError.NoBG }
-            
-            ///calculate delta
+
+            /// calculate delta
             let lastGlucose = lastValue.glucose
             let secondLastGlucose = results.dropFirst().first?.glucose
             let delta = results.count > 1 ? (lastGlucose - (secondLastGlucose ?? 0)) : nil
-            ///formatting
+            /// formatting
             let units = settingsManager.settings.units
             let glucoseAsString = glucoseFormatter.string(from: Double(
                 units == .mmolL ? Decimal(lastGlucose)
                     .asMmolL : Decimal(lastGlucose)
             ) as NSNumber)!
-            
+
             let directionAsString = lastValue.direction ?? "none"
-            
+
             let deltaAsString = delta
                 .map {
                     self.deltaFormatter
@@ -91,14 +91,14 @@ enum StateIntentError: Error {
             return (Date(), "", "", "")
         }
     }
-    
+
     func getIobAndCob() throws -> (iob: Double, cob: Double) {
         do {
             let results = try moc.fetch(OrefDetermination.fetch(NSPredicate.enactedDetermination))
             let iobAsDouble = Double(truncating: (results.first?.iob ?? 0.0) as NSNumber)
             let cobAsDouble = Double(truncating: (results.first?.cob ?? 0) as NSNumber)
             debugPrint("StateIntentRequest: \(#function) \(DebuggingIdentifiers.succeeded) fetched latest cob and iob")
-            
+
             return (iobAsDouble, cobAsDouble)
         } catch {
             debugPrint("StateIntentRequest: \(#function) \(DebuggingIdentifiers.failed) failed to fetch latest cob and iob")

@@ -134,8 +134,6 @@ extension Settings {
                                 .navigationLink(to: .configEditor(file: OpenAPS.Settings.profile), from: self)
                             Text("Carbs")
                                 .navigationLink(to: .configEditor(file: OpenAPS.Monitor.carbHistory), from: self)
-                            Text("Enacted")
-                                .navigationLink(to: .configEditor(file: OpenAPS.Enact.enacted), from: self)
                             Text("Announcements")
                                 .navigationLink(to: .configEditor(file: OpenAPS.FreeAPS.announcements), from: self)
                             Text("Enacted announcements")

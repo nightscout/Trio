@@ -17,7 +17,7 @@ extension NightscoutConfig {
         @Injected() var apsManager: APSManager!
 
         let coredataContext = CoreDataStack.shared.backgroundContext
-        
+
         @Published var url = ""
         @Published var secret = ""
         @Published var message = ""
