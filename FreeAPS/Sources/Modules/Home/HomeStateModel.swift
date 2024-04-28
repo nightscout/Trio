@@ -67,7 +67,7 @@ extension Home {
 
         @Published var waitForSuggestion: Bool = false
 
-        let context = CoreDataStack.shared.viewContext
+        let context = CoreDataStack.shared.backgroundContext
 
         override func subscribe() {
             setupBasals()

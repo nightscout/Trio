@@ -6,7 +6,7 @@ extension AddTempTarget {
         @Injected() private var storage: TempTargetsStorage!
         @Injected() var apsManager: APSManager!
 
-        let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
+        let coredataContext = CoreDataStack.shared.backgroundContext
 
         @Published var low: Decimal = 0
         // @Published var target: Decimal = 0

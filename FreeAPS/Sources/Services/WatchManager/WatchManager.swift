@@ -18,7 +18,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
     @Injected() private var garmin: GarminManager!
 
     let coreDataStorage = CoreDataStorage()
-    let context = CoreDataStack.shared.persistentContainer.viewContext
+    let context = CoreDataStack.shared.backgroundContext
 
     private var lifetime = Lifetime()
 
