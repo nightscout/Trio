@@ -50,8 +50,8 @@ xcconfig = parse_xcconfig_file(xcconfig_path)
 ENV["BUNDLE_ID"] = xcconfig["BUNDLE_IDENTIFIER"]
 
 platform :ios do
-  desc "Build iAPS"
-  lane :build_iAPS do
+  desc "Build Open-iAPS"
+  lane :build_Open-iAPS do
     setup_ci if ENV['CI']
     BUNDLE_ID = ENV["BUNDLE_ID"]
 
@@ -134,8 +134,8 @@ platform :ios do
 
     gym(
       export_method: "app-store",
-      scheme: "FreeAPS X",
-      output_name: "iAPS.ipa",
+      scheme: "Open-iAPS",
+      output_name: "Open-iAPS.ipa",
       configuration: "Release",
       destination: 'generic/platform=iOS',
       buildlog_path: 'buildlog'
@@ -158,7 +158,7 @@ platform :ios do
     upload_to_testflight(
       api_key: api_key,
       skip_submission: false,
-      ipa: "iAPS.ipa",
+      ipa: "Open-iAPS.ipa",
       skip_waiting_for_build_processing: true,
       changelog: git_branch+" "+last_git_commit[:abbreviated_commit_hash],
     )
