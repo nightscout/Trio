@@ -17,8 +17,8 @@ import Foundation
     }
 
     @MainActor func perform() async throws -> some ReturnsValue<StateiAPSResults> & ShowsSnippetView {
-        let glucoseValues = try? stateIntent.getLastBG()
-        let iob_cob_value = try? stateIntent.getIOB_COB()
+        let glucoseValues = try? stateIntent.getLastGlucose()
+        let iob_cob_value = try? stateIntent.getIobAndCob()
 
         guard let glucoseValue = glucoseValues else { throw StateIntentError.NoBG }
         guard let iob_cob = iob_cob_value else { throw StateIntentError.NoIOBCOB }

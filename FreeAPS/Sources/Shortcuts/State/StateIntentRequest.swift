@@ -54,40 +54,56 @@ enum StateIntentError: Error {
 }
 
 @available(iOS 16.0, *) final class StateIntentRequest: BaseIntentsRequest {
-    func getLastBG() throws -> (dateGlucose: Date, glucose: String, trend: String, delta: String) {
-        let glucose = glucoseStorage.recent()
-        guard let lastGlucose = glucose.last, let glucoseValue = lastGlucose.glucose else { throw StateIntentError.NoBG }
-        let delta = glucose.count >= 2 ? glucoseValue - (glucose[glucose.count - 2].glucose ?? 0) : nil
-        let units = settingsManager.settings.units
-
-        let glucoseText = glucoseFormatter
-            .string(from: Double(
-                units == .mmolL ? glucoseValue
-                    .asMmolL : Decimal(glucoseValue)
+    let moc = CoreDataStack.shared.backgroundContext
+    
+    func getLastGlucose() throws -> (dateGlucose: Date, glucose: String, trend: String, delta: String)  {
+        do {
+           let results = try moc.fetch(GlucoseStored.fetch(NSPredicate.predicateFor30MinAgo, ascending: false, fetchLimit: 2))
+            debugPrint("StateIntentRequest: \(#function) \(DebuggingIdentifiers.succeeded) fetched latest glucose")
+            
+            guard let lastValue = results.first else { throw StateIntentError.NoBG }
+            
+            ///calculate delta
+            let lastGlucose = lastValue.glucose
+            let secondLastGlucose = results.dropFirst().first?.glucose
+            let delta = results.count > 1 ? (lastGlucose - (secondLastGlucose ?? 0)) : nil
+            ///formatting
+            let units = settingsManager.settings.units
+            let glucoseAsString = glucoseFormatter.string(from: Double(
+                units == .mmolL ? Decimal(lastGlucose)
+                    .asMmolL : Decimal(lastGlucose)
             ) as NSNumber)!
-        let directionText = lastGlucose.direction?.rawValue ?? "none"
-        let deltaText = delta
-            .map {
-                self.deltaFormatter
-                    .string(from: Double(
-                        units == .mmolL ? $0
-                            .asMmolL : Decimal($0)
-                    ) as NSNumber)!
-            } ?? "--"
-
-        return (lastGlucose.dateString, glucoseText, directionText, deltaText)
+            
+            let directionAsString = lastValue.direction ?? "none"
+            
+            let deltaAsString = delta
+                .map {
+                    self.deltaFormatter
+                        .string(from: Double(
+                            units == .mmolL ? Decimal($0)
+                                .asMmolL : Decimal($0)
+                        ) as NSNumber)!
+                } ?? "--"
+            debugPrint("StateIntentRequest: \(#function) \(DebuggingIdentifiers.succeeded) fetched latest 2 glucose values")
+            return (lastValue.date ?? Date(), glucoseAsString, directionAsString, deltaAsString)
+        } catch {
+            debugPrint("StateIntentRequest: \(#function) \(DebuggingIdentifiers.failed) failed to fetch latest 2 glucose values")
+            return (Date(), "", "", "")
+        }
     }
-
-    func getIOB_COB() throws -> (iob: Double, cob: Double) {
-        let iob = suggestion?.iob ?? 0.0
-        let cob = suggestion?.cob ?? 0.0
-        let iob_double = Double(truncating: iob as NSNumber)
-        let cob_double = Double(truncating: cob as NSNumber)
-        return (iob_double, cob_double)
-    }
-
-    private var suggestion: Suggestion? {
-        fileStorage.retrieve(OpenAPS.Enact.suggested, as: Suggestion.self)
+    
+    func getIobAndCob() throws -> (iob: Double, cob: Double) {
+        do {
+            let results = try moc.fetch(OrefDetermination.fetch(NSPredicate.enactedDetermination))
+            let iobAsDouble = Double(truncating: (results.first?.iob ?? 0.0) as NSNumber)
+            let cobAsDouble = Double(truncating: (results.first?.cob ?? 0) as NSNumber)
+            debugPrint("StateIntentRequest: \(#function) \(DebuggingIdentifiers.succeeded) fetched latest cob and iob")
+            
+            return (iobAsDouble, cobAsDouble)
+        } catch {
+            debugPrint("StateIntentRequest: \(#function) \(DebuggingIdentifiers.failed) failed to fetch latest cob and iob")
+            return (0.0, 0.0)
+        }
     }
 
     private var glucoseFormatter: NumberFormatter {
