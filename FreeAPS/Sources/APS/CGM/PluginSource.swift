@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import LibreTransmitter
 import LoopKit
 import LoopKitUI
 
@@ -148,8 +149,17 @@ extension PluginSource: CGMManagerDelegate {
         switch readingResult {
         case let .newData(values):
 
+            var sensorActivatedAt: Date?
+            var sensorTransmitterID: String?
+            /// specific for Libre transmitter and send SAGE
+            if let cgmTransmitterManager = cgmManager as? LibreTransmitterManagerV3 {
+                sensorActivatedAt = cgmTransmitterManager.sensorInfoObservable.activatedAt
+                sensorTransmitterID = cgmTransmitterManager.sensorInfoObservable.sensorSerial
+            }
+
             let bloodGlucose = values.compactMap { newGlucoseSample -> BloodGlucose? in
                 let quantity = newGlucoseSample.quantity
+
                 let value = Int(quantity.doubleValue(for: .milligramsPerDeciliter))
                 return BloodGlucose(
                     _id: UUID().uuidString,
@@ -161,10 +171,10 @@ extension PluginSource: CGMManagerDelegate {
                     filtered: nil,
                     noise: nil,
                     glucose: value,
-                    type: "sgv"
-//                    activationDate: activationDate,
-//                    sessionStartDate: sessionStartDate
-//                    transmitterID: self.transmitterID
+                    type: "sgv",
+                    activationDate: sensorActivatedAt,
+                    sessionStartDate: sensorActivatedAt,
+                    transmitterID: sensorTransmitterID
                 )
             }
             promise?(.success(bloodGlucose))
