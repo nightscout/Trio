@@ -36,7 +36,7 @@ public extension OrefDetermination {
     @NSManaged var timestamp: Date?
     @NSManaged var timestampEnacted: Date?
     @NSManaged var totalDailyDose: NSDecimalNumber?
-    @NSManaged var treshold: NSDecimalNumber?
+    @NSManaged var threshold: NSDecimalNumber?
     @NSManaged var forecasts: Set<Forecast>?
 }
 

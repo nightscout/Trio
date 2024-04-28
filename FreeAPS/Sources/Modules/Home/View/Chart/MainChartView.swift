@@ -237,7 +237,7 @@ extension MainChartView {
                 drawGlucose()
                 drawManualGlucose()
 
-                /// high and low treshold lines
+                /// high and low threshold lines
                 if thresholdLines {
                     RuleMark(y: .value("High", highGlucose * conversionFactor)).foregroundStyle(Color.loopYellow)
                         .lineStyle(.init(lineWidth: 1, dash: [5]))
