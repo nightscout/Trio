@@ -130,10 +130,10 @@
         <attribute name="smbToDeliver" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="temp" optional="YES" attributeType="String"/>
         <attribute name="tempBasal" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="threshold" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="timestampEnacted" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="totalDailyDose" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
-        <attribute name="treshold" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <relationship name="forecasts" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Forecast" inverseName="orefDetermination" inverseEntity="Forecast"/>
     </entity>
     <entity name="Override" representedClassName="Override" syncable="YES">

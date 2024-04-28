@@ -461,6 +461,13 @@ extension Home {
                         )
                         .font(.system(size: 16))
                     }
+                } else {
+                    HStack {
+                        Image(systemName: "arrow.right.circle")
+                            .font(.system(size: 16, weight: .bold))
+                        Text("--")
+                            .font(.system(size: 16))
+                    }
                 }
 //                if let eventualBG = state.eventualBG {
 //                    HStack {
