@@ -207,7 +207,9 @@ extension Home {
                 let profiles = Override(context: self.context)
                 profiles.enabled = false
                 profiles.date = Date()
-                try? self.context.save()
+                if self.context.hasChanges {
+                    try? self.context.save()
+                }
             }
         }
 

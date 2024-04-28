@@ -139,15 +139,18 @@ final class OpenAPS {
                         newOrefDetermination.bolus = determination.insulin?.bolus as? NSDecimalNumber
                         newOrefDetermination.smbToDeliver = determination.units as? NSDecimalNumber
                         newOrefDetermination.carbsRequired = Int16(Int(determination.carbsReq ?? 0))
-                        do {
-                            try self.context.save()
-                            debugPrint(
-                                "OpenAPS: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved determination"
-                            )
-                        } catch {
-                            debugPrint(
-                                "OpenAPS: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) error while saving determination"
-                            )
+
+                        if self.context.hasChanges {
+                            do {
+                                try self.context.save()
+                                debugPrint(
+                                    "OpenAPS: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved determination"
+                                )
+                            } catch {
+                                debugPrint(
+                                    "OpenAPS: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) error while saving determination"
+                                )
+                            }
                         }
                     }
 
@@ -159,23 +162,16 @@ final class OpenAPS {
 
                             saveToTDD.timestamp = determination.timestamp ?? Date()
                             saveToTDD.tdd = (determination.tdd ?? 0) as NSDecimalNumber?
-                            try? self.context.save()
+                            if self.context.hasChanges {
+                                try? self.context.save()
+                            }
 
                             let saveTarget = Target(context: self.context)
                             saveTarget.current = (determination.current_target ?? 100) as NSDecimalNumber?
-                            try? self.context.save()
+                            if self.context.hasChanges {
+                                try? self.context.save()
+                            }
                         }
-
-//                        self.coredataContext.perform {
-//                            let saveToInsulin = InsulinDistribution(context: self.coredataContext)
-//
-//                            saveToInsulin.bolus = (determination.insulin?.bolus ?? 0) as NSDecimalNumber?
-//                            saveToInsulin.scheduledBasal = (determination.insulin?.scheduled_basal ?? 0) as NSDecimalNumber?
-//                            saveToInsulin.tempBasal = (determination.insulin?.temp_basal ?? 0) as NSDecimalNumber?
-//                            saveToInsulin.date = Date()
-//
-//                            try? self.coredataContext.save()
-//                        }
                     }
 
                     promise(.success(determination))
@@ -275,7 +271,9 @@ final class OpenAPS {
                     saveToCoreData.duration = 0
                     saveToCoreData.indefinite = false
                     saveToCoreData.percentage = 100
-                    try? self.context.save()
+                    if self.context.hasChanges {
+                        try? self.context.save()
+                    }
                 }
             }
 
@@ -744,10 +742,12 @@ final class OpenAPS {
             forecastValue.forecast = forecast
         }
 
-        do {
-            try context.save()
-        } catch {
-            print("Failed to save forecast: \(error)")
+        if self.context.hasChanges {
+            do {
+                try context.save()
+            } catch {
+                print("Failed to save forecast: \(error)")
+            }
         }
     }
 }

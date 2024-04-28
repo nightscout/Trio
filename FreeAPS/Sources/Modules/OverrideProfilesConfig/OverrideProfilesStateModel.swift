@@ -95,7 +95,9 @@ extension OverrideProfilesConfig {
                     saveOverride.smbMinutes = smbMinutes as NSDecimalNumber
                     saveOverride.uamMinutes = uamMinutes as NSDecimalNumber
                 }
-                try? self.coredataContext.save()
+                if self.coredataContext.hasChanges {
+                    try? self.coredataContext.save()
+                }
             }
         }
 
@@ -136,7 +138,9 @@ extension OverrideProfilesConfig {
                     saveOverride.smbMinutes = smbMinutes as NSDecimalNumber
                     saveOverride.uamMinutes = uamMinutes as NSDecimalNumber
                 }
-                try? self.coredataContext.save()
+                if self.coredataContext.hasChanges {
+                    try? self.coredataContext.save()
+                }
             }
         }
 
@@ -176,7 +180,9 @@ extension OverrideProfilesConfig {
                     saveOverride.smbMinutes = (profile.smbMinutes ?? 0) as NSDecimalNumber
                     saveOverride.uamMinutes = (profile.uamMinutes ?? 0) as NSDecimalNumber
                 }
-                try? self.coredataContext.save()
+                if self.coredataContext.hasChanges {
+                    try? self.coredataContext.save()
+                }
             }
         }
 
@@ -262,7 +268,9 @@ extension OverrideProfilesConfig {
                 let profiles = Override(context: self.coredataContext)
                 profiles.enabled = false
                 profiles.date = Date()
-                try? self.coredataContext.save()
+                if self.coredataContext.hasChanges {
+                    try? self.coredataContext.save()
+                }
             }
             smbMinutes = defaultSmbMinutes
             uamMinutes = defaultUamMinutes
@@ -294,7 +302,9 @@ extension OverrideProfilesConfig {
                     let saveToCoreData = TempTargets(context: coredataContext)
                     saveToCoreData.active = false
                     saveToCoreData.date = Date()
-                    try? coredataContext.save()
+                    if self.coredataContext.hasChanges {
+                        try? coredataContext.save()
+                    }
                 }
             }
             var highTarget = lowTarget
@@ -325,12 +335,16 @@ extension OverrideProfilesConfig {
                 let saveToCoreData = TempTargets(context: self.coredataContext)
                 saveToCoreData.active = false
                 saveToCoreData.date = Date()
-                try? self.coredataContext.save()
+                if self.coredataContext.hasChanges {
+                    try? self.coredataContext.save()
+                }
 
                 let setHBT = TempTargetsSlider(context: self.coredataContext)
                 setHBT.enabled = false
                 setHBT.date = Date()
-                try? self.coredataContext.save()
+                if self.coredataContext.hasChanges {
+                    try? self.coredataContext.save()
+                }
             }
         }
 
@@ -374,7 +388,9 @@ extension OverrideProfilesConfig {
                     saveToCoreData.hbt = hbt
                     saveToCoreData.date = Date()
                     saveToCoreData.duration = durationTT as NSDecimalNumber
-                    try? self.coredataContext.save()
+                    if self.coredataContext.hasChanges {
+                        try? self.coredataContext.save()
+                    }
                 }
             }
         }
@@ -403,12 +419,16 @@ extension OverrideProfilesConfig {
                         saveToCoreData.startDate = Date()
                         saveToCoreData.duration = whichID?.duration ?? 0
 
-                        try? self.coredataContext.save()
+                        if self.coredataContext.hasChanges {
+                            try? self.coredataContext.save()
+                        }
                     } else {
                         let saveToCoreData = TempTargets(context: self.coredataContext)
                         saveToCoreData.active = false
                         saveToCoreData.date = Date()
-                        try? self.coredataContext.save()
+                        if self.coredataContext.hasChanges {
+                            try? self.coredataContext.save()
+                        }
                     }
                 }
             }

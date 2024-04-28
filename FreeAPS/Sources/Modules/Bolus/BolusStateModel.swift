@@ -363,15 +363,17 @@ extension Bolus {
             newItem.external = false
             newItem.isSMB = false
             context.perform {
-                do {
-                    try self.context.save()
-                    debugPrint(
-                        "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved pump insulin to core data"
-                    )
-                } catch {
-                    debugPrint(
-                        "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save pump insulin to core data"
-                    )
+                if self.context.hasChanges {
+                    do {
+                        try self.context.save()
+                        debugPrint(
+                            "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved pump insulin to core data"
+                        )
+                    } catch {
+                        debugPrint(
+                            "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save pump insulin to core data"
+                        )
+                    }
                 }
             }
         }
@@ -431,15 +433,17 @@ extension Bolus {
                 newItem.date = Date()
                 newItem.external = true
                 newItem.isSMB = false
-                do {
-                    try self.context.save()
-                    debugPrint(
-                        "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved carbs to core data"
-                    )
-                } catch {
-                    debugPrint(
-                        "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save carbs to core data"
-                    )
+                if self.context.hasChanges {
+                    do {
+                        try self.context.save()
+                        debugPrint(
+                            "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved carbs to core data"
+                        )
+                    } catch {
+                        debugPrint(
+                            "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save carbs to core data"
+                        )
+                    }
                 }
             }
 
@@ -482,7 +486,10 @@ extension Bolus {
         func deletePreset() {
             if selection != nil {
                 try? context.delete(selection!)
-                try? context.save()
+
+                if context.hasChanges {
+                    try? context.save()
+                }
                 carbs = 0
                 fat = 0
                 protein = 0

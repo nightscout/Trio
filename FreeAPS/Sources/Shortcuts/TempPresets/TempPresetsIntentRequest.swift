@@ -42,7 +42,9 @@ import Foundation
             let requestTempTargets = TempTargetsSlider.fetchRequest() as NSFetchRequest<TempTargetsSlider>
             let sortTT = NSSortDescriptor(key: "date", ascending: false)
             requestTempTargets.sortDescriptors = [sortTT]
-            try? tempTargetsArray = coredataContext.fetch(requestTempTargets)
+            if coredataContext.hasChanges {
+                try? tempTargetsArray = coredataContext.fetch(requestTempTargets)
+            }
 
             let whichID = tempTargetsArray.first(where: { $0.id == tempTarget.id })
 
@@ -54,12 +56,16 @@ import Foundation
                 saveToCoreData.startDate = Date()
                 saveToCoreData.duration = whichID?.duration ?? 0
 
-                try? self.coredataContext.save()
+                if coredataContext.hasChanges {
+                    try? self.coredataContext.save()
+                }
             } else {
                 let saveToCoreData = TempTargets(context: self.coredataContext)
                 saveToCoreData.active = false
                 saveToCoreData.date = Date()
-                try? self.coredataContext.save()
+                if coredataContext.hasChanges {
+                    try? self.coredataContext.save()
+                }
             }
         }
 
@@ -72,13 +78,16 @@ import Foundation
             let saveToCoreData = TempTargets(context: self.coredataContext)
             saveToCoreData.active = false
             saveToCoreData.date = Date()
-            try self.coredataContext.save()
+            if coredataContext.hasChanges {
+                try self.coredataContext.save()
+            }
 
             let setHBT = TempTargetsSlider(context: self.coredataContext)
             setHBT.enabled = false
             setHBT.date = Date()
-
-            try self.coredataContext.save()
+            if coredataContext.hasChanges {
+                try self.coredataContext.save()
+            }
         }
     }
 }

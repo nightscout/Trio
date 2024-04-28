@@ -106,7 +106,9 @@ extension Bolus {
                             preset.fat = state.fat as NSDecimalNumber
                             preset.protein = state.protein as NSDecimalNumber
                             preset.carbs = state.carbs as NSDecimalNumber
-                            try? moc.save()
+                            if self.moc.hasChanges {
+                                try? moc.save()
+                            }
                             state.addNewPresetToWaitersNotepad(dish)
                             saved = false
                             isPromptPresented = false

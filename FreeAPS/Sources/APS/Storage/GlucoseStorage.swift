@@ -84,15 +84,17 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                         newItem.date = Date()
                         newItem.direction = direction
 
-                        do {
-                            try self.coredataContext.save()
-                            debugPrint(
-                                "Glucose Storage: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved glucose to core data"
-                            )
-                        } catch {
-                            debugPrint(
-                                "Glucose Storage: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save glucose to core data"
-                            )
+                        if self.coredataContext.hasChanges {
+                            do {
+                                try self.coredataContext.save()
+                                debugPrint(
+                                    "Glucose Storage: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved glucose to core data"
+                                )
+                            } catch {
+                                debugPrint(
+                                    "Glucose Storage: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save glucose to core data"
+                                )
+                            }
                         }
                     }
                 }

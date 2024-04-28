@@ -650,10 +650,12 @@ extension OverrideProfilesConfig {
                 let language = fetchedProfiles[index]
                 moc.delete(language)
             }
-            do {
-                try moc.save()
-            } catch {
-                // To do: add error
+            if moc.hasChanges {
+                do {
+                    try moc.save()
+                } catch {
+                    // To do: add error
+                }
             }
         }
     }

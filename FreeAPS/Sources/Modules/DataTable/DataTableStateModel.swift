@@ -257,15 +257,17 @@ extension DataTable {
             newItem.glucose = Int16(glucoseAsInt)
             newItem.isManual = true
 
-            do {
-                try coredataContext.save()
-                debugPrint(
-                    "Data table state model: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) added manual glucose to core data"
-                )
-            } catch {
-                debugPrint(
-                    "Data table state model: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to add manual glucose to core data"
-                )
+            if coredataContext.hasChanges {
+                do {
+                    try coredataContext.save()
+                    debugPrint(
+                        "Data table state model: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) added manual glucose to core data"
+                    )
+                } catch {
+                    debugPrint(
+                        "Data table state model: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to add manual glucose to core data"
+                    )
+                }
             }
         }
     }

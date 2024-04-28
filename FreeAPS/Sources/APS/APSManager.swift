@@ -721,13 +721,17 @@ final class BaseAPSManager: APSManager, Injectable {
             viewContext.perform {
                 determination.timestamp = Date()
                 determination.received = received
-                do {
-                    try self.viewContext.save()
-                    debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) updated determination")
-                } catch {
-                    debugPrint(
-                        "APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to update determination"
-                    )
+                if self.viewContext.hasChanges {
+                    do {
+                        try self.viewContext.save()
+                        debugPrint(
+                            "APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) updated determination"
+                        )
+                    } catch {
+                        debugPrint(
+                            "APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to update determination"
+                        )
+                    }
                 }
 
                 // parse to determination
@@ -737,7 +741,9 @@ final class BaseAPSManager: APSManager, Injectable {
                 saveLastLoop.iob = (determination.iob ?? 0) as NSDecimalNumber
                 saveLastLoop.cob = determination.cob as? NSDecimalNumber
                 saveLastLoop.timestamp = (determination.timestamp ?? .distantPast) as Date
-                try? self.viewContext.save()
+                if self.viewContext.hasChanges {
+                    try? self.viewContext.save()
+                }
 
                 debug(.apsManager, "Determination enacted. Received: \(received)")
             }
@@ -1228,7 +1234,9 @@ final class BaseAPSManager: APSManager, Injectable {
 
                 let saveStatsCoreData = StatsData(context: self.privateContext)
                 saveStatsCoreData.lastrun = Date()
-                try? self.privateContext.save()
+                if self.privateContext.hasChanges {
+                    try? self.privateContext.save()
+                }
             }
         }
     }
@@ -1243,7 +1251,9 @@ final class BaseAPSManager: APSManager, Injectable {
             nLS.duration = loopStatRecord.duration ?? 0.0
             nLS.interval = loopStatRecord.interval ?? 0.0
 
-            try? self.privateContext.save()
+            if self.privateContext.hasChanges {
+                try? self.privateContext.save()
+            }
         }
     }
 
@@ -1381,15 +1391,17 @@ extension BaseAPSManager: PumpManagerStatusObserver {
         batteryToStore.status = percent > 10 ? "normal" : "low"
         batteryToStore.display = status.pumpBatteryChargeRemaining != nil
         privateContext.perform {
-            do {
-                try self.privateContext.save()
-                debugPrint(
-                    "APS Manager: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved battery infos to core data"
-                )
-            } catch {
-                debugPrint(
-                    "APS Manager: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save battery infos to core data"
-                )
+            if self.privateContext.hasChanges {
+                do {
+                    try self.privateContext.save()
+                    debugPrint(
+                        "APS Manager: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved battery infos to core data"
+                    )
+                } catch {
+                    debugPrint(
+                        "APS Manager: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save battery infos to core data"
+                    )
+                }
             }
         }
         storage.save(status.pumpStatus, as: OpenAPS.Monitor.status)
