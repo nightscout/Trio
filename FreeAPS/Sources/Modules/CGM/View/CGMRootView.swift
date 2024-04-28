@@ -30,29 +30,29 @@ extension CGM {
                         }
                     }
 
-                    if let cgmFetchManager = state.cgmManager {
-                        if let appURL = state.urlOfApp()
-                        {
-                            Section {
-                                Button {
-                                    UIApplication.shared.open(appURL, options: [:]) { success in
-                                        if !success {
-                                            self.router.alertMessage
-                                                .send(MessageContent(content: "Unable to open the app", type: .warning))
-                                        }
+                    if let appURL = state.urlOfApp()
+                    {
+                        Section {
+                            Button {
+                                UIApplication.shared.open(appURL, options: [:]) { success in
+                                    if !success {
+                                        self.router.alertMessage
+                                            .send(MessageContent(content: "Unable to open the app", type: .warning))
                                     }
                                 }
-
-                                label: {
-                                    Label(state.displayNameOfApp(), systemImage: "waveform.path.ecg.rectangle").font(.title3) }
-                                    .frame(maxWidth: .infinity, alignment: .center)
-                                    .buttonStyle(.bordered)
                             }
-                            .listRowBackground(Color.clear)
-                        } else if state.cgmCurrent.type == .nightscout && state.url != nil {
+
+                            label: {
+                                Label(state.displayNameOfApp() ?? "-", systemImage: "waveform.path.ecg.rectangle").font(.title3) }
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .buttonStyle(.bordered)
+                        }
+                        .listRowBackground(Color.clear)
+                    } else if state.cgmCurrent.type == .nightscout {
+                        if let url = state.url {
                             Section {
                                 Button {
-                                    UIApplication.shared.open(state.url!, options: [:]) { success in
+                                    UIApplication.shared.open(url, options: [:]) { success in
                                         if !success {
                                             self.router.alertMessage
                                                 .send(MessageContent(content: "No URL available", type: .warning))
@@ -62,6 +62,18 @@ extension CGM {
                                 label: { Label("Open URL", systemImage: "waveform.path.ecg.rectangle").font(.title3) }
                                     .frame(maxWidth: .infinity, alignment: .center)
                                     .buttonStyle(.bordered)
+                            }
+                            .listRowBackground(Color.clear)
+                        } else {
+                            Section {
+                                Button {
+                                    state.showModal(for: .nighscoutConfigDirect)
+                                    // router.mainSecondaryModalView.send(router.view(for: .nighscoutConfigDirect))
+                                }
+                                label: { Label("Config Nightscout", systemImage: "waveform.path.ecg.rectangle").font(.title3)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .buttonStyle(.bordered)
                             }
                             .listRowBackground(Color.clear)
                         }
