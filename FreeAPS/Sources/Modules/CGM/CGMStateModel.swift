@@ -134,18 +134,20 @@ extension CGM {
                 .store(in: &lifetime)
         }
 
-        func displayNameOfApp() -> String {
+        func displayNameOfApp() -> String? {
+            guard cgmManager != nil else { return nil }
             var nameOfApp = "Open Application"
             switch cgmManager.cgmGlucoseSourceType {
             case .plugin:
                 nameOfApp = "Open " + (cgmManager.cgmManager?.localizedTitle ?? "Application")
             default:
-                nameOfApp = "Open " + (cgmManager.cgmGlucoseSourceType.displayName ?? "Application")
+                nameOfApp = "Open " + cgmManager.cgmGlucoseSourceType.displayName
             }
             return nameOfApp
         }
 
         func urlOfApp() -> URL? {
+            guard cgmManager != nil else { return nil }
             switch cgmManager.cgmGlucoseSourceType {
             case .plugin:
                 return cgmManager.cgmManager?.appURL
