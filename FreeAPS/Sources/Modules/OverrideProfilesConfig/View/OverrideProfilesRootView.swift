@@ -120,7 +120,7 @@ extension OverrideProfilesConfig {
                     if state.advancedSettings {
                         HStack {
                             Toggle(isOn: $state.smbIsOff) {
-                                Text("Disable SMBs")
+                                Text("Always Disable SMBs")
                             }
                         }
                         if !state.smbIsOff {
