@@ -471,7 +471,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     manualBolusErrorString: lastDetermination.manualBolusErrorString?.decimalValue ?? Decimal(0),
                     minDelta: lastDetermination.minDelta?.decimalValue ?? Decimal(0),
                     expectedDelta: lastDetermination.expectedDelta?.decimalValue ?? Decimal(0),
-                    minGuardBG: nil, minPredBG: nil, threshold: lastDetermination.treshold?.decimalValue ?? Decimal(0),
+                    minGuardBG: nil, minPredBG: nil, threshold: lastDetermination.threshold?.decimalValue ?? Decimal(0),
                     carbRatio: lastDetermination.carbRatio?.decimalValue ?? Decimal(0)
                 )
                 enacted = Determination(
@@ -505,10 +505,10 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     manualBolusErrorString: lastDetermination.manualBolusErrorString?.decimalValue ?? Decimal(0),
                     minDelta: lastDetermination.minDelta?.decimalValue ?? Decimal(0),
                     expectedDelta: lastDetermination.expectedDelta?.decimalValue ?? Decimal(0),
-                    minGuardBG: nil, minPredBG: nil, threshold: lastDetermination.treshold?.decimalValue ?? Decimal(0),
+                    minGuardBG: nil, minPredBG: nil, threshold: lastDetermination.threshold?.decimalValue ?? Decimal(0),
                     carbRatio: lastDetermination.carbRatio?.decimalValue ?? Decimal(0)
                 )
-            }  else if !lastDetermination.enacted, penultimateDetermination.enacted {
+            } else if !lastDetermination.enacted, penultimateDetermination.enacted {
                 suggested = Determination(
                     reason: lastDetermination.reason ?? "",
                     units: lastDetermination.smbToDeliver?.decimalValue,
@@ -540,7 +540,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     manualBolusErrorString: lastDetermination.manualBolusErrorString?.decimalValue ?? Decimal(0),
                     minDelta: lastDetermination.minDelta?.decimalValue ?? Decimal(0),
                     expectedDelta: lastDetermination.expectedDelta?.decimalValue ?? Decimal(0),
-                    minGuardBG: nil, minPredBG: nil, threshold: lastDetermination.treshold?.decimalValue ?? Decimal(0),
+                    minGuardBG: nil, minPredBG: nil, threshold: lastDetermination.threshold?.decimalValue ?? Decimal(0),
                     carbRatio: lastDetermination.carbRatio?.decimalValue ?? Decimal(0)
                 )
                 enacted = Determination(
@@ -576,7 +576,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     expectedDelta: penultimateDetermination.expectedDelta?.decimalValue ?? Decimal(0),
                     minGuardBG: nil,
                     minPredBG: nil,
-                    threshold: penultimateDetermination.treshold?.decimalValue ?? Decimal(0),
+                    threshold: penultimateDetermination.threshold?.decimalValue ?? Decimal(0),
                     carbRatio: penultimateDetermination.carbRatio?.decimalValue ?? Decimal(0)
                 )
             } else if !lastDetermination.enacted, !penultimateDetermination.enacted {
@@ -611,7 +611,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     manualBolusErrorString: lastDetermination.manualBolusErrorString?.decimalValue ?? Decimal(0),
                     minDelta: lastDetermination.minDelta?.decimalValue ?? Decimal(0),
                     expectedDelta: lastDetermination.expectedDelta?.decimalValue ?? Decimal(0),
-                    minGuardBG: nil, minPredBG: nil, threshold: lastDetermination.treshold?.decimalValue ?? Decimal(0),
+                    minGuardBG: nil, minPredBG: nil, threshold: lastDetermination.threshold?.decimalValue ?? Decimal(0),
                     carbRatio: lastDetermination.carbRatio?.decimalValue ?? Decimal(0)
                 )
             }
