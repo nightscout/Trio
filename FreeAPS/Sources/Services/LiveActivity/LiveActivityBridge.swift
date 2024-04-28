@@ -1,4 +1,5 @@
 import ActivityKit
+import CoreData
 import Foundation
 import Swinject
 import UIKit
@@ -123,7 +124,9 @@ extension LiveActivityAttributes.ContentState {
     }
 }
 
-@available(iOS 16.2, *) final class LiveActivityBridge: Injectable, ObservableObject {
+@available(iOS 16.2, *) final class LiveActivityBridge: NSObject, Injectable, ObservableObject,
+    NSFetchedResultsControllerDelegate
+{
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var storage: FileStorage!
@@ -138,30 +141,59 @@ extension LiveActivityAttributes.ContentState {
     private var determination: OrefDetermination?
     private var currentActivity: ActiveActivity?
     private var latestGlucose: GlucoseStored?
+    private var fetchedResultsController: NSFetchedResultsController<GlucoseStored>?
 
     init(resolver: Resolver) {
         systemEnabled = activityAuthorizationInfo.areActivitiesEnabled
-        injectServices(resolver)
-        broadcaster.register(GlucoseStoredObserver.self, observer: self)
+        super.init()
 
+        injectServices(resolver)
+        setupNotifications()
+        monitorForLiveActivityAuthorizationChanges()
+        initializeFetchedResultsController()
+    }
+
+    private func setupNotifications() {
         Foundation.NotificationCenter.default.addObserver(
             forName: UIApplication.didEnterBackgroundNotification,
             object: nil,
             queue: nil
-        ) { _ in
-            self.forceActivityUpdate()
+        ) { [weak self] _ in
+            self?.forceActivityUpdate()
         }
 
         Foundation.NotificationCenter.default.addObserver(
             forName: UIApplication.didBecomeActiveNotification,
             object: nil,
             queue: nil
-        ) { _ in
-            self.forceActivityUpdate()
+        ) { [weak self] _ in
+            self?.forceActivityUpdate()
         }
+    }
 
-        monitorForLiveActivityAuthorizationChanges()
-        determination = fetchDetermination()
+    private func initializeFetchedResultsController() {
+        let fetchRequest: NSFetchRequest<GlucoseStored> = GlucoseStored.fetchRequest()
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+        fetchRequest.fetchLimit = 72
+        fetchRequest.predicate = NSPredicate.predicateForSixHoursAgo
+
+        fetchedResultsController = NSFetchedResultsController(
+            fetchRequest: fetchRequest,
+            managedObjectContext: CoreDataStack.shared.viewContext,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+        fetchedResultsController?.delegate = self
+
+        do {
+            try fetchedResultsController?.performFetch()
+            debugPrint(
+                "LA Bridge: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched glucose"
+            )
+        } catch {
+            debugPrint(
+                "LA Bridge: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch glucose"
+            ) }
     }
 
     private func monitorForLiveActivityAuthorizationChanges() {
@@ -199,7 +231,9 @@ extension LiveActivityAttributes.ContentState {
         if settings.useLiveActivity {
             if currentActivity?.needsRecreation() ?? true
             {
-                glucoseDidUpdate(fetchGlucose())
+                if let glucoseRecords = fetchedResultsController?.fetchedObjects as? [GlucoseStored] {
+                    glucoseDidUpdate(glucoseRecords)
+                }
             }
         } else {
             Task {
@@ -283,7 +317,18 @@ extension LiveActivityAttributes.ContentState {
 }
 
 @available(iOS 16.2, *)
-extension LiveActivityBridge: GlucoseStoredObserver {
+extension LiveActivityBridge {
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        guard let glucoseChanges = controller.fetchedObjects as? [GlucoseStored] else {
+            return
+        }
+
+        glucoseDidUpdate(glucoseChanges)
+    }
+}
+
+@available(iOS 16.2, *)
+extension LiveActivityBridge {
     func glucoseDidUpdate(_ glucose: [GlucoseStored]) {
         guard settings.useLiveActivity else {
             if currentActivity != nil {
@@ -302,19 +347,18 @@ extension LiveActivityBridge: GlucoseStoredObserver {
             self.latestGlucose = glucose.first
         }
 
-        // fetch glucose for the last 6 hours for the LA chart from Core Data
-        let fetchedGlucose = fetchGlucose()
-
         guard let bg = glucose.first else {
             return
         }
+
+        determination = fetchDetermination()
 
         if let determination = determination {
             let content = LiveActivityAttributes.ContentState(
                 new: bg,
                 prev: latestGlucose,
                 mmol: settings.units == .mmolL,
-                chart: fetchedGlucose,
+                chart: glucose,
                 settings: settings,
                 determination: determination
             )
@@ -324,24 +368,6 @@ extension LiveActivityBridge: GlucoseStoredObserver {
                     await self.pushUpdate(content)
                 }
             }
-        }
-    }
-
-    private func fetchGlucose() -> [GlucoseStored] {
-        let context = CoreDataStack.shared.viewContext
-        do {
-            let fetchedGlucose = try context
-                .fetch(GlucoseStored.fetch(NSPredicate.predicateForSixHoursAgo, ascending: false, fetchLimit: 72))
-            debugPrint(
-                "LA Bridge: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched glucose"
-            )
-
-            return fetchedGlucose
-        } catch {
-            debugPrint(
-                "LA Bridge: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch glucose"
-            )
-            return []
         }
     }
 }
