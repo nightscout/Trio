@@ -97,7 +97,7 @@ extension Bolus {
 
         let now = Date.now
 
-        let context = CoreDataStack.shared.backgroundContext
+        let context = CoreDataStack.shared.viewContext
 
         override func subscribe() {
             fetchGlucose()
