@@ -54,7 +54,7 @@ jobs:
     - name: Check for alive branch
       if: steps.workflow-permission.outputs.has_permission == 'true'
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GH_PAT }}
       run: |
         if [[ "$(gh api -H "Accept: application/vnd.github+json" /repos/${{ github.repository }}/branches | jq --raw-output 'any(.name=="alive")')" == "true" ]]; then
           echo "Branch 'alive' exists."
@@ -239,7 +239,7 @@ jobs:
       
       # Build signed Open-iAPS IPA file
       - name: Fastlane Build & Archive
-        run: bundle exec fastlane build_iAPS        
+        run: bundle exec fastlane build_open_iaps
         env:
           TEAMID: ${{ secrets.TEAMID }}
           GH_PAT: ${{ secrets.GH_PAT }}
