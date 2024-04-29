@@ -49,9 +49,10 @@ xcconfig = parse_xcconfig_file(xcconfig_path)
 # Access BUNDLE_IDENTIFIER from the xcconfig file after replacing $(DEVELOPMENT_TEAM) with ENV["TEAMID"]
 ENV["BUNDLE_ID"] = xcconfig["BUNDLE_IDENTIFIER"]
 
+# limit lane names to letters and underscores
 platform :ios do
   desc "Build Open-iAPS"
-  lane :build_Open-iAPS do
+  lane :build_open_iaps do
     setup_ci if ENV['CI']
     BUNDLE_ID = ENV["BUNDLE_ID"]
 
