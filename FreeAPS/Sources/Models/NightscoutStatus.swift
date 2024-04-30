@@ -9,8 +9,8 @@ struct NightscoutStatus: JSON {
 
 struct OpenAPSStatus: JSON {
     let iob: IOBEntry?
-    let suggested: Suggestion?
-    let enacted: Suggestion?
+    let suggested: Determination?
+    let enacted: Determination?
     let version: String
 }
 

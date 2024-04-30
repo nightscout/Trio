@@ -6,8 +6,6 @@ enum Home {
 }
 
 protocol HomeProvider: Provider {
-    var suggestion: Suggestion? { get }
-    var enactedSuggestion: Suggestion? { get }
     func heartbeatNow()
     func pumpHistory(hours: Int) -> [PumpHistoryEvent]
     func pumpSettings() -> PumpSettings
