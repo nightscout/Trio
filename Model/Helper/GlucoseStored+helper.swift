@@ -50,3 +50,30 @@ extension NSPredicate {
 protocol GlucoseStoredObserver {
     func glucoseDidUpdate(_ glucose: [GlucoseStored])
 }
+
+extension GlucoseStored: Encodable {
+    enum CodingKeys: String, CodingKey {
+        case date
+        case sgv
+        case glucose
+        case direction
+        case id
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+//        let dateFormatter = ISO8601DateFormatter()
+//        let dateString = dateFormatter.string(from: date ?? Date())
+        let dateString = String(format: "%.0f", (date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000)
+        try container.encode(dateString, forKey: .date)
+        try container.encode(direction, forKey: .direction)
+        try container.encode(id, forKey: .id)
+
+        if isManual {
+            try container.encode(glucose, forKey: .glucose)
+        } else {
+            try container.encode(glucose, forKey: .sgv)
+        }
+    }
+}
