@@ -45,7 +45,7 @@ function convert_bg(value, profile)
     }
 }
 function enable_smb(profile, microBolusAllowed, meal_data, bg, target_bg, high_bg, oref_variables, time) {
-    if (oref_variables.smbIsOff){
+    if (oref_variables.smbIsScheduledOff){
         /* Below logic is related to profile overrides which can disable SMBs or disable them for a scheduled window.
          * SMBs will be disabled from [start, end), such that if an SMB is scheduled to be disabled from 10 AM to 2 PM,
          * an SMB will not be allowed from 10:00:00 until 1:59:59.
@@ -154,7 +154,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     const isfAndCr = oref2_variables.isfAndCr;
     const isf = oref2_variables.isf;
     const cr_ = oref2_variables.cr;
-    const smbIsAlwaysOff = oref2_variables.smbIsAlwaysOff;
+    const smbIsScheduledOff = oref2_variables.smbIsScheduledOff;
     const start = oref2_variables.start;
     var end = oref2_variables.end;
     const smbMinutes = oref2_variables.smbMinutes;
@@ -1019,7 +1019,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     threshold = min_bg - 0.5*(min_bg-40);
     // Set threshold to the user's setting, as long as it's between 60-120 and above the default calculated threshold
     threshold = Math.min(Math.max(profile.threshold_setting, threshold, 60), 120);
-    console.error("Threshold set to ${convert_bg(threshold, profile)}");
+    console.error(`Threshold set to ${convert_bg(threshold, profile)}`);
 
 // If iob_data or its required properties are missing, return.
 // This has to be checked after checking that we're not in one of the CGM-data-related error conditions handled above,
@@ -1162,7 +1162,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     let enableSMB = false;
 
     // If SMB is always off, don't bother checking if we should enable SMBs
-    if (smbIsAlwaysOff) {
+    if (smbIsOff) {
         console.error("SMBs are always off.");
         enableSMB = false;
     } else {
