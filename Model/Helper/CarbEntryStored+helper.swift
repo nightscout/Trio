@@ -44,20 +44,13 @@ extension CarbEntryStored: Encodable {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
         let dateFormatter = ISO8601DateFormatter()
-        if let date = self.date {
-            let formattedDate = dateFormatter.string(from: date)
-            try container.encode(formattedDate, forKey: .actualDate)
-            try container.encode(formattedDate, forKey: .created_at)
-        } else {
-            throw EncodingError.invalidValue(
-                Date.self,
-                EncodingError.Context(codingPath: [], debugDescription: "Date values are nil")
-            )
-        }
+        let formattedDate = dateFormatter.string(from: date ?? Date())
+        try container.encode(formattedDate, forKey: .actualDate)
+        try container.encode(formattedDate, forKey: .created_at)
 
         // TODO: handle this conditionally; pass in the enteredBy string (manual entry or via NS or Apple Health)
         try container.encode("Open-iAPS", forKey: .enteredBy)
-        
+
         try container.encode(carbs, forKey: .carbs)
         try container.encode(fat, forKey: .fat)
         try container.encode(isFPU, forKey: .isFPU)

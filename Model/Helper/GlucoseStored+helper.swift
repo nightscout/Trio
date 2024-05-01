@@ -49,19 +49,28 @@ protocol GlucoseStoredObserver {
 extension GlucoseStored: Encodable {
     enum CodingKeys: String, CodingKey {
         case date
+        case dateString
         case sgv
         case glucose
         case direction
         case id
+        case type
     }
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
-        let dateString = String(format: "%.0f", (date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000)
-        try container.encode(dateString, forKey: .date)
+        let dateFormatter = ISO8601DateFormatter()
+        try container.encode(dateFormatter.string(from: date ?? Date()), forKey: .dateString)
+
+        let dateAsUnixTimestamp = String(format: "%.0f", (date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000)
+        try container.encode(dateAsUnixTimestamp, forKey: .date)
+
         try container.encode(direction, forKey: .direction)
         try container.encode(id, forKey: .id)
+        
+        // TODO: Handle the type of the glucose entry conditionally not hardcoded
+        try container.encode("sgv", forKey: .type)
 
         if isManual {
             try container.encode(glucose, forKey: .glucose)

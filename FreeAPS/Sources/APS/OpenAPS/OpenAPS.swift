@@ -99,10 +99,11 @@ final class OpenAPS {
         do {
             debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
             return try context.fetch(GlucoseStored.fetch(
-                NSPredicate.predicateFor20MinAgo,
+                NSPredicate.predicateFor30MinAgo,
                 ascending: false,
-                fetchLimit: 3
-            )) /// it only returns the last 3 values within the last 20 minutes, that means one reading can not be older than 5 minutes, otherwise the loop will fail
+                fetchLimit: 4
+            )) /// it only returns the last 4 values within the last 30 minutes, that means one reading can not be older than 5 minutes, otherwise the loop will fail
+            /// if we do not pass at least 4 values, cob cannot be calculated.
         } catch {
             debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose with error: \(error)")
             return []
@@ -139,6 +140,9 @@ final class OpenAPS {
                 /// glucose
                 let glucose = self.fetchGlucose()
                 let glucoseString = self.jsonConverter.convertToJSON(glucose)
+                print(glucoseString)
+                let glucoseFromFile = self.loadFileFromStorage(name: Monitor.glucose)
+                print(glucoseFromFile)
 
                 /// profile
                 let profile = self.loadFileFromStorage(name: Settings.profile)
