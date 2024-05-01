@@ -20,19 +20,6 @@ extension GlucoseStored {
 
         return lastThreeValues.allSatisfy { $0.glucose == firstValue }
     }
-
-//    static func asyncFetch(_ predicate: NSPredicate = NSPredicate(value: true), completion: @escaping (NSAsynchronousFetchResult<GlucoseStored>)->Void) -> NSAsynchronousFetchRequest<GlucoseStored> {
-//           let request: NSFetchRequest<GlucoseStored> = GlucoseStored.fetchRequest()
-//           request.sortDescriptors = [NSSortDescriptor(keyPath: \GlucoseStored.date, ascending: true)]
-//           request.predicate = predicate
-//
-//           // Erstelle einen NSAsynchronousFetchRequest mit einem Completion Handler
-//           let asyncFetchRequest = NSAsynchronousFetchRequest<GlucoseStored>(fetchRequest: request) { result in
-//               completion(result)
-//           }
-//
-//           return asyncFetchRequest
-//       }
 }
 
 extension NSPredicate {
@@ -63,8 +50,6 @@ extension GlucoseStored: Encodable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
-//        let dateFormatter = ISO8601DateFormatter()
-//        let dateString = dateFormatter.string(from: date ?? Date())
         let dateString = String(format: "%.0f", (date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000)
         try container.encode(dateString, forKey: .date)
         try container.encode(direction, forKey: .direction)

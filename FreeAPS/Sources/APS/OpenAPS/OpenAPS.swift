@@ -11,6 +11,8 @@ final class OpenAPS {
 
     let context = CoreDataStack.shared.backgroundContext
 
+    let jsonConverter = JSONConverter()
+
     init(storage: FileStorage) {
         self.storage = storage
     }
@@ -93,51 +95,12 @@ final class OpenAPS {
     }
 
     // fetch glucose to pass it to the meal function and to determine basal
-
     private func fetchGlucose() -> [GlucoseStored]? {
         do {
-            return try context.fetch(GlucoseStored.fetch(ascending: false, fetchLimit: 5))
+            return try context.fetch(GlucoseStored.fetch(ascending: false, fetchLimit: 3))
         } catch {
             print("failed")
             return []
-        }
-    }
-
-//    private func fetchGlucose() -> GlucoseStored? {
-//        do {
-//            return try context.fetch(GlucoseStored.fetch(ascending: false, fetchLimit: 1)).first
-//        } catch {
-//            print("failed")
-//            return nil
-//        }
-//    }
-
-//    private func fetchGlucose() -> GlucoseStored? {
-//        do {
-//            debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
-//
-    ////            let fr = NSFetchRequest<GlucoseStored>(entityName: "GlucoseStored")
-//            let fr = GlucoseStored.fetchRequest()
-//            fr.resultType = .dictionaryResultType
-//            fr.fetchLimit = 1
-//            fr.predicate = NSPredicate.predicateFor30MinAgo
-//            fr.sortDescriptors = [NSSortDescriptor(keyPath: \GlucoseStored.date, ascending: false)]
-//            let last = try context.fetch(fr)
-//
-//            return last.first
-//        } catch {
-//            debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose with error: \(error)")
-//            return nil
-//        }
-//    }
-
-    func convertDataToJSON(data: Data) -> Any? {
-        do {
-            let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
-            return jsonObject
-        } catch {
-            print("ich bin ein hurensohn")
-            return nil
         }
     }
 
@@ -155,129 +118,92 @@ final class OpenAPS {
                 // meal
                 let pumpHistory = self.loadFileFromStorage(name: OpenAPS.Monitor.pumpHistory)
                 let carbs = self.loadFileFromStorage(name: Monitor.carbHistory)
-//                let glucose = self.loadFileFromStorage(name: Monitor.glucose)
 
-                /// get glucose from CD
-                do {
-                    let glucose = self.fetchGlucose()
-                    let encoder = JSONEncoder()
-                    encoder.keyEncodingStrategy = .useDefaultKeys
-                    let glucoseJSON = try encoder.encode(glucose) /// returns data
-                    ///
+                /// glucose
+                let glucose = self.fetchGlucose()
+//                    let glucoseString = self.convertToJSON(glucose)
+                let glucoseString = self.jsonConverter.convertToJSON(glucose)
 
-//                    let json = try JSONSerialization.jsonObject(with: glucoseJSON, options: [])
-                    let string = String(data: glucoseJSON, encoding: .utf8)
-                    print("**************\(string)")
-//                    let glucoseJSON = try glucose.map { try JSONSerialization.data(withJSONObject: $0) }
-//                    let test = String(data: glucoseJSON!, encoding: .utf8)
+                /// profile
+                let profile = self.loadFileFromStorage(name: Settings.profile)
+                let basalProfile = self.loadFileFromStorage(name: Settings.basalProfile)
 
-//                    let glucoseArray = glucose?.compactMap { try $0.encodeToJson() }
+                /// meal
+                let meal = self.meal(
+                    pumphistory: pumpHistory,
+                    profile: profile,
+                    basalProfile: basalProfile,
+                    clock: clock,
+                    carbs: carbs,
+                    glucose: glucoseString
+                )
 
-//                    if let jsonObject = convertDataToJSON(data: glucoseArray) as? [String: Any] {}
+                self.storage.save(meal, as: Monitor.meal)
 
-//                    let jsonData = try GlucoseStored.encodeToJson(glucose ?? GlucoseStored())
-//                    let jsonData = try glucose?.encodeToJson()
+                // iob
+                let autosens = self.loadFileFromStorage(name: Settings.autosense)
+                let iob = self.iob(
+                    pumphistory: pumpHistory,
+                    profile: profile,
+                    clock: clock,
+                    autosens: autosens.isEmpty ? .null : autosens
+                )
 
-//                    if let json = convertDataToJSON(data: jsonData) as? [String: Any] {
-//                        print
-//                    }
-//                    let jsonString = String(data: jsonData!, encoding: .utf8)
-//                    print(jsonString ?? "Invalid JSON")
+                self.storage.save(iob, as: Monitor.iob)
 
-                    let profile = self.loadFileFromStorage(name: Settings.profile)
-                    let basalProfile = self.loadFileFromStorage(name: Settings.basalProfile)
+                // determine-basal
+                let reservoir = self.loadFileFromStorage(name: Monitor.reservoir)
 
-                    let meal = self.meal(
-                        pumphistory: pumpHistory,
-                        profile: profile,
-                        basalProfile: basalProfile,
-                        clock: clock,
-                        carbs: carbs,
-                        glucose: string ?? ""
-                    )
+                let preferences = self.loadFileFromStorage(name: Settings.preferences)
 
-                    self.storage.save(meal, as: Monitor.meal)
+                // oref2
+                let oref2_variables = self.oref2()
 
-                    // iob
-                    let autosens = self.loadFileFromStorage(name: Settings.autosense)
-                    let iob = self.iob(
-                        pumphistory: pumpHistory,
-                        profile: profile,
-                        clock: clock,
-                        autosens: autosens.isEmpty ? .null : autosens
-                    )
+                let orefDetermination = self.determineBasal(
+                    glucose: glucoseString,
+                    currentTemp: tempBasal,
+                    iob: iob,
+                    profile: profile,
+                    autosens: autosens.isEmpty ? .null : autosens,
+                    meal: meal,
+                    microBolusAllowed: true,
+                    reservoir: reservoir,
+                    pumpHistory: pumpHistory,
+                    preferences: preferences,
+                    basalProfile: basalProfile,
+                    oref2_variables: oref2_variables
+                )
+                debug(.openAPS, "Determinated: \(orefDetermination)")
 
-                    self.storage.save(iob, as: Monitor.iob)
+                if var determination = Determination(from: orefDetermination) {
+                    determination.timestamp = determination.deliverAt ?? clock
+                    self.storage.save(determination, as: Enact.suggested)
 
-                    // determine-basal
-                    let reservoir = self.loadFileFromStorage(name: Monitor.reservoir)
+                    // save to core data asynchronously
+                    self.processDetermination(determination)
 
-                    let preferences = self.loadFileFromStorage(name: Settings.preferences)
+                    if determination.tdd ?? 0 > 0 {
+                        self.context.perform {
+                            let saveToTDD = TDD(context: self.context)
 
-                    // oref2
-                    let oref2_variables = self.oref2()
+                            saveToTDD.timestamp = determination.timestamp ?? Date()
+                            saveToTDD.tdd = (determination.tdd ?? 0) as NSDecimalNumber?
+                            if self.context.hasChanges {
+                                try? self.context.save()
+                            }
 
-                    let orefDetermination = self.determineBasal(
-                        glucose: string ?? "",
-                        currentTemp: tempBasal,
-                        iob: iob,
-                        profile: profile,
-                        autosens: autosens.isEmpty ? .null : autosens,
-                        meal: meal,
-                        microBolusAllowed: true,
-                        reservoir: reservoir,
-                        pumpHistory: pumpHistory,
-                        preferences: preferences,
-                        basalProfile: basalProfile,
-                        oref2_variables: oref2_variables
-                    )
-                    debug(.openAPS, "Determinated: \(orefDetermination)")
-
-                    if var determination = Determination(from: orefDetermination) {
-                        determination.timestamp = determination.deliverAt ?? clock
-                        self.storage.save(determination, as: Enact.suggested)
-
-                        // save to core data asynchronously
-                        self.processDetermination(determination)
-
-                        if determination.tdd ?? 0 > 0 {
-                            self.context.perform {
-                                let saveToTDD = TDD(context: self.context)
-
-                                saveToTDD.timestamp = determination.timestamp ?? Date()
-                                saveToTDD.tdd = (determination.tdd ?? 0) as NSDecimalNumber?
-                                if self.context.hasChanges {
-                                    try? self.context.save()
-                                }
-
-                                let saveTarget = Target(context: self.context)
-                                saveTarget.current = (determination.current_target ?? 100) as NSDecimalNumber?
-                                if self.context.hasChanges {
-                                    try? self.context.save()
-                                }
+                            let saveTarget = Target(context: self.context)
+                            saveTarget.current = (determination.current_target ?? 100) as NSDecimalNumber?
+                            if self.context.hasChanges {
+                                try? self.context.save()
                             }
                         }
-
-                        promise(.success(determination))
-                    } else {
-                        promise(.success(nil))
                     }
-                } catch {
-                    print("Encoding failed with error: \(error)")
+
+                    promise(.success(determination))
+                } else {
+                    promise(.success(nil))
                 }
-
-                /// convert glucoseStored to JSON
-
-//                    let glucoseValue: Decimal? = Decimal(glucoseRecord.glucose)
-
-//                    let glucoseStoredJSON = BloodGlucose(
-//                        date: Decimal(Int((glucoseStored.first?.date?.timeIntervalSince1970 ?? 0) * 1000)),
-//                        dateString: glucoseRecord.date ?? Date(),
-//                        unfiltered: glucoseValue,
-//                        filtered: glucoseValue,
-//                        noise: nil,
-//                        type: ""
-//                    )
             }
         }
     }
@@ -471,12 +397,16 @@ final class OpenAPS {
                 debug(.openAPS, "Start autosens")
                 let pumpHistory = self.loadFileFromStorage(name: OpenAPS.Monitor.pumpHistory)
                 let carbs = self.loadFileFromStorage(name: Monitor.carbHistory)
-                let glucose = self.loadFileFromStorage(name: Monitor.glucose)
+
+                /// glucose
+                let glucose = self.fetchGlucose()
+                let glucoseString = self.jsonConverter.convertToJSON(glucose)
+
                 let profile = self.loadFileFromStorage(name: Settings.profile)
                 let basalProfile = self.loadFileFromStorage(name: Settings.basalProfile)
                 let tempTargets = self.loadFileFromStorage(name: Settings.tempTargets)
                 let autosensResult = self.autosense(
-                    glucose: glucose,
+                    glucose: glucoseString,
                     pumpHistory: pumpHistory,
                     basalprofile: basalProfile,
                     profile: profile,
@@ -501,7 +431,11 @@ final class OpenAPS {
             self.processQueue.async {
                 debug(.openAPS, "Start autotune")
                 let pumpHistory = self.loadFileFromStorage(name: OpenAPS.Monitor.pumpHistory)
-                let glucose = self.loadFileFromStorage(name: Monitor.glucose)
+
+                /// glucose
+                let glucose = self.fetchGlucose()
+                let glucoseString = self.jsonConverter.convertToJSON(glucose)
+
                 let profile = self.loadFileFromStorage(name: Settings.profile)
                 let pumpProfile = self.loadFileFromStorage(name: Settings.pumpProfile)
                 let carbs = self.loadFileFromStorage(name: Monitor.carbHistory)
@@ -509,7 +443,7 @@ final class OpenAPS {
                 let autotunePreppedGlucose = self.autotunePrepare(
                     pumphistory: pumpHistory,
                     profile: profile,
-                    glucose: glucose,
+                    glucose: glucoseString,
                     pumpprofile: pumpProfile,
                     carbs: carbs,
                     categorizeUamAsBasal: categorizeUamAsBasal,
