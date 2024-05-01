@@ -236,8 +236,8 @@ extension DataTable {
                 glucose: Int(glucose),
                 type: GlucoseType.manual.rawValue
             )
-            provider.glucoseStorage.storeGlucose([saveToJSON])
-            debug(.default, "Manual Glucose saved to glucose.json")
+
+            //TODO: -do we need this?
             // Save to Health
             var saveToHealth = [BloodGlucose]()
             saveToHealth.append(saveToJSON)

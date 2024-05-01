@@ -16,7 +16,10 @@ extension DataTable {
         @State private var showManualGlucose: Bool = false
         @State private var isAmountUnconfirmed: Bool = true
 
+        @State private var showAlert = false
+
         @Environment(\.colorScheme) var colorScheme
+        @Environment(\.managedObjectContext) var context
 
         /// fetch ALL glucose values, i.e. manual and non-manual
         @FetchRequest(
@@ -225,13 +228,34 @@ extension DataTable {
 
                             Text(dateFormatter.string(from: glucose.date ?? Date()))
                         }
-                    }
+                    }.onDelete(perform: deleteGlucose)
                 } else {
                     HStack {
                         Text("No data.")
                     }
                 }
             }.listRowBackground(Color.chart)
+                .alert(isPresented: $showAlert) {
+                    Alert(title: Text("Error"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+                }
+        }
+
+        private func deleteGlucose(at offsets: IndexSet) {
+            for index in offsets {
+                let glucoseToDelete = glucoseStored[index]
+                context.delete(glucoseToDelete)
+            }
+
+            do {
+                try context.save()
+                debugPrint("Data Table Root View: \(#function) \(DebuggingIdentifiers.succeeded) deleted glucose from core data")
+            } catch {
+                debugPrint(
+                    "Data Table Root View: \(#function) \(DebuggingIdentifiers.failed) error while deleting glucose from core data"
+                )
+                alertMessage = "Failed to delete glucose data: \(error.localizedDescription)"
+                showAlert = true
+            }
         }
 
         @ViewBuilder private func addGlucoseView() -> some View {
