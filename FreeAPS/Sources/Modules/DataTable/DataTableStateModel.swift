@@ -13,7 +13,7 @@ extension DataTable {
         @Published var mode: Mode = .treatments
         @Published var treatments: [Treatment] = []
         @Published var glucose: [Glucose] = []
-        @Published var manualGlcuose: Decimal = 0
+        @Published var manualGlucose: Decimal = 0
         @Published var maxBolus: Decimal = 0
         @Published var externalInsulinAmount: Decimal = 0
         @Published var externalInsulinDate = Date()
@@ -182,7 +182,7 @@ extension DataTable {
         }
 
         func addManualGlucose() {
-            let glucose = units == .mmolL ? manualGlcuose.asMgdL : manualGlcuose
+            let glucose = units == .mmolL ? manualGlucose.asMgdL : manualGlucose
             let now = Date()
             let id = UUID().uuidString
 

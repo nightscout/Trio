@@ -11,7 +11,7 @@ extension DataTable {
         @State private var removeCarbsAlert: Alert?
         @State private var isRemoveInsulinAlertPresented = false
         @State private var removeInsulinAlert: Alert?
-        @State private var newGlucose = false
+        @State private var showManualGlucose = false
         @State private var showExternalInsulin = false
         @State private var isAmountUnconfirmed = true
 
@@ -74,34 +74,8 @@ extension DataTable {
             }) {
                 addExternalInsulinView
             }
-            .popup(isPresented: newGlucose, alignment: .top, direction: .bottom) {
-                VStack(spacing: 20) {
-                    HStack {
-                        Text("New Glucose")
-                        DecimalTextField(" ... ", value: $state.manualGlcuose, formatter: glucoseFormatter)
-                        Text(state.units.rawValue)
-                    }.padding(.horizontal, 20)
-                    HStack {
-                        let limitLow: Decimal = state.units == .mmolL ? 2.2 : 40
-                        let limitHigh: Decimal = state.units == .mmolL ? 21 : 380
-                        Button { newGlucose = false }
-                        label: { Text("Cancel") }.frame(maxWidth: .infinity, alignment: .leading)
-
-                        Button {
-                            state.addManualGlucose()
-                            newGlucose = false
-                        }
-                        label: { Text("Save") }
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-                        // .disabled(state.manualGlcuose < limitLow || state.manualGlcuose > limitHigh)
-
-                    }.padding(20)
-                }
-                .frame(maxHeight: 140)
-                .background(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(Color(colorScheme == .dark ? UIColor.systemGray2 : UIColor.systemGray6))
-                )
+            .sheet(isPresented: $showManualGlucose) {
+                addGlucoseView
             }
         }
 
@@ -137,13 +111,71 @@ extension DataTable {
 
         private var glucoseList: some View {
             List {
-                Button { newGlucose = true }
-                label: { Text("Add") }.frame(maxWidth: .infinity, alignment: .trailing)
-                    .padding(.trailing, 20)
+                HStack {
+                    Text("Time").foregroundStyle(.secondary)
+                    Spacer()
+                    Text(state.units.rawValue).foregroundStyle(.secondary)
+                    Button(
+                        action: { 
+                            showManualGlucose = true
+                            state.manualGlucose = 0
+                        },
+                        label: { Image(systemName: "plus.circle.fill").foregroundStyle(.secondary)
+                        }
+                    ).buttonStyle(.borderless)
+                }
+                if !state.glucose.isEmpty {
+                    ForEach(state.glucose) { item in
+                        glucoseView(item)
+                    }
+                    .onDelete(perform: deleteGlucose)
+                } else {
+                    HStack {
+                        Text(NSLocalizedString("No data.", comment: "No data text when no entries in history list"))
+                    }
+                }
+            }
+        }
 
-                ForEach(state.glucose) { item in
-                    glucoseView(item)
-                }.onDelete(perform: deleteGlucose)
+        private var addGlucoseView: some View {
+            NavigationView {
+                VStack {
+                    Form {
+                        Section {
+                            HStack {
+                                Text("New Glucose")
+                                DecimalTextField(
+                                    " ... ",
+                                    value: $state.manualGlucose,
+                                    formatter: glucoseFormatter,
+                                    autofocus: true,
+                                    cleanInput: true
+                                )
+                                Text(state.units.rawValue).foregroundStyle(.secondary)
+                            }
+                        }
+
+                        Section {
+                            HStack {
+                                let limitLow: Decimal = state.units == .mmolL ? 0.8 : 40
+                                let limitHigh: Decimal = state.units == .mmolL ? 14 : 720
+
+                                Button {
+                                    state.addManualGlucose()
+                                    isAmountUnconfirmed = false
+                                    showManualGlucose = false
+                                }
+                                label: { Text("Save") }
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                    .disabled(state.manualGlucose < limitLow || state.manualGlucose > limitHigh)
+                            }
+                        }
+                    }
+                }
+                .onAppear(perform: configureView)
+                .navigationTitle("Add Glucose")
+                .navigationBarTitleDisplayMode(.automatic)
+                .navigationBarItems(leading: Button("Close", action: { showManualGlucose = false }))
             }
         }
 
