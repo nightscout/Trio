@@ -11,6 +11,8 @@ final class OpenAPS {
 
     let context = CoreDataStack.shared.backgroundContext
 
+    let jsonConverter = JSONConverter()
+
     init(storage: FileStorage) {
         self.storage = storage
     }
@@ -92,6 +94,31 @@ final class OpenAPS {
         }
     }
 
+    // fetch glucose to pass it to the meal function and to determine basal
+    private func fetchGlucose() -> [GlucoseStored]? {
+        do {
+            debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
+            return try context.fetch(GlucoseStored.fetch(
+                NSPredicate.predicateFor20MinAgo,
+                ascending: false,
+                fetchLimit: 3
+            )) /// it only returns the last 3 values within the last 20 minutes, that means one reading can not be older than 5 minutes, otherwise the loop will fail
+        } catch {
+            debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose with error: \(error)")
+            return []
+        }
+    }
+
+    private func fetchCarbs() -> [MealsStored]? {
+        do {
+            debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.succeeded) fetched carbs")
+            return try context.fetch(MealsStored.fetch(NSPredicate.predicateFor30MinAgo, ascending: true))
+        } catch {
+            debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.failed) failed to fetch carbs with error: \(error)")
+            return []
+        }
+    }
+
     func determineBasal(currentTemp: TempBasal, clock: Date = Date()) -> Future<Determination?, Never> {
         Future { promise in
             self.processQueue.async {
@@ -103,20 +130,28 @@ final class OpenAPS {
                 let tempBasal = currentTemp.rawJSON
                 self.storage.save(tempBasal, as: Monitor.tempBasal)
 
-                // meal
                 let pumpHistory = self.loadFileFromStorage(name: OpenAPS.Monitor.pumpHistory)
-                let carbs = self.loadFileFromStorage(name: Monitor.carbHistory)
-                let glucose = self.loadFileFromStorage(name: Monitor.glucose)
+                
+                // carbs
+                let carbs = self.fetchCarbs()
+                let carbsString = self.jsonConverter.convertToJSON(carbs)
+
+                /// glucose
+                let glucose = self.fetchGlucose()
+                let glucoseString = self.jsonConverter.convertToJSON(glucose)
+
+                /// profile
                 let profile = self.loadFileFromStorage(name: Settings.profile)
                 let basalProfile = self.loadFileFromStorage(name: Settings.basalProfile)
 
+                /// meal
                 let meal = self.meal(
                     pumphistory: pumpHistory,
                     profile: profile,
                     basalProfile: basalProfile,
                     clock: clock,
-                    carbs: carbs,
-                    glucose: glucose
+                    carbs: carbsString,
+                    glucose: glucoseString
                 )
 
                 self.storage.save(meal, as: Monitor.meal)
@@ -141,7 +176,7 @@ final class OpenAPS {
                 let oref2_variables = self.oref2()
 
                 let orefDetermination = self.determineBasal(
-                    glucose: glucose,
+                    glucose: glucoseString,
                     currentTemp: tempBasal,
                     iob: iob,
                     profile: profile,
@@ -154,7 +189,7 @@ final class OpenAPS {
                     basalProfile: basalProfile,
                     oref2_variables: oref2_variables
                 )
-                debug(.openAPS, "SUGGESTED: \(orefDetermination)")
+                debug(.openAPS, "Determinated: \(orefDetermination)")
 
                 if var determination = Determination(from: orefDetermination) {
                     determination.timestamp = determination.deliverAt ?? clock
@@ -378,12 +413,16 @@ final class OpenAPS {
                 debug(.openAPS, "Start autosens")
                 let pumpHistory = self.loadFileFromStorage(name: OpenAPS.Monitor.pumpHistory)
                 let carbs = self.loadFileFromStorage(name: Monitor.carbHistory)
-                let glucose = self.loadFileFromStorage(name: Monitor.glucose)
+
+                /// glucose
+                let glucose = self.fetchGlucose()
+                let glucoseString = self.jsonConverter.convertToJSON(glucose)
+
                 let profile = self.loadFileFromStorage(name: Settings.profile)
                 let basalProfile = self.loadFileFromStorage(name: Settings.basalProfile)
                 let tempTargets = self.loadFileFromStorage(name: Settings.tempTargets)
                 let autosensResult = self.autosense(
-                    glucose: glucose,
+                    glucose: glucoseString,
                     pumpHistory: pumpHistory,
                     basalprofile: basalProfile,
                     profile: profile,
@@ -408,7 +447,11 @@ final class OpenAPS {
             self.processQueue.async {
                 debug(.openAPS, "Start autotune")
                 let pumpHistory = self.loadFileFromStorage(name: OpenAPS.Monitor.pumpHistory)
-                let glucose = self.loadFileFromStorage(name: Monitor.glucose)
+
+                /// glucose
+                let glucose = self.fetchGlucose()
+                let glucoseString = self.jsonConverter.convertToJSON(glucose)
+
                 let profile = self.loadFileFromStorage(name: Settings.profile)
                 let pumpProfile = self.loadFileFromStorage(name: Settings.pumpProfile)
                 let carbs = self.loadFileFromStorage(name: Monitor.carbHistory)
@@ -416,7 +459,7 @@ final class OpenAPS {
                 let autotunePreppedGlucose = self.autotunePrepare(
                     pumphistory: pumpHistory,
                     profile: profile,
-                    glucose: glucose,
+                    glucose: glucoseString,
                     pumpprofile: pumpProfile,
                     carbs: carbs,
                     categorizeUamAsBasal: categorizeUamAsBasal,

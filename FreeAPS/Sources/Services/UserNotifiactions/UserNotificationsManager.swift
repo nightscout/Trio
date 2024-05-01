@@ -52,6 +52,8 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     private let center = UNUserNotificationCenter.current()
     private var lifetime = Lifetime()
 
+    private let context = CoreDataStack.shared.viewContext
+
     init(resolver: Resolver) {
         super.init()
         center.delegate = self
@@ -182,13 +184,27 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         }
     }
 
+    private func fetchAndProcessGlucose() -> [GlucoseStored]? {
+        do {
+            debugPrint("Calibrations State Model: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
+            return try context.fetch(GlucoseStored.fetch(
+                NSPredicate.predicateFor20MinAgo,
+                ascending: false,
+                fetchLimit: 3
+            ))
+        } catch {
+            debugPrint("Calibrations State Model: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose")
+            return []
+        }
+    }
+
     private func sendGlucoseNotification() {
         addAppBadge(glucose: nil)
 
-        let glucose = glucoseStorage.recent()
-        guard let lastGlucose = glucose.last, let glucoseValue = lastGlucose.glucose else { return }
+        guard let glucose = fetchAndProcessGlucose(), let lastValue = glucose.first, let lastReading = glucose.first?.glucose,
+              let secondLastReading = glucose.dropFirst().first?.glucose else { return }
 
-        addAppBadge(glucose: lastGlucose.glucose)
+        addAppBadge(glucose: (glucose.first?.glucose).map { Int($0) })
 
         guard glucoseStorage.alarm != nil || settingsManager.settings.glucoseNotificationsAlways else {
             return
@@ -209,8 +225,12 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                 notificationAlarm = true
             }
 
-            let delta = glucose.count >= 2 ? glucoseValue - (glucose[glucose.count - 2].glucose ?? 0) : nil
-            let body = self.glucoseText(glucoseValue: glucoseValue, delta: delta, direction: lastGlucose.direction) + self
+            let delta = glucose.count >= 2 ? lastReading - secondLastReading : nil
+            let body = self.glucoseText(
+                glucoseValue: (glucose.first?.glucose).map { Int($0) } ?? 0,
+                delta: Int(delta ?? 0),
+                direction: lastValue.direction
+            ) + self
                 .infoBody()
 
             if self.snoozeUntilDate > Date() {
@@ -233,14 +253,14 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         }
     }
 
-    private func glucoseText(glucoseValue: Int, delta: Int?, direction: BloodGlucose.Direction?) -> String {
+    private func glucoseText(glucoseValue: Int, delta: Int?, direction: String?) -> String {
         let units = settingsManager.settings.units
         let glucoseText = glucoseFormatter
             .string(from: Double(
                 units == .mmolL ? glucoseValue
                     .asMmolL : Decimal(glucoseValue)
             ) as NSNumber)! + " " + NSLocalizedString(units.rawValue, comment: "units")
-        let directionText = direction?.symbol ?? "↔︎"
+        let directionText = direction ?? "↔︎"
         let deltaText = delta
             .map {
                 self.deltaFormatter

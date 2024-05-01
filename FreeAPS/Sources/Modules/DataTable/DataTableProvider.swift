@@ -42,15 +42,6 @@ extension DataTable {
             }
         }
 
-        func glucose() -> [BloodGlucose] {
-            glucoseStorage.recent().sorted { $0.date > $1.date }
-        }
-
-        func deleteGlucose(id: String) {
-            glucoseStorage.removeGlucose(ids: [id])
-            healthkitManager.deleteGlucose(syncID: id)
-        }
-
         func deleteManualGlucose(date: Date?) {
             nightscoutManager.deleteManualGlucose(at: date ?? .distantPast)
         }

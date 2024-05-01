@@ -31,12 +31,10 @@ extension DataTable {
             maxBolus = provider.pumpSettings().maxBolus
             historyLayout = settingsManager.settings.historyLayout
             setupTreatments()
-            setupGlucose()
             broadcaster.register(SettingsObserver.self, observer: self)
             broadcaster.register(PumpHistoryObserver.self, observer: self)
             broadcaster.register(TempTargetsObserver.self, observer: self)
             broadcaster.register(CarbsObserver.self, observer: self)
-            broadcaster.register(GlucoseObserver.self, observer: self)
             broadcaster.register(SuggestionObserver.self, observer: self)
         }
 
@@ -154,12 +152,6 @@ extension DataTable {
             }
         }
 
-        func setupGlucose() {
-            DispatchQueue.main.async {
-                self.glucose = self.provider.glucose().map(Glucose.init)
-            }
-        }
-
         func invokeCarbDeletionTask(_ treatment: Treatment) {
             carbEntryDeleted = true
             waitForSuggestion = true
@@ -195,38 +187,6 @@ extension DataTable {
             }
         }
 
-        func deleteGlucose(_ glucose: Glucose) {
-            let id = glucose.id
-            provider.deleteGlucose(id: id)
-
-            let fetchRequest: NSFetchRequest<NSFetchRequestResult>
-            fetchRequest = NSFetchRequest(entityName: "GlucoseStored")
-            fetchRequest.predicate = NSPredicate(format: "id == %@", id)
-            let deleteRequest = NSBatchDeleteRequest(
-                fetchRequest: fetchRequest
-            )
-            deleteRequest.resultType = .resultTypeObjectIDs
-            do {
-                let deleteResult = try coredataContext.execute(deleteRequest) as? NSBatchDeleteResult
-                if let objectIDs = deleteResult?.result as? [NSManagedObjectID] {
-                    NSManagedObjectContext.mergeChanges(
-                        fromRemoteContextSave: [NSDeletedObjectsKey: objectIDs],
-                        into: [coredataContext]
-                    )
-                }
-                debugPrint("Data Table State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) deleted glucose")
-            } catch {
-                debugPrint(
-                    "Data Table State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to delete glucose"
-                )
-            }
-
-            // Deletes Manual Glucose
-            if (glucose.glucose.type ?? "") == GlucoseType.manual.rawValue {
-                provider.deleteManualGlucose(date: glucose.glucose.dateString)
-            }
-        }
-
         func addManualGlucose() {
             let glucose = units == .mmolL ? manualGlucose.asMgdL : manualGlucose
             let glucoseAsInt = Int(glucose)
@@ -244,8 +204,8 @@ extension DataTable {
                 glucose: Int(glucose),
                 type: GlucoseType.manual.rawValue
             )
-            provider.glucoseStorage.storeGlucose([saveToJSON])
-            debug(.default, "Manual Glucose saved to glucose.json")
+
+            // TODO: -do we need this?
             // Save to Health
             var saveToHealth = [BloodGlucose]()
             saveToHealth.append(saveToJSON)
@@ -277,8 +237,7 @@ extension DataTable.StateModel:
     SettingsObserver,
     PumpHistoryObserver,
     TempTargetsObserver,
-    CarbsObserver,
-    GlucoseObserver
+    CarbsObserver
 {
     func settingsDidChange(_: FreeAPSSettings) {
         historyLayout = settingsManager.settings.historyLayout
@@ -295,10 +254,6 @@ extension DataTable.StateModel:
 
     func carbsDidUpdate(_: [CarbsEntry]) {
         setupTreatments()
-    }
-
-    func glucoseDidUpdate(_: [BloodGlucose]) {
-        setupGlucose()
     }
 }
 

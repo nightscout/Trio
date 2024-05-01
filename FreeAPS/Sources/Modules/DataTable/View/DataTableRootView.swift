@@ -16,7 +16,16 @@ extension DataTable {
         @State private var showManualGlucose: Bool = false
         @State private var isAmountUnconfirmed: Bool = true
 
+        @State private var showAlert = false
+
         @Environment(\.colorScheme) var colorScheme
+        @Environment(\.managedObjectContext) var context
+
+        /// fetch ALL glucose values, i.e. manual and non-manual
+        @FetchRequest(
+            fetchRequest: GlucoseStored.fetch(NSPredicate.predicateForOneDayAgo, ascending: false, fetchLimit: 288),
+            animation: .bouncy
+        ) var glucoseStored: FetchedResults<GlucoseStored>
 
         private var insulinFormatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -203,16 +212,50 @@ extension DataTable {
                     Spacer()
                     Text("Time").foregroundStyle(.secondary)
                 }
-                if !state.glucose.isEmpty {
-                    ForEach(state.glucose) { item in
-                        glucoseView(item, isManual: item.glucose)
-                    }
+                if !glucoseStored.isEmpty {
+                    ForEach(glucoseStored) { glucose in
+                        HStack {
+                            Text(formatGlucose(glucose.glucose, isManual: glucose.isManual))
+
+                            /// check for manual glucose
+                            if glucose.isManual {
+                                Image(systemName: "drop.fill").symbolRenderingMode(.monochrome).foregroundStyle(.red)
+                            } else {
+                                Text("\(glucose.direction ?? "--")")
+                            }
+
+                            Spacer()
+
+                            Text(dateFormatter.string(from: glucose.date ?? Date()))
+                        }
+                    }.onDelete(perform: deleteGlucose)
                 } else {
                     HStack {
                         Text("No data.")
                     }
                 }
             }.listRowBackground(Color.chart)
+                .alert(isPresented: $showAlert) {
+                    Alert(title: Text("Error"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+                }
+        }
+
+        private func deleteGlucose(at offsets: IndexSet) {
+            for index in offsets {
+                let glucoseToDelete = glucoseStored[index]
+                context.delete(glucoseToDelete)
+            }
+
+            do {
+                try context.save()
+                debugPrint("Data Table Root View: \(#function) \(DebuggingIdentifiers.succeeded) deleted glucose from core data")
+            } catch {
+                debugPrint(
+                    "Data Table Root View: \(#function) \(DebuggingIdentifiers.failed) error while deleting glucose from core data"
+                )
+                alertMessage = "Failed to delete glucose data: \(error.localizedDescription)"
+                showAlert = true
+            }
         }
 
         @ViewBuilder private func addGlucoseView() -> some View {
@@ -398,62 +441,18 @@ extension DataTable {
             }
         }
 
-        @ViewBuilder private func glucoseView(_ item: Glucose, isManual: BloodGlucose) -> some View {
-            HStack {
-                Text(item.glucose.glucose.map {
-                    (
-                        isManual.type == GlucoseType.manual.rawValue ?
-                            manualGlucoseFormatter :
-                            glucoseFormatter
-                    )
-                    .string(from: Double(
-                        state.units == .mmolL ? $0.asMmolL : Decimal($0)
-                    ) as NSNumber)!
-                } ?? "--")
-                if isManual.type == GlucoseType.manual.rawValue {
-                    Image(systemName: "drop.fill").symbolRenderingMode(.monochrome).foregroundStyle(.red)
-                } else {
-                    Text(item.glucose.direction?.symbol ?? "--")
-                }
-                Spacer()
+        // MARK: - Format glucose
 
-                Text(dateFormatter.string(from: item.glucose.dateString))
-            }
-            .swipeActions {
-                Button(
-                    "Delete",
-                    systemImage: "trash.fill",
-                    role: .none,
-                    action: {
-                        alertGlucoseToDelete = item
-                        let valueText = (
-                            isManual.type == GlucoseType.manual.rawValue ?
-                                manualGlucoseFormatter :
-                                glucoseFormatter
-                        ).string(from: Double(
-                            state.units == .mmolL ? Double(item.glucose.value.asMmolL) : item.glucose.value
-                        ) as NSNumber)! + " " + state.units.rawValue
-                        alertTitle = "Delete Glucose?"
-                        alertMessage = dateFormatter.string(from: item.glucose.dateString) + ", " + valueText
-                        isRemoveHistoryItemAlertPresented = true
-                    }
-                ).tint(.red)
-            }
-            .alert(
-                Text(NSLocalizedString(alertTitle, comment: "")),
-                isPresented: $isRemoveHistoryItemAlertPresented
-            ) {
-                Button("Cancel", role: .cancel) {}
-                Button("Delete", role: .destructive) {
-                    guard let glucoseToDelete = alertGlucoseToDelete else {
-                        print("Cannot unwrap alertTreatmentToDelete!")
-                        return
-                    }
-                    state.deleteGlucose(glucoseToDelete)
-                }
-            } message: {
-                Text("\n" + NSLocalizedString(alertMessage, comment: ""))
-            }
+        private func formatGlucose(_ value: Int16, isManual: Bool) -> String {
+            let formatter = isManual ? manualGlucoseFormatter : glucoseFormatter
+            let formattedValue = formatter.string(from: NSNumber(value: value)) ?? "--"
+
+            return state.units == .mmolL ? convertToMMOL(Double(value)) : formattedValue
+        }
+
+        private func convertToMMOL(_ value: Double) -> String {
+            let mmolValue = value * 0.0555
+            return "\(mmolValue) mmol/L"
         }
     }
 }

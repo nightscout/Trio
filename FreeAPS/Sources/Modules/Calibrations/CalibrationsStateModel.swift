@@ -15,6 +15,9 @@ extension Calibrations {
 
         var units: GlucoseUnits = .mmolL
 
+        // TODO: - test if we need to use the viewContext here
+        private let context = CoreDataStack.shared.backgroundContext
+
         override func subscribe() {
             units = settingsManager.settings.units
             calibrate = calibrationService.calibrate
@@ -30,6 +33,20 @@ extension Calibrations {
             }
         }
 
+        private func fetchAndProcessGlucose() -> GlucoseStored? {
+            do {
+                debugPrint("Calibrations State Model: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
+                return try context.fetch(GlucoseStored.fetch(
+                    NSPredicate.predicateFor20MinAgo,
+                    ascending: false,
+                    fetchLimit: 1
+                )).first
+            } catch {
+                debugPrint("Calibrations State Model: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose")
+                return nil
+            }
+        }
+
         func addCalibration() {
             defer {
                 UIApplication.shared.endEditing()
@@ -41,17 +58,16 @@ extension Calibrations {
                 glucose = newCalibration.asMgdL
             }
 
-            guard let lastGlucose = glucoseStorage.recent().last,
-                  lastGlucose.dateString.addingTimeInterval(60 * 4.5) > Date(),
-                  let unfiltered = lastGlucose.unfiltered
-            else {
+            if let lastGlucose = fetchAndProcessGlucose() {
+                let unfiltered = lastGlucose.glucose
+
+                let calibration = Calibration(x: Double(unfiltered), y: Double(glucose))
+
+                calibrationService.addCalibration(calibration)
+            } else {
                 info(.service, "Glucose is stale for calibration")
                 return
             }
-
-            let calibration = Calibration(x: Double(unfiltered), y: Double(glucose))
-
-            calibrationService.addCalibration(calibration)
         }
 
         func removeLast() {
