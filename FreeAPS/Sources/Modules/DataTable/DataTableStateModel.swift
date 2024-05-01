@@ -31,12 +31,10 @@ extension DataTable {
             maxBolus = provider.pumpSettings().maxBolus
             historyLayout = settingsManager.settings.historyLayout
             setupTreatments()
-            setupGlucose()
             broadcaster.register(SettingsObserver.self, observer: self)
             broadcaster.register(PumpHistoryObserver.self, observer: self)
             broadcaster.register(TempTargetsObserver.self, observer: self)
             broadcaster.register(CarbsObserver.self, observer: self)
-            broadcaster.register(GlucoseObserver.self, observer: self)
             broadcaster.register(SuggestionObserver.self, observer: self)
         }
 
@@ -151,12 +149,6 @@ extension DataTable {
                             .sorted { $0.date > $1.date }
                     }
                 }
-            }
-        }
-
-        func setupGlucose() {
-            DispatchQueue.main.async {
-                self.glucose = self.provider.glucose().map(Glucose.init)
             }
         }
 
@@ -277,8 +269,7 @@ extension DataTable.StateModel:
     SettingsObserver,
     PumpHistoryObserver,
     TempTargetsObserver,
-    CarbsObserver,
-    GlucoseObserver
+    CarbsObserver
 {
     func settingsDidChange(_: FreeAPSSettings) {
         historyLayout = settingsManager.settings.historyLayout
@@ -295,10 +286,6 @@ extension DataTable.StateModel:
 
     func carbsDidUpdate(_: [CarbsEntry]) {
         setupTreatments()
-    }
-
-    func glucoseDidUpdate(_: [BloodGlucose]) {
-        setupGlucose()
     }
 }
 

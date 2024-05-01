@@ -177,13 +177,28 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
         }
     }
 
+    // fetch glucose from core data
+    private func fetchGlucose() -> [GlucoseStored]? {
+        do {
+            debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
+            return try coredataContext.fetch(GlucoseStored.fetch(
+                NSPredicate.predicateForOneDayAgo,
+                ascending: false
+            ))
+        } catch {
+            debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose with error: \(error)")
+            return []
+        }
+    }
+
     func syncDate() -> Date {
-        guard let events = storage.retrieve(OpenAPS.Monitor.glucose, as: [BloodGlucose].self),
-              let recent = events.first
-        else {
+        //  TODO: - proof logic here!
+        /// previously the Blood Glucose array was retrieved and the date of the first, i.e. oldest value was returned (called recent????)
+        /// so for now no logic changes here
+        guard let glucose = fetchGlucose(), let recentGlucose = glucose.last else {
             return Date().addingTimeInterval(-1.days.timeInterval)
         }
-        return recent.dateString
+        return recentGlucose.date ?? Date()
     }
 
     func recent() -> [BloodGlucose] {
