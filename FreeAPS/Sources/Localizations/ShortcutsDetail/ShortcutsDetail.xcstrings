@@ -137,6 +137,16 @@
         }
       }
     },
+    "A bolus command of %@ U of insulin was sent" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une commande de bolus de %@ U d'insuline a été envoyée"
+          }
+        }
+      }
+    },
     "Add carbs" : {
       "localizations" : {
         "de" : {
@@ -343,6 +353,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tillåt att lista den senaste blodglukosen, trender, IOB och COB tillgängliga"
+          }
+        }
+      }
+    },
+    "Allow to send a bolus to the app" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permet d'envoyer une commande de bolus"
+          }
+        }
+      }
+    },
+    "Amount" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quantité"
+          }
+        }
+      }
+    },
+    "Amount not correctly defined" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quantité non correcte"
           }
         }
       }
@@ -591,6 +631,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Säkert att skapa ett temporärt mål med %1$@ %2$@ under %3$@ min vid %4$@ ?"
+          }
+        }
+      }
+    },
+    "Bolus amount in U" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bolus en U"
           }
         }
       }
@@ -1246,6 +1296,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aktivera ett tillfälligt mål"
+          }
+        }
+      }
+    },
+    "Enact Bolus" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Injecter Bolus"
           }
         }
       }
@@ -2717,6 +2777,16 @@
         }
       }
     },
+    "the bolus is not allowed with shortcuts" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Injecter un bolus n'est pas autorisé via un raccourci"
+          }
+        }
+      }
+    },
     "Unable to start the temp target" : {
       "localizations" : {
         "de" : {
@@ -2916,6 +2986,32 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vilket är det tillfälliga målet i den aktuella enheten?"
+          }
+        }
+      }
+    },
+    "What is the value of the bolus amount in insulin units ?" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quelle est la valeur du bolus à injecter en U ?"
+          }
+        }
+      }
+    },
+    "Your current blood glucose is %@. Are you sure you want to bolus %@ U of insulin ?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your current blood glucose is %1$@. Are you sure you want to bolus %2$@ U of insulin ?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre glycémie actuelle est %1$@. Etes-vous sur de vouloir injecter un bolus de %2$@ U d'insuline ?"
           }
         }
       }

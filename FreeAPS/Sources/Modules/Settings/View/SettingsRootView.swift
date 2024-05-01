@@ -48,6 +48,7 @@ extension Settings {
                     Text("Fat And Protein Conversion").navigationLink(to: .fpuConfig, from: self)
                     Text("App Icons").navigationLink(to: .iconConfig, from: self)
                     Text("Statistics and Home View").navigationLink(to: .statisticsConfig, from: self)
+                    Text("Shortcuts").navigationLink(to: .shortcutsConfig, from: self)
                 } header: { Text("Services") }
 
                 Section {
