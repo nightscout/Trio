@@ -1,6 +1,10 @@
-oref0 branch: dev - git version: b89a39b
+oref0 branch: dev - git version: 5774155
 
 Last commits:
+5774155 Merge pull request #20 from MikePlante1/disable_smb_schedule
+e3a8d73 Merge pull request #17 from MikePlante1/console_error_refactor
+a29d9ce rename smbIsAlwaysOff to smbIsScheduledOff
+d898eb1 fix threshold console.error
 b89a39b Merge pull request #16 from bjornoleh/webpack-update
 b8aaf93 Merge pull request #15 from avouspierre/dev
 4aba4e0 webpack-cp.sh: git log --since=2024-01-01
