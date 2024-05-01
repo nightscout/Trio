@@ -48,53 +48,53 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     func storeGlucose(_ glucose: [BloodGlucose]) {
         processQueue.sync {
             debug(.deviceManager, "start storage glucose")
-            let file = OpenAPS.Monitor.glucose
-            self.storage.transaction { storage in
-                storage.append(glucose, to: file, uniqBy: \.dateString)
+//            let file = OpenAPS.Monitor.glucose
+//            self.storage.transaction { storage in
+//                storage.append(glucose, to: file, uniqBy: \.dateString)
+//
+//                let uniqEvents = storage.retrieve(file, as: [BloodGlucose].self)?
+//                    .filter { $0.dateString.addingTimeInterval(24.hours.timeInterval) > Date() }
+//                    .sorted { $0.dateString > $1.dateString } ?? []
+//                let glucose = Array(uniqEvents)
+//                storage.save(glucose, as: file)
+//
+//                DispatchQueue.main.async {
+//                    self.broadcaster.notify(GlucoseObserver.self, on: .main) {
+//                        $0.glucoseDidUpdate(glucose.reversed())
+//                    }
+//                }
 
-                let uniqEvents = storage.retrieve(file, as: [BloodGlucose].self)?
-                    .filter { $0.dateString.addingTimeInterval(24.hours.timeInterval) > Date() }
-                    .sorted { $0.dateString > $1.dateString } ?? []
-                let glucose = Array(uniqEvents)
-                storage.save(glucose, as: file)
+            // MARK: - Save to CoreData.
 
-                DispatchQueue.main.async {
-                    self.broadcaster.notify(GlucoseObserver.self, on: .main) {
-                        $0.glucoseDidUpdate(glucose.reversed())
-                    }
-                }
+            var bg_ = 0
+            var direction = ""
 
-                // MARK: - Save to CoreData.
+            if glucose.isNotEmpty {
+                bg_ = glucose[0].glucose ?? 0
+                direction = glucose[0].direction?.symbol ?? "↔︎"
+            }
 
-                var bg_ = 0
-                var direction = ""
+            if bg_ != 0 {
+                self.coredataContext.perform {
+                    let newItem = GlucoseStored(context: self.coredataContext)
+                    newItem.id = UUID()
+                    newItem.glucose = Int16(bg_)
+                    newItem.date = Date()
+                    newItem.direction = direction
 
-                if glucose.isNotEmpty {
-                    bg_ = glucose[0].glucose ?? 0
-                    direction = glucose[0].direction?.symbol ?? "↔︎"
-                }
-
-                if bg_ != 0 {
-                    self.coredataContext.perform {
-                        let newItem = GlucoseStored(context: self.coredataContext)
-                        newItem.id = UUID()
-                        newItem.glucose = Int16(bg_)
-                        newItem.date = Date()
-                        newItem.direction = direction
-
-                        if self.coredataContext.hasChanges {
-                            do {
-                                try self.coredataContext.save()
-                                debugPrint(
-                                    "Glucose Storage: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved glucose to core data"
-                                )
-                            } catch {
-                                debugPrint(
-                                    "Glucose Storage: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save glucose to core data"
-                                )
-                            }
+                    if self.coredataContext.hasChanges {
+                        do {
+                            try self.coredataContext.save()
+                            debugPrint(
+                                "Glucose Storage: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved glucose to core data"
+                            )
+                        } catch {
+                            debugPrint(
+                                "Glucose Storage: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save glucose to core data"
+                            )
                         }
                     }
+//                    }
                 }
             }
 

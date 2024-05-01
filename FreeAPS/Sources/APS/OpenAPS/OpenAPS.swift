@@ -109,6 +109,16 @@ final class OpenAPS {
         }
     }
 
+    private func fetchCarbs() -> [MealsStored]? {
+        do {
+            debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.succeeded) fetched carbs")
+            return try context.fetch(MealsStored.fetch(NSPredicate.predicateFor30MinAgo, ascending: true))
+        } catch {
+            debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.failed) failed to fetch carbs with error: \(error)")
+            return []
+        }
+    }
+
     func determineBasal(currentTemp: TempBasal, clock: Date = Date()) -> Future<Determination?, Never> {
         Future { promise in
             self.processQueue.async {
@@ -120,9 +130,11 @@ final class OpenAPS {
                 let tempBasal = currentTemp.rawJSON
                 self.storage.save(tempBasal, as: Monitor.tempBasal)
 
-                // meal
                 let pumpHistory = self.loadFileFromStorage(name: OpenAPS.Monitor.pumpHistory)
-                let carbs = self.loadFileFromStorage(name: Monitor.carbHistory)
+                
+                // carbs
+                let carbs = self.fetchCarbs()
+                let carbsString = self.jsonConverter.convertToJSON(carbs)
 
                 /// glucose
                 let glucose = self.fetchGlucose()
@@ -138,7 +150,7 @@ final class OpenAPS {
                     profile: profile,
                     basalProfile: basalProfile,
                     clock: clock,
-                    carbs: carbs,
+                    carbs: carbsString,
                     glucose: glucoseString
                 )
 
