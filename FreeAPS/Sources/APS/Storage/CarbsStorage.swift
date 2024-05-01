@@ -148,7 +148,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         guard let entry = entries.last, entry.carbs != 0 else { return }
 
         coredataContext.perform {
-            let newItem = MealsStored(context: self.coredataContext)
+            let newItem = CarbEntryStored(context: self.coredataContext)
             newItem.date = entry.actualDate ?? entry.createdAt
             newItem.carbs = Double(truncating: NSDecimalNumber(decimal: entry.carbs))
             newItem.id = UUID()
@@ -172,7 +172,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         guard let entry = entries.last, entry.fat != 0 || entry.protein != 0 else { return }
 
         coredataContext.perform {
-            let newItem = MealsStored(context: self.coredataContext)
+            let newItem = CarbEntryStored(context: self.coredataContext)
             newItem.date = entry.actualDate ?? entry.createdAt
             newItem.fat = Double(truncating: NSDecimalNumber(decimal: entry.fat ?? 0))
             newItem.protein = Double(truncating: NSDecimalNumber(decimal: entry.protein ?? 0))

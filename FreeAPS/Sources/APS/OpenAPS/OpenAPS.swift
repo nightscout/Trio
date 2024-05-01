@@ -109,10 +109,10 @@ final class OpenAPS {
         }
     }
 
-    private func fetchCarbs() -> [MealsStored]? {
+    private func fetchCarbs() -> [CarbEntryStored]? {
         do {
             debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.succeeded) fetched carbs")
-            return try context.fetch(MealsStored.fetch(NSPredicate.predicateFor30MinAgo, ascending: true))
+            return try context.fetch(CarbEntryStored.fetch(NSPredicate.predicateFor30MinAgo, ascending: true))
         } catch {
             debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.failed) failed to fetch carbs with error: \(error)")
             return []
@@ -131,7 +131,7 @@ final class OpenAPS {
                 self.storage.save(tempBasal, as: Monitor.tempBasal)
 
                 let pumpHistory = self.loadFileFromStorage(name: OpenAPS.Monitor.pumpHistory)
-                
+
                 // carbs
                 let carbs = self.fetchCarbs()
                 let carbsString = self.jsonConverter.convertToJSON(carbs)

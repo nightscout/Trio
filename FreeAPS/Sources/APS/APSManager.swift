@@ -953,7 +953,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
                 // Carbs
                 var carbTotal: Decimal = 0
-                let requestCarbs = MealsStored.fetchRequest() as NSFetchRequest<MealsStored>
+                let requestCarbs = CarbEntryStored.fetchRequest() as NSFetchRequest<CarbEntryStored>
                 let daysAgo = Date().addingTimeInterval(-1.days.timeInterval)
                 requestCarbs.predicate = NSPredicate(format: "carbs > 0 AND date > %@", daysAgo as NSDate)
                 requestCarbs.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]

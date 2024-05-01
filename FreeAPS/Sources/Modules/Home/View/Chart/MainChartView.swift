@@ -88,14 +88,14 @@ struct MainChartView: View {
     // MARK: - Core Data Fetch Requests
 
     @FetchRequest(
-        fetchRequest: MealsStored.fetch(NSPredicate.carbsForChart),
+        fetchRequest: CarbEntryStored.fetch(NSPredicate.carbsForChart),
         animation: Animation.bouncy
-    ) var carbsFromPersistence: FetchedResults<MealsStored>
+    ) var carbsFromPersistence: FetchedResults<CarbEntryStored>
 
     @FetchRequest(
-        fetchRequest: MealsStored.fetch(NSPredicate.fpusForChart),
+        fetchRequest: CarbEntryStored.fetch(NSPredicate.fpusForChart),
         animation: Animation.bouncy
-    ) var fpusFromPersistence: FetchedResults<MealsStored>
+    ) var fpusFromPersistence: FetchedResults<CarbEntryStored>
 
     @FetchRequest(
         fetchRequest: InsulinStored.fetch(NSPredicate.insulinForChart),

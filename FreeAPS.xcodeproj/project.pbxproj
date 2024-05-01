@@ -300,8 +300,8 @@
 		5825D1512BD4058F00F36E9B /* InsulinDistribution+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1232BD4058F00F36E9B /* InsulinDistribution+CoreDataProperties.swift */; };
 		5825D1522BD4058F00F36E9B /* LastLoop+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1242BD4058F00F36E9B /* LastLoop+CoreDataClass.swift */; };
 		5825D1532BD4058F00F36E9B /* LastLoop+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1252BD4058F00F36E9B /* LastLoop+CoreDataProperties.swift */; };
-		5825D1542BD4058F00F36E9B /* MealsStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1262BD4058F00F36E9B /* MealsStored+CoreDataClass.swift */; };
-		5825D1552BD4058F00F36E9B /* MealsStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1272BD4058F00F36E9B /* MealsStored+CoreDataProperties.swift */; };
+		5825D1542BD4058F00F36E9B /* CarbEntryStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1262BD4058F00F36E9B /* CarbEntryStored+CoreDataClass.swift */; };
+		5825D1552BD4058F00F36E9B /* CarbEntryStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1272BD4058F00F36E9B /* CarbEntryStored+CoreDataProperties.swift */; };
 		5825D1562BD4058F00F36E9B /* Autotune_+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1282BD4058F00F36E9B /* Autotune_+CoreDataClass.swift */; };
 		5825D1572BD4058F00F36E9B /* Autotune_+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1292BD4058F00F36E9B /* Autotune_+CoreDataProperties.swift */; };
 		5825D1582BD4058F00F36E9B /* StatsData+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D12A2BD4058F00F36E9B /* StatsData+CoreDataClass.swift */; };
@@ -314,7 +314,7 @@
 		5825D15F2BD4058F00F36E9B /* Protein+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1312BD4058F00F36E9B /* Protein+CoreDataProperties.swift */; };
 		583684062BD178DB00070A60 /* GlucoseStored+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 583684052BD178DB00070A60 /* GlucoseStored+helper.swift */; };
 		583684082BD195A700070A60 /* Determination.swift in Sources */ = {isa = PBXBuildFile; fileRef = 583684072BD195A700070A60 /* Determination.swift */; };
-		5837A5302BD2E3C700A5DC04 /* MealsStored+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5837A52F2BD2E3C700A5DC04 /* MealsStored+helper.swift */; };
+		5837A5302BD2E3C700A5DC04 /* CarbEntryStored+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5837A52F2BD2E3C700A5DC04 /* CarbEntryStored+helper.swift */; };
 		5837A5322BD2E81100A5DC04 /* InsulinStored+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5837A5312BD2E81100A5DC04 /* InsulinStored+helper.swift */; };
 		5856174D2BDADA3F009B23D7 /* GlucoseStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5856174B2BDADA3F009B23D7 /* GlucoseStored+CoreDataClass.swift */; };
 		5856174E2BDADA3F009B23D7 /* GlucoseStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5856174C2BDADA3F009B23D7 /* GlucoseStored+CoreDataProperties.swift */; };
@@ -921,8 +921,8 @@
 		5825D1232BD4058F00F36E9B /* InsulinDistribution+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "InsulinDistribution+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		5825D1242BD4058F00F36E9B /* LastLoop+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LastLoop+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		5825D1252BD4058F00F36E9B /* LastLoop+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LastLoop+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		5825D1262BD4058F00F36E9B /* MealsStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MealsStored+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		5825D1272BD4058F00F36E9B /* MealsStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MealsStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
+		5825D1262BD4058F00F36E9B /* CarbEntryStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CarbEntryStored+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
+		5825D1272BD4058F00F36E9B /* CarbEntryStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CarbEntryStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		5825D1282BD4058F00F36E9B /* Autotune_+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Autotune_+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		5825D1292BD4058F00F36E9B /* Autotune_+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Autotune_+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		5825D12A2BD4058F00F36E9B /* StatsData+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StatsData+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
@@ -935,7 +935,7 @@
 		5825D1312BD4058F00F36E9B /* Protein+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Protein+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		583684052BD178DB00070A60 /* GlucoseStored+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GlucoseStored+helper.swift"; sourceTree = "<group>"; };
 		583684072BD195A700070A60 /* Determination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Determination.swift; sourceTree = "<group>"; };
-		5837A52F2BD2E3C700A5DC04 /* MealsStored+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MealsStored+helper.swift"; sourceTree = "<group>"; };
+		5837A52F2BD2E3C700A5DC04 /* CarbEntryStored+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CarbEntryStored+helper.swift"; sourceTree = "<group>"; };
 		5837A5312BD2E81100A5DC04 /* InsulinStored+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "InsulinStored+helper.swift"; sourceTree = "<group>"; };
 		5856174B2BDADA3F009B23D7 /* GlucoseStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GlucoseStored+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		5856174C2BDADA3F009B23D7 /* GlucoseStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GlucoseStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
@@ -2190,8 +2190,8 @@
 				5825D1232BD4058F00F36E9B /* InsulinDistribution+CoreDataProperties.swift */,
 				5825D1242BD4058F00F36E9B /* LastLoop+CoreDataClass.swift */,
 				5825D1252BD4058F00F36E9B /* LastLoop+CoreDataProperties.swift */,
-				5825D1262BD4058F00F36E9B /* MealsStored+CoreDataClass.swift */,
-				5825D1272BD4058F00F36E9B /* MealsStored+CoreDataProperties.swift */,
+				5825D1262BD4058F00F36E9B /* CarbEntryStored+CoreDataClass.swift */,
+				5825D1272BD4058F00F36E9B /* CarbEntryStored+CoreDataProperties.swift */,
 				5825D1282BD4058F00F36E9B /* Autotune_+CoreDataClass.swift */,
 				5825D1292BD4058F00F36E9B /* Autotune_+CoreDataProperties.swift */,
 				5825D12A2BD4058F00F36E9B /* StatsData+CoreDataClass.swift */,
@@ -2213,7 +2213,7 @@
 				581516A82BCEEDF800BF67D7 /* NSPredicates.swift */,
 				583684052BD178DB00070A60 /* GlucoseStored+helper.swift */,
 				58F107732BD1A4D000B1A680 /* Determination+helper.swift */,
-				5837A52F2BD2E3C700A5DC04 /* MealsStored+helper.swift */,
+				5837A52F2BD2E3C700A5DC04 /* CarbEntryStored+helper.swift */,
 				5837A5312BD2E81100A5DC04 /* InsulinStored+helper.swift */,
 				CC76E9502BD4812E008BEB61 /* Forecast+helper.swift */,
 				5887527B2BD986E1008B081D /* OpenAPSBattery.swift */,
@@ -2904,7 +2904,7 @@
 				5825D15D2BD4058F00F36E9B /* Target+CoreDataProperties.swift in Sources */,
 				5825D1402BD4058F00F36E9B /* TempTargetsSlider+CoreDataClass.swift in Sources */,
 				195D80B72AF697B800D25097 /* DynamicDataFlow.swift in Sources */,
-				5825D1542BD4058F00F36E9B /* MealsStored+CoreDataClass.swift in Sources */,
+				5825D1542BD4058F00F36E9B /* CarbEntryStored+CoreDataClass.swift in Sources */,
 				3862CC2E2743F9F700BF832C /* CalendarManager.swift in Sources */,
 				CEA4F62329BE10F70011ADF7 /* SavitzkyGolayFilter.swift in Sources */,
 				38B4F3C325E2A20B00E76A18 /* PumpSetupView.swift in Sources */,
@@ -2972,7 +2972,7 @@
 				3811DF0225CA9FEA00A708ED /* Credentials.swift in Sources */,
 				5825D1452BD4058F00F36E9B /* Autosens_+CoreDataProperties.swift in Sources */,
 				19DC678529CA67A400FD9EC4 /* OverrideProfilesRootView.swift in Sources */,
-				5837A5302BD2E3C700A5DC04 /* MealsStored+helper.swift in Sources */,
+				5837A5302BD2E3C700A5DC04 /* CarbEntryStored+helper.swift in Sources */,
 				CC76E94C2BD471BA008BEB61 /* Forecast+CoreDataClass.swift in Sources */,
 				CC76E94D2BD471BA008BEB61 /* Forecast+CoreDataProperties.swift in Sources */,
 				CC76E94E2BD471BA008BEB61 /* ForecastValue+CoreDataClass.swift in Sources */,
@@ -3143,7 +3143,7 @@
 				38887CCE25F5725200944304 /* IOBEntry.swift in Sources */,
 				38E98A2425F52C9300C0CED0 /* Logger.swift in Sources */,
 				CA370FC152BC98B3D1832968 /* BasalProfileEditorRootView.swift in Sources */,
-				5825D1552BD4058F00F36E9B /* MealsStored+CoreDataProperties.swift in Sources */,
+				5825D1552BD4058F00F36E9B /* CarbEntryStored+CoreDataProperties.swift in Sources */,
 				195D80BB2AF6980B00D25097 /* DynamicStateModel.swift in Sources */,
 				E00EEC0327368630002FF094 /* ServiceAssembly.swift in Sources */,
 				5825D1412BD4058F00F36E9B /* TempTargetsSlider+CoreDataProperties.swift in Sources */,

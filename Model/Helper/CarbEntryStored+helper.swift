@@ -13,35 +13,51 @@ extension NSPredicate {
     }
 }
 
-extension MealsStored {
+extension CarbEntryStored {
     static func fetch(
         _ predicate: NSPredicate = .predicateForOneDayAgo,
         fetchLimit: Int = 100,
         ascending: Bool = false
-    ) -> NSFetchRequest<MealsStored> {
-        let request = MealsStored.fetchRequest() as NSFetchRequest<MealsStored>
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \MealsStored.date, ascending: ascending)]
+    ) -> NSFetchRequest<CarbEntryStored> {
+        let request = CarbEntryStored.fetchRequest() as NSFetchRequest<CarbEntryStored>
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \CarbEntryStored.date, ascending: ascending)]
         request.fetchLimit = fetchLimit
         request.predicate = predicate
         return request
     }
 }
 
-extension MealsStored: Encodable {
+extension CarbEntryStored: Encodable {
     enum CodingKeys: String, CodingKey {
-        case date
+        case actualDate
+        case created_at
         case carbs
         case fat
         case id
         case isFPU
         case note
         case protein
+        case enteredBy
     }
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
-        try container.encode(date, forKey: .date)
+        let dateFormatter = ISO8601DateFormatter()
+        if let date = self.date {
+            let formattedDate = dateFormatter.string(from: date)
+            try container.encode(formattedDate, forKey: .actualDate)
+            try container.encode(formattedDate, forKey: .created_at)
+        } else {
+            throw EncodingError.invalidValue(
+                Date.self,
+                EncodingError.Context(codingPath: [], debugDescription: "Date values are nil")
+            )
+        }
+
+        // TODO: handle this conditionally; pass in the enteredBy string (manual entry or via NS or Apple Health)
+        try container.encode("Open-iAPS", forKey: .enteredBy)
+        
         try container.encode(carbs, forKey: .carbs)
         try container.encode(fat, forKey: .fat)
         try container.encode(isFPU, forKey: .isFPU)

@@ -1,9 +1,9 @@
 import CoreData
 import Foundation
 
-public extension MealsStored {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<MealsStored> {
-        NSFetchRequest<MealsStored>(entityName: "MealsStored")
+public extension CarbEntryStored {
+    @nonobjc class func fetchRequest() -> NSFetchRequest<CarbEntryStored> {
+        NSFetchRequest<CarbEntryStored>(entityName: "CarbEntryStored")
     }
 
     @NSManaged var carbs: Double
@@ -15,4 +15,4 @@ public extension MealsStored {
     @NSManaged var protein: Double
 }
 
-extension MealsStored: Identifiable {}
+extension CarbEntryStored: Identifiable {}
