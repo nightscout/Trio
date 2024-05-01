@@ -186,7 +186,7 @@ extension DataTable {
                 print("authentication error: \(error.localizedDescription)")
             }
         }
-        
+
         func addManualGlucose() {
             let glucose = units == .mmolL ? manualGlucose.asMgdL : manualGlucose
             let glucoseAsInt = Int(glucose)

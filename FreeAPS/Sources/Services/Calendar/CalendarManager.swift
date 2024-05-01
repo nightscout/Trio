@@ -7,7 +7,7 @@ protocol CalendarManager {
     func requestAccessIfNeeded() -> AnyPublisher<Bool, Never>
     func calendarIDs() -> [String]
     var currentCalendarID: String? { get set }
-    func createEvent(for glucose: BloodGlucose?, delta: Int?)
+    func createEvent(for glucose: GlucoseStored, delta: Int)
 }
 
 final class BaseCalendarManager: CalendarManager, Injectable {
@@ -88,14 +88,14 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         EKEventStore().calendars(for: .event).map(\.title)
     }
 
-    func createEvent(for glucose: BloodGlucose?, delta: Int?) {
+    func createEvent(for glucose: GlucoseStored, delta: Int) {
         guard settingsManager.settings.useCalendar else { return }
 
         guard let calendar = currentCalendar else { return }
 
         deleteAllEvents(in: calendar)
 
-        guard let glucose = glucose, let glucoseValue = glucose.glucose else { return }
+        let glucoseValue = glucose.glucose
 
         // create an event now
         let event = EKEvent(eventStore: eventStore)
@@ -127,15 +127,14 @@ final class BaseCalendarManager: CalendarManager, Injectable {
 
         let glucoseText = glucoseFormatter
             .string(from: Double(
-                settingsManager.settings.units == .mmolL ?glucoseValue
+                settingsManager.settings.units == .mmolL ? Int(glucoseValue)
                     .asMmolL : Decimal(glucoseValue)
             ) as NSNumber)!
-        let directionText = glucose.direction?.symbol ?? "↔︎"
-        let deltaText = delta
-            .map {
-                deltaFormatter
-                    .string(from: Double(settingsManager.settings.units == .mmolL ? $0.asMmolL : Decimal($0)) as NSNumber)!
-            } ?? "--"
+
+        let directionText = glucose.direction ?? "↔︎"
+
+        let deltaValue = settingsManager.settings.units == .mmolL ? Int(delta.asMmolL) : delta
+        let deltaText = deltaFormatter.string(from: NSNumber(value: deltaValue)) ?? "--"
 
         let iobText = iobFormatter.string(from: (lastLoop.first?.iob ?? 0) as NSNumber) ?? ""
         let cobText = cobFormatter.string(from: (lastLoop.first?.cob ?? 0) as NSNumber) ?? ""
@@ -230,16 +229,26 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         return formatter
     }
 
-    func setupGlucose() {
-        let glucose = glucoseStorage.recent()
-        let recentGlucose = glucose.last
-        let glucoseDelta: Int?
-        if glucose.count >= 2 {
-            glucoseDelta = (recentGlucose?.glucose ?? 0) - (glucose[glucose.count - 2].glucose ?? 0)
-        } else {
-            glucoseDelta = nil
+    private func fetchAndProcessGlucose() -> [GlucoseStored]? {
+        do {
+            debugPrint("Calendar Manager: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
+            return try coredataContext.fetch(GlucoseStored.fetch(
+                NSPredicate.predicateFor20MinAgo,
+                ascending: false,
+                fetchLimit: 3
+            ))
+        } catch {
+            debugPrint("Calendar Manager: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose")
+            return []
         }
-        createEvent(for: recentGlucose, delta: glucoseDelta)
+    }
+
+    func setupGlucose() {
+        guard let glucose = fetchAndProcessGlucose(), let lastGlucose = glucose.first, let lastReading = glucose.first?.glucose,
+              let secondLastReading = glucose.dropFirst().first?.glucose else { return }
+
+        let glucoseDelta = lastReading - secondLastReading
+        createEvent(for: lastGlucose, delta: Int(glucoseDelta))
     }
 }
 

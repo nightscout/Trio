@@ -71,7 +71,7 @@ public protocol CGMManagerDelegate: DeviceManagerDelegate, CGMManagerStatusObser
     ///
     /// - Parameter manager: The manager instance
     /// - Returns: The date data occuring on or after which should be kept
-    func startDateToFilterNewData(for manager: CGMManager) -> Date?
+    func startDateToFilterNewData(for manager: CGMManager) async -> Date?
 
     /// Informs the delegate that the device has updated with a new result
     ///

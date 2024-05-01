@@ -8,12 +8,10 @@ import Swinject
 protocol GlucoseStorage {
     func storeGlucose(_ glucose: [BloodGlucose])
     func removeGlucose(ids: [String])
-    func recent() -> [BloodGlucose]
     func syncDate() -> Date
     func filterTooFrequentGlucose(_ glucose: [BloodGlucose], at: Date) -> [BloodGlucose]
     func lastGlucoseDate() -> Date
     func isGlucoseFresh() -> Bool
-    func isGlucoseNotFlat() -> Bool
     func nightscoutGlucoseNotUploaded() -> [BloodGlucose]
     func nightscoutCGMStateNotUploaded() -> [NigtscoutTreatment]
     func nightscoutManualGlucoseNotUploaded() -> [NigtscoutTreatment]
@@ -177,36 +175,14 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
         }
     }
 
-    // fetch glucose from core data
-    private func fetchGlucose() -> [GlucoseStored]? {
-        do {
-            debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
-            return try coredataContext.fetch(GlucoseStored.fetch(
-                NSPredicate.predicateForOneDayAgo,
-                ascending: false
-            ))
-        } catch {
-            debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose with error: \(error)")
-            return []
-        }
-    }
-
     func syncDate() -> Date {
         //  TODO: - proof logic here!
         /// previously the Blood Glucose array was retrieved and the date of the first, i.e. oldest value was returned (called recent????)
-        /// so for now no logic changes here
-        guard let glucose = fetchGlucose(), let recentGlucose = glucose.last else {
-            return Date().addingTimeInterval(-1.days.timeInterval)
-        }
-        return recentGlucose.date ?? Date()
-    }
-
-    func recent() -> [BloodGlucose] {
-        storage.retrieve(OpenAPS.Monitor.glucose, as: [BloodGlucose].self)?.reversed() ?? []
+        fetchGlucose().last?.date ?? .distantPast
     }
 
     func lastGlucoseDate() -> Date {
-        recent().last?.dateString ?? .distantPast
+        fetchGlucose().first?.date ?? .distantPast
     }
 
     func isGlucoseFresh() -> Bool {
@@ -229,17 +205,99 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
         return filtered
     }
 
-    func isGlucoseNotFlat() -> Bool {
-        let count = 3 // check last 3 readings
-        let lastReadings = Array(recent().suffix(count))
-        let filtered = lastReadings.compactMap(\.filtered).filter { $0 != 0 }
-        guard lastReadings.count == count, filtered.count == count else { return true }
-        return Array(filtered.uniqued()).count != 1
+    // MARK: - fetching non manual Glucose, manual Glucose and the last glucose value
+
+    // TODO: -optimize this bullshit here...I would love to use the async/await pattern, but its simply not possible because you would need to change all the calls of the following functions and make them async...same shit with the NSAsynchronousFetchRequest
+    /// its all done on a background thread and on a separate queue so hopefully its not too heavy
+    /// also tried this but here again you need to make everything asynchronous...
+    ///  let privateContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+    /// privateContext.parent = coredataContext /// merges changes to the core data context
+    private func fetchGlucose() -> [GlucoseStored] {
+        do {
+            debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
+            return try coredataContext.fetch(GlucoseStored.fetch(
+                NSPredicate.predicateForOneDayAgo,
+                ascending: false,
+                fetchLimit: 288,
+                batchSize: 50
+            ))
+        } catch {
+            debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose")
+            return []
+        }
+    }
+
+    private func fetchLatestGlucose() -> GlucoseStored? {
+        do {
+            debugPrint("Glucose Storage: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
+            return try coredataContext.fetch(GlucoseStored.fetch(
+                NSPredicate.predicateFor20MinAgo,
+                ascending: false,
+                fetchLimit: 1
+            )).first
+        } catch {
+            debugPrint("Glucose Storage: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose")
+            return nil
+        }
+    }
+
+    private func fetchAndProcessManualGlucose() -> [BloodGlucose] {
+        do {
+            let fetchedResults = try coredataContext.fetch(GlucoseStored.fetch(
+                NSPredicate.manualGlucose,
+                ascending: false,
+                fetchLimit: 288,
+                batchSize: 50
+            ))
+            debugPrint("Glucose Storage: \(#function) \(DebuggingIdentifiers.succeeded) fetched manual glucose")
+            let glucoseArray = fetchedResults.map { result in
+                BloodGlucose(
+                    date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
+                    dateString: result.date ?? Date(),
+                    unfiltered: Decimal(result.glucose),
+                    filtered: Decimal(result.glucose),
+                    noise: nil,
+                    type: ""
+                )
+            }
+            return glucoseArray
+        } catch {
+            debugPrint("Glucose Storage: \(#function) \(DebuggingIdentifiers.failed) failed to fetch manual glucose")
+            return []
+        }
+    }
+
+    private func fetchAndProcessGlucose() -> [BloodGlucose] {
+        do {
+            let results = try coredataContext.fetch(GlucoseStored.fetch(
+                NSPredicate.predicateForOneDayAgo,
+                ascending: false,
+                fetchLimit: 288,
+                batchSize: 50
+            ))
+
+            debugPrint("Glucose Storage: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
+
+            let glucoseArray = results.map { result in
+                BloodGlucose(
+                    date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
+                    dateString: result.date ?? Date(),
+                    unfiltered: Decimal(result.glucose),
+                    filtered: Decimal(result.glucose),
+                    noise: nil,
+                    type: ""
+                )
+            }
+            return glucoseArray
+        } catch {
+            debugPrint("Glucose Storage: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose")
+            return []
+        }
     }
 
     func nightscoutGlucoseNotUploaded() -> [BloodGlucose] {
         let uploaded = storage.retrieve(OpenAPS.Nightscout.uploadedGlucose, as: [BloodGlucose].self) ?? []
-        let recentGlucose = recent()
+        let recentGlucose = fetchAndProcessGlucose()
 
         return Array(Set(recentGlucose).subtracting(Set(uploaded)))
     }
@@ -253,7 +311,8 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     func nightscoutManualGlucoseNotUploaded() -> [NigtscoutTreatment] {
         let uploaded = (storage.retrieve(OpenAPS.Nightscout.uploadedGlucose, as: [BloodGlucose].self) ?? [])
             .filter({ $0.type == GlucoseType.manual.rawValue })
-        let recent = recent().filter({ $0.type == GlucoseType.manual.rawValue })
+
+        let recent = fetchAndProcessManualGlucose()
         let filtered = Array(Set(recent).subtracting(Set(uploaded)))
         let manualReadings = filtered.map { item -> NigtscoutTreatment in
             NigtscoutTreatment(
@@ -271,8 +330,10 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     }
 
     var alarm: GlucoseAlarm? {
-        guard let glucose = recent().last, glucose.dateString.addingTimeInterval(20.minutes.timeInterval) > Date(),
-              let glucoseValue = glucose.glucose else { return nil }
+        /// glucose can not be older than 20 minutes due to the predicate in the fetch request
+        guard let glucose = fetchLatestGlucose() else { return nil }
+
+        let glucoseValue = glucose.glucose
 
         if Decimal(glucoseValue) <= settingsManager.settings.lowGlucose {
             return .low

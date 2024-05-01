@@ -2,12 +2,20 @@ import CoreData
 import Foundation
 
 extension GlucoseStored {
-    static func fetch(_ predicate: NSPredicate = .all, ascending: Bool, fetchLimit: Int? = nil) -> NSFetchRequest<GlucoseStored> {
+    static func fetch(
+        _ predicate: NSPredicate = .all,
+        ascending: Bool,
+        fetchLimit: Int? = nil,
+        batchSize: Int? = nil
+    ) -> NSFetchRequest<GlucoseStored> {
         let request = GlucoseStored.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(keyPath: \GlucoseStored.date, ascending: ascending)]
         request.predicate = predicate
         if let limit = fetchLimit {
             request.fetchLimit = limit
+        }
+        if let batchSize = batchSize {
+            request.fetchBatchSize = batchSize
         }
         return request
     }
