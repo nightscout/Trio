@@ -222,5 +222,4 @@ protocol DataTableProvider: Provider {
     func carbs() -> [CarbsEntry]
     func deleteCarbs(_ treatement: DataTable.Treatment)
     func deleteInsulin(_ treatement: DataTable.Treatment)
-    func deleteGlucose(id: String)
 }

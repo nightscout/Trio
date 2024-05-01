@@ -441,64 +441,6 @@ extension DataTable {
             }
         }
 
-//        @ViewBuilder private func glucoseView(_ item: Glucose, isManual: BloodGlucose) -> some View {
-//            HStack {
-//                Text(item.glucose.glucose.map {
-//                    (
-//                        isManual.type == GlucoseType.manual.rawValue ?
-//                            manualGlucoseFormatter :
-//                            glucoseFormatter
-//                    )
-//                    .string(from: Double(
-//                        state.units == .mmolL ? $0.asMmolL : Decimal($0)
-//                    ) as NSNumber)!
-//                } ?? "--")
-//                if isManual.type == GlucoseType.manual.rawValue {
-//                    Image(systemName: "drop.fill").symbolRenderingMode(.monochrome).foregroundStyle(.red)
-//                } else {
-//                    Text(item.glucose.direction?.symbol ?? "--")
-//                }
-//                Spacer()
-//
-//                Text(dateFormatter.string(from: item.glucose.dateString))
-//            }
-//            .swipeActions {
-//                Button(
-//                    "Delete",
-//                    systemImage: "trash.fill",
-//                    role: .none,
-//                    action: {
-//                        alertGlucoseToDelete = item
-//                        let valueText = (
-//                            isManual.type == GlucoseType.manual.rawValue ?
-//                                manualGlucoseFormatter :
-//                                glucoseFormatter
-//                        ).string(from: Double(
-//                            state.units == .mmolL ? Double(item.glucose.value.asMmolL) : item.glucose.value
-//                        ) as NSNumber)! + " " + state.units.rawValue
-//                        alertTitle = "Delete Glucose?"
-//                        alertMessage = dateFormatter.string(from: item.glucose.dateString) + ", " + valueText
-//                        isRemoveHistoryItemAlertPresented = true
-//                    }
-//                ).tint(.red)
-//            }
-//            .alert(
-//                Text(NSLocalizedString(alertTitle, comment: "")),
-//                isPresented: $isRemoveHistoryItemAlertPresented
-//            ) {
-//                Button("Cancel", role: .cancel) {}
-//                Button("Delete", role: .destructive) {
-//                    guard let glucoseToDelete = alertGlucoseToDelete else {
-//                        print("Cannot unwrap alertTreatmentToDelete!")
-//                        return
-//                    }
-//                    state.deleteGlucose(glucoseToDelete)
-//                }
-//            } message: {
-//                Text("\n" + NSLocalizedString(alertMessage, comment: ""))
-//            }
-//        }
-
         // MARK: - Format glucose
 
         private func formatGlucose(_ value: Int16, isManual: Bool) -> String {

@@ -186,39 +186,7 @@ extension DataTable {
                 print("authentication error: \(error.localizedDescription)")
             }
         }
-
-        func deleteGlucose(_ glucose: Glucose) {
-            let id = glucose.id
-            provider.deleteGlucose(id: id)
-
-            let fetchRequest: NSFetchRequest<NSFetchRequestResult>
-            fetchRequest = NSFetchRequest(entityName: "GlucoseStored")
-            fetchRequest.predicate = NSPredicate(format: "id == %@", id)
-            let deleteRequest = NSBatchDeleteRequest(
-                fetchRequest: fetchRequest
-            )
-            deleteRequest.resultType = .resultTypeObjectIDs
-            do {
-                let deleteResult = try coredataContext.execute(deleteRequest) as? NSBatchDeleteResult
-                if let objectIDs = deleteResult?.result as? [NSManagedObjectID] {
-                    NSManagedObjectContext.mergeChanges(
-                        fromRemoteContextSave: [NSDeletedObjectsKey: objectIDs],
-                        into: [coredataContext]
-                    )
-                }
-                debugPrint("Data Table State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) deleted glucose")
-            } catch {
-                debugPrint(
-                    "Data Table State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to delete glucose"
-                )
-            }
-
-            // Deletes Manual Glucose
-            if (glucose.glucose.type ?? "") == GlucoseType.manual.rawValue {
-                provider.deleteManualGlucose(date: glucose.glucose.dateString)
-            }
-        }
-
+        
         func addManualGlucose() {
             let glucose = units == .mmolL ? manualGlucose.asMgdL : manualGlucose
             let glucoseAsInt = Int(glucose)
@@ -237,7 +205,7 @@ extension DataTable {
                 type: GlucoseType.manual.rawValue
             )
 
-            //TODO: -do we need this?
+            // TODO: -do we need this?
             // Save to Health
             var saveToHealth = [BloodGlucose]()
             saveToHealth.append(saveToJSON)
