@@ -97,9 +97,14 @@ final class OpenAPS {
     // fetch glucose to pass it to the meal function and to determine basal
     private func fetchGlucose() -> [GlucoseStored]? {
         do {
-            return try context.fetch(GlucoseStored.fetch(ascending: false, fetchLimit: 3))
+            debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
+            return try context.fetch(GlucoseStored.fetch(
+                NSPredicate.predicateFor20MinAgo,
+                ascending: false,
+                fetchLimit: 3
+            )) /// it only returns the last 3 values within the last 20 minutes, that means one reading can not be older than 5 minutes, otherwise the loop will fail
         } catch {
-            print("failed")
+            debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose with error: \(error)")
             return []
         }
     }
@@ -121,7 +126,6 @@ final class OpenAPS {
 
                 /// glucose
                 let glucose = self.fetchGlucose()
-//                    let glucoseString = self.convertToJSON(glucose)
                 let glucoseString = self.jsonConverter.convertToJSON(glucose)
 
                 /// profile
