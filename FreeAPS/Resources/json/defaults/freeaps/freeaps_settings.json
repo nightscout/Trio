@@ -11,7 +11,7 @@
   "insulinReqPercentage" : 70,
   "skipBolusScreenAfterCarbs" : false,
   "displayHR" : false,
-  "cgm" : "nightscout",
+  "cgm" : "none",
   "cgmManagerTypeByIdentifier":"",
   "uploadGlucose" : true,
   "useCalendar" : false,
