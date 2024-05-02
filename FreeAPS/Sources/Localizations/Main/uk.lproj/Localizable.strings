@@ -1035,7 +1035,7 @@ Enact a temp Basal or a temp target */
 "To prevent LOW required %d g of carbs" = "Для запобігання ГІПО потрібно %d g вуглеводів";
 
 /* */
-"iAPS not active" = "iAPS не активний";
+"Open-iAPS Not Active" = "Open-iAPS не активний";
 
 /* */
 "Last loop was more than %d min ago" = "Останній цикл був більше, ніж %d хв тому";

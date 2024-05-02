@@ -49,7 +49,13 @@ extension DataTable {
                                 note: $0.note
                             )
                         } else {
-                            return Treatment(units: units, type: .carbs, date: $0.createdAt, amount: $0.carbs, note: $0.note)
+                            return Treatment(
+                                units: units,
+                                type: .carbs,
+                                date: $0.createdAt,
+                                amount: $0.carbs,
+                                note: $0.note
+                            )
                         }
                     }
 
@@ -77,6 +83,7 @@ extension DataTable {
                             date: $0.timestamp,
                             amount: $0.amount,
                             idPumpEvent: $0.id,
+                            isSMB: $0.isSMB,
                             isExternal: $0.isExternalInsulin
                         )
                     }

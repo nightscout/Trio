@@ -120,24 +120,26 @@ extension OverrideProfilesConfig {
                     if state.advancedSettings {
                         HStack {
                             Toggle(isOn: $state.smbIsOff) {
-                                Text("Disable SMBs")
+                                Text("Always Disable SMBs")
                             }
                         }
-                        HStack {
-                            Toggle(isOn: $state.smbIsAlwaysOff) {
-                                Text("Schedule when SMBs are Off")
-                            }.disabled(!state.smbIsOff)
-                        }
-                        if state.smbIsAlwaysOff {
+                        if !state.smbIsOff {
                             HStack {
-                                Text("First Hour SMBs are Off (24 hours)")
-                                DecimalTextField("0", value: $state.start, formatter: formatter, cleanInput: false)
-                                Text("hour").foregroundColor(.secondary)
+                                Toggle(isOn: $state.smbIsScheduledOff) {
+                                    Text("Schedule when SMBs are Off")
+                                }
                             }
-                            HStack {
-                                Text("Last Hour SMBs are Off (24 hours)")
-                                DecimalTextField("0", value: $state.end, formatter: formatter, cleanInput: false)
-                                Text("hour").foregroundColor(.secondary)
+                            if state.smbIsScheduledOff {
+                                HStack {
+                                    Text("First Hour SMBs are Off (24 hours)")
+                                    DecimalTextField("0", value: $state.start, formatter: formatter, cleanInput: false)
+                                    Text("hour").foregroundColor(.secondary)
+                                }
+                                HStack {
+                                    Text("First Hour SMBs are Resumed (24 hours)")
+                                    DecimalTextField("0", value: $state.end, formatter: formatter, cleanInput: false)
+                                    Text("hour").foregroundColor(.secondary)
+                                }
                             }
                         }
                         HStack {
@@ -281,7 +283,7 @@ extension OverrideProfilesConfig {
             let percent = preset.percentage / 100
             let perpetual = preset.indefinite
             let durationString = perpetual ? "" : "\(formatter.string(from: duration as NSNumber)!)"
-            let scheduledSMBstring = (preset.smbIsOff && preset.smbIsAlwaysOff) ? "Scheduled SMBs" : ""
+            let scheduledSMBstring = (preset.smbIsOff && preset.smbIsScheduledOff) ? "Scheduled SMBs" : ""
             let smbString = (preset.smbIsOff && scheduledSMBstring == "") ? "SMBs are off" : ""
             let targetString = target != 0 ? "\(glucoseFormatter.string(from: target as NSNumber)!)" : ""
             let maxMinutesSMB = (preset.smbMinutes as Decimal?) != nil ? (preset.smbMinutes ?? 0) as Decimal : 0
@@ -328,14 +330,13 @@ extension OverrideProfilesConfig {
         }
 
         private func unChanged() -> Bool {
-            let isChanged = (state.percentage == 100 && !state.override_target && !state.smbIsOff && !state.advancedSettings) ||
-                (!state._indefinite && state.duration == 0) || (state.override_target && state.target == 0) ||
-                (
-                    state.percentage == 100 && !state.override_target && !state.smbIsOff && state.isf && state.cr && state
-                        .smbMinutes == state.defaultSmbMinutes && state.uamMinutes == state.defaultUamMinutes
-                )
+            let defaultProfile = state.percentage == 100 && !state.override_target && !state.advancedSettings
+            let noDurationSpecified = !state._indefinite && state.duration == 0
+            let targetZeroWithOverride = state.override_target && state.target == 0
+            let allSettingsDefault = state.percentage == 100 && !state.override_target && !state.smbIsOff && !state
+                .smbIsScheduledOff && state.smbMinutes == state.defaultSmbMinutes && state.uamMinutes == state.defaultUamMinutes
 
-            return isChanged
+            return defaultProfile || noDurationSpecified || targetZeroWithOverride || allSettingsDefault
         }
 
         private func removeProfile(at offsets: IndexSet) {

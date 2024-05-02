@@ -13,7 +13,7 @@ import Foundation
     )
 
     static var parameterSummary: some ParameterSummary {
-        Summary("List all states of iAPS")
+        Summary("List all states of Open-iAPS")
     }
 
     @MainActor func perform() async throws -> some ReturnsValue<StateiAPSResults> & ShowsSnippetView {

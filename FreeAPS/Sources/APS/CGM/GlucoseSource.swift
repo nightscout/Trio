@@ -11,7 +11,6 @@ protocol GlucoseSource: SourceInfoProvider {
     func fetchIfNeeded() -> AnyPublisher<[BloodGlucose], Never>
     var glucoseManager: FetchGlucoseManager? { get set }
     var cgmManager: CGMManagerUI? { get set }
-    var cgmType: CGMType { get }
 }
 
 extension GlucoseSource {

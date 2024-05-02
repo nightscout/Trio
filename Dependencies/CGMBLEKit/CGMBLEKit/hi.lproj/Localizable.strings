@@ -1,9 +1,0 @@
-/* Error description for unreliable state */
-"Glucose data is unavailable" = "ग्लूकोस डेटा उपलब्ध नहीं है";
-
-/* The description of sensor calibration state when sensor sensor is stopped. */
-"Sensor is stopped" = "सेन्सर समाप्त हो गया";
-
-/* The description of sensor calibration state when sensor sensor is warming up. */
-"Sensor is warming up" = "सेन्सर अपने शुरुआती समय में है";
-

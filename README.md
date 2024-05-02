@@ -13,8 +13,8 @@ Open-iAPS continues to leverage a variety of frameworks from the DIY looping com
 
 ## To download this repo:
 
-In Terminal:  
-git clone --branch=main https://github.com/nightscout/Open-iAPS.git  
+In Terminal: 
+git clone --branch=<<branch>> --recurse-submodules https://github.com/nightscout/Open-iAPS.git
 cd Open-iAPS  
 xed .
 

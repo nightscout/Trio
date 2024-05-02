@@ -1,0 +1,56 @@
+oref0 branch: dev - git version: 5774155
+
+Last commits:
+5774155 Merge pull request #20 from MikePlante1/disable_smb_schedule
+e3a8d73 Merge pull request #17 from MikePlante1/console_error_refactor
+a29d9ce rename smbIsAlwaysOff to smbIsScheduledOff
+d898eb1 fix threshold console.error
+b89a39b Merge pull request #16 from bjornoleh/webpack-update
+b8aaf93 Merge pull request #15 from avouspierre/dev
+4aba4e0 webpack-cp.sh: git log --since=2024-01-01
+3c321e3 Remove old copy of minimised files previously committed
+deefc58 Simplify cp in webpack-cp.sh to use with copy-rename-webpack-plugin
+4438013 Merge pull request #11 from nightscout/issue-template
+d76ed48 Update config.yml
+4edc26c Merge remote-tracking branch 'upstream/dev' into dev
+f3faea6 allows to create Bundle directory for oiaps
+8d4f4ff Merge pull request #14 from nightscout/revert_actualDate
+a42e58f Revert "actualDate" changes to lib/meal/history.js
+444903e fix meal inputs with actualDate
+f10ef66 Edit  issue templates
+1990e37 Merge pull request #9 from nightscout/smb_ratio_log
+4b7676c determine-basal.js smb_ratio log: if (smb_ratio != 0.5)
+f932754 Merge pull request #4 from nightscout/duplicate_SMBratio
+975245b Add missing max limit = 1 for smb_ratio
+8a6051c Merge pull request #5 from nightscout/half_basal_target
+acf203c Merge pull request #6 from nightscout/webpack-cp_patch-1
+1fda0fa webpack-cp.sh: Set apsDIR=../Open-iAPS, fix path for source files
+47d2485 Merge pull request #3 from nightscout/webpack-cp_patch-1
+4f6de7c Update webpack-cp.sh     - echo "copying /lib/ source files to Open-iAPS/open-iaps-oref"     - append last 30 commits to oref0_source_version.txt     - copy source files to open-iaps-oref directory     - add informational .txt about open-iaps-oref source files when copying files     - update comments with the correct filename (webpack-cp.sh)
+159b800 index.js: use correct value (160) in comment for half_basal_exercise_target
+3add4a1 duplication of SMB ratio for tags
+97b012a Merge pull request #9 from JeremyStorring/time-issues
+b2cf75b move currentTime check up
+5cdd17d Merge branch 'iaps' into time-issues
+c496240 Merge pull request #5 from JeremyStorring/enableSmbBug
+f80c32a Added comment for profile logic
+41c42c5 Bug fix for profile overrides not canceling SMBs
+e0714c5 fix for time calcs
+1230e23 Merge remote-tracking branch 'remake/iaps' into time-issues
+559f96f Merge pull request #8 from JeremyStorring/revert-7-time-issues
+cf1bc34 Revert "fix for time calcs"
+f295a47 fix from Deniz
+8d739f5 Merge pull request #7 from JeremyStorring/time-issues
+1f2b45f fix for time calcs
+b8f5997 Merge pull request #6 from JeremyStorring/min_bg_threshold
+256662c Adjusted min threshold, as min_bg for target of 80 is 60 (80 - (0.5*(80-40))
+838038a Merge pull request #4 from JeremyStorring/minify_fixes
+fc0e748 Address review comments from Robert
+30549a0 Merge pull request #3 from bjornoleh/webpack
+1276c59 Merge pull request #2 from bjornoleh/revert_1370
+3ff4e0a Rename script to webpack-cp.sh, commit webpack.config.js
+6cf69ec Revert "Tzachi shared node phase2 (#1370)"
+05a1a2e Updated oref2 files based on findings in minimised files in iAPS v3.0.3
+a9bdbb1 Missing Override variable
+02fa14d Set ceiling of threshold to 120 mg/dL
+5d17562 Update mods to oref2. Some older fixes not pushed to repo (Looping when high and override SMB settings time end bug etc.) Only run the TDD computation when not needed (dynISF enabled and when not any missing data).

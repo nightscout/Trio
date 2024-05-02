@@ -49,9 +49,10 @@ xcconfig = parse_xcconfig_file(xcconfig_path)
 # Access BUNDLE_IDENTIFIER from the xcconfig file after replacing $(DEVELOPMENT_TEAM) with ENV["TEAMID"]
 ENV["BUNDLE_ID"] = xcconfig["BUNDLE_IDENTIFIER"]
 
+# limit lane names to letters and underscores
 platform :ios do
-  desc "Build iAPS"
-  lane :build_iAPS do
+  desc "Build Open-iAPS"
+  lane :build_open_iaps do
     setup_ci if ENV['CI']
     BUNDLE_ID = ENV["BUNDLE_ID"]
 
@@ -84,7 +85,8 @@ platform :ios do
       app_identifier: [
         "#{BUNDLE_ID}",
         "#{BUNDLE_ID}.watchkitapp",
-        "#{BUNDLE_ID}.watchkitapp.watchkitextension"
+        "#{BUNDLE_ID}.watchkitapp.watchkitextension",
+        "#{BUNDLE_ID}.LiveActivity"
       ]
     )
 
@@ -124,11 +126,17 @@ platform :ios do
       code_sign_identity: "iPhone Distribution",
       targets: ["FreeAPSWatch"]
     )
+    update_code_signing_settings(
+      path: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
+      profile_name: mapping["#{BUNDLE_ID}.LiveActivity"],
+      code_sign_identity: "iPhone Distribution",
+      targets: ["LiveActivityExtension"]
+    )
 
     gym(
       export_method: "app-store",
-      scheme: "FreeAPS X",
-      output_name: "iAPS.ipa",
+      scheme: "Open-iAPS",
+      output_name: "Open-iAPS.ipa",
       configuration: "Release",
       destination: 'generic/platform=iOS',
       buildlog_path: 'buildlog'
@@ -151,7 +159,7 @@ platform :ios do
     upload_to_testflight(
       api_key: api_key,
       skip_submission: false,
-      ipa: "iAPS.ipa",
+      ipa: "Open-iAPS.ipa",
       skip_waiting_for_build_processing: true,
       changelog: git_branch+" "+last_git_commit[:abbreviated_commit_hash],
     )
@@ -190,6 +198,10 @@ platform :ios do
     configure_bundle_id("FreeAPSWatch", "#{BUNDLE_ID}.watchkitapp", [
       Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS
     ])
+
+    configure_bundle_id("LiveActivityExtension", "#{BUNDLE_ID}.LiveActivity", [
+      Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS
+    ])
     
   end
 
@@ -213,6 +225,7 @@ platform :ios do
         "#{BUNDLE_ID}",
         "#{BUNDLE_ID}.watchkitapp.watchkitextension",
         "#{BUNDLE_ID}.watchkitapp",
+        "#{BUNDLE_ID}.LiveActivity"
       ]
     )
   end
