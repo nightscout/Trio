@@ -156,8 +156,8 @@ extension DataTable {
                 .store(in: &lifetime)
         }
 
-        func deleteGlucose(at index: Int) {
-            let id = glucose[index].id
+        func deleteGlucose(_ glucose: Glucose) {
+            let id = glucose.id
             provider.deleteGlucose(id: id)
 
             let fetchRequest: NSFetchRequest<NSFetchRequestResult>
