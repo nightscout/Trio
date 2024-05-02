@@ -1,9 +1,0 @@
-language: objective-c
-osx_image: xcode12.2
-
-before_script:
-    - ./Scripts/carthage.sh bootstrap
-
-script:
-    # Build Travis project and run tests
-    - xcodebuild -project ShareClient.xcodeproj -scheme Shared build -destination name="iPhone 8" test 
