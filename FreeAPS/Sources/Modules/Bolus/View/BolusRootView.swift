@@ -78,8 +78,17 @@ extension Bolus {
                     header: { Text("Bolus") }
                     Section {
                         Button { state.add() }
-                        label: { Text("Enact bolus") }
-                            .disabled(state.amount <= 0)
+                        label: {
+                            Text(
+                                state.amount < state.maxBolus ? NSLocalizedString("Enact bolus", comment: "") :
+                                    NSLocalizedString("Max Bolus exceeded!", comment: "")
+                                    + " (>"
+                                    + formatter.string(from: state.maxBolus as NSNumber)!
+                                    + ")"
+                            ) }
+                            .disabled(
+                                state.amount <= 0 || state.amount > state.maxBolus
+                            )
                     }
                     if waitForSuggestion {
                         Section {

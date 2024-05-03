@@ -16,8 +16,8 @@
 /* Continue after added carbs without bolus */
 "Continue without bolus" = "Fortsätt utan bolus";
 
-/* Alert when adding large amount without bolusing */
-"\nAmount is more than your Max Bolus setting! \nAre you sure you want to add " = "\nDetta är mer insulin än din maxdos-inställning!\nÄr du säker på att du vill lägga till ";
+/* Alert when adding large amount without bolusing. Don't remove the " " */
+"\nAmount is more than your Max Bolus setting! \nAre you sure you want to add " = "\nDetta är mer insulin än din maxdos-inställning! \nÄr du säker på att du vill lägga till ";
 
 /* Header */
 "Enact Bolus" = "Ge bolus";
