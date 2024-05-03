@@ -25,6 +25,7 @@ extension Bolus {
         @Published var expectedDelta: Decimal = 0
         @Published var minPredBG: Decimal = 0
         @Published var units: GlucoseUnits = .mmolL
+        @Published var maxBolus: Decimal = 0
 
         var waitForSuggestionInitial: Bool = false
 
@@ -34,6 +35,7 @@ extension Bolus {
             units = settingsManager.settings.units
             percentage = settingsManager.settings.insulinReqPercentage
             threshold = provider.suggestion?.threshold ?? 0
+            maxBolus = provider.pumpSettings().maxBolus
 
             if waitForSuggestionInitial {
                 apsManager.determineBasal()
@@ -55,7 +57,7 @@ extension Bolus {
                 return
             }
 
-            let maxAmount = Double(min(amount, provider.pumpSettings().maxBolus))
+            let maxAmount = Double(min(amount, maxBolus))
 
             unlockmanager.unlock()
                 .sink { _ in } receiveValue: { [weak self] _ in
