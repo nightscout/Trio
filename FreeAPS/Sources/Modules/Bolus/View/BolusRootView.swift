@@ -78,36 +78,23 @@ extension Bolus {
                     header: { Text("Bolus") }
                     Section {
                         Button { state.add() }
-                        label: { Text("Enact bolus") }
-                            .disabled(state.amount <= 0)
+                        label: {
+                            Text(
+                                state.amount < state.maxBolus ? NSLocalizedString("Enact bolus", comment: "") :
+                                    NSLocalizedString("Max Bolus exceeded!", comment: "")
+                                    + " (>"
+                                    + formatter.string(from: state.maxBolus as NSNumber)!
+                                    + ")"
+                            ) }
+                            .disabled(
+                                state.amount <= 0 || state.amount > state.maxBolus
+                            )
                     }
-                    Section {
-                        if waitForSuggestion {
+                    if waitForSuggestion {
+                        Section {
                             Button { state.showModal(for: nil) }
                             label: { Text("Continue without bolus") }
-                        } else {
-                            Button { isAddInsulinAlertPresented = true }
-                            label: { Text("Add insulin without actually bolusing") }
-                                .disabled(state.amount <= 0)
-                        }
-                    }
-                    .alert(isPresented: $isAddInsulinAlertPresented) {
-                        Alert(
-                            title: Text("Are you sure?"),
-                            message: Text(
-                                NSLocalizedString("Add", comment: "Add insulin without bolusing alert") + " " + formatter
-                                    .string(from: state.amount as NSNumber)! + NSLocalizedString(" U", comment: "Insulin unit") +
-                                    NSLocalizedString(" without bolusing", comment: "Add insulin without bolusing alert")
-                            ),
-                            primaryButton: .destructive(
-                                Text("Add"),
-                                action: {
-                                    state.addWithoutBolus()
-                                    isAddInsulinAlertPresented = false
-                                }
-                            ),
-                            secondaryButton: .cancel()
-                        )
+                        }.frame(maxWidth: .infinity, alignment: .center)
                     }
                 }
             }

@@ -1035,7 +1035,7 @@ Enact a temp Basal or a temp target */
 "To prevent LOW required %d g of carbs" = "为了防止低血糖, 需要%d 克碳水";
 
 /* */
-"iAPS not active" = "iAPS 未激活";
+"Open-iAPS Not Active" = "Open-iAPS 未激活";
 
 /* */
 "Last loop was more than %d min ago" = "上次闭环成功在 %d 分钟前";
@@ -1371,7 +1371,7 @@ Enact a temp Basal or a temp target */
 "App Icons" = "App Icons";
 
 /* */
-"iAPS Icon" = "iAPS Icon";
+"Open-iAPS Icon" = "Open-iAPS Icon";
 
 /* Service Section */
 "Statistics and Home View" = "Statistics and Home View";

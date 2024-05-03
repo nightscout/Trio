@@ -8,7 +8,8 @@ extension Home {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() var broadcaster: Broadcaster!
         @Injected() var apsManager: APSManager!
-        @Injected() var nightscoutManager: NightscoutManager!
+        @Injected() var fetchGlucoseManager: FetchGlucoseManager!
+
         private let timer = DispatchTimer(timeInterval: 5)
         private(set) var filteredHours = 24
         @Published var glucose: [BloodGlucose] = []
@@ -58,6 +59,7 @@ extension Home {
         @Published var displayXgridLines: Bool = false
         @Published var displayYgridLines: Bool = false
         @Published var thresholdLines: Bool = false
+        @Published var cgmAvailable: Bool = false
 
         let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
 
@@ -224,6 +226,7 @@ extension Home {
                     self.glucoseDelta = nil
                 }
                 self.alarm = self.provider.glucoseStorage.alarm
+                cgmAvailable = (fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none)
             }
         }
 
@@ -350,18 +353,7 @@ extension Home {
         }
 
         func openCGM() {
-            guard var url = nightscoutManager.cgmURL else { return }
-
-            switch url.absoluteString {
-            case "http://127.0.0.1:1979":
-                url = URL(string: "spikeapp://")!
-            case "http://127.0.0.1:17580":
-                url = URL(string: "diabox://")!
-            case CGMType.libreTransmitter.appURL?.absoluteString:
-                showModal(for: .libreConfig)
-            default: break
-            }
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            router.mainSecondaryModalView.send(router.view(for: .cgmDirect))
         }
 
         func infoPanelTTPercentage(_ hbt_: Double, _ target: Decimal) -> Decimal {

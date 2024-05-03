@@ -1037,7 +1037,7 @@ Połączono z Nightscout!";
 "To prevent LOW required %d g of carbs" = "To prevent LOW required %d g of carbs";
 
 /* */
-"iAPS not active" = "iAPS not active";
+"Open-iAPS Not Active" = "Open-iAPS Not Active";
 
 /* */
 "Last loop was more than %d min ago" = "Last loop was more than %d min ago";
@@ -1373,7 +1373,7 @@ Połączono z Nightscout!";
 "App Icons" = "App Icons";
 
 /* */
-"iAPS Icon" = "iAPS Icon";
+"Open-iAPS Icon" = "Open-iAPS Icon";
 
 /* Service Section */
 "Statistics and Home View" = "Statistics and Home View";

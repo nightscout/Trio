@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "🆘 Individual troubleshooting help: Please go to the Discord Open-iAPS Server"
+    url: https://discord.gg/dbe5Twav8D
+    about: Are you having an issue with your individual setup? Please first go to the Discord Open-iAPS Server and post there, with details of your setup (App version, pump, CGM, and CGM app) and the issue you are observing

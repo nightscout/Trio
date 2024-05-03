@@ -1035,7 +1035,7 @@ Enact a temp Basal or a temp target */
 "To prevent LOW required %d g of carbs" = "Om LAAG te voorkomen zijn %d g koolhydraten nodig";
 
 /* */
-"iAPS not active" = "iAPS is niet actief!";
+"Open-iAPS Not Active" = "Open-iAPS is niet actief!";
 
 /* */
 "Last loop was more than %d min ago" = "Laatste loop was meer dan %d min geleden";
@@ -1371,7 +1371,7 @@ Enact a temp Basal or a temp target */
 "App Icons" = "App iconen";
 
 /* */
-"iAPS Icon" = "iAPS icoon";
+"Open-iAPS Icon" = "Open-iAPS icoon";
 
 /* Service Section */
 "Statistics and Home View" = "Statistieken en Home View";

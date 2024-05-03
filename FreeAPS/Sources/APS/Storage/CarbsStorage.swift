@@ -11,7 +11,7 @@ protocol CarbsStorage {
     func storeCarbs(_ carbs: [CarbsEntry])
     func syncDate() -> Date
     func recent() -> [CarbsEntry]
-    func nightscoutTretmentsNotUploaded() -> [NigtscoutTreatment]
+    func nightscoutTretmentsNotUploaded() -> [NightscoutTreatment]
     func deleteCarbs(at date: Date)
 }
 
@@ -81,7 +81,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     } else { useDate = useDate.addingTimeInterval(interval.minutes.timeInterval) }
 
                     let eachCarbEntry = CarbsEntry(
-                        id: UUID().uuidString, createdAt: useDate, carbs: equivalent, fat: 0, protein: 0, note: nil,
+                        id: UUID().uuidString, createdAt: useDate,
+                        carbs: equivalent, fat: 0, protein: 0, note: nil,
                         enteredBy: CarbsEntry.manual, isFPU: true,
                         fpuID: fpuID
                     )
@@ -91,7 +92,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                 // Save the array
                 if carbEquivalents > 0 {
                     self.storage.transaction { storage in
-                        storage.append(futureCarbArray, to: file, uniqBy: \.createdAt)
+                        storage.append(futureCarbArray, to: file, uniqBy: \.id)
                         uniqEvents = storage.retrieve(file, as: [CarbsEntry].self)?
                             .filter { $0.createdAt.addingTimeInterval(1.days.timeInterval) > Date() }
                             .sorted { $0.createdAt > $1.createdAt } ?? []
@@ -169,12 +170,12 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         }
     }
 
-    func nightscoutTretmentsNotUploaded() -> [NigtscoutTreatment] {
-        let uploaded = storage.retrieve(OpenAPS.Nightscout.uploadedPumphistory, as: [NigtscoutTreatment].self) ?? []
+    func nightscoutTretmentsNotUploaded() -> [NightscoutTreatment] {
+        let uploaded = storage.retrieve(OpenAPS.Nightscout.uploadedPumphistory, as: [NightscoutTreatment].self) ?? []
 
         let eventsManual = recent().filter { $0.enteredBy == CarbsEntry.manual }
         let treatments = eventsManual.map {
-            NigtscoutTreatment(
+            NightscoutTreatment(
                 duration: nil,
                 rawDuration: nil,
                 rawRate: nil,

@@ -23,11 +23,39 @@ DEVICE_NAME = ENV["DEVICE_NAME"]
 DEVICE_ID = ENV["DEVICE_ID"]
 ENV["FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT"] = "120"
 
+
+# Define method to parse xcconfig file, and replace $(DEVELOPMENT_TEAM) with ENV["TEAMID"]
+def parse_xcconfig_file(path)
+  xcconfig = {}
+  File.open(path).each_line do |line|
+    line.strip!
+    next if line.empty? || line.start_with?('//')
+    parts = line.split('=')
+    next if parts.length < 2  # Skip lines without '='
+    key, value = parts.map(&:strip)
+    # Replace $(DEVELOPMENT_TEAM) with ENV["TEAMID"]
+    value = value.gsub('$(DEVELOPMENT_TEAM)', TEAMID)
+    xcconfig[key] = value
+      end
+      xcconfig
+    end
+
+# Path to config.xcconfig file
+xcconfig_path = "#{GITHUB_WORKSPACE}/Config.xcconfig"
+
+# Load the variables from config.xcconfig
+xcconfig = parse_xcconfig_file(xcconfig_path)
+
+# Access BUNDLE_IDENTIFIER from the xcconfig file after replacing $(DEVELOPMENT_TEAM) with ENV["TEAMID"]
+ENV["BUNDLE_ID"] = xcconfig["BUNDLE_IDENTIFIER"]
+
+# limit lane names to letters and underscores
 platform :ios do
-  desc "Build iAPS"
-  lane :build_iAPS do
+  desc "Build Open-iAPS"
+  lane :build_open_iaps do
     setup_ci if ENV['CI']
-    
+    BUNDLE_ID = ENV["BUNDLE_ID"]
+
     update_project_team(
       path: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
       teamid: "#{TEAMID}"
@@ -40,7 +68,7 @@ platform :ios do
     )
 
     previous_build_number = latest_testflight_build_number(
-      app_identifier: "ru.artpancreas.#{TEAMID}.FreeAPS",
+      app_identifier: "#{BUNDLE_ID}",
       api_key: api_key,
     )
 
@@ -55,14 +83,15 @@ platform :ios do
       type: "appstore",
       git_basic_authorization: Base64.strict_encode64("#{GITHUB_REPOSITORY_OWNER}:#{GH_PAT}"),
       app_identifier: [
-        "ru.artpancreas.#{TEAMID}.FreeAPS",
-        "ru.artpancreas.#{TEAMID}.FreeAPS.watchkitapp",
-        "ru.artpancreas.#{TEAMID}.FreeAPS.watchkitapp.watchkitextension"
+        "#{BUNDLE_ID}",
+        "#{BUNDLE_ID}.watchkitapp",
+        "#{BUNDLE_ID}.watchkitapp.watchkitextension",
+        "#{BUNDLE_ID}.LiveActivity"
       ]
     )
 
     previous_build_number = latest_testflight_build_number(
-      app_identifier: "ru.artpancreas.#{TEAMID}.FreeAPS",
+      app_identifier: "#{BUNDLE_ID}",
       api_key: api_key,
     )
 
@@ -79,29 +108,35 @@ platform :ios do
 
     update_code_signing_settings(
       path: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
-      profile_name: mapping["ru.artpancreas.#{TEAMID}.FreeAPS"],
+      profile_name: mapping["#{BUNDLE_ID}"],
       code_sign_identity: "iPhone Distribution",
       targets: ["FreeAPS"]
     )
 
     update_code_signing_settings(
       path: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
-      profile_name: mapping["ru.artpancreas.#{TEAMID}.FreeAPS.watchkitapp.watchkitextension"],
+      profile_name: mapping["#{BUNDLE_ID}.watchkitapp.watchkitextension"],
       code_sign_identity: "iPhone Distribution",
       targets: ["FreeAPSWatch WatchKit Extension"]
     )
     
     update_code_signing_settings(
       path: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
-      profile_name: mapping["ru.artpancreas.#{TEAMID}.FreeAPS.watchkitapp"],
+      profile_name: mapping["#{BUNDLE_ID}.watchkitapp"],
       code_sign_identity: "iPhone Distribution",
       targets: ["FreeAPSWatch"]
+    )
+    update_code_signing_settings(
+      path: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
+      profile_name: mapping["#{BUNDLE_ID}.LiveActivity"],
+      code_sign_identity: "iPhone Distribution",
+      targets: ["LiveActivityExtension"]
     )
 
     gym(
       export_method: "app-store",
-      scheme: "FreeAPS X",
-      output_name: "iAPS.ipa",
+      scheme: "Open-iAPS",
+      output_name: "Open-iAPS.ipa",
       configuration: "Release",
       destination: 'generic/platform=iOS',
       buildlog_path: 'buildlog'
@@ -124,8 +159,9 @@ platform :ios do
     upload_to_testflight(
       api_key: api_key,
       skip_submission: false,
-      ipa: "iAPS.ipa",
+      ipa: "Open-iAPS.ipa",
       skip_waiting_for_build_processing: true,
+      changelog: git_branch+" "+last_git_commit[:abbreviated_commit_hash],
     )
   end
 
@@ -133,6 +169,7 @@ platform :ios do
   lane :identifiers do
     setup_ci if ENV['CI']
     ENV["MATCH_READONLY"] = false.to_s
+    BUNDLE_ID = ENV["BUNDLE_ID"]
     
     app_store_connect_api_key(
       key_id: "#{FASTLANE_KEY_ID}",
@@ -147,18 +184,22 @@ platform :ios do
       }
     end
 
-    configure_bundle_id("FreeAPS", "ru.artpancreas.#{TEAMID}.FreeAPS", [
+    configure_bundle_id("FreeAPS", "#{BUNDLE_ID}", [
       Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS,
       Spaceship::ConnectAPI::BundleIdCapability::Type::HEALTHKIT,
       Spaceship::ConnectAPI::BundleIdCapability::Type::NFC_TAG_READING
     ])
 
-    configure_bundle_id("FreeAPSWatch WatchKit Extension", "ru.artpancreas.#{TEAMID}.FreeAPS.watchkitapp.watchkitextension", [
+    configure_bundle_id("FreeAPSWatch WatchKit Extension", "#{BUNDLE_ID}.watchkitapp.watchkitextension", [
       Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS,
       Spaceship::ConnectAPI::BundleIdCapability::Type::HEALTHKIT
     ])
     
-    configure_bundle_id("FreeAPSWatch", "ru.artpancreas.#{TEAMID}.FreeAPS.watchkitapp", [
+    configure_bundle_id("FreeAPSWatch", "#{BUNDLE_ID}.watchkitapp", [
+      Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS
+    ])
+
+    configure_bundle_id("LiveActivityExtension", "#{BUNDLE_ID}.LiveActivity", [
       Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS
     ])
     
@@ -168,6 +209,7 @@ platform :ios do
   lane :certs do
     setup_ci if ENV['CI']
     ENV["MATCH_READONLY"] = false.to_s
+    BUNDLE_ID = ENV["BUNDLE_ID"]
     
     app_store_connect_api_key(
       key_id: "#{FASTLANE_KEY_ID}",
@@ -180,9 +222,10 @@ platform :ios do
       force: true,
       git_basic_authorization: Base64.strict_encode64("#{GITHUB_REPOSITORY_OWNER}:#{GH_PAT}"),
       app_identifier: [
-        "ru.artpancreas.#{TEAMID}.FreeAPS",
-        "ru.artpancreas.#{TEAMID}.FreeAPS.watchkitapp.watchkitextension",
-        "ru.artpancreas.#{TEAMID}.FreeAPS.watchkitapp",
+        "#{BUNDLE_ID}",
+        "#{BUNDLE_ID}.watchkitapp.watchkitextension",
+        "#{BUNDLE_ID}.watchkitapp",
+        "#{BUNDLE_ID}.LiveActivity"
       ]
     )
   end
@@ -191,6 +234,7 @@ platform :ios do
   lane :validate_secrets do
     setup_ci if ENV['CI']
     ENV["MATCH_READONLY"] = true.to_s
+    BUNDLE_ID = ENV["BUNDLE_ID"]
 
     app_store_connect_api_key(
       key_id: "#{FASTLANE_KEY_ID}",
@@ -202,7 +246,13 @@ platform :ios do
       bundle_id = Spaceship::ConnectAPI::BundleId.find(identifier)
     end
 
-    find_bundle_id("ru.artpancreas.#{TEAMID}.FreeAPS")
+    find_bundle_id("#{BUNDLE_ID}")
+
+    match(
+      type: "appstore",
+      git_basic_authorization: Base64.strict_encode64("#{GITHUB_REPOSITORY_OWNER}:#{GH_PAT}"),
+      app_identifier: [],
+    )
   end
 
   desc "Nuke Certs"

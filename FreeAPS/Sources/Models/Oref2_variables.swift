@@ -18,7 +18,7 @@ struct Oref2_variables: JSON, Equatable {
     var isfAndCr: Bool
     var isf: Bool
     var cr: Bool
-    var smbIsAlwaysOff: Bool
+    var smbIsScheduledOff: Bool
     var start: Decimal
     var end: Decimal
     var smbMinutes: Decimal
@@ -42,7 +42,7 @@ struct Oref2_variables: JSON, Equatable {
         isfAndCr: Bool,
         isf: Bool,
         cr: Bool,
-        smbIsAlwaysOff: Bool,
+        smbIsScheduledOff: Bool,
         start: Decimal,
         end: Decimal,
         smbMinutes: Decimal,
@@ -65,7 +65,7 @@ struct Oref2_variables: JSON, Equatable {
         self.isfAndCr = isfAndCr
         self.isf = isf
         self.cr = cr
-        self.smbIsAlwaysOff = smbIsAlwaysOff
+        self.smbIsScheduledOff = smbIsScheduledOff
         self.start = start
         self.end = end
         self.smbMinutes = smbMinutes
@@ -92,7 +92,7 @@ extension Oref2_variables {
         case isfAndCr
         case isf
         case cr
-        case smbIsAlwaysOff
+        case smbIsScheduledOff
         case start
         case end
         case smbMinutes

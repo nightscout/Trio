@@ -1038,7 +1038,7 @@ Enact a temp Basal or a temp target */
 "To prevent LOW required %d g of carbs" = "Для избежания ГИПО необходимо %d г углеводов";
 
 /* */
-"iAPS not active" = "iAPS неактивен";
+"Open-iAPS Not Active" = "Open-iAPS неактивен";
 
 /* */
 "Last loop was more than %d min ago" = "Последний цикл был более %d минут назад";
@@ -1374,7 +1374,7 @@ Enact a temp Basal or a temp target */
 "App Icons" = "Иконки приложения";
 
 /* */
-"iAPS Icon" = "iAPS иконка";
+"Open-iAPS Icon" = "Open-iAPS иконка";
 
 /* Service Section */
 "Statistics and Home View" = "Статистика и экран";

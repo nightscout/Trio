@@ -16,8 +16,8 @@
 /* Continue after added carbs without bolus */
 "Continue without bolus" = "Fortsätt utan bolus";
 
-/* Alert when adding large amount without bolusing */
-"\nAmount is more than your Max Bolus setting! \nAre you sure you want to add " = "\nDetta är mer insulin än din maxdos-inställning!\nÄr du säker på att du vill lägga till ";
+/* Alert when adding large amount without bolusing. Don't remove the " " */
+"\nAmount is more than your Max Bolus setting! \nAre you sure you want to add " = "\nDetta är mer insulin än din maxdos-inställning! \nÄr du säker på att du vill lägga till ";
 
 /* Header */
 "Enact Bolus" = "Ge bolus";
@@ -1035,7 +1035,7 @@ Enact a temp Basal or a temp target */
 "To prevent LOW required %d g of carbs" = "För att förhindra ett lågt blodsocker krävs uppskattningsvis %d g kolhydrater";
 
 /* */
-"iAPS not active" = "iAPS är inte aktiv";
+"Open-iAPS Not Active" = "Open-iAPS är inte aktiv";
 
 /* */
 "Last loop was more than %d min ago" = "Senaste loop var för mer än %d min sedan";
@@ -1371,7 +1371,7 @@ Enact a temp Basal or a temp target */
 "App Icons" = "Ikoner";
 
 /* */
-"iAPS Icon" = "iAPS - ikon";
+"Open-iAPS Icon" = "Open-iAPS - ikon";
 
 /* Service Section */
 "Statistics and Home View" = "Statistik och Diagram";

@@ -4,7 +4,7 @@ import LoopKitUI
 extension PumpManager {
     var rawValue: [String: Any] {
         [
-            "managerIdentifier": managerIdentifier, // "managerIdentifier": type(of: self).managerIdentifier,
+            "managerIdentifier": pluginIdentifier, // "managerIdentifier": type(of: self).managerIdentifier,
             "state": rawState
         ]
     }
@@ -26,7 +26,7 @@ extension PumpManagerUI {
         var vc = settingsViewController(
             bluetoothProvider: bluetoothProvider,
             colorPalette: .default,
-            allowDebugFeatures: false,
+            allowDebugFeatures: true,
             allowedInsulinTypes: [.apidra, .humalog, .novolog, .fiasp, .lyumjev]
         )
         vc.pumpManagerOnboardingDelegate = pumpManagerOnboardingDelegate

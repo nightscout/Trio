@@ -1035,7 +1035,7 @@ Enact a temp Basal or a temp target */
 "To prevent LOW required %d g of carbs" = "Na zabránenie NÍZKY potrebných %d g sacharidov";
 
 /* */
-"iAPS not active" = "iAPS nie je aktívny";
+"Open-iAPS Not Active" = "Open-iAPS nie je aktívny";
 
 /* */
 "Last loop was more than %d min ago" = "Posledná slučka bola pred viac ako %d min";
@@ -1371,7 +1371,7 @@ Enact a temp Basal or a temp target */
 "App Icons" = "Ikony aplikácie";
 
 /* */
-"iAPS Icon" = "ikona iAPS";
+"Open-iAPS Icon" = "ikona Open-iAPS";
 
 /* Service Section */
 "Statistics and Home View" = "Štatistiky a domovské zobrazenie";

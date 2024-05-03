@@ -1038,7 +1038,7 @@ Enact a temp Basal or a temp target */
 "To prevent LOW required %d g of carbs" = "Um einen NIEDRIGEN BZ zu verhindern, werden %d g Kohlenhydrate benötigt";
 
 /* */
-"iAPS not active" = "iAPS ist nicht aktiv";
+"Open-iAPS Not Active" = "Open-iAPS ist nicht aktiv";
 
 /* */
 "Last loop was more than %d min ago" = "Letzter Loop vor mehr als %d Minuten";
@@ -1374,7 +1374,7 @@ Enact a temp Basal or a temp target */
 "App Icons" = "App-Symbole";
 
 /* */
-"iAPS Icon" = "iAPS Symbol";
+"Open-iAPS Icon" = "Open-iAPS Symbol";
 
 /* Service Section */
 "Statistics and Home View" = "Statistiken und Home-Ansicht";

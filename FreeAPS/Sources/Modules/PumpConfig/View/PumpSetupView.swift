@@ -37,7 +37,8 @@ extension PumpConfig {
                     initialSettings: initialSettings,
                     bluetoothProvider: bluetoothManager,
                     colorPalette: .default,
-                    allowDebugFeatures: false,
+                    allowDebugFeatures: true,
+                    prefersToSkipUserInteraction: false,
                     allowedInsulinTypes: [.apidra, .humalog, .novolog, .fiasp, .lyumjev]
                 )
             case .omnipod:
@@ -45,7 +46,8 @@ extension PumpConfig {
                     initialSettings: initialSettings,
                     bluetoothProvider: bluetoothManager,
                     colorPalette: .default,
-                    allowDebugFeatures: false,
+                    allowDebugFeatures: true,
+                    prefersToSkipUserInteraction: false,
                     allowedInsulinTypes: [.apidra, .humalog, .novolog, .fiasp, .lyumjev]
                 )
             case .omnipodBLE:
@@ -53,7 +55,7 @@ extension PumpConfig {
                     initialSettings: initialSettings,
                     bluetoothProvider: bluetoothManager,
                     colorPalette: .default,
-                    allowDebugFeatures: false,
+                    allowDebugFeatures: true,
                     allowedInsulinTypes: [.apidra, .humalog, .novolog, .fiasp, .lyumjev]
                 )
             case .simulator:
@@ -61,7 +63,8 @@ extension PumpConfig {
                     initialSettings: initialSettings,
                     bluetoothProvider: bluetoothManager,
                     colorPalette: .default,
-                    allowDebugFeatures: false,
+                    allowDebugFeatures: true,
+                    prefersToSkipUserInteraction: false,
                     allowedInsulinTypes: [.apidra, .humalog, .novolog, .fiasp, .lyumjev]
                 )
             }
