@@ -83,10 +83,9 @@ extension DataTable {
         private var addInsulinButton: some View {
             Button(action: { showExternalInsulin = true
                 state.externalInsulinDate = Date() }, label: {
-                Text("Add")
-                    .foregroundColor(Color.secondary)
-                    .font(.caption)
-                Image(systemName: "syringe")
+                Text("Add Insulin")
+                    .foregroundColor(Color.accentColor)
+                Image(systemName: "plus")
                     .foregroundColor(Color.accentColor)
             }).buttonStyle(.borderless)
         }
@@ -98,10 +97,9 @@ extension DataTable {
                     state.manualGlucose = 0
                 },
                 label: {
-                    Text("Add")
-                        .foregroundColor(Color.secondary)
-                        .font(.caption)
-                    Image(systemName: "drop")
+                    Text("Add Glucose")
+                        .foregroundColor(Color.accentColor)
+                    Image(systemName: "plus")
                         .foregroundColor(Color.accentColor)
                 }
             ).buttonStyle(.borderless)
