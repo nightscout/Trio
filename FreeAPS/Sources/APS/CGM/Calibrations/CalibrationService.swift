@@ -22,7 +22,7 @@ protocol CalibrationService {
     func removeAllCalibrations()
     func removeLast()
 
-    func calibrate(value: Double) -> Double
+    func calibrate(value: Int) -> Double
 }
 
 final class BaseCalibrationService: CalibrationService, Injectable {
@@ -52,11 +52,11 @@ final class BaseCalibrationService: CalibrationService, Injectable {
     }
 
     private func subscribe() {
-        notificationCenter.publisher(for: .newSensorDetected)
-            .sink { [weak self] _ in
-                self?.removeAllCalibrations()
-            }
-            .store(in: &lifetime)
+//        notificationCenter.publisher(for: .newSensorDetected)
+//            .sink { [weak self] _ in
+//                self?.removeAllCalibrations()
+//            }
+//            .store(in: &lifetime)
     }
 
     var slope: Double {
@@ -85,7 +85,7 @@ final class BaseCalibrationService: CalibrationService, Injectable {
         return min(max(intercept, Config.minIntercept), Config.maxIntercept)
     }
 
-    func calibrate(value: Double) -> Double {
+    func calibrate(value: Int) -> Double {
         linearRegression(value)
     }
 
@@ -113,7 +113,7 @@ final class BaseCalibrationService: CalibrationService, Injectable {
         zip(a, b).map(*)
     }
 
-    private func linearRegression(_ x: Double) -> Double {
-        (intercept + slope * x).clamped(Config.minValue ... Config.maxValue)
+    private func linearRegression(_ x: Int) -> Double {
+        (intercept + slope * Double(x)).clamped(Config.minValue ... Config.maxValue)
     }
 }

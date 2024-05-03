@@ -940,7 +940,7 @@ Enact a temp Basal or a temp target */
 "To prevent LOW required %d g of carbs" = "To prevent LOW required %d g of carbs";
 
 /* */
-"iAPS not active" = "iAPS not active";
+"Open-iAPS Not Active" = "Open-iAPS Not Active";
 
 /* */
 "Last loop was more than %d min ago" = "Last loop was more than %d min ago";

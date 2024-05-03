@@ -1,61 +1,68 @@
 {
-  "object": {
-    "pins": [
-      {
-        "package": "Alamofire",
-        "repositoryURL": "https://github.com/Alamofire/Alamofire",
-        "state": {
-          "branch": null,
-          "revision": "f96b619bcb2383b43d898402283924b80e2c4bae",
-          "version": "5.4.3"
-        }
-      },
-      {
-        "package": "Disk",
-        "repositoryURL": "https://github.com/saoudrizwan/Disk",
-        "state": {
-          "branch": null,
-          "revision": "b0cb4fdf23e51849cc2460bdc6de795c3bcca99d",
-          "version": "0.6.4"
-        }
-      },
-      {
-        "package": "swift-algorithms",
-        "repositoryURL": "https://github.com/apple/swift-algorithms",
-        "state": {
-          "branch": null,
-          "revision": "2327673b0e9c7e90e6b1826376526ec3627210e4",
-          "version": "0.2.1"
-        }
-      },
-      {
-        "package": "swift-numerics",
-        "repositoryURL": "https://github.com/apple/swift-numerics",
-        "state": {
-          "branch": null,
-          "revision": "6583ac70c326c3ee080c1d42d9ca3361dca816cd",
-          "version": "0.1.0"
-        }
-      },
-      {
-        "package": "SwiftDate",
-        "repositoryURL": "https://github.com/malcommac/SwiftDate",
-        "state": {
-          "branch": null,
-          "revision": "6190d0cefff3013e77ed567e6b074f324e5c5bf5",
-          "version": "6.3.1"
-        }
-      },
-      {
-        "package": "Swinject",
-        "repositoryURL": "https://github.com/Swinject/Swinject",
-        "state": {
-          "branch": null,
-          "revision": "8a76d2c74bafbb455763487cc6a08e91bad1f78b",
-          "version": "2.7.1"
-        }
+  "pins" : [
+    {
+      "identity" : "mkringprogressview",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/maxkonovalov/MKRingProgressView.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "660888aab1d2ab0ed7eb9eb53caec12af4955fa7"
       }
-    ]
-  },
-  "version": 1
+    },
+    {
+      "identity" : "swift-algorithms",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-algorithms",
+      "state" : {
+        "revision" : "2327673b0e9c7e90e6b1826376526ec3627210e4",
+        "version" : "0.2.1"
+      }
+    },
+    {
+      "identity" : "swift-numerics",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-numerics",
+      "state" : {
+        "revision" : "6583ac70c326c3ee080c1d42d9ca3361dca816cd",
+        "version" : "0.1.0"
+      }
+    },
+    {
+      "identity" : "swiftcharts",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ivanschuetz/SwiftCharts.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "c354c1945bb35a1f01b665b22474f6db28cba4a2"
+      }
+    },
+    {
+      "identity" : "swiftdate",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/malcommac/SwiftDate",
+      "state" : {
+        "revision" : "6190d0cefff3013e77ed567e6b074f324e5c5bf5",
+        "version" : "6.3.1"
+      }
+    },
+    {
+      "identity" : "swiftmessages",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SwiftKickMobile/SwiftMessages",
+      "state" : {
+        "revision" : "62e12e138fc3eedf88c7553dd5d98712aa119f40",
+        "version" : "9.0.9"
+      }
+    },
+    {
+      "identity" : "swinject",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Swinject/Swinject",
+      "state" : {
+        "revision" : "8a76d2c74bafbb455763487cc6a08e91bad1f78b",
+        "version" : "2.7.1"
+      }
+    }
+  ],
+  "version" : 2
 }

@@ -150,7 +150,7 @@ extension PreferencesEditor {
                     displayName: NSLocalizedString("Adjust basal", comment: "Enable adjustment of basal profile"),
                     type: .boolean(keypath: \.tddAdjBasal),
                     infoText: NSLocalizedString(
-                        "Enable adjustment of basal based on the ratio of current TDD / 7 day average TDD",
+                        "Enable adjustment of basal based on the ratio of current TDD / 10 day average TDD",
                         comment: "Enable adjustment of basal profile"
                     ),
                     settable: self
