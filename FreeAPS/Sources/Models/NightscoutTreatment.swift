@@ -3,6 +3,8 @@ import Foundation
 func determineBolusEventType(for event: PumpHistoryEvent) -> EventType {
     if event.isExternalInsulin ?? false {
         return .nsExternalInsulin
+    } else if event.isSMB ?? false {
+        return .SMB
     }
     return event.type
 }
