@@ -59,7 +59,7 @@ class ComplicationController: NSObject, CLKComplicationDataSource {
             handler(timelineEntry)
         case .modularSmall:
             let template = CLKComplicationTemplateModularSmallRingText(
-                textProvider: CLKTextProvider(format: "%@", "FAX"),
+                textProvider: CLKTextProvider(format: "%@", "Open-iAPS"),
                 fillFraction: 1,
                 ringStyle: .closed
             )
@@ -78,7 +78,7 @@ class ComplicationController: NSObject, CLKComplicationDataSource {
             handler(timelineEntry)
         case .circularSmall:
             let template =
-                CLKComplicationTemplateCircularSmallSimpleText(textProvider: CLKTextProvider(format: "%@", "FAX"))
+                CLKComplicationTemplateCircularSmallSimpleText(textProvider: CLKTextProvider(format: "%@", "Open-iAPS"))
             let timelineEntry = CLKComplicationTimelineEntry(date: Date(), complicationTemplate: template)
             handler(timelineEntry)
         default:
