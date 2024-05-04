@@ -157,7 +157,7 @@ extension BaseGarminManager: IQUIOverrideDelegate {
         debug(.apsManager, NSLocalizedString("Garmin is not available", comment: ""))
         let messageCont = MessageContent(
             content: NSLocalizedString(
-                "The app Garmin Connect must be installed to use for iAPS.\n Go to App Store to download it",
+                "The app Garmin Connect must be installed to use for Open-iAPS.\n Go to App Store to download it",
                 comment: ""
             ),
             type: .warning

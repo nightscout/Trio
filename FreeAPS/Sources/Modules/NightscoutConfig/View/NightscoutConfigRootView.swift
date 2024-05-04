@@ -103,7 +103,7 @@ extension NightscoutConfig {
                             message: Text(
                                 (fetchedErrors.first?.error ?? "").count < 4 ?
                                     NSLocalizedString(
-                                        "\nNow please verify all of your new settings thoroughly:\n\n* Basal Settings\n * Carb Ratios\n * Glucose Targets\n * Insulin Sensitivities\n * DIA\n\n in iAPS Settings > Configuration.\n\nBad or invalid profile settings could have disatrous effects.",
+                                        "\nNow please verify all of your new settings thoroughly:\n\n* Basal Settings\n * Carb Ratios\n * Glucose Targets\n * Insulin Sensitivities\n * DIA\n\n in Open-iAPS Settings > Configuration.\n\nBad or invalid profile settings could have disatrous effects.",
                                         comment: "Imported Profiles Alert"
                                     ) :
                                     NSLocalizedString(fetchedErrors.first?.error ?? "", comment: "Import Error")
@@ -129,7 +129,7 @@ extension NightscoutConfig {
 
                 Section {
                     Toggle("Remote control", isOn: $state.allowAnnouncements)
-                } header: { Text("Allow Remote control of iAPS") }
+                } header: { Text("Allow Remote control of Open-iAPS") }
             }
             .onAppear(perform: configureView)
             .navigationBarTitle("Nightscout Config")
