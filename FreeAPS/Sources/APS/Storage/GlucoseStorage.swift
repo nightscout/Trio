@@ -46,28 +46,46 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     }
 
     func storeGlucose(_ glucose: [BloodGlucose]) {
-        guard let latestGlucose = glucose.last, let lastGlucoseValue = latestGlucose.glucose else { return }
-
         processQueue.sync {
             debug(.deviceManager, "start storage glucose")
 
             self.coredataContext.perform {
-                let newItem = GlucoseStored(context: self.coredataContext)
-                newItem.id = UUID()
-                newItem.glucose = Int16(lastGlucoseValue)
-                newItem.date = latestGlucose.dateString
-                newItem.direction = latestGlucose.direction?.symbol
+                for glucoseEntry in glucose {
+                    guard let glucoseValue = glucoseEntry.glucose else { continue }
 
-                if self.coredataContext.hasChanges {
-                    do {
-                        try self.coredataContext.save()
-                        debugPrint(
-                            "Glucose Storage: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved glucose to core data"
-                        )
-                    } catch {
-                        debugPrint(
-                            "Glucose Storage: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save glucose to core data"
-                        )
+                    let dateString = glucoseEntry.dateString
+                    let fetchRequest: NSFetchRequest<NSFetchRequestResult> = GlucoseStored.fetchRequest()
+                    fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+                        NSPredicate(format: "date == %@", dateString as NSDate),
+                        NSPredicate.predicateForOneDayAgo
+                    ])
+                    fetchRequest.fetchLimit = 1
+                    fetchRequest.propertiesToFetch = ["date"]
+                    fetchRequest.resultType = .dictionaryResultType
+
+                    let count = (try? self.coredataContext.count(for: fetchRequest)) ?? 0
+                    if count > 0 {
+                        debugPrint("duplicate glucose detected. Skipping saving...")
+                        continue
+                    }
+
+                    let newItem = GlucoseStored(context: self.coredataContext)
+                    newItem.id = UUID()
+                    newItem.glucose = Int16(glucoseValue)
+                    newItem.date = dateString
+                    newItem.direction = glucoseEntry.direction?.symbol
+
+                    if self.coredataContext.hasChanges {
+                        do {
+                            try self.coredataContext.save()
+                            debugPrint(
+                                "Glucose Storage: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved glucose to core data"
+                            )
+                        } catch {
+                            debugPrint(
+                                "Glucose Storage: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save glucose to core data: \(error)"
+                            )
+                        }
                     }
                 }
             }
