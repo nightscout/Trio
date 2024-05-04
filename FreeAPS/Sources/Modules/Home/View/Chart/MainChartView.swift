@@ -334,7 +334,7 @@ extension MainChartView {
             }.onChange(of: basalProfile) { _ in
                 calculateTempBasals()
             }
-            .frame(maxHeight: UIScreen.main.bounds.height * 0.05)
+            .frame(maxHeight: UIScreen.main.bounds.height * 0.08)
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .chartXScale(domain: startMarker ... endMarker)
             .chartXAxis { basalChartXAxis }
@@ -609,7 +609,7 @@ extension MainChartView {
     }
 
     private func drawTempBasals() -> some ChartContent {
-        ForEach(filteredTempBasals(), id: \.start) { basal in
+        ForEach(filteredTempBasals(), id: \.rate) { basal in
             RectangleMark(
                 xStart: .value("start", basal.start),
                 xEnd: .value("end", basal.end),
