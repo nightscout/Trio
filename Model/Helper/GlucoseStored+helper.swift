@@ -68,7 +68,7 @@ extension GlucoseStored: Encodable {
 
         try container.encode(direction, forKey: .direction)
         try container.encode(id, forKey: .id)
-        
+
         // TODO: Handle the type of the glucose entry conditionally not hardcoded
         try container.encode("sgv", forKey: .type)
 
