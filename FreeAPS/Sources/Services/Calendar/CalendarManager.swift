@@ -93,7 +93,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         let title = glucoseText + " " + directionText + " " + deltaText
 
         event.title = title
-        event.notes = "iAPS"
+        event.notes = "Open-iAPS"
         event.startDate = Date()
         event.endDate = Date(timeIntervalSinceNow: 60 * 10)
         event.calendar = calendar

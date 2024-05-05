@@ -8,7 +8,7 @@ class ComplicationController: NSObject, CLKComplicationDataSource {
         let descriptors = [
             CLKComplicationDescriptor(
                 identifier: "complication",
-                displayName: "iAPS",
+                displayName: "Open-iAPS",
                 supportedFamilies: [
                     .graphicCorner,
                     .graphicCircular,
@@ -52,14 +52,14 @@ class ComplicationController: NSObject, CLKComplicationDataSource {
                 return
             }
             let template = CLKComplicationTemplateGraphicCornerTextImage(
-                textProvider: CLKTextProvider(format: "%@", "iAPS"),
+                textProvider: CLKTextProvider(format: "%@", "Open-iAPS"),
                 imageProvider: CLKFullColorImageProvider(fullColorImage: image)
             )
             let timelineEntry = CLKComplicationTimelineEntry(date: Date(), complicationTemplate: template)
             handler(timelineEntry)
         case .modularSmall:
             let template = CLKComplicationTemplateModularSmallRingText(
-                textProvider: CLKTextProvider(format: "%@", "FAX"),
+                textProvider: CLKTextProvider(format: "%@", "Open-iAPS"),
                 fillFraction: 1,
                 ringStyle: .closed
             )
@@ -78,7 +78,7 @@ class ComplicationController: NSObject, CLKComplicationDataSource {
             handler(timelineEntry)
         case .circularSmall:
             let template =
-                CLKComplicationTemplateCircularSmallSimpleText(textProvider: CLKTextProvider(format: "%@", "FAX"))
+                CLKComplicationTemplateCircularSmallSimpleText(textProvider: CLKTextProvider(format: "%@", "Open-iAPS"))
             let timelineEntry = CLKComplicationTimelineEntry(date: Date(), complicationTemplate: template)
             handler(timelineEntry)
         default:
