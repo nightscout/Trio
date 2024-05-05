@@ -146,12 +146,36 @@ final class OpenAPS {
                 self.storage.save(tempBasal, as: Monitor.tempBasal)
 
                 let a = self.loadFileFromStorage(name: OpenAPS.Monitor.pumpHistory)
-                let pumpHistory = self.fetchPumpHistory()
-                let pumpHistoryJSON = self.jsonConverter.convertToJSON(pumpHistory)
-//                print("pump history \(DebuggingIdentifiers.inProgress) \(String(describing: pumpHistory))")
 
-                print("pump historyjson \(DebuggingIdentifiers.inProgress) \(pumpHistoryJSON)")
-                print("vorlage \(DebuggingIdentifiers.inProgress) \(a)")
+                let pumpHistory = self.fetchPumpHistory()
+                var pumpHistoryJSON = ""
+
+                // TODO: maybe make this better and refactor the below loop logic to a util function?
+                if let events = pumpHistory {
+                    var dtos: [PumpEventDTO] = []
+
+                    for event in events {
+                        if let bolusDTO = event.toBolusDTOEnum() {
+                            dtos.append(bolusDTO)
+                        }
+                        if let tempBasalDTO = event.toTempBasalDTOEnum() {
+                            dtos.append(tempBasalDTO)
+                        }
+                        if let tempBasalDurationDTO = event.toTempBasalDurationDTOEnum() {
+                            dtos.append(tempBasalDurationDTO)
+                        }
+                    }
+
+                    let encoder = JSONEncoder()
+                    encoder.outputFormatting = .prettyPrinted
+                    if let jsonData = try? encoder.encode(dtos) {
+                        pumpHistoryJSON = String(data: jsonData, encoding: .utf8) ?? "[]"
+                    }
+                }
+
+//                print("pump historyjson \(DebuggingIdentifiers.inProgress) \(pumpHistoryJSON)")
+//
+//                print("vorlage \(DebuggingIdentifiers.inProgress) \(a)")
 
                 // carbs
                 let carbs = self.fetchCarbs()
