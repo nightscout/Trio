@@ -7,7 +7,6 @@ import Swinject
 
 protocol GlucoseStorage {
     func storeGlucose(_ glucose: [BloodGlucose])
-    func removeGlucose(ids: [String])
     func syncDate() -> Date
     func filterTooFrequentGlucose(_ glucose: [BloodGlucose], at: Date) -> [BloodGlucose]
     func lastGlucoseDate() -> Date
@@ -144,24 +143,6 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                             { $0.createdAt != nil && $0.createdAt!.addingTimeInterval(30.days.timeInterval) > Date() },
                         as: file
                     )
-                }
-            }
-        }
-    }
-
-    func removeGlucose(ids: [String]) {
-        processQueue.sync {
-            let file = OpenAPS.Monitor.glucose
-            self.storage.transaction { storage in
-                let bgInStorage = storage.retrieve(file, as: [BloodGlucose].self)
-                let filteredBG = bgInStorage?.filter { !ids.contains($0.id) } ?? []
-                guard bgInStorage != filteredBG else { return }
-                storage.save(filteredBG, as: file)
-
-                DispatchQueue.main.async {
-                    self.broadcaster.notify(GlucoseObserver.self, on: .main) {
-                        $0.glucoseDidUpdate(filteredBG.reversed())
-                    }
                 }
             }
         }

@@ -140,9 +140,6 @@ final class OpenAPS {
                 /// glucose
                 let glucose = self.fetchGlucose()
                 let glucoseString = self.jsonConverter.convertToJSON(glucose)
-                print(glucoseString)
-                let glucoseFromFile = self.loadFileFromStorage(name: Monitor.glucose)
-                print(glucoseFromFile)
 
                 /// profile
                 let profile = self.loadFileFromStorage(name: Settings.profile)
@@ -416,7 +413,10 @@ final class OpenAPS {
             self.processQueue.async {
                 debug(.openAPS, "Start autosens")
                 let pumpHistory = self.loadFileFromStorage(name: OpenAPS.Monitor.pumpHistory)
-                let carbs = self.loadFileFromStorage(name: Monitor.carbHistory)
+
+                // carbs
+                let carbs = self.fetchCarbs()
+                let carbsString = self.jsonConverter.convertToJSON(carbs)
 
                 /// glucose
                 let glucose = self.fetchGlucose()
@@ -430,7 +430,7 @@ final class OpenAPS {
                     pumpHistory: pumpHistory,
                     basalprofile: basalProfile,
                     profile: profile,
-                    carbs: carbs,
+                    carbs: carbsString,
                     temptargets: tempTargets
                 )
 
@@ -458,14 +458,17 @@ final class OpenAPS {
 
                 let profile = self.loadFileFromStorage(name: Settings.profile)
                 let pumpProfile = self.loadFileFromStorage(name: Settings.pumpProfile)
-                let carbs = self.loadFileFromStorage(name: Monitor.carbHistory)
+
+                // carbs
+                let carbs = self.fetchCarbs()
+                let carbsString = self.jsonConverter.convertToJSON(carbs)
 
                 let autotunePreppedGlucose = self.autotunePrepare(
                     pumphistory: pumpHistory,
                     profile: profile,
                     glucose: glucoseString,
                     pumpprofile: pumpProfile,
-                    carbs: carbs,
+                    carbs: carbsString,
                     categorizeUamAsBasal: categorizeUamAsBasal,
                     tuneInsulinCurve: tuneInsulinCurve
                 )
@@ -774,12 +777,20 @@ final class OpenAPS {
     }
 
     func processAndSave(forecastData: [String: [Int]]) {
-        let context = self.context
-
         let currentDate = Date()
 
-        for (type, values) in forecastData {
-            createForecast(type: type, values: values, date: currentDate, context: context)
+        context.perform {
+            for (type, values) in forecastData {
+                self.createForecast(type: type, values: values, date: currentDate, context: self.context)
+            }
+
+            if self.context.hasChanges {
+                do {
+                    try self.context.save()
+                } catch {
+                    print("Failed to save forecast: \(error)")
+                }
+            }
         }
     }
 
@@ -794,14 +805,6 @@ final class OpenAPS {
             forecastValue.value = Int32(value)
             forecastValue.index = Int32(index)
             forecastValue.forecast = forecast
-        }
-
-        if self.context.hasChanges {
-            do {
-                try context.save()
-            } catch {
-                print("Failed to save forecast: \(error)")
-            }
         }
     }
 }
