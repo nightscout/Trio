@@ -99,6 +99,8 @@ extension Bolus {
 
         let context = CoreDataStack.shared.viewContext
 
+        typealias PumpEvent = PumpEventStored.EventType
+
         override func subscribe() {
             fetchGlucose()
             fetchDetermination()
@@ -355,13 +357,20 @@ extension Bolus {
             }
         }
 
-        private func savePumpInsulin(amount: Decimal) {
-            let newItem = InsulinStored(context: context)
-            newItem.id = UUID()
-            newItem.amount = amount as NSDecimalNumber
-            newItem.date = Date()
-            newItem.external = false
-            newItem.isSMB = false
+        private func savePumpInsulin(amount _: Decimal) {
+            // create pump event
+            let newPumpEvent = PumpEventStored(context: context)
+            newPumpEvent.id = UUID().uuidString
+            newPumpEvent.timestamp = Date()
+            newPumpEvent.type = PumpEvent.bolus.rawValue
+
+            // create bolus entry and specify relationship to pump event
+            let newBolusEntry = BolusStored(context: context)
+            newBolusEntry.pumpEvent = newPumpEvent
+            newBolusEntry.amount = amount as NSDecimalNumber
+            newBolusEntry.isExternal = false
+            newBolusEntry.isSMB = false
+
             context.perform {
                 if self.context.hasChanges {
                     do {
@@ -427,12 +436,19 @@ extension Bolus {
 
             // save to core data asynchronously
             context.perform {
-                let newItem = InsulinStored(context: self.context)
-                newItem.id = UUID()
-                newItem.amount = self.amount as NSDecimalNumber
-                newItem.date = Date()
-                newItem.external = true
-                newItem.isSMB = false
+                // create pump event
+                let newPumpEvent = PumpEventStored(context: self.context)
+                newPumpEvent.id = UUID().uuidString
+                newPumpEvent.timestamp = self.date
+                newPumpEvent.type = PumpEvent.bolus.rawValue
+
+                // create bolus entry and specify relationship to pump event
+                let newBolusEntry = BolusStored(context: self.context)
+                newBolusEntry.pumpEvent = newPumpEvent
+                newBolusEntry.amount = self.amount as NSDecimalNumber
+                newBolusEntry.isExternal = true
+                newBolusEntry.isSMB = false
+
                 if self.context.hasChanges {
                     do {
                         try self.context.save()

@@ -98,9 +98,9 @@ struct MainChartView: View {
     ) var fpusFromPersistence: FetchedResults<CarbEntryStored>
 
     @FetchRequest(
-        fetchRequest: InsulinStored.fetch(NSPredicate.insulinForChart),
+        fetchRequest: PumpEventStored.fetch(NSPredicate.pumpHistoryLast24h, ascending: true),
         animation: Animation.bouncy
-    ) var insulinFromPersistence: FetchedResults<InsulinStored>
+    ) var insulinFromPersistence: FetchedResults<PumpEventStored>
 
     @FetchRequest(
         fetchRequest: GlucoseStored.fetch(NSPredicate.glucose, ascending: true),
@@ -364,24 +364,27 @@ extension MainChartView {
 extension MainChartView {
     private func drawBoluses() -> some ChartContent {
         /// smbs in triangle form
-        ForEach(insulinFromPersistence) { bolus in
-            let bolusAmount = bolus.amount ?? 0 as NSDecimalNumber
-            let bolusDate = bolus.date ?? Date()
+        ForEach(insulinFromPersistence) { insulin in
+            let amount = insulin.bolus?.amount ?? 0 as NSDecimalNumber
+            let bolusDate = insulin.timestamp ?? Date()
             let glucose = timeToNearestGlucose(time: bolusDate.timeIntervalSince1970)
             let yPosition = (Decimal(glucose.glucose) * conversionFactor) + bolusOffset
-            let size = (Config.bolusSize + CGFloat(truncating: bolusAmount) * Config.bolusScale) * 1.8
+            let size = (Config.bolusSize + CGFloat(truncating: amount) * Config.bolusScale) * 1.8
 
-            PointMark(
-                x: .value("Time", bolus.date ?? Date(), unit: .second),
-                y: .value("Value", yPosition)
-            )
-            .symbol {
-                Image(systemName: "arrowtriangle.down.fill").font(.system(size: size)).foregroundStyle(Color.insulin)
-            }
-            .annotation(position: .top) {
-                Text(bolusFormatter.string(from: bolusAmount) ?? "")
-                    .font(.caption2)
-                    .foregroundStyle(Color.insulin)
+            // don't display triangles if it is no smb
+            if amount != 0 {
+                PointMark(
+                    x: .value("Time", bolusDate, unit: .second),
+                    y: .value("Value", yPosition)
+                )
+                .symbol {
+                    Image(systemName: "arrowtriangle.down.fill").font(.system(size: size)).foregroundStyle(Color.insulin)
+                }
+                .annotation(position: .top) {
+                    Text(bolusFormatter.string(from: amount) ?? "")
+                        .font(.caption2)
+                        .foregroundStyle(Color.insulin)
+                }
             }
         }
     }
@@ -592,24 +595,25 @@ extension MainChartView {
         }
     }
 
-    private func filteredTempBasals() -> [(start: Date, end: Date, rate: Double)] {
+    private func prepareTempBasals() -> [(start: Date, end: Date, rate: Double)] {
         let now = Date()
-        return TempBasals.compactMap { temp -> (start: Date, end: Date, rate: Double)? in
-            let end = min(temp.timestamp + (temp.durationMin ?? 0).minutes.timeInterval, now)
-            let isInsulinSuspended = suspensions.contains { $0.timestamp >= temp.timestamp && $0.timestamp <= end }
-
-            let rate = Double(temp.rate ?? Decimal.zero) * (isInsulinSuspended ? 0 : 1)
+        return insulinFromPersistence.compactMap { temp -> (start: Date, end: Date, rate: Double)? in
+            let duration = temp.tempBasal?.duration ?? 0
+            let timestamp = temp.timestamp ?? Date()
+            let end = min(timestamp + duration.minutes, now)
+            let isInsulinSuspended = suspensions.contains { $0.timestamp >= timestamp && $0.timestamp <= end }
+            let rate = Double(truncating: temp.tempBasal?.rate ?? Decimal.zero as NSDecimalNumber) * (isInsulinSuspended ? 0 : 1)
 
             // Check if there's a subsequent temp basal to determine the end time
-            guard let nextTemp = TempBasals.first(where: { $0.timestamp > temp.timestamp }) else {
-                return (temp.timestamp, end, rate)
+            guard let nextTemp = insulinFromPersistence.first(where: { $0.timestamp ?? .distantPast > timestamp }) else {
+                return (timestamp, end, rate)
             }
-            return (temp.timestamp, nextTemp.timestamp, rate)
+            return (timestamp, nextTemp.timestamp ?? Date(), rate) // end defaults to current time
         }
     }
 
     private func drawTempBasals() -> some ChartContent {
-        ForEach(filteredTempBasals(), id: \.rate) { basal in
+        ForEach(prepareTempBasals(), id: \.rate) { basal in
             RectangleMark(
                 xStart: .value("start", basal.start),
                 xEnd: .value("end", basal.end),
@@ -843,13 +847,13 @@ extension MainChartView {
                 startDate: totalBasal[index].startDate,
                 endDate: totalBasal.count > index + 1 ? totalBasal[index + 1].startDate : endMarker
             ))
-            print(
-                "Basal",
-                totalBasal[index].startDate,
-                totalBasal.count > index + 1 ? totalBasal[index + 1].startDate : endMarker,
-                totalBasal[index].amount,
-                totalBasal[index].isOverwritten
-            )
+//            print(
+//                "Basal",
+//                totalBasal[index].startDate,
+//                totalBasal.count > index + 1 ? totalBasal[index + 1].startDate : endMarker,
+//                totalBasal[index].amount,
+//                totalBasal[index].isOverwritten
+//            )
         }
         BasalProfiles = basals
     }
@@ -939,5 +943,11 @@ struct LegendItem: View {
                 .font(.system(size: 10, weight: .bold))
                 .foregroundColor(color)
         }
+    }
+}
+
+extension Int16 {
+    var minutes: TimeInterval {
+        TimeInterval(self) * 60
     }
 }

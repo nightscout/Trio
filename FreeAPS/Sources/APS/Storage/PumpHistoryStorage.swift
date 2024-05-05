@@ -26,6 +26,9 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         injectServices(resolver)
     }
 
+    typealias PumpEvent = PumpEventStored.EventType
+    typealias TempType = PumpEventStored.TempType
+
     private let context = CoreDataStack.shared.backgroundContext
 
     func storePumpEvents(_ events: [NewPumpEvent]) {
@@ -38,15 +41,20 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                     let amount = Decimal(string: dose.unitsInDeliverableIncrements.description)
                     let minutes = Int((dose.endDate - dose.startDate).timeInterval / 60)
 
-                    // MARK: - save to Core Data
-
                     self.context.perform {
-                        let new = InsulinStored(context: self.context)
-                        new.amount = amount as? NSDecimalNumber
-                        new.date = Date()
-                        new.external = false
-                        new.id = UUID()
-                        new.isSMB = true
+                        // create pump event
+                        let newPumpEvent = PumpEventStored(context: self.context)
+                        newPumpEvent.id = id
+                        newPumpEvent.timestamp = event.date
+                        newPumpEvent.type = PumpEvent.bolus.rawValue
+
+                        // create bolus entry and specify relationship to pump event
+                        let newBolusEntry = BolusStored(context: self.context)
+                        newBolusEntry.pumpEvent = newPumpEvent
+                        newBolusEntry.amount = amount as? NSDecimalNumber
+                        newBolusEntry.isExternal = dose.manuallyEntered
+                        newBolusEntry.isSMB = dose.automatic ?? true
+                        // TODO: - do we need duration here?
 
                         if self.context.hasChanges {
                             do {
@@ -86,6 +94,34 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                     let isCancel = delivered != nil //! event.isMutable && delivered != nil
                     guard !isCancel else { return [] }
 
+                    self.context.perform {
+                        // create pump event
+                        let newPumpEvent = PumpEventStored(context: self.context)
+                        newPumpEvent.id = id
+                        newPumpEvent.timestamp = date
+                        newPumpEvent.type = PumpEvent.tempBasal.rawValue
+
+                        // create temp basal and specify relationship
+                        let newTempBasal = TempBasalStored(context: self.context)
+                        newTempBasal.pumpEvent = newPumpEvent
+                        newTempBasal.duration = Int16(round(minutes))
+                        newTempBasal.rate = rate as NSDecimalNumber
+                        newTempBasal.tempType = TempType.absolute.rawValue
+
+                        if self.context.hasChanges {
+                            do {
+                                try self.context.save()
+                                debugPrint(
+                                    "Pump History storage: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved temp basal to core data"
+                                )
+                            } catch {
+                                debugPrint(
+                                    "Pump History storage: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save temp basal to core data"
+                                )
+                            }
+                        }
+                    }
+
                     return [
                         PumpHistoryEvent(
                             id: id,
@@ -111,6 +147,26 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         )
                     ]
                 case .suspend:
+                    self.context.perform {
+                        // create pump event
+                        let newPumpEvent = PumpEventStored(context: self.context)
+                        newPumpEvent.id = id
+                        newPumpEvent.timestamp = event.date
+                        newPumpEvent.type = PumpEvent.pumpSuspend.rawValue
+
+                        if self.context.hasChanges {
+                            do {
+                                try self.context.save()
+                                debugPrint(
+                                    "Pump History storage: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved suspension to core data"
+                                )
+                            } catch {
+                                debugPrint(
+                                    "Pump History storage: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save suspension to core data"
+                                )
+                            }
+                        }
+                    }
                     return [
                         PumpHistoryEvent(
                             id: id,

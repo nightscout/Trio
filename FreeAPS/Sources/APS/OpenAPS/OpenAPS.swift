@@ -120,6 +120,20 @@ final class OpenAPS {
         }
     }
 
+    private func fetchPumpHistory() -> [PumpEventStored]? {
+        do {
+            debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.succeeded) fetched pump history")
+
+            return try context
+                .fetch(PumpEventStored.fetch(NSPredicate.pumpHistoryLast24h, ascending: true))
+        } catch {
+            debugPrint(
+                "OpenAPS: \(#function) \(DebuggingIdentifiers.failed) error while fetching pumphistory for determine basal with error: \(error)"
+            )
+            return []
+        }
+    }
+
     func determineBasal(currentTemp: TempBasal, clock: Date = Date()) -> Future<Determination?, Never> {
         Future { promise in
             self.processQueue.async {
@@ -131,7 +145,9 @@ final class OpenAPS {
                 let tempBasal = currentTemp.rawJSON
                 self.storage.save(tempBasal, as: Monitor.tempBasal)
 
-                let pumpHistory = self.loadFileFromStorage(name: OpenAPS.Monitor.pumpHistory)
+//                let pumpHistory = self.loadFileFromStorage(name: OpenAPS.Monitor.pumpHistory)
+                let pumpHistory = self.fetchPumpHistory()
+                let pumpHistoryJSON = self.jsonConverter.convertToJSON(pumpHistory)
 
                 // carbs
                 let carbs = self.fetchCarbs()
@@ -147,7 +163,7 @@ final class OpenAPS {
 
                 /// meal
                 let meal = self.meal(
-                    pumphistory: pumpHistory,
+                    pumphistory: pumpHistoryJSON,
                     profile: profile,
                     basalProfile: basalProfile,
                     clock: clock,
@@ -160,7 +176,7 @@ final class OpenAPS {
                 // iob
                 let autosens = self.loadFileFromStorage(name: Settings.autosense)
                 let iob = self.iob(
-                    pumphistory: pumpHistory,
+                    pumphistory: pumpHistoryJSON,
                     profile: profile,
                     clock: clock,
                     autosens: autosens.isEmpty ? .null : autosens
@@ -185,7 +201,7 @@ final class OpenAPS {
                     meal: meal,
                     microBolusAllowed: true,
                     reservoir: reservoir,
-                    pumpHistory: pumpHistory,
+                    pumpHistory: pumpHistoryJSON,
                     preferences: preferences,
                     basalProfile: basalProfile,
                     oref2_variables: oref2_variables

@@ -22,6 +22,9 @@ class CoreDataStack: ObservableObject {
     lazy var backgroundContext: NSManagedObjectContext = {
         let newbackgroundContext = CoreDataStack.shared.persistentContainer.newBackgroundContext()
         newbackgroundContext.automaticallyMergesChangesFromParent = true
+        newbackgroundContext
+            .mergePolicy =
+            NSMergeByPropertyStoreTrumpMergePolicy // if two objects with the same unique constraint are found, overwrite with the object in the external storage
         return newbackgroundContext
     }()
 

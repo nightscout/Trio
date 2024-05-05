@@ -25,6 +25,12 @@
         <attribute name="median_7" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="median_30" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
     </entity>
+    <entity name="BolusStored" representedClassName="BolusStored" syncable="YES">
+        <attribute name="amount" optional="YES" attributeType="Decimal" defaultValueString="0"/>
+        <attribute name="isExternal" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="isSMB" optional="YES" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <relationship name="pumpEvent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="PumpEventStored" inverseName="bolus" inverseEntity="PumpEventStored"/>
+    </entity>
     <entity name="CarbEntryStored" representedClassName="CarbEntryStored" syncable="YES">
         <attribute name="carbs" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -79,16 +85,6 @@
         <attribute name="scheduledBasal" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="tempBasal" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <relationship name="insulin" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Oref0Suggestion" inverseName="computedInsulinDistribution" inverseEntity="Oref0Suggestion"/>
-        <fetchIndex name="byDate">
-            <fetchIndexElement property="date" type="Binary" order="ascending"/>
-        </fetchIndex>
-    </entity>
-    <entity name="InsulinStored" representedClassName="InsulinStored" syncable="YES">
-        <attribute name="amount" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
-        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="external" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
-        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="isSMB" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <fetchIndex name="byDate">
             <fetchIndexElement property="date" type="Binary" order="ascending"/>
         </fetchIndex>
@@ -213,6 +209,21 @@
         <attribute name="enteredBy" optional="YES" attributeType="String"/>
         <attribute name="protein" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
     </entity>
+    <entity name="PumpEventStored" representedClassName="PumpEventStored" syncable="YES">
+        <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="type" optional="YES" attributeType="String"/>
+        <relationship name="bolus" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="BolusStored" inverseName="pumpEvent" inverseEntity="BolusStored"/>
+        <relationship name="tempBasal" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="TempBasalStored" inverseName="pumpEvent" inverseEntity="TempBasalStored"/>
+        <fetchIndex name="byTimestamp">
+            <fetchIndexElement property="timestamp" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
     <entity name="StatsData" representedClassName="StatsData" syncable="YES">
         <attribute name="lastrun" attributeType="Date" defaultDateTimeInterval="704497620" usesScalarValueType="NO"/>
     </entity>
@@ -226,6 +237,12 @@
         <fetchIndex name="byDate">
             <fetchIndexElement property="timestamp" type="Binary" order="ascending"/>
         </fetchIndex>
+    </entity>
+    <entity name="TempBasalStored" representedClassName="TempBasalStored" syncable="YES">
+        <attribute name="duration" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="rate" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="tempType" optional="YES" attributeType="String"/>
+        <relationship name="pumpEvent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="PumpEventStored" inverseName="tempBasal" inverseEntity="PumpEventStored"/>
     </entity>
     <entity name="TempTargets" representedClassName="TempTargets" syncable="YES">
         <attribute name="active" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
