@@ -134,6 +134,26 @@ final class OpenAPS {
         }
     }
 
+    private func parsePumpHistory(_ pumpHistory: [PumpEventStored]) -> String {
+        if !pumpHistory.isEmpty {
+            var dtos: [PumpEventDTO] = []
+
+            for event in pumpHistory {
+                if let bolusDTO = event.toBolusDTOEnum() {
+                    dtos.append(bolusDTO)
+                }
+                if let tempBasalDTO = event.toTempBasalDTOEnum() {
+                    dtos.append(tempBasalDTO)
+                }
+                if let tempBasalDurationDTO = event.toTempBasalDurationDTOEnum() {
+                    dtos.append(tempBasalDurationDTO)
+                }
+            }
+
+            return jsonConverter.convertToJSON(dtos)
+        } else { return "" }
+    }
+
     func determineBasal(currentTemp: TempBasal, clock: Date = Date()) -> Future<Determination?, Never> {
         Future { promise in
             self.processQueue.async {
@@ -148,30 +168,7 @@ final class OpenAPS {
                 let a = self.loadFileFromStorage(name: OpenAPS.Monitor.pumpHistory)
 
                 let pumpHistory = self.fetchPumpHistory()
-                var pumpHistoryJSON = ""
-
-                // TODO: maybe make this better and refactor the below loop logic to a util function?
-                if let events = pumpHistory {
-                    var dtos: [PumpEventDTO] = []
-
-                    for event in events {
-                        if let bolusDTO = event.toBolusDTOEnum() {
-                            dtos.append(bolusDTO)
-                        }
-                        if let tempBasalDTO = event.toTempBasalDTOEnum() {
-                            dtos.append(tempBasalDTO)
-                        }
-                        if let tempBasalDurationDTO = event.toTempBasalDurationDTOEnum() {
-                            dtos.append(tempBasalDurationDTO)
-                        }
-                    }
-
-                    let encoder = JSONEncoder()
-                    encoder.outputFormatting = .prettyPrinted
-                    if let jsonData = try? encoder.encode(dtos) {
-                        pumpHistoryJSON = String(data: jsonData, encoding: .utf8) ?? "[]"
-                    }
-                }
+                let pumpHistoryJSON = self.parsePumpHistory(pumpHistory ?? [])
 
 //                print("pump historyjson \(DebuggingIdentifiers.inProgress) \(pumpHistoryJSON)")
 //
