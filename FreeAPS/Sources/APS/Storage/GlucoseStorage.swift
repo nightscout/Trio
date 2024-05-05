@@ -49,42 +49,50 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             debug(.deviceManager, "start storage glucose")
 
             self.coredataContext.perform {
-                for glucoseEntry in glucose {
+                // read
+                let datesToCheck: Set<Date> = Set(glucose.compactMap { $0.dateString as Date? })
+                let fetchRequest: NSFetchRequest<NSFetchRequestResult> = GlucoseStored.fetchRequest()
+                fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+                    NSPredicate(format: "date IN %@", datesToCheck),
+                    NSPredicate.predicateForOneDayAgo
+                ])
+                fetchRequest.propertiesToFetch = ["date"]
+                fetchRequest.resultType = .dictionaryResultType
+
+                var existingDates = Set<Date>()
+                do {
+                    let results = try self.coredataContext.fetch(fetchRequest) as? [NSDictionary]
+                    existingDates = Set(results?.compactMap({ $0["date"] as? Date }) ?? [])
+                } catch {
+                    debugPrint("Failed to fetch existing glucose dates: \(error)")
+                }
+
+                // filtering before loop
+                let filteredGlucose = glucose.filter { glucoseEntry -> Bool in
+                    !existingDates.contains(glucoseEntry.dateString)
+                }
+
+                // save
+                for glucoseEntry in filteredGlucose {
                     guard let glucoseValue = glucoseEntry.glucose else { continue }
-
-                    let dateString = glucoseEntry.dateString
-                    let fetchRequest: NSFetchRequest<NSFetchRequestResult> = GlucoseStored.fetchRequest()
-                    fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-                        NSPredicate(format: "date == %@", dateString as NSDate),
-                        NSPredicate.predicateForOneDayAgo
-                    ])
-                    fetchRequest.fetchLimit = 1
-                    fetchRequest.propertiesToFetch = ["date"]
-                    fetchRequest.resultType = .dictionaryResultType
-
-                    let count = (try? self.coredataContext.count(for: fetchRequest)) ?? 0
-                    if count > 0 {
-                        debugPrint("duplicate glucose detected. Skipping saving...")
-                        continue
-                    }
 
                     let newItem = GlucoseStored(context: self.coredataContext)
                     newItem.id = UUID()
                     newItem.glucose = Int16(glucoseValue)
-                    newItem.date = dateString
+                    newItem.date = glucoseEntry.dateString
                     newItem.direction = glucoseEntry.direction?.symbol
+                }
 
-                    if self.coredataContext.hasChanges {
-                        do {
-                            try self.coredataContext.save()
-                            debugPrint(
-                                "Glucose Storage: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved glucose to core data"
-                            )
-                        } catch {
-                            debugPrint(
-                                "Glucose Storage: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save glucose to core data: \(error)"
-                            )
-                        }
+                if self.coredataContext.hasChanges {
+                    do {
+                        try self.coredataContext.save()
+                        debugPrint(
+                            "Glucose Storage: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved glucose to core data"
+                        )
+                    } catch {
+                        debugPrint(
+                            "Glucose Storage: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save glucose to core data: \(error)"
+                        )
                     }
                 }
             }
