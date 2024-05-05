@@ -569,6 +569,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     const BG = glucose_status.glucose;
     const useDynamicCR = preferences.enableDynamicCR;
     const adjustmentFactor = preferences.adjustmentFactor;
+    const adjustmentFactorSigmoid = preferences.adjustmentFactorSigmoid;
+    const enable_sigmoid = preferences.sigmoid;
     const currentMinTarget = profileTarget;
     var exerciseSetting = false;
     var log = "";
@@ -610,7 +612,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
 
     var startLog = ", Dynamic ratios log: ";
-    var afLog = ", AF: " + adjustmentFactor;
+    var afLog = ", AF: " + (enable_sigmoid ? adjustmentFactorSigmoid : adjustmentFactor);
     var bgLog = "BG: " + BG + " mg/dl (" + (BG * 0.0555).toPrecision(2) + " mmol/l)";
     var formula = "";
     var weightLog = "";
@@ -653,36 +655,37 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     // New logarithmic formula : var newRatio = profile.sens * adjustmentFactor * tdd * ln(( BG/insulinFactor) + 1 )) / 1800
     //
 
-    const enable_sigmoid = preferences.sigmoid;
     var sigmoidLog = ""
-
+    
     if (dynISFenabled) {
-        var newRatio = sensitivity * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800;
-        formula = ", Logarithmic formula";
-    }
-
-     // Sigmoid Function
-    if (dynISFenabled && enable_sigmoid) {
-        const as_min = minLimitChris;
-        const autosens_interval = maxLimitChris - as_min;
-        //Blood glucose deviation from set target (the lower BG target) converted to mmol/l to fit current formula.
-        const bg_dev = (BG - profileTarget) * 0.0555;
-        // Account for TDD of insulin. Compare last 2 hours with total data (up to 14 days)
-        var tdd_factor = tdd24h_14d_Ratio; // weighted average TDD / total data average TDD
-        var max_minus_one = maxLimitChris - 1;
-        // Avoid division by 0
-        if (maxLimitChris == 1) {
-            max_minus_one = maxLimitChris + 0.01 - 1;
+        // Logarithmic
+        if (!enable_sigmoid) {
+            var newRatio = sensitivity * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800;
+            formula = ", Logarithmic formula";
         }
-        //Makes sigmoid factor(y) = 1 when BG deviation(x) = 0.
-        const fix_offset = (Math.log10(1/max_minus_one-as_min/max_minus_one) / Math.log10(Math.E));
-        //Exponent used in sigmoid formula
-        const exponent = bg_dev * adjustmentFactor * tdd_factor + fix_offset;
-        // The sigmoid function
-        const sigmoid_factor = autosens_interval / (1 + Math.exp(-exponent)) + as_min;
-        newRatio = sigmoid_factor;
-        formula = ", Sigmoid function";
-        // Dynamic CR will be processed further down
+        // Sigmoid
+        else {
+            const as_min = minLimitChris;
+            const autosens_interval = maxLimitChris - as_min;
+            //Blood glucose deviation from set target (the lower BG target) converted to mmol/l to fit current formula.
+            const bg_dev = (BG - profileTarget) * 0.0555;
+            // Account for TDD of insulin. Compare last 2 hours with total data (up to 14 days)
+            var tdd_factor = tdd24h_14d_Ratio; // weighted average TDD / total data average TDD
+            var max_minus_one = maxLimitChris - 1;
+            // Avoid division by 0
+            if (maxLimitChris == 1) {
+                max_minus_one = maxLimitChris + 0.01 - 1;
+            }
+            //Makes sigmoid factor(y) = 1 when BG deviation(x) = 0.
+            const fix_offset = (Math.log10(1/max_minus_one-as_min/max_minus_one) / Math.log10(Math.E));
+            //Exponent used in sigmoid formula
+            const exponent = bg_dev * adjustmentFactorSigmoid * tdd_factor + fix_offset;
+            // The sigmoid function
+            const sigmoid_factor = autosens_interval / (1 + Math.exp(-exponent)) + as_min;
+            newRatio = sigmoid_factor;
+            formula = ", Sigmoid function";
+            // Dynamic CR will be processed further down
+        }
     }
 
     var cr = carbRatio;

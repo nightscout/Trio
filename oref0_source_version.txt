@@ -1,9 +1,13 @@
-oref0 branch: dev - git version: 5774155
+oref0 branch: dev - git version: fa373c9
 
 Last commits:
+fa373c9 Merge pull request #22 from nightscout/tmhastings-tddAdjBasal
+fc0ae69 tddAdjBasal pop-up correction
+487bcbb Merge pull request #21 from MikePlante1/separate_adjustment_factors
 5774155 Merge pull request #20 from MikePlante1/disable_smb_schedule
 e3a8d73 Merge pull request #17 from MikePlante1/console_error_refactor
 a29d9ce rename smbIsAlwaysOff to smbIsScheduledOff
+b777c77 Separate Adjustment Factors for Logarithmic and Sigmoid
 d898eb1 fix threshold console.error
 b89a39b Merge pull request #16 from bjornoleh/webpack-update
 b8aaf93 Merge pull request #15 from avouspierre/dev

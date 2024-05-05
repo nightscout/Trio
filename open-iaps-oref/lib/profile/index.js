@@ -68,12 +68,13 @@ function defaults ( ) {
     , target_bg: false // set to an integer value in mg/dL to override pump min_bg
     // autoISF variables
     , smb_delivery_ratio: 0.5 //Default value: 0.5 Used if flexible delivery ratio is not used. This is another key OpenAPS safety cap, and specifies what share of the total insulin required can be delivered as SMB. This is to prevent people from getting into dangerous territory by setting SMB requests from the caregivers phone at the same time. Increase this experimental value slowly and with caution.
-    , adjustmentFactor: 1
+    , adjustmentFactor: 0.8
+    , adjustmentFactorSigmoid: 0.5
     , useNewFormula: false
     , enableDynamicCR: false
     , sigmoid: false
     , weightPercentage: 0.65 
-    , tddAdjBasal: false // Enable adjustment of basal based on the ratio of 24 h : 7 day average TDD
+    , tddAdjBasal: false // Enable adjustment of basal based on the ratio of 24 h : 10 day average TDD
     , enableSMB_high_bg: false // enable SMBs when a high BG is detected, based on the high BG target (adjusted or profile)
     , enableSMB_high_bg_target: 110 // set the value enableSMB_high_bg will compare against to enable SMB. If BG > than this value, SMBs should enable.
     , threshold_setting: 0.60 // Use a configurable threshold setting
@@ -102,6 +103,7 @@ function displayedDefaults () {
     profile.smb_delivery_ratio = allDefaults.smb_delivery_ratio;
     profile.maxDelta_bg_threshold = allDefaults.maxDelta_bg_threshold;
     profile.adjustmentFactor = allDefaults.adjustmentFactor;
+    profile.adjustmentFactorSigmoid = allDefaults.adjustmentFactorSigmoid;
     profile.useNewFormula = allDefaults.useNewFormula;
     profile.enableDynamicCR = allDefaults.enableDynamicCR;
     profile.sigmoid = allDefaults.sigmoid;
