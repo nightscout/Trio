@@ -6,14 +6,14 @@ import Foundation
     static let title = LocalizedStringResource("Unit", table: "ShortcutsDetail")
     //  static var defaultQuery = UnitQuery()
 
-    case mgL
+    case mgdL
     case mmolL
 
     static var typeDisplayRepresentation = TypeDisplayRepresentation(name: .init("Unit", table: "ShortcutsDetail"))
 
     static var caseDisplayRepresentations: [Self: DisplayRepresentation] =
         [
-            .mgL: .init(title: LocalizedStringResource("mg/L", table: "ShortcutsDetail")),
+            .mgdL: .init(title: LocalizedStringResource("mg/dL", table: "ShortcutsDetail")),
             .mmolL: .init(title: LocalizedStringResource("mmol/L", table: "ShortcutsDetail"))
         ]
 }

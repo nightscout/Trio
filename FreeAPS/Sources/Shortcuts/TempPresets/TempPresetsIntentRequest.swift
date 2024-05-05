@@ -88,7 +88,7 @@ import Foundation
         var glucoseUnit: GlucoseUnits
         if let unit = unit {
             switch unit {
-            case .mgL:
+            case .mgdL:
                 glucoseUnit = .mgdL
             case .mmolL:
                 glucoseUnit = .mmolL

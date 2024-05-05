@@ -52,12 +52,12 @@ import Foundation
 
     static var parameterSummary: some ParameterSummary {
         When(\.$confirmBeforeApplying, .equalTo, true, {
-            Summary("Start \(\.$target) \(\.$unit) target during \(\.$duration) min", table: "ShortcutsDetail") {
+            Summary("Start \(\.$target) \(\.$unit) target for \(\.$duration) min", table: "ShortcutsDetail") {
                 \.$dateStart
                 \.$confirmBeforeApplying
             }
         }, otherwise: {
-            Summary("Start \(\.$target) \(\.$unit) target during \(\.$duration) min", table: "ShortcutsDetail") {
+            Summary("Start \(\.$target) \(\.$unit) target for \(\.$duration) min", table: "ShortcutsDetail") {
                 \.$dateStart
             }
         })
