@@ -70,7 +70,7 @@ extension PumpEventStored: Encodable {
         // temp basal CD entity
         case duration
         case rate
-        case tempType
+        case temp
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -121,10 +121,11 @@ extension PumpEventStored: Encodable {
             try container.encode(0, forKey: .rate)
         }
         // temp type
+        // its called "temp" in the json thats passed into determineBasal hence the undescriptive name of this coding key
         if let tempType = tempBasal?.tempType {
-            try container.encode(tempType, forKey: .tempType)
+            try container.encode(tempType, forKey: .temp)
         } else {
-            try container.encode("absolute", forKey: .tempType)
+            try container.encode("absolute", forKey: .temp)
         }
     }
 }

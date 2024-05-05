@@ -125,7 +125,7 @@ final class OpenAPS {
             debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.succeeded) fetched pump history")
 
             return try context
-                .fetch(PumpEventStored.fetch(NSPredicate.pumpHistoryLast24h, ascending: true))
+                .fetch(PumpEventStored.fetch(NSPredicate.pumpHistoryLast24h, ascending: false))
         } catch {
             debugPrint(
                 "OpenAPS: \(#function) \(DebuggingIdentifiers.failed) error while fetching pumphistory for determine basal with error: \(error)"
@@ -145,9 +145,13 @@ final class OpenAPS {
                 let tempBasal = currentTemp.rawJSON
                 self.storage.save(tempBasal, as: Monitor.tempBasal)
 
-//                let pumpHistory = self.loadFileFromStorage(name: OpenAPS.Monitor.pumpHistory)
+                let a = self.loadFileFromStorage(name: OpenAPS.Monitor.pumpHistory)
                 let pumpHistory = self.fetchPumpHistory()
                 let pumpHistoryJSON = self.jsonConverter.convertToJSON(pumpHistory)
+//                print("pump history \(DebuggingIdentifiers.inProgress) \(String(describing: pumpHistory))")
+
+                print("pump historyjson \(DebuggingIdentifiers.inProgress) \(pumpHistoryJSON)")
+                print("vorlage \(DebuggingIdentifiers.inProgress) \(a)")
 
                 // carbs
                 let carbs = self.fetchCarbs()
