@@ -1039,7 +1039,7 @@ Enact a temp Basal or a temp target */
 "To prevent LOW required %d g of carbs" = "DÜŞÜK KŞ'ini önlemek için gerekli Karbonhidrat %d g";
 
 /* */
-"Open-iAPS Not Active" = "Open-iAPS etkin değil";
+"Trio Not Active" = "Trio etkin değil";
 
 /* */
 "Last loop was more than %d min ago" = "Son döngü %d dak kadar önceydi";
@@ -1375,7 +1375,7 @@ Enact a temp Basal or a temp target */
 "App Icons" = "App Icons";
 
 /* */
-"Open-iAPS Icon" = "Open-iAPS Icon";
+"Trio Icon" = "Trio Icon";
 
 /* Service Section */
 "Statistics and Home View" = "Statistics and Home View";

@@ -1035,7 +1035,7 @@ Enact a temp Basal or a temp target */
 "To prevent LOW required %d g of carbs" = "For å forhindre lavt blodsukker: %d g karbo nødvendig";
 
 /* */
-"Open-iAPS Not Active" = "Open-iAPS ikke aktiv";
+"Trio Not Active" = "Trio ikke aktiv";
 
 /* */
 "Last loop was more than %d min ago" = "Siste loop var mer enn %d min siden";
@@ -1371,7 +1371,7 @@ Enact a temp Basal or a temp target */
 "App Icons" = "App-ikon";
 
 /* */
-"Open-iAPS Icon" = "Open-iAPS ikon";
+"Trio Icon" = "Trio ikon";
 
 /* Service Section */
 "Statistics and Home View" = "Statistikk og startskjerm";
