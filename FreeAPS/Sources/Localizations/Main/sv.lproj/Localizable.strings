@@ -1035,7 +1035,7 @@ Enact a temp Basal or a temp target */
 "To prevent LOW required %d g of carbs" = "För att förhindra ett lågt blodsocker krävs uppskattningsvis %d g kolhydrater";
 
 /* */
-"Open-iAPS Not Active" = "Open-iAPS är inte aktiv";
+"Trio Not Active" = "Trio är inte aktiv";
 
 /* */
 "Last loop was more than %d min ago" = "Senaste loop var för mer än %d min sedan";
@@ -1371,7 +1371,7 @@ Enact a temp Basal or a temp target */
 "App Icons" = "Ikoner";
 
 /* */
-"Open-iAPS Icon" = "Open-iAPS - ikon";
+"Trio Icon" = "Trio - ikon";
 
 /* Service Section */
 "Statistics and Home View" = "Statistik och Diagram";
