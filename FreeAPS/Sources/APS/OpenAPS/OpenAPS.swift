@@ -165,14 +165,8 @@ final class OpenAPS {
                 let tempBasal = currentTemp.rawJSON
                 self.storage.save(tempBasal, as: Monitor.tempBasal)
 
-                let a = self.loadFileFromStorage(name: OpenAPS.Monitor.pumpHistory)
-
                 let pumpHistory = self.fetchPumpHistory()
                 let pumpHistoryJSON = self.parsePumpHistory(pumpHistory ?? [])
-
-//                print("pump historyjson \(DebuggingIdentifiers.inProgress) \(pumpHistoryJSON)")
-//
-//                print("vorlage \(DebuggingIdentifiers.inProgress) \(a)")
 
                 // carbs
                 let carbs = self.fetchCarbs()
@@ -453,7 +447,10 @@ final class OpenAPS {
         Future { promise in
             self.processQueue.async {
                 debug(.openAPS, "Start autosens")
-                let pumpHistory = self.loadFileFromStorage(name: OpenAPS.Monitor.pumpHistory)
+                
+                // pump history
+                let pumpHistory = self.fetchPumpHistory()
+                let pumpHistoryJSON = self.parsePumpHistory(pumpHistory ?? [])
 
                 // carbs
                 let carbs = self.fetchCarbs()
@@ -468,7 +465,7 @@ final class OpenAPS {
                 let tempTargets = self.loadFileFromStorage(name: Settings.tempTargets)
                 let autosensResult = self.autosense(
                     glucose: glucoseString,
-                    pumpHistory: pumpHistory,
+                    pumpHistory: pumpHistoryJSON,
                     basalprofile: basalProfile,
                     profile: profile,
                     carbs: carbsString,
@@ -491,7 +488,10 @@ final class OpenAPS {
         Future { promise in
             self.processQueue.async {
                 debug(.openAPS, "Start autotune")
-                let pumpHistory = self.loadFileFromStorage(name: OpenAPS.Monitor.pumpHistory)
+
+                // pump history
+                let pumpHistory = self.fetchPumpHistory()
+                let pumpHistoryJSON = self.parsePumpHistory(pumpHistory ?? [])
 
                 /// glucose
                 let glucose = self.fetchGlucose()
@@ -505,7 +505,7 @@ final class OpenAPS {
                 let carbsString = self.jsonConverter.convertToJSON(carbs)
 
                 let autotunePreppedGlucose = self.autotunePrepare(
-                    pumphistory: pumpHistory,
+                    pumphistory: pumpHistoryJSON,
                     profile: profile,
                     glucose: glucoseString,
                     pumpprofile: pumpProfile,
