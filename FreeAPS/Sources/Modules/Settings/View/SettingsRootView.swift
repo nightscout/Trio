@@ -18,12 +18,12 @@ extension Settings {
                 header: {
                     if let expirationDate = Bundle.main.profileExpiration {
                         Text(
-                            "Open-iAPS v\(state.versionNumber) (\(state.buildNumber))\nBranch: \(state.branch) \(state.copyrightNotice)" +
+                            "Trio v\(state.versionNumber) (\(state.buildNumber))\nBranch: \(state.branch) \(state.copyrightNotice)" +
                                 "\nBuild Expires: " + expirationDate
                         ).textCase(nil)
                     } else {
                         Text(
-                            "Open-iAPS v\(state.versionNumber) (\(state.buildNumber))\nBranch: \(state.branch) \(state.copyrightNotice)"
+                            "Trio v\(state.versionNumber) (\(state.buildNumber))\nBranch: \(state.branch) \(state.copyrightNotice)"
                         )
                     }
                 }

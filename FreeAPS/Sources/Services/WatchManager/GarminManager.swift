@@ -63,7 +63,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
     init(resolver: Resolver) {
         super.init()
-        connectIQ?.initialize(withUrlScheme: "Open-iAPS", uiOverrideDelegate: self)
+        connectIQ?.initialize(withUrlScheme: "Trio", uiOverrideDelegate: self)
         injectServices(resolver)
         restoreDevices()
         subscribeToOpenFromGarminConnect()
@@ -157,7 +157,7 @@ extension BaseGarminManager: IQUIOverrideDelegate {
         debug(.apsManager, NSLocalizedString("Garmin is not available", comment: ""))
         let messageCont = MessageContent(
             content: NSLocalizedString(
-                "The app Garmin Connect must be installed to use for Open-iAPS.\n Go to App Store to download it",
+                "The app Garmin Connect must be installed to use for Trio.\n Go to App Store to download it",
                 comment: ""
             ),
             type: .warning

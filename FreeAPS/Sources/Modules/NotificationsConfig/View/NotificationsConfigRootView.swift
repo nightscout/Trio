@@ -92,7 +92,7 @@ extension NotificationsConfig {
 
             if !systemLiveActivitySetting {
                 footer =
-                    "Live activities are turned OFF in system settings. To enable live activities, go to Settings app -> Open-iAPS -> Turn live Activities ON.\n\n" +
+                    "Live activities are turned OFF in system settings. To enable live activities, go to Settings app -> Trio -> Turn live Activities ON.\n\n" +
                     footer
             }
 
