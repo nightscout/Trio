@@ -135,23 +135,23 @@ final class OpenAPS {
     }
 
     private func parsePumpHistory(_ pumpHistory: [PumpEventStored]) -> String {
-        if !pumpHistory.isEmpty {
-            var dtos: [PumpEventDTO] = []
+        guard !pumpHistory.isEmpty else { return "" }
 
-            for event in pumpHistory {
-                if let bolusDTO = event.toBolusDTOEnum() {
-                    dtos.append(bolusDTO)
-                }
-                if let tempBasalDTO = event.toTempBasalDTOEnum() {
-                    dtos.append(tempBasalDTO)
-                }
-                if let tempBasalDurationDTO = event.toTempBasalDurationDTOEnum() {
-                    dtos.append(tempBasalDurationDTO)
-                }
+        let dtos: [PumpEventDTO] = pumpHistory.flatMap { event -> [PumpEventDTO] in
+            var eventDTOs: [PumpEventDTO] = []
+            if let bolusDTO = event.toBolusDTOEnum() {
+                eventDTOs.append(bolusDTO)
             }
+            if let tempBasalDTO = event.toTempBasalDTOEnum() {
+                eventDTOs.append(tempBasalDTO)
+            }
+            if let tempBasalDurationDTO = event.toTempBasalDurationDTOEnum() {
+                eventDTOs.append(tempBasalDurationDTO)
+            }
+            return eventDTOs
+        }
 
-            return jsonConverter.convertToJSON(dtos)
-        } else { return "" }
+        return jsonConverter.convertToJSON(dtos)
     }
 
     func determineBasal(currentTemp: TempBasal, clock: Date = Date()) -> Future<Determination?, Never> {
@@ -447,7 +447,7 @@ final class OpenAPS {
         Future { promise in
             self.processQueue.async {
                 debug(.openAPS, "Start autosens")
-                
+
                 // pump history
                 let pumpHistory = self.fetchPumpHistory()
                 let pumpHistoryJSON = self.parsePumpHistory(pumpHistory ?? [])

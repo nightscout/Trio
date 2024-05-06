@@ -57,73 +57,6 @@ extension NSPredicate {
     }
 }
 
-// extension PumpEventStored: Encodable {
-//    enum CodingKeys: String, CodingKey {
-//        // pump event CD entitiy
-//        case id
-//        case timestamp
-//        case type
-//        // bolus CD entitity
-//        case amount
-//        case isSMB
-//        case isExternal
-//        // temp basal CD entity
-//        case duration
-//        case rate
-//        case temp
-//    }
-//
-//    public func encode(to encoder: Encoder) throws {
-//        var containers = encoder.unkeyedContainer()
-//
-//        let dateFormatter = ISO8601DateFormatter()
-//        let formattedDate = dateFormatter.string(from: timestamp ?? Date())
-//
-//        if let tempBasal = self.tempBasal {
-//            // TempBasalDuration
-//            var tempBasalDurationContainer = containers.nestedContainer(keyedBy: CodingKeys.self)
-//            try tempBasalDurationContainer.encode("TempBasalDuration", forKey: .type)
-//            try tempBasalDurationContainer.encode(tempBasal.duration, forKey: .duration)
-//            try tempBasalDurationContainer.encode(formattedDate, forKey: .timestamp)
-//            try tempBasalDurationContainer.encode(id ?? UUID().uuidString, forKey: .id)
-//
-//            // TempBasal
-//            var tempBasalContainer = containers.nestedContainer(keyedBy: CodingKeys.self)
-//            try tempBasalContainer.encode("TempBasal", forKey: .type)
-//            if let rate = tempBasal.rate as Decimal? {
-//                try tempBasalContainer.encode(rate, forKey: .rate)
-//            } else {
-//                try tempBasalContainer.encode(0, forKey: .rate)
-//            }
-//            // its called "temp" in the json thats passed into determineBasal hence the undescriptive name of this coding key
-//            if let tempType = tempBasal.tempType {
-//                try tempBasalContainer.encode(tempType, forKey: .temp)
-//            } else {
-//                try tempBasalContainer.encode("absolute", forKey: .temp)
-//            }
-//            try tempBasalContainer.encode(formattedDate, forKey: .timestamp)
-//            // TempBasal and TempBasalDuration need to "relate" in the JSON, use same ID and prepemd with "_" here
-//            try tempBasalContainer.encode("_\(id ?? UUID().uuidString)", forKey: .id)
-//        }
-//
-//        // Encode specific to Bolus
-//        if let bolus = self.bolus {
-//            var bolusContainer = containers.nestedContainer(keyedBy: CodingKeys.self)
-//            try bolusContainer.encode("Bolus", forKey: .type)
-//            if let bolusAmount = bolus.amount as Decimal? {
-//                try bolusContainer.encode(bolusAmount, forKey: .amount)
-//            } else {
-//                // Default value
-//                try bolusContainer.encode(Decimal(0), forKey: .amount)
-//            }
-//            try bolusContainer.encode(bolus.isSMB, forKey: .isSMB)
-//            try bolusContainer.encode(bolus.isExternal, forKey: .isExternal)
-//            try bolusContainer.encode(formattedDate, forKey: .timestamp)
-//            try bolusContainer.encode(id ?? UUID().uuidString, forKey: .id)
-//        }
-//    }
-// }
-
 // Declare helper structs ("data transfer objects" = DTO) to utilize parsing a flattened pump history
 struct BolusDTO: Codable {
     var id: String
@@ -177,14 +110,16 @@ enum PumpEventDTO: Encodable {
 
 // Extension with helper functions to map pump events to DTO objects via uniform masking enum
 extension PumpEventStored {
+    static let dateFormatter = ISO8601DateFormatter()
+
     func toBolusDTOEnum() -> PumpEventDTO? {
         guard let id = id, let timestamp = timestamp, let bolus = bolus, let amount = bolus.amount else {
             return nil
         }
-        let dateFormatter = ISO8601DateFormatter()
+
         let bolusDTO = BolusDTO(
             id: id,
-            timestamp: dateFormatter.string(from: timestamp),
+            timestamp: PumpEventStored.dateFormatter.string(from: timestamp),
             amount: amount.doubleValue,
             isExternal: bolus.isExternal,
             isSMB: bolus.isSMB,
@@ -197,10 +132,10 @@ extension PumpEventStored {
         guard let id = id, let timestamp = timestamp, let tempBasal = tempBasal, let rate = tempBasal.rate else {
             return nil
         }
-        let dateFormatter = ISO8601DateFormatter()
+
         let tempBasalDTO = TempBasalDTO(
             id: "_\(id)",
-            timestamp: dateFormatter.string(from: timestamp),
+            timestamp: PumpEventStored.dateFormatter.string(from: timestamp),
             temp: tempBasal.tempType ?? "unknown",
             rate: rate.doubleValue
         )
@@ -211,10 +146,10 @@ extension PumpEventStored {
         guard let id = id, let timestamp = timestamp, let tempBasal = tempBasal else {
             return nil
         }
-        let dateFormatter = ISO8601DateFormatter()
+
         let tempBasalDurationDTO = TempBasalDurationDTO(
             id: id,
-            timestamp: dateFormatter.string(from: timestamp),
+            timestamp: PumpEventStored.dateFormatter.string(from: timestamp),
             duration: Int(tempBasal.duration)
         )
         return .tempBasalDuration(tempBasalDurationDTO)
