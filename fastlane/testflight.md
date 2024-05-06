@@ -1,18 +1,18 @@
 # Using Github Actions + FastLane to deploy to TestFlight: the "Browser Build" method
 
-These instructions allow you to build Open-iAPS without having access to a Mac.
+These instructions allow you to build Trio without having access to a Mac.
 
-* You can install Open-iAPS on phones via TestFlight that are not connected to your computer
+* You can install Trio on phones via TestFlight that are not connected to your computer
 * You can send builds and updates to those you care for
-* You can install Open-iAPS on your phone using only the TestFlight app if a phone was lost or the app is accidentally deleted
+* You can install Trio on your phone using only the TestFlight app if a phone was lost or the app is accidentally deleted
 * You do not need to worry about specific Xcode/Mac versions for a given iOS
 
 ## **Automatic Builds**
 > 
-> The browser build defaults to automatically updating and building a new version of Open-iAPS according to this schedule:
+> The browser build defaults to automatically updating and building a new version of Trio according to this schedule:
 > - automatically checks for updates weekly on Wednesdays and if updates are found, it will build a new version of the app
 > - automatically builds once a month regardless of whether there are updates on the first of the month
-> - with each scheduled run (weekly or monthly), a successful Build Open-iAPS log appears - if the time is very short, it did not need to build - only the long actions (>10 minutes) built a new Open-iAPS app
+> - with each scheduled run (weekly or monthly), a successful Build Trio log appears - if the time is very short, it did not need to build - only the long actions (>10 minutes) built a new Trio app
 > 
 > It also creates an alive branch, if you don't already have one. See [Why do I have an alive branch?](#why-do-i-have-an-alive-branch).
 >
@@ -29,7 +29,7 @@ There are more detailed instructions in LoopDocs for doing Browser Builds of Loo
 
 ## Prerequisites
 
-* A [github account](https://github.com/signup). The free level comes with plenty of storage and free compute time to build Open-iAPS, multiple times a day, if you wanted to.
+* A [github account](https://github.com/signup). The free level comes with plenty of storage and free compute time to build Trio, multiple times a day, if you wanted to.
 * A paid [Apple Developer account](https://developer.apple.com).
 * Some time. Set aside a couple of hours to perform the setup. 
 * Use the same GitHub account for all "Browser Builds" of the various DIY apps.
@@ -81,9 +81,9 @@ The creation of the Match-Secrets repository is a common step for all GitHub Bro
 
 Once created, you will not take any direct actions with this repository; it needs to be there for the GitHub to use as you progress through the steps.
 
-## Setup Github Open-iAPS repository
-1. Fork https://github.com/nightscout/Open-iAPS into your account. If you already have a fork of Open-iAPS in GitHub, you can't make another one. You can continue to work with your existing fork, or delete that from GitHub and then and fork https://github.com/nightscout/Open-iAPS.
-1. In the forked Open-iAPS repo, go to Settings -> Secrets and variables -> Actions.
+## Setup Github Trio repository
+1. Fork https://github.com/nightscout/Trio into your account. If you already have a fork of Trio in GitHub, you can't make another one. You can continue to work with your existing fork, or delete that from GitHub and then and fork https://github.com/nightscout/Trio.
+1. In the forked Trio repo, go to Settings -> Secrets and variables -> Actions.
 1. For each of the following secrets, tap on "New repository secret", then add the name of the secret, along with the value you recorded for it:
     * `TEAMID`
     * `FASTLANE_ISSUER_ID`
@@ -96,23 +96,23 @@ Once created, you will not take any direct actions with this repository; it need
 
 This step validates most of your six Secrets and provides error messages if it detects an issue with one or more.
 
-1. Click on the "Actions" tab of your Open-iAPS repository and enable workflows if needed
+1. Click on the "Actions" tab of your Trio repository and enable workflows if needed
 1. On the left side, select "1. Validate Secrets".
 1. On the right side, click "Run Workflow", and tap the green `Run workflow` button.
 1. Wait, and within a minute or two you should see a green checkmark indicating the workflow succeeded.
 1. The workflow will check if the required secrets are added and that they are correctly formatted. If errors are detected, please check the run log for details.
 
-## Add Identifiers for Open-iAPS App
+## Add Identifiers for Trio App
 
-1. Click on the "Actions" tab of your Open-iAPS repository.
+1. Click on the "Actions" tab of your Trio repository.
 1. On the left side, select "2. Add Identifiers".
 1. On the right side, click "Run Workflow", and tap the green `Run workflow` button.
 1. Wait, and within a minute or two you should see a green checkmark indicating the workflow succeeded.
 
 ## Create App Group
 
-If you have already built Open-iAPS via Xcode using this Apple ID, you can skip on to [Create Open-iAPS App in App Store Connect](#create-FreeAPS-X-app-in-app-store-connect).
-_Please note that in default builds of Open-iAPS, the app group is actually identical to the one used with Loop, so please enter these details exactly as described below. This is to ease the setup of apps such as Xdrip4iOS. It may require some caution if transfering between Open-iAPS and Loop._
+If you have already built Trio via Xcode using this Apple ID, you can skip on to [Create Trio App in App Store Connect](#create-trio-app-in-app-store-connect).
+_Please note that in default builds of Trio, the app group is actually identical to the one used with Loop, so please enter these details exactly as described below. This is to ease the setup of apps such as Xdrip4iOS. It may require some caution if transfering between Trio and Loop._
 
 1. Go to [Register an App Group](https://developer.apple.com/account/resources/identifiers/applicationGroup/add/) on the apple developer site.
 1. For Description, use "Loop App Group".
@@ -134,16 +134,16 @@ _Please note that in default builds of Open-iAPS, the app group is actually iden
 1. Click "Confirm".
 1. Remember to do this for each of the identifiers above.
 
-## Create Open-iAPS App in App Store Connect
+## Create Trio App in App Store Connect
 
-If you have created a Open-iAPS app in App Store Connect before, you can skip this section as well.
+If you have created a Trio app in App Store Connect before, you can skip this section as well.
 
 1. Go to the [apps list](https://appstoreconnect.apple.com/apps) on App Store Connect and click the blue "plus" icon to create a New App.
     * Select "iOS".
     * Select a name: this will have to be unique, so you may have to try a few different names here, but it will not be the name you see on your phone, so it's not that important.
     * Select your primary language.
     * Choose the bundle ID that matches the `BUNDLE_IDENTIFIER` in your `Config.xcconfig` file
-       * this is typically `org.nightscout.TEAMID.openiaps` with `TEAMID` matching your team id
+       * this is typically `org.nightscout.TEAMID.trio` with `TEAMID` matching your team id
     * SKU can be anything; e.g. "123".
     * Select "Full Access".
 1. Click Create
@@ -152,19 +152,19 @@ You do not need to fill out the next form. That is for submitting to the app sto
 
 ## Create Building Certficates
 
-1. Go back to the "Actions" tab of your Open-iAPS repository in github.
+1. Go back to the "Actions" tab of your Trio repository in github.
 1. Select "3. Create Certificates".
 1. Click "Run Workflow", and tap the green button.
 1. Wait, and within a minute or two you should see a green checkmark indicating the workflow succeeded.
 
-## Build Open-iAPS!
+## Build Trio!
 
-1. Click on the "Actions" tab of your Open-iAPS repository.
-1. On the left side, select "4. Build Open-iAPS".
+1. Click on the "Actions" tab of your Trio repository.
+1. On the left side, select "4. Build Trio".
 1. Click "Run Workflow", select your branch, and tap the green button.
 1. You have some time now. Go enjoy a coffee. The build should take about 15 minutes.
 1. Your app should eventually appear on [App Store Connect](https://appstoreconnect.apple.com/apps).
-1. For each phone/person you would like to support Open-iAPS on:
+1. For each phone/person you would like to support Trio on:
     * Add them in [Users and Access](https://appstoreconnect.apple.com/access/users) on App Store Connect.
     * Add them to your TestFlight Internal Testing group.
 
@@ -178,6 +178,6 @@ For more details, please refer to [LoopDocs: Set Up Users](https://loopkit.githu
 
 If a GitHub repository has no activity (no commits are made) in 60 days, then GitHub disables the ability to use automated actions for that repository. We need to take action more frequently than that or the automated build process won't work.
 
-The updated `build_Open-iAPS.yml` file uses a special branch called `alive` and adds a dummy commit to the `alive` branch at regular intervals. This "trick" keeps the Actions enabled so the automated build works.
+The `build_trio.yml` file uses a special branch called `alive` and adds a dummy commit to the `alive` branch at regular intervals. This "trick" keeps the Actions enabled so the automated build works.
 
 The branch `alive` is created automatically for you. Do not delete or rename it! Do not modify `alive` yourself; it is not used for building the app.
