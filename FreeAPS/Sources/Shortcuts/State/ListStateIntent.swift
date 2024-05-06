@@ -3,17 +3,17 @@ import Foundation
 
 @available(iOS 16.0, *) struct ListStateIntent: AppIntent {
     // Title of the action in the Shortcuts app
-    static var title: LocalizedStringResource = "List last state available with Open-iAPS"
+    static var title: LocalizedStringResource = "List last state available with Trio"
 
     var stateIntent = StateIntentRequest()
 
     // Description of the action in the Shortcuts app
     static var description = IntentDescription(
-        "Allow to list the last Blood Glucose, trends, IOB and COB available in Open-iAPS"
+        "Allow to list the last Blood Glucose, trends, IOB and COB available in Trio"
     )
 
     static var parameterSummary: some ParameterSummary {
-        Summary("List all states of Open-iAPS")
+        Summary("List all states of Trio")
     }
 
     @MainActor func perform() async throws -> some ReturnsValue<StateiAPSResults> & ShowsSnippetView {

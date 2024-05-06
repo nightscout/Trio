@@ -10,7 +10,7 @@ enum StateIntentError: Error {
 @available(iOS 16, *) struct StateiAPSResults: AppEntity {
     static var defaultQuery = StateBGQuery()
 
-    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Open-iAPS State Result"
+    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Trio State Result"
 
     var displayRepresentation: DisplayRepresentation {
         DisplayRepresentation(title: "\(glucose)")

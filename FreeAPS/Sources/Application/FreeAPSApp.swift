@@ -55,7 +55,7 @@ import Swinject
     init() {
         debug(
             .default,
-            "Open-iAPS Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(BuildDetails.default.buildDate())] [buildExpires: \(BuildDetails.default.calculateExpirationDate())]"
+            "Trio Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(BuildDetails.default.buildDate())] [buildExpires: \(BuildDetails.default.calculateExpirationDate())]"
         )
         loadServices()
     }

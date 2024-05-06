@@ -22,7 +22,7 @@ extension PreferencesEditor {
 
         var body: some View {
             Form {
-                Section(header: Text("Open-iAPS").textCase(nil)) {
+                Section(header: Text("Trio").textCase(nil)) {
                     Picker("Glucose units", selection: $state.unitsIndex) {
                         Text("mg/dL").tag(0)
                         Text("mmol/L").tag(1)
