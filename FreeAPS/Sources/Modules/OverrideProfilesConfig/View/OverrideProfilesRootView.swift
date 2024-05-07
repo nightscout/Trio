@@ -1,5 +1,3 @@
-import CoreData
-import Foundation
 import SwiftUI
 import Swinject
 
@@ -21,15 +19,6 @@ extension OverrideProfilesConfig {
         @State private var profileNameToDelete: String = ""
 
         @Environment(\.dismiss) var dismiss
-        @Environment(\.managedObjectContext) var moc
-
-        @FetchRequest(
-            entity: OverridePresets.entity(),
-            sortDescriptors: [NSSortDescriptor(key: "name", ascending: true)], predicate: NSPredicate(
-                format: "name != %@", "" as String
-            )
-        ) var fetchedProfiles: FetchedResults<OverridePresets>
-        var units: GlucoseUnits = .mmolL
 
         private var formatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -58,10 +47,7 @@ extension OverrideProfilesConfig {
                         state.savePreset()
                         isSheetPresented = false
                     }
-                    .disabled(
-                        state.profileName.isEmpty || fetchedProfiles
-                            .contains(where: { $0.name == state.profileName })
-                    )
+                    .disabled(state.profileName.isEmpty || state.presets.filter({ $0.name == state.profileName }).isNotEmpty)
 
                     Button("Cancel") {
                         isSheetPresented = false
@@ -400,8 +386,24 @@ extension OverrideProfilesConfig {
             }
         }
 
-        @ViewBuilder private func profilesView(for preset: OverridePresets) -> some View {
-            let data = state.profileViewData(for: preset)
+        @ViewBuilder private func profilesView(for preset: OverrideProfil) -> some View {
+            let target = state.units == .mmolL ? (preset.target ?? 0).asMmolL : preset.target ?? 0
+            let duration = preset.duration ?? 0
+            let name = ((preset.name ?? "") == "") || (preset.name?.isEmpty ?? true) ? "" : preset.name!
+            let percent = (preset.percentage ?? 100) / 100
+            let perpetual = preset.indefinite ?? false
+            let durationString = perpetual ? "" : "\(formatter.string(from: duration as NSNumber)!)"
+            let scheduledSMBstring = ((preset.smbIsOff ?? false) && (preset.smbIsScheduledOff ?? false)) ? "Scheduled SMBs" : ""
+            let smbString = ((preset.smbIsOff ?? false) && scheduledSMBstring == "") ? "SMBs are off" : ""
+            let targetString = target != 0 ? "\(glucoseFormatter.string(from: target as NSNumber)!)" : ""
+            let eventualSmbMinutes = preset.smbMinutes != nil && preset.smbMinutes != state.defaultSmbMinutes ? preset
+                .smbMinutes : nil
+            let eventualUamMinutes = preset.uamMinutes != nil && preset.uamMinutes != state.defaultUamMinutes ? preset
+                .uamMinutes : nil
+            let isfString = (preset.isf ?? false) ? "ISF" : ""
+            let crString = (preset.cr ?? false) ? "CR" : ""
+            let dash = crString != "" ? "/" : ""
+            let isfAndCRstring = isfString + dash + crString
 
             if data.name != "" {
                 HStack {
@@ -416,13 +418,13 @@ extension OverrideProfilesConfig {
                                 Text(data.targetString)
                                 Text(data.targetString != "" ? state.units.rawValue : "")
                             }
-                            if data.durationString != "" { Text(data.durationString + (data.perpetual ? "" : "min")) }
-                            if data.smbString != "" { Text(data.smbString).foregroundColor(.secondary).font(.caption) }
-                            if data.scheduledSMBString != "" { Text(data.scheduledSMBString) }
-                            if preset.advancedSettings {
-                                Text(data.maxMinutesSMB == 0 ? "" : data.maxMinutesSMB.formatted() + " SMB")
-                                Text(data.maxMinutesUAM == 0 ? "" : data.maxMinutesUAM.formatted() + " UAM")
-                                Text(data.isfAndCRString)
+                            if durationString != "" { Text(durationString + (perpetual ? "" : "min")) }
+                            if smbString != "" { Text(smbString).foregroundColor(.secondary).font(.caption) }
+                            if scheduledSMBstring != "" { Text(scheduledSMBstring) }
+                            if let advanced = preset.advancedSettings, advanced {
+                                Text(eventualSmbMinutes == nil ? "" : eventualSmbMinutes!.formatted() + "min SMB")
+                                Text(eventualUamMinutes == nil ? "" : eventualUamMinutes!.formatted() + "min UAM")
+                                Text(isfAndCRstring)
                             }
                             Spacer()
                         }
@@ -432,7 +434,7 @@ extension OverrideProfilesConfig {
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        state.selectProfile(id_: preset.id ?? "")
+                        state.selectProfile(id_: preset.id)
                         state.hideModal()
                     }
                 }
@@ -484,13 +486,7 @@ extension OverrideProfilesConfig {
 
         private func removeProfile(at offsets: IndexSet) {
             for index in offsets {
-                let language = fetchedProfiles[index]
-                moc.delete(language)
-            }
-            do {
-                try moc.save()
-            } catch {
-                // To do: add error
+                state.removeOverrideProfile(presetId: state.presets[index].id)
             }
         }
     }
