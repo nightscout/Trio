@@ -65,6 +65,9 @@ extension Home {
         @Published var targetBG: BGTargets?
         @Published var pumpStatutHighlightMessage: String? = nil
         @Published var pumpStatusHighlightMessage: String? = nil
+        @Published var currentOverride: OverrideProfil?
+        @Published var overrideHistory: [OverrideProfil?] = []
+        @Published var targetBG: BGTargets?
 
         let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
 

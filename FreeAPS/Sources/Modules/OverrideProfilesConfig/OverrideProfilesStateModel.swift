@@ -63,39 +63,23 @@ extension OverrideProfilesConfig {
         }
 
         func savePreset() {
-            coredataContext.perform { [self] in
-                let saveOverride = OverridePresets(context: self.coredataContext)
-                saveOverride.duration = self.duration as NSDecimalNumber
-                saveOverride.indefinite = self._indefinite
-                saveOverride.percentage = self.percentage
-                saveOverride.smbIsOff = self.smbIsOff
-                saveOverride.name = self.profileName
-                self.profileName = ""
-                id = UUID().uuidString
-                self.isPreset.toggle()
-                saveOverride.id = id
-                saveOverride.date = Date()
-                if override_target {
-                    saveOverride.target = (
-                        units == .mmolL
-                            ? target.asMgdL
-                            : target
-                    ) as NSDecimalNumber
-                } else { saveOverride.target = 0 }
-
-                if advancedSettings {
-                    saveOverride.advancedSettings = true
-
-                    if !isfAndCr {
-                        saveOverride.isfAndCr = false
-                        saveOverride.isf = isf
-                        saveOverride.cr = cr
-                    } else { saveOverride.isfAndCr = true }
-                    if smbIsScheduledOff {
-                        saveOverride.smbIsScheduledOff = true
-                        saveOverride.start = start as NSDecimalNumber
-                        saveOverride.end = end as NSDecimalNumber
-                    } else { smbIsScheduledOff = false }
+            let overridePresetToSave = OverrideProfil(
+                name: profileName,
+                duration: _indefinite ? nil : duration,
+                indefinite: _indefinite,
+                percentage: percentage,
+                target: override_target ? (units == .mmolL ? target.asMgdL : target) : 0,
+                advancedSettings: advancedSettings,
+                smbIsOff: smbIsOff,
+                isfAndCr: isfAndCr,
+                isf: isfAndCr ? false : isf,
+                cr: isfAndCr ? false : cr,
+                smbIsScheduledOff: smbIsScheduledOff,
+                start: smbIsScheduledOff ? start : nil,
+                end: smbIsScheduledOff ? end : nil,
+                smbMinutes: smbMinutes,
+                uamMinutes: uamMinutes
+            )
 
             overrideStorage.storeOverridePresets([overridePresetToSave])
             presets = overrideStorage.presets()

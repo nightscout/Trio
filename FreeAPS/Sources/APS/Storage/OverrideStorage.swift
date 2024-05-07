@@ -41,7 +41,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
     /// Convert a override Preset Core Data as a Override Profil
     /// - Parameter preset: a override preset in Core Data
     /// - Returns: A override  in Override Profil structure
-    private func overridePresetToOverrideProfil(_ preset: OverridePresets) -> OverrideProfil {
+    private func OverridePresetToOverrideProfil(_ preset: OverridePresets) -> OverrideProfil {
         OverrideProfil(
             id: preset.id ?? UUID().uuidString,
             name: preset.name,
@@ -67,9 +67,9 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
     /// Convert a override  Core Data as a Override Profil
     /// - Parameter preset: a override  in Core Data
     /// - Returns: A override  in Override Profil structure
-    private func overrideToOverrideProfil(_ preset: Override) -> OverrideProfil {
+    private func OverrideToOverrideProfil(_ preset: Override) -> OverrideProfil {
         OverrideProfil(
-            id: preset.id ?? UUID().uuidString,
+            id: preset.id!,
             name: preset.name == "" ? nil : preset.name,
             createdAt: preset.date,
             duration: preset.duration as Decimal?,
@@ -95,7 +95,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
     /// - Returns: List of override Presets as Override Profil structure
     func presets() -> [OverrideProfil] {
         fetchOverridePreset().compactMap {
-            overridePresetToOverrideProfil($0)
+            OverridePresetToOverrideProfil($0)
         }
     }
 
@@ -142,6 +142,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
     ///   - isPresets: definied if targerts is a override preset (true).
     private func storeOverride(_ targets: [OverrideProfil], isPresets: Bool) {
         // store in preset override
+        // processQueue.sync {
         if isPresets {
             let listOverridePresets = fetchOverridePreset()
             _ = targets.compactMap { preset in
@@ -199,13 +200,10 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             coredataContext.performAndWait {
                 try? coredataContext.save()
             }
-
-            processQueue.async {
-                self.broadcaster.notify(OverrideObserver.self, on: self.processQueue) {
-                    $0.overrideDidUpdate([])
-                }
-            }
+            // update the previous current value
+            _ = current()
         }
+        // }
     }
 
     /// The start date of override data available by recent function
@@ -253,7 +251,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
     func recent() -> [OverrideProfil?] {
         if let overrideRecent = fetchOverrides(interval: syncDate()) {
             return overrideRecent.compactMap {
-                overrideToOverrideProfil($0)
+                OverrideToOverrideProfil($0)
             }
         } else {
             return []
@@ -268,7 +266,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
 
         if let overrideRecent = fetchNumberOfOverrides(numbers: 1), let overrideCurrent = overrideRecent.first {
             if overrideCurrent.indefinite {
-                newCurrentOverride = overrideToOverrideProfil(overrideCurrent)
+                newCurrentOverride = OverrideToOverrideProfil(overrideCurrent)
 
             } else if
                 let duration = overrideCurrent.duration as Decimal?,
@@ -277,12 +275,20 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
                 date <= Date(),
                 duration != 0
             {
-                newCurrentOverride = overrideToOverrideProfil(overrideCurrent)
+                newCurrentOverride = OverrideToOverrideProfil(overrideCurrent)
             } else {
                 newCurrentOverride = nil
             }
         } else {
             newCurrentOverride = nil
+        }
+
+        processQueue.sync {
+            if lastCurrentOverride != newCurrentOverride {
+                broadcaster.notify(OverrideObserver.self, on: processQueue) {
+                    $0.overrideDidUpdate([newCurrentOverride])
+                }
+            }
         }
 
         lastCurrentOverride = newCurrentOverride
