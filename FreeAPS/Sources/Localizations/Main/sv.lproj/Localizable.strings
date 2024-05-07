@@ -1,6 +1,6 @@
 /*
   Localizable.strings
-  iAPS
+  Trio
 */
 /* -------------------------------- */
 /* Bolus screen when adding insulin */
@@ -360,7 +360,7 @@ Enact a temp Basal or a temp target */
 "Remote control" = "Fjärrstyrning";
 
 /* Imported Profiles Alert */
-"\nNow please verify all of your new settings thoroughly:\n\n* Basal Settings\n * Carb Ratios\n * Glucose Targets\n * Insulin Sensitivities\n * DIA\n\n in iAPS Settings > Configuration.\n\nBad or invalid profile settings could have disatrous effects." = "\nKontrollera nu alla dina nya pumpinställningar noga:\n\n* Basalinställningar\n * Insulinkvoter\n * Målvärden\n * Insulinkänslighet\n\n i Inställningar > Konfiguration.\n\nDåliga eller ogiltiga pumpinställningar kan gå katastrofala följder.";
+"\nNow please verify all of your new settings thoroughly:\n\n* Basal Settings\n * Carb Ratios\n * Glucose Targets\n * Insulin Sensitivities\n * DIA\n\n in Trio Settings > Configuration.\n\nBad or invalid profile settings could have disatrous effects." = "\nKontrollera nu alla dina nya pumpinställningar noga:\n\n* Basalinställningar\n * Insulinkvoter\n * Målvärden\n * Insulinkänslighet\n\n i Inställningar > Konfiguration.\n\nDåliga eller ogiltiga pumpinställningar kan gå katastrofala följder.";
 
 /* Profile Import Alert */
 "This will replace some or all of your current pump settings. Are you sure you want to import profile settings from Nightscout?" = "Detta kommer att ersätta alla eller vissa av dina pumpinställningar. Är du säker att du vill fortsätta med import av inställningar?";
@@ -390,7 +390,7 @@ Enact a temp Basal or a temp target */
 "Settings imported" = "Inställningar importerade";
 
 /* Import Error */
-"\nMismatching glucose units in Nightscout and Pump Settings. Import settings aborted." = "\nDu har olika inställningar för blodsockernehet i Nightscout och iAPS. Import därför avbruten.";
+"\nMismatching glucose units in Nightscout and Pump Settings. Import settings aborted." = "\nDu har olika inställningar för blodsockernehet i Nightscout och Trio. Import därför avbruten.";
 
 /* Import Error */
 "Can't find the default Nightscout Profile." = "Kan inte hitta en profil i Nightcsout";
@@ -519,7 +519,7 @@ Enact a temp Basal or a temp target */
 "ISF" = "ISF";
 
 /* */
-"The app Garmin Connect must be installed to use for iAPS.\n Go to App Store to download it" = "Appen 'Garmin Connect' måste  vara installerad för att kunna användas med iAPS.\n Gå till App Store för att ladda ner";
+"The app Garmin Connect must be installed to use for Trio.\n Go to App Store to download it" = "Appen 'Garmin Connect' måste  vara installerad för att kunna användas med Trio.\n Gå till App Store för att ladda ner";
 
 /* */
 "Garmin is not available" = "Garmin är inte tillgänglig";
@@ -861,7 +861,7 @@ Enact a temp Basal or a temp target */
 "Delete CGM" = "Radera CGM";
 
 /* */
-"Are you sure you want to remove this cgm from loop?" = "Är du säker på att du vill ta bort denna CGM från iAPS?";
+"Are you sure you want to remove this cgm from loop?" = "Är du säker på att du vill ta bort denna CGM från Trio?";
 
 /* */
 "There is no undo" = "Det går inte att ångra!";
@@ -1201,7 +1201,7 @@ Enact a temp Basal or a temp target */
 "For write data to Apple Health you must give permissions in Settings > Health > Data Access" = "För att kunna skriva data till Apple Hälsa måste du först ge din tillåtelse i Inställningar > Hälsa > Datatillgång och enheter";
 
 /* */
-"This allows iAPS to read from and write to Apple Heath. You must also give permissions in Settings > Health > Data Access. If you enter a glucose value into Apple Health, open iAPS to confirm it shows up." = "Tillåt iAPS att använda databasen Apple Hälsa. För att se och ändra tillåtelser öppna 'Inställningar/Hälsa/Datatillgång och enheter' på din iPhone.";
+"This allows Trio to read from and write to Apple Heath. You must also give permissions in Settings > Health > Data Access. If you enter a glucose value into Apple Health, open Trio to confirm it shows up." = "Tillåt Trio att använda databasen Apple Hälsa. För att se och ändra tillåtelser öppna 'Inställningar/Hälsa/Datatillgång och enheter' på din iPhone.";
 
 /* New ALerts ------------------------- */
 /* Info title */
@@ -1525,7 +1525,7 @@ Enact a temp Basal or a temp target */
 "No confidence reminders are used." = "Inga ljud på.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Bekräftelseljud kommer att pipa för för ala pumpkommandon du ger, som bolus, avbryt bolus, pausa pump, återuppta insulintillförsel, spara påminnelser etc. När iAPS automatiskt justerar insulintillförsel kommer inga pip att ljuda.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Bekräftelseljud kommer att pipa för för ala pumpkommandon du ger, som bolus, avbryt bolus, pausa pump, återuppta insulintillförsel, spara påminnelser etc. När Trio automatiskt justerar insulintillförsel kommer inga pip att ljuda.";
 
 /* Description for BeepPreference.extended */
 "Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Bekräftelsepip kommer att ljuda även vid automatiska pumpkommandon såväl som vid manuella.";
@@ -1560,7 +1560,7 @@ Enact a temp Basal or a temp target */
 "%1$@ for %2$@" = "%1$@ i %2$@";
 
 /* Description text on manual temp basal action sheet */
-"Loop will not automatically adjust your insulin delivery until the temporary basal rate finishes or is canceled." = "iAPS kommer inte automatiskt att justera dina insulindoser förrän den temporära basalen är färdig eller har avbrytits.";
+"Loop will not automatically adjust your insulin delivery until the temporary basal rate finishes or is canceled." = "Trio kommer inte automatiskt att justera dina insulindoser förrän den temporära basalen är färdig eller har avbrytits.";
 /* Button text for setting manual temporary basal rate*/
 "Set Temporary Basal" = "Ställ in temporaär basal";
 
@@ -1792,7 +1792,7 @@ Enact a temp Basal or a temp target */
 /* -----------------------------------------------------------------------------------------------------------
 
   Infotexts from openaps.docs and androidaps.docs
-  iAPS
+  Trio
 */
 /* Headline Rewind Resets Autosens */
 
@@ -1841,13 +1841,13 @@ Enact a temp Basal or a temp target */
 "Wide BG Target Range" = "Brett blodsockermålintervall";
 
 /* "Wide BG Target Range" */
-"Defaults to false, which means by default only the low end of the pump’s BG target range is used as OpenAPS target. This is a safety feature to prevent too-wide targets and less-optimal outcomes. Therefore the higher end of the target range is used only for avoiding bolus wizard overcorrections. Use wide_bg_target_range: true to force neutral temps over a wider range of eventualBGs." = "Avstängd som standard, vilket innebär att endast det nedre intervallet av dina inställda målvärden kommer att användas som målvärde i iAPS. Detta är en säkerhetsfunktion för att förhindra alltför omfattande målintervall med mindre optimala resultat som följd. Den övre delen av målvärdet används endast för att undvika överkorrigeringar av bolusguiden. Använd 'Wide BG Target Range' för att forcera neutrala temporära basaldoser att användas över ett bredare intervall av förväntade blodsockervärden.";
+"Defaults to false, which means by default only the low end of the pump’s BG target range is used as OpenAPS target. This is a safety feature to prevent too-wide targets and less-optimal outcomes. Therefore the higher end of the target range is used only for avoiding bolus wizard overcorrections. Use wide_bg_target_range: true to force neutral temps over a wider range of eventualBGs." = "Avstängd som standard, vilket innebär att endast det nedre intervallet av dina inställda målvärden kommer att användas som målvärde i Trio. Detta är en säkerhetsfunktion för att förhindra alltför omfattande målintervall med mindre optimala resultat som följd. Den övre delen av målvärdet används endast för att undvika överkorrigeringar av bolusguiden. Använd 'Wide BG Target Range' för att forcera neutrala temporära basaldoser att användas över ett bredare intervall av förväntade blodsockervärden.";
 
 /* Headline "Skip Neutral Temps" */
 "Skip Neutral Temps" = "Hoppa över neutrala temporära basaler";
 
 /* "Skip Neutral Temps" */
-"Defaults to false, so that iAPS will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means iAPS will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night." = "Av som standard, så att iAPS kan ställa in temporära basaldoser närhelst den kan, vilket gör det lättare att se ifall systemet fungerar, även när du är offline. Detta innebär att iAPS kommer att ställa in en ”neutral” temporär basal (samma som din ordinarie basal) när inga justeringar behövs. Gammal inställning från OpenAPS för att minska ljud och notiser mitt i natten från dessa 'rigs'. Vi rekommenderar att man lämnar neutrala temporära basaler aktiverade. ";
+"Defaults to false, so that Trio will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means Trio will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night." = "Av som standard, så att Trio kan ställa in temporära basaldoser närhelst den kan, vilket gör det lättare att se ifall systemet fungerar, även när du är offline. Detta innebär att Trio kommer att ställa in en ”neutral” temporär basal (samma som din ordinarie basal) när inga justeringar behövs. Gammal inställning från OpenAPS för att minska ljud och notiser mitt i natten från dessa 'rigs'. Vi rekommenderar att man lämnar neutrala temporära basaler aktiverade. ";
 
 /* Headline "Unsuspend If No Temp” */
 "Unsuspend If No Temp" = "Återaktivera om ingen temp. basal";
@@ -1859,7 +1859,7 @@ Enact a temp Basal or a temp target */
 "Enable UAM" = "Aktivera UAM";
 
 /* "Enable UAM" */
-"With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell iAPS about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier." = "Med denna inställning på kan appen upptäcka kolhydrater som inte matats in. Detta kan vara till hjälp om du glömmer att mata in eller uppskattar dina kolhydrater fel, eller vid måltider med mycket fett och protein, som har en längre verkan än förväntat. Utan inlagda kolhydrater kan UAM känna igen snabba glukosförändringar orsakade av kolhydrater, adrenalin, etc, och försöker justera dessa med SMBs. Detta fungerar också omvänt: vid snabb glukosminskning stoppas SMB: s tidigare.";
+"With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell Trio about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier." = "Med denna inställning på kan appen upptäcka kolhydrater som inte matats in. Detta kan vara till hjälp om du glömmer att mata in eller uppskattar dina kolhydrater fel, eller vid måltider med mycket fett och protein, som har en längre verkan än förväntat. Utan inlagda kolhydrater kan UAM känna igen snabba glukosförändringar orsakade av kolhydrater, adrenalin, etc, och försöker justera dessa med SMBs. Detta fungerar också omvänt: vid snabb glukosminskning stoppas SMB: s tidigare.";
 
 /* Headline "Enable SMB With COB" */
 "Enable SMB With COB" = "Använd SMB med kolhydrater (COB)";
@@ -1910,19 +1910,19 @@ Enact a temp Basal or a temp target */
 "Max IOB" = "Max aktivt insulin (IOB)";
 
 /* "Max IOB" */
-"Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two OpenAPS safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings\n\n(Tip from https://www.loopandlearn.org/freeaps-x/#open-loop)." = "Max IOB är den maximalt tillåtna mängden aktivt insulin från alla källor – basal, SMB och bolusinsulin – som din loop tillåts att ackumulera för att behandla ett blodsocker högre än målvärdet. Till skillnad från de andra två säkerhetsinställningarna i iAPS ('Max Daily Safety Multiplier' samt 'Current Basal Safety Multiplier'), är 'Max IOB' inställd som ett fast antal insulinenheter. OBS! I nuläget är manuella bolusar inte begränsade av denna inställning.\n\n Om du vill testa dina basaldoser säkert nattetid kan du ställa in Max IOB till 0 samtidigt som du kör Closed Loop. Detta gör att iAPS kan sänka eller stänga av basalinsulin om det skulle behövas, för att undika låga blodglukosvärden.\n\n(Tips från https://www.loopandlearn.org/freeaps-x/#open-loop).";
+"Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two OpenAPS safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings\n\n(Tip from https://www.loopandlearn.org/freeaps-x/#open-loop)." = "Max IOB är den maximalt tillåtna mängden aktivt insulin från alla källor – basal, SMB och bolusinsulin – som din loop tillåts att ackumulera för att behandla ett blodsocker högre än målvärdet. Till skillnad från de andra två säkerhetsinställningarna i Trio ('Max Daily Safety Multiplier' samt 'Current Basal Safety Multiplier'), är 'Max IOB' inställd som ett fast antal insulinenheter. OBS! I nuläget är manuella bolusar inte begränsade av denna inställning.\n\n Om du vill testa dina basaldoser säkert nattetid kan du ställa in Max IOB till 0 samtidigt som du kör Closed Loop. Detta gör att Trio kan sänka eller stänga av basalinsulin om det skulle behövas, för att undika låga blodglukosvärden.\n\n(Tips från https://www.loopandlearn.org/freeaps-x/#open-loop).";
 
 /* Headline "Max Daily Safety Multiplier" */
 "Max Daily Safety Multiplier" = "Multiplikator för dygnets högsta basaldos";
 
 /* "Max Daily Safety Multiplier" */
-"This is an important OpenAPS safety limit. The default setting (which is unlikely to need adjusting) is 3. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 3x the highest hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "Detta är en viktig säkerhetsgräns för iAPS. Standardinställningen (som sannolikt inte behöver justeras) är 3. Detta innebär att iAPS aldrig kommer att tillåtas att ställa in en temporär basaldos som är mer än 3x den högsta basaldosen inställd i pumpen, eller, om aktiverad, den som är inställd av 'Autotune'.";
+"This is an important OpenAPS safety limit. The default setting (which is unlikely to need adjusting) is 3. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 3x the highest hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "Detta är en viktig säkerhetsgräns för Trio. Standardinställningen (som sannolikt inte behöver justeras) är 3. Detta innebär att Trio aldrig kommer att tillåtas att ställa in en temporär basaldos som är mer än 3x den högsta basaldosen inställd i pumpen, eller, om aktiverad, den som är inställd av 'Autotune'.";
 
 /* Headline "Current Basal Safety Multiplier" */
 "Current Basal Safety Multiplier" = "Multiplikator för nuvarande ordinarie basal";
 
 /* "Current Basal Safety Multiplier" */
-"This is another important OpenAPS safety limit. The default setting (which is also unlikely to need adjusting) is 4. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 4x the current hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "Detta är en viktig säkerhetsgräns i iAPS. Standardinställningen (som sannolikt inte behöver justeras) är 4, vilket innebär att det aldrig kommer att tillåtas att ställa in en temporär basaldos som är mer än 4x den högsta ordinarie basaldosen, sparad i pumpen, eller, om aktiverad, den som är ställts in av 'Autotune'.";
+"This is another important OpenAPS safety limit. The default setting (which is also unlikely to need adjusting) is 4. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 4x the current hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "Detta är en viktig säkerhetsgräns i Trio. Standardinställningen (som sannolikt inte behöver justeras) är 4, vilket innebär att det aldrig kommer att tillåtas att ställa in en temporär basaldos som är mer än 4x den högsta ordinarie basaldosen, sparad i pumpen, eller, om aktiverad, den som är ställts in av 'Autotune'.";
 
 /* Headline "Autosens Max" */
 "Autosens Max" = "Autosens maxinställning";
@@ -1946,7 +1946,7 @@ Enact a temp Basal or a temp target */
 "Max COB" = "Max mängd aktiva kolhydrater (COB)";
 
 /* "Max COB" */
-"The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, iAPS will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)" = "Standardvärdet för maximal mängd av aktiva kolhdrater (COB) är 120.";
+"The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, Trio will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)" = "Standardvärdet för maximal mängd av aktiva kolhdrater (COB) är 120.";
 
 /* Headline "Bolus Snooze DIA Divisor" */
 "Bolus Snooze DIA Divisor" = "Bolus \"snooze\" - nämnare";
@@ -2006,7 +2006,7 @@ Enact a temp Basal or a temp target */
 "Insulin Peak Time" = "Tid för insulinets maximala blodsockersänkande effekt, i minuter";
 
 /* "Insulin Peak Time" */
-"Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with iAPS, longer loop calculations and possible red loops." = "Tid i minuter för när insulinet har som störst blodsockersänkande effekt. Observera att inte ange ett lägre värde än 35 min för Lyumjev eller 50 min för Fiasp, eller högre än 100, respektive 120 min. Om du gör så kommer det att leda till problem med iAPS, som röda loopar, långa Loop-beräkningar och överdrivet stora loggfiler.";
+"Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with Trio, longer loop calculations and possible red loops." = "Tid i minuter för när insulinet har som störst blodsockersänkande effekt. Observera att inte ange ett lägre värde än 35 min för Lyumjev eller 50 min för Fiasp, eller högre än 100, respektive 120 min. Om du gör så kommer det att leda till problem med Trio, som röda loopar, långa Loop-beräkningar och överdrivet stora loggfiler.";
 
 /* Headline "Carbs Req Threshold" */
 "Carbs Req Threshold" = "Tröskelvärde för notis om kolhydrater som krävs";
@@ -2077,7 +2077,7 @@ Enact a temp Basal or a temp target */
 "Threshold Setting" = "Tröskelvärde";
 
 /* Threshold Setting */
-"The default threshold in FAX depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl." = "Tröskelvärde för blodsocker beror på ditt nuvarande undre blodsockermålvärde, enligt följande:\n\nOm ditt målvräde = 5 mmol/l -> tröskelvörde = 3,6 mmol/l,\n\nOm ditt målvräde = 5,6 -> tröskelärde = 3,9 mmol/l,\n\nOm ditt målvräde = 6,1 mmol/l -> tröskelvärde = 4,2 mmol/l,\n\nOch om ditt målvräde = 7,2 mmol/l  -> tröskelvärde = 4,7 mmol/l.\n\nDenna inställning tillåter dig att ändra trösklevärdet till en högre inställnig när du loopar med dynamiska kvoter. Giltiga värden är 3,6 - 6,7.";
+"The default threshold in Trio depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl." = "Tröskelvärde för blodsocker beror på ditt nuvarande undre blodsockermålvärde, enligt följande:\n\nOm ditt målvräde = 5 mmol/l -> tröskelvörde = 3,6 mmol/l,\n\nOm ditt målvräde = 5,6 -> tröskelärde = 3,9 mmol/l,\n\nOm ditt målvräde = 6,1 mmol/l -> tröskelvärde = 4,2 mmol/l,\n\nOch om ditt målvräde = 7,2 mmol/l  -> tröskelvärde = 4,7 mmol/l.\n\nDenna inställning tillåter dig att ändra trösklevärdet till en högre inställnig när du loopar med dynamiska kvoter. Giltiga värden är 3,6 - 6,7.";
 
 /* Header */
 "Calculator settings" = "Boluskalkylatorinställning";
