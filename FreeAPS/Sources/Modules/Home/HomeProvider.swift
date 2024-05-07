@@ -18,6 +18,12 @@ extension Home {
             storage.retrieve(OpenAPS.Enact.enacted, as: Suggestion.self)
         }
 
+        var profile: BGTargets {
+            storage.retrieve(OpenAPS.Settings.bgTargets, as: BGTargets.self)
+                ?? BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
+                ?? BGTargets(units: .mmolL, userPrefferedUnits: .mmolL, targets: [])
+        }
+
         func heartbeatNow() {
             apsManager.heartbeat(date: Date())
         }
