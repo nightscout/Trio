@@ -1,6 +1,6 @@
 /*
   Localizable.strings
-  iAPS
+  Trio
 */
 /* -------------------------------- */
 /* Bolus screen when adding insulin */
@@ -360,7 +360,7 @@ Enact a temp Basal or a temp target */
 "Remote control" = "Fjernstyring";
 
 /* Imported Profiles Alert */
-"\nNow please verify all of your new settings thoroughly:\n\n* Basal Settings\n * Carb Ratios\n * Glucose Targets\n * Insulin Sensitivities\n * DIA\n\n in iAPS Settings > Configuration.\n\nBad or invalid profile settings could have disatrous effects." = "\nGå nøye gjennom alle de nye innstillingene:\n\n* Basalprofil\n * Karbohydratforhold\n * Blodsukkermål\n * Insulinfølsomhet\n\n i iAPS Innstillinger > Oppsett.\n\nFeil eller ugyldige profilinnstillinger kan ha katastrofale følger.";
+"\nNow please verify all of your new settings thoroughly:\n\n* Basal Settings\n * Carb Ratios\n * Glucose Targets\n * Insulin Sensitivities\n * DIA\n\n in Trio Settings > Configuration.\n\nBad or invalid profile settings could have disatrous effects." = "\nGå nøye gjennom alle de nye innstillingene:\n\n* Basalprofil\n * Karbohydratforhold\n * Blodsukkermål\n * Insulinfølsomhet\n\n i Trio Innstillinger > Oppsett.\n\nFeil eller ugyldige profilinnstillinger kan ha katastrofale følger.";
 
 /* Profile Import Alert */
 "This will replace some or all of your current pump settings. Are you sure you want to import profile settings from Nightscout?" = "Dette vil erstatte alle eller deler av dine nåværende pumpeinnstillinger. Er du sikker på at du vil importere profilinnstillinger fra Nightscout?";
@@ -519,7 +519,7 @@ Enact a temp Basal or a temp target */
 "ISF" = "ISF";
 
 /* */
-"The app Garmin Connect must be installed to use for iAPS.\n Go to App Store to download it" = "Garmin Connect-appen må være installert.\n Gå til App Store for å laste den ned";
+"The app Garmin Connect must be installed to use for Trio.\n Go to App Store to download it" = "Garmin Connect-appen må være installert.\n Gå til App Store for å laste den ned";
 
 /* */
 "Garmin is not available" = "Garmin er ikke tilgjengelig";
@@ -1201,7 +1201,7 @@ Enact a temp Basal or a temp target */
 "For write data to Apple Health you must give permissions in Settings > Health > Data Access" = "For å skrive data til Apple Health må du gi rettigheter i Innstillinger > Helse > Datatilgang";
 
 /* */
-"This allows iAPS to read from and write to Apple Heath. You must also give permissions in Settings > Health > Data Access. If you enter a glucose value into Apple Health, open iAPS to confirm it shows up." = "Dette tillater at iAPS leser og skriver til Apple Helse. Du må også gi tillatelse under Innstillinger > Helse > Datatilgang. Hvis du legger inn en blodsukkerverdi i Apple Helse, bør du åpne iAPS for å se at verdien dukker opp.";
+"This allows Trio to read from and write to Apple Heath. You must also give permissions in Settings > Health > Data Access. If you enter a glucose value into Apple Health, open Trio to confirm it shows up." = "Dette tillater at Trio leser og skriver til Apple Helse. Du må også gi tillatelse under Innstillinger > Helse > Datatilgang. Hvis du legger inn en blodsukkerverdi i Apple Helse, bør du åpne Trio for å se at verdien dukker opp.";
 
 /* New ALerts ------------------------- */
 /* Info title */
@@ -1793,7 +1793,7 @@ Enact a temp Basal or a temp target */
 /* -----------------------------------------------------------------------------------------------------------
 
   Infotexts from openaps.docs and androidaps.docs
-  iAPS
+  Trio
 */
 /* Headline Rewind Resets Autosens */
 
@@ -1848,7 +1848,7 @@ Enact a temp Basal or a temp target */
 "Skip Neutral Temps" = "Hopp over nøytrale midlertidige mål";
 
 /* "Skip Neutral Temps" */
-"Defaults to false, so that iAPS will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means iAPS will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night." = "Standard slått av. iAPS setter midlertidige mål så ofte den kan, slik at det blir enklere å se at systemet jobber, selv når du er offline. Dette betyr at OpenAPS vil sette et \"nøytralt\" midlertidig mål (samme som din standard basal) hvis det ikke trengs noen justeringer. Dette er en gammel innstilling for OpenAPS for å ha muligheten til å minimere antall varsler og lyder fra pumpen, som ellers kunne ha vekket deg om natten. ";
+"Defaults to false, so that Trio will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means Trio will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night." = "Standard slått av. Trio setter midlertidige mål så ofte den kan, slik at det blir enklere å se at systemet jobber, selv når du er offline. Dette betyr at OpenAPS vil sette et \"nøytralt\" midlertidig mål (samme som din standard basal) hvis det ikke trengs noen justeringer. Dette er en gammel innstilling for OpenAPS for å ha muligheten til å minimere antall varsler og lyder fra pumpen, som ellers kunne ha vekket deg om natten. ";
 
 /* Headline "Unsuspend If No Temp” */
 "Unsuspend If No Temp" = "Fjern pause hvis det ikke finnes et midlertidig mål";
@@ -1860,7 +1860,7 @@ Enact a temp Basal or a temp target */
 "Enable UAM" = "Aktiver UAM";
 
 /* "Enable UAM" */
-"With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell iAPS about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier." = "Med denne funksjonen påslått, vil SMB-algoritmen kjenne igjen uannonserte måltider. Dette er til hjelp hvis du glemmer å fortelle iAPS om karbohydrater eller hvis du estimerer og legger inn feil antall karbohydrater. Det er også til hjelp ved måltider med mye fett og protein som har lenger varighet enn antatt. Uten registrering av karbohydrater, vil UAM kjenne igjen rask stigning i blodsukkeret forårsaket av karbohydrater, adrenalin, etc, og forsøker å justere dette med SMB. Dette fungerer også motsatt, hvis blodsukkeret synker raskt vil den stoppe SMB tidligere.";
+"With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell Trio about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier." = "Med denne funksjonen påslått, vil SMB-algoritmen kjenne igjen uannonserte måltider. Dette er til hjelp hvis du glemmer å fortelle Trio om karbohydrater eller hvis du estimerer og legger inn feil antall karbohydrater. Det er også til hjelp ved måltider med mye fett og protein som har lenger varighet enn antatt. Uten registrering av karbohydrater, vil UAM kjenne igjen rask stigning i blodsukkeret forårsaket av karbohydrater, adrenalin, etc, og forsøker å justere dette med SMB. Dette fungerer også motsatt, hvis blodsukkeret synker raskt vil den stoppe SMB tidligere.";
 
 /* Headline "Enable SMB With COB" */
 "Enable SMB With COB" = "Aktiver SMB med COB";
@@ -1947,7 +1947,7 @@ Enact a temp Basal or a temp target */
 "Max COB" = "Maks COB";
 
 /* "Max COB" */
-"The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, iAPS will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)" = "Standardverdi for maxCOB er 120. (Hvis noen legger til flere karbohydrater i en eller flere oppføringer, vil iAPS begrense COB i henhold til maxCOB frem til registreringen over maxCOB er absorbert. I bunn og grunn er dette bare en begrensning for UAM, slik at det ikke blir gjort feilberegninger ved dårlige data.)";
+"The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, Trio will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)" = "Standardverdi for maxCOB er 120. (Hvis noen legger til flere karbohydrater i en eller flere oppføringer, vil Trio begrense COB i henhold til maxCOB frem til registreringen over maxCOB er absorbert. I bunn og grunn er dette bare en begrensning for UAM, slik at det ikke blir gjort feilberegninger ved dårlige data.)";
 
 /* Headline "Bolus Snooze DIA Divisor" */
 "Bolus Snooze DIA Divisor" = "Divisor for Bolus Snooze";
@@ -2007,7 +2007,7 @@ Enact a temp Basal or a temp target */
 "Insulin Peak Time" = "Topptid for insulineffekt";
 
 /* "Insulin Peak Time" */
-"Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with iAPS, longer loop calculations and possible red loops." = "Tid for maksimal blodsukker-reduserende effekt av insulin, i minutter. OBS: For ultra-rapid (Lyumjev) og rapid-acting (Fiasp) minimum (35 & 50 min) og maksimalt (100 & 120 min) insulinPeakTimes. Hvis du bruker en tilpasset insulinPeakTime utenfor disse områdene vil du få problemer med iAPS, lengre beregningstid for loop og mulig røde loops.";
+"Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with Trio, longer loop calculations and possible red loops." = "Tid for maksimal blodsukker-reduserende effekt av insulin, i minutter. OBS: For ultra-rapid (Lyumjev) og rapid-acting (Fiasp) minimum (35 & 50 min) og maksimalt (100 & 120 min) insulinPeakTimes. Hvis du bruker en tilpasset insulinPeakTime utenfor disse områdene vil du få problemer med Trio, lengre beregningstid for loop og mulig røde loops.";
 
 /* Headline "Carbs Req Threshold" */
 "Carbs Req Threshold" = "Grense for varsling om nødvendige karbo";
@@ -2078,7 +2078,7 @@ Enact a temp Basal or a temp target */
 "Threshold Setting" = "Threshold Setting";
 
 /* Threshold Setting */
-"The default threshold in FAX depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl." = "Standard terskel i FAX er avhengig av ditt nåværende laveste BS-mål, som følger:\n\nDersom ditt laveste BS-mål = 90 mg/dL -> terskel = 65 mg/dL,\n\ndersom laveste BS-mål = 100 mg/dL -> terskel = 70 mg/dL,\n\nlaveste BS-mål = 110 mg/dL -> terskel = 75 mg/dL,\n\nog dersom laveste BS-mål = 130 mg/dL -> terskel = 85 mg/dL.\n\nDenne innstillingen tillater deg å endre til en høyere terskel for å loope med dynamisk ISF. Gyldige verdier er 65 mg/dL <= terskel-innstilling <= 120 mg/dL.";
+"The default threshold in Trio depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl." = "Standard terskel i Trio er avhengig av ditt nåværende laveste BS-mål, som følger:\n\nDersom ditt laveste BS-mål = 90 mg/dL -> terskel = 65 mg/dL,\n\ndersom laveste BS-mål = 100 mg/dL -> terskel = 70 mg/dL,\n\nlaveste BS-mål = 110 mg/dL -> terskel = 75 mg/dL,\n\nog dersom laveste BS-mål = 130 mg/dL -> terskel = 85 mg/dL.\n\nDenne innstillingen tillater deg å endre til en høyere terskel for å loope med dynamisk ISF. Gyldige verdier er 65 mg/dL <= terskel-innstilling <= 120 mg/dL.";
 
 /* Header */
 "Calculator settings" = "Calculator settings";

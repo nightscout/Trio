@@ -1,6 +1,6 @@
 /*
   Localizable.strings
-  iAPS
+  Trio
 */
 /* -------------------------------- */
 /* Bolus screen when adding insulin */
@@ -360,7 +360,7 @@ Enact a temp Basal or a temp target */
 "Remote control" = "Controllo remoto";
 
 /* Imported Profiles Alert */
-"\nNow please verify all of your new settings thoroughly:\n\n* Basal Settings\n * Carb Ratios\n * Glucose Targets\n * Insulin Sensitivities\n * DIA\n\n in iAPS Settings > Configuration.\n\nBad or invalid profile settings could have disatrous effects." = "\nOra verifica attentamente tutte le nuove impostazioni:\n\n* Impostazioni basali\n * Rapporti carboidrati\n * Obiettivi glucosio\n * Sensibilità insulinica\n * DIA\n\n in Impostazioni iAPS > Configurazione.\n\nImpostazioni del profilo errate o non valide potrebbero avere effetti disastrosi.";
+"\nNow please verify all of your new settings thoroughly:\n\n* Basal Settings\n * Carb Ratios\n * Glucose Targets\n * Insulin Sensitivities\n * DIA\n\n in Trio Settings > Configuration.\n\nBad or invalid profile settings could have disatrous effects." = "\nOra verifica attentamente tutte le nuove impostazioni:\n\n* Impostazioni basali\n * Rapporti carboidrati\n * Obiettivi glucosio\n * Sensibilità insulinica\n * DIA\n\n in Impostazioni Trio > Configurazione.\n\nImpostazioni del profilo errate o non valide potrebbero avere effetti disastrosi.";
 
 /* Profile Import Alert */
 "This will replace some or all of your current pump settings. Are you sure you want to import profile settings from Nightscout?" = "Questo sostituirà alcune o tutte le impostazioni attuali del microinfusore. Sei sicuro di voler importare le impostazioni del profilo da Nightscout?";
@@ -519,7 +519,7 @@ Enact a temp Basal or a temp target */
 "ISF" = "ISF";
 
 /* */
-"The app Garmin Connect must be installed to use for iAPS.\n Go to App Store to download it" = "L'applicazione Garmin Connect deve essere installata per essere utilizzata per iAPS.\n Vai su App Store per scaricarlo";
+"The app Garmin Connect must be installed to use for Trio.\n Go to App Store to download it" = "L'applicazione Garmin Connect deve essere installata per essere utilizzata per Trio.\n Vai su App Store per scaricarlo";
 
 /* */
 "Garmin is not available" = "Garmin non è disponibile";
@@ -1201,7 +1201,7 @@ Enact a temp Basal or a temp target */
 "For write data to Apple Health you must give permissions in Settings > Health > Data Access" = "Per scrivere dati su Apple Health devi dare il permesso in Impostazioni > Salute > Accesso dati";
 
 /* */
-"This allows iAPS to read from and write to Apple Heath. You must also give permissions in Settings > Health > Data Access. If you enter a glucose value into Apple Health, open iAPS to confirm it shows up." = "Questo permette a iAPS di leggere e scrivere su Apple Salute. È necessario anche dare i permessi in Impostazioni > Salute > Accesso dati. Se immetti un valore di glucosio in Apple Salute apri iAPS per confermarlo.";
+"This allows Trio to read from and write to Apple Heath. You must also give permissions in Settings > Health > Data Access. If you enter a glucose value into Apple Health, open Trio to confirm it shows up." = "Questo permette a Trio di leggere e scrivere su Apple Salute. È necessario anche dare i permessi in Impostazioni > Salute > Accesso dati. Se immetti un valore di glucosio in Apple Salute apri Trio per confermarlo.";
 
 /* New ALerts ------------------------- */
 /* Info title */
@@ -1525,10 +1525,10 @@ Enact a temp Basal or a temp target */
 "No confidence reminders are used." = "Non vengono utilizzati promemoria di fiducia.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "I promemoria di fiducia suoneranno per i comandi inoltrati, come boli, cancellazione boli, sospensioni, ripristini erogazione, salvataggi di promemoria, etc. Quando iAPS invece regolerà in automatico l'erogazione allora non userà alcun promemoria di fiducia.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "I promemoria di fiducia suoneranno per i comandi inoltrati, come boli, cancellazione boli, sospensioni, ripristini erogazione, salvataggi di promemoria, etc. Quando Trio invece regolerà in automatico l'erogazione allora non userà alcun promemoria di fiducia.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "I promemoria di fiducia suonano quando iAPS regola automaticamente l'erogazione e per i comandi avviati dall'utente.";
+"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "I promemoria di fiducia suonano quando Trio regola automaticamente l'erogazione e per i comandi avviati dall'utente.";
 
 /* Label text for expiration reminder default row */
 "Expiration Reminder Default" = "Promemoria scadenza predefinito";
@@ -1792,7 +1792,7 @@ Enact a temp Basal or a temp target */
 /* -----------------------------------------------------------------------------------------------------------
 
   Infotexts from openaps.docs and androidaps.docs
-  iAPS
+  Trio
 */
 /* Headline Rewind Resets Autosens */
 
@@ -1847,7 +1847,7 @@ Enact a temp Basal or a temp target */
 "Skip Neutral Temps" = "Salta Tempi Neutrali";
 
 /* "Skip Neutral Temps" */
-"Defaults to false, so that iAPS will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means iAPS will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night." = "I valori predefiniti sono falsi, in modo che iAPS imposterà basali temporanee ogni volta che è possibile, così sarà più facile vedere se il sistema funziona, anche quando sei offline. Ciò significa che OpenAPS imposterà una basale temporanea “neutrale” (uguale alla basale predefinita) se non sono necessarie modifiche. Questa è una vecchia impostazione per OpenAPS per avere le opzioni per minimizzare i suoni e le notifiche del dispositivo, che può svegliarti durante la notte. ";
+"Defaults to false, so that Trio will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means Trio will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night." = "I valori predefiniti sono falsi, in modo che Trio imposterà basali temporanee ogni volta che è possibile, così sarà più facile vedere se il sistema funziona, anche quando sei offline. Ciò significa che OpenAPS imposterà una basale temporanea “neutrale” (uguale alla basale predefinita) se non sono necessarie modifiche. Questa è una vecchia impostazione per OpenAPS per avere le opzioni per minimizzare i suoni e le notifiche del dispositivo, che può svegliarti durante la notte. ";
 
 /* Headline "Unsuspend If No Temp” */
 "Unsuspend If No Temp" = "Sospendi Se Nessuna Temp";
@@ -1859,7 +1859,7 @@ Enact a temp Basal or a temp target */
 "Enable UAM" = "Abilita UAM";
 
 /* "Enable UAM" */
-"With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell iAPS about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier." = "Con questa opzione abilitata, l'algoritmo SMB può riconoscere i pasti senza preavviso. Questo è utile, se dimenticate di dire ad iAPS i vostri carboidrati o stimate i vostri carboidrati in modo sbagliato o la quantità di carboidrati inseriti è sbagliata o se un pasto è particolarmente ricco di grassi e proteine ed ha una durata più lunga di quanto previsto. Senza alcuna voce di carboidrati, UAM può riconoscere aumenti rapidi di glucosio causati da carboidrati, adrenalina, ecc, e cerca di regolarlo con le SMB. Questo funziona anche in modo opposto: se c'è una rapida diminuzione del glucosio, può fermare SMB prima.";
+"With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell Trio about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier." = "Con questa opzione abilitata, l'algoritmo SMB può riconoscere i pasti senza preavviso. Questo è utile, se dimenticate di dire ad Trio i vostri carboidrati o stimate i vostri carboidrati in modo sbagliato o la quantità di carboidrati inseriti è sbagliata o se un pasto è particolarmente ricco di grassi e proteine ed ha una durata più lunga di quanto previsto. Senza alcuna voce di carboidrati, UAM può riconoscere aumenti rapidi di glucosio causati da carboidrati, adrenalina, ecc, e cerca di regolarlo con le SMB. Questo funziona anche in modo opposto: se c'è una rapida diminuzione del glucosio, può fermare SMB prima.";
 
 /* Headline "Enable SMB With COB" */
 "Enable SMB With COB" = "Abilita SMB con COB";
@@ -1946,7 +1946,7 @@ Enact a temp Basal or a temp target */
 "Max COB" = "Max COB";
 
 /* "Max COB" */
-"The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, iAPS will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)" = "Il valore predefinito di maxCOB è di 120. (Se qualcuno inserisce più carboidrati in una o più voci, iAPS limiterà il COB a maxCOB e lo manterrà a maxCOB fino a quando i carboidrati entrati sopra il maxCOB non avranno mostrato di essere assorbiti. Essenzialmente, questo limita solo UAM come un cappuccio di sicurezza contro calcoli COB strani a causa di dati fluidi.)";
+"The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, Trio will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)" = "Il valore predefinito di maxCOB è di 120. (Se qualcuno inserisce più carboidrati in una o più voci, Trio limiterà il COB a maxCOB e lo manterrà a maxCOB fino a quando i carboidrati entrati sopra il maxCOB non avranno mostrato di essere assorbiti. Essenzialmente, questo limita solo UAM come un cappuccio di sicurezza contro calcoli COB strani a causa di dati fluidi.)";
 
 /* Headline "Bolus Snooze DIA Divisor" */
 "Bolus Snooze DIA Divisor" = "Bolo posticipato - Divisore DIA";
@@ -2006,7 +2006,7 @@ Enact a temp Basal or a temp target */
 "Insulin Peak Time" = "Tempo Picco Insulina";
 
 /* "Insulin Peak Time" */
-"Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with iAPS, longer loop calculations and possible red loops." = "Tempo del massimo effetto dell'insulina di riduzione del glucosio nel sangue, in minuti. Attenzione: Oref presume le curve ultra rapide (Lyumjev) e ad azione rapida (Fiasp) minime (35 e 50 min) e massime (100 e 120 min) degli insulinPeakTimes applicabili. Usare un insulinPeakTime personalizzato al di fuori di questi limiti risulterà in problemi con iAPS, calcoli ciclici più lunghi e possibili cicli rossi.";
+"Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with Trio, longer loop calculations and possible red loops." = "Tempo del massimo effetto dell'insulina di riduzione del glucosio nel sangue, in minuti. Attenzione: Oref presume le curve ultra rapide (Lyumjev) e ad azione rapida (Fiasp) minime (35 e 50 min) e massime (100 e 120 min) degli insulinPeakTimes applicabili. Usare un insulinPeakTime personalizzato al di fuori di questi limiti risulterà in problemi con Trio, calcoli ciclici più lunghi e possibili cicli rossi.";
 
 /* Headline "Carbs Req Threshold" */
 "Carbs Req Threshold" = "Soglia carboidrati necessari";
@@ -2078,7 +2078,7 @@ Regola la costante ISF dinamica";
 "Threshold Setting" = "Threshold Setting";
 
 /* Threshold Setting */
-"The default threshold in FAX depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl." = "La soglia predefinita in FAX dipende dall'attuale obiettivo di glicemia minima, come segue:\n\nSe il vostro obiettivo minimo di glicemia = 90 mg/dl -> soglia = 65 mg/dl,\n\nse obiettivo minimo di glicemia = 100 mg/dl -> soglia = 70 mg/dl,\n\nobiettivo minimo di glicemia = 110 mg/dl -> soglia = 75 mg/dl,\n\ne se obiettivo minimo di glicemia = 130 mg/dl -> soglia = 85 mg/dl.\n\nQuesta impostazione ti permette di cambiare il valore predefinito ad una soglia più alta per il looping con dynISF. Valori validi sono 65 mg/dl<= Impostazione soglia <= 120 mg/dl.";
+"The default threshold in Trio depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl." = "La soglia predefinita in Trio dipende dall'attuale obiettivo di glicemia minima, come segue:\n\nSe il vostro obiettivo minimo di glicemia = 90 mg/dl -> soglia = 65 mg/dl,\n\nse obiettivo minimo di glicemia = 100 mg/dl -> soglia = 70 mg/dl,\n\nobiettivo minimo di glicemia = 110 mg/dl -> soglia = 75 mg/dl,\n\ne se obiettivo minimo di glicemia = 130 mg/dl -> soglia = 85 mg/dl.\n\nQuesta impostazione ti permette di cambiare il valore predefinito ad una soglia più alta per il looping con dynISF. Valori validi sono 65 mg/dl<= Impostazione soglia <= 120 mg/dl.";
 
 /* Header */
 "Calculator settings" = "Calculator settings";
