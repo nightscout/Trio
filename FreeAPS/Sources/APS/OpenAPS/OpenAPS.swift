@@ -113,7 +113,7 @@ final class OpenAPS {
     private func fetchCarbs() -> [CarbEntryStored]? {
         do {
             debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.succeeded) fetched carbs")
-            return try context.fetch(CarbEntryStored.fetch(NSPredicate.predicateFor30MinAgo, ascending: true))
+            return try context.fetch(CarbEntryStored.fetch(NSPredicate.predicateForOneDayAgo, ascending: false))
         } catch {
             debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.failed) failed to fetch carbs with error: \(error)")
             return []
