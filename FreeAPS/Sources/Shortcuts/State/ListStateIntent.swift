@@ -16,13 +16,13 @@ import Foundation
         Summary("List all states of Trio")
     }
 
-    @MainActor func perform() async throws -> some ReturnsValue<StateiAPSResults> & ShowsSnippetView {
+    @MainActor func perform() async throws -> some ReturnsValue<StateResults> & ShowsSnippetView {
         let glucoseValues = try? stateIntent.getLastBG()
         let iob_cob_value = try? stateIntent.getIOB_COB()
 
         guard let glucoseValue = glucoseValues else { throw StateIntentError.NoBG }
         guard let iob_cob = iob_cob_value else { throw StateIntentError.NoIOBCOB }
-        let BG = StateiAPSResults(
+        let BG = StateResults(
             glucose: glucoseValue.glucose,
             trend: glucoseValue.trend,
             delta: glucoseValue.delta,

@@ -495,8 +495,8 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
 
         newGlucose += samples
             .compactMap { sample -> HealthKitSample? in
-                let fromFAX = sample.metadata?[Config.freeAPSMetaKey] as? Bool ?? false
-                guard !fromFAX else { return nil }
+                let fromTrio = sample.metadata?[Config.freeAPSMetaKey] as? Bool ?? false
+                guard !fromTrio else { return nil }
                 return HealthKitSample(
                     healthKitId: sample.uuid.uuidString,
                     date: sample.startDate,
