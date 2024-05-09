@@ -9,6 +9,7 @@ extension Settings {
         let resolver: Resolver
         @StateObject var state = StateModel()
         @State private var showShareSheet = false
+        @StateObject private var viewModel = SettingsRootViewModel()
 
         var body: some View {
             Form {
@@ -16,16 +17,7 @@ extension Settings {
                     Toggle("Closed loop", isOn: $state.closedLoop)
                 }
                 header: {
-                    if let expirationDate = Bundle.main.profileExpiration {
-                        Text(
-                            "Trio v\(state.versionNumber) (\(state.buildNumber))\nBranch: \(state.branch) \(state.copyrightNotice)" +
-                                "\nBuild Expires: " + expirationDate
-                        ).textCase(nil)
-                    } else {
-                        Text(
-                            "Trio v\(state.versionNumber) (\(state.buildNumber))\nBranch: \(state.branch) \(state.copyrightNotice)"
-                        )
-                    }
+                    Text(viewModel.headerText).textCase(nil)
                 }
 
                 Section {

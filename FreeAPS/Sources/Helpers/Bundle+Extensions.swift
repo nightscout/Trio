@@ -9,17 +9,7 @@ extension Bundle {
         infoDictionary?["CFBundleVersion"] as? String
     }
 
-    var buildDate: Date {
-        if let infoPath = Bundle.main.path(forResource: "Info", ofType: "plist"),
-           let infoAttr = try? FileManager.default.attributesOfItem(atPath: infoPath),
-           let infoDate = infoAttr[.modificationDate] as? Date
-        {
-            return infoDate
-        }
-        return Date()
-    }
-
-    var profileExpiration: String? {
+    var profileExpirationDateString: String? {
         guard
             let profilePath = Bundle.main.path(forResource: "embedded", ofType: "mobileprovision"),
             let profileData = try? Data(contentsOf: URL(fileURLWithPath: profilePath)),
@@ -32,30 +22,28 @@ extension Bundle {
             return nil
         }
 
-        // NOTE: We have the `[\\W]*?` check to make sure that variations in number of tabs or new lines in the future does not influence the result.
-        guard let regex = try? NSRegularExpression(pattern: "<key>ExpirationDate</key>[\\W]*?<date>(.*?)</date>", options: [])
+        let regexPattern = "<key>ExpirationDate</key>[\\W]*?<date>(.*?)</date>"
+        guard let regex = try? NSRegularExpression(pattern: regexPattern, options: []),
+              let match = regex.firstMatch(
+                  in: profileNSString as String,
+                  options: [],
+                  range: NSRange(location: 0, length: profileNSString.length)
+              ),
+              let range = Range(match.range(at: 1), in: profileNSString as String)
         else {
-            print("Warning: Could not create regex.")
+            print("Warning: Could not create regex or find match.")
             return nil
         }
 
-        let regExMatches = regex.matches(
-            in: profileNSString as String,
-            options: [],
-            range: NSRange(location: 0, length: profileNSString.length)
-        )
+        return String(profileNSString.substring(with: NSRange(range, in: profileNSString as String)))
+    }
 
-        // NOTE: range `0` corresponds to the full regex match, so to get the first capture group, we use range `1`
-        guard let rangeOfCapturedGroupForDate = regExMatches.first?.range(at: 1) else {
-            print("Warning: Could not find regex match or capture group.")
-            return nil
-        }
-
-        let dateWithTimeAsString = profileNSString.substring(with: rangeOfCapturedGroupForDate)
-
-        guard let dateAsStringIndex = dateWithTimeAsString.firstIndex(of: "T") else {
-            return nil
-        }
-        return String(dateWithTimeAsString[..<dateAsStringIndex])
+    var profileExpirationDate: Date? {
+        guard let dateString = profileExpirationDateString else { return nil }
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+        return dateFormatter.date(from: dateString)
     }
 }

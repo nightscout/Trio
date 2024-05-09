@@ -279,7 +279,6 @@
 		A6F097A14CAAE0CE0D11BE1B /* AddCarbsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 618E62C9757B2F95431B5DC0 /* AddCarbsProvider.swift */; };
 		AD3D2CD42CD01B9EB8F26522 /* PumpConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF65DA88F972B56090AD6AC3 /* PumpConfigDataFlow.swift */; };
 		B958F1B72BA0711600484851 /* MKRingProgressView in Frameworks */ = {isa = PBXBuildFile; productRef = B958F1B62BA0711600484851 /* MKRingProgressView */; };
-		B9CAAEFC2AE70836000F68BC /* branch.txt in Resources */ = {isa = PBXBuildFile; fileRef = B9CAAEFB2AE70836000F68BC /* branch.txt */; };
 		BA00D96F7B2FF169A06FB530 /* CGMStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C018D1680307A31C9ED7120 /* CGMStateModel.swift */; };
 		BD2B464E0745FBE7B79913F4 /* NightscoutConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF768BD6264FF7D71D66767 /* NightscoutConfigProvider.swift */; };
 		BDF530D82B40F8AC002CAF43 /* LockScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF530D72B40F8AC002CAF43 /* LockScreenView.swift */; };
@@ -347,6 +346,8 @@
 		D6DEC113821A7F1056C4AA1E /* NightscoutConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F2A13DF0EDEEEDC4106AA2A /* NightscoutConfigDataFlow.swift */; };
 		D76333C9256787610B3B4875 /* AutotuneConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D295A3F870E826BE371C0BB5 /* AutotuneConfigStateModel.swift */; };
 		DBA5254DBB2586C98F61220C /* ISFEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F9F137F126D9F8DEB799F26 /* ISFEditorProvider.swift */; };
+		DD1DB7CC2BECCA1F0048B367 /* BuildDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */; };
+		DD1DB7CE2BED00CF0048B367 /* SettingsRootViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1DB7CD2BED00CF0048B367 /* SettingsRootViewModel.swift */; };
 		DD399FB31EACB9343C944C4C /* PreferencesEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CA3E609094E064C99A4752C /* PreferencesEditorStateModel.swift */; };
 		E00EEC0327368630002FF094 /* ServiceAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00EEBFD27368630002FF094 /* ServiceAssembly.swift */; };
 		E00EEC0427368630002FF094 /* SecurityAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00EEBFE27368630002FF094 /* SecurityAssembly.swift */; };
@@ -873,6 +874,8 @@
 		D295A3F870E826BE371C0BB5 /* AutotuneConfigStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AutotuneConfigStateModel.swift; sourceTree = "<group>"; };
 		D97F14812C1AFED3621165A5 /* PumpSettingsEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpSettingsEditorProvider.swift; sourceTree = "<group>"; };
 		DC2C6489D29ECCCAD78E0721 /* NotificationsConfigStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotificationsConfigStateModel.swift; sourceTree = "<group>"; };
+		DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildDetails.swift; sourceTree = "<group>"; };
+		DD1DB7CD2BED00CF0048B367 /* SettingsRootViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRootViewModel.swift; sourceTree = "<group>"; };
 		E00EEBFD27368630002FF094 /* ServiceAssembly.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceAssembly.swift; sourceTree = "<group>"; };
 		E00EEBFE27368630002FF094 /* SecurityAssembly.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SecurityAssembly.swift; sourceTree = "<group>"; };
 		E00EEBFF27368630002FF094 /* StorageAssembly.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StorageAssembly.swift; sourceTree = "<group>"; };
@@ -1274,6 +1277,7 @@
 			children = (
 				3811DE3C25C9D4A100A708ED /* SettingsRootView.swift */,
 				CE1F6DE82BAF37C90064EB8D /* TidePoolConfigView.swift */,
+				DD1DB7CD2BED00CF0048B367 /* SettingsRootViewModel.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -1639,6 +1643,7 @@
 				FE66D16A291F74F8005D6F77 /* Bundle+Extensions.swift */,
 				FEFFA7A12929FE49007B8193 /* UIDevice+Extensions.swift */,
 				CEA4F62229BE10F70011ADF7 /* SavitzkyGolayFilter.swift */,
+				DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -2268,7 +2273,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 388E596725AD948E0019842D /* Build configuration list for PBXNativeTarget "FreeAPS" */;
 			buildPhases = (
-				B9CAAEFA2AE6FDE6000F68BC /* Run Script: get branch name and commit ID */,
 				3811DEF525CA169200A708ED /* Swiftformat */,
 				388E595425AD948C0019842D /* Sources */,
 				388E595525AD948C0019842D /* Frameworks */,
@@ -2277,6 +2281,7 @@
 				38E8753D27554D5900975559 /* Embed Watch Content */,
 				6B1A8D122B14D88E00E76752 /* Embed Foundation Extensions */,
 				CE95BF582BA5F8F300DC3DE3 /* Install plugins */,
+				DD1DB7C92BEBF79B0048B367 /* Capture Build Details */,
 			);
 			buildRules = (
 			);
@@ -2456,7 +2461,6 @@
 				38DF178E27733E6800B3528F /* Assets.xcassets in Resources */,
 				19DA48E829CD339B00EEA1E7 /* Assets.xcassets in Resources */,
 				388E596F25AD96040019842D /* javascript in Resources */,
-				B9CAAEFC2AE70836000F68BC /* branch.txt in Resources */,
 				1927C8E62744606D00347C69 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2516,25 +2520,6 @@
 			shellPath = /bin/sh;
 			shellScript = "source \"${SRCROOT}\"/scripts/swiftformat.sh\n\n";
 		};
-		B9CAAEFA2AE6FDE6000F68BC /* Run Script: get branch name and commit ID */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 12;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Run Script: get branch name and commit ID";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# Prints a message\necho \"writing BRANCH to branch.txt\"\n\n# Retrieves version, branch, and tag information from Git\ngit_version=$(git log -1 --format=\"%h\" --abbrev=7)\ngit_branch=$(git symbolic-ref --short -q HEAD)\ngit_tag=$(git describe --tags --exact-match 2>/dev/null)\n\n# Determines branch or tag information\ngit_branch_or_tag=\"${git_branch:-${git_tag}}\"\ngit_branch_or_tag_version=\"${git_branch_or_tag} ${git_version}\"\n\necho \"BRANCH = ${git_branch_or_tag_version}\" > \"./branch.txt\"\n\n# Prints a message about the working directory and branch.txt\necho \"branch.txt is created/modified in ${PWD}\"\n";
-		};
 		CE95BF582BA5F8F300DC3DE3 /* Install plugins */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
@@ -2553,6 +2538,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${SRCROOT}/Scripts/copy-plugins.sh\"\n";
+		};
+		DD1DB7C92BEBF79B0048B367 /* Capture Build Details */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Capture Build Details";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/scripts/capture-build-details.sh\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -2656,6 +2659,7 @@
 				388358C825EEF6D200E024B2 /* BasalProfileEntry.swift in Sources */,
 				3811DE0B25C9D32F00A708ED /* BaseView.swift in Sources */,
 				3811DE3225C9D49500A708ED /* HomeDataFlow.swift in Sources */,
+				DD1DB7CE2BED00CF0048B367 /* SettingsRootViewModel.swift in Sources */,
 				38569347270B5DFB0002C50D /* CGMType.swift in Sources */,
 				3821ED4C25DD18BA00BC42AD /* Constants.swift in Sources */,
 				384E803425C385E60086DB71 /* JavaScriptWorker.swift in Sources */,
@@ -2722,6 +2726,7 @@
 				38C4D33A25E9A1ED00D30B77 /* NSObject+AssociatedValues.swift in Sources */,
 				38DF179027733EAD00B3528F /* SnowScene.swift in Sources */,
 				38AAF8712600C1B0004AF583 /* MainChartView.swift in Sources */,
+				DD1DB7CC2BECCA1F0048B367 /* BuildDetails.swift in Sources */,
 				19DC677F29CA675700FD9EC4 /* OverrideProfilesDataFlow.swift in Sources */,
 				1935364028496F7D001E0B16 /* Oref2_variables.swift in Sources */,
 				CE2FAD3A297D93F0001A872C /* BloodGlucoseExtensions.swift in Sources */,
