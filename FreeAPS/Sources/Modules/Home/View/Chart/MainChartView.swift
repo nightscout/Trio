@@ -648,25 +648,31 @@ extension MainChartView {
     /// calculates the glucose value thats the nearest to parameter 'time'
     /// if time is later than all the arrays values return the last element of BloodGlucose
     private func timeToNearestGlucose(time: TimeInterval) -> GlucoseStored {
-        /// If the glucose array is empty, return a default BloodGlucose object or handle it accordingly
-        guard let lastGlucose = glucoseFromPersistence.last else {
+        guard !glucoseFromPersistence.isEmpty else {
             return GlucoseStored()
         }
 
-        /// If the last glucose entry is before the specified time, return the last entry
-        if lastGlucose.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970 < time {
-            return lastGlucose
+        var low = 0
+        var high = glucoseFromPersistence.count - 1
+
+        while low < high {
+            let mid = low + (high - low) / 2
+            let midTime = glucoseFromPersistence[mid].date?.timeIntervalSince1970 ?? 0
+
+            if midTime == time {
+                return glucoseFromPersistence[mid]
+            } else if midTime < time {
+                low = mid + 1
+            } else {
+                high = mid
+            }
         }
 
-        /// Find the index of the first element in the array whose date is greater than the specified time
-        if let nextIndex = glucoseFromPersistence
-            .firstIndex(where: { $0.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970 > time })
-        {
-            return glucoseFromPersistence[nextIndex]
-        } else {
-            /// If no such element is found, return the last element in the array
-            return lastGlucose
+        if high == glucoseFromPersistence.count - 1 || glucoseFromPersistence[high].date?.timeIntervalSince1970 ?? 0 > time {
+            return glucoseFromPersistence[max(high - 1, 0)]
         }
+
+        return glucoseFromPersistence[high]
     }
 
     private func fullWidth(viewWidth: CGFloat) -> CGFloat {
