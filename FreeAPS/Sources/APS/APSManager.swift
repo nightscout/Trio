@@ -941,31 +941,11 @@ final class BaseAPSManager: APSManager, Injectable {
                 }
                 let af = preferences.sigmoid ? preferences.adjustmentFactorSigmoid : preferences.adjustmentFactor
                 let insulin_type = preferences.curve
-                let buildDate = Bundle.main.buildDate
+                let buildDate = BuildDetails.default.buildDate() ?? Date()
                 let version = Bundle.main.releaseVersionNumber
                 let build = Bundle.main.buildVersionNumber
 
-                // Read branch information from branch.txt instead of infoDictionary
-                var branch = "Unknown"
-                if let branchFileURL = Bundle.main.url(forResource: "branch", withExtension: "txt"),
-                   let branchFileContent = try? String(contentsOf: branchFileURL)
-                {
-                    let lines = branchFileContent.components(separatedBy: .newlines)
-                    for line in lines {
-                        let components = line.components(separatedBy: "=")
-                        if components.count == 2 {
-                            let key = components[0].trimmingCharacters(in: .whitespaces)
-                            let value = components[1].trimmingCharacters(in: .whitespaces)
-
-                            if key == "BRANCH" {
-                                branch = value
-                                break
-                            }
-                        }
-                    }
-                } else {
-                    branch = "Unknown"
-                }
+                let branch = BuildDetails.default.branchAndSha
 
                 let copyrightNotice_ = Bundle.main.infoDictionary?["NSHumanReadableCopyright"] as? String ?? ""
                 let pump_ = pumpManager?.localizedTitle ?? ""
