@@ -1,6 +1,6 @@
 /*
   Localizable.strings
-  iAPS
+  Trio
 */
 /* -------------------------------- */
 /* Bolus screen when adding insulin */
@@ -360,7 +360,7 @@ Enact a temp Basal or a temp target */
 "Remote control" = "Điều khiển từ xa";
 
 /* Imported Profiles Alert */
-"\nNow please verify all of your new settings thoroughly:\n\n* Basal Settings\n * Carb Ratios\n * Glucose Targets\n * Insulin Sensitivities\n * DIA\n\n in iAPS Settings > Configuration.\n\nBad or invalid profile settings could have disatrous effects." = "\n Bây giờ xin hãy xác minh lại tất cả các cài đặt của bạn kỹ lưỡng:\n\n* Cài đặt liều nền\n * Tỷ lệ Carb\n * Mục tiêu đường huyết \n * Độ nhạy của Insulin\n * Thời gian hoạt động của insulin\n\n trong iAPS Cài đặt > Cấu hình.\n\n Cấu hình không hợp lệ hoặc tồi có thể có tác động thảm họa.";
+"\nNow please verify all of your new settings thoroughly:\n\n* Basal Settings\n * Carb Ratios\n * Glucose Targets\n * Insulin Sensitivities\n * DIA\n\n in Trio Settings > Configuration.\n\nBad or invalid profile settings could have disatrous effects." = "\n Bây giờ xin hãy xác minh lại tất cả các cài đặt của bạn kỹ lưỡng:\n\n* Cài đặt liều nền\n * Tỷ lệ Carb\n * Mục tiêu đường huyết \n * Độ nhạy của Insulin\n * Thời gian hoạt động của insulin\n\n trong Trio Cài đặt > Cấu hình.\n\n Cấu hình không hợp lệ hoặc tồi có thể có tác động thảm họa.";
 
 /* Profile Import Alert */
 "This will replace some or all of your current pump settings. Are you sure you want to import profile settings from Nightscout?" = "Việc này có thể thay thế một vài hoặc tất cả những cấu hình bơm hiện tại của bạn. Bạn có chắc bạn muốn nhập cấu hình từ Nightscout?";
@@ -519,7 +519,7 @@ Enact a temp Basal or a temp target */
 "ISF" = "ISF";
 
 /* */
-"The app Garmin Connect must be installed to use for iAPS.\n Go to App Store to download it" = "Phải cài đặt ứng dụng Garmin Connect để sử dụng cho iAPS.\n Hãy truy cập App Store để tải xuống ứng dụng này";
+"The app Garmin Connect must be installed to use for Trio.\n Go to App Store to download it" = "Phải cài đặt ứng dụng Garmin Connect để sử dụng cho Trio.\n Hãy truy cập App Store để tải xuống ứng dụng này";
 
 /* */
 "Garmin is not available" = "Garmin không có sẵn";
@@ -1035,13 +1035,13 @@ Enact a temp Basal or a temp target */
 "To prevent LOW required %d g of carbs" = "Để hạn chế LOW yêu cầu %d g carbs";
 
 /* */
-"Open-iAPS Not Active" = "Open-iAPS chưa hoạt động";
+"Trio Not Active" = "Trio chưa hoạt động";
 
 /* */
 "Last loop was more than %d min ago" = "Loop dừng hoạt động hơn %d phút trước";
 
 /* Glucose badge */
-"Show glucose on the app badge" = "Thể hiện đường huyết lên trên iAPS";
+"Show glucose on the app badge" = "Thể hiện đường huyết lên trên Trio";
 
 /* */
 "Backfill glucose" = "Bổ sung glucose";
@@ -1201,7 +1201,7 @@ Enact a temp Basal or a temp target */
 "For write data to Apple Health you must give permissions in Settings > Health > Data Access" = "Để ghi dữ liệu vào Apple Health, bạn phải cấp quyền trong Cài đặt > Sức khỏe > Truy cập dữ liệu";
 
 /* */
-"This allows iAPS to read from and write to Apple Heath. You must also give permissions in Settings > Health > Data Access. If you enter a glucose value into Apple Health, open iAPS to confirm it shows up." = "Điều này cho phép iAPS đọc và ghi vào Apple Heath. Bạn cũng phải cấp quyền trong Cài đặt > Sức khỏe > Truy cập dữ liệu. Nếu bạn nhập giá trị glucose vào Apple Health, hãy mở iAPS để xác nhận giá trị đó hiển thị.";
+"This allows Trio to read from and write to Apple Heath. You must also give permissions in Settings > Health > Data Access. If you enter a glucose value into Apple Health, open Trio to confirm it shows up." = "Điều này cho phép Trio đọc và ghi vào Apple Heath. Bạn cũng phải cấp quyền trong Cài đặt > Sức khỏe > Truy cập dữ liệu. Nếu bạn nhập giá trị glucose vào Apple Health, hãy mở Trio để xác nhận giá trị đó hiển thị.";
 
 /* New ALerts ------------------------- */
 /* Info title */
@@ -1371,7 +1371,7 @@ Enact a temp Basal or a temp target */
 "App Icons" = "Biểu tượng ứng dụng";
 
 /* */
-"Open-iAPS Icon" = "biểu tượng Open-iAPS";
+"Trio Icon" = "biểu tượng Trio";
 
 /* Service Section */
 "Statistics and Home View" = "Thống kê và xem";
@@ -1792,7 +1792,7 @@ Enact a temp Basal or a temp target */
 /* -----------------------------------------------------------------------------------------------------------
 
   Infotexts from openaps.docs and androidaps.docs
-  iAPS
+  Trio
 */
 /* Headline Rewind Resets Autosens */
 
@@ -1847,7 +1847,7 @@ Enact a temp Basal or a temp target */
 "Skip Neutral Temps" = "Bỏ qua tạm thời trung lập";
 
 /* "Skip Neutral Temps" */
-"Defaults to false, so that iAPS will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means iAPS will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night." = "Mặc định là False, do đó iAPS sẽ đặt nhiệt độ bất cứ khi nào có thể, do đó, sẽ dễ dàng hơn để xem hệ thống có hoạt động hay không, ngay cả khi bạn ngoại tuyến. Điều này có nghĩa là OpenAPS sẽ đặt Temp “trung tính” (giống như Temp cơ bản mặc định của bạn) nếu không cần điều chỉnh. Đây là cài đặt cũ để OpenAPS có các tùy chọn giảm thiểu âm thanh và thông báo từ 'giàn khoan' có thể đánh thức bạn vào ban đêm. ";
+"Defaults to false, so that Trio will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means Trio will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night." = "Mặc định là False, do đó Trio sẽ đặt nhiệt độ bất cứ khi nào có thể, do đó, sẽ dễ dàng hơn để xem hệ thống có hoạt động hay không, ngay cả khi bạn ngoại tuyến. Điều này có nghĩa là OpenAPS sẽ đặt Temp “trung tính” (giống như Temp cơ bản mặc định của bạn) nếu không cần điều chỉnh. Đây là cài đặt cũ để OpenAPS có các tùy chọn giảm thiểu âm thanh và thông báo từ 'giàn khoan' có thể đánh thức bạn vào ban đêm. ";
 
 /* Headline "Unsuspend If No Temp” */
 "Unsuspend If No Temp" = "Bỏ tạm dừng nếu không có tạm thời";
@@ -1859,7 +1859,7 @@ Enact a temp Basal or a temp target */
 "Enable UAM" = "Kích hoạt UAM";
 
 /* "Enable UAM" */
-"With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell iAPS about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier." = "Khi bật tùy chọn này, thuật toán SMB có thể nhận ra các bữa ăn không báo trước. Điều này rất hữu ích nếu bạn quên thông báo cho iAPS về lượng carb của mình hoặc ước tính sai lượng carb của bạn và lượng carb đã nhập sai hoặc nếu một bữa ăn có nhiều chất béo và protein kéo dài hơn dự kiến. Nếu không có bất kỳ lượng carb nào được đưa vào, UAM có thể nhận ra mức tăng đường huyết nhanh chóng do carbs, adrenaline, v. v. gây ra và cố gắng điều chỉnh nó bằng SMB. Điều này cũng hoạt động theo cách ngược lại: nếu lượng glucose giảm nhanh, nó có thể dừng SMB sớm hơn.";
+"With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell Trio about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier." = "Khi bật tùy chọn này, thuật toán SMB có thể nhận ra các bữa ăn không báo trước. Điều này rất hữu ích nếu bạn quên thông báo cho Trio về lượng carb của mình hoặc ước tính sai lượng carb của bạn và lượng carb đã nhập sai hoặc nếu một bữa ăn có nhiều chất béo và protein kéo dài hơn dự kiến. Nếu không có bất kỳ lượng carb nào được đưa vào, UAM có thể nhận ra mức tăng đường huyết nhanh chóng do carbs, adrenaline, v. v. gây ra và cố gắng điều chỉnh nó bằng SMB. Điều này cũng hoạt động theo cách ngược lại: nếu lượng glucose giảm nhanh, nó có thể dừng SMB sớm hơn.";
 
 /* Headline "Enable SMB With COB" */
 "Enable SMB With COB" = "Kích hoạt SMB đối với COB";
@@ -1947,7 +1947,7 @@ Enact a temp Basal or a temp target */
 "Max COB" = "COB tối đa";
 
 /* "Max COB" */
-"The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, iAPS will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)" = "Giá trị mặc định của maxCOB là 120. (Nếu ai đó nạp nhiều carbs hơn vào một hoặc nhiều mục, iAPS sẽ giới hạn COB ở mức maxCOB và giữ nó ở mức maxCOB cho đến khi lượng carb nhập vào trên maxCOB cho thấy đã được hấp thụ. Về cơ bản, điều này chỉ giới hạn UAM như một giới hạn an toàn chống lại các phép tính COB kỳ lạ do dữ liệu không ổn định.)";
+"The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, Trio will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)" = "Giá trị mặc định của maxCOB là 120. (Nếu ai đó nạp nhiều carbs hơn vào một hoặc nhiều mục, Trio sẽ giới hạn COB ở mức maxCOB và giữ nó ở mức maxCOB cho đến khi lượng carb nhập vào trên maxCOB cho thấy đã được hấp thụ. Về cơ bản, điều này chỉ giới hạn UAM như một giới hạn an toàn chống lại các phép tính COB kỳ lạ do dữ liệu không ổn định.)";
 
 /* Headline "Bolus Snooze DIA Divisor" */
 "Bolus Snooze DIA Divisor" = "Chế độ báo lại bolus";
@@ -2007,7 +2007,7 @@ Enact a temp Basal or a temp target */
 "Insulin Peak Time" = "Thời gian đỉnh của Insulin";
 
 /* "Insulin Peak Time" */
-"Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with iAPS, longer loop calculations and possible red loops." = "Thời gian tác dụng hạ đường huyết tối đa của insulin, tính bằng phút. Lưu ý: Oref giả định đường cong cực nhanh (Lyumjev) và tác dụng nhanh (Fiasp) tối thiểu (35 & 50 phút) và tối đa (100 & 120 phút) áp dụng đỉnh insulin. Việc sử dụng đỉnh insulin tùy chỉnh ngoài các giới hạn này sẽ dẫn đến sự cố với iAPS, tính toán vòng lặp dài hơn và có thể xảy ra vòng lặp màu đỏ.";
+"Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with Trio, longer loop calculations and possible red loops." = "Thời gian tác dụng hạ đường huyết tối đa của insulin, tính bằng phút. Lưu ý: Oref giả định đường cong cực nhanh (Lyumjev) và tác dụng nhanh (Fiasp) tối thiểu (35 & 50 phút) và tối đa (100 & 120 phút) áp dụng đỉnh insulin. Việc sử dụng đỉnh insulin tùy chỉnh ngoài các giới hạn này sẽ dẫn đến sự cố với Trio, tính toán vòng lặp dài hơn và có thể xảy ra vòng lặp màu đỏ.";
 
 /* Headline "Carbs Req Threshold" */
 "Carbs Req Threshold" = "Ngưỡng yêu cầu của lượng Carbs";
@@ -2078,7 +2078,7 @@ Enact a temp Basal or a temp target */
 "Threshold Setting" = "Cài đặt ngưỡng";
 
 /* Threshold Setting */
-"The default threshold in FAX depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl." = "Ngưỡng mặc định trong FAX tùy thuộc vào mục tiêu BG tối thiểu hiện tại của bạn, như sau:\n\nNếu mục tiêu BG tối thiểu của bạn = 90 mg/dl -> ngưỡng = 65 mg/dl,\n\nif mục tiêu BG tối thiểu = 100 mg/dl -> ngưỡng = 70 mg/dl,\n\nmục tiêu BG tối thiểu = 110 mg/dl -> ngưỡng = 75 mg/dl,\n\nand nếu mục tiêu BG tối thiểu = 130 mg/dl -> ngưỡng = 85 mg/dl.\n\nCài đặt này cho phép bạn thay đổi mặc định thành ngưỡng lặp cao hơn cho vòng lặp với dynISF. Giá trị hợp lệ là 65 mg/dl<= Cài đặt ngưỡng <= 120 mg/dl.";
+"The default threshold in Trio depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl." = "Ngưỡng mặc định trong Trio tùy thuộc vào mục tiêu BG tối thiểu hiện tại của bạn, như sau:\n\nNếu mục tiêu BG tối thiểu của bạn = 90 mg/dl -> ngưỡng = 65 mg/dl,\n\nif mục tiêu BG tối thiểu = 100 mg/dl -> ngưỡng = 70 mg/dl,\n\nmục tiêu BG tối thiểu = 110 mg/dl -> ngưỡng = 75 mg/dl,\n\nand nếu mục tiêu BG tối thiểu = 130 mg/dl -> ngưỡng = 85 mg/dl.\n\nCài đặt này cho phép bạn thay đổi mặc định thành ngưỡng lặp cao hơn cho vòng lặp với dynISF. Giá trị hợp lệ là 65 mg/dl<= Cài đặt ngưỡng <= 120 mg/dl.";
 
 /* Header */
 "Calculator settings" = "Thiết lập tính toán";
