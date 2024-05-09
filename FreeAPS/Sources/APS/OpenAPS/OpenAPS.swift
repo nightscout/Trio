@@ -99,11 +99,10 @@ final class OpenAPS {
         do {
             debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
             return try context.fetch(GlucoseStored.fetch(
-                NSPredicate.predicateFor30MinAgo,
+                NSPredicate.predicateForOneHourAgo,
                 ascending: false,
-                fetchLimit: 4
-            )) /// it only returns the last 4 values within the last 30 minutes, that means one reading can not be older than 5 minutes, otherwise the loop will fail
-            /// if we do not pass at least 4 values, cob cannot be calculated.
+                fetchLimit: 6
+            ))
         } catch {
             debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose with error: \(error)")
             return []
@@ -135,7 +134,7 @@ final class OpenAPS {
     }
 
     private func parsePumpHistory(_ pumpHistory: [PumpEventStored]) -> String {
-        guard !pumpHistory.isEmpty else { return "" }
+        guard !pumpHistory.isEmpty else { return "{}" }
 
         let dtos: [PumpEventDTO] = pumpHistory.flatMap { event -> [PumpEventDTO] in
             var eventDTOs: [PumpEventDTO] = []
@@ -171,6 +170,7 @@ final class OpenAPS {
                 // carbs
                 let carbs = self.fetchCarbs()
                 let carbsString = self.jsonConverter.convertToJSON(carbs)
+                print(carbsString)
 
                 /// glucose
                 let glucose = self.fetchGlucose()
@@ -189,7 +189,7 @@ final class OpenAPS {
                     carbs: carbsString,
                     glucose: glucoseString
                 )
-
+                print(meal)
                 self.storage.save(meal, as: Monitor.meal)
 
                 // iob

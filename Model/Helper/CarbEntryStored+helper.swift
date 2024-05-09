@@ -44,6 +44,8 @@ extension CarbEntryStored: Encodable {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
         let dateFormatter = ISO8601DateFormatter()
+        dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
         let formattedDate = dateFormatter.string(from: date ?? Date())
         try container.encode(formattedDate, forKey: .actualDate)
         try container.encode(formattedDate, forKey: .created_at)

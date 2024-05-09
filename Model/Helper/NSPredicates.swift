@@ -6,6 +6,10 @@ extension Date {
         Calendar.current.date(byAdding: .day, value: -1, to: Date())!
     }
 
+    static var oneHourAgo: Date {
+        Calendar.current.date(byAdding: .minute, value: -60, to: Date())!
+    }
+
     static var halfHourAgo: Date {
         Calendar.current.date(byAdding: .minute, value: -30, to: Date())!
     }
@@ -42,6 +46,11 @@ extension NSPredicate {
 
     static var predicateForOneDayAgo: NSPredicate {
         let date = Date.oneDayAgo
+        return NSPredicate(format: "date >= %@", date as NSDate)
+    }
+
+    static var predicateForOneHourAgo: NSPredicate {
+        let date = Date.oneHourAgo
         return NSPredicate(format: "date >= %@", date as NSDate)
     }
 
