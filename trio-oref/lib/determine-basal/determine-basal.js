@@ -219,7 +219,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
 
     function accountForIncrements(insulin) {
-        // If you have not set this to.0.1 in iAPS settings, this will be set to 0.05 (Omnipods) in code.
+        // If you have not set this to.0.1 in Trio settings, this will be set to 0.05 (Omnipods) in code.
         var minimalDose = profile.bolus_increment;
         if (minimalDose != 0.1) {
             minimalDose = 0.05;

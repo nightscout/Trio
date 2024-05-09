@@ -1,6 +1,7 @@
-oref0 branch: dev - git version: fa373c9
+oref0 branch: dev - git version: e023125
 
 Last commits:
+e023125 Replace Open-iAPS with Trio (#23)
 fa373c9 Merge pull request #22 from nightscout/tmhastings-tddAdjBasal
 fc0ae69 tddAdjBasal pop-up correction
 487bcbb Merge pull request #21 from MikePlante1/separate_adjustment_factors
