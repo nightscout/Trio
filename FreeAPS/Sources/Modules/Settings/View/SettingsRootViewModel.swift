@@ -22,7 +22,7 @@ class SettingsRootViewModel: ObservableObject {
 
         if let expirationDate = buildDetails.calculateExpirationDate() {
             let formattedDate = DateFormatter.localizedString(from: expirationDate, dateStyle: .medium, timeStyle: .none)
-            headerText = "\(headerBase)\nBuild Expires: \(formattedDate)"
+            headerText = "\(headerBase)\n\(buildDetails.expirationHeaderString): \(formattedDate)"
         } else {
             headerText = headerBase
         }
