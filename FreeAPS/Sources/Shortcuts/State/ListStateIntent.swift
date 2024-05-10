@@ -3,26 +3,26 @@ import Foundation
 
 @available(iOS 16.0, *) struct ListStateIntent: AppIntent {
     // Title of the action in the Shortcuts app
-    static var title: LocalizedStringResource = "List last state available with iAPS"
+    static var title: LocalizedStringResource = "List last state available with Trio"
 
     var stateIntent = StateIntentRequest()
 
     // Description of the action in the Shortcuts app
     static var description = IntentDescription(
-        "Allow to list the last Blood Glucose, trends, IOB and COB available in iAPS"
+        "Allow to list the last Blood Glucose, trends, IOB and COB available in Trio"
     )
 
     static var parameterSummary: some ParameterSummary {
-        Summary("List all states of Open-iAPS")
+        Summary("List all states of Trio")
     }
 
-    @MainActor func perform() async throws -> some ReturnsValue<StateiAPSResults> & ShowsSnippetView {
+    @MainActor func perform() async throws -> some ReturnsValue<StateResults> & ShowsSnippetView {
         let glucoseValues = try? stateIntent.getLastBG()
         let iob_cob_value = try? stateIntent.getIOB_COB()
 
         guard let glucoseValue = glucoseValues else { throw StateIntentError.NoBG }
         guard let iob_cob = iob_cob_value else { throw StateIntentError.NoIOBCOB }
-        let BG = StateiAPSResults(
+        let BG = StateResults(
             glucose: glucoseValue.glucose,
             trend: glucoseValue.trend,
             delta: glucoseValue.delta,

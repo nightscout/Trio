@@ -25,7 +25,7 @@ If applicable, add screenshots to help explain your problem.
 **Setup Information (please complete the following information):**
 * Pump type
 * CGM type and CGM app
-* Open-iAPS version, branch and git reference (see Open-iAPS Settings)
+* Trio version, branch and git reference (see Trio Settings)
 
 **Additional context**
 Add any other context about the problem here.

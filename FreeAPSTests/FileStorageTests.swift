@@ -9,7 +9,7 @@ class FileStorageTests: XCTestCase {
         let value: Decimal
     }
 
-    func testFileStorageOiAPS() {
+    func testFileStorageTrio() {
         let dummyObject = DummyObject(id: "21342Z", value: 78.2)
         fileStorage.save(dummyObject, as: "dummyObject")
         let dummyObjectRetrieve = fileStorage.retrieve("dummyObject", as: DummyObject.self)
