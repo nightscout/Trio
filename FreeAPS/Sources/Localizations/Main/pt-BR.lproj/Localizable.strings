@@ -1240,7 +1240,7 @@ Enact a temp Basal or a temp target */
 "Enable" = "Enable";
 
 /* Header */
-"Conversion settings" = "Conversion settings";
+"Fat and Protein Conversion Settings" = "Fat and Protein Conversion Settings";
 
 /* Delay */
 "Delay In Minutes" = "Delay In Minutes";
@@ -1273,7 +1273,7 @@ Enact a temp Basal or a temp target */
 "Protein" = "Protein";
 
 /* Service Section */
-"Fat And Protein Conversion" = "Fat And Protein Conversion";
+"Meal Settings" = "Meal Settings";
 
 /* Service Section */
 "Profile Override" = "Profile Override";

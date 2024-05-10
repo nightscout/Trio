@@ -37,7 +37,7 @@ extension Settings {
                         Text("Apple Health").navigationLink(to: .healthkit, from: self)
                     }
                     Text("Notifications").navigationLink(to: .notificationsConfig, from: self)
-                    Text("Fat And Protein Conversion").navigationLink(to: .fpuConfig, from: self)
+                    Text("Meal Settings").navigationLink(to: .fpuConfig, from: self)
                     Text("App Icons").navigationLink(to: .iconConfig, from: self)
                     Text("Statistics and Home View").navigationLink(to: .statisticsConfig, from: self)
                 } header: { Text("Services") }

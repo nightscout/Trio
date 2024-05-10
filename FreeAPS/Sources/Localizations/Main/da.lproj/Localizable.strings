@@ -1240,7 +1240,7 @@ Enact a temp Basal or a temp target */
 "Enable" = "Aktivér";
 
 /* Header */
-"Conversion settings" = "Indstillinger for konvertering";
+"Fat and Protein Conversion Settings" = "Fat and Protein Conversion Settings";
 
 /* Delay */
 "Delay In Minutes" = "Forsinkelse I Minutter";
@@ -1258,7 +1258,7 @@ Enact a temp Basal or a temp target */
 "Allows fat and protein to be converted into future carb equivalents using the Warsaw formula of kilocalories divided by 10.\n\nThis spreads the carb equivilants over a maximum duration setting that can be configured from 5-12 hours.\n\nDelay is time from now until the first future carb entry.\n\nInterval in minutes is how many minutes are between entries. The shorter the interval, the smoother the result. 10, 15, 20, 30, or 60 are reasonable choices.\n\nAdjustment factor is how much effect the fat and protein has on the entries. 1.0 is full effect (original Warsaw Method) and 0.5 is half effect. Note that you may find that your normal carb ratio needs to increase to a larger number if you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 0.5 to ease into it.\n\nDefault settings: Time Cap: 8 h, Interval: 30 min, Factor: 0.5, Delay 60 min" = "Allows fat and protein to be converted into future carb equivalents using the Warsaw formula of kilocalories divided by 10.\n\nThis spreads the carb equivilants over a maximum duration setting that can be configured from 5-12 hours.\n\nDelay is time from now until the first future carb entry.\n\nInterval in minutes is how many minutes are between entries. The shorter the interval, the smoother the result. 10, 15, 20, 30, or 60 are reasonable choices.\n\nAdjustment factor is how much effect the fat and protein has on the entries. 1.0 is full effect (original Warsaw Method) and 0.5 is half effect. Note that you may find that your normal carb ratio needs to increase to a larger number if you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 0.5 to ease into it.\n\nDefault settings: Time Cap: 8 h, Interval: 30 min, Factor: 0.5, Delay 60 min";
 
 /* FPU Settings Title */
-"Fat and Protein" = "Fedt og Protein";
+"Fat and Protein" = "Fat and Protein";
 
 /* Display fat and protein entities */
 "Fat & Protein" = "Fedt & Protein";
@@ -1273,7 +1273,7 @@ Enact a temp Basal or a temp target */
 "Protein" = "Protein";
 
 /* Service Section */
-"Fat And Protein Conversion" = "Fedt Og Protein Konvertering";
+"Meal Settings" = "Meal Settings";
 
 /* Service Section */
 "Profile Override" = "Profile Override";

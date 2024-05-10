@@ -1240,7 +1240,7 @@ Enact a temp Basal or a temp target */
 "Enable" = "Увімкнути";
 
 /* Header */
-"Conversion settings" = "НАЛАШТУВАННЯ ПЕРЕТВОРЕННЯ";
+"Fat and Protein Conversion Settings" = "Fat and Protein Conversion Settings";
 
 /* Delay */
 "Delay In Minutes" = "Затримка в Хвилинах";
@@ -1258,7 +1258,7 @@ Enact a temp Basal or a temp target */
 "Allows fat and protein to be converted into future carb equivalents using the Warsaw formula of kilocalories divided by 10.\n\nThis spreads the carb equivilants over a maximum duration setting that can be configured from 5-12 hours.\n\nDelay is time from now until the first future carb entry.\n\nInterval in minutes is how many minutes are between entries. The shorter the interval, the smoother the result. 10, 15, 20, 30, or 60 are reasonable choices.\n\nAdjustment factor is how much effect the fat and protein has on the entries. 1.0 is full effect (original Warsaw Method) and 0.5 is half effect. Note that you may find that your normal carb ratio needs to increase to a larger number if you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 0.5 to ease into it.\n\nDefault settings: Time Cap: 8 h, Interval: 30 min, Factor: 0.5, Delay 60 min" = "Дозволяє перетворювати жири та білки в майбутні еквіваленти вуглеводів, використовуючи варшавську формулу поділу кілокалорій на 10.\n\nЦе розподіляє еквіваленти вуглеводів за максимальною тривалістю, яка може бути встановлена в межах 5-12 годин. до першого введення вуглеводів у майбутньому.\n\nІнтервал у хвилинах - це кількість хвилин між записами. Чим коротший інтервал, тим паче плавний результат. 10, 15, 20, 30 або 60 - розумний вибір. Коригуючий коефіцієнт - це те, наскільки сильно жир і білок впливають на кількість продуктів. 1.0 – це повний ефект (оригінальний Варшавський метод), а 0.5 – половинний ефект. Зверніть увагу, що ви можете виявити, що ваше нормальне співвідношення вуглеводів потребує збільшення, якщо ви почнете додавати жири та білки. З цієї причини найкраще починати з коефіцієнта приблизно 0.5, щоб полегшити його використання.";
 
 /* FPU Settings Title */
-"Fat and Protein" = "Жир та Білок";
+"Fat and Protein" = "Fat and Protein";
 
 /* Display fat and protein entities */
 "Fat & Protein" = "Жир та Білок";
@@ -1273,7 +1273,7 @@ Enact a temp Basal or a temp target */
 "Protein" = "Білки";
 
 /* Service Section */
-"Fat And Protein Conversion" = "Перетворення Жиру та Білка";
+"Meal Settings" = "Meal Settings";
 
 /* Service Section */
 "Profile Override" = "Перевизначення Профілю";
