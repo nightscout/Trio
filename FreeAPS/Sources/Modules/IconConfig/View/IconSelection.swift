@@ -9,7 +9,7 @@ struct IconSelection: View {
 
         VStack {
             HStack {
-                Text("Open-iAPS Icon")
+                Text("Trio Icon")
                     .font(.title)
                 IconImage(icon: model.appIcon)
                     .frame(maxHeight: 114)

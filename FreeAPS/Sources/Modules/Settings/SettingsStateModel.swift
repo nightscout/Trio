@@ -31,26 +31,7 @@ extension Settings {
 
             versionNumber = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
 
-            // Read branch information from the branch.txt instead of infoDictionary
-            if let branchFileURL = Bundle.main.url(forResource: "branch", withExtension: "txt"),
-               let branchFileContent = try? String(contentsOf: branchFileURL)
-            {
-                let lines = branchFileContent.components(separatedBy: .newlines)
-                for line in lines {
-                    let components = line.components(separatedBy: "=")
-                    if components.count == 2 {
-                        let key = components[0].trimmingCharacters(in: .whitespaces)
-                        let value = components[1].trimmingCharacters(in: .whitespaces)
-
-                        if key == "BRANCH" {
-                            branch = value
-                            break
-                        }
-                    }
-                }
-            } else {
-                branch = "Unknown"
-            }
+            branch = BuildDetails.default.branchAndSha
 
             copyrightNotice = Bundle.main.infoDictionary?["NSHumanReadableCopyright"] as? String ?? ""
 

@@ -1,5 +1,5 @@
-name: 4. Build Open-iAPS
-run-name: Build Open-iAPS (${{ github.ref_name }})
+name: 4. Build Trio
+run-name: Build Trio (${{ github.ref_name }})
 on:
   workflow_dispatch:
   
@@ -12,7 +12,7 @@ on:
     - cron: '0 6 1 * *' # Builds the app on the 1st of every month at 06:00 UTC
 
 env:  
-  UPSTREAM_REPO: nightscout/Open-iAPS
+  UPSTREAM_REPO: nightscout/Trio
   UPSTREAM_BRANCH: ${{ github.ref_name }} # branch on upstream repository to sync from (replace with specific branch name if needed)
   TARGET_BRANCH: ${{ github.ref_name }} # target branch on fork to be kept in sync, and target branch on upstream to be kept alive (replace with specific branch name if needed)
   ALIVE_BRANCH: alive
@@ -69,7 +69,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GH_PAT }}
       run: |
-        # get ref for nightscout/Open-iAPS:main
+        # get ref for nightscout/Trio:main
         response=$(curl --request GET \
                           --url "https://api.github.com/repos/${{ env.UPSTREAM_REPO }}/git/refs/heads/main" \
                           --header "Authorization: Bearer $GITHUB_TOKEN" \
@@ -82,7 +82,7 @@ jobs:
         fi
         echo "SHA of main branch: $SHA";
         
-        # Create alive branch based on nightscout/Open-iAPS:main
+        # Create alive branch based on nightscout/Trio:main
         gh api \
           --method POST \
           -H "Authorization: token $GITHUB_TOKEN" \
@@ -155,13 +155,13 @@ jobs:
       if: needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION != 'true'
       run: |
         echo "### :calendar: Scheduled Sync and Build Disabled :mobile_phone_off:" >> $GITHUB_STEP_SUMMARY
-        echo "You have not yet configured the scheduled sync and build for Open-iAPS's browser build." >> $GITHUB_STEP_SUMMARY
-        echo "Synchronizing your fork of <code>Open-iAPS</code> with the upstream repository <code>nightscout/Open-iAPS</code> will be skipped." >> $GITHUB_STEP_SUMMARY
-        echo "If you want to enable automatic builds and updates for your Open-iAPS, please follow the instructions \
-              under the following path <code>Open-iAPS/fastlane/testflight.md</code>." >> $GITHUB_STEP_SUMMARY
+        echo "You have not yet configured the scheduled sync and build for Trio's browser build." >> $GITHUB_STEP_SUMMARY
+        echo "Synchronizing your fork of <code>Trio</code> with the upstream repository <code>nightscout/Trio</code> will be skipped." >> $GITHUB_STEP_SUMMARY
+        echo "If you want to enable automatic builds and updates for your Trio, please follow the instructions \
+              under the following path <code>Trio/fastlane/testflight.md</code>." >> $GITHUB_STEP_SUMMARY
    
   
-  # Builds Open-iAPS
+  # Builds Trio
   build:
     name: Build
     needs: [validate, check_alive_and_permissions, check_latest_from_upstream]
@@ -237,9 +237,9 @@ jobs:
       - name: Install project dependencies
         run: bundle install
       
-      # Build signed Open-iAPS IPA file
+      # Build signed Trio IPA file
       - name: Fastlane Build & Archive
-        run: bundle exec fastlane build_open_iaps
+        run: bundle exec fastlane build_trio
         env:
           TEAMID: ${{ secrets.TEAMID }}
           GH_PAT: ${{ secrets.GH_PAT }}

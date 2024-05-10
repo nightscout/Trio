@@ -7,6 +7,7 @@ enum Screen: Identifiable, Hashable {
     case settings
     case configEditor(file: String)
     case nighscoutConfig
+    case nighscoutConfigDirect
     case pumpConfig
     case pumpSettingsEditor
     case basalProfileEditor
@@ -49,7 +50,9 @@ extension Screen {
         case let .configEditor(file):
             ConfigEditor.RootView(resolver: resolver, file: file)
         case .nighscoutConfig:
-            NightscoutConfig.RootView(resolver: resolver)
+            NightscoutConfig.RootView(resolver: resolver, displayClose: false)
+        case .nighscoutConfigDirect:
+            NightscoutConfig.RootView(resolver: resolver, displayClose: true)
         case .pumpConfig:
             PumpConfig.RootView(resolver: resolver)
         case .pumpSettingsEditor:
