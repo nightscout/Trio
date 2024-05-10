@@ -65,7 +65,7 @@ extension DataTable {
             .navigationBarTitleDisplayMode(.automatic)
             .navigationBarItems(
                 leading: Button("Close", action: state.hideModal),
-                trailing: state.mode == .glucose ? addGlucoseButton.asAny() : addInsulinButton.asAny()
+                trailing: state.mode == .glucose ? logGlucoseButton.asAny() : logInsulinButton.asAny()
             )
             .sheet(isPresented: $showExternalInsulin, onDismiss: {
                 if isAmountUnconfirmed {
@@ -80,24 +80,24 @@ extension DataTable {
             }
         }
 
-        private var addInsulinButton: some View {
+        private var logInsulinButton: some View {
             Button(action: { showExternalInsulin = true
                 state.externalInsulinDate = Date() }, label: {
-                Text("Add Insulin")
+                Text("Log Insulin")
                     .foregroundColor(Color.accentColor)
                 Image(systemName: "plus")
                     .foregroundColor(Color.accentColor)
             }).buttonStyle(.borderless)
         }
 
-        private var addGlucoseButton: some View {
+        private var logGlucoseButton: some View {
             Button(
                 action: {
                     showManualGlucose = true
                     state.manualGlucose = 0
                 },
                 label: {
-                    Text("Add Glucose")
+                    Text("Log Glucose")
                         .foregroundColor(Color.accentColor)
                     Image(systemName: "plus")
                         .foregroundColor(Color.accentColor)
