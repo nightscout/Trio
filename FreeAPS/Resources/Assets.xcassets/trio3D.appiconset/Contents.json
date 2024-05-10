@@ -1,13 +1,13 @@
 {
   "images" : [
     {
-      "filename" : "OiAPS  3d.png",
+      "filename" : "trio3d.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
     },
     {
-      "filename" : "3D Watch.png",
+      "filename" : "trio3dWatch.png",
       "idiom" : "universal",
       "platform" : "watchos",
       "size" : "1024x1024"
