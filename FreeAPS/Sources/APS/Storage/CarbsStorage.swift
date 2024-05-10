@@ -167,9 +167,9 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             }
         }
     }
-    
+
     private func saveFPUToCoreDataAsBatchInsert(entries: [CarbsEntry]) {
-        var entrySlice = ArraySlice(entries)  // convert to ArraySlice
+        var entrySlice = ArraySlice(entries) // convert to ArraySlice
         let batchInsert = NSBatchInsertRequest(entity: CarbEntryStored.entity()) { (managedObject: NSManagedObject) -> Bool in
             guard let carbEntry = managedObject as? CarbEntryStored, let entry = entrySlice.popFirst() else {
                 return true // return true to stop
