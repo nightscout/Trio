@@ -14,7 +14,6 @@ protocol TidePoolManager {
 //    func uploadStatus()
     func uploadGlucose(device: HKDevice?)
     func forceUploadData(device: HKDevice?)
-//    func uploadStatistics(dailystat: Statistics)
 //    func uploadPreferences(_ preferences: Preferences)
 //    func uploadProfileAndSettings(_: Bool)
 }
