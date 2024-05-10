@@ -110,7 +110,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
 
                 // MARK: - save also to core data
 
-                saveFPUToCoreData(entries: futureCarbArray)
+                saveFPUToCoreDataAsBatchInsert(entries: futureCarbArray)
             }
         }
     }
@@ -167,28 +167,46 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             }
         }
     }
+    
+    private func saveFPUToCoreDataAsBatchInsert(entries: [CarbsEntry]) {
+        var entrySlice = ArraySlice(entries)  // convert to ArraySlice
+        let batchInsert = NSBatchInsertRequest(entity: CarbEntryStored.entity()) { (managedObject: NSManagedObject) -> Bool in
+            guard let carbEntry = managedObject as? CarbEntryStored, let entry = entrySlice.popFirst() else {
+                return true // return true to stop
+            }
+            carbEntry.date = entry.actualDate
+            carbEntry.carbs = Double(truncating: NSDecimalNumber(decimal: entry.carbs))
+            carbEntry.id = UUID()
+            carbEntry.isFPU = true
+            return false // return false to continue
+        }
+        coredataContext.perform {
+            do {
+                try self.coredataContext.execute(batchInsert)
+                debugPrint("Carbs Storage: saved fpus to core data")
+            } catch {
+                debugPrint("Carbs Storage: error while saving fpus to core data")
+            }
+        }
+    }
 
     private func saveFPUToCoreData(entries: [CarbsEntry]) {
-        guard let entry = entries.last, entry.fat != 0 || entry.protein != 0 else { return }
-
         coredataContext.perform {
-            let newItem = CarbEntryStored(context: self.coredataContext)
-            newItem.date = entry.actualDate ?? entry.createdAt
-            newItem.fat = Double(truncating: NSDecimalNumber(decimal: entry.fat ?? 0))
-            newItem.protein = Double(truncating: NSDecimalNumber(decimal: entry.protein ?? 0))
-            newItem.carbs = Double(truncating: NSDecimalNumber(decimal: entry.carbs))
-            newItem.id = UUID()
-            newItem.isFPU = true
+            for entry in entries {
+                let newItem = CarbEntryStored(context: self.coredataContext)
+                newItem.date = entry.actualDate
+                newItem.carbs = Double(truncating: NSDecimalNumber(decimal: entry.carbs))
+                newItem.id = UUID()
+                newItem.isFPU = true
+                self.coredataContext.insert(newItem)
+            }
+
             if self.coredataContext.hasChanges {
                 do {
                     try self.coredataContext.save()
-                    debugPrint(
-                        "Carbs Storage: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved fpus to core data"
-                    )
+                    debugPrint("Carbs Storage: saved fpus to core data")
                 } catch {
-                    debugPrint(
-                        "Carbs Storage: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) error while saving fpus to core data"
-                    )
+                    debugPrint("Carbs Storage: error while saving fpus to core data")
                 }
             }
         }

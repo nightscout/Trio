@@ -4,7 +4,7 @@ import Foundation
 extension NSPredicate {
     static var fpusForChart: NSPredicate {
         let date = Date.oneDayAgo
-        return NSPredicate(format: "fat > 0 AND protein > 0 AND isFPU == true AND date >= %@", date as NSDate)
+        return NSPredicate(format: "isFPU == true AND date >= %@", date as NSDate)
     }
 
     static var carbsForChart: NSPredicate {
