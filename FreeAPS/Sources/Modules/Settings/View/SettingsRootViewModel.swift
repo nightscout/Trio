@@ -1,10 +1,3 @@
-//
-//  SettingsRootViewModel.swift
-//  FreeAPS
-//
-//  Created by Jonas Björkert on 2024-05-09.
-//
-
 import Foundation
 import SwiftUI
 import Swinject

@@ -805,7 +805,6 @@
 		B5EF98E22A39CD656A230704 /* AutotuneConfigProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AutotuneConfigProvider.swift; sourceTree = "<group>"; };
 		B8C7F882606FF83A21BE00D8 /* PumpSettingsEditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpSettingsEditorRootView.swift; sourceTree = "<group>"; };
 		B9B5C0607505A38F256BF99A /* CGMDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CGMDataFlow.swift; sourceTree = "<group>"; };
-		B9CAAEFB2AE70836000F68BC /* branch.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = branch.txt; sourceTree = SOURCE_ROOT; };
 		BA49538D56989D8DA6FCF538 /* TargetsEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TargetsEditorDataFlow.swift; sourceTree = "<group>"; };
 		BDF530D72B40F8AC002CAF43 /* LockScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenView.swift; sourceTree = "<group>"; };
 		BF8BCB0C37DEB5EC377B9612 /* BasalProfileEditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BasalProfileEditorRootView.swift; sourceTree = "<group>"; };
@@ -1370,7 +1369,6 @@
 				3811DEC725C9DA7300A708ED /* FreeAPS.entitlements */,
 				388E596425AD948E0019842D /* Info.plist */,
 				1927C8E82744606D00347C69 /* InfoPlist.strings */,
-				B9CAAEFB2AE70836000F68BC /* branch.txt */,
 				19DA487F29CD2B8400EEA1E7 /* Assets.xcassets */,
 			);
 			path = Resources;
