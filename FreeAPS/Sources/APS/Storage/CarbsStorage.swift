@@ -32,7 +32,6 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             self.handleFPUCalculations(entries: entries)
             self.storeNormalCarbs(entries: entries)
             self.saveCarbsToCoreData(entries: entries)
-            self.saveFPUToCoreData(entries: entries)
             self.notifyObservers(entries: entries)
         }
     }
@@ -183,31 +182,9 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         coredataContext.perform {
             do {
                 try self.coredataContext.execute(batchInsert)
-                debugPrint("Carbs Storage: saved fpus to core data")
+                debugPrint("Carbs Storage: \(DebuggingIdentifiers.succeeded) saved fpus to core data")
             } catch {
-                debugPrint("Carbs Storage: error while saving fpus to core data")
-            }
-        }
-    }
-
-    private func saveFPUToCoreData(entries: [CarbsEntry]) {
-        coredataContext.perform {
-            for entry in entries {
-                let newItem = CarbEntryStored(context: self.coredataContext)
-                newItem.date = entry.actualDate
-                newItem.carbs = Double(truncating: NSDecimalNumber(decimal: entry.carbs))
-                newItem.id = UUID()
-                newItem.isFPU = true
-                self.coredataContext.insert(newItem)
-            }
-
-            if self.coredataContext.hasChanges {
-                do {
-                    try self.coredataContext.save()
-                    debugPrint("Carbs Storage: saved fpus to core data")
-                } catch {
-                    debugPrint("Carbs Storage: error while saving fpus to core data")
-                }
+                debugPrint("Carbs Storage: \(DebuggingIdentifiers.failed) error while saving fpus to core data")
             }
         }
     }

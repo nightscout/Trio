@@ -72,7 +72,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                     guard !filteredGlucose.isEmpty else {
                         return true // Stop if there are no more items
                     }
-                    let glucoseEntry = filteredGlucose.removeFirst() // Verwenden von removeFirst() statt popFirst()
+                    let glucoseEntry = filteredGlucose.removeFirst()
                     dict["id"] = UUID()
                     dict["glucose"] = Int16(glucoseEntry.glucose ?? 0)
                     dict["date"] = glucoseEntry.dateString
@@ -89,118 +89,6 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             }
         }
     }
-
-//    func storeGlucose(_ glucose: [BloodGlucose]) {
-//        processQueue.sync {
-//            debug(.deviceManager, "start storage glucose")
-//
-//            self.coredataContext.perform {
-//                // read
-//                let datesToCheck: Set<Date> = Set(glucose.compactMap { $0.dateString as Date? })
-//                let fetchRequest: NSFetchRequest<NSFetchRequestResult> = GlucoseStored.fetchRequest()
-//                fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-//                    NSPredicate(format: "date IN %@", datesToCheck),
-//                    NSPredicate.predicateForOneDayAgo
-//                ])
-//                fetchRequest.propertiesToFetch = ["date"]
-//                fetchRequest.resultType = .dictionaryResultType
-//
-//                var existingDates = Set<Date>()
-//                do {
-//                    let results = try self.coredataContext.fetch(fetchRequest) as? [NSDictionary]
-//                    existingDates = Set(results?.compactMap({ $0["date"] as? Date }) ?? [])
-//                } catch {
-//                    debugPrint("Failed to fetch existing glucose dates: \(error)")
-//                }
-//
-//                // filtering before loop
-//                let filteredGlucose = glucose.filter { glucoseEntry -> Bool in
-//                    !existingDates.contains(glucoseEntry.dateString)
-//                }
-//
-//                // save
-//                for glucoseEntry in filteredGlucose {
-//                    guard let glucoseValue = glucoseEntry.glucose else { continue }
-//
-//                    let newItem = GlucoseStored(context: self.coredataContext)
-//                    newItem.id = UUID()
-//                    newItem.glucose = Int16(glucoseValue)
-//                    newItem.date = glucoseEntry.dateString
-//                    newItem.direction = glucoseEntry.direction?.symbol
-//                }
-//
-//                if self.coredataContext.hasChanges {
-//                    do {
-//                        try self.coredataContext.save()
-//                        debugPrint(
-//                            "Glucose Storage: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved glucose to core data"
-//                        )
-//                    } catch {
-//                        debugPrint(
-//                            "Glucose Storage: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save glucose to core data: \(error)"
-//                        )
-//                    }
-//                }
-//            }
-//
-//            debug(.deviceManager, "start storage cgmState")
-//            self.storage.transaction { storage in
-//                let file = OpenAPS.Monitor.cgmState
-//                var treatments = storage.retrieve(file, as: [NigtscoutTreatment].self) ?? []
-//                var updated = false
-//                for x in glucose {
-//                    debug(.deviceManager, "storeGlucose \(x)")
-//                    guard let sessionStartDate = x.sessionStartDate else {
-//                        continue
-//                    }
-//                    if let lastTreatment = treatments.last,
-//                       let createdAt = lastTreatment.createdAt,
-//                       // When a new Dexcom sensor is started, it produces multiple consequetive
-//                       // startDates. Disambiguate them by only allowing a session start per minute.
-//                       abs(createdAt.timeIntervalSince(sessionStartDate)) < TimeInterval(60)
-//                    {
-//                        continue
-//                    }
-//                    var notes = ""
-//                    if let t = x.transmitterID {
-//                        notes = t
-//                    }
-//                    if let a = x.activationDate {
-//                        notes = "\(notes) activated on \(a)"
-//                    }
-//                    let treatment = NigtscoutTreatment(
-//                        duration: nil,
-//                        rawDuration: nil,
-//                        rawRate: nil,
-//                        absolute: nil,
-//                        rate: nil,
-//                        eventType: .nsSensorChange,
-//                        createdAt: sessionStartDate,
-//                        enteredBy: NigtscoutTreatment.local,
-//                        bolus: nil,
-//                        insulin: nil,
-//                        notes: notes,
-//                        carbs: nil,
-//                        fat: nil,
-//                        protein: nil,
-//                        targetTop: nil,
-//                        targetBottom: nil
-//                    )
-//                    debug(.deviceManager, "CGM sensor change \(treatment)")
-//                    treatments.append(treatment)
-//                    updated = true
-//                }
-//                if updated {
-//                    // We have to keep quite a bit of history as sensors start only every 10 days.
-//                    storage.save(
-//                        treatments.filter
-//                            { $0.createdAt != nil && $0.createdAt!.addingTimeInterval(30.days.timeInterval) > Date() },
-//                        as: file
-//                    )
-//                }
-//            }
-//        }
-//    }
 
     func syncDate() -> Date {
         //  TODO: - proof logic here!

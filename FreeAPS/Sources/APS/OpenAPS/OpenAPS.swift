@@ -170,7 +170,6 @@ final class OpenAPS {
                 // carbs
                 let carbs = self.fetchCarbs()
                 let carbsString = self.jsonConverter.convertToJSON(carbs)
-                print(carbsString)
 
                 /// glucose
                 let glucose = self.fetchGlucose()
@@ -189,7 +188,6 @@ final class OpenAPS {
                     carbs: carbsString,
                     glucose: glucoseString
                 )
-                print(meal)
                 self.storage.save(meal, as: Monitor.meal)
 
                 // iob
