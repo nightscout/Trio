@@ -12,7 +12,8 @@ struct FreeAPSSettings: JSON, Equatable {
     var insulinReqPercentage: Decimal = 70
     var skipBolusScreenAfterCarbs: Bool = false
     var displayHR: Bool = false
-    var cgm: CGMType = .nightscout
+    var cgm: CGMType = .none
+    var cgmPluginIdentifier: String = ""
     var uploadGlucose: Bool = true
     var useCalendar: Bool = false
     var glucoseBadge: Bool = false
@@ -34,7 +35,6 @@ struct FreeAPSSettings: JSON, Equatable {
     var overrideHbA1cUnit: Bool = false
     var high: Decimal = 145
     var low: Decimal = 70
-    var uploadStats: Bool = true
     var hours: Int = 6
     var xGridLines: Bool = true
     var yGridLines: Bool = true
@@ -43,6 +43,8 @@ struct FreeAPSSettings: JSON, Equatable {
     var maxCarbs: Decimal = 1000
     var displayFatAndProteinOnWatch: Bool = false
     var onlyAutotuneBasals: Bool = false
+    var useLiveActivity: Bool = false
+    var lockScreenView: LockScreenView = .simple
 }
 
 extension FreeAPSSettings: Decodable {
@@ -103,6 +105,10 @@ extension FreeAPSSettings: Decodable {
 
         if let cgm = try? container.decode(CGMType.self, forKey: .cgm) {
             settings.cgm = cgm
+        }
+
+        if let cgmPluginIdentifier = try? container.decode(String.self, forKey: .cgmPluginIdentifier) {
+            settings.cgmPluginIdentifier = cgmPluginIdentifier
         }
 
         if let uploadGlucose = try? container.decode(Bool.self, forKey: .uploadGlucose) {
@@ -184,10 +190,6 @@ extension FreeAPSSettings: Decodable {
             settings.high = high
         }
 
-        if let uploadStats = try? container.decode(Bool.self, forKey: .uploadStats) {
-            settings.uploadStats = uploadStats
-        }
-
         if let hours = try? container.decode(Int.self, forKey: .hours) {
             settings.hours = hours
         }
@@ -222,6 +224,13 @@ extension FreeAPSSettings: Decodable {
 
         if let onlyAutotuneBasals = try? container.decode(Bool.self, forKey: .onlyAutotuneBasals) {
             settings.onlyAutotuneBasals = onlyAutotuneBasals
+        }
+
+        if let useLiveActivity = try? container.decode(Bool.self, forKey: .useLiveActivity) {
+            settings.useLiveActivity = useLiveActivity
+        }
+        if let lockScreenView = try? container.decode(LockScreenView.self, forKey: .lockScreenView) {
+            settings.lockScreenView = lockScreenView
         }
 
         self = settings

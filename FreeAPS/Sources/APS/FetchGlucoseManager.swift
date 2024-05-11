@@ -1,5 +1,7 @@
 import Combine
 import Foundation
+import LoopKit
+import LoopKitUI
 import SwiftDate
 import Swinject
 import UIKit
@@ -7,68 +9,147 @@ import UIKit
 protocol FetchGlucoseManager: SourceInfoProvider {
     func updateGlucoseStore(newBloodGlucose: [BloodGlucose])
     func refreshCGM()
-    func updateGlucoseSource()
+    func updateGlucoseSource(cgmGlucoseSourceType: CGMType, cgmGlucosePluginId: String, newManager: CGMManagerUI?)
+    func deleteGlucoseSource()
+    func removeCalibrations()
     var glucoseSource: GlucoseSource! { get }
-    var cgmGlucoseSourceType: CGMType? { get set }
+    var cgmManager: CGMManagerUI? { get }
+    var cgmGlucoseSourceType: CGMType { get set }
+    var cgmGlucosePluginId: String { get }
     var settingsManager: SettingsManager! { get }
+    var shouldSyncToRemoteService: Bool { get }
+}
+
+extension FetchGlucoseManager {
+    func updateGlucoseSource(cgmGlucoseSourceType: CGMType, cgmGlucosePluginId: String) {
+        updateGlucoseSource(cgmGlucoseSourceType: cgmGlucoseSourceType, cgmGlucosePluginId: cgmGlucosePluginId, newManager: nil)
+    }
 }
 
 final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     private let processQueue = DispatchQueue(label: "BaseGlucoseManager.processQueue")
     @Injected() var glucoseStorage: GlucoseStorage!
     @Injected() var nightscoutManager: NightscoutManager!
+    @Injected() var tidePoolService: TidePoolManager!
     @Injected() var apsManager: APSManager!
     @Injected() var settingsManager: SettingsManager!
-    @Injected() var libreTransmitter: LibreTransmitterSource!
     @Injected() var healthKitManager: HealthKitManager!
     @Injected() var deviceDataManager: DeviceDataManager!
+    @Injected() var pluginCGMManager: PluginManager!
+    @Injected() var calibrationService: CalibrationService!
 
     private var lifetime = Lifetime()
     private let timer = DispatchTimer(timeInterval: 1.minutes.timeInterval)
-    var cgmGlucoseSourceType: CGMType?
+    var cgmGlucoseSourceType: CGMType = .none
+    var cgmGlucosePluginId: String = ""
+    var cgmManager: CGMManagerUI? {
+        didSet {
+            rawCGMManager = cgmManager?.rawValue
+        }
+    }
 
-    private lazy var dexcomSourceG5 = DexcomSourceG5(glucoseStorage: glucoseStorage, glucoseManager: self)
-    private lazy var dexcomSourceG6 = DexcomSourceG6(glucoseStorage: glucoseStorage, glucoseManager: self)
-    private lazy var dexcomSourceG7 = DexcomSourceG7(glucoseStorage: glucoseStorage, glucoseManager: self)
+    @PersistedProperty(key: "CGMManagerState") var rawCGMManager: CGMManager.RawValue?
+
     private lazy var simulatorSource = GlucoseSimulatorSource()
+
+    var shouldSyncToRemoteService: Bool {
+        guard let cgmManager = cgmManager else {
+            return true
+        }
+        return cgmManager.shouldSyncToRemoteService
+    }
 
     init(resolver: Resolver) {
         injectServices(resolver)
-        updateGlucoseSource()
+        // init at the start of the app
+        cgmGlucoseSourceType = settingsManager.settings.cgm
+        cgmGlucosePluginId = settingsManager.settings.cgmPluginIdentifier
+        // load cgmManager
+        updateGlucoseSource(
+            cgmGlucoseSourceType: settingsManager.settings.cgm,
+            cgmGlucosePluginId: settingsManager.settings.cgmPluginIdentifier
+        )
         subscribe()
     }
 
     var glucoseSource: GlucoseSource!
 
-    func updateGlucoseSource() {
-        switch settingsManager.settings.cgm {
+    func removeCalibrations() {
+        calibrationService.removeAllCalibrations()
+    }
+
+    func deleteGlucoseSource() {
+        cgmManager = nil
+        updateGlucoseSource(
+            cgmGlucoseSourceType: CGMType.none,
+            cgmGlucosePluginId: ""
+        )
+    }
+
+    func saveConfigManager() {
+        guard let cgmM = cgmManager else {
+            return
+        }
+        // save the config in rawCGMManager
+        rawCGMManager = cgmM.rawValue
+
+        // sync with upload glucose
+        settingsManager.settings.uploadGlucose = cgmM.shouldSyncToRemoteService
+    }
+
+    func updateGlucoseSource(cgmGlucoseSourceType: CGMType, cgmGlucosePluginId: String, newManager: CGMManagerUI?) {
+        // if changed, remove all calibrations
+        if self.cgmGlucoseSourceType != cgmGlucoseSourceType || self.cgmGlucosePluginId != cgmGlucosePluginId {
+            removeCalibrations()
+            cgmManager = nil
+        }
+
+        self.cgmGlucoseSourceType = cgmGlucoseSourceType
+        self.cgmGlucosePluginId = cgmGlucosePluginId
+
+        // if not plugin, manager is not changed and stay with the "old" value if the user come back to previous cgmtype
+        // if plugin, if the same pluginID, no change required because the manager is available
+        // if plugin, if not the same pluginID, need to reset the cgmManager
+        // if plugin and newManager provides, update cgmManager
+        debug(.apsManager, "plugin : \(String(describing: cgmManager?.pluginIdentifier))")
+        if let manager = newManager
+        {
+            cgmManager = manager
+            removeCalibrations()
+        } else if self.cgmGlucoseSourceType == .plugin, cgmManager == nil, let rawCGMManager = rawCGMManager {
+            cgmManager = cgmManagerFromRawValue(rawCGMManager)
+        } else {
+            saveConfigManager()
+        }
+
+        switch self.cgmGlucoseSourceType {
+        case .none:
+            glucoseSource = nil
         case .xdrip:
             glucoseSource = AppGroupSource(from: "xDrip", cgmType: .xdrip)
-        case .dexcomG5:
-            glucoseSource = dexcomSourceG5
-        case .dexcomG6:
-            glucoseSource = dexcomSourceG6
-        case .dexcomG7:
-            glucoseSource = dexcomSourceG7
         case .nightscout:
             glucoseSource = nightscoutManager
         case .simulator:
             glucoseSource = simulatorSource
-        case .libreTransmitter:
-            glucoseSource = libreTransmitter
         case .glucoseDirect:
             glucoseSource = AppGroupSource(from: "GlucoseDirect", cgmType: .glucoseDirect)
         case .enlite:
             glucoseSource = deviceDataManager
+        case .plugin:
+            glucoseSource = PluginSource(glucoseStorage: glucoseStorage, glucoseManager: self)
         }
         // update the config
-        cgmGlucoseSourceType = settingsManager.settings.cgm
+    }
 
-        if settingsManager.settings.cgm != .libreTransmitter {
-            libreTransmitter.manager = nil
-        } else {
-            libreTransmitter.glucoseManager = self
+    /// Upload cgmManager from raw value
+    func cgmManagerFromRawValue(_ rawValue: [String: Any]) -> CGMManagerUI? {
+        guard let rawState = rawValue["state"] as? CGMManager.RawStateValue,
+              let Manager = pluginCGMManager.getCGMManagerTypeByIdentifier(cgmGlucosePluginId)
+        else {
+            return nil
         }
+
+        return Manager.init(rawState: rawState)
     }
 
     /// function called when a callback is fired by CGM BLE - no more used
@@ -81,7 +162,8 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     /// function to try to force the refresh of the CGM - generally provide by the pump heartbeat
     public func refreshCGM() {
         debug(.deviceManager, "refreshCGM by pump")
-        updateGlucoseSource()
+        // updateGlucoseSource(cgmGlucoseSourceType: settingsManager.settings.cgm, cgmGlucosePluginId: settingsManager.settings.cgmPluginIdentifier)
+
         Publishers.CombineLatest3(
             Just(glucoseStorage.syncDate()),
             healthKitManager.fetch(nil),
@@ -97,7 +179,10 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     }
 
     private func glucoseStoreAndHeartDecision(syncDate: Date, glucose: [BloodGlucose], glucoseFromHealth: [BloodGlucose] = []) {
-        let allGlucose = glucose + glucoseFromHealth
+        // calibration add if required only for sensor
+        let newGlucose = overcalibrate(entries: glucose)
+
+        let allGlucose = newGlucose + glucoseFromHealth
         var filteredByDate: [BloodGlucose] = []
         var filtered: [BloodGlucose] = []
 
@@ -150,6 +235,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         deviceDataManager.heartbeat(date: Date())
 
         nightscoutManager.uploadGlucose()
+        tidePoolService.uploadGlucose(device: cgmManager?.cgmManagerStatus.device)
 
         let glucoseForHealth = filteredByDate.filter { !glucoseFromHealth.contains($0) }
 
@@ -174,10 +260,13 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     private func subscribe() {
         timer.publisher
             .receive(on: processQueue)
-            .flatMap { _ -> AnyPublisher<[BloodGlucose], Never> in
+            .flatMap { [self] _ -> AnyPublisher<[BloodGlucose], Never> in
                 debug(.nightscout, "FetchGlucoseManager timer heartbeat")
-                self.updateGlucoseSource()
-                return self.glucoseSource.fetch(self.timer).eraseToAnyPublisher()
+                if let glucoseSource = self.glucoseSource {
+                    return glucoseSource.fetch(self.timer).eraseToAnyPublisher()
+                } else {
+                    return Empty(completeImmediately: false).eraseToAnyPublisher()
+                }
             }
             .sink { glucose in
                 debug(.nightscout, "FetchGlucoseManager callback sensor")
@@ -199,36 +288,40 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             .store(in: &lifetime)
         timer.fire()
         timer.resume()
-
-        UserDefaults.standard
-            .publisher(for: \.dexcomTransmitterID)
-            .removeDuplicates()
-            .sink { id in
-                if self.settingsManager.settings.cgm == .dexcomG5 {
-                    if id != self.dexcomSourceG5.transmitterID {
-                        self.dexcomSourceG5 = DexcomSourceG5(glucoseStorage: self.glucoseStorage, glucoseManager: self)
-                    }
-                } else if self.settingsManager.settings.cgm == .dexcomG6 {
-                    if id != self.dexcomSourceG6.transmitterID {
-                        self.dexcomSourceG6 = DexcomSourceG6(glucoseStorage: self.glucoseStorage, glucoseManager: self)
-                    }
-                }
-            }
-            .store(in: &lifetime)
     }
 
     func sourceInfo() -> [String: Any]? {
         glucoseSource.sourceInfo()
     }
+
+    private func overcalibrate(entries: [BloodGlucose]) -> [BloodGlucose] {
+        // overcalibrate
+        var overcalibration: ((Int) -> (Double))?
+
+        if let cal = calibrationService {
+            overcalibration = cal.calibrate
+        }
+
+        if let overcalibration = overcalibration {
+            return entries.map { entry in
+                var entry = entry
+                entry.glucose = Int(overcalibration(entry.glucose!))
+                entry.sgv = Int(overcalibration(entry.sgv!))
+                return entry
+            }
+        } else {
+            return entries
+        }
+    }
 }
 
-extension UserDefaults {
-    @objc var dexcomTransmitterID: String? {
-        get {
-            string(forKey: "DexcomSource.transmitterID")?.nonEmpty
-        }
-        set {
-            set(newValue, forKey: "DexcomSource.transmitterID")
-        }
+extension CGMManager {
+    typealias RawValue = [String: Any]
+
+    var rawValue: [String: Any] {
+        [
+            "managerIdentifier": pluginIdentifier,
+            "state": rawState
+        ]
     }
 }

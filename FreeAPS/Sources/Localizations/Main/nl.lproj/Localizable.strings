@@ -1,6 +1,6 @@
 /*
   Localizable.strings
-  iAPS
+  Trio
 */
 /* -------------------------------- */
 /* Bolus screen when adding insulin */
@@ -360,7 +360,7 @@ Enact a temp Basal or a temp target */
 "Remote control" = "Afstandsbediening";
 
 /* Imported Profiles Alert */
-"\nNow please verify all of your new settings thoroughly:\n\n* Basal Settings\n * Carb Ratios\n * Glucose Targets\n * Insulin Sensitivities\n * DIA\n\n in iAPS Settings > Configuration.\n\nBad or invalid profile settings could have disatrous effects." = "\nCheck nu al je nieuwe instellingen:\n\n* Basaal instellingen\n * Koolhydraat ratio's\n * Doel glucose waarde\n * Insuline sensitiviteit\n * DIA\n\n in iAPS instellingen > Configuratie.\n\nSlechte of ongeldige profielinstellingen kunnen  desastreuze effecten hebben!";
+"\nNow please verify all of your new settings thoroughly:\n\n* Basal Settings\n * Carb Ratios\n * Glucose Targets\n * Insulin Sensitivities\n * DIA\n\n in Trio Settings > Configuration.\n\nBad or invalid profile settings could have disatrous effects." = "\nCheck nu al je nieuwe instellingen:\n\n* Basaal instellingen\n * Koolhydraat ratio's\n * Doel glucose waarde\n * Insuline sensitiviteit\n * DIA\n\n in Trio instellingen > Configuratie.\n\nSlechte of ongeldige profielinstellingen kunnen  desastreuze effecten hebben!";
 
 /* Profile Import Alert */
 "This will replace some or all of your current pump settings. Are you sure you want to import profile settings from Nightscout?" = "Dit zal enkele of al je huidige pomp instellingen vervangen. Weet je zeker dat je de profielinstellingen uit Nightscout wilt importeren?";
@@ -519,7 +519,7 @@ Enact a temp Basal or a temp target */
 "ISF" = "ISF";
 
 /* */
-"The app Garmin Connect must be installed to use for iAPS.\n Go to App Store to download it" = "De app Garmin Connect moet geïnstalleerd zijn om iAPS te kunnen gebruiken. \nGa naar de App Store om deze te downloaden.";
+"The app Garmin Connect must be installed to use for Trio.\n Go to App Store to download it" = "De app Garmin Connect moet geïnstalleerd zijn om Trio te kunnen gebruiken. \nGa naar de App Store om deze te downloaden.";
 
 /* */
 "Garmin is not available" = "Garmin is niet beschikbaar";
@@ -702,7 +702,7 @@ Enact a temp Basal or a temp target */
 "Phone NFC required!" = "iPhone NFC vereist!";
 
 /* */
-"Your phone or app is not enabled for NFC communications, which is needed to pair to libre2 sensors" = "Je iPhone of iAPS is niet ingeschakeld voor NFC communicatie, wat nodig is om te koppelen met Libre2 sensoren";
+"Your phone or app is not enabled for NFC communications, which is needed to pair to libre2 sensors" = "Je iPhone of Trio is niet ingeschakeld voor NFC communicatie, wat nodig is om te koppelen met Libre2 sensoren";
 
 /* Bluetooth Power Off */
 "Bluetooth Power Off" = "Bluetooth uitschakelen";
@@ -1035,7 +1035,7 @@ Enact a temp Basal or a temp target */
 "To prevent LOW required %d g of carbs" = "Om LAAG te voorkomen zijn %d g koolhydraten nodig";
 
 /* */
-"iAPS not active" = "iAPS is niet actief!";
+"Trio Not Active" = "Trio is niet actief!";
 
 /* */
 "Last loop was more than %d min ago" = "Laatste loop was meer dan %d min geleden";
@@ -1099,7 +1099,7 @@ Enact a temp Basal or a temp target */
 "Glucose Simulator" = "Glucose simulator";
 
 /* Restored state message */
-"Bluetooth State restored (APS restarted?). Found %d peripherals, and connected to %@ with identifier %@" = "Herstelde Bluetooth-status (iAPS opnieuw opgestart?). %d randapparatuur gevonden en verbonden met %@ met de identificatie %@";
+"Bluetooth State restored (APS restarted?). Found %d peripherals, and connected to %@ with identifier %@" = "Herstelde Bluetooth-status (Trio opnieuw opgestart?). %d randapparatuur gevonden en verbonden met %@ met de identificatie %@";
 
 /* Shared app group xDrip4iOS */
 "Using shared app group with external CGM app xDrip4iOS" = "Gedeelde app-groep wordt gebruikt met externe CGM app xDrip4iOS";
@@ -1201,7 +1201,7 @@ Enact a temp Basal or a temp target */
 "For write data to Apple Health you must give permissions in Settings > Health > Data Access" = "Als je gegevens wilt opslaan met Apple Gezondheid, moet je de juiste machtigingen verlenen in Instellingen > Gezondheid > Gegevenstoegang en apparaten";
 
 /* */
-"This allows iAPS to read from and write to Apple Heath. You must also give permissions in Settings > Health > Data Access. If you enter a glucose value into Apple Health, open iAPS to confirm it shows up." = "Hiermee kan iAPS lezen van en schrijven naar Apple Heath. Je moet ook machtigingen geven in Instellingen > Gezondheid > Gegevenstoegang. Als je een glucosewaarde invoert in Apple Health, open je iAPS om te bevestigen dat deze wordt weergegeven.";
+"This allows Trio to read from and write to Apple Heath. You must also give permissions in Settings > Health > Data Access. If you enter a glucose value into Apple Health, open Trio to confirm it shows up." = "Hiermee kan Trio lezen van en schrijven naar Apple Heath. Je moet ook machtigingen geven in Instellingen > Gezondheid > Gegevenstoegang. Als je een glucosewaarde invoert in Apple Health, open je Trio om te bevestigen dat deze wordt weergegeven.";
 
 /* New ALerts ------------------------- */
 /* Info title */
@@ -1371,7 +1371,7 @@ Enact a temp Basal or a temp target */
 "App Icons" = "App iconen";
 
 /* */
-"Open-iAPS Icon" = "Open-iAPS icoon";
+"Trio Icon" = "Trio icoon";
 
 /* Service Section */
 "Statistics and Home View" = "Statistieken en Home View";
@@ -1525,10 +1525,10 @@ Enact a temp Basal or a temp target */
 "No confidence reminders are used." = "Er worden geen meldingen met piepjes gebruikt.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Piepjes uit de Pod zullen klinken voor commando's die je hebt geïnitieerd, zoals bolus, annulering, geschorst, hervatten, opslaan van meldingen etc. Als iAPS automatisch de levering wijzigt, worden er geen piepjes gebruikt.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Piepjes uit de Pod zullen klinken voor commando's die je hebt geïnitieerd, zoals bolus, annulering, geschorst, hervatten, opslaan van meldingen etc. Als Trio automatisch de levering wijzigt, worden er geen piepjes gebruikt.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Piepjes zullen klinken als iAPS de levering automatisch aanpast evenals voor commando's die je initieert.";
+"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Piepjes zullen klinken als Trio de levering automatisch aanpast evenals voor commando's die je initieert.";
 
 /* Label text for expiration reminder default row */
 "Expiration Reminder Default" = "Herinnering vervaldatum ingeschakeld";
@@ -1560,7 +1560,7 @@ Enact a temp Basal or a temp target */
 "%1$@ for %2$@" = "%1$@ voor %2$@";
 
 /* Description text on manual temp basal action sheet */
-"Loop will not automatically adjust your insulin delivery until the temporary basal rate finishes or is canceled." = "iAPS zal niet automatisch veranderingen aanbrengen in de hoeveelheid insuline die je krijgt, totdat de tijdelijke basaalstand is gestopt of geannuleerd.";
+"Loop will not automatically adjust your insulin delivery until the temporary basal rate finishes or is canceled." = "Trio zal niet automatisch veranderingen aanbrengen in de hoeveelheid insuline die je krijgt, totdat de tijdelijke basaalstand is gestopt of geannuleerd.";
 /* Button text for setting manual temporary basal rate*/
 "Set Temporary Basal" = "Tijdelijke basaal instellen";
 
@@ -1792,7 +1792,7 @@ Enact a temp Basal or a temp target */
 /* -----------------------------------------------------------------------------------------------------------
 
   Infotexts from openaps.docs and androidaps.docs
-  iAPS
+  Trio
 */
 /* Headline Rewind Resets Autosens */
 
@@ -1847,19 +1847,19 @@ Enact a temp Basal or a temp target */
 "Skip Neutral Temps" = "Sla neutrale temps over";
 
 /* "Skip Neutral Temps" */
-"Defaults to false, so that iAPS will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means iAPS will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night." = "Standaard ingesteld op uit, zodat iAPS tijdelijke basaal waardes zal instellen wanneer dat maar kan. Het zal dus makkelijker zijn om te zien of het systeem werkt, zelfs als je offline bent. Dit betekent dat OpenAPS een \"neutraal\" basaal (hetzelfde als jouw standaard basaal) zal instellen als er geen aanpassingen nodig zijn. Dit is een oude instelling van OpenAPS om de optie te hebben om geluiden en meldingen te beperken waarvan je 's nachts misschien wakker kan worden. ";
+"Defaults to false, so that Trio will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means Trio will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night." = "Standaard ingesteld op uit, zodat Trio tijdelijke basaal waardes zal instellen wanneer dat maar kan. Het zal dus makkelijker zijn om te zien of het systeem werkt, zelfs als je offline bent. Dit betekent dat OpenAPS een \"neutraal\" basaal (hetzelfde als jouw standaard basaal) zal instellen als er geen aanpassingen nodig zijn. Dit is een oude instelling van OpenAPS om de optie te hebben om geluiden en meldingen te beperken waarvan je 's nachts misschien wakker kan worden. ";
 
 /* Headline "Unsuspend If No Temp” */
 "Unsuspend If No Temp" = "Schorsing opheffen als geen tijdelijk doel is ingesteld";
 
 /* "Unsuspend If No Temp” */
-"Many people occasionally forget to resume / unsuspend their pump after reconnecting it. If you’re one of them, and you are willing to reliably set a zero temp basal whenever suspending and disconnecting your pump, this feature has your back. If enabled, it will automatically resume / unsuspend the pump if you forget to do so before your zero temp expires. As long as the zero temp is still running, it will leave the pump suspended." = "Veel mensen vergeten af en toe hun pomp te hervatten nadat ze opnieuw zijn aangesloten. Herken je jezelf hierin en ben je bereid voordat je je afkoppelt een tijdelijk basaal van 0 in te stellen kan deze instelling helpen. Indien ingeschakeld zal de pomp automatisch hervatten, als je dit zelf vergeet te doen voordat het tijdelijk 0 basaal verloopt. Zolang het tijdelijk 0 basaal nog actief is, laat iAPS de pomp opgeschort.";
+"Many people occasionally forget to resume / unsuspend their pump after reconnecting it. If you’re one of them, and you are willing to reliably set a zero temp basal whenever suspending and disconnecting your pump, this feature has your back. If enabled, it will automatically resume / unsuspend the pump if you forget to do so before your zero temp expires. As long as the zero temp is still running, it will leave the pump suspended." = "Veel mensen vergeten af en toe hun pomp te hervatten nadat ze opnieuw zijn aangesloten. Herken je jezelf hierin en ben je bereid voordat je je afkoppelt een tijdelijk basaal van 0 in te stellen kan deze instelling helpen. Indien ingeschakeld zal de pomp automatisch hervatten, als je dit zelf vergeet te doen voordat het tijdelijk 0 basaal verloopt. Zolang het tijdelijk 0 basaal nog actief is, laat Trio de pomp opgeschort.";
 
 /* Headline "Enable UAM" */
 "Enable UAM" = "UAM inschakelen";
 
 /* "Enable UAM" */
-"With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell iAPS about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier." = "Als deze functie is ingeschakeld, kan het SMB-algoritme onverwachte maaltijden herkennen. Dit is handig als je vergeet om koolhydraten in te voeren, je de koolhydraten verkeerd inschat, de hoeveelheid ingevoerde koolhydraten onjuist is, of als een maaltijd met veel vet en eiwit langer duurt dan verwacht. Zonder koolhydraten in te voeren, kan deze functie snel stijgende bloedsuikersignalen veroorzaakt door koolhydraten, adrenaline, enzovoort herkennen en proberen te corrigeren met SMB's. Het werkt ook andersom: als er een snelle daling van de bloedsuiker is, kan het eerder stoppen met SMB's.";
+"With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell Trio about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier." = "Als deze functie is ingeschakeld, kan het SMB-algoritme onverwachte maaltijden herkennen. Dit is handig als je vergeet om koolhydraten in te voeren, je de koolhydraten verkeerd inschat, de hoeveelheid ingevoerde koolhydraten onjuist is, of als een maaltijd met veel vet en eiwit langer duurt dan verwacht. Zonder koolhydraten in te voeren, kan deze functie snel stijgende bloedsuikersignalen veroorzaakt door koolhydraten, adrenaline, enzovoort herkennen en proberen te corrigeren met SMB's. Het werkt ook andersom: als er een snelle daling van de bloedsuiker is, kan het eerder stoppen met SMB's.";
 
 /* Headline "Enable SMB With COB" */
 "Enable SMB With COB" = "Activeer SMB met COB";
@@ -1910,7 +1910,7 @@ Enact a temp Basal or a temp target */
 "Max IOB" = "Max IOB";
 
 /* "Max IOB" */
-"Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two OpenAPS safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings\n\n(Tip from https://www.loopandlearn.org/freeaps-x/#open-loop)." = "De Max IOB is de maximale hoeveelheid insuline aan boord van alle bronnen - zowel basaal (of SMB correcties) en bolus insuline die door iAPS gegeven mag worden om alles hoger dan de streefwaarde te behandelen. Anders dan de andere twee veiligheid instelingen (max_daily_safety_multiplier and current_basal_safety_multiplier) wordt bij deze instelling een vaste aantal eenheden insuline opgegeven. Voorlopig worden handmatige bolussen NIET beperkt door deze instelling. \n\n Om je basaal waarden te testen gedurende de nacht kun je deze instelling op 0 zetten tijdens een actieve Loop. Dit zorgt er voor dat stop voor laag geactiveerd worden wanneer je je instelling aan het testen bent. \n\n(Tip van https://www.loopandlearn.org/freeaps-x/#open-loop).";
+"Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two OpenAPS safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings\n\n(Tip from https://www.loopandlearn.org/freeaps-x/#open-loop)." = "De Max IOB is de maximale hoeveelheid insuline aan boord van alle bronnen - zowel basaal (of SMB correcties) en bolus insuline die door Trio gegeven mag worden om alles hoger dan de streefwaarde te behandelen. Anders dan de andere twee veiligheid instelingen (max_daily_safety_multiplier and current_basal_safety_multiplier) wordt bij deze instelling een vaste aantal eenheden insuline opgegeven. Voorlopig worden handmatige bolussen NIET beperkt door deze instelling. \n\n Om je basaal waarden te testen gedurende de nacht kun je deze instelling op 0 zetten tijdens een actieve Loop. Dit zorgt er voor dat stop voor laag geactiveerd worden wanneer je je instelling aan het testen bent. \n\n(Tip van https://www.loopandlearn.org/freeaps-x/#open-loop).";
 
 /* Headline "Max Daily Safety Multiplier" */
 "Max Daily Safety Multiplier" = "Maximale dagelijkse veiligheidsvermenigvuldiger";
@@ -1946,7 +1946,7 @@ Enact a temp Basal or a temp target */
 "Max COB" = "Max COB";
 
 /* "Max COB" */
-"The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, iAPS will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)" = "De standaardwaarde van maxCOB is 120. (Als iemand meer koolhydraten invoert in één of meerdere items, zal iAPS de COB begrenzen tot maxCOB en deze op maxCOB houden totdat is aangetoond dat de koolhydraten die boven maxCOB zijn ingevoerd, worden geabsorbeerd. In wezen beperkt dit alleen UAM als een veiligheidslimiet tegen rare COB-berekeningen als gevolg van onnauwkeurige gegevens)";
+"The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, Trio will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)" = "De standaardwaarde van maxCOB is 120. (Als iemand meer koolhydraten invoert in één of meerdere items, zal Trio de COB begrenzen tot maxCOB en deze op maxCOB houden totdat is aangetoond dat de koolhydraten die boven maxCOB zijn ingevoerd, worden geabsorbeerd. In wezen beperkt dit alleen UAM als een veiligheidslimiet tegen rare COB-berekeningen als gevolg van onnauwkeurige gegevens)";
 
 /* Headline "Bolus Snooze DIA Divisor" */
 "Bolus Snooze DIA Divisor" = "Bolus snooze DIA deler";
@@ -2006,7 +2006,7 @@ Enact a temp Basal or a temp target */
 "Insulin Peak Time" = "Insuline piektijd";
 
 /* "Insulin Peak Time" */
-"Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with iAPS, longer loop calculations and possible red loops." = "Tijd van maximale bloedglucose verlagend effect van insuline in hele minuten (insuline piek tijd). Let op: Oref gaat er van uit dat ultra-snelle (Lyumjev) & snelle werking (Fiasp) curves minimaal (35 & 50 min) en maximaal (100 en 120 min) hebben als insulinPeakTimes. Het gebruik van een aangepaste insulinPeakTime buiten deze grenzen leidt tot problemen met iAPS, langere loopberekeningen en mogelijke een rode Loop.";
+"Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with Trio, longer loop calculations and possible red loops." = "Tijd van maximale bloedglucose verlagend effect van insuline in hele minuten (insuline piek tijd). Let op: Oref gaat er van uit dat ultra-snelle (Lyumjev) & snelle werking (Fiasp) curves minimaal (35 & 50 min) en maximaal (100 en 120 min) hebben als insulinPeakTimes. Het gebruik van een aangepaste insulinPeakTime buiten deze grenzen leidt tot problemen met Trio, langere loopberekeningen en mogelijke een rode Loop.";
 
 /* Headline "Carbs Req Threshold" */
 "Carbs Req Threshold" = "Koolhydraten vereist drempel";
@@ -2085,7 +2085,7 @@ Eenvoudig gezegd, de Dynamische Carb Ratio past de koolhydraatverhouding aan op 
 "Threshold Setting" = "Grenswaarde instellingen";
 
 /* Threshold Setting */
-"The default threshold in FAX depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl." = "De standaard drempelwaarde in iAPS hangt af van je huidige minimum bloedsuikerdoel. Hier is hoe het werkt:\n\n Als je minimum doel 5,0 mmol/l is, dan is de drempel 3,6 mmol/l. Bij een minimum doel van 5,5 mmol/l, wordt de drempel 3,8 mmol/l. Als je minimum doel 6,1 mmol/l is, blijft de drempel 3,8 mmol/l. Bij een minimum doel van 7,2 mmol/l, wordt de drempel 4,7 mmol/l.\n\nJe kunt deze instelling aanpassen en een hogere drempelwaarde kiezen voor het herhalen met dynISF. De geldige waarden hiervoor zijn tussen 3,6 mmol/l en 6,6 mmol/l.";
+"The default threshold in Trio depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl." = "De standaard drempelwaarde in Trio hangt af van je huidige minimum bloedsuikerdoel. Hier is hoe het werkt:\n\n Als je minimum doel 5,0 mmol/l is, dan is de drempel 3,6 mmol/l. Bij een minimum doel van 5,5 mmol/l, wordt de drempel 3,8 mmol/l. Als je minimum doel 6,1 mmol/l is, blijft de drempel 3,8 mmol/l. Bij een minimum doel van 7,2 mmol/l, wordt de drempel 4,7 mmol/l.\n\nJe kunt deze instelling aanpassen en een hogere drempelwaarde kiezen voor het herhalen met dynISF. De geldige waarden hiervoor zijn tussen 3,6 mmol/l en 6,6 mmol/l.";
 
 /* Header */
 "Calculator settings" = "Calculator instellingen";

@@ -1,4 +1,6 @@
 import HealthKit
+import LoopKit
+import LoopKitUI
 import SwiftUI
 import Swinject
 
@@ -7,6 +9,7 @@ extension Settings {
         let resolver: Resolver
         @StateObject var state = StateModel()
         @State private var showShareSheet = false
+        @StateObject private var viewModel = SettingsRootViewModel()
 
         var body: some View {
             Form {
@@ -14,16 +17,7 @@ extension Settings {
                     Toggle("Closed loop", isOn: $state.closedLoop)
                 }
                 header: {
-                    if let expirationDate = Bundle.main.profileExpiration {
-                        Text(
-                            "Open-iAPS v\(state.versionNumber) (\(state.buildNumber))\nBranch: \(state.branch) \(state.copyrightNotice)" +
-                                "\nBuild Expires: " + expirationDate
-                        ).textCase(nil)
-                    } else {
-                        Text(
-                            "Open-iAPS v\(state.versionNumber) (\(state.buildNumber))\nBranch: \(state.branch) \(state.copyrightNotice)"
-                        )
-                    }
+                    Text(viewModel.headerText).textCase(nil)
                 }
 
                 Section {
@@ -34,6 +28,11 @@ extension Settings {
 
                 Section {
                     Text("Nightscout").navigationLink(to: .nighscoutConfig, from: self)
+
+                    Text("TidePool")
+                        .onTapGesture {
+                            state.setupTidePool = true
+                        }
                     if HKHealthStore.isHealthDataAvailable() {
                         Text("Apple Health").navigationLink(to: .healthkit, from: self)
                     }
@@ -130,6 +129,26 @@ extension Settings {
             }
             .sheet(isPresented: $showShareSheet) {
                 ShareSheet(activityItems: state.logItems())
+            }
+            .sheet(isPresented: $state.setupTidePool) {
+                if let serviceUIType = state.serviceUIType,
+                   let pluginHost = state.provider.tidePoolManager.getTidePoolPluginHost()
+                {
+                    if let serviceUI = state.provider.tidePoolManager.getTidePoolServiceUI() {
+                        TidePoolSettingsView(
+                            serviceUI: serviceUI,
+                            serviceOnBoardDelegate: self.state,
+                            serviceDelegate: self.state
+                        )
+                    } else {
+                        TidePoolSetupView(
+                            serviceUIType: serviceUIType,
+                            pluginHost: pluginHost,
+                            serviceOnBoardDelegate: self.state,
+                            serviceDelegate: self.state
+                        )
+                    }
+                }
             }
             .onAppear(perform: configureView)
             .navigationTitle("Settings")

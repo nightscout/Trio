@@ -7,6 +7,7 @@ enum Screen: Identifiable, Hashable {
     case settings
     case configEditor(file: String)
     case nighscoutConfig
+    case nighscoutConfigDirect
     case pumpConfig
     case pumpSettingsEditor
     case basalProfileEditor
@@ -21,9 +22,8 @@ enum Screen: Identifiable, Hashable {
     case autotuneConfig
     case dataTable
     case cgm
+    case cgmDirect
     case healthkit
-    case libreConfig
-    case calibrations
     case notificationsConfig
     case fpuConfig
     case iconConfig
@@ -32,6 +32,7 @@ enum Screen: Identifiable, Hashable {
     case statistics
     case watch
     case statisticsConfig
+    case calibrations
 
     var id: Int { String(reflecting: self).hashValue }
 }
@@ -48,7 +49,9 @@ extension Screen {
         case let .configEditor(file):
             ConfigEditor.RootView(resolver: resolver, file: file)
         case .nighscoutConfig:
-            NightscoutConfig.RootView(resolver: resolver)
+            NightscoutConfig.RootView(resolver: resolver, displayClose: false)
+        case .nighscoutConfigDirect:
+            NightscoutConfig.RootView(resolver: resolver, displayClose: true)
         case .pumpConfig:
             PumpConfig.RootView(resolver: resolver)
         case .pumpSettingsEditor:
@@ -76,13 +79,11 @@ extension Screen {
         case .dataTable:
             DataTable.RootView(resolver: resolver)
         case .cgm:
-            CGM.RootView(resolver: resolver)
+            CGM.RootView(resolver: resolver, displayClose: false)
+        case .cgmDirect:
+            CGM.RootView(resolver: resolver, displayClose: true)
         case .healthkit:
             AppleHealthKit.RootView(resolver: resolver)
-        case .libreConfig:
-            LibreConfig.RootView(resolver: resolver)
-        case .calibrations:
-            Calibrations.RootView(resolver: resolver)
         case .notificationsConfig:
             NotificationsConfig.RootView(resolver: resolver)
         case .fpuConfig:
@@ -99,6 +100,8 @@ extension Screen {
             Stat.RootView(resolver: resolver)
         case .statisticsConfig:
             StatConfig.RootView(resolver: resolver)
+        case .calibrations:
+            Calibrations.RootView(resolver: resolver)
         }
     }
 

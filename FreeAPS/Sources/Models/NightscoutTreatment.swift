@@ -26,7 +26,7 @@ struct NightscoutTreatment: JSON, Hashable, Equatable {
     let targetTop: Decimal?
     let targetBottom: Decimal?
 
-    static let local = "Open-iAPS"
+    static let local = "Trio"
 
     static let empty = NightscoutTreatment(from: "{}")!
 

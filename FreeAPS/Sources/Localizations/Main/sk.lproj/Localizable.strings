@@ -1,6 +1,6 @@
 /*
   Localizable.strings
-  iAPS
+  Trio
 */
 /* -------------------------------- */
 /* Bolus screen when adding insulin */
@@ -360,7 +360,7 @@ Enact a temp Basal or a temp target */
 "Remote control" = "Vzdialené ovládanie";
 
 /* Imported Profiles Alert */
-"\nNow please verify all of your new settings thoroughly:\n\n* Basal Settings\n * Carb Ratios\n * Glucose Targets\n * Insulin Sensitivities\n * DIA\n\n in iAPS Settings > Configuration.\n\nBad or invalid profile settings could have disatrous effects." = "\\Teraz dôkladne skontrolujte všetky nové nastavenia:\n\n* Bazálne nastavenia\n * Pomery uhľohydrátov\n * Cieľové hodnoty glukózy\n * Citlivosť na inzulín\n * DIA\n\n v iAPS Nastavenia > Konfigurácia.\n\nZlé alebo neplatné nastavenia profilu by mohli mať škodlivé účinky.";
+"\nNow please verify all of your new settings thoroughly:\n\n* Basal Settings\n * Carb Ratios\n * Glucose Targets\n * Insulin Sensitivities\n * DIA\n\n in Trio Settings > Configuration.\n\nBad or invalid profile settings could have disatrous effects." = "\\Teraz dôkladne skontrolujte všetky nové nastavenia:\n\n* Bazálne nastavenia\n * Pomery uhľohydrátov\n * Cieľové hodnoty glukózy\n * Citlivosť na inzulín\n * DIA\n\n v Trio Nastavenia > Konfigurácia.\n\nZlé alebo neplatné nastavenia profilu by mohli mať škodlivé účinky.";
 
 /* Profile Import Alert */
 "This will replace some or all of your current pump settings. Are you sure you want to import profile settings from Nightscout?" = "Tým sa nahradia niektoré alebo všetky aktuálne nastavenia čerpadla. Ste si istí, že chcete importovať nastavenia profilu z programu Nightscout?";
@@ -519,7 +519,7 @@ Enact a temp Basal or a temp target */
 "ISF" = "Citlivosť";
 
 /* */
-"The app Garmin Connect must be installed to use for iAPS.\n Go to App Store to download it" = "Aplikácia Garmin Connect musí byť nainštalovaná pre použitie s iAPS.\n Pre stiahnutie choďte do App Store";
+"The app Garmin Connect must be installed to use for Trio.\n Go to App Store to download it" = "Aplikácia Garmin Connect musí byť nainštalovaná pre použitie s Trio.\n Pre stiahnutie choďte do App Store";
 
 /* */
 "Garmin is not available" = "Garmin je nedostupný";
@@ -1035,7 +1035,7 @@ Enact a temp Basal or a temp target */
 "To prevent LOW required %d g of carbs" = "Na zabránenie NÍZKY potrebných %d g sacharidov";
 
 /* */
-"iAPS not active" = "iAPS nie je aktívny";
+"Trio Not Active" = "Trio nie je aktívny";
 
 /* */
 "Last loop was more than %d min ago" = "Posledná slučka bola pred viac ako %d min";
@@ -1201,7 +1201,7 @@ Enact a temp Basal or a temp target */
 "For write data to Apple Health you must give permissions in Settings > Health > Data Access" = "Ak chcete zapisovať údaje do aplikácie Apple Health, musíte udeliť oprávnenia v ponuke Nastavenia > Zdravie > Prístup k údajom";
 
 /* */
-"This allows iAPS to read from and write to Apple Heath. You must also give permissions in Settings > Health > Data Access. If you enter a glucose value into Apple Health, open iAPS to confirm it shows up." = "To umožňuje iAPS čítať z Apple Heath a zapisovať do neho. Oprávnenia musíte udeliť aj v ponuke Nastavenia > Zdravie > Prístup k údajom. Ak do aplikácie Apple Health zadáte hodnotu glukózy, otvorte iAPS a potvrďte, že sa zobrazí.";
+"This allows Trio to read from and write to Apple Heath. You must also give permissions in Settings > Health > Data Access. If you enter a glucose value into Apple Health, open Trio to confirm it shows up." = "To umožňuje Trio čítať z Apple Heath a zapisovať do neho. Oprávnenia musíte udeliť aj v ponuke Nastavenia > Zdravie > Prístup k údajom. Ak do aplikácie Apple Health zadáte hodnotu glukózy, otvorte Trio a potvrďte, že sa zobrazí.";
 
 /* New ALerts ------------------------- */
 /* Info title */
@@ -1371,7 +1371,7 @@ Enact a temp Basal or a temp target */
 "App Icons" = "Ikony aplikácie";
 
 /* */
-"Open-iAPS Icon" = "ikona Open-iAPS";
+"Trio Icon" = "ikona Trio";
 
 /* Service Section */
 "Statistics and Home View" = "Štatistiky a domovské zobrazenie";
@@ -1560,7 +1560,7 @@ Enact a temp Basal or a temp target */
 "%1$@ for %2$@" = "%1$@ pre %2$@";
 
 /* Description text on manual temp basal action sheet */
-"Loop will not automatically adjust your insulin delivery until the temporary basal rate finishes or is canceled." = "iAPS vám automaticky neupraví dávkovanie inzulínu, kým sa dočasná bazálna rýchlosť neskončí alebo nezruší.";
+"Loop will not automatically adjust your insulin delivery until the temporary basal rate finishes or is canceled." = "Trio vám automaticky neupraví dávkovanie inzulínu, kým sa dočasná bazálna rýchlosť neskončí alebo nezruší.";
 /* Button text for setting manual temporary basal rate*/
 "Set Temporary Basal" = "Nastaviť dočasný bazál";
 
@@ -1792,7 +1792,7 @@ Enact a temp Basal or a temp target */
 /* -----------------------------------------------------------------------------------------------------------
 
   Infotexts from openaps.docs and androidaps.docs
-  iAPS
+  Trio
 */
 /* Headline Rewind Resets Autosens */
 
@@ -1847,7 +1847,7 @@ Enact a temp Basal or a temp target */
 "Skip Neutral Temps" = "Vynechanie neutrálnych teplôt";
 
 /* "Skip Neutral Temps" */
-"Defaults to false, so that iAPS will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means iAPS will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night." = "Predvolené nastavenie je false, takže iAPS nastaví teploty vždy, keď to bude možné, takže bude jednoduchšie zistiť, či systém funguje, aj keď ste offline. To znamená, že iAPS nastaví \"neutrálnu\" teplotu (rovnakú ako vaša predvolená bazálna teplota), ak nie sú potrebné žiadne úpravy. Toto je staré nastavenie systému OpenAPS, aby mal možnosti minimalizovať zvuky a oznámenia z \"platformy\", ktoré vás môžu počas noci zobudiť. ";
+"Defaults to false, so that Trio will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means Trio will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night." = "Predvolené nastavenie je false, takže Trio nastaví teploty vždy, keď to bude možné, takže bude jednoduchšie zistiť, či systém funguje, aj keď ste offline. To znamená, že Trio nastaví \"neutrálnu\" teplotu (rovnakú ako vaša predvolená bazálna teplota), ak nie sú potrebné žiadne úpravy. Toto je staré nastavenie systému OpenAPS, aby mal možnosti minimalizovať zvuky a oznámenia z \"platformy\", ktoré vás môžu počas noci zobudiť. ";
 
 /* Headline "Unsuspend If No Temp” */
 "Unsuspend If No Temp" = "Zrušenie pozastavenia Ak nie je dočasné";
@@ -1859,7 +1859,7 @@ Enact a temp Basal or a temp target */
 "Enable UAM" = "Povoliť UAM";
 
 /* "Enable UAM" */
-"With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell iAPS about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier." = "Ak je táto možnosť povolená, algoritmus SMB dokáže rozpoznať neohlásené jedlá. To je užitočné, ak zabudnete iAPS informovať o sacharidoch alebo ich nesprávne odhadnete a množstvo zadaných sacharidov je nesprávne, alebo ak jedlo s veľkým množstvom tukov a bielkovín má dlhšie trvanie, ako sa očakávalo. Bez akéhokoľvek zadávania sacharidov dokáže UAM rozpoznať rýchle zvýšenie glukózy spôsobené sacharidmi, adrenalínom atď. a snaží sa ho upraviť pomocou SMB. Funguje to aj opačne: ak dôjde k rýchlemu poklesu glukózy, môže zastaviť SMB skôr.";
+"With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell Trio about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier." = "Ak je táto možnosť povolená, algoritmus SMB dokáže rozpoznať neohlásené jedlá. To je užitočné, ak zabudnete Trio informovať o sacharidoch alebo ich nesprávne odhadnete a množstvo zadaných sacharidov je nesprávne, alebo ak jedlo s veľkým množstvom tukov a bielkovín má dlhšie trvanie, ako sa očakávalo. Bez akéhokoľvek zadávania sacharidov dokáže UAM rozpoznať rýchle zvýšenie glukózy spôsobené sacharidmi, adrenalínom atď. a snaží sa ho upraviť pomocou SMB. Funguje to aj opačne: ak dôjde k rýchlemu poklesu glukózy, môže zastaviť SMB skôr.";
 
 /* Headline "Enable SMB With COB" */
 "Enable SMB With COB" = "Povoliť SMB zo sacharidmi";
@@ -1946,7 +1946,7 @@ Enact a temp Basal or a temp target */
 "Max COB" = "Maximálna hodnota COB";
 
 /* "Max COB" */
-"The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, iAPS will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)" = "Predvolená hodnota maxCOB je 120. (Ak niekto zadá viac sacharidov v jednom alebo viacerých záznamoch, iAPS obmedzí COB na maxCOB a udrží ho na maxCOB, kým sa nepreukáže, že sacharidy zadané nad maxCOB sa vstrebávajú. V podstate to len obmedzuje UAM ako bezpečnostný limit proti podivným výpočtom COB v dôsledku fluktuačných údajov)";
+"The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, Trio will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)" = "Predvolená hodnota maxCOB je 120. (Ak niekto zadá viac sacharidov v jednom alebo viacerých záznamoch, Trio obmedzí COB na maxCOB a udrží ho na maxCOB, kým sa nepreukáže, že sacharidy zadané nad maxCOB sa vstrebávajú. V podstate to len obmedzuje UAM ako bezpečnostný limit proti podivným výpočtom COB v dôsledku fluktuačných údajov)";
 
 /* Headline "Bolus Snooze DIA Divisor" */
 "Bolus Snooze DIA Divisor" = "Bolus Snooze DIA Deliteľ";
@@ -2006,7 +2006,7 @@ Enact a temp Basal or a temp target */
 "Insulin Peak Time" = "Čas inzulínového vrcholu";
 
 /* "Insulin Peak Time" */
-"Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with iAPS, longer loop calculations and possible red loops." = "Čas maximálneho účinku inzulínu na zníženie hladiny glukózy v krvi v minútach. Pozor: Oref predpokladá pre ultra-rýchle (Lyumjev) a rýchlo pôsobiace (Fiasp) krivky minimálny (35 a 50 min) a maximálny (100 a 120 min) použiteľný inzulínPeakTimes. Použitie vlastného insulinPeakTime mimo týchto hraníc bude mať za následok problémy s iAPS, dlhšie výpočty slučiek a možné červené slučky.";
+"Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with Trio, longer loop calculations and possible red loops." = "Čas maximálneho účinku inzulínu na zníženie hladiny glukózy v krvi v minútach. Pozor: Oref predpokladá pre ultra-rýchle (Lyumjev) a rýchlo pôsobiace (Fiasp) krivky minimálny (35 a 50 min) a maximálny (100 a 120 min) použiteľný inzulínPeakTimes. Použitie vlastného insulinPeakTime mimo týchto hraníc bude mať za následok problémy s Trio, dlhšie výpočty slučiek a možné červené slučky.";
 
 /* Headline "Carbs Req Threshold" */
 "Carbs Req Threshold" = "Požadovaný prah uhľohydrátov";
@@ -2077,7 +2077,7 @@ Enact a temp Basal or a temp target */
 "Threshold Setting" = "Threshold Setting";
 
 /* Threshold Setting */
-"The default threshold in FAX depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl." = "Predvolená prahová hodnota v iAPS závisí od vašej aktuálnej minimálnej cieľovej hodnoty BG nasledovne:\n\nAk je vaša minimálna cieľová hodnota BG = 90 mg/dl -> prahová hodnota = 65 mg/dl,\n\nak je vaša minimálna cieľová hodnota BG = 100 mg/dl -> prahová hodnota = 70 mg/dl,\n\nminimálna cieľová hodnota BG = 110 mg/dl -> prahová hodnota = 75 mg/dl,\n\na ak je vaša minimálna cieľová hodnota BG = 130 mg/dl -> prahová hodnota = 85 mg/dl. \n\nToto nastavenie umožňuje zmeniť predvolenú hodnotu na vyššiu prahovú hodnotu pre slučku s dynISF. Platné hodnoty sú 65 mg/dl<= Nastavenie prahu <= 120 mg/dl.";
+"The default threshold in Trio depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl." = "Predvolená prahová hodnota v Trio závisí od vašej aktuálnej minimálnej cieľovej hodnoty BG nasledovne:\n\nAk je vaša minimálna cieľová hodnota BG = 90 mg/dl -> prahová hodnota = 65 mg/dl,\n\nak je vaša minimálna cieľová hodnota BG = 100 mg/dl -> prahová hodnota = 70 mg/dl,\n\nminimálna cieľová hodnota BG = 110 mg/dl -> prahová hodnota = 75 mg/dl,\n\na ak je vaša minimálna cieľová hodnota BG = 130 mg/dl -> prahová hodnota = 85 mg/dl. \n\nToto nastavenie umožňuje zmeniť predvolenú hodnotu na vyššiu prahovú hodnotu pre slučku s dynISF. Platné hodnoty sú 65 mg/dl<= Nastavenie prahu <= 120 mg/dl.";
 
 /* Header */
 "Calculator settings" = "Calculator settings";
