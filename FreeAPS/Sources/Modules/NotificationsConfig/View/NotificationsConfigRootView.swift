@@ -34,27 +34,6 @@ extension NotificationsConfig {
             return formatter
         }
 
-        @Environment(\.colorScheme) var colorScheme
-
-        var color: LinearGradient {
-            colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color("Background_1"),
-                    Color("Background_1"),
-                    Color("Background_2")
-                    // Color("Background_1")
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-        }
-
         @ViewBuilder private func liveActivitySection() -> some View {
             if #available(iOS 16.2, *) {
                 Section(
@@ -92,7 +71,7 @@ extension NotificationsConfig {
 
             if !systemLiveActivitySetting {
                 footer =
-                    "Live activities are turned OFF in system settings. To enable live activities, go to Settings app -> Open-iAPS -> Turn live Activities ON.\n\n" +
+                    "Live activities are turned OFF in system settings. To enable live activities, go to Settings app -> Trio -> Turn live Activities ON.\n\n" +
                     footer
             }
 
@@ -132,7 +111,7 @@ extension NotificationsConfig {
                 }
 
                 liveActivitySection()
-            }.scrollContentBackground(.hidden).background(color)
+            }.scrollContentBackground(.hidden)
                 .onAppear(perform: configureView)
                 .navigationBarTitle("Notifications")
                 .navigationBarTitleDisplayMode(.automatic)

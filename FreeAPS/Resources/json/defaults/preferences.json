@@ -9,7 +9,7 @@
   "high_temptarget_raises_sensitivity" : false,
   "low_temptarget_lowers_sensitivity" : false,
   "sensitivity_raises_target" : true,
-  "resistanceLowersTarget" : false,
+  "resistance_lowers_target" : false,
   "adv_target_adjustments" : false,
   "exercise_mode" : false,
   "half_basal_exercise_target" : 160,

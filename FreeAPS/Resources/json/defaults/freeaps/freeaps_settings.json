@@ -34,7 +34,6 @@
   "overrideHbA1cUnit" : false,
   "high" : 145,
   "low" : 70,
-  "uploadStats" : true,
   "hours" : 6,
   "xGridLines" : true,
   "yGridLines" : true,

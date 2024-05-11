@@ -80,10 +80,11 @@ extension Bolus {
                         Button { state.add() }
                         label: {
                             Text(
-                                state.amount < state.maxBolus ? NSLocalizedString("Enact bolus", comment: "") :
+                                state.amount <= state.maxBolus ? NSLocalizedString("Enact bolus", comment: "") :
                                     NSLocalizedString("Max Bolus exceeded!", comment: "")
                                     + " (>"
                                     + formatter.string(from: state.maxBolus as NSNumber)!
+                                    + NSLocalizedString("U", comment: "Insulin unit")
                                     + ")"
                             ) }
                             .disabled(

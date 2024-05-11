@@ -13,7 +13,6 @@ protocol NightscoutManager: GlucoseSource {
     func deleteInsulin(at date: Date)
     func uploadStatus()
     func uploadGlucose()
-    func uploadStatistics(dailystat: Statistics)
     func uploadPreferences(_ preferences: Preferences)
     func uploadProfileAndSettings(_: Bool)
 
@@ -264,29 +263,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 }
             } receiveValue: {}
             .store(in: &lifetime)
-    }
-
-    func uploadStatistics(dailystat: Statistics) {
-        let stats = NightscoutStatistics(
-            dailystats: dailystat
-        )
-
-        guard let nightscout = nightscoutAPI, isUploadEnabled else {
-            return
-        }
-
-        processQueue.async {
-            nightscout.uploadStats(stats)
-                .sink { completion in
-                    switch completion {
-                    case .finished:
-                        debug(.nightscout, "Statistics uploaded")
-                    case let .failure(error):
-                        debug(.nightscout, error.localizedDescription)
-                    }
-                } receiveValue: {}
-                .store(in: &self.lifetime)
-        }
     }
 
     func uploadPreferences(_ preferences: Preferences) {

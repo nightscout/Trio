@@ -15,7 +15,6 @@ extension Home {
         private(set) var filteredHours = 24
         @Published var glucose: [BloodGlucose] = []
         @Published var suggestion: Suggestion?
-        @Published var uploadStats = false
         @Published var enactedSuggestion: Suggestion?
         @Published var recentGlucose: BloodGlucose?
         @Published var glucoseDelta: Int?
@@ -81,7 +80,6 @@ extension Home {
             setupOverride()
 
             suggestion = provider.suggestion
-            uploadStats = settingsManager.settings.uploadStats
             enactedSuggestion = provider.enactedSuggestion
             units = settingsManager.settings.units
             allowManualTemp = !settingsManager.settings.closedLoop
@@ -409,7 +407,6 @@ extension Home.StateModel:
 
     func settingsDidChange(_ settings: FreeAPSSettings) {
         allowManualTemp = !settings.closedLoop
-        uploadStats = settingsManager.settings.uploadStats
         closedLoop = settingsManager.settings.closedLoop
         units = settingsManager.settings.units
         animatedBackground = settingsManager.settings.animatedBackground
