@@ -35,7 +35,6 @@ struct FreeAPSSettings: JSON, Equatable {
     var overrideHbA1cUnit: Bool = false
     var high: Decimal = 180
     var low: Decimal = 70
-    var uploadStats: Bool = true
     var hours: Int = 6
     var xGridLines: Bool = true
     var yGridLines: Bool = true
@@ -189,10 +188,6 @@ extension FreeAPSSettings: Decodable {
 
         if let high = try? container.decode(Decimal.self, forKey: .high) {
             settings.high = high
-        }
-
-        if let uploadStats = try? container.decode(Bool.self, forKey: .uploadStats) {
-            settings.uploadStats = uploadStats
         }
 
         if let hours = try? container.decode(Int.self, forKey: .hours) {

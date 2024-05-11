@@ -68,7 +68,7 @@ extension Preferences {
         case highTemptargetRaisesSensitivity = "high_temptarget_raises_sensitivity"
         case lowTemptargetLowersSensitivity = "low_temptarget_lowers_sensitivity"
         case sensitivityRaisesTarget = "sensitivity_raises_target"
-        case resistanceLowersTarget
+        case resistanceLowersTarget = "resistance_lowers_target"
         case advTargetAdjustments = "adv_target_adjustments"
         case exerciseMode = "exercise_mode"
         case halfBasalExerciseTarget = "half_basal_exercise_target"
