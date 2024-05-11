@@ -5,7 +5,7 @@ extension PumpSettingsEditor {
         @Published var maxBasal: Decimal = 0.0
         @Published var maxBolus: Decimal = 0.0
         @Published var dia: Decimal = 0.0
-        @Published var maxCarbs: Decimal = 1000
+        @Published var maxCarbs: Decimal = 250
 
         @Published var syncInProgress = false
 

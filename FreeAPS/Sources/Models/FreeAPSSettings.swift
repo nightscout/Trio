@@ -33,14 +33,14 @@ struct FreeAPSSettings: JSON, Equatable {
     var smoothGlucose: Bool = false
     var displayOnWatch: AwConfig = .BGTarget
     var overrideHbA1cUnit: Bool = false
-    var high: Decimal = 145
+    var high: Decimal = 180
     var low: Decimal = 70
     var hours: Int = 6
     var xGridLines: Bool = true
     var yGridLines: Bool = true
     var oneDimensionalGraph: Bool = false
-    var rulerMarks: Bool = false
-    var maxCarbs: Decimal = 1000
+    var rulerMarks: Bool = true
+    var maxCarbs: Decimal = 250
     var displayFatAndProteinOnWatch: Bool = false
     var onlyAutotuneBasals: Bool = false
     var useLiveActivity: Bool = false
