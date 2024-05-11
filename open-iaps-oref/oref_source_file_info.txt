@@ -1,2 +1,0 @@
-These source files are copied from open-iaps-oref, and are for information purposes only.
-The algorithm is run based on minimised files in FreeAPS/Resources/javascript/bundle.

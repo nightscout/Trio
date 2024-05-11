@@ -6,7 +6,7 @@
 	<string>$(APP_GROUP_ID)</string>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
-		<string>com.freeapsx.background-task.critical-event-log</string>
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER).background-task.critical-event-log</string>
 	</array>
 	<key>CBBundleDisplayName</key>
 	<string>$(APP_DISPLAY_NAME)</string>
@@ -32,7 +32,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>None</string>
 			<key>CFBundleURLName</key>
-			<string>com.artificial-pancreas-iaps</string>
+			<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>$(APP_URL_SCHEME)</string>

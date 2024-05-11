@@ -3,15 +3,15 @@ import Foundation
 import UIKit
 
 enum Icon_: String, CaseIterable, Identifiable {
-    case primary = "oiapsBlack"
-    case oiAPSWhiteShadow
-    case oiapsColorBG
-    case oiapsWhite
-    case oiaps3D
+    case primary = "trioBlack"
+    case trioWhiteShadow
+    case trioColorBG
+    case trioWhite
+    case trio3D
     case wilford = "diabeetus"
     case catWithPod
     case catWithPodWhite = "catWithPodWhiteBG"
-    case loop = "OiAPS_Loop"
+    case loop = "trioLoop"
     var id: String { rawValue }
 }
 
