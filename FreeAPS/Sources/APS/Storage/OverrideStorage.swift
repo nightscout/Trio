@@ -69,7 +69,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
     /// - Returns: A override  in Override Profil structure
     private func OverrideToOverrideProfil(_ preset: Override) -> OverrideProfil {
         OverrideProfil(
-            id: preset.id!,
+            id: preset.id ?? UUID().uuidString,
             name: preset.name == "" ? nil : preset.name,
             createdAt: preset.date,
             duration: preset.duration as Decimal?,
