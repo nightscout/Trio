@@ -8,7 +8,7 @@
   "rewind_resets_autosens" : true,
   "high_temptarget_raises_sensitivity" : false,
   "low_temptarget_lowers_sensitivity" : false,
-  "sensitivity_raises_target" : true,
+  "sensitivity_raises_target" : false,
   "resistance_lowers_target" : false,
   "adv_target_adjustments" : false,
   "exercise_mode" : false,
