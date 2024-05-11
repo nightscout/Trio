@@ -73,10 +73,10 @@ extension DataTable {
                     state.externalInsulinDate = Date()
                 }
             }) {
-                addExternalInsulinView
+                logExternalInsulinView
             }
             .sheet(isPresented: $showManualGlucose) {
-                addGlucoseView
+                logGlucoseView
             }
         }
 
@@ -133,7 +133,7 @@ extension DataTable {
             }
         }
 
-        private var addGlucoseView: some View {
+        private var logGlucoseView: some View {
             NavigationView {
                 VStack {
                     Form {
@@ -157,7 +157,7 @@ extension DataTable {
                                 let limitHigh: Decimal = state.units == .mmolL ? 14 : 720
 
                                 Button {
-                                    state.addManualGlucose()
+                                    state.logManualGlucose()
                                     isAmountUnconfirmed = false
                                     showManualGlucose = false
                                 }
@@ -169,7 +169,7 @@ extension DataTable {
                     }
                 }
                 .onAppear(perform: configureView)
-                .navigationTitle("Add Glucose")
+                .navigationTitle("Log Glucose")
                 .navigationBarTitleDisplayMode(.automatic)
                 .navigationBarItems(leading: Button("Close", action: { showManualGlucose = false }))
             }
@@ -249,7 +249,7 @@ extension DataTable {
             }
         }
 
-        var addExternalInsulinView: some View {
+        var logExternalInsulinView: some View {
             NavigationView {
                 VStack {
                     Form {
@@ -278,7 +278,7 @@ extension DataTable {
                         Section {
                             HStack {
                                 Button {
-                                    state.addExternalInsulin()
+                                    state.logExternalInsulin()
                                     isAmountUnconfirmed = false
                                     showExternalInsulin = false
                                 }

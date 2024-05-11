@@ -181,7 +181,7 @@ extension DataTable {
             // try? coredataContext.save()
         }
 
-        func addManualGlucose() {
+        func logManualGlucose() {
             let glucose = units == .mmolL ? manualGlucose.asMgdL : manualGlucose
             let now = Date()
             let id = UUID().uuidString
@@ -201,7 +201,7 @@ extension DataTable {
             debug(.default, "Manual Glucose saved to glucose.json")
         }
 
-        func addExternalInsulin() {
+        func logExternalInsulin() {
             guard externalInsulinAmount > 0 else {
                 showModal(for: nil)
                 return
