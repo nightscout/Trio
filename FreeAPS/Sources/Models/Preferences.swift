@@ -10,7 +10,7 @@ struct Preferences: JSON {
     var rewindResetsAutosens: Bool = true
     var highTemptargetRaisesSensitivity: Bool = false
     var lowTemptargetLowersSensitivity: Bool = false
-    var sensitivityRaisesTarget: Bool = true
+    var sensitivityRaisesTarget: Bool = false
     var resistanceLowersTarget: Bool = false
     var advTargetAdjustments: Bool = false
     var exerciseMode: Bool = false
