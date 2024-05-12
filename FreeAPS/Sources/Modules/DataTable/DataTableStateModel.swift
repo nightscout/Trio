@@ -35,6 +35,7 @@ extension DataTable {
             Task {
                 do {
                     await deleteGlucose(glucose)
+                    provider.deleteManualGlucose(date: glucose.date)
                 }
             }
         }
@@ -110,25 +111,6 @@ extension DataTable {
                 apsManager.determineBasalSync()
             }
         }
-
-//
-//        func deleteCarbs(_ carbEntry: CarbEntryStored) async {
-//            do {
-//                // TODO: when deleting FPU, do an NSDeleteBatchRequest and remove all entries with same FpuID
-//                coredataContext.delete(carbEntry)
-//                try coredataContext.save()
-//                debugPrint(
-//                    "Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted carb entry from core data"
-//                )
-//            } catch {
-//                debugPrint(
-//                    "Data Table State: \(#function) \(DebuggingIdentifiers.failed) error while deleting carb entry from core data"
-//                )
-//            }
-//
-//            provider.deleteCarbs(carbEntry)
-//            apsManager.determineBasalSync()
-//        }
 
         @MainActor func invokeInsulinDeletionTask(_ treatment: PumpEventStored) {
             Task {
