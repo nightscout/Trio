@@ -168,6 +168,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     }
 
     private func saveFPUToCoreDataAsBatchInsert(entries: [CarbsEntry]) {
+        let commonFPUID = UUID() // all fpus should only get ONE id per batch insert to be able to delete them referencing the id
         var entrySlice = ArraySlice(entries) // convert to ArraySlice
         let batchInsert = NSBatchInsertRequest(entity: CarbEntryStored.entity()) { (managedObject: NSManagedObject) -> Bool in
             guard let carbEntry = managedObject as? CarbEntryStored, let entry = entrySlice.popFirst() else {
@@ -175,7 +176,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             }
             carbEntry.date = entry.actualDate
             carbEntry.carbs = Double(truncating: NSDecimalNumber(decimal: entry.carbs))
-            carbEntry.id = UUID()
+            carbEntry.id = commonFPUID
             carbEntry.isFPU = true
             return false // return false to continue
         }

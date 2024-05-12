@@ -64,22 +64,71 @@ extension DataTable {
         }
 
         func deleteCarbs(_ carbEntry: CarbEntryStored) async {
-            do {
-                // TODO: when deleting FPU, do an NSDeleteBatchRequest and remove all entries with same FpuID
-                coredataContext.delete(carbEntry)
-                try coredataContext.save()
-                debugPrint(
-                    "Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted carb entry from core data"
-                )
-            } catch {
-                debugPrint(
-                    "Data Table State: \(#function) \(DebuggingIdentifiers.failed) error while deleting carb entry from core data"
-                )
-            }
+            if carbEntry.isFPU, let fpuID = carbEntry.id {
+                // fetch request for all carb entries with the same id
+                let fetchRequest: NSFetchRequest<NSFetchRequestResult> = CarbEntryStored.fetchRequest()
+                fetchRequest.predicate = NSPredicate(format: "id == %@", fpuID as CVarArg)
 
-            provider.deleteCarbs(carbEntry)
-            apsManager.determineBasalSync()
+                // NSBatchDeleteRequest
+                let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+                deleteRequest.resultType = .resultTypeCount
+
+                do {
+                    // execute the batch delete request
+                    let result = try coredataContext.execute(deleteRequest) as? NSBatchDeleteResult
+                    debugPrint("\(DebuggingIdentifiers.succeeded) Deleted \(result?.result ?? 0) items with FpuID \(fpuID)")
+
+                    // merge changes from the database operation into the main context
+                    if let objectIDs = (result?.result as? [NSManagedObjectID]) {
+                        NSManagedObjectContext.mergeChanges(
+                            fromRemoteContextSave: [NSDeletedObjectsKey: objectIDs],
+                            into: [coredataContext]
+                        )
+                    }
+
+                    try coredataContext.save()
+
+                    provider.deleteCarbs(carbEntry)
+                    apsManager.determineBasalSync()
+                } catch {
+                    debugPrint("\(DebuggingIdentifiers.failed) Error deleting FPU entries: \(error.localizedDescription)")
+                }
+            } else {
+                do {
+                    coredataContext.delete(carbEntry)
+                    try coredataContext.save()
+                    debugPrint(
+                        "Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted carb entry from core data"
+                    )
+                } catch {
+                    debugPrint(
+                        "Data Table State: \(#function) \(DebuggingIdentifiers.failed) error while deleting carb entry from core data"
+                    )
+                }
+
+                provider.deleteCarbs(carbEntry)
+                apsManager.determineBasalSync()
+            }
         }
+
+//
+//        func deleteCarbs(_ carbEntry: CarbEntryStored) async {
+//            do {
+//                // TODO: when deleting FPU, do an NSDeleteBatchRequest and remove all entries with same FpuID
+//                coredataContext.delete(carbEntry)
+//                try coredataContext.save()
+//                debugPrint(
+//                    "Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted carb entry from core data"
+//                )
+//            } catch {
+//                debugPrint(
+//                    "Data Table State: \(#function) \(DebuggingIdentifiers.failed) error while deleting carb entry from core data"
+//                )
+//            }
+//
+//            provider.deleteCarbs(carbEntry)
+//            apsManager.determineBasalSync()
+//        }
 
         @MainActor func invokeInsulinDeletionTask(_ treatment: PumpEventStored) {
             Task {
