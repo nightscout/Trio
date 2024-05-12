@@ -2,7 +2,7 @@ import SwiftUI
 
 extension FPUConfig {
     final class StateModel: BaseStateModel<Provider> {
-        @Published var maxCarbs: Decimal = 1000
+        @Published var maxCarbs: Decimal = 250
         @Published var individualAdjustmentFactor: Decimal = 0
         @Published var timeCap: Decimal = 0
         @Published var minuteInterval: Decimal = 0
