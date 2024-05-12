@@ -13,7 +13,7 @@ extension DataTable {
         @Published var mode: Mode = .treatments
         @Published var treatments: [Treatment] = []
         @Published var glucose: [Glucose] = []
-        @Published var manualGlcuose: Decimal = 0
+        @Published var manualGlucose: Decimal = 0
         @Published var maxBolus: Decimal = 0
         @Published var externalInsulinAmount: Decimal = 0
         @Published var externalInsulinDate = Date()
@@ -156,8 +156,8 @@ extension DataTable {
                 .store(in: &lifetime)
         }
 
-        func deleteGlucose(at index: Int) {
-            let id = glucose[index].id
+        func deleteGlucose(_ glucose: Glucose) {
+            let id = glucose.id
             provider.deleteGlucose(id: id)
 
             let fetchRequest: NSFetchRequest<NSFetchRequestResult>
@@ -181,8 +181,8 @@ extension DataTable {
             // try? coredataContext.save()
         }
 
-        func addManualGlucose() {
-            let glucose = units == .mmolL ? manualGlcuose.asMgdL : manualGlcuose
+        func logManualGlucose() {
+            let glucose = units == .mmolL ? manualGlucose.asMgdL : manualGlucose
             let now = Date()
             let id = UUID().uuidString
 
@@ -201,7 +201,7 @@ extension DataTable {
             debug(.default, "Manual Glucose saved to glucose.json")
         }
 
-        func addExternalInsulin() {
+        func logExternalInsulin() {
             guard externalInsulinAmount > 0 else {
                 showModal(for: nil)
                 return
