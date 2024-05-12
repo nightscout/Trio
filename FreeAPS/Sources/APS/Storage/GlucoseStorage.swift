@@ -15,6 +15,7 @@ protocol GlucoseStorage {
     func nightscoutCGMStateNotUploaded() -> [NigtscoutTreatment]
     func nightscoutManualGlucoseNotUploaded() -> [NigtscoutTreatment]
     var alarm: GlucoseAlarm? { get }
+    func fetchGlucose() -> [GlucoseStored]
 }
 
 final class BaseGlucoseStorage: GlucoseStorage, Injectable {
@@ -46,7 +47,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
     func storeGlucose(_ glucose: [BloodGlucose]) {
         processQueue.sync {
-            debug(.deviceManager, "start storage glucose")
+            debug(.deviceManager, "Start storage of glucose data")
 
             self.coredataContext.perform {
                 let datesToCheck: Set<Date?> = Set(glucose.compactMap { $0.dateString as Date? })
@@ -68,6 +69,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
                 var filteredGlucose = glucose.filter { !existingDates.contains($0.dateString) }
 
+                // prepare batch insert
                 let batchInsert = NSBatchInsertRequest(entity: GlucoseStored.entity(), dictionaryHandler: { (dict) -> Bool in
                     guard !filteredGlucose.isEmpty else {
                         return true // Stop if there are no more items
@@ -79,12 +81,26 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                     dict["direction"] = glucoseEntry.direction?.symbol
                     return false // Continue processing
                 })
+                batchInsert.resultType = .objectIDs
 
+                // process batch insert and merge changes to context
                 do {
-                    try self.coredataContext.execute(batchInsert)
-                    debugPrint("Glucose Storage: saved glucose to core data")
+                    if let result = try self.coredataContext.execute(batchInsert) as? NSBatchInsertResult,
+                       let objectIDs = result.result as? [NSManagedObjectID]
+                    {
+                        // Merges the insertions into the context
+                        NSManagedObjectContext.mergeChanges(
+                            fromRemoteContextSave: [NSInsertedObjectsKey: objectIDs],
+                            into: [self.coredataContext]
+                        )
+                        debugPrint(
+                            "Glucose Storage: \(#function) \(DebuggingIdentifiers.succeeded) saved glucose to Core Data and merged changes into coreDataContext"
+                        )
+                    }
                 } catch {
-                    debugPrint("Glucose Storage: failed to save glucose to core data: \(error)")
+                    debugPrint(
+                        "Glucose Storage: \(#function) \(DebuggingIdentifiers.failed) failed to execute batch insert or merge changes: \(error)"
+                    )
                 }
 
                 debug(.deviceManager, "start storage cgmState")
@@ -183,9 +199,9 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     /// also tried this but here again you need to make everything asynchronous...
     ///  let privateContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
     /// privateContext.parent = coredataContext /// merges changes to the core data context
-    private func fetchGlucose() -> [GlucoseStored] {
+    func fetchGlucose() -> [GlucoseStored] {
         do {
-            debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
+            debugPrint("Glucose Storage: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
             return try coredataContext.fetch(GlucoseStored.fetch(
                 NSPredicate.predicateForOneDayAgo,
                 ascending: false,
@@ -193,7 +209,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                 batchSize: 50
             ))
         } catch {
-            debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose")
+            debugPrint("Glucose Storage: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose")
             return []
         }
     }

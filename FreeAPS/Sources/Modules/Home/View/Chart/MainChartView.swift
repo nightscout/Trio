@@ -66,7 +66,7 @@ struct MainChartView: View {
     @Binding var thresholdLines: Bool
     @Binding var isTempTargetActive: Bool
 
-    @StateObject var state = Home.StateModel()
+    @StateObject var state: Home.StateModel
 
     @State var didAppearTrigger = false
     @State private var BasalProfiles: [BasalProfile] = []
@@ -424,10 +424,11 @@ extension MainChartView {
         }
     }
 
+//
     private func drawGlucose() -> some ChartContent {
         /// glucose point mark
         /// filtering for high and low bounds in settings
-        ForEach(glucoseFromPersistence) { item in
+        ForEach(state.glucoseFromPersistence) { item in
             if smooth {
                 if item.glucose > Int(highGlucose) {
                     PointMark(

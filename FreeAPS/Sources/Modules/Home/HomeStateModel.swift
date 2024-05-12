@@ -1,5 +1,6 @@
 import Combine
 import CoreData
+import Foundation
 import LoopKitUI
 import SwiftDate
 import SwiftUI
@@ -22,6 +23,7 @@ extension Home {
         @Published var autotunedBasalProfile: [BasalProfileEntry] = []
         @Published var basalProfile: [BasalProfileEntry] = []
         @Published var tempTargets: [TempTarget] = []
+        @Published var glucoseFromPersistence: [GlucoseStored] = []
         @Published var timerDate = Date()
         @Published var closedLoop = false
         @Published var pumpSuspended = false
@@ -68,6 +70,7 @@ extension Home {
         @Published var waitForSuggestion: Bool = false
 
         let context = CoreDataStack.shared.backgroundContext
+        private let backgroundQueue = DispatchQueue(label: "home_state.queue", qos: .background, attributes: .concurrent)
 
         override func subscribe() {
             setupBasals()
@@ -79,6 +82,8 @@ extension Home {
             setupReservoir()
             setupAnnouncements()
             setupCurrentPumpTimezone()
+            setupNotification()
+            updateGlucose()
 
             uploadStats = settingsManager.settings.uploadStats
             units = settingsManager.settings.units
@@ -189,6 +194,59 @@ extension Home {
                     }
                 }
                 .store(in: &lifetime)
+        }
+
+        /// listens for the notifications sent when the managedObjectContext has changed
+        func setupNotification() {
+            Foundation.NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(contextDidSave(_:)),
+                name: Notification.Name.NSManagedObjectContextObjectsDidChange,
+                object: context
+            )
+        }
+
+        /// determine the actions when the context has changed
+        ///
+        /// its done on a background thread and after that the UI gets updated on the main thread
+        @objc private func contextDidSave(_ notification: Notification) {
+            guard let userInfo = notification.userInfo else { return }
+
+            backgroundQueue.async { [weak self] in
+                self?.processUpdates(userInfo: userInfo)
+            }
+        }
+
+        private func processUpdates(userInfo: [AnyHashable: Any]) {
+            var objects = Set((userInfo[NSInsertedObjectsKey] as? Set<NSManagedObject>) ?? [])
+            objects.formUnion((userInfo[NSUpdatedObjectsKey] as? Set<NSManagedObject>) ?? [])
+            objects.formUnion((userInfo[NSDeletedObjectsKey] as? Set<NSManagedObject>) ?? [])
+
+            let glucoseUpdates = objects.filter { $0 is GlucoseStored }
+
+            if glucoseUpdates.isNotEmpty {
+                updateGlucose()
+            }
+        }
+
+        ///wait for the fetch to complete and then update the UI on the main thread
+        private func updateGlucose() {
+            Task {
+                let results = await fetchGlucoseInBackground()
+                await MainActor.run {
+                    glucoseFromPersistence = results
+                }
+            }
+        }
+
+        ///do the heavy fetch operation in the background
+        private func fetchGlucoseInBackground() async -> [GlucoseStored] {
+            await withCheckedContinuation { continuation in
+                backgroundQueue.async {
+                    let results = self.provider.fetchGlucose()
+                    continuation.resume(returning: results)
+                }
+            }
         }
 
         func runLoop() {
