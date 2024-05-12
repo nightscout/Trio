@@ -223,10 +223,6 @@ extension DataTable {
                     ).tint(.red)
                 }
             }
-            .disabled(
-                item.type == .tempBasal || item.type == .tempTarget || item.type == .resume || item
-                    .type == .suspend
-            )
             .alert(
                 Text(NSLocalizedString(alertTitle, comment: "")),
                 isPresented: $isRemoveHistoryItemAlertPresented
@@ -283,7 +279,7 @@ extension DataTable {
                                     showExternalInsulin = false
                                 }
                                 label: {
-                                    Text("Log external insulin")
+                                    Text("Save")
                                 }
                                 .foregroundColor(amountWarningCondition ? Color.white : Color.accentColor)
                                 .frame(maxWidth: .infinity, alignment: .center)
@@ -306,8 +302,8 @@ extension DataTable {
                     }
                 }
                 .onAppear(perform: configureView)
-                .navigationTitle("External Insulin")
-                .navigationBarTitleDisplayMode(.inline)
+                .navigationTitle("Log External Insulin")
+                .navigationBarTitleDisplayMode(.automatic)
                 .navigationBarItems(leading: Button("Close", action: { showExternalInsulin = false
                     state.externalInsulinAmount = 0 }))
             }
