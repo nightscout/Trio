@@ -11,7 +11,7 @@ extension DataTable {
         @State private var alertMessage: String = ""
         @State private var alertTreatmentToDelete: PumpEventStored?
         @State private var alertCarbEntryToDelete: CarbEntryStored?
-        @State private var alertGlucoseToDelete: Glucose?
+        @State private var alertGlucoseToDelete: GlucoseStored?
 
         @State private var showFutureEntries: Bool = false // default to hide future entries
         @State private var showManualGlucose: Bool = false
@@ -238,8 +238,39 @@ extension DataTable {
                             Spacer()
 
                             Text(dateFormatter.string(from: glucose.date ?? Date()))
+                        }.swipeActions {
+                            Button(
+                                "Delete",
+                                systemImage: "trash.fill",
+                                role: .none,
+                                action: {
+                                    alertGlucoseToDelete = glucose
+
+                                    alertTitle = "Delete Glucose?"
+                                    alertMessage = dateFormatter
+                                        .string(from: glucose.date ?? Date()) + ", " +
+                                        (numberFormatter.string(for: glucose.glucose) ?? "0")
+
+                                    isRemoveHistoryItemAlertPresented = true
+                                }
+                            ).tint(.red)
                         }
-                    }.onDelete(perform: deleteGlucose)
+                        .alert(
+                            Text(NSLocalizedString(alertTitle, comment: "")),
+                            isPresented: $isRemoveHistoryItemAlertPresented
+                        ) {
+                            Button("Cancel", role: .cancel) {}
+                            Button("Delete", role: .destructive) {
+                                guard let glucoseToDelete = alertGlucoseToDelete else {
+                                    debug(.default, "Cannot gracefully unwrap alertCarbEntryToDelete!")
+                                    return
+                                }
+                                state.invokeGlucoseDeletionTask(glucoseToDelete)
+                            }
+                        } message: {
+                            Text("\n" + NSLocalizedString(alertMessage, comment: ""))
+                        }
+                    }
                 } else {
                     HStack {
                         Text("No data.")

@@ -31,6 +31,28 @@ extension DataTable {
             broadcaster.register(DeterminationObserver.self, observer: self)
         }
 
+        @MainActor func invokeGlucoseDeletionTask(_ glucose: GlucoseStored) {
+            Task {
+                do {
+                    await deleteGlucose(glucose)
+                }
+            }
+        }
+
+        func deleteGlucose(_ glucose: GlucoseStored) async {
+            do {
+                coredataContext.delete(glucose)
+                try coredataContext.save()
+                debugPrint(
+                    "Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted glucose from core data"
+                )
+            } catch {
+                debugPrint(
+                    "Data Table State: \(#function) \(DebuggingIdentifiers.failed) error while deleting glucose from core data"
+                )
+            }
+        }
+
         @MainActor func invokeCarbDeletionTask(_ treatment: CarbEntryStored) {
             Task {
                 do {
