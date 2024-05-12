@@ -2,16 +2,8 @@ import Foundation
 
 extension DataTable {
     final class Provider: BaseProvider, DataTableProvider {
-        @Injected() var pumpHistoryStorage: PumpHistoryStorage!
-        @Injected() var tempTargetsStorage: TempTargetsStorage!
-        @Injected() var glucoseStorage: GlucoseStorage!
-        @Injected() var carbsStorage: CarbsStorage!
         @Injected() var nightscoutManager: NightscoutManager!
         @Injected() var healthkitManager: HealthKitManager!
-
-        func pumpHistory() -> [PumpHistoryEvent] {
-            pumpHistoryStorage.recent()
-        }
 
         func pumpSettings() -> PumpSettings {
             storage.retrieve(OpenAPS.Settings.settings, as: PumpSettings.self)
@@ -19,25 +11,14 @@ extension DataTable {
                 ?? PumpSettings(insulinActionCurve: 6, maxBolus: 10, maxBasal: 2)
         }
 
-        func tempTargets() -> [TempTarget] {
-            tempTargetsStorage.recent()
+        func deleteCarbs(_: CarbEntryStored) {
+            // TODO: fix this and refactor nightscoutManager.deleteCarbs()
+//            nightscoutManager.deleteCarbs(treatment, complexMeal: false)
         }
 
-        func carbs() -> [CarbsEntry] {
-            carbsStorage.recent()
-        }
-
-        func fpus() -> [CarbsEntry] {
-            carbsStorage.recent()
-        }
-
-        func deleteCarbs(_ treatement: Treatment) {
-            nightscoutManager.deleteCarbs(treatement, complexMeal: false)
-        }
-
-        func deleteInsulin(_ treatement: Treatment) {
-            nightscoutManager.deleteInsulin(at: treatement.date)
-            if let id = treatement.idPumpEvent {
+        func deleteInsulin(_ treatment: PumpEventStored) {
+            nightscoutManager.deleteInsulin(at: treatment.timestamp ?? Date())
+            if let id = treatment.id {
                 healthkitManager.deleteInsulin(syncID: id)
             }
         }

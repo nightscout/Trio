@@ -24,146 +24,42 @@ extension DataTable {
         @Published var carbEntryDeleted: Bool = false
 
         var units: GlucoseUnits = .mmolL
-        var historyLayout: HistoryLayout = .twoTabs
 
         override func subscribe() {
             units = settingsManager.settings.units
             maxBolus = provider.pumpSettings().maxBolus
-            historyLayout = settingsManager.settings.historyLayout
-            setupTreatments()
-            broadcaster.register(SettingsObserver.self, observer: self)
-            broadcaster.register(PumpHistoryObserver.self, observer: self)
-            broadcaster.register(TempTargetsObserver.self, observer: self)
-            broadcaster.register(CarbsObserver.self, observer: self)
-            broadcaster.register(SuggestionObserver.self, observer: self)
+            broadcaster.register(DeterminationObserver.self, observer: self)
         }
 
-        private func setupTreatments() {
-            DispatchQueue.global().async {
-                let units = self.settingsManager.settings.units
-                let carbs = self.provider.carbs()
-                    .filter { !($0.isFPU ?? false) }
-                    .map {
-                        if let id = $0.id {
-                            return Treatment(
-                                units: units,
-                                type: .carbs,
-                                date: $0.actualDate ?? $0.createdAt,
-                                amount: $0.carbs,
-                                id: id,
-                                fpuID: $0.fpuID,
-                                note: $0.note
-                            )
-                        } else {
-                            return Treatment(
-                                units: units,
-                                type: .carbs,
-                                date: $0.actualDate ?? $0.createdAt,
-                                amount: $0.carbs,
-                                note: $0.note
-                            )
-                        }
-                    }
-
-                let fpus = self.provider.fpus()
-                    .filter { $0.isFPU ?? false }
-                    .map {
-                        Treatment(
-                            units: units,
-                            type: .fpus,
-                            date: $0.actualDate ?? $0.createdAt,
-                            amount: $0.carbs,
-                            id: $0.id,
-                            isFPU: $0.isFPU,
-                            fpuID: $0.fpuID,
-                            note: $0.note
-                        )
-                    }
-
-                let boluses = self.provider.pumpHistory()
-                    .filter { $0.type == .bolus }
-                    .map {
-                        Treatment(
-                            units: units,
-                            type: .bolus,
-                            date: $0.timestamp,
-                            amount: $0.amount,
-                            idPumpEvent: $0.id,
-                            isSMB: $0.isSMB,
-                            isExternal: $0.isExternal
-                        )
-                    }
-
-                let tempBasals = self.provider.pumpHistory()
-                    .filter { $0.type == .tempBasal || $0.type == .tempBasalDuration }
-                    .chunks(ofCount: 2)
-                    .compactMap { chunk -> Treatment? in
-                        let chunk = Array(chunk)
-                        guard chunk.count == 2, chunk[0].type == .tempBasal,
-                              chunk[1].type == .tempBasalDuration else { return nil }
-                        return Treatment(
-                            units: units,
-                            type: .tempBasal,
-                            date: chunk[0].timestamp,
-                            amount: chunk[0].rate ?? 0,
-                            secondAmount: nil,
-                            duration: Decimal(chunk[1].durationMin ?? 0)
-                        )
-                    }
-
-                let tempTargets = self.provider.tempTargets()
-                    .map {
-                        Treatment(
-                            units: units,
-                            type: .tempTarget,
-                            date: $0.createdAt,
-                            amount: $0.targetBottom ?? 0,
-                            secondAmount: $0.targetTop,
-                            duration: $0.duration
-                        )
-                    }
-
-                let suspend = self.provider.pumpHistory()
-                    .filter { $0.type == .pumpSuspend }
-                    .map {
-                        Treatment(units: units, type: .suspend, date: $0.timestamp)
-                    }
-
-                let resume = self.provider.pumpHistory()
-                    .filter { $0.type == .pumpResume }
-                    .map {
-                        Treatment(units: units, type: .resume, date: $0.timestamp)
-                    }
-
-                DispatchQueue.main.async {
-                    if self.historyLayout == .threeTabs {
-                        self.treatments = [boluses, tempBasals, tempTargets, suspend, resume]
-                            .flatMap { $0 }
-                            .sorted { $0.date > $1.date }
-                        self.meals = [carbs, fpus]
-                            .flatMap { $0 }
-                            .sorted { $0.date > $1.date }
-                    } else {
-                        self.treatments = [carbs, fpus, boluses, tempBasals, tempTargets, suspend, resume]
-                            .flatMap { $0 }
-                            .sorted { $0.date > $1.date }
-                    }
+        @MainActor func invokeCarbDeletionTask(_ treatment: CarbEntryStored) {
+            Task {
+                do {
+                    await deleteCarbs(treatment)
+                    carbEntryDeleted = true
+                    waitForSuggestion = true
                 }
             }
         }
 
-        func invokeCarbDeletionTask(_ treatment: Treatment) {
-            carbEntryDeleted = true
-            waitForSuggestion = true
-            deleteCarbs(treatment)
-        }
+        func deleteCarbs(_ carbEntry: CarbEntryStored) async {
+            do {
+                // TODO: when deleting FPU, do an NSDeleteBatchRequest and remove all entries with same FpuID
+                coredataContext.delete(carbEntry)
+                try coredataContext.save()
+                debugPrint(
+                    "Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted carb entry from core data"
+                )
+            } catch {
+                debugPrint(
+                    "Data Table State: \(#function) \(DebuggingIdentifiers.failed) error while deleting carb entry from core data"
+                )
+            }
 
-        func deleteCarbs(_ treatment: Treatment) {
-            provider.deleteCarbs(treatment)
+            provider.deleteCarbs(carbEntry)
             apsManager.determineBasalSync()
         }
 
-        @MainActor func invokeInsulinDeletionTask(_ treatment: Treatment) {
+        @MainActor func invokeInsulinDeletionTask(_ treatment: PumpEventStored) {
             Task {
                 do {
                     await deleteInsulin(treatment)
@@ -173,10 +69,22 @@ extension DataTable {
             }
         }
 
-        func deleteInsulin(_ treatment: Treatment) async {
+        func deleteInsulin(_ treatment: PumpEventStored) async {
             do {
                 let authenticated = try await unlockmanager.unlock()
                 if authenticated {
+                    do {
+                        coredataContext.delete(treatment)
+                        try coredataContext.save()
+                        debugPrint(
+                            "Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted insulin from core data"
+                        )
+                    } catch {
+                        debugPrint(
+                            "Data Table State: \(#function) \(DebuggingIdentifiers.failed) error while deleting insulin from core data"
+                        )
+                    }
+
                     provider.deleteInsulin(treatment)
                     apsManager.determineBasalSync()
                 } else {
@@ -233,32 +141,8 @@ extension DataTable {
     }
 }
 
-extension DataTable.StateModel:
-    SettingsObserver,
-    PumpHistoryObserver,
-    TempTargetsObserver,
-    CarbsObserver
-{
-    func settingsDidChange(_: FreeAPSSettings) {
-        historyLayout = settingsManager.settings.historyLayout
-        setupTreatments()
-    }
-
-    func pumpHistoryDidUpdate(_: [PumpHistoryEvent]) {
-        setupTreatments()
-    }
-
-    func tempTargetsDidUpdate(_: [TempTarget]) {
-        setupTreatments()
-    }
-
-    func carbsDidUpdate(_: [CarbsEntry]) {
-        setupTreatments()
-    }
-}
-
-extension DataTable.StateModel: SuggestionObserver {
-    func suggestionDidUpdate(_: Suggestion) {
+extension DataTable.StateModel: DeterminationObserver {
+    func determinationDidUpdate(_: Determination) {
         DispatchQueue.main.async {
             self.waitForSuggestion = false
         }

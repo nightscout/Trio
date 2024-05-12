@@ -10,7 +10,7 @@ protocol NightscoutManager: GlucoseSource {
     func fetchCarbs() -> AnyPublisher<[CarbsEntry], Never>
     func fetchTempTargets() -> AnyPublisher<[TempTarget], Never>
     func fetchAnnouncements() -> AnyPublisher<[Announcement], Never>
-    func deleteCarbs(_ treatement: DataTable.Treatment, complexMeal: Bool)
+    func deleteCarbs(_ treatment: DataTable.Treatment, complexMeal: Bool)
     func deleteInsulin(at date: Date)
     func deleteManualGlucose(at: Date)
     func uploadStatus()
@@ -182,33 +182,33 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             .eraseToAnyPublisher()
     }
 
-    func deleteCarbs(_ treatement: DataTable.Treatment, complexMeal: Bool) {
+    func deleteCarbs(_ treatment: DataTable.Treatment, complexMeal: Bool) {
         guard let nightscout = nightscoutAPI, isUploadEnabled else {
-            carbsStorage.deleteCarbs(at: treatement.id, fpuID: treatement.fpuID ?? "", complex: complexMeal)
+            carbsStorage.deleteCarbs(at: treatment.id, fpuID: treatment.fpuID ?? "", complex: complexMeal)
             return
         }
 
-        print("meals 3: ID: " + (treatement.id ?? "").description + " FPU ID: " + (treatement.fpuID ?? "").description)
+        print("meals 3: ID: " + (treatment.id ?? "").description + " FPU ID: " + (treatment.fpuID ?? "").description)
 
         var arg1 = ""
         var arg2 = ""
         if complexMeal {
-            arg1 = treatement.id ?? ""
-            arg2 = treatement.fpuID ?? ""
-        } else if treatement.isFPU ?? false {
+            arg1 = treatment.id ?? ""
+            arg2 = treatment.fpuID ?? ""
+        } else if treatment.isFPU ?? false {
             arg1 = ""
-            arg2 = treatement.fpuID ?? ""
+            arg2 = treatment.fpuID ?? ""
         } else {
-            arg1 = treatement.id
+            arg1 = treatment.id
             arg2 = ""
         }
         healthkitManager.deleteCarbs(syncID: arg1, fpuID: arg2)
 
         if complexMeal {
-            nightscout.deleteCarbs(treatement)
+            nightscout.deleteCarbs(treatment)
                 .collect()
                 .sink { completion in
-                    self.carbsStorage.deleteCarbs(at: treatement.id ?? "", fpuID: treatement.fpuID ?? "", complex: true)
+                    self.carbsStorage.deleteCarbs(at: treatment.id ?? "", fpuID: treatment.fpuID ?? "", complex: true)
                     switch completion {
                     case .finished:
                         debug(.nightscout, "Carbs deleted")
@@ -222,8 +222,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 } receiveValue: { _ in }
                 .store(in: &lifetime)
 
-            if (treatement.fpuID ?? "") != "" {
-                nightscout.deleteCarbs(treatement)
+            if (treatment.fpuID ?? "") != "" {
+                nightscout.deleteCarbs(treatment)
                     .collect()
                     .sink { completion in
                         switch completion {
@@ -239,11 +239,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     } receiveValue: { _ in }
                     .store(in: &lifetime)
             }
-        } else if treatement.isFPU ?? false {
-            nightscout.deleteCarbs(treatement)
+        } else if treatment.isFPU ?? false {
+            nightscout.deleteCarbs(treatment)
                 .collect()
                 .sink { completion in
-                    self.carbsStorage.deleteCarbs(at: "", fpuID: treatement.fpuID ?? "", complex: false)
+                    self.carbsStorage.deleteCarbs(at: "", fpuID: treatment.fpuID ?? "", complex: false)
                     switch completion {
                     case .finished:
                         debug(.nightscout, "Carb equivalents deleted")
@@ -257,10 +257,10 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 } receiveValue: { _ in }
                 .store(in: &lifetime)
         } else {
-            nightscout.deleteCarbs(treatement)
+            nightscout.deleteCarbs(treatment)
                 .collect()
                 .sink { completion in
-                    self.carbsStorage.deleteCarbs(at: treatement.id, fpuID: "", complex: false)
+                    self.carbsStorage.deleteCarbs(at: treatment.id, fpuID: "", complex: false)
                     switch completion {
                     case .finished:
                         debug(.nightscout, "Carbs deleted")

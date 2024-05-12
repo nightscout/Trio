@@ -181,6 +181,26 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         )
                     ]
                 case .resume:
+                    self.context.perform {
+                        // create pump event
+                        let newPumpEvent = PumpEventStored(context: self.context)
+                        newPumpEvent.id = id
+                        newPumpEvent.timestamp = event.date
+                        newPumpEvent.type = PumpEvent.pumpResume.rawValue
+
+                        if self.context.hasChanges {
+                            do {
+                                try self.context.save()
+                                debugPrint(
+                                    "Pump History storage: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved pump resumption to core data"
+                                )
+                            } catch {
+                                debugPrint(
+                                    "Pump History storage: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save pump resumption to core data"
+                                )
+                            }
+                        }
+                    }
                     return [
                         PumpHistoryEvent(
                             id: id,

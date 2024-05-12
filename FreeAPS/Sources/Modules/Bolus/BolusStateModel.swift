@@ -342,7 +342,8 @@ extension Bolus {
                 let authenticated = try await unlockmanager.unlock()
                 if authenticated {
                     apsManager.enactBolus(amount: maxAmount, isSMB: false)
-                    savePumpInsulin(amount: amount)
+//                    savePumpInsulin(amount: amount)
+                    // already saved via pumphistory through apsManager
                 } else {
                     print("authentication failed")
                 }
