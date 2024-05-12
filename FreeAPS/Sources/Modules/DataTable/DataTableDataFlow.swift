@@ -141,8 +141,6 @@ enum DataTable {
 
                 if isExternal ?? false {
                     bolusText += " " + NSLocalizedString("External", comment: "External Insulin")
-                } else if isSMB ?? false {
-                    bolusText += " " + NSLocalizedString("SMB", comment: "SMB")
                 }
 
                 return numberFormatter

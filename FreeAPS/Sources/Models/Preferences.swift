@@ -10,7 +10,7 @@ struct Preferences: JSON {
     var rewindResetsAutosens: Bool = true
     var highTemptargetRaisesSensitivity: Bool = false
     var lowTemptargetLowersSensitivity: Bool = false
-    var sensitivityRaisesTarget: Bool = true
+    var sensitivityRaisesTarget: Bool = false
     var resistanceLowersTarget: Bool = false
     var advTargetAdjustments: Bool = false
     var exerciseMode: Bool = false
@@ -68,7 +68,7 @@ extension Preferences {
         case highTemptargetRaisesSensitivity = "high_temptarget_raises_sensitivity"
         case lowTemptargetLowersSensitivity = "low_temptarget_lowers_sensitivity"
         case sensitivityRaisesTarget = "sensitivity_raises_target"
-        case resistanceLowersTarget
+        case resistanceLowersTarget = "resistance_lowers_target"
         case advTargetAdjustments = "adv_target_adjustments"
         case exerciseMode = "exercise_mode"
         case halfBasalExerciseTarget = "half_basal_exercise_target"

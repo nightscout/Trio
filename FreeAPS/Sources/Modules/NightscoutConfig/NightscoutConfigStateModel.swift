@@ -22,7 +22,6 @@ extension NightscoutConfig {
         @Published var connecting = false
         @Published var backfilling = false
         @Published var isUploadEnabled = false // Allow uploads
-        @Published var uploadStats = false // Upload Statistics
         @Published var uploadGlucose = true // Upload Glucose
         @Published var changeUploadGlucose = true // if plugin, need to be change in CGM configuration
         @Published var useLocalSource = false
@@ -46,7 +45,6 @@ extension NightscoutConfig {
             subscribeSetting(\.isUploadEnabled, on: $isUploadEnabled) { isUploadEnabled = $0 }
             subscribeSetting(\.useLocalGlucoseSource, on: $useLocalSource) { useLocalSource = $0 }
             subscribeSetting(\.localGlucosePort, on: $localPort.map(Int.init)) { localPort = Decimal($0) }
-            subscribeSetting(\.uploadStats, on: $uploadStats) { uploadStats = $0 }
             subscribeSetting(\.uploadGlucose, on: $uploadGlucose, initial: { uploadGlucose = $0 })
         }
 
@@ -198,7 +196,7 @@ extension NightscoutConfig {
 
                         let sensitivities = fetchedProfile.sens.map { sensitivity -> InsulinSensitivityEntry in
                             InsulinSensitivityEntry(
-                                sensitivity: self.units == .mmolL ? sensitivity.value : sensitivity.value.asMgdL,
+                                sensitivity: sensitivity.value,
                                 offset: self.offset(sensitivity.time) / 60,
                                 start: sensitivity.time
                             )
@@ -219,8 +217,8 @@ extension NightscoutConfig {
                         let targets = fetchedProfile.target_low
                             .map { target -> BGTargetEntry in
                                 BGTargetEntry(
-                                    low: self.units == .mmolL ? target.value : target.value.asMgdL,
-                                    high: self.units == .mmolL ? target.value : target.value.asMgdL,
+                                    low: target.value,
+                                    high: target.value,
                                     start: target.time,
                                     offset: self.offset(target.time) / 60
                                 ) }

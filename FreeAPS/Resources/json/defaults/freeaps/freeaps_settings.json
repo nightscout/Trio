@@ -32,15 +32,14 @@
   "smoothGlucose" : false,
   "displayOnWatch" : "BGTarget",
   "overrideHbA1cUnit" : false,
-  "high" : 145,
+  "high" : 180,
   "low" : 70,
-  "uploadStats" : true,
   "hours" : 6,
   "xGridLines" : true,
   "yGridLines" : true,
   "oneDimensionalGraph" : false,
-  "rulerMarks" : false,
-  "maxCarbs": 1000,
+  "rulerMarks" : true,
+  "maxCarbs": 250,
   "displayFatAndProteinOnWatch": false,
   "lockScreenView": "simple"
 }
