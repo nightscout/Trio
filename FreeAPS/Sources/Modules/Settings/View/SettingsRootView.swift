@@ -37,7 +37,6 @@ extension Settings {
                         Text("Apple Health").navigationLink(to: .healthkit, from: self)
                     }
                     Text("Notifications").navigationLink(to: .notificationsConfig, from: self)
-                    Text("Fat And Protein Conversion").navigationLink(to: .fpuConfig, from: self)
                     Text("App Icons").navigationLink(to: .iconConfig, from: self)
                     Text("Statistics and Home View").navigationLink(to: .statisticsConfig, from: self)
                 } header: { Text("Services") }
@@ -45,6 +44,7 @@ extension Settings {
                 Section {
                     Text("Preferences").navigationLink(to: .preferencesEditor, from: self)
                     Text("Pump Settings").navigationLink(to: .pumpSettingsEditor, from: self)
+                    Text("Meal Settings").navigationLink(to: .fpuConfig, from: self)
                     Text("Basal Profile").navigationLink(to: .basalProfileEditor, from: self)
                     Text("Insulin Sensitivities").navigationLink(to: .isfEditor, from: self)
                     Text("Carb Ratios").navigationLink(to: .crEditor, from: self)

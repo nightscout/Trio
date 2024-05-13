@@ -1240,7 +1240,7 @@ Enact a temp Basal or a temp target */
 "Enable" = "Activeer";
 
 /* Header */
-"Conversion settings" = "Omrekeningsinstellingen";
+"Fat and Protein Conversion Settings" = "Fat and Protein Conversion Settings";
 
 /* Delay */
 "Delay In Minutes" = "Vertraging in minuten";
@@ -1258,7 +1258,7 @@ Enact a temp Basal or a temp target */
 "Allows fat and protein to be converted into future carb equivalents using the Warsaw formula of kilocalories divided by 10.\n\nThis spreads the carb equivilants over a maximum duration setting that can be configured from 5-12 hours.\n\nDelay is time from now until the first future carb entry.\n\nInterval in minutes is how many minutes are between entries. The shorter the interval, the smoother the result. 10, 15, 20, 30, or 60 are reasonable choices.\n\nAdjustment factor is how much effect the fat and protein has on the entries. 1.0 is full effect (original Warsaw Method) and 0.5 is half effect. Note that you may find that your normal carb ratio needs to increase to a larger number if you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 0.5 to ease into it.\n\nDefault settings: Time Cap: 8 h, Interval: 30 min, Factor: 0.5, Delay 60 min" = "Dit laat je vet en eiwit omzetten in toekomstige koolhydraten met behulp van de Warschau-formule. Deze formule verdeelt de koolhydraten over een zelf in te stellen tijdsduur van 5-12 uur.\n\nDe vertraging is de tijd tussen nu en de eerste toekomstige koolhydrateninvoer. Het interval in minuten is het aantal minuten tussen elke invoer. Als je een korter interval kiest, wordt het resultaat gelijkmatiger. Goede keuzes zijn bijvoorbeeld 10, 15, 20, 30 of 60 minuten.\n\nDe aanpassingsfactor bepaalt het effect van vet en eiwit op de waarden. Een factor van 1,0 betekent volledig effect (de oorspronkelijke Warschau-methode), en 0,5 betekent half effect.\n\nLet op dat je mogelijk moet opmerken dat je normale koolhydratenverhouding moet verhogen tot een hoger getal wanneer je vet en eiwit toevoegt. Daarom is het het beste om te beginnen met een factor van ongeveer 0,5 om het jezelf makkelijk te maken.\n\nStandaardinstellingen zijn een tijdslimiet van 8 uur, een interval van 30 minuten, een factor van 0,5 en een vertraging van 60 minuten";
 
 /* FPU Settings Title */
-"Fat and Protein" = "Vetten & eiwitten";
+"Fat and Protein" = "Fat and Protein";
 
 /* Display fat and protein entities */
 "Fat & Protein" = "Vetten & eiwitten";
@@ -1273,7 +1273,7 @@ Enact a temp Basal or a temp target */
 "Protein" = "Eiwit";
 
 /* Service Section */
-"Fat And Protein Conversion" = "Omrekening vet en eiwit";
+"Meal Settings" = "Meal Settings";
 
 /* Service Section */
 "Profile Override" = "Overschrijf profiel";

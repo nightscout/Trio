@@ -2,12 +2,14 @@ import SwiftUI
 
 extension FPUConfig {
     final class StateModel: BaseStateModel<Provider> {
+        @Published var maxCarbs: Decimal = 250
         @Published var individualAdjustmentFactor: Decimal = 0
         @Published var timeCap: Decimal = 0
         @Published var minuteInterval: Decimal = 0
         @Published var delay: Decimal = 0
 
         override func subscribe() {
+            subscribeSetting(\.maxCarbs, on: $maxCarbs) { maxCarbs = $0 }
             subscribeSetting(\.timeCap, on: $timeCap.map(Int.init), initial: {
                 let value = max(min($0, 12), 5)
                 timeCap = Decimal(value)
