@@ -69,7 +69,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GH_PAT }}
       run: |
-        # get ref for nightscout/Trio:main
+        # get ref for nightscout/Trio:dev
         response=$(curl --request GET \
                           --url "https://api.github.com/repos/${{ env.UPSTREAM_REPO }}/git/refs/heads/dev" \
                           --header "Authorization: Bearer $GITHUB_TOKEN" \
@@ -77,12 +77,12 @@ jobs:
         echo "API Response: $response"
         SHA=$(echo "$response" | jq -r '.object.sha')
         if [ "$SHA" = "null" ]; then
-            echo "Error: Unable to retrieve SHA for the main branch."
+            echo "Error: Unable to retrieve SHA for the dev branch."
             exit 1
         fi
-        echo "SHA of main branch: $SHA";
+        echo "SHA of dev branch: $SHA";
         
-        # Create alive branch based on nightscout/Trio:main
+        # Create alive branch based on nightscout/Trio:dev
         gh api \
           --method POST \
           -H "Authorization: token $GITHUB_TOKEN" \
