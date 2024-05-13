@@ -71,7 +71,7 @@ jobs:
       run: |
         # get ref for nightscout/Trio:main
         response=$(curl --request GET \
-                          --url "https://api.github.com/repos/${{ env.UPSTREAM_REPO }}/git/refs/heads/main" \
+                          --url "https://api.github.com/repos/${{ env.UPSTREAM_REPO }}/git/refs/heads/dev" \
                           --header "Authorization: Bearer $GITHUB_TOKEN" \
                           --silent)
         echo "API Response: $response"
