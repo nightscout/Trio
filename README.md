@@ -12,15 +12,23 @@ Trio continues to leverage a variety of frameworks from the DIY looping communit
 
 ## To download this repo:
 
-There is also a script available, but if you prefer the manual process:
+You can either use the Build Script or you can run each command manually.
 
-In Terminal:
+### Build Script:
 
-Configure a folder where you want your download to reside:
+If you copy, paste, and run the following script in Terminal, it will guide you through downloading and installing Trio. More information about the script can be found [here](https://docs.diy-trio.org/en/latest/operate/build.html#build-trio-with-script).
 
 ```
-cd <your desired folder name>
-git clone --branch=<<branch>> --recurse-submodules https://github.com/nightscout/Trio.git
+/bin/bash -c "$(curl -fsSL \
+  https://raw.githubusercontent.com/loopandlearn/lnl-scripts/main/TrioBuildSelectScript.sh)"
+```
+
+### Command Line Interface (CLI):
+
+In Terminal, `cd` to the folder where you want your download to reside, change `<branch>` in the command below to the branch you want to download (ie. `dev`), and press `return`.
+
+```
+git clone --branch=<branch> --recurse-submodules https://github.com/nightscout/Trio.git
 cd Trio
 ```
 
