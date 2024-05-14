@@ -28,8 +28,7 @@ If you copy, paste, and run the following script in Terminal, it will guide you 
 In Terminal, `cd` to the folder where you want your download to reside, change `<branch>` in the command below to the branch you want to download (ie. `dev`), and press `return`.
 
 ```
-git clone --branch=<branch> --recurse-submodules https://github.com/nightscout/Trio.git
-cd Trio
+git clone --branch=<branch> --recurse-submodules https://github.com/nightscout/Trio.git && cd Trio
 ```
 
 Create a ConfigOverride.xcconfig file that contains your Apple Developer ID (something like `123A4BCDE5`). This will automate signing of the build targets in Xcode:
