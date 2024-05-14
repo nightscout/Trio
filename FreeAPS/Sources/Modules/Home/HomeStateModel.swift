@@ -185,6 +185,8 @@ extension Home {
                             setupDelegate: self
                         ).asAny()
                         self.router.mainSecondaryModalView.send(view)
+                    } else if show {
+                        self.router.mainSecondaryModalView.send(self.router.view(for: .pumpConfigDirect))
                     } else {
                         self.router.mainSecondaryModalView.send(nil)
                     }

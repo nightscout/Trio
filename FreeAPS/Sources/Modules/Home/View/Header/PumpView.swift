@@ -22,6 +22,19 @@ struct PumpView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            if reservoir == nil && battery == nil {
+                VStack(alignment: .center, spacing: 12) {
+                    HStack
+                        {
+                            // no cgm defined so display a generic CGM
+                            Image(systemName: "keyboard.onehanded.left").font(.body).imageScale(.large)
+                        }
+                    HStack {
+                        Text("Add pump").font(.caption).bold()
+                    }
+                }.frame(alignment: .top)
+            }
+
             if let reservoir = reservoir {
                 HStack {
                     Image(systemName: "drop.fill")

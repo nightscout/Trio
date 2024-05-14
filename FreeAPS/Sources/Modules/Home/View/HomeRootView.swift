@@ -149,9 +149,9 @@ extension Home {
                 timerDate: $state.timerDate
             )
             .onTapGesture {
-                if state.pumpDisplayState != nil {
-                    state.setupPump = true
-                }
+                // if state.pumpDisplayState != nil {
+                state.setupPump = true
+                // }
             }
         }
 
