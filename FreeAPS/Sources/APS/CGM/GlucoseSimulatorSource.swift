@@ -182,6 +182,8 @@ class IntelligentGenerator: BloodGlucoseGenerator {
     }
 
     private func makeStepInTrend() {
+        guard trendStepsLeft > 0 else { return }
+
         currentGlucose +=
             Int(Double((trendTargetValue - currentGlucose) / trendStepsLeft) * [0.3, 0.6, 1, 1.3, 1.6, 2.0].randomElement()!)
         trendStepsLeft -= 1

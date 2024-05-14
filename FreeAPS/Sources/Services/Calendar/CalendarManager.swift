@@ -230,25 +230,37 @@ final class BaseCalendarManager: CalendarManager, Injectable {
     }
 
     private func fetchAndProcessGlucose() -> [GlucoseStored]? {
-        do {
-            debugPrint("Calendar Manager: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
-            return try coredataContext.fetch(GlucoseStored.fetch(
-                NSPredicate.predicateFor20MinAgo,
-                ascending: false,
-                fetchLimit: 3
-            ))
-        } catch {
-            debugPrint("Calendar Manager: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose")
-            return []
+        var result: [GlucoseStored]?
+        coredataContext.perform {
+            do {
+                debugPrint("Calendar Manager: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
+                result = try self.coredataContext.fetch(GlucoseStored.fetch(
+                    NSPredicate.predicateFor20MinAgo,
+                    ascending: false,
+                    fetchLimit: 3
+                ))
+            } catch {
+                debugPrint("Calendar Manager: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose")
+            }
         }
+        return result
     }
 
     func setupGlucose() {
-        guard let glucose = fetchAndProcessGlucose(), let lastGlucose = glucose.first, let lastReading = glucose.first?.glucose,
-              let secondLastReading = glucose.dropFirst().first?.glucose else { return }
+        guard let glucose = fetchAndProcessGlucose(), glucose.count >= 2 else {
+            debugPrint("Not enough glucose data available")
+            return
+        }
 
-        let glucoseDelta = lastReading - secondLastReading
-        createEvent(for: lastGlucose, delta: Int(glucoseDelta))
+        // Safely unwrapping glucose readings
+        if let lastGlucose = glucose.first,
+           let secondLastReading = glucose.dropFirst().first?.glucose
+        {
+            let glucoseDelta = lastGlucose.glucose - secondLastReading
+            createEvent(for: lastGlucose, delta: Int(glucoseDelta))
+        } else {
+            debugPrint("Failed to unwrap necessary glucose readings")
+        }
     }
 }
 

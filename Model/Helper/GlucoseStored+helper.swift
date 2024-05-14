@@ -42,10 +42,6 @@ extension NSPredicate {
     }
 }
 
-protocol GlucoseStoredObserver {
-    func glucoseDidUpdate(_ glucose: [GlucoseStored])
-}
-
 extension GlucoseStored: Encodable {
     enum CodingKeys: String, CodingKey {
         case date

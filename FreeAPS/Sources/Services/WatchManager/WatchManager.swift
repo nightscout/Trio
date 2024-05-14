@@ -1,3 +1,4 @@
+import CoreData
 import Foundation
 import Swinject
 import WatchConnectivity
@@ -52,40 +53,80 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         configureState()
     }
 
-    private func fetchGlucose() -> [GlucoseStored] {
-        do {
-            let fetchedReadings = try context.fetch(GlucoseStored.fetch(NSPredicate.predicateFor120MinAgo, ascending: true))
-            debugPrint("Watch Manager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched glucose")
-            return fetchedReadings
-        } catch {
-            debugPrint("Watch Manager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch glucose")
-            return []
-        }
+    private func fetchLastDeterminationDate() -> Date? {
+        let predicate = NSPredicate.enactedDetermination
+        return CoreDataStack.shared.fetchEntities(
+            ofType: OrefDetermination.self,
+            predicate: predicate,
+            key: "deliverAt",
+            ascending: false,
+            fetchLimit: 1,
+            batchSize: 1,
+            propertiesToFetch: ["deliverAt"]
+        ).first?.deliverAt
     }
 
-    private func fetchDetermination() -> [OrefDetermination] {
-        do {
-            let results = try context.fetch(OrefDetermination.fetch(NSPredicate.enactedDetermination))
-            debugPrint("Watch Manager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched determinations")
-            return results
-        } catch {
-            debugPrint("Watch Manager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch determinations")
-            return []
+    func fetchAndProcessGlucose() -> (ids: [NSManagedObjectID], glucose: String, trend: String, delta: String, date: Date) {
+        var results: (ids: [NSManagedObjectID], glucose: String, trend: String, delta: String, date: Date) = (
+            [],
+            "--",
+            "--",
+            "--",
+            Date()
+        )
+
+        let context = CoreDataStack.shared.backgroundContext
+        context.performAndWait {
+            let predicate = NSPredicate.predicateFor120MinAgo
+            let fetchedGlucose = CoreDataStack.shared.fetchEntities(
+                ofType: GlucoseStored.self,
+                predicate: predicate,
+                key: "date",
+                ascending: false,
+                fetchLimit: 24,
+                batchSize: 12
+            )
+
+            let ids = fetchedGlucose.map(\.objectID)
+            guard let firstGlucose = fetchedGlucose.first else {
+                return
+            }
+
+            let glucoseValue = firstGlucose.glucose
+            let date = firstGlucose.date ?? .distantPast
+            let delta = fetchedGlucose.count >= 2 ? glucoseValue - fetchedGlucose[1].glucose : 0
+
+            let units = settingsManager.settings.units
+            let glucoseFormatter = NumberFormatter()
+            glucoseFormatter.numberStyle = .decimal
+            glucoseFormatter.maximumFractionDigits = (units == .mmolL) ? 1 : 0
+
+            let glucoseText = glucoseFormatter
+                .string(from: Double(units == .mmolL ? Decimal(glucoseValue).asMmolL : Decimal(glucoseValue)) as NSNumber) ?? "--"
+
+            let directionText = firstGlucose.direction ?? "↔︎"
+
+            let deltaFormatter = NumberFormatter()
+            deltaFormatter.numberStyle = .decimal
+            deltaFormatter.maximumFractionDigits = 1
+            let deltaText = deltaFormatter
+                .string(from: Double(units == .mmolL ? Decimal(delta).asMmolL : Decimal(delta)) as NSNumber) ?? "--"
+
+            results = (ids, glucoseText, directionText, deltaText, date)
         }
+        return results
     }
 
     private func configureState() {
         processQueue.async {
-            let fetchedReadings = self.fetchGlucose()
-            let glucoseValues = self.glucoseText(fetchedReadings)
-            let fetchedDeterminations = self.fetchDetermination()
+            let glucoseValues = self.fetchAndProcessGlucose()
 
             self.state.glucose = glucoseValues.glucose
             self.state.trend = glucoseValues.trend
             self.state.delta = glucoseValues.delta
-            self.state.trendRaw = fetchedReadings.first?.direction ?? "↔︎"
-            self.state.glucoseDate = fetchedReadings.first?.date ?? .distantPast
-            self.state.lastLoopDate = fetchedDeterminations.first?.deliverAt
+            self.state.trendRaw = glucoseValues.trend
+            self.state.glucoseDate = glucoseValues.date
+            self.state.lastLoopDate = self.fetchLastDeterminationDate()
             self.state.lastLoopDateInterval = self.state.lastLoopDate.map {
                 guard $0.timeIntervalSince1970 > 0 else { return 0 }
                 return UInt64($0.timeIntervalSince1970)
@@ -112,7 +153,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
                         0
                     ))
             } else {
-                let recommended = self.newBolusCalc(delta: fetchedReadings, suggestion: self.suggestion)
+                let recommended = self.newBolusCalc(ids: glucoseValues.ids, suggestion: self.suggestion)
                 self.state.bolusRecommended = self.apsManager
                     .roundBolus(amount: max(recommended, 0))
             }
@@ -173,31 +214,6 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         }
     }
 
-    private func glucoseText(_ glucose: [GlucoseStored]) -> (glucose: String, trend: String, delta: String) {
-        let glucoseValue = glucose.first?.glucose ?? 0
-
-        guard !glucose.isEmpty else { return ("--", "--", "--") }
-
-        let delta = glucose.count >= 2 ? glucoseValue - glucose[1].glucose : nil
-
-        let units = settingsManager.settings.units
-        let glucoseText = glucoseFormatter
-            .string(from: Double(
-                units == .mmolL ? Decimal(glucoseValue).asMmolL : Decimal(glucoseValue)
-            ) as NSNumber)!
-
-        let directionText = glucose.first?.direction ?? "↔︎"
-        let deltaText = delta
-            .map {
-                self.deltaFormatter
-                    .string(from: Double(
-                        units == .mmolL ? Decimal($0).asMmolL : Decimal($0)
-                    ) as NSNumber)!
-            } ?? "--"
-
-        return (glucoseText, directionText, deltaText)
-    }
-
     private func descriptionForTarget(_ target: TempTarget) -> String {
         let units = settingsManager.settings.units
 
@@ -225,60 +241,49 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         )!
     }
 
-    private func newBolusCalc(delta: [GlucoseStored], suggestion _: Suggestion?) -> Decimal {
-        var conversion: Decimal = 1
-        // Settings
-        if settingsManager.settings.units == .mmolL {
-            conversion = 0.0555
-        }
-        let isf = state.isf ?? 0
-        let target = suggestion?.current_target ?? 0
-        let carbratio = suggestion?.carbRatio ?? 0
-        let bg = delta.first?.glucose ?? 0
-        let cob = state.cob ?? 0
-        let iob = state.iob ?? 0
-        let useFattyMealCorrectionFactor = settingsManager.settings.fattyMeals
-        let fattyMealFactor = settingsManager.settings.fattyMealFactor
-        let maxBolus = settingsManager.pumpSettings.maxBolus
+    private func newBolusCalc(ids: [NSManagedObjectID], suggestion: Suggestion?) -> Decimal {
         var insulinCalculated: Decimal = 0
-        // insulin needed for the current blood glucose
-        let targetDifference = (Decimal(bg) - target) * conversion
-        let targetDifferenceInsulin = targetDifference / isf
-        // more or less insulin because of bg trend in the last 15 minutes
-        var bgDelta: Int = 0
-        if delta.count >= 3 {
-            bgDelta = Int((delta.first?.glucose ?? 0) - delta[2].glucose)
-        }
-        let fifteenMinInsulin = (Decimal(bgDelta) * conversion) / isf
-        // determine whole COB for which we want to dose insulin for and then determine insulin for wholeCOB
-        let wholeCobInsulin = cob / carbratio
-        // determine how much the calculator reduces/ increases the bolus because of IOB
-        let iobInsulinReduction = (-1) * iob
-        // adding everything together
-        // add a calc for the case that no fifteenMinInsulin is available
-        var wholeCalc: Decimal = 0
-        if bgDelta != 0 {
-            wholeCalc = (targetDifferenceInsulin + iobInsulinReduction + wholeCobInsulin + fifteenMinInsulin)
-        } else {
-            // add (rare) case that no glucose value is available -> maybe display warning?
-            // if no bg is available, ?? sets its value to 0
-            if bg == 0 {
-                wholeCalc = (iobInsulinReduction + wholeCobInsulin)
+
+        context.performAndWait {
+            let glucoseObjects = ids.compactMap { self.context.object(with: $0) as? GlucoseStored }
+            guard let firstGlucose = glucoseObjects.first else {
+                return // If there's no glucose data, exit the block
+            }
+            let bg = firstGlucose.glucose // Make sure to provide a fallback value for glucose
+
+            // Calculations related to glucose data
+            var bgDelta: Int = 0
+            if glucoseObjects.count >= 3 {
+                bgDelta = Int(firstGlucose.glucose) - Int(glucoseObjects[2].glucose)
+            }
+
+            let conversion: Decimal = settingsManager.settings.units == .mmolL ? 0.0555 : 1
+            let isf = state.isf ?? 0
+            let target = suggestion?.current_target ?? 0
+            let carbratio = suggestion?.carbRatio ?? 0
+            let cob = state.cob ?? 0
+            let iob = state.iob ?? 0
+            let fattyMealFactor = settingsManager.settings.fattyMealFactor
+
+            // Complete bolus calculation logic
+            let targetDifference = Decimal(bg) - target
+            let targetDifferenceInsulin = targetDifference * conversion / isf
+            let fifteenMinInsulin = Decimal(bgDelta) * conversion / isf
+            let wholeCobInsulin = cob / carbratio
+            let iobInsulinReduction = -iob
+            let wholeCalc = targetDifferenceInsulin + iobInsulinReduction + wholeCobInsulin + fifteenMinInsulin
+
+            let result = wholeCalc * settingsManager.settings.overrideFactor
+            if settingsManager.settings.fattyMeals {
+                insulinCalculated = result * fattyMealFactor
             } else {
-                wholeCalc = (targetDifferenceInsulin + iobInsulinReduction + wholeCobInsulin)
+                insulinCalculated = result
             }
         }
-        // apply custom factor at the end of the calculations
-        let result = wholeCalc * settingsManager.settings.overrideFactor
-        // apply custom factor if fatty meal toggle in bolus calc config settings is on and the box for fatty meals is checked (in RootView)
-        if useFattyMealCorrectionFactor {
-            insulinCalculated = result * fattyMealFactor
-        } else {
-            insulinCalculated = result
-        }
-        // Not 0 or over maxBolus
-        insulinCalculated = max(min(insulinCalculated, maxBolus), 0)
-        return insulinCalculated
+
+        // Ensure the calculated insulin amount does not exceed the maximum bolus and is not below zero
+        insulinCalculated = max(min(insulinCalculated, settingsManager.pumpSettings.maxBolus), 0)
+        return insulinCalculated // Return the calculated insulin outside of the performAndWait block
     }
 
     private var glucoseFormatter: NumberFormatter {

@@ -33,4 +33,47 @@ class CoreDataStack: ObservableObject {
         viewContext.automaticallyMergesChangesFromParent = true
         return viewContext
     }()
+
+    func fetchEntities<T: NSManagedObject>(
+        ofType type: T.Type,
+        predicate: NSPredicate,
+        key: String,
+        ascending: Bool,
+        fetchLimit: Int? = nil,
+        batchSize: Int? = nil,
+        propertiesToFetch: [String]? = nil,
+        callingFunction: String = #function,
+        callingClass: String = #fileID
+    ) -> [T] {
+        let request = NSFetchRequest<T>(entityName: String(describing: type))
+        request.sortDescriptors = [NSSortDescriptor(key: key, ascending: ascending)]
+        request.predicate = predicate
+        if let limit = fetchLimit {
+            request.fetchLimit = limit
+        }
+        if let batchSize = batchSize {
+            request.fetchBatchSize = batchSize
+        }
+        if let propertiesTofetch = propertiesToFetch {
+            request.propertiesToFetch = propertiesTofetch
+            request.resultType = .dictionaryResultType
+        } else {
+            request.resultType = .managedObjectResultType
+        }
+
+        var result: [T]?
+
+        /// we need to ensure that the fetch immediately returns a value as long as the whole app does not use the async await pattern, otherwise we could perform this asynchronously with backgroundContext.perform and not block the thread
+        backgroundContext.performAndWait {
+            do {
+                debugPrint("Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.succeeded)")
+                result = try self.backgroundContext.fetch(request)
+            } catch {
+                debugPrint(
+                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.failed) \(error)"
+                )
+            }
+        }
+        return result ?? []
+    }
 }

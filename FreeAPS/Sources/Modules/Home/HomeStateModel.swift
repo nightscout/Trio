@@ -229,7 +229,7 @@ extension Home {
             }
         }
 
-        ///wait for the fetch to complete and then update the UI on the main thread
+        /// wait for the fetch to complete and then update the UI on the main thread
         private func updateGlucose() {
             Task {
                 let results = await fetchGlucoseInBackground()
@@ -239,7 +239,7 @@ extension Home {
             }
         }
 
-        ///do the heavy fetch operation in the background
+        /// do the heavy fetch operation in the background
         private func fetchGlucoseInBackground() async -> [GlucoseStored] {
             await withCheckedContinuation { continuation in
                 backgroundQueue.async {

@@ -9,8 +9,6 @@ import Swinject
 
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
-    @StateObject var dataController = CoreDataStack.shared
-
     // Dependencies Assembler
     // contain all dependencies Assemblies
     // TODO: Remove static key after update "Use Dependencies" logic
@@ -62,7 +60,7 @@ import Swinject
     var body: some Scene {
         WindowGroup {
             Main.RootView(resolver: resolver)
-                .environment(\.managedObjectContext, dataController.viewContext)
+                .environment(\.managedObjectContext, CoreDataStack.shared.viewContext)
                 .environmentObject(Icons())
                 .onOpenURL(perform: handleURL)
         }

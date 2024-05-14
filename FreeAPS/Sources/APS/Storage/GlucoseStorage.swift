@@ -164,8 +164,9 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     }
 
     func syncDate() -> Date {
-        //  TODO: - proof logic here!
-        fetchGlucose().first?.date ?? .distantPast
+        coredataContext.performAndWait {
+            fetchGlucose().first?.date ?? .distantPast
+        }
     }
 
     func lastGlucoseDate() -> Date {
@@ -199,72 +200,60 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     /// also tried this but here again you need to make everything asynchronous...
     ///  let privateContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
     /// privateContext.parent = coredataContext /// merges changes to the core data context
+    ///
     func fetchGlucose() -> [GlucoseStored] {
-        do {
-            debugPrint("Glucose Storage: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
-            return try coredataContext.fetch(GlucoseStored.fetch(
-                NSPredicate.predicateForOneDayAgo,
-                ascending: false,
-                fetchLimit: 288,
-                batchSize: 50
-            ))
-        } catch {
-            debugPrint("Glucose Storage: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose")
-            return []
-        }
+        let predicate = NSPredicate.predicateForOneDayAgo
+        return CoreDataStack.shared.fetchEntities(
+            ofType: GlucoseStored.self,
+            predicate: predicate,
+            key: "date",
+            ascending: false,
+            fetchLimit: 288,
+            batchSize: 50
+        )
     }
 
-    private func fetchLatestGlucose() -> GlucoseStored? {
-        do {
-            debugPrint("Glucose Storage: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
-            return try coredataContext.fetch(GlucoseStored.fetch(
-                NSPredicate.predicateFor20MinAgo,
-                ascending: false,
-                fetchLimit: 1
-            )).first
-        } catch {
-            debugPrint("Glucose Storage: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose")
-            return nil
-        }
+    func fetchManualGlucose() -> [GlucoseStored] {
+        let predicate = NSPredicate.manualGlucose
+        return CoreDataStack.shared.fetchEntities(
+            ofType: GlucoseStored.self,
+            predicate: predicate,
+            key: "date",
+            ascending: false,
+            fetchLimit: 288,
+            batchSize: 50
+        )
     }
 
-    private func fetchAndProcessManualGlucose() -> [BloodGlucose] {
-        do {
-            let fetchedResults = try coredataContext.fetch(GlucoseStored.fetch(
-                NSPredicate.manualGlucose,
-                ascending: false,
-                fetchLimit: 288,
-                batchSize: 50
-            ))
-            debugPrint("Glucose Storage: \(#function) \(DebuggingIdentifiers.succeeded) fetched manual glucose")
-            let glucoseArray = fetchedResults.map { result in
-                BloodGlucose(
-                    date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
-                    dateString: result.date ?? Date(),
-                    unfiltered: Decimal(result.glucose),
-                    filtered: Decimal(result.glucose),
-                    noise: nil,
-                    type: ""
-                )
-            }
-            return glucoseArray
-        } catch {
-            debugPrint("Glucose Storage: \(#function) \(DebuggingIdentifiers.failed) failed to fetch manual glucose")
-            return []
-        }
+    func fetchLatestGlucose() -> GlucoseStored? {
+        let predicate = NSPredicate.predicateFor20MinAgo
+        return CoreDataStack.shared.fetchEntities(
+            ofType: GlucoseStored.self,
+            predicate: predicate,
+            key: "date",
+            ascending: false,
+            fetchLimit: 1
+        ).first
     }
 
-    private func fetchAndProcessGlucose() -> [BloodGlucose] {
-        do {
-            let results = try coredataContext.fetch(GlucoseStored.fetch(
-                NSPredicate.predicateForOneDayAgo,
-                ascending: false,
-                fetchLimit: 288,
-                batchSize: 50
-            ))
+    private func processManualGlucose() -> [BloodGlucose] {
+        let fetchedResults = fetchManualGlucose()
+        let glucoseArray = fetchedResults.map { result in
+            BloodGlucose(
+                date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
+                dateString: result.date ?? Date(),
+                unfiltered: Decimal(result.glucose),
+                filtered: Decimal(result.glucose),
+                noise: nil,
+                type: ""
+            )
+        }
+        return glucoseArray
+    }
 
-            debugPrint("Glucose Storage: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
-
+    private func processGlucose() -> [BloodGlucose] {
+        coredataContext.performAndWait {
+            let results = self.fetchGlucose()
             let glucoseArray = results.map { result in
                 BloodGlucose(
                     date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
@@ -276,15 +265,12 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                 )
             }
             return glucoseArray
-        } catch {
-            debugPrint("Glucose Storage: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose")
-            return []
         }
     }
 
     func nightscoutGlucoseNotUploaded() -> [BloodGlucose] {
         let uploaded = storage.retrieve(OpenAPS.Nightscout.uploadedGlucose, as: [BloodGlucose].self) ?? []
-        let recentGlucose = fetchAndProcessGlucose()
+        let recentGlucose = processGlucose()
 
         return Array(Set(recentGlucose).subtracting(Set(uploaded)))
     }
@@ -299,7 +285,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
         let uploaded = (storage.retrieve(OpenAPS.Nightscout.uploadedGlucose, as: [BloodGlucose].self) ?? [])
             .filter({ $0.type == GlucoseType.manual.rawValue })
 
-        let recent = fetchAndProcessManualGlucose()
+        let recent = processManualGlucose()
         let filtered = Array(Set(recent).subtracting(Set(uploaded)))
         let manualReadings = filtered.map { item -> NigtscoutTreatment in
             NigtscoutTreatment(
@@ -318,19 +304,21 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
     var alarm: GlucoseAlarm? {
         /// glucose can not be older than 20 minutes due to the predicate in the fetch request
-        guard let glucose = fetchLatestGlucose() else { return nil }
+        coredataContext.performAndWait {
+            guard let glucose = fetchLatestGlucose() else { return nil }
 
-        let glucoseValue = glucose.glucose
+            let glucoseValue = glucose.glucose
 
-        if Decimal(glucoseValue) <= settingsManager.settings.lowGlucose {
-            return .low
+            if Decimal(glucoseValue) <= settingsManager.settings.lowGlucose {
+                return .low
+            }
+
+            if Decimal(glucoseValue) >= settingsManager.settings.highGlucose {
+                return .high
+            }
+
+            return nil
         }
-
-        if Decimal(glucoseValue) >= settingsManager.settings.highGlucose {
-            return .high
-        }
-
-        return nil
     }
 }
 

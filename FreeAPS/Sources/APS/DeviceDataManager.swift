@@ -347,14 +347,14 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
             display: pumpManager.status.pumpBatteryChargeRemaining != nil
         )
 
-        let batteryToStore = OpenAPS_Battery(context: privateContext)
-        batteryToStore.id = UUID()
-        batteryToStore.date = Date()
-        batteryToStore.percent = Int16(batteryPercent)
-        batteryToStore.voltage = nil
-        batteryToStore.status = batteryPercent > 10 ? "normal" : "low"
-        batteryToStore.display = status.pumpBatteryChargeRemaining != nil
         privateContext.perform {
+            let batteryToStore = OpenAPS_Battery(context: self.privateContext)
+            batteryToStore.id = UUID()
+            batteryToStore.date = Date()
+            batteryToStore.percent = Int16(batteryPercent)
+            batteryToStore.voltage = nil
+            batteryToStore.status = batteryPercent > 10 ? "normal" : "low"
+            batteryToStore.display = status.pumpBatteryChargeRemaining != nil
             if self.privateContext.hasChanges {
                 do {
                     try self.privateContext.save()

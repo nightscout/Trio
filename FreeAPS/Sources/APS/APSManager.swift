@@ -329,7 +329,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
     func determineBasal() -> AnyPublisher<Bool, Never> {
         debug(.apsManager, "Start determine basal")
-        let glucose = fetchGlucoseData(forPeriod: "30min", withPredicate: NSPredicate.predicateFor30MinAgo, fetchLimit: 4)
+        let glucose = fetchGlucose(predicate: NSPredicate.predicateFor30MinAgo, fetchLimit: 4)
         guard glucose.count > 2 else {
             debug(.apsManager, "Not enough glucose data")
             processError(APSError.glucoseError(message: "Not enough glucose data"))
@@ -911,23 +911,15 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     // fetch glucose for time interval
-    private func fetchGlucoseData(
-        forPeriod period: String,
-        withPredicate predicate: NSPredicate,
-        fetchLimit: Int? = nil
-    ) -> [GlucoseStored] {
-        do {
-            let fetchedData = try privateContext.fetch(GlucoseStored.fetch(predicate, ascending: false, fetchLimit: fetchLimit))
-            debugPrint(
-                "APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched glucose for \(period) period"
-            )
-            return fetchedData
-        } catch {
-            debugPrint(
-                "APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) error while fetching glucose for \(period) period"
-            )
-            return []
-        }
+    func fetchGlucose(predicate: NSPredicate, fetchLimit: Int? = nil, batchSize: Int? = nil) -> [GlucoseStored] {
+        CoreDataStack.shared.fetchEntities(
+            ofType: GlucoseStored.self,
+            predicate: predicate,
+            key: "date",
+            ascending: false,
+            fetchLimit: fetchLimit,
+            batchSize: batchSize
+        )
     }
 
     // Add to statistics.JSON for upload to NS.
@@ -1043,10 +1035,18 @@ final class BaseAPSManager: APSManager, Injectable {
                 }
 
                 // Glucose Values
-                let glucose24h = fetchGlucoseData(forPeriod: "24h", withPredicate: NSPredicate.predicateForOneDayAgo)
-                let glucoseOneWeek = fetchGlucoseData(forPeriod: "7d", withPredicate: NSPredicate.predicateForOneWeek)
-                let glucoseOneMonth = fetchGlucoseData(forPeriod: "30d", withPredicate: NSPredicate.predicateForOneMonth)
-                let glucoseThreeMonths = fetchGlucoseData(forPeriod: "90d", withPredicate: NSPredicate.predicateForThreeMonths)
+                let glucose24h = fetchGlucose(predicate: NSPredicate.predicateForOneDayAgo, fetchLimit: 288, batchSize: 50)
+                let glucoseOneWeek = fetchGlucose(predicate: NSPredicate.predicateForOneWeek, fetchLimit: 288 * 7, batchSize: 250)
+                let glucoseOneMonth = fetchGlucose(
+                    predicate: NSPredicate.predicateForOneMonth,
+                    fetchLimit: 288 * 7 * 30,
+                    batchSize: 500
+                )
+                let glucoseThreeMonths = fetchGlucose(
+                    predicate: NSPredicate.predicateForThreeMonths,
+                    fetchLimit: 288 * 7 * 30 * 3,
+                    batchSize: 1000
+                )
 
                 // First date
                 let previous = glucoseThreeMonths.last?.date ?? Date()
