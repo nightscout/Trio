@@ -4,7 +4,7 @@
 
 Trio - an automated insulin delivery system for iOS based on the OpenAPS algorithm with [adaptations for Trio](https://github.com/nightscout/trio-oref).
 
-The project started as Ivan Valkou's FreeAPS X implementation of the OpenAPS algorithm for iPhone, and was later forked and rebranded as iAPS. The project has since seen substantial contributions from many developers, leading to a range of new features and enhancements.
+The project started as Ivan Valkou's [FreeAPS X](https://github.com/ivalkou/freeaps) implementation of the [OpenAPS algorithm](https://github.com/openaps/oref0) for iPhone, and was later forked and rebranded as iAPS. The project has since seen substantial contributions from many developers, leading to a range of new features and enhancements.
 
 Following the release of iAPS version 3.0.0, due to differing views on development, open source, and peer review, there was a significant shift in the project's direction. This led to the separation from the [Artificial-Pancreas/iAPS](https://github.com/Artificial-Pancreas/iAPS) repository, and the birth of [Trio](https://github.com/nightscout/Trio.git) as a distinct entity. This transition marks a new phase for the project, symbolizing both its evolution and the dynamic nature of collaborative development.
 
@@ -66,7 +66,7 @@ Instructions in greater detail, but not Trio-specific:
 
 [Discord Trio - Server ](https://discord.gg/KepAG6RdYZ)
 
-TODO: Add link: Trio documentation (under development, not existing yet)
+[Trio documentation](https://docs.diy-trio.org/en/latest/)
 
 TODO: Add link: Trio Website (under development, not existing yet)
 
