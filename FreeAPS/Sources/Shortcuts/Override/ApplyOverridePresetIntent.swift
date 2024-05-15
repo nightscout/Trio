@@ -1,7 +1,7 @@
 import AppIntents
 import Foundation
 
-@available(iOS 16.0, *) struct ApplyOverrideIntent: AppIntent {
+@available(iOS 16.0, *) struct ApplyOverridePresetIntent: AppIntent {
     // Title of the action in the Shortcuts app
     static var title = LocalizedStringResource("Apply a temporary override", table: "ShortcutsDetail")
 
@@ -26,7 +26,7 @@ import Foundation
     ) var confirmBeforeApplying: Bool
 
     static var parameterSummary: some ParameterSummary {
-        When(\ApplyOverrideIntent.$confirmBeforeApplying, .equalTo, true, {
+        When(\ApplyOverridePresetIntent.$confirmBeforeApplying, .equalTo, true, {
             Summary("Applying \(\.$preset) override", table: "ShortcutsDetail") {
                 \.$confirmBeforeApplying
             }
@@ -45,7 +45,7 @@ import Foundation
             } else {
                 presetToApply = try await $preset.requestDisambiguation(
                     among: intentRequest.fetchAll(),
-                    dialog: IntentDialog(LocalizedStringResource("Select Temporary override", table: "ShortcutsDetail"))
+                    dialog: IntentDialog(LocalizedStringResource("Select Override Preset", table: "ShortcutsDetail"))
                 )
             }
 
@@ -54,7 +54,7 @@ import Foundation
                 try await requestConfirmation(
                     result: .result(
                         dialog: IntentDialog(LocalizedStringResource(
-                            "Confirm to apply temporary override '\(displayName)'",
+                            "Confirm to apply Override Preset '\(displayName)'",
                             table: "ShortcutsDetail"
                         ))
                     )

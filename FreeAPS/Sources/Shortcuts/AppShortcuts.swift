@@ -6,7 +6,7 @@ import Foundation
         AppShortcut(
             intent: ApplyTempPresetIntent(),
             phrases: [
-                "Activate \(.applicationName) TemTarget Preset",
+                "Activate \(.applicationName) TempTarget Preset",
                 "Activates an available \(.applicationName) temporary target preset"
             ]
         )
@@ -32,17 +32,24 @@ import Foundation
             ]
         )
         AppShortcut(
-            intent: AddCarbPresentIntent(),
+            intent: AddCarbPresetIntent(),
             phrases: [
                 "\(.applicationName) Carbs",
                 "Adds carbs to \(.applicationName)"
             ]
         )
         AppShortcut(
-            intent: ApplyOverrideIntent(),
+            intent: ApplyOverridePresetIntent(),
             phrases: [
                 "Activate \(.applicationName) Override Preset",
                 "Activates an available \(.applicationName) Override Preset"
+            ]
+        )
+        AppShortcut(
+            intent: CancelOverrideIntent(),
+            phrases: [
+                "Cancel \(.applicationName) Override",
+                "Cancels an active \(.applicationName) Override"
             ]
         )
     }

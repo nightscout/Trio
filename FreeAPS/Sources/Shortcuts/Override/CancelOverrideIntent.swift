@@ -3,10 +3,10 @@ import Foundation
 
 @available(iOS 16.0, *) struct CancelOverrideIntent: AppIntent {
     // Title of the action in the Shortcuts app
-    static var title = LocalizedStringResource("Cancel a override preset", table: "ShortcutsDetail")
+    static var title = LocalizedStringResource("Cancel an active Override", table: "ShortcutsDetail")
 
     // Description of the action in the Shortcuts app
-    static var description = IntentDescription(.init("Cancel a override preset", table: "ShortcutsDetail"))
+    static var description = IntentDescription(.init("Cancel an active Override", table: "ShortcutsDetail"))
 
     internal var intentRequest: OverridePresetsIntentRequest
 
@@ -16,9 +16,9 @@ import Foundation
 
     @MainActor func perform() async throws -> some ProvidesDialog {
         do {
-            try intentRequest.cancelTempTarget()
+            try intentRequest.cancelOverride()
             return .result(
-                dialog: IntentDialog(LocalizedStringResource("Temporary Override canceled", table: "ShortcutsDetail"))
+                dialog: IntentDialog(LocalizedStringResource("Override canceled", table: "ShortcutsDetail"))
             )
         } catch {
             throw error

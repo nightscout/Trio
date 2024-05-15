@@ -80,7 +80,7 @@ import Foundation
         return true
     }
 
-    func cancelTempTarget() throws {
+    func cancelOverride() throws {
         coredataContext.perform { [self] in
             let profiles = Override(context: self.coredataContext)
             profiles.enabled = false
