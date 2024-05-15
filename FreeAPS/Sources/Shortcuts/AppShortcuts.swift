@@ -4,17 +4,24 @@ import Foundation
 @available(iOS 16.0, *) struct AppShortcuts: AppShortcutsProvider {
     @AppShortcutsBuilder static var appShortcuts: [AppShortcut] {
         AppShortcut(
+            intent: BolusIntent(),
+            phrases: [
+                "\(.applicationName) Bolus",
+                "Enacts a \(.applicationName) Bolus"
+            ]
+        )
+        AppShortcut(
             intent: ApplyTempPresetIntent(),
             phrases: [
                 "Activate \(.applicationName) TempTarget Preset",
-                "Activates an available \(.applicationName) temporary target preset"
+                "Activates an available \(.applicationName) TempTarget Preset"
             ]
         )
         AppShortcut(
             intent: CreateAndApplyTempTarget(),
             phrases: [
                 "New \(.applicationName) TempTarget",
-                "Creates and applies a newly configured \(.applicationName) temporary target"
+                "Creates and applies a newly configured \(.applicationName) TempTarget"
             ]
         )
         AppShortcut(
