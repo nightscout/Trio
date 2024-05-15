@@ -46,8 +46,10 @@ extension AddTempTarget {
                     saveToCoreData.duration = duration as NSDecimalNumber
                     saveToCoreData.startDate = Date()
 
-                    if self.coredataContext.hasChanges {
-                        try? self.coredataContext.save()
+                    do {
+                        try CoreDataStack.shared.backgroundContext.saveContext()
+                    } catch {
+                        print(error.localizedDescription)
                     }
                 }
                 saveSettings = true
@@ -56,8 +58,10 @@ extension AddTempTarget {
                     let saveToCoreData = TempTargets(context: coredataContext)
                     saveToCoreData.active = false
                     saveToCoreData.date = Date()
-                    if self.coredataContext.hasChanges {
-                        try? coredataContext.save()
+                    do {
+                        try CoreDataStack.shared.backgroundContext.saveContext()
+                    } catch {
+                        print(error.localizedDescription)
                     }
                 }
             }
@@ -89,15 +93,19 @@ extension AddTempTarget {
                 let saveToCoreData = TempTargets(context: self.coredataContext)
                 saveToCoreData.active = false
                 saveToCoreData.date = Date()
-                if self.coredataContext.hasChanges {
-                    try? self.coredataContext.save()
+                do {
+                    try CoreDataStack.shared.backgroundContext.saveContext()
+                } catch {
+                    print(error.localizedDescription)
                 }
 
                 let setHBT = TempTargetsSlider(context: self.coredataContext)
                 setHBT.enabled = false
                 setHBT.date = Date()
-                if self.coredataContext.hasChanges {
-                    try? self.coredataContext.save()
+                do {
+                    try CoreDataStack.shared.backgroundContext.saveContext()
+                } catch {
+                    print(error.localizedDescription)
                 }
             }
         }
@@ -142,8 +150,10 @@ extension AddTempTarget {
                     saveToCoreData.hbt = hbt
                     saveToCoreData.date = Date()
                     saveToCoreData.duration = duration as NSDecimalNumber
-                    if self.coredataContext.hasChanges {
-                        try? self.coredataContext.save()
+                    do {
+                        try CoreDataStack.shared.backgroundContext.saveContext()
+                    } catch {
+                        print(error.localizedDescription)
                     }
                 }
             }
@@ -173,15 +183,19 @@ extension AddTempTarget {
                         saveToCoreData.startDate = Date()
                         saveToCoreData.duration = whichID?.duration ?? 0
 
-                        if self.coredataContext.hasChanges {
-                            try? self.coredataContext.save()
+                        do {
+                            try CoreDataStack.shared.backgroundContext.saveContext()
+                        } catch {
+                            print(error.localizedDescription)
                         }
                     } else {
                         let saveToCoreData = TempTargets(context: self.coredataContext)
                         saveToCoreData.active = false
                         saveToCoreData.date = Date()
-                        if self.coredataContext.hasChanges {
-                            try? self.coredataContext.save()
+                        do {
+                            try CoreDataStack.shared.backgroundContext.saveContext()
+                        } catch {
+                            print(error.localizedDescription)
                         }
                     }
                 }

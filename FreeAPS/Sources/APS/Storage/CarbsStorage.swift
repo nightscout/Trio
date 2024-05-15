@@ -152,17 +152,10 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             newItem.carbs = Double(truncating: NSDecimalNumber(decimal: entry.carbs))
             newItem.id = UUID()
             newItem.isFPU = false
-            if self.coredataContext.hasChanges {
-                do {
-                    try self.coredataContext.save()
-                    debugPrint(
-                        "Carbs Storage: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved carbs to core data"
-                    )
-                } catch {
-                    debugPrint(
-                        "Carbs Storage: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) error while saving carbs to core data"
-                    )
-                }
+            do {
+                try CoreDataStack.shared.backgroundContext.saveContext()
+            } catch {
+                print(error.localizedDescription)
             }
         }
     }

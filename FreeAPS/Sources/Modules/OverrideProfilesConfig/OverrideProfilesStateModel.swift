@@ -95,8 +95,10 @@ extension OverrideProfilesConfig {
                     saveOverride.smbMinutes = smbMinutes as NSDecimalNumber
                     saveOverride.uamMinutes = uamMinutes as NSDecimalNumber
                 }
-                if self.coredataContext.hasChanges {
-                    try? self.coredataContext.save()
+                do {
+                    try CoreDataStack.shared.backgroundContext.saveContext()
+                } catch {
+                    print(error.localizedDescription)
                 }
             }
         }
@@ -138,8 +140,10 @@ extension OverrideProfilesConfig {
                     saveOverride.smbMinutes = smbMinutes as NSDecimalNumber
                     saveOverride.uamMinutes = uamMinutes as NSDecimalNumber
                 }
-                if self.coredataContext.hasChanges {
-                    try? self.coredataContext.save()
+                do {
+                    try CoreDataStack.shared.backgroundContext.saveContext()
+                } catch {
+                    print(error.localizedDescription)
                 }
             }
         }
@@ -180,8 +184,10 @@ extension OverrideProfilesConfig {
                     saveOverride.smbMinutes = (profile.smbMinutes ?? 0) as NSDecimalNumber
                     saveOverride.uamMinutes = (profile.uamMinutes ?? 0) as NSDecimalNumber
                 }
-                if self.coredataContext.hasChanges {
-                    try? self.coredataContext.save()
+                do {
+                    try CoreDataStack.shared.backgroundContext.saveContext()
+                } catch {
+                    print(error.localizedDescription)
                 }
             }
         }
@@ -268,8 +274,10 @@ extension OverrideProfilesConfig {
                 let profiles = Override(context: self.coredataContext)
                 profiles.enabled = false
                 profiles.date = Date()
-                if self.coredataContext.hasChanges {
-                    try? self.coredataContext.save()
+                do {
+                    try CoreDataStack.shared.backgroundContext.saveContext()
+                } catch {
+                    print(error.localizedDescription)
                 }
             }
             smbMinutes = defaultSmbMinutes
@@ -302,8 +310,10 @@ extension OverrideProfilesConfig {
                     let saveToCoreData = TempTargets(context: coredataContext)
                     saveToCoreData.active = false
                     saveToCoreData.date = Date()
-                    if self.coredataContext.hasChanges {
-                        try? coredataContext.save()
+                    do {
+                        try CoreDataStack.shared.backgroundContext.saveContext()
+                    } catch {
+                        print(error.localizedDescription)
                     }
                 }
             }
@@ -335,15 +345,19 @@ extension OverrideProfilesConfig {
                 let saveToCoreData = TempTargets(context: self.coredataContext)
                 saveToCoreData.active = false
                 saveToCoreData.date = Date()
-                if self.coredataContext.hasChanges {
-                    try? self.coredataContext.save()
+                do {
+                    try CoreDataStack.shared.backgroundContext.saveContext()
+                } catch {
+                    print(error.localizedDescription)
                 }
 
                 let setHBT = TempTargetsSlider(context: self.coredataContext)
                 setHBT.enabled = false
                 setHBT.date = Date()
-                if self.coredataContext.hasChanges {
-                    try? self.coredataContext.save()
+                do {
+                    try CoreDataStack.shared.backgroundContext.saveContext()
+                } catch {
+                    print(error.localizedDescription)
                 }
             }
         }
@@ -388,8 +402,10 @@ extension OverrideProfilesConfig {
                     saveToCoreData.hbt = hbt
                     saveToCoreData.date = Date()
                     saveToCoreData.duration = durationTT as NSDecimalNumber
-                    if self.coredataContext.hasChanges {
-                        try? self.coredataContext.save()
+                    do {
+                        try CoreDataStack.shared.backgroundContext.saveContext()
+                    } catch {
+                        print(error.localizedDescription)
                     }
                 }
             }
@@ -419,15 +435,19 @@ extension OverrideProfilesConfig {
                         saveToCoreData.startDate = Date()
                         saveToCoreData.duration = whichID?.duration ?? 0
 
-                        if self.coredataContext.hasChanges {
-                            try? self.coredataContext.save()
+                        do {
+                            try CoreDataStack.shared.backgroundContext.saveContext()
+                        } catch {
+                            print(error.localizedDescription)
                         }
                     } else {
                         let saveToCoreData = TempTargets(context: self.coredataContext)
                         saveToCoreData.active = false
                         saveToCoreData.date = Date()
-                        if self.coredataContext.hasChanges {
-                            try? self.coredataContext.save()
+                        do {
+                            try CoreDataStack.shared.backgroundContext.saveContext()
+                        } catch {
+                            print(error.localizedDescription)
                         }
                     }
                 }

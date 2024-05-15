@@ -316,8 +316,11 @@ extension NightscoutConfig {
                 let saveToCoreData = ImportError(context: self.coredataContext)
                 saveToCoreData.date = Date()
                 saveToCoreData.error = string
-                if coredataContext.hasChanges {
-                    try? coredataContext.save()
+
+                do {
+                    try CoreDataStack.shared.backgroundContext.saveContext()
+                } catch {
+                    print(error.localizedDescription)
                 }
             }
         }

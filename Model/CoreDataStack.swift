@@ -77,3 +77,21 @@ class CoreDataStack: ObservableObject {
         return result ?? []
     }
 }
+
+extension NSManagedObjectContext {
+    func saveContext(callingFunction: String = #function, callingClass: String = #fileID) throws {
+        if hasChanges {
+            do {
+                try save()
+                debugPrint(
+                    "Saving to Core Data successful in \(callingFunction) in \(callingClass): \(DebuggingIdentifiers.succeeded)"
+                )
+            } catch let error as NSError {
+                debugPrint(
+                    "Saving to Core Data failed in \(callingFunction) in \(callingClass): \(DebuggingIdentifiers.failed) with error \(error), \(error.userInfo)"
+                )
+                throw error
+            }
+        }
+    }
+}

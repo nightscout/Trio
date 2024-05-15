@@ -172,22 +172,17 @@ extension DataTable {
             saveToHealth.append(saveToJSON)
 
             // save to core data
-            let newItem = GlucoseStored(context: coredataContext)
-            newItem.id = UUID()
-            newItem.date = Date()
-            newItem.glucose = Int16(glucoseAsInt)
-            newItem.isManual = true
+            coredataContext.perform {
+                let newItem = GlucoseStored(context: self.coredataContext)
+                newItem.id = UUID()
+                newItem.date = Date()
+                newItem.glucose = Int16(glucoseAsInt)
+                newItem.isManual = true
 
-            if coredataContext.hasChanges {
                 do {
-                    try coredataContext.save()
-                    debugPrint(
-                        "Data table state model: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) added manual glucose to core data"
-                    )
+                    try CoreDataStack.shared.viewContext.saveContext()
                 } catch {
-                    debugPrint(
-                        "Data table state model: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to add manual glucose to core data"
-                    )
+                    print(error.localizedDescription)
                 }
             }
         }

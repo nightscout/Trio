@@ -82,15 +82,10 @@ final class OpenAPS {
     }
 
     func attemptToSaveContext() {
-        if context.hasChanges {
-            do {
-                try context.save()
-                debugPrint("OpenAPS: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved determination")
-            } catch {
-                debugPrint(
-                    "OpenAPS: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) error while saving determination: \(error.localizedDescription)"
-                )
-            }
+        do {
+            try CoreDataStack.shared.backgroundContext.saveContext()
+        } catch {
+            print(error.localizedDescription)
         }
     }
 
@@ -238,14 +233,18 @@ final class OpenAPS {
 
                             saveToTDD.timestamp = determination.timestamp ?? Date()
                             saveToTDD.tdd = (determination.tdd ?? 0) as NSDecimalNumber?
-                            if self.context.hasChanges {
-                                try? self.context.save()
+                            do {
+                                try CoreDataStack.shared.backgroundContext.saveContext()
+                            } catch {
+                                print(error.localizedDescription)
                             }
 
                             let saveTarget = Target(context: self.context)
                             saveTarget.current = (determination.current_target ?? 100) as NSDecimalNumber?
-                            if self.context.hasChanges {
-                                try? self.context.save()
+                            do {
+                                try CoreDataStack.shared.backgroundContext.saveContext()
+                            } catch {
+                                print(error.localizedDescription)
                             }
                         }
                     }
@@ -347,8 +346,10 @@ final class OpenAPS {
                     saveToCoreData.duration = 0
                     saveToCoreData.indefinite = false
                     saveToCoreData.percentage = 100
-                    if self.context.hasChanges {
-                        try? self.context.save()
+                    do {
+                        try CoreDataStack.shared.backgroundContext.saveContext()
+                    } catch {
+                        print(error.localizedDescription)
                     }
                 }
             }
@@ -823,12 +824,10 @@ final class OpenAPS {
                 self.createForecast(type: type, values: values, date: currentDate, context: self.context)
             }
 
-            if self.context.hasChanges {
-                do {
-                    try self.context.save()
-                } catch {
-                    print("Failed to save forecast: \(error)")
-                }
+            do {
+                try CoreDataStack.shared.backgroundContext.saveContext()
+            } catch {
+                print(error.localizedDescription)
             }
         }
     }

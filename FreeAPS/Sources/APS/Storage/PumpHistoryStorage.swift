@@ -56,17 +56,10 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newBolusEntry.isSMB = dose.automatic ?? true
                         // TODO: - do we need duration here?
 
-                        if self.context.hasChanges {
-                            do {
-                                try self.context.save()
-                                debugPrint(
-                                    "Pump History storage: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved smbs to core data"
-                                )
-                            } catch {
-                                debugPrint(
-                                    "Pump History storage: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save smbs to core data"
-                                )
-                            }
+                        do {
+                            try CoreDataStack.shared.backgroundContext.saveContext()
+                        } catch {
+                            print(error.localizedDescription)
                         }
                     }
 
@@ -108,17 +101,10 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newTempBasal.rate = rate as NSDecimalNumber
                         newTempBasal.tempType = TempType.absolute.rawValue
 
-                        if self.context.hasChanges {
-                            do {
-                                try self.context.save()
-                                debugPrint(
-                                    "Pump History storage: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved temp basal to core data"
-                                )
-                            } catch {
-                                debugPrint(
-                                    "Pump History storage: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save temp basal to core data"
-                                )
-                            }
+                        do {
+                            try CoreDataStack.shared.backgroundContext.saveContext()
+                        } catch {
+                            print(error.localizedDescription)
                         }
                     }
 
@@ -154,17 +140,10 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newPumpEvent.timestamp = event.date
                         newPumpEvent.type = PumpEvent.pumpSuspend.rawValue
 
-                        if self.context.hasChanges {
-                            do {
-                                try self.context.save()
-                                debugPrint(
-                                    "Pump History storage: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved suspension to core data"
-                                )
-                            } catch {
-                                debugPrint(
-                                    "Pump History storage: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save suspension to core data"
-                                )
-                            }
+                        do {
+                            try CoreDataStack.shared.backgroundContext.saveContext()
+                        } catch {
+                            print(error.localizedDescription)
                         }
                     }
                     return [
@@ -188,17 +167,10 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newPumpEvent.timestamp = event.date
                         newPumpEvent.type = PumpEvent.pumpResume.rawValue
 
-                        if self.context.hasChanges {
-                            do {
-                                try self.context.save()
-                                debugPrint(
-                                    "Pump History storage: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved pump resumption to core data"
-                                )
-                            } catch {
-                                debugPrint(
-                                    "Pump History storage: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save pump resumption to core data"
-                                )
-                            }
+                        do {
+                            try CoreDataStack.shared.backgroundContext.saveContext()
+                        } catch {
+                            print(error.localizedDescription)
                         }
                     }
                     return [

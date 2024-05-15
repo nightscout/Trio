@@ -359,31 +359,24 @@ extension Bolus {
         }
 
         private func savePumpInsulin(amount _: Decimal) {
-            // create pump event
-            let newPumpEvent = PumpEventStored(context: context)
-            newPumpEvent.id = UUID().uuidString
-            newPumpEvent.timestamp = Date()
-            newPumpEvent.type = PumpEvent.bolus.rawValue
-
-            // create bolus entry and specify relationship to pump event
-            let newBolusEntry = BolusStored(context: context)
-            newBolusEntry.pumpEvent = newPumpEvent
-            newBolusEntry.amount = amount as NSDecimalNumber
-            newBolusEntry.isExternal = false
-            newBolusEntry.isSMB = false
-
             context.perform {
-                if self.context.hasChanges {
-                    do {
-                        try self.context.save()
-                        debugPrint(
-                            "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved pump insulin to core data"
-                        )
-                    } catch {
-                        debugPrint(
-                            "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save pump insulin to core data"
-                        )
-                    }
+                // create pump event
+                let newPumpEvent = PumpEventStored(context: self.context)
+                newPumpEvent.id = UUID().uuidString
+                newPumpEvent.timestamp = Date()
+                newPumpEvent.type = PumpEvent.bolus.rawValue
+
+                // create bolus entry and specify relationship to pump event
+                let newBolusEntry = BolusStored(context: self.context)
+                newBolusEntry.pumpEvent = newPumpEvent
+                newBolusEntry.amount = self.amount as NSDecimalNumber
+                newBolusEntry.isExternal = false
+                newBolusEntry.isSMB = false
+
+                do {
+                    try CoreDataStack.shared.viewContext.saveContext()
+                } catch {
+                    print(error.localizedDescription)
                 }
             }
         }
@@ -450,17 +443,10 @@ extension Bolus {
                 newBolusEntry.isExternal = true
                 newBolusEntry.isSMB = false
 
-                if self.context.hasChanges {
-                    do {
-                        try self.context.save()
-                        debugPrint(
-                            "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved carbs to core data"
-                        )
-                    } catch {
-                        debugPrint(
-                            "Bolus State: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save carbs to core data"
-                        )
-                    }
+                do {
+                    try CoreDataStack.shared.viewContext.saveContext()
+                } catch {
+                    print(error.localizedDescription)
                 }
             }
 
@@ -504,8 +490,10 @@ extension Bolus {
             if selection != nil {
                 try? context.delete(selection!)
 
-                if context.hasChanges {
-                    try? context.save()
+                do {
+                    try CoreDataStack.shared.viewContext.saveContext()
+                } catch {
+                    print(error.localizedDescription)
                 }
                 carbs = 0
                 fat = 0

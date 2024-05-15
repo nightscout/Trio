@@ -355,17 +355,11 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
             batteryToStore.voltage = nil
             batteryToStore.status = batteryPercent > 10 ? "normal" : "low"
             batteryToStore.display = status.pumpBatteryChargeRemaining != nil
-            if self.privateContext.hasChanges {
-                do {
-                    try self.privateContext.save()
-                    debugPrint(
-                        "Device Data manager: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved battery infos to core data"
-                    )
-                } catch {
-                    debugPrint(
-                        "Device Data manager: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save battery infos to core data"
-                    )
-                }
+
+            do {
+                try CoreDataStack.shared.backgroundContext.saveContext()
+            } catch {
+                print(error.localizedDescription)
             }
         }
         broadcaster.notify(PumpTimeZoneObserver.self, on: processQueue) {

@@ -720,38 +720,27 @@ final class BaseAPSManager: APSManager, Injectable {
             privateContext.perform {
                 determination.timestamp = Date()
                 determination.received = received
-                if self.privateContext.hasChanges {
-                    do {
-                        try self.privateContext.save()
-                        debugPrint(
-                            "APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) updated determination"
-                        )
-                    } catch {
-                        debugPrint(
-                            "APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to update determination"
-                        )
-                    }
-                }
 
-                // parse to determination
-//            let det = Determination(reason: enacted.reason, units: enacted.smbToDeliver, insulinReq: enacted.insulinReq, eventualBG: enacted.eventualBG, sensitivityRatio: enacted.sensitivityRatio, rate: enacted.rate, duration: enacted.duration, iob: enacted.iob, cob: enacted.cob, deliverAt: enacted.deliverAt, carbsReq: enacted.carbsRequired, temp: enacted.temp, bg: enacted.glucose, reservoir: enacted.reservoir, isf: enacted.insulinSensitivity, tdd: enacted.totalDailyDose, current_target: enacted.currentTarget, insulinForManualBolus: enacted.insulinForManualBolus, manualBolusErrorString: enacted.manualBolusErrorString, minDelta: enacted.minDelta, expectedDelta: enacted.expectedDelta, threshold: enacted.threshold, carbRatio: enacted.carbRatio)
+                do {
+                    try CoreDataStack.shared.backgroundContext.saveContext()
+                } catch {
+                    print(error.localizedDescription)
+                }
 
                 let saveLastLoop = LastLoop(context: self.privateContext)
                 saveLastLoop.iob = (determination.iob ?? 0) as NSDecimalNumber
                 saveLastLoop.cob = determination.cob as? NSDecimalNumber
                 saveLastLoop.timestamp = (determination.timestamp ?? .distantPast) as Date
-                if self.privateContext.hasChanges {
-                    try? self.privateContext.save()
+
+                do {
+                    try CoreDataStack.shared.backgroundContext.saveContext()
+                } catch {
+                    print(error.localizedDescription)
                 }
 
                 debug(.apsManager, "Determination enacted. Received: \(received)")
             }
 
-//            DispatchQueue.main.async {
-//                self.broadcaster.notify(EnactedDeterminationObserver.self, on: .main) {
-//                    $0.enactedSDeterminationDidUpdate(determinationParsed)
-//                }
-//            }
             nightscout.uploadStatus()
             statistics()
         }
@@ -1233,8 +1222,11 @@ final class BaseAPSManager: APSManager, Injectable {
 
                 let saveStatsCoreData = StatsData(context: self.privateContext)
                 saveStatsCoreData.lastrun = Date()
-                if self.privateContext.hasChanges {
-                    try? self.privateContext.save()
+
+                do {
+                    try CoreDataStack.shared.backgroundContext.saveContext()
+                } catch {
+                    print(error.localizedDescription)
                 }
             }
         }
@@ -1250,8 +1242,10 @@ final class BaseAPSManager: APSManager, Injectable {
             nLS.duration = loopStatRecord.duration ?? 0.0
             nLS.interval = loopStatRecord.interval ?? 0.0
 
-            if self.privateContext.hasChanges {
-                try? self.privateContext.save()
+            do {
+                try CoreDataStack.shared.backgroundContext.saveContext()
+            } catch {
+                print(error.localizedDescription)
             }
         }
     }
@@ -1382,25 +1376,18 @@ extension BaseAPSManager: PumpManagerStatusObserver {
             display: status.pumpBatteryChargeRemaining != nil
         )
 
-        let batteryToStore = OpenAPS_Battery(context: privateContext)
-        batteryToStore.id = UUID()
-        batteryToStore.date = Date()
-        batteryToStore.percent = Int16(percent)
-        batteryToStore.voltage = nil
-        batteryToStore.status = percent > 10 ? "normal" : "low"
-        batteryToStore.display = status.pumpBatteryChargeRemaining != nil
         privateContext.perform {
-            if self.privateContext.hasChanges {
-                do {
-                    try self.privateContext.save()
-                    debugPrint(
-                        "APS Manager: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved battery infos to core data"
-                    )
-                } catch {
-                    debugPrint(
-                        "APS Manager: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to save battery infos to core data"
-                    )
-                }
+            let batteryToStore = OpenAPS_Battery(context: self.privateContext)
+            batteryToStore.id = UUID()
+            batteryToStore.date = Date()
+            batteryToStore.percent = Int16(percent)
+            batteryToStore.voltage = nil
+            batteryToStore.status = percent > 10 ? "normal" : "low"
+            batteryToStore.display = status.pumpBatteryChargeRemaining != nil
+            do {
+                try CoreDataStack.shared.backgroundContext.saveContext()
+            } catch {
+                print(error.localizedDescription)
             }
         }
         storage.save(status.pumpStatus, as: OpenAPS.Monitor.status)

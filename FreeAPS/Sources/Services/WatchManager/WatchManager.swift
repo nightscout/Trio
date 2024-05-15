@@ -61,7 +61,6 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
             key: "deliverAt",
             ascending: false,
             fetchLimit: 1,
-            batchSize: 1,
             propertiesToFetch: ["deliverAt"]
         ).first?.deliverAt
     }

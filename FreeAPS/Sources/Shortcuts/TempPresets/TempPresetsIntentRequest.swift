@@ -56,15 +56,19 @@ import Foundation
                 saveToCoreData.startDate = Date()
                 saveToCoreData.duration = whichID?.duration ?? 0
 
-                if coredataContext.hasChanges {
-                    try? self.coredataContext.save()
+                do {
+                    try CoreDataStack.shared.backgroundContext.saveContext()
+                } catch {
+                    print(error.localizedDescription)
                 }
             } else {
                 let saveToCoreData = TempTargets(context: self.coredataContext)
                 saveToCoreData.active = false
                 saveToCoreData.date = Date()
-                if coredataContext.hasChanges {
-                    try? self.coredataContext.save()
+                do {
+                    try CoreDataStack.shared.backgroundContext.saveContext()
+                } catch {
+                    print(error.localizedDescription)
                 }
             }
         }
