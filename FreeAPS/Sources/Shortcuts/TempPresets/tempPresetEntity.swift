@@ -16,7 +16,7 @@ import Swinject
         DisplayRepresentation(title: "\(name)")
     }
 
-    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Temporary Target"
+    static var typeDisplayRepresentation: TypeDisplayRepresentation = "TempTarget"
 
     static func convert(_ tempTarget: TempTarget) -> tempPreset {
         var tp = tempPreset(

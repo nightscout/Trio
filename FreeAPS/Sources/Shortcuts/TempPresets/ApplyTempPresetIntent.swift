@@ -3,10 +3,10 @@ import Foundation
 
 @available(iOS 16.0, *) struct ApplyTempPresetIntent: AppIntent {
     // Title of the action in the Shortcuts app
-    static var title = LocalizedStringResource("Apply a temporary target", table: "ShortcutsDetail")
+    static var title = LocalizedStringResource("Activate TempTarget Preset", table: "ShortcutsDetail")
 
     // Description of the action in the Shortcuts app
-    static var description = IntentDescription(.init("Enable a temporary target", table: "ShortcutsDetail"))
+    static var description = IntentDescription(.init("Activate an existing TempTarget Preset", table: "ShortcutsDetail"))
 
     internal var intentRequest: TempPresetsIntentRequest
 
@@ -27,11 +27,11 @@ import Foundation
 
     static var parameterSummary: some ParameterSummary {
         When(\ApplyTempPresetIntent.$confirmBeforeApplying, .equalTo, true, {
-            Summary("Applying \(\.$preset)", table: "ShortcutsDetail") {
+            Summary("Activating \(\.$preset)", table: "ShortcutsDetail") {
                 \.$confirmBeforeApplying
             }
         }, otherwise: {
-            Summary("Immediately applying \(\.$preset)", table: "ShortcutsDetail") {}
+            Summary("Immediately activating \(\.$preset)", table: "ShortcutsDetail") {}
         })
     }
 
@@ -62,7 +62,7 @@ import Foundation
                 try await requestConfirmation(
                     result: .result(
                         dialog: IntentDialog(LocalizedStringResource(
-                            "Confirm to apply temporary target '\(displayName)'",
+                            "Confirm to apply TempTarget '\(displayName)'",
                             table: "ShortcutsDetail"
                         ))
                     )

@@ -3,7 +3,7 @@ import Foundation
 
 @available(iOS 16.0, *) struct ListCarbsPresetsIntent: AppIntent {
     // Title of the action in the Shortcuts app
-    static var title = LocalizedStringResource("List Carbs presets", table: "ShortcutsDetail")
+    static var title = LocalizedStringResource("List Carb Presets", table: "ShortcutsDetail")
 
     // Description of the action in the Shortcuts app
     static var description = IntentDescription(

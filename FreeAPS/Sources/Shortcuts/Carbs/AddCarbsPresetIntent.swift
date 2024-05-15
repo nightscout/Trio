@@ -5,7 +5,7 @@ import Swinject
 
 @available(iOS 16.0,*) struct AddCarbPresentIntent: AppIntent {
     // Title of the action in the Shortcuts app
-    static var title = LocalizedStringResource("Add carbs", table: "ShortcutsDetail")
+    static var title = LocalizedStringResource("Add Carbs", table: "ShortcutsDetail")
 
     // Description of the action in the Shortcuts app
     static var description = IntentDescription(.init("Allow to add carbs", table: "ShortcutsDetail"))
@@ -55,13 +55,13 @@ import Swinject
 
     static var parameterSummary: some ParameterSummary {
         When(\.$confirmBeforeApplying, .equalTo, true, {
-            Summary("Applying \(\.$carbQuantity) g at \(\.$dateAdded)", table: "ShortcutsDetail") {
+            Summary("Adding \(\.$carbQuantity) g at \(\.$dateAdded)", table: "ShortcutsDetail") {
                 \.$fatQuantity
                 \.$proteinQuantity
                 \.$confirmBeforeApplying
             }
         }, otherwise: {
-            Summary("Immediately applying \(\.$carbQuantity) g at \(\.$dateAdded)", table: "ShortcutsDetail") {
+            Summary("Immediately adding \(\.$carbQuantity) g at \(\.$dateAdded)", table: "ShortcutsDetail") {
                 \.$fatQuantity
                 \.$proteinQuantity
                 \.$confirmBeforeApplying

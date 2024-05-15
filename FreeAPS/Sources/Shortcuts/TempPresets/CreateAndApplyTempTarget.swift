@@ -3,10 +3,10 @@ import Foundation
 
 @available(iOS 16.0, *) struct CreateAndApplyTempTarget: AppIntent {
     // Title of the action in the Shortcuts app
-    static var title = LocalizedStringResource("Create and apply a temporary target", table: "ShortcutsDetail")
+    static var title = LocalizedStringResource("Create and apply TempTarget", table: "ShortcutsDetail")
 
     // Description of the action in the Shortcuts app
-    static var description: IntentDescription = .init(.init("Create and apply a temporary target", table: "ShortcutsDetail"))
+    static var description: IntentDescription = .init(.init("Create and apply a TempTarget", table: "ShortcutsDetail"))
 
     internal var intentRequest: TempPresetsIntentRequest
 
@@ -20,11 +20,11 @@ import Foundation
     ) var dateStart: Date?
 
     @Parameter(
-        title: LocalizedStringResource("Temporary Target", table: "ShortcutsDetail"),
-        description: LocalizedStringResource("Temporary target in the current unit", table: "ShortcutsDetail"),
+        title: LocalizedStringResource("Glucose Target", table: "ShortcutsDetail"),
+        description: LocalizedStringResource("Glucose target in current units", table: "ShortcutsDetail"),
         controlStyle: .field,
         requestValueDialog: IntentDialog(LocalizedStringResource(
-            "What is the temporary target in the current unit ?",
+            "What is the glucose target in current units?",
             table: "ShortcutsDetail"
         ))
     ) var target: Double
@@ -36,10 +36,10 @@ import Foundation
 
     @Parameter(
         title: LocalizedStringResource("duration", table: "ShortcutsDetail"),
-        description: LocalizedStringResource("Duration of the temporary target", table: "ShortcutsDetail"),
+        description: LocalizedStringResource("Duration of the TempTarget", table: "ShortcutsDetail"),
         controlStyle: .field,
         requestValueDialog: IntentDialog(LocalizedStringResource(
-            "What is the duration of temporary target ?",
+            "What is the duration for the TempTarget?",
             table: "ShortcutsDetail"
         ))
     ) var duration: Double
@@ -52,12 +52,12 @@ import Foundation
 
     static var parameterSummary: some ParameterSummary {
         When(\.$confirmBeforeApplying, .equalTo, true, {
-            Summary("Start \(\.$target) \(\.$unit) target for \(\.$duration) min", table: "ShortcutsDetail") {
+            Summary("Starting \(\.$target) \(\.$unit) TempTarget for \(\.$duration) min", table: "ShortcutsDetail") {
                 \.$dateStart
                 \.$confirmBeforeApplying
             }
         }, otherwise: {
-            Summary("Start \(\.$target) \(\.$unit) target for \(\.$duration) min", table: "ShortcutsDetail") {
+            Summary("Immediatly starting \(\.$target) \(\.$unit) TempTarget for \(\.$duration) min", table: "ShortcutsDetail") {
                 \.$dateStart
             }
         })
@@ -106,7 +106,7 @@ import Foundation
                     result: .result(
                         dialog: IntentDialog(
                             LocalizedStringResource(
-                                "Are you sure to create a temporay target with \(targetChoiceName) \(unitName) during \(durationChoiceName) min at \(dateChoiceName) ?",
+                                "Are you sure to create a TempTarget with \(targetChoiceName) \(unitName) for \(durationChoiceName) min at \(dateChoiceName) ?",
                                 table: "ShortcutsDetail"
                             )
                         )
@@ -122,11 +122,14 @@ import Foundation
             ) {
                 let formattedTime = decimalToTimeFormattedString(decimal: finalTempTargetApply.duration)
                 return .result(
-                    dialog: IntentDialog(LocalizedStringResource("Target applied for \(formattedTime)", table: "ShortcutsDetail"))
+                    dialog: IntentDialog(LocalizedStringResource(
+                        "TempTarget activated for \(formattedTime)",
+                        table: "ShortcutsDetail"
+                    ))
                 )
             } else {
                 return .result(
-                    dialog: IntentDialog(LocalizedStringResource("Unable to start the temp target", table: "ShortcutsDetail"))
+                    dialog: IntentDialog(LocalizedStringResource("Unable to start the TempTarget", table: "ShortcutsDetail"))
                 )
             }
 

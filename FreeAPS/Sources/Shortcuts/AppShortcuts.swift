@@ -6,36 +6,43 @@ import Foundation
         AppShortcut(
             intent: ApplyTempPresetIntent(),
             phrases: [
-                "Activate \(.applicationName) temporary target",
-                "\(.applicationName) apply a temporary target"
+                "Activate \(.applicationName) TemTarget Preset",
+                "Activates an available \(.applicationName) temporary target preset"
+            ]
+        )
+        AppShortcut(
+            intent: CreateAndApplyTempTarget(),
+            phrases: [
+                "New \(.applicationName) TempTarget",
+                "Creates and applies a newly configured \(.applicationName) temporary target"
+            ]
+        )
+        AppShortcut(
+            intent: CancelTempPresetIntent(),
+            phrases: [
+                "Cancel \(.applicationName) TempTarget",
+                "Cancels an active \(.applicationName) TempTarget"
             ]
         )
         AppShortcut(
             intent: ListStateIntent(),
             phrases: [
                 "List \(.applicationName) state",
-                "\(.applicationName) state"
+                "Lists different states of \(.applicationName)"
             ]
         )
         AppShortcut(
             intent: AddCarbPresentIntent(),
             phrases: [
-                "Add carbs in \(.applicationName)",
-                "\(.applicationName) allows to add carbs"
-            ]
-        )
-        AppShortcut(
-            intent: CreateAndApplyTempTarget(),
-            phrases: [
-                "Create and apply a temporary target in \(.applicationName)",
-                "\(.applicationName) allows to create and apply a temporary target"
+                "\(.applicationName) Carbs",
+                "Adds carbs to \(.applicationName)"
             ]
         )
         AppShortcut(
             intent: ApplyOverrideIntent(),
             phrases: [
-                "Activate \(.applicationName) temporary override",
-                "\(.applicationName) apply a temporary override"
+                "Activate \(.applicationName) Override Preset",
+                "Activates an available \(.applicationName) Override Preset"
             ]
         )
     }
