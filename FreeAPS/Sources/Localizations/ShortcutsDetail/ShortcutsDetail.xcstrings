@@ -207,7 +207,13 @@
         }
       }
     },
+    "Activate a an Override Prest" : {
+
+    },
     "Activate an existing TempTarget Preset" : {
+
+    },
+    "Activate an Override Preset" : {
 
     },
     "Activate TempTarget Preset" : {
@@ -619,6 +625,7 @@
       }
     },
     "Apply a temporary override" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1493,6 +1500,7 @@
 
     },
     "Enable a temporary override" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

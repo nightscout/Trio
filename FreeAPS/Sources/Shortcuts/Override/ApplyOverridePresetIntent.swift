@@ -3,10 +3,10 @@ import Foundation
 
 @available(iOS 16.0, *) struct ApplyOverridePresetIntent: AppIntent {
     // Title of the action in the Shortcuts app
-    static var title = LocalizedStringResource("Apply a temporary override", table: "ShortcutsDetail")
+    static var title = LocalizedStringResource("Activate an Override Preset", table: "ShortcutsDetail")
 
     // Description of the action in the Shortcuts app
-    static var description = IntentDescription(.init("Enable a temporary override", table: "ShortcutsDetail"))
+    static var description = IntentDescription(.init("Activate a an Override Prest", table: "ShortcutsDetail"))
 
     internal var intentRequest: OverridePresetsIntentRequest
 
