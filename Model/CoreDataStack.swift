@@ -56,7 +56,7 @@ class CoreDataStack: ObservableObject {
         }
         if let propertiesTofetch = propertiesToFetch {
             request.propertiesToFetch = propertiesTofetch
-            request.resultType = .dictionaryResultType
+            request.resultType = .managedObjectResultType
         } else {
             request.resultType = .managedObjectResultType
         }

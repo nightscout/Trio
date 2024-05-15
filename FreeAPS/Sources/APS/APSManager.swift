@@ -645,14 +645,13 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     private func fetchDetermination() -> OrefDetermination? {
-        do {
-            let results = try viewContext.fetch(OrefDetermination.fetch(NSPredicate.predicateFor30MinAgoForDetermination))
-            debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) saved determination")
-            return results.first
-        } catch {
-            debugPrint("APSManager: \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch determination")
-            return nil
-        }
+        CoreDataStack.shared.fetchEntities(
+            ofType: OrefDetermination.self,
+            predicate: NSPredicate.predicateFor30MinAgoForDetermination,
+            key: "deliverAt",
+            ascending: false,
+            fetchLimit: 1
+        ).first
     }
 
     private func enactDetermination() -> AnyPublisher<Void, Error> {
@@ -716,34 +715,46 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     private func reportEnacted(received: Bool) {
-        if let determination = fetchDetermination(), determination.deliverAt != nil {
-            privateContext.perform {
-                determination.timestamp = Date()
-                determination.received = received
+        guard let determination = fetchDetermination(), determination.deliverAt != nil else {
+            return
+        }
+
+        let objectID = determination.objectID
+
+        privateContext.performAndWait {
+            if let determinationUpdated = self.privateContext.object(with: objectID) as? OrefDetermination {
+                determinationUpdated.timestamp = Date()
+                determinationUpdated.received = received
 
                 do {
                     try CoreDataStack.shared.backgroundContext.saveContext()
+                    debugPrint("Update successful in reportEnacted() \(DebuggingIdentifiers.succeeded)")
                 } catch {
-                    print(error.localizedDescription)
+                    debugPrint(
+                        "Failed  \(DebuggingIdentifiers.succeeded) to save context in reportEnacted(): \(error.localizedDescription)"
+                    )
                 }
-
-                let saveLastLoop = LastLoop(context: self.privateContext)
-                saveLastLoop.iob = (determination.iob ?? 0) as NSDecimalNumber
-                saveLastLoop.cob = determination.cob as? NSDecimalNumber
-                saveLastLoop.timestamp = (determination.timestamp ?? .distantPast) as Date
-
-                do {
-                    try CoreDataStack.shared.backgroundContext.saveContext()
-                } catch {
-                    print(error.localizedDescription)
-                }
-
-                debug(.apsManager, "Determination enacted. Received: \(received)")
+            } else {
+                debugPrint("Failed to update OrefDetermination in reportEnacted()")
             }
 
-            nightscout.uploadStatus()
-            statistics()
+            // TODO: - replace this...
+            let saveLastLoop = LastLoop(context: self.privateContext)
+            saveLastLoop.iob = (determination.iob ?? 0) as NSDecimalNumber
+            saveLastLoop.cob = determination.cob as? NSDecimalNumber
+            saveLastLoop.timestamp = (determination.timestamp ?? .distantPast) as Date
+
+            do {
+                try CoreDataStack.shared.backgroundContext.saveContext()
+            } catch {
+                print(error.localizedDescription)
+            }
+
+            debug(.apsManager, "Determination enacted. Received: \(received)")
         }
+
+        nightscout.uploadStatus()
+        statistics()
     }
 
     private func roundDecimal(_ decimal: Decimal, _ digits: Double) -> Decimal {

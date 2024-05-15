@@ -55,14 +55,15 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
 
     private func fetchLastDeterminationDate() -> Date? {
         let predicate = NSPredicate.enactedDetermination
-        return CoreDataStack.shared.fetchEntities(
+        let results = CoreDataStack.shared.fetchEntities(
             ofType: OrefDetermination.self,
             predicate: predicate,
             key: "deliverAt",
             ascending: false,
             fetchLimit: 1,
             propertiesToFetch: ["deliverAt"]
-        ).first?.deliverAt
+        )
+        return results.first?.deliverAt
     }
 
     func fetchAndProcessGlucose() -> (ids: [NSManagedObjectID], glucose: String, trend: String, delta: String, date: Date) {
