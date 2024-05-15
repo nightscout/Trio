@@ -6,7 +6,7 @@ import Foundation
     static var title = LocalizedStringResource("Activate an Override Preset", table: "ShortcutsDetail")
 
     // Description of the action in the Shortcuts app
-    static var description = IntentDescription(.init("Activate a an Override Prest", table: "ShortcutsDetail"))
+    static var description = IntentDescription(.init("Activate a an Override Preset", table: "ShortcutsDetail"))
 
     internal var intentRequest: OverridePresetsIntentRequest
 

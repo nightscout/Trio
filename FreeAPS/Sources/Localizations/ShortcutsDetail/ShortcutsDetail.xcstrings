@@ -207,61 +207,55 @@
         }
       }
     },
-    "Activate a an Override Prest" : {
-
-    },
-    "Activate an existing TempTarget Preset" : {
-
-    },
-    "Activate an Override Preset" : {
-
-    },
-    "Activate TempTarget Preset" : {
-
-    },
-    "Add carbs" : {
-      "extractionState" : "stale",
+    "Activate a an Override Preset" : {
       "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kohlenhydrate hinzufügen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Añade carbohidratos"
-          }
-        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ajouter glucides"
+            "value" : "Activer un profil enregistré"
           }
-        },
-        "it" : {
+        }
+      }
+    },
+    "Activate an existing TempTarget Preset" : {
+      "localizations" : {
+        "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aggiungi carboidrati"
+            "value" : "Activer une cible temp enregistrée"
           }
-        },
-        "nl" : {
+        }
+      }
+    },
+    "Activate an Override Preset" : {
+      "localizations" : {
+        "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Koolhydraten toevoegen"
+            "value" : "Activer un profil enregistré"
           }
-        },
-        "sv" : {
+        }
+      }
+    },
+    "Activate TempTarget Preset" : {
+      "localizations" : {
+        "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lägg till kolhydrater"
+            "value" : "Activer une cible temp préenregistrée"
           }
         }
       }
     },
     "Add Carbs" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter Glucides"
+          }
+        }
+      }
     },
     "Allow to add carbs" : {
       "localizations" : {
@@ -339,47 +333,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tillåt att lista och välja en specifik tillfällig åsidosättning"
-          }
-        }
-      }
-    },
-    "Allow to list and choose a specific temporary targets" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erlaubt die Auflistung und Auswahl eines bestimmten temporären Ziels"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Permitir listar y elegir un objetivo temporal específico"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Permet de lister et de choisir une cible temporaire"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Consente di elencare e scegliere uno specifico obiettivo temporaneo"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Toestaan om een lijst te maken en een specifieke tijdelijke doelen te kiezen"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tillåt att lista och välja specifika tillfälliga mål"
           }
         }
       }
@@ -624,88 +577,6 @@
         }
       }
     },
-    "Apply a temporary override" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Eine temporäre Überschreibung anwenden"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aplicar una anulación temporal"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Appliquer une surcharge temporaire"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Applica un override temporaneo"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Een tijdelijke opheffing toepassen"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tillämpa en tillfällig åsidosättning"
-          }
-        }
-      }
-    },
-    "Apply a temporary target" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ein temporäres Ziel anwenden"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aplica un objetivo temporal"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Appliquer une cible temporaire"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Applica un obiettivo temporaneo"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Een tijdelijk doel toepassen"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tillämpa ett tillfälligt mål"
-          }
-        }
-      }
-    },
     "Applying ${carbQuantity} g at ${dateAdded}" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -828,59 +699,18 @@
         }
       }
     },
-    "Are you sure to create a temporay target with %@ %@ during %@ min at %@ ?" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sicher, dass du ein temporäres Ziel mit %1$@ %2$@ während %3$@ min um %4$@ erstellen kannst?"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sure to create a temporay target with %1$@ %2$@ during %3$@ min at %4$@ ?"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¿ Seguro que creas un objetivo temporal con %1$@ %2$@ durante %3$@ min a %4$@ ?"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Confirmez-vous la définition d'une cible temporaire de %1$@ %2$@ durant %3$@ min à partir de %4$@ ?"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sei sicuro di creare un obiettivo temporaneo con %1$@ %2$@ durante %3$@ min a %4$@?"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zeker een tijdelijk doel maken met %1$@ %2$@ tijdens %3$@ min op %4$@ ?"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Säkert att skapa ett temporärt mål med %1$@ %2$@ under %3$@ min vid %4$@ ?"
-          }
-        }
-      }
-    },
     "Are you sure to create a TempTarget with %@ %@ for %@ min at %@ ?" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Are you sure to create a TempTarget with %1$@ %2$@ for %3$@ min at %4$@ ?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Etes-vous sur de créer une cible temp avec %1$@ %2$@ pour %3$@ min à %4$@ ?"
           }
         }
       }
@@ -925,74 +755,32 @@
         }
       }
     },
-    "Cancel a override preset" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aufheben einer Überschreibungsvoreinstellung"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cancelar un preajuste de anulación"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Annuler une surcharge temporaire"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Annulla una preimpostazione di override"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Een override preset annuleren"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Avbryt en förinställd åsidosättning"
-          }
-        }
-      }
-    },
-    "Cancel a Temporary Target" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Annuler une cible temporaire"
-          }
-        }
-      }
-    },
     "Cancel active TempTarget" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annuler la cible temp"
+          }
+        }
+      }
     },
     "Cancel an active Override" : {
-
-    },
-    "Cancel an active TempTarget" : {
-
-    },
-    "Cancel Temporary Target" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Annuler une cible temporaire"
+            "value" : "Annuler un profil actif"
+          }
+        }
+      }
+    },
+    "Cancel an active TempTarget" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annuler la cible temp"
           }
         }
       }
@@ -1199,92 +987,24 @@
       }
     },
     "Confirm to apply Override Preset '%@'" : {
-
-    },
-    "Confirm to apply temporary override '%@'" : {
-      "extractionState" : "stale",
       "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bestätige die Anwendung des temporären Override '%@'"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Confirmar para aplicar la anulación temporal '%@'"
-          }
-        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirmez-vous d'appliquer une surcharge temporaire %@ ?"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Conferma l'applicazione dell'override temporaneo \"%@\"."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bevestigen om tijdelijke opheffing '%@' toe te passen"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bekräfta för att tillämpa tillfällig åsidosättning \"%@"
-          }
-        }
-      }
-    },
-    "Confirm to apply temporary target '%@'" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bestätige die Anwendung des temporären Ziels '%@'"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Confirmar para aplicar el objetivo temporal '%@'"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Confirmez-vous d'appliquer la cible temporaire '%@' ?"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Conferma l'applicazione dell'obiettivo temporaneo '%@'"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bevestigen om tijdelijk doel '%@' toe te passen"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bekräfta att tillämpa tillfälligt mål '%@'"
+            "value" : "Confirmer pour appliquer le profil '%@'"
           }
         }
       }
     },
     "Confirm to apply TempTarget '%@'" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirmer pour appliquer une cible temp '%@'"
+          }
+        }
+      }
     },
     "Create and apply a temporary target" : {
       "extractionState" : "manual",
@@ -1328,10 +1048,24 @@
       }
     },
     "Create and apply a TempTarget" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créer et appliquer une cible temp"
+          }
+        }
+      }
     },
     "Create and apply TempTarget" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créer et appliquer une cible temp"
+          }
+        }
+      }
     },
     "Date" : {
       "extractionState" : "manual",
@@ -1497,86 +1231,11 @@
       }
     },
     "Duration of the TempTarget" : {
-
-    },
-    "Enable a temporary override" : {
-      "extractionState" : "stale",
       "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aktiviere eine temporäre Überschreibung"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activar una anulación temporal"
-          }
-        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Permettre une surcharge temporaire"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abilita un'esclusione temporanea"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Een tijdelijke opheffing inschakelen"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aktivera en tillfällig åsidosättning"
-          }
-        }
-      }
-    },
-    "Enable a temporary target" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aktiviere ein temporäres Ziel"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Habilitar un objetivo temporal"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Permettre une cible temporaire"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abilita un obiettivo temporaneo"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Een tijdelijk doel inschakelen"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aktivera ett tillfälligt mål"
+            "value" : "Durée de la cible temp"
           }
         }
       }
@@ -1662,10 +1321,24 @@
       }
     },
     "Glucose Target" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cible glycémique"
+          }
+        }
+      }
     },
     "Glucose target in current units" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cible glycémique dans l'unité"
+          }
+        }
+      }
     },
     "Glucose unit" : {
       "extractionState" : "manual",
@@ -1995,45 +1668,11 @@
       }
     },
     "List Carb Presets" : {
-
-    },
-    "List Carbs presets" : {
-      "extractionState" : "stale",
       "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Liste Kohlenhydrate Voreinstellungen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lista de preajustes de Carbohidratos"
-          }
-        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lister les préréglages des repas"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elenco dei carboidrati preimpostati"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lijst koolhydraten voorinstellingen"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lista kolhydrater förinställningar"
+            "value" : "Lister les repas enregistrés"
           }
         }
       }
@@ -2118,49 +1757,15 @@
         }
       }
     },
-    "List Temporary Targets" : {
-      "extractionState" : "stale",
+    "List TempTarget Presets" : {
       "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Liste temporärer Ziele"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lista Objetivos Temporales"
-          }
-        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lister les cibles temporaires"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elenco degli obiettivi temporanei"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lijst tijdelijke doelen"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lista över temporära mål"
+            "value" : "Lister les cibles temp enregistrées"
           }
         }
       }
-    },
-    "List TempTarget Presets" : {
-
     },
     "Method to limit the bolus amount" : {
       "extractionState" : "manual",
@@ -2498,7 +2103,14 @@
       }
     },
     "Override canceled" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annulation du profil"
+          }
+        }
+      }
     },
     "Override choice" : {
       "localizations" : {
@@ -2901,45 +2513,11 @@
       }
     },
     "Select Override Preset" : {
-
-    },
-    "Select Temporary override" : {
-      "extractionState" : "stale",
       "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wählen Sie Temporäre Überschreibung"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Selecciona Anulación temporal"
-          }
-        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sélectionner une surcharge temporaire"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seleziona Sovrascrittura temporanea"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Selecteer Tijdelijke opheffing"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Välj Temporär åsidosättning"
+            "value" : "Sélectionner un profil enregistré"
           }
         }
       }
@@ -2985,13 +2563,34 @@
       }
     },
     "Shortcuts" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Raccourcis"
+          }
+        }
+      }
     },
     "Shortcuts config" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Config Raccourcis"
+          }
+        }
+      }
     },
     "Show list and choose an existing TempTarget Preset" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lister et choisir une cible temp enregistrée"
+          }
+        }
+      }
     },
     "Start ${target} ${unit} target for ${duration} min" : {
       "extractionState" : "manual",
@@ -3241,47 +2840,6 @@
         }
       }
     },
-    "Target applied for %@" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Angewandtes Ziel für %@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Objetivo aplicado para %@"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cible appliquée durant %@"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Obiettivo applicato per %@"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Doel toegepast voor %@"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tillämpat mål för %@"
-          }
-        }
-      }
-    },
     "Target choice" : {
       "localizations" : {
         "de" : {
@@ -3362,47 +2920,6 @@
         }
       }
     },
-    "Temporary Override canceled" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Temporäre Überschreibung abgebrochen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anulación temporal cancelada"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Surcharge temporaire annulée"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Override temporaneo annullato"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tijdelijke opheffing geannuleerd"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Temporär åsidosättning avbruten"
-          }
-        }
-      }
-    },
     "Temporary Target" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3440,47 +2957,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tillfälligt mål"
-          }
-        }
-      }
-    },
-    "Temporary Target canceled" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vorläufiges Ziel gestrichen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Objetivo temporal cancelado"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cible temporaire annulée"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Obiettivo temporaneo annullato"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tijdelijk doel geannuleerd"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tillfälligt mål annullerat"
           }
         }
       }
@@ -3527,10 +3003,24 @@
       }
     },
     "TempTarget activated for %@" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cible temp activée pour '%@'"
+          }
+        }
+      }
     },
     "TempTarget canceled" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cible temp annulée"
+          }
+        }
+      }
     },
     "The application lets you create automations using shortcuts. Go to the Shortcuts application to create new automations." : {
       "extractionState" : "manual",
@@ -3653,49 +3143,15 @@
         }
       }
     },
-    "Unable to start the temp target" : {
-      "extractionState" : "stale",
+    "Unable to start the TempTarget" : {
       "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Das temporäre Ziel kann nicht gestartet werden"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se puede iniciar el objetivo temporal"
-          }
-        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Impossible de lancer la cible temporaire"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossibile avviare l'obiettivo temporaneo"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kan temp-doel niet starten"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Det går inte att starta tempmålet"
+            "value" : "Impossible de lancer la cible temp"
           }
         }
       }
-    },
-    "Unable to start the TempTarget" : {
-
     },
     "Unit" : {
       "extractionState" : "manual",
@@ -3739,7 +3195,14 @@
       }
     },
     "What is the duration for the TempTarget?" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quelle est la durée de la cible temp"
+          }
+        }
+      }
     },
     "What is the duration of temporary target ?" : {
       "extractionState" : "manual",
@@ -3783,7 +3246,14 @@
       }
     },
     "What is the glucose target in current units?" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quelle est la cible glycémique ?"
+          }
+        }
+      }
     },
     "What is the quantity of the carb to add ?" : {
       "localizations" : {
