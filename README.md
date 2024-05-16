@@ -4,7 +4,7 @@
 
 Trio - an automated insulin delivery system for iOS based on the OpenAPS algorithm with [adaptations for Trio](https://github.com/nightscout/trio-oref).
 
-The project started as Ivan Valkou's FreeAPS X implementation of the OpenAPS algorithm for iPhone, and was later forked and rebranded as iAPS. The project has since seen substantial contributions from many developers, leading to a range of new features and enhancements.
+The project started as Ivan Valkou's [FreeAPS X](https://github.com/ivalkou/freeaps) implementation of the [OpenAPS algorithm](https://github.com/openaps/oref0) for iPhone, and was later forked and rebranded as iAPS. The project has since seen substantial contributions from many developers, leading to a range of new features and enhancements.
 
 Following the release of iAPS version 3.0.0, due to differing views on development, open source, and peer review, there was a significant shift in the project's direction. This led to the separation from the [Artificial-Pancreas/iAPS](https://github.com/Artificial-Pancreas/iAPS) repository, and the birth of [Trio](https://github.com/nightscout/Trio.git) as a distinct entity. This transition marks a new phase for the project, symbolizing both its evolution and the dynamic nature of collaborative development.
 
@@ -12,20 +12,33 @@ Trio continues to leverage a variety of frameworks from the DIY looping communit
 
 ## To download this repo:
 
-There is also a script available, but if you prefer the manual process:
+You can either use the Build Script or you can run each command manually.
 
-In Terminal:
+### Build Script:
 
-Configure a folder where you want your download to reside:
+If you copy, paste, and run the following script in Terminal, it will guide you through downloading and installing Trio. More information about the script can be found [here](https://docs.diy-trio.org/en/latest/operate/build.html#build-trio-with-script).
 
 ```
-cd <your desired folder name>
-git clone --branch=<<branch>> --recurse-submodules https://github.com/nightscout/Trio.git
-cd Trio
+/bin/bash -c "$(curl -fsSL \
+  https://raw.githubusercontent.com/loopandlearn/lnl-scripts/main/TrioBuildSelectScript.sh)"
 ```
 
-modify Config.xconfig to replace ##TEAM_ID## with your Apple Developer ID.
+### Command Line Interface (CLI):
 
+In Terminal, `cd` to the folder where you want your download to reside, change `<branch>` in the command below to the branch you want to download (ie. `dev`), and press `return`.
+
+```
+git clone --branch=<branch> --recurse-submodules https://github.com/nightscout/Trio.git && cd Trio
+```
+
+Create a ConfigOverride.xcconfig file that contains your Apple Developer ID (something like `123A4BCDE5`). This will automate signing of the build targets in Xcode:
+
+Copy the command below, and replace `xxxxxxxxxx` by your Apple Developer ID before running the command in Terminal.
+```
+echo 'DEVELOPER_TEAM = xxxxxxxxxx' > ConfigOverride.xcconfig
+```
+
+Then launch Xcode and build the Trio app:
 ```
 xed .
 ```
@@ -52,7 +65,7 @@ Instructions in greater detail, but not Trio-specific:
 
 [Discord Trio - Server ](https://discord.gg/KepAG6RdYZ)
 
-TODO: Add link: Trio documentation (under development, not existing yet)
+[Trio documentation](https://docs.diy-trio.org/en/latest/)
 
 TODO: Add link: Trio Website (under development, not existing yet)
 
