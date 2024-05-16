@@ -24,11 +24,9 @@ struct PumpView: View {
         VStack(alignment: .leading, spacing: 12) {
             if reservoir == nil && battery == nil {
                 VStack(alignment: .center, spacing: 12) {
-                    HStack
-                        {
-                            // no cgm defined so display a generic CGM
-                            Image(systemName: "keyboard.onehanded.left").font(.body).imageScale(.large)
-                        }
+                    HStack { // no cgm defined so display a generic CGM
+                        Image(systemName: "keyboard.onehanded.left").font(.body).imageScale(.large)
+                    }
                     HStack {
                         Text("Add pump").font(.caption).bold()
                     }
