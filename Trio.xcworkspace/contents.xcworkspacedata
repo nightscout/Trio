@@ -29,6 +29,9 @@
       location = "group:OmniKit/OmniKit.xcodeproj">
    </FileRef>
    <FileRef
+      location = "group:DanaKit/DanaKit.xcodeproj">
+   </FileRef>
+   <FileRef
       location = "group:G7SensorKit/G7SensorKit.xcodeproj">
    </FileRef>
    <FileRef
