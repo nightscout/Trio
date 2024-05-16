@@ -24,6 +24,9 @@ extension Home {
         @Published var basalProfile: [BasalProfileEntry] = []
         @Published var tempTargets: [TempTarget] = []
         @Published var glucoseFromPersistence: [GlucoseStored] = []
+        @Published var determinationsFromPersistence: [NSManagedObjectID] = []
+        @Published var carbsFromPersistence: [CarbEntryStored] = []
+        @Published var fpusFromPersistence: [CarbEntryStored] = []
         @Published var timerDate = Date()
         @Published var closedLoop = false
         @Published var pumpSuspended = false
@@ -70,7 +73,6 @@ extension Home {
         @Published var waitForSuggestion: Bool = false
 
         let context = CoreDataStack.shared.backgroundContext
-        private let backgroundQueue = DispatchQueue(label: "home_state.queue", qos: .background, attributes: .concurrent)
 
         override func subscribe() {
             setupBasals()
@@ -83,7 +85,13 @@ extension Home {
             setupAnnouncements()
             setupCurrentPumpTimezone()
             setupNotification()
-            updateGlucose()
+
+            Task {
+                await updateGlucose()
+                await updateDetermination()
+                await updateCarbs()
+                await updateFpus()
+            }
 
             uploadStats = settingsManager.settings.uploadStats
             units = settingsManager.settings.units
@@ -212,38 +220,112 @@ extension Home {
         @objc private func contextDidSave(_ notification: Notification) {
             guard let userInfo = notification.userInfo else { return }
 
-            backgroundQueue.async { [weak self] in
-                self?.processUpdates(userInfo: userInfo)
+            Task { [weak self] in
+                await self?.processUpdates(userInfo: userInfo)
             }
         }
 
-        private func processUpdates(userInfo: [AnyHashable: Any]) {
+        private func processUpdates(userInfo: [AnyHashable: Any]) async {
             var objects = Set((userInfo[NSInsertedObjectsKey] as? Set<NSManagedObject>) ?? [])
             objects.formUnion((userInfo[NSUpdatedObjectsKey] as? Set<NSManagedObject>) ?? [])
             objects.formUnion((userInfo[NSDeletedObjectsKey] as? Set<NSManagedObject>) ?? [])
 
             let glucoseUpdates = objects.filter { $0 is GlucoseStored }
+            let determinationUpdates = objects.filter { $0 is OrefDetermination }
+            let carbUpdates = objects.filter { $0 is CarbEntryStored }
 
             if glucoseUpdates.isNotEmpty {
-                updateGlucose()
+                await updateGlucose()
+            }
+            if determinationUpdates.isNotEmpty {
+                await updateDetermination()
+            }
+            if carbUpdates.isNotEmpty {
+                await updateCarbs()
+                await updateFpus()
             }
         }
 
         /// wait for the fetch to complete and then update the UI on the main thread
-        private func updateGlucose() {
-            Task {
-                let results = await fetchGlucoseInBackground()
-                await MainActor.run {
-                    glucoseFromPersistence = results
-                }
+        private func updateGlucose() async {
+            let results = await fetchGlucoseInBackground()
+            await MainActor.run {
+                glucoseFromPersistence = results
+            }
+        }
+
+        private func updateDetermination() async {
+            let results = await fetchDeterminationInBackground()
+            let ids = results.map(\.objectID)
+            await MainActor.run {
+                determinationsFromPersistence = ids
+            }
+        }
+
+        private func updateCarbs() async {
+            let results = await fetchCarbsInBackground()
+            await MainActor.run {
+                carbsFromPersistence = results
+            }
+        }
+
+        private func updateFpus() async {
+            let results = await fetchFpusInBackground()
+            await MainActor.run {
+                fpusFromPersistence = results
             }
         }
 
         /// do the heavy fetch operation in the background
         private func fetchGlucoseInBackground() async -> [GlucoseStored] {
             await withCheckedContinuation { continuation in
-                backgroundQueue.async {
+                context.perform {
                     let results = self.provider.fetchGlucose()
+                    continuation.resume(returning: results)
+                }
+            }
+        }
+
+        private func fetchDeterminationInBackground() async -> [OrefDetermination] {
+            await withCheckedContinuation { continuation in
+                context.perform {
+                    let results = CoreDataStack.shared.fetchEntities(
+                        ofType: OrefDetermination.self,
+                        predicate: NSPredicate.enactedDetermination,
+                        key: "deliverAt",
+                        ascending: false,
+                        fetchLimit: 1
+                    )
+                    continuation.resume(returning: results)
+                }
+            }
+        }
+
+        private func fetchCarbsInBackground() async -> [CarbEntryStored] {
+            await withCheckedContinuation { continuation in
+                context.perform {
+                    let results = CoreDataStack.shared.fetchEntities(
+                        ofType: CarbEntryStored.self,
+                        predicate: NSPredicate.carbsForChart,
+                        key: "date",
+                        ascending: false,
+                        batchSize: 20
+                    )
+                    continuation.resume(returning: results)
+                }
+            }
+        }
+
+        private func fetchFpusInBackground() async -> [CarbEntryStored] {
+            await withCheckedContinuation { continuation in
+                context.perform {
+                    let results = CoreDataStack.shared.fetchEntities(
+                        ofType: CarbEntryStored.self,
+                        predicate: NSPredicate.fpusForChart,
+                        key: "date",
+                        ascending: false,
+                        batchSize: 20
+                    )
                     continuation.resume(returning: results)
                 }
             }

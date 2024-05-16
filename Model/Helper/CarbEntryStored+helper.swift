@@ -9,7 +9,7 @@ extension NSPredicate {
 
     static var carbsForChart: NSPredicate {
         let date = Date.oneDayAgo
-        return NSPredicate(format: "carbs > 0 AND isFPU == false AND date >= %@", date as NSDate)
+        return NSPredicate(format: "isFPU == false AND date >= %@", date as NSDate)
     }
 }
 
