@@ -262,7 +262,7 @@ jobs:
       # Upload Build artifacts
       - name: Upload build log, IPA and Symbol artifacts
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
           path: |
