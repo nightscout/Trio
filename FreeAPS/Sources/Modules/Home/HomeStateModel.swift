@@ -349,7 +349,7 @@ extension Home {
                 profiles.date = Date()
 
                 do {
-                    try CoreDataStack.shared.backgroundContext.saveContext()
+                    try CoreDataStack.shared.saveContext()
                 } catch {
                     print(error.localizedDescription)
                 }

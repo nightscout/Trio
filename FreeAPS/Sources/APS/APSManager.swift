@@ -727,7 +727,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 determinationUpdated.received = received
 
                 do {
-                    try CoreDataStack.shared.backgroundContext.saveContext()
+                    try CoreDataStack.shared.saveContext()
                     debugPrint("Update successful in reportEnacted() \(DebuggingIdentifiers.succeeded)")
                 } catch {
                     debugPrint(
@@ -745,7 +745,7 @@ final class BaseAPSManager: APSManager, Injectable {
             saveLastLoop.timestamp = (determination.timestamp ?? .distantPast) as Date
 
             do {
-                try CoreDataStack.shared.backgroundContext.saveContext()
+                try CoreDataStack.shared.saveContext()
             } catch {
                 print(error.localizedDescription)
             }
@@ -1235,7 +1235,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 saveStatsCoreData.lastrun = Date()
 
                 do {
-                    try CoreDataStack.shared.backgroundContext.saveContext()
+                    try CoreDataStack.shared.saveContext()
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -1254,7 +1254,7 @@ final class BaseAPSManager: APSManager, Injectable {
             nLS.interval = loopStatRecord.interval ?? 0.0
 
             do {
-                try CoreDataStack.shared.backgroundContext.saveContext()
+                try CoreDataStack.shared.saveContext()
             } catch {
                 print(error.localizedDescription)
             }
@@ -1396,7 +1396,7 @@ extension BaseAPSManager: PumpManagerStatusObserver {
             batteryToStore.status = percent > 10 ? "normal" : "low"
             batteryToStore.display = status.pumpBatteryChargeRemaining != nil
             do {
-                try CoreDataStack.shared.backgroundContext.saveContext()
+                try CoreDataStack.shared.saveContext()
             } catch {
                 print(error.localizedDescription)
             }

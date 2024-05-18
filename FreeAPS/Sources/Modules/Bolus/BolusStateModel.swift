@@ -98,12 +98,15 @@ extension Bolus {
         let now = Date.now
 
         let context = CoreDataStack.shared.viewContext
+        let backgroundContext = CoreDataStack.shared.backgroundContext
 
         typealias PumpEvent = PumpEventStored.EventType
 
         override func subscribe() {
-            fetchGlucose()
-            fetchDetermination()
+            Task {
+                await updateGlucose()
+                await updateDetermination()
+            }
             setupInsulinRequired()
             broadcaster.register(DeterminationObserver.self, observer: self)
             broadcaster.register(BolusFailureObserver.self, observer: self)
@@ -178,40 +181,53 @@ extension Bolus {
 
         // MARK: - Glucose
 
-        private func fetchGlucose() {
-            let fetchRequest: NSFetchRequest<GlucoseStored> = GlucoseStored.fetchRequest()
-            fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \GlucoseStored.date, ascending: false)]
-            fetchRequest.predicate = NSPredicate.predicateFor30MinAgo
-            fetchRequest.fetchLimit = 3
-            do {
-                glucoseFromPersistence = try context.fetch(fetchRequest)
+        private func fetchGlucose() async -> [GlucoseStored] {
+            await withCheckedContinuation { continuation in
+                backgroundContext.perform {
+                    let results = CoreDataStack.shared.fetchEntities(
+                        ofType: GlucoseStored.self,
+                        predicate: NSPredicate.predicateFor30MinAgo,
+                        key: "date",
+                        ascending: false,
+                        fetchLimit: 3
+                    )
+                    continuation.resume(returning: results)
+                }
+            }
+        }
 
+        private func updateGlucose() async {
+            let results = await fetchGlucose()
+            await MainActor.run {
+                glucoseFromPersistence = results
                 let lastGlucose = glucoseFromPersistence.first?.glucose ?? 0
                 let thirdLastGlucose = glucoseFromPersistence.last?.glucose ?? 0
                 let delta = Decimal(lastGlucose) - Decimal(thirdLastGlucose)
 
                 currentBG = Decimal(lastGlucose)
                 deltaBG = delta
-                debugPrint(
-                    "Bolus State: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched glucose"
-                )
-            } catch {
-                debugPrint(
-                    "Bolus State: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch glucose"
-                )
             }
         }
 
-        private func fetchDetermination() {
-            do {
-                determination = try context.fetch(OrefDetermination.fetch(NSPredicate.enactedDetermination))
-                debugPrint(
-                    "Bolus State: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched determinations"
-                )
-            } catch {
-                debugPrint(
-                    "Bolus State: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch determinations"
-                )
+        private func fetchDetermination() async -> [OrefDetermination] {
+            await withCheckedContinuation { continuation in
+                backgroundContext.perform {
+                    let results = CoreDataStack.shared.fetchEntities(
+                        ofType: OrefDetermination.self,
+                        predicate: NSPredicate.enactedDetermination,
+                        key: "deliverAt",
+                        ascending: false,
+                        fetchLimit: 1
+                    )
+                    continuation.resume(returning: results)
+                }
+            }
+        }
+
+        private func updateDetermination() async {
+            let results = await fetchDetermination()
+            await MainActor.run {
+                determination = results
             }
         }
 
@@ -374,7 +390,7 @@ extension Bolus {
                 newBolusEntry.isSMB = false
 
                 do {
-                    try CoreDataStack.shared.viewContext.saveContext()
+                    try CoreDataStack.shared.saveContext(useViewContext: true)
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -444,7 +460,7 @@ extension Bolus {
                 newBolusEntry.isSMB = false
 
                 do {
-                    try CoreDataStack.shared.viewContext.saveContext()
+                    try CoreDataStack.shared.saveContext(useViewContext: true)
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -491,7 +507,7 @@ extension Bolus {
                 try? context.delete(selection!)
 
                 do {
-                    try CoreDataStack.shared.viewContext.saveContext()
+                    try CoreDataStack.shared.saveContext()
                 } catch {
                     print(error.localizedDescription)
                 }

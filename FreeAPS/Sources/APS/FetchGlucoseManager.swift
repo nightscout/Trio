@@ -99,33 +99,27 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         .store(in: &lifetime)
     }
 
-    private func fetchAndProcessGlucose() -> [BloodGlucose] {
-        do {
-            let results = try context.fetch(GlucoseStored.fetch(
-                NSPredicate.predicateFor30MinAgo,
-                ascending: false,
-                fetchLimit: 6
-            ))
-            debugPrint("Fetch Glucose Manager: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
+    private func fetchGlucose() -> [GlucoseStored] {
+        CoreDataStack.shared.fetchEntities(
+            ofType: GlucoseStored.self,
+            predicate: NSPredicate.predicateFor30MinAgo,
+            key: "date",
+            ascending: false,
+            fetchLimit: 6
+        )
+    }
 
-            var glucoseArray = [BloodGlucose]()
-
-            for result in results {
-                // TODO: - when parsing the CD object to JSON we currently don't have a direction
-                let glucose = BloodGlucose(
-                    date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
-                    dateString: result.date ?? Date(),
-                    unfiltered: Decimal(result.glucose),
-                    filtered: Decimal(result.glucose),
-                    noise: nil,
-                    type: ""
-                )
-                glucoseArray.append(glucose)
-            }
-            return glucoseArray
-        } catch {
-            debugPrint("Fetch Glucose Manager: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose")
-            return []
+    private func processGlucose() -> [BloodGlucose] {
+        let results = fetchGlucose()
+        return results.map { result in
+            BloodGlucose(
+                date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
+                dateString: result.date ?? Date(),
+                unfiltered: Decimal(result.glucose),
+                filtered: Decimal(result.glucose),
+                noise: nil,
+                type: ""
+            )
         }
     }
 
@@ -166,7 +160,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         // filter the data if it is the case
         if settingsManager.settings.smoothGlucose {
             // limited to 30 min of old glucose data
-            let oldGlucoseValues = fetchAndProcessGlucose()
+            let oldGlucoseValues = processGlucose()
 
             var smoothedValues = oldGlucoseValues + filtered
             // smooth with 3 repeats

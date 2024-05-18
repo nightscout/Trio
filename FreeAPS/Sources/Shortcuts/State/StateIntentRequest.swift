@@ -58,8 +58,13 @@ enum StateIntentError: Error {
 
     func getLastGlucose() throws -> (dateGlucose: Date, glucose: String, trend: String, delta: String) {
         do {
-            let results = try moc.fetch(GlucoseStored.fetch(NSPredicate.predicateFor30MinAgo, ascending: false, fetchLimit: 2))
-            debugPrint("StateIntentRequest: \(#function) \(DebuggingIdentifiers.succeeded) fetched latest glucose")
+            let results = CoreDataStack.shared.fetchEntities(
+                ofType: GlucoseStored.self,
+                predicate: NSPredicate.predicateFor30MinAgo,
+                key: "date",
+                ascending: false,
+                fetchLimit: 2
+            )
 
             guard let lastValue = results.first else { throw StateIntentError.NoBG }
 
@@ -93,17 +98,17 @@ enum StateIntentError: Error {
     }
 
     func getIobAndCob() throws -> (iob: Double, cob: Double) {
-        do {
-            let results = try moc.fetch(OrefDetermination.fetch(NSPredicate.enactedDetermination))
-            let iobAsDouble = Double(truncating: (results.first?.iob ?? 0.0) as NSNumber)
-            let cobAsDouble = Double(truncating: (results.first?.cob ?? 0) as NSNumber)
-            debugPrint("StateIntentRequest: \(#function) \(DebuggingIdentifiers.succeeded) fetched latest cob and iob")
+        let results = CoreDataStack.shared.fetchEntities(
+            ofType: OrefDetermination.self,
+            predicate: NSPredicate.enactedDetermination,
+            key: "deliverAt",
+            ascending: false,
+            fetchLimit: 1
+        )
+        let iobAsDouble = Double(truncating: (results.first?.iob ?? 0.0) as NSNumber)
+        let cobAsDouble = Double(truncating: (results.first?.cob ?? 0) as NSNumber)
 
-            return (iobAsDouble, cobAsDouble)
-        } catch {
-            debugPrint("StateIntentRequest: \(#function) \(DebuggingIdentifiers.failed) failed to fetch latest cob and iob")
-            return (0.0, 0.0)
-        }
+        return (iobAsDouble, cobAsDouble)
     }
 
     private var glucoseFormatter: NumberFormatter {

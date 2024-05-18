@@ -153,7 +153,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             newItem.id = UUID()
             newItem.isFPU = false
             do {
-                try CoreDataStack.shared.backgroundContext.saveContext()
+                try CoreDataStack.shared.saveContext()
             } catch {
                 print(error.localizedDescription)
             }

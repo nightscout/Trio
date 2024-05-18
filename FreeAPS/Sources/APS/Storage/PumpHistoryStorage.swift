@@ -57,7 +57,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         // TODO: - do we need duration here?
 
                         do {
-                            try CoreDataStack.shared.backgroundContext.saveContext()
+                            try CoreDataStack.shared.saveContext()
                         } catch {
                             print(error.localizedDescription)
                         }
@@ -102,7 +102,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newTempBasal.tempType = TempType.absolute.rawValue
 
                         do {
-                            try CoreDataStack.shared.backgroundContext.saveContext()
+                            try CoreDataStack.shared.saveContext()
                         } catch {
                             print(error.localizedDescription)
                         }
@@ -141,7 +141,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newPumpEvent.type = PumpEvent.pumpSuspend.rawValue
 
                         do {
-                            try CoreDataStack.shared.backgroundContext.saveContext()
+                            try CoreDataStack.shared.saveContext()
                         } catch {
                             print(error.localizedDescription)
                         }
@@ -168,7 +168,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newPumpEvent.type = PumpEvent.pumpResume.rawValue
 
                         do {
-                            try CoreDataStack.shared.backgroundContext.saveContext()
+                            try CoreDataStack.shared.saveContext()
                         } catch {
                             print(error.localizedDescription)
                         }

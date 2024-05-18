@@ -229,25 +229,18 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         return formatter
     }
 
-    private func fetchAndProcessGlucose() -> [GlucoseStored]? {
-        var result: [GlucoseStored]?
-        coredataContext.perform {
-            do {
-                debugPrint("Calendar Manager: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
-                result = try self.coredataContext.fetch(GlucoseStored.fetch(
-                    NSPredicate.predicateFor20MinAgo,
-                    ascending: false,
-                    fetchLimit: 3
-                ))
-            } catch {
-                debugPrint("Calendar Manager: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose")
-            }
-        }
-        return result
+    private func fetchGlucose() -> [GlucoseStored]? {
+        CoreDataStack.shared.fetchEntities(
+            ofType: GlucoseStored.self,
+            predicate: NSPredicate.predicateFor30MinAgo,
+            key: "date",
+            ascending: false,
+            fetchLimit: 4
+        )
     }
 
     func setupGlucose() {
-        guard let glucose = fetchAndProcessGlucose(), glucose.count >= 2 else {
+        guard let glucose = fetchGlucose(), glucose.count >= 2 else {
             debugPrint("Not enough glucose data available")
             return
         }

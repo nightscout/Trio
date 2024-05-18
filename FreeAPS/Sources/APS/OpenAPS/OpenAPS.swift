@@ -83,7 +83,7 @@ final class OpenAPS {
 
     func attemptToSaveContext() {
         do {
-            try CoreDataStack.shared.backgroundContext.saveContext()
+            try CoreDataStack.shared.saveContext()
         } catch {
             print(error.localizedDescription)
         }
@@ -91,61 +91,67 @@ final class OpenAPS {
 
     // fetch glucose to pass it to the meal function and to determine basal
     private func fetchGlucose() -> [GlucoseStored]? {
-        do {
-            debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
-            return try context.fetch(GlucoseStored.fetch(
-                NSPredicate.predicateForOneHourAgo,
-                ascending: false,
-                fetchLimit: 6
-            ))
-        } catch {
-            debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose with error: \(error)")
-            return []
-        }
+        CoreDataStack.shared.fetchEntities(
+            ofType: GlucoseStored.self,
+            predicate: NSPredicate.predicateForSixHoursAgo,
+            key: "date",
+            ascending: false,
+            fetchLimit: 72,
+            batchSize: 24
+        )
     }
 
     private func fetchCarbs() -> [CarbEntryStored]? {
-        do {
-            debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.succeeded) fetched carbs")
-            return try context.fetch(CarbEntryStored.fetch(NSPredicate.predicateForOneDayAgo, ascending: false))
-        } catch {
-            debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.failed) failed to fetch carbs with error: \(error)")
-            return []
-        }
+        CoreDataStack.shared.fetchEntities(
+            ofType: CarbEntryStored.self,
+            predicate: NSPredicate.predicateForOneDayAgo,
+            key: "date",
+            ascending: false
+        )
     }
 
-    private func fetchPumpHistory() -> [PumpEventStored]? {
-        do {
-            debugPrint("OpenAPS: \(#function) \(DebuggingIdentifiers.succeeded) fetched pump history")
-
-            return try context
-                .fetch(PumpEventStored.fetch(NSPredicate.pumpHistoryLast24h, ascending: false))
-        } catch {
-            debugPrint(
-                "OpenAPS: \(#function) \(DebuggingIdentifiers.failed) error while fetching pumphistory for determine basal with error: \(error)"
-            )
-            return []
-        }
+    private func fetchPumpHistoryObjectIDs() -> [NSManagedObjectID]? {
+        let results = CoreDataStack.shared.fetchEntities(
+            ofType: PumpEventStored.self,
+            predicate: NSPredicate.pumpHistoryLast24h,
+            key: "timestamp",
+            ascending: false,
+            batchSize: 50
+        )
+        return results.map(\.objectID)
     }
 
-    private func parsePumpHistory(_ pumpHistory: [PumpEventStored]) -> String {
-        guard !pumpHistory.isEmpty else { return "{}" }
+    private func parsePumpHistory(_ pumpHistoryObjectIDs: [NSManagedObjectID]) -> String {
+        // Return an empty JSON object if the list of object IDs is empty
+        guard !pumpHistoryObjectIDs.isEmpty else { return "{}" }
 
-        let dtos: [PumpEventDTO] = pumpHistory.flatMap { event -> [PumpEventDTO] in
-            var eventDTOs: [PumpEventDTO] = []
-            if let bolusDTO = event.toBolusDTOEnum() {
-                eventDTOs.append(bolusDTO)
+        // Execute all operations on the background context
+        let jsonResult = CoreDataStack.shared.backgroundContext.performAndWait {
+            // Load the pump events from the object IDs
+            let pumpHistory: [PumpEventStored] = pumpHistoryObjectIDs
+                .compactMap { CoreDataStack.shared.backgroundContext.object(with: $0) as? PumpEventStored }
+
+            // Create the DTOs
+            let dtos: [PumpEventDTO] = pumpHistory.flatMap { event -> [PumpEventDTO] in
+                var eventDTOs: [PumpEventDTO] = []
+                if let bolusDTO = event.toBolusDTOEnum() {
+                    eventDTOs.append(bolusDTO)
+                }
+                if let tempBasalDTO = event.toTempBasalDTOEnum() {
+                    eventDTOs.append(tempBasalDTO)
+                }
+                if let tempBasalDurationDTO = event.toTempBasalDurationDTOEnum() {
+                    eventDTOs.append(tempBasalDurationDTO)
+                }
+                return eventDTOs
             }
-            if let tempBasalDTO = event.toTempBasalDTOEnum() {
-                eventDTOs.append(tempBasalDTO)
-            }
-            if let tempBasalDurationDTO = event.toTempBasalDurationDTOEnum() {
-                eventDTOs.append(tempBasalDurationDTO)
-            }
-            return eventDTOs
+
+            // Convert the DTOs to JSON
+            return jsonConverter.convertToJSON(dtos)
         }
 
-        return jsonConverter.convertToJSON(dtos)
+        // Return the JSON result
+        return jsonResult
     }
 
     func determineBasal(currentTemp: TempBasal, clock: Date = Date()) -> Future<Determination?, Never> {
@@ -154,13 +160,14 @@ final class OpenAPS {
                 debug(.openAPS, "Start determineBasal")
                 // clock
                 self.storage.save(clock, as: Monitor.clock)
+                let pass = self.loadFileFromStorage(name: Monitor.clock)
 
                 // temp_basal
                 let tempBasal = currentTemp.rawJSON
                 self.storage.save(tempBasal, as: Monitor.tempBasal)
 
-                let pumpHistory = self.fetchPumpHistory()
-                let pumpHistoryJSON = self.parsePumpHistory(pumpHistory ?? [])
+                let pumpHistoryObjectIDs = self.fetchPumpHistoryObjectIDs() ?? []
+                let pumpHistoryJSON = self.parsePumpHistory(pumpHistoryObjectIDs)
 
                 // carbs
                 let carbs = self.fetchCarbs()
@@ -179,7 +186,7 @@ final class OpenAPS {
                     pumphistory: pumpHistoryJSON,
                     profile: profile,
                     basalProfile: basalProfile,
-                    clock: clock,
+                    clock: pass,
                     carbs: carbsString,
                     glucose: glucoseString
                 )
@@ -190,7 +197,7 @@ final class OpenAPS {
                 let iob = self.iob(
                     pumphistory: pumpHistoryJSON,
                     profile: profile,
-                    clock: clock,
+                    clock: pass,
                     autosens: autosens.isEmpty ? .null : autosens
                 )
 
@@ -234,7 +241,7 @@ final class OpenAPS {
                             saveToTDD.timestamp = determination.timestamp ?? Date()
                             saveToTDD.tdd = (determination.tdd ?? 0) as NSDecimalNumber?
                             do {
-                                try CoreDataStack.shared.backgroundContext.saveContext()
+                                try CoreDataStack.shared.saveContext()
                             } catch {
                                 print(error.localizedDescription)
                             }
@@ -242,7 +249,7 @@ final class OpenAPS {
                             let saveTarget = Target(context: self.context)
                             saveTarget.current = (determination.current_target ?? 100) as NSDecimalNumber?
                             do {
-                                try CoreDataStack.shared.backgroundContext.saveContext()
+                                try CoreDataStack.shared.saveContext()
                             } catch {
                                 print(error.localizedDescription)
                             }
@@ -347,7 +354,7 @@ final class OpenAPS {
                     saveToCoreData.indefinite = false
                     saveToCoreData.percentage = 100
                     do {
-                        try CoreDataStack.shared.backgroundContext.saveContext()
+                        try CoreDataStack.shared.saveContext()
                     } catch {
                         print(error.localizedDescription)
                     }
@@ -448,8 +455,8 @@ final class OpenAPS {
                 debug(.openAPS, "Start autosens")
 
                 // pump history
-                let pumpHistory = self.fetchPumpHistory()
-                let pumpHistoryJSON = self.parsePumpHistory(pumpHistory ?? [])
+                let pumpHistoryObjectIDs = self.fetchPumpHistoryObjectIDs() ?? []
+                let pumpHistoryJSON = self.parsePumpHistory(pumpHistoryObjectIDs)
 
                 // carbs
                 let carbs = self.fetchCarbs()
@@ -489,8 +496,8 @@ final class OpenAPS {
                 debug(.openAPS, "Start autotune")
 
                 // pump history
-                let pumpHistory = self.fetchPumpHistory()
-                let pumpHistoryJSON = self.parsePumpHistory(pumpHistory ?? [])
+                let pumpHistoryObjectIDs = self.fetchPumpHistoryObjectIDs() ?? []
+                let pumpHistoryJSON = self.parsePumpHistory(pumpHistoryObjectIDs)
 
                 /// glucose
                 let glucose = self.fetchGlucose()
@@ -825,7 +832,7 @@ final class OpenAPS {
             }
 
             do {
-                try CoreDataStack.shared.backgroundContext.saveContext()
+                try CoreDataStack.shared.saveContext()
             } catch {
                 print(error.localizedDescription)
             }

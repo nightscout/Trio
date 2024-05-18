@@ -34,6 +34,7 @@ class CoreDataStack: ObservableObject {
         return viewContext
     }()
 
+    // fetch on the thread of the backgroundContext
     func fetchEntities<T: NSManagedObject>(
         ofType type: T.Type,
         predicate: NSPredicate,
@@ -68,7 +69,7 @@ class CoreDataStack: ObservableObject {
             do {
                 debugPrint("Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.succeeded)")
                 result = try self.backgroundContext.fetch(request)
-            } catch {
+            } catch let error as NSError {
                 debugPrint(
                     "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.failed) \(error)"
                 )
@@ -76,21 +77,24 @@ class CoreDataStack: ObservableObject {
         }
         return result ?? []
     }
-}
 
-extension NSManagedObjectContext {
-    func saveContext(callingFunction: String = #function, callingClass: String = #fileID) throws {
-        if hasChanges {
-            do {
-                try save()
-                debugPrint(
-                    "Saving to Core Data successful in \(callingFunction) in \(callingClass): \(DebuggingIdentifiers.succeeded)"
-                )
-            } catch let error as NSError {
-                debugPrint(
-                    "Saving to Core Data failed in \(callingFunction) in \(callingClass): \(DebuggingIdentifiers.failed) with error \(error), \(error.userInfo)"
-                )
-                throw error
+    // save on the thread of the backgroundContext
+    func saveContext(useViewContext: Bool = false, callingFunction: String = #function, callingClass: String = #fileID) throws {
+        let contextToUse = useViewContext ? viewContext : backgroundContext
+
+        try contextToUse.performAndWait {
+            if contextToUse.hasChanges {
+                do {
+                    try self.backgroundContext.save()
+                    debugPrint(
+                        "Saving to Core Data successful in \(callingFunction) in \(callingClass): \(DebuggingIdentifiers.succeeded)"
+                    )
+                } catch let error as NSError {
+                    debugPrint(
+                        "Saving to Core Data failed in \(callingFunction) in \(callingClass): \(DebuggingIdentifiers.failed) with error \(error), \(error.userInfo)"
+                    )
+                    throw error
+                }
             }
         }
     }

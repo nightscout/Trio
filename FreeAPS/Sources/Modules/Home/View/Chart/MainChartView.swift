@@ -153,7 +153,7 @@ struct MainChartView: View {
                         updateStartEndMarkers()
                         yAxisChartData()
                         scroller.scrollTo("MainChart", anchor: .trailing)
-                    }.onChange(of: state.glucoseFromPersistence.map(\.id)) { _ in
+                    }.onChange(of: state.glucoseFromPersistence) { _ in
                         updateStartEndMarkers()
                         yAxisChartData()
                         scroller.scrollTo("MainChart", anchor: .trailing)

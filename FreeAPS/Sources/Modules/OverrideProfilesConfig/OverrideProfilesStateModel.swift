@@ -96,7 +96,7 @@ extension OverrideProfilesConfig {
                     saveOverride.uamMinutes = uamMinutes as NSDecimalNumber
                 }
                 do {
-                    try CoreDataStack.shared.backgroundContext.saveContext()
+                    try CoreDataStack.shared.saveContext()
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -141,7 +141,7 @@ extension OverrideProfilesConfig {
                     saveOverride.uamMinutes = uamMinutes as NSDecimalNumber
                 }
                 do {
-                    try CoreDataStack.shared.backgroundContext.saveContext()
+                    try CoreDataStack.shared.saveContext()
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -185,7 +185,7 @@ extension OverrideProfilesConfig {
                     saveOverride.uamMinutes = (profile.uamMinutes ?? 0) as NSDecimalNumber
                 }
                 do {
-                    try CoreDataStack.shared.backgroundContext.saveContext()
+                    try CoreDataStack.shared.saveContext()
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -275,7 +275,7 @@ extension OverrideProfilesConfig {
                 profiles.enabled = false
                 profiles.date = Date()
                 do {
-                    try CoreDataStack.shared.backgroundContext.saveContext()
+                    try CoreDataStack.shared.saveContext()
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -311,7 +311,7 @@ extension OverrideProfilesConfig {
                     saveToCoreData.active = false
                     saveToCoreData.date = Date()
                     do {
-                        try CoreDataStack.shared.backgroundContext.saveContext()
+                        try CoreDataStack.shared.saveContext()
                     } catch {
                         print(error.localizedDescription)
                     }
@@ -346,7 +346,7 @@ extension OverrideProfilesConfig {
                 saveToCoreData.active = false
                 saveToCoreData.date = Date()
                 do {
-                    try CoreDataStack.shared.backgroundContext.saveContext()
+                    try CoreDataStack.shared.saveContext()
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -355,7 +355,7 @@ extension OverrideProfilesConfig {
                 setHBT.enabled = false
                 setHBT.date = Date()
                 do {
-                    try CoreDataStack.shared.backgroundContext.saveContext()
+                    try CoreDataStack.shared.saveContext()
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -403,7 +403,7 @@ extension OverrideProfilesConfig {
                     saveToCoreData.date = Date()
                     saveToCoreData.duration = durationTT as NSDecimalNumber
                     do {
-                        try CoreDataStack.shared.backgroundContext.saveContext()
+                        try CoreDataStack.shared.saveContext()
                     } catch {
                         print(error.localizedDescription)
                     }
@@ -436,7 +436,7 @@ extension OverrideProfilesConfig {
                         saveToCoreData.duration = whichID?.duration ?? 0
 
                         do {
-                            try CoreDataStack.shared.backgroundContext.saveContext()
+                            try CoreDataStack.shared.saveContext()
                         } catch {
                             print(error.localizedDescription)
                         }
@@ -445,7 +445,7 @@ extension OverrideProfilesConfig {
                         saveToCoreData.active = false
                         saveToCoreData.date = Date()
                         do {
-                            try CoreDataStack.shared.backgroundContext.saveContext()
+                            try CoreDataStack.shared.saveContext()
                         } catch {
                             print(error.localizedDescription)
                         }
