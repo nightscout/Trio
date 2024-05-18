@@ -1090,13 +1090,13 @@ Enact a temp Basal or a temp target */
 
 
 /* Headers for settings ----------------------- */
-"OpenAPS main settings" = "Основные настройки OpenAPS";
+"Trio main settings" = "Основные настройки Trio";
 
-"OpenAPS SMB settings" = "Настройки OpenAPS SMB";
+"Trio SMB settings" = "Настройки Trio SMB";
 
-"OpenAPS targets settings" = "Настройки целей OpenAPS";
+"Trio targets settings" = "Настройки целей Trio";
 
-"OpenAPS other settings" = "Другие настройки OpenAPS";
+"Trio other settings" = "Другие настройки Trio";
 
 /* Glucose Simulator CGM */
 "Glucose Simulator" = "Симулятор глюкозы";
@@ -1844,13 +1844,13 @@ Enact a temp Basal or a temp target */
 "Wide BG Target Range" = "Расширенный диапазон целей ГК";
 
 /* "Wide BG Target Range" */
-"Defaults to false, which means by default only the low end of the pump’s BG target range is used as OpenAPS target. This is a safety feature to prevent too-wide targets and less-optimal outcomes. Therefore the higher end of the target range is used only for avoiding bolus wizard overcorrections. Use wide_bg_target_range: true to force neutral temps over a wider range of eventualBGs." = "По умолчанию значение false, что означает, что в качестве цели OpenAPS используется только низкий нижний BG помпы. Это свойство безопасности для предотвращения слишком широких целей и менее оптимальных результатов. Поэтому верхний диапазона постоянной цели используется только для избежания чрезмерной коррекции в мастере болюса на помпах Медтроник. Используйте wide_bg_target_range: true для принудительного включения нейтральной ВБС, когда eventualBG в пределах диапазона.";
+"Defaults to false, which means by default only the low end of the pump’s BG target range is used as Trio target. This is a safety feature to prevent too-wide targets and less-optimal outcomes. Therefore the higher end of the target range is used only for avoiding bolus wizard overcorrections. Use wide_bg_target_range: true to force neutral temps over a wider range of eventualBGs." = "По умолчанию значение false, что означает, что в качестве цели Trio используется только низкий нижний BG помпы. Это свойство безопасности для предотвращения слишком широких целей и менее оптимальных результатов. Поэтому верхний диапазона постоянной цели используется только для избежания чрезмерной коррекции в мастере болюса на помпах Медтроник. Используйте wide_bg_target_range: true для принудительного включения нейтральной ВБС, когда eventualBG в пределах диапазона.";
 
 /* Headline "Skip Neutral Temps" */
 "Skip Neutral Temps" = "Возвращаться на нейтральный базал";
 
 /* "Skip Neutral Temps" */
-"Defaults to false, so that Trio will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means Trio will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night." = "По умолчанию значение false, так что OpenAPS будет устанавливать временные цели когда это возможно,  так будет проще увидеть, работает ли система даже в автономном режиме. Эта настройка означает, что OpenAPS установит «нейтральную» ВБС (такую же, как и исходная база по умолчанию), если изменения не нужны. Это старая настройка OpenAPS для минимизации звуков и уведомлений на помпе.";
+"Defaults to false, so that Trio will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means Trio will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for Trio to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night." = "По умолчанию значение false, так что Trio будет устанавливать временные цели когда это возможно,  так будет проще увидеть, работает ли система даже в автономном режиме. Эта настройка означает, что Trio установит «нейтральную» ВБС (такую же, как и исходная база по умолчанию), если изменения не нужны. Это старая настройка Trio для минимизации звуков и уведомлений на помпе.";
 
 /* Headline "Unsuspend If No Temp” */
 "Unsuspend If No Temp" = "Возобновлять подачу, если нет ВБС";
@@ -1913,19 +1913,19 @@ Enact a temp Basal or a temp target */
 "Max IOB" = "Максимальный IOB";
 
 /* "Max IOB" */
-"Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two OpenAPS safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings\n\n(Tip from https://www.loopandlearn.org/freeaps-x/#open-loop)." = "Макс IOB - это максимальное количество инсулина на борту из всех источников – как базального (или болюсов коррекции), так и болюсного инсулина – который ваш цикл может накапливать для компенсации высокого СК. В отличие от двух других параметров безопасности (max_daily_safety_multiplier и current_basal_safety_multiplier), max_iob устанавливается, как фиксированное количество единиц инсулина. На данный момент ручные болюсы НЕ ограничены этой настройкой. Для тестирования базальных скоростей в ночное время, вы можете изменить значение этого параметра на нуль находясь в замкнутом цикле. Это включит режим приостановки на низком сахаре, при тестировании настроек базальных скоростей. (https://www.loopandlearn.org/freeaps-x/#open-loop).";
+"Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two Trio safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings\n\n(Tip from https://www.loopandlearn.org/freeaps-x/#open-loop)." = "Макс IOB - это максимальное количество инсулина на борту из всех источников – как базального (или болюсов коррекции), так и болюсного инсулина – который ваш цикл может накапливать для компенсации высокого СК. В отличие от двух других параметров безопасности (max_daily_safety_multiplier и current_basal_safety_multiplier), max_iob устанавливается, как фиксированное количество единиц инсулина. На данный момент ручные болюсы НЕ ограничены этой настройкой. Для тестирования базальных скоростей в ночное время, вы можете изменить значение этого параметра на нуль находясь в замкнутом цикле. Это включит режим приостановки на низком сахаре, при тестировании настроек базальных скоростей. (https://www.loopandlearn.org/freeaps-x/#open-loop).";
 
 /* Headline "Max Daily Safety Multiplier" */
 "Max Daily Safety Multiplier" = "Множитель безопасности максимального суточного базала";
 
 /* "Max Daily Safety Multiplier" */
-"This is an important OpenAPS safety limit. The default setting (which is unlikely to need adjusting) is 3. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 3x the highest hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "По умолчанию (которое вряд ли потребуется изменить) равно 3. Важный предел безопасности. Это означает, что временная базальная скорость никогда не превысит 3x наибольшей почасовой базальной скорости, запрограммированной в помпе, или, если включено, определяется autotune.";
+"This is an important Trio safety limit. The default setting (which is unlikely to need adjusting) is 3. This means that Trio will never be allowed to set a temporary basal rate that is more than 3x the highest hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "По умолчанию (которое вряд ли потребуется изменить) равно 3. Важный предел безопасности. Это означает, что временная базальная скорость никогда не превысит 3x наибольшей почасовой базальной скорости, запрограммированной в помпе, или, если включено, определяется autotune.";
 
 /* Headline "Current Basal Safety Multiplier" */
 "Current Basal Safety Multiplier" = "Множитель безопасности для текущего базала";
 
 /* "Current Basal Safety Multiplier" */
-"This is another important OpenAPS safety limit. The default setting (which is also unlikely to need adjusting) is 4. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 4x the current hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "Значение по умолчанию (которое вряд ли потребуется изменить) 4. Это еще один важный предел безопасности. Это означает, что временная базальная скорость устанавливаемая алгоритмом, никогда не превысит 4x текущую базальную скорость, запрограммированную в помпе, или, если включено, определяется autotune.";
+"This is another important Trio safety limit. The default setting (which is also unlikely to need adjusting) is 4. This means that Trio will never be allowed to set a temporary basal rate that is more than 4x the current hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "Значение по умолчанию (которое вряд ли потребуется изменить) 4. Это еще один важный предел безопасности. Это означает, что временная базальная скорость устанавливаемая алгоритмом, никогда не превысит 4x текущую базальную скорость, запрограммированную в помпе, или, если включено, определяется autotune.";
 
 /* Headline "Autosens Max" */
 "Autosens Max" = "Максимум для алгоритма Autosens";
@@ -2027,7 +2027,7 @@ Enact a temp Basal or a temp target */
 "SMB DeliveryRatio" = "SMB соотношение подачи";
 
 /* SMB DeliveryRatio */
-"Default value: 0.5 This is another key OpenAPS safety cap, and specifies what share of the total insulin required can be delivered as SMB. Increase this experimental value slowly and with caution." = "По-умолчанию: 0.5(50%). Опция позволяет регулировать какая часть от необходимой дозы инсулина может быть доставлена как супер микро болюс. Увеличивайте это экспериментальное значение очень медленно и с осторожностью.";
+"Default value: 0.5 This is another key Trio safety cap, and specifies what share of the total insulin required can be delivered as SMB. Increase this experimental value slowly and with caution." = "По-умолчанию: 0.5(50%). Опция позволяет регулировать какая часть от необходимой дозы инсулина может быть доставлена как супер микро болюс. Увеличивайте это экспериментальное значение очень медленно и с осторожностью.";
 
 // Dynamic ISF + CR Settings:
 /* Headline "Adjust Dynamic ISF constant" */

@@ -32,7 +32,7 @@ extension PreferencesEditor {
                     displayName: NSLocalizedString("Max IOB", comment: "Max IOB"),
                     type: .decimal(keypath: \.maxIOB),
                     infoText: NSLocalizedString(
-                        "Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two OpenAPS safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings\n\n(Tip from https://www.loopandlearn.org/freeaps-x/#open-loop).",
+                        "Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two Trio safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings\n\n(Tip from https://www.loopandlearn.org/freeaps-x/#open-loop).",
                         comment: "Max IOB"
                     ),
                     settable: self
@@ -50,7 +50,7 @@ extension PreferencesEditor {
                     displayName: NSLocalizedString("Max Daily Safety Multiplier", comment: "Max Daily Safety Multiplier"),
                     type: .decimal(keypath: \.maxDailySafetyMultiplier),
                     infoText: NSLocalizedString(
-                        "This is an important OpenAPS safety limit. The default setting (which is unlikely to need adjusting) is 3. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 3x the highest hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune.",
+                        "This is an important Trio safety limit. The default setting (which is unlikely to need adjusting) is 3. This means that Trio will never be allowed to set a temporary basal rate that is more than 3x the highest hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune.",
                         comment: "Max Daily Safety Multiplier"
                     ),
                     settable: self
@@ -59,7 +59,7 @@ extension PreferencesEditor {
                     displayName: NSLocalizedString("Current Basal Safety Multiplier", comment: "Current Basal Safety Multiplier"),
                     type: .decimal(keypath: \.currentBasalSafetyMultiplier),
                     infoText: NSLocalizedString(
-                        "This is another important OpenAPS safety limit. The default setting (which is also unlikely to need adjusting) is 4. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 4x the current hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune.",
+                        "This is another important Trio safety limit. The default setting (which is also unlikely to need adjusting) is 4. This means that Trio will never be allowed to set a temporary basal rate that is more than 4x the current hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune.",
                         comment: "Current Basal Safety Multiplier"
                     ),
                     settable: self
@@ -276,7 +276,7 @@ extension PreferencesEditor {
                     displayName: NSLocalizedString("SMB DeliveryRatio", comment: "SMB DeliveryRatio"),
                     type: .decimal(keypath: \.smbDeliveryRatio),
                     infoText: NSLocalizedString(
-                        "Default value: 0.5 This is another key OpenAPS safety cap, and specifies what share of the total insulin required can be delivered as SMB. Increase this experimental value slowly and with caution.",
+                        "Default value: 0.5 This is another key Trio safety cap, and specifies what share of the total insulin required can be delivered as SMB. Increase this experimental value slowly and with caution.",
                         comment: "SMB DeliveryRatio"
                     ),
                     settable: self
@@ -390,7 +390,7 @@ extension PreferencesEditor {
                     displayName: NSLocalizedString("Skip Neutral Temps", comment: "Skip Neutral Temps"),
                     type: .boolean(keypath: \.skipNeutralTemps),
                     infoText: NSLocalizedString(
-                        "Defaults to false, so that Trio will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means Trio will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night.",
+                        "Defaults to false, so that Trio will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means Trio will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for Trio to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night.",
                         comment: "Skip Neutral Temps"
                     ),
                     settable: self
@@ -465,22 +465,22 @@ extension PreferencesEditor {
 
             sections = [
                 FieldSection(
-                    displayName: NSLocalizedString("OpenAPS main settings", comment: "OpenAPS main settings"), fields: mainFields
+                    displayName: NSLocalizedString("Trio main settings", comment: "Trio main settings"), fields: mainFields
                 ),
                 FieldSection(
                     displayName: NSLocalizedString("Dynamic settings", comment: "Dynamic settings"),
                     fields: dynamicISF
                 ),
                 FieldSection(
-                    displayName: NSLocalizedString("OpenAPS SMB settings", comment: "OpenAPS SMB settings"),
+                    displayName: NSLocalizedString("Trio SMB settings", comment: "Trio SMB settings"),
                     fields: smbFields
                 ),
                 FieldSection(
-                    displayName: NSLocalizedString("OpenAPS targets settings", comment: "OpenAPS targets settings"),
+                    displayName: NSLocalizedString("Trio targets settings", comment: "Trio targets settings"),
                     fields: targetSettings
                 ),
                 FieldSection(
-                    displayName: NSLocalizedString("OpenAPS other settings", comment: "OpenAPS other settings"),
+                    displayName: NSLocalizedString("Trio other settings", comment: "Trio other settings"),
                     fields: otherSettings
                 )
             ]
