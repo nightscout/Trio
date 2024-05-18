@@ -99,7 +99,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         .store(in: &lifetime)
     }
 
-    private func fetchGlucose() -> [GlucoseStored] {
+    private func fetchGlucose() -> [GlucoseStored]? {
         CoreDataStack.shared.fetchEntities(
             ofType: GlucoseStored.self,
             predicate: NSPredicate.predicateFor30MinAgo,
@@ -110,7 +110,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     }
 
     private func processGlucose() -> [BloodGlucose] {
-        let results = fetchGlucose()
+        guard let results = fetchGlucose() else { return [] }
         return results.map { result in
             BloodGlucose(
                 date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,

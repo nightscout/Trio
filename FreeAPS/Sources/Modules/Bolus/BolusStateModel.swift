@@ -103,11 +103,12 @@ extension Bolus {
         typealias PumpEvent = PumpEventStored.EventType
 
         override func subscribe() {
+            setupNotification()
             Task {
                 await updateGlucose()
                 await updateDetermination()
+                await setupInsulinRequired()
             }
-            setupInsulinRequired()
             broadcaster.register(DeterminationObserver.self, observer: self)
             broadcaster.register(BolusFailureObserver.self, observer: self)
             units = settingsManager.settings.units
@@ -179,6 +180,45 @@ extension Bolus {
             }
         }
 
+        // MARK: - Setup Notifications
+
+        /// listens for the notifications sent when the managedObjectContext has changed
+        func setupNotification() {
+            Foundation.NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(contextDidSave(_:)),
+                name: Notification.Name.NSManagedObjectContextObjectsDidChange,
+                object: backgroundContext
+            )
+        }
+
+        /// determine the actions when the context has changed
+        ///
+        /// its done on a background thread and after that the UI gets updated on the main thread
+        @objc private func contextDidSave(_ notification: Notification) {
+            guard let userInfo = notification.userInfo else { return }
+
+            Task { [weak self] in
+                await self?.processUpdates(userInfo: userInfo)
+            }
+        }
+
+        private func processUpdates(userInfo: [AnyHashable: Any]) async {
+            var objects = Set((userInfo[NSInsertedObjectsKey] as? Set<NSManagedObject>) ?? [])
+            objects.formUnion((userInfo[NSUpdatedObjectsKey] as? Set<NSManagedObject>) ?? [])
+            objects.formUnion((userInfo[NSDeletedObjectsKey] as? Set<NSManagedObject>) ?? [])
+
+            let glucoseUpdates = objects.filter { $0 is GlucoseStored }
+            let determinationUpdates = objects.filter { $0 is OrefDetermination }
+
+            if glucoseUpdates.isNotEmpty {
+                await updateGlucose()
+            }
+            if determinationUpdates.isNotEmpty {
+                await updateDetermination()
+            }
+        }
+
         // MARK: - Glucose
 
         private func fetchGlucose() async -> [GlucoseStored] {
@@ -207,6 +247,7 @@ extension Bolus {
                 currentBG = Decimal(lastGlucose)
                 deltaBG = delta
             }
+            await setupInsulinRequired()
         }
 
         private func fetchDetermination() async -> [OrefDetermination] {
@@ -229,6 +270,7 @@ extension Bolus {
             await MainActor.run {
                 determination = results
             }
+            await setupInsulinRequired()
         }
 
         // MARK: CALCULATIONS FOR THE BOLUS CALCULATOR
@@ -293,8 +335,8 @@ extension Bolus {
             return apsManager.roundBolus(amount: insulinCalculated)
         }
 
-        func setupInsulinRequired() {
-            DispatchQueue.main.async {
+        func setupInsulinRequired() async {
+            await MainActor.run {
                 self.insulinRequired = (self.determination.first?.insulinReq ?? 0) as Decimal
                 self.evBG = (self.determination.first?.eventualBG ?? 0) as Decimal
                 self.insulin = (self.determination.first?.insulinForManualBolus ?? 0) as Decimal
@@ -504,10 +546,10 @@ extension Bolus {
 
         func deletePreset() {
             if selection != nil {
-                try? context.delete(selection!)
+                context.delete(selection!)
 
                 do {
-                    try CoreDataStack.shared.saveContext()
+                    try CoreDataStack.shared.saveContext(useViewContext: true)
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -623,7 +665,9 @@ extension Bolus.StateModel: DeterminationObserver, BolusFailureObserver {
                 self.hideModal()
             }
         }
-        setupInsulinRequired()
+        Task {
+            await setupInsulinRequired()
+        }
     }
 
     func bolusDidFail() {
