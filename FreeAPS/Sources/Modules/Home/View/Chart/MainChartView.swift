@@ -455,9 +455,9 @@ struct MainChartView: View {
     private func overridesView(fullSize: CGSize) -> some View {
         ZStack {
             overridesPath
-                .fill(Color.purple.opacity(0.5))
+                .fill(Color.profil.opacity(0.5))
             overridesPath
-                .stroke(Color.purple.opacity(0.5), lineWidth: 1)
+                .stroke(Color.profil.opacity(0.5), lineWidth: 1)
         }
         .onChange(of: glucose) { _ in
             calculateOverridesRects(fullSize: fullSize)
