@@ -63,6 +63,7 @@ extension Home {
         @Published var currentOverride: OverrideProfil?
         @Published var overrideHistory: [OverrideProfil?] = []
         @Published var targetBG: BGTargets?
+        @Published var pumpStatutHighlightMessage: String? = nil
 
         let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
 
@@ -176,6 +177,7 @@ extension Home {
                     } else {
                         self.setupBattery()
                         self.setupReservoir()
+                        self.displayPumpStatutHighlightMessage()
                     }
                 }
                 .store(in: &lifetime)
@@ -360,6 +362,21 @@ extension Home {
             }
         }
 
+        /// Display the eventual statut message provided by the manager of the pump
+        /// Only display if state is warning or critical message else return nil
+        private func displayPumpStatutHighlightMessage() {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                if let statusHL = self.provider.deviceManager.pumpManager?.pumpStatusHighlight,
+                   statusHL.state == .warning || statusHL.state == .critical
+                {
+                    pumpStatutHighlightMessage = (statusHL.state == .warning ? "⚠️\n" : "‼️\n") + statusHL.localizedMessage
+                } else {
+                    pumpStatutHighlightMessage = nil
+                }
+            }
+        }
+
         private func setupCurrentTempTarget() {
             tempTarget = provider.tempTarget()
         }
@@ -429,6 +446,7 @@ extension Home.StateModel:
         setupBasals()
         setupBoluses()
         setupSuspensions()
+        displayPumpStatutHighlightMessage()
     }
 
     func pumpSettingsDidChange(_: PumpSettings) {
@@ -454,10 +472,12 @@ extension Home.StateModel:
 
     func pumpBatteryDidChange(_: Battery) {
         setupBattery()
+        displayPumpStatutHighlightMessage()
     }
 
     func pumpReservoirDidChange(_: Decimal) {
         setupReservoir()
+        displayPumpStatutHighlightMessage()
     }
 }
 
