@@ -126,12 +126,12 @@ final class OpenAPS {
             let smbMinutes = (preferences?.maxSMBBasalMinutes ?? 30) as NSDecimalNumber
             let uamMinutes = (preferences?.maxUAMSMBBasalMinutes ?? 30) as NSDecimalNumber
 
-            let tenDaysAgo = Date().addingTimeInterval(-10.days.timeInterval)
-            let twoHoursAgo = Date().addingTimeInterval(-2.hours.timeInterval)
+            let twoWeekAgo = Date().addingTimeInterval(-14.days.timeInterval)
+            let oneDayAgo = Date().addingTimeInterval(-24.hours.timeInterval)
 
             var uniqueEvents = [TDD]()
             let requestTDD = TDD.fetchRequest() as NSFetchRequest<TDD>
-            requestTDD.predicate = NSPredicate(format: "timestamp > %@ AND tdd > 0", tenDaysAgo as NSDate)
+            requestTDD.predicate = NSPredicate(format: "timestamp > %@ AND tdd > 0", twoWeekAgo as NSDate)
             let sortTDD = NSSortDescriptor(key: "timestamp", ascending: true)
             requestTDD.sortDescriptors = [sortTDD]
             try? uniqueEvents = coredataContext.fetch(requestTDD)
@@ -160,9 +160,9 @@ final class OpenAPS {
             let total = uniqueEvents.compactMap({ each in each.tdd as? Decimal ?? 0 }).reduce(0, +)
             var indeces = uniqueEvents.count
             // Only fetch once. Use same (previous) fetch
-            let twoHoursArray = uniqueEvents.filter({ ($0.timestamp ?? Date()) >= twoHoursAgo })
-            var nrOfIndeces = twoHoursArray.count
-            let totalAmount = twoHoursArray.compactMap({ each in each.tdd as? Decimal ?? 0 }).reduce(0, +)
+            let oneDayArray = uniqueEvents.filter({ ($0.timestamp ?? Date()) >= oneDayAgo })
+            var nrOfIndeces = oneDayArray.count
+            let totalAmount = oneDayArray.compactMap({ each in each.tdd as? Decimal ?? 0 }).reduce(0, +)
 
             var temptargetActive = tempTargetsArray.first?.active ?? false
             let isPercentageEnabled = sliderArray.first?.enabled ?? false
@@ -181,11 +181,11 @@ final class OpenAPS {
                 nrOfIndeces = 1
             }
 
-            let average2hours = totalAmount / Decimal(nrOfIndeces)
-            let average14 = total / Decimal(indeces)
+            let average24hours = totalAmount / Decimal(nrOfIndeces)
+            let average14days = total / Decimal(indeces)
 
             let weight = wp
-            let weighted_average = weight * average2hours + (1 - weight) * average14
+            let weighted_average = weight * average24hours + (1 - weight) * average14days
 
             var duration: Decimal = 0
             var newDuration: Decimal = 0
@@ -242,9 +242,9 @@ final class OpenAPS {
 
             if currentTDD > 0 {
                 let averages = Oref2_variables(
-                    average_total_data: average14,
+                    average_total_data: average14days,
                     weightedAverage: weighted_average,
-                    past2hoursAverage: average2hours,
+                    past2hoursAverage: average24hours, // not change the name of the variable but not used by oref
                     date: Date(),
                     isEnabled: temptargetActive,
                     presetActive: isPercentageEnabled,
