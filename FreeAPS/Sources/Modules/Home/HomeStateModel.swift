@@ -59,7 +59,7 @@ extension Home {
         @Published var displayYgridLines: Bool = false
         @Published var thresholdLines: Bool = false
         @Published var cgmAvailable: Bool = false
-        @Published var pumpStatutHighlightMessage: String? = nil
+        @Published var pumpStatusHighlightMessage: String? = nil
 
         let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
 
@@ -169,7 +169,7 @@ extension Home {
                     } else {
                         self.setupBattery()
                         self.setupReservoir()
-                        self.displayPumpStatutHighlightMessage()
+                        self.displaypumpStatusHighlightMessage()
                     }
                 }
                 .store(in: &lifetime)
@@ -352,15 +352,15 @@ extension Home {
 
         /// Display the eventual statut message provided by the manager of the pump
         /// Only display if state is warning or critical message else return nil
-        private func displayPumpStatutHighlightMessage() {
+        private func displaypumpStatusHighlightMessage() {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
                 if let statusHL = self.provider.deviceManager.pumpManager?.pumpStatusHighlight,
                    statusHL.state == .warning || statusHL.state == .critical
                 {
-                    pumpStatutHighlightMessage = (statusHL.state == .warning ? "⚠️\n" : "‼️\n") + statusHL.localizedMessage
+                    pumpStatusHighlightMessage = (statusHL.state == .warning ? "⚠️\n" : "‼️\n") + statusHL.localizedMessage
                 } else {
-                    pumpStatutHighlightMessage = nil
+                    pumpStatusHighlightMessage = nil
                 }
             }
         }
@@ -429,7 +429,7 @@ extension Home.StateModel:
         setupBasals()
         setupBoluses()
         setupSuspensions()
-        displayPumpStatutHighlightMessage()
+        displaypumpStatusHighlightMessage()
     }
 
     func pumpSettingsDidChange(_: PumpSettings) {
@@ -455,12 +455,12 @@ extension Home.StateModel:
 
     func pumpBatteryDidChange(_: Battery) {
         setupBattery()
-        displayPumpStatutHighlightMessage()
+        displaypumpStatusHighlightMessage()
     }
 
     func pumpReservoirDidChange(_: Decimal) {
         setupReservoir()
-        displayPumpStatutHighlightMessage()
+        displaypumpStatusHighlightMessage()
     }
 }
 
