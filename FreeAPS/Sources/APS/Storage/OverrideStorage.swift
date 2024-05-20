@@ -142,7 +142,6 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
     ///   - isPresets: definied if targerts is a override preset (true).
     private func storeOverride(_ targets: [OverrideProfil], isPresets: Bool) {
         // store in preset override
-        // processQueue.sync {
         if isPresets {
             let listOverridePresets = fetchOverridePreset()
             _ = targets.compactMap { preset in
@@ -200,10 +199,13 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             coredataContext.performAndWait {
                 try? coredataContext.save()
             }
-            // update the previous current value
-            _ = current()
+
+            processQueue.async {
+                self.broadcaster.notify(OverrideObserver.self, on: self.processQueue) {
+                    $0.overrideDidUpdate([])
+                }
+            }
         }
-        // }
     }
 
     /// The start date of override data available by recent function
@@ -281,14 +283,6 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             }
         } else {
             newCurrentOverride = nil
-        }
-
-        processQueue.sync {
-            if lastCurrentOverride != newCurrentOverride {
-                broadcaster.notify(OverrideObserver.self, on: processQueue) {
-                    $0.overrideDidUpdate([newCurrentOverride])
-                }
-            }
         }
 
         lastCurrentOverride = newCurrentOverride
