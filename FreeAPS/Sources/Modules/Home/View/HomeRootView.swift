@@ -131,7 +131,7 @@ extension Home {
                 name: $state.pumpName,
                 expiresAtDate: $state.pumpExpiresAtDate,
                 timerDate: $state.timerDate,
-                pumpStatutHighlightMessage: $state.pumpStatutHighlightMessage
+                pumpStatusHighlightMessage: $state.pumpStatusHighlightMessage
             )
             .onTapGesture {
                 state.setupPump = true
