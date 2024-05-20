@@ -170,7 +170,7 @@ extension Home {
                 alarm: $state.alarm,
                 lowGlucose: $state.lowGlucose,
                 highGlucose: $state.highGlucose,
-                glucoseFromPersistence: $state.glucoseFromPersistence
+                glucoseFromPersistence: state.glucoseFromPersistence
             ).scaleEffect(0.9)
                 .onTapGesture {
                     if state.alarm == nil {

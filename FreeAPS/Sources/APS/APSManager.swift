@@ -794,28 +794,30 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     private func tir(_ glucose: [GlucoseStored]) -> (TIR: Double, hypos: Double, hypers: Double, normal_: Double) {
-        let justGlucoseArray = glucose.compactMap({ each in Int(each.glucose as Int16) })
-        let totalReadings = justGlucoseArray.count
-        let highLimit = settingsManager.settings.high
-        let lowLimit = settingsManager.settings.low
-        let hyperArray = glucose.filter({ $0.glucose >= Int(highLimit) })
-        let hyperReadings = hyperArray.compactMap({ each in each.glucose as Int16 }).count
-        let hyperPercentage = Double(hyperReadings) / Double(totalReadings) * 100
-        let hypoArray = glucose.filter({ $0.glucose <= Int(lowLimit) })
-        let hypoReadings = hypoArray.compactMap({ each in each.glucose as Int16 }).count
-        let hypoPercentage = Double(hypoReadings) / Double(totalReadings) * 100
-        // Euglyccemic range
-        let normalArray = glucose.filter({ $0.glucose >= 70 && $0.glucose <= 140 })
-        let normalReadings = normalArray.compactMap({ each in each.glucose as Int16 }).count
-        let normalPercentage = Double(normalReadings) / Double(totalReadings) * 100
-        // TIR
-        let tir = 100 - (hypoPercentage + hyperPercentage)
-        return (
-            roundDouble(tir, 1),
-            roundDouble(hypoPercentage, 1),
-            roundDouble(hyperPercentage, 1),
-            roundDouble(normalPercentage, 1)
-        )
+        privateContext.perform {
+            let justGlucoseArray = glucose.compactMap({ each in Int(each.glucose as Int16) })
+            let totalReadings = justGlucoseArray.count
+            let highLimit = settingsManager.settings.high
+            let lowLimit = settingsManager.settings.low
+            let hyperArray = glucose.filter({ $0.glucose >= Int(highLimit) })
+            let hyperReadings = hyperArray.compactMap({ each in each.glucose as Int16 }).count
+            let hyperPercentage = Double(hyperReadings) / Double(totalReadings) * 100
+            let hypoArray = glucose.filter({ $0.glucose <= Int(lowLimit) })
+            let hypoReadings = hypoArray.compactMap({ each in each.glucose as Int16 }).count
+            let hypoPercentage = Double(hypoReadings) / Double(totalReadings) * 100
+            // Euglyccemic range
+            let normalArray = glucose.filter({ $0.glucose >= 70 && $0.glucose <= 140 })
+            let normalReadings = normalArray.compactMap({ each in each.glucose as Int16 }).count
+            let normalPercentage = Double(normalReadings) / Double(totalReadings) * 100
+            // TIR
+            let tir = 100 - (hypoPercentage + hyperPercentage)
+            return (
+                roundDouble(tir, 1),
+                roundDouble(hypoPercentage, 1),
+                roundDouble(hyperPercentage, 1),
+                roundDouble(normalPercentage, 1)
+            )
+        }
     }
 
     private func glucoseStats(_ fetchedGlucose: [GlucoseStored])

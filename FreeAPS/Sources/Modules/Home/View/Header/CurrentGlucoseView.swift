@@ -7,7 +7,7 @@ struct CurrentGlucoseView: View {
     @Binding var alarm: GlucoseAlarm?
     @Binding var lowGlucose: Decimal
     @Binding var highGlucose: Decimal
-    @Binding var glucoseFromPersistence: [GlucoseStored]
+    var glucoseFromPersistence: [GlucoseStored]
 
     @State private var rotationDegrees: Double = 0.0
     @State private var angularGradient = AngularGradient(colors: [

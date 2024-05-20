@@ -34,6 +34,12 @@ class CoreDataStack: ObservableObject {
         return viewContext
     }()
 
+    // MARK: - Fetch Requests
+
+    //
+    // the first I define here is for background work...I decided to pass a parameter context to the function to execute it on the viewContext if necessary, but for updating the UI I've decided to rather create a second generic fetch function with a completion handler which results are returned on the main thread
+    //
+    // first fetch function
     // fetch on the thread of the backgroundContext
     func fetchEntities<T: NSManagedObject>(
         ofType type: T.Type,
@@ -43,6 +49,7 @@ class CoreDataStack: ObservableObject {
         fetchLimit: Int? = nil,
         batchSize: Int? = nil,
         propertiesToFetch: [String]? = nil,
+        context: NSManagedObjectContext? = CoreDataStack.shared.backgroundContext,
         callingFunction: String = #function,
         callingClass: String = #fileID
     ) -> [T] {
@@ -65,19 +72,93 @@ class CoreDataStack: ObservableObject {
         var result: [T]?
 
         /// we need to ensure that the fetch immediately returns a value as long as the whole app does not use the async await pattern, otherwise we could perform this asynchronously with backgroundContext.perform and not block the thread
-        backgroundContext.performAndWait {
+        context?.performAndWait {
             do {
-                debugPrint("Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.succeeded)")
-                result = try self.backgroundContext.fetch(request)
+                debugPrint(
+                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.succeeded) on Thread: \(Thread.current)"
+                )
+                result = try context?.fetch(request)
             } catch let error as NSError {
                 debugPrint(
-                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.failed) \(error)"
+                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.failed) \(error) on Thread: \(Thread.current)"
                 )
             }
         }
+
+//        if result == nil {
+//            debugPrint("Fetch result is nil in \(callingFunction) from \(callingClass) on thread \(Thread.current)")
+//        } else {
+//            debugPrint(
+//                "Fetch result count: \(result?.count ?? 0) in \(callingFunction) from \(callingClass) on thread \(Thread.current)"
+//            )
+//        }
+
         return result ?? []
     }
 
+    // second fetch function
+    // fetch and update UI
+    func fetchEntitiesAndUpdateUI<T: NSManagedObject>(
+        ofType type: T.Type,
+        predicate: NSPredicate,
+        key: String,
+        ascending: Bool,
+        fetchLimit: Int? = nil,
+        batchSize: Int? = nil,
+        propertiesToFetch: [String]? = nil,
+        callingFunction: String = #function,
+        callingClass: String = #fileID,
+        completion: @escaping ([T]) -> Void
+    ) {
+        let request = NSFetchRequest<T>(entityName: String(describing: type))
+        request.sortDescriptors = [NSSortDescriptor(key: key, ascending: ascending)]
+        request.predicate = predicate
+        if let limit = fetchLimit {
+            request.fetchLimit = limit
+        }
+        if let batchSize = batchSize {
+            request.fetchBatchSize = batchSize
+        }
+        if let propertiesToFetch = propertiesToFetch {
+            request.propertiesToFetch = propertiesToFetch
+            request.resultType = .managedObjectResultType
+        } else {
+            request.resultType = .managedObjectResultType
+        }
+
+        backgroundContext.perform {
+            var result: [T]?
+
+            do {
+                debugPrint(
+                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.succeeded) on thread \(Thread.current)"
+                )
+                result = try self.backgroundContext.fetch(request)
+            } catch let error as NSError {
+                debugPrint(
+                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.failed) \(error) on thread \(Thread.current)"
+                )
+            }
+
+            // Ensure that the fetch immediately returns a value
+            DispatchQueue.main.async {
+                if let result = result {
+                    debugPrint(
+                        "Returning fetch result to main thread in \(callingFunction) from \(callingClass) on thread \(Thread.current)"
+                    )
+                    completion(result)
+                } else {
+                    debugPrint("Fetch result is nil in \(callingFunction) from \(callingClass) on thread \(Thread.current)")
+                    completion([])
+                }
+            }
+        }
+    }
+
+    // MARK: - Save
+
+    //
+    // takes a context as a parameter to be executed either on the main thread or on a background thread
     // save on the thread of the backgroundContext
     func saveContext(useViewContext: Bool = false, callingFunction: String = #function, callingClass: String = #fileID) throws {
         let contextToUse = useViewContext ? viewContext : backgroundContext

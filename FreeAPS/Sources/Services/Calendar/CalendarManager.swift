@@ -229,30 +229,24 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         return formatter
     }
 
-    private func fetchGlucose() -> [GlucoseStored]? {
-        CoreDataStack.shared.fetchEntities(
+    func setupGlucose() {
+        CoreDataStack.shared.fetchEntitiesAndUpdateUI(
             ofType: GlucoseStored.self,
             predicate: NSPredicate.predicateFor30MinAgo,
             key: "date",
-            ascending: false,
-            fetchLimit: 4
-        )
-    }
-
-    func setupGlucose() {
-        guard let glucose = fetchGlucose(), glucose.count >= 2 else {
-            debugPrint("Not enough glucose data available")
-            return
-        }
-
-        // Safely unwrapping glucose readings
-        if let lastGlucose = glucose.first,
-           let secondLastReading = glucose.dropFirst().first?.glucose
-        {
-            let glucoseDelta = lastGlucose.glucose - secondLastReading
-            createEvent(for: lastGlucose, delta: Int(glucoseDelta))
-        } else {
-            debugPrint("Failed to unwrap necessary glucose readings")
+            ascending: false
+        ) { glucose in
+            guard glucose.count >= 2 else { return }
+            debug(.default, "setup Glucose func on thread: \(Thread.current)")
+            // Safely unwrapping glucose readings
+            if let lastGlucose = glucose.first,
+               let secondLastReading = glucose.dropFirst().first?.glucose
+            {
+                let glucoseDelta = lastGlucose.glucose - secondLastReading
+                self.createEvent(for: lastGlucose, delta: Int(glucoseDelta))
+            } else {
+                debugPrint("Failed to unwrap necessary glucose readings")
+            }
         }
     }
 }
