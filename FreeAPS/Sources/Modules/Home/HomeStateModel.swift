@@ -24,7 +24,8 @@ extension Home {
         @Published var basalProfile: [BasalProfileEntry] = []
         @Published var tempTargets: [TempTarget] = []
         @Published var glucoseFromPersistence: [GlucoseStored] = []
-        @Published var determinationsFromPersistence: [NSManagedObjectID] = []
+        @Published var determinationsFromCoreData: [OrefDetermination] = []
+        @Published var mostRecentDetermination: OrefDetermination?
         @Published var carbsFromPersistence: [CarbEntryStored] = []
         @Published var fpusFromPersistence: [CarbEntryStored] = []
         @Published var timerDate = Date()
@@ -85,13 +86,10 @@ extension Home {
             setupAnnouncements()
             setupCurrentPumpTimezone()
             setupNotification()
-
-            Task {
-                await updateGlucose()
-                await updateDetermination()
-                await updateCarbs()
-                await updateFpus()
-            }
+            updateGlucose()
+            updateDetermination()
+            updateCarbs()
+            updateFPUs()
 
             uploadStats = settingsManager.settings.uploadStats
             units = settingsManager.settings.units
@@ -235,99 +233,65 @@ extension Home {
             let carbUpdates = objects.filter { $0 is CarbEntryStored }
 
             if glucoseUpdates.isNotEmpty {
-                await updateGlucose()
+                updateGlucose()
             }
             if determinationUpdates.isNotEmpty {
-                await updateDetermination()
+                updateDetermination()
             }
             if carbUpdates.isNotEmpty {
-                await updateCarbs()
-                await updateFpus()
+                updateCarbs()
+                updateFPUs()
             }
         }
 
-        /// wait for the fetch to complete and then update the UI on the main thread
-        private func updateGlucose() async {
-            let results = await fetchGlucoseInBackground()
-            await MainActor.run {
-                glucoseFromPersistence = results
+        private func updateGlucose() {
+            CoreDataStack.shared.fetchEntitiesAndUpdateUI(
+                ofType: GlucoseStored.self,
+                predicate: NSPredicate.predicateForOneDayAgo,
+                key: "date",
+                ascending: false,
+                fetchLimit: 288,
+                batchSize: 50
+            ) { fetchedValues in
+                self.glucoseFromPersistence = fetchedValues
             }
         }
 
-        private func updateDetermination() async {
-            let results = await fetchDeterminationInBackground()
-            let ids = results.map(\.objectID)
-            await MainActor.run {
-                determinationsFromPersistence = ids
+        private func updateDetermination() {
+            CoreDataStack.shared.fetchEntitiesAndUpdateUI(
+                ofType: OrefDetermination.self,
+                predicate: NSPredicate.enactedDetermination,
+                key: "deliverAt",
+                ascending: false,
+                fetchLimit: 1
+            ) { fetchedValues in
+                guard let latestDetermination = fetchedValues.first else { return }
+                self.determinationsFromCoreData = fetchedValues
+                self.mostRecentDetermination = latestDetermination
             }
         }
 
-        private func updateCarbs() async {
-            let results = await fetchCarbsInBackground()
-            await MainActor.run {
-                carbsFromPersistence = results
+        private func updateCarbs() {
+            CoreDataStack.shared.fetchEntitiesAndUpdateUI(
+                ofType: CarbEntryStored.self,
+                predicate: NSPredicate.carbsForChart,
+                key: "date",
+                ascending: false,
+                batchSize: 20
+            ) { fetchedValues in
+                self.carbsFromPersistence = fetchedValues
             }
         }
 
-        private func updateFpus() async {
-            let results = await fetchFpusInBackground()
-            await MainActor.run {
-                fpusFromPersistence = results
-            }
-        }
-
-        /// do the heavy fetch operation in the background
-        private func fetchGlucoseInBackground() async -> [GlucoseStored] {
-            await withCheckedContinuation { continuation in
-                context.perform {
-                    let results = self.provider.fetchGlucose()
-                    continuation.resume(returning: results)
-                }
-            }
-        }
-
-        private func fetchDeterminationInBackground() async -> [OrefDetermination] {
-            await withCheckedContinuation { continuation in
-                context.perform {
-                    let results = CoreDataStack.shared.fetchEntities(
-                        ofType: OrefDetermination.self,
-                        predicate: NSPredicate.enactedDetermination,
-                        key: "deliverAt",
-                        ascending: false,
-                        fetchLimit: 1
-                    )
-                    continuation.resume(returning: results)
-                }
-            }
-        }
-
-        private func fetchCarbsInBackground() async -> [CarbEntryStored] {
-            await withCheckedContinuation { continuation in
-                context.perform {
-                    let results = CoreDataStack.shared.fetchEntities(
-                        ofType: CarbEntryStored.self,
-                        predicate: NSPredicate.carbsForChart,
-                        key: "date",
-                        ascending: false,
-                        batchSize: 20
-                    )
-                    continuation.resume(returning: results)
-                }
-            }
-        }
-
-        private func fetchFpusInBackground() async -> [CarbEntryStored] {
-            await withCheckedContinuation { continuation in
-                context.perform {
-                    let results = CoreDataStack.shared.fetchEntities(
-                        ofType: CarbEntryStored.self,
-                        predicate: NSPredicate.fpusForChart,
-                        key: "date",
-                        ascending: false,
-                        batchSize: 20
-                    )
-                    continuation.resume(returning: results)
-                }
+        private func updateFPUs() {
+            CoreDataStack.shared.fetchEntitiesAndUpdateUI(
+                ofType: CarbEntryStored.self,
+                predicate: NSPredicate.fpusForChart,
+                key: "date",
+                ascending: false,
+                batchSize: 20
+            ) { fetchedValues in
+                self.fpusFromPersistence = fetchedValues
             }
         }
 

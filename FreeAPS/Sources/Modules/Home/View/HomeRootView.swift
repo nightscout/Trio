@@ -145,23 +145,23 @@ extension Home {
             }
         }
 
-        private var determination: OrefDetermination? {
-            guard let determinationObjectID = state.determinationsFromPersistence.first else {
-                return nil
-            }
-            return CoreDataStack.shared.backgroundContext.object(with: determinationObjectID) as? OrefDetermination
-        }
+//        private var determination: OrefDetermination? {
+//            guard let determinationObjectID = state.determinationsFromPersistence.first else {
+//                return nil
+//            }
+//            return CoreDataStack.shared.backgroundContext.object(with: determinationObjectID) as? OrefDetermination
+//        }
 
-        private var determinationAsBinding: Binding<OrefDetermination?> {
-            Binding<OrefDetermination?>(
-                get: {
-                    guard let determinationObjectID = state.determinationsFromPersistence.first else {
-                        return nil
-                    }
-                    return CoreDataStack.shared.backgroundContext.object(with: determinationObjectID) as? OrefDetermination
-                }, set: { _ in }
-            )
-        }
+//        private var determinationAsBinding: Binding<OrefDetermination?> {
+//            Binding<OrefDetermination?>(
+//                get: {
+//                    guard let determinationObjectID = state.determinationsFromPersistence.first else {
+//                        return nil
+//                    }
+//                    return CoreDataStack.shared.backgroundContext.object(with: determinationObjectID) as? OrefDetermination
+//                }, set: { _ in }
+//            )
+//        }
 
         var glucoseView: some View {
             CurrentGlucoseView(
@@ -438,7 +438,7 @@ extension Home {
             VStack(alignment: .leading, spacing: 20) {
                 /// Loop view at bottomLeading
                 LoopView(
-                    determination: determinationAsBinding,
+                    determination: $state.mostRecentDetermination,
                     closedLoop: $state.closedLoop,
                     timerDate: $state.timerDate,
                     isLooping: $state.isLooping,
@@ -454,7 +454,7 @@ extension Home {
                 }
                 /// eventualBG string at bottomTrailing
 
-                if let eventualBG = determination?.eventualBG {
+                if let eventualBG = state.determinationsFromCoreData.first?.eventualBG {
                     let bg = eventualBG as Decimal
                     HStack {
                         Image(systemName: "arrow.right.circle")
@@ -502,7 +502,7 @@ extension Home {
                         .font(.system(size: 16))
                         .foregroundColor(Color.insulin)
                     Text(
-                        (numberFormatter.string(from: (determination?.iob ?? 0) as NSNumber) ?? "0") +
+                        (numberFormatter.string(from: (state.mostRecentDetermination?.iob ?? 0) as NSNumber) ?? "0") +
                             NSLocalizedString(" U", comment: "Insulin unit")
                     )
                     .font(.system(size: 16, weight: .bold, design: .rounded))
@@ -515,7 +515,7 @@ extension Home {
                         .font(.system(size: 16))
                         .foregroundColor(.loopYellow)
                     Text(
-                        (numberFormatter.string(from: (determination?.cob ?? 0) as NSNumber) ?? "0") +
+                        (numberFormatter.string(from: (state.mostRecentDetermination?.cob ?? 0) as NSNumber) ?? "0") +
                             NSLocalizedString(" g", comment: "gram of carbs")
                     )
                     .font(.system(size: 16, weight: .bold, design: .rounded))
@@ -538,7 +538,11 @@ extension Home {
                 if !state.tins {
                     Spacer()
                     Text(
-                        "TDD: " + (numberFormatter.string(from: (determination?.totalDailyDose ?? 0) as NSNumber) ?? "0") +
+                        "TDD: " +
+                            (
+                                numberFormatter
+                                    .string(from: (state.mostRecentDetermination?.totalDailyDose ?? 0) as NSNumber) ?? "0"
+                            ) +
                             NSLocalizedString(" U", comment: "Insulin unit")
                     )
                     .font(.system(size: 16, weight: .bold, design: .rounded))
@@ -822,7 +826,7 @@ extension Home {
             ZStack(alignment: .bottom) {
                 TabView {
                     let carbsRequiredBadge: String? = {
-                        guard let carbsRequired = determination?.carbsRequired as? Decimal else { return nil }
+                        guard let carbsRequired = state.mostRecentDetermination?.carbsRequired as? Decimal else { return nil }
                         if carbsRequired > state.settingsManager.settings.carbsRequiredThreshold {
                             let numberAsNSNumber = NSDecimalNumber(decimal: carbsRequired)
                             let formattedNumber = numberFormatter.string(from: numberAsNSNumber) ?? ""
@@ -885,21 +889,17 @@ extension Home {
             VStack(alignment: .leading, spacing: 4) {
                 Text(statusTitle).font(.headline).foregroundColor(.white)
                     .padding(.bottom, 4)
-                if let determinationObjectID = state.determinationsFromPersistence.first {
-                    if let determination = CoreDataStack.shared.backgroundContext
-                        .object(with: determinationObjectID) as? OrefDetermination
-                    {
-                        if determination.glucose == 400 {
-                            Text("Invalid CGM reading (HIGH).").font(.callout).bold().foregroundColor(.loopRed).padding(.top, 8)
-                            Text("SMBs and High Temps Disabled.").font(.caption).foregroundColor(.white).padding(.bottom, 4)
-                        } else {
-                            TagCloudView(tags: determination.reasonParts).animation(.none, value: false)
-
-                            Text(determination.reasonConclusion.capitalizingFirstLetter()).font(.caption).foregroundColor(.white)
-                        }
+                if let determination = state.determinationsFromCoreData.first {
+                    if determination.glucose == 400 {
+                        Text("Invalid CGM reading (HIGH).").font(.callout).bold().foregroundColor(.loopRed).padding(.top, 8)
+                        Text("SMBs and High Temps Disabled.").font(.caption).foregroundColor(.white).padding(.bottom, 4)
                     } else {
-                        Text("No determination found").font(.body).foregroundColor(.white)
+                        TagCloudView(tags: determination.reasonParts).animation(.none, value: false)
+
+                        Text(determination.reasonConclusion.capitalizingFirstLetter()).font(.caption).foregroundColor(.white)
                     }
+                } else {
+                    Text("No determination found").font(.body).foregroundColor(.white)
                 }
 
                 if let errorMessage = state.errorMessage, let date = state.errorDate {
@@ -914,17 +914,13 @@ extension Home {
         }
 
         private func setStatusTitle() {
-            if let determinationObjectID = state.determinationsFromPersistence.first {
-                if let determination = CoreDataStack.shared.backgroundContext
-                    .object(with: determinationObjectID) as? OrefDetermination
-                {
-                    let dateFormatter = DateFormatter()
-                    dateFormatter.timeStyle = .short
-                    statusTitle = NSLocalizedString("Oref Determination enacted at", comment: "Headline in enacted pop up") +
-                        " " +
-                        dateFormatter
-                        .string(from: determination.deliverAt ?? Date())
-                }
+            if let determination = state.determinationsFromCoreData.first {
+                let dateFormatter = DateFormatter()
+                dateFormatter.timeStyle = .short
+                statusTitle = NSLocalizedString("Oref Determination enacted at", comment: "Headline in enacted pop up") +
+                    " " +
+                    dateFormatter
+                    .string(from: determination.deliverAt ?? Date())
             } else {
                 statusTitle = "No Oref determination"
                 return

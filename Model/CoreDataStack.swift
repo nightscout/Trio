@@ -159,6 +159,52 @@ class CoreDataStack: ObservableObject {
         }
     }
 
+    // fetch and only return a NSManagedObjectID
+    func fetchNSManagedObjectID<T: NSManagedObject>(
+        ofType type: T.Type,
+        predicate: NSPredicate,
+        key: String,
+        ascending: Bool,
+        fetchLimit: Int? = nil,
+        batchSize: Int? = nil,
+        propertiesToFetch: [String]? = nil,
+        callingFunction: String = #function,
+        callingClass: String = #fileID,
+        completion: @escaping ([NSManagedObjectID]) -> Void
+    ) {
+        let request = NSFetchRequest<NSManagedObjectID>(entityName: String(describing: type))
+        request.sortDescriptors = [NSSortDescriptor(key: key, ascending: ascending)]
+        request.predicate = predicate
+        request.resultType = .managedObjectIDResultType
+        if let limit = fetchLimit {
+            request.fetchLimit = limit
+        }
+        if let batchSize = batchSize {
+            request.fetchBatchSize = batchSize
+        }
+        if let propertiesToFetch = propertiesToFetch {
+            request.propertiesToFetch = propertiesToFetch
+        }
+
+        // Perform fetch in the background
+        backgroundContext.perform {
+            var result: [NSManagedObjectID]?
+
+            do {
+                debugPrint(
+                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.succeeded) on thread \(Thread.current)"
+                )
+                result = try self.backgroundContext.fetch(request)
+            } catch let error as NSError {
+                debugPrint(
+                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.failed) \(error) on thread \(Thread.current)"
+                )
+            }
+
+            completion(result ?? [])
+        }
+    }
+
     // MARK: - Save
 
     //

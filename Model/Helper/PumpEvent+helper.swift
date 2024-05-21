@@ -110,7 +110,11 @@ enum PumpEventDTO: Encodable {
 
 // Extension with helper functions to map pump events to DTO objects via uniform masking enum
 extension PumpEventStored {
-    static let dateFormatter = ISO8601DateFormatter()
+    static let dateFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
 
     func toBolusDTOEnum() -> PumpEventDTO? {
         guard let id = id, let timestamp = timestamp, let bolus = bolus, let amount = bolus.amount else {

@@ -158,7 +158,7 @@ struct MainChartView: View {
                         yAxisChartData()
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }
-                    .onChange(of: state.determinationsFromPersistence) { _ in
+                    .onChange(of: state.determinationsFromCoreData) { _ in
                         updateStartEndMarkers()
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }
@@ -500,7 +500,10 @@ extension MainChartView {
     }
 
     private func preprocessForecastData() -> [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] {
-        state.determinationsFromPersistence
+        state.determinationsFromCoreData
+            .compactMap { determination -> NSManagedObjectID? in
+                determination.objectID
+            }
             .flatMap { determinationID -> [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] in
                 let context = CoreDataStack.shared.viewContext
                 let forecasts = getForecasts(for: determinationID, in: context)

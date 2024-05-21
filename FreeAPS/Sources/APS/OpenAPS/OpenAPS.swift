@@ -90,24 +90,44 @@ final class OpenAPS {
     }
 
     // fetch glucose to pass it to the meal function and to determine basal
-    private func fetchGlucose() -> [GlucoseStored]? {
-        CoreDataStack.shared.fetchEntities(
-            ofType: GlucoseStored.self,
-            predicate: NSPredicate.predicateForSixHoursAgo,
-            key: "date",
-            ascending: false,
-            fetchLimit: 72,
-            batchSize: 24
-        )
+    private func fetchAndProcessGlucose() -> String {
+        var glucoseAsJSON: String?
+
+        context.performAndWait {
+            let results = CoreDataStack.shared.fetchEntities(
+                ofType: GlucoseStored.self,
+                predicate: NSPredicate.predicateForSixHoursAgo,
+                key: "date",
+                ascending: false,
+                fetchLimit: 72,
+                batchSize: 24
+            )
+
+            // convert to json
+            glucoseAsJSON = self.jsonConverter.convertToJSON(results)
+        }
+
+        return glucoseAsJSON ?? "{}"
     }
 
-    private func fetchCarbs() -> [CarbEntryStored]? {
-        CoreDataStack.shared.fetchEntities(
-            ofType: CarbEntryStored.self,
-            predicate: NSPredicate.predicateForOneDayAgo,
-            key: "date",
-            ascending: false
-        )
+    private func fetchAndProcessCarbs() -> String {
+        // perform fetch AND conversion on the same thread
+        // if we do it like this we do not change the thread and do not have to pass the objectIDs
+        var carbsAsJSON: String?
+
+        context.performAndWait {
+            let results = CoreDataStack.shared.fetchEntities(
+                ofType: CarbEntryStored.self,
+                predicate: NSPredicate.predicateForOneDayAgo,
+                key: "date",
+                ascending: false
+            )
+
+            // convert to json
+            carbsAsJSON = self.jsonConverter.convertToJSON(results)
+        }
+
+        return carbsAsJSON ?? "{}"
     }
 
     private func fetchPumpHistoryObjectIDs() -> [NSManagedObjectID]? {
@@ -170,12 +190,10 @@ final class OpenAPS {
                 let pumpHistoryJSON = self.parsePumpHistory(pumpHistoryObjectIDs)
 
                 // carbs
-                let carbs = self.fetchCarbs()
-                let carbsString = self.jsonConverter.convertToJSON(carbs)
+                let carbsAsJSON = self.fetchAndProcessCarbs()
 
                 /// glucose
-                let glucose = self.fetchGlucose()
-                let glucoseString = self.jsonConverter.convertToJSON(glucose)
+                let glucoseAsJSON = self.fetchAndProcessGlucose()
 
                 /// profile
                 let profile = self.loadFileFromStorage(name: Settings.profile)
@@ -187,8 +205,8 @@ final class OpenAPS {
                     profile: profile,
                     basalProfile: basalProfile,
                     clock: pass,
-                    carbs: carbsString,
-                    glucose: glucoseString
+                    carbs: carbsAsJSON,
+                    glucose: glucoseAsJSON
                 )
                 self.storage.save(meal, as: Monitor.meal)
 
@@ -212,7 +230,7 @@ final class OpenAPS {
                 let oref2_variables = self.oref2()
 
                 let orefDetermination = self.determineBasal(
-                    glucose: glucoseString,
+                    glucose: glucoseAsJSON,
                     currentTemp: tempBasal,
                     iob: iob,
                     profile: profile,
@@ -459,22 +477,20 @@ final class OpenAPS {
                 let pumpHistoryJSON = self.parsePumpHistory(pumpHistoryObjectIDs)
 
                 // carbs
-                let carbs = self.fetchCarbs()
-                let carbsString = self.jsonConverter.convertToJSON(carbs)
+                let carbsAsJSON = self.fetchAndProcessCarbs()
 
                 /// glucose
-                let glucose = self.fetchGlucose()
-                let glucoseString = self.jsonConverter.convertToJSON(glucose)
+                let glucoseAsJSON = self.fetchAndProcessGlucose()
 
                 let profile = self.loadFileFromStorage(name: Settings.profile)
                 let basalProfile = self.loadFileFromStorage(name: Settings.basalProfile)
                 let tempTargets = self.loadFileFromStorage(name: Settings.tempTargets)
                 let autosensResult = self.autosense(
-                    glucose: glucoseString,
+                    glucose: glucoseAsJSON,
                     pumpHistory: pumpHistoryJSON,
                     basalprofile: basalProfile,
                     profile: profile,
-                    carbs: carbsString,
+                    carbs: carbsAsJSON,
                     temptargets: tempTargets
                 )
 
@@ -500,22 +516,20 @@ final class OpenAPS {
                 let pumpHistoryJSON = self.parsePumpHistory(pumpHistoryObjectIDs)
 
                 /// glucose
-                let glucose = self.fetchGlucose()
-                let glucoseString = self.jsonConverter.convertToJSON(glucose)
+                let glucoseAsJSON = self.fetchAndProcessGlucose()
 
                 let profile = self.loadFileFromStorage(name: Settings.profile)
                 let pumpProfile = self.loadFileFromStorage(name: Settings.pumpProfile)
 
                 // carbs
-                let carbs = self.fetchCarbs()
-                let carbsString = self.jsonConverter.convertToJSON(carbs)
+                let carbsAsJSON = self.fetchAndProcessCarbs()
 
                 let autotunePreppedGlucose = self.autotunePrepare(
                     pumphistory: pumpHistoryJSON,
                     profile: profile,
-                    glucose: glucoseString,
+                    glucose: glucoseAsJSON,
                     pumpprofile: pumpProfile,
-                    carbs: carbsString,
+                    carbs: carbsAsJSON,
                     categorizeUamAsBasal: categorizeUamAsBasal,
                     tuneInsulinCurve: tuneInsulinCurve
                 )

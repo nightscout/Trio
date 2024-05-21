@@ -104,11 +104,9 @@ extension Bolus {
 
         override func subscribe() {
             setupNotification()
-            Task {
-                await updateGlucose()
-                await updateDetermination()
-                await setupInsulinRequired()
-            }
+            updateGlucose()
+            updateDetermination()
+
             broadcaster.register(DeterminationObserver.self, observer: self)
             broadcaster.register(BolusFailureObserver.self, observer: self)
             units = settingsManager.settings.units
@@ -212,65 +210,59 @@ extension Bolus {
             let determinationUpdates = objects.filter { $0 is OrefDetermination }
 
             if glucoseUpdates.isNotEmpty {
-                await updateGlucose()
+                updateGlucose()
             }
             if determinationUpdates.isNotEmpty {
-                await updateDetermination()
+                updateDetermination()
             }
         }
 
         // MARK: - Glucose
 
-        private func fetchGlucose() async -> [GlucoseStored] {
-            await withCheckedContinuation { continuation in
-                backgroundContext.perform {
-                    let results = CoreDataStack.shared.fetchEntities(
-                        ofType: GlucoseStored.self,
-                        predicate: NSPredicate.predicateFor30MinAgo,
-                        key: "date",
-                        ascending: false,
-                        fetchLimit: 3
-                    )
-                    continuation.resume(returning: results)
-                }
-            }
-        }
+        private func updateGlucose() {
+            CoreDataStack.shared.fetchEntitiesAndUpdateUI(
+                ofType: GlucoseStored.self,
+                predicate: NSPredicate.predicateFor30MinAgo,
+                key: "date",
+                ascending: false,
+                fetchLimit: 3
+            ) { fetchedValues in
+                self.glucoseFromPersistence = fetchedValues
 
-        private func updateGlucose() async {
-            let results = await fetchGlucose()
-            await MainActor.run {
-                glucoseFromPersistence = results
-                let lastGlucose = glucoseFromPersistence.first?.glucose ?? 0
-                let thirdLastGlucose = glucoseFromPersistence.last?.glucose ?? 0
+                let lastGlucose = self.glucoseFromPersistence.first?.glucose ?? 0
+                let thirdLastGlucose = self.glucoseFromPersistence.last?.glucose ?? 0
                 let delta = Decimal(lastGlucose) - Decimal(thirdLastGlucose)
 
-                currentBG = Decimal(lastGlucose)
-                deltaBG = delta
-            }
-            await setupInsulinRequired()
-        }
-
-        private func fetchDetermination() async -> [OrefDetermination] {
-            await withCheckedContinuation { continuation in
-                backgroundContext.perform {
-                    let results = CoreDataStack.shared.fetchEntities(
-                        ofType: OrefDetermination.self,
-                        predicate: NSPredicate.enactedDetermination,
-                        key: "deliverAt",
-                        ascending: false,
-                        fetchLimit: 1
-                    )
-                    continuation.resume(returning: results)
-                }
+                self.currentBG = Decimal(lastGlucose)
+                self.deltaBG = delta
             }
         }
 
-        private func updateDetermination() async {
-            let results = await fetchDetermination()
-            await MainActor.run {
-                determination = results
+        private func updateDetermination() {
+            CoreDataStack.shared.fetchEntitiesAndUpdateUI(
+                ofType: OrefDetermination.self,
+                predicate: NSPredicate.enactedDetermination,
+                key: "deliverAt",
+                ascending: false,
+                fetchLimit: 1
+            ) { fetchedValues in
+                guard let mostRecentDetermination = fetchedValues.first else { return }
+                self.determination = fetchedValues
+
+                // setup vars for bolus calculation
+                self.insulinRequired = (mostRecentDetermination.insulinReq ?? 0) as Decimal
+                self.evBG = (mostRecentDetermination.eventualBG ?? 0) as Decimal
+                self.insulin = (mostRecentDetermination.insulinForManualBolus ?? 0) as Decimal
+                self.target = (mostRecentDetermination.currentTarget ?? 100) as Decimal
+                self.isf = (mostRecentDetermination.insulinSensitivity ?? 0) as Decimal
+                self.cob = mostRecentDetermination.cob as Int16
+                self.iob = (mostRecentDetermination.iob ?? 0) as Decimal
+                self.basal = (mostRecentDetermination.tempBasal ?? 0) as Decimal
+                self.carbRatio = (mostRecentDetermination.carbRatio ?? 0) as Decimal
+
+                self.getCurrentBasal()
+                self.insulinCalculated = self.calculateInsulin()
             }
-            await setupInsulinRequired()
         }
 
         // MARK: CALCULATIONS FOR THE BOLUS CALCULATOR
@@ -333,22 +325,6 @@ extension Bolus {
             }
 
             return apsManager.roundBolus(amount: insulinCalculated)
-        }
-
-        func setupInsulinRequired() async {
-            await MainActor.run {
-                self.insulinRequired = (self.determination.first?.insulinReq ?? 0) as Decimal
-                self.evBG = (self.determination.first?.eventualBG ?? 0) as Decimal
-                self.insulin = (self.determination.first?.insulinForManualBolus ?? 0) as Decimal
-                self.target = (self.determination.first?.currentTarget ?? 100) as Decimal
-                self.isf = (self.determination.first?.insulinSensitivity ?? 0) as Decimal
-                self.iob = (self.determination.first?.iob ?? 0) as Decimal
-                self.cob = (self.determination.first?.cob ?? 0) as Int16
-                self.basal = (self.determination.first?.tempBasal ?? 0) as Decimal
-                self.carbRatio = (self.determination.first?.carbRatio ?? 0) as Decimal
-                self.getCurrentBasal()
-                self.insulinCalculated = self.calculateInsulin()
-            }
         }
 
         // MARK: - Button tasks
@@ -664,9 +640,6 @@ extension Bolus.StateModel: DeterminationObserver, BolusFailureObserver {
             if self.addButtonPressed {
                 self.hideModal()
             }
-        }
-        Task {
-            await setupInsulinRequired()
         }
     }
 

@@ -57,6 +57,8 @@ extension GlucoseStored: Encodable {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
         let dateFormatter = ISO8601DateFormatter()
+        dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
         try container.encode(dateFormatter.string(from: date ?? Date()), forKey: .dateString)
 
         let dateAsUnixTimestamp = String(format: "%.0f", (date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000)
