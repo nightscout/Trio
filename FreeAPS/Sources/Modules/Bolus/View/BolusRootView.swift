@@ -87,14 +87,13 @@ extension Bolus {
                                     + NSLocalizedString("U", comment: "Insulin unit")
                                     + " "
                                     + NSLocalizedString("exceeded", comment: "")
-                            ) }
-                            .disabled(
-                                state.amount <= 0 || state.amount > state.maxBolus
-                            )
+                            ).font(.title3) }
+                            .disabled(state.amount <= 0 || state.amount > state.maxBolus)
                             .foregroundStyle(
                                 state.amount <= 0 ? .gray :
                                     state.amount > state.maxBolus ? .red : .blue
                             )
+                            .frame(maxWidth: .infinity, alignment: .center)
                     }
                     if waitForSuggestion {
                         Section {
