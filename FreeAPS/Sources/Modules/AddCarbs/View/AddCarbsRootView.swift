@@ -118,8 +118,24 @@ extension AddCarbs {
 
                 Section {
                     Button { state.add() }
-                    label: { Text("Save and continue").font(.title3) }
-                        .disabled(state.carbs <= 0 && state.fat <= 0 && state.protein <= 0)
+                    label: {
+                        Text(
+                            state.carbs <= state.maxCarbs ? NSLocalizedString("Save and continue", comment: "") :
+                                NSLocalizedString("Max Carbs of", comment: "")
+                                + " "
+                                + formatter.string(from: state.maxCarbs as NSNumber)!
+                                + NSLocalizedString("g", comment: "The short unit display string for grams")
+                                + " "
+                                + NSLocalizedString("exceeded", comment: "")
+                        ).font(.title3) }
+                        .disabled(
+                            state.carbs > state.maxCarbs
+                                || (state.carbs <= 0 && state.fat <= 0 && state.protein <= 0)
+                        )
+                        .foregroundStyle(
+                            (state.carbs <= 0 && state.fat <= 0 && state.protein <= 0) ? .gray :
+                                state.carbs > state.maxCarbs ? .red : .blue
+                        )
                         .frame(maxWidth: .infinity, alignment: .center)
                 } footer: { Text(state.waitersNotepad().description) }
 

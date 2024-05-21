@@ -81,14 +81,19 @@ extension Bolus {
                         label: {
                             Text(
                                 state.amount <= state.maxBolus ? NSLocalizedString("Enact bolus", comment: "") :
-                                    NSLocalizedString("Max Bolus exceeded!", comment: "")
-                                    + " (>"
+                                    NSLocalizedString("Max Bolus of", comment: "")
+                                    + " "
                                     + formatter.string(from: state.maxBolus as NSNumber)!
                                     + NSLocalizedString("U", comment: "Insulin unit")
-                                    + ")"
+                                    + " "
+                                    + NSLocalizedString("exceeded", comment: "")
                             ) }
                             .disabled(
                                 state.amount <= 0 || state.amount > state.maxBolus
+                            )
+                            .foregroundStyle(
+                                state.amount <= 0 ? .gray :
+                                    state.amount > state.maxBolus ? .red : .blue
                             )
                     }
                     if waitForSuggestion {
