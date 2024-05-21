@@ -110,9 +110,10 @@ class CoreDataStack: ObservableObject {
         callingClass: String = #fileID,
         completion: @escaping ([T]) -> Void
     ) {
-        let request = NSFetchRequest<T>(entityName: String(describing: type))
+        let request = NSFetchRequest<NSManagedObjectID>(entityName: String(describing: type))
         request.sortDescriptors = [NSSortDescriptor(key: key, ascending: ascending)]
         request.predicate = predicate
+        request.resultType = .managedObjectIDResultType
         if let limit = fetchLimit {
             request.fetchLimit = limit
         }
@@ -121,13 +122,13 @@ class CoreDataStack: ObservableObject {
         }
         if let propertiesToFetch = propertiesToFetch {
             request.propertiesToFetch = propertiesToFetch
-            request.resultType = .managedObjectResultType
-        } else {
-            request.resultType = .managedObjectResultType
         }
 
+        // perform fetch in the background
+        //
+        // the fetch returns a NSManagedObjectID which can be safely passed to the main queue because they are thread safe
         backgroundContext.perform {
-            var result: [T]?
+            var result: [NSManagedObjectID]?
 
             do {
                 debugPrint(
@@ -140,13 +141,16 @@ class CoreDataStack: ObservableObject {
                 )
             }
 
-            // Ensure that the fetch immediately returns a value
+            // change to the main queue to update UI
             DispatchQueue.main.async {
                 if let result = result {
                     debugPrint(
                         "Returning fetch result to main thread in \(callingFunction) from \(callingClass) on thread \(Thread.current)"
                     )
-                    completion(result)
+                    // Convert NSManagedObjectIDs to objects in the main context
+                    let mainContext = self.viewContext
+                    let mainContextObjects = result.compactMap { mainContext.object(with: $0) as? T }
+                    completion(mainContextObjects)
                 } else {
                     debugPrint("Fetch result is nil in \(callingFunction) from \(callingClass) on thread \(Thread.current)")
                     completion([])
