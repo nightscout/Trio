@@ -29,26 +29,11 @@ extension NightscoutConfig {
                         Text(
                             "Importing settings from Nightscout will overwrite these settings in Trio Settings -> Configuration:"
                         )
-                        HStack {
-                            Text("•")
-                            Text("DIA (Pump settings)")
-                        }
-                        HStack {
-                            Text("•")
-                            Text("Basal Profile")
-                        }
-                        HStack {
-                            Text("•")
-                            Text("Insulin Sensitivities")
-                        }
-                        HStack {
-                            Text("•")
-                            Text("Carb Ratios")
-                        }
-                        HStack {
-                            Text("•")
-                            Text("Target Glucose")
-                        }
+                        Text(" • ") + Text("DIA (Pump settings)")
+                        Text(" • ") + Text("Basal Profile")
+                        Text(" • ") + Text("Insulin Sensitivities")
+                        Text(" • ") + Text("Carb Ratios")
+                        Text(" • ") + Text("Target Glucose")
                     }
                 ) {
                     Button("Import settings") {
