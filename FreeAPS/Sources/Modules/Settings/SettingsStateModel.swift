@@ -14,7 +14,7 @@ extension Settings {
         @Published var debugOptions = false
         @Published var animatedBackground = false
         @Published var serviceUIType: ServiceUI.Type?
-        @Published var setupTidePool = false
+        @Published var setupTidepool = false
 
         private(set) var buildNumber = ""
         private(set) var versionNumber = ""
@@ -75,7 +75,7 @@ extension Settings.StateModel: SettingsObserver {
 extension Settings.StateModel: ServiceOnboardingDelegate {
     func serviceOnboarding(didCreateService service: Service) {
         debug(.nightscout, "Service with identifier \(service.pluginIdentifier) created")
-        provider.tidePoolManager.addTidePoolService(service: service)
+        provider.tidepoolManager.addTidepoolService(service: service)
     }
 
     func serviceOnboarding(didOnboardService service: Service) {
@@ -86,7 +86,7 @@ extension Settings.StateModel: ServiceOnboardingDelegate {
 
 extension Settings.StateModel: CompletionDelegate {
     func completionNotifyingDidComplete(_: CompletionNotifying) {
-        setupTidePool = false
-        provider.tidePoolManager.forceUploadData(device: fetchCgmManager.cgmManager?.cgmManagerStatus.device)
+        setupTidepool = false
+        provider.tidepoolManager.forceUploadData(device: fetchCgmManager.cgmManager?.cgmManagerStatus.device)
     }
 }

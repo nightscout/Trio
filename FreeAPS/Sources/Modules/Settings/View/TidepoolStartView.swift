@@ -1,7 +1,7 @@
 
 import SwiftUI
 
-struct TidePoolStartView: View {
+struct TidepoolStartView: View {
     @ObservedObject var state: Settings.StateModel
 
     var body: some View {
@@ -9,7 +9,7 @@ struct TidePoolStartView: View {
             Section {
                 Text("Connect to Tidepool")
                     .onTapGesture {
-                        state.setupTidePool = true
+                        state.setupTidepool = true
                     }
 
             } footer: {
@@ -18,18 +18,18 @@ struct TidePoolStartView: View {
                 )
             }
         }
-        .sheet(isPresented: $state.setupTidePool) {
+        .sheet(isPresented: $state.setupTidepool) {
             if let serviceUIType = state.serviceUIType,
-               let pluginHost = state.provider.tidePoolManager.getTidePoolPluginHost()
+               let pluginHost = state.provider.tidepoolManager.getTidepoolPluginHost()
             {
-                if let serviceUI = state.provider.tidePoolManager.getTidePoolServiceUI() {
-                    TidePoolSettingsView(
+                if let serviceUI = state.provider.tidepoolManager.getTidepoolServiceUI() {
+                    TidepoolSettingsView(
                         serviceUI: serviceUI,
                         serviceOnBoardDelegate: self.state,
                         serviceDelegate: self.state
                     )
                 } else {
-                    TidePoolSetupView(
+                    TidepoolSetupView(
                         serviceUIType: serviceUIType,
                         pluginHost: pluginHost,
                         serviceOnBoardDelegate: self.state,
