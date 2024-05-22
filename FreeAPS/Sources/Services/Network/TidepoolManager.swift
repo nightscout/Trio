@@ -54,7 +54,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
         }
     }
 
-    /// allows to acces to tidepoolService as a simple ServiceUI
+    /// allows access to tidepoolService as a simple ServiceUI
     func getTidepoolServiceUI() -> ServiceUI? {
         if let tidepoolService = self.tidepoolService {
             return tidepoolService as! any ServiceUI as ServiceUI
