@@ -443,7 +443,7 @@ extension PreferencesEditor {
                 ),
                 Field(
                     displayName: NSLocalizedString("Remaining Carbs Cap", comment: "Remaining Carbs Cap"),
-                    type: .decimal(keypath: \.remainingCarbsCap),
+                    type: .decimal(keypath: \.remainingCarbsCap, minVal: 90),
                     infoText: NSLocalizedString(
                         "This is the amount of the maximum number of carbs we’ll assume will absorb over 4h if we don’t yet see carb absorption.",
                         comment: "Remaining Carbs Cap"

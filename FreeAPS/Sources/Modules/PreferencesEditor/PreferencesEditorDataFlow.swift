@@ -11,7 +11,7 @@ enum PreferencesEditor {
 
     enum FieldType {
         case boolean(keypath: WritableKeyPath<Preferences, Bool>)
-        case decimal(keypath: WritableKeyPath<Preferences, Decimal>)
+        case decimal(keypath: WritableKeyPath<Preferences, Decimal>, minVal: Decimal? = nil, maxVal: Decimal? = nil)
         case insulinCurve(keypath: WritableKeyPath<Preferences, InsulinCurve>)
     }
 
@@ -34,7 +34,7 @@ enum PreferencesEditor {
         var decimalValue: Decimal {
             get {
                 switch type {
-                case let .decimal(keypath):
+                case let .decimal(keypath, _, _):
                     return settable?.get(keypath) ?? 0
                 default: return 0
                 }
@@ -57,8 +57,18 @@ enum PreferencesEditor {
             switch (type, value) {
             case let (.boolean(keypath), value as Bool):
                 settable?.set(keypath, value: value)
-            case let (.decimal(keypath), value as Decimal):
-                settable?.set(keypath, value: value)
+            case let (.decimal(keypath, minVal, maxVal), value as Decimal):
+                let constrainedValue: Decimal
+                if let minValue = minVal, let maxValue = maxVal {
+                    constrainedValue = min(max(value, minValue), maxValue)
+                } else if let minValue = minVal {
+                    constrainedValue = max(value, minValue)
+                } else if let maxValue = maxVal {
+                    constrainedValue = min(value, maxValue)
+                } else {
+                    constrainedValue = value
+                }
+                settable?.set(keypath, value: constrainedValue)
             case let (.insulinCurve(keypath), value as InsulinCurve):
                 settable?.set(keypath, value: value)
             default: break
