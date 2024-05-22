@@ -7,13 +7,11 @@ struct TidePoolStartView: View {
     var body: some View {
         Form {
             Section {
-                Text("Tidepool")
+                Text("Connect to Tidepool")
                     .onTapGesture {
                         state.setupTidePool = true
                     }
 
-            } header: {
-                Text("Connect to Tidepool")
             } footer: {
                 Text(
                     "When connected, uploading of carbs, bolus, basal and glucose from Trio to your Tidepool account is enabled. \n\nUse your Tidepool credentials to login. If you dont already have a Tidepool account, you can sign up for one on the login page."
