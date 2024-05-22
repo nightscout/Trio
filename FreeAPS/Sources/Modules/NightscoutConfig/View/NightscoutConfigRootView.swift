@@ -24,12 +24,34 @@ extension NightscoutConfig {
                 NavigationLink("Fetch and Remote Control", destination: NightscoutFetchView(state: state))
 
                 Section(
-                    header: Text("Import Settings"),
-                    footer: Text(
-                        "Importing settings from Nightscout will overwrite these settings in Trio Settings -> Configuration:\n • DIA (Pump settings)\n • Basal Profile\n • Insulin Sensitivities\n • Carb Ratios\n • Target Glucose"
-                    )
+                    header: Text("Import Settings from Nightscout"),
+                    footer: VStack(alignment: .leading, spacing: 2) {
+                        Text(
+                            "Importing settings from Nightscout will overwrite these settings in Trio Settings -> Configuration:"
+                        )
+                        HStack {
+                            Text("•")
+                            Text("DIA (Pump settings)")
+                        }
+                        HStack {
+                            Text("•")
+                            Text("Basal Profile")
+                        }
+                        HStack {
+                            Text("•")
+                            Text("Insulin Sensitivities")
+                        }
+                        HStack {
+                            Text("•")
+                            Text("Carb Ratios")
+                        }
+                        HStack {
+                            Text("•")
+                            Text("Target Glucose")
+                        }
+                    }
                 ) {
-                    Button("Import settings from Nightscout") {
+                    Button("Import settings") {
                         importAlert = Alert(
                             title: Text("Import settings?"),
                             message: Text(
