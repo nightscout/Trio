@@ -29,7 +29,7 @@ extension Settings {
                 Section {
                     Text("Nightscout").navigationLink(to: .nighscoutConfig, from: self)
 
-                    NavigationLink(destination: TidePoolStartView(state: state)) {
+                    NavigationLink(destination: TidepoolStartView(state: state)) {
                         Text("Tidepool")
                     }
                     if HKHealthStore.isHealthDataAvailable() {
