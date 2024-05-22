@@ -6,18 +6,20 @@ struct NightscoutUploadView: View {
 
     var body: some View {
         Form {
-            Section {
-                Toggle("Upload Treatments and Settings", isOn: $state.isUploadEnabled)
+            Section(
+                header: Text("Allow Uploading to Nightscout"),
+                footer: VStack(alignment: .leading, spacing: 2) {
+                    Text(
+                        "The Upload Treatments toggle enables uploading of carbs, temp targets, device status, preferences and settings."
+                    )
+                    Text("\nThe Upload Glucose toggle enables uploading of CGM readings.")
+                }
+            )
+                {
+                    Toggle("Upload Treatments and Settings", isOn: $state.isUploadEnabled)
 
-                Toggle("Upload Glucose", isOn: $state.uploadGlucose).disabled(!state.changeUploadGlucose)
-
-            } header: {
-                Text("Allow Uploading to Nightscout")
-            } footer: {
-                Text(
-                    "The Upload Treatments toggle enables uploading of carbs, temp targets, device status, preferences and settings.\n\nThe Upload Glucose enables uploading of CGM readings."
-                )
-            }
+                    Toggle("Upload Glucose", isOn: $state.uploadGlucose).disabled(!state.changeUploadGlucose)
+                }
         }
         .navigationTitle("Upload")
     }

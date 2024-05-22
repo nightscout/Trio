@@ -35,7 +35,7 @@ struct NightscoutConnectView: View {
                 }
             }
             Section {
-                Button("Connect") { state.connect() }
+                Button("Connect to Nightscout") { state.connect() }
                     .disabled(state.url.isEmpty || state.connecting)
                 Button("Delete") { state.delete() }.foregroundColor(.red).disabled(state.connecting)
             }

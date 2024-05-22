@@ -20,15 +20,33 @@ struct NightscoutFetchView: View {
                     "The Fetch Treatments toggle enables fetching of carbs and temp targets entered in Careportal or by another uploading device than Trio."
                 )
             }
-            Section {
-                Toggle("Remote Control", isOn: $state.allowAnnouncements)
-                    .disabled(!state.isDownloadEnabled)
-            } header: { Text("Allow Remote control of Trio")
-            } footer: {
-                Text(
-                    "Fetch Treatments needs to be allowed to be able to toggle on Remote Control.\n\nWhen enabled you allow these remote functions through announcements from Nightscout:\n • Suspend/Resume Pump\n • Opening/Closing Loop\n • Set Temp Basal\n • Enact Bolus."
-                )
-            }
+            Section(
+                header: Text("Allow Remote control of Trio"),
+                footer: VStack(alignment: .leading, spacing: 2) {
+                    Text("Fetch Treatments needs to be allowed to be able to toggle on Remote Control.")
+                    Text("\nWhen enabled you allow these remote functions through announcements from Nightscout:")
+                    HStack {
+                        Text("•")
+                        Text("Suspend/Resume Pump")
+                    }
+                    HStack {
+                        Text("•")
+                        Text("Opening/Closing Loop")
+                    }
+                    HStack {
+                        Text("•")
+                        Text("Set Temp Basal")
+                    }
+                    HStack {
+                        Text("•")
+                        Text("Enact Bolus")
+                    }
+                }
+            )
+                {
+                    Toggle("Remote Control", isOn: $state.allowAnnouncements)
+                        .disabled(!state.isDownloadEnabled)
+                }
         }
         .navigationTitle("Fetch and Remote")
     }
