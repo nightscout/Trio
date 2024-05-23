@@ -25,7 +25,7 @@ import Swinject
             "What is the value of the bolus amount in insulin units ?",
             table: "ShortcutsDetail"
         ))
-    ) var bolusQuantity: Double?
+    ) var bolusQuantity: Double
 
     @Parameter(
         title: LocalizedStringResource("Confirm Before applying", table: "ShortcutsDetail"),
@@ -47,14 +47,8 @@ import Swinject
 
     @MainActor func perform() async throws -> some ProvidesDialog {
         do {
-            guard let amount: Double = bolusQuantity else {
-                return .result(
-                    dialog: IntentDialog(LocalizedStringResource(
-                        "Amount not correctly defined",
-                        table: "ShortcutsDetail"
-                    ))
-                )
-            }
+            let amount: Double = bolusQuantity
+
             let bolusFormatted = amount.formatted()
             if confirmBeforeApplying {
                 let glucoseString: String = try bolusRequest.getLastBG() ?? "unknown"
