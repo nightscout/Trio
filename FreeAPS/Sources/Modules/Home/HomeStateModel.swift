@@ -350,7 +350,7 @@ extension Home {
             }
         }
 
-        /// Display the eventual statut message provided by the manager of the pump
+        /// Display the eventual status message provided by the manager of the pump
         /// Only display if state is warning or critical message else return nil
         private func displaypumpStatusHighlightMessage() {
             DispatchQueue.main.async { [weak self] in
