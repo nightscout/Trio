@@ -20,27 +20,27 @@ struct TidepoolStartView: View {
                 {
                     Button("Connect to Tidepool") { state.setupTidepool = true }
                 }
-                .sheet(isPresented: $state.setupTidepool) {
-                    if let serviceUIType = state.serviceUIType,
-                       let pluginHost = state.provider.tidepoolManager.getTidepoolPluginHost()
-                    {
-                        if let serviceUI = state.provider.tidepoolManager.getTidepoolServiceUI() {
-                            TidepoolSettingsView(
-                                serviceUI: serviceUI,
-                                serviceOnBoardDelegate: self.state,
-                                serviceDelegate: self.state
-                            )
-                        } else {
-                            TidepoolSetupView(
-                                serviceUIType: serviceUIType,
-                                pluginHost: pluginHost,
-                                serviceOnBoardDelegate: self.state,
-                                serviceDelegate: self.state
-                            )
-                        }
-                    }
-                }
                 .navigationTitle("Tidepool")
+        }
+        .sheet(isPresented: $state.setupTidepool) {
+            if let serviceUIType = state.serviceUIType,
+               let pluginHost = state.provider.tidepoolManager.getTidepoolPluginHost()
+            {
+                if let serviceUI = state.provider.tidepoolManager.getTidepoolServiceUI() {
+                    TidepoolSettingsView(
+                        serviceUI: serviceUI,
+                        serviceOnBoardDelegate: self.state,
+                        serviceDelegate: self.state
+                    )
+                } else {
+                    TidepoolSetupView(
+                        serviceUIType: serviceUIType,
+                        pluginHost: pluginHost,
+                        serviceOnBoardDelegate: self.state,
+                        serviceDelegate: self.state
+                    )
+                }
+            }
         }
     }
 }
