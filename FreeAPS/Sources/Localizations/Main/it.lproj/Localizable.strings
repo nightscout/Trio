@@ -357,10 +357,10 @@ Enact a temp Basal or a temp target */
 "Skip Bolus screen after carbs" = "Salta la schermata del Bolo dopo i carboidrati";
 
 /* Allow remote control from NS */
-"Remote control" = "Controllo remoto";
+"Remote Control" = "Controllo remoto";
 
 /* Imported Profiles Alert */
-"\nNow please verify all of your new settings thoroughly:\n\n* Basal Settings\n * Carb Ratios\n * Glucose Targets\n * Insulin Sensitivities\n * DIA\n\n in Trio Settings > Configuration.\n\nBad or invalid profile settings could have disatrous effects." = "\nOra verifica attentamente tutte le nuove impostazioni:\n\n* Impostazioni basali\n * Rapporti carboidrati\n * Obiettivi glucosio\n * Sensibilità insulinica\n * DIA\n\n in Impostazioni Trio > Configurazione.\n\nImpostazioni del profilo errate o non valide potrebbero avere effetti disastrosi.";
+"\nNow please verify all of your new settings thoroughly: \n\n • DIA (Pump settings)\n • Basal Profile\n • Insulin Sensitivities\n • Carb Ratios\n • Target Glucose\n\n in Trio Settings -> Configuration.\n\nBad or invalid profile settings could have disastrous effects." = "\nOra verifica attentamente tutte le nuove impostazioni:\n\n* Impostazioni basali\n * Rapporti carboidrati\n * Obiettivi glucosio\n * Sensibilità insulinica\n * DIA\n\n in Impostazioni Trio > Configurazione.\n\nImpostazioni del profilo errate o non valide potrebbero avere effetti disastrosi.";
 
 /* Profile Import Alert */
 "This will replace some or all of your current pump settings. Are you sure you want to import profile settings from Nightscout?" = "Questo sostituirà alcune o tutte le impostazioni attuali del microinfusore. Sei sicuro di voler importare le impostazioni del profilo da Nightscout?";

@@ -6,6 +6,7 @@ struct FreeAPSSettings: JSON, Equatable {
     var allowAnnouncements: Bool = false
     var useAutotune: Bool = false
     var isUploadEnabled: Bool = false
+    var isDownloadEnabled: Bool = false
     var useLocalGlucoseSource: Bool = false
     var localGlucosePort: Int = 8080
     var debugOptions: Bool = false
@@ -71,6 +72,10 @@ extension FreeAPSSettings: Decodable {
 
         if let isUploadEnabled = try? container.decode(Bool.self, forKey: .isUploadEnabled) {
             settings.isUploadEnabled = isUploadEnabled
+        }
+
+        if let isDownloadEnabled = try? container.decode(Bool.self, forKey: .isDownloadEnabled) {
+            settings.isDownloadEnabled = isDownloadEnabled
         }
 
         if let useLocalGlucoseSource = try? container.decode(Bool.self, forKey: .useLocalGlucoseSource) {
