@@ -372,6 +372,7 @@ extension OverrideProfilesConfig {
                             .tint(.orange)
                             .frame(maxWidth: .infinity, alignment: .trailing)
                             .buttonStyle(BorderlessButtonStyle())
+                            .font(.callout)
                             .controlSize(.mini)
                             .disabled(unChanged())
                     }
