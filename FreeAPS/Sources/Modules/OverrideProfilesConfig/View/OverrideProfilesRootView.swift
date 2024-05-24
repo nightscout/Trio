@@ -86,7 +86,7 @@ extension OverrideProfilesConfig {
 
         @ViewBuilder private func nameSection(header: String) -> some View {
             Section {
-                TextField("Override preset name", text: $state.profileName)
+                TextField("Profile override name", text: $state.profileName)
             } header: {
                 Text(header)
             }
@@ -135,7 +135,7 @@ extension OverrideProfilesConfig {
                                     Button(role: .destructive) {
                                         removeProfile(at: IndexSet(integer: index))
                                     } label: {
-                                        Label("Ta bort", systemImage: "trash")
+                                        Label("Delete", systemImage: "trash")
                                     }
 
                                     Button {
@@ -143,31 +143,31 @@ extension OverrideProfilesConfig {
                                         state.profileName = preset.name ?? ""
                                         isEditSheetPresented = true
                                     } label: {
-                                        Label("Redigera", systemImage: "square.and.pencil")
+                                        Label("Edit", systemImage: "square.and.pencil")
                                     }.tint(.blue)
                                 }
                         }
                     }
-                    header: { Text("Activate preset override") }
+                    header: { Text("Activate profile override") }
                     footer: { VStack(alignment: .leading) {
-                        Text("Swipe left on a preset to edit or delete it.")
-                        Text("When you want to edit a preset:")
+                        Text("Swipe left on a profile to edit or delete it.")
+                        Text("When you want to edit a profile:")
                         HStack(alignment: .top) {
                             Text(" •")
                             Text(
-                                "First use the override configurator below and select the settings you want to include."
+                                "First use the profile configurator below and select the settings you want to include."
                             )
                         }
                         HStack(alignment: .top) {
                             Text(" •")
                             Text(
-                                "Then swipe left on the preset you want to change and click the edit symbol."
+                                "Then swipe left on the profile you want to change and click the edit symbol."
                             )
                         }
                         HStack(alignment: .top) {
                             Text(" •")
                             Text(
-                                "In the pop-up: Use the existing preset name or enter a new name and click save - Done!"
+                                "In the pop-up: Use the existing profile name or enter a new name and click save - Done!"
                             )
                         }
                     }
