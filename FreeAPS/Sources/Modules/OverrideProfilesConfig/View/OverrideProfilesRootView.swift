@@ -46,106 +46,88 @@ extension OverrideProfilesConfig {
 
         var presetPopover: some View {
             Form {
-                Section {
-                    TextField("Override preset name", text: $state.profileName)
-                } header: { Text("Enter a name") }
-
-                Section(header: Text("Settings to save")) {
-                    let percentString = Text("Override: \(Int(state.percentage))%")
-                    let targetString = state
-                        .target != 0 ? Text("Target: \(state.target.formatted()) \(state.units.rawValue)") :
-                        Text("")
-                    let durationString = state
-                        ._indefinite ? Text("Duration: Indefinite") :
-                        Text("Duration: \(state.duration.formatted()) minutes")
-                    let isfString = state.isf ? Text("Change ISF") : Text("")
-                    let crString = state.cr ? Text("Change CR") : Text("")
-                    let smbString = state.smbIsOff ? Text("Disable SMB") : Text("")
-                    let scheduledSMBString = state.smbIsScheduledOff ? Text("SMB Schedule On") : Text("")
-                    let maxMinutesSMBString = state
-                        .smbMinutes != 0 ? Text("\(state.smbMinutes.formatted()) SMB Basal minutes") :
-                        Text("")
-                    let maxMinutesUAMString = state
-                        .uamMinutes != 0 ? Text("\(state.uamMinutes.formatted()) UAM Basal minutes") :
-                        Text("")
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        percentString
-                        if targetString != Text("") { targetString }
-                        if durationString != Text("") { durationString }
-                        if isfString != Text("") { isfString }
-                        if crString != Text("") { crString }
-                        if smbString != Text("") { smbString }
-                        if scheduledSMBString != Text("") { scheduledSMBString }
-                        if maxMinutesSMBString != Text("") { maxMinutesSMBString }
-                        if maxMinutesUAMString != Text("") { maxMinutesUAMString }
-                    }
-                    .foregroundColor(.secondary)
-                    .font(.caption)
-                }
-
-                Section {
-                    Button("Save") {
+                nameSection(header: "Enter a name")
+                settingsSection(header: "Settings to save")
+                actionButtons(
+                    saveAction: {
                         state.savePreset()
                         isSheetPresented = false
-                    }
-                    .disabled(state.profileName.isEmpty || fetchedProfiles.filter({ $0.name == state.profileName }).isNotEmpty)
-
-                    Button("Cancel") {
+                    },
+                    cancelAction: {
                         isSheetPresented = false
                     }
-                }
+                )
             }
         }
 
         var editPresetPopover: some View {
             Form {
-                Section {
-                    TextField("Override preset name", text: $state.profileName)
-                } header: { Text("Keep or change name?") }
-
-                Section(header: Text("New settings to save")) {
-                    let percentString = Text("Override: \(Int(state.percentage))%")
-                    let targetString = state
-                        .target != 0 ? Text("Target: \(state.target.formatted()) \(state.units.rawValue)") : Text("")
-                    let durationString = state
-                        ._indefinite ? Text("Duration: Indefinite") : Text("Duration: \(state.duration.formatted()) minutes")
-                    let isfString = state.isf ? Text("Change ISF") : Text("")
-                    let crString = state.cr ? Text("Change CR") : Text("")
-                    let smbString = state.smbIsOff ? Text("Disable SMB") : Text("")
-                    let scheduledSMBString = state.smbIsScheduledOff ? Text("SMB Schedule On") : Text("")
-                    let maxMinutesSMBString = state
-                        .smbMinutes != 0 ? Text("\(state.smbMinutes.formatted()) SMB Basal minutes") : Text("")
-                    let maxMinutesUAMString = state
-                        .uamMinutes != 0 ? Text("\(state.uamMinutes.formatted()) UAM Basal minutes") : Text("")
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        percentString
-                        if targetString != Text("") { targetString }
-                        if durationString != Text("") { durationString }
-                        if isfString != Text("") { isfString }
-                        if crString != Text("") { crString }
-                        if smbString != Text("") { smbString }
-                        if scheduledSMBString != Text("") { scheduledSMBString }
-                        if maxMinutesSMBString != Text("") { maxMinutesSMBString }
-                        if maxMinutesUAMString != Text("") { maxMinutesUAMString }
-                    }
-                    .foregroundColor(.secondary)
-                    .font(.caption)
-                }
-
-                Section {
-                    Button("Save") {
+                nameSection(header: "Keep or change name?")
+                settingsSection(header: "New settings to save")
+                actionButtons(
+                    saveAction: {
                         guard let selectedPreset = selectedPreset else { return }
                         state.updatePreset(selectedPreset)
                         isEditSheetPresented = false
-                    }
-                    .disabled(state.profileName.isEmpty)
-
-                    Button("Cancel") {
+                    },
+                    cancelAction: {
                         isEditSheetPresented = false
                     }
+                )
+            }
+        }
+
+        @ViewBuilder  private func nameSection(header: String) -> some View {
+            Section {
+                TextField("Override preset name", text: $state.profileName)
+            } header: {
+                Text(header)
+            }
+        }
+
+        @ViewBuilder  private func settingsSection(header: String) -> some View {
+            Section(header: Text(header)) {
+                let percentString = Text("Override: \(Int(state.percentage))%")
+                let targetString = state
+                    .target != 0 ? Text("Target: \(state.target.formatted()) \(state.units.rawValue)") : Text("")
+                let durationString = state
+                    ._indefinite ? Text("Duration: Indefinite") : Text("Duration: \(state.duration.formatted()) minutes")
+                let isfString = state.isf ? Text("Change ISF") : Text("")
+                let crString = state.cr ? Text("Change CR") : Text("")
+                let smbString = state.smbIsOff ? Text("Disable SMB") : Text("")
+                let scheduledSMBString = state.smbIsScheduledOff ? Text("SMB Schedule On") : Text("")
+                let maxMinutesSMBString = state
+                    .smbMinutes != 0 ? Text("\(state.smbMinutes.formatted()) SMB Basal minutes") : Text("")
+                let maxMinutesUAMString = state
+                    .uamMinutes != 0 ? Text("\(state.uamMinutes.formatted()) UAM Basal minutes") : Text("")
+
+                VStack(alignment: .leading, spacing: 2) {
+                    percentString
+                    if targetString != Text("") { targetString }
+                    if durationString != Text("") { durationString }
+                    if isfString != Text("") { isfString }
+                    if crString != Text("") { crString }
+                    if smbString != Text("") { smbString }
+                    if scheduledSMBString != Text("") { scheduledSMBString }
+                    if maxMinutesSMBString != Text("") { maxMinutesSMBString }
+                    if maxMinutesUAMString != Text("") { maxMinutesUAMString }
                 }
+                .foregroundColor(.secondary)
+                .font(.caption)
+            }
+        }
+
+        @ViewBuilder  private func actionButtons(
+            saveAction: @escaping () -> Void,
+            cancelAction: @escaping () -> Void
+        ) -> some View {
+            Section {
+                Button("Save", action: saveAction)
+                    .disabled(
+                        state.profileName.isEmpty || fetchedProfiles.filter { $0.name == state.profileName }
+                            .isNotEmpty
+                    )
+                Button("Cancel", action: cancelAction)
             }
         }
 
