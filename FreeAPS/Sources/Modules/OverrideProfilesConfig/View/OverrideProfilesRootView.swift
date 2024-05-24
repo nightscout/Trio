@@ -1,3 +1,4 @@
+import CoreData
 import SwiftUI
 import Swinject
 
@@ -9,10 +10,21 @@ extension OverrideProfilesConfig {
         @State private var isEditing = false
         @State private var showAlert = false
         @State private var showingDetail = false
+        @State private var alertString = ""
+        @State private var selectedPreset: OverridePresets?
+        @State private var isEditSheetPresented: Bool = false
         @State private var alertSring = ""
         @State var isSheetPresented: Bool = false
 
         @Environment(\.dismiss) var dismiss
+        @Environment(\.managedObjectContext) var moc
+
+        @FetchRequest(
+            entity: OverridePresets.entity(),
+            sortDescriptors: [NSSortDescriptor(key: "name", ascending: true)], predicate: NSPredicate(
+                format: "name != %@", "" as String
+            )
+        ) var fetchedProfiles: FetchedResults<OverridePresets>
 
         private var formatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -35,18 +47,103 @@ extension OverrideProfilesConfig {
         var presetPopover: some View {
             Form {
                 Section {
-                    TextField("Name Of Profile", text: $state.profileName)
-                } header: { Text("Enter Name of Profile") }
+                    TextField("Override preset name", text: $state.profileName)
+                } header: { Text("Enter a name") }
+
+                Section(header: Text("Settings to save")) {
+                    let percentString = Text("Override: \(Int(state.percentage))%")
+                    let targetString = state
+                        .target != 0 ? Text("Target: \(state.target.formatted()) \(state.units.rawValue)") :
+                        Text("")
+                    let durationString = state
+                        ._indefinite ? Text("Duration: Indefinite") :
+                        Text("Duration: \(state.duration.formatted()) minutes")
+                    let isfString = state.isf ? Text("Change ISF") : Text("")
+                    let crString = state.cr ? Text("Change CR") : Text("")
+                    let smbString = state.smbIsOff ? Text("Disable SMB") : Text("")
+                    let scheduledSMBString = state.smbIsScheduledOff ? Text("SMB Schedule On") : Text("")
+                    let maxMinutesSMBString = state
+                        .smbMinutes != 0 ? Text("\(state.smbMinutes.formatted()) SMB Basal minutes") :
+                        Text("")
+                    let maxMinutesUAMString = state
+                        .uamMinutes != 0 ? Text("\(state.uamMinutes.formatted()) UAM Basal minutes") :
+                        Text("")
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        percentString
+                        if targetString != Text("") { targetString }
+                        if durationString != Text("") { durationString }
+                        if isfString != Text("") { isfString }
+                        if crString != Text("") { crString }
+                        if smbString != Text("") { smbString }
+                        if scheduledSMBString != Text("") { scheduledSMBString }
+                        if maxMinutesSMBString != Text("") { maxMinutesSMBString }
+                        if maxMinutesUAMString != Text("") { maxMinutesUAMString }
+                    }
+                    .foregroundColor(.secondary)
+                    .font(.caption)
+                }
 
                 Section {
                     Button("Save") {
                         state.savePreset()
                         isSheetPresented = false
                     }
-                    .disabled(state.profileName.isEmpty || state.presets.filter({ $0.name == state.profileName }).isNotEmpty)
+                    .disabled(state.profileName.isEmpty || fetchedProfiles.filter({ $0.name == state.profileName }).isNotEmpty)
 
                     Button("Cancel") {
                         isSheetPresented = false
+                    }
+                }
+            }
+        }
+
+        var editPresetPopover: some View {
+            Form {
+                Section {
+                    TextField("Override preset name", text: $state.profileName)
+                } header: { Text("Keep or change name?") }
+
+                Section(header: Text("New settings to save")) {
+                    let percentString = Text("Override: \(Int(state.percentage))%")
+                    let targetString = state
+                        .target != 0 ? Text("Target: \(state.target.formatted()) \(state.units.rawValue)") : Text("")
+                    let durationString = state
+                        ._indefinite ? Text("Duration: Indefinite") : Text("Duration: \(state.duration.formatted()) minutes")
+                    let isfString = state.isf ? Text("Change ISF") : Text("")
+                    let crString = state.cr ? Text("Change CR") : Text("")
+                    let smbString = state.smbIsOff ? Text("Disable SMB") : Text("")
+                    let scheduledSMBString = state.smbIsScheduledOff ? Text("SMB Schedule On") : Text("")
+                    let maxMinutesSMBString = state
+                        .smbMinutes != 0 ? Text("\(state.smbMinutes.formatted()) SMB Basal minutes") : Text("")
+                    let maxMinutesUAMString = state
+                        .uamMinutes != 0 ? Text("\(state.uamMinutes.formatted()) UAM Basal minutes") : Text("")
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        percentString
+                        if targetString != Text("") { targetString }
+                        if durationString != Text("") { durationString }
+                        if isfString != Text("") { isfString }
+                        if crString != Text("") { crString }
+                        if smbString != Text("") { smbString }
+                        if scheduledSMBString != Text("") { scheduledSMBString }
+                        if maxMinutesSMBString != Text("") { maxMinutesSMBString }
+                        if maxMinutesUAMString != Text("") { maxMinutesUAMString }
+                    }
+                    .foregroundColor(.secondary)
+                    .font(.caption)
+                }
+
+                Section {
+                    Button("Save") {
+                        guard let selectedPreset = selectedPreset else { return }
+                        state.updatePreset(selectedPreset)
+                        isEditSheetPresented = false
+                    }
+                    .disabled(state.profileName.isEmpty)
+
+                    Button("Cancel") {
+                        isEditSheetPresented = false
                     }
                 }
             }
@@ -56,9 +153,49 @@ extension OverrideProfilesConfig {
             Form {
                 if state.presets.isNotEmpty {
                     Section {
-                        ForEach(state.presets) { preset in
+                        ForEach(fetchedProfiles.indices, id: \.self) { index in
+                            let preset = fetchedProfiles[index]
                             profilesView(for: preset)
-                        }.onDelete(perform: removeProfile)
+                                .swipeActions {
+                                    Button(role: .destructive) {
+                                        removeProfile(at: IndexSet(integer: index))
+                                    } label: {
+                                        Label("Ta bort", systemImage: "trash")
+                                    }
+
+                                    Button {
+                                        selectedPreset = preset
+                                        state.profileName = preset.name ?? ""
+                                        isEditSheetPresented = true
+                                    } label: {
+                                        Label("Redigera", systemImage: "square.and.pencil")
+                                    }.tint(.blue)
+                                }
+                        }
+                    }
+                    header: { Text("Activate preset override") }
+                    footer: { VStack(alignment: .leading) {
+                        Text("Swipe left on a preset to edit or delete it.")
+                        Text("When you want to edit a preset:")
+                        HStack(alignment: .top) {
+                            Text(" •")
+                            Text(
+                                "First use the override configurator below and select the settings you want to include."
+                            )
+                        }
+                        HStack(alignment: .top) {
+                            Text(" •")
+                            Text(
+                                "Then swipe left on the preset you want to change and click the edit symbol."
+                            )
+                        }
+                        HStack(alignment: .top) {
+                            Text(" •")
+                            Text(
+                                "In the pop-up: Use the existing preset name or enter a new name and click save - Done!"
+                            )
+                        }
+                    }
                     }
                 }
                 Section {
@@ -219,6 +356,7 @@ extension OverrideProfilesConfig {
                                 Button("Cancel", role: .cancel) { state.isEnabled = false }
                                 Button("Start Profile", role: .destructive) {
                                     if state._indefinite { state.duration = 0 }
+                                    state.isEnabled.toggle()
                                     state.saveSettings()
                                     dismiss()
                                 }
@@ -263,24 +401,27 @@ extension OverrideProfilesConfig {
             .navigationBarTitle("Profiles")
             .navigationBarTitleDisplayMode(.automatic)
             .navigationBarItems(leading: Button("Close", action: state.hideModal))
+            .sheet(isPresented: $isEditSheetPresented) {
+                editPresetPopover
+                    .padding()
+            }
         }
 
-        @ViewBuilder private func profilesView(for preset: OverrideProfil) -> some View {
-            let target = state.units == .mmolL ? (preset.target ?? 0).asMmolL : preset.target ?? 0
-            let duration = preset.duration ?? 0
+        @ViewBuilder private func profilesView(for preset: OverridePresets) -> some View {
+            let target = state.units == .mmolL ? (((preset.target ?? 0) as NSDecimalNumber) as Decimal)
+                .asMmolL : (preset.target ?? 0) as Decimal
+            let duration = (preset.duration ?? 0) as Decimal
             let name = ((preset.name ?? "") == "") || (preset.name?.isEmpty ?? true) ? "" : preset.name!
-            let percent = (preset.percentage ?? 100) / 100
-            let perpetual = preset.indefinite ?? false
+            let percent = preset.percentage / 100
+            let perpetual = preset.indefinite
             let durationString = perpetual ? "" : "\(formatter.string(from: duration as NSNumber)!)"
-            let scheduledSMBstring = ((preset.smbIsOff ?? false) && (preset.smbIsScheduledOff ?? false)) ? "Scheduled SMBs" : ""
-            let smbString = ((preset.smbIsOff ?? false) && scheduledSMBstring == "") ? "SMBs are off" : ""
+            let scheduledSMBstring = (preset.smbIsOff && preset.smbIsScheduledOff) ? "Scheduled SMBs" : ""
+            let smbString = (preset.smbIsOff && scheduledSMBstring == "") ? "SMBs are off" : ""
             let targetString = target != 0 ? "\(glucoseFormatter.string(from: target as NSNumber)!)" : ""
-            let eventualSmbMinutes = preset.smbMinutes != nil && preset.smbMinutes != state.defaultSmbMinutes ? preset
-                .smbMinutes : nil
-            let eventualUamMinutes = preset.uamMinutes != nil && preset.uamMinutes != state.defaultUamMinutes ? preset
-                .uamMinutes : nil
-            let isfString = (preset.isf ?? false) ? "ISF" : ""
-            let crString = (preset.cr ?? false) ? "CR" : ""
+            let maxMinutesSMB = (preset.smbMinutes as Decimal?) != nil ? (preset.smbMinutes ?? 0) as Decimal : 0
+            let maxMinutesUAM = (preset.uamMinutes as Decimal?) != nil ? (preset.uamMinutes ?? 0) as Decimal : 0
+            let isfString = preset.isf ? "ISF" : ""
+            let crString = preset.cr ? "CR" : ""
             let dash = crString != "" ? "/" : ""
             let isfAndCRstring = isfString + dash + crString
 
@@ -300,9 +441,9 @@ extension OverrideProfilesConfig {
                             if durationString != "" { Text(durationString + (perpetual ? "" : "min")) }
                             if smbString != "" { Text(smbString).foregroundColor(.secondary).font(.caption) }
                             if scheduledSMBstring != "" { Text(scheduledSMBstring) }
-                            if let advanced = preset.advancedSettings, advanced {
-                                Text(eventualSmbMinutes == nil ? "" : eventualSmbMinutes!.formatted() + "min SMB")
-                                Text(eventualUamMinutes == nil ? "" : eventualUamMinutes!.formatted() + "min UAM")
+                            if preset.advancedSettings {
+                                Text(maxMinutesSMB == 0 ? "" : maxMinutesSMB.formatted() + " SMB")
+                                Text(maxMinutesUAM == 0 ? "" : maxMinutesUAM.formatted() + " UAM")
                                 Text(isfAndCRstring)
                             }
                             Spacer()
@@ -313,7 +454,7 @@ extension OverrideProfilesConfig {
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        state.selectProfile(id_: preset.id)
+                        state.selectProfile(id_: preset.id ?? "")
                         state.hideModal()
                     }
                 }
@@ -332,7 +473,13 @@ extension OverrideProfilesConfig {
 
         private func removeProfile(at offsets: IndexSet) {
             for index in offsets {
-                state.removeOverrideProfile(presetId: state.presets[index].id)
+                let language = fetchedProfiles[index]
+                moc.delete(language)
+            }
+            do {
+                try moc.save()
+            } catch {
+                // To do: add error
             }
         }
     }
