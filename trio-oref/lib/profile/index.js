@@ -77,7 +77,7 @@ function defaults ( ) {
     , tddAdjBasal: false // Enable adjustment of basal based on the ratio of 24 h : 10 day average TDD
     , enableSMB_high_bg: false // enable SMBs when a high BG is detected, based on the high BG target (adjusted or profile)
     , enableSMB_high_bg_target: 110 // set the value enableSMB_high_bg will compare against to enable SMB. If BG > than this value, SMBs should enable.
-    , threshold_setting: 0.60 // Use a configurable threshold setting
+    , threshold_setting: 60 // Use a configurable threshold setting
   }
 }
 
