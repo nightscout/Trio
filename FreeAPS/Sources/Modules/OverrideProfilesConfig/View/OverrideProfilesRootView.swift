@@ -48,15 +48,20 @@ extension OverrideProfilesConfig {
             Form {
                 nameSection(header: "Enter a name")
                 settingsSection(header: "Settings to save")
-                actionButtons(
-                    saveAction: {
+                Section {
+                    Button("Save") {
                         state.savePreset()
                         isSheetPresented = false
-                    },
-                    cancelAction: {
+                    }
+                    .disabled(
+                        state.profileName.isEmpty || fetchedProfiles
+                            .contains(where: { $0.name == state.profileName })
+                    )
+
+                    Button("Cancel") {
                         isSheetPresented = false
                     }
-                )
+                }
             }
         }
 
@@ -64,20 +69,22 @@ extension OverrideProfilesConfig {
             Form {
                 nameSection(header: "Keep or change name?")
                 settingsSection(header: "New settings to save")
-                actionButtons(
-                    saveAction: {
+                Section {
+                    Button("Save") {
                         guard let selectedPreset = selectedPreset else { return }
                         state.updatePreset(selectedPreset)
                         isEditSheetPresented = false
-                    },
-                    cancelAction: {
+                    }
+                    .disabled(state.profileName.isEmpty)
+
+                    Button("Cancel") {
                         isEditSheetPresented = false
                     }
-                )
+                }
             }
         }
 
-        @ViewBuilder  private func nameSection(header: String) -> some View {
+        @ViewBuilder private func nameSection(header: String) -> some View {
             Section {
                 TextField("Override preset name", text: $state.profileName)
             } header: {
@@ -85,7 +92,7 @@ extension OverrideProfilesConfig {
             }
         }
 
-        @ViewBuilder  private func settingsSection(header: String) -> some View {
+        @ViewBuilder private func settingsSection(header: String) -> some View {
             Section(header: Text(header)) {
                 let percentString = Text("Override: \(Int(state.percentage))%")
                 let targetString = state
@@ -114,20 +121,6 @@ extension OverrideProfilesConfig {
                 }
                 .foregroundColor(.secondary)
                 .font(.caption)
-            }
-        }
-
-        @ViewBuilder  private func actionButtons(
-            saveAction: @escaping () -> Void,
-            cancelAction: @escaping () -> Void
-        ) -> some View {
-            Section {
-                Button("Save", action: saveAction)
-                    .disabled(
-                        state.profileName.isEmpty || fetchedProfiles.filter { $0.name == state.profileName }
-                            .isNotEmpty
-                    )
-                Button("Cancel", action: cancelAction)
             }
         }
 
