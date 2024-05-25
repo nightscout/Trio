@@ -10,7 +10,6 @@ extension OverrideProfilesConfig {
         @State private var isEditing = false
         @State private var showAlert = false
         @State private var showingDetail = false
-        @State private var alertString = ""
         @State private var selectedPreset: OverridePresets?
         @State private var isEditSheetPresented: Bool = false
         @State private var alertSring = ""
