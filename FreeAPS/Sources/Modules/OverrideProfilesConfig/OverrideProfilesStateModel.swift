@@ -51,12 +51,29 @@ extension OverrideProfilesConfig {
             units = settingsManager.settings.units
             defaultSmbMinutes = settingsManager.preferences.maxSMBBasalMinutes
             defaultUamMinutes = settingsManager.preferences.maxUAMSMBBasalMinutes
-            presetsProfiles = [OverridePresets(context: coredataContext)]
+            presetsProfiles = initialFetchForProfilePresets()
             presetsTT = storage.presets()
             maxValue = settingsManager.preferences.autosensMax
         }
 
         let coredataContext = CoreDataStack.shared.persistentContainer.newBackgroundContext()
+
+        func initialFetchForProfilePresets() -> [OverridePresets] {
+            let fr = OverridePresets.fetchRequest()
+            fr.predicate = NSPredicate.predicateForOneDayAgo
+
+            var overrides: [OverridePresets] = []
+
+            coredataContext.perform {
+                do {
+                    overrides = try self.coredataContext.fetch(fr)
+                } catch let error as NSError {
+                    print(error.localizedDescription)
+                }
+            }
+
+            return overrides
+        }
 
         func saveSettings() {
             coredataContext.perform { [self] in
@@ -96,8 +113,8 @@ extension OverrideProfilesConfig {
                     saveOverride.uamMinutes = uamMinutes as NSDecimalNumber
                 }
                 do {
-                    guard self.coredataContext.hasChanges else { return }
-                    try self.coredataContext.save()
+                    guard coredataContext.hasChanges else { return }
+                    try coredataContext.save()
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -142,8 +159,8 @@ extension OverrideProfilesConfig {
                     saveOverride.uamMinutes = uamMinutes as NSDecimalNumber
                 }
                 do {
-                    guard self.coredataContext.hasChanges else { return }
-                    try self.coredataContext.save()
+                    guard coredataContext.hasChanges else { return }
+                    try coredataContext.save()
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -187,8 +204,8 @@ extension OverrideProfilesConfig {
                     saveOverride.uamMinutes = (profile.uamMinutes ?? 0) as NSDecimalNumber
                 }
                 do {
-                    guard self.coredataContext.hasChanges else { return }
-                    try self.coredataContext.save()
+                    guard coredataContext.hasChanges else { return }
+                    try coredataContext.save()
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -278,8 +295,8 @@ extension OverrideProfilesConfig {
                 profiles.enabled = false
                 profiles.date = Date()
                 do {
-                    guard self.coredataContext.hasChanges else { return }
-                    try self.coredataContext.save()
+                    guard coredataContext.hasChanges else { return }
+                    try coredataContext.save()
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -315,8 +332,8 @@ extension OverrideProfilesConfig {
                     saveToCoreData.active = false
                     saveToCoreData.date = Date()
                     do {
-                        guard self.coredataContext.hasChanges else { return }
-                        try self.coredataContext.save()
+                        guard coredataContext.hasChanges else { return }
+                        try coredataContext.save()
                     } catch {
                         print(error.localizedDescription)
                     }
@@ -351,8 +368,8 @@ extension OverrideProfilesConfig {
                 saveToCoreData.active = false
                 saveToCoreData.date = Date()
                 do {
-                    guard self.coredataContext.hasChanges else { return }
-                    try self.coredataContext.save()
+                    guard coredataContext.hasChanges else { return }
+                    try coredataContext.save()
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -361,8 +378,8 @@ extension OverrideProfilesConfig {
                 setHBT.enabled = false
                 setHBT.date = Date()
                 do {
-                    guard self.coredataContext.hasChanges else { return }
-                    try self.coredataContext.save()
+                    guard coredataContext.hasChanges else { return }
+                    try coredataContext.save()
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -410,8 +427,8 @@ extension OverrideProfilesConfig {
                     saveToCoreData.date = Date()
                     saveToCoreData.duration = durationTT as NSDecimalNumber
                     do {
-                        guard self.coredataContext.hasChanges else { return }
-                        try self.coredataContext.save()
+                        guard coredataContext.hasChanges else { return }
+                        try coredataContext.save()
                     } catch {
                         print(error.localizedDescription)
                     }
@@ -444,8 +461,8 @@ extension OverrideProfilesConfig {
                         saveToCoreData.duration = whichID?.duration ?? 0
 
                         do {
-                            guard self.coredataContext.hasChanges else { return }
-                            try self.coredataContext.save()
+                            guard coredataContext.hasChanges else { return }
+                            try coredataContext.save()
                         } catch {
                             print(error.localizedDescription)
                         }
@@ -454,8 +471,8 @@ extension OverrideProfilesConfig {
                         saveToCoreData.active = false
                         saveToCoreData.date = Date()
                         do {
-                            guard self.coredataContext.hasChanges else { return }
-                            try self.coredataContext.save()
+                            guard coredataContext.hasChanges else { return }
+                            try coredataContext.save()
                         } catch {
                             print(error.localizedDescription)
                         }
