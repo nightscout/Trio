@@ -134,15 +134,17 @@ final class OpenAPS {
     }
 
     private func fetchPumpHistoryObjectIDs() -> [NSManagedObjectID]? {
-        let results = CoreDataStack.shared.fetchEntities2(
-            ofType: PumpEventStored.self,
-            onContext: context,
-            predicate: NSPredicate.pumpHistoryLast24h,
-            key: "timestamp",
-            ascending: false,
-            batchSize: 50
-        )
-        return results.map(\.objectID)
+        context.performAndWait {
+            let results = CoreDataStack.shared.fetchEntities2(
+                ofType: PumpEventStored.self,
+                onContext: context,
+                predicate: NSPredicate.pumpHistoryLast24h,
+                key: "timestamp",
+                ascending: false,
+                batchSize: 50
+            )
+            return results.map(\.objectID)
+        }
     }
 
     private func parsePumpHistory(_ pumpHistoryObjectIDs: [NSManagedObjectID]) -> String {

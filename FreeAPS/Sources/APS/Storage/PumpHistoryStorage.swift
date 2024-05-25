@@ -103,7 +103,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newTempBasal.tempType = TempType.absolute.rawValue
 
                         do {
-                            try CoreDataStack.shared.saveContext()
+                            guard self.context.hasChanges else { return }
+                            try self.context.save()
                         } catch {
                             print(error.localizedDescription)
                         }
@@ -142,7 +143,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newPumpEvent.type = PumpEvent.pumpSuspend.rawValue
 
                         do {
-                            try CoreDataStack.shared.saveContext()
+                            guard self.context.hasChanges else { return }
+                            try self.context.save()
                         } catch {
                             print(error.localizedDescription)
                         }
@@ -169,7 +171,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newPumpEvent.type = PumpEvent.pumpResume.rawValue
 
                         do {
-                            try CoreDataStack.shared.saveContext()
+                            guard self.context.hasChanges else { return }
+                            try self.context.save()
                         } catch {
                             print(error.localizedDescription)
                         }

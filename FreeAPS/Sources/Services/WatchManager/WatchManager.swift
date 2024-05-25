@@ -83,8 +83,9 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
 
         context.performAndWait {
             let predicate = NSPredicate.predicateFor120MinAgo
-            let fetchedGlucose = CoreDataStack.shared.fetchEntities(
+            let fetchedGlucose = CoreDataStack.shared.fetchEntities2(
                 ofType: GlucoseStored.self,
+                onContext: context,
                 predicate: predicate,
                 key: "date",
                 ascending: false,

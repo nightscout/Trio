@@ -231,8 +231,9 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     ///
     func fetchGlucose() -> [GlucoseStored] {
         let predicate = NSPredicate.predicateForOneDayAgo
-        return CoreDataStack.shared.fetchEntities(
+        return CoreDataStack.shared.fetchEntities2(
             ofType: GlucoseStored.self,
+            onContext: coredataContext,
             predicate: predicate,
             key: "date",
             ascending: false,
@@ -255,8 +256,9 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
     func fetchLatestGlucose() -> GlucoseStored? {
         let predicate = NSPredicate.predicateFor20MinAgo
-        return CoreDataStack.shared.fetchEntities(
+        return CoreDataStack.shared.fetchEntities2(
             ofType: GlucoseStored.self,
+            onContext: coredataContext,
             predicate: predicate,
             key: "date",
             ascending: false,

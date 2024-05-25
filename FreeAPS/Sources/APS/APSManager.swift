@@ -328,63 +328,65 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     func determineBasal() -> AnyPublisher<Bool, Never> {
-        debug(.apsManager, "Start determine basal")
-        let glucose = fetchGlucose(predicate: NSPredicate.predicateFor30MinAgo, fetchLimit: 4)
-        guard glucose.count > 2 else {
-            debug(.apsManager, "Not enough glucose data")
-            processError(APSError.glucoseError(message: "Not enough glucose data"))
-            return Just(false).eraseToAnyPublisher()
-        }
-
-        let dateOfLastGlucose = glucose.first?.date
-        guard dateOfLastGlucose ?? Date() >= Date().addingTimeInterval(-12.minutes.timeInterval) else {
-            debug(.apsManager, "Glucose data is stale")
-            processError(APSError.glucoseError(message: "Glucose data is stale"))
-            return Just(false).eraseToAnyPublisher()
-        }
-
-        // Only let glucose be flat when 400 mg/dl
-        if (glucose.first?.glucose ?? 100) != 400 {
-            guard !GlucoseStored.glucoseIsFlat(glucose) else {
-                debug(.apsManager, "Glucose data is too flat")
-                processError(APSError.glucoseError(message: "Glucose data is too flat"))
+        privateContext.performAndWait {
+            debug(.apsManager, "Start determine basal")
+            let glucose = fetchGlucose(predicate: NSPredicate.predicateFor30MinAgo, fetchLimit: 4)
+            guard glucose.count > 2 else {
+                debug(.apsManager, "Not enough glucose data")
+                processError(APSError.glucoseError(message: "Not enough glucose data"))
                 return Just(false).eraseToAnyPublisher()
             }
-        }
 
-        let now = Date()
-        let temp = currentTemp(date: now)
+            let dateOfLastGlucose = glucose.first?.date
+            guard dateOfLastGlucose ?? Date() >= Date().addingTimeInterval(-12.minutes.timeInterval) else {
+                debug(.apsManager, "Glucose data is stale")
+                processError(APSError.glucoseError(message: "Glucose data is stale"))
+                return Just(false).eraseToAnyPublisher()
+            }
 
-        let mainPublisher = makeProfiles()
-            .flatMap { _ in self.autosens() }
-            .flatMap { _ in self.dailyAutotune() }
-            .flatMap { _ in self.openAPS.determineBasal(currentTemp: temp, clock: now) }
-            .map { determination -> Bool in
-                if let determination = determination {
-                    DispatchQueue.main.async {
-                        self.broadcaster.notify(DeterminationObserver.self, on: .main) {
-                            $0.determinationDidUpdate(determination)
+            // Only let glucose be flat when 400 mg/dl
+            if (glucose.first?.glucose ?? 100) != 400 {
+                guard !GlucoseStored.glucoseIsFlat(glucose) else {
+                    debug(.apsManager, "Glucose data is too flat")
+                    processError(APSError.glucoseError(message: "Glucose data is too flat"))
+                    return Just(false).eraseToAnyPublisher()
+                }
+            }
+
+            let now = Date()
+            let temp = currentTemp(date: now)
+
+            let mainPublisher = makeProfiles()
+                .flatMap { _ in self.autosens() }
+                .flatMap { _ in self.dailyAutotune() }
+                .flatMap { _ in self.openAPS.determineBasal(currentTemp: temp, clock: now) }
+                .map { determination -> Bool in
+                    if let determination = determination {
+                        DispatchQueue.main.async {
+                            self.broadcaster.notify(DeterminationObserver.self, on: .main) {
+                                $0.determinationDidUpdate(determination)
+                            }
                         }
                     }
+
+                    return determination != nil
                 }
-
-                return determination != nil
-            }
-            .eraseToAnyPublisher()
-
-        if temp.duration == 0,
-           settings.closedLoop,
-           settingsManager.preferences.unsuspendIfNoTemp,
-           let pump = pumpManager,
-           pump.status.pumpStatus.suspended
-        {
-            return pump.resumeDelivery()
-                .flatMap { _ in mainPublisher }
-                .replaceError(with: false)
                 .eraseToAnyPublisher()
-        }
 
-        return mainPublisher
+            if temp.duration == 0,
+               settings.closedLoop,
+               settingsManager.preferences.unsuspendIfNoTemp,
+               let pump = pumpManager,
+               pump.status.pumpStatus.suspended
+            {
+                return pump.resumeDelivery()
+                    .flatMap { _ in mainPublisher }
+                    .replaceError(with: false)
+                    .eraseToAnyPublisher()
+            }
+
+            return mainPublisher
+        }
     }
 
     func determineBasalSync() {
@@ -645,8 +647,9 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     private func fetchDetermination() -> OrefDetermination? {
-        CoreDataStack.shared.fetchEntities(
+        CoreDataStack.shared.fetchEntities2(
             ofType: OrefDetermination.self,
+            onContext: privateContext,
             predicate: NSPredicate.predicateFor30MinAgoForDetermination,
             key: "deliverAt",
             ascending: false,
@@ -655,73 +658,74 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     private func enactDetermination() -> AnyPublisher<Void, Error> {
-        guard let determination = fetchDetermination() else {
-            return Fail(error: APSError.apsError(message: "Determination not found")).eraseToAnyPublisher()
-        }
+            guard let determination = fetchDetermination() else {
+                return Fail(error: APSError.apsError(message: "Determination not found")).eraseToAnyPublisher()
+            }
 
-        guard let pump = pumpManager else {
-            return Fail(error: APSError.apsError(message: "Pump not set")).eraseToAnyPublisher()
-        }
+            guard let pump = pumpManager else {
+                return Fail(error: APSError.apsError(message: "Pump not set")).eraseToAnyPublisher()
+            }
 
-        // unable to do temp basal during manual temp basal 😁
-        if isManualTempBasal {
-            return Fail(error: APSError.manualBasalTemp(message: "Loop not possible during the manual basal temp"))
+            // unable to do temp basal during manual temp basal 😁
+            if isManualTempBasal {
+                return Fail(error: APSError.manualBasalTemp(message: "Loop not possible during the manual basal temp"))
+                    .eraseToAnyPublisher()
+            }
+
+            let basalPublisher: AnyPublisher<Void, Error> = Deferred { () -> AnyPublisher<Void, Error> in
+                if let error = self.verifyStatus() {
+                    return Fail(error: error).eraseToAnyPublisher()
+                }
+
+                guard let rate = determination.rate else {
+                    debug(.apsManager, "No temp required")
+                    return Just(()).setFailureType(to: Error.self)
+                        .eraseToAnyPublisher()
+                }
+                return pump.enactTempBasal(
+                    unitsPerHour: Double(truncating: rate),
+                    for: TimeInterval(determination.duration * 60)
+                ).map { _ in
+                    let temp = TempBasal(
+                        duration: Int(determination.duration),
+                        rate: ((determination.rate ?? 0) as NSDecimalNumber) as Decimal,
+                        temp: .absolute,
+                        timestamp: Date()
+                    )
+                    self.storage.save(temp, as: OpenAPS.Monitor.tempBasal)
+                    return ()
+                }
                 .eraseToAnyPublisher()
-        }
+            }.eraseToAnyPublisher()
 
-        let basalPublisher: AnyPublisher<Void, Error> = Deferred { () -> AnyPublisher<Void, Error> in
-            if let error = self.verifyStatus() {
-                return Fail(error: error).eraseToAnyPublisher()
-            }
+            let bolusPublisher: AnyPublisher<Void, Error> = Deferred { () -> AnyPublisher<Void, Error> in
+                if let error = self.verifyStatus() {
+                    return Fail(error: error).eraseToAnyPublisher()
+                }
+                guard let smbToDeliver = determination.smbToDeliver else {
+                    debug(.apsManager, "No bolus required")
+                    return Just(()).setFailureType(to: Error.self)
+                        .eraseToAnyPublisher()
+                }
+                return pump.enactBolus(units: Double(truncating: smbToDeliver), automatic: true).map { _ in
+                    self.bolusProgress.send(0)
+                    return ()
+                }
+                .eraseToAnyPublisher()
+            }.eraseToAnyPublisher()
 
-            guard let rate = determination.rate else {
-                debug(.apsManager, "No temp required")
-                return Just(()).setFailureType(to: Error.self)
-                    .eraseToAnyPublisher()
-            }
-            return pump.enactTempBasal(
-                unitsPerHour: Double(truncating: rate),
-                for: TimeInterval(determination.duration * 60)
-            ).map { _ in
-                let temp = TempBasal(
-                    duration: Int(determination.duration),
-                    rate: ((determination.rate ?? 0) as NSDecimalNumber) as Decimal,
-                    temp: .absolute,
-                    timestamp: Date()
-                )
-                self.storage.save(temp, as: OpenAPS.Monitor.tempBasal)
-                return ()
-            }
-            .eraseToAnyPublisher()
-        }.eraseToAnyPublisher()
-
-        let bolusPublisher: AnyPublisher<Void, Error> = Deferred { () -> AnyPublisher<Void, Error> in
-            if let error = self.verifyStatus() {
-                return Fail(error: error).eraseToAnyPublisher()
-            }
-            guard let smbToDeliver = determination.smbToDeliver else {
-                debug(.apsManager, "No bolus required")
-                return Just(()).setFailureType(to: Error.self)
-                    .eraseToAnyPublisher()
-            }
-            return pump.enactBolus(units: Double(truncating: smbToDeliver), automatic: true).map { _ in
-                self.bolusProgress.send(0)
-                return ()
-            }
-            .eraseToAnyPublisher()
-        }.eraseToAnyPublisher()
-
-        return basalPublisher.flatMap { bolusPublisher }.eraseToAnyPublisher()
+            return basalPublisher.flatMap { bolusPublisher }.eraseToAnyPublisher()
+        
     }
 
     private func reportEnacted(received: Bool) {
-        guard let determination = fetchDetermination(), determination.deliverAt != nil else {
-            return
-        }
-
-        let objectID = determination.objectID
-
         privateContext.performAndWait {
+            guard let determination = fetchDetermination(), determination.deliverAt != nil else {
+                return
+            }
+
+            let objectID = determination.objectID
+
             if let determinationUpdated = self.privateContext.object(with: objectID) as? OrefDetermination {
                 determinationUpdated.timestamp = Date()
                 determinationUpdated.received = received
@@ -746,7 +750,8 @@ final class BaseAPSManager: APSManager, Injectable {
             saveLastLoop.timestamp = (determination.timestamp ?? .distantPast) as Date
 
             do {
-                try CoreDataStack.shared.saveContext()
+                guard privateContext.hasChanges else { return }
+                try privateContext.save()
             } catch {
                 print(error.localizedDescription)
             }

@@ -383,32 +383,34 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func fetchBattery() -> Battery {
-        do {
-            let results = try context.fetch(OpenAPS_Battery.fetch(NSPredicate.predicateFor30MinAgo))
-            if let last = results.first {
-                let percent: Int? = Int(last.percent)
-                let voltage: Decimal? = last.voltage as Decimal?
-                let status: String? = last.status
-                let display: Bool? = last.display
+        context.performAndWait {
+            do {
+                let results = try context.fetch(OpenAPS_Battery.fetch(NSPredicate.predicateFor30MinAgo))
+                if let last = results.first {
+                    let percent: Int? = Int(last.percent)
+                    let voltage: Decimal? = last.voltage as Decimal?
+                    let status: String? = last.status
+                    let display: Bool? = last.display
 
-                if let percent = percent, let voltage = voltage, let status = status, let display = display {
-                    debugPrint(
-                        "Home State Model: \(#function) \(DebuggingIdentifiers.succeeded) setup battery from core data successfully"
-                    )
-                    return Battery(
-                        percent: percent,
-                        voltage: voltage,
-                        string: BatteryState(rawValue: status) ?? BatteryState.normal,
-                        display: display
-                    )
+                    if let percent = percent, let voltage = voltage, let status = status, let display = display {
+                        debugPrint(
+                            "Home State Model: \(#function) \(DebuggingIdentifiers.succeeded) setup battery from core data successfully"
+                        )
+                        return Battery(
+                            percent: percent,
+                            voltage: voltage,
+                            string: BatteryState(rawValue: status) ?? BatteryState.normal,
+                            display: display
+                        )
+                    }
                 }
+                return Battery(percent: 100, voltage: 100, string: BatteryState.normal, display: false)
+            } catch {
+                debugPrint(
+                    "Home State Model: \(#function) \(DebuggingIdentifiers.failed) failed to setup battery from core data"
+                )
+                return Battery(percent: 100, voltage: 100, string: BatteryState.normal, display: false)
             }
-            return Battery(percent: 100, voltage: 100, string: BatteryState.normal, display: false)
-        } catch {
-            debugPrint(
-                "Home State Model: \(#function) \(DebuggingIdentifiers.failed) failed to setup battery from core data"
-            )
-            return Battery(percent: 100, voltage: 100, string: BatteryState.normal, display: false)
         }
     }
 
@@ -417,15 +419,18 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \OrefDetermination.deliverAt, ascending: false)]
         fetchRequest.predicate = NSPredicate.predicateFor30MinAgoForDetermination
         fetchRequest.fetchLimit = 2
-        do {
-            lastTwoDeterminations = try context.fetch(fetchRequest)
-            debugPrint(
-                "Home State Model: \(#function) \(DebuggingIdentifiers.succeeded) fetched determinations from core data"
-            )
-        } catch {
-            debugPrint(
-                "Home State Model: \(#function) \(DebuggingIdentifiers.failed) failed to fetch determinations from core data"
-            )
+
+        context.performAndWait {
+            do {
+                lastTwoDeterminations = try context.fetch(fetchRequest)
+                debugPrint(
+                    "Home State Model: \(#function) \(DebuggingIdentifiers.succeeded) fetched determinations from core data"
+                )
+            } catch {
+                debugPrint(
+                    "Home State Model: \(#function) \(DebuggingIdentifiers.failed) failed to fetch determinations from core data"
+                )
+            }
         }
     }
 
