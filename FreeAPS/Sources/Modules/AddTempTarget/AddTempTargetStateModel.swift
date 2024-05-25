@@ -3,7 +3,7 @@ import SwiftUI
 
 extension AddTempTarget {
     final class StateModel: BaseStateModel<Provider> {
-        @Injected() private var storage: TempTargetsStorage!
+        @Injected() var storage: TempTargetsStorage!
         @Injected() var apsManager: APSManager!
 
         let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
@@ -188,6 +188,24 @@ extension AddTempTarget {
                 target = (c / ratio) - c + 100
             }
             return Decimal(Double(target))
+        }
+
+        func updatePreset(_ preset: TempTarget) {
+            let updatedPreset = TempTarget(
+                id: preset.id,
+                name: newPresetName.isEmpty ? preset.name : newPresetName,
+                createdAt: preset.createdAt,
+                targetTop: preset.targetTop,
+                targetBottom: low,
+                duration: duration,
+                enteredBy: preset.enteredBy,
+                reason: newPresetName.isEmpty ? preset.reason : newPresetName
+            )
+
+            if let index = presets.firstIndex(where: { $0.id == preset.id }) {
+                presets[index] = updatedPreset
+                storage.storePresets(presets)
+            }
         }
     }
 }
