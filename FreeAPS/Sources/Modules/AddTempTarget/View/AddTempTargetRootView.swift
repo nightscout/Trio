@@ -199,13 +199,13 @@ extension AddTempTarget {
                         Text("New Target")
                         Spacer()
                         DecimalTextField("0", value: $state.low, formatter: formatter, cleanInput: true)
-                        Text(state.units.rawValue)
+                        Text(state.units.rawValue).foregroundColor(.secondary)
                     }
                     HStack {
                         Text("New Duration")
                         Spacer()
                         DecimalTextField("0", value: $state.duration, formatter: formatter, cleanInput: true)
-                        Text("min")
+                        Text("min").foregroundColor(.secondary)
                     }
                 }
                 Section {
