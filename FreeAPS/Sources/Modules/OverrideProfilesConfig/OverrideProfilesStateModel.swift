@@ -156,7 +156,8 @@ extension OverrideProfilesConfig {
                 preset.name = profileName
                 preset.percentage = percentage
                 preset.duration = NSDecimalNumber(decimal: duration)
-                preset.target = override_target ? NSDecimalNumber(decimal: target) : nil
+                let targetValue = override_target ? (units == .mmolL ? target.asMgdL : target) : nil
+                preset.target = targetValue != nil ? NSDecimalNumber(decimal: targetValue!) : nil
                 preset.indefinite = _indefinite
                 preset.advancedSettings = advancedSettings
                 preset.smbIsOff = smbIsOff
