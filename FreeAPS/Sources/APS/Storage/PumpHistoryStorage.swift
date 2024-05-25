@@ -54,7 +54,6 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newBolusEntry.amount = amount as? NSDecimalNumber
                         newBolusEntry.isExternal = dose.manuallyEntered
                         newBolusEntry.isSMB = dose.automatic ?? true
-                        // TODO: - do we need duration here?
 
                         do {
                             guard self.context.hasChanges else { return }
