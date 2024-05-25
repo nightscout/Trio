@@ -7,7 +7,7 @@ struct CurrentGlucoseView: View {
     @Binding var alarm: GlucoseAlarm?
     @Binding var lowGlucose: Decimal
     @Binding var highGlucose: Decimal
-    var glucoseFromPersistence: [GlucoseStored]
+//    var glucoseFromPersistence: [GlucoseStored]
 
     @State private var rotationDegrees: Double = 0.0
     @State private var angularGradient = AngularGradient(colors: [
@@ -21,12 +21,12 @@ struct CurrentGlucoseView: View {
 
     @Environment(\.colorScheme) var colorScheme
 
-//    @FetchRequest(
-//        entity: GlucoseStored.entity(),
-//        sortDescriptors: [NSSortDescriptor(keyPath: \GlucoseStored.date, ascending: false)],
-//        predicate: NSPredicate.predicateFor30MinAgo,
-//        animation: Animation.bouncy
-//    ) var glucoseFromPersistence: FetchedResults<GlucoseStored>
+    @FetchRequest(
+        entity: GlucoseStored.entity(),
+        sortDescriptors: [NSSortDescriptor(keyPath: \GlucoseStored.date, ascending: false)],
+        predicate: NSPredicate.predicateFor30MinAgo,
+        animation: Animation.bouncy
+    ) var glucoseFromPersistence: FetchedResults<GlucoseStored>
 
     private var glucoseFormatter: NumberFormatter {
         let formatter = NumberFormatter()

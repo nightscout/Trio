@@ -19,7 +19,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
     @Injected() private var garmin: GarminManager!
 
     let coreDataStorage = CoreDataStorage()
-    let context = CoreDataStack.shared.backgroundContext
+    let context = CoreDataStack.shared.persistentContainer.newBackgroundContext()
 
     private var lifetime = Lifetime()
 
@@ -81,7 +81,6 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
             Date()
         )
 
-        let context = CoreDataStack.shared.backgroundContext
         context.performAndWait {
             let predicate = NSPredicate.predicateFor120MinAgo
             let fetchedGlucose = CoreDataStack.shared.fetchEntities(

@@ -54,7 +54,7 @@ enum StateIntentError: Error {
 }
 
 @available(iOS 16.0, *) final class StateIntentRequest: BaseIntentsRequest {
-    let moc = CoreDataStack.shared.backgroundContext
+    let moc = CoreDataStack.shared.persistentContainer.newBackgroundContext()
 
     func getLastGlucose() throws -> (dateGlucose: Date, glucose: String, trend: String, delta: String) {
         do {

@@ -8,12 +8,16 @@ struct LoopView: View {
         static let lag: TimeInterval = 30
     }
 
-    @Binding var determination: OrefDetermination?
     @Binding var closedLoop: Bool
     @Binding var timerDate: Date
     @Binding var isLooping: Bool
     @Binding var lastLoopDate: Date
     @Binding var manualTempBasal: Bool
+
+    @FetchRequest(
+        fetchRequest: OrefDetermination.fetch(NSPredicate.enactedDetermination),
+        animation: .bouncy
+    ) var determination: FetchedResults<OrefDetermination>
 
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
@@ -36,7 +40,7 @@ struct LoopView: View {
                 Text("looping")
             } else if manualTempBasal {
                 Text("Manual")
-            } else if determination?
+            } else if determination.first?
                 .deliverAt !=
                 nil
             {
@@ -60,7 +64,7 @@ struct LoopView: View {
     }
 
     private var color: Color {
-        guard determination?.timestamp != nil
+        guard determination.first?.timestamp != nil
         else {
             // previously the .timestamp property was used here because this only gets updated when the reportenacted function in the aps manager gets called
             return .secondary
@@ -75,7 +79,7 @@ struct LoopView: View {
         let delta = timerDate.timeIntervalSince(lastLoopDate) - Config.lag
 
         if delta <= 5.minutes.timeInterval {
-            guard determination?.timestamp != nil else {
+            guard determination.first?.timestamp != nil else {
                 return .loopYellow
             }
             return .loopGreen

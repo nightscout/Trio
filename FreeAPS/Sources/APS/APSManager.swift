@@ -79,8 +79,8 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
-    let viewContext = CoreDataStack.shared.viewContext
-    let privateContext = CoreDataStack.shared.backgroundContext
+    let viewContext = CoreDataStack.shared.persistentContainer.viewContext
+    let privateContext = CoreDataStack.shared.persistentContainer.newBackgroundContext()
 
     private var openAPS: OpenAPS!
 
@@ -727,7 +727,8 @@ final class BaseAPSManager: APSManager, Injectable {
                 determinationUpdated.received = received
 
                 do {
-                    try CoreDataStack.shared.saveContext()
+                    guard privateContext.hasChanges else { return }
+                    try privateContext.save()
                     debugPrint("Update successful in reportEnacted() \(DebuggingIdentifiers.succeeded)")
                 } catch {
                     debugPrint(
@@ -914,8 +915,9 @@ final class BaseAPSManager: APSManager, Injectable {
 
     // fetch glucose for time interval
     func fetchGlucose(predicate: NSPredicate, fetchLimit: Int? = nil, batchSize: Int? = nil) -> [GlucoseStored] {
-        CoreDataStack.shared.fetchEntities(
+        CoreDataStack.shared.fetchEntities2(
             ofType: GlucoseStored.self,
+            onContext: privateContext,
             predicate: predicate,
             key: "date",
             ascending: false,

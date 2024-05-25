@@ -9,7 +9,7 @@ final class OpenAPS {
 
     private let storage: FileStorage
 
-    let context = CoreDataStack.shared.backgroundContext
+    let context = CoreDataStack.shared.persistentContainer.newBackgroundContext()
 
     let jsonConverter = JSONConverter()
 
@@ -83,7 +83,8 @@ final class OpenAPS {
 
     func attemptToSaveContext() {
         do {
-            try CoreDataStack.shared.saveContext()
+            guard context.hasChanges else { return }
+            try context.save()
         } catch {
             print(error.localizedDescription)
         }
@@ -94,8 +95,9 @@ final class OpenAPS {
         var glucoseAsJSON: String?
 
         context.performAndWait {
-            let results = CoreDataStack.shared.fetchEntities(
+            let results = CoreDataStack.shared.fetchEntities2(
                 ofType: GlucoseStored.self,
+                onContext: context,
                 predicate: NSPredicate.predicateForSixHoursAgo,
                 key: "date",
                 ascending: false,
@@ -116,8 +118,9 @@ final class OpenAPS {
         var carbsAsJSON: String?
 
         context.performAndWait {
-            let results = CoreDataStack.shared.fetchEntities(
+            let results = CoreDataStack.shared.fetchEntities2(
                 ofType: CarbEntryStored.self,
+                onContext: context,
                 predicate: NSPredicate.predicateForOneDayAgo,
                 key: "date",
                 ascending: false
@@ -131,8 +134,9 @@ final class OpenAPS {
     }
 
     private func fetchPumpHistoryObjectIDs() -> [NSManagedObjectID]? {
-        let results = CoreDataStack.shared.fetchEntities(
+        let results = CoreDataStack.shared.fetchEntities2(
             ofType: PumpEventStored.self,
+            onContext: context,
             predicate: NSPredicate.pumpHistoryLast24h,
             key: "timestamp",
             ascending: false,
@@ -146,10 +150,10 @@ final class OpenAPS {
         guard !pumpHistoryObjectIDs.isEmpty else { return "{}" }
 
         // Execute all operations on the background context
-        let jsonResult = CoreDataStack.shared.backgroundContext.performAndWait {
+        let jsonResult = context.performAndWait {
             // Load the pump events from the object IDs
             let pumpHistory: [PumpEventStored] = pumpHistoryObjectIDs
-                .compactMap { CoreDataStack.shared.backgroundContext.object(with: $0) as? PumpEventStored }
+                .compactMap { context.object(with: $0) as? PumpEventStored }
 
             // Create the DTOs
             let dtos: [PumpEventDTO] = pumpHistory.flatMap { event -> [PumpEventDTO] in

@@ -83,7 +83,7 @@ struct MainChartView: View {
 
     private let now = Date.now
 
-    private let context = CoreDataStack.shared.viewContext
+    private let context = CoreDataStack.shared.persistentContainer.viewContext
 
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.calendar) var calendar
@@ -99,6 +99,26 @@ struct MainChartView: View {
         fetchRequest: GlucoseStored.fetch(NSPredicate.manualGlucose, ascending: true),
         animation: Animation.bouncy
     ) var manualGlucoseFromPersistence: FetchedResults<GlucoseStored>
+
+    @FetchRequest(
+        fetchRequest: GlucoseStored.fetch(NSPredicate.glucose, ascending: true),
+        animation: Animation.bouncy
+    ) var glucoseFromPersistence: FetchedResults<GlucoseStored>
+
+    @FetchRequest(
+        fetchRequest: CarbEntryStored.fetch(NSPredicate.carbsForChart, ascending: true),
+        animation: Animation.bouncy
+    ) var carbsFromPersistence: FetchedResults<CarbEntryStored>
+
+    @FetchRequest(
+        fetchRequest: CarbEntryStored.fetch(NSPredicate.fpusForChart, ascending: true),
+        animation: Animation.bouncy
+    ) var fpusFromPersistence: FetchedResults<CarbEntryStored>
+
+    @FetchRequest(
+        fetchRequest: OrefDetermination.fetch(NSPredicate.predicateFor30MinAgoForDetermination),
+        animation: .bouncy
+    ) var determination: FetchedResults<OrefDetermination>
 
     private var bolusFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -136,7 +156,7 @@ struct MainChartView: View {
         if let selection = selection {
             let lowerBound = selection.addingTimeInterval(-120)
             let upperBound = selection.addingTimeInterval(120)
-            return state.glucoseFromPersistence.first { $0.date ?? now >= lowerBound && $0.date ?? now <= upperBound }
+            return glucoseFromPersistence.first { $0.date ?? now >= lowerBound && $0.date ?? now <= upperBound }
         } else {
             return nil
         }
@@ -153,12 +173,12 @@ struct MainChartView: View {
                         updateStartEndMarkers()
                         yAxisChartData()
                         scroller.scrollTo("MainChart", anchor: .trailing)
-                    }.onChange(of: state.glucoseFromPersistence) { _ in
+                    }.onChange(of: glucoseFromPersistence.map(\.id)) { _ in
                         updateStartEndMarkers()
                         yAxisChartData()
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }
-                    .onChange(of: state.determinationsFromCoreData) { _ in
+                    .onChange(of: determination.map(\.id)) { _ in
                         updateStartEndMarkers()
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }
@@ -369,7 +389,7 @@ extension MainChartView {
 
     private func drawCarbs() -> some ChartContent {
         /// carbs
-        ForEach(state.carbsFromPersistence) { carb in
+        ForEach(carbsFromPersistence) { carb in
             let carbAmount = carb.carbs
             let yPosition = units == .mgdL ? 60 : 3.33
 
@@ -388,7 +408,7 @@ extension MainChartView {
 
     private func drawFpus() -> some ChartContent {
         /// fpus
-        ForEach(state.fpusFromPersistence, id: \.id) { fpu in
+        ForEach(fpusFromPersistence, id: \.id) { fpu in
             let fpuAmount = fpu.carbs
             let size = (Config.fpuSize + CGFloat(fpuAmount) * Config.carbsScale) * 1.8
             let yPosition = units == .mgdL ? 60 : 3.33
@@ -405,7 +425,7 @@ extension MainChartView {
     private func drawGlucose() -> some ChartContent {
         /// glucose point mark
         /// filtering for high and low bounds in settings
-        ForEach(state.glucoseFromPersistence) { item in
+        ForEach(glucoseFromPersistence) { item in
             if smooth {
                 if item.glucose > Int(highGlucose) {
                     PointMark(
@@ -500,12 +520,11 @@ extension MainChartView {
     }
 
     private func preprocessForecastData() -> [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] {
-        state.determinationsFromCoreData
+        determination
             .compactMap { determination -> NSManagedObjectID? in
                 determination.objectID
             }
             .flatMap { determinationID -> [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] in
-                let context = CoreDataStack.shared.viewContext
                 let forecasts = getForecasts(for: determinationID, in: context)
 
                 return forecasts.flatMap { forecast in
@@ -654,12 +673,12 @@ extension MainChartView {
 
     /// calculates the glucose value thats the nearest to parameter 'time'
     private func timeToNearestGlucose(time: TimeInterval) -> GlucoseStored? {
-        guard !state.glucoseFromPersistence.isEmpty else {
+        guard !glucoseFromPersistence.isEmpty else {
             return nil
         }
 
         // sort by date
-        let sortedGlucose = state.glucoseFromPersistence
+        let sortedGlucose = glucoseFromPersistence
             .sorted { $0.date?.timeIntervalSince1970 ?? 0 < $1.date?.timeIntervalSince1970 ?? 0 }
 
         var low = 0
@@ -880,7 +899,7 @@ extension MainChartView {
     // MARK: - Chart formatting
 
     private func yAxisChartData() {
-        let glucoseMapped = state.glucoseFromPersistence.map(\.glucose)
+        let glucoseMapped = glucoseFromPersistence.map(\.glucose)
         guard let minGlucose = glucoseMapped.min(), let maxGlucose = glucoseMapped.max() else {
             // default values
             minValue = 45 * conversionFactor - 20 * conversionFactor

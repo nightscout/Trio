@@ -10,7 +10,7 @@ extension DataTable {
         @Injected() var pumpHistoryStorage: PumpHistoryStorage!
         @Injected() var healthKitManager: HealthKitManager!
 
-        let coredataContext = CoreDataStack.shared.viewContext
+        let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
 
         @Published var mode: Mode = .treatments
         @Published var treatments: [Treatment] = []

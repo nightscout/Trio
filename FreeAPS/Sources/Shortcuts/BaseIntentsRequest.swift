@@ -16,7 +16,7 @@ import Swinject
 
     let resolver: Resolver
 
-    let coredataContext = CoreDataStack.shared.backgroundContext
+    let coredataContext = CoreDataStack.shared.persistentContainer.newBackgroundContext()
 
     override init() {
         resolver = FreeAPSApp.resolver

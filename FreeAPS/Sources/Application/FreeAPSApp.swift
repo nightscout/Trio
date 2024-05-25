@@ -60,7 +60,7 @@ import Swinject
     var body: some Scene {
         WindowGroup {
             Main.RootView(resolver: resolver)
-                .environment(\.managedObjectContext, CoreDataStack.shared.viewContext)
+                .environment(\.managedObjectContext, CoreDataStack.shared.persistentContainer.viewContext)
                 .environmentObject(Icons())
                 .onOpenURL(perform: handleURL)
         }

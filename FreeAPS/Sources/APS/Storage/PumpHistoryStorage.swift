@@ -29,7 +29,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     typealias PumpEvent = PumpEventStored.EventType
     typealias TempType = PumpEventStored.TempType
 
-    private let context = CoreDataStack.shared.backgroundContext
+    private let context = CoreDataStack.shared.persistentContainer.newBackgroundContext()
 
     func storePumpEvents(_ events: [NewPumpEvent]) {
         processQueue.async {
@@ -57,7 +57,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         // TODO: - do we need duration here?
 
                         do {
-                            try CoreDataStack.shared.saveContext()
+                            guard self.context.hasChanges else { return }
+                            try self.context.save()
                         } catch {
                             print(error.localizedDescription)
                         }

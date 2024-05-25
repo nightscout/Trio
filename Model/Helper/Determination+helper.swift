@@ -7,7 +7,6 @@ extension OrefDetermination {
         request.sortDescriptors = [NSSortDescriptor(keyPath: \OrefDetermination.deliverAt, ascending: false)]
         request.predicate = predicate
         request.fetchLimit = 1
-        request.returnsObjectsAsFaults = true
         return request
     }
 }

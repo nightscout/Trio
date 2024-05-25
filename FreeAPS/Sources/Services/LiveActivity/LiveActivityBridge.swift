@@ -179,7 +179,7 @@ extension LiveActivityAttributes.ContentState {
 
         fetchedResultsController = NSFetchedResultsController(
             fetchRequest: fetchRequest,
-            managedObjectContext: CoreDataStack.shared.viewContext,
+            managedObjectContext: CoreDataStack.shared.persistentContainer.viewContext,
             sectionNameKeyPath: nil,
             cacheName: nil
         )
@@ -209,7 +209,7 @@ extension LiveActivityAttributes.ContentState {
     }
 
     private func fetchDetermination() -> OrefDetermination? {
-        let context = CoreDataStack.shared.viewContext
+        let context = CoreDataStack.shared.persistentContainer.viewContext
         do {
             let determinations = try context.fetch(OrefDetermination.fetch(NSPredicate.enactedDetermination))
             debugPrint("LA Bridge: \(#function) \(DebuggingIdentifiers.succeeded) fetched determinations")

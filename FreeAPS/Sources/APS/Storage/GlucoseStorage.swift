@@ -24,7 +24,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var settingsManager: SettingsManager!
 
-    let coredataContext = CoreDataStack.shared.backgroundContext
+    let coredataContext = CoreDataStack.shared.persistentContainer.newBackgroundContext()
 
     private enum Config {
         static let filterTime: TimeInterval = 3.5 * 60
@@ -164,13 +164,41 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     }
 
     func syncDate() -> Date {
+        let fr = GlucoseStored.fetchRequest()
+        fr.predicate = NSPredicate.predicateForOneDayAgo
+        fr.sortDescriptors = [NSSortDescriptor(keyPath: \GlucoseStored.date, ascending: false)]
+        fr.fetchLimit = 1
+
+        var date: Date?
         coredataContext.performAndWait {
-            fetchGlucose().first?.date ?? .distantPast
+            do {
+                let results = try self.coredataContext.fetch(fr)
+                date = results.first?.date
+            } catch let error as NSError {
+                print("Fetch error: \(DebuggingIdentifiers.failed) \(error.localizedDescription), \(error.userInfo)")
+            }
         }
+
+        return date ?? .distantPast
     }
 
     func lastGlucoseDate() -> Date {
-        fetchGlucose().first?.date ?? .distantPast
+        let fr = GlucoseStored.fetchRequest()
+        fr.predicate = NSPredicate.predicateForOneDayAgo
+        fr.sortDescriptors = [NSSortDescriptor(keyPath: \GlucoseStored.date, ascending: false)]
+        fr.fetchLimit = 1
+
+        var date: Date?
+        coredataContext.performAndWait {
+            do {
+                let results = try self.coredataContext.fetch(fr)
+                date = results.first?.date
+            } catch let error as NSError {
+                print("Fetch error: \(DebuggingIdentifiers.failed) \(error.localizedDescription), \(error.userInfo)")
+            }
+        }
+
+        return date ?? .distantPast
     }
 
     func isGlucoseFresh() -> Bool {

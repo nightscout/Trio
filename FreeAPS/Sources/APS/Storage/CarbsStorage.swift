@@ -21,7 +21,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var settings: SettingsManager!
 
-    let coredataContext = CoreDataStack.shared.backgroundContext
+    let coredataContext = CoreDataStack.shared.persistentContainer.newBackgroundContext()
 
     init(resolver: Resolver) {
         injectServices(resolver)
@@ -153,7 +153,11 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             newItem.id = UUID()
             newItem.isFPU = false
             do {
-                try CoreDataStack.shared.saveContext()
+//                try CoreDataStack.shared.saveContext()
+                guard self.coredataContext.hasChanges else {
+                    return
+                }
+                try self.coredataContext.save()
             } catch {
                 print(error.localizedDescription)
             }

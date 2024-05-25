@@ -52,7 +52,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     private let center = UNUserNotificationCenter.current()
     private var lifetime = Lifetime()
 
-    private let context = CoreDataStack.shared.viewContext
+    private let context = CoreDataStack.shared.persistentContainer.viewContext
 
     init(resolver: Resolver) {
         super.init()

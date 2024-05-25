@@ -33,7 +33,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     private lazy var simulatorSource = GlucoseSimulatorSource()
 
     // TODO: - test if we need to use the viewContext here
-    private let context = CoreDataStack.shared.backgroundContext
+    private let context = CoreDataStack.shared.persistentContainer.newBackgroundContext()
 
     init(resolver: Resolver) {
         injectServices(resolver)

@@ -97,8 +97,8 @@ extension Bolus {
 
         let now = Date.now
 
-        let context = CoreDataStack.shared.viewContext
-        let backgroundContext = CoreDataStack.shared.backgroundContext
+        let context = CoreDataStack.shared.persistentContainer.viewContext
+        let backgroundContext = CoreDataStack.shared.persistentContainer.newBackgroundContext()
 
         typealias PumpEvent = PumpEventStored.EventType
 

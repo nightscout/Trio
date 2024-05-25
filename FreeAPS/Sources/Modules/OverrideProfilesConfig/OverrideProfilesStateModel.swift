@@ -56,7 +56,7 @@ extension OverrideProfilesConfig {
             maxValue = settingsManager.preferences.autosensMax
         }
 
-        let coredataContext = CoreDataStack.shared.backgroundContext
+        let coredataContext = CoreDataStack.shared.persistentContainer.newBackgroundContext()
 
         func saveSettings() {
             coredataContext.perform { [self] in

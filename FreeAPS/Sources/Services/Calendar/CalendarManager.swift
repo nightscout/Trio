@@ -25,7 +25,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         setupGlucose()
     }
 
-    let coredataContext = CoreDataStack.shared.backgroundContext
+    let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
 
     func requestAccessIfNeeded() -> AnyPublisher<Bool, Never> {
         Future { promise in

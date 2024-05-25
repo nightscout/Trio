@@ -42,12 +42,15 @@ extension Home {
             sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
         ) var fetchedPercent: FetchedResults<Override>
 
-//        @FetchRequest(
-//            entity: OrefDetermination.entity(),
-//            sortDescriptors: [NSSortDescriptor(key: "deliverAt", ascending: false)],
-//            predicate: NSPredicate.predicateFor30MinAgoForDetermination,
-//            animation: Animation.bouncy
-//        ) var determination: FetchedResults<OrefDetermination>
+        @FetchRequest(
+            fetchRequest: OrefDetermination.fetch(NSPredicate.enactedDetermination),
+            animation: .bouncy
+        ) var determination: FetchedResults<OrefDetermination>
+
+        @FetchRequest(
+            fetchRequest: PumpEventStored.fetch(NSPredicate.recentPumpHistory, ascending: false, fetchLimit: 1),
+            animation: .bouncy
+        ) var recentPumpHistory: FetchedResults<PumpEventStored>
 
         @FetchRequest(
             entity: OverridePresets.entity(),
@@ -145,32 +148,13 @@ extension Home {
             }
         }
 
-//        private var determination: OrefDetermination? {
-//            guard let determinationObjectID = state.determinationsFromPersistence.first else {
-//                return nil
-//            }
-//            return CoreDataStack.shared.backgroundContext.object(with: determinationObjectID) as? OrefDetermination
-//        }
-
-//        private var determinationAsBinding: Binding<OrefDetermination?> {
-//            Binding<OrefDetermination?>(
-//                get: {
-//                    guard let determinationObjectID = state.determinationsFromPersistence.first else {
-//                        return nil
-//                    }
-//                    return CoreDataStack.shared.backgroundContext.object(with: determinationObjectID) as? OrefDetermination
-//                }, set: { _ in }
-//            )
-//        }
-
         var glucoseView: some View {
             CurrentGlucoseView(
                 timerDate: $state.timerDate,
                 units: $state.units,
                 alarm: $state.alarm,
                 lowGlucose: $state.lowGlucose,
-                highGlucose: $state.highGlucose,
-                glucoseFromPersistence: state.glucoseFromPersistence
+                highGlucose: $state.highGlucose
             ).scaleEffect(0.9)
                 .onTapGesture {
                     if state.alarm == nil {
@@ -206,7 +190,7 @@ extension Home {
         }
 
         var tempBasalString: String? {
-            guard let tempRate = state.tempRate else {
+            guard let tempRate = recentPumpHistory.first?.tempBasal?.rate else {
                 return nil
             }
             let rateString = numberFormatter.string(from: tempRate as NSNumber) ?? "0"
@@ -438,7 +422,6 @@ extension Home {
             VStack(alignment: .leading, spacing: 20) {
                 /// Loop view at bottomLeading
                 LoopView(
-                    determination: $state.mostRecentDetermination,
                     closedLoop: $state.closedLoop,
                     timerDate: $state.timerDate,
                     isLooping: $state.isLooping,
@@ -454,7 +437,7 @@ extension Home {
                 }
                 /// eventualBG string at bottomTrailing
 
-                if let eventualBG = state.determinationsFromCoreData.first?.eventualBG {
+                if let eventualBG = determination.first?.eventualBG {
                     let bg = eventualBG as Decimal
                     HStack {
                         Image(systemName: "arrow.right.circle")
@@ -502,7 +485,7 @@ extension Home {
                         .font(.system(size: 16))
                         .foregroundColor(Color.insulin)
                     Text(
-                        (numberFormatter.string(from: (state.mostRecentDetermination?.iob ?? 0) as NSNumber) ?? "0") +
+                        (numberFormatter.string(from: (determination.first?.iob ?? 0) as NSNumber) ?? "0") +
                             NSLocalizedString(" U", comment: "Insulin unit")
                     )
                     .font(.system(size: 16, weight: .bold, design: .rounded))
@@ -515,7 +498,7 @@ extension Home {
                         .font(.system(size: 16))
                         .foregroundColor(.loopYellow)
                     Text(
-                        (numberFormatter.string(from: (state.mostRecentDetermination?.cob ?? 0) as NSNumber) ?? "0") +
+                        (numberFormatter.string(from: (determination.first?.cob ?? 0) as NSNumber) ?? "0") +
                             NSLocalizedString(" g", comment: "gram of carbs")
                     )
                     .font(.system(size: 16, weight: .bold, design: .rounded))
@@ -541,7 +524,7 @@ extension Home {
                         "TDD: " +
                             (
                                 numberFormatter
-                                    .string(from: (state.mostRecentDetermination?.totalDailyDose ?? 0) as NSNumber) ?? "0"
+                                    .string(from: (determination.first?.totalDailyDose ?? 0) as NSNumber) ?? "0"
                             ) +
                             NSLocalizedString(" U", comment: "Insulin unit")
                     )
@@ -826,7 +809,7 @@ extension Home {
             ZStack(alignment: .bottom) {
                 TabView {
                     let carbsRequiredBadge: String? = {
-                        guard let carbsRequired = state.mostRecentDetermination?.carbsRequired as? Decimal else { return nil }
+                        guard let carbsRequired = determination.first?.carbsRequired as? Decimal else { return nil }
                         if carbsRequired > state.settingsManager.settings.carbsRequiredThreshold {
                             let numberAsNSNumber = NSDecimalNumber(decimal: carbsRequired)
                             let formattedNumber = numberFormatter.string(from: numberAsNSNumber) ?? ""
@@ -889,7 +872,7 @@ extension Home {
             VStack(alignment: .leading, spacing: 4) {
                 Text(statusTitle).font(.headline).foregroundColor(.white)
                     .padding(.bottom, 4)
-                if let determination = state.determinationsFromCoreData.first {
+                if let determination = determination.first {
                     if determination.glucose == 400 {
                         Text("Invalid CGM reading (HIGH).").font(.callout).bold().foregroundColor(.loopRed).padding(.top, 8)
                         Text("SMBs and High Temps Disabled.").font(.caption).foregroundColor(.white).padding(.bottom, 4)
@@ -914,7 +897,7 @@ extension Home {
         }
 
         private func setStatusTitle() {
-            if let determination = state.determinationsFromCoreData.first {
+            if let determination = determination.first {
                 let dateFormatter = DateFormatter()
                 dateFormatter.timeStyle = .short
                 statusTitle = NSLocalizedString("Oref Determination enacted at", comment: "Headline in enacted pop up") +

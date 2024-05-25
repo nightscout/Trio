@@ -55,6 +55,11 @@ extension NSPredicate {
         let date = Date.oneDayAgo
         return NSPredicate(format: "timestamp >= %@", date as NSDate)
     }
+
+    static var recentPumpHistory: NSPredicate {
+        let date = Date.twentyMinutesAgo
+        return NSPredicate(format: "timestamp >= %@", date as NSDate)
+    }
 }
 
 // Declare helper structs ("data transfer objects" = DTO) to utilize parsing a flattened pump history
