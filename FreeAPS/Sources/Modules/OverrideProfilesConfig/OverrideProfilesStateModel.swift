@@ -13,7 +13,6 @@ extension OverrideProfilesConfig {
         @Published var profileName: String = ""
         @Published var isPreset: Bool = false
         @Published var presets: [OverrideProfil] = []
-//        @Published var selection: OverrideProfil?
         @Published var advancedSettings: Bool = false
         @Published var isfAndCr: Bool = true
         @Published var isf: Bool = true
@@ -85,48 +84,96 @@ extension OverrideProfilesConfig {
             presets = overrideStorage.presets()
         }
 
+        func updatePreset(_ presetId: String) {
+            let overridePresetToSave = OverrideProfil(
+                id: presetId,
+                name: profileName,
+                duration: _indefinite ? nil : duration,
+                indefinite: _indefinite,
+                percentage: percentage,
+                target: override_target ? (units == .mmolL ? target.asMgdL : target) : 0,
+                advancedSettings: advancedSettings,
+                smbIsOff: smbIsOff,
+                isfAndCr: isfAndCr,
+                isf: isfAndCr ? false : isf,
+                cr: isfAndCr ? false : cr,
+                smbIsScheduledOff: smbIsScheduledOff,
+                start: smbIsScheduledOff ? start : nil,
+                end: smbIsScheduledOff ? end : nil,
+                smbMinutes: smbMinutes,
+                uamMinutes: uamMinutes
+            )
+
+            overrideStorage.storeOverridePresets([overridePresetToSave])
+            presets = overrideStorage.presets()
+        }
+
         func selectProfile(id_: String) {
             guard id_ != "" else { return }
             _ = overrideStorage.applyOverridePreset(id_)
         }
 
-        func savedSettings() {
+        func reset() {
+            percentage = 100
+            isEnabled = false
+            _indefinite = true
+            duration = 0
+            target = 0
+            override_target = false
+            smbIsOff = false
+            id = ""
+            profileName = ""
+            advancedSettings = false
+            isfAndCr = true
+            isf = true
+            cr = true
+            smbIsScheduledOff = false
+            start = 0
+            end = 23
+            smbMinutes = defaultSmbMinutes
+            uamMinutes = defaultUamMinutes
+        }
+
+        func displayCurrentOverride() {
             guard let currentOverride = overrideStorage.current() else {
                 isEnabled = false
                 return
             }
-
             isEnabled = true
-            percentage = currentOverride.percentage ?? 100
-            _indefinite = currentOverride.indefinite ?? true
-            duration = currentOverride.duration ?? 0
-            smbIsOff = currentOverride.smbIsOff ?? false
-            advancedSettings = currentOverride.advancedSettings ?? false
-            isfAndCr = currentOverride.isfAndCr ?? true
-            smbIsScheduledOff = currentOverride.smbIsScheduledOff ?? false
+            displayOverrideProfil(profil: currentOverride)
+        }
+
+        func displayOverrideProfil(profil: OverrideProfil) {
+            percentage = profil.percentage ?? 100
+            _indefinite = profil.indefinite ?? true
+            duration = profil.duration ?? 0
+            smbIsOff = profil.smbIsOff ?? false
+            advancedSettings = profil.advancedSettings ?? false
+            isfAndCr = profil.isfAndCr ?? true
+            smbIsScheduledOff = profil.smbIsScheduledOff ?? false
 
             if advancedSettings {
                 if !isfAndCr {
-                    isf = currentOverride.isf ?? false
-                    cr = currentOverride.cr ?? false
+                    isf = profil.isf ?? false
+                    cr = profil.cr ?? false
                 }
                 if smbIsScheduledOff {
-                    start = currentOverride.start ?? 0
-                    end = currentOverride.end ?? 0
+                    start = profil.start ?? 0
+                    end = profil.end ?? 0
                 }
 
-                smbMinutes = currentOverride.smbMinutes ?? defaultSmbMinutes
-                uamMinutes = currentOverride.uamMinutes ?? defaultUamMinutes
+                smbMinutes = profil.smbMinutes ?? defaultSmbMinutes
+                uamMinutes = profil.uamMinutes ?? defaultUamMinutes
             }
 
-            let overrideTarget = currentOverride.target ?? 0
+            let overrideTarget = profil.target ?? 0
             if overrideTarget != 0 {
                 override_target = true
                 target = units == .mmolL ? overrideTarget.asMmolL : overrideTarget
             }
             if !_indefinite {
-                let durationOverride = currentOverride.duration ?? 0
-                let date = currentOverride.createdAt ?? Date()
+                let durationOverride = profil.duration ?? 0
+                let date = profil.createdAt ?? Date()
                 duration = max(0, durationOverride + Decimal(Date().distance(to: date).minutes))
             }
         }

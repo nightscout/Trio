@@ -11,6 +11,8 @@ extension OverrideProfilesConfig {
         @State private var showingDetail = false
         @State private var alertSring = ""
         @State var isSheetPresented: Bool = false
+        @State private var selectedPreset: OverrideProfil?
+        @State private var isEditSheetPresented: Bool = false
 
         @Environment(\.dismiss) var dismiss
 
@@ -56,12 +58,40 @@ extension OverrideProfilesConfig {
             Form {
                 if state.presets.isNotEmpty {
                     Section {
-                        ForEach(state.presets) { preset in
+                        ForEach(state.presets.indices, id: \.self) { index in
+                            let preset = state.presets[index]
                             profilesView(for: preset)
-                        }.onDelete(perform: removeProfile)
+                                .listRowBackground(
+                                    isEditSheetPresented && preset == selectedPreset ?
+                                        Color.blue.opacity(0.1)
+                                        : .none
+                                )
+                                .swipeActions {
+                                    Button(role: .destructive) {
+                                        removeProfile(at: IndexSet(integer: index))
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+
+                                    Button {
+                                        selectedPreset = preset
+                                        state.profileName = preset.name ?? ""
+                                        state.displayOverrideProfil(profil: selectedPreset!)
+                                        isEditSheetPresented = true
+                                    } label: {
+                                        Label("Edit", systemImage: "square.and.pencil")
+                                    }.tint(.blue)
+                                }
+                        }
                     }
                 }
                 Section {
+                    if isEditSheetPresented {
+                        HStack {
+                            Text("Name of the profile").foregroundColor(.secondary)
+                            TextField("", text: $state.profileName).multilineTextAlignment(.trailing)
+                        }
+                    }
                     VStack {
                         Slider(
                             value: $state.percentage,
@@ -228,9 +258,16 @@ extension OverrideProfilesConfig {
                             }
                         )
                         Button {
-                            isSheetPresented = true
+                            if isEditSheetPresented {
+                                guard let selectedPreset = selectedPreset else { return }
+                                state.updatePreset(selectedPreset.id)
+                                isEditSheetPresented = false
+
+                            } else {
+                                isSheetPresented = true
+                            }
                         }
-                        label: { Text("Save as Profile") }
+                        label: { isEditSheetPresented ? Text("Update the profile") : Text("Save as Profile") }
                             .tint(.orange)
                             .frame(maxWidth: .infinity, alignment: .trailing)
                             .buttonStyle(BorderlessButtonStyle())
@@ -259,10 +296,16 @@ extension OverrideProfilesConfig {
                 .tint(.red)
             }
             .onAppear(perform: configureView)
-            .onAppear { state.savedSettings() }
+            .onAppear { state.displayCurrentOverride() }
             .navigationBarTitle("Profiles")
             .navigationBarTitleDisplayMode(.automatic)
-            .navigationBarItems(leading: Button("Close", action: state.hideModal))
+            .navigationBarItems(
+                leading: Button("Close", action: state.hideModal),
+                trailing: isEditSheetPresented ? Button("Cancel", action: {
+                    isEditSheetPresented = false
+                    state.reset()
+                }) : nil
+            )
         }
 
         @ViewBuilder private func profilesView(for preset: OverrideProfil) -> some View {
