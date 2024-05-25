@@ -318,7 +318,8 @@ extension NightscoutConfig {
                 saveToCoreData.error = string
 
                 do {
-                    try CoreDataStack.shared.saveContext()
+                    guard self.coredataContext.hasChanges else { return }
+                    try self.coredataContext.save()
                 } catch {
                     print(error.localizedDescription)
                 }

@@ -265,7 +265,8 @@ final class OpenAPS {
                             saveToTDD.timestamp = determination.timestamp ?? Date()
                             saveToTDD.tdd = (determination.tdd ?? 0) as NSDecimalNumber?
                             do {
-                                try CoreDataStack.shared.saveContext()
+                                guard self.context.hasChanges else { return }
+                                try self.context.save()
                             } catch {
                                 print(error.localizedDescription)
                             }
@@ -273,7 +274,8 @@ final class OpenAPS {
                             let saveTarget = Target(context: self.context)
                             saveTarget.current = (determination.current_target ?? 100) as NSDecimalNumber?
                             do {
-                                try CoreDataStack.shared.saveContext()
+                                guard self.context.hasChanges else { return }
+                                try self.context.save()
                             } catch {
                                 print(error.localizedDescription)
                             }
@@ -378,7 +380,8 @@ final class OpenAPS {
                     saveToCoreData.indefinite = false
                     saveToCoreData.percentage = 100
                     do {
-                        try CoreDataStack.shared.saveContext()
+                        guard self.context.hasChanges else { return "{}" }
+                        try self.context.save()
                     } catch {
                         print(error.localizedDescription)
                     }
@@ -852,7 +855,8 @@ final class OpenAPS {
             }
 
             do {
-                try CoreDataStack.shared.saveContext()
+                guard self.context.hasChanges else { return }
+                try self.context.save()
             } catch {
                 print(error.localizedDescription)
             }

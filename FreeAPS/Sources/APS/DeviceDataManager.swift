@@ -357,7 +357,8 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
             batteryToStore.display = status.pumpBatteryChargeRemaining != nil
 
             do {
-                try CoreDataStack.shared.saveContext()
+                guard self.privateContext.hasChanges else { return }
+                try self.privateContext.save()
             } catch {
                 print(error.localizedDescription)
             }

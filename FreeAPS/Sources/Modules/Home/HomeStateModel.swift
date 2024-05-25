@@ -313,7 +313,8 @@ extension Home {
                 profiles.date = Date()
 
                 do {
-                    try CoreDataStack.shared.saveContext()
+                    guard self.context.hasChanges else { return }
+                    try self.context.save()
                 } catch {
                     print(error.localizedDescription)
                 }

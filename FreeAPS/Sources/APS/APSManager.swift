@@ -1258,7 +1258,8 @@ final class BaseAPSManager: APSManager, Injectable {
                 saveStatsCoreData.lastrun = Date()
 
                 do {
-                    try CoreDataStack.shared.saveContext()
+                    guard self.privateContext.hasChanges else { return }
+                    try self.privateContext.save()
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -1277,7 +1278,8 @@ final class BaseAPSManager: APSManager, Injectable {
             nLS.interval = loopStatRecord.interval ?? 0.0
 
             do {
-                try CoreDataStack.shared.saveContext()
+                guard self.privateContext.hasChanges else { return }
+                try self.privateContext.save()
             } catch {
                 print(error.localizedDescription)
             }
@@ -1419,7 +1421,8 @@ extension BaseAPSManager: PumpManagerStatusObserver {
             batteryToStore.status = percent > 10 ? "normal" : "low"
             batteryToStore.display = status.pumpBatteryChargeRemaining != nil
             do {
-                try CoreDataStack.shared.saveContext()
+                guard self.privateContext.hasChanges else { return }
+                try self.privateContext.save()
             } catch {
                 print(error.localizedDescription)
             }

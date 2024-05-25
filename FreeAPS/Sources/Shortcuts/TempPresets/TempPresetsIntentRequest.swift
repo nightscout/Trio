@@ -57,7 +57,8 @@ import Foundation
                 saveToCoreData.duration = whichID?.duration ?? 0
 
                 do {
-                    try CoreDataStack.shared.saveContext()
+                    guard coredataContext.hasChanges else { return }
+                    try self.coredataContext.save()
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -66,7 +67,8 @@ import Foundation
                 saveToCoreData.active = false
                 saveToCoreData.date = Date()
                 do {
-                    try CoreDataStack.shared.saveContext()
+                    guard coredataContext.hasChanges else { return }
+                    try self.coredataContext.save()
                 } catch {
                     print(error.localizedDescription)
                 }

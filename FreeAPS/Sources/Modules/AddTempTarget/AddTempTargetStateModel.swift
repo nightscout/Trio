@@ -47,7 +47,8 @@ extension AddTempTarget {
                     saveToCoreData.startDate = Date()
 
                     do {
-                        try CoreDataStack.shared.saveContext()
+                        guard self.coredataContext.hasChanges else { return }
+                        try self.coredataContext.save()
                     } catch {
                         print(error.localizedDescription)
                     }
@@ -59,7 +60,8 @@ extension AddTempTarget {
                     saveToCoreData.active = false
                     saveToCoreData.date = Date()
                     do {
-                        try CoreDataStack.shared.saveContext()
+                        guard self.coredataContext.hasChanges else { return }
+                        try self.coredataContext.save()
                     } catch {
                         print(error.localizedDescription)
                     }
@@ -94,7 +96,8 @@ extension AddTempTarget {
                 saveToCoreData.active = false
                 saveToCoreData.date = Date()
                 do {
-                    try CoreDataStack.shared.saveContext()
+                    guard self.coredataContext.hasChanges else { return }
+                    try self.coredataContext.save()
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -103,7 +106,8 @@ extension AddTempTarget {
                 setHBT.enabled = false
                 setHBT.date = Date()
                 do {
-                    try CoreDataStack.shared.saveContext()
+                    guard self.coredataContext.hasChanges else { return }
+                    try self.coredataContext.save()
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -151,7 +155,8 @@ extension AddTempTarget {
                     saveToCoreData.date = Date()
                     saveToCoreData.duration = duration as NSDecimalNumber
                     do {
-                        try CoreDataStack.shared.saveContext()
+                        guard self.coredataContext.hasChanges else { return }
+                        try self.coredataContext.save()
                     } catch {
                         print(error.localizedDescription)
                     }
@@ -184,7 +189,8 @@ extension AddTempTarget {
                         saveToCoreData.duration = whichID?.duration ?? 0
 
                         do {
-                            try CoreDataStack.shared.saveContext()
+                            guard self.coredataContext.hasChanges else { return }
+                            try self.coredataContext.save()
                         } catch {
                             print(error.localizedDescription)
                         }
@@ -193,7 +199,8 @@ extension AddTempTarget {
                         saveToCoreData.active = false
                         saveToCoreData.date = Date()
                         do {
-                            try CoreDataStack.shared.saveContext()
+                            guard self.coredataContext.hasChanges else { return }
+                            try self.coredataContext.save()
                         } catch {
                             print(error.localizedDescription)
                         }
