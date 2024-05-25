@@ -10,19 +10,19 @@ extension AddTempTarget {
         @State private var isEditing = false
         @State private var selectedPreset: TempTarget?
         @State private var isEditSheetPresented = false
-        
+
         @FetchRequest(
             entity: TempTargetsSlider.entity(),
             sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
         ) var isEnabledArray: FetchedResults<TempTargetsSlider>
-        
+
         private var formatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
             formatter.maximumFractionDigits = 1
             return formatter
         }
-        
+
         private var displayString: String {
             guard let preset = selectedPreset else { return "" }
             var low = preset.targetBottom
@@ -31,13 +31,13 @@ extension AddTempTarget {
                 low = low?.asMmolL
                 high = high?.asMmolL
             }
-            
+
             let formattedLow = low.flatMap { formatter.string(from: $0 as NSNumber) } ?? ""
             let formattedDuration = formatter.string(from: preset.duration as NSNumber) ?? ""
-            
+
             return "\(formattedLow) \(state.units.rawValue) for \(formattedDuration) min"
         }
-        
+
         var body: some View {
             Form {
                 if !state.presets.isEmpty {
@@ -66,14 +66,14 @@ extension AddTempTarget {
                         }
                     }
                 }
-                
+
                 HStack {
                     Text("Experimental")
                     Toggle(isOn: $state.viewPercantage) {}.controlSize(.mini)
                     Image(systemName: "figure.highintensity.intervaltraining")
                     Image(systemName: "fork.knife")
                 }
-                
+
                 if state.viewPercantage {
                     Section(
                         header: Text("")
@@ -82,7 +82,7 @@ extension AddTempTarget {
                             Slider(
                                 value: $state.percentage,
                                 in: 15 ...
-                                min(Double(state.maxValue * 100), 200),
+                                    min(Double(state.maxValue * 100), 200),
                                 step: 1,
                                 onEditingChanged: { editing in
                                     isEditing = editing
@@ -96,22 +96,22 @@ extension AddTempTarget {
                             // Only display target slider when not 100 %
                             if state.percentage != 100 {
                                 Divider()
-                                
+
                                 Slider(
                                     value: $state.hbt,
                                     in: 101 ... 295,
                                     step: 1
                                 ).accentColor(.green)
-                                
+
                                 HStack {
                                     Text(
                                         (
                                             state
                                                 .units == .mmolL ?
-                                            "\(state.computeTarget().asMmolL.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))) mmol/L" :
+                                                "\(state.computeTarget().asMmolL.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))) mmol/L" :
                                                 "\(state.computeTarget().formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) mg/dl"
                                         )
-                                        + NSLocalizedString("  Target Glucose", comment: "")
+                                            + NSLocalizedString("  Target Glucose", comment: "")
                                     )
                                     .foregroundColor(.green)
                                 }
@@ -134,7 +134,7 @@ extension AddTempTarget {
                         }
                         DatePicker("Date", selection: $state.date)
                         Button { isPromtPresented = true }
-                    label: { Text("Save as preset") }
+                        label: { Text("Save as preset") }
                     }
                 }
                 if state.viewPercantage {
@@ -147,16 +147,16 @@ extension AddTempTarget {
                         }
                         DatePicker("Date", selection: $state.date)
                         Button { isPromtPresented = true }
-                    label: { Text("Save as preset") }
+                        label: { Text("Save as preset") }
                             .disabled(state.duration == 0)
                     }
                 }
-                
+
                 Section {
                     Button { state.enact() }
-                label: { Text("Enact") }
+                    label: { Text("Enact") }
                     Button { state.cancel() }
-                label: { Text("Cancel Temp Target") }
+                    label: { Text("Cancel Temp Target") }
                 }
             }
             .popover(isPresented: $isPromtPresented) {
@@ -169,9 +169,9 @@ extension AddTempTarget {
                             state.save()
                             isPromtPresented = false
                         }
-                    label: { Text("Save") }
+                        label: { Text("Save") }
                         Button { isPromtPresented = false }
-                    label: { Text("Cancel") }
+                        label: { Text("Cancel") }
                     }
                 }
             }
@@ -187,7 +187,7 @@ extension AddTempTarget {
             .navigationBarTitleDisplayMode(.automatic)
             .navigationBarItems(leading: Button("Close", action: state.hideModal))
         }
-        
+
         @ViewBuilder private func editPresetPopover() -> some View {
             Form {
                 Section(header: Text("Edit Preset")) {
@@ -205,7 +205,7 @@ extension AddTempTarget {
                         Text("New Duration")
                         Spacer()
                         DecimalTextField("0", value: $state.duration, formatter: formatter, cleanInput: true)
-                        Text("minutes")
+                        Text("min")
                     }
                 }
                 Section {
@@ -218,14 +218,14 @@ extension AddTempTarget {
                         isEditSheetPresented = false
                     }
                     .disabled(state.newPresetName.isEmpty)
-                    
+
                     Button("Cancel") {
                         isEditSheetPresented = false
                     }
                 }
             }
         }
-        
+
         private func presetView(for preset: TempTarget) -> some View {
             var low = preset.targetBottom
             var high = preset.targetBottom // change to only use targetBottom instead of targetTop
@@ -256,7 +256,7 @@ extension AddTempTarget {
                                 .foregroundColor(.secondary)
                                 .font(.caption)
                         }
-                        
+
                         Text(state.units.rawValue)
                             .foregroundColor(.secondary)
                             .font(.caption)
@@ -269,7 +269,7 @@ extension AddTempTarget {
                         Text("min")
                             .foregroundColor(.secondary)
                             .font(.caption)
-                        
+
                         Spacer()
                     }.padding(.bottom, 2)
                 }
