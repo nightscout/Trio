@@ -192,7 +192,7 @@ extension AddTempTarget {
             Form {
                 Section(header: Text("Edit Preset")) {
                     TextField("Name", text: $state.newPresetName)
-                    Text(displayString)
+                    Text("Before change: \(displayString)")
                         .foregroundColor(.secondary)
                         .font(.caption)
                     HStack {
@@ -213,7 +213,7 @@ extension AddTempTarget {
                         guard let selectedPreset = selectedPreset else { return }
                         state.updatePreset(
                             selectedPreset,
-                            low: state.units == .mmolL ? state.low.asMgdL : state.low
+                            low: state.low
                         )
                         isEditSheetPresented = false
                     }
@@ -278,24 +278,6 @@ extension AddTempTarget {
                     state.enactPreset(id: preset.id)
                 }
             }
-        }
-    }
-}
-
-extension AddTempTarget.StateModel {
-    func updatePreset(_ preset: TempTarget, low: Decimal) {
-        if let index = presets.firstIndex(where: { $0.id == preset.id }) {
-            presets[index] = TempTarget(
-                id: preset.id,
-                name: newPresetName,
-                createdAt: preset.createdAt,
-                targetTop: low,
-                targetBottom: low,
-                duration: duration,
-                enteredBy: preset.enteredBy,
-                reason: newPresetName
-            )
-            storage.storePresets(presets)
         }
     }
 }
