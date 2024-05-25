@@ -127,6 +127,10 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
     /// Store new or updated override target
     /// - Parameter targets: List of new or updated override
     func storeOverride(_ targets: [OverrideProfil]) {
+        // if recent, close it before apply new override
+        if current() != nil {
+            _ = cancelCurrentOverride()
+        }
         storeOverride(targets, isPresets: false)
     }
 
@@ -302,7 +306,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
                     .minutes
             )
 
-        storeOverride([currentOverride])
+        storeOverride([currentOverride], isPresets: false)
 
         return currentOverride.duration
     }
@@ -313,10 +317,10 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
     func applyOverridePreset(_ presetId: String) -> Date? {
         guard var preset = presets().first(where: { $0.id == presetId }) else { return nil }
 
-        // cancel the eventual current override
-        _ = cancelCurrentOverride()
-
+        // delete the target preset id to not use as a identifier of the new override
+        preset.id = UUID().uuidString
         preset.createdAt = Date()
+
         storeOverride([preset])
         return preset.createdAt
     }
