@@ -196,12 +196,13 @@ extension Home {
             let rateString = numberFormatter.string(from: tempRate as NSNumber) ?? "0"
             var manualBasalString = ""
 
-            if state.apsManager.isManualTempBasal {
+            if let apsManager = state.apsManager, apsManager.isManualTempBasal {
                 manualBasalString = NSLocalizedString(
                     " - Manual Basal ⚠️",
                     comment: "Manual Temp basal"
                 )
             }
+
             return rateString + " " + NSLocalizedString(" U/hr", comment: "Unit per hour with space") + manualBasalString
         }
 

@@ -658,41 +658,54 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     private func enactDetermination() -> AnyPublisher<Void, Error> {
-            guard let determination = fetchDetermination() else {
+        // Fetch determination within the correct context
+        Future<OrefDetermination?, Error> { promise in
+            self.privateContext.perform {
+                let determination = self.fetchDetermination()
+                promise(.success(determination))
+            }
+        }
+        .flatMap { determination -> AnyPublisher<Void, Error> in
+            guard let determination = determination else {
                 return Fail(error: APSError.apsError(message: "Determination not found")).eraseToAnyPublisher()
             }
 
-            guard let pump = pumpManager else {
+            guard let pump = self.pumpManager else {
                 return Fail(error: APSError.apsError(message: "Pump not set")).eraseToAnyPublisher()
             }
 
-            // unable to do temp basal during manual temp basal 😁
-            if isManualTempBasal {
+            // Unable to do temp basal during manual temp basal 😁
+            if self.isManualTempBasal {
                 return Fail(error: APSError.manualBasalTemp(message: "Loop not possible during the manual basal temp"))
                     .eraseToAnyPublisher()
             }
+
+            let rateValue = determination.rate
+            let durationValue = determination.duration
 
             let basalPublisher: AnyPublisher<Void, Error> = Deferred { () -> AnyPublisher<Void, Error> in
                 if let error = self.verifyStatus() {
                     return Fail(error: error).eraseToAnyPublisher()
                 }
 
-                guard let rate = determination.rate else {
+                guard let rate = rateValue else {
                     debug(.apsManager, "No temp required")
                     return Just(()).setFailureType(to: Error.self)
                         .eraseToAnyPublisher()
                 }
                 return pump.enactTempBasal(
-                    unitsPerHour: Double(truncating: rate),
-                    for: TimeInterval(determination.duration * 60)
+                    unitsPerHour: Double(truncating: rate as NSNumber),
+                    for: TimeInterval(durationValue * 60)
                 ).map { _ in
-                    let temp = TempBasal(
-                        duration: Int(determination.duration),
-                        rate: ((determination.rate ?? 0) as NSDecimalNumber) as Decimal,
-                        temp: .absolute,
-                        timestamp: Date()
-                    )
-                    self.storage.save(temp, as: OpenAPS.Monitor.tempBasal)
+                    self.privateContext.perform {
+                        let temp = TempBasal(
+                            duration: Int(durationValue),
+                            rate: ((rateValue ?? 0) as NSDecimalNumber) as Decimal,
+                            temp: .absolute,
+                            timestamp: Date()
+                        )
+                        self.storage.save(temp, as: OpenAPS.Monitor.tempBasal)
+                    }
                     return ()
                 }
                 .eraseToAnyPublisher()
@@ -715,8 +728,140 @@ final class BaseAPSManager: APSManager, Injectable {
             }.eraseToAnyPublisher()
 
             return basalPublisher.flatMap { bolusPublisher }.eraseToAnyPublisher()
-        
+        }
+        .eraseToAnyPublisher()
     }
+
+//    private func enactDetermination() -> AnyPublisher<Void, Error> {
+//        // Fetch determination within the correct context
+//        Future<OrefDetermination?, Error> { promise in
+//            self.privateContext.perform {
+//                let determination = self.fetchDetermination()
+//                promise(.success(determination))
+//            }
+//        }
+//        .flatMap { determination -> AnyPublisher<Void, Error> in
+//            guard let determination = determination else {
+//                return Fail(error: APSError.apsError(message: "Determination not found")).eraseToAnyPublisher()
+//            }
+//
+//            guard let pump = self.pumpManager else {
+//                return Fail(error: APSError.apsError(message: "Pump not set")).eraseToAnyPublisher()
+//            }
+//
+//            // Unable to do temp basal during manual temp basal 😁
+//            if self.isManualTempBasal {
+//                return Fail(error: APSError.manualBasalTemp(message: "Loop not possible during the manual basal temp"))
+//                    .eraseToAnyPublisher()
+//            }
+//
+//            let basalPublisher: AnyPublisher<Void, Error> = Deferred { () -> AnyPublisher<Void, Error> in
+//                if let error = self.verifyStatus() {
+//                    return Fail(error: error).eraseToAnyPublisher()
+//                }
+//
+//                guard let rate = determination.rate else {
+//                    debug(.apsManager, "No temp required")
+//                    return Just(()).setFailureType(to: Error.self)
+//                        .eraseToAnyPublisher()
+//                }
+//                return pump.enactTempBasal(
+//                    unitsPerHour: Double(truncating: rate as NSNumber),
+//                    for: TimeInterval((determination.duration ?? 0) * 60)
+//                ).map { _ in
+//                    let temp = TempBasal(
+//                        duration: Int(determination.duration ?? 0),
+//                        rate: ((determination.rate ?? 0) as NSDecimalNumber) as Decimal,
+//                        temp: .absolute,
+//                        timestamp: Date()
+//                    )
+//                    self.storage.save(temp, as: OpenAPS.Monitor.tempBasal)
+//                    return ()
+//                }
+//                .eraseToAnyPublisher()
+//            }.eraseToAnyPublisher()
+//
+//            let bolusPublisher: AnyPublisher<Void, Error> = Deferred { () -> AnyPublisher<Void, Error> in
+//                if let error = self.verifyStatus() {
+//                    return Fail(error: error).eraseToAnyPublisher()
+//                }
+//                guard let smbToDeliver = determination.smbToDeliver else {
+//                    debug(.apsManager, "No bolus required")
+//                    return Just(()).setFailureType(to: Error.self)
+//                        .eraseToAnyPublisher()
+//                }
+//                return pump.enactBolus(units: Double(truncating: smbToDeliver), automatic: true).map { _ in
+//                    self.bolusProgress.send(0)
+//                    return ()
+//                }
+//                .eraseToAnyPublisher()
+//            }.eraseToAnyPublisher()
+//
+//            return basalPublisher.flatMap { bolusPublisher }.eraseToAnyPublisher()
+//        }
+//        .eraseToAnyPublisher()
+//    }
+
+//    private func enactDetermination() -> AnyPublisher<Void, Error> {
+//            guard let determination = fetchDetermination() else {
+//                return Fail(error: APSError.apsError(message: "Determination not found")).eraseToAnyPublisher()
+//            }
+//
+//            guard let pump = pumpManager else {
+//                return Fail(error: APSError.apsError(message: "Pump not set")).eraseToAnyPublisher()
+//            }
+//
+//            // unable to do temp basal during manual temp basal 😁
+//            if isManualTempBasal {
+//                return Fail(error: APSError.manualBasalTemp(message: "Loop not possible during the manual basal temp"))
+//                    .eraseToAnyPublisher()
+//            }
+//
+//            let basalPublisher: AnyPublisher<Void, Error> = Deferred { () -> AnyPublisher<Void, Error> in
+//                if let error = self.verifyStatus() {
+//                    return Fail(error: error).eraseToAnyPublisher()
+//                }
+//
+//                guard let rate = determination.rate else {
+//                    debug(.apsManager, "No temp required")
+//                    return Just(()).setFailureType(to: Error.self)
+//                        .eraseToAnyPublisher()
+//                }
+//                return pump.enactTempBasal(
+//                    unitsPerHour: Double(truncating: rate),
+//                    for: TimeInterval(determination.duration * 60)
+//                ).map { _ in
+//                    let temp = TempBasal(
+//                        duration: Int(determination.duration),
+//                        rate: ((determination.rate ?? 0) as NSDecimalNumber) as Decimal,
+//                        temp: .absolute,
+//                        timestamp: Date()
+//                    )
+//                    self.storage.save(temp, as: OpenAPS.Monitor.tempBasal)
+//                    return ()
+//                }
+//                .eraseToAnyPublisher()
+//            }.eraseToAnyPublisher()
+//
+//            let bolusPublisher: AnyPublisher<Void, Error> = Deferred { () -> AnyPublisher<Void, Error> in
+//                if let error = self.verifyStatus() {
+//                    return Fail(error: error).eraseToAnyPublisher()
+//                }
+//                guard let smbToDeliver = determination.smbToDeliver else {
+//                    debug(.apsManager, "No bolus required")
+//                    return Just(()).setFailureType(to: Error.self)
+//                        .eraseToAnyPublisher()
+//                }
+//                return pump.enactBolus(units: Double(truncating: smbToDeliver), automatic: true).map { _ in
+//                    self.bolusProgress.send(0)
+//                    return ()
+//                }
+//                .eraseToAnyPublisher()
+//            }.eraseToAnyPublisher()
+//
+//            return basalPublisher.flatMap { bolusPublisher }.eraseToAnyPublisher()
+//
+//    }
 
     private func reportEnacted(received: Bool) {
         privateContext.performAndWait {
