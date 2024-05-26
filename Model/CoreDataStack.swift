@@ -32,7 +32,15 @@ class CoreDataStack: ObservableObject {
     }
 
     /// A persistent history token used for fetching transactions from the store
-    private var lastToken: NSPersistentHistoryToken?
+    /// Save the last token to User defaults
+    private var lastToken: NSPersistentHistoryToken? {
+        get {
+            return UserDefaults.standard.lastHistoryToken
+        }
+        set {
+            UserDefaults.standard.lastHistoryToken = newValue
+        }
+    }
 
     /// A persistent container to set up the Core Data Stack
     lazy var persistentContainer: NSPersistentContainer = {
@@ -120,7 +128,75 @@ class CoreDataStack: ObservableObject {
         }
     }
 
-    // MARK: - Fetch Requests
+    // Clean old Persistent History
+    /// - Tag: clearHistory
+    func cleanupPersistentHistory(before date: Date) {
+        let taskContext = newTaskContext()
+        taskContext.name = "cleanPersistentHistoryContext"
+
+        taskContext.perform {
+            let deleteHistoryRequest = NSPersistentHistoryChangeRequest.deleteHistory(before: date)
+            do {
+                try taskContext.execute(deleteHistoryRequest)
+                debugPrint("\(DebuggingIdentifiers.succeeded) Successfully deleted persistent history before \(date)")
+            } catch {
+                debugPrint(
+                    "\(DebuggingIdentifiers.failed) Failed to delete persistent history before \(date): \(error.localizedDescription)"
+                )
+            }
+        }
+    }
+}
+
+// MARK: - Delete
+
+extension CoreDataStack {
+
+    /// Synchronously delete entries with specified object IDs
+    ///  - Tag: synchronousDelete
+    func deleteObject(identifiedBy objectIDs: [NSManagedObjectID]) {
+        let viewContext = persistentContainer.viewContext
+        debugPrint("Start deleting data from the store ...\(DebuggingIdentifiers.inProgress)")
+
+        viewContext.perform {
+            objectIDs.forEach { objectID in
+                let entryToDelete = viewContext.object(with: objectID)
+                viewContext.delete(entryToDelete)
+            }
+        }
+
+        debugPrint("Successfully deleted data. \(DebuggingIdentifiers.succeeded)")
+    }
+
+    /// Asynchronously deletes records
+    ///  - Tag: batchDelete
+//    func batchDelete<T: NSManagedObject>(_ objects: [T]) async throws {
+//        let objectIDs = objects.map(\.objectID)
+//        let taskContext = newTaskContext()
+//        // Add name and author to identify source of persistent history changes.
+//        taskContext.name = "deleteContext"
+//        taskContext.transactionAuthor = "batchDelete"
+//        debugPrint("Start deleting data from the store... \(DebuggingIdentifiers.inProgress)")
+//
+//        try await taskContext.perform {
+//            // Execute the batch delete.
+//            let batchDeleteRequest = NSBatchDeleteRequest(objectIDs: objectIDs)
+//            guard let fetchResult = try? taskContext.execute(batchDeleteRequest),
+//                  let batchDeleteResult = fetchResult as? NSBatchDeleteResult,
+//                  let success = batchDeleteResult.result as? Bool, success
+//            else {
+//                debugPrint("Failed to execute batch delete request \(DebuggingIdentifiers.failed)")
+//                throw CoreDataError.batchDeleteError
+//            }
+//        }
+//
+//        debugPrint("Successfully deleted data. \(DebuggingIdentifiers.succeeded)")
+//    }
+}
+
+// MARK: - Fetch Requests
+
+extension CoreDataStack {
 
     // Fetch in background thread
     /// - Tag: backgroundFetch
@@ -175,7 +251,7 @@ class CoreDataStack: ObservableObject {
     }
 
     // TODO: -refactor this, currently only the BolusStateModel uses this because we need to fetch in the background, then do calculations and after this update the UI
-    
+
     // Fetch and update UI
     /// - Tag: uiFetch
     func fetchEntitiesAndUpdateUI<T: NSManagedObject>(
@@ -295,49 +371,8 @@ class CoreDataStack: ObservableObject {
         }
     }
 
-    // MARK: - Delete
-
-    /// Synchronously delete entries with specified object IDs
-    ///  - Tag: synchronousDelete
-    func deleteObject(identifiedBy objectIDs: [NSManagedObjectID]) {
-        let viewContext = persistentContainer.viewContext
-        debugPrint("Start deleting data from the store ...\(DebuggingIdentifiers.inProgress)")
-
-        viewContext.perform {
-            objectIDs.forEach { objectID in
-                let entryToDelete = viewContext.object(with: objectID)
-                viewContext.delete(entryToDelete)
-            }
-        }
-
-        debugPrint("Successfully deleted data. \(DebuggingIdentifiers.succeeded)")
-    }
-
-    /// Asynchronously deletes records
-    ///  - Tag: batchDelete
-//    func batchDelete<T: NSManagedObject>(_ objects: [T]) async throws {
-//        let objectIDs = objects.map(\.objectID)
-//        let taskContext = newTaskContext()
-//        // Add name and author to identify source of persistent history changes.
-//        taskContext.name = "deleteContext"
-//        taskContext.transactionAuthor = "batchDelete"
-//        debugPrint("Start deleting data from the store... \(DebuggingIdentifiers.inProgress)")
-//
-//        try await taskContext.perform {
-//            // Execute the batch delete.
-//            let batchDeleteRequest = NSBatchDeleteRequest(objectIDs: objectIDs)
-//            guard let fetchResult = try? taskContext.execute(batchDeleteRequest),
-//                  let batchDeleteResult = fetchResult as? NSBatchDeleteResult,
-//                  let success = batchDeleteResult.result as? Bool, success
-//            else {
-//                debugPrint("Failed to execute batch delete request \(DebuggingIdentifiers.failed)")
-//                throw CoreDataError.batchDeleteError
-//            }
-//        }
-//
-//        debugPrint("Successfully deleted data. \(DebuggingIdentifiers.succeeded)")
-//    }
 }
+
 
 // MARK: - Save
 

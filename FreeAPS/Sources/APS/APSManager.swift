@@ -79,6 +79,9 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
+    private var cleanupTimer: Timer?
+    @Persisted(key: "lastHistoryCleanupDate") private var lastHistoryCleanupDate = Date.distantPast
+
     let viewContext = CoreDataStack.shared.persistentContainer.viewContext
     let privateContext = CoreDataStack.shared.persistentContainer.newBackgroundContext()
 
@@ -129,6 +132,44 @@ final class BaseAPSManager: APSManager, Injectable {
         isLooping
             .weakAssign(to: \.deviceDataManager.loopInProgress, on: self)
             .store(in: &lifetime)
+        startCleanupTimer()
+    }
+
+    private func startCleanupTimer() {
+        // Call the timer once every 12 hours to ensure that no clean gets missed
+        cleanupTimer = Timer.scheduledTimer(withTimeInterval: 12 * 60 * 60, repeats: true) { [weak self] _ in
+            self?.performCleanupIfNeeded()
+        }
+        RunLoop.current.add(cleanupTimer!, forMode: .common)
+    }
+
+    private func performCleanupIfNeeded() {
+        let now = Date()
+        let calendar = Calendar.current
+
+        // Check if there was already a clean on the specified day
+        if calendar.isDate(now, inSameDayAs: lastHistoryCleanupDate) {
+            // Cleanup was already done
+            return
+        }
+
+        DispatchQueue.global(qos: .background).async {
+            // Logging start time
+            let startTime = Date()
+            print("Starting cleanup at \(startTime)")
+
+            // Cleanup
+            CoreDataStack.shared.cleanupPersistentHistory(before: Date.oneWeekAgo)
+
+            // Logging end time
+            let endTime = Date()
+            print("Finished cleanup at \(endTime), duration: \(endTime.timeIntervalSince(startTime)) seconds")
+
+            // Update last cleanup date
+            DispatchQueue.main.async {
+                self.lastHistoryCleanupDate = now
+            }
+        }
     }
 
     private func subscribe() {
