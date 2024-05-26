@@ -95,7 +95,7 @@ final class OpenAPS {
         var glucoseAsJSON: String?
 
         context.performAndWait {
-            let results = CoreDataStack.shared.fetchEntities2(
+            let results = CoreDataStack.shared.fetchEntities(
                 ofType: GlucoseStored.self,
                 onContext: context,
                 predicate: NSPredicate.predicateForSixHoursAgo,
@@ -118,7 +118,7 @@ final class OpenAPS {
         var carbsAsJSON: String?
 
         context.performAndWait {
-            let results = CoreDataStack.shared.fetchEntities2(
+            let results = CoreDataStack.shared.fetchEntities(
                 ofType: CarbEntryStored.self,
                 onContext: context,
                 predicate: NSPredicate.predicateForOneDayAgo,
@@ -135,7 +135,7 @@ final class OpenAPS {
 
     private func fetchPumpHistoryObjectIDs() -> [NSManagedObjectID]? {
         context.performAndWait {
-            let results = CoreDataStack.shared.fetchEntities2(
+            let results = CoreDataStack.shared.fetchEntities(
                 ofType: PumpEventStored.self,
                 onContext: context,
                 predicate: NSPredicate.pumpHistoryLast24h,

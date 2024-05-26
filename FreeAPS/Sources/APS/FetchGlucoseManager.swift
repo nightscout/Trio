@@ -99,7 +99,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     }
 
     private func fetchGlucose() -> [GlucoseStored]? {
-        CoreDataStack.shared.fetchEntities2(
+        CoreDataStack.shared.fetchEntities(
             ofType: GlucoseStored.self,
             onContext: context,
             predicate: NSPredicate.predicateFor30MinAgo,

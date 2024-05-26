@@ -23,11 +23,6 @@ extension Home {
         @Published var autotunedBasalProfile: [BasalProfileEntry] = []
         @Published var basalProfile: [BasalProfileEntry] = []
         @Published var tempTargets: [TempTarget] = []
-        @Published var glucoseFromPersistence: [GlucoseStored] = []
-        @Published var determinationsFromCoreData: [OrefDetermination] = []
-        @Published var mostRecentDetermination: OrefDetermination?
-        @Published var carbsFromPersistence: [CarbEntryStored] = []
-        @Published var fpusFromPersistence: [CarbEntryStored] = []
         @Published var timerDate = Date()
         @Published var closedLoop = false
         @Published var pumpSuspended = false
@@ -85,11 +80,6 @@ extension Home {
             setupReservoir()
             setupAnnouncements()
             setupCurrentPumpTimezone()
-            setupNotification()
-            updateGlucose()
-            updateDetermination()
-            updateCarbs()
-            updateFPUs()
 
             uploadStats = settingsManager.settings.uploadStats
             units = settingsManager.settings.units
@@ -200,99 +190,6 @@ extension Home {
                     }
                 }
                 .store(in: &lifetime)
-        }
-
-        /// listens for the notifications sent when the managedObjectContext has changed
-        func setupNotification() {
-            Foundation.NotificationCenter.default.addObserver(
-                self,
-                selector: #selector(contextDidSave(_:)),
-                name: Notification.Name.NSManagedObjectContextObjectsDidChange,
-                object: context
-            )
-        }
-
-        /// determine the actions when the context has changed
-        ///
-        /// its done on a background thread and after that the UI gets updated on the main thread
-        @objc private func contextDidSave(_ notification: Notification) {
-            guard let userInfo = notification.userInfo else { return }
-
-            Task { [weak self] in
-                await self?.processUpdates(userInfo: userInfo)
-            }
-        }
-
-        private func processUpdates(userInfo: [AnyHashable: Any]) async {
-            var objects = Set((userInfo[NSInsertedObjectsKey] as? Set<NSManagedObject>) ?? [])
-            objects.formUnion((userInfo[NSUpdatedObjectsKey] as? Set<NSManagedObject>) ?? [])
-            objects.formUnion((userInfo[NSDeletedObjectsKey] as? Set<NSManagedObject>) ?? [])
-
-            let glucoseUpdates = objects.filter { $0 is GlucoseStored }
-            let determinationUpdates = objects.filter { $0 is OrefDetermination }
-            let carbUpdates = objects.filter { $0 is CarbEntryStored }
-
-            if glucoseUpdates.isNotEmpty {
-                updateGlucose()
-            }
-            if determinationUpdates.isNotEmpty {
-                updateDetermination()
-            }
-            if carbUpdates.isNotEmpty {
-                updateCarbs()
-                updateFPUs()
-            }
-        }
-
-        private func updateGlucose() {
-            CoreDataStack.shared.fetchEntitiesAndUpdateUI(
-                ofType: GlucoseStored.self,
-                predicate: NSPredicate.predicateForOneDayAgo,
-                key: "date",
-                ascending: false,
-                fetchLimit: 288,
-                batchSize: 50
-            ) { fetchedValues in
-                self.glucoseFromPersistence = fetchedValues
-            }
-        }
-
-        private func updateDetermination() {
-            CoreDataStack.shared.fetchEntitiesAndUpdateUI(
-                ofType: OrefDetermination.self,
-                predicate: NSPredicate.enactedDetermination,
-                key: "deliverAt",
-                ascending: false,
-                fetchLimit: 1
-            ) { fetchedValues in
-                guard let latestDetermination = fetchedValues.first else { return }
-                self.determinationsFromCoreData = fetchedValues
-                self.mostRecentDetermination = latestDetermination
-            }
-        }
-
-        private func updateCarbs() {
-            CoreDataStack.shared.fetchEntitiesAndUpdateUI(
-                ofType: CarbEntryStored.self,
-                predicate: NSPredicate.carbsForChart,
-                key: "date",
-                ascending: false,
-                batchSize: 20
-            ) { fetchedValues in
-                self.carbsFromPersistence = fetchedValues
-            }
-        }
-
-        private func updateFPUs() {
-            CoreDataStack.shared.fetchEntitiesAndUpdateUI(
-                ofType: CarbEntryStored.self,
-                predicate: NSPredicate.fpusForChart,
-                key: "date",
-                ascending: false,
-                batchSize: 20
-            ) { fetchedValues in
-                self.fpusFromPersistence = fetchedValues
-            }
         }
 
         func runLoop() {

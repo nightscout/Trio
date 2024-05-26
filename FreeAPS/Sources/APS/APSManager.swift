@@ -647,7 +647,7 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     private func fetchDetermination() -> OrefDetermination? {
-        CoreDataStack.shared.fetchEntities2(
+        CoreDataStack.shared.fetchEntities(
             ofType: OrefDetermination.self,
             onContext: privateContext,
             predicate: NSPredicate.predicateFor30MinAgoForDetermination,
@@ -934,7 +934,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
     // fetch glucose for time interval
     func fetchGlucose(predicate: NSPredicate, fetchLimit: Int? = nil, batchSize: Int? = nil) -> [GlucoseStored] {
-        CoreDataStack.shared.fetchEntities2(
+        CoreDataStack.shared.fetchEntities(
             ofType: GlucoseStored.self,
             onContext: privateContext,
             predicate: predicate,

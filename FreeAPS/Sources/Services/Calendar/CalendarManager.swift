@@ -229,18 +229,20 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         return formatter
     }
 
-    func setupGlucose() {
-        CoreDataStack.shared.fetchEntitiesAndUpdateUI(
-            ofType: GlucoseStored.self,
-            predicate: NSPredicate.predicateFor30MinAgo,
-            key: "date",
-            ascending: false
-        ) { glucose in
-            guard glucose.count >= 2 else { return }
-            debug(.default, "setup Glucose func on thread: \(Thread.current)")
-            // Safely unwrapping glucose readings
-            if let lastGlucose = glucose.first,
-               let secondLastReading = glucose.dropFirst().first?.glucose
+    private func setupGlucose() {
+        coredataContext.performAndWait {
+            let results = CoreDataStack.shared.fetchEntities(
+                ofType: GlucoseStored.self,
+                onContext: coredataContext,
+                predicate: NSPredicate.predicateFor30MinAgo,
+                key: "date",
+                ascending: false
+            )
+
+            guard results.count >= 2 else { return }
+
+            if let lastGlucose = results.first,
+               let secondLastReading = results.dropFirst().first?.glucose
             {
                 let glucoseDelta = lastGlucose.glucose - secondLastReading
                 self.createEvent(for: lastGlucose, delta: Int(glucoseDelta))

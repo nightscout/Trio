@@ -57,9 +57,11 @@ enum StateIntentError: Error {
 @available(iOS 16.0, *) final class StateIntentRequest: BaseIntentsRequest {
     let moc = CoreDataStack.shared.persistentContainer.newBackgroundContext()
 
-    func getLastGlucose(onContext: NSManagedObjectContext) throws -> (dateGlucose: Date, glucose: String, trend: String, delta: String) {
+    func getLastGlucose(onContext: NSManagedObjectContext) throws
+        -> (dateGlucose: Date, glucose: String, trend: String, delta: String)
+    {
         do {
-            let results = CoreDataStack.shared.fetchEntities2(
+            let results = CoreDataStack.shared.fetchEntities(
                 ofType: GlucoseStored.self,
                 onContext: onContext,
                 predicate: NSPredicate.predicateFor30MinAgo,
@@ -100,7 +102,7 @@ enum StateIntentError: Error {
     }
 
     func getIobAndCob(onContext: NSManagedObjectContext) throws -> (iob: Double, cob: Double) {
-        let results = CoreDataStack.shared.fetchEntities2(
+        let results = CoreDataStack.shared.fetchEntities(
             ofType: OrefDetermination.self,
             onContext: onContext,
             predicate: NSPredicate.enactedDetermination,

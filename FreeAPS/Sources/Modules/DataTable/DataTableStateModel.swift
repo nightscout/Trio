@@ -180,7 +180,8 @@ extension DataTable {
                 newItem.isManual = true
 
                 do {
-                    try CoreDataStack.shared.saveContext(useViewContext: true)
+                    guard self.coredataContext.hasChanges else { return }
+                    try self.coredataContext.save()
                 } catch {
                     print(error.localizedDescription)
                 }

@@ -56,7 +56,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
     private func fetchLastDeterminationDate() -> Date? {
         let predicate = NSPredicate.enactedDetermination
 
-        return CoreDataStack.shared.fetchEntities2(
+        return CoreDataStack.shared.fetchEntities(
             ofType: OrefDetermination.self,
             onContext: context,
             predicate: predicate,
@@ -68,7 +68,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
     }
 
     private func fetchLatestOverride() -> Override? {
-        CoreDataStack.shared.fetchEntities2(
+        CoreDataStack.shared.fetchEntities(
             ofType: Override.self,
             onContext: context,
             predicate: NSPredicate.predicateForOneDayAgo,
@@ -89,7 +89,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
 
         context.performAndWait {
             let predicate = NSPredicate.predicateFor120MinAgo
-            let fetchedGlucose = CoreDataStack.shared.fetchEntities2(
+            let fetchedGlucose = CoreDataStack.shared.fetchEntities(
                 ofType: GlucoseStored.self,
                 onContext: context,
                 predicate: predicate,

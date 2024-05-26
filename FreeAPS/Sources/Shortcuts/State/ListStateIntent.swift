@@ -18,7 +18,7 @@ import Foundation
 
     @MainActor func perform() async throws -> some ReturnsValue<StateiAPSResults> & ShowsSnippetView {
         let context = CoreDataStack.shared.persistentContainer.viewContext
-        
+
         let glucoseValues = try? stateIntent.getLastGlucose(onContext: context)
         let iob_cob_value = try? stateIntent.getIobAndCob(onContext: context)
 

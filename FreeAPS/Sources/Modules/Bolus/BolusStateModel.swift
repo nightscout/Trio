@@ -91,7 +91,6 @@ extension Bolus {
 
         @Published var externalInsulin: Bool = false
         @Published var showInfo: Bool = false
-
         @Published var glucoseFromPersistence: [GlucoseStored] = []
         @Published var determination: [OrefDetermination] = []
 
@@ -396,7 +395,6 @@ extension Bolus {
             context.perform {
                 // create pump event
                 let newPumpEvent = PumpEventStored(context: self.context)
-//                newPumpEvent.id = UUID().uuidString
                 newPumpEvent.timestamp = Date()
                 newPumpEvent.type = PumpEvent.bolus.rawValue
 
@@ -408,7 +406,8 @@ extension Bolus {
                 newBolusEntry.isSMB = false
 
                 do {
-                    try CoreDataStack.shared.saveContext(useViewContext: true)
+                    guard self.context.hasChanges else { return }
+                    try self.context.save()
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -478,7 +477,8 @@ extension Bolus {
                 newBolusEntry.isSMB = false
 
                 do {
-                    try CoreDataStack.shared.saveContext(useViewContext: true)
+                    guard self.context.hasChanges else { return }
+                    try self.context.save()
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -525,7 +525,8 @@ extension Bolus {
                 context.delete(selection!)
 
                 do {
-                    try CoreDataStack.shared.saveContext(useViewContext: true)
+                    guard context.hasChanges else { return }
+                    try context.save()
                 } catch {
                     print(error.localizedDescription)
                 }

@@ -39,7 +39,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                     // Fetch to filter out duplicates
                     // TODO: - move this to the Core Data Class
 
-                    let existingEvents: [PumpEventStored] = CoreDataStack.shared.fetchEntities2(
+                    let existingEvents: [PumpEventStored] = CoreDataStack.shared.fetchEntities(
                         ofType: PumpEventStored.self,
                         onContext: self.context,
                         predicate: NSPredicate.duplicateInLastFourLoops(event.date),

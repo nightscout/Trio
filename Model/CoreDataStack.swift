@@ -122,62 +122,9 @@ class CoreDataStack: ObservableObject {
 
     // MARK: - Fetch Requests
 
-    //
-    // the first I define here is for background work...I decided to pass a parameter context to the function to execute it on the viewContext if necessary, but for updating the UI I've decided to rather create a second generic fetch function with a completion handler which results are returned on the main thread
-    //
-    // first fetch function
-    // fetch on the thread of the backgroundContext
+    // Fetch in background thread
+    /// - Tag: backgroundFetch
     func fetchEntities<T: NSManagedObject>(
-        ofType type: T.Type,
-        predicate: NSPredicate,
-        key: String,
-        ascending: Bool,
-        fetchLimit: Int? = nil,
-        batchSize: Int? = nil,
-        propertiesToFetch: [String]? = nil,
-        callingFunction: String = #function,
-        callingClass: String = #fileID
-    ) -> [T] {
-        let request = NSFetchRequest<T>(entityName: String(describing: type))
-        request.sortDescriptors = [NSSortDescriptor(key: key, ascending: ascending)]
-        request.predicate = predicate
-        if let limit = fetchLimit {
-            request.fetchLimit = limit
-        }
-        if let batchSize = batchSize {
-            request.fetchBatchSize = batchSize
-        }
-        if let propertiesTofetch = propertiesToFetch {
-            request.propertiesToFetch = propertiesTofetch
-            request.resultType = .managedObjectResultType
-        } else {
-            request.resultType = .managedObjectResultType
-        }
-
-        let taskContext = newTaskContext()
-        taskContext.name = "fetchContext"
-        taskContext.transactionAuthor = "fetchEntities"
-
-        var result: [T]?
-
-        /// we need to ensure that the fetch immediately returns a value as long as the whole app does not use the async await pattern, otherwise we could perform this asynchronously with backgroundContext.perform and not block the thread
-        taskContext.performAndWait {
-            do {
-                debugPrint(
-                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.succeeded) on Thread: \(Thread.current)"
-                )
-                result = try taskContext.fetch(request)
-            } catch let error as NSError {
-                debugPrint(
-                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.failed) \(error) on Thread: \(Thread.current)"
-                )
-            }
-        }
-
-        return result ?? []
-    }
-
-    func fetchEntities2<T: NSManagedObject>(
         ofType type: T.Type,
         onContext context: NSManagedObjectContext,
         predicate: NSPredicate,
@@ -227,8 +174,10 @@ class CoreDataStack: ObservableObject {
         return result ?? []
     }
 
-    // second fetch function
-    // fetch and update UI
+    // TODO: -refactor this, currently only the BolusStateModel uses this because we need to fetch in the background, then do calculations and after this update the UI
+    
+    // Fetch and update UI
+    /// - Tag: uiFetch
     func fetchEntitiesAndUpdateUI<T: NSManagedObject>(
         ofType type: T.Type,
         predicate: NSPredicate,
@@ -294,7 +243,9 @@ class CoreDataStack: ObservableObject {
         }
     }
 
-    // fetch and only return a NSManagedObjectID
+    // Fetch the NSManagedObjectIDs
+    // Useful if we need to pass the NSManagedObject to another thread as the objectID is thread safe
+    /// - Tag: fetchIDs
     func fetchNSManagedObjectID<T: NSManagedObject>(
         ofType type: T.Type,
         predicate: NSPredicate,
@@ -344,35 +295,10 @@ class CoreDataStack: ObservableObject {
         }
     }
 
-    // MARK: - Save
-
-    //
-    // takes a context as a parameter to be executed either on the main thread or on a background thread
-    // save on the thread of the backgroundContext
-    func saveContext(useViewContext: Bool = false, callingFunction: String = #function, callingClass: String = #fileID) throws {
-        let contextToUse = useViewContext ? CoreDataStack.shared.persistentContainer.viewContext : newTaskContext()
-
-        try contextToUse.performAndWait {
-            if contextToUse.hasChanges {
-                do {
-                    try contextToUse.save()
-                    debugPrint(
-                        "Saving to Core Data successful in \(callingFunction) in \(callingClass): \(DebuggingIdentifiers.succeeded)"
-                    )
-                } catch let error as NSError {
-                    debugPrint(
-                        "Saving to Core Data failed in \(callingFunction) in \(callingClass): \(DebuggingIdentifiers.failed) with error \(error), \(error.userInfo)"
-                    )
-                    throw error
-                }
-            }
-        }
-    }
-
     // MARK: - Delete
 
-    //
     /// Synchronously delete entries with specified object IDs
+    ///  - Tag: synchronousDelete
     func deleteObject(identifiedBy objectIDs: [NSManagedObjectID]) {
         let viewContext = persistentContainer.viewContext
         debugPrint("Start deleting data from the store ...\(DebuggingIdentifiers.inProgress)")
@@ -388,6 +314,7 @@ class CoreDataStack: ObservableObject {
     }
 
     /// Asynchronously deletes records
+    ///  - Tag: batchDelete
 //    func batchDelete<T: NSManagedObject>(_ objects: [T]) async throws {
 //        let objectIDs = objects.map(\.objectID)
 //        let taskContext = newTaskContext()
@@ -410,4 +337,29 @@ class CoreDataStack: ObservableObject {
 //
 //        debugPrint("Successfully deleted data. \(DebuggingIdentifiers.succeeded)")
 //    }
+}
+
+// MARK: - Save
+
+extension NSManagedObjectContext {
+    // takes a context as a parameter to be executed either on the main thread or on a background thread
+    /// - Tag: save
+    func saveContext(
+        onContext: NSManagedObjectContext,
+        callingFunction: String = #function,
+        callingClass: String = #fileID
+    ) throws {
+        do {
+            guard onContext.hasChanges else { return }
+            try onContext.save()
+            debugPrint(
+                "Saving to Core Data successful in \(callingFunction) in \(callingClass): \(DebuggingIdentifiers.succeeded)"
+            )
+        } catch let error as NSError {
+            debugPrint(
+                "Saving to Core Data failed in \(callingFunction) in \(callingClass): \(DebuggingIdentifiers.failed) with error \(error), \(error.userInfo)"
+            )
+            throw error
+        }
+    }
 }
