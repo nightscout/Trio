@@ -78,7 +78,7 @@ extension Home {
             setupCarbs()
             setupBattery()
             setupReservoir()
-            setupOverride()
+            setupOverride(overrideStorage.recent(), overrideStorage.current())
 
             suggestion = provider.suggestion
             enactedSuggestion = provider.enactedSuggestion
@@ -220,12 +220,12 @@ extension Home {
             _ = overrideStorage.cancelCurrentOverride()
         }
 
-        func setupOverride() {
+        func setupOverride(_ targets: [OverrideProfil?], _ current: OverrideProfil?) {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
                 self.targetBG = self.provider.profile
-                self.currentOverride = self.overrideStorage.current()
-                self.overrideHistory = self.overrideStorage.recent()
+                self.currentOverride = current
+                self.overrideHistory = targets
             }
         }
 
@@ -410,8 +410,8 @@ extension Home.StateModel:
     PumpReservoirObserver,
     OverrideObserver
 {
-    func overrideDidUpdate(_: [OverrideProfil?]) {
-        setupOverride()
+    func overrideDidUpdate(_ targets: [OverrideProfil?], current: OverrideProfil?) {
+        setupOverride(targets, current)
     }
 
     func glucoseDidUpdate(_: [BloodGlucose]) {

@@ -5,7 +5,7 @@ import Swinject
 
 /// Observer to register to be informed by a change in the current override
 protocol OverrideObserver {
-    func overrideDidUpdate(_ targets: [OverrideProfil?])
+    func overrideDidUpdate(_ targets: [OverrideProfil?], current: OverrideProfil?)
 }
 
 protocol OverrideStorage {
@@ -206,7 +206,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
 
             processQueue.async {
                 self.broadcaster.notify(OverrideObserver.self, on: self.processQueue) {
-                    $0.overrideDidUpdate([])
+                    $0.overrideDidUpdate(self.recent(), current: self.current())
                 }
             }
         }
