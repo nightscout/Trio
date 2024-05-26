@@ -81,89 +81,17 @@ extension AddTempTarget {
                     }
                 }
 
-                HStack {
-                    Text("Experimental")
-                    Toggle(isOn: $state.viewPercantage) {}.controlSize(.mini)
-                    Image(systemName: "figure.highintensity.intervaltraining")
-                    Image(systemName: "fork.knife")
-                }
+                settingsSection(header: "Custom")
 
-                if state.viewPercantage {
-                    Section {
-                        VStack {
-                            Text("\(state.percentage.formatted(.number)) % Insulin")
-                                .foregroundColor(isEditing ? .orange : .blue)
-                                .font(.largeTitle)
-                                .padding(.vertical)
-                            Slider(
-                                value: $state.percentage,
-                                in: 15 ...
-                                    min(Double(state.maxValue * 100), 200),
-                                step: 1,
-                                onEditingChanged: { editing in
-                                    isEditing = editing
-                                }
-                            )
-                            HStack {}
-                            // Only display target slider when not 100 %
-                            if state.percentage != 100 {
-                                Spacer()
-                                Divider()
-                                Text(
-                                    (
-                                        state
-                                            .units == .mmolL ?
-                                            "\(state.computeTarget().asMmolL.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))) mmol/L" :
-                                            "\(state.computeTarget().formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) mg/dl"
-                                    )
-                                        + NSLocalizedString(" Target Glucose", comment: "")
-                                )
-                                .foregroundColor(.green)
-                                .padding(.vertical)
-                                Slider(
-                                    value: $state.hbt,
-                                    in: 101 ... 295,
-                                    step: 1
-                                ).accentColor(.green)
-                            }
-                        }
-                    }
-                } else {
-                    Section(header: Text("Custom")) {
-                        HStack {
-                            Text("Target")
-                            Spacer()
-                            DecimalTextField("0", value: $state.low, formatter: formatter, cleanInput: true)
-                            Text(state.units.rawValue).foregroundColor(.secondary)
-                        }
-                        HStack {
-                            Text("Duration")
-                            Spacer()
-                            DecimalTextField("0", value: $state.duration, formatter: formatter, cleanInput: true)
-                            Text("minutes").foregroundColor(.secondary)
-                        }
-                        DatePicker("Date", selection: $state.date)
-                        Button { isPromtPresented = true }
-                        label: { Text("Save as preset") }
-                    }
-                }
-                if state.viewPercantage {
-                    Section {
-                        HStack {
-                            Text("Duration")
-                            Spacer()
-                            DecimalTextField("0", value: $state.duration, formatter: formatter, cleanInput: true)
-                            Text("minutes").foregroundColor(.secondary)
-                        }
-                        DatePicker("Date", selection: $state.date)
-                        Button { isPromtPresented = true }
-                        label: { Text("Save as preset") }
-                            .disabled(state.duration == 0)
-                    }
-                }
+                DatePicker("Date", selection: $state.date)
+                Button { isPromtPresented = true }
+                label: { Text("Save as preset") }
+                    .disabled(state.duration == 0)
+
                 Section {
                     Button { state.enact() }
                     label: { Text("Enact") }
+                        .disabled(state.duration == 0)
                     Button { state.cancel() }
                     label: { Text("Cancel Temp Target") }
                 }
@@ -197,30 +125,97 @@ extension AddTempTarget {
             .navigationBarItems(leading: Button("Close", action: state.hideModal))
         }
 
-        @ViewBuilder private func editPresetPopover() -> some View {
-            Form {
-                Section(header: Text("Edit Preset")) {
-                    TextField("Name", text: $state.newPresetName)
-                    Text("Before change: \(displayString)")
-                        .foregroundColor(.secondary)
-                        .font(.caption)
+        @ViewBuilder func settingsSection(header: String) -> some View {
+            HStack {
+                Text("Experimental")
+                Toggle(isOn: $state.viewPercantage) {}
+                    .controlSize(.mini)
+                Image(systemName: "figure.highintensity.intervaltraining")
+                Image(systemName: "fork.knife")
+            }
+
+            if state.viewPercantage {
+                Section {
+                    VStack {
+                        Text("\(state.percentage.formatted(.number)) % Insulin")
+                            .foregroundColor(isEditing ? .orange : .blue)
+                            .font(.largeTitle)
+                            .padding(.vertical)
+                        Slider(
+                            value: $state.percentage,
+                            in: 15 ...
+                                min(Double(state.maxValue * 100), 200),
+                            step: 1,
+                            onEditingChanged: { editing in
+                                isEditing = editing
+                            }
+                        )
+                        HStack {}
+                        // Only display target slider when not 100 %
+                        if state.percentage != 100 {
+                            Spacer()
+                            Divider()
+                            Text(
+                                (
+                                    state
+                                        .units == .mmolL ?
+                                        "\(state.computeTarget().asMmolL.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))) mmol/L" :
+                                        "\(state.computeTarget().formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) mg/dl"
+                                )
+                                    + NSLocalizedString(" Target Glucose", comment: "")
+                            )
+                            .foregroundColor(.green)
+                            .padding(.vertical)
+                            Slider(
+                                value: $state.hbt,
+                                in: 101 ... 295,
+                                step: 1
+                            ).accentColor(.green)
+                        }
+                    }
+                }
+            } else {
+                Section(header: Text(header)) {
                     HStack {
-                        Text("New Target")
+                        Text("Target")
                         Spacer()
                         DecimalTextField("0", value: $state.low, formatter: formatter, cleanInput: true)
                         Text(state.units.rawValue).foregroundColor(.secondary)
                     }
                     HStack {
-                        Text("New Duration")
+                        Text("Duration")
                         Spacer()
                         DecimalTextField("0", value: $state.duration, formatter: formatter, cleanInput: true)
-                        Text("min").foregroundColor(.secondary)
+                        Text("minutes").foregroundColor(.secondary)
                     }
                 }
+            }
+            if state.viewPercantage {
+                Section {
+                    HStack {
+                        Text("Duration")
+                        Spacer()
+                        DecimalTextField("0", value: $state.duration, formatter: formatter, cleanInput: true)
+                        Text("minutes").foregroundColor(.secondary)
+                    }
+                }
+            }
+        }
+
+        @ViewBuilder private func editPresetPopover() -> some View {
+            Form {
+                Section(header: Text("Edit Name?")) {
+                    TextField("Name", text: $state.newPresetName)
+                    Text("Settings before change: \(displayString)")
+                        .foregroundColor(.secondary)
+                        .font(.caption)
+                }
+                settingsSection(header: "New target and duration")
+
                 Section {
                     Button("Save") {
                         guard let selectedPreset = selectedPreset else { return }
-                        state.updatePreset(selectedPreset, low: state.low)
+                        state.updatePreset(selectedPreset)
                         isEditSheetPresented = false
                     }
                     .disabled(state.newPresetName.isEmpty)
@@ -257,16 +252,6 @@ extension AddTempTarget {
                     HStack {
                         Text(preset.displayName)
                         Spacer()
-                        /* Button {
-                             selectedPreset = preset
-                             state.newPresetName = preset.displayName
-                             state.low = state.units == .mmolL ? preset.targetBottom?.asMmolL ?? 0 : preset.targetBottom ?? 0
-                             state.duration = preset.duration
-                             state.date = preset.date as? Date ?? Date()
-                             isEditSheetPresented = true
-                         } label: {
-                             Image(systemName: "square.and.pencil")
-                         } */
                     }
                     HStack(spacing: 2) {
                         if let lowValue = low,

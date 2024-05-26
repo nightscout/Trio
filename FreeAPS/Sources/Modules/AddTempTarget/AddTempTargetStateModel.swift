@@ -100,24 +100,6 @@ extension AddTempTarget {
             }
         }
 
-        func updatePreset(_ preset: TempTarget, low: Decimal) {
-            let roundedLow = convertAndRound(low)
-
-            if let index = presets.firstIndex(where: { $0.id == preset.id }) {
-                presets[index] = TempTarget(
-                    id: preset.id,
-                    name: newPresetName.isEmpty ? preset.name : newPresetName,
-                    createdAt: preset.createdAt,
-                    targetTop: roundedLow,
-                    targetBottom: roundedLow,
-                    duration: duration,
-                    enteredBy: preset.enteredBy,
-                    reason: newPresetName.isEmpty ? preset.reason : newPresetName
-                )
-                storage.storePresets(presets)
-            }
-        }
-
         func save() {
             guard duration > 0 else {
                 return
@@ -215,12 +197,22 @@ extension AddTempTarget {
         }
 
         func updatePreset(_ preset: TempTarget) {
+            var lowTarget = low
+
+            if viewPercantage {
+                lowTarget = Decimal(round(Double(computeTarget())))
+            }
+
+            if units == .mmolL, !viewPercantage {
+                lowTarget = Decimal(round(Double(lowTarget.asMgdL)))
+            }
+
             let updatedPreset = TempTarget(
                 id: preset.id,
                 name: newPresetName.isEmpty ? preset.name : newPresetName,
                 createdAt: preset.createdAt,
-                targetTop: preset.targetTop,
-                targetBottom: low,
+                targetTop: lowTarget,
+                targetBottom: lowTarget,
                 duration: duration,
                 enteredBy: preset.enteredBy,
                 reason: newPresetName.isEmpty ? preset.reason : newPresetName
