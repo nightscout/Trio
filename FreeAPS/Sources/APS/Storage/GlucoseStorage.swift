@@ -244,8 +244,9 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
     func fetchManualGlucose() -> [GlucoseStored] {
         let predicate = NSPredicate.manualGlucose
-        return CoreDataStack.shared.fetchEntities(
+        return CoreDataStack.shared.fetchEntities2(
             ofType: GlucoseStored.self,
+            onContext: coredataContext,
             predicate: predicate,
             key: "date",
             ascending: false,
@@ -267,18 +268,20 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     }
 
     private func processManualGlucose() -> [BloodGlucose] {
-        let fetchedResults = fetchManualGlucose()
-        let glucoseArray = fetchedResults.map { result in
-            BloodGlucose(
-                date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
-                dateString: result.date ?? Date(),
-                unfiltered: Decimal(result.glucose),
-                filtered: Decimal(result.glucose),
-                noise: nil,
-                type: ""
-            )
+        coredataContext.performAndWait {
+            let fetchedResults = fetchManualGlucose()
+            let glucoseArray = fetchedResults.map { result in
+                BloodGlucose(
+                    date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
+                    dateString: result.date ?? Date(),
+                    unfiltered: Decimal(result.glucose),
+                    filtered: Decimal(result.glucose),
+                    noise: nil,
+                    type: ""
+                )
+            }
+            return glucoseArray
         }
-        return glucoseArray
     }
 
     private func processGlucose() -> [BloodGlucose] {

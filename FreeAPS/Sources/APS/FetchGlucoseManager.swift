@@ -32,7 +32,6 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     private lazy var dexcomSourceG7 = DexcomSourceG7(glucoseStorage: glucoseStorage, glucoseManager: self)
     private lazy var simulatorSource = GlucoseSimulatorSource()
 
-    // TODO: - test if we need to use the viewContext here
     private let context = CoreDataStack.shared.persistentContainer.newBackgroundContext()
 
     init(resolver: Resolver) {
@@ -100,8 +99,9 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     }
 
     private func fetchGlucose() -> [GlucoseStored]? {
-        CoreDataStack.shared.fetchEntities(
+        CoreDataStack.shared.fetchEntities2(
             ofType: GlucoseStored.self,
+            onContext: context,
             predicate: NSPredicate.predicateFor30MinAgo,
             key: "date",
             ascending: false,
@@ -110,16 +110,18 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     }
 
     private func processGlucose() -> [BloodGlucose] {
-        guard let results = fetchGlucose() else { return [] }
-        return results.map { result in
-            BloodGlucose(
-                date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
-                dateString: result.date ?? Date(),
-                unfiltered: Decimal(result.glucose),
-                filtered: Decimal(result.glucose),
-                noise: nil,
-                type: ""
-            )
+        context.performAndWait {
+            guard let results = fetchGlucose() else { return [] }
+            return results.map { result in
+                BloodGlucose(
+                    date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
+                    dateString: result.date ?? Date(),
+                    unfiltered: Decimal(result.glucose),
+                    filtered: Decimal(result.glucose),
+                    noise: nil,
+                    type: ""
+                )
+            }
         }
     }
 
