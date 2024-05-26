@@ -9,6 +9,8 @@ import Swinject
 
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
+    let coreDataStack = CoreDataStack.shared
+
     // Dependencies Assembler
     // contain all dependencies Assemblies
     // TODO: Remove static key after update "Use Dependencies" logic
@@ -55,6 +57,12 @@ import Swinject
             "iAPS Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(Bundle.main.buildDate)] [buildExpires: \(Bundle.main.profileExpiration)]"
         )
         loadServices()
+
+        // Clear the persistentHistory every time the app starts
+        let coreDataStack = self.coreDataStack
+        Task {
+            await coreDataStack.cleanupPersistentHistory(before: Date.oneWeekAgo)
+        }
     }
 
     var body: some Scene {
