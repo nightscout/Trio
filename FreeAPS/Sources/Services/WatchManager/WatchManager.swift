@@ -54,22 +54,28 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
     }
 
     private func fetchLastDeterminationDate() -> Date? {
-        var date: Date?
         let predicate = NSPredicate.enactedDetermination
 
-        // fetch and update on date on the main thread
-        CoreDataStack.shared.fetchEntitiesAndUpdateUI(
+        return CoreDataStack.shared.fetchEntities2(
             ofType: OrefDetermination.self,
+            onContext: context,
             predicate: predicate,
             key: "deliverAt",
             ascending: false,
             fetchLimit: 1,
             propertiesToFetch: ["deliverAt"]
-        ) { fetchedDetermination in
-            guard let mostRecentDetermination = fetchedDetermination.first else { return }
-            date = mostRecentDetermination.deliverAt
-        }
-        return date
+        ).first?.deliverAt
+    }
+
+    private func fetchLatestOverride() -> Override? {
+        CoreDataStack.shared.fetchEntities2(
+            ofType: Override.self,
+            onContext: context,
+            predicate: NSPredicate.predicateForOneDayAgo,
+            key: "date",
+            ascending: false,
+            fetchLimit: 1
+        ).first
     }
 
     func fetchAndProcessGlucose() -> (ids: [NSManagedObjectID], glucose: String, trend: String, delta: String, date: Date) {
@@ -125,80 +131,82 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
 
     private func configureState() {
         processQueue.async {
-            let glucoseValues = self.fetchAndProcessGlucose()
+            self.context.performAndWait {
+                let glucoseValues = self.fetchAndProcessGlucose()
 
-            self.state.glucose = glucoseValues.glucose
-            self.state.trend = glucoseValues.trend
-            self.state.delta = glucoseValues.delta
-            self.state.trendRaw = glucoseValues.trend
-            self.state.glucoseDate = glucoseValues.date
-            self.state.lastLoopDate = self.fetchLastDeterminationDate()
-            self.state.lastLoopDateInterval = self.state.lastLoopDate.map {
-                guard $0.timeIntervalSince1970 > 0 else { return 0 }
-                return UInt64($0.timeIntervalSince1970)
-            }
-            self.state.bolusIncrement = self.settingsManager.preferences.bolusIncrement
-            self.state.maxCOB = self.settingsManager.preferences.maxCOB
-            self.state.maxBolus = self.settingsManager.pumpSettings.maxBolus
-            self.state.carbsRequired = self.suggestion?.carbsReq
-
-            var insulinRequired = self.suggestion?.insulinReq ?? 0
-
-            var double: Decimal = 2
-            if self.suggestion?.manualBolusErrorString == 0 {
-                insulinRequired = self.suggestion?.insulinForManualBolus ?? 0
-                double = 1
-            }
-
-            self.state.useNewCalc = self.settingsManager.settings.useCalc
-
-            if !(self.state.useNewCalc ?? false) {
-                self.state.bolusRecommended = self.apsManager
-                    .roundBolus(amount: max(
-                        insulinRequired * (self.settingsManager.settings.insulinReqPercentage / 100) * double,
-                        0
-                    ))
-            } else {
-                let recommended = self.newBolusCalc(ids: glucoseValues.ids, suggestion: self.suggestion)
-                self.state.bolusRecommended = self.apsManager
-                    .roundBolus(amount: max(recommended, 0))
-            }
-
-            self.state.iob = self.suggestion?.iob
-            self.state.cob = self.suggestion?.cob
-            self.state.tempTargets = self.tempTargetsStorage.presets()
-                .map { target -> TempTargetWatchPreset in
-                    let untilDate = self.tempTargetsStorage.current().flatMap { currentTarget -> Date? in
-                        guard currentTarget.id == target.id else { return nil }
-                        let date = currentTarget.createdAt.addingTimeInterval(TimeInterval(currentTarget.duration * 60))
-                        return date > Date() ? date : nil
-                    }
-                    return TempTargetWatchPreset(
-                        name: target.displayName,
-                        id: target.id,
-                        description: self.descriptionForTarget(target),
-                        until: untilDate
-                    )
+                self.state.glucose = glucoseValues.glucose
+                self.state.trend = glucoseValues.trend
+                self.state.delta = glucoseValues.delta
+                self.state.trendRaw = glucoseValues.trend
+                self.state.glucoseDate = glucoseValues.date
+                self.state.lastLoopDate = self.fetchLastDeterminationDate()
+                self.state.lastLoopDateInterval = self.state.lastLoopDate.map {
+                    guard $0.timeIntervalSince1970 > 0 else { return 0 }
+                    return UInt64($0.timeIntervalSince1970)
                 }
-            self.state.bolusAfterCarbs = !self.settingsManager.settings.skipBolusScreenAfterCarbs
-            self.state.displayOnWatch = self.settingsManager.settings.displayOnWatch
-            self.state.displayFatAndProteinOnWatch = self.settingsManager.settings.displayFatAndProteinOnWatch
-            self.state.confirmBolusFaster = self.settingsManager.settings.confirmBolusFaster
+                self.state.bolusIncrement = self.settingsManager.preferences.bolusIncrement
+                self.state.maxCOB = self.settingsManager.preferences.maxCOB
+                self.state.maxBolus = self.settingsManager.pumpSettings.maxBolus
+                self.state.carbsRequired = self.suggestion?.carbsReq
 
-            let eBG = self.evetualBGStraing()
-            self.state.eventualBG = eBG.map { "⇢ " + $0 }
-            self.state.eventualBGRaw = eBG
+                var insulinRequired = self.suggestion?.insulinReq ?? 0
 
-            self.state.isf = self.suggestion?.isf
+                var double: Decimal = 2
+                if self.suggestion?.manualBolusErrorString == 0 {
+                    insulinRequired = self.suggestion?.insulinForManualBolus ?? 0
+                    double = 1
+                }
 
-            let overrideArray = self.coreDataStorage.fetchLatestOverride()
+                self.state.useNewCalc = self.settingsManager.settings.useCalc
 
-            if overrideArray.first?.enabled ?? false {
-                let percentString = "\((overrideArray.first?.percentage ?? 100).formatted(.number)) %"
-                self.state.override = percentString
+                if !(self.state.useNewCalc ?? false) {
+                    self.state.bolusRecommended = self.apsManager
+                        .roundBolus(amount: max(
+                            insulinRequired * (self.settingsManager.settings.insulinReqPercentage / 100) * double,
+                            0
+                        ))
+                } else {
+                    let recommended = self.newBolusCalc(ids: glucoseValues.ids, suggestion: self.suggestion)
+                    self.state.bolusRecommended = self.apsManager
+                        .roundBolus(amount: max(recommended, 0))
+                }
 
-            } else {
-                self.state.override = "100 %"
+                self.state.iob = self.suggestion?.iob
+                self.state.cob = self.suggestion?.cob
+                self.state.tempTargets = self.tempTargetsStorage.presets()
+                    .map { target -> TempTargetWatchPreset in
+                        let untilDate = self.tempTargetsStorage.current().flatMap { currentTarget -> Date? in
+                            guard currentTarget.id == target.id else { return nil }
+                            let date = currentTarget.createdAt.addingTimeInterval(TimeInterval(currentTarget.duration * 60))
+                            return date > Date() ? date : nil
+                        }
+                        return TempTargetWatchPreset(
+                            name: target.displayName,
+                            id: target.id,
+                            description: self.descriptionForTarget(target),
+                            until: untilDate
+                        )
+                    }
+                self.state.bolusAfterCarbs = !self.settingsManager.settings.skipBolusScreenAfterCarbs
+                self.state.displayOnWatch = self.settingsManager.settings.displayOnWatch
+                self.state.displayFatAndProteinOnWatch = self.settingsManager.settings.displayFatAndProteinOnWatch
+                self.state.confirmBolusFaster = self.settingsManager.settings.confirmBolusFaster
+
+                let eBG = self.evetualBGStraing()
+                self.state.eventualBG = eBG.map { "⇢ " + $0 }
+                self.state.eventualBGRaw = eBG
+
+                self.state.isf = self.suggestion?.isf
+
+                let latestOverride = self.fetchLatestOverride()
+
+                if latestOverride?.enabled ?? false {
+                    let percentString = "\((latestOverride?.percentage ?? 100).formatted(.number)) %"
+                    self.state.override = percentString
+
+                } else {
+                    self.state.override = "100 %"
+                }
             }
 
             self.sendState()

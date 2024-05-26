@@ -122,7 +122,7 @@ extension PumpEventStored {
     }()
 
     func toBolusDTOEnum() -> PumpEventDTO? {
-        guard let id = id, let timestamp = timestamp, let bolus = bolus, let amount = bolus.amount else {
+        guard let timestamp = timestamp, let bolus = bolus, let amount = bolus.amount else {
             return nil
         }
 
@@ -138,7 +138,7 @@ extension PumpEventStored {
     }
 
     func toTempBasalDTOEnum() -> PumpEventDTO? {
-        guard let id = id, let timestamp = timestamp, let tempBasal = tempBasal, let rate = tempBasal.rate else {
+        guard let timestamp = timestamp, let tempBasal = tempBasal, let rate = tempBasal.rate else {
             return nil
         }
 
@@ -152,7 +152,7 @@ extension PumpEventStored {
     }
 
     func toTempBasalDurationDTOEnum() -> PumpEventDTO? {
-        guard let id = id, let timestamp = timestamp, let tempBasal = tempBasal else {
+        guard let timestamp = timestamp, let tempBasal = tempBasal else {
             return nil
         }
 

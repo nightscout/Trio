@@ -18,9 +18,8 @@ extension DataTable {
 
         func deleteInsulin(_ treatment: PumpEventStored) {
             nightscoutManager.deleteInsulin(at: treatment.timestamp ?? Date())
-            if let id = treatment.id {
-                healthkitManager.deleteInsulin(syncID: id)
-            }
+            let id = treatment.id
+            healthkitManager.deleteInsulin(syncID: id)
         }
 
         func deleteManualGlucose(date: Date?) {

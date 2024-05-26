@@ -396,7 +396,7 @@ extension Bolus {
             context.perform {
                 // create pump event
                 let newPumpEvent = PumpEventStored(context: self.context)
-                newPumpEvent.id = UUID().uuidString
+//                newPumpEvent.id = UUID().uuidString
                 newPumpEvent.timestamp = Date()
                 newPumpEvent.type = PumpEvent.bolus.rawValue
 
@@ -466,7 +466,7 @@ extension Bolus {
             context.perform {
                 // create pump event
                 let newPumpEvent = PumpEventStored(context: self.context)
-                newPumpEvent.id = UUID().uuidString
+//                newPumpEvent.id = UUID().uuidString
                 newPumpEvent.timestamp = self.date
                 newPumpEvent.type = PumpEvent.bolus.rawValue
 

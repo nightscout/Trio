@@ -6,11 +6,25 @@ public extension PumpEventStored {
         NSFetchRequest<PumpEventStored>(entityName: "PumpEventStored")
     }
 
-    @NSManaged var id: String?
+    @NSManaged var id_: String!
     @NSManaged var timestamp: Date?
     @NSManaged var type: String?
     @NSManaged var bolus: BolusStored?
     @NSManaged var tempBasal: TempBasalStored?
+
+    override func awakeFromInsert() {
+        id_ = UUID().uuidString
+    }
 }
 
 extension PumpEventStored: Identifiable {}
+
+public extension PumpEventStored {
+    var id: String {
+        #if DEBUG
+            return id_!
+        #else
+            return id_ ?? UUID().uuidString
+        #endif
+    }
+}
