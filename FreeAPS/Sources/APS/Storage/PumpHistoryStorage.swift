@@ -22,6 +22,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     private let processQueue = DispatchQueue(label: "BasePumpHistoryStorage.processQueue")
     @Injected() private var storage: FileStorage!
     @Injected() private var broadcaster: Broadcaster!
+    @Injected() private var settings: SettingsManager!
 
     init(resolver: Resolver) {
         injectServices(resolver)
@@ -31,6 +32,11 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     typealias TempType = PumpEventStored.TempType
 
     private let context = CoreDataStack.shared.persistentContainer.newBackgroundContext()
+
+    private func roundDose(_ dose: Double, toIncrement increment: Double) -> Decimal {
+        let roundedValue = (dose / increment).rounded() * increment
+        return Decimal(roundedValue)
+    }
 
     func storePumpEvents(_ events: [NewPumpEvent]) {
         processQueue.async {
@@ -52,13 +58,15 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                     case .bolus:
 
                         guard let dose = event.dose else { continue }
-                        let amount = Decimal(dose.unitsInDeliverableIncrements)
+                        let amount = self.roundDose(
+                            dose.unitsInDeliverableIncrements,
+                            toIncrement: Double(self.settings.preferences.bolusIncrement)
+                        )
 
                         guard existingEvents.isEmpty else {
                             // Duplicate found, do not store the event
                             print("Duplicate event found with timestamp: \(event.date)")
 
-                            // TODO: fix amount rounding to allowed bolus increments
                             if let existingEvent = existingEvents.first(where: { $0.type == PumpEvent.bolus.rawValue }) {
                                 if existingEvent.timestamp == event.date {
                                     if let existingAmount = existingEvent.bolus?.amount, amount < existingAmount as Decimal {
