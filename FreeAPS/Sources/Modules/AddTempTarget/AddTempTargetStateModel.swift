@@ -9,7 +9,6 @@ extension AddTempTarget {
         let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
 
         @Published var low: Decimal = 0
-        // @Published var target: Decimal = 0
         @Published var high: Decimal = 0
         @Published var duration: Decimal = 0
         @Published var date = Date()
@@ -129,15 +128,18 @@ extension AddTempTarget {
                 lowTarget = Decimal(round(Double(computeTarget())))
                 saveSettings = true
             }
+            var highTarget = lowTarget
 
-            let roundedLow = convertAndRound(lowTarget)
+            if units == .mmolL, !viewPercantage {
+                lowTarget = Decimal(round(Double(lowTarget.asMgdL)))
+                highTarget = lowTarget
+            }
 
             let entry = TempTarget(
                 name: newPresetName.isEmpty ? TempTarget.custom : newPresetName,
                 createdAt: Date(),
-                targetTop: roundedLow,
-                targetBottom: roundedLow,
-
+                targetTop: highTarget,
+                targetBottom: lowTarget,
                 duration: duration,
                 enteredBy: TempTarget.manual,
                 reason: newPresetName.isEmpty ? TempTarget.custom : newPresetName
@@ -181,7 +183,6 @@ extension AddTempTarget {
                         saveToCoreData.active = true
                         saveToCoreData.date = Date()
                         saveToCoreData.hbt = whichID?.hbt ?? 160
-                        // saveToCoreData.id = id
                         saveToCoreData.startDate = Date()
                         saveToCoreData.duration = whichID?.duration ?? 0
 
