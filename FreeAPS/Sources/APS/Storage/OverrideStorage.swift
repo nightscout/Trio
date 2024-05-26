@@ -5,7 +5,7 @@ import Swinject
 
 /// Observer to register to be informed by a change in the current override
 protocol OverrideObserver {
-    func overrideDidUpdate(_ targets: [OverrideProfil?])
+    func overrideDidUpdate(_ targets: [OverrideProfil?], current: OverrideProfil?)
 }
 
 protocol OverrideStorage {
@@ -146,7 +146,6 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
     ///   - isPresets: definied if targerts is a override preset (true).
     private func storeOverride(_ targets: [OverrideProfil], isPresets: Bool) {
         // store in preset override
-        // processQueue.sync {
         if isPresets {
             let listOverridePresets = fetchOverridePreset()
             _ = targets.compactMap { preset in
@@ -204,10 +203,13 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             coredataContext.performAndWait {
                 try? coredataContext.save()
             }
-            // update the previous current value
-            _ = current()
         }
-        // }
+
+        processQueue.async {
+            self.broadcaster.notify(OverrideObserver.self, on: self.processQueue) {
+                $0.overrideDidUpdate(self.recent(), current: self.current())
+            }
+        }
     }
 
     /// The start date of override data available by recent function
@@ -263,7 +265,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
     }
 
     /// Provides the current override or nil if no is current available
-    /// broadcast a observer overrideDidUpdate if the current override has changed since the last current function call
+    ///
     /// - Returns: A override profil currently in action
     func current() -> OverrideProfil? {
         var newCurrentOverride: OverrideProfil?
@@ -285,14 +287,6 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             }
         } else {
             newCurrentOverride = nil
-        }
-
-        processQueue.sync {
-            if lastCurrentOverride != newCurrentOverride {
-                broadcaster.notify(OverrideObserver.self, on: processQueue) {
-                    $0.overrideDidUpdate([newCurrentOverride])
-                }
-            }
         }
 
         lastCurrentOverride = newCurrentOverride

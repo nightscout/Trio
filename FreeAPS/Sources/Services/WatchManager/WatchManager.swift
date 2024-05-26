@@ -5,6 +5,13 @@ import WatchConnectivity
 
 protocol WatchManager {}
 
+enum TypeUpdate {
+    case BGandISF
+    case tempTarget
+    case override
+    case all
+}
+
 final class BaseWatchManager: NSObject, WatchManager, Injectable {
     private let session: WCSession
     private var state = WatchState()
@@ -54,137 +61,157 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
             return data
         }
 
-        configureState()
+        updateState(.all)
     }
 
-    private func configureState() {
+    private func updateState(_ typeUpdate: TypeUpdate, _ currentOverride: OverrideProfil? = nil) {
         processQueue.async {
-            let glucoseValues = self.glucoseText()
-            self.state.glucose = glucoseValues.glucose
-            self.state.trend = glucoseValues.trend
-            self.state.delta = glucoseValues.delta
-            self.state.trendRaw = self.glucoseStorage.recent().last?.direction?.rawValue
-            self.state.glucoseDate = self.glucoseStorage.recent().last?.dateString
-            self.state.glucoseDateInterval = self.state.glucoseDate.map { UInt64($0.timeIntervalSince1970) }
-            self.state.lastLoopDate = self.enactedSuggestion?.recieved == true ? self.enactedSuggestion?.deliverAt : self
-                .apsManager.lastLoopDate
-            self.state.lastLoopDateInterval = self.state.lastLoopDate.map {
-                guard $0.timeIntervalSince1970 > 0 else { return 0 }
-                return UInt64($0.timeIntervalSince1970)
+            switch typeUpdate {
+            case .BGandISF:
+                self.updateBGandISF()
+            case .override:
+                self.state.tempTargets = self.updateOverride(currentOverride)
+            case .tempTarget:
+                self.state.tempTargets = self.updateTempTarget()
+            case .all:
+                self.updateBGandISF()
+                self.state.tempTargets = self.updateOverride(currentOverride) + self.updateTempTarget()
             }
-            self.state.bolusIncrement = self.settingsManager.preferences.bolusIncrement
-            self.state.maxCOB = self.settingsManager.preferences.maxCOB
-            self.state.maxBolus = self.settingsManager.pumpSettings.maxBolus
-            self.state.carbsRequired = self.suggestion?.carbsReq
-
-            var insulinRequired = self.suggestion?.insulinReq ?? 0
-            var double: Decimal = 2
-            if (self.suggestion?.cob ?? 0) > 0 {
-                if self.suggestion?.manualBolusErrorString == 0 {
-                    insulinRequired = self.suggestion?.insulinForManualBolus ?? 0
-                    double = 1
-                }
-            }
-
-            self.state.bolusRecommended = self.apsManager
-                .roundBolus(amount: max(insulinRequired * (self.settingsManager.settings.insulinReqPercentage / 100) * double, 0))
-
-            self.state.iob = self.suggestion?.iob
-            self.state.cob = self.suggestion?.cob
-            self.state.bolusAfterCarbs = !self.settingsManager.settings.skipBolusScreenAfterCarbs
-            self.state.displayOnWatch = self.settingsManager.settings.displayOnWatch
-            self.state.displayFatAndProteinOnWatch = self.settingsManager.settings.displayFatAndProteinOnWatch
-            let eBG = self.evetualBGStraing()
-            self.state.eventualBG = eBG.map { "⇢ " + $0 }
-            self.state.eventualBGRaw = eBG
-
-            self.state.isf = self.suggestion?.isf
-
-            // add temp preset
-            var presetTempTargetSelected: Bool = false
-            var tempTargetPresetArray = self.tempTargetsStorage.presets()
-                .map { target -> TempTargetWatchPreset in
-                    let untilDate = self.tempTargetsStorage.current().flatMap { currentTarget -> Date? in
-                        guard currentTarget.id == target.id else { return nil }
-                        let date = currentTarget.createdAt.addingTimeInterval(TimeInterval(currentTarget.duration * 60))
-                        return date > Date() ? date : nil
-                    }
-                    if untilDate != nil { presetTempTargetSelected = true }
-                    return TempTargetWatchPreset(
-                        name: target.displayName,
-                        id: target.id,
-                        description: self.descriptionForTarget(target),
-                        until: untilDate,
-                        typeTempTarget: .tempTarget
-                    )
-                }
-
-            // add a specific temp target  in progress if this temp target is not a preset
-            if let current = self.tempTargetsStorage.current(), !presetTempTargetSelected {
-                tempTargetPresetArray.append(
-                    TempTargetWatchPreset(
-                        name: "Custom",
-                        id: current.id,
-                        description: self.descriptionForTarget(current),
-                        until: current.createdAt.addingTimeInterval(TimeInterval(Double(current.duration) * 60)),
-                        typeTempTarget: .tempTarget
-                    )
-                )
-            }
-
-            // add override in the temp target list
-            let current = self.overrideStorage.current()
-            if current != nil {
-                let percentString = "\((current?.percentage ?? 100).formatted(.number)) %"
-                self.state.override = percentString
-
-            } else {
-                self.state.override = "100 %"
-            }
-
-            var presetOverrideSelected: Bool = false
-            var overridePresetArray: [TempTargetWatchPreset] = self.overrideStorage.presets().compactMap { target in
-                var untilDate: Date?
-
-                if let date = current?.createdAt, current?.name == target.name
-                {
-                    // duration = 0 -> unlimited duration = 1 year
-                    let duration = target.duration ?? (24 * 60 * 365)
-                    untilDate = date.addingTimeInterval(TimeInterval(duration * 60))
-                    presetOverrideSelected = true
-                } else {
-                    untilDate = nil
-                }
-
-                return TempTargetWatchPreset(
-                    name: target.name ?? "",
-                    id: target.id,
-                    description: "Profil : \(target.percentage ?? 100) %",
-                    until: untilDate,
-                    typeTempTarget: .override
-                )
-            }
-
-            // add a specific override profil in progress if this override is not a preset
-            if let current = current, !presetOverrideSelected {
-                let duration = current.duration ?? (24 * 60 * 365)
-                let date = current.createdAt
-                let untilDate = date?.addingTimeInterval(TimeInterval(duration * 60))
-                overridePresetArray.append(
-                    TempTargetWatchPreset(
-                        name: "Custom",
-                        id: current.id,
-                        description: "Profil : \(current.percentage ?? 100) %",
-                        until: untilDate,
-                        typeTempTarget: .override
-                    )
-                )
-            }
-
-            self.state.tempTargets = tempTargetPresetArray + overridePresetArray
 
             self.sendState()
         }
+    }
+
+    private func updateBGandISF() {
+        let glucoseValues = glucoseText()
+        state.glucose = glucoseValues.glucose
+        state.trend = glucoseValues.trend
+        state.delta = glucoseValues.delta
+        state.trendRaw = glucoseStorage.recent().last?.direction?.rawValue
+        state.glucoseDate = glucoseStorage.recent().last?.dateString
+        state.glucoseDateInterval = state.glucoseDate.map { UInt64($0.timeIntervalSince1970) }
+        state.lastLoopDate = enactedSuggestion?.recieved == true ? enactedSuggestion?.deliverAt : apsManager.lastLoopDate
+        state.lastLoopDateInterval = state.lastLoopDate.map {
+            guard $0.timeIntervalSince1970 > 0 else { return 0 }
+            return UInt64($0.timeIntervalSince1970)
+        }
+        state.bolusIncrement = settingsManager.preferences.bolusIncrement
+        state.maxCOB = settingsManager.preferences.maxCOB
+        state.maxBolus = settingsManager.pumpSettings.maxBolus
+        state.carbsRequired = suggestion?.carbsReq
+
+        var insulinRequired = suggestion?.insulinReq ?? 0
+        var double: Decimal = 2
+        if (suggestion?.cob ?? 0) > 0 {
+            if suggestion?.manualBolusErrorString == 0 {
+                insulinRequired = suggestion?.insulinForManualBolus ?? 0
+                double = 1
+            }
+        }
+
+        state.bolusRecommended = apsManager
+            .roundBolus(amount: max(insulinRequired * (settingsManager.settings.insulinReqPercentage / 100) * double, 0))
+
+        state.iob = suggestion?.iob
+        state.cob = suggestion?.cob
+        state.bolusAfterCarbs = !settingsManager.settings.skipBolusScreenAfterCarbs
+        state.displayOnWatch = settingsManager.settings.displayOnWatch
+        state.displayFatAndProteinOnWatch = settingsManager.settings.displayFatAndProteinOnWatch
+        let eBG = evetualBGStraing()
+        state.eventualBG = eBG.map { "⇢ " + $0 }
+        state.eventualBGRaw = eBG
+
+        state.isf = suggestion?.isf
+    }
+
+    private func updateTempTarget() -> [TempTargetWatchPreset] {
+        // add temp preset
+        var presetTempTargetSelected: Bool = false
+        var tempTargetPresetArray: [TempTargetWatchPreset] = []
+        tempTargetPresetArray = tempTargetsStorage.presets()
+            .map { target -> TempTargetWatchPreset in
+                let untilDate = self.tempTargetsStorage.current().flatMap { currentTarget -> Date? in
+                    guard currentTarget.id == target.id else { return nil }
+                    let date = currentTarget.createdAt.addingTimeInterval(TimeInterval(currentTarget.duration * 60))
+                    return date > Date() ? date : nil
+                }
+                if untilDate != nil { presetTempTargetSelected = true }
+                return TempTargetWatchPreset(
+                    name: target.displayName,
+                    id: target.id,
+                    description: self.descriptionForTarget(target),
+                    until: untilDate,
+                    typeTempTarget: .tempTarget
+                )
+            }
+
+        // add a specific temp target  in progress if this temp target is not a preset
+        if let current = tempTargetsStorage.current(), !presetTempTargetSelected {
+            tempTargetPresetArray.append(
+                TempTargetWatchPreset(
+                    name: "Custom",
+                    id: current.id,
+                    description: descriptionForTarget(current),
+                    until: current.createdAt.addingTimeInterval(TimeInterval(Double(current.duration) * 60)),
+                    typeTempTarget: .tempTarget
+                )
+            )
+        }
+
+        return tempTargetPresetArray
+    }
+
+    private func updateOverride(_ currentOverride: OverrideProfil?) -> [TempTargetWatchPreset] {
+        // add override in the temp target list
+        let current = currentOverride ?? overrideStorage.current()
+        if current != nil {
+            let percentString = "\((current?.percentage ?? 100).formatted(.number)) %"
+            state.override = percentString
+
+        } else {
+            state.override = "100 %"
+        }
+
+        var presetOverrideSelected: Bool = false
+        var overridePresetArray: [TempTargetWatchPreset] = []
+        overridePresetArray = overrideStorage.presets().compactMap { target in
+            var untilDate: Date?
+
+            if let date = current?.createdAt, current?.name == target.name
+            {
+                // duration = 0 -> unlimited duration = 1 year
+                let duration = target.duration ?? (24 * 60 * 365)
+                untilDate = date.addingTimeInterval(TimeInterval(duration * 60))
+                presetOverrideSelected = true
+            } else {
+                untilDate = nil
+            }
+
+            return TempTargetWatchPreset(
+                name: target.name ?? "",
+                id: target.id,
+                description: "Profil : \(target.percentage ?? 100) %",
+                until: untilDate,
+                typeTempTarget: .override
+            )
+        }
+
+        // add a specific override profil in progress if this override is not a preset
+        if let current = current, !presetOverrideSelected {
+            let duration = current.duration ?? (24 * 60 * 365)
+            let date = current.createdAt
+            let untilDate = date?.addingTimeInterval(TimeInterval(duration * 60))
+            overridePresetArray.append(
+                TempTargetWatchPreset(
+                    name: "Custom",
+                    id: current.id,
+                    description: "Profil : \(current.percentage ?? 100) %",
+                    until: untilDate,
+                    typeTempTarget: .override
+                )
+            )
+        }
+        return overridePresetArray
     }
 
     private func sendState() {
@@ -416,20 +443,20 @@ extension BaseWatchManager:
     PumpReservoirObserver,
     OverrideObserver
 {
-    func overrideDidUpdate(_: [OverrideProfil?]) {
-        configureState()
+    func overrideDidUpdate(_: [OverrideProfil?], current: OverrideProfil?) {
+        updateState(.override, current)
     }
 
     func glucoseDidUpdate(_: [BloodGlucose]) {
-        configureState()
+        updateState(.BGandISF)
     }
 
     func suggestionDidUpdate(_: Suggestion) {
-        configureState()
+        updateState(.BGandISF)
     }
 
     func settingsDidChange(_: FreeAPSSettings) {
-        configureState()
+        updateState(.BGandISF)
     }
 
     func pumpHistoryDidUpdate(_: [PumpHistoryEvent]) {
@@ -437,7 +464,7 @@ extension BaseWatchManager:
     }
 
     func pumpSettingsDidChange(_: PumpSettings) {
-        configureState()
+        updateState(.BGandISF)
     }
 
     func basalProfileDidChange(_: [BasalProfileEntry]) {
@@ -445,15 +472,16 @@ extension BaseWatchManager:
     }
 
     func tempTargetsDidUpdate(_: [TempTarget]) {
-        configureState()
+        updateState(.tempTarget)
     }
 
     func carbsDidUpdate(_: [CarbsEntry]) {
         // TODO:
+        updateState(.BGandISF)
     }
 
     func enactedSuggestionDidUpdate(_: Suggestion) {
-        configureState()
+        updateState(.BGandISF)
     }
 
     func pumpBatteryDidChange(_: Battery) {
