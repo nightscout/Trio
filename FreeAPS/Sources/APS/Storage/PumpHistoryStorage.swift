@@ -51,14 +51,27 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                     switch event.type {
                     case .bolus:
 
+                        guard let dose = event.dose else { continue }
+                        let amount = Decimal(dose.unitsInDeliverableIncrements)
+
                         guard existingEvents.isEmpty else {
                             // Duplicate found, do not store the event
                             print("Duplicate event found with timestamp: \(event.date)")
+
+                            // TODO: fix amount rounding to allowed bolus increments
+                            if let existingEvent = existingEvents.first(where: { $0.type == PumpEvent.bolus.rawValue }) {
+                                if existingEvent.timestamp == event.date {
+                                    if let existingAmount = existingEvent.bolus?.amount, amount < existingAmount as Decimal {
+                                        // Update existing event with new smaller value
+                                        existingEvent.bolus?.amount = amount as NSDecimalNumber
+                                        existingEvent.bolus?.isSMB = dose.automatic ?? true
+
+                                        print("Updated existing event with smaller value: \(amount)")
+                                    }
+                                }
+                            }
                             continue
                         }
-
-                        guard let dose = event.dose else { continue }
-                        let amount = Decimal(string: dose.unitsInDeliverableIncrements.description)
 
                         let newPumpEvent = PumpEventStored(context: self.context)
                         newPumpEvent.timestamp = event.date
