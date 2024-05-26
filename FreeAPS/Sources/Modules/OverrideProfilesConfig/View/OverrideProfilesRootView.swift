@@ -6,12 +6,10 @@ import Swinject
 extension OverrideProfilesConfig {
     struct RootView: BaseView {
         let resolver: Resolver
-        
+
         @StateObject var state = StateModel()
         @State private var isEditing = false
         @State private var showAlert = false
-        @State private var isRemoveAlertPresented = false
-        @State private var removeAlert: Alert?
         @State private var showingDetail = false
         @State private var selectedPreset: OverridePresets?
         @State private var isEditSheetPresented: Bool = false
@@ -21,24 +19,24 @@ extension OverrideProfilesConfig {
         @State private var showDeleteAlert = false
         @State private var indexToDelete: Int?
         @State private var profileNameToDelete: String = ""
-        
+
         @Environment(\.dismiss) var dismiss
         @Environment(\.managedObjectContext) var moc
-        
+
         @FetchRequest(
             entity: OverridePresets.entity(),
             sortDescriptors: [NSSortDescriptor(key: "name", ascending: true)], predicate: NSPredicate(
                 format: "name != %@", "" as String
             )
         ) var fetchedProfiles: FetchedResults<OverridePresets>
-        
+
         private var formatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
             formatter.maximumFractionDigits = 0
             return formatter
         }
-        
+
         private var glucoseFormatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
@@ -49,7 +47,7 @@ extension OverrideProfilesConfig {
             formatter.roundingMode = .halfUp
             return formatter
         }
-        
+
         var presetPopover: some View {
             Form {
                 nameSection(header: "Enter a name")
@@ -63,7 +61,7 @@ extension OverrideProfilesConfig {
                         state.profileName.isEmpty || fetchedProfiles
                             .contains(where: { $0.name == state.profileName })
                     )
-                    
+
                     Button("Cancel") {
                         isSheetPresented = false
                     }
@@ -71,7 +69,7 @@ extension OverrideProfilesConfig {
                 }
             }
         }
-        
+
         var editPresetPopover: some View {
             Form {
                 nameSection(header: "Change name?")
@@ -83,7 +81,7 @@ extension OverrideProfilesConfig {
                         isEditSheetPresented = false
                     }
                     .disabled(!hasChanges())
-                    
+
                     Button("Cancel") {
                         isEditSheetPresented = false
                     }
@@ -97,7 +95,7 @@ extension OverrideProfilesConfig {
                 }
             }
         }
-        
+
         @ViewBuilder private func nameSection(header: String) -> some View {
             Section {
                 TextField("Profile override name", text: $state.profileName)
@@ -105,7 +103,7 @@ extension OverrideProfilesConfig {
                 Text(header)
             }
         }
-        
+
         @ViewBuilder private func settingsConfig(header: String) -> some View {
             Section {
                 VStack {
@@ -136,7 +134,7 @@ extension OverrideProfilesConfig {
                         Text("minutes").foregroundColor(.secondary)
                     }
                 }
-                
+
                 HStack {
                     Toggle(isOn: $state.override_target) {
                         Text("Override Profile Target")
@@ -221,7 +219,7 @@ extension OverrideProfilesConfig {
                 Text(header)
             }
         }
-        
+
         @ViewBuilder private func settingsSection(header: String) -> some View {
             Section(header: Text(header)) {
                 let percentString = Text("Override: \(Int(state.percentage))%")
@@ -237,7 +235,7 @@ extension OverrideProfilesConfig {
                     .smbMinutes != 0 ? Text("\(state.smbMinutes.formatted()) SMB Basal minutes") : Text("")
                 let maxMinutesUAMString = state
                     .uamMinutes != 0 ? Text("\(state.uamMinutes.formatted()) UAM Basal minutes") : Text("")
-                
+
                 VStack(alignment: .leading, spacing: 2) {
                     percentString
                     if targetString != Text("") { targetString }
@@ -253,7 +251,7 @@ extension OverrideProfilesConfig {
                 .font(.caption)
             }
         }
-        
+
         var body: some View {
             Form {
                 if state.presets.isNotEmpty {
@@ -269,7 +267,7 @@ extension OverrideProfilesConfig {
                                     } label: {
                                         Label("Ta bort", systemImage: "trash")
                                     }.tint(.red)
-                                    
+
                                     Button {
                                         selectedPreset = preset
                                         state.profileName = preset.name ?? ""
@@ -280,11 +278,11 @@ extension OverrideProfilesConfig {
                                 }
                         }
                     }
-                header: { Text("Activate profile override") }
-                footer: { VStack(alignment: .leading) {
-                    Text("Swipe left on a profile to edit or delete it.")
-                }
-                }
+                    header: { Text("Activate profile override") }
+                    footer: { VStack(alignment: .leading) {
+                        Text("Swipe left on a profile to edit or delete it.")
+                    }
+                    }
                 }
                 settingsConfig(header: "Insulin")
                 Section {
@@ -292,37 +290,37 @@ extension OverrideProfilesConfig {
                         Button("Start new Profile") {
                             showAlert.toggle()
                             alertSring = "\(state.percentage.formatted(.number)) %, " +
-                            (
-                                state.duration > 0 || !state
-                                    ._indefinite ?
+                                (
+                                    state.duration > 0 || !state
+                                        ._indefinite ?
+                                        (
+                                            state
+                                                .duration
+                                                .formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) +
+                                                " min."
+                                        ) :
+                                        NSLocalizedString(" infinite duration.", comment: "")
+                                ) +
+                                (
+                                    (state.target == 0 || !state.override_target) ? "" :
+                                        (" Target: " + state.target.formatted() + " " + state.units.rawValue + ".")
+                                )
+                                +
                                 (
                                     state
-                                        .duration
-                                        .formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) +
-                                    " min."
-                                ) :
-                                    NSLocalizedString(" infinite duration.", comment: "")
-                            ) +
-                            (
-                                (state.target == 0 || !state.override_target) ? "" :
-                                    (" Target: " + state.target.formatted() + " " + state.units.rawValue + ".")
-                            )
-                            +
-                            (
-                                state
-                                    .smbIsOff ?
+                                        .smbIsOff ?
+                                        NSLocalizedString(
+                                            " SMBs are disabled either by schedule or during the entire duration.",
+                                            comment: ""
+                                        ) : ""
+                                )
+                                +
+                                "\n\n"
+                                +
                                 NSLocalizedString(
-                                    " SMBs are disabled either by schedule or during the entire duration.",
+                                    "Starting this override will change your Profiles and/or your Target Glucose used for looping during the entire selected duration. Tapping ”Start Profile” will start your new profile or edit your current active profile.",
                                     comment: ""
-                                ) : ""
-                            )
-                            +
-                            "\n\n"
-                            +
-                            NSLocalizedString(
-                                "Starting this override will change your Profiles and/or your Target Glucose used for looping during the entire selected duration. Tapping ”Start Profile” will start your new profile or edit your current active profile.",
-                                comment: ""
-                            )
+                                )
                         }
                         .disabled(unChanged())
                         .buttonStyle(BorderlessButtonStyle())
@@ -347,7 +345,7 @@ extension OverrideProfilesConfig {
                         Button {
                             isSheetPresented = true
                         }
-                    label: { Text("Save as Profile") }
+                        label: { Text("Save as Profile") }
                             .tint(.orange)
                             .frame(maxWidth: .infinity, alignment: .trailing)
                             .buttonStyle(BorderlessButtonStyle())
@@ -359,12 +357,12 @@ extension OverrideProfilesConfig {
                         presetPopover
                     }
                 }
-            footer: {
-                Text(
-                    "Your profile basal insulin will be adjusted with the override percentage and your profile ISF and CR will be inversly adjusted with the percentage."
-                )
-            }
-                
+                footer: {
+                    Text(
+                        "Your profile basal insulin will be adjusted with the override percentage and your profile ISF and CR will be inversly adjusted with the percentage."
+                    )
+                }
+
                 Button("Return to Normal") {
                     state.cancelProfile()
                     dismiss()
@@ -396,7 +394,7 @@ extension OverrideProfilesConfig {
                 )
             }
         }
-        
+
         @ViewBuilder private func profilesView(for preset: OverridePresets) -> some View {
             let target = state.units == .mmolL ? (((preset.target ?? 0) as NSDecimalNumber) as Decimal)
                 .asMmolL : (preset.target ?? 0) as Decimal
@@ -414,7 +412,7 @@ extension OverrideProfilesConfig {
             let crString = preset.cr ? "CR" : ""
             let dash = crString != "" ? "/" : ""
             let isfAndCRstring = isfString + dash + crString
-            
+
             if name != "" {
                 HStack {
                     VStack {
@@ -450,23 +448,23 @@ extension OverrideProfilesConfig {
                 }
             }
         }
-        
+
         private func unChanged() -> Bool {
             let defaultProfile = state.percentage == 100 && !state.override_target && !state.advancedSettings
             let noDurationSpecified = !state._indefinite && state.duration == 0
             let targetZeroWithOverride = state.override_target && state.target == 0
             let allSettingsDefault = state.percentage == 100 && !state.override_target && !state.smbIsOff && !state
                 .smbIsScheduledOff && state.smbMinutes == state.defaultSmbMinutes && state.uamMinutes == state.defaultUamMinutes
-            
+
             return defaultProfile || noDurationSpecified || targetZeroWithOverride || allSettingsDefault
         }
-        
+
         private func hasChanges() -> Bool {
             guard let originalPreset = originalPreset else { return false }
-            
+
             let targetInStateUnits: Decimal
             let targetInPresetUnits: Decimal
-            
+
             if state.units == .mmolL {
                 targetInStateUnits = state.target
                 targetInPresetUnits = Decimal(Double(truncating: originalPreset.target ?? 0) * 0.0555)
@@ -474,27 +472,27 @@ extension OverrideProfilesConfig {
                 targetInStateUnits = state.target
                 targetInPresetUnits = (originalPreset.target ?? 0) as Decimal
             }
-            
+
             let hasChanges = state.profileName != originalPreset.name ||
-            state.percentage != originalPreset.percentage ||
-            state.duration != (originalPreset.duration ?? 0) as Decimal ||
-            state._indefinite != originalPreset.indefinite ||
-            state.override_target != (originalPreset.target != nil) ||
-            (state.override_target && targetInStateUnits != targetInPresetUnits) ||
-            // state.advancedSettings != originalPreset.advancedSettings ||
-            state.smbIsOff != originalPreset.smbIsOff ||
-            state.smbIsScheduledOff != originalPreset.smbIsScheduledOff ||
-            state.isf != originalPreset.isf ||
-            state.cr != originalPreset.cr ||
-            state.smbMinutes != (originalPreset.smbMinutes ?? 0) as Decimal ||
-            state.uamMinutes != (originalPreset.uamMinutes ?? 0) as Decimal ||
-            state.isfAndCr != originalPreset.isfAndCr ||
-            state.start != (originalPreset.start ?? 0) as Decimal ||
-            state.end != (originalPreset.end ?? 0) as Decimal
-            
+                state.percentage != originalPreset.percentage ||
+                state.duration != (originalPreset.duration ?? 0) as Decimal ||
+                state._indefinite != originalPreset.indefinite ||
+                state.override_target != (originalPreset.target != nil) ||
+                (state.override_target && targetInStateUnits != targetInPresetUnits) ||
+                // state.advancedSettings != originalPreset.advancedSettings ||
+                state.smbIsOff != originalPreset.smbIsOff ||
+                state.smbIsScheduledOff != originalPreset.smbIsScheduledOff ||
+                state.isf != originalPreset.isf ||
+                state.cr != originalPreset.cr ||
+                state.smbMinutes != (originalPreset.smbMinutes ?? 0) as Decimal ||
+                state.uamMinutes != (originalPreset.uamMinutes ?? 0) as Decimal ||
+                state.isfAndCr != originalPreset.isfAndCr ||
+                state.start != (originalPreset.start ?? 0) as Decimal ||
+                state.end != (originalPreset.end ?? 0) as Decimal
+
             return hasChanges
         }
-        
+
         private func removeProfile(at offsets: IndexSet) {
             for index in offsets {
                 let language = fetchedProfiles[index]
