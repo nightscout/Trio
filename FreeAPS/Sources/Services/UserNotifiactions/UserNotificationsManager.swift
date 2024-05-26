@@ -184,71 +184,70 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         }
     }
 
-    private func fetchAndProcessGlucose() -> [GlucoseStored]? {
-        do {
-            debugPrint("Calibrations State Model: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
-            return try context.fetch(GlucoseStored.fetch(
-                NSPredicate.predicateFor20MinAgo,
-                ascending: false,
-                fetchLimit: 3
-            ))
-        } catch {
-            debugPrint("Calibrations State Model: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose")
-            return []
-        }
+    private func fetchGlucose() -> [GlucoseStored]? {
+        CoreDataStack.shared.fetchEntities2(
+            ofType: GlucoseStored.self,
+            onContext: context,
+            predicate: NSPredicate.predicateFor20MinAgo,
+            key: "date",
+            ascending: true,
+            fetchLimit: 3
+        )
     }
 
     private func sendGlucoseNotification() {
         addAppBadge(glucose: nil)
 
-        guard let glucose = fetchAndProcessGlucose(), let lastValue = glucose.first, let lastReading = glucose.first?.glucose,
-              let secondLastReading = glucose.dropFirst().first?.glucose else { return }
+        context.perform {
+            guard let glucose = self.fetchGlucose(), let lastValue = glucose.first, let lastReading = glucose.first?.glucose,
+                  let secondLastReading = glucose.dropFirst().first?.glucose else { return }
 
-        addAppBadge(glucose: (glucose.first?.glucose).map { Int($0) })
+            self.addAppBadge(glucose: (glucose.first?.glucose).map { Int($0) })
 
-        guard glucoseStorage.alarm != nil || settingsManager.settings.glucoseNotificationsAlways else {
-            return
-        }
-
-        ensureCanSendNotification {
-            var titles: [String] = []
-            var notificationAlarm = false
-
-            switch self.glucoseStorage.alarm {
-            case .none:
-                titles.append(NSLocalizedString("Glucose", comment: "Glucose"))
-            case .low:
-                titles.append(NSLocalizedString("LOWALERT!", comment: "LOWALERT!"))
-                notificationAlarm = true
-            case .high:
-                titles.append(NSLocalizedString("HIGHALERT!", comment: "HIGHALERT!"))
-                notificationAlarm = true
+            guard self.glucoseStorage.alarm != nil || self.settingsManager.settings.glucoseNotificationsAlways else {
+                return
             }
 
-            let delta = glucose.count >= 2 ? lastReading - secondLastReading : nil
-            let body = self.glucoseText(
-                glucoseValue: (glucose.first?.glucose).map { Int($0) } ?? 0,
-                delta: Int(delta ?? 0),
-                direction: lastValue.direction
-            ) + self
-                .infoBody()
+            self.ensureCanSendNotification {
+                var titles: [String] = []
+                var notificationAlarm = false
 
-            if self.snoozeUntilDate > Date() {
-                titles.append(NSLocalizedString("(Snoozed)", comment: "(Snoozed)"))
-                notificationAlarm = false
-            } else {
-                titles.append(body)
-                let content = UNMutableNotificationContent()
-                content.title = titles.joined(separator: " ")
-                content.body = body
-
-                if notificationAlarm {
-                    self.playSoundIfNeeded()
-                    content.sound = .default
-                    content.userInfo[NotificationAction.key] = NotificationAction.snooze.rawValue
+                switch self.glucoseStorage.alarm {
+                case .none:
+                    titles.append(NSLocalizedString("Glucose", comment: "Glucose"))
+                case .low:
+                    titles.append(NSLocalizedString("LOWALERT!", comment: "LOWALERT!"))
+                    notificationAlarm = true
+                case .high:
+                    titles.append(NSLocalizedString("HIGHALERT!", comment: "HIGHALERT!"))
+                    notificationAlarm = true
                 }
 
-                self.addRequest(identifier: .glucocoseNotification, content: content, deleteOld: true)
+                let delta = glucose.count >= 2 ? lastReading - secondLastReading : nil
+                let body = self.glucoseText(
+                    glucoseValue: (glucose.first?.glucose).map { Int($0) } ?? 0,
+                    delta: Int(delta ?? 0),
+                    direction: lastValue.direction
+                ) + self
+                    .infoBody()
+
+                if self.snoozeUntilDate > Date() {
+                    titles.append(NSLocalizedString("(Snoozed)", comment: "(Snoozed)"))
+                    notificationAlarm = false
+                } else {
+                    titles.append(body)
+                    let content = UNMutableNotificationContent()
+                    content.title = titles.joined(separator: " ")
+                    content.body = body
+
+                    if notificationAlarm {
+                        self.playSoundIfNeeded()
+                        content.sound = .default
+                        content.userInfo[NotificationAction.key] = NotificationAction.snooze.rawValue
+                    }
+
+                    self.addRequest(identifier: .glucocoseNotification, content: content, deleteOld: true)
+                }
             }
         }
     }

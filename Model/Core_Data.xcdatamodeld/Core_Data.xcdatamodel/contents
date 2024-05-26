@@ -222,7 +222,6 @@
             <uniquenessConstraint>
                 <constraint value="id_"/>
             </uniquenessConstraint>
-            <uniquenessConstraint/>
         </uniquenessConstraints>
     </entity>
     <entity name="StatsData" representedClassName="StatsData" syncable="YES">

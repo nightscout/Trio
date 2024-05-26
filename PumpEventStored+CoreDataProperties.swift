@@ -11,10 +11,6 @@ public extension PumpEventStored {
     @NSManaged var type: String?
     @NSManaged var bolus: BolusStored?
     @NSManaged var tempBasal: TempBasalStored?
-
-    override func awakeFromInsert() {
-        id_ = UUID().uuidString
-    }
 }
 
 extension PumpEventStored: Identifiable {}

@@ -60,6 +60,11 @@ extension NSPredicate {
         let date = Date.twentyMinutesAgo
         return NSPredicate(format: "timestamp >= %@", date as NSDate)
     }
+
+    static func duplicateInLastFourLoops(_ date: Date) -> NSPredicate {
+        let date20m = Date.twentyMinutesAgo
+        return NSPredicate(format: "timestamp >= %@ && timestamp == %@", date20m as NSDate, date as NSDate)
+    }
 }
 
 // Declare helper structs ("data transfer objects" = DTO) to utilize parsing a flattened pump history

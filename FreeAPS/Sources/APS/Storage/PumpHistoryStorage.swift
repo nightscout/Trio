@@ -36,15 +36,31 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         processQueue.async {
             self.context.perform {
                 for event in events {
-                    let id = UUID().uuidString
+                    // Fetch to filter out duplicates
+                    // TODO: - move this to the Core Data Class
+
+                    let existingEvents: [PumpEventStored] = CoreDataStack.shared.fetchEntities2(
+                        ofType: PumpEventStored.self,
+                        onContext: self.context,
+                        predicate: NSPredicate.duplicateInLastFourLoops(event.date),
+                        key: "timestamp",
+                        ascending: false,
+                        batchSize: 50
+                    )
 
                     switch event.type {
                     case .bolus:
+
+                        guard existingEvents.isEmpty else {
+                            // Duplicate found, do not store the event
+                            print("Duplicate event found with timestamp: \(event.date)")
+                            continue
+                        }
+
                         guard let dose = event.dose else { continue }
                         let amount = Decimal(string: dose.unitsInDeliverableIncrements.description)
 
                         let newPumpEvent = PumpEventStored(context: self.context)
-//                        newPumpEvent.id = id
                         newPumpEvent.timestamp = event.date
                         newPumpEvent.type = PumpEvent.bolus.rawValue
 
@@ -57,6 +73,12 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                     case .tempBasal:
                         guard let dose = event.dose else { continue }
 
+                        guard existingEvents.isEmpty else {
+                            // Duplicate found, do not store the event
+                            print("Duplicate event found with timestamp: \(event.date)")
+                            continue
+                        }
+
                         let rate = Decimal(dose.unitsPerHour)
                         let minutes = (dose.endDate - dose.startDate).timeInterval / 60
                         let delivered = dose.deliveredUnits
@@ -66,7 +88,6 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         guard !isCancel else { continue }
 
                         let newPumpEvent = PumpEventStored(context: self.context)
-//                        newPumpEvent.id = id
                         newPumpEvent.timestamp = date
                         newPumpEvent.type = PumpEvent.tempBasal.rawValue
 
@@ -78,31 +99,26 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
 
                     case .suspend:
                         let newPumpEvent = PumpEventStored(context: self.context)
-//                        newPumpEvent.id = id
                         newPumpEvent.timestamp = event.date
                         newPumpEvent.type = PumpEvent.pumpSuspend.rawValue
 
                     case .resume:
                         let newPumpEvent = PumpEventStored(context: self.context)
-//                        newPumpEvent.id = id
                         newPumpEvent.timestamp = event.date
                         newPumpEvent.type = PumpEvent.pumpResume.rawValue
 
                     case .rewind:
                         let newPumpEvent = PumpEventStored(context: self.context)
-//                        newPumpEvent.id = id
                         newPumpEvent.timestamp = event.date
                         newPumpEvent.type = PumpEvent.rewind.rawValue
 
                     case .prime:
                         let newPumpEvent = PumpEventStored(context: self.context)
-//                        newPumpEvent.id = id
                         newPumpEvent.timestamp = event.date
                         newPumpEvent.type = PumpEvent.prime.rawValue
 
                     case .alarm:
                         let newPumpEvent = PumpEventStored(context: self.context)
-//                        newPumpEvent.id = id
                         newPumpEvent.timestamp = event.date
                         newPumpEvent.type = PumpEvent.pumpAlarm.rawValue
 
@@ -121,327 +137,6 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             }
         }
     }
-
-//    func storePumpEvents(_ events: [NewPumpEvent]) {
-//        processQueue.async {
-//            self.context.perform {
-//                for event in events {
-//                    let id = UUID().uuidString
-//
-//                    switch event.type {
-//                    case .bolus:
-//                        guard let dose = event.dose else { continue }
-//                        let amount = Decimal(string: dose.unitsInDeliverableIncrements.description)
-//
-//                        let newPumpEvent = NSEntityDescription.insertNewObject(
-//                            forEntityName: "PumpEventStored",
-//                            into: self.context
-//                        ) as! PumpEventStored
-//                        newPumpEvent.id = id
-//                        newPumpEvent.timestamp = event.date
-//                        newPumpEvent.type = PumpEvent.bolus.rawValue
-//
-//                        let newBolusEntry = NSEntityDescription.insertNewObject(
-//                            forEntityName: "BolusStored",
-//                            into: self.context
-//                        ) as! BolusStored
-//                        newBolusEntry.pumpEvent = newPumpEvent
-//                        newBolusEntry.amount = amount as? NSDecimalNumber
-//                        newBolusEntry.isExternal = dose.manuallyEntered
-//                        newBolusEntry.isSMB = dose.automatic ?? true
-//
-//                    case .tempBasal:
-//                        guard let dose = event.dose else { continue }
-//
-//                        let rate = Decimal(dose.unitsPerHour)
-//                        let minutes = (dose.endDate - dose.startDate).timeInterval / 60
-//                        let delivered = dose.deliveredUnits
-//                        let date = event.date
-//
-//                        let isCancel = delivered != nil
-//                        guard !isCancel else { continue }
-//
-//                        let newPumpEvent = NSEntityDescription.insertNewObject(
-//                            forEntityName: "PumpEventStored",
-//                            into: self.context
-//                        ) as! PumpEventStored
-//                        newPumpEvent.id = id
-//                        newPumpEvent.timestamp = date
-//                        newPumpEvent.type = PumpEvent.tempBasal.rawValue
-//
-//                        let newTempBasal = NSEntityDescription.insertNewObject(
-//                            forEntityName: "TempBasalStored",
-//                            into: self.context
-//                        ) as! TempBasalStored
-//                        newTempBasal.pumpEvent = newPumpEvent
-//                        newTempBasal.duration = Int16(round(minutes))
-//                        newTempBasal.rate = rate as NSDecimalNumber
-//                        newTempBasal.tempType = TempType.absolute.rawValue
-//
-//                    case .suspend:
-//                        let newPumpEvent = NSEntityDescription.insertNewObject(
-//                            forEntityName: "PumpEventStored",
-//                            into: self.context
-//                        ) as! PumpEventStored
-//                        newPumpEvent.id = id
-//                        newPumpEvent.timestamp = event.date
-//                        newPumpEvent.type = PumpEvent.pumpSuspend.rawValue
-//
-//                    case .resume:
-//                        let newPumpEvent = NSEntityDescription.insertNewObject(
-//                            forEntityName: "PumpEventStored",
-//                            into: self.context
-//                        ) as! PumpEventStored
-//                        newPumpEvent.id = id
-//                        newPumpEvent.timestamp = event.date
-//                        newPumpEvent.type = PumpEvent.pumpResume.rawValue
-//
-//                    case .rewind:
-//                        let newPumpEvent = NSEntityDescription.insertNewObject(
-//                            forEntityName: "PumpEventStored",
-//                            into: self.context
-//                        ) as! PumpEventStored
-//                        newPumpEvent.id = id
-//                        newPumpEvent.timestamp = event.date
-//                        newPumpEvent.type = PumpEvent.rewind.rawValue
-//
-//                    case .prime:
-//                        let newPumpEvent = NSEntityDescription.insertNewObject(
-//                            forEntityName: "PumpEventStored",
-//                            into: self.context
-//                        ) as! PumpEventStored
-//                        newPumpEvent.id = id
-//                        newPumpEvent.timestamp = event.date
-//                        newPumpEvent.type = PumpEvent.prime.rawValue
-//
-//                    case .alarm:
-//                        let newPumpEvent = NSEntityDescription.insertNewObject(
-//                            forEntityName: "PumpEventStored",
-//                            into: self.context
-//                        ) as! PumpEventStored
-//                        newPumpEvent.id = id
-//                        newPumpEvent.timestamp = event.date
-//                        newPumpEvent.type = PumpEvent.pumpAlarm.rawValue
-//
-//                    default:
-//                        continue
-//                    }
-//                }
-//
-//                do {
-//                    if self.context.hasChanges {
-//                        try self.context.save()
-//                    }
-//                } catch {
-//                    print(error.localizedDescription)
-//                }
-//            }
-//        }
-//    }
-
-//    func storePumpEvents(_ events: [NewPumpEvent]) {
-//        processQueue.async {
-//            let eventsToStore = events.flatMap { event -> [PumpHistoryEvent] in
-//                let id = event.raw.md5String
-//                switch event.type {
-//                case .bolus:
-//                    guard let dose = event.dose else { return [] }
-//                    let amount = Decimal(string: dose.unitsInDeliverableIncrements.description)
-//                    let minutes = Int((dose.endDate - dose.startDate).timeInterval / 60)
-//
-//                    self.context.perform {
-//                        // create pump event
-//                        let newPumpEvent = PumpEventStored(context: self.context)
-//                        newPumpEvent.id = id
-//                        newPumpEvent.timestamp = event.date
-//                        newPumpEvent.type = PumpEvent.bolus.rawValue
-//
-//                        // create bolus entry and specify relationship to pump event
-//                        let newBolusEntry = BolusStored(context: self.context)
-//                        newBolusEntry.pumpEvent = newPumpEvent
-//                        newBolusEntry.amount = amount as? NSDecimalNumber
-//                        newBolusEntry.isExternal = dose.manuallyEntered
-//                        newBolusEntry.isSMB = dose.automatic ?? true
-//
-//                        do {
-//                            guard self.context.hasChanges else { return }
-//                            try self.context.save()
-//                        } catch {
-//                            print(error.localizedDescription)
-//                        }
-//                    }
-//
-//                    return [PumpHistoryEvent(
-//                        id: id,
-//                        type: .bolus,
-//                        timestamp: event.date,
-//                        amount: amount,
-//                        duration: minutes,
-//                        durationMin: nil,
-//                        rate: nil,
-//                        temp: nil,
-//                        carbInput: nil,
-//                        isSMB: dose.automatic,
-//                        isExternal: dose.manuallyEntered
-//                    )]
-//                case .tempBasal:
-//                    guard let dose = event.dose else { return [] }
-//
-//                    let rate = Decimal(dose.unitsPerHour)
-//                    let minutes = (dose.endDate - dose.startDate).timeInterval / 60
-//                    let delivered = dose.deliveredUnits
-//                    let date = event.date
-//
-//                    let isCancel = delivered != nil //! event.isMutable && delivered != nil
-//                    guard !isCancel else { return [] }
-//
-//                    self.context.perform {
-//                        // create pump event
-//                        let newPumpEvent = PumpEventStored(context: self.context)
-//                        newPumpEvent.id = id
-//                        newPumpEvent.timestamp = date
-//                        newPumpEvent.type = PumpEvent.tempBasal.rawValue
-//
-//                        // create temp basal and specify relationship
-//                        let newTempBasal = TempBasalStored(context: self.context)
-//                        newTempBasal.pumpEvent = newPumpEvent
-//                        newTempBasal.duration = Int16(round(minutes))
-//                        newTempBasal.rate = rate as NSDecimalNumber
-//                        newTempBasal.tempType = TempType.absolute.rawValue
-//
-//                        do {
-//                            guard self.context.hasChanges else { return }
-//                            try self.context.save()
-//                        } catch {
-//                            print(error.localizedDescription)
-//                        }
-//                    }
-//
-//                    return [
-//                        PumpHistoryEvent(
-//                            id: id,
-//                            type: .tempBasalDuration,
-//                            timestamp: date,
-//                            amount: nil,
-//                            duration: nil,
-//                            durationMin: Int(round(minutes)),
-//                            rate: nil,
-//                            temp: nil,
-//                            carbInput: nil
-//                        ),
-//                        PumpHistoryEvent(
-//                            id: "_" + id,
-//                            type: .tempBasal,
-//                            timestamp: date,
-//                            amount: nil,
-//                            duration: nil,
-//                            durationMin: nil,
-//                            rate: rate,
-//                            temp: .absolute,
-//                            carbInput: nil
-//                        )
-//                    ]
-//                case .suspend:
-//                    self.context.perform {
-//                        // create pump event
-//                        let newPumpEvent = PumpEventStored(context: self.context)
-//                        newPumpEvent.id = id
-//                        newPumpEvent.timestamp = event.date
-//                        newPumpEvent.type = PumpEvent.pumpSuspend.rawValue
-//
-//                        do {
-//                            guard self.context.hasChanges else { return }
-//                            try self.context.save()
-//                        } catch {
-//                            print(error.localizedDescription)
-//                        }
-//                    }
-//                    return [
-//                        PumpHistoryEvent(
-//                            id: id,
-//                            type: .pumpSuspend,
-//                            timestamp: event.date,
-//                            amount: nil,
-//                            duration: nil,
-//                            durationMin: nil,
-//                            rate: nil,
-//                            temp: nil,
-//                            carbInput: nil
-//                        )
-//                    ]
-//                case .resume:
-//                    self.context.perform {
-//                        // create pump event
-//                        let newPumpEvent = PumpEventStored(context: self.context)
-//                        newPumpEvent.id = id
-//                        newPumpEvent.timestamp = event.date
-//                        newPumpEvent.type = PumpEvent.pumpResume.rawValue
-//
-//                        do {
-//                            guard self.context.hasChanges else { return }
-//                            try self.context.save()
-//                        } catch {
-//                            print(error.localizedDescription)
-//                        }
-//                    }
-//                    return [
-//                        PumpHistoryEvent(
-//                            id: id,
-//                            type: .pumpResume,
-//                            timestamp: event.date,
-//                            amount: nil,
-//                            duration: nil,
-//                            durationMin: nil,
-//                            rate: nil,
-//                            temp: nil,
-//                            carbInput: nil
-//                        )
-//                    ]
-//                case .rewind:
-//                    return [
-//                        PumpHistoryEvent(
-//                            id: id,
-//                            type: .rewind,
-//                            timestamp: event.date,
-//                            amount: nil,
-//                            duration: nil,
-//                            durationMin: nil,
-//                            rate: nil,
-//                            temp: nil,
-//                            carbInput: nil
-//                        )
-//                    ]
-//                case .prime:
-//                    return [
-//                        PumpHistoryEvent(
-//                            id: id,
-//                            type: .prime,
-//                            timestamp: event.date,
-//                            amount: nil,
-//                            duration: nil,
-//                            durationMin: nil,
-//                            rate: nil,
-//                            temp: nil,
-//                            carbInput: nil
-//                        )
-//                    ]
-//                case .alarm:
-//                    return [
-//                        PumpHistoryEvent(
-//                            id: id,
-//                            type: .pumpAlarm,
-//                            timestamp: event.date,
-//                            note: event.title
-//                        )
-//                    ]
-//                default:
-//                    return []
-//                }
-//            }
-//
-//            self.storeEvents(eventsToStore)
-//        }
-//    }
 
     func storeJournalCarbs(_ carbs: Int) {
         processQueue.async {

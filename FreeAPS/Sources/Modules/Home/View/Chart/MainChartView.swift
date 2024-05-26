@@ -173,15 +173,16 @@ struct MainChartView: View {
                         updateStartEndMarkers()
                         yAxisChartData()
                         scroller.scrollTo("MainChart", anchor: .trailing)
-                    }.onChange(of: glucoseFromPersistence.map(\.id)) { _ in
-                        updateStartEndMarkers()
-                        yAxisChartData()
-                        scroller.scrollTo("MainChart", anchor: .trailing)
                     }
-                    .onChange(of: determination.map(\.id)) { _ in
-                        updateStartEndMarkers()
-                        scroller.scrollTo("MainChart", anchor: .trailing)
-                    }
+//                    .onChange(of: glucoseFromPersistence.map(\.id)) { _ in
+//                        updateStartEndMarkers()
+//                        yAxisChartData()
+//                        scroller.scrollTo("MainChart", anchor: .trailing)
+//                    }
+//                    .onChange(of: determination.map(\.id)) { _ in
+//                        updateStartEndMarkers()
+//                        scroller.scrollTo("MainChart", anchor: .trailing)
+//                    }
                     .onChange(of: tempBasals) { _ in
                         updateStartEndMarkers()
                         scroller.scrollTo("MainChart", anchor: .trailing)
