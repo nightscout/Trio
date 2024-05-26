@@ -7,6 +7,8 @@ extension AddTempTarget {
         let resolver: Resolver
         @StateObject var state = StateModel()
         @State private var isPromtPresented = false
+        @State private var isRemoveAlertPresented = false
+        @State private var removeAlert: Alert?
         @State private var isEditing = false
         @State private var selectedPreset: TempTarget?
         @State private var isEditSheetPresented = false
@@ -45,11 +47,20 @@ extension AddTempTarget {
                         ForEach(state.presets) { preset in
                             presetView(for: preset)
                                 .swipeActions {
-                                    Button(role: .destructive) {
-                                        state.removePreset(id: preset.id)
-                                    } label: {
+                                    Button(role: .none, action: {
+                                        removeAlert = Alert(
+                                            title: Text("Are you sure?"),
+                                            message: Text("Delete preset \n\(preset.displayName)?"),
+                                            primaryButton: .destructive(Text("Delete"), action: {
+                                                state.removePreset(id: preset.id)
+                                                isRemoveAlertPresented = false
+                                            }),
+                                            secondaryButton: .cancel()
+                                        )
+                                        isRemoveAlertPresented = true
+                                    }) {
                                         Label("Delete", systemImage: "trash")
-                                    }
+                                    }.tint(.red)
                                     Button {
                                         selectedPreset = preset
                                         state.newPresetName = preset.displayName
@@ -62,6 +73,9 @@ extension AddTempTarget {
                                         Label("Edit", systemImage: "square.and.pencil")
                                     }
                                     .tint(.blue)
+                                }
+                                .alert(isPresented: $isRemoveAlertPresented) {
+                                    removeAlert!
                                 }
                         }
                     }
