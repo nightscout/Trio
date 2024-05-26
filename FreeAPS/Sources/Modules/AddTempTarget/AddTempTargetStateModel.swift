@@ -196,6 +196,19 @@ extension AddTempTarget {
             return Decimal(Double(target))
         }
 
+        func computePercentage(target: Decimal) -> Decimal {
+            let c = Decimal(hbt - 100)
+            var ratio = c / (c + target - 100)
+
+            if ratio > maxValue {
+                ratio = maxValue
+            }
+
+            let adjustedPercentage = ratio * 100
+            let roundedPercentage = (adjustedPercentage as NSDecimalNumber).rounding(accordingToBehavior: nil)
+            return roundedPercentage as Decimal
+        }
+
         func updatePreset(_ preset: TempTarget) {
             var lowTarget = low
 

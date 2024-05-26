@@ -130,6 +130,14 @@ extension AddTempTarget {
                 Text("Experimental")
                 Toggle(isOn: $state.viewPercantage) {}
                     .controlSize(.mini)
+                    .onChange(of: state.viewPercantage) { newValue in
+                        if newValue {
+                            guard let selectedPreset = selectedPreset,
+                                  let targetBottom = selectedPreset.targetBottom else { return }
+                            let computedPercentage = state.computePercentage(target: targetBottom)
+                            state.percentage = Double(truncating: computedPercentage as NSNumber)
+                        }
+                    }
                 Image(systemName: "figure.highintensity.intervaltraining")
                 Image(systemName: "fork.knife")
             }
@@ -226,6 +234,11 @@ extension AddTempTarget {
                         isEditSheetPresented = false
                     }
                 }
+            }
+            .onAppear {
+                guard let selectedPreset = selectedPreset, let targetBottom = selectedPreset.targetBottom else { return }
+                let computedPercentage = state.computePercentage(target: targetBottom)
+                state.percentage = Double(truncating: computedPercentage as NSNumber)
             }
             .onDisappear {
                 if isEditSheetPresented == false {
