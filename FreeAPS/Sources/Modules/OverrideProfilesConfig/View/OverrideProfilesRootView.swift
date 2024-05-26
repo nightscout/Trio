@@ -265,7 +265,7 @@ extension OverrideProfilesConfig {
                                         profileNameToDelete = preset.name ?? "this profile"
                                         showDeleteAlert = true
                                     } label: {
-                                        Label("Ta bort", systemImage: "trash")
+                                        Label("Delete", systemImage: "trash")
                                     }.tint(.red)
 
                                     Button {
@@ -273,7 +273,7 @@ extension OverrideProfilesConfig {
                                         state.profileName = preset.name ?? ""
                                         isEditSheetPresented = true
                                     } label: {
-                                        Label("Redigera", systemImage: "square.and.pencil")
+                                        Label("Edit", systemImage: "square.and.pencil")
                                     }.tint(.blue)
                                 }
                         }
