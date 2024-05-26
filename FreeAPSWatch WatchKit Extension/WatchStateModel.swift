@@ -88,11 +88,33 @@ class WatchStateModel: NSObject, ObservableObject {
         }
     }
 
-    func enactTempTarget(id: String) {
+    func enactTempTarget(id: String, typeTempTarget: typeTempTarget) {
         confirmationSuccess = nil
         isConfirmationViewActive = true
         isTempTargetViewActive = false
-        session.sendMessage(["tempTarget": id], replyHandler: completionHandler) { error in
+        switch typeTempTarget {
+        case .tempTarget:
+            session.sendMessage(["tempTarget": id], replyHandler: completionHandler) { error in
+                print(error.localizedDescription)
+                DispatchQueue.main.async {
+                    self.confirmation(false)
+                }
+            }
+        case .override:
+            session.sendMessage(["overrideTarget": id], replyHandler: completionHandler) { error in
+                print(error.localizedDescription)
+                DispatchQueue.main.async {
+                    self.confirmation(false)
+                }
+            }
+        }
+    }
+
+    func cancelTempTarget() {
+        confirmationSuccess = nil
+        isConfirmationViewActive = true
+        isTempTargetViewActive = false
+        session.sendMessage(["cancelTempTarget": "true"], replyHandler: completionHandler) { error in
             print(error.localizedDescription)
             DispatchQueue.main.async {
                 self.confirmation(false)

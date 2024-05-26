@@ -266,15 +266,31 @@ struct MainView: View {
                     .environmentObject(state)
             } label: {
                 VStack {
-                    Image("target", bundle: nil)
-                        .renderingMode(.template)
-                        .resizable()
-                        .frame(width: 24, height: 24)
-                        .foregroundColor(.loopGreen)
                     if let until = state.tempTargets.compactMap(\.until).first, until > Date() {
-                        Text(until, style: .timer)
-                            .scaledToFill()
+                        let typeTempTarget = state.tempTargets.filter { $0.until == until }.first?.typeTempTarget
+                        if typeTempTarget == .tempTarget {
+                            Image("target", bundle: nil)
+                                .renderingMode(.template)
+                                .resizable()
+                                .frame(width: 24, height: 24)
+                                .foregroundColor(.loopGreen)
+                        } else {
+                            Image(systemName: "person.3.sequence.fill")
+                                .scaledToFit()
+                                .foregroundColor(.loopGreen)
+                        }
+                        until.timeIntervalSinceNow >= 900_000 ?
+                            Text("Always").scaledToFill()
+                            .font(.system(size: 8)) :
+                            Text(until, style: .timer).scaledToFill()
                             .font(.system(size: 8))
+
+                    } else {
+                        Image("target", bundle: nil)
+                            .renderingMode(.template)
+                            .resizable()
+                            .frame(width: 24, height: 24)
+                            .foregroundColor(.loopGreen)
                     }
                 }
             }
@@ -422,7 +438,13 @@ struct ContentView_Previews: PreviewProvider {
         state.lastLoopDate = Date().addingTimeInterval(-200)
         state
             .tempTargets =
-            [TempTargetWatchPreset(name: "Test", id: "test", description: "", until: Date().addingTimeInterval(3600 * 3))]
+            [TempTargetWatchPreset(
+                name: "Test",
+                id: "test",
+                description: "",
+                until: Date().addingTimeInterval(3600 * 3),
+                typeTempTarget: .tempTarget
+            )]
 
         return Group {
             MainView()
