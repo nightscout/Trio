@@ -1,12 +1,5 @@
-//
-//  UserDefaultsExtension.swift
-//  FreeAPS
-//
-//  Created by Marvin Polscheit on 26.05.24.
-//
-
-import Foundation
 import CoreData
+import Foundation
 
 extension UserDefaults {
     private enum Keys {

@@ -147,29 +147,19 @@ final class BaseAPSManager: APSManager, Injectable {
         let now = Date()
         let calendar = Calendar.current
 
-        // Check if there was already a clean on the specified day
+        // Check if last clean is longer than one day ago
         if calendar.isDate(now, inSameDayAs: lastHistoryCleanupDate) {
-            // Cleanup was already done
+            // Cleanup already done
             return
         }
 
-        DispatchQueue.global(qos: .background).async {
-            // Logging start time
-            let startTime = Date()
-            print("Starting cleanup at \(startTime)")
-
-            // Cleanup
-            CoreDataStack.shared.cleanupPersistentHistory(before: Date.oneWeekAgo)
-
-            // Logging end time
-            let endTime = Date()
-            print("Finished cleanup at \(endTime), duration: \(endTime.timeIntervalSince(startTime)) seconds")
-
-            // Update last cleanup date
-            DispatchQueue.main.async {
-                self.lastHistoryCleanupDate = now
-            }
+        // Cleanup
+        Task {
+            await CoreDataStack.shared.cleanupPersistentHistory(before: Date.oneWeekAgo)
         }
+
+        // Update lastHistoryCleanupDate
+        lastHistoryCleanupDate = now
     }
 
     private func subscribe() {

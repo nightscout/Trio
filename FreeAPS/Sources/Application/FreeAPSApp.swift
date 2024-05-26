@@ -59,7 +59,10 @@ import Swinject
         loadServices()
 
         // Clear the persistentHistory every time the app starts
-        coreDataStack.cleanupPersistentHistory(before: Date.oneWeekAgo)
+        let coreDataStack = self.coreDataStack
+        Task {
+            await coreDataStack.cleanupPersistentHistory(before: Date.oneWeekAgo)
+        }
     }
 
     var body: some Scene {

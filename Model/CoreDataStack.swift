@@ -35,7 +35,7 @@ class CoreDataStack: ObservableObject {
     /// Save the last token to User defaults
     private var lastToken: NSPersistentHistoryToken? {
         get {
-            return UserDefaults.standard.lastHistoryToken
+            UserDefaults.standard.lastHistoryToken
         }
         set {
             UserDefaults.standard.lastHistoryToken = newValue
@@ -130,11 +130,11 @@ class CoreDataStack: ObservableObject {
 
     // Clean old Persistent History
     /// - Tag: clearHistory
-    func cleanupPersistentHistory(before date: Date) {
+    func cleanupPersistentHistory(before date: Date) async {
         let taskContext = newTaskContext()
         taskContext.name = "cleanPersistentHistoryContext"
 
-        taskContext.perform {
+        await taskContext.perform {
             let deleteHistoryRequest = NSPersistentHistoryChangeRequest.deleteHistory(before: date)
             do {
                 try taskContext.execute(deleteHistoryRequest)
@@ -151,7 +151,6 @@ class CoreDataStack: ObservableObject {
 // MARK: - Delete
 
 extension CoreDataStack {
-
     /// Synchronously delete entries with specified object IDs
     ///  - Tag: synchronousDelete
     func deleteObject(identifiedBy objectIDs: [NSManagedObjectID]) {
@@ -197,7 +196,6 @@ extension CoreDataStack {
 // MARK: - Fetch Requests
 
 extension CoreDataStack {
-
     // Fetch in background thread
     /// - Tag: backgroundFetch
     func fetchEntities<T: NSManagedObject>(
@@ -370,9 +368,7 @@ extension CoreDataStack {
             completion(result ?? [])
         }
     }
-
 }
-
 
 // MARK: - Save
 
