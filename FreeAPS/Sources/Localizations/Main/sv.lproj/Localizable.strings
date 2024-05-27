@@ -16,7 +16,7 @@
 /* Continue after added carbs without bolus */
 "Continue without bolus" = "Fortsätt utan bolus";
 
-/* Alert when adding large amount without bolusing. Don't remove the " " */
+/* Alert when adding large amount without bolusing */
 "\nAmount is more than your Max Bolus setting! \nAre you sure you want to add " = "\nDetta är mer insulin än din maxdos-inställning! \nÄr du säker på att du vill lägga till ";
 
 /* Header */
@@ -618,7 +618,7 @@ Enact a temp Basal or a temp target */
 "External" = "Externt";
 
 /* */
-"Other" = "Annan";
+"Other" = "Other";
 
 /* */
 "Libre Transmitter" = "Libre-sändare";
@@ -1149,7 +1149,7 @@ Enact a temp Basal or a temp target */
 "Save as your Normal Basal Rates" = "Spara som dina vanliga basalinställningar";
 
 /* */
-"Save on Pump" = "Spara till pump";
+"Save on Pump" = "Save on Pump";
 
 /* Debug option view Pump History */
 "Pump History" = "Pumphistorik";
@@ -1211,7 +1211,7 @@ Enact a temp Basal or a temp target */
 "Warning" = "Varning";
 
 /* Error title */
-"Error" = "Fel";
+"Error" = "Error";
 
 /* Manual temp basal mode */
 "Manual" = "Manuellt";
@@ -1341,7 +1341,7 @@ Enact a temp Basal or a temp target */
 "Cancel Profile Override" = "Avbryt Profil";
 
 /* Alert */
-"Cancel Temp Target" = "Avbryt tillfälligt målvärde";
+"Cancel Temp Target" = "Cancel Temp Target";
 
 /* Alert */
 "Return to Normal?" = "Tillbaka till normal profil?";
@@ -1404,7 +1404,7 @@ Enact a temp Basal or a temp target */
 "Save and continue" = "Spara och fortsätt";
 
 /* */
-"Save as Preset" = "Spara som förval";
+"Save as Preset" = "Save as Preset";
 
 /* */
 "Predictions" = "Prognoser";
@@ -1498,10 +1498,10 @@ Enact a temp Basal or a temp target */
 "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Bekräftelseljud är pip från podden (när den inte är tystad) som kan användas som bekräftelser på utförda kommandon";
 
 /* button title for saving low reservoir reminder while saving */
-"Saving..." = "Sparar...";
+"Saving..." = "Saving...";
 
 /* button title for saving low reservoir reminder */
-"Save" = "Spara";
+"Save" = "Save";
 
 /* Alert title for error when updating confidence reminder preference */
 "Failed to update confidence reminder preference." = "Misslyckades att uppdatera inställning för bekräftelseljud";
@@ -1554,7 +1554,7 @@ Enact a temp Basal or a temp target */
 "Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains." = "Byt podd nu. Insulintillförsel kommer att stoppas om %1$@ eller när insulinet är slut.";
 
 /* Label text for temporary basal rate summary */
-"Rate" = "Värde";
+"Rate" = "Rate";
 
 /* Summary string for temporary basal rate configuration page */
 "%1$@ for %2$@" = "%1$@ i %2$@";
@@ -1583,7 +1583,7 @@ Enact a temp Basal or a temp target */
 "This PumpManager has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to therapy settings -> delivery limits and set a new maximum basal rate." = "En maximal basaldos har inte ställts in. Gå till inställningen 'Maxdoser' för att ställa in den maximala basaldosen";
 
 /* description label for active time pod details row */
-"Active Time" = "Aktiv tid";
+"Active Time" = "Active Time";
 
 /* description label for total delivery pod details row */
 "Total Delivery" = "Total mängd insulin given";
@@ -1632,7 +1632,7 @@ Enact a temp Basal or a temp target */
 "Month" = "Månad";
 
 /* */
-"Total" = "Totalt";
+"Total" = "Total";
 
 /* Headline Statistics */
 "Statistics" = "Statistik";
@@ -1641,10 +1641,10 @@ Enact a temp Basal or a temp target */
 "Allow Upload of Statistics to NS" = "Ladda upp till Nightscout";
 
 /* Low Glucose Threshold in Statistics settings */
-"Low" = "Lågt";
+"Low" = "Low";
 
 /* High Glucose Threshold in Statistics settings */
-"High" = "Högt";
+"High" = "High";
 
 /* In Range */
 "In Range" = "Normalvärde";
@@ -1889,7 +1889,7 @@ Enact a temp Basal or a temp target */
 "Allow SMB With High Temptarget" = "Tillåt SMB vid högt temporärt målvärde";
 
 /* Headline "Allow SMB With High Temptarget" */
-"Allow SMB With High Temptarget" = "Tillåt SMB vid högt temporärt målvärde";
+"Allow SMB With High Temptarget" = "Allow SMB With High Temptarget";
 
 /* "Allow SMB With High Temptarget" */
 "Defaults to false. When true, allows supermicrobolus (if otherwise enabled) even with high temp targets (> 100 mg/dl)." = "Av som standard. När läge på, tillåts SMB:ar även vid höga temporära målvärden.";
@@ -2032,13 +2032,13 @@ Enact a temp Basal or a temp target */
 "Adjust Dynamic ISF constant" = "Ändra AF-konstant";
 
 /* Adjust Dynamic ISF constant */
-"Adjust Dynamic ISF constant" = "Ändra AF-konstant";
+"Adjust Dynamic ISF constant" = "Adjust Dynamic ISF constant";
 
 /* Enable Dynamic ISF, Headline */
 "Enable Dynamic ISF" = "Aktivera dynamisk insulinkänslighet (ISF)";
 
 /* Headline "Enable Dynamic ISF" */
-"Enable Dynamic ISF" = "Aktivera dynamisk insulinkänslighet (ISF)";
+"Enable Dynamic ISF" = "Enable Dynamic ISF";
 
 /* Enable Dynamic ISF */
 "Calculate a new ISF with every loop cycle. New ISF will be based on current BG, TDD of insulin (past 24 hours or a weighted average) and an Adjustment Factor (default is 1).\n\nDynamic ISF and CR ratios will be limited by your autosens.min/max limits.\n\nDynamic ratio replaces the autosens.ratio: New ISF = Static ISF / Dynamic ratio,\nDynamic ratio = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes" = "Beräkna ny insulinkänslighet varje loopcykel. Ny ISF (insulinkänslighet) beräknas på nuvarande blodsocker, TDD (insulin senaste 24 timmarna, eller ett viktad genomsnitt) och AF-konstant (standardvärde är 1).\n\nDynamiska ISF och CR (kolhydratkvot) kvoter begränsas av dina autosens.min/max-inställningar.\n\nDynamiska kvoterna ersätter autosens-kvoten: Ny ISF =inställd ISF / dynamisk kvot,\nDynamisk kvot = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - tiden, i minuter, för insulinets maximala blodsockersänkande effekt.";
@@ -2056,7 +2056,7 @@ Enact a temp Basal or a temp target */
 "Activate Dynamic Carb Ratio (CR)" = "Aktivera dynamisk insulinkvot (CR)";
 
 /* Headline "Adjust Dynamic ISF constant" */
-"Adjust Dynamic ISF constant" = "Ändra AF-konstant";
+"Adjust Dynamic ISF constant" = "Adjust Dynamic ISF constant";
 
 /* Adjust Dynamic ISF constant */
 "Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula there is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users" = "Individuell justering (en multipel) av hur din insulinkänslighet räknas ut. Stnadarvärde är 0.5. Ett högre värde betyder mer aggressiv justering. Maximal insulinkänslighet och minimal insulinkänslighet bestäms av Autosens min/max inställningar och av din schemalagda inställning för insulinkänslighet.\n\nFör S-formad dynamisk inställning rekommendaras att börja med 0.3-0-4. För logaritmisk inställning rekommenderas att börja med 0.5-0.8";
