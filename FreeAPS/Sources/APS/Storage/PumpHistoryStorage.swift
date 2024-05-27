@@ -31,7 +31,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     typealias PumpEvent = PumpEventStored.EventType
     typealias TempType = PumpEventStored.TempType
 
-    private let context = CoreDataStack.shared.persistentContainer.newBackgroundContext()
+    private let context = CoreDataStack.shared.newTaskContext()
 
     private func roundDose(_ dose: Double, toIncrement increment: Double) -> Decimal {
         let roundedValue = (dose / increment).rounded() * increment

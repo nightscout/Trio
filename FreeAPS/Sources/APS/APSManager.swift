@@ -83,7 +83,7 @@ final class BaseAPSManager: APSManager, Injectable {
     @Persisted(key: "lastHistoryCleanupDate") private var lastHistoryCleanupDate = Date.distantPast
 
     let viewContext = CoreDataStack.shared.persistentContainer.viewContext
-    let privateContext = CoreDataStack.shared.persistentContainer.newBackgroundContext()
+    let privateContext = CoreDataStack.shared.newTaskContext()
 
     private var openAPS: OpenAPS!
 

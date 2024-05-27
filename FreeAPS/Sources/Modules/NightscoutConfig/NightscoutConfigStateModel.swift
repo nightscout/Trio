@@ -16,7 +16,7 @@ extension NightscoutConfig {
         @Injected() private var storage: FileStorage!
         @Injected() var apsManager: APSManager!
 
-        let coredataContext = CoreDataStack.shared.persistentContainer.newBackgroundContext()
+        let coredataContext = CoreDataStack.shared.newTaskContext()
 
         @Published var url = ""
         @Published var secret = ""

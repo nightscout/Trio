@@ -62,7 +62,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         return NightscoutAPI(url: url, secret: secret)
     }
 
-    private let context = CoreDataStack.shared.persistentContainer.newBackgroundContext()
+    private let context = CoreDataStack.shared.newTaskContext()
 
     private var lastTwoDeterminations: [OrefDetermination]?
 
