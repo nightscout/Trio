@@ -188,7 +188,7 @@
 "Save" = "Lưu";
 
 /*  */
-"Save as Preset" = "Lưu cài đặt sẵn";
+"Save as Preset" = "Lưu mẫu cài đặt";
 
 /* Delete Meal Preset */
 "Delete Preset" = "Xoá mẫu cài đặt";
@@ -618,7 +618,7 @@ Enact a temp Basal or a temp target */
 "External" = "Bên ngoài";
 
 /* */
-"Other" = "Khác";
+"Other" = "Other";
 
 /* */
 "Libre Transmitter" = "Libre Transmitter";
@@ -1149,7 +1149,7 @@ Enact a temp Basal or a temp target */
 "Save as your Normal Basal Rates" = "Lưu như liều nền của bạn";
 
 /* */
-"Save on Pump" = "Lưu vào bơm";
+"Save on Pump" = "Save on Pump";
 
 /* Debug option view Pump History */
 "Pump History" = "Lịch sử Bơm";
@@ -1205,13 +1205,13 @@ Enact a temp Basal or a temp target */
 
 /* New ALerts ------------------------- */
 /* Info title */
-"Info" = "Thông tin";
+"Info" = "Info";
 
 /* Warning title */
 "Warning" = "Cảnh báo";
 
 /* Error title */
-"Error" = "Lỗi";
+"Error" = "Error";
 
 /* Manual temp basal mode */
 "Manual" = "Thủ công";
@@ -1341,7 +1341,7 @@ Enact a temp Basal or a temp target */
 "Cancel Profile Override" = "Hủy bỏ ghi đè?";
 
 /* Alert */
-"Cancel Temp Target" = "Hủy bỏ mục tiêu tạm thời";
+"Cancel Temp Target" = "Cancel Temp Target";
 
 /* Alert */
 "Return to Normal?" = "Quay lại chế độ bình thường không?";
@@ -1404,7 +1404,7 @@ Enact a temp Basal or a temp target */
 "Save and continue" = "Lưu và tiếp tục";
 
 /* */
-"Save as Preset" = "Lưu mẫu cài đặt";
+"Save as Preset" = "Save as Preset";
 
 /* */
 "Predictions" = "Dự đoán";
@@ -1498,10 +1498,10 @@ Enact a temp Basal or a temp target */
 "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Lời nhắc về độ tin cậy là những tiếng bíp từ Pod có thể được sử dụng để xác nhận các lệnh đã chọn khi Pod không ở chế độ im lặng.";
 
 /* button title for saving low reservoir reminder while saving */
-"Saving..." = "Đang lưu...";
+"Saving..." = "Saving...";
 
 /* button title for saving low reservoir reminder */
-"Save" = "Lưu";
+"Save" = "Save";
 
 /* Alert title for error when updating confidence reminder preference */
 "Failed to update confidence reminder preference." = "Không cập nhật được tùy chọn lời nhắc về độ tin cậy.";
@@ -1554,7 +1554,7 @@ Enact a temp Basal or a temp target */
 "Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains." = "Thay pod ngay. Insulin sẽ ngưng tiêm trong %1$@ hoặc khi không còn insulin.";
 
 /* Label text for temporary basal rate summary */
-"Rate" = "Tỷ lệ";
+"Rate" = "Rate";
 
 /* Summary string for temporary basal rate configuration page */
 "%1$@ for %2$@" = "%1$@ cho %2$@";
@@ -1583,7 +1583,7 @@ Enact a temp Basal or a temp target */
 "This PumpManager has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to therapy settings -> delivery limits and set a new maximum basal rate." = "Liều nền tối đa chưa được cấu hình. Đề nghị vào Cài đặt-> Cấu hình bơm và cấu hình Liều nền tối đa mới.";
 
 /* description label for active time pod details row */
-"Active Time" = "Thời gian Hoạt động";
+"Active Time" = "Active Time";
 
 /* description label for total delivery pod details row */
 "Total Delivery" = "Tổng liều";
@@ -1889,7 +1889,7 @@ Enact a temp Basal or a temp target */
 "Allow SMB With High Temptarget" = "Cho phép SMB có Temptarget cao";
 
 /* Headline "Allow SMB With High Temptarget" */
-"Allow SMB With High Temptarget" = "Cho phép SMB có Temptarget cao";
+"Allow SMB With High Temptarget" = "Allow SMB With High Temptarget";
 
 /* "Allow SMB With High Temptarget" */
 "Defaults to false. When true, allows supermicrobolus (if otherwise enabled) even with high temp targets (> 100 mg/dl)." = "Mặc định là False. Khi True, cho phép supermicrobolus (nếu được bật khác) ngay cả với mục tiêu nhiệt độ cao (> 100 mg/dl).";
@@ -2033,13 +2033,13 @@ Enact a temp Basal or a temp target */
 "Adjust Dynamic ISF constant" = "Điều chỉnh hằng số ISF động";
 
 /* Adjust Dynamic ISF constant */
-"Adjust Dynamic ISF constant" = "Điều chỉnh hằng số ISF động";
+"Adjust Dynamic ISF constant" = "Adjust Dynamic ISF constant";
 
 /* Enable Dynamic ISF, Headline */
 "Enable Dynamic ISF" = "Kích hoạt ISF động";
 
 /* Headline "Enable Dynamic ISF" */
-"Enable Dynamic ISF" = "Kích hoạt ISF động";
+"Enable Dynamic ISF" = "Enable Dynamic ISF";
 
 /* Enable Dynamic ISF */
 "Calculate a new ISF with every loop cycle. New ISF will be based on current BG, TDD of insulin (past 24 hours or a weighted average) and an Adjustment Factor (default is 1).\n\nDynamic ISF and CR ratios will be limited by your autosens.min/max limits.\n\nDynamic ratio replaces the autosens.ratio: New ISF = Static ISF / Dynamic ratio,\nDynamic ratio = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes" = "Tính toán ISF mới với mỗi chu kỳ vòng lặp. ISF mới sẽ dựa trên BG, TDD hiện tại của insulin (24 giờ qua hoặc mức trung bình có trọng số) và Hệ số điều chỉnh (mặc định là 1).\n\nTỷ lệ ISF và CR động sẽ bị giới hạn bởi giới hạn autosens.min/max của bạn.\n\nTỷ lệ động thay thế tỷ lệ autosens: ISF mới = ISF tĩnh / Tỷ lệ động,\nTỷ lệ động = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes";
@@ -2057,7 +2057,7 @@ Enact a temp Basal or a temp target */
 "Activate Dynamic Carb Ratio (CR)" = "Kích hoạt Tỷ lệ Carb động (CR)";
 
 /* Headline "Adjust Dynamic ISF constant" */
-"Adjust Dynamic ISF constant" = "Điều chỉnh hằng số ISF động";
+"Adjust Dynamic ISF constant" = "Adjust Dynamic ISF constant";
 
 /* Adjust Dynamic ISF constant */
 "Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula there is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users" = "Điều chỉnh tỷ lệ động theo một hằng số. Mặc định là 0,5. Giá trị càng cao thì mức điều chỉnh ISF của bạn sẽ càng lớn đối với BG cao hay thấp. Hiệu chỉnh tối đa được xác định bởi cài đặt tối thiểu/tối đa của Autosens. Đối với hàm Sigmoid, hệ số điều chỉnh được khuyến nghị là 0,4 - 0,5 để bắt đầu. Đối với công thức logarit, thre có ít sự đồng thuận hơn, nhưng bắt đầu bằng 0,5 - 0,8 thì phù hợp hơn với hầu hết người dùng";
