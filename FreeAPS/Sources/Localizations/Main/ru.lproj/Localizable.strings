@@ -587,9 +587,6 @@ Enact a temp Basal or a temp target */
 /* Delete insulin from pump history and Nightscout */
 "Delete Insulin?" = "Удалить инсулин?";
 
-/* */
-"Delete Carbs?" = "Delete Carbs?";
-
 /* Treatments list */
 "Treatments" = "События";
 
@@ -621,7 +618,7 @@ Enact a temp Basal or a temp target */
 "External" = "Внешний";
 
 /* */
-"Other" = "Прочее";
+"Other" = "Other";
 
 /* */
 "Libre Transmitter" = "Libre трансмиттер";
@@ -1152,7 +1149,7 @@ Enact a temp Basal or a temp target */
 "Save as your Normal Basal Rates" = "Сохранить как Ваш нормальный базальный профиль";
 
 /* */
-"Save on Pump" = "Сохранить на помпу";
+"Save on Pump" = "Save on Pump";
 
 /* Debug option view Pump History */
 "Pump History" = "История помпы";
@@ -1182,7 +1179,7 @@ Enact a temp Basal or a temp target */
 "Enacted announcements" = "Принятые оповещения";
 
 /* Debug option view Autotune */
-"Autotune" = "Автотюн";
+"Autotune" = "Autotune";
 
 /* Debug option view Target presets */
 "Target presets" = "Предустановки временных целей";
@@ -1208,13 +1205,13 @@ Enact a temp Basal or a temp target */
 
 /* New ALerts ------------------------- */
 /* Info title */
-"Info" = "Инфо";
+"Info" = "Info";
 
 /* Warning title */
 "Warning" = "Предостережение";
 
 /* Error title */
-"Error" = "Ошибка";
+"Error" = "Error";
 
 /* Manual temp basal mode */
 "Manual" = "Ручной режим";
@@ -1344,7 +1341,7 @@ Enact a temp Basal or a temp target */
 "Cancel Profile Override" = "Отменить переопределение профиля?";
 
 /* Alert */
-"Cancel Temp Target" = "Отменить временную цель";
+"Cancel Temp Target" = "Cancel Temp Target";
 
 /* Alert */
 "Return to Normal?" = "Вернуться к нормальному?";
@@ -1407,7 +1404,7 @@ Enact a temp Basal or a temp target */
 "Save and continue" = "Сохранить и продолжить";
 
 /* */
-"Save as Preset" = "Сохранить как шаблон";
+"Save as Preset" = "Save as Preset";
 
 /* */
 "Predictions" = "Прогноз";
@@ -1501,10 +1498,10 @@ Enact a temp Basal or a temp target */
 "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Доверенные звуковые сигналы от Пода, которые позволяют распознать выбранные команды, когда Под не заглушен.";
 
 /* button title for saving low reservoir reminder while saving */
-"Saving..." = "Сохранение...";
+"Saving..." = "Saving...";
 
 /* button title for saving low reservoir reminder */
-"Save" = "Сохранить";
+"Save" = "Save";
 
 /* Alert title for error when updating confidence reminder preference */
 "Failed to update confidence reminder preference." = "Не удалось обновить настройки доверенных звуковых сигналов.";
@@ -1557,7 +1554,7 @@ Enact a temp Basal or a temp target */
 "Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains." = "Замените Под сейчас. Подача инсулина будет остановлена спустя %1$@ или когда резервуар будет пуст.";
 
 /* Label text for temporary basal rate summary */
-"Rate" = "Скорость";
+"Rate" = "Rate";
 
 /* Summary string for temporary basal rate configuration page */
 "%1$@ for %2$@" = "%1$@ на %2$@";
@@ -1586,7 +1583,7 @@ Enact a temp Basal or a temp target */
 "This PumpManager has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to therapy settings -> delivery limits and set a new maximum basal rate." = "Помощник настройки помпы не был сконфигурирован относительно максимального уровня базального инсулина. Пожалуйста, перейдите в \"Настройки помпы\" -> \"Предел подачи\" и установите новый максимальный уровень базального инсулина.";
 
 /* description label for active time pod details row */
-"Active Time" = "Активирован в";
+"Active Time" = "Active Time";
 
 /* description label for total delivery pod details row */
 "Total Delivery" = "Всего доставлено";
@@ -1635,7 +1632,7 @@ Enact a temp Basal or a temp target */
 "Month" = "Месяц";
 
 /* */
-"Total" = "Всего";
+"Total" = "Total";
 
 /* Headline Statistics */
 "Statistics" = "Статистика";
@@ -1644,10 +1641,10 @@ Enact a temp Basal or a temp target */
 "Allow Upload of Statistics to NS" = "Загружать статистику в Nightscout";
 
 /* Low Glucose Threshold in Statistics settings */
-"Low" = "Низкий";
+"Low" = "Low";
 
 /* High Glucose Threshold in Statistics settings */
-"High" = "Высокий";
+"High" = "High";
 
 /* In Range */
 "In Range" = "В диапазоне";
@@ -1734,7 +1731,7 @@ Enact a temp Basal or a temp target */
 "Interval" = "Интервал";
 
 /* Median loop interval */
-"Duration" = "Длительность";
+"Duration" = "Duration";
 
 /* "Display SD */
 "Display SD instead of CV" = "Отображать SD вместо CV";
@@ -1892,7 +1889,7 @@ Enact a temp Basal or a temp target */
 "Allow SMB With High Temptarget" = "Разрешить SMB с высокой временной целью";
 
 /* Headline "Allow SMB With High Temptarget" */
-"Allow SMB With High Temptarget" = "Разрешить SMB с высокой временной целью";
+"Allow SMB With High Temptarget" = "Allow SMB With High Temptarget";
 
 /* "Allow SMB With High Temptarget" */
 "Defaults to false. When true, allows supermicrobolus (if otherwise enabled) even with high temp targets (> 100 mg/dl)." = "По умолчанию выключено. Включение разрешает супермикроболюсы Smb даже с высокими временными целями.";
@@ -2035,13 +2032,13 @@ Enact a temp Basal or a temp target */
 "Adjust Dynamic ISF constant" = "Настроить константу динамического ISF";
 
 /* Adjust Dynamic ISF constant */
-"Adjust Dynamic ISF constant" = "Настроить константу динамического ISF";
+"Adjust Dynamic ISF constant" = "Adjust Dynamic ISF constant";
 
 /* Enable Dynamic ISF, Headline */
 "Enable Dynamic ISF" = "Включить динамический ISF";
 
 /* Headline "Enable Dynamic ISF" */
-"Enable Dynamic ISF" = "Включить динамический ISF";
+"Enable Dynamic ISF" = "Enable Dynamic ISF";
 
 /* Enable Dynamic ISF */
 "Calculate a new ISF with every loop cycle. New ISF will be based on current BG, TDD of insulin (past 24 hours or a weighted average) and an Adjustment Factor (default is 1).\n\nDynamic ISF and CR ratios will be limited by your autosens.min/max limits.\n\nDynamic ratio replaces the autosens.ratio: New ISF = Static ISF / Dynamic ratio,\nDynamic ratio = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes" = "Считать новый ISF с каждым циклом петли. Новый ISF будет зависеть от текущего BG, TDD (за последние 24 часа или взвешенное среднее значение) и Adjustment Factor (по-умолчанию - 1).\n\nDynamic ratio ISF и CR будет ограничен настройками autosens.min/max.\n\nDynamic ratio заменяет autosens.ratio: Новый ISF = Постоянный ISF/ Dynamic ratio,\nDynamic ratio = profile.sens*adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes";
@@ -2059,7 +2056,7 @@ Enact a temp Basal or a temp target */
 "Activate Dynamic Carb Ratio (CR)" = "Включить динамический углеводный коэффициент (CR)";
 
 /* Headline "Adjust Dynamic ISF constant" */
-"Adjust Dynamic ISF constant" = "Настроить константу динамического ISF";
+"Adjust Dynamic ISF constant" = "Adjust Dynamic ISF constant";
 
 /* Adjust Dynamic ISF constant */
 "Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula there is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users" = "Отрегулируйте динамические коэффициенты на постоянную величину. Значение по умолчанию равно 0.5. Чем выше значение, тем больше будет коррекция вашего ISF для высокого или низкого BG. Максимальная коррекция определяется настройками Auto sens min/max. Для сигмовидной функции рекомендуется для начала использовать коэффициент регулировки 0.4 - 0.5. В отношении логарифмической формулы консенсуса меньше, но большинству пользователей более подходит начинать с 0.5 - 0.8";
