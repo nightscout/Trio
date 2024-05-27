@@ -29,6 +29,7 @@ extension OverrideProfilesConfig {
                 format: "name != %@", "" as String
             )
         ) var fetchedProfiles: FetchedResults<OverridePresets>
+        var units: GlucoseUnits = .mmolL
 
         private var formatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -93,6 +94,9 @@ extension OverrideProfilesConfig {
                     originalPreset = preset
                     state.populateSettings(from: preset)
                 }
+            }
+            .onDisappear {
+                state.savedSettings()
             }
         }
 
@@ -396,43 +400,28 @@ extension OverrideProfilesConfig {
         }
 
         @ViewBuilder private func profilesView(for preset: OverridePresets) -> some View {
-            let target = state.units == .mmolL ? (((preset.target ?? 0) as NSDecimalNumber) as Decimal)
-                .asMmolL : (preset.target ?? 0) as Decimal
-            let duration = (preset.duration ?? 0) as Decimal
-            let name = ((preset.name ?? "") == "") || (preset.name?.isEmpty ?? true) ? "" : preset.name!
-            let percent = preset.percentage / 100
-            let perpetual = preset.indefinite
-            let durationString = perpetual ? "" : "\(formatter.string(from: duration as NSNumber)!)"
-            let scheduledSMBstring = (preset.smbIsOff && preset.smbIsScheduledOff) ? "Scheduled SMBs" : ""
-            let smbString = (preset.smbIsOff && scheduledSMBstring == "") ? "SMBs are off" : ""
-            let targetString = target != 0 ? "\(glucoseFormatter.string(from: target as NSNumber)!)" : ""
-            let maxMinutesSMB = (preset.smbMinutes as Decimal?) != nil ? (preset.smbMinutes ?? 0) as Decimal : 0
-            let maxMinutesUAM = (preset.uamMinutes as Decimal?) != nil ? (preset.uamMinutes ?? 0) as Decimal : 0
-            let isfString = preset.isf ? "ISF" : ""
-            let crString = preset.cr ? "CR" : ""
-            let dash = crString != "" ? "/" : ""
-            let isfAndCRstring = isfString + dash + crString
+            let data = state.profileViewData(for: preset)
 
-            if name != "" {
+            if data.name != "" {
                 HStack {
                     VStack {
                         HStack {
-                            Text(name)
+                            Text(data.name)
                             Spacer()
                         }
                         HStack(spacing: 5) {
-                            Text(percent.formatted(.percent.grouping(.never).rounded().precision(.fractionLength(0))))
-                            if targetString != "" {
-                                Text(targetString)
-                                Text(targetString != "" ? state.units.rawValue : "")
+                            Text(data.percent.formatted(.percent.grouping(.never).rounded().precision(.fractionLength(0))))
+                            if data.targetString != "" {
+                                Text(data.targetString)
+                                Text(data.targetString != "" ? state.units.rawValue : "")
                             }
-                            if durationString != "" { Text(durationString + (perpetual ? "" : "min")) }
-                            if smbString != "" { Text(smbString).foregroundColor(.secondary).font(.caption) }
-                            if scheduledSMBstring != "" { Text(scheduledSMBstring) }
+                            if data.durationString != "" { Text(data.durationString + (data.perpetual ? "" : "min")) }
+                            if data.smbString != "" { Text(data.smbString).foregroundColor(.secondary).font(.caption) }
+                            if data.scheduledSMBString != "" { Text(data.scheduledSMBString) }
                             if preset.advancedSettings {
-                                Text(maxMinutesSMB == 0 ? "" : maxMinutesSMB.formatted() + " SMB")
-                                Text(maxMinutesUAM == 0 ? "" : maxMinutesUAM.formatted() + " UAM")
-                                Text(isfAndCRstring)
+                                Text(data.maxMinutesSMB == 0 ? "" : data.maxMinutesSMB.formatted() + " SMB")
+                                Text(data.maxMinutesUAM == 0 ? "" : data.maxMinutesUAM.formatted() + " UAM")
+                                Text(data.isfAndCRString)
                             }
                             Spacer()
                         }
@@ -467,10 +456,10 @@ extension OverrideProfilesConfig {
 
             if state.units == .mmolL {
                 targetInStateUnits = state.target
-                targetInPresetUnits = Decimal(Double(truncating: originalPreset.target ?? 0) * 0.0555)
+                targetInPresetUnits = (originalPreset.target as NSDecimalNumber?)?.decimalValue.asMmolL ?? 0
             } else {
                 targetInStateUnits = state.target
-                targetInPresetUnits = (originalPreset.target ?? 0) as Decimal
+                targetInPresetUnits = (originalPreset.target as NSDecimalNumber?)?.decimalValue ?? 0
             }
 
             let hasChanges = state.profileName != originalPreset.name ||
@@ -479,7 +468,6 @@ extension OverrideProfilesConfig {
                 state._indefinite != originalPreset.indefinite ||
                 state.override_target != (originalPreset.target != nil) ||
                 (state.override_target && targetInStateUnits != targetInPresetUnits) ||
-                // state.advancedSettings != originalPreset.advancedSettings ||
                 state.smbIsOff != originalPreset.smbIsOff ||
                 state.smbIsScheduledOff != originalPreset.smbIsScheduledOff ||
                 state.isf != originalPreset.isf ||
@@ -504,30 +492,5 @@ extension OverrideProfilesConfig {
                 // To do: add error
             }
         }
-    }
-}
-
-extension OverrideProfilesConfig.StateModel {
-    func populateSettings(from preset: OverridePresets) {
-        profileName = preset.name ?? ""
-        percentage = preset.percentage
-        duration = (preset.duration ?? 0) as Decimal
-        _indefinite = preset.indefinite
-        override_target = preset.target != nil
-        if let targetValue = preset.target as Decimal? {
-            target = units == .mmolL ? Decimal(Double(truncating: targetValue as NSNumber) * 0.0555) : targetValue
-        } else {
-            target = 0
-        }
-        advancedSettings = preset.advancedSettings
-        smbIsOff = preset.smbIsOff
-        smbIsScheduledOff = preset.smbIsScheduledOff
-        isf = preset.isf
-        cr = preset.cr
-        smbMinutes = (preset.smbMinutes ?? 0) as Decimal
-        uamMinutes = (preset.uamMinutes ?? 0) as Decimal
-        isfAndCr = preset.isfAndCr
-        start = (preset.start ?? 0) as Decimal
-        end = (preset.end ?? 0) as Decimal
     }
 }
