@@ -130,14 +130,14 @@ class CoreDataStack: ObservableObject {
 
     // Clean old Persistent History
     /// - Tag: clearHistory
-    func cleanupPersistentHistory(before date: Date) async {
+    func cleanupPersistentHistoryTokens(before date: Date) async {
         let taskContext = newTaskContext()
-        taskContext.name = "cleanPersistentHistoryContext"
+        taskContext.name = "cleanPersistentHistoryTokensContext"
 
         await taskContext.perform {
-            let deleteHistoryRequest = NSPersistentHistoryChangeRequest.deleteHistory(before: date)
+            let deleteHistoryTokensRequest = NSPersistentHistoryChangeRequest.deleteHistory(before: date)
             do {
-                try taskContext.execute(deleteHistoryRequest)
+                try taskContext.execute(deleteHistoryTokensRequest)
                 debugPrint("\(DebuggingIdentifiers.succeeded) Successfully deleted persistent history before \(date)")
             } catch {
                 debugPrint(
@@ -173,28 +173,49 @@ extension CoreDataStack {
 
     /// Asynchronously deletes records
     ///  - Tag: batchDelete
-//    func batchDelete<T: NSManagedObject>(_ objects: [T]) async throws {
-//        let objectIDs = objects.map(\.objectID)
-//        let taskContext = newTaskContext()
-//        // Add name and author to identify source of persistent history changes.
-//        taskContext.name = "deleteContext"
-//        taskContext.transactionAuthor = "batchDelete"
-//        debugPrint("Start deleting data from the store... \(DebuggingIdentifiers.inProgress)")
-//
-//        try await taskContext.perform {
-//            // Execute the batch delete.
-//            let batchDeleteRequest = NSBatchDeleteRequest(objectIDs: objectIDs)
-//            guard let fetchResult = try? taskContext.execute(batchDeleteRequest),
-//                  let batchDeleteResult = fetchResult as? NSBatchDeleteResult,
-//                  let success = batchDeleteResult.result as? Bool, success
-//            else {
-//                debugPrint("Failed to execute batch delete request \(DebuggingIdentifiers.failed)")
-//                throw CoreDataError.batchDeleteError
-//            }
-//        }
-//
-//        debugPrint("Successfully deleted data. \(DebuggingIdentifiers.succeeded)")
-//    }
+    func batchDeleteOlderThan<T: NSManagedObject>(_ objectType: T.Type, dateKey: String, days: Int) async throws {
+        let taskContext = newTaskContext()
+        taskContext.name = "deleteContext"
+        taskContext.transactionAuthor = "batchDelete"
+
+        // Get the number of days we want to keep the data
+        let targetDate = Calendar.current.date(byAdding: .day, value: -days, to: Date())!
+
+        // Fetch all the objects that are older than the specified days
+        let fetchRequest = NSFetchRequest<NSManagedObjectID>(entityName: String(describing: objectType))
+        fetchRequest.predicate = NSPredicate(format: "%K < %@", dateKey, targetDate as NSDate)
+        fetchRequest.resultType = .managedObjectIDResultType
+
+        do {
+            // Execute the Fetch Request
+            let objectIDs = try await taskContext.perform {
+                try taskContext.fetch(fetchRequest)
+            }
+
+            // Guard check if there are NSManagedObjects older than 90 days
+            guard !objectIDs.isEmpty else {
+                debugPrint("No objects found older than \(days) days.")
+                return
+            }
+
+            // Execute the Batch Delete
+            try await taskContext.perform {
+                let batchDeleteRequest = NSBatchDeleteRequest(objectIDs: objectIDs)
+                guard let fetchResult = try? taskContext.execute(batchDeleteRequest),
+                      let batchDeleteResult = fetchResult as? NSBatchDeleteResult,
+                      let success = batchDeleteResult.result as? Bool, success
+                else {
+                    debugPrint("Failed to execute batch delete request \(DebuggingIdentifiers.failed)")
+                    throw CoreDataError.batchDeleteError
+                }
+            }
+
+            debugPrint("Successfully deleted data older than \(days) days. \(DebuggingIdentifiers.succeeded)")
+        } catch {
+            debugPrint("Failed to fetch or delete data: \(error.localizedDescription) \(DebuggingIdentifiers.failed)")
+            throw CoreDataError.batchDeleteError
+        }
+    }
 }
 
 // MARK: - Fetch Requests

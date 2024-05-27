@@ -58,11 +58,8 @@ import Swinject
         )
         loadServices()
 
-        // Clear the persistentHistory every time the app starts
-        let coreDataStack = self.coreDataStack
-        Task {
-            await coreDataStack.cleanupPersistentHistory(before: Date.oneWeekAgo)
-        }
+        // Clear the persistentHistory and the NSManagedObjects that are older than 90 days every time the app starts
+        cleanupOldData()
     }
 
     var body: some Scene {
@@ -75,6 +72,24 @@ import Swinject
         .onChange(of: scenePhase) { newScenePhase in
             debug(.default, "APPLICATION PHASE: \(newScenePhase)")
         }
+    }
+
+    private func cleanupOldData() {
+        Task {
+            await coreDataStack.cleanupPersistentHistoryTokens(before: Date.oneWeekAgo)
+            try await purgeOldNSManagedObjects()
+        }
+    }
+
+    private func purgeOldNSManagedObjects() async throws {
+        try await coreDataStack.batchDeleteOlderThan(GlucoseStored.self, dateKey: "date", days: 90)
+        try await coreDataStack.batchDeleteOlderThan(PumpEventStored.self, dateKey: "timestamp", days: 90)
+        try await coreDataStack.batchDeleteOlderThan(OrefDetermination.self, dateKey: "deliverAt", days: 90)
+        try await coreDataStack.batchDeleteOlderThan(OpenAPS_Battery.self, dateKey: "date", days: 90)
+        try await coreDataStack.batchDeleteOlderThan(CarbEntryStored.self, dateKey: "date", days: 90)
+        try await coreDataStack.batchDeleteOlderThan(Forecast.self, dateKey: "date", days: 90)
+
+        // TODO: - Purge Data of other (future) entities as well
     }
 
     private func handleURL(_ url: URL) {

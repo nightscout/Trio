@@ -155,7 +155,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
         // Cleanup
         Task {
-            await CoreDataStack.shared.cleanupPersistentHistory(before: Date.oneWeekAgo)
+            await CoreDataStack.shared.cleanupPersistentHistoryTokens(before: Date.oneWeekAgo)
         }
 
         // Update lastHistoryCleanupDate
