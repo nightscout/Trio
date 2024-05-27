@@ -618,7 +618,7 @@ Enact a temp Basal or a temp target */
 "External" = "Ekstern";
 
 /* */
-"Other" = "Andet";
+"Other" = "Other";
 
 /* */
 "Libre Transmitter" = "Libre Sender";
@@ -1149,7 +1149,7 @@ Enact a temp Basal or a temp target */
 "Save as your Normal Basal Rates" = "Gem som dine normale basalsatser";
 
 /* */
-"Save on Pump" = "Gem på Pump";
+"Save on Pump" = "Save on Pump";
 
 /* Debug option view Pump History */
 "Pump History" = "Pumpe Historie";
@@ -1211,7 +1211,7 @@ Enact a temp Basal or a temp target */
 "Warning" = "Advarsel";
 
 /* Error title */
-"Error" = "Fejl";
+"Error" = "Error";
 
 /* Manual temp basal mode */
 "Manual" = "Manuel";
@@ -1341,7 +1341,7 @@ Enact a temp Basal or a temp target */
 "Cancel Profile Override" = "Cancel Profile Override";
 
 /* Alert */
-"Cancel Temp Target" = "Annuller Midlertidigt Mål";
+"Cancel Temp Target" = "Cancel Temp Target";
 
 /* Alert */
 "Return to Normal?" = "Return to Normal?";
@@ -1404,7 +1404,7 @@ Enact a temp Basal or a temp target */
 "Save and continue" = "Gem og fortsæt";
 
 /* */
-"Save as Preset" = "Gem som forudindstilling";
+"Save as Preset" = "Save as Preset";
 
 /* */
 "Predictions" = "Predictions";
@@ -1498,10 +1498,10 @@ Enact a temp Basal or a temp target */
 "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced.";
 
 /* button title for saving low reservoir reminder while saving */
-"Saving..." = "Gemmer...";
+"Saving..." = "Saving...";
 
 /* button title for saving low reservoir reminder */
-"Save" = "Gem";
+"Save" = "Save";
 
 /* Alert title for error when updating confidence reminder preference */
 "Failed to update confidence reminder preference." = "Failed to update confidence reminder preference.";
@@ -1554,7 +1554,7 @@ Enact a temp Basal or a temp target */
 "Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains." = "Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains.";
 
 /* Label text for temporary basal rate summary */
-"Rate" = "Værdi";
+"Rate" = "Rate";
 
 /* Summary string for temporary basal rate configuration page */
 "%1$@ for %2$@" = "%1$@ for %2$@";
@@ -1583,7 +1583,7 @@ Enact a temp Basal or a temp target */
 "This PumpManager has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to therapy settings -> delivery limits and set a new maximum basal rate." = "This PumpManager has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to therapy settings -> delivery limits and set a new maximum basal rate.";
 
 /* description label for active time pod details row */
-"Active Time" = "Aktiv Tid";
+"Active Time" = "Active Time";
 
 /* description label for total delivery pod details row */
 "Total Delivery" = "Total Delivery";
@@ -1641,10 +1641,10 @@ Enact a temp Basal or a temp target */
 "Allow Upload of Statistics to NS" = "Tillad Upload af Statistik til NS";
 
 /* Low Glucose Threshold in Statistics settings */
-"Low" = "Lav";
+"Low" = "Low";
 
 /* High Glucose Threshold in Statistics settings */
-"High" = "Høj";
+"High" = "High";
 
 /* In Range */
 "In Range" = "In Range";
@@ -1731,7 +1731,7 @@ Enact a temp Basal or a temp target */
 "Interval" = "Interval";
 
 /* Median loop interval */
-"Duration" = "Varighed";
+"Duration" = "Duration";
 
 /* "Display SD */
 "Display SD instead of CV" = "Display SD instead of CV";
