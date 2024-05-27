@@ -2,9 +2,9 @@
 name: "\U0001F41B Bug report"
 about: Create a report to help us fix things
 title: ''
-labels: 'bug,needs-triage'
+labels: ['bug', 'needs-triage']
 assignees: ''
-projects: 'nightscout/2'
+projects: ['nightscout/2']
 
 ---
 ## Describe the bug
