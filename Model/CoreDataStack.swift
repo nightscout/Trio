@@ -78,7 +78,7 @@ class CoreDataStack: ObservableObject {
     }()
 
     /// Creates and configures a private queue context
-    private func newTaskContext() -> NSManagedObjectContext {
+    func newTaskContext() -> NSManagedObjectContext {
         // Create a private queue context
         /// - Tag: newBackgroundContext
         let taskContext = persistentContainer.newBackgroundContext()
@@ -151,20 +151,24 @@ class CoreDataStack: ObservableObject {
 // MARK: - Delete
 
 extension CoreDataStack {
-    /// Synchronously delete entries with specified object IDs
+    /// Synchronously delete entry with specified object IDs
     ///  - Tag: synchronousDelete
-    func deleteObject(identifiedBy objectIDs: [NSManagedObjectID]) {
+    func deleteObject(identifiedBy objectID: NSManagedObjectID) {
         let viewContext = persistentContainer.viewContext
         debugPrint("Start deleting data from the store ...\(DebuggingIdentifiers.inProgress)")
 
         viewContext.perform {
-            objectIDs.forEach { objectID in
+            do {
                 let entryToDelete = viewContext.object(with: objectID)
                 viewContext.delete(entryToDelete)
+
+                guard viewContext.hasChanges else { return }
+                try viewContext.save()
+                debugPrint("Successfully deleted data. \(DebuggingIdentifiers.succeeded)")
+            } catch {
+                debugPrint("Failed to delete data: \(error.localizedDescription)")
             }
         }
-
-        debugPrint("Successfully deleted data. \(DebuggingIdentifiers.succeeded)")
     }
 
     /// Asynchronously deletes records

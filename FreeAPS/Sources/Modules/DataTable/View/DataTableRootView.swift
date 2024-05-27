@@ -425,8 +425,9 @@ extension DataTable {
                         debug(.default, "Cannot gracefully unwrap alertTreatmentToDelete!")
                         return
                     }
+                    let treatmentObjectID = treatmentToDelete.objectID
 
-                    state.invokeInsulinDeletionTask(treatmentToDelete)
+                    state.invokeInsulinDeletionTask(treatmentObjectID)
                 }
             } message: {
                 Text("\n" + NSLocalizedString(alertMessage, comment: ""))

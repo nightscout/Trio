@@ -112,33 +112,23 @@ extension DataTable {
             }
         }
 
-        @MainActor func invokeInsulinDeletionTask(_ treatment: PumpEventStored) {
+        @MainActor func invokeInsulinDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
             Task {
                 do {
-                    await deleteInsulin(treatment)
+                    await deleteInsulin(treatmentObjectID)
                     insulinEntryDeleted = true
                     waitForSuggestion = true
                 }
             }
         }
 
-        func deleteInsulin(_ treatment: PumpEventStored) async {
+        func deleteInsulin(_ treatmentObjectID: NSManagedObjectID) async {
             do {
                 let authenticated = try await unlockmanager.unlock()
                 if authenticated {
-                    do {
-                        coredataContext.delete(treatment)
-                        try coredataContext.save()
-                        debugPrint(
-                            "Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted insulin from core data"
-                        )
-                    } catch {
-                        debugPrint(
-                            "Data Table State: \(#function) \(DebuggingIdentifiers.failed) error while deleting insulin from core data"
-                        )
-                    }
+                    CoreDataStack.shared.deleteObject(identifiedBy: treatmentObjectID)
 
-                    provider.deleteInsulin(treatment)
+                    provider.deleteInsulin(with: treatmentObjectID)
                     apsManager.determineBasalSync()
                 } else {
                     print("authentication failed")

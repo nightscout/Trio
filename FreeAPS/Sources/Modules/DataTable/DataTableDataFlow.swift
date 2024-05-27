@@ -1,3 +1,4 @@
+import CoreData
 import Foundation
 import SwiftUI
 
@@ -218,5 +219,5 @@ enum DataTable {
 
 protocol DataTableProvider: Provider {
     func deleteCarbs(_ treatment: CarbEntryStored)
-    func deleteInsulin(_ treatment: PumpEventStored)
+    func deleteInsulin(with treatmentObjectID: NSManagedObjectID)
 }
