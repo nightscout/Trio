@@ -47,7 +47,7 @@
 "Agree and continue" = "Godta og fortsett";
 
 /* Bolus progress view */
-"of" = "of";
+"of" = "av";
 
 /* Headline in enacted pop up (at: at what time) */
 "Enacted at" = "Utført kl.";
@@ -77,7 +77,7 @@
 "Fatty Meal" = "Fett måltid";
 
 /* For the  Bolus View pop-up */
-"Full Bolus" = "Full Bolus";
+"Full Bolus" = "Full bolus";
 
 /* For the  Bolus View pop-up */
 "Fraction" = "Brøkdel";
@@ -339,7 +339,7 @@ Enact a temp Basal or a temp target */
 "Use local glucose server" = "Bruk lokal glukoseserver";
 
 /* Enable Statistics */
-"This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n" = "This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n";
+"This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n" = "Denne funksjonen laster opp statistics.json til Nightscout, som igjen åpner for bruk av statistikk i prosjektet \"Community Statistics and Demographics Project\".\n\nDeltakelse er frivillig og krever egen registrering på:\n";
 
 /*  */
 "Edit settings json" = "Rediger \"freeaps_settings.json\"";
@@ -582,10 +582,10 @@ Enact a temp Basal or a temp target */
 "Temp Targets" = "Midlertidige mål";
 
 /* Delete carbs from data table and Nightscout */
-"Delete Carbs?" = "Delete Carbs?";
+"Delete Carbs?" = "Slette karbohydrater?";
 
 /* Delete insulin from pump history and Nightscout */
-"Delete Insulin?" = "Delete Insulin?";
+"Delete Insulin?" = "Slette insulin?";
 
 /* Treatments list */
 "Treatments" = "Behandlinger";
@@ -1240,7 +1240,7 @@ Enact a temp Basal or a temp target */
 "Enable" = "Aktiver";
 
 /* Header */
-"Fat and Protein Conversion Settings" = "Fat and Protein Conversion Settings";
+"Fat and Protein Conversion Settings" = "Omregning av fett og protein";
 
 /* Delay */
 "Delay In Minutes" = "Forsinkelse i minutter";
@@ -1258,7 +1258,7 @@ Enact a temp Basal or a temp target */
 "Allows fat and protein to be converted into future carb equivalents using the Warsaw formula of kilocalories divided by 10.\n\nThis spreads the carb equivilants over a maximum duration setting that can be configured from 5-12 hours.\n\nDelay is time from now until the first future carb entry.\n\nInterval in minutes is how many minutes are between entries. The shorter the interval, the smoother the result. 10, 15, 20, 30, or 60 are reasonable choices.\n\nAdjustment factor is how much effect the fat and protein has on the entries. 1.0 is full effect (original Warsaw Method) and 0.5 is half effect. Note that you may find that your normal carb ratio needs to increase to a larger number if you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 0.5 to ease into it.\n\nDefault settings: Time Cap: 8 h, Interval: 30 min, Factor: 0.5, Delay 60 min" = "Bruker Warsaw-formelen til å konvertere fett og proteiner til fremtidige karbohydrat-ekvivalenter.\n\nDette fordeler karbohydrat-ekvivalentene over et antall timer som kan justeres mellom 5 og 12.\n\nForsinkelse er tiden fra nå til den første fremtidige karbohydrat-ekvivalenten blir lagt til.\n\nIntervall i minutter er antall minutter mellom hver registrering. Jo kortere intervall, jo jevnere blir resultatet. 10, 15, 20, 30 eller 60 er fornuftige valg.\n\nJusteringsfaktor er hvor stor effekt fett og proteiner har på registreringene. 1,0 er full effekt (original Warsaw-formel) og 0,5 er halv effekt. Merk at du kan ha behov for å justere opp din vanlige karbohydrat-ratio hvis du begynner å registrere fett og proteiner. På grunn av dette, anbefales det å starte med en faktor på rundt 0,5 for å starte forsiktig.\n\nStandardinnstilling: Maks varighet: 8 t, Intervall: 30 min, Faktor: 0,5, Forsinkelse: 60 min";
 
 /* FPU Settings Title */
-"Fat and Protein" = "Fat and Protein";
+"Fat and Protein" = "Fett og Proteiner";
 
 /* Display fat and protein entities */
 "Fat & Protein" = "Fett og protein";
@@ -1273,7 +1273,7 @@ Enact a temp Basal or a temp target */
 "Protein" = "Proteiner";
 
 /* Service Section */
-"Meal Settings" = "Meal Settings";
+"Meal Settings" = "Innstillinger for måltid";
 
 /* Service Section */
 "Profile Override" = "Overstyring av profil";
@@ -1377,13 +1377,13 @@ Enact a temp Basal or a temp target */
 "Statistics and Home View" = "Statistikk og startskjerm";
 
 /* Alert text */
-"Delete Carb Equivalents?" = "Delete Carb Equivalents?";
+"Delete Carb Equivalents?" = "Slette karboekvivalenter?";
 
 /* */
-"All FPUs of the meal will be deleted." = "All FPUs of the meal will be deleted.";
+"All FPUs of the meal will be deleted." = "Alle fett- og proteinekvivalenter fra måltidet vil bli slettet.";
 
 /* */
-"Delete Glucose?" = "Delete Glucose?";
+"Delete Glucose?" = "Slette blodsukker?";
 
 /* */
 "Meal Presets" = "Forvalg av måltid";
@@ -1404,7 +1404,7 @@ Enact a temp Basal or a temp target */
 "Save and continue" = "Lagre og fortsett";
 
 /* */
-"Save as Preset" = "Lagre som forvalg";
+"Save as Preset" = "Lagre som forhåndsinnstilling";
 
 /* */
 "Predictions" = "Prediksjoner";
@@ -1530,7 +1530,6 @@ Enact a temp Basal or a temp target */
 /* Description for BeepPreference.extended */
 "Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Påminnelser vil høres når appen automatisk justerer insulintilførsel og for kommandoer du starter.";
 
-
 /* Label text for expiration reminder default row */
 "Expiration Reminder Default" = "Utløpspåminnelse";
 
@@ -1584,7 +1583,7 @@ Enact a temp Basal or a temp target */
 "This PumpManager has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to therapy settings -> delivery limits and set a new maximum basal rate." = "Denne pumpedriveren har ikke blitt konfigurert med en maksimal basalrate fordi den ble lagt til før manuell midlertidig basal var en tilgjengelig funksjon. Gå til Pumpeinnstillinger -> leveringsgrenser og sett en ny maksimal basal rate.";
 
 /* description label for active time pod details row */
-"Active Time" = "Aktiveringstidspunkt";
+"Active Time" = "Aktiv tid";
 
 /* description label for total delivery pod details row */
 "Total Delivery" = "Total leveranse";
@@ -1672,16 +1671,16 @@ Enact a temp Basal or a temp target */
 "2 hours" = "2 timer";
 
 /* */
-"4 hours" = "4 hours";
+"4 hours" = "4 timer";
 
 /* */
-"6 hours" = "6 hours";
+"6 hours" = "6 timer";
 
 /* */
-"12 hours" = "12 hours";
+"12 hours" = "12 timer";
 
 /* */
-"24 hours" = "24 hours";
+"24 hours" = "24 timer";
 
 /* Average BG = */
 "Average" = "Gj.snitt";
@@ -2051,10 +2050,10 @@ Enact a temp Basal or a temp target */
 "Use Dynamic CR. The dynamic ratio will be used for CR as follows:\n\n When ratio > 1:  dynCR = (newRatio - 1) / 2 + 1.\nWhen ratio < 1: dynCR = CR/dynCR.\n\nDon't use toghether with a high Insulin Fraction (> 2)" = "Bruk dynamisk CR. Dynamisk ratio brukes for CR som følger:\n\n Når ratio > 1: dynCR = (newRatio - 1) / 2 + 1.\nNår ratio < 1: dynCR = CR/dynCR.\n\nIkke bruk denne innstillingen sammen med en høy insulinbrøk (Insulin Fraction > 2)";
 
 /* Enable Dyn ISF */
-"Activate Dynamic Sensitivity (ISF)" = "Activate Dynamic Sensitivity (ISF)";
+"Activate Dynamic Sensitivity (ISF)" = "Aktivere dynamisk insulinfølsomhet (ISF)";
 
 /* Enable Dyn CR */
-"Activate Dynamic Carb Ratio (CR)" = "Activate Dynamic Carb Ratio (CR)";
+"Activate Dynamic Carb Ratio (CR)" = "Aktivere dynamisk karbohydratforhold (CR)";
 
 /* Headline "Adjust Dynamic ISF constant" */
 "Adjust Dynamic ISF constant" = "Juster konstant for dynamisk ISF";
@@ -2066,63 +2065,63 @@ Enact a temp Basal or a temp target */
 "Use Sigmoid Function" = "Bruk sigmoid-funksjon";
 
 /* Which dyn ISF function to use */
-"Formula" = "Formula";
+"Formula" = "Formel";
 
 /* Extra Safety Features when using dyn ISF */
-"Safety" = "Safety";
+"Safety" = "Sikkerhet";
 
 /* Use Sigmoid Function */
 "Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function." = "Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function.";
 
 /* Headline Threshold Setting */
-"Threshold Setting" = "Threshold Setting";
+"Threshold Setting" = "Terskel-innstilling";
 
 /* Threshold Setting */
 "The default threshold in Trio depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl." = "Standard terskel i Trio er avhengig av ditt nåværende laveste BS-mål, som følger:\n\nDersom ditt laveste BS-mål = 90 mg/dL -> terskel = 65 mg/dL,\n\ndersom laveste BS-mål = 100 mg/dL -> terskel = 70 mg/dL,\n\nlaveste BS-mål = 110 mg/dL -> terskel = 75 mg/dL,\n\nog dersom laveste BS-mål = 130 mg/dL -> terskel = 85 mg/dL.\n\nDenne innstillingen tillater deg å endre til en høyere terskel for å loope med dynamisk ISF. Gyldige verdier er 65 mg/dL <= terskel-innstilling <= 120 mg/dL.";
 
 /* Header */
-"Calculator settings" = "Calculator settings";
+"Calculator settings" = "Innstillinger for kalkulator";
 
 /* UI/UX option */
-"Display Predictions" = "Display Predictions";
+"Display Predictions" = "Vis prognoser";
 
 /* UI/UX option */
-"Smaller iPhone Screens" = "Smaller iPhone Screens";
+"Smaller iPhone Screens" = "Mindre iPhone-skjermer";
 
 /* UI/UX option */
-"Display and allow Fat and Protein entries" = "Display and allow Fat and Protein entries";
+"Display and allow Fat and Protein entries" = "Vis og tillat registrering av fett og protein";
 
 /* UI/UX option */
-"Add Meal View settings " = "Add Meal View settings ";
+"Add Meal View settings " = "Innstillinger for registrering av måltid ";
 
 /* UI/UX option */
-"Display Temp Targets Button" = "Display Temp Targets Button";
+"Display Temp Targets Button" = "Vis knapp for midlertidig mål";
 
 /* UI/UX option */
-"Home View Button Panel " = "Home View Button Panel ";
+"Home View Button Panel " = "Knapperad på startskjerm ";
 
 /* UI/UX option */
-"In case you're using both profiles and temp targets" = "In case you're using both profiles and temp targets";
+"In case you're using both profiles and temp targets" = "I tilfelle du bruker både profiler og midlertidige mål";
 
 /* UI/UX option */
-"Always Color Glucose Value (green, yellow etc)" = "Always Color Glucose Value (green, yellow etc)";
+"Always Color Glucose Value (green, yellow etc)" = "Alltid bruk farge på blodsukkerverdi (grønn, gul, osv)";
 
 /* UI/UX option */
-"Header settings" = "Header settings";
+"Header settings" = "Innstillinger for topplinjen";
 /* UI/UX option */
-"Normally glucose is colored red only when over or under your notification limits for high/low" = "Normally glucose is colored red only when over or under your notification limits for high/low";
+"Normally glucose is colored red only when over or under your notification limits for high/low" = "Vanligvis er blodsukkerverdien rød bare når den er over og under varslingsinnstillingene for høy/lav";
 
 /* UI/UX option */
-"Horizontal Scroll View Visible hours" = "Horizontal Scroll View Visible hours";
+"Horizontal Scroll View Visible hours" = "Antall synlige timer for horisontal visning";
 
 /* Notification option */
-"Live Activity" = "Live Activity";
+"Live Activity" = "Live aktivitet";
 
 /* Notification option */
-"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)";
+"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "Sanntidsoppdatering (Live Activity) viser blodsukkerverdi på låseskjerm og i Dynamic Island (hvis telefonen har dette)";
 
 /* Notification option */
-"Show live activity" = "Show live activity";
+"Show live activity" = "Vis sanntidsoppdatering";
 
 /* Headline "Weighted Average of TDD. Weight of past 24 hours:" */
 "Weighted Average of TDD. Weight of past 24 hours:" = "Vektet snitt av TDD. Vekting av siste 24 timer:";
