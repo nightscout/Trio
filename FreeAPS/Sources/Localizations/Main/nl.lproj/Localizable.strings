@@ -618,7 +618,7 @@ Enact a temp Basal or a temp target */
 "External" = "Extern";
 
 /* */
-"Other" = "Anders";
+"Other" = "Other";
 
 /* */
 "Libre Transmitter" = "Libre zender";
@@ -1149,7 +1149,7 @@ Enact a temp Basal or a temp target */
 "Save as your Normal Basal Rates" = "Bewaar als je normale basaalstanden";
 
 /* */
-"Save on Pump" = "Opslaan op pomp";
+"Save on Pump" = "Save on Pump";
 
 /* Debug option view Pump History */
 "Pump History" = "Pomp geschiedenis";
@@ -1211,7 +1211,7 @@ Enact a temp Basal or a temp target */
 "Warning" = "Waarschuwing";
 
 /* Error title */
-"Error" = "Fout";
+"Error" = "Error";
 
 /* Manual temp basal mode */
 "Manual" = "Handmatig";
@@ -1341,7 +1341,7 @@ Enact a temp Basal or a temp target */
 "Cancel Profile Override" = "Profieloverschrijving annuleren?";
 
 /* Alert */
-"Cancel Temp Target" = "Annuleer tijdelijk doel";
+"Cancel Temp Target" = "Cancel Temp Target";
 
 /* Alert */
 "Return to Normal?" = "Terug naar normaal?";
@@ -1404,7 +1404,7 @@ Enact a temp Basal or a temp target */
 "Save and continue" = "Bewaar en ga verder";
 
 /* */
-"Save as Preset" = "Bewaar als voorinstelling";
+"Save as Preset" = "Save as Preset";
 
 /* */
 "Predictions" = "Voorspellingen";
@@ -1498,10 +1498,10 @@ Enact a temp Basal or a temp target */
 "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Dit zijn bevestigingsmeldingen met piepjes die uit de Pod komen en kunnen worden gebruikt ter bevestiging van geselecteerde opdrachten als de Pod niet gedempt is.";
 
 /* button title for saving low reservoir reminder while saving */
-"Saving..." = "Opslaan...";
+"Saving..." = "Saving...";
 
 /* button title for saving low reservoir reminder */
-"Save" = "Opslaan";
+"Save" = "Save";
 
 /* Alert title for error when updating confidence reminder preference */
 "Failed to update confidence reminder preference." = "Kon de voorkeur voor meldingen niet bijwerken.";
@@ -1554,7 +1554,7 @@ Enact a temp Basal or a temp target */
 "Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains." = "Verander Pod nu. Insuline levering stopt over %1$@ of wanneer er geen insuline meer over is.";
 
 /* Label text for temporary basal rate summary */
-"Rate" = "Waarde";
+"Rate" = "Rate";
 
 /* Summary string for temporary basal rate configuration page */
 "%1$@ for %2$@" = "%1$@ voor %2$@";
@@ -1583,7 +1583,7 @@ Enact a temp Basal or a temp target */
 "This PumpManager has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to therapy settings -> delivery limits and set a new maximum basal rate." = "Deze Pompmanager is niet geconfigureerd met een maximale basaalstand omdat het is toegevoegd voordat handmatig tijdelijke basaal een functie was. Ga naar therapie instellingen -> afleverlimieten en stel een nieuwe maximale basaalstand in.";
 
 /* description label for active time pod details row */
-"Active Time" = "Activatie tijd";
+"Active Time" = "Active Time";
 
 /* description label for total delivery pod details row */
 "Total Delivery" = "Totaal afgegeven";
@@ -1632,7 +1632,7 @@ Enact a temp Basal or a temp target */
 "Month" = "Maand";
 
 /* */
-"Total" = "Totaal";
+"Total" = "Total";
 
 /* Headline Statistics */
 "Statistics" = "Statistieken";
@@ -1641,10 +1641,10 @@ Enact a temp Basal or a temp target */
 "Allow Upload of Statistics to NS" = "Uploaden van statistieken naar NS toestaan";
 
 /* Low Glucose Threshold in Statistics settings */
-"Low" = "Laag";
+"Low" = "Low";
 
 /* High Glucose Threshold in Statistics settings */
-"High" = "Hoog";
+"High" = "High";
 
 /* In Range */
 "In Range" = "Binnen bereik";
@@ -1731,7 +1731,7 @@ Enact a temp Basal or a temp target */
 "Interval" = "Interval";
 
 /* Median loop interval */
-"Duration" = "Duur";
+"Duration" = "Duration";
 
 /* "Display SD */
 "Display SD instead of CV" = "Toon SD in plaats van CV";
@@ -1889,7 +1889,7 @@ Enact a temp Basal or a temp target */
 "Allow SMB With High Temptarget" = "Sta SMB met hoog doel toe";
 
 /* Headline "Allow SMB With High Temptarget" */
-"Allow SMB With High Temptarget" = "Sta SMB met hoog doel toe";
+"Allow SMB With High Temptarget" = "Allow SMB With High Temptarget";
 
 /* "Allow SMB With High Temptarget" */
 "Defaults to false. When true, allows supermicrobolus (if otherwise enabled) even with high temp targets (> 100 mg/dl)." = "Standaard uit. Als het aangezet wordt zullen altijd supermicrobolussen (SMBs) gebruikt worden (mits elders aangezet), zelfs bij hoog tijdelijk doel (> 5,5 mmol/L).";
@@ -2032,13 +2032,13 @@ Enact a temp Basal or a temp target */
 "Adjust Dynamic ISF constant" = "Dynamische ISF-constante aanpassen";
 
 /* Adjust Dynamic ISF constant */
-"Adjust Dynamic ISF constant" = "Dynamische ISF-constante aanpassen";
+"Adjust Dynamic ISF constant" = "Adjust Dynamic ISF constant";
 
 /* Enable Dynamic ISF, Headline */
 "Enable Dynamic ISF" = "Dynamische ISF inschakelen";
 
 /* Headline "Enable Dynamic ISF" */
-"Enable Dynamic ISF" = "Dynamische ISF inschakelen";
+"Enable Dynamic ISF" = "Enable Dynamic ISF";
 
 /* Enable Dynamic ISF */
 "Calculate a new ISF with every loop cycle. New ISF will be based on current BG, TDD of insulin (past 24 hours or a weighted average) and an Adjustment Factor (default is 1).\n\nDynamic ISF and CR ratios will be limited by your autosens.min/max limits.\n\nDynamic ratio replaces the autosens.ratio: New ISF = Static ISF / Dynamic ratio,\nDynamic ratio = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes" = "Bereken bij elke loopcyclus een nieuwe ISF (Insulin Sensitivity Factor). De nieuwe ISF wordt bepaald door de huidige bloedsuikerspiegel (BG), de totale dagelijkse dosis insuline (TDD) van de afgelopen 24 uur of een gemiddelde daarvan, en een aanpassingsfactor (standaard 1). De dynamische ISF en CR (Carb Ratio) worden beperkt door de minimum- en maximumwaarden die zijn ingesteld in uw autosens.min/max grenzen. De dynamische ratio vervangt de autosens.ratio:/n/n
@@ -2064,7 +2064,7 @@ Eenvoudig gezegd, de Dynamische Carb Ratio past de koolhydraatverhouding aan op 
 "Activate Dynamic Carb Ratio (CR)" = "Dynamische koolhydraat verhouding activeren (CR)";
 
 /* Headline "Adjust Dynamic ISF constant" */
-"Adjust Dynamic ISF constant" = "Dynamische ISF-constante aanpassen";
+"Adjust Dynamic ISF constant" = "Adjust Dynamic ISF constant";
 
 /* Adjust Dynamic ISF constant */
 "Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula there is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users" = "Verander de dynamische verhoudingen met een vaste waarde, die standaard op 0,5 staat. Als je deze waarde verhoogt, zal de aanpassing van je ISF voor hoge of lage bloedsuikerwaarden groter zijn. De grootte van de correctie is beperkt door de instellingen voor Autosens min/max. Voor de Sigmoid-functie wordt een startwaarde van 0,4 tot 0,5 aanbevolen. Voor de logaritmische formule is er geen vastgestelde norm, maar voor de meeste gebruikers is een waarde tussen 0,5 en 0,8 passender.";
