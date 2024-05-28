@@ -31,27 +31,51 @@ extension DataTable {
             broadcaster.register(DeterminationObserver.self, observer: self)
         }
 
-        @MainActor func invokeGlucoseDeletionTask(_ glucose: GlucoseStored) {
+        // Carb and FPU deletion from history
+        /// marked as MainActor to be able to publish changes from the background
+        /// - Parameter: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
+        @MainActor func invokeGlucoseDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
             Task {
-                do {
-                    await deleteGlucose(glucose)
-                    provider.deleteManualGlucose(date: glucose.date)
-                }
+                await deleteGlucose(treatmentObjectID)
             }
         }
 
-        func deleteGlucose(_ glucose: GlucoseStored) async {
-            do {
-                coredataContext.delete(glucose)
-                try coredataContext.save()
-                debugPrint(
-                    "Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted glucose from core data"
-                )
-            } catch {
-                debugPrint(
-                    "Data Table State: \(#function) \(DebuggingIdentifiers.failed) error while deleting glucose from core data"
-                )
+        func deleteGlucose(_ treatmentObjectID: NSManagedObjectID) async {
+            let taskContext = CoreDataStack.shared.newTaskContext()
+            taskContext.name = "deleteContext"
+            taskContext.transactionAuthor = "deleteGlucose"
+
+            var glucose: GlucoseStored?
+
+            await taskContext.perform {
+                do {
+                    glucose = try taskContext.existingObject(with: treatmentObjectID) as? GlucoseStored
+
+                    guard let glucoseToDelete = glucose else {
+                        debugPrint("Data Table State: \(#function) \(DebuggingIdentifiers.failed) glucose not found in core data")
+                        return
+                    }
+
+                    taskContext.delete(glucoseToDelete)
+                    
+                    guard taskContext.hasChanges else { return }
+                    try taskContext.save()
+                    debugPrint("Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted glucose from core data")
+                } catch {
+                    debugPrint(
+                        "Data Table State: \(#function) \(DebuggingIdentifiers.failed) error while deleting glucose from core data: \(error.localizedDescription)"
+                    )
+                }
             }
+
+            guard let glucoseToDelete = glucose else {
+                debugPrint(
+                    "Data Table State: \(#function) \(DebuggingIdentifiers.failed) glucose not found after task context execution"
+                )
+                return
+            }
+
+            provider.deleteManualGlucose(date: glucoseToDelete.date)
         }
 
         // Carb and FPU deletion from history
@@ -59,11 +83,9 @@ extension DataTable {
         /// - Parameter: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
         @MainActor func invokeCarbDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
             Task {
-                do {
-                    await deleteCarbs(treatmentObjectID)
-                    carbEntryDeleted = true
-                    waitForSuggestion = true
-                }
+                await deleteCarbs(treatmentObjectID)
+                carbEntryDeleted = true
+                waitForSuggestion = true
             }
         }
 
@@ -125,11 +147,9 @@ extension DataTable {
         /// - Parameter: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
         @MainActor func invokeInsulinDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
             Task {
-                do {
-                    await deleteInsulin(treatmentObjectID)
-                    insulinEntryDeleted = true
-                    waitForSuggestion = true
-                }
+                await deleteInsulin(treatmentObjectID)
+                insulinEntryDeleted = true
+                waitForSuggestion = true
             }
         }
 
