@@ -65,12 +65,17 @@ import Swinject
     var body: some Scene {
         WindowGroup {
             Main.RootView(resolver: resolver)
-                .environment(\.managedObjectContext, CoreDataStack.shared.persistentContainer.viewContext)
+                .environment(\.managedObjectContext, coreDataStack.persistentContainer.viewContext)
                 .environmentObject(Icons())
                 .onOpenURL(perform: handleURL)
         }
         .onChange(of: scenePhase) { newScenePhase in
             debug(.default, "APPLICATION PHASE: \(newScenePhase)")
+
+            /// If the App goes to the background we should ensure that all the changes are saved from the viewContext to the Persistent Container
+            if newScenePhase == .background {
+                coreDataStack.save()
+            }
         }
     }
 

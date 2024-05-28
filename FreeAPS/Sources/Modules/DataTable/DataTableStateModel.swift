@@ -57,7 +57,7 @@ extension DataTable {
                     }
 
                     taskContext.delete(glucoseToDelete)
-                    
+
                     guard taskContext.hasChanges else { return }
                     try taskContext.save()
                     debugPrint("Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted glucose from core data")

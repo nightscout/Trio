@@ -396,6 +396,20 @@ extension CoreDataStack {
 }
 
 // MARK: - Save
+/// This function is used when terminating the App to ensure any unsaved changes on the view context made their way to the persistent container
+extension CoreDataStack {
+    func save() {
+        let context = persistentContainer.viewContext
+
+        guard context.hasChanges else { return }
+
+        do {
+            try context.save()
+        } catch {
+            debugPrint("Error saving context \(DebuggingIdentifiers.failed): \(error)")
+        }
+    }
+}
 
 extension NSManagedObjectContext {
     // takes a context as a parameter to be executed either on the main thread or on a background thread
