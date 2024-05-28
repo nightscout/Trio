@@ -200,6 +200,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
 
         context.perform {
             guard let glucose = self.fetchGlucose(), let lastValue = glucose.first, let lastReading = glucose.first?.glucose,
+                  let lastDirection = lastValue.direction,
                   let secondLastReading = glucose.dropFirst().first?.glucose else { return }
 
             self.addAppBadge(glucose: (glucose.first?.glucose).map { Int($0) })
@@ -225,9 +226,9 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
 
                 let delta = glucose.count >= 2 ? lastReading - secondLastReading : nil
                 let body = self.glucoseText(
-                    glucoseValue: (glucose.first?.glucose).map { Int($0) } ?? 0,
+                    glucoseValue: Int(lastReading),
                     delta: Int(delta ?? 0),
-                    direction: lastValue.direction
+                    direction: lastDirection
                 ) + self
                     .infoBody()
 
