@@ -396,6 +396,7 @@ extension CoreDataStack {
 }
 
 // MARK: - Save
+
 /// This function is used when terminating the App to ensure any unsaved changes on the view context made their way to the persistent container
 extension CoreDataStack {
     func save() {
