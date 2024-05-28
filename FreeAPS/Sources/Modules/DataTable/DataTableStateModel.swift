@@ -10,7 +10,7 @@ extension DataTable {
         @Injected() var pumpHistoryStorage: PumpHistoryStorage!
         @Injected() var healthKitManager: HealthKitManager!
 
-        let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
+        let coredataContext = CoreDataStack.shared.newTaskContext()
 
         @Published var mode: Mode = .treatments
         @Published var treatments: [Treatment] = []
@@ -31,114 +31,135 @@ extension DataTable {
             broadcaster.register(DeterminationObserver.self, observer: self)
         }
 
-        @MainActor func invokeGlucoseDeletionTask(_ glucose: GlucoseStored) {
+        // Carb and FPU deletion from history
+        /// marked as MainActor to be able to publish changes from the background
+        /// - Parameter: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
+        @MainActor func invokeGlucoseDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
             Task {
+                await deleteGlucose(treatmentObjectID)
+            }
+        }
+
+        func deleteGlucose(_ treatmentObjectID: NSManagedObjectID) async {
+            let taskContext = CoreDataStack.shared.newTaskContext()
+            taskContext.name = "deleteContext"
+            taskContext.transactionAuthor = "deleteGlucose"
+
+            var glucose: GlucoseStored?
+
+            await taskContext.perform {
                 do {
-                    await deleteGlucose(glucose)
-                    provider.deleteManualGlucose(date: glucose.date)
+                    glucose = try taskContext.existingObject(with: treatmentObjectID) as? GlucoseStored
+
+                    guard let glucoseToDelete = glucose else {
+                        debugPrint("Data Table State: \(#function) \(DebuggingIdentifiers.failed) glucose not found in core data")
+                        return
+                    }
+
+                    taskContext.delete(glucoseToDelete)
+
+                    guard taskContext.hasChanges else { return }
+                    try taskContext.save()
+                    debugPrint("Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted glucose from core data")
+                } catch {
+                    debugPrint(
+                        "Data Table State: \(#function) \(DebuggingIdentifiers.failed) error while deleting glucose from core data: \(error.localizedDescription)"
+                    )
                 }
             }
-        }
 
-        func deleteGlucose(_ glucose: GlucoseStored) async {
-            do {
-                coredataContext.delete(glucose)
-                try coredataContext.save()
+            guard let glucoseToDelete = glucose else {
                 debugPrint(
-                    "Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted glucose from core data"
+                    "Data Table State: \(#function) \(DebuggingIdentifiers.failed) glucose not found after task context execution"
                 )
-            } catch {
-                debugPrint(
-                    "Data Table State: \(#function) \(DebuggingIdentifiers.failed) error while deleting glucose from core data"
-                )
+                return
             }
+
+            provider.deleteManualGlucose(date: glucoseToDelete.date)
         }
 
-        @MainActor func invokeCarbDeletionTask(_ treatment: CarbEntryStored) {
+        // Carb and FPU deletion from history
+        /// marked as MainActor to be able to publish changes from the background
+        /// - Parameter: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
+        @MainActor func invokeCarbDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
             Task {
-                do {
-                    await deleteCarbs(treatment)
-                    carbEntryDeleted = true
-                    waitForSuggestion = true
-                }
+                await deleteCarbs(treatmentObjectID)
+                carbEntryDeleted = true
+                waitForSuggestion = true
             }
         }
 
-        func deleteCarbs(_ carbEntry: CarbEntryStored) async {
-            if carbEntry.isFPU, let fpuID = carbEntry.id {
-                // fetch request for all carb entries with the same id
-                let fetchRequest: NSFetchRequest<NSFetchRequestResult> = CarbEntryStored.fetchRequest()
-                fetchRequest.predicate = NSPredicate(format: "id == %@", fpuID as CVarArg)
+        func deleteCarbs(_ treatmentObjectID: NSManagedObjectID) async {
+            let taskContext = CoreDataStack.shared.newTaskContext()
+            taskContext.name = "deleteContext"
+            taskContext.transactionAuthor = "deleteCarbs"
 
-                // NSBatchDeleteRequest
-                let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-                deleteRequest.resultType = .resultTypeCount
+            var carbEntry: CarbEntryStored?
 
+            await taskContext.perform {
                 do {
-                    // execute the batch delete request
-                    let result = try coredataContext.execute(deleteRequest) as? NSBatchDeleteResult
-                    debugPrint("\(DebuggingIdentifiers.succeeded) Deleted \(result?.result ?? 0) items with FpuID \(fpuID)")
+                    carbEntry = try taskContext.existingObject(with: treatmentObjectID) as? CarbEntryStored
+                    guard let carbEntry = carbEntry else {
+                        debugPrint("Carb entry for batch delete not found. \(DebuggingIdentifiers.failed)")
+                        return
+                    }
 
-                    // merge changes from the database operation into the main context
-                    if let objectIDs = (result?.result as? [NSManagedObjectID]) {
-                        NSManagedObjectContext.mergeChanges(
-                            fromRemoteContextSave: [NSDeletedObjectsKey: objectIDs],
-                            into: [coredataContext]
+                    if carbEntry.isFPU, let fpuID = carbEntry.id {
+                        // fetch request for all carb entries with the same id
+                        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = CarbEntryStored.fetchRequest()
+                        fetchRequest.predicate = NSPredicate(format: "id == %@", fpuID as CVarArg)
+
+                        // NSBatchDeleteRequest
+                        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+                        deleteRequest.resultType = .resultTypeCount
+
+                        // execute the batch delete request
+                        let result = try taskContext.execute(deleteRequest) as? NSBatchDeleteResult
+                        debugPrint("\(DebuggingIdentifiers.succeeded) Deleted \(result?.result ?? 0) items with FpuID \(fpuID)")
+
+                        guard taskContext.hasChanges else { return }
+                        try taskContext.save()
+
+                    } else {
+                        taskContext.delete(carbEntry)
+
+                        guard taskContext.hasChanges else { return }
+                        try taskContext.save()
+                        debugPrint(
+                            "Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted carb entry from core data"
                         )
                     }
 
-                    try coredataContext.save()
-
-                    provider.deleteCarbs(carbEntry)
-                    apsManager.determineBasalSync()
                 } catch {
-                    debugPrint("\(DebuggingIdentifiers.failed) Error deleting FPU entries: \(error.localizedDescription)")
+                    debugPrint("\(DebuggingIdentifiers.failed) Error deleting carb entry: \(error.localizedDescription)")
                 }
-            } else {
-                do {
-                    coredataContext.delete(carbEntry)
-                    try coredataContext.save()
-                    debugPrint(
-                        "Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted carb entry from core data"
-                    )
-                } catch {
-                    debugPrint(
-                        "Data Table State: \(#function) \(DebuggingIdentifiers.failed) error while deleting carb entry from core data"
-                    )
-                }
+            }
 
+            // Delete carbs also from Nightscout and perform a determine basal sync to update cob
+            if let carbEntry = carbEntry {
                 provider.deleteCarbs(carbEntry)
                 apsManager.determineBasalSync()
             }
         }
 
-        @MainActor func invokeInsulinDeletionTask(_ treatment: PumpEventStored) {
+        // Insulin deletion from history
+        /// marked as MainActor to be able to publish changes from the background
+        /// - Parameter: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
+        @MainActor func invokeInsulinDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
             Task {
-                do {
-                    await deleteInsulin(treatment)
-                    insulinEntryDeleted = true
-                    waitForSuggestion = true
-                }
+                await deleteInsulin(treatmentObjectID)
+                insulinEntryDeleted = true
+                waitForSuggestion = true
             }
         }
 
-        func deleteInsulin(_ treatment: PumpEventStored) async {
+        func deleteInsulin(_ treatmentObjectID: NSManagedObjectID) async {
             do {
                 let authenticated = try await unlockmanager.unlock()
                 if authenticated {
-                    do {
-                        coredataContext.delete(treatment)
-                        try coredataContext.save()
-                        debugPrint(
-                            "Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted insulin from core data"
-                        )
-                    } catch {
-                        debugPrint(
-                            "Data Table State: \(#function) \(DebuggingIdentifiers.failed) error while deleting insulin from core data"
-                        )
-                    }
+                    CoreDataStack.shared.deleteObject(identifiedBy: treatmentObjectID)
 
-                    provider.deleteInsulin(treatment)
+                    provider.deleteInsulin(with: treatmentObjectID)
                     apsManager.determineBasalSync()
                 } else {
                     print("authentication failed")
@@ -169,7 +190,7 @@ extension DataTable {
             // TODO: -do we need this?
             // Save to Health
             var saveToHealth = [BloodGlucose]()
-            saveToHealth.append(saveToJSON)
+//            saveToHealth.append(saveToJSON)
 
             // save to core data
             coredataContext.perform {

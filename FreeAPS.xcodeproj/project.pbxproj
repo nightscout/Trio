@@ -310,6 +310,7 @@
 		5825D15D2BD4058F00F36E9B /* Target+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D12F2BD4058F00F36E9B /* Target+CoreDataProperties.swift */; };
 		5825D15E2BD4058F00F36E9B /* Protein+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1302BD4058F00F36E9B /* Protein+CoreDataClass.swift */; };
 		5825D15F2BD4058F00F36E9B /* Protein+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1312BD4058F00F36E9B /* Protein+CoreDataProperties.swift */; };
+		582FAE432C05102C00D1C13F /* CoreDataError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 582FAE422C05102C00D1C13F /* CoreDataError.swift */; };
 		583684062BD178DB00070A60 /* GlucoseStored+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 583684052BD178DB00070A60 /* GlucoseStored+helper.swift */; };
 		583684082BD195A700070A60 /* Determination.swift in Sources */ = {isa = PBXBuildFile; fileRef = 583684072BD195A700070A60 /* Determination.swift */; };
 		5837A5302BD2E3C700A5DC04 /* CarbEntryStored+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5837A52F2BD2E3C700A5DC04 /* CarbEntryStored+helper.swift */; };
@@ -936,6 +937,7 @@
 		5825D12F2BD4058F00F36E9B /* Target+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Target+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		5825D1302BD4058F00F36E9B /* Protein+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Protein+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		5825D1312BD4058F00F36E9B /* Protein+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Protein+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
+		582FAE422C05102C00D1C13F /* CoreDataError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataError.swift; sourceTree = "<group>"; };
 		583684052BD178DB00070A60 /* GlucoseStored+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GlucoseStored+helper.swift"; sourceTree = "<group>"; };
 		583684072BD195A700070A60 /* Determination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Determination.swift; sourceTree = "<group>"; };
 		5837A52F2BD2E3C700A5DC04 /* CarbEntryStored+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CarbEntryStored+helper.swift"; sourceTree = "<group>"; };
@@ -2233,6 +2235,7 @@
 				5887527B2BD986E1008B081D /* OpenAPSBattery.swift */,
 				581AC4382BE22ED10038760C /* JSONConverter.swift */,
 				BDB3C1182C03DD1000CEEAA1 /* UserDefaultsExtension.swift */,
+				582FAE422C05102C00D1C13F /* CoreDataError.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -3005,6 +3008,7 @@
 				3811DE1825C9D40400A708ED /* Router.swift in Sources */,
 				5825D1462BD4058F00F36E9B /* Oref0Suggestion+CoreDataClass.swift in Sources */,
 				CE7950262998056D00FA576E /* CGMSetupView.swift in Sources */,
+				582FAE432C05102C00D1C13F /* CoreDataError.swift in Sources */,
 				38A0363B25ECF07E00FCBB52 /* GlucoseStorage.swift in Sources */,
 				190EBCC629FF138000BA767D /* StatConfigProvider.swift in Sources */,
 				38E98A2725F52C9300C0CED0 /* CollectionIssueReporter.swift in Sources */,

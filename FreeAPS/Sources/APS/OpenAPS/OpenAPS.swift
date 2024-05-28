@@ -9,7 +9,7 @@ final class OpenAPS {
 
     private let storage: FileStorage
 
-    let context = CoreDataStack.shared.persistentContainer.newBackgroundContext()
+    let context = CoreDataStack.shared.newTaskContext()
 
     let jsonConverter = JSONConverter()
 

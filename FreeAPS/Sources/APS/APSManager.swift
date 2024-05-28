@@ -81,9 +81,10 @@ final class BaseAPSManager: APSManager, Injectable {
 
     private var cleanupTimer: Timer?
     @Persisted(key: "lastHistoryCleanupDate") private var lastHistoryCleanupDate = Date.distantPast
+    @Persisted(key: "lastPurgeDate") private var lastPurgeDate = Date.distantPast
 
     let viewContext = CoreDataStack.shared.persistentContainer.viewContext
-    let privateContext = CoreDataStack.shared.persistentContainer.newBackgroundContext()
+    let privateContext = CoreDataStack.shared.newTaskContext()
 
     private var openAPS: OpenAPS!
 
@@ -148,18 +149,39 @@ final class BaseAPSManager: APSManager, Injectable {
         let calendar = Calendar.current
 
         // Check if last clean is longer than one day ago
-        if calendar.isDate(now, inSameDayAs: lastHistoryCleanupDate) {
-            // Cleanup already done
-            return
+        if !calendar.isDateInToday(lastHistoryCleanupDate) {
+            // Perform daily cleanup
+            Task {
+                await CoreDataStack.shared.cleanupPersistentHistoryTokens(before: Date.oneWeekAgo)
+                // Update lastHistoryCleanupDate only if cleanup was successful
+                lastHistoryCleanupDate = now
+            }
         }
 
-        // Cleanup
-        Task {
-            await CoreDataStack.shared.cleanupPersistentHistory(before: Date.oneWeekAgo)
+        // Check if last purge is longer than one week ago
+        if let lastPurge = calendar.date(byAdding: .day, value: 7, to: lastPurgeDate), now >= lastPurge {
+            // Perform weekly purge
+            Task {
+                do {
+                    try await purgeOldNSManagedObjects()
+                    // Update lastPurgeDate only if purge was successful
+                    lastPurgeDate = now
+                } catch {
+                    debugPrint("Failed to purge old managed objects: \(error.localizedDescription)")
+                }
+            }
         }
+    }
 
-        // Update lastHistoryCleanupDate
-        lastHistoryCleanupDate = now
+    private func purgeOldNSManagedObjects() async throws {
+        try await CoreDataStack.shared.batchDeleteOlderThan(GlucoseStored.self, dateKey: "date", days: 90)
+        try await CoreDataStack.shared.batchDeleteOlderThan(PumpEventStored.self, dateKey: "timestamp", days: 90)
+        try await CoreDataStack.shared.batchDeleteOlderThan(OrefDetermination.self, dateKey: "deliverAt", days: 90)
+        try await CoreDataStack.shared.batchDeleteOlderThan(OpenAPS_Battery.self, dateKey: "date", days: 90)
+        try await CoreDataStack.shared.batchDeleteOlderThan(CarbEntryStored.self, dateKey: "date", days: 90)
+        try await CoreDataStack.shared.batchDeleteOlderThan(Forecast.self, dateKey: "date", days: 90)
+
+        // TODO: - Purge Data of other (future) entities as well
     }
 
     private func subscribe() {

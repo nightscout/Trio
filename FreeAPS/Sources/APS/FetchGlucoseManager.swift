@@ -32,7 +32,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     private lazy var dexcomSourceG7 = DexcomSourceG7(glucoseStorage: glucoseStorage, glucoseManager: self)
     private lazy var simulatorSource = GlucoseSimulatorSource()
 
-    private let context = CoreDataStack.shared.persistentContainer.newBackgroundContext()
+    private let context = CoreDataStack.shared.newTaskContext()
 
     init(resolver: Resolver) {
         injectServices(resolver)

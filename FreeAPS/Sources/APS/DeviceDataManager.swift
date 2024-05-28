@@ -73,7 +73,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     @SyncAccess private var pumpUpdateCancellable: AnyCancellable?
     private var pumpUpdatePromise: Future<Bool, Never>.Promise?
     @SyncAccess var loopInProgress: Bool = false
-    private let privateContext = CoreDataStack.shared.persistentContainer.newBackgroundContext()
+    private let privateContext = CoreDataStack.shared.newTaskContext()
 
     var pumpManager: PumpManagerUI? {
         didSet {

@@ -16,7 +16,7 @@ extension Calibrations {
         var units: GlucoseUnits = .mmolL
 
         // TODO: - test if we need to use the viewContext here
-        private let context = CoreDataStack.shared.persistentContainer.newBackgroundContext()
+        private let context = CoreDataStack.shared.newTaskContext()
 
         override func subscribe() {
             units = settingsManager.settings.units

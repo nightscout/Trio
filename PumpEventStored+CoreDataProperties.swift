@@ -17,10 +17,6 @@ extension PumpEventStored: Identifiable {}
 
 public extension PumpEventStored {
     var id: String {
-        #if DEBUG
-            return id_!
-        #else
-            return id_ ?? UUID().uuidString
-        #endif
+        id_ ?? UUID().uuidString
     }
 }

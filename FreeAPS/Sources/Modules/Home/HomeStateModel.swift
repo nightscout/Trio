@@ -68,7 +68,7 @@ extension Home {
 
         @Published var waitForSuggestion: Bool = false
 
-        let context = CoreDataStack.shared.persistentContainer.newBackgroundContext()
+        let context = CoreDataStack.shared.newTaskContext()
 
         override func subscribe() {
             setupBasals()

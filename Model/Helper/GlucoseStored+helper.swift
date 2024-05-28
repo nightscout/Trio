@@ -21,9 +21,9 @@ extension GlucoseStored {
     }
 
     static func glucoseIsFlat(_ glucose: [GlucoseStored]) -> Bool {
-        guard glucose.count >= 3 else { return false }
+        guard glucose.count >= 4 else { return false }
 
-        let lastThreeValues = glucose.suffix(3)
+        let lastThreeValues = glucose.suffix(4)
         let firstValue = lastThreeValues.last?.glucose
 
         return lastThreeValues.allSatisfy { $0.glucose == firstValue }

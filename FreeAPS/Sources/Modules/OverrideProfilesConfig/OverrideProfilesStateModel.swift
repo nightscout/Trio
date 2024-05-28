@@ -56,7 +56,7 @@ extension OverrideProfilesConfig {
             maxValue = settingsManager.preferences.autosensMax
         }
 
-        let coredataContext = CoreDataStack.shared.persistentContainer.newBackgroundContext()
+        let coredataContext = CoreDataStack.shared.newTaskContext()
 
         func initialFetchForProfilePresets() -> [OverridePresets] {
             let fr = OverridePresets.fetchRequest()

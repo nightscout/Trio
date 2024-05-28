@@ -1,3 +1,4 @@
+import CoreData
 import Foundation
 
 extension DataTable {
@@ -16,10 +17,28 @@ extension DataTable {
 //            nightscoutManager.deleteCarbs(treatment, complexMeal: false)
         }
 
-        func deleteInsulin(_ treatment: PumpEventStored) {
-            nightscoutManager.deleteInsulin(at: treatment.timestamp ?? Date())
-            let id = treatment.id
-            healthkitManager.deleteInsulin(syncID: id)
+        func deleteInsulin(with treatmentObjectID: NSManagedObjectID) {
+            let taskContext = CoreDataStack.shared.newTaskContext()
+
+            taskContext.perform {
+                do {
+                    guard let treatmentToDelete = try taskContext.existingObject(with: treatmentObjectID) as? PumpEventStored
+                    else {
+                        debug(.default, "Could not cast the object to PumpEventStored")
+                        return
+                    }
+                    self.nightscoutManager.deleteInsulin(at: treatmentToDelete.timestamp ?? Date())
+                    let id = treatmentToDelete.id
+                    self.healthkitManager.deleteInsulin(syncID: id)
+
+                    taskContext.delete(treatmentToDelete)
+                    try taskContext.save()
+
+                    debug(.default, "Successfully deleted the treatment object.")
+                } catch {
+                    debug(.default, "Failed to delete the treatment object: \(error.localizedDescription)")
+                }
+            }
         }
 
         func deleteManualGlucose(date: Date?) {

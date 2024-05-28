@@ -265,7 +265,8 @@ extension DataTable {
                                     debug(.default, "Cannot gracefully unwrap alertCarbEntryToDelete!")
                                     return
                                 }
-                                state.invokeGlucoseDeletionTask(glucoseToDelete)
+                                let glucoseToDeleteObjectID = glucoseToDelete.objectID
+                                state.invokeGlucoseDeletionTask(glucoseToDeleteObjectID)
                             }
                         } message: {
                             Text("\n" + NSLocalizedString(alertMessage, comment: ""))
@@ -425,8 +426,9 @@ extension DataTable {
                         debug(.default, "Cannot gracefully unwrap alertTreatmentToDelete!")
                         return
                     }
+                    let treatmentObjectID = treatmentToDelete.objectID
 
-                    state.invokeInsulinDeletionTask(treatmentToDelete)
+                    state.invokeInsulinDeletionTask(treatmentObjectID)
                 }
             } message: {
                 Text("\n" + NSLocalizedString(alertMessage, comment: ""))
@@ -485,7 +487,9 @@ extension DataTable {
                         debug(.default, "Cannot gracefully unwrap alertCarbEntryToDelete!")
                         return
                     }
-                    state.invokeCarbDeletionTask(carbEntryToDelete)
+                    let treatmentObjectID = carbEntryToDelete.objectID
+
+                    state.invokeCarbDeletionTask(treatmentObjectID)
                 }
             } message: {
                 Text("\n" + NSLocalizedString(alertMessage, comment: ""))

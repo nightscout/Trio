@@ -4,7 +4,7 @@ import SwiftDate
 import Swinject
 
 final class CoreDataStorage {
-    let coredataContext = CoreDataStack.shared.persistentContainer.newBackgroundContext()
+    let coredataContext = CoreDataStack.shared.newTaskContext()
 
     func fetchLatestOverride() -> [Override] {
         var overrideArray = [Override]()
