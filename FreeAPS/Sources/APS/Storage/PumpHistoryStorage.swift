@@ -38,11 +38,6 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         return Decimal(roundedValue)
     }
 
-    private func roundDose(_ dose: Double, toIncrement increment: Double) -> Decimal {
-        let roundedValue = (dose / increment).rounded() * increment
-        return Decimal(roundedValue)
-    }
-
     func storePumpEvents(_ events: [NewPumpEvent]) {
         processQueue.async {
             self.context.perform {
