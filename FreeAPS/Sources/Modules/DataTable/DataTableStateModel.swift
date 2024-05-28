@@ -10,7 +10,7 @@ extension DataTable {
         @Injected() var pumpHistoryStorage: PumpHistoryStorage!
         @Injected() var healthKitManager: HealthKitManager!
 
-        let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
+        let coredataContext = CoreDataStack.shared.newTaskContext()
 
         @Published var mode: Mode = .treatments
         @Published var treatments: [Treatment] = []
@@ -54,64 +54,75 @@ extension DataTable {
             }
         }
 
-        @MainActor func invokeCarbDeletionTask(_ treatment: CarbEntryStored) {
+        // Carb and FPU deletion from history
+        /// marked as MainActor to be able to publish changes from the background
+        /// - Parameter: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
+        @MainActor func invokeCarbDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
             Task {
                 do {
-                    await deleteCarbs(treatment)
+                    await deleteCarbs(treatmentObjectID)
                     carbEntryDeleted = true
                     waitForSuggestion = true
                 }
             }
         }
 
-        func deleteCarbs(_ carbEntry: CarbEntryStored) async {
-            if carbEntry.isFPU, let fpuID = carbEntry.id {
-                // fetch request for all carb entries with the same id
-                let fetchRequest: NSFetchRequest<NSFetchRequestResult> = CarbEntryStored.fetchRequest()
-                fetchRequest.predicate = NSPredicate(format: "id == %@", fpuID as CVarArg)
+        func deleteCarbs(_ treatmentObjectID: NSManagedObjectID) async {
+            let taskContext = CoreDataStack.shared.newTaskContext()
+            taskContext.name = "deleteContext"
+            taskContext.transactionAuthor = "deleteCarbs"
 
-                // NSBatchDeleteRequest
-                let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-                deleteRequest.resultType = .resultTypeCount
+            var carbEntry: CarbEntryStored?
 
+            await taskContext.perform {
                 do {
-                    // execute the batch delete request
-                    let result = try coredataContext.execute(deleteRequest) as? NSBatchDeleteResult
-                    debugPrint("\(DebuggingIdentifiers.succeeded) Deleted \(result?.result ?? 0) items with FpuID \(fpuID)")
+                    carbEntry = try taskContext.existingObject(with: treatmentObjectID) as? CarbEntryStored
+                    guard let carbEntry = carbEntry else {
+                        debugPrint("Carb entry for batch delete not found. \(DebuggingIdentifiers.failed)")
+                        return
+                    }
 
-                    // merge changes from the database operation into the main context
-                    if let objectIDs = (result?.result as? [NSManagedObjectID]) {
-                        NSManagedObjectContext.mergeChanges(
-                            fromRemoteContextSave: [NSDeletedObjectsKey: objectIDs],
-                            into: [coredataContext]
+                    if carbEntry.isFPU, let fpuID = carbEntry.id {
+                        // fetch request for all carb entries with the same id
+                        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = CarbEntryStored.fetchRequest()
+                        fetchRequest.predicate = NSPredicate(format: "id == %@", fpuID as CVarArg)
+
+                        // NSBatchDeleteRequest
+                        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+                        deleteRequest.resultType = .resultTypeCount
+
+                        // execute the batch delete request
+                        let result = try taskContext.execute(deleteRequest) as? NSBatchDeleteResult
+                        debugPrint("\(DebuggingIdentifiers.succeeded) Deleted \(result?.result ?? 0) items with FpuID \(fpuID)")
+
+                        guard taskContext.hasChanges else { return }
+                        try taskContext.save()
+
+                    } else {
+                        taskContext.delete(carbEntry)
+
+                        guard taskContext.hasChanges else { return }
+                        try taskContext.save()
+                        debugPrint(
+                            "Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted carb entry from core data"
                         )
                     }
 
-                    try coredataContext.save()
-
-                    provider.deleteCarbs(carbEntry)
-                    apsManager.determineBasalSync()
                 } catch {
-                    debugPrint("\(DebuggingIdentifiers.failed) Error deleting FPU entries: \(error.localizedDescription)")
+                    debugPrint("\(DebuggingIdentifiers.failed) Error deleting carb entry: \(error.localizedDescription)")
                 }
-            } else {
-                do {
-                    coredataContext.delete(carbEntry)
-                    try coredataContext.save()
-                    debugPrint(
-                        "Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted carb entry from core data"
-                    )
-                } catch {
-                    debugPrint(
-                        "Data Table State: \(#function) \(DebuggingIdentifiers.failed) error while deleting carb entry from core data"
-                    )
-                }
+            }
 
+            // Delete carbs also from Nightscout and perform a determine basal sync to update cob
+            if let carbEntry = carbEntry {
                 provider.deleteCarbs(carbEntry)
                 apsManager.determineBasalSync()
             }
         }
 
+        // Insulin deletion from history
+        /// marked as MainActor to be able to publish changes from the background
+        /// - Parameter: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
         @MainActor func invokeInsulinDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
             Task {
                 do {
@@ -159,7 +170,7 @@ extension DataTable {
             // TODO: -do we need this?
             // Save to Health
             var saveToHealth = [BloodGlucose]()
-            saveToHealth.append(saveToJSON)
+//            saveToHealth.append(saveToJSON)
 
             // save to core data
             coredataContext.perform {

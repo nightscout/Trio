@@ -486,7 +486,9 @@ extension DataTable {
                         debug(.default, "Cannot gracefully unwrap alertCarbEntryToDelete!")
                         return
                     }
-                    state.invokeCarbDeletionTask(carbEntryToDelete)
+                    let treatmentObjectID = carbEntryToDelete.objectID
+
+                    state.invokeCarbDeletionTask(treatmentObjectID)
                 }
             } message: {
                 Text("\n" + NSLocalizedString(alertMessage, comment: ""))

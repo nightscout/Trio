@@ -171,7 +171,7 @@ extension CoreDataStack {
         }
     }
 
-    /// Asynchronously deletes records
+    /// Asynchronously deletes records for entities
     ///  - Tag: batchDelete
     func batchDeleteOlderThan<T: NSManagedObject>(_ objectType: T.Type, dateKey: String, days: Int) async throws {
         let taskContext = newTaskContext()
