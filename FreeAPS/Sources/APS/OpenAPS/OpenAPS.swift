@@ -17,6 +17,12 @@ final class OpenAPS {
         self.storage = storage
     }
 
+    static let dateFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+
     // Helper function to convert a Decimal? to NSDecimalNumber?
     func decimalToNSDecimalNumber(_ value: Decimal?) -> NSDecimalNumber? {
         guard let value = value else { return nil }
@@ -184,9 +190,10 @@ final class OpenAPS {
         Future { promise in
             self.processQueue.async {
                 debug(.openAPS, "Start determineBasal")
+
                 // clock
-                self.storage.save(clock, as: Monitor.clock)
-                let pass = self.loadFileFromStorage(name: Monitor.clock)
+                let dateFormatted = OpenAPS.dateFormatter.string(from: clock)
+                let dateFormattedAsString = "\"\(dateFormatted)\""
 
                 // temp_basal
                 let tempBasal = currentTemp.rawJSON
@@ -210,7 +217,7 @@ final class OpenAPS {
                     pumphistory: pumpHistoryJSON,
                     profile: profile,
                     basalProfile: basalProfile,
-                    clock: pass,
+                    clock: dateFormattedAsString,
                     carbs: carbsAsJSON,
                     glucose: glucoseAsJSON
                 )
@@ -221,7 +228,7 @@ final class OpenAPS {
                 let iob = self.iob(
                     pumphistory: pumpHistoryJSON,
                     profile: profile,
-                    clock: pass,
+                    clock: dateFormattedAsString,
                     autosens: autosens.isEmpty ? .null : autosens
                 )
 
