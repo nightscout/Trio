@@ -17,6 +17,9 @@
         <fetchIndex name="byDate">
             <fetchIndexElement property="date" type="Binary" order="ascending"/>
         </fetchIndex>
+        <fetchIndex name="byIsFPU">
+            <fetchIndexElement property="isFPU" type="Binary" order="ascending"/>
+        </fetchIndex>
     </entity>
     <entity name="Forecast" representedClassName="Forecast" syncable="YES">
         <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -41,6 +44,9 @@
         <attribute name="isManual" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <fetchIndex name="byDate">
             <fetchIndexElement property="date" type="Binary" order="descending"/>
+        </fetchIndex>
+        <fetchIndex name="byIsManual">
+            <fetchIndexElement property="isManual" type="Binary" order="ascending"/>
         </fetchIndex>
     </entity>
     <entity name="HbA1c" representedClassName="HbA1c" syncable="YES">
