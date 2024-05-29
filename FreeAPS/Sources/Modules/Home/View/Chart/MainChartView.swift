@@ -174,15 +174,15 @@ struct MainChartView: View {
                         yAxisChartData()
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }
-//                    .onChange(of: glucoseFromPersistence.map(\.id)) { _ in
-//                        updateStartEndMarkers()
-//                        yAxisChartData()
-//                        scroller.scrollTo("MainChart", anchor: .trailing)
-//                    }
-//                    .onChange(of: determination.map(\.id)) { _ in
-//                        updateStartEndMarkers()
-//                        scroller.scrollTo("MainChart", anchor: .trailing)
-//                    }
+                    .onChange(of: glucoseFromPersistence.last?.glucose) { _ in
+                        updateStartEndMarkers()
+                        yAxisChartData()
+                        scroller.scrollTo("MainChart", anchor: .trailing)
+                    }
+                    .onChange(of: determination.last?.deliverAt) { _ in
+                        updateStartEndMarkers()
+                        scroller.scrollTo("MainChart", anchor: .trailing)
+                    }
                     .onChange(of: tempBasals) { _ in
                         updateStartEndMarkers()
                         scroller.scrollTo("MainChart", anchor: .trailing)
@@ -678,21 +678,17 @@ extension MainChartView {
             return nil
         }
 
-        // sort by date
-        let sortedGlucose = glucoseFromPersistence
-            .sorted { $0.date?.timeIntervalSince1970 ?? 0 < $1.date?.timeIntervalSince1970 ?? 0 }
-
         var low = 0
-        var high = sortedGlucose.count - 1
+        var high = glucoseFromPersistence.count - 1
         var closestGlucose: GlucoseStored?
 
         // binary search to find next glucose
         while low <= high {
             let mid = low + (high - low) / 2
-            let midTime = sortedGlucose[mid].date?.timeIntervalSince1970 ?? 0
+            let midTime = glucoseFromPersistence[mid].date?.timeIntervalSince1970 ?? 0
 
             if midTime == time {
-                return sortedGlucose[mid]
+                return glucoseFromPersistence[mid]
             } else if midTime < time {
                 low = mid + 1
             } else {
@@ -701,7 +697,7 @@ extension MainChartView {
 
             // update if necessary
             if closestGlucose == nil || abs(midTime - time) < abs(closestGlucose!.date?.timeIntervalSince1970 ?? 0 - time) {
-                closestGlucose = sortedGlucose[mid]
+                closestGlucose = glucoseFromPersistence[mid]
             }
         }
 
