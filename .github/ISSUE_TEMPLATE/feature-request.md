@@ -25,6 +25,3 @@ projects: ['nightscout/2']
 
 ## User Impact
 *(Optional) Describe the impact of this issue on your use of the Trio app. Include any specific examples or data that demonstrate how widespread or severe the problem is.*
-
-## Priority Level
-*Indicate the priority level of this feature request (e.g., low, medium, high) based on its importance and urgency for improving the Trio app experience.*
