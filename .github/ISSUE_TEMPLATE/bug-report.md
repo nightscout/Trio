@@ -50,6 +50,3 @@ projects: ['nightscout/2']
 
 ## Additional context
 *Add any other context about the problem here.*
-
-## Severity Level
-*(Optional) Indicate the severity level of the bug (e.g., minor, major, critical) based on its impact on the Trio app functionality.*
