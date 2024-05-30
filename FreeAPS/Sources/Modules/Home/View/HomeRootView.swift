@@ -677,7 +677,7 @@ extension Home {
         }
 
         @ViewBuilder func bolusView(_: GeometryProxy, _ progress: Decimal) -> some View {
-            let bolusTotal = state.boluses.last?.amount ?? 0
+            let bolusTotal = (recentPumpHistory.first?.bolus?.amount) as? Decimal ?? 0
             let bolusFraction = progress * bolusTotal
 
             let bolusString =
