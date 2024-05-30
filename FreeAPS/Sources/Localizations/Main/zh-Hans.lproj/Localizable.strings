@@ -356,7 +356,7 @@ Enact a temp Basal or a temp target */
 /* Do you want to show bolus screen after added carbs? */
 "Skip Bolus screen after carbs" = "添加碳水后跳过大剂量操作";
 
-/* Allow Remote control from NS */
+/* Allow remote control from NS */
 "Remote Control" = "远程控制";
 
 /* Imported Profiles Alert */
@@ -618,7 +618,7 @@ Enact a temp Basal or a temp target */
 "External" = "External";
 
 /* */
-"Other" = "其他";
+"Other" = "Other";
 
 /* */
 "Libre Transmitter" = "Libre 发射器";
@@ -1149,7 +1149,7 @@ Enact a temp Basal or a temp target */
 "Save as your Normal Basal Rates" = "Save as your Normal Basal Rates";
 
 /* */
-"Save on Pump" = "在泵上保存";
+"Save on Pump" = "Save on Pump";
 
 /* Debug option view Pump History */
 "Pump History" = "Pump History";
@@ -1179,7 +1179,7 @@ Enact a temp Basal or a temp target */
 "Enacted announcements" = "Enacted announcements";
 
 /* Debug option view Autotune */
-"Autotune" = "自动调谐";
+"Autotune" = "Autotune";
 
 /* Debug option view Target presets */
 "Target presets" = "Target presets";
@@ -1205,13 +1205,13 @@ Enact a temp Basal or a temp target */
 
 /* New ALerts ------------------------- */
 /* Info title */
-"Info" = "信息";
+"Info" = "Info";
 
 /* Warning title */
 "Warning" = "警告";
 
 /* Error title */
-"Error" = "错误";
+"Error" = "Error";
 
 /* Manual temp basal mode */
 "Manual" = "Manual";
@@ -1341,7 +1341,7 @@ Enact a temp Basal or a temp target */
 "Cancel Profile Override" = "Cancel Profile Override";
 
 /* Alert */
-"Cancel Temp Target" = "取消临时目标";
+"Cancel Temp Target" = "Cancel Temp Target";
 
 /* Alert */
 "Return to Normal?" = "Return to Normal?";
@@ -1498,10 +1498,10 @@ Enact a temp Basal or a temp target */
 "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced.";
 
 /* button title for saving low reservoir reminder while saving */
-"Saving..." = "正在保存...";
+"Saving..." = "Saving...";
 
 /* button title for saving low reservoir reminder */
-"Save" = "保存​​";
+"Save" = "Save";
 
 /* Alert title for error when updating confidence reminder preference */
 "Failed to update confidence reminder preference." = "Failed to update confidence reminder preference.";
@@ -1554,7 +1554,7 @@ Enact a temp Basal or a temp target */
 "Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains." = "Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains.";
 
 /* Label text for temporary basal rate summary */
-"Rate" = "输注率";
+"Rate" = "Rate";
 
 /* Summary string for temporary basal rate configuration page */
 "%1$@ for %2$@" = "%1$@ for %2$@";
@@ -1583,7 +1583,7 @@ Enact a temp Basal or a temp target */
 "This PumpManager has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to therapy settings -> delivery limits and set a new maximum basal rate." = "This PumpManager has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to therapy settings -> delivery limits and set a new maximum basal rate.";
 
 /* description label for active time pod details row */
-"Active Time" = "Pod启动时间";
+"Active Time" = "Active Time";
 
 /* description label for total delivery pod details row */
 "Total Delivery" = "Total Delivery";
@@ -1641,10 +1641,10 @@ Enact a temp Basal or a temp target */
 "Allow Upload of Statistics to NS" = "Allow Upload of Statistics to NS";
 
 /* Low Glucose Threshold in Statistics settings */
-"Low" = "低";
+"Low" = "Low";
 
 /* High Glucose Threshold in Statistics settings */
-"High" = "高";
+"High" = "High";
 
 /* In Range */
 "In Range" = "In Range";
@@ -1731,7 +1731,7 @@ Enact a temp Basal or a temp target */
 "Interval" = "Interval";
 
 /* Median loop interval */
-"Duration" = "持续时间";
+"Duration" = "Duration";
 
 /* "Display SD */
 "Display SD instead of CV" = "Display SD instead of CV";
