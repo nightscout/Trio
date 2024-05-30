@@ -587,9 +587,6 @@ Enact a temp Basal or a temp target */
 /* Delete insulin from pump history and Nightscout */
 "Delete Insulin?" = "Insulin löschen?";
 
-/* Delete insulin from pump history and Nightscout */
-"Delete Insulin?" = "Delete Insulin?";
-
 /* Treatments list */
 "Treatments" = "Behandlungen";
 
@@ -621,7 +618,7 @@ Enact a temp Basal or a temp target */
 "External" = "Externe";
 
 /* */
-"Other" = "Sonstiges";
+"Other" = "Other";
 
 /* */
 "Libre Transmitter" = "Libre Sender";
@@ -1152,7 +1149,7 @@ Enact a temp Basal or a temp target */
 "Save as your Normal Basal Rates" = "Als deine normalen Basalraten speichern";
 
 /* */
-"Save on Pump" = "Auf Pumpe speichern";
+"Save on Pump" = "Save on Pump";
 
 /* Debug option view Pump History */
 "Pump History" = "Insulinpumpen-Speicher";
@@ -1214,7 +1211,7 @@ Enact a temp Basal or a temp target */
 "Warning" = "Warnung";
 
 /* Error title */
-"Error" = "Fehler";
+"Error" = "Error";
 
 /* Manual temp basal mode */
 "Manual" = "manuell";
@@ -1344,7 +1341,7 @@ Enact a temp Basal or a temp target */
 "Cancel Profile Override" = "Profilüberschreibung abbrechen?";
 
 /* Alert */
-"Cancel Temp Target" = "Temporäres Ziel abbrechen";
+"Cancel Temp Target" = "Cancel Temp Target";
 
 /* Alert */
 "Return to Normal?" = "Rückkehr zum Normalzustand?";
@@ -1407,7 +1404,7 @@ Enact a temp Basal or a temp target */
 "Save and continue" = "Speichern und weiter";
 
 /* */
-"Save as Preset" = "Speichern als Voreinstellung";
+"Save as Preset" = "Save as Preset";
 
 /* */
 "Predictions" = "Prognosen";
@@ -1501,10 +1498,10 @@ Enact a temp Basal or a temp target */
 "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Vertrauenserinnerungen sind Pieptöne vom Pod, die verwendet werden können, um ausgewählte Befehle zu bestätigen.";
 
 /* button title for saving low reservoir reminder while saving */
-"Saving..." = "Speichern...";
+"Saving..." = "Saving...";
 
 /* button title for saving low reservoir reminder */
-"Save" = "Speichern";
+"Save" = "Save";
 
 /* Alert title for error when updating confidence reminder preference */
 "Failed to update confidence reminder preference." = "Die Aktualisierung der Erinnerungseinstellungen ist fehlgeschlagen.";
@@ -1557,7 +1554,7 @@ Enact a temp Basal or a temp target */
 "Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains." = "Wechsle jetzt den Pod! Die Insulinabgabe wird in %1$@ unterbrochen, spätestens wenn kein Insulin mehr vorhanden ist.";
 
 /* Label text for temporary basal rate summary */
-"Rate" = "BR";
+"Rate" = "Rate";
 
 /* Summary string for temporary basal rate configuration page */
 "%1$@ for %2$@" = "%1$@ für %2$@";
@@ -1586,7 +1583,7 @@ Enact a temp Basal or a temp target */
 "This PumpManager has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to therapy settings -> delivery limits and set a new maximum basal rate." = "Dieser PumpManager wurde nicht mit einer maximalen Basalrate konfiguriert, da er hinzugefügt wurde, bevor es die Funktion \"manuelle temporäre Basalrate\" gab. Bitte gehe zum Menü Therapieeinstellungen -> Verabreichungsgrenzen und lege eine neue maximale Basalrate fest.";
 
 /* description label for active time pod details row */
-"Active Time" = "Laufzeit";
+"Active Time" = "Active Time";
 
 /* description label for total delivery pod details row */
 "Total Delivery" = "gesamte Abgabe";
@@ -1635,7 +1632,7 @@ Enact a temp Basal or a temp target */
 "Month" = "Monat";
 
 /* */
-"Total" = "Gesamt";
+"Total" = "Total";
 
 /* Headline Statistics */
 "Statistics" = "Statistiken";
@@ -1644,10 +1641,10 @@ Enact a temp Basal or a temp target */
 "Allow Upload of Statistics to NS" = "Hochladen von Statistiken in NS zulassen";
 
 /* Low Glucose Threshold in Statistics settings */
-"Low" = "Tief";
+"Low" = "Low";
 
 /* High Glucose Threshold in Statistics settings */
-"High" = "Hoch";
+"High" = "High";
 
 /* In Range */
 "In Range" = "Im Zielbereich";
@@ -1734,7 +1731,7 @@ Enact a temp Basal or a temp target */
 "Interval" = "Intervall";
 
 /* Median loop interval */
-"Duration" = "Dauer";
+"Duration" = "Duration";
 
 /* "Display SD */
 "Display SD instead of CV" = "Zeige die Standardabweichung (SD) statt des Variationskoeffizienten (CV)";
@@ -1892,7 +1889,7 @@ Enact a temp Basal or a temp target */
 "Allow SMB With High Temptarget" = "Erlaube SMB mit hohem Temptarget";
 
 /* Headline "Allow SMB With High Temptarget" */
-"Allow SMB With High Temptarget" = "Erlaube SMB mit hohem Temptarget";
+"Allow SMB With High Temptarget" = "Allow SMB With High Temptarget";
 
 /* "Allow SMB With High Temptarget" */
 "Defaults to false. When true, allows supermicrobolus (if otherwise enabled) even with high temp targets (> 100 mg/dl)." = "Standard Wert ist \"Aus\". Wenn aktiviert, werden auch bei erhöhten temporären Blutzucker Zielen SMBs verwendet.";
@@ -2035,13 +2032,13 @@ Enact a temp Basal or a temp target */
 "Adjust Dynamic ISF constant" = "Dynamic ISF-Konstante anpassen";
 
 /* Adjust Dynamic ISF constant */
-"Adjust Dynamic ISF constant" = "Dynamic ISF-Konstante anpassen";
+"Adjust Dynamic ISF constant" = "Adjust Dynamic ISF constant";
 
 /* Enable Dynamic ISF, Headline */
 "Enable Dynamic ISF" = "Aktiviere Dynamic ISF";
 
 /* Headline "Enable Dynamic ISF" */
-"Enable Dynamic ISF" = "Aktiviere Dynamic ISF";
+"Enable Dynamic ISF" = "Enable Dynamic ISF";
 
 /* Enable Dynamic ISF */
 "Calculate a new ISF with every loop cycle. New ISF will be based on current BG, TDD of insulin (past 24 hours or a weighted average) and an Adjustment Factor (default is 1).\n\nDynamic ISF and CR ratios will be limited by your autosens.min/max limits.\n\nDynamic ratio replaces the autosens.ratio: New ISF = Static ISF / Dynamic ratio,\nDynamic ratio = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes" = "Berechnet einen neuen ISF mit jedem Loop-Zyklus. Die neue ISF basiert auf dem aktuellen BG, TDD des Insulins (nach 24 Stunden oder einem gewichteten Durchschnitt) und einem Anpassungsfaktor (Standardeinstellung ist 1).\n\nDynamic ISF und CR Verhältnisse werden durch Ihre autosens.min/max Limits begrenzt.\n\nDas dynamische Verhältnis ersetzt das autosens.ratio: New ISF = Static ISF / Dynamic ratio,\nDynamic Ratio = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes";
@@ -2059,7 +2056,7 @@ Enact a temp Basal or a temp target */
 "Activate Dynamic Carb Ratio (CR)" = "Dynamisches Carb Ratio (CR) aktivieren";
 
 /* Headline "Adjust Dynamic ISF constant" */
-"Adjust Dynamic ISF constant" = "Dynamic ISF-Konstante anpassen";
+"Adjust Dynamic ISF constant" = "Adjust Dynamic ISF constant";
 
 /* Adjust Dynamic ISF constant */
 "Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula there is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users" = "Dynamische Verhältnisse um eine Konstante anpassen. Die Voreinstellung ist 0,5. Je höher der Wert, desto größer ist die Korrektur Ihres ISF für einen hohen oder niedrigen BG. Die maximale Korrektur wird durch die Autosens min/max-Einstellungen bestimmt. Für die Sigmoid-Funktion wird für den Anfang ein Anpassungsfaktor von 0,4 - 0,5 empfohlen. Für die logarithmische Formel gibt es weniger Konsens, aber ein Anfangswert von 0,5 - 0,8 ist für die meisten Benutzer angemessener.";
