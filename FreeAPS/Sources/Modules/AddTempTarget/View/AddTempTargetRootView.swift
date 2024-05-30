@@ -135,7 +135,12 @@ extension AddTempTarget {
                             guard let selectedPreset = selectedPreset,
                                   let targetBottom = selectedPreset.targetBottom else { return }
                             let computedPercentage = state.computePercentage(target: targetBottom)
-                            state.percentage = Double(truncating: computedPercentage as NSNumber)
+                            state.hbt = isEnabledArray.first?
+                                .hbt ??
+                                160 // how to get hbt from previously saved preset? this takes the last enacted temptarget hbt?
+                            state
+                                .percentage =
+                                Double(truncating: computedPercentage as NSNumber) // now I guess state.percentage needs to become whatever I do on slider
                         }
                     }
                 Image(systemName: "figure.highintensity.intervaltraining")
@@ -248,7 +253,9 @@ extension AddTempTarget {
             .onAppear {
                 guard let selectedPreset = selectedPreset, let targetBottom = selectedPreset.targetBottom else { return }
                 let computedPercentage = state.computePercentage(target: targetBottom)
-                state.percentage = Double(truncating: computedPercentage as NSNumber)
+                state
+                    .percentage =
+                    Double(truncating: computedPercentage as NSNumber) // I guess this needs to come directly from the slider
             }
             .onDisappear {
                 if isEditSheetPresented == false {

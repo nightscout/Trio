@@ -198,8 +198,7 @@ extension AddTempTarget {
             if units == .mmolL, !viewPercantage {
                 lowTarget = Decimal(round(Double(lowTarget.asMgdL)))
             }
-            let highTarget = lowTarget
-            
+
             if viewPercantage {
                 hbt = computeHBT()
             }
@@ -220,8 +219,7 @@ extension AddTempTarget {
                 storage.storePresets(presets)
             }
         }
-        
-        
+
         func computePercentage(target: Decimal) -> Decimal {
             let c = Decimal(hbt - 100)
             var ratio = c / (c + target - 100)
@@ -234,7 +232,6 @@ extension AddTempTarget {
             let roundedPercentage = (adjustedPercentage as NSDecimalNumber).rounding(accordingToBehavior: nil)
             return roundedPercentage as Decimal
         }
-
 
         func computeHBT() -> Double {
             let ratio = Decimal(percentage / 100)
