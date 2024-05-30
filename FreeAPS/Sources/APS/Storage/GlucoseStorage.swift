@@ -70,36 +70,28 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                 var filteredGlucose = glucose.filter { !existingDates.contains($0.dateString) }
 
                 // prepare batch insert
-                let batchInsert = NSBatchInsertRequest(entity: GlucoseStored.entity(), dictionaryHandler: { (dict) -> Bool in
-                    guard !filteredGlucose.isEmpty else {
-                        return true // Stop if there are no more items
+                let batchInsert = NSBatchInsertRequest(
+                    entity: GlucoseStored.entity(),
+                    managedObjectHandler: { (managedObject: NSManagedObject) -> Bool in
+                        guard let glucoseEntry = managedObject as? GlucoseStored, !filteredGlucose.isEmpty else {
+                            return true // Stop if there are no more items
+                        }
+                        let entry = filteredGlucose.removeFirst()
+                        glucoseEntry.id = UUID()
+                        glucoseEntry.glucose = Int16(entry.glucose ?? 0)
+                        glucoseEntry.date = entry.dateString
+                        glucoseEntry.direction = entry.direction?.symbol
+                        return false // Continue processing
                     }
-                    let glucoseEntry = filteredGlucose.removeFirst()
-                    dict["id"] = UUID()
-                    dict["glucose"] = Int16(glucoseEntry.glucose ?? 0)
-                    dict["date"] = glucoseEntry.dateString
-                    dict["direction"] = glucoseEntry.direction?.symbol
-                    return false // Continue processing
-                })
-                batchInsert.resultType = .objectIDs
+                )
 
-                // process batch insert and merge changes to context
+                // process batch insert
                 do {
-                    if let result = try self.coredataContext.execute(batchInsert) as? NSBatchInsertResult,
-                       let objectIDs = result.result as? [NSManagedObjectID]
-                    {
-                        // Merges the insertions into the context
-                        NSManagedObjectContext.mergeChanges(
-                            fromRemoteContextSave: [NSInsertedObjectsKey: objectIDs],
-                            into: [self.coredataContext]
-                        )
-                        debugPrint(
-                            "Glucose Storage: \(#function) \(DebuggingIdentifiers.succeeded) saved glucose to Core Data and merged changes into coreDataContext"
-                        )
-                    }
+                    try self.coredataContext.execute(batchInsert)
+                    debugPrint("Glucose Storage: \(#function) \(DebuggingIdentifiers.succeeded) saved glucose to Core Data")
                 } catch {
                     debugPrint(
-                        "Glucose Storage: \(#function) \(DebuggingIdentifiers.failed) failed to execute batch insert or merge changes: \(error)"
+                        "Glucose Storage: \(#function) \(DebuggingIdentifiers.failed) failed to execute batch insert: \(error)"
                     )
                 }
 
@@ -115,7 +107,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                         }
                         if let lastTreatment = treatments.last,
                            let createdAt = lastTreatment.createdAt,
-                           // When a new Dexcom sensor is started, it produces multiple consequetive
+                           // When a new Dexcom sensor is started, it produces multiple consecutive
                            // startDates. Disambiguate them by only allowing a session start per minute.
                            abs(createdAt.timeIntervalSince(sessionStartDate)) < TimeInterval(60)
                         {
