@@ -36,7 +36,8 @@ extension Home {
 
         @Environment(\.managedObjectContext) var moc
         @Environment(\.colorScheme) var colorScheme
-
+        
+        // TODO: rework this stuff -> remove fetch requests; no one wants this here.
         @FetchRequest(
             entity: Override.entity(),
             sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
@@ -59,6 +60,8 @@ extension Home {
             sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
         ) var enactedSliderTT: FetchedResults<TempTargetsSlider>
 
+        // TODO: end todo
+        
         var bolusProgressFormatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
@@ -196,6 +199,50 @@ extension Home {
 
             return rateString + " " + NSLocalizedString(" U/hr", comment: "Unit per hour with space") + manualBasalString
         }
+        
+        var overrideString: String? {
+            guard let fetched = fetchedPercent.first, fetched.enabled else {
+                return nil
+            }
+
+            let percent = fetched.percentage
+            let percentString = percent == 100 ? "" : "\(percent.formatted(.number)) %"
+
+            let unit = state.units
+            var target = (fetched.target ?? 100) as Decimal
+            target = unit == .mmolL ? target.asMmolL : target
+
+            var targetString = target == 0 ? "" : (fetchedTargetFormatter.string(from: target as NSNumber) ?? "") + " " + unit
+                .rawValue
+            if tempTargetString != nil {
+                targetString = ""
+            }
+
+            let duration = fetched.duration ?? 0
+            let addedMinutes = Int(truncating: duration)
+            let date = fetched.date ?? Date()
+            let newDuration = max(
+                Decimal(Date().distance(to: date.addingTimeInterval(addedMinutes.minutes.timeInterval)).minutes),
+                0
+            )
+            let indefinite = fetched.indefinite
+            var durationString = ""
+
+            if !indefinite {
+                if newDuration >= 1 {
+                    durationString =
+                        "\(newDuration.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) min"
+                } else if newDuration > 0 {
+                    durationString =
+                        "\((newDuration * 60).formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) s"
+                }
+            }
+
+            let smbToggleString = fetched.smbIsOff ? " \u{20e0}" : ""
+
+            let components = [percentString, targetString, durationString, smbToggleString].filter { !$0.isEmpty }
+            return components.isEmpty ? nil : components.joined(separator: ", ")
+        }
 
         var tempTargetString: String? {
             guard let tempTarget = state.tempTarget else {
@@ -215,71 +262,6 @@ extension Home {
             let percentString = state
                 .units == .mmolL ? (unitString + " mmol/L" + string) : (rawString + (string == "0" ? "" : string))
             return tempTarget.displayName + " " + percentString
-        }
-
-        var overrideString: String? {
-            guard fetchedPercent.first?.enabled ?? false else {
-                return nil
-            }
-            var percentString = "\((fetchedPercent.first?.percentage ?? 100).formatted(.number)) %"
-            var target = (fetchedPercent.first?.target ?? 100) as Decimal
-            let indefinite = (fetchedPercent.first?.indefinite ?? false)
-            let unit = state.units.rawValue
-            if state.units == .mmolL {
-                target = target.asMmolL
-            }
-            var targetString = (fetchedTargetFormatter.string(from: target as NSNumber) ?? "") + " " + unit
-            if tempTargetString != nil || target == 0 { targetString = "" }
-            percentString = percentString == "100 %" ? "" : percentString
-
-            let duration = (fetchedPercent.first?.duration ?? 0) as Decimal
-            let addedMinutes = Int(duration)
-            let date = fetchedPercent.first?.date ?? Date()
-            var newDuration: Decimal = 0
-
-            if date.addingTimeInterval(addedMinutes.minutes.timeInterval) > Date() {
-                newDuration = Decimal(Date().distance(to: date.addingTimeInterval(addedMinutes.minutes.timeInterval)).minutes)
-            }
-
-            var durationString = indefinite ?
-                "" : newDuration >= 1 ?
-                (newDuration.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + " min") :
-                (
-                    newDuration > 0 ? (
-                        (newDuration * 60).formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + " s"
-                    ) :
-                        ""
-                )
-
-            let smbToggleString = (fetchedPercent.first?.smbIsOff ?? false) ? " \u{20e0}" : ""
-            var comma1 = ", "
-            var comma2 = comma1
-            var comma3 = comma1
-            if targetString == "" || percentString == "" { comma1 = "" }
-            if durationString == "" { comma2 = "" }
-            if smbToggleString == "" { comma3 = "" }
-
-            if percentString == "", targetString == "" {
-                comma1 = ""
-                comma2 = ""
-            }
-            if percentString == "", targetString == "", smbToggleString == "" {
-                durationString = ""
-                comma1 = ""
-                comma2 = ""
-                comma3 = ""
-            }
-            if durationString == "" {
-                comma2 = ""
-            }
-            if smbToggleString == "" {
-                comma3 = ""
-            }
-
-            if durationString == "", !indefinite {
-                return nil
-            }
-            return percentString + comma1 + targetString + comma2 + durationString + comma3 + smbToggleString
         }
 
         var infoPanel: some View {
@@ -356,9 +338,6 @@ extension Home {
 
                 MainChartView(
                     units: $state.units,
-                    tempBasals: $state.tempBasals,
-                    boluses: $state.boluses,
-                    suspensions: $state.suspensions,
                     announcement: $state.announcement,
                     hours: .constant(state.filteredHours),
                     maxBasal: $state.maxBasal,

@@ -16,9 +16,6 @@ extension Home {
         @Published var announcement: [Announcement] = []
         @Published var uploadStats = false
         @Published var recentGlucose: BloodGlucose?
-        @Published var tempBasals: [PumpHistoryEvent] = []
-        @Published var boluses: [PumpHistoryEvent] = []
-        @Published var suspensions: [PumpHistoryEvent] = []
         @Published var maxBasal: Decimal = 2
         @Published var autotunedBasalProfile: [BasalProfileEntry] = []
         @Published var basalProfile: [BasalProfileEntry] = []
@@ -29,7 +26,6 @@ extension Home {
         @Published var isLooping = false
         @Published var statusTitle = ""
         @Published var lastLoopDate: Date = .distantPast
-        @Published var tempRate: Decimal?
         @Published var battery: Battery?
         @Published var reservoir: Decimal?
         @Published var pumpName = ""
@@ -74,6 +70,9 @@ extension Home {
         @Published var fpusFromPersistence: [CarbEntryStored] = []
         @Published var determinationsFromPersistence: [OrefDetermination] = []
         @Published var insulinFromPersistence: [PumpEventStored] = []
+        @Published var tempBasals: [PumpEventStored] = []
+        var boluses: [PumpEventStored] = []
+        @Published var suspensions: [PumpEventStored] = []
         @Published var batteryFromPersistence: [OpenAPS_Battery] = []
         @Published var lastPumpBolus: PumpEventStored?
 
@@ -90,9 +89,6 @@ extension Home {
             setupInsulinArray()
             setupLastBolus()
             setupBatteryArray()
-            setupBasals()
-            setupBoluses()
-            setupSuspensions()
             setupPumpSettings()
             setupBasalProfile()
             setupTempTargets()
@@ -121,7 +117,6 @@ extension Home {
             broadcaster.register(GlucoseObserver.self, observer: self)
             broadcaster.register(DeterminationObserver.self, observer: self)
             broadcaster.register(SettingsObserver.self, observer: self)
-            broadcaster.register(PumpHistoryObserver.self, observer: self)
             broadcaster.register(PumpSettingsObserver.self, observer: self)
             broadcaster.register(BasalProfileObserver.self, observer: self)
             broadcaster.register(TempTargetsObserver.self, observer: self)
@@ -237,41 +232,6 @@ extension Home {
             }
         }
 
-        private func setupBasals() {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.manualTempBasal = self.apsManager.isManualTempBasal
-                self.tempBasals = self.provider.pumpHistory(hours: self.filteredHours).filter {
-                    $0.type == .tempBasal || $0.type == .tempBasalDuration
-                }
-                let lastTempBasal = Array(self.tempBasals.suffix(2))
-                guard lastTempBasal.count == 2 else {
-                    self.tempRate = nil
-                    return
-                }
-
-                guard let lastRate = lastTempBasal[0].rate, let lastDuration = lastTempBasal[1].durationMin else {
-                    self.tempRate = nil
-                    return
-                }
-                let lastDate = lastTempBasal[0].timestamp
-                guard Date().timeIntervalSince(lastDate.addingTimeInterval(lastDuration.minutes.timeInterval)) < 0 else {
-                    self.tempRate = nil
-                    return
-                }
-                self.tempRate = lastRate
-            }
-        }
-
-        private func setupBoluses() {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.boluses = self.provider.pumpHistory(hours: self.filteredHours).filter {
-                    $0.type == .bolus
-                }
-            }
-        }
-
         func calculateTINS() -> String {
             let date = Date()
             let calendar = Calendar.current
@@ -281,25 +241,11 @@ extension Home {
             offsetComponents.hour = -Int(offset)
             let startTime = calendar.date(byAdding: offsetComponents, to: date)!
 
-            let bolusesForCurrentDay = boluses.filter { $0.timestamp >= startTime && $0.type == .bolus }
-            let totalBolus = bolusesForCurrentDay.map { $0.amount ?? 0 }.reduce(0, +)
+            let bolusesForCurrentDay = boluses.filter { $0.timestamp ?? .distantPast >= startTime }
+            let totalBolus = bolusesForCurrentDay.map { Double($0.bolus?.amount ?? 0.0) }.reduce(0.0, +)
             roundedTotalBolus = Decimal(round(100 * Double(totalBolus)) / 100).formatted()
 
             return roundedTotalBolus
-        }
-
-        private func setupSuspensions() {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.suspensions = self.provider.pumpHistory(hours: self.filteredHours).filter {
-                    $0.type == .pumpSuspend || $0.type == .pumpResume
-                }
-
-                let last = self.suspensions.last
-                let tbr = self.tempBasals.first { $0.timestamp > (last?.timestamp ?? .distantPast) }
-
-                self.pumpSuspended = tbr == nil && last?.type == .pumpSuspend
-            }
         }
 
         private func setupPumpSettings() {
@@ -380,7 +326,6 @@ extension Home.StateModel:
     GlucoseObserver,
     DeterminationObserver,
     SettingsObserver,
-    PumpHistoryObserver,
     PumpSettingsObserver,
     BasalProfileObserver,
     TempTargetsObserver,
@@ -412,12 +357,9 @@ extension Home.StateModel:
         tins = settingsManager.settings.tins
     }
 
-    func pumpHistoryDidUpdate(_: [PumpHistoryEvent]) {
-        setupBasals()
-        setupBoluses()
-        setupSuspensions()
-        setupAnnouncements()
-    }
+//    func pumpHistoryDidUpdate(_: [PumpHistoryEvent]) {
+//        setupAnnouncements()
+//    }
 
     func pumpSettingsDidChange(_: PumpSettings) {
         setupPumpSettings()
@@ -721,6 +663,32 @@ extension Home.StateModel {
                 try viewContext.existingObject(with: id) as? PumpEventStored
             }
             insulinFromPersistence = insulinObjects
+
+            // filter tempbasals
+            manualTempBasal = apsManager.isManualTempBasal
+            tempBasals = insulinFromPersistence.filter({ $0.tempBasal != nil })
+
+            let lastTempBasal = Array(tempBasals.suffix(2))
+
+            guard lastTempBasal.count == 2 else {
+                return
+            }
+
+            guard
+                let lastTempBasalDose = lastTempBasal.first(where: { $0.tempBasal?.tempType == EventType.tempBasal.rawValue }),
+                let lastDate = lastTempBasalDose.timestamp
+            else {
+                return
+            }
+
+            // suspension and resume events
+            suspensions = insulinFromPersistence
+                .filter({ $0.type == EventType.pumpSuspend.rawValue || $0.type == EventType.pumpResume.rawValue })
+            let lastSuspension = suspensions.last
+
+            pumpSuspended = lastDate > lastSuspension?.timestamp ?? .distantPast && lastSuspension?.type == EventType.pumpSuspend
+                .rawValue
+
         } catch {
             debugPrint(
                 "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the insulin array: \(error.localizedDescription)"

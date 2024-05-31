@@ -18,23 +18,10 @@ private struct BasalProfile: Hashable {
     }
 }
 
-private struct Prediction: Hashable {
-    let amount: Int
-    let timestamp: Date
-    let type: PredictionType
-}
-
 private struct ChartTempTarget: Hashable {
     let amount: Decimal
     let start: Date
     let end: Date
-}
-
-private enum PredictionType: Hashable {
-    case iob
-    case cob
-    case zt
-    case uam
 }
 
 struct MainChartView: View {
@@ -49,9 +36,6 @@ struct MainChartView: View {
     }
 
     @Binding var units: GlucoseUnits
-    @Binding var tempBasals: [PumpHistoryEvent]
-    @Binding var boluses: [PumpHistoryEvent]
-    @Binding var suspensions: [PumpHistoryEvent]
     @Binding var announcement: [Announcement]
     @Binding var hours: Int
     @Binding var maxBasal: Decimal
@@ -70,10 +54,8 @@ struct MainChartView: View {
     @StateObject var state: Home.StateModel
 
     @State var didAppearTrigger = false
-    @State private var BasalProfiles: [BasalProfile] = []
-    @State private var TempBasals: [PumpHistoryEvent] = []
-    @State private var ChartTempTargets: [ChartTempTarget] = []
-    @State private var Predictions: [Prediction] = []
+    @State private var basalProfiles: [BasalProfile] = []
+    @State private var chartTempTargets: [ChartTempTarget] = []
     @State private var count: Decimal = 1
     @State private var startMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 - 86400))
     @State private var endMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 + 10800))
@@ -151,7 +133,7 @@ struct MainChartView: View {
                         updateStartEndMarkers()
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }
-                    .onChange(of: tempBasals) { _ in
+                    .onChange(of: state.tempBasals) { _ in
                         updateStartEndMarkers()
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }
@@ -224,7 +206,7 @@ extension MainChartView {
                 }
             }
             .id("MainChart")
-            .onChange(of: boluses) { _ in
+            .onChange(of: state.boluses) { _ in
                 state.roundedTotalBolus = state.calculateTINS()
             }
             .onChange(of: tempTargets) { _ in
@@ -283,23 +265,19 @@ extension MainChartView {
                 drawTempBasals()
                 drawBasalProfile()
                 drawSuspensions()
-            }.onChange(of: tempBasals) { _ in
+            }.onChange(of: state.tempBasals) { _ in
                 calculateBasals()
-                calculateTempBasals()
             }
             .onChange(of: maxBasal) { _ in
                 calculateBasals()
-                calculateTempBasals()
             }
             .onChange(of: autotunedBasalProfile) { _ in
                 calculateBasals()
-                calculateTempBasals()
             }
             .onChange(of: didAppearTrigger) { _ in
                 calculateBasals()
-                calculateTempBasals()
             }.onChange(of: basalProfile) { _ in
-                calculateTempBasals()
+                calculateBasals()
             }
             .frame(height: UIScreen.main.bounds.height * 0.08)
             .frame(width: fullWidth(viewWidth: screenSize.width))
@@ -534,7 +512,7 @@ extension MainChartView {
 
     private func drawTempTargets() -> some ChartContent {
         /// temp targets
-        ForEach(ChartTempTargets, id: \.self) { target in
+        ForEach(chartTempTargets, id: \.self) { target in
             let targetLimited = min(max(target.amount, 0), upperLimit)
 
             RuleMark(
@@ -562,19 +540,23 @@ extension MainChartView {
     }
 
     private func drawSuspensions() -> some ChartContent {
-        /// pump suspensions
-        ForEach(suspensions) { suspension in
+        let suspensions = state.suspensions
+
+        return ForEach(suspensions) { suspension in
             let now = Date()
 
-            if suspension.type == EventType.pumpSuspend {
-                let suspensionStart = suspension.timestamp
+            if let type = suspension.type, type == EventType.pumpSuspend.rawValue, let suspensionStart = suspension.timestamp {
                 let suspensionEnd = min(
-                    suspensions
-                        .first(where: { $0.timestamp > suspension.timestamp && $0.type == EventType.pumpResume })?
-                        .timestamp ?? now,
+                    (
+                        suspensions
+                            .first(where: {
+                                $0.timestamp ?? now > suspensionStart && $0.type == EventType.pumpResume.rawValue })?
+                            .timestamp
+                    ) ?? now,
                     now
                 )
-                let basalProfileDuringSuspension = BasalProfiles.first(where: { $0.startDate <= suspensionStart })
+
+                let basalProfileDuringSuspension = basalProfiles.first(where: { $0.startDate <= suspensionStart })
                 let suspensionMarkHeight = basalProfileDuringSuspension?.amount ?? 1
 
                 RectangleMark(
@@ -594,7 +576,8 @@ extension MainChartView {
             let duration = temp.tempBasal?.duration ?? 0
             let timestamp = temp.timestamp ?? Date()
             let end = min(timestamp + duration.minutes, now)
-            let isInsulinSuspended = suspensions.contains { $0.timestamp >= timestamp && $0.timestamp <= end }
+            let isInsulinSuspended = state.suspensions.contains { $0.timestamp ?? now >= timestamp && $0.timestamp ?? now <= end }
+
             let rate = Double(truncating: temp.tempBasal?.rate ?? Decimal.zero as NSDecimalNumber) * (isInsulinSuspended ? 0 : 1)
 
             // Check if there's a subsequent temp basal to determine the end time
@@ -624,7 +607,7 @@ extension MainChartView {
 
     private func drawBasalProfile() -> some ChartContent {
         /// dashed profile line
-        ForEach(BasalProfiles, id: \.self) { profile in
+        ForEach(basalProfiles, id: \.self) { profile in
             LineMark(
                 x: .value("Start Date", profile.startDate),
                 y: .value("Amount", profile.amount),
@@ -734,33 +717,7 @@ extension MainChartView {
             }
         }
 
-        ChartTempTargets = calculatedTTs
-    }
-
-    private func calculateTempBasals() {
-        let basals = tempBasals
-        var returnTempBasalRates: [PumpHistoryEvent] = []
-        var finished: [Int: Bool] = [:]
-        basals.indices.forEach { i in
-            basals.indices.forEach { j in
-                if basals[i].timestamp == basals[j].timestamp, i != j, !(finished[i] ?? false), !(finished[j] ?? false) {
-                    let rate = basals[i].rate ?? basals[j].rate
-                    let durationMin = basals[i].durationMin ?? basals[j].durationMin
-                    finished[i] = true
-                    if rate != 0 || durationMin != 0 {
-                        returnTempBasalRates.append(
-                            PumpHistoryEvent(
-                                id: basals[i].id, type: FreeAPS.EventType.tempBasal,
-                                timestamp: basals[i].timestamp,
-                                durationMin: durationMin,
-                                rate: rate
-                            )
-                        )
-                    }
-                }
-            }
-        }
-        TempBasals = returnTempBasalRates
+        chartTempTargets = calculatedTTs
     }
 
     private func findRegularBasalPoints(
@@ -852,15 +809,8 @@ extension MainChartView {
                 startDate: totalBasal[index].startDate,
                 endDate: totalBasal.count > index + 1 ? totalBasal[index + 1].startDate : endMarker
             ))
-//            print(
-//                "Basal",
-//                totalBasal[index].startDate,
-//                totalBasal.count > index + 1 ? totalBasal[index + 1].startDate : endMarker,
-//                totalBasal[index].amount,
-//                totalBasal[index].isOverwritten
-//            )
         }
-        BasalProfiles = basals
+        basalProfiles = basals
     }
 
     // MARK: - Chart formatting
