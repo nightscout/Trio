@@ -104,6 +104,8 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
     private func fetchOverridePreset() -> [OverridePresets] {
         coredataContext.performAndWait {
             let requestPresets = OverridePresets.fetchRequest() as NSFetchRequest<OverridePresets>
+            let sortOverride = NSSortDescriptor(key: "name", ascending: true)
+            requestPresets.sortDescriptors = [sortOverride]
             let results = try? self.coredataContext.fetch(requestPresets)
             return results ?? []
         }

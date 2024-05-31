@@ -9,11 +9,11 @@ extension OverrideProfilesConfig {
         @State private var isEditing = false
         @State private var showAlert = false
         @State private var showingDetail = false
-        @State private var selectedPreset: OverridePresets?
+        @State private var selectedPreset: OverrideProfil?
         @State private var isEditSheetPresented: Bool = false
         @State private var alertSring = ""
         @State var isSheetPresented: Bool = false
-        @State private var originalPreset: OverridePresets?
+        @State private var originalPreset: OverrideProfil?
         @State private var showDeleteAlert = false
         @State private var indexToDelete: Int?
         @State private var profileNameToDelete: String = ""
@@ -64,7 +64,7 @@ extension OverrideProfilesConfig {
                 Section {
                     Button("Save") {
                         guard let selectedPreset = selectedPreset else { return }
-                        state.updatePreset(selectedPreset)
+                        state.updatePreset(selectedPreset.id)
                         isEditSheetPresented = false
                     }
                     .disabled(!hasChanges())
@@ -82,7 +82,7 @@ extension OverrideProfilesConfig {
                 }
             }
             .onDisappear {
-                state.savedSettings()
+                state.loadCurrentProfil()
             }
         }
 
@@ -247,8 +247,8 @@ extension OverrideProfilesConfig {
             Form {
                 if state.presets.isNotEmpty {
                     Section {
-                        ForEach(fetchedProfiles.indices, id: \.self) { index in
-                            let preset = fetchedProfiles[index]
+                        ForEach(state.presets.indices, id: \.self) { index in
+                            let preset = state.presets[index]
                             profilesView(for: preset)
                                 .swipeActions {
                                     Button(role: .none) {
@@ -364,7 +364,7 @@ extension OverrideProfilesConfig {
                 .tint(.red)
             }
             .onAppear(perform: configureView)
-            .onAppear { state.savedSettings() }
+            .onAppear { state.loadCurrentProfil() }
             .navigationBarTitle("Profiles")
             .navigationBarTitleDisplayMode(.automatic)
             .navigationBarItems(leading: Button("Close", action: state.hideModal))
@@ -405,19 +405,20 @@ extension OverrideProfilesConfig {
             let dash = crString != "" ? "/" : ""
             let isfAndCRstring = isfString + dash + crString
 
-            if data.name != "" {
+            if name != "" {
                 HStack {
                     VStack {
                         HStack {
-                            Text(data.name)
+                            Text(name)
                             Spacer()
                         }
                         HStack(spacing: 5) {
-                            Text(data.percent.formatted(.percent.grouping(.never).rounded().precision(.fractionLength(0))))
-                            if data.targetString != "" {
-                                Text(data.targetString)
-                                Text(data.targetString != "" ? state.units.rawValue : "")
+                            Text(percent.formatted(.percent.grouping(.never).rounded().precision(.fractionLength(0))))
+                            if targetString != "" {
+                                Text(targetString)
+                                Text(targetString != "" ? state.units.rawValue : "")
                             }
+
                             if durationString != "" { Text(durationString + (perpetual ? "" : "min")) }
                             if smbString != "" { Text(smbString).foregroundColor(.secondary).font(.caption) }
                             if scheduledSMBstring != "" { Text(scheduledSMBstring) }
