@@ -29,7 +29,7 @@ protocol APSManager {
     func determineBasalSync()
     func roundBolus(amount: Decimal) -> Decimal
     var lastError: CurrentValueSubject<Error?, Never> { get }
-    func cancelBolus()
+    func cancelBolus() async
     func enactAnnouncement(_ announcement: Announcement)
 }
 
@@ -518,22 +518,19 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
-    func cancelBolus() {
+    func cancelBolus() async {
         guard let pump = pumpManager, pump.status.pumpStatus.bolusing else { return }
         debug(.apsManager, "Cancel bolus")
-        pump.cancelBolus().sink { completion in
-            if case let .failure(error) = completion {
-                debug(.apsManager, "Bolus cancellation failed with error: \(error.localizedDescription)")
-                self.processError(APSError.pumpError(error))
-            } else {
-                debug(.apsManager, "Bolus cancelled")
-            }
-
-            self.bolusReporter?.removeObserver(self)
-            self.bolusReporter = nil
-            self.bolusProgress.send(nil)
-        } receiveValue: { _ in }
-            .store(in: &lifetime)
+        do {
+            _ = try await pump.cancelBolus()
+            debug(.apsManager, "Bolus cancelled")
+        } catch {
+            debug(.apsManager, "Bolus cancellation failed with error: \(error.localizedDescription)")
+            processError(APSError.pumpError(error))
+        }
+        bolusReporter?.removeObserver(self)
+        bolusReporter = nil
+        bolusProgress.send(nil)
     }
 
     func enactTempBasal(rate: Double, duration: TimeInterval) {
@@ -1396,22 +1393,37 @@ private extension PumpManager {
         }
     }
 
-    func cancelBolus() -> AnyPublisher<DoseEntry?, Error> {
-        Future { promise in
+    func cancelBolus() async throws -> DoseEntry? {
+        try await withCheckedThrowingContinuation { continuation in
             self.cancelBolus { result in
                 switch result {
                 case let .success(dose):
                     debug(.apsManager, "Cancel Bolus succeeded")
-                    promise(.success(dose))
+                    continuation.resume(returning: dose)
                 case let .failure(error):
                     debug(.apsManager, "Cancel Bolus failed")
-                    promise(.failure(error))
+                    continuation.resume(throwing: APSError.pumpError(error))
                 }
             }
         }
-        .mapError { APSError.pumpError($0) }
-        .eraseToAnyPublisher()
     }
+
+//    func cancelBolus() -> AnyPublisher<DoseEntry?, Error> {
+//        Future { promise in
+//            self.cancelBolus { result in
+//                switch result {
+//                case let .success(dose):
+//                    debug(.apsManager, "Cancel Bolus succeeded")
+//                    promise(.success(dose))
+//                case let .failure(error):
+//                    debug(.apsManager, "Cancel Bolus failed")
+//                    promise(.failure(error))
+//                }
+//            }
+//        }
+//        .mapError { APSError.pumpError($0) }
+//        .eraseToAnyPublisher()
+//    }
 
     func suspendDelivery() -> AnyPublisher<Void, Error> {
         Future { promise in

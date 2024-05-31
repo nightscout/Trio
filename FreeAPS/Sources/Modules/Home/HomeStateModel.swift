@@ -216,10 +216,12 @@ extension Home {
         }
 
         func cancelBolus() {
-            apsManager.cancelBolus()
+            Task {
+                await apsManager.cancelBolus()
 
-            // perform determine basal sync, otherwise you have could end up with too much iob when opening the calculator again
-            apsManager.determineBasalSync()
+                // perform determine basal sync, otherwise you have could end up with too much iob when opening the calculator again
+                apsManager.determineBasalSync()
+            }
         }
 
         func cancelProfile() {
