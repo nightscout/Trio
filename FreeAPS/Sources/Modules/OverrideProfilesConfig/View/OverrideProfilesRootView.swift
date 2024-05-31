@@ -47,6 +47,7 @@ extension OverrideProfilesConfig {
                         state.savePreset()
                         isSheetPresented = false
                     }
+
                     .disabled(state.profileName.isEmpty || state.presets.filter({ $0.name == state.profileName }).isNotEmpty)
 
                     Button("Cancel") {
@@ -65,6 +66,7 @@ extension OverrideProfilesConfig {
                     Button("Save") {
                         guard let selectedPreset = selectedPreset else { return }
                         state.updatePreset(selectedPreset.id)
+
                         isEditSheetPresented = false
                     }
                     .disabled(!hasChanges())
@@ -83,6 +85,7 @@ extension OverrideProfilesConfig {
             }
             .onDisappear {
                 state.loadCurrentProfil()
+
             }
         }
 
@@ -259,6 +262,7 @@ extension OverrideProfilesConfig {
                                         Label("Delete", systemImage: "trash")
                                     }.tint(.red)
 
+
                                     Button {
                                         selectedPreset = preset
                                         state.profileName = preset.name ?? ""
@@ -386,6 +390,7 @@ extension OverrideProfilesConfig {
             }
         }
 
+
         @ViewBuilder private func profilesView(for preset: OverrideProfil) -> some View {
             let target = state.units == .mmolL ? (preset.target ?? 0).asMmolL : preset.target ?? 0
             let duration = preset.duration ?? 0
@@ -405,19 +410,21 @@ extension OverrideProfilesConfig {
             let dash = crString != "" ? "/" : ""
             let isfAndCRstring = isfString + dash + crString
 
-            if name != "" {
+
+            if data.name != "" {
                 HStack {
                     VStack {
                         HStack {
-                            Text(name)
+                            Text(data.name)
                             Spacer()
                         }
                         HStack(spacing: 5) {
-                            Text(percent.formatted(.percent.grouping(.never).rounded().precision(.fractionLength(0))))
-                            if targetString != "" {
-                                Text(targetString)
-                                Text(targetString != "" ? state.units.rawValue : "")
+                            Text(data.percent.formatted(.percent.grouping(.never).rounded().precision(.fractionLength(0))))
+                            if data.targetString != "" {
+                                Text(data.targetString)
+                                Text(data.targetString != "" ? state.units.rawValue : "")
                             }
+
 
                             if durationString != "" { Text(durationString + (perpetual ? "" : "min")) }
                             if smbString != "" { Text(smbString).foregroundColor(.secondary).font(.caption) }
@@ -426,6 +433,7 @@ extension OverrideProfilesConfig {
                                 Text(eventualSmbMinutes == nil ? "" : eventualSmbMinutes!.formatted() + "min SMB")
                                 Text(eventualUamMinutes == nil ? "" : eventualUamMinutes!.formatted() + "min UAM")
                                 Text(isfAndCRstring)
+
                             }
                             Spacer()
                         }
