@@ -89,6 +89,11 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                 do {
                     try self.coredataContext.execute(batchInsert)
                     debugPrint("Glucose Storage: \(#function) \(DebuggingIdentifiers.succeeded) saved glucose to Core Data")
+
+                    // Send notification for triggering a fetch in Home State Model to update the Glucose Array
+                    /// This is necessary because changes only get merged automatically into the viewContext because of the Persistent History Tracking
+                    /// But I do not want to fetch on the Main Thread using the @FetchRequest property, I also can not use the FetchedResultsController because of the architecture of the State Model (it must inherit from BaseStateModel and therefore can not inherit from NSObject as well) and because of the fact that I am using a batch insert here there are no notifications sent from the managedObjectContext because changes are directly stored in the persistent container
+                    Foundation.NotificationCenter.default.post(name: .didPerformBatchInsert, object: nil)
                 } catch {
                     debugPrint(
                         "Glucose Storage: \(#function) \(DebuggingIdentifiers.failed) failed to execute batch insert: \(error)"

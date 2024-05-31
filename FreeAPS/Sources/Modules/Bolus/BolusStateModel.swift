@@ -287,9 +287,7 @@ extension Bolus {
             do {
                 let authenticated = try await unlockmanager.unlock()
                 if authenticated {
-                    apsManager.enactBolus(amount: maxAmount, isSMB: false)
-//                    savePumpInsulin(amount: amount)
-                    // already saved via pumphistory through apsManager
+                    await apsManager.enactBolus(amount: maxAmount, isSMB: false)
                 } else {
                     print("authentication failed")
                 }
@@ -570,7 +568,6 @@ extension Bolus.StateModel: DeterminationObserver, BolusFailureObserver {
 // MARK: - Setup Notifications
 
 extension Bolus.StateModel {
-
     /// listens for the notifications sent when the managedObjectContext has saved!
     func setupNotification() {
         Foundation.NotificationCenter.default.addObserver(
@@ -614,7 +611,6 @@ extension Bolus.StateModel {
 // MARK: - Setup Glucose and Determinations
 
 extension Bolus.StateModel {
-    
     // Glucose
     private func setupGlucoseArray() {
         Task {

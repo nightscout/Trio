@@ -474,6 +474,14 @@ extension Home.StateModel {
             name: Notification.Name.NSManagedObjectContextDidSave,
             object: nil
         )
+
+        /// custom notification that is sent when a batch insert of glucose objects is done
+        Foundation.NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleBatchInsert),
+            name: .didPerformBatchInsert,
+            object: nil
+        )
     }
 
     /// determine the actions when the context has changed
@@ -487,12 +495,17 @@ extension Home.StateModel {
         }
     }
 
+    @objc private func handleBatchInsert() {
+        setupGlucoseArray()
+    }
+
     private func processUpdates(userInfo: [AnyHashable: Any]) async {
         var objects = Set((userInfo[NSInsertedObjectsKey] as? Set<NSManagedObject>) ?? [])
         objects.formUnion((userInfo[NSUpdatedObjectsKey] as? Set<NSManagedObject>) ?? [])
         objects.formUnion((userInfo[NSDeletedObjectsKey] as? Set<NSManagedObject>) ?? [])
 
         let glucoseUpdates = objects.filter { $0 is GlucoseStored }
+        let manualGlucoseUpdates = objects.filter { $0 is GlucoseStored }
         let determinationUpdates = objects.filter { $0 is OrefDetermination }
         let carbUpdates = objects.filter { $0 is CarbEntryStored }
         let insulinUpdates = objects.filter { $0 is PumpEventStored }
@@ -501,6 +514,8 @@ extension Home.StateModel {
         DispatchQueue.global(qos: .background).async {
             if !glucoseUpdates.isEmpty {
                 self.setupGlucoseArray()
+            }
+            if !manualGlucoseUpdates.isEmpty {
                 self.setupManualGlucoseArray()
             }
             if !determinationUpdates.isEmpty {
@@ -524,7 +539,6 @@ extension Home.StateModel {
 // MARK: - Handle Core Data changes and update Arrays to display them in the UI
 
 extension Home.StateModel {
-    
     // Setup Glucose
     private func setupGlucoseArray() {
         Task {
@@ -560,8 +574,8 @@ extension Home.StateModel {
     // Setup Manual Glucose
     private func setupManualGlucoseArray() {
         Task {
-            let ids = await self.fetchGlucose()
-            await updateGlucoseArray(with: ids)
+            let ids = await self.fetchManualGlucose()
+            await updateManualGlucoseArray(with: ids)
         }
     }
 

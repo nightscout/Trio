@@ -12,7 +12,7 @@ import Swinject
 protocol APSManager {
     func heartbeat(date: Date)
     func autotune() -> AnyPublisher<Autotune?, Never>
-    func enactBolus(amount: Double, isSMB: Bool)
+    func enactBolus(amount: Double, isSMB: Bool) async
     var pumpManager: PumpManagerUI? { get set }
     var bluetoothManager: BluetoothStateManager? { get }
     var pumpDisplayState: CurrentValueSubject<PumpDisplayState?, Never> { get }
@@ -295,8 +295,17 @@ final class BaseAPSManager: APSManager, Injectable {
 
                 self.nightscout.uploadStatus()
 
-                // Closed loop - enact suggested
-                return self.enactDetermination()
+                // Closed loop - enact Determination
+                return Future { promise in
+                    Task {
+                        do {
+                            try await self.enactDetermination()
+                            promise(.success(()))
+                        } catch {
+                            promise(.failure(error))
+                        }
+                    }
+                }.eraseToAnyPublisher()
             }
             .sink { [weak self] completion in
                 guard let self = self else { return }
@@ -471,7 +480,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
     private var bolusReporter: DoseProgressReporter?
 
-    func enactBolus(amount: Double, isSMB: Bool) {
+    func enactBolus(amount: Double, isSMB: Bool) async {
         if let error = verifyStatus() {
             processError(error)
             processQueue.async {
@@ -484,30 +493,29 @@ final class BaseAPSManager: APSManager, Injectable {
 
         guard let pump = pumpManager else { return }
 
-        let roundedAmout = pump.roundToSupportedBolusVolume(units: amount)
+        let roundedAmount = pump.roundToSupportedBolusVolume(units: amount)
 
-        debug(.apsManager, "Enact bolus \(roundedAmout), manual \(!isSMB)")
+        debug(.apsManager, "Enact bolus \(roundedAmount), manual \(!isSMB)")
 
-        pump.enactBolus(units: roundedAmout, automatic: isSMB).sink { completion in
-            if case let .failure(error) = completion {
-                warning(.apsManager, "Bolus failed with error: \(error.localizedDescription)")
-                self.processError(APSError.pumpError(error))
-                if !isSMB {
-                    self.processQueue.async {
-                        self.broadcaster.notify(BolusFailureObserver.self, on: self.processQueue) {
-                            $0.bolusDidFail()
-                        }
+        do {
+            try await pump.enactBolus(units: roundedAmount, automatic: isSMB)
+            debug(.apsManager, "Bolus succeeded")
+            if !isSMB {
+//                determineBasal()
+                determineBasalSync()
+            }
+            bolusProgress.send(0)
+        } catch {
+            warning(.apsManager, "Bolus failed with error: \(error.localizedDescription)")
+            processError(APSError.pumpError(error))
+            if !isSMB {
+                processQueue.async {
+                    self.broadcaster.notify(BolusFailureObserver.self, on: self.processQueue) {
+                        $0.bolusDidFail()
                     }
                 }
-            } else {
-                debug(.apsManager, "Bolus succeeded")
-                if !isSMB {
-                    self.determineBasal().sink { _ in }.store(in: &self.lifetime)
-                }
-                self.bolusProgress.send(0)
             }
-        } receiveValue: { _ in }
-            .store(in: &lifetime)
+        }
     }
 
     func cancelBolus() {
@@ -699,7 +707,7 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
-    private func fetchDetermination() -> OrefDetermination? {
+    private func fetchDetermination() -> NSManagedObjectID? {
         CoreDataStack.shared.fetchEntities(
             ofType: OrefDetermination.self,
             onContext: privateContext,
@@ -707,93 +715,77 @@ final class BaseAPSManager: APSManager, Injectable {
             key: "deliverAt",
             ascending: false,
             fetchLimit: 1
-        ).first
+        ).first?.objectID
     }
 
-    private func enactDetermination() -> AnyPublisher<Void, Error> {
-        // Fetch determination within the correct context
-        Future<OrefDetermination?, Error> { promise in
+    private func enactDetermination() async throws {
+        guard let determinationID = fetchDetermination() else {
+            throw APSError.apsError(message: "Determination not found")
+        }
+
+        guard let pump = pumpManager else {
+            throw APSError.apsError(message: "Pump not set")
+        }
+
+        // Unable to do temp basal during manual temp basal 😁
+        if isManualTempBasal {
+            throw APSError.manualBasalTemp(message: "Loop not possible during the manual basal temp")
+        }
+
+        let (rateDecimal, durationInSeconds, smbToDeliver) = try await setValues(determinationID: determinationID)
+
+        try await performBasal(pump: pump, rate: rateDecimal, duration: durationInSeconds)
+
+        // only perform a bolus if smbToDeliver is > 0
+        if smbToDeliver.compare(NSDecimalNumber(value: 0)) == .orderedDescending {
+            try await performBolus(pump: pump, smbToDeliver: smbToDeliver)
+        }
+    }
+
+    private func setValues(determinationID: NSManagedObjectID) async throws -> (NSDecimalNumber, TimeInterval, NSDecimalNumber) {
+        return try await withCheckedThrowingContinuation { continuation in
             self.privateContext.perform {
-                let determination = self.fetchDetermination()
-                promise(.success(determination))
+                do {
+                    let determination = try self.privateContext.existingObject(with: determinationID) as? OrefDetermination
+
+                    /// Default values should be 0
+                    /// If we would use guard here Determine Basal would fail unnecessarily often
+                    let rate = (determination?.rate ?? 0) as NSDecimalNumber
+                    let duration = TimeInterval((determination?.duration ?? 0) * 60)
+                    let smbToDeliver = determination?.smbToDeliver ?? 0
+
+                    continuation.resume(returning: (rate, duration, smbToDeliver))
+                } catch {
+                    continuation.resume(throwing: error)
+                }
             }
         }
-        .flatMap { determination -> AnyPublisher<Void, Error> in
-            guard let determination = determination else {
-                return Fail(error: APSError.apsError(message: "Determination not found")).eraseToAnyPublisher()
-            }
+    }
 
-            guard let pump = self.pumpManager else {
-                return Fail(error: APSError.apsError(message: "Pump not set")).eraseToAnyPublisher()
-            }
+    private func performBasal(pump: PumpManager, rate: NSDecimalNumber, duration: TimeInterval) async throws {
+        try await pump.enactTempBasal(unitsPerHour: Double(truncating: rate), for: duration)
 
-            // Unable to do temp basal during manual temp basal 😁
-            if self.isManualTempBasal {
-                return Fail(error: APSError.manualBasalTemp(message: "Loop not possible during the manual basal temp"))
-                    .eraseToAnyPublisher()
-            }
+        let temp = TempBasal(
+            duration: Int(duration / 60),
+            rate: rate as Decimal,
+            temp: .absolute,
+            timestamp: Date()
+        )
+        storage.save(temp, as: OpenAPS.Monitor.tempBasal)
+    }
 
-            let rateValue = determination.rate
-            let durationValue = determination.duration
-            let smbToDeliver = determination.smbToDeliver
-
-            let basalPublisher: AnyPublisher<Void, Error> = Deferred { () -> AnyPublisher<Void, Error> in
-                if let error = self.verifyStatus() {
-                    return Fail(error: error).eraseToAnyPublisher()
-                }
-
-                guard let rate = rateValue else {
-                    debug(.apsManager, "No temp required")
-                    return Just(()).setFailureType(to: Error.self)
-                        .eraseToAnyPublisher()
-                }
-                return pump.enactTempBasal(
-                    unitsPerHour: Double(truncating: rate as NSNumber),
-                    for: TimeInterval(durationValue * 60)
-                ).map { _ in
-                    let temp = TempBasal(
-                        duration: Int(durationValue),
-                        rate: ((rateValue ?? 0) as NSDecimalNumber) as Decimal,
-                        temp: .absolute,
-                        timestamp: Date()
-                    )
-                    self.storage.save(temp, as: OpenAPS.Monitor.tempBasal)
-
-                    return ()
-                }
-                .eraseToAnyPublisher()
-            }.eraseToAnyPublisher()
-
-            let bolusPublisher: AnyPublisher<Void, Error> = Deferred { () -> AnyPublisher<Void, Error> in
-                if let error = self.verifyStatus() {
-                    return Fail(error: error).eraseToAnyPublisher()
-                }
-                guard let smbAmount = smbToDeliver else {
-                    debug(.apsManager, "No bolus required")
-                    return Just(()).setFailureType(to: Error.self)
-                        .eraseToAnyPublisher()
-                }
-                return pump.enactBolus(units: Double(truncating: smbAmount), automatic: true).map { _ in
-                    self.bolusProgress.send(0)
-                    return ()
-                }
-                .eraseToAnyPublisher()
-            }.eraseToAnyPublisher()
-
-            return basalPublisher.flatMap { bolusPublisher }.eraseToAnyPublisher()
-        }
-        .eraseToAnyPublisher()
+    private func performBolus(pump: PumpManager, smbToDeliver: NSDecimalNumber) async throws {
+        try await pump.enactBolus(units: Double(truncating: smbToDeliver), automatic: true)
+        bolusProgress.send(0)
     }
 
     private func reportEnacted(received: Bool) {
         privateContext.performAndWait {
-            guard let determination = fetchDetermination(), determination.deliverAt != nil else {
+            guard let determinationID = fetchDetermination() else {
                 return
             }
 
-            let objectID = determination.objectID
-
-            if let determinationUpdated = self.privateContext.object(with: objectID) as? OrefDetermination {
+            if let determinationUpdated = self.privateContext.object(with: determinationID) as? OrefDetermination {
                 determinationUpdated.timestamp = Date()
                 determinationUpdated.received = received
 
@@ -806,28 +798,28 @@ final class BaseAPSManager: APSManager, Injectable {
                         "Failed  \(DebuggingIdentifiers.succeeded) to save context in reportEnacted(): \(error.localizedDescription)"
                     )
                 }
+
+                // TODO: - replace this...
+                let saveLastLoop = LastLoop(context: self.privateContext)
+                saveLastLoop.iob = (determinationUpdated.iob ?? 0) as NSDecimalNumber
+                saveLastLoop.cob = determinationUpdated.cob as? NSDecimalNumber
+                saveLastLoop.timestamp = (determinationUpdated.timestamp ?? .distantPast) as Date
+
+                do {
+                    guard privateContext.hasChanges else { return }
+                    try privateContext.save()
+                } catch {
+                    print(error.localizedDescription)
+                }
+
+                debug(.apsManager, "Determination enacted. Received: \(received)")
+
+                nightscout.uploadStatus()
+                statistics()
             } else {
                 debugPrint("Failed to update OrefDetermination in reportEnacted()")
             }
-
-            // TODO: - replace this...
-            let saveLastLoop = LastLoop(context: self.privateContext)
-            saveLastLoop.iob = (determination.iob ?? 0) as NSDecimalNumber
-            saveLastLoop.cob = determination.cob as? NSDecimalNumber
-            saveLastLoop.timestamp = (determination.timestamp ?? .distantPast) as Date
-
-            do {
-                guard privateContext.hasChanges else { return }
-                try privateContext.save()
-            } catch {
-                print(error.localizedDescription)
-            }
-
-            debug(.apsManager, "Determination enacted. Received: \(received)")
         }
-
-        nightscout.uploadStatus()
-        statistics()
     }
 
     private func roundDecimal(_ decimal: Decimal, _ digits: Double) -> Decimal {
@@ -1374,39 +1366,34 @@ final class BaseAPSManager: APSManager, Injectable {
 }
 
 private extension PumpManager {
-    func enactTempBasal(unitsPerHour: Double, for duration: TimeInterval) -> AnyPublisher<DoseEntry?, Error> {
-        Future { promise in
+    func enactTempBasal(unitsPerHour: Double, for duration: TimeInterval) async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             self.enactTempBasal(unitsPerHour: unitsPerHour, for: duration) { error in
                 if let error = error {
                     debug(.apsManager, "Temp basal failed: \(unitsPerHour) for: \(duration)")
-                    promise(.failure(error))
+                    continuation.resume(throwing: error)
                 } else {
                     debug(.apsManager, "Temp basal succeeded: \(unitsPerHour) for: \(duration)")
-                    promise(.success(nil))
+                    continuation.resume(returning: ())
                 }
             }
         }
-        .mapError { APSError.pumpError($0) }
-        .eraseToAnyPublisher()
     }
 
-    func enactBolus(units: Double, automatic: Bool) -> AnyPublisher<DoseEntry?, Error> {
-        Future { promise in
-            // convert automatic
+    func enactBolus(units: Double, automatic: Bool) async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             let automaticValue = automatic ? BolusActivationType.automatic : BolusActivationType.manualRecommendationAccepted
 
             self.enactBolus(units: units, activationType: automaticValue) { error in
                 if let error = error {
                     debug(.apsManager, "Bolus failed: \(units)")
-                    promise(.failure(error))
+                    continuation.resume(throwing: error)
                 } else {
                     debug(.apsManager, "Bolus succeeded: \(units)")
-                    promise(.success(nil))
+                    continuation.resume(returning: ())
                 }
             }
         }
-        .mapError { APSError.pumpError($0) }
-        .eraseToAnyPublisher()
     }
 
     func cancelBolus() -> AnyPublisher<DoseEntry?, Error> {
