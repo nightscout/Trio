@@ -1458,28 +1458,38 @@ private extension PumpManager {
 extension BaseAPSManager: PumpManagerStatusObserver {
     func pumpManager(_: PumpManager, didUpdate status: PumpManagerStatus, oldStatus _: PumpManagerStatus) {
         let percent = Int((status.pumpBatteryChargeRemaining ?? 1) * 100)
-        let battery = Battery(
-            percent: percent,
-            voltage: nil,
-            string: percent > 10 ? .normal : .low,
-            display: status.pumpBatteryChargeRemaining != nil
-        )
 
         privateContext.perform {
-            let batteryToStore = OpenAPS_Battery(context: self.privateContext)
-            batteryToStore.id = UUID()
-            batteryToStore.date = Date()
-            batteryToStore.percent = Int16(percent)
-            batteryToStore.voltage = nil
-            batteryToStore.status = percent > 10 ? "normal" : "low"
-            batteryToStore.display = status.pumpBatteryChargeRemaining != nil
+            /// only update the last item with the current battery infos instead of saving a new one each time
+            let fetchRequest: NSFetchRequest<OpenAPS_Battery> = OpenAPS_Battery.fetchRequest()
+            fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+            fetchRequest.predicate = NSPredicate.predicateFor30MinAgo
+            fetchRequest.fetchLimit = 1
+
             do {
+                let results = try self.privateContext.fetch(fetchRequest)
+                let batteryToStore: OpenAPS_Battery
+
+                if let existingBattery = results.first {
+                    batteryToStore = existingBattery
+                } else {
+                    batteryToStore = OpenAPS_Battery(context: self.privateContext)
+                    batteryToStore.id = UUID()
+                }
+
+                batteryToStore.date = Date()
+                batteryToStore.percent = Int16(percent)
+                batteryToStore.voltage = nil
+                batteryToStore.status = percent > 10 ? "normal" : "low"
+                batteryToStore.display = status.pumpBatteryChargeRemaining != nil
+
                 guard self.privateContext.hasChanges else { return }
                 try self.privateContext.save()
             } catch {
-                print(error.localizedDescription)
+                print("Failed to fetch or save battery: \(error.localizedDescription)")
             }
         }
+        // TODO: - remove this after ensuring that NS still gets the same infos from Core Data
         storage.save(status.pumpStatus, as: OpenAPS.Monitor.status)
     }
 }

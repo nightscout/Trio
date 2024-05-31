@@ -103,8 +103,8 @@ extension Bolus {
 
         override func subscribe() {
             setupNotification()
-            updateGlucose()
-            updateDetermination()
+            setupGlucoseArray()
+            setupDeterminationsArray()
 
             broadcaster.register(DeterminationObserver.self, observer: self)
             broadcaster.register(BolusFailureObserver.self, observer: self)
@@ -174,93 +174,6 @@ extension Bolus {
                     currentBasal = entry.rate
                     break
                 }
-            }
-        }
-
-        // MARK: - Setup Notifications
-
-        /// listens for the notifications sent when the managedObjectContext has changed
-        func setupNotification() {
-            Foundation.NotificationCenter.default.addObserver(
-                self,
-                selector: #selector(contextDidSave(_:)),
-                name: Notification.Name.NSManagedObjectContextObjectsDidChange,
-                object: backgroundContext
-            )
-        }
-
-        /// determine the actions when the context has changed
-        ///
-        /// its done on a background thread and after that the UI gets updated on the main thread
-        @objc private func contextDidSave(_ notification: Notification) {
-            guard let userInfo = notification.userInfo else { return }
-
-            Task { [weak self] in
-                await self?.processUpdates(userInfo: userInfo)
-            }
-        }
-
-        private func processUpdates(userInfo: [AnyHashable: Any]) async {
-            var objects = Set((userInfo[NSInsertedObjectsKey] as? Set<NSManagedObject>) ?? [])
-            objects.formUnion((userInfo[NSUpdatedObjectsKey] as? Set<NSManagedObject>) ?? [])
-            objects.formUnion((userInfo[NSDeletedObjectsKey] as? Set<NSManagedObject>) ?? [])
-
-            let glucoseUpdates = objects.filter { $0 is GlucoseStored }
-            let determinationUpdates = objects.filter { $0 is OrefDetermination }
-
-            if glucoseUpdates.isNotEmpty {
-                updateGlucose()
-            }
-            if determinationUpdates.isNotEmpty {
-                updateDetermination()
-            }
-        }
-
-        // MARK: - Glucose
-
-        private func updateGlucose() {
-            CoreDataStack.shared.fetchEntitiesAndUpdateUI(
-                ofType: GlucoseStored.self,
-                predicate: NSPredicate.predicateFor30MinAgo,
-                key: "date",
-                ascending: false,
-                fetchLimit: 3
-            ) { fetchedValues in
-                self.glucoseFromPersistence = fetchedValues
-
-                let lastGlucose = self.glucoseFromPersistence.first?.glucose ?? 0
-                let thirdLastGlucose = self.glucoseFromPersistence.last?.glucose ?? 0
-                let delta = Decimal(lastGlucose) - Decimal(thirdLastGlucose)
-
-                self.currentBG = Decimal(lastGlucose)
-                self.deltaBG = delta
-            }
-        }
-
-        private func updateDetermination() {
-            CoreDataStack.shared.fetchEntitiesAndUpdateUI(
-                ofType: OrefDetermination.self,
-                predicate: NSPredicate.enactedDetermination,
-                key: "deliverAt",
-                ascending: false,
-                fetchLimit: 1
-            ) { fetchedValues in
-                guard let mostRecentDetermination = fetchedValues.first else { return }
-                self.determination = fetchedValues
-
-                // setup vars for bolus calculation
-                self.insulinRequired = (mostRecentDetermination.insulinReq ?? 0) as Decimal
-                self.evBG = (mostRecentDetermination.eventualBG ?? 0) as Decimal
-                self.insulin = (mostRecentDetermination.insulinForManualBolus ?? 0) as Decimal
-                self.target = (mostRecentDetermination.currentTarget ?? 100) as Decimal
-                self.isf = (mostRecentDetermination.insulinSensitivity ?? 0) as Decimal
-                self.cob = mostRecentDetermination.cob as Int16
-                self.iob = (mostRecentDetermination.iob ?? 0) as Decimal
-                self.basal = (mostRecentDetermination.tempBasal ?? 0) as Decimal
-                self.carbRatio = (mostRecentDetermination.carbRatio ?? 0) as Decimal
-
-                self.getCurrentBasal()
-                self.insulinCalculated = self.calculateInsulin()
             }
         }
 
@@ -650,6 +563,141 @@ extension Bolus.StateModel: DeterminationObserver, BolusFailureObserver {
             if self.addButtonPressed {
                 self.hideModal()
             }
+        }
+    }
+}
+
+// MARK: - Setup Notifications
+
+extension Bolus.StateModel {
+
+    /// listens for the notifications sent when the managedObjectContext has saved!
+    func setupNotification() {
+        Foundation.NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(contextDidSave(_:)),
+            name: Notification.Name.NSManagedObjectContextDidSave,
+            object: backgroundContext
+        )
+    }
+
+    /// determine the actions when the context has changed
+    ///
+    /// its done on a background thread and after that the UI gets updated on the main thread
+    @objc private func contextDidSave(_ notification: Notification) {
+        guard let userInfo = notification.userInfo else { return }
+
+        Task { [weak self] in
+            await self?.processUpdates(userInfo: userInfo)
+        }
+    }
+
+    private func processUpdates(userInfo: [AnyHashable: Any]) async {
+        var objects = Set((userInfo[NSInsertedObjectsKey] as? Set<NSManagedObject>) ?? [])
+        objects.formUnion((userInfo[NSUpdatedObjectsKey] as? Set<NSManagedObject>) ?? [])
+        objects.formUnion((userInfo[NSDeletedObjectsKey] as? Set<NSManagedObject>) ?? [])
+
+        let glucoseUpdates = objects.filter { $0 is GlucoseStored }
+        let determinationUpdates = objects.filter { $0 is OrefDetermination }
+
+        DispatchQueue.global(qos: .background).async {
+            if glucoseUpdates.isNotEmpty {
+                self.setupGlucoseArray()
+            }
+            if determinationUpdates.isNotEmpty {
+                self.setupDeterminationsArray()
+            }
+        }
+    }
+}
+
+// MARK: - Setup Glucose and Determinations
+
+extension Bolus.StateModel {
+    
+    // Glucose
+    private func setupGlucoseArray() {
+        Task {
+            let ids = await self.fetchGlucose()
+            await updateGlucoseArray(with: ids)
+        }
+    }
+
+    private func fetchGlucose() async -> [NSManagedObjectID] {
+        CoreDataStack.shared.fetchEntities(
+            ofType: GlucoseStored.self,
+            onContext: context,
+            predicate: NSPredicate.predicateFor30MinAgo,
+            key: "date",
+            ascending: false,
+            fetchLimit: 3
+        ).map(\.objectID)
+    }
+
+    @MainActor private func updateGlucoseArray(with IDs: [NSManagedObjectID]) {
+        do {
+            let glucoseObjects = try IDs.compactMap { id in
+                try context.existingObject(with: id) as? GlucoseStored
+            }
+            glucoseFromPersistence = glucoseObjects
+
+            let lastGlucose = glucoseFromPersistence.first?.glucose ?? 0
+            let thirdLastGlucose = glucoseFromPersistence.last?.glucose ?? 0
+            let delta = Decimal(lastGlucose) - Decimal(thirdLastGlucose)
+
+            currentBG = Decimal(lastGlucose)
+            deltaBG = delta
+        } catch {
+            debugPrint(
+                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the glucose array: \(error.localizedDescription)"
+            )
+        }
+    }
+
+    // Determinations
+    private func setupDeterminationsArray() {
+        Task {
+            let ids = await self.fetchDeterminations()
+            await updateDeterminationsArray(with: ids)
+        }
+    }
+
+    private func fetchDeterminations() async -> [NSManagedObjectID] {
+        CoreDataStack.shared.fetchEntities(
+            ofType: OrefDetermination.self,
+            onContext: context,
+            predicate: NSPredicate.enactedDetermination,
+            key: "deliverAt",
+            ascending: false,
+            fetchLimit: 1
+        ).map(\.objectID)
+    }
+
+    @MainActor private func updateDeterminationsArray(with IDs: [NSManagedObjectID]) {
+        do {
+            let determinationObjects = try IDs.compactMap { id in
+                try context.existingObject(with: id) as? OrefDetermination
+            }
+            guard let mostRecentDetermination = determinationObjects.first else { return }
+            determination = determinationObjects
+
+            // setup vars for bolus calculation
+            insulinRequired = (mostRecentDetermination.insulinReq ?? 0) as Decimal
+            evBG = (mostRecentDetermination.eventualBG ?? 0) as Decimal
+            insulin = (mostRecentDetermination.insulinForManualBolus ?? 0) as Decimal
+            target = (mostRecentDetermination.currentTarget ?? 100) as Decimal
+            isf = (mostRecentDetermination.insulinSensitivity ?? 0) as Decimal
+            cob = mostRecentDetermination.cob as Int16
+            iob = (mostRecentDetermination.iob ?? 0) as Decimal
+            basal = (mostRecentDetermination.tempBasal ?? 0) as Decimal
+            carbRatio = (mostRecentDetermination.carbRatio ?? 0) as Decimal
+
+            getCurrentBasal()
+            insulinCalculated = calculateInsulin()
+        } catch {
+            debugPrint(
+                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the determinations array: \(error.localizedDescription)"
+            )
         }
     }
 }

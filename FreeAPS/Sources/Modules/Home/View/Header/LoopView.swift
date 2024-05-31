@@ -14,10 +14,7 @@ struct LoopView: View {
     @Binding var lastLoopDate: Date
     @Binding var manualTempBasal: Bool
 
-    @FetchRequest(
-        fetchRequest: OrefDetermination.fetch(NSPredicate.enactedDetermination),
-        animation: .bouncy
-    ) var determination: FetchedResults<OrefDetermination>
+    var determination: [OrefDetermination]
 
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()

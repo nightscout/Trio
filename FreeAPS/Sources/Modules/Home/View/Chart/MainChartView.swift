@@ -88,38 +88,6 @@ struct MainChartView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.calendar) var calendar
 
-    // MARK: - Core Data Fetch Requests
-
-    @FetchRequest(
-        fetchRequest: PumpEventStored.fetch(NSPredicate.pumpHistoryLast24h, ascending: true),
-        animation: Animation.bouncy
-    ) var insulinFromPersistence: FetchedResults<PumpEventStored>
-
-    @FetchRequest(
-        fetchRequest: GlucoseStored.fetch(NSPredicate.manualGlucose, ascending: true),
-        animation: Animation.bouncy
-    ) var manualGlucoseFromPersistence: FetchedResults<GlucoseStored>
-
-    @FetchRequest(
-        fetchRequest: GlucoseStored.fetch(NSPredicate.glucose, ascending: true),
-        animation: Animation.bouncy
-    ) var glucoseFromPersistence: FetchedResults<GlucoseStored>
-
-    @FetchRequest(
-        fetchRequest: CarbEntryStored.fetch(NSPredicate.carbsForChart, ascending: true),
-        animation: Animation.bouncy
-    ) var carbsFromPersistence: FetchedResults<CarbEntryStored>
-
-    @FetchRequest(
-        fetchRequest: CarbEntryStored.fetch(NSPredicate.fpusForChart, ascending: true),
-        animation: Animation.bouncy
-    ) var fpusFromPersistence: FetchedResults<CarbEntryStored>
-
-    @FetchRequest(
-        fetchRequest: OrefDetermination.fetch(NSPredicate.predicateFor30MinAgoForDetermination),
-        animation: .bouncy
-    ) var determination: FetchedResults<OrefDetermination>
-
     private var bolusFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
@@ -156,7 +124,7 @@ struct MainChartView: View {
         if let selection = selection {
             let lowerBound = selection.addingTimeInterval(-120)
             let upperBound = selection.addingTimeInterval(120)
-            return glucoseFromPersistence.first { $0.date ?? now >= lowerBound && $0.date ?? now <= upperBound }
+            return state.glucoseFromPersistence.first { $0.date ?? now >= lowerBound && $0.date ?? now <= upperBound }
         } else {
             return nil
         }
@@ -174,12 +142,12 @@ struct MainChartView: View {
                         yAxisChartData()
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }
-                    .onChange(of: glucoseFromPersistence.last?.glucose) { _ in
+                    .onChange(of: state.glucoseFromPersistence.last?.glucose) { _ in
                         updateStartEndMarkers()
                         yAxisChartData()
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }
-                    .onChange(of: determination.last?.deliverAt) { _ in
+                    .onChange(of: state.determinationsFromPersistence.last?.deliverAt) { _ in
                         updateStartEndMarkers()
                         scroller.scrollTo("MainChart", anchor: .trailing)
                     }
@@ -363,7 +331,7 @@ extension MainChartView {
 extension MainChartView {
     private func drawBoluses() -> some ChartContent {
         /// smbs in triangle form
-        ForEach(insulinFromPersistence) { insulin in
+        ForEach(state.insulinFromPersistence) { insulin in
             let amount = insulin.bolus?.amount ?? 0 as NSDecimalNumber
             let bolusDate = insulin.timestamp ?? Date()
             let glucose = timeToNearestGlucose(time: bolusDate.timeIntervalSince1970)?.glucose ?? 120
@@ -390,7 +358,7 @@ extension MainChartView {
 
     private func drawCarbs() -> some ChartContent {
         /// carbs
-        ForEach(carbsFromPersistence) { carb in
+        ForEach(state.carbsFromPersistence) { carb in
             let carbAmount = carb.carbs
             let yPosition = units == .mgdL ? 60 : 3.33
 
@@ -409,7 +377,7 @@ extension MainChartView {
 
     private func drawFpus() -> some ChartContent {
         /// fpus
-        ForEach(fpusFromPersistence, id: \.id) { fpu in
+        ForEach(state.fpusFromPersistence, id: \.id) { fpu in
             let fpuAmount = fpu.carbs
             let size = (Config.fpuSize + CGFloat(fpuAmount) * Config.carbsScale) * 1.8
             let yPosition = units == .mgdL ? 60 : 3.33
@@ -426,7 +394,7 @@ extension MainChartView {
     private func drawGlucose() -> some ChartContent {
         /// glucose point mark
         /// filtering for high and low bounds in settings
-        ForEach(glucoseFromPersistence) { item in
+        ForEach(state.glucoseFromPersistence) { item in
             if smooth {
                 if item.glucose > Int(highGlucose) {
                     PointMark(
@@ -521,7 +489,7 @@ extension MainChartView {
     }
 
     private func preprocessForecastData() -> [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] {
-        determination
+        state.determinationsFromPersistence
             .compactMap { determination -> NSManagedObjectID? in
                 determination.objectID
             }
@@ -582,7 +550,7 @@ extension MainChartView {
 
     private func drawManualGlucose() -> some ChartContent {
         /// manual glucose mark
-        ForEach(manualGlucoseFromPersistence) { item in
+        ForEach(state.manualGlucoseFromPersistence) { item in
             let manualGlucose = item.glucose
             PointMark(
                 x: .value("Time", item.date ?? Date(), unit: .second),
@@ -624,7 +592,7 @@ extension MainChartView {
 
     private func prepareTempBasals() -> [(start: Date, end: Date, rate: Double)] {
         let now = Date()
-        return insulinFromPersistence.compactMap { temp -> (start: Date, end: Date, rate: Double)? in
+        return state.insulinFromPersistence.compactMap { temp -> (start: Date, end: Date, rate: Double)? in
             let duration = temp.tempBasal?.duration ?? 0
             let timestamp = temp.timestamp ?? Date()
             let end = min(timestamp + duration.minutes, now)
@@ -632,7 +600,7 @@ extension MainChartView {
             let rate = Double(truncating: temp.tempBasal?.rate ?? Decimal.zero as NSDecimalNumber) * (isInsulinSuspended ? 0 : 1)
 
             // Check if there's a subsequent temp basal to determine the end time
-            guard let nextTemp = insulinFromPersistence.first(where: { $0.timestamp ?? .distantPast > timestamp }) else {
+            guard let nextTemp = state.insulinFromPersistence.first(where: { $0.timestamp ?? .distantPast > timestamp }) else {
                 return (timestamp, end, rate)
             }
             return (timestamp, nextTemp.timestamp ?? Date(), rate) // end defaults to current time
@@ -674,21 +642,21 @@ extension MainChartView {
 
     /// calculates the glucose value thats the nearest to parameter 'time'
     private func timeToNearestGlucose(time: TimeInterval) -> GlucoseStored? {
-        guard !glucoseFromPersistence.isEmpty else {
+        guard !state.glucoseFromPersistence.isEmpty else {
             return nil
         }
 
         var low = 0
-        var high = glucoseFromPersistence.count - 1
+        var high = state.glucoseFromPersistence.count - 1
         var closestGlucose: GlucoseStored?
 
         // binary search to find next glucose
         while low <= high {
             let mid = low + (high - low) / 2
-            let midTime = glucoseFromPersistence[mid].date?.timeIntervalSince1970 ?? 0
+            let midTime = state.glucoseFromPersistence[mid].date?.timeIntervalSince1970 ?? 0
 
             if midTime == time {
-                return glucoseFromPersistence[mid]
+                return state.glucoseFromPersistence[mid]
             } else if midTime < time {
                 low = mid + 1
             } else {
@@ -697,7 +665,7 @@ extension MainChartView {
 
             // update if necessary
             if closestGlucose == nil || abs(midTime - time) < abs(closestGlucose!.date?.timeIntervalSince1970 ?? 0 - time) {
-                closestGlucose = glucoseFromPersistence[mid]
+                closestGlucose = state.glucoseFromPersistence[mid]
             }
         }
 
@@ -896,7 +864,7 @@ extension MainChartView {
     // MARK: - Chart formatting
 
     private func yAxisChartData() {
-        let glucoseMapped = glucoseFromPersistence.map(\.glucose)
+        let glucoseMapped = state.glucoseFromPersistence.map(\.glucose)
         guard let minGlucose = glucoseMapped.min(), let maxGlucose = glucoseMapped.max() else {
             // default values
             minValue = 45 * conversionFactor - 20 * conversionFactor

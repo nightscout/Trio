@@ -68,9 +68,28 @@ extension Home {
 
         @Published var waitForSuggestion: Bool = false
 
+        @Published var glucoseFromPersistence: [GlucoseStored] = []
+        @Published var manualGlucoseFromPersistence: [GlucoseStored] = []
+        @Published var carbsFromPersistence: [CarbEntryStored] = []
+        @Published var fpusFromPersistence: [CarbEntryStored] = []
+        @Published var determinationsFromPersistence: [OrefDetermination] = []
+        @Published var insulinFromPersistence: [PumpEventStored] = []
+        @Published var batteryFromPersistence: [OpenAPS_Battery] = []
+        @Published var lastPumpBolus: PumpEventStored?
+
         let context = CoreDataStack.shared.newTaskContext()
+        let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
         override func subscribe() {
+            setupNotification()
+            setupGlucoseArray()
+            setupManualGlucoseArray()
+            setupCarbsArray()
+            setupFPUsArray()
+            setupDeterminationsArray()
+            setupInsulinArray()
+            setupLastBolus()
+            setupBatteryArray()
             setupBasals()
             setupBoluses()
             setupSuspensions()
@@ -441,5 +460,318 @@ extension Home.StateModel: PumpManagerOnboardingDelegate {
 
     func pumpManagerOnboarding(didPauseOnboarding _: PumpManagerUI) {
         // TODO:
+    }
+}
+
+// MARK: - Setup Core Data observation
+
+extension Home.StateModel {
+    /// listens for the notifications sent when the managedObjectContext has saved!
+    func setupNotification() {
+        Foundation.NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(contextDidSave(_:)),
+            name: Notification.Name.NSManagedObjectContextDidSave,
+            object: nil
+        )
+    }
+
+    /// determine the actions when the context has changed
+    ///
+    /// its done on a background thread and after that the UI gets updated on the main thread
+    @objc private func contextDidSave(_ notification: Notification) {
+        guard let userInfo = notification.userInfo else { return }
+
+        Task { [weak self] in
+            await self?.processUpdates(userInfo: userInfo)
+        }
+    }
+
+    private func processUpdates(userInfo: [AnyHashable: Any]) async {
+        var objects = Set((userInfo[NSInsertedObjectsKey] as? Set<NSManagedObject>) ?? [])
+        objects.formUnion((userInfo[NSUpdatedObjectsKey] as? Set<NSManagedObject>) ?? [])
+        objects.formUnion((userInfo[NSDeletedObjectsKey] as? Set<NSManagedObject>) ?? [])
+
+        let glucoseUpdates = objects.filter { $0 is GlucoseStored }
+        let determinationUpdates = objects.filter { $0 is OrefDetermination }
+        let carbUpdates = objects.filter { $0 is CarbEntryStored }
+        let insulinUpdates = objects.filter { $0 is PumpEventStored }
+        let batteryUpdates = objects.filter { $0 is OpenAPS_Battery }
+
+        DispatchQueue.global(qos: .background).async {
+            if !glucoseUpdates.isEmpty {
+                self.setupGlucoseArray()
+                self.setupManualGlucoseArray()
+            }
+            if !determinationUpdates.isEmpty {
+                self.setupDeterminationsArray()
+            }
+            if !carbUpdates.isEmpty {
+                self.setupCarbsArray()
+                self.setupFPUsArray()
+            }
+            if !insulinUpdates.isEmpty {
+                self.setupInsulinArray()
+                self.setupLastBolus()
+            }
+            if !batteryUpdates.isEmpty {
+                self.setupBatteryArray()
+            }
+        }
+    }
+}
+
+// MARK: - Handle Core Data changes and update Arrays to display them in the UI
+
+extension Home.StateModel {
+    
+    // Setup Glucose
+    private func setupGlucoseArray() {
+        Task {
+            let ids = await self.fetchGlucose()
+            await updateGlucoseArray(with: ids)
+        }
+    }
+
+    private func fetchGlucose() async -> [NSManagedObjectID] {
+        CoreDataStack.shared.fetchEntities(
+            ofType: GlucoseStored.self,
+            onContext: context,
+            predicate: NSPredicate.glucose,
+            key: "date",
+            ascending: false,
+            fetchLimit: 288
+        ).map(\.objectID)
+    }
+
+    @MainActor private func updateGlucoseArray(with IDs: [NSManagedObjectID]) {
+        do {
+            let glucoseObjects = try IDs.compactMap { id in
+                try viewContext.existingObject(with: id) as? GlucoseStored
+            }
+            glucoseFromPersistence = glucoseObjects
+        } catch {
+            debugPrint(
+                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the glucose array: \(error.localizedDescription)"
+            )
+        }
+    }
+
+    // Setup Manual Glucose
+    private func setupManualGlucoseArray() {
+        Task {
+            let ids = await self.fetchGlucose()
+            await updateGlucoseArray(with: ids)
+        }
+    }
+
+    private func fetchManualGlucose() async -> [NSManagedObjectID] {
+        CoreDataStack.shared.fetchEntities(
+            ofType: GlucoseStored.self,
+            onContext: context,
+            predicate: NSPredicate.manualGlucose,
+            key: "date",
+            ascending: false,
+            fetchLimit: 288
+        ).map(\.objectID)
+    }
+
+    @MainActor private func updateManualGlucoseArray(with IDs: [NSManagedObjectID]) {
+        do {
+            let manualGlucoseObjects = try IDs.compactMap { id in
+                try viewContext.existingObject(with: id) as? GlucoseStored
+            }
+            manualGlucoseFromPersistence = manualGlucoseObjects
+        } catch {
+            debugPrint(
+                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the manual glucose array: \(error.localizedDescription)"
+            )
+        }
+    }
+
+    // Setup Carbs
+    private func setupCarbsArray() {
+        Task {
+            let ids = await self.fetchCarbs()
+            await updateCarbsArray(with: ids)
+        }
+    }
+
+    private func fetchCarbs() async -> [NSManagedObjectID] {
+        CoreDataStack.shared.fetchEntities(
+            ofType: CarbEntryStored.self,
+            onContext: context,
+            predicate: NSPredicate.carbsForChart,
+            key: "date",
+            ascending: false
+        ).map(\.objectID)
+    }
+
+    @MainActor private func updateCarbsArray(with IDs: [NSManagedObjectID]) {
+        do {
+            let carbObjects = try IDs.compactMap { id in
+                try viewContext.existingObject(with: id) as? CarbEntryStored
+            }
+            carbsFromPersistence = carbObjects
+        } catch {
+            debugPrint(
+                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the carbs array: \(error.localizedDescription)"
+            )
+        }
+    }
+
+    // Setup FPUs
+    private func setupFPUsArray() {
+        Task {
+            let ids = await self.fetchFPUs()
+            await updateFPUsArray(with: ids)
+        }
+    }
+
+    private func fetchFPUs() async -> [NSManagedObjectID] {
+        CoreDataStack.shared.fetchEntities(
+            ofType: CarbEntryStored.self,
+            onContext: context,
+            predicate: NSPredicate.fpusForChart,
+            key: "date",
+            ascending: false
+        ).map(\.objectID)
+    }
+
+    @MainActor private func updateFPUsArray(with IDs: [NSManagedObjectID]) {
+        do {
+            let fpuObjects = try IDs.compactMap { id in
+                try viewContext.existingObject(with: id) as? CarbEntryStored
+            }
+            fpusFromPersistence = fpuObjects
+        } catch {
+            debugPrint(
+                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the fpus array: \(error.localizedDescription)"
+            )
+        }
+    }
+
+    // Setup Determinations
+    private func setupDeterminationsArray() {
+        Task {
+            let ids = await self.fetchDeterminations()
+            await updateDeterminationsArray(with: ids)
+        }
+    }
+
+    private func fetchDeterminations() async -> [NSManagedObjectID] {
+        CoreDataStack.shared.fetchEntities(
+            ofType: OrefDetermination.self,
+            onContext: context,
+            predicate: NSPredicate.enactedDetermination,
+            key: "deliverAt",
+            ascending: false,
+            fetchLimit: 1
+        ).map(\.objectID)
+    }
+
+    @MainActor private func updateDeterminationsArray(with IDs: [NSManagedObjectID]) {
+        do {
+            let determinationObjects = try IDs.compactMap { id in
+                try viewContext.existingObject(with: id) as? OrefDetermination
+            }
+            determinationsFromPersistence = determinationObjects
+        } catch {
+            debugPrint(
+                "Home State: \(#function) \(DebuggingIdentifiers.failed)  error while updating the determinations array: \(error.localizedDescription)"
+            )
+        }
+    }
+
+    // Setup Insulin
+    private func setupInsulinArray() {
+        Task {
+            let ids = await self.fetchInsulin()
+            await updateInsulinArray(with: ids)
+        }
+    }
+
+    private func fetchInsulin() async -> [NSManagedObjectID] {
+        CoreDataStack.shared.fetchEntities(
+            ofType: PumpEventStored.self,
+            onContext: context,
+            predicate: NSPredicate.pumpHistoryLast24h,
+            key: "timestamp",
+            ascending: true
+        ).map(\.objectID)
+    }
+
+    @MainActor private func updateInsulinArray(with IDs: [NSManagedObjectID]) {
+        do {
+            let insulinObjects = try IDs.compactMap { id in
+                try viewContext.existingObject(with: id) as? PumpEventStored
+            }
+            insulinFromPersistence = insulinObjects
+        } catch {
+            debugPrint(
+                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the insulin array: \(error.localizedDescription)"
+            )
+        }
+    }
+
+    // Setup Last Bolus to display the bolus progress bar
+    // The predicate filters out all external boluses to prevent the progress bar from displaying the amount of an external bolus when an external bolus is added after a pump bolus
+    private func setupLastBolus() {
+        Task {
+            guard let id = await self.fetchLastBolus() else { return }
+            await updateLastBolus(with: id)
+        }
+    }
+
+    private func fetchLastBolus() async -> NSManagedObjectID? {
+        CoreDataStack.shared.fetchEntities(
+            ofType: PumpEventStored.self,
+            onContext: context,
+            predicate: NSPredicate.lastPumpBolus,
+            key: "timestamp",
+            ascending: false,
+            fetchLimit: 1
+        ).map(\.objectID).first
+    }
+
+    @MainActor private func updateLastBolus(with ID: NSManagedObjectID) {
+        do {
+            lastPumpBolus = try viewContext.existingObject(with: ID) as? PumpEventStored
+        } catch {
+            debugPrint(
+                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the insulin array: \(error.localizedDescription)"
+            )
+        }
+    }
+
+    // Setup Battery
+    private func setupBatteryArray() {
+        Task {
+            let ids = await self.fetchBattery()
+            await updateBatteryArray(with: ids)
+        }
+    }
+
+    private func fetchBattery() async -> [NSManagedObjectID] {
+        CoreDataStack.shared.fetchEntities(
+            ofType: OpenAPS_Battery.self,
+            onContext: context,
+            predicate: NSPredicate.predicateFor30MinAgo,
+            key: "date",
+            ascending: false
+        ).map(\.objectID)
+    }
+
+    @MainActor private func updateBatteryArray(with IDs: [NSManagedObjectID]) {
+        do {
+            let batteryObjects = try IDs.compactMap { id in
+                try viewContext.existingObject(with: id) as? OpenAPS_Battery
+            }
+            batteryFromPersistence = batteryObjects
+        } catch {
+            debugPrint(
+                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the battery array: \(error.localizedDescription)"
+            )
+        }
     }
 }

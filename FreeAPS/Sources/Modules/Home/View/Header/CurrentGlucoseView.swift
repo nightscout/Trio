@@ -7,7 +7,7 @@ struct CurrentGlucoseView: View {
     @Binding var alarm: GlucoseAlarm?
     @Binding var lowGlucose: Decimal
     @Binding var highGlucose: Decimal
-//    var glucoseFromPersistence: [GlucoseStored]
+    var latestGlucoseValues: [GlucoseStored]
 
     @State private var rotationDegrees: Double = 0.0
     @State private var angularGradient = AngularGradient(colors: [
@@ -20,13 +20,6 @@ struct CurrentGlucoseView: View {
     ], center: .center, startAngle: .degrees(270), endAngle: .degrees(-90))
 
     @Environment(\.colorScheme) var colorScheme
-
-    @FetchRequest(
-        entity: GlucoseStored.entity(),
-        sortDescriptors: [NSSortDescriptor(keyPath: \GlucoseStored.date, ascending: false)],
-        predicate: NSPredicate.predicateFor30MinAgo,
-        animation: Animation.bouncy
-    ) var glucoseFromPersistence: FetchedResults<GlucoseStored>
 
     private var glucoseFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -72,7 +65,7 @@ struct CurrentGlucoseView: View {
 
             VStack(alignment: .center) {
                 HStack {
-                    let glucoseValue = glucoseFromPersistence.first?.glucose ?? 100
+                    let glucoseValue = latestGlucoseValues.first?.glucose ?? 100
                     let displayGlucose = convertGlucose(glucoseValue, to: units)
 
                     Text(
@@ -83,7 +76,7 @@ struct CurrentGlucoseView: View {
                     .foregroundColor(alarm == nil ? colourGlucoseText : .loopRed)
                 }
                 HStack {
-                    let minutesAgo = -1 * (glucoseFromPersistence.first?.date?.timeIntervalSinceNow ?? 0) / 60
+                    let minutesAgo = -1 * (latestGlucoseValues.first?.date?.timeIntervalSinceNow ?? 0) / 60
                     let text = timaAgoFormatter.string(for: Double(minutesAgo)) ?? ""
                     Text(
                         minutesAgo <= 1 ? "< 1 " + NSLocalizedString("min", comment: "Short form for minutes") : (
@@ -100,7 +93,7 @@ struct CurrentGlucoseView: View {
                 }.frame(alignment: .top)
             }
         }
-        .onChange(of: glucoseFromPersistence.first?.direction) { newDirection in
+        .onChange(of: latestGlucoseValues.first?.direction) { newDirection in
             withAnimation {
                 switch newDirection {
                 case "DoubleUp",
@@ -138,12 +131,12 @@ struct CurrentGlucoseView: View {
     }
 
     private var delta: String {
-        guard glucoseFromPersistence.count >= 2 else {
+        guard latestGlucoseValues.count >= 2 else {
             return "--"
         }
 
-        let lastGlucose = glucoseFromPersistence.first?.glucose ?? 0
-        let secondLastGlucose = glucoseFromPersistence.dropFirst().first?.glucose ?? 0
+        let lastGlucose = latestGlucoseValues.first?.glucose ?? 0
+        let secondLastGlucose = latestGlucoseValues.dropFirst().first?.glucose ?? 0
         let delta = lastGlucose - secondLastGlucose
         let deltaAsDecimal = Decimal(delta)
         return deltaFormatter.string(from: deltaAsDecimal as NSNumber) ?? "--"
@@ -151,7 +144,7 @@ struct CurrentGlucoseView: View {
 
     var colourGlucoseText: Color {
         // Fetch the first glucose reading and convert it to Int for comparison
-        let whichGlucose = Int(glucoseFromPersistence.first?.glucose ?? 0)
+        let whichGlucose = Int(latestGlucoseValues.first?.glucose ?? 0)
 
         // Define default color based on the color scheme
         let defaultColor: Color = colorScheme == .dark ? .white : .black

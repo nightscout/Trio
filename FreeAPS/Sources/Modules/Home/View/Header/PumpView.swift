@@ -3,18 +3,11 @@ import SwiftUI
 
 struct PumpView: View {
     @Binding var reservoir: Decimal?
-//    @Binding var battery: Battery?
     @Binding var name: String
     @Binding var expiresAtDate: Date?
     @Binding var timerDate: Date
     @Binding var timeZone: TimeZone?
-
-    @State var state: Home.StateModel
-
-    @FetchRequest(
-        fetchRequest: OpenAPS_Battery.fetch(NSPredicate.predicateFor30MinAgo),
-        animation: Animation.bouncy
-    ) var battery: FetchedResults<OpenAPS_Battery>
+    var battery: [OpenAPS_Battery]
 
     @Environment(\.colorScheme) var colorScheme
 

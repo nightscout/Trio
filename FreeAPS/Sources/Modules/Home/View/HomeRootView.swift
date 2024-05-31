@@ -43,16 +43,6 @@ extension Home {
         ) var fetchedPercent: FetchedResults<Override>
 
         @FetchRequest(
-            fetchRequest: OrefDetermination.fetch(NSPredicate.enactedDetermination),
-            animation: .bouncy
-        ) var determination: FetchedResults<OrefDetermination>
-
-        @FetchRequest(
-            fetchRequest: PumpEventStored.fetch(NSPredicate.recentPumpHistory, ascending: false, fetchLimit: 1),
-            animation: .bouncy
-        ) var recentPumpHistory: FetchedResults<PumpEventStored>
-
-        @FetchRequest(
             entity: OverridePresets.entity(),
             sortDescriptors: [NSSortDescriptor(key: "name", ascending: true)], predicate: NSPredicate(
                 format: "name != %@", "" as String
@@ -154,7 +144,8 @@ extension Home {
                 units: $state.units,
                 alarm: $state.alarm,
                 lowGlucose: $state.lowGlucose,
-                highGlucose: $state.highGlucose
+                highGlucose: $state.highGlucose,
+                latestGlucoseValues: state.glucoseFromPersistence
             ).scaleEffect(0.9)
                 .onTapGesture {
                     if state.alarm == nil {
@@ -180,8 +171,7 @@ extension Home {
                 name: $state.pumpName,
                 expiresAtDate: $state.pumpExpiresAtDate,
                 timerDate: $state.timerDate,
-                timeZone: $state.timeZone,
-                state: state
+                timeZone: $state.timeZone, battery: state.batteryFromPersistence
             ).onTapGesture {
                 if state.pumpDisplayState != nil {
                     state.setupPump = true
@@ -190,7 +180,7 @@ extension Home {
         }
 
         var tempBasalString: String? {
-            guard let tempRate = recentPumpHistory.first?.tempBasal?.rate else {
+            guard let tempRate = state.insulinFromPersistence.last?.tempBasal?.rate else {
                 return nil
             }
             let rateString = numberFormatter.string(from: tempRate as NSNumber) ?? "0"
@@ -427,7 +417,8 @@ extension Home {
                     timerDate: $state.timerDate,
                     isLooping: $state.isLooping,
                     lastLoopDate: $state.lastLoopDate,
-                    manualTempBasal: $state.manualTempBasal
+                    manualTempBasal: $state.manualTempBasal,
+                    determination: state.determinationsFromPersistence
                 ).onTapGesture {
                     state.isStatusPopupPresented = true
                     setStatusTitle()
@@ -438,7 +429,7 @@ extension Home {
                 }
                 /// eventualBG string at bottomTrailing
 
-                if let eventualBG = determination.first?.eventualBG {
+                if let eventualBG = state.determinationsFromPersistence.first?.eventualBG {
                     let bg = eventualBG as Decimal
                     HStack {
                         Image(systemName: "arrow.right.circle")
@@ -486,7 +477,7 @@ extension Home {
                         .font(.system(size: 16))
                         .foregroundColor(Color.insulin)
                     Text(
-                        (numberFormatter.string(from: (determination.first?.iob ?? 0) as NSNumber) ?? "0") +
+                        (numberFormatter.string(from: (state.determinationsFromPersistence.first?.iob ?? 0) as NSNumber) ?? "0") +
                             NSLocalizedString(" U", comment: "Insulin unit")
                     )
                     .font(.system(size: 16, weight: .bold, design: .rounded))
@@ -499,7 +490,7 @@ extension Home {
                         .font(.system(size: 16))
                         .foregroundColor(.loopYellow)
                     Text(
-                        (numberFormatter.string(from: (determination.first?.cob ?? 0) as NSNumber) ?? "0") +
+                        (numberFormatter.string(from: (state.determinationsFromPersistence.first?.cob ?? 0) as NSNumber) ?? "0") +
                             NSLocalizedString(" g", comment: "gram of carbs")
                     )
                     .font(.system(size: 16, weight: .bold, design: .rounded))
@@ -525,7 +516,8 @@ extension Home {
                         "TDD: " +
                             (
                                 numberFormatter
-                                    .string(from: (determination.first?.totalDailyDose ?? 0) as NSNumber) ?? "0"
+                                    .string(from: (state.determinationsFromPersistence.first?.totalDailyDose ?? 0) as NSNumber) ??
+                                    "0"
                             ) +
                             NSLocalizedString(" U", comment: "Insulin unit")
                     )
@@ -677,62 +669,66 @@ extension Home {
         }
 
         @ViewBuilder func bolusView(_: GeometryProxy, _ progress: Decimal) -> some View {
-            let bolusTotal = (recentPumpHistory.first?.bolus?.amount) as? Decimal ?? 0
-            let bolusFraction = progress * bolusTotal
+            /// ensure that state.lastPumpBolus has a value, i.e. there is a last bolus done by the pump and not an external bolus
+            /// - TRUE:  show the pump bolus
+            /// - FALSE:  do not show a progress bar at all
+            if let bolusTotal = state.lastPumpBolus?.bolus?.amount {
+                let bolusFraction = progress * (bolusTotal as Decimal)
+                let bolusString =
+                    (bolusProgressFormatter.string(from: bolusFraction as NSNumber) ?? "0")
+                        + " of " +
+                        (numberFormatter.string(from: bolusTotal as NSNumber) ?? "0")
+                        + NSLocalizedString(" U", comment: "Insulin unit")
 
-            let bolusString =
-                (bolusProgressFormatter.string(from: bolusFraction as NSNumber) ?? "0")
-                    + " of " +
-                    (numberFormatter.string(from: bolusTotal as NSNumber) ?? "0")
-                    + NSLocalizedString(" U", comment: "Insulin unit")
+                ZStack {
+                    /// rectangle as background
+                    RoundedRectangle(cornerRadius: 15)
+                        .fill(
+                            colorScheme == .dark ? Color(red: 0.03921568627, green: 0.133333333, blue: 0.2156862745) : Color
+                                .insulin
+                                .opacity(0.2)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 15))
+                        .frame(height: UIScreen.main.bounds.height / 18)
+                        .shadow(
+                            color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
+                                Color.black.opacity(0.33),
+                            radius: 3
+                        )
 
-            ZStack {
-                /// rectangle as background
-                RoundedRectangle(cornerRadius: 15)
-                    .fill(
-                        colorScheme == .dark ? Color(red: 0.03921568627, green: 0.133333333, blue: 0.2156862745) : Color.insulin
-                            .opacity(0.2)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 15))
-                    .frame(height: UIScreen.main.bounds.height / 18)
-                    .shadow(
-                        color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
-                            Color.black.opacity(0.33),
-                        radius: 3
-                    )
-
-                /// actual bolus view
-                HStack {
-                    Image(systemName: "cross.vial.fill")
-                        .font(.system(size: 25))
-
-                    Spacer()
-
-                    VStack {
-                        Text("Bolusing")
-                            .font(.subheadline)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        Text(bolusString)
-                            .font(.caption)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }.padding(.leading, 5)
-
-                    Spacer()
-
-                    Button {
-                        state.waitForSuggestion = true
-                        state.cancelBolus()
-                    } label: {
-                        Image(systemName: "xmark.app")
+                    /// actual bolus view
+                    HStack {
+                        Image(systemName: "cross.vial.fill")
                             .font(.system(size: 25))
-                    }
-                }.padding(.horizontal, 10)
-                    .padding(.trailing, 8)
 
-            }.padding(.horizontal, 10).padding(.bottom, 10)
-                .overlay(alignment: .bottom) {
-                    bolusProgressBar(progress).padding(.horizontal, 18).offset(y: 45)
-                }.clipShape(RoundedRectangle(cornerRadius: 15))
+                        Spacer()
+
+                        VStack {
+                            Text("Bolusing")
+                                .font(.subheadline)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            Text(bolusString)
+                                .font(.caption)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }.padding(.leading, 5)
+
+                        Spacer()
+
+                        Button {
+                            state.waitForSuggestion = true
+                            state.cancelBolus()
+                        } label: {
+                            Image(systemName: "xmark.app")
+                                .font(.system(size: 25))
+                        }
+                    }.padding(.horizontal, 10)
+                        .padding(.trailing, 8)
+
+                }.padding(.horizontal, 10).padding(.bottom, 10)
+                    .overlay(alignment: .bottom) {
+                        bolusProgressBar(progress).padding(.horizontal, 18).offset(y: 45)
+                    }.clipShape(RoundedRectangle(cornerRadius: 15))
+            }
         }
 
         @ViewBuilder func mainView() -> some View {
@@ -810,7 +806,8 @@ extension Home {
             ZStack(alignment: .bottom) {
                 TabView {
                     let carbsRequiredBadge: String? = {
-                        guard let carbsRequired = determination.first?.carbsRequired as? Decimal else { return nil }
+                        guard let carbsRequired = state.determinationsFromPersistence.first?.carbsRequired as? Decimal
+                        else { return nil }
                         if carbsRequired > state.settingsManager.settings.carbsRequiredThreshold {
                             let numberAsNSNumber = NSDecimalNumber(decimal: carbsRequired)
                             let formattedNumber = numberFormatter.string(from: numberAsNSNumber) ?? ""
@@ -873,7 +870,7 @@ extension Home {
             VStack(alignment: .leading, spacing: 4) {
                 Text(statusTitle).font(.headline).foregroundColor(.white)
                     .padding(.bottom, 4)
-                if let determination = determination.first {
+                if let determination = state.determinationsFromPersistence.first {
                     if determination.glucose == 400 {
                         Text("Invalid CGM reading (HIGH).").font(.callout).bold().foregroundColor(.loopRed).padding(.top, 8)
                         Text("SMBs and High Temps Disabled.").font(.caption).foregroundColor(.white).padding(.bottom, 4)
@@ -898,7 +895,7 @@ extension Home {
         }
 
         private func setStatusTitle() {
-            if let determination = determination.first {
+            if let determination = state.determinationsFromPersistence.first {
                 let dateFormatter = DateFormatter()
                 dateFormatter.timeStyle = .short
                 statusTitle = NSLocalizedString("Oref Determination enacted at", comment: "Headline in enacted pop up") +
