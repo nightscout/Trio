@@ -1408,23 +1408,6 @@ private extension PumpManager {
         }
     }
 
-//    func cancelBolus() -> AnyPublisher<DoseEntry?, Error> {
-//        Future { promise in
-//            self.cancelBolus { result in
-//                switch result {
-//                case let .success(dose):
-//                    debug(.apsManager, "Cancel Bolus succeeded")
-//                    promise(.success(dose))
-//                case let .failure(error):
-//                    debug(.apsManager, "Cancel Bolus failed")
-//                    promise(.failure(error))
-//                }
-//            }
-//        }
-//        .mapError { APSError.pumpError($0) }
-//        .eraseToAnyPublisher()
-//    }
-
     func suspendDelivery() -> AnyPublisher<Void, Error> {
         Future { promise in
             self.suspendDelivery { error in
