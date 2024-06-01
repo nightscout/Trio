@@ -14,7 +14,9 @@ struct ChartsView: View {
 
     @State var headline: Color = .secondary
 
-    private let conversionFactor = 0.0555
+    private var conversionFactor: Decimal {
+        units == .mmolL ? 0.0555 : 1
+    }
 
     var body: some View {
         glucoseChart
@@ -50,43 +52,30 @@ struct ChartsView: View {
     }
 
     var glucoseChart: some View {
-        // Be aware of the low/lowLimit difference. lowLimit/highLimit is always in mg/dl, whereas low/high is configurable in settings
-        let low = lowLimit * (units == .mmolL ? Decimal(conversionFactor) : 1)
-        let high = highLimit * (units == .mmolL ? Decimal(conversionFactor) : 1)
+        let low = lowLimit * conversionFactor
+        let high = highLimit * conversionFactor
         let count = glucose.count
         // The symbol size when fewer readings are larger
-        let sizeOfDataPoints: CGFloat = count < 20 ? 50 : count < 50 ? 35 : count > 2000 ? 5 : 15
+        let size: CGFloat = count < 20 ? 50 : count < 50 ? 35 : count > 2000 ? 5 : 15
 
         return Chart {
-            ForEach(glucose.filter({ $0.glucose > Int(highLimit) }), id: \.date) { item in
-                PointMark(
-                    x: .value("Date", item.date ?? Date()),
-                    y: .value("High", Double(item.glucose) * (units == .mmolL ? self.conversionFactor : 1))
-                )
-                .foregroundStyle(.orange)
-                .symbolSize(sizeOfDataPoints)
-            }
-            ForEach(
-                glucose
-                    .filter({
-                        $0.glucose >= Int(lowLimit) && $0
-                            .glucose <= Int(highLimit) }),
-                id: \.date
-            ) { item in
-                PointMark(
-                    x: .value("Date", item.date ?? Date()),
-                    y: .value("In Range", Double(item.glucose) * (units == .mmolL ? conversionFactor : 1))
-                )
-                .foregroundStyle(.green)
-                .symbolSize(sizeOfDataPoints)
-            }
-            ForEach(glucose.filter({ $0.glucose < Int(lowLimit) }), id: \.date) { item in
-                PointMark(
-                    x: .value("Date", item.date ?? Date()),
-                    y: .value("Low", Double(item.glucose) * (units == .mmolL ? conversionFactor : 1))
-                )
-                .foregroundStyle(.red)
-                .symbolSize(sizeOfDataPoints)
+            ForEach(glucose) { item in
+                if item.glucose > Int(highLimit) {
+                    PointMark(
+                        x: .value("Time", item.date ?? Date(), unit: .second),
+                        y: .value("Value", Decimal(item.glucose) * conversionFactor)
+                    ).foregroundStyle(Color.orange.gradient).symbolSize(size).interpolationMethod(.cardinal)
+                } else if item.glucose < Int(lowLimit) {
+                    PointMark(
+                        x: .value("Time", item.date ?? Date(), unit: .second),
+                        y: .value("Value", Decimal(item.glucose) * conversionFactor)
+                    ).foregroundStyle(Color.red.gradient).symbolSize(size).interpolationMethod(.cardinal)
+                } else {
+                    PointMark(
+                        x: .value("Time", item.date ?? Date(), unit: .second),
+                        y: .value("Value", Decimal(item.glucose) * conversionFactor)
+                    ).foregroundStyle(Color.green.gradient).symbolSize(size).interpolationMethod(.cardinal)
+                }
             }
         }
         .chartYAxis {
@@ -103,8 +92,8 @@ struct ChartsView: View {
 
     var tirChart: some View {
         let fetched = tir()
-        let low = lowLimit * (units == .mmolL ? Decimal(conversionFactor) : 1)
-        let high = highLimit * (units == .mmolL ? Decimal(conversionFactor) : 1)
+        let low = lowLimit * conversionFactor
+        let high = highLimit * conversionFactor
 
         let data: [ShapeModel] = [
             .init(
@@ -150,8 +139,8 @@ struct ChartsView: View {
 
     var standingTIRchart: some View {
         let fetched = tir()
-        let low = lowLimit * (units == .mmolL ? Decimal(conversionFactor) : 1)
-        let high = highLimit * (units == .mmolL ? Decimal(conversionFactor) : 1)
+        let low = lowLimit * conversionFactor
+        let high = highLimit * conversionFactor
         let fraction = units == .mmolL ? 1 : 0
         let data: [ShapeModel] = [
             .init(

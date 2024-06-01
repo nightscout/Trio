@@ -14,11 +14,6 @@ extension Stat {
             sortDescriptors: [NSSortDescriptor(key: "timestamp", ascending: false)]
         ) var fetchedTDD: FetchedResults<TDD>
 
-        @FetchRequest(
-            entity: InsulinDistribution.entity(),
-            sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
-        ) var fetchedInsulin: FetchedResults<InsulinDistribution>
-
         @Environment(\.colorScheme) var colorScheme
 
         @State var paddingAmount: CGFloat? = 10
