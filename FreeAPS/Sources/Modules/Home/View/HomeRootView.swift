@@ -400,7 +400,7 @@ extension Home {
                             .foregroundStyle(
                                 !(state.currentOverride != nil) ? .green : .cyan,
                                 !(state.currentOverride != nil) ? .cyan : .green,
-                                .purple
+                                Color.profil
                             )
                     }
                 }

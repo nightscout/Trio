@@ -39,15 +39,15 @@ final class OverrideTests: XCTestCase, Injectable {
         // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
 
         // new override preset :
-        let op = OverrideProfil(name: "test 1", percentage: 120, reason: "test 1")
+        let op = OverrideProfile(name: "test 1", percentage: 120, reason: "test 1")
 
         overrideTestStorage.storeOverridePresets([op])
         XCTAssertTrue(overrideTestStorage.presets().count == 1)
         XCTAssertTrue(overrideTestStorage.presets().first?.percentage == 120)
         XCTAssertNil(overrideTestStorage.presets().first?.date)
 
-        let op2 = OverrideProfil(name: "test 2", percentage: 80, reason: "test 2")
-        let op3 = OverrideProfil(name: "test 3", percentage: 200, reason: "test 3")
+        let op2 = OverrideProfile(name: "test 2", percentage: 80, reason: "test 2")
+        let op3 = OverrideProfile(name: "test 3", percentage: 200, reason: "test 3")
         overrideTestStorage.storeOverridePresets([op2, op3])
         XCTAssertTrue(overrideTestStorage.presets().count == 3)
     }
@@ -60,7 +60,7 @@ final class OverrideTests: XCTestCase, Injectable {
         // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
 
         // new override preset :
-        let op = OverrideProfil(name: "test 1", percentage: 120, reason: "test 1")
+        let op = OverrideProfile(name: "test 1", percentage: 120, reason: "test 1")
 
         overrideTestStorage.storeOverridePresets([op])
         var opUpdate = overrideTestStorage.presets().first
@@ -72,7 +72,7 @@ final class OverrideTests: XCTestCase, Injectable {
 
     func testRemoveOverridePreset() {
         // new override preset :
-        let op = OverrideProfil(name: "test 1", percentage: 120, reason: "test 1")
+        let op = OverrideProfile(name: "test 1", percentage: 120, reason: "test 1")
 
         overrideTestStorage.storeOverridePresets([op])
         XCTAssertTrue(overrideTestStorage.presets().count == 1)
@@ -82,14 +82,14 @@ final class OverrideTests: XCTestCase, Injectable {
     }
 
     func testAddOverride() {
-        let op = OverrideProfil(createdAt: Date(), duration: 20, percentage: 110, reason: "test 1")
-        let op2 = OverrideProfil(
+        let op = OverrideProfile(createdAt: Date(), duration: 20, percentage: 110, reason: "test 1")
+        let op2 = OverrideProfile(
             createdAt: Date().addingTimeInterval(-10.minutes),
             duration: 10,
             percentage: 120,
             reason: "test 2"
         )
-        let op3 = OverrideProfil(
+        let op3 = OverrideProfile(
             createdAt: Date().addingTimeInterval(-2.days.timeInterval),
             percentage: 20,
             reason: "test 3"
@@ -103,7 +103,7 @@ final class OverrideTests: XCTestCase, Injectable {
     }
 
     func testUpdateOverride() {
-        let op = OverrideProfil(createdAt: Date(), duration: 20, percentage: 110, reason: "test 1")
+        let op = OverrideProfile(createdAt: Date(), duration: 20, percentage: 110, reason: "test 1")
 
         overrideTestStorage.storeOverride([op])
         var opUpdate = overrideTestStorage.current()!
@@ -114,7 +114,7 @@ final class OverrideTests: XCTestCase, Injectable {
     }
 
     func testCancelOverride() {
-        let op = OverrideProfil(
+        let op = OverrideProfile(
             createdAt: Date().addingTimeInterval(-10.minutes),
             duration: 20,
             percentage: 110,
@@ -127,11 +127,11 @@ final class OverrideTests: XCTestCase, Injectable {
         XCTAssertLessThan(durationFinal, 1)
     }
 
-    func testApplyOverrideProfil() {
-        let op = OverrideProfil(name: "test 1", indefinite: true, percentage: 120, reason: "test 1")
+    func testApplyOverrideProfile() {
+        let op = OverrideProfile(name: "test 1", indefinite: true, percentage: 120, reason: "test 1")
         overrideTestStorage.storeOverridePresets([op])
 
-//        let ov = OverrideProfil(createdAt: Date(), indefinite: true, percentage: 10, reason: "test 2")
+//        let ov = OverrideProfile(createdAt: Date(), indefinite: true, percentage: 10, reason: "test 2")
 //        overrideTestStorage.storeOverride([ov])
 
         let presetId = overrideTestStorage.presets().first?.id
@@ -141,7 +141,7 @@ final class OverrideTests: XCTestCase, Injectable {
         XCTAssertTrue(overrideTestStorage.current()?.percentage == 120)
         XCTAssertTrue(overrideTestStorage.current()?.createdAt == date)
 
-        let op2 = OverrideProfil(name: "test 2", duration: 20, percentage: 10, reason: "test 2")
+        let op2 = OverrideProfile(name: "test 2", duration: 20, percentage: 10, reason: "test 2")
         overrideTestStorage.storeOverridePresets([op2])
 
         let presetId2 = overrideTestStorage.presets().first(where: { $0.name == "test 2" })!.id

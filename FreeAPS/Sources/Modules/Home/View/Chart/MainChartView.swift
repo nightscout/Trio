@@ -54,7 +54,7 @@ struct MainChartView: View {
     @Binding var displayXgridLines: Bool
     @Binding var displayYgridLines: Bool
     @Binding var thresholdLines: Bool
-    @Binding var overrideHistory: [OverrideProfil?]
+    @Binding var overrideHistory: [OverrideProfile?]
     @Binding var targetBG: BGTargets?
 
     @State var didAppearTrigger = false

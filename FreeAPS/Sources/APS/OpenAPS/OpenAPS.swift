@@ -18,7 +18,7 @@ final class OpenAPS {
     func determineBasal(
         currentTemp: TempBasal,
         clock: Date = Date(),
-        override: OverrideProfil? = nil
+        override: OverrideProfile? = nil
     ) -> Future<Suggestion?, Never> {
         Future { promise in
             self.processQueue.async {
@@ -122,20 +122,21 @@ final class OpenAPS {
         }
     }
 
-    func oref2(_ override: OverrideProfil? = nil) -> RawJSON {
+    func oref2(_ override: OverrideProfile? = nil) -> RawJSON {
         coredataContext.performAndWait {
             let preferences = storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self)
             var hbt_ = preferences?.halfBasalExerciseTarget ?? 160
             let wp = preferences?.weightPercentage ?? 1
             let smbMinutes = preferences?.maxSMBBasalMinutes ?? 30
             let uamMinutes = preferences?.maxUAMSMBBasalMinutes ?? 30
-
-            let tenDaysAgo = Date().addingTimeInterval(-10.days.timeInterval)
-            let twoHoursAgo = Date().addingTimeInterval(-2.hours.timeInterval)
+            let now = Date()
 
             var uniqueEvents = [TDD]()
             let requestTDD = TDD.fetchRequest() as NSFetchRequest<TDD>
-            requestTDD.predicate = NSPredicate(format: "timestamp > %@ AND tdd > 0", tenDaysAgo as NSDate)
+            requestTDD.predicate = NSPredicate(
+                format: "timestamp > %@ AND tdd > 0",
+                now.addingTimeInterval(-10.days.timeInterval) as NSDate
+            )
             let sortTDD = NSSortDescriptor(key: "timestamp", ascending: true)
             requestTDD.sortDescriptors = [sortTDD]
             try? uniqueEvents = coredataContext.fetch(requestTDD)
@@ -157,7 +158,7 @@ final class OpenAPS {
             let total = uniqueEvents.compactMap({ each in each.tdd as? Decimal ?? 0 }).reduce(0, +)
             var indeces = uniqueEvents.count
             // Only fetch once. Use same (previous) fetch
-            let twoHoursArray = uniqueEvents.filter({ ($0.timestamp ?? Date()) >= twoHoursAgo })
+            let twoHoursArray = uniqueEvents.filter({ ($0.timestamp ?? Date()) >= now.addingTimeInterval(-2.hours.timeInterval) })
             var nrOfIndeces = twoHoursArray.count
             let totalAmount = twoHoursArray.compactMap({ each in each.tdd as? Decimal ?? 0 }).reduce(0, +)
 
@@ -191,11 +192,11 @@ final class OpenAPS {
             if useOverride {
                 duration = override?.duration ?? 0
                 overrideTarget = override?.target ?? 0
-                if let sm = override?.smbMinutes {
-                    smbMin = sm > 0 ? sm : smbMinutes
+                if let smbMinutesOverride = override?.smbMinutes {
+                    smbMin = smbMinutesOverride > 0 ? smbMinutesOverride : smbMinutes
                 }
-                if let um = override?.uamMinutes {
-                    uamMin = um > 0 ? um : uamMinutes
+                if let uamMinutesOverride = override?.uamMinutes {
+                    uamMin = uamMinutesOverride > 0 ? uamMinutesOverride : uamMinutes
                 }
             }
 

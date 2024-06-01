@@ -1,6 +1,6 @@
 import Foundation
 
-struct OverrideProfil: JSON, Identifiable, Equatable, Hashable {
+struct OverrideProfile: JSON, Identifiable, Equatable, Hashable {
     var id = UUID().uuidString
     var name: String? = nil
     var createdAt: Date? = nil
@@ -24,7 +24,7 @@ struct OverrideProfil: JSON, Identifiable, Equatable, Hashable {
 
     var smbMinutes: Decimal? = nil
     var uamMinutes: Decimal? = nil
-    var enteredBy: String? = OverrideProfil.manual
+    var enteredBy: String? = OverrideProfile.manual
     var reason: String?
 
     static let manual = "Trio"
@@ -35,11 +35,11 @@ struct OverrideProfil: JSON, Identifiable, Equatable, Hashable {
         if let name = name, name != "" {
             return name
         } else {
-            return OverrideProfil.custom
+            return OverrideProfile.custom
         }
     }
 
-    static func == (lhs: OverrideProfil, rhs: OverrideProfil) -> Bool {
+    static func == (lhs: OverrideProfile, rhs: OverrideProfile) -> Bool {
         lhs.createdAt == rhs.createdAt && lhs.indefinite == rhs.indefinite && lhs.duration == rhs.duration
     }
 
@@ -47,9 +47,9 @@ struct OverrideProfil: JSON, Identifiable, Equatable, Hashable {
         hasher.combine(id)
     }
 
-    static func cancel(at date: Date) -> OverrideProfil {
-        OverrideProfil(
-            name: OverrideProfil.cancel,
+    static func cancel(at date: Date) -> OverrideProfile {
+        OverrideProfile(
+            name: OverrideProfile.cancel,
             createdAt: date,
             duration: nil,
             indefinite: false,
@@ -65,13 +65,13 @@ struct OverrideProfil: JSON, Identifiable, Equatable, Hashable {
             end: 0,
             smbMinutes: nil,
             uamMinutes: nil,
-            enteredBy: OverrideProfil.manual,
-            reason: OverrideProfil.cancel
+            enteredBy: OverrideProfile.manual,
+            reason: OverrideProfile.cancel
         )
     }
 }
 
-extension OverrideProfil {
+extension OverrideProfile {
     private enum CodingKeys: String, CodingKey {
         case id = "_id"
         case name

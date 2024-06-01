@@ -292,7 +292,7 @@
 		CC6C406E2ACDD69E009B8058 /* RawFetchedProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC6C406D2ACDD69E009B8058 /* RawFetchedProfile.swift */; };
 		CD78BB94E43B249D60CC1A1B /* NotificationsConfigRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22963BD06A9C83959D4914E4 /* NotificationsConfigRootView.swift */; };
 		CE0295982BE65817003D5E97 /* OverrideStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE0295972BE65817003D5E97 /* OverrideStorage.swift */; };
-		CE02959B2BE65A40003D5E97 /* OverrideProfil.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE02959A2BE65A40003D5E97 /* OverrideProfil.swift */; };
+		CE02959B2BE65A40003D5E97 /* OverrideProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE02959A2BE65A40003D5E97 /* OverrideProfile.swift */; };
 		CE02959F2BE7A003003D5E97 /* TestCoreData.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE02959E2BE7A003003D5E97 /* TestCoreData.swift */; };
 		CE0295A12BE7A4F9003D5E97 /* OverrideTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE0295A02BE7A4F9003D5E97 /* OverrideTests.swift */; };
 		CE0BF4B52BEA6CAB004C00DD /* NightscoutExercice.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE0BF4B42BEA6CAB004C00DD /* NightscoutExercice.swift */; };
@@ -826,7 +826,7 @@
 		C8D1A7CA8C10C4403D4BBFA7 /* BolusDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BolusDataFlow.swift; sourceTree = "<group>"; };
 		CC6C406D2ACDD69E009B8058 /* RawFetchedProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawFetchedProfile.swift; sourceTree = "<group>"; };
 		CE0295972BE65817003D5E97 /* OverrideStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideStorage.swift; sourceTree = "<group>"; };
-		CE02959A2BE65A40003D5E97 /* OverrideProfil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideProfil.swift; sourceTree = "<group>"; };
+		CE02959A2BE65A40003D5E97 /* OverrideProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideProfile.swift; sourceTree = "<group>"; };
 		CE02959E2BE7A003003D5E97 /* TestCoreData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestCoreData.swift; sourceTree = "<group>"; };
 		CE0295A02BE7A4F9003D5E97 /* OverrideTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideTests.swift; sourceTree = "<group>"; };
 		CE0BF4B42BEA6CAB004C00DD /* NightscoutExercice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutExercice.swift; sourceTree = "<group>"; };
@@ -1629,7 +1629,7 @@
 				193F6CDC2A512C8F001240FD /* Loops.swift */,
 				CC6C406D2ACDD69E009B8058 /* RawFetchedProfile.swift */,
 				BDF530D72B40F8AC002CAF43 /* LockScreenView.swift */,
-				CE02959A2BE65A40003D5E97 /* OverrideProfil.swift */,
+				CE02959A2BE65A40003D5E97 /* OverrideProfile.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -2737,7 +2737,7 @@
 				3883581C25EE79BB00E024B2 /* DecimalTextField.swift in Sources */,
 				6B1A8D2E2B156EEF00E76752 /* LiveActivityBridge.swift in Sources */,
 				38DAB28A260D349500F74C1A /* FetchGlucoseManager.swift in Sources */,
-				CE02959B2BE65A40003D5E97 /* OverrideProfil.swift in Sources */,
+				CE02959B2BE65A40003D5E97 /* OverrideProfile.swift in Sources */,
 				38F37828261260DC009DB701 /* Color+Extensions.swift in Sources */,
 				3811DE3F25C9D4A100A708ED /* SettingsStateModel.swift in Sources */,
 				CE7CA3582A064E2F004BE681 /* ListStateView.swift in Sources */,
