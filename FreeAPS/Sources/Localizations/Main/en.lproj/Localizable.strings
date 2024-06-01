@@ -519,7 +519,7 @@ Enact a temp Basal or a temp target */
 "ISF" = "ISF";
 
 /* */
-"The app Garmin Connect must be installed to use for Trio.\n Go to App Store to download it" = "The app Garmin Connect must be installed to use for Trio.\n Go to App Store to download it";
+"The app Garmin Connect must be installed.\n Please go to the App Store to download it" = "The app Garmin Connect must be installed.\n Please go to the App Store to download it";
 
 /* */
 "Garmin is not available" = "Garmin is not available";
@@ -1087,13 +1087,13 @@ Enact a temp Basal or a temp target */
 
 
 /* Headers for settings ----------------------- */
-"OpenAPS main settings" = "OpenAPS main settings";
+"Main settings" = "Main settings";
 
-"OpenAPS SMB settings" = "OpenAPS SMB settings";
+"SMB settings" = "SMB settings";
 
-"OpenAPS targets settings" = "OpenAPS targets settings";
+"Targets settings" = "Targets settings";
 
-"OpenAPS other settings" = "OpenAPS other settings";
+"Other settings" = "Other settings";
 
 /* Glucose Simulator CGM */
 "Glucose Simulator" = "Glucose Simulator";
@@ -1845,13 +1845,13 @@ Enact a temp Basal or a temp target */
 "Wide BG Target Range" = "Wide BG Target Range";
 
 /* "Wide BG Target Range" */
-"Defaults to false, which means by default only the low end of the pump’s BG target range is used as OpenAPS target. This is a safety feature to prevent too-wide targets and less-optimal outcomes. Therefore the higher end of the target range is used only for avoiding bolus wizard overcorrections. Use wide_bg_target_range: true to force neutral temps over a wider range of eventualBGs." = "Defaults to false, which means by default only the low end of the pump’s BG target range is used as OpenAPS target. This is a safety feature to prevent too-wide targets and less-optimal outcomes. Therefore the higher end of the target range is used only for avoiding bolus wizard overcorrections. Use wide_bg_target_range: true to force neutral temps over a wider range of eventualBGs.";
+"Defaults to false, which means by default only the low end of the pump’s BG target range is used. This is a safety feature to prevent too-wide targets and less-optimal outcomes. Therefore the higher end of the target range is used only for avoiding bolus wizard overcorrections. Use wide_bg_target_range: true to force neutral temps over a wider range of eventualBGs." = "Defaults to false, which means by default only the low end of the pump’s BG target range is used. This is a safety feature to prevent too-wide targets and less-optimal outcomes. Therefore the higher end of the target range is used only for avoiding bolus wizard overcorrections. Use wide_bg_target_range: true to force neutral temps over a wider range of eventualBGs.";
 
 /* Headline "Skip Neutral Temps" */
 "Skip Neutral Temps" = "Skip Neutral Temps";
 
 /* "Skip Neutral Temps" */
-"Defaults to false, so that Trio will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means Trio will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night." = "Defaults to false, so that Trio will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means OpenAPS will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications form the 'rig', that may wake you up during the night. ";
+"Defaults to false, so that temps are set whenever possible, to make it easier to see if the system is working, even when you are offline. This means a “neutral” temp will be set (same as your default basal) if no adjustments are needed." = "Defaults to false, so that temps are set whenever possible, to make it easier to see if the system is working, even when you are offline. This means a “neutral” temp will be set (same as your default basal) if no adjustments are needed.";
 
 /* Headline "Unsuspend If No Temp” */
 "Unsuspend If No Temp" = "Unsuspend If No Temp";
@@ -1863,7 +1863,7 @@ Enact a temp Basal or a temp target */
 "Enable UAM" = "Enable UAM";
 
 /* "Enable UAM" */
-"With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell Trio about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier." = "With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell Trio about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier.";
+"With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to announce your carbs or incorrectly estimate your carbs, or if a meal has a lot of fats and protein that delays carb absorption. Without any carb entry, UAM can recognize fast glucose rises caused by carbs, adrenaline, etc, and attempts to adjust it with SMBs. This also works the opposite way: if there is a fast glucose drop, it can stop SMBs earlier." = "With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to announce your carbs or incorrectly estimate your carbs, or if a meal has a lot of fats and protein that delays carb absorption. Without any carb entry, UAM can recognize fast glucose rises caused by carbs, adrenaline, etc, and attempts to adjust it with SMBs. This also works the opposite way: if there is a fast glucose drop, it can stop SMBs earlier.";
 
 /* Headline "Enable SMB With COB" */
 "Enable SMB With COB" = "Enable SMB With COB";
@@ -1914,19 +1914,19 @@ Enact a temp Basal or a temp target */
 "Max IOB" = "Max IOB";
 
 /* "Max IOB" */
-"Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two OpenAPS safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings\n\n(Tip from https://www.loopandlearn.org/freeaps-x/#open-loop)." = "Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two OpenAPS safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings\n\n(Tip from https://www.loopandlearn.org/freeaps-x/#open-loop).";
+"Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your pump is allowed to accumulate to treat higher-than-target BG. Unlike the other two safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. Manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings\n\n(Tip from https://www.loopandlearn.org/freeaps-x/#open-loop)." = "Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your pump is allowed to accumulate to treat higher-than-target BG. Unlike the other two safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. Manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings\n\n(Tip from https://www.loopandlearn.org/freeaps-x/#open-loop).";
 
 /* Headline "Max Daily Safety Multiplier" */
 "Max Daily Safety Multiplier" = "Max Daily Safety Multiplier";
 
 /* "Max Daily Safety Multiplier" */
-"This is an important OpenAPS safety limit. The default setting (which is unlikely to need adjusting) is 3. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 3x the highest hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "This is an important OpenAPS safety limit. The default setting (which is unlikely to need adjusting) is 3. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 3x the highest hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune.";
+"Limits the maximum temporary basal rate used at any time. The default setting of 3, which is unlikely to need adjustment, allows for a maximum basal rate of 3x the maximum daily basal." = "Limits the maximum temporary basal rate used at any time. The default setting of 3, which is unlikely to need adjustment, allows for a maximum basal rate of 3x the maximum daily basal.";
 
 /* Headline "Current Basal Safety Multiplier" */
 "Current Basal Safety Multiplier" = "Current Basal Safety Multiplier";
 
 /* "Current Basal Safety Multiplier" */
-"This is another important OpenAPS safety limit. The default setting (which is also unlikely to need adjusting) is 4. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 4x the current hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "This is another important OpenAPS safety limit. The default setting (which is also unlikely to need adjusting) is 4. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 4x the current hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune.";
+"Limits the maximum temporary basal rate that is used at the current time. The default setting of 4, which is unlikely to need adjustment, allows for a maximum basal rate of 4x the current basal rate." = "Limits the maximum temporary basal rate that is used at the current time. The default setting of 4, which is unlikely to need adjustment, allows for a maximum basal rate of 4x the current basal rate.";
 
 /* Headline "Autosens Max" */
 "Autosens Max" = "Autosens Max";
@@ -1950,7 +1950,7 @@ Enact a temp Basal or a temp target */
 "Max COB" = "Max COB";
 
 /* "Max COB" */
-"The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, Trio will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)" = "The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, Trio will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)";
+"The maximum amount of carbs that can be bloused or set high temp targets for. This safety feature protects against erroneous carbohydrate entries that could lead to hypoglycemia episodes." = "The maximum amount of carbs that can be bloused or set high temp targets for. This safety feature protects against erroneous carbohydrate entries that could lead to hypoglycemia episodes.";
 
 /* Headline "Bolus Snooze DIA Divisor" */
 "Bolus Snooze DIA Divisor" = "Bolus Snooze DIA Divisor";
@@ -2010,7 +2010,7 @@ Enact a temp Basal or a temp target */
 "Insulin Peak Time" = "Insulin Peak Time";
 
 /* "Insulin Peak Time" */
-"Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with Trio, longer loop calculations and possible red loops." = "Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with Trio, longer loop calculations and possible red loops.";
+"Requires 'Use Custom Peak Time' to be enabled. The time, in minutes, of maximum blood glucose lowering effects of insulin. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issue, longer loop calculations and possible red loops." = "Requires 'Use Custom Peak Time' to be enabled. The time, in minutes, of maximum blood glucose lowering effects of insulin. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issue, longer loop calculations and possible red loops.";
 
 /* Headline "Carbs Req Threshold" */
 "Carbs Req Threshold" = "Carbs Req Threshold";
@@ -2028,7 +2028,7 @@ Enact a temp Basal or a temp target */
 "SMB DeliveryRatio" = "SMB DeliveryRatio";
 
 /* SMB DeliveryRatio */
-"Default value: 0.5 This is another key OpenAPS safety cap, and specifies what share of the total insulin required can be delivered as SMB. Increase this experimental value slowly and with caution." = "Default value: 0.5 This is another key OpenAPS safety cap, and specifies what share of the total insulin required can be delivered as SMB. Increase this experimental value slowly and with caution.";
+"Default value: 0.5 This is another key safety setting, and specifies what share of the total insulin required can be delivered as SMB. Increase this experimental value slowly and with caution." = "Default value: 0.5 This is another key safety setting, and specifies what share of the total insulin required can be delivered as SMB. Increase this experimental value slowly and with caution.";
 
 // Dynamic ISF + CR Settings:
 
@@ -2081,7 +2081,7 @@ Enact a temp Basal or a temp target */
 "Threshold Setting" = "Threshold Setting";
 
 /* Threshold Setting */
-"The default threshold in Trio depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl." = "The default threshold in Trio depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl.";
+"The default threshold depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl." = "The default threshold depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl.";
 
 /* Header */
 "Calculator settings" = "Calculator settings";
