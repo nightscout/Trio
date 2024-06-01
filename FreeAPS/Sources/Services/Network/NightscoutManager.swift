@@ -168,10 +168,10 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             .eraseToAnyPublisher()
     }
 
-    /// Fetch all overrides available in NS as a exercice
-    /// Limit to exercice with the attribute enteredBy = the name of local app (as defined in NightscoutExercice
-    /// - Returns: a publisher of a array of NightscoutExercice.
-    func fetchOverride() -> AnyPublisher<[NightscoutExercice], Never> {
+    /// Fetch all overrides available in NS as a exercise
+    /// Limit to exercise with the attribute enteredBy = the name of local app (as defined in NightscoutExercise
+    /// - Returns: a publisher of a array of NightscoutExercise.
+    func fetchOverride() -> AnyPublisher<[NightscoutExercise], Never> {
         guard let nightscout = nightscoutAPI, isNetworkReachable else {
             return Just([]).eraseToAnyPublisher()
         }
@@ -649,7 +649,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-    /// Upload all new and updated override as a exercice in NS
+    /// Upload all new and updated override as a exercise in NS
     private func uploadOverride() {
         let overrides = overrideStorage.recent()
         guard !overrides.isEmpty, let nightscout = nightscoutAPI, isUploadEnabled else {
@@ -657,17 +657,17 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
 
         processQueue.async {
-            let exercices = overrides.compactMap { override -> NightscoutExercice? in
+            let exercises = overrides.compactMap { override -> NightscoutExercise? in
                 if let override = override {
-                    return NightscoutExercice(
+                    return NightscoutExercise(
                         duration: override
                             .indefinite! ?
                             Int(Date().timeIntervalSinceReferenceDate - override.createdAt!.timeIntervalSinceReferenceDate + 60) :
                             Int(override.duration ?? 0),
                         // by default if indefinite = + 60 minutes
-                        eventType: EventType.nsExercice,
+                        eventType: EventType.nsExercise,
                         createdAt: override.createdAt,
-                        enteredBy: NightscoutExercice.local,
+                        enteredBy: NightscoutExercise.local,
                         notes: override.displayName
                     )
                 } else {
@@ -675,7 +675,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 }
             }
 
-            exercices.chunks(ofCount: 100)
+            exercises.chunks(ofCount: 100)
                 .map { chunk -> AnyPublisher<Void, Error> in
                     nightscout.uploadOverrides(Array(chunk))
                 }

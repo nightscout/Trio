@@ -243,21 +243,21 @@ extension NightscoutAPI {
             .eraseToAnyPublisher()
     }
 
-    /// fetch the overrides available in NS as a exercice since the date specified in the parameter
-    /// Limit to exercice with the attribute enteredBy = the name of local app (as defined in NightscoutExercice
-    /// - Parameter sinceDate: the oldest date to fetch exercices
-    /// - Returns: A publisher with a array of NightscoutExercice or error
-    func fetchOverrides(sinceDate: Date? = nil) -> AnyPublisher<[NightscoutExercice], Swift.Error> {
+    /// fetch the overrides available in NS as a exercise since the date specified in the parameter
+    /// Limit to exercise with the attribute enteredBy = the name of local app (as defined in NightscoutExercise
+    /// - Parameter sinceDate: the oldest date to fetch exercises
+    /// - Returns: A publisher with a array of NightscoutExercise or error
+    func fetchOverrides(sinceDate: Date? = nil) -> AnyPublisher<[NightscoutExercise], Swift.Error> {
         var components = URLComponents()
         components.scheme = url.scheme
         components.host = url.host
         components.port = url.port
         components.path = Config.treatmentsPath
         components.queryItems = [
-            URLQueryItem(name: "find[eventType]", value: "Exercice"),
+            URLQueryItem(name: "find[eventType]", value: "Exercise"),
             URLQueryItem(
                 name: "find[enteredBy]",
-                value: NightscoutExercice.local.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
+                value: NightscoutExercise.local.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
             )
         ]
         if let date = sinceDate {
@@ -278,8 +278,8 @@ extension NightscoutAPI {
 
         return service.run(request)
             .retry(Config.retryCount)
-            .decode(type: [NightscoutExercice].self, decoder: JSONCoding.decoder)
-            .catch { error -> AnyPublisher<[NightscoutExercice], Swift.Error> in
+            .decode(type: [NightscoutExercise].self, decoder: JSONCoding.decoder)
+            .catch { error -> AnyPublisher<[NightscoutExercise], Swift.Error> in
                 warning(.nightscout, "Override fetching error: \(error.localizedDescription)")
                 return Just([]).setFailureType(to: Swift.Error.self).eraseToAnyPublisher()
             }
@@ -465,10 +465,10 @@ extension NightscoutAPI {
             .eraseToAnyPublisher()
     }
 
-    /// Upload old, new and updated overrides in NS as a exercice.
-    /// - Parameter overrides: a array of NightscoutExercice to upload
+    /// Upload old, new and updated overrides in NS as a exercise.
+    /// - Parameter overrides: a array of NightscoutExercise to upload
     /// - Returns: A publisher with only error response.
-    func uploadOverrides(_ overrides: [NightscoutExercice]) -> AnyPublisher<Void, Swift.Error> {
+    func uploadOverrides(_ overrides: [NightscoutExercise]) -> AnyPublisher<Void, Swift.Error> {
         var components = URLComponents()
         components.scheme = url.scheme
         components.host = url.host
@@ -492,7 +492,7 @@ extension NightscoutAPI {
             .eraseToAnyPublisher()
     }
 
-    /// delete a override in NS as exercice for a specific date
+    /// delete a override in NS as exercise for a specific date
     /// - Parameter date: the date of the override to delete
     /// - Returns: A publisher with only error response.
     func deleteOverride(at date: Date) -> AnyPublisher<Void, Swift.Error> {
@@ -502,7 +502,7 @@ extension NightscoutAPI {
         components.port = url.port
         components.path = Config.treatmentsPath
         components.queryItems = [
-            URLQueryItem(name: "find[eventType]", value: "Exercice"),
+            URLQueryItem(name: "find[eventType]", value: "Exercise"),
             URLQueryItem(
                 name: "find[created_at][$eq]",
                 value: Formatter.iso8601withFractionalSeconds.string(from: date)

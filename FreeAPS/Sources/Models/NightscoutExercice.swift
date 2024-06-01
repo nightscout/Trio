@@ -1,7 +1,7 @@
 import Foundation
 
-/// A structure to descrive a Override as a exercice for NightScout
-struct NightscoutExercice: JSON, Hashable, Equatable {
+/// A structure to descrive a Override as a exercise for NightScout
+struct NightscoutExercise: JSON, Hashable, Equatable {
     var duration: Int?
     var eventType: EventType
     var createdAt: Date?
@@ -10,9 +10,9 @@ struct NightscoutExercice: JSON, Hashable, Equatable {
 
     static let local = "Trio"
 
-    static let empty = NightscoutExercice(from: "{}")!
+    static let empty = NightscoutExercise(from: "{}")!
 
-    static func == (lhs: NightscoutExercice, rhs: NightscoutExercice) -> Bool {
+    static func == (lhs: NightscoutExercise, rhs: NightscoutExercise) -> Bool {
         (lhs.createdAt ?? Date()) == (rhs.createdAt ?? Date())
     }
 
@@ -21,7 +21,7 @@ struct NightscoutExercice: JSON, Hashable, Equatable {
     }
 }
 
-extension NightscoutExercice {
+extension NightscoutExercise {
     private enum CodingKeys: String, CodingKey {
         case duration
         case eventType
