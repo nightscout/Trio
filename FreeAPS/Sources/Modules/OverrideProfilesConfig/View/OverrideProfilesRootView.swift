@@ -9,11 +9,11 @@ extension OverrideProfilesConfig {
         @State private var isEditing = false
         @State private var showAlert = false
         @State private var showingDetail = false
-        @State private var selectedPreset: OverrideProfil?
+        @State private var selectedPreset: OverrideProfile?
         @State private var isEditSheetPresented: Bool = false
         @State private var alertSring = ""
         @State var isSheetPresented: Bool = false
-        @State private var originalPreset: OverrideProfil?
+        @State private var originalPreset: OverrideProfile?
         @State private var showDeleteAlert = false
         @State private var indexToDelete: Int?
         @State private var profileNameToDelete: String = ""
@@ -386,7 +386,7 @@ extension OverrideProfilesConfig {
             }
         }
 
-        @ViewBuilder private func profilesView(for preset: OverrideProfil) -> some View {
+        @ViewBuilder private func profilesView(for preset: OverrideProfile) -> some View {
             let target = state.units == .mmolL ? (preset.target ?? 0).asMmolL : preset.target ?? 0
             let duration = preset.duration ?? 0
             let name = ((preset.name ?? "") == "") || (preset.name?.isEmpty ?? true) ? "" : preset.name!

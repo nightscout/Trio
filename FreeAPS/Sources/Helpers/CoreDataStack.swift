@@ -5,7 +5,6 @@ class CoreDataStack: ObservableObject {
     public static let modelName = "Core_Data"
 
     public static let model: NSManagedObjectModel = {
-        // swiftlint:disable force_unwrapping
         let modelURL = Bundle.main.url(forResource: modelName, withExtension: "momd")!
         return NSManagedObjectModel(contentsOf: modelURL)!
     }()

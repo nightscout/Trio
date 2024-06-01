@@ -5,17 +5,17 @@ import Swinject
 
 /// Observer to register to be informed by a change in the current override
 protocol OverrideObserver {
-    func overrideDidUpdate(_ targets: [OverrideProfil?], current: OverrideProfil?)
+    func overrideDidUpdate(_ targets: [OverrideProfile?], current: OverrideProfile?)
 }
 
 protocol OverrideStorage {
-    func storeOverride(_ targets: [OverrideProfil])
-    func storeOverridePresets(_ targets: [OverrideProfil])
-    func presets() -> [OverrideProfil]
+    func storeOverride(_ targets: [OverrideProfile])
+    func storeOverridePresets(_ targets: [OverrideProfile])
+    func presets() -> [OverrideProfile]
     func syncDate() -> Date
-    func recent() -> [OverrideProfil?]
+    func recent() -> [OverrideProfile?]
     //  func nightscoutTretmentsNotUploaded() -> [NightscoutTreatment]
-    func current() -> OverrideProfil?
+    func current() -> OverrideProfile?
     func cancelCurrentOverride() -> Decimal?
     func applyOverridePreset(_ presetId: String) -> Date?
     func deleteOverridePreset(_ presetId: String)
@@ -28,7 +28,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
     @Injected() private var settingsManager: SettingsManager!
 
     let coredataContext: NSManagedObjectContext
-    private var lastCurrentOverride: OverrideProfil?
+    private var lastCurrentOverride: OverrideProfile?
 
     init(
         resolver: Resolver,
@@ -41,8 +41,8 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
     /// Convert a override Preset Core Data as a Override Profil
     /// - Parameter preset: a override preset in Core Data
     /// - Returns: A override  in Override Profil structure
-    private func OverridePresetToOverrideProfil(_ preset: OverridePresets) -> OverrideProfil {
-        OverrideProfil(
+    private func OverridePresetToOverrideProfile(_ preset: OverridePresets) -> OverrideProfile {
+        OverrideProfile(
             id: preset.id ?? UUID().uuidString,
             name: preset.name,
             duration: preset.duration as Decimal?,
@@ -59,7 +59,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             end: preset.end as Decimal?,
             smbMinutes: preset.smbMinutes as Decimal?,
             uamMinutes: preset.uamMinutes as Decimal?,
-            enteredBy: OverrideProfil.manual,
+            enteredBy: OverrideProfile.manual,
             reason: ""
         )
     }
@@ -67,8 +67,8 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
     /// Convert a override  Core Data as a Override Profil
     /// - Parameter preset: a override  in Core Data
     /// - Returns: A override  in Override Profil structure
-    private func OverrideToOverrideProfil(_ preset: Override) -> OverrideProfil {
-        OverrideProfil(
+    private func OverrideToOverrideProfile(_ preset: Override) -> OverrideProfile {
+        OverrideProfile(
             id: preset.id ?? UUID().uuidString,
             name: preset.name == "" ? nil : preset.name,
             createdAt: preset.date,
@@ -86,16 +86,16 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             end: preset.end as Decimal?,
             smbMinutes: preset.smbMinutes as Decimal?,
             uamMinutes: preset.uamMinutes as Decimal?,
-            enteredBy: OverrideProfil.manual,
+            enteredBy: OverrideProfile.manual,
             reason: ""
         )
     }
 
     /// Fetch all override presets available in storage core data
     /// - Returns: List of override Presets as Override Profil structure
-    func presets() -> [OverrideProfil] {
+    func presets() -> [OverrideProfile] {
         fetchOverridePreset().compactMap {
-            OverridePresetToOverrideProfil($0)
+            OverridePresetToOverrideProfile($0)
         }
     }
 
@@ -128,7 +128,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
 
     /// Store new or updated override target
     /// - Parameter targets: List of new or updated override
-    func storeOverride(_ targets: [OverrideProfil]) {
+    func storeOverride(_ targets: [OverrideProfile]) {
         // if recent, close it before apply new override
         if current() != nil {
             _ = cancelCurrentOverride()
@@ -138,7 +138,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
 
     /// Store override preset in Core Data
     /// - Parameter targets: List of new or updated override preset
-    func storeOverridePresets(_ targets: [OverrideProfil]) {
+    func storeOverridePresets(_ targets: [OverrideProfile]) {
         storeOverride(targets, isPresets: true)
     }
 
@@ -146,7 +146,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
     /// - Parameters:
     ///   - targets: List of new or updated override as a preset or as a target
     ///   - isPresets: definied if targerts is a override preset (true).
-    private func storeOverride(_ targets: [OverrideProfil], isPresets: Bool) {
+    private func storeOverride(_ targets: [OverrideProfile], isPresets: Bool) {
         // store in preset override
         // processQueue.sync {
         if isPresets {
@@ -175,13 +175,32 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             }
 
             coredataContext.performAndWait {
-                try? coredataContext.save()
+                do {
+                    try coredataContext.save()
+                } catch {
+                    debug(.openAPS, "Error saving context : \(error)")
+                }
             }
 
         } else {
             _ = targets.compactMap { target in
+                // determine if isenable
+                var enabled: Bool = false
+                let now = Date()
+                if let indefinite = target.indefinite, indefinite, target.duration == nil {
+                    enabled = true
+                } else if
+                    let duration = target.duration as Decimal?,
+                    let date = target.createdAt,
+                    (now.timeIntervalSinceReferenceDate - date.timeIntervalSinceReferenceDate).minutes < Double(duration),
+                    date <= now,
+                    duration != 0
+                {
+                    enabled = true
+                }
                 // update if existing or create
                 let save = fetchOverrideById(id: target.id) ?? Override(context: coredataContext)
+
                 save.id = target.id
                 save.date = target.createdAt ?? Date()
                 save.name = target.name ?? ""
@@ -199,12 +218,16 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
                 save.smbMinutes = (target.smbMinutes ?? settingsManager.preferences.maxSMBBasalMinutes) as NSDecimalNumber?
                 save.uamMinutes = (target.uamMinutes ?? settingsManager.preferences.maxUAMSMBBasalMinutes) as NSDecimalNumber?
                 save.target = target.target as NSDecimalNumber?
-                save.enabled = false // # TODO: don't use the attribute - compatibility only
+                save.enabled = enabled
                 return save
             }
 
             coredataContext.performAndWait {
-                try? coredataContext.save()
+                do {
+                    try coredataContext.save()
+                } catch {
+                    debug(.openAPS, "Error saving context : \(error)")
+                }
             }
 
             processQueue.async {
@@ -228,7 +251,12 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             let sortOverride = NSSortDescriptor(key: "date", ascending: false)
             requestOverrides.sortDescriptors = [sortOverride]
             requestOverrides.fetchLimit = numbers
-            return try? self.coredataContext.fetch(requestOverrides)
+            do {
+                return try self.coredataContext.fetch(requestOverrides)
+            } catch {
+                debug(.openAPS, "Error fetch context : \(error)")
+                return nil
+            }
         }
     }
 
@@ -241,7 +269,11 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             requestOverrides.predicate = NSPredicate(
                 format: "date > %@", interval as NSDate
             )
-            try? overrideArray = self.coredataContext.fetch(requestOverrides)
+            do {
+                try overrideArray = self.coredataContext.fetch(requestOverrides)
+            } catch {
+                debug(.openAPS, "Error fetch context : \(error)")
+            }
         }
         return overrideArray
     }
@@ -252,16 +284,21 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             requestOverrides.predicate = NSPredicate(
                 format: "id == %@", id
             )
-            return try? self.coredataContext.fetch(requestOverrides).first
+            do {
+                return try self.coredataContext.fetch(requestOverrides).first
+            } catch {
+                debug(.openAPS, "Error fetch context : \(error)")
+                return nil
+            }
         }
     }
 
     /// Provides the last 24 hours override stored in the core data
     /// - Returns: a array of override profil sorted by date
-    func recent() -> [OverrideProfil?] {
+    func recent() -> [OverrideProfile?] {
         if let overrideRecent = fetchOverrides(interval: syncDate()) {
             return overrideRecent.compactMap {
-                OverrideToOverrideProfil($0)
+                OverrideToOverrideProfile($0)
             }
         } else {
             return []
@@ -271,12 +308,12 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
     /// Provides the current override or nil if no is current available
     /// broadcast a observer overrideDidUpdate if the current override has changed since the last current function call
     /// - Returns: A override profil currently in action
-    func current() -> OverrideProfil? {
-        var newCurrentOverride: OverrideProfil?
+    func current() -> OverrideProfile? {
+        var newCurrentOverride: OverrideProfile?
 
         if let overrideRecent = fetchNumberOfOverrides(numbers: 1), let overrideCurrent = overrideRecent.first {
             if overrideCurrent.indefinite {
-                newCurrentOverride = OverrideToOverrideProfil(overrideCurrent)
+                newCurrentOverride = OverrideToOverrideProfile(overrideCurrent)
 
             } else if
                 let duration = overrideCurrent.duration as Decimal?,
@@ -285,7 +322,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
                 date <= Date(),
                 duration != 0
             {
-                newCurrentOverride = OverrideToOverrideProfil(overrideCurrent)
+                newCurrentOverride = OverrideToOverrideProfile(overrideCurrent)
             } else {
                 newCurrentOverride = nil
             }
@@ -309,7 +346,6 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
                 (Date().timeIntervalSinceReferenceDate - currentOverride.createdAt!.timeIntervalSinceReferenceDate)
                     .minutes
             )
-
         storeOverride([currentOverride], isPresets: false)
 
         return currentOverride.duration

@@ -61,8 +61,8 @@ extension Home {
         @Published var thresholdLines: Bool = false
         @Published var cgmAvailable: Bool = false
         @Published var pumpStatusHighlightMessage: String? = nil
-        @Published var currentOverride: OverrideProfil?
-        @Published var overrideHistory: [OverrideProfil?] = []
+        @Published var currentOverride: OverrideProfile?
+        @Published var overrideHistory: [OverrideProfile?] = []
         @Published var targetBG: BGTargets?
 
         let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
@@ -220,7 +220,7 @@ extension Home {
             _ = overrideStorage.cancelCurrentOverride()
         }
 
-        func setupOverride(_ targets: [OverrideProfil?], _ current: OverrideProfil?) {
+        func setupOverride(_ targets: [OverrideProfile?], _ current: OverrideProfile?) {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
                 self.targetBG = self.provider.profile
@@ -410,7 +410,7 @@ extension Home.StateModel:
     PumpReservoirObserver,
     OverrideObserver
 {
-    func overrideDidUpdate(_ targets: [OverrideProfil?], current: OverrideProfil?) {
+    func overrideDidUpdate(_ targets: [OverrideProfile?], current: OverrideProfile?) {
         setupOverride(targets, current)
     }
 

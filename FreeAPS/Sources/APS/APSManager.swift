@@ -360,12 +360,12 @@ final class BaseAPSManager: APSManager, Injectable {
         let now = Date()
         let temp = currentTemp(date: now)
 
-        let eventuelOverride: OverrideProfil? = overrideStorage.current()
+        let eventualCurrentOverride: OverrideProfile? = overrideStorage.current()
 
         let mainPublisher = makeProfiles()
             .flatMap { _ in self.autosens() }
             .flatMap { _ in self.dailyAutotune() }
-            .flatMap { _ in self.openAPS.determineBasal(currentTemp: temp, clock: now, override: eventuelOverride) }
+            .flatMap { _ in self.openAPS.determineBasal(currentTemp: temp, clock: now, override: eventualCurrentOverride) }
             .map { suggestion -> Bool in
                 if let suggestion = suggestion {
                     DispatchQueue.main.async {

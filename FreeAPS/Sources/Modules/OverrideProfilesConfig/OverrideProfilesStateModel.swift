@@ -12,7 +12,7 @@ extension OverrideProfilesConfig {
         @Published var id: String = ""
         @Published var profileName: String = ""
         @Published var isPreset: Bool = false
-        @Published var presets: [OverrideProfil] = []
+        @Published var presets: [OverrideProfile] = []
         @Published var advancedSettings: Bool = false
         @Published var isfAndCr: Bool = true
         @Published var isf: Bool = true
@@ -57,7 +57,7 @@ extension OverrideProfilesConfig {
         }
 
         func saveSettings() {
-            let overrideToSave = OverrideProfil(
+            let overrideToSave = OverrideProfile(
                 name: profileName,
                 createdAt: Date(),
                 duration: _indefinite ? nil : duration,
@@ -80,7 +80,7 @@ extension OverrideProfilesConfig {
         }
 
         func savePreset() {
-            let overridePresetToSave = OverrideProfil(
+            let overridePresetToSave = OverrideProfile(
                 name: profileName,
                 duration: _indefinite ? nil : duration,
                 indefinite: _indefinite,
@@ -117,7 +117,7 @@ extension OverrideProfilesConfig {
             populateSettings(from: currentOverride)
         }
 
-        func populateSettings(from preset: OverrideProfil) {
+        func populateSettings(from preset: OverrideProfile) {
             percentage = preset.percentage ?? 100
             _indefinite = preset.indefinite ?? true
             duration = preset.duration ?? 0
@@ -173,7 +173,7 @@ extension OverrideProfilesConfig {
         }
 
         func updatePreset(_ presetId: String) {
-            let overridePresetToSave = OverrideProfil(
+            let overridePresetToSave = OverrideProfile(
                 id: presetId,
                 name: profileName,
                 duration: _indefinite ? nil : duration,
