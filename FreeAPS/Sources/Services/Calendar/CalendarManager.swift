@@ -92,7 +92,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         CoreDataStack.shared.fetchEntities(
             ofType: OrefDetermination.self,
             onContext: coredataContext,
-            predicate: NSPredicate.predicateFor30MinAgo,
+            predicate: NSPredicate.predicateFor30MinAgoForDetermination,
             key: "timestamp",
             ascending: false,
             fetchLimit: 1,
