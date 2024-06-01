@@ -572,7 +572,9 @@ extension MainChartView {
 
     private func prepareTempBasals() -> [(start: Date, end: Date, rate: Double)] {
         let now = Date()
-        return state.insulinFromPersistence.compactMap { temp -> (start: Date, end: Date, rate: Double)? in
+        let tempBasals = state.tempBasals
+
+        return tempBasals.compactMap { temp -> (start: Date, end: Date, rate: Double)? in
             let duration = temp.tempBasal?.duration ?? 0
             let timestamp = temp.timestamp ?? Date()
             let end = min(timestamp + duration.minutes, now)
@@ -581,13 +583,13 @@ extension MainChartView {
             let rate = Double(truncating: temp.tempBasal?.rate ?? Decimal.zero as NSDecimalNumber) * (isInsulinSuspended ? 0 : 1)
 
             // Check if there's a subsequent temp basal to determine the end time
-            guard let nextTemp = state.insulinFromPersistence.first(where: { $0.timestamp ?? .distantPast > timestamp }) else {
+            guard let nextTemp = state.tempBasals.first(where: { $0.timestamp ?? .distantPast > timestamp }) else {
                 return (timestamp, end, rate)
             }
             return (timestamp, nextTemp.timestamp ?? Date(), rate) // end defaults to current time
         }
     }
-
+    
     private func drawTempBasals() -> some ChartContent {
         ForEach(prepareTempBasals(), id: \.rate) { basal in
             RectangleMark(
