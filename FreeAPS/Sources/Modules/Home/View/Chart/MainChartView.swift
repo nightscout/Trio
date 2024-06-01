@@ -541,7 +541,6 @@ extension MainChartView {
 
     private func drawSuspensions() -> some ChartContent {
         let suspensions = state.suspensions
-
         return ForEach(suspensions) { suspension in
             let now = Date()
 
@@ -589,7 +588,7 @@ extension MainChartView {
             return (timestamp, nextTemp.timestamp ?? Date(), rate) // end defaults to current time
         }
     }
-    
+
     private func drawTempBasals() -> some ChartContent {
         ForEach(prepareTempBasals(), id: \.rate) { basal in
             RectangleMark(

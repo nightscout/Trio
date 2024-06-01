@@ -36,7 +36,7 @@ extension Home {
 
         @Environment(\.managedObjectContext) var moc
         @Environment(\.colorScheme) var colorScheme
-        
+
         // TODO: rework this stuff -> remove fetch requests; no one wants this here.
         @FetchRequest(
             entity: Override.entity(),
@@ -61,7 +61,7 @@ extension Home {
         ) var enactedSliderTT: FetchedResults<TempTargetsSlider>
 
         // TODO: end todo
-        
+
         var bolusProgressFormatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
@@ -199,7 +199,7 @@ extension Home {
 
             return rateString + " " + NSLocalizedString(" U/hr", comment: "Unit per hour with space") + manualBasalString
         }
-        
+
         var overrideString: String? {
             guard let fetched = fetchedPercent.first, fetched.enabled else {
                 return nil

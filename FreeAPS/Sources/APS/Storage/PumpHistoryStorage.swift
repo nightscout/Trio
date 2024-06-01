@@ -67,7 +67,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                             // Duplicate found, do not store the event
                             print("Duplicate event found with timestamp: \(event.date)")
 
-                            if let existingEvent = existingEvents.first(where: { $0.type == PumpEvent.bolus.rawValue }) {
+                            if let existingEvent = existingEvents.first(where: { $0.type == EventType.bolus.rawValue }) {
                                 if existingEvent.timestamp == event.date {
                                     if let existingAmount = existingEvent.bolus?.amount, amount < existingAmount as Decimal {
                                         // Update existing event with new smaller value
@@ -119,26 +119,51 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newTempBasal.tempType = TempType.absolute.rawValue
 
                     case .suspend:
+                        guard existingEvents.isEmpty else {
+                            // Duplicate found, do not store the event
+                            print("Duplicate event found with timestamp: \(event.date)")
+                            continue
+                        }
                         let newPumpEvent = PumpEventStored(context: self.context)
                         newPumpEvent.timestamp = event.date
                         newPumpEvent.type = PumpEvent.pumpSuspend.rawValue
 
                     case .resume:
+                        guard existingEvents.isEmpty else {
+                            // Duplicate found, do not store the event
+                            print("Duplicate event found with timestamp: \(event.date)")
+                            continue
+                        }
                         let newPumpEvent = PumpEventStored(context: self.context)
                         newPumpEvent.timestamp = event.date
                         newPumpEvent.type = PumpEvent.pumpResume.rawValue
 
                     case .rewind:
+                        guard existingEvents.isEmpty else {
+                            // Duplicate found, do not store the event
+                            print("Duplicate event found with timestamp: \(event.date)")
+                            continue
+                        }
                         let newPumpEvent = PumpEventStored(context: self.context)
                         newPumpEvent.timestamp = event.date
                         newPumpEvent.type = PumpEvent.rewind.rawValue
 
                     case .prime:
+                        guard existingEvents.isEmpty else {
+                            // Duplicate found, do not store the event
+                            print("Duplicate event found with timestamp: \(event.date)")
+                            continue
+                        }
                         let newPumpEvent = PumpEventStored(context: self.context)
                         newPumpEvent.timestamp = event.date
                         newPumpEvent.type = PumpEvent.prime.rawValue
 
                     case .alarm:
+                        guard existingEvents.isEmpty else {
+                            // Duplicate found, do not store the event
+                            print("Duplicate event found with timestamp: \(event.date)")
+                            continue
+                        }
                         let newPumpEvent = PumpEventStored(context: self.context)
                         newPumpEvent.timestamp = event.date
                         newPumpEvent.type = PumpEvent.pumpAlarm.rawValue

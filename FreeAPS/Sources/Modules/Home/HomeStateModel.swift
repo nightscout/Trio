@@ -670,25 +670,12 @@ extension Home.StateModel {
             manualTempBasal = apsManager.isManualTempBasal
             tempBasals = insulinFromPersistence.filter({ $0.tempBasal != nil })
 
-            let lastTempBasal = Array(tempBasals.suffix(2))
-
-            guard lastTempBasal.count == 2 else {
-                return
-            }
-
-            guard
-                let lastTempBasalDose = lastTempBasal.first(where: { $0.tempBasal?.tempType == EventType.tempBasal.rawValue }),
-                let lastDate = lastTempBasalDose.timestamp
-            else {
-                return
-            }
-
             // suspension and resume events
             suspensions = insulinFromPersistence
                 .filter({ $0.type == EventType.pumpSuspend.rawValue || $0.type == EventType.pumpResume.rawValue })
             let lastSuspension = suspensions.last
 
-            pumpSuspended = lastDate > lastSuspension?.timestamp ?? .distantPast && lastSuspension?.type == EventType.pumpSuspend
+            pumpSuspended = tempBasals.last?.timestamp ?? Date() > lastSuspension?.timestamp ?? .distantPast && lastSuspension?.type == EventType.pumpSuspend
                 .rawValue
 
         } catch {
