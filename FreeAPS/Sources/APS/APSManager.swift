@@ -417,7 +417,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
             let now = Date()
             let temp = fetchCurrentTempBasal(date: now)
-        
+
             let mainPublisher = makeProfiles()
                 .flatMap { _ in self.autosens() }
                 .flatMap { _ in self.dailyAutotune() }
