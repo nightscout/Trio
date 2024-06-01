@@ -4,13 +4,13 @@ import SwiftDate
 import SwiftUI
 
 struct ChartsView: View {
-    @FetchRequest var glucose: FetchedResults<GlucoseStored>
-
     @Binding var highLimit: Decimal
     @Binding var lowLimit: Decimal
     @Binding var units: GlucoseUnits
     @Binding var overrideUnit: Bool
     @Binding var standing: Bool
+
+    var glucose: [GlucoseStored]
 
     @State var headline: Color = .secondary
 
@@ -34,21 +34,20 @@ struct ChartsView: View {
     }
 
     init(
-        filter: NSDate,
+        filter _: NSDate,
         _ highLimit: Binding<Decimal>,
         _ lowLimit: Binding<Decimal>,
         _ units: Binding<GlucoseUnits>,
         _ overrideUnit: Binding<Bool>,
-        _ standing: Binding<Bool>
-    ) { _glucose = FetchRequest<GlucoseStored>(
-        sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)],
-        predicate: NSPredicate(format: "glucose > 0 AND date > %@", filter)
-    )
-    _highLimit = highLimit
-    _lowLimit = lowLimit
-    _units = units
-    _overrideUnit = overrideUnit
-    _standing = standing
+        _ standing: Binding<Bool>,
+        glucose: [GlucoseStored]
+    ) {
+        _highLimit = highLimit
+        _lowLimit = lowLimit
+        _units = units
+        _overrideUnit = overrideUnit
+        _standing = standing
+        self.glucose = glucose
     }
 
     var glucoseChart: some View {

@@ -113,7 +113,8 @@ extension Stat {
                     $state.lowLimit,
                     $state.units,
                     $state.overrideUnit,
-                    $state.layingChart
+                    $state.layingChart,
+                    glucose: state.glucoseFromPersistence
                 )
             case .Day:
                 ChartsView(
@@ -122,7 +123,8 @@ extension Stat {
                     $state.lowLimit,
                     $state.units,
                     $state.overrideUnit,
-                    $state.layingChart
+                    $state.layingChart,
+                    glucose: state.glucoseFromPersistence
                 )
             case .Week:
                 ChartsView(
@@ -131,7 +133,8 @@ extension Stat {
                     $state.lowLimit,
                     $state.units,
                     $state.overrideUnit,
-                    $state.layingChart
+                    $state.layingChart,
+                    glucose: state.glucoseFromPersistence
                 )
             case .Month:
                 ChartsView(
@@ -140,7 +143,8 @@ extension Stat {
                     $state.lowLimit,
                     $state.units,
                     $state.overrideUnit,
-                    $state.layingChart
+                    $state.layingChart,
+                    glucose: state.glucoseFromPersistence
                 )
             case .Total:
                 ChartsView(
@@ -149,7 +153,8 @@ extension Stat {
                     $state.lowLimit,
                     $state.units,
                     $state.overrideUnit,
-                    $state.layingChart
+                    $state.layingChart,
+                    glucose: state.glucoseFromPersistence
                 )
             }
         }
