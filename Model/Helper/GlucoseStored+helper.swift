@@ -40,6 +40,31 @@ extension NSPredicate {
         let date = Date.oneDayAgo
         return NSPredicate(format: "isManual == %@ AND date >= %@", true as NSNumber, date as NSDate)
     }
+
+    static var glucoseForStatsDay: NSPredicate {
+        let date = Date.oneDayAgo
+        return NSPredicate(format: "date >= %@", date as NSDate)
+    }
+
+    static var glucoseForStatsToday: NSPredicate {
+        let date = Date.startOfToday
+        return NSPredicate(format: "date >= %@", date as NSDate)
+    }
+
+    static var glucoseForStatsMonth: NSPredicate {
+        let date = Date.oneMonthAgo
+        return NSPredicate(format: "date >= %@", date as NSDate)
+    }
+
+    static var glucoseForStatsTotal: NSPredicate {
+        let date = Date.threeMonthsAgo
+        return NSPredicate(format: "date >= %@", date as NSDate)
+    }
+
+    static var glucoseForStatsWeek: NSPredicate {
+        let date = Date.oneWeekAgo
+        return NSPredicate(format: "date >= %@", date as NSDate)
+    }
 }
 
 extension GlucoseStored: Encodable {

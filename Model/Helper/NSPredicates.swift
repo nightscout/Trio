@@ -2,6 +2,10 @@ import CoreData
 import Foundation
 
 extension Date {
+    static var startOfToday: Date {
+        Calendar.current.startOfDay(for: Date())
+    }
+
     static var oneDayAgo: Date {
         Calendar.current.date(byAdding: .day, value: -1, to: Date())!
     }

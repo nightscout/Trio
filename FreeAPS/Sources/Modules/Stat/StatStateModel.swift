@@ -13,12 +13,23 @@ extension Stat {
         @Published var units: GlucoseUnits = .mmolL
         @Published var glucoseFromPersistence: [GlucoseStored] = []
 
+        @Published var selectedDuration: Duration = .Today
+
         private let context = CoreDataStack.shared.newTaskContext()
         private let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
+        enum Duration: String, CaseIterable, Identifiable {
+            case Today
+            case Day
+            case Week
+            case Month
+            case Total
+            var id: Self { self }
+        }
+
         override func subscribe() {
-            setupNotifications()
-            setupGlucoseArray()
+            /// Default is today
+            setupGlucoseArray(for: .Today)
             highLimit = settingsManager.settings.high
             lowLimit = settingsManager.settings.low
             units = settingsManager.settings.units
@@ -26,36 +37,40 @@ extension Stat {
             layingChart = settingsManager.settings.oneDimensionalGraph
         }
 
-        private func setupNotifications() {
-            /// custom notification that is sent when a batch insert of glucose objects is done
-            Foundation.NotificationCenter.default.addObserver(
-                self,
-                selector: #selector(handleBatchInsert),
-                name: .didPerformBatchInsert,
-                object: nil
-            )
-        }
-
-        @objc private func handleBatchInsert() {
-            setupGlucoseArray()
-        }
-
-        private func setupGlucoseArray() {
+        func setupGlucoseArray(for duration: Duration) {
             Task {
-                let ids = await self.fetchGlucose()
+                let ids = await self.fetchGlucose(for: duration)
                 await updateGlucoseArray(with: ids)
             }
         }
 
-        private func fetchGlucose() async -> [NSManagedObjectID] {
-            CoreDataStack.shared.fetchEntities(
-                ofType: GlucoseStored.self,
-                onContext: context,
-                predicate: NSPredicate.glucose,
-                key: "date",
-                ascending: false,
-                fetchLimit: 288
-            ).map(\.objectID)
+        private func fetchGlucose(for duration: Duration) async -> [NSManagedObjectID] {
+            await context.perform {
+                let predicate: NSPredicate
+
+                switch duration {
+                case .Day:
+                    predicate = NSPredicate.glucoseForStatsDay
+                case .Week:
+                    predicate = NSPredicate.glucoseForStatsWeek
+                case .Today:
+                    predicate = NSPredicate.glucoseForStatsToday
+                case .Month:
+                    predicate = NSPredicate.glucoseForStatsMonth
+                case .Total:
+                    predicate = NSPredicate.glucoseForStatsTotal
+                }
+
+                return CoreDataStack.shared.fetchEntities(
+                    ofType: GlucoseStored.self,
+                    onContext: self.context,
+                    predicate: predicate,
+                    key: "date",
+                    ascending: false,
+                    batchSize: 100,
+                    propertiesToFetch: ["glucose", "date"]
+                ).map(\.objectID)
+            }
         }
 
         @MainActor private func updateGlucoseArray(with IDs: [NSManagedObjectID]) {

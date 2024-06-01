@@ -21,16 +21,6 @@ extension Stat {
 
         @Environment(\.colorScheme) var colorScheme
 
-        enum Duration: String, CaseIterable, Identifiable {
-            case Today
-            case Day
-            case Week
-            case Month
-            case Total
-            var id: Self { self }
-        }
-
-        @State private var selectedDuration: Duration = .Today
         @State var paddingAmount: CGFloat? = 10
         @State var headline: Color = .secondary
         @State var days: Double = 0
@@ -58,7 +48,7 @@ extension Stat {
             ZStack {
                 Color.gray.opacity(0.05).ignoresSafeArea(.all)
                 let filter = DateFilter()
-                switch selectedDuration {
+                switch state.selectedDuration {
                 case .Today:
                     StatsView(
                         filter: filter.today,
@@ -104,11 +94,9 @@ extension Stat {
         }
 
         @ViewBuilder func chart() -> some View {
-            let filter = DateFilter()
-            switch selectedDuration {
+            switch state.selectedDuration {
             case .Today:
                 ChartsView(
-                    filter: filter.today,
                     $state.highLimit,
                     $state.lowLimit,
                     $state.units,
@@ -118,7 +106,6 @@ extension Stat {
                 )
             case .Day:
                 ChartsView(
-                    filter: filter.day,
                     $state.highLimit,
                     $state.lowLimit,
                     $state.units,
@@ -128,7 +115,6 @@ extension Stat {
                 )
             case .Week:
                 ChartsView(
-                    filter: filter.week,
                     $state.highLimit,
                     $state.lowLimit,
                     $state.units,
@@ -138,7 +124,6 @@ extension Stat {
                 )
             case .Month:
                 ChartsView(
-                    filter: filter.month,
                     $state.highLimit,
                     $state.lowLimit,
                     $state.units,
@@ -148,7 +133,6 @@ extension Stat {
                 )
             case .Total:
                 ChartsView(
-                    filter: filter.total,
                     $state.highLimit,
                     $state.lowLimit,
                     $state.units,
@@ -162,10 +146,12 @@ extension Stat {
         var body: some View {
             VStack(alignment: .center) {
                 chart().padding(.top, 20)
-                Picker("Duration", selection: $selectedDuration) {
-                    ForEach(Duration.allCases) { duration in
+                Picker("Duration", selection: $state.selectedDuration) {
+                    ForEach(Stat.StateModel.Duration.allCases) { duration in
                         Text(NSLocalizedString(duration.rawValue, comment: "")).tag(Optional(duration))
                     }
+                }.onChange(of: state.selectedDuration) { newValue in
+                    state.setupGlucoseArray(for: newValue)
                 }
                 .pickerStyle(.segmented).background(.cyan.opacity(0.2))
                 stats()

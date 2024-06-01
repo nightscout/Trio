@@ -34,7 +34,6 @@ struct ChartsView: View {
     }
 
     init(
-        filter _: NSDate,
         _ highLimit: Binding<Decimal>,
         _ lowLimit: Binding<Decimal>,
         _ units: Binding<GlucoseUnits>,
