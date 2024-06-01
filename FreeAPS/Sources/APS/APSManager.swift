@@ -1408,19 +1408,29 @@ private extension PumpManager {
         }
     }
 
-    func suspendDelivery() -> AnyPublisher<Void, Error> {
-        Future { promise in
+    func suspendDelivery() async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             self.suspendDelivery { error in
                 if let error = error {
-                    promise(.failure(error))
+                    continuation.resume(throwing: error)
                 } else {
-                    promise(.success(()))
+                    continuation.resume()
                 }
             }
         }
-        .mapError { APSError.pumpError($0) }
-        .eraseToAnyPublisher()
     }
+
+//    func resumeDelivery() async throws {
+//        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+//            self.resumeDelivery { error in
+//                if let error = error {
+//                    continuation.resume(throwing: error)
+//                } else {
+//                    continuation.resume()
+//                }
+//            }
+//        }
+//    }
 
     func resumeDelivery() -> AnyPublisher<Void, Error> {
         Future { promise in
