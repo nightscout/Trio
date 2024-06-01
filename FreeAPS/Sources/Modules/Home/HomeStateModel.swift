@@ -675,7 +675,8 @@ extension Home.StateModel {
                 .filter({ $0.type == EventType.pumpSuspend.rawValue || $0.type == EventType.pumpResume.rawValue })
             let lastSuspension = suspensions.last
 
-            pumpSuspended = tempBasals.last?.timestamp ?? Date() > lastSuspension?.timestamp ?? .distantPast && lastSuspension?.type == EventType.pumpSuspend
+            pumpSuspended = tempBasals.last?.timestamp ?? Date() > lastSuspension?.timestamp ?? .distantPast && lastSuspension?
+                .type == EventType.pumpSuspend
                 .rawValue
 
         } catch {

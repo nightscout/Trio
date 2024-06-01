@@ -6,9 +6,7 @@ extension Home {
     final class Provider: BaseProvider, HomeProvider {
         @Injected() var apsManager: APSManager!
         @Injected() var glucoseStorage: GlucoseStorage!
-        @Injected() var pumpHistoryStorage: PumpHistoryStorage!
         @Injected() var tempTargetsStorage: TempTargetsStorage!
-        @Injected() var carbsStorage: CarbsStorage!
         @Injected() var announcementStorage: AnnouncementsStorage!
 
         func pumpTimeZone() -> TimeZone? {
@@ -19,12 +17,6 @@ extension Home {
             apsManager.heartbeat(date: Date())
         }
 
-        func pumpHistory(hours: Int) -> [PumpHistoryEvent] {
-            pumpHistoryStorage.recent().filter {
-                $0.timestamp.addingTimeInterval(hours.hours.timeInterval) > Date()
-            }
-        }
-
         func tempTargets(hours: Int) -> [TempTarget] {
             tempTargetsStorage.recent().filter {
                 $0.createdAt.addingTimeInterval(hours.hours.timeInterval) > Date()
@@ -33,12 +25,6 @@ extension Home {
 
         func tempTarget() -> TempTarget? {
             tempTargetsStorage.current()
-        }
-
-        func carbs(hours: Int) -> [CarbsEntry] {
-            carbsStorage.recent().filter {
-                $0.createdAt.addingTimeInterval(hours.hours.timeInterval) > Date()
-            }
         }
 
         func announcement(_ hours: Int) -> [Announcement] {
@@ -66,10 +52,6 @@ extension Home {
         func basalProfile() -> [BasalProfileEntry] {
             storage.retrieve(OpenAPS.Settings.pumpProfile, as: Autotune.self)?.basalProfile
                 ?? [BasalProfileEntry(start: "00:00", minutes: 0, rate: 1)]
-        }
-
-        func fetchGlucose() -> [GlucoseStored] {
-            glucoseStorage.fetchGlucose()
         }
     }
 }
