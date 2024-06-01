@@ -9,11 +9,6 @@ extension Stat {
         let resolver: Resolver
         @StateObject var state = StateModel()
 
-        @FetchRequest(
-            entity: TDD.entity(),
-            sortDescriptors: [NSSortDescriptor(key: "timestamp", ascending: false)]
-        ) var fetchedTDD: FetchedResults<TDD>
-
         @Environment(\.colorScheme) var colorScheme
 
         @State var paddingAmount: CGFloat? = 10

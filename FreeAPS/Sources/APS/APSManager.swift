@@ -796,19 +796,6 @@ final class BaseAPSManager: APSManager, Injectable {
                     )
                 }
 
-                // TODO: - replace this...
-                let saveLastLoop = LastLoop(context: self.privateContext)
-                saveLastLoop.iob = (determinationUpdated.iob ?? 0) as NSDecimalNumber
-                saveLastLoop.cob = determinationUpdated.cob as? NSDecimalNumber
-                saveLastLoop.timestamp = (determinationUpdated.timestamp ?? .distantPast) as Date
-
-                do {
-                    guard privateContext.hasChanges else { return }
-                    try privateContext.save()
-                } catch {
-                    print(error.localizedDescription)
-                }
-
                 debug(.apsManager, "Determination enacted. Received: \(received)")
 
                 nightscout.uploadStatus()
@@ -987,6 +974,8 @@ final class BaseAPSManager: APSManager, Injectable {
         )
     }
 
+    // TODO: - Refactor this whole shit here...
+
     // Add to statistics.JSON for upload to NS.
     private func statistics() {
         let now = Date()
@@ -1031,19 +1020,20 @@ final class BaseAPSManager: APSManager, Injectable {
                 }
 
                 // TDD
-                var tdds = [TDD]()
+                var tdds = [OrefDetermination]()
                 var currentTDD: Decimal = 0
                 var tddTotalAverage: Decimal = 0
-                let requestTDD = TDD.fetchRequest() as NSFetchRequest<TDD>
+                let requestTDD = OrefDetermination.fetchRequest() as NSFetchRequest<OrefDetermination>
                 let sort = NSSortDescriptor(key: "timestamp", ascending: false)
                 let daysOf14Ago = Date().addingTimeInterval(-14.days.timeInterval)
                 requestTDD.predicate = NSPredicate(format: "timestamp > %@", daysOf14Ago as NSDate)
                 requestTDD.sortDescriptors = [sort]
+                requestTDD.propertiesToFetch = ["timestamp", "totalDailyDose"]
                 try? tdds = privateContext.fetch(requestTDD)
 
                 if !tdds.isEmpty {
-                    currentTDD = tdds[0].tdd?.decimalValue ?? 0
-                    let tddArray = tdds.compactMap({ insulin in insulin.tdd as? Decimal ?? 0 })
+                    currentTDD = tdds[0].totalDailyDose?.decimalValue ?? 0
+                    let tddArray = tdds.compactMap({ insulin in insulin.totalDailyDose as? Decimal ?? 0 })
                     tddTotalAverage = tddArray.reduce(0, +) / Decimal(tddArray.count)
                 }
 
@@ -1244,25 +1234,12 @@ final class BaseAPSManager: APSManager, Injectable {
                 )
 
                 // Insulin
-                var insulinDistribution = [InsulinDistribution]()
                 var insulin = Ins(
                     TDD: 0,
                     bolus: 0,
                     temp_basal: 0,
                     scheduled_basal: 0,
                     total_average: 0
-                )
-                let requestInsulinDistribution = InsulinDistribution.fetchRequest() as NSFetchRequest<InsulinDistribution>
-                let sortInsulin = NSSortDescriptor(key: "date", ascending: false)
-                requestInsulinDistribution.sortDescriptors = [sortInsulin]
-                try? insulinDistribution = privateContext.fetch(requestInsulinDistribution)
-                insulin = Ins(
-                    TDD: roundDecimal(currentTDD, 2),
-                    bolus: insulinDistribution.first != nil ? ((insulinDistribution.first?.bolus ?? 0) as Decimal) : 0,
-                    temp_basal: insulinDistribution.first != nil ? ((insulinDistribution.first?.tempBasal ?? 0) as Decimal) : 0,
-                    scheduled_basal: insulinDistribution
-                        .first != nil ? ((insulinDistribution.first?.scheduledBasal ?? 0) as Decimal) : 0,
-                    total_average: roundDecimal(tddTotalAverage, 1)
                 )
 
                 let hbA1cUnit = !overrideHbA1cUnit ? (units == .mmolL ? "mmol/mol" : "%") : (units == .mmolL ? "%" : "mmol/mol")

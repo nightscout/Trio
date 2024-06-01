@@ -60,11 +60,11 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
             ofType: OrefDetermination.self,
             onContext: context,
             predicate: predicate,
-            key: "deliverAt",
+            key: "timestamp",
             ascending: false,
             fetchLimit: 1,
-            propertiesToFetch: ["deliverAt"]
-        ).first?.deliverAt
+            propertiesToFetch: ["timestamp"]
+        ).first?.timestamp
     }
 
     private func fetchLatestOverride() -> Override? {

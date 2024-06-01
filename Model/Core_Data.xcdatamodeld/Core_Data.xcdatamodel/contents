@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22222" systemVersion="22G120" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22757" systemVersion="23E224" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
     <entity name="BolusStored" representedClassName="BolusStored" syncable="YES">
         <attribute name="amount" optional="YES" attributeType="Decimal" defaultValueString="0"/>
         <attribute name="isExternal" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
@@ -49,34 +49,9 @@
             <fetchIndexElement property="isManual" type="Binary" order="ascending"/>
         </fetchIndex>
     </entity>
-    <entity name="HbA1c" representedClassName="HbA1c" syncable="YES">
-        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="hba1c" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
-        <attribute name="hba1c_1" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
-        <attribute name="hba1c_7" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
-        <attribute name="hba1c_30" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
-    </entity>
     <entity name="ImportError" representedClassName="ImportError" syncable="YES">
         <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="error" optional="YES" attributeType="String"/>
-    </entity>
-    <entity name="InsulinDistribution" representedClassName="InsulinDistribution" syncable="YES">
-        <attribute name="bolus" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
-        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="scheduledBasal" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
-        <attribute name="tempBasal" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
-        <relationship name="insulin" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Oref0Suggestion" inverseName="computedInsulinDistribution" inverseEntity="Oref0Suggestion"/>
-        <fetchIndex name="byDate">
-            <fetchIndexElement property="date" type="Binary" order="ascending"/>
-        </fetchIndex>
-    </entity>
-    <entity name="LastLoop" representedClassName="LastLoop" syncable="YES">
-        <attribute name="cob" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
-        <attribute name="iob" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
-        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <fetchIndex name="byDate">
-            <fetchIndexElement property="timestamp" type="Binary" order="descending"/>
-        </fetchIndex>
     </entity>
     <entity name="LoopStatRecord" representedClassName="LoopStatRecord" syncable="YES">
         <attribute name="duration" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
@@ -95,10 +70,6 @@
         <fetchIndex name="byDate">
             <fetchIndexElement property="date" type="Binary" order="descending"/>
         </fetchIndex>
-    </entity>
-    <entity name="Oref0Suggestion" representedClassName="Oref0Suggestion" syncable="YES">
-        <relationship name="computedInsulinDistribution" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="InsulinDistribution" inverseName="insulin" inverseEntity="InsulinDistribution"/>
-        <relationship name="computedTDD" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="TDD" inverseName="computed" inverseEntity="TDD"/>
     </entity>
     <entity name="OrefDetermination" representedClassName="OrefDetermination" syncable="YES">
         <attribute name="bolus" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
@@ -202,17 +173,6 @@
     </entity>
     <entity name="StatsData" representedClassName="StatsData" syncable="YES">
         <attribute name="lastrun" attributeType="Date" defaultDateTimeInterval="704497620" usesScalarValueType="NO"/>
-    </entity>
-    <entity name="Target" representedClassName="Target" syncable="YES">
-        <attribute name="current" optional="YES" attributeType="Decimal" defaultValueString="100"/>
-    </entity>
-    <entity name="TDD" representedClassName="TDD" syncable="YES">
-        <attribute name="tdd" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
-        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <relationship name="computed" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Oref0Suggestion" inverseName="computedTDD" inverseEntity="Oref0Suggestion"/>
-        <fetchIndex name="byDate">
-            <fetchIndexElement property="timestamp" type="Binary" order="ascending"/>
-        </fetchIndex>
     </entity>
     <entity name="TempBasalStored" representedClassName="TempBasalStored" syncable="YES">
         <attribute name="duration" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>

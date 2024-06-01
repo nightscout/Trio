@@ -88,6 +88,18 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         EKEventStore().calendars(for: .event).map(\.title)
     }
 
+    private func getLastDetermination() -> [OrefDetermination] {
+        CoreDataStack.shared.fetchEntities(
+            ofType: OrefDetermination.self,
+            onContext: coredataContext,
+            predicate: NSPredicate.predicateFor30MinAgo,
+            key: "timestamp",
+            ascending: false,
+            fetchLimit: 1,
+            propertiesToFetch: ["timestamp", "cob", "iob"]
+        )
+    }
+
     func createEvent(for glucose: GlucoseStored, delta: Int) {
         guard settingsManager.settings.useCalendar else { return }
 
@@ -104,18 +116,12 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         let displeyCOBandIOB = settingsManager.settings.displayCalendarIOBandCOB
         let displayEmojis = settingsManager.settings.displayCalendarEmojis
 
-        // Latest Loop data (from CoreData)
+        // Latest Loop data
         var freshLoop: Double = 20
-        var lastLoop = [LastLoop]()
+        var lastLoop: Date?
         if displeyCOBandIOB || displayEmojis {
-            coredataContext.performAndWait {
-                let requestLastLoop = LastLoop.fetchRequest() as NSFetchRequest<LastLoop>
-                let sortLoops = NSSortDescriptor(key: "timestamp", ascending: false)
-                requestLastLoop.sortDescriptors = [sortLoops]
-                requestLastLoop.fetchLimit = 1
-                try? lastLoop = coredataContext.fetch(requestLastLoop)
-            }
-            freshLoop = -1 * (lastLoop.first?.timestamp ?? .distantPast).timeIntervalSinceNow.minutes
+            lastLoop = getLastDetermination().first?.timestamp
+            freshLoop = -1 * (lastLoop?.timeIntervalSinceNow.minutes ?? 0)
         }
 
         var glucoseIcon = "🟢"
@@ -136,8 +142,8 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         let deltaValue = settingsManager.settings.units == .mmolL ? Int(delta.asMmolL) : delta
         let deltaText = deltaFormatter.string(from: NSNumber(value: deltaValue)) ?? "--"
 
-        let iobText = iobFormatter.string(from: (lastLoop.first?.iob ?? 0) as NSNumber) ?? ""
-        let cobText = cobFormatter.string(from: (lastLoop.first?.cob ?? 0) as NSNumber) ?? ""
+        let iobText = iobFormatter.string(from: (getLastDetermination().first?.iob ?? 0) as NSNumber) ?? ""
+        let cobText = cobFormatter.string(from: (getLastDetermination().first?.cob ?? 0) as NSNumber) ?? ""
 
         var glucoseDisplayText = displayEmojis ? glucoseIcon + " " : ""
         glucoseDisplayText += glucoseText + " " + directionText + " " + deltaText

@@ -268,48 +268,26 @@
 		581516A92BCEEDF800BF67D7 /* NSPredicates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 581516A82BCEEDF800BF67D7 /* NSPredicates.swift */; };
 		581AC4392BE22ED10038760C /* JSONConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 581AC4382BE22ED10038760C /* JSONConverter.swift */; };
 		58237D9E2BCF0A6B00A47A79 /* PopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58237D9D2BCF0A6B00A47A79 /* PopupView.swift */; };
-		5825D1342BD4058F00F36E9B /* BGaverages+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1062BD4058F00F36E9B /* BGaverages+CoreDataClass.swift */; };
-		5825D1352BD4058F00F36E9B /* BGaverages+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1072BD4058F00F36E9B /* BGaverages+CoreDataProperties.swift */; };
-		5825D1362BD4058F00F36E9B /* BGmedian+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1082BD4058F00F36E9B /* BGmedian+CoreDataClass.swift */; };
-		5825D1372BD4058F00F36E9B /* BGmedian+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1092BD4058F00F36E9B /* BGmedian+CoreDataProperties.swift */; };
 		5825D13A2BD4058F00F36E9B /* LoopStatRecord+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D10C2BD4058F00F36E9B /* LoopStatRecord+CoreDataClass.swift */; };
 		5825D13B2BD4058F00F36E9B /* LoopStatRecord+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D10D2BD4058F00F36E9B /* LoopStatRecord+CoreDataProperties.swift */; };
 		5825D13C2BD4058F00F36E9B /* ImportError+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D10E2BD4058F00F36E9B /* ImportError+CoreDataClass.swift */; };
 		5825D13D2BD4058F00F36E9B /* ImportError+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D10F2BD4058F00F36E9B /* ImportError+CoreDataProperties.swift */; };
-		5825D13E2BD4058F00F36E9B /* TDD+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1102BD4058F00F36E9B /* TDD+CoreDataClass.swift */; };
-		5825D13F2BD4058F00F36E9B /* TDD+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1112BD4058F00F36E9B /* TDD+CoreDataProperties.swift */; };
 		5825D1402BD4058F00F36E9B /* TempTargetsSlider+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1122BD4058F00F36E9B /* TempTargetsSlider+CoreDataClass.swift */; };
 		5825D1412BD4058F00F36E9B /* TempTargetsSlider+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1132BD4058F00F36E9B /* TempTargetsSlider+CoreDataProperties.swift */; };
 		5825D1422BD4058F00F36E9B /* Presets+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1142BD4058F00F36E9B /* Presets+CoreDataClass.swift */; };
 		5825D1432BD4058F00F36E9B /* Presets+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1152BD4058F00F36E9B /* Presets+CoreDataProperties.swift */; };
-		5825D1442BD4058F00F36E9B /* Autosens_+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1162BD4058F00F36E9B /* Autosens_+CoreDataClass.swift */; };
-		5825D1452BD4058F00F36E9B /* Autosens_+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1172BD4058F00F36E9B /* Autosens_+CoreDataProperties.swift */; };
-		5825D1462BD4058F00F36E9B /* Oref0Suggestion+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1182BD4058F00F36E9B /* Oref0Suggestion+CoreDataClass.swift */; };
-		5825D1472BD4058F00F36E9B /* Oref0Suggestion+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1192BD4058F00F36E9B /* Oref0Suggestion+CoreDataProperties.swift */; };
 		5825D1482BD4058F00F36E9B /* Override+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D11A2BD4058F00F36E9B /* Override+CoreDataClass.swift */; };
 		5825D1492BD4058F00F36E9B /* Override+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D11B2BD4058F00F36E9B /* Override+CoreDataProperties.swift */; };
 		5825D14A2BD4058F00F36E9B /* OrefDetermination+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D11C2BD4058F00F36E9B /* OrefDetermination+CoreDataClass.swift */; };
 		5825D14B2BD4058F00F36E9B /* OrefDetermination+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D11D2BD4058F00F36E9B /* OrefDetermination+CoreDataProperties.swift */; };
 		5825D14C2BD4058F00F36E9B /* TempTargets+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D11E2BD4058F00F36E9B /* TempTargets+CoreDataClass.swift */; };
 		5825D14D2BD4058F00F36E9B /* TempTargets+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D11F2BD4058F00F36E9B /* TempTargets+CoreDataProperties.swift */; };
-		5825D14E2BD4058F00F36E9B /* HbA1c+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1202BD4058F00F36E9B /* HbA1c+CoreDataClass.swift */; };
-		5825D14F2BD4058F00F36E9B /* HbA1c+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1212BD4058F00F36E9B /* HbA1c+CoreDataProperties.swift */; };
-		5825D1502BD4058F00F36E9B /* InsulinDistribution+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1222BD4058F00F36E9B /* InsulinDistribution+CoreDataClass.swift */; };
-		5825D1512BD4058F00F36E9B /* InsulinDistribution+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1232BD4058F00F36E9B /* InsulinDistribution+CoreDataProperties.swift */; };
-		5825D1522BD4058F00F36E9B /* LastLoop+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1242BD4058F00F36E9B /* LastLoop+CoreDataClass.swift */; };
-		5825D1532BD4058F00F36E9B /* LastLoop+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1252BD4058F00F36E9B /* LastLoop+CoreDataProperties.swift */; };
 		5825D1542BD4058F00F36E9B /* CarbEntryStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1262BD4058F00F36E9B /* CarbEntryStored+CoreDataClass.swift */; };
 		5825D1552BD4058F00F36E9B /* CarbEntryStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1272BD4058F00F36E9B /* CarbEntryStored+CoreDataProperties.swift */; };
-		5825D1562BD4058F00F36E9B /* Autotune_+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1282BD4058F00F36E9B /* Autotune_+CoreDataClass.swift */; };
-		5825D1572BD4058F00F36E9B /* Autotune_+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1292BD4058F00F36E9B /* Autotune_+CoreDataProperties.swift */; };
 		5825D1582BD4058F00F36E9B /* StatsData+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D12A2BD4058F00F36E9B /* StatsData+CoreDataClass.swift */; };
 		5825D1592BD4058F00F36E9B /* StatsData+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D12B2BD4058F00F36E9B /* StatsData+CoreDataProperties.swift */; };
 		5825D15A2BD4058F00F36E9B /* OverridePresets+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D12C2BD4058F00F36E9B /* OverridePresets+CoreDataClass.swift */; };
 		5825D15B2BD4058F00F36E9B /* OverridePresets+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D12D2BD4058F00F36E9B /* OverridePresets+CoreDataProperties.swift */; };
-		5825D15C2BD4058F00F36E9B /* Target+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D12E2BD4058F00F36E9B /* Target+CoreDataClass.swift */; };
-		5825D15D2BD4058F00F36E9B /* Target+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D12F2BD4058F00F36E9B /* Target+CoreDataProperties.swift */; };
-		5825D15E2BD4058F00F36E9B /* Protein+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1302BD4058F00F36E9B /* Protein+CoreDataClass.swift */; };
-		5825D15F2BD4058F00F36E9B /* Protein+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1312BD4058F00F36E9B /* Protein+CoreDataProperties.swift */; };
 		582FAE432C05102C00D1C13F /* CoreDataError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 582FAE422C05102C00D1C13F /* CoreDataError.swift */; };
 		583684062BD178DB00070A60 /* GlucoseStored+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 583684052BD178DB00070A60 /* GlucoseStored+helper.swift */; };
 		583684082BD195A700070A60 /* Determination.swift in Sources */ = {isa = PBXBuildFile; fileRef = 583684072BD195A700070A60 /* Determination.swift */; };
@@ -896,48 +874,26 @@
 		581516A82BCEEDF800BF67D7 /* NSPredicates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSPredicates.swift; sourceTree = "<group>"; };
 		581AC4382BE22ED10038760C /* JSONConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONConverter.swift; sourceTree = "<group>"; };
 		58237D9D2BCF0A6B00A47A79 /* PopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopupView.swift; sourceTree = "<group>"; };
-		5825D1062BD4058F00F36E9B /* BGaverages+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BGaverages+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		5825D1072BD4058F00F36E9B /* BGaverages+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BGaverages+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		5825D1082BD4058F00F36E9B /* BGmedian+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BGmedian+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		5825D1092BD4058F00F36E9B /* BGmedian+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BGmedian+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		5825D10C2BD4058F00F36E9B /* LoopStatRecord+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoopStatRecord+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		5825D10D2BD4058F00F36E9B /* LoopStatRecord+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoopStatRecord+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		5825D10E2BD4058F00F36E9B /* ImportError+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ImportError+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		5825D10F2BD4058F00F36E9B /* ImportError+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ImportError+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		5825D1102BD4058F00F36E9B /* TDD+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TDD+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		5825D1112BD4058F00F36E9B /* TDD+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TDD+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		5825D1122BD4058F00F36E9B /* TempTargetsSlider+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetsSlider+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		5825D1132BD4058F00F36E9B /* TempTargetsSlider+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetsSlider+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		5825D1142BD4058F00F36E9B /* Presets+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Presets+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		5825D1152BD4058F00F36E9B /* Presets+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Presets+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		5825D1162BD4058F00F36E9B /* Autosens_+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Autosens_+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		5825D1172BD4058F00F36E9B /* Autosens_+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Autosens_+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		5825D1182BD4058F00F36E9B /* Oref0Suggestion+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Oref0Suggestion+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		5825D1192BD4058F00F36E9B /* Oref0Suggestion+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Oref0Suggestion+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		5825D11A2BD4058F00F36E9B /* Override+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Override+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		5825D11B2BD4058F00F36E9B /* Override+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Override+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		5825D11C2BD4058F00F36E9B /* OrefDetermination+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OrefDetermination+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		5825D11D2BD4058F00F36E9B /* OrefDetermination+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OrefDetermination+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		5825D11E2BD4058F00F36E9B /* TempTargets+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargets+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		5825D11F2BD4058F00F36E9B /* TempTargets+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargets+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		5825D1202BD4058F00F36E9B /* HbA1c+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HbA1c+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		5825D1212BD4058F00F36E9B /* HbA1c+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HbA1c+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		5825D1222BD4058F00F36E9B /* InsulinDistribution+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "InsulinDistribution+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		5825D1232BD4058F00F36E9B /* InsulinDistribution+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "InsulinDistribution+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		5825D1242BD4058F00F36E9B /* LastLoop+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LastLoop+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		5825D1252BD4058F00F36E9B /* LastLoop+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LastLoop+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		5825D1262BD4058F00F36E9B /* CarbEntryStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CarbEntryStored+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		5825D1272BD4058F00F36E9B /* CarbEntryStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CarbEntryStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		5825D1282BD4058F00F36E9B /* Autotune_+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Autotune_+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		5825D1292BD4058F00F36E9B /* Autotune_+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Autotune_+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		5825D12A2BD4058F00F36E9B /* StatsData+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StatsData+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		5825D12B2BD4058F00F36E9B /* StatsData+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StatsData+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		5825D12C2BD4058F00F36E9B /* OverridePresets+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverridePresets+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		5825D12D2BD4058F00F36E9B /* OverridePresets+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverridePresets+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		5825D12E2BD4058F00F36E9B /* Target+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Target+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		5825D12F2BD4058F00F36E9B /* Target+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Target+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		5825D1302BD4058F00F36E9B /* Protein+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Protein+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		5825D1312BD4058F00F36E9B /* Protein+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Protein+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		582FAE422C05102C00D1C13F /* CoreDataError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataError.swift; sourceTree = "<group>"; };
 		583684052BD178DB00070A60 /* GlucoseStored+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GlucoseStored+helper.swift"; sourceTree = "<group>"; };
 		583684072BD195A700070A60 /* Determination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Determination.swift; sourceTree = "<group>"; };
@@ -2178,48 +2134,26 @@
 				5856174C2BDADA3F009B23D7 /* GlucoseStored+CoreDataProperties.swift */,
 				588752822BD9986A008B081D /* OpenAPS_Battery+CoreDataClass.swift */,
 				588752832BD9986A008B081D /* OpenAPS_Battery+CoreDataProperties.swift */,
-				5825D1062BD4058F00F36E9B /* BGaverages+CoreDataClass.swift */,
-				5825D1072BD4058F00F36E9B /* BGaverages+CoreDataProperties.swift */,
-				5825D1082BD4058F00F36E9B /* BGmedian+CoreDataClass.swift */,
-				5825D1092BD4058F00F36E9B /* BGmedian+CoreDataProperties.swift */,
 				5825D10C2BD4058F00F36E9B /* LoopStatRecord+CoreDataClass.swift */,
 				5825D10D2BD4058F00F36E9B /* LoopStatRecord+CoreDataProperties.swift */,
 				5825D10E2BD4058F00F36E9B /* ImportError+CoreDataClass.swift */,
 				5825D10F2BD4058F00F36E9B /* ImportError+CoreDataProperties.swift */,
-				5825D1102BD4058F00F36E9B /* TDD+CoreDataClass.swift */,
-				5825D1112BD4058F00F36E9B /* TDD+CoreDataProperties.swift */,
 				5825D1122BD4058F00F36E9B /* TempTargetsSlider+CoreDataClass.swift */,
 				5825D1132BD4058F00F36E9B /* TempTargetsSlider+CoreDataProperties.swift */,
 				5825D1142BD4058F00F36E9B /* Presets+CoreDataClass.swift */,
 				5825D1152BD4058F00F36E9B /* Presets+CoreDataProperties.swift */,
-				5825D1162BD4058F00F36E9B /* Autosens_+CoreDataClass.swift */,
-				5825D1172BD4058F00F36E9B /* Autosens_+CoreDataProperties.swift */,
-				5825D1182BD4058F00F36E9B /* Oref0Suggestion+CoreDataClass.swift */,
-				5825D1192BD4058F00F36E9B /* Oref0Suggestion+CoreDataProperties.swift */,
 				5825D11A2BD4058F00F36E9B /* Override+CoreDataClass.swift */,
 				5825D11B2BD4058F00F36E9B /* Override+CoreDataProperties.swift */,
 				5825D11C2BD4058F00F36E9B /* OrefDetermination+CoreDataClass.swift */,
 				5825D11D2BD4058F00F36E9B /* OrefDetermination+CoreDataProperties.swift */,
 				5825D11E2BD4058F00F36E9B /* TempTargets+CoreDataClass.swift */,
 				5825D11F2BD4058F00F36E9B /* TempTargets+CoreDataProperties.swift */,
-				5825D1202BD4058F00F36E9B /* HbA1c+CoreDataClass.swift */,
-				5825D1212BD4058F00F36E9B /* HbA1c+CoreDataProperties.swift */,
-				5825D1222BD4058F00F36E9B /* InsulinDistribution+CoreDataClass.swift */,
-				5825D1232BD4058F00F36E9B /* InsulinDistribution+CoreDataProperties.swift */,
-				5825D1242BD4058F00F36E9B /* LastLoop+CoreDataClass.swift */,
-				5825D1252BD4058F00F36E9B /* LastLoop+CoreDataProperties.swift */,
 				5825D1262BD4058F00F36E9B /* CarbEntryStored+CoreDataClass.swift */,
 				5825D1272BD4058F00F36E9B /* CarbEntryStored+CoreDataProperties.swift */,
-				5825D1282BD4058F00F36E9B /* Autotune_+CoreDataClass.swift */,
-				5825D1292BD4058F00F36E9B /* Autotune_+CoreDataProperties.swift */,
 				5825D12A2BD4058F00F36E9B /* StatsData+CoreDataClass.swift */,
 				5825D12B2BD4058F00F36E9B /* StatsData+CoreDataProperties.swift */,
 				5825D12C2BD4058F00F36E9B /* OverridePresets+CoreDataClass.swift */,
 				5825D12D2BD4058F00F36E9B /* OverridePresets+CoreDataProperties.swift */,
-				5825D12E2BD4058F00F36E9B /* Target+CoreDataClass.swift */,
-				5825D12F2BD4058F00F36E9B /* Target+CoreDataProperties.swift */,
-				5825D1302BD4058F00F36E9B /* Protein+CoreDataClass.swift */,
-				5825D1312BD4058F00F36E9B /* Protein+CoreDataProperties.swift */,
 			);
 			path = "Classes+Properties";
 			sourceTree = "<group>";
@@ -2914,15 +2848,12 @@
 				3811DEB225C9D88300A708ED /* KeychainItemAccessibility.swift in Sources */,
 				385CEAC425F2F154002D6D5B /* AnnouncementsStorage.swift in Sources */,
 				38AEE73D25F0200C0013F05B /* FreeAPSSettings.swift in Sources */,
-				5825D1352BD4058F00F36E9B /* BGaverages+CoreDataProperties.swift in Sources */,
 				38FCF3FD25E997A80078B0D1 /* PumpHistoryStorage.swift in Sources */,
 				38D0B3B625EBE24900CB6E88 /* Battery.swift in Sources */,
 				38C4D33725E9A1A300D30B77 /* DispatchQueue+Extensions.swift in Sources */,
 				F90692CF274B999A0037068D /* HealthKitDataFlow.swift in Sources */,
 				CE7CA3552A064973004BE681 /* ListStateIntent.swift in Sources */,
 				BDF530D82B40F8AC002CAF43 /* LockScreenView.swift in Sources */,
-				5825D15F2BD4058F00F36E9B /* Protein+CoreDataProperties.swift in Sources */,
-				5825D15D2BD4058F00F36E9B /* Target+CoreDataProperties.swift in Sources */,
 				5825D1402BD4058F00F36E9B /* TempTargetsSlider+CoreDataClass.swift in Sources */,
 				195D80B72AF697B800D25097 /* DynamicDataFlow.swift in Sources */,
 				5825D1542BD4058F00F36E9B /* CarbEntryStored+CoreDataClass.swift in Sources */,
@@ -2938,7 +2869,6 @@
 				38AEE75225F022080013F05B /* SettingsManager.swift in Sources */,
 				38FEF408273B011A00574A46 /* LibreTransmitterSource.swift in Sources */,
 				3894873A2614928B004DF424 /* DispatchTimer.swift in Sources */,
-				5825D14E2BD4058F00F36E9B /* HbA1c+CoreDataClass.swift in Sources */,
 				3895E4C625B9E00D00214B37 /* Preferences.swift in Sources */,
 				386A124F271707F000DDC61C /* DexcomSourceG6.swift in Sources */,
 				CE94598429E9E3E60047C9C6 /* WatchConfigStateModel.swift in Sources */,
@@ -2953,7 +2883,6 @@
 				38F3B2EF25ED8E2A005C48AA /* TempTargetsStorage.swift in Sources */,
 				19B0EF2128F6D66200069496 /* Statistics.swift in Sources */,
 				3811DF1025CAAAE200A708ED /* APSManager.swift in Sources */,
-				5825D13E2BD4058F00F36E9B /* TDD+CoreDataClass.swift in Sources */,
 				3870FF4725EC187A0088248F /* BloodGlucose.swift in Sources */,
 				38A0364225ED069400FCBB52 /* TempBasal.swift in Sources */,
 				3811DE1725C9D40400A708ED /* Screen.swift in Sources */,
@@ -2973,7 +2902,6 @@
 				38192E04261B82FA0094D973 /* ReachabilityManager.swift in Sources */,
 				38E44539274E411700EC9A94 /* Disk+UIImage.swift in Sources */,
 				388E595C25AD948C0019842D /* FreeAPSApp.swift in Sources */,
-				5825D1522BD4058F00F36E9B /* LastLoop+CoreDataClass.swift in Sources */,
 				588752852BD9986A008B081D /* OpenAPS_Battery+CoreDataProperties.swift in Sources */,
 				38FEF3FC2737E53800574A46 /* MainStateModel.swift in Sources */,
 				5825D13A2BD4058F00F36E9B /* LoopStatRecord+CoreDataClass.swift in Sources */,
@@ -2982,7 +2910,6 @@
 				5825D15B2BD4058F00F36E9B /* OverridePresets+CoreDataProperties.swift in Sources */,
 				CEB434E328B8F9DB00B70274 /* BluetoothStateManager.swift in Sources */,
 				3811DE4225C9D4A100A708ED /* SettingsDataFlow.swift in Sources */,
-				5825D1502BD4058F00F36E9B /* InsulinDistribution+CoreDataClass.swift in Sources */,
 				3811DE2525C9D48300A708ED /* MainRootView.swift in Sources */,
 				CE94598229E9E3D30047C9C6 /* WatchConfigProvider.swift in Sources */,
 				38E44535274E411700EC9A94 /* Disk+Data.swift in Sources */,
@@ -2991,7 +2918,6 @@
 				E013D872273AC6FE0014109C /* GlucoseSimulatorSource.swift in Sources */,
 				388E5A5C25B6F0770019842D /* JSON.swift in Sources */,
 				3811DF0225CA9FEA00A708ED /* Credentials.swift in Sources */,
-				5825D1452BD4058F00F36E9B /* Autosens_+CoreDataProperties.swift in Sources */,
 				19DC678529CA67A400FD9EC4 /* OverrideProfilesRootView.swift in Sources */,
 				5837A5302BD2E3C700A5DC04 /* CarbEntryStored+helper.swift in Sources */,
 				CC76E94C2BD471BA008BEB61 /* Forecast+CoreDataClass.swift in Sources */,
@@ -3009,7 +2935,6 @@
 				38A13D3225E28B4B00EAA382 /* PumpHistoryEvent.swift in Sources */,
 				E00EEC0627368630002FF094 /* UIAssembly.swift in Sources */,
 				3811DE1825C9D40400A708ED /* Router.swift in Sources */,
-				5825D1462BD4058F00F36E9B /* Oref0Suggestion+CoreDataClass.swift in Sources */,
 				CE7950262998056D00FA576E /* CGMSetupView.swift in Sources */,
 				582FAE432C05102C00D1C13F /* CoreDataError.swift in Sources */,
 				38A0363B25ECF07E00FCBB52 /* GlucoseStorage.swift in Sources */,
@@ -3044,7 +2969,6 @@
 				3811DE0C25C9D32F00A708ED /* BaseProvider.swift in Sources */,
 				3811DE5C25C9D4D500A708ED /* Formatters.swift in Sources */,
 				3871F39F25ED895A0013ECB5 /* Decimal+Extensions.swift in Sources */,
-				5825D1562BD4058F00F36E9B /* Autotune_+CoreDataClass.swift in Sources */,
 				5825D13D2BD4058F00F36E9B /* ImportError+CoreDataProperties.swift in Sources */,
 				3811DE3525C9D49500A708ED /* HomeRootView.swift in Sources */,
 				38E98A2925F52C9300C0CED0 /* Error+Extensions.swift in Sources */,
@@ -3064,7 +2988,6 @@
 				38FCF3D625E8FDF40078B0D1 /* MD5.swift in Sources */,
 				3871F39C25ED892B0013ECB5 /* TempTarget.swift in Sources */,
 				191F62682AD6B05A004D7911 /* NightscoutSettings.swift in Sources */,
-				5825D1342BD4058F00F36E9B /* BGaverages+CoreDataClass.swift in Sources */,
 				FEFA5C11299F814A00765C17 /* CoreDataStack.swift in Sources */,
 				3811DEAB25C9D88300A708ED /* HTTPResponseStatus.swift in Sources */,
 				3811DE5F25C9D4D500A708ED /* ProgressBar.swift in Sources */,
@@ -3101,7 +3024,6 @@
 				45252C95D220E796FDB3B022 /* ConfigEditorDataFlow.swift in Sources */,
 				587DA1F62B77F3DD00B28F8A /* SettingsRowView.swift in Sources */,
 				3871F38725ED661C0013ECB5 /* Suggestion.swift in Sources */,
-				5825D1572BD4058F00F36E9B /* Autotune_+CoreDataProperties.swift in Sources */,
 				CE7CA34E2A064973004BE681 /* AppShortcuts.swift in Sources */,
 				38C4D33A25E9A1ED00D30B77 /* NSObject+AssociatedValues.swift in Sources */,
 				38DF179027733EAD00B3528F /* SnowScene.swift in Sources */,
@@ -3121,9 +3043,7 @@
 				9825E5E923F0B8FA80C8C7C7 /* NightscoutConfigStateModel.swift in Sources */,
 				38A43598262E0E4900E80935 /* FetchAnnouncementsManager.swift in Sources */,
 				642F76A05A4FF530463A9FD0 /* NightscoutConfigRootView.swift in Sources */,
-				5825D1512BD4058F00F36E9B /* InsulinDistribution+CoreDataProperties.swift in Sources */,
 				BD7DA9AC2AE06EB900601B20 /* BolusCalculatorConfigRootView.swift in Sources */,
-				5825D15E2BD4058F00F36E9B /* Protein+CoreDataClass.swift in Sources */,
 				AD3D2CD42CD01B9EB8F26522 /* PumpConfigDataFlow.swift in Sources */,
 				53F2382465BF74DB1A967C8B /* PumpConfigProvider.swift in Sources */,
 				5D16287A969E64D18CE40E44 /* PumpConfigStateModel.swift in Sources */,
@@ -3150,7 +3070,6 @@
 				38FEF3FE2738083E00574A46 /* CGMProvider.swift in Sources */,
 				38E98A3725F5509500C0CED0 /* String+Extensions.swift in Sources */,
 				5825D13C2BD4058F00F36E9B /* ImportError+CoreDataClass.swift in Sources */,
-				5825D13F2BD4058F00F36E9B /* TDD+CoreDataProperties.swift in Sources */,
 				CC76E9512BD4812E008BEB61 /* Forecast+helper.swift in Sources */,
 				F90692D1274B99B60037068D /* HealthKitProvider.swift in Sources */,
 				19F95FF729F10FEE00314DDC /* StatStateModel.swift in Sources */,
@@ -3194,7 +3113,6 @@
 				A33352ED40476125EBAC6EE0 /* CREditorDataFlow.swift in Sources */,
 				17A9D0899046B45E87834820 /* CREditorProvider.swift in Sources */,
 				69B9A368029F7EB39F525422 /* CREditorStateModel.swift in Sources */,
-				5825D1472BD4058F00F36E9B /* Oref0Suggestion+CoreDataProperties.swift in Sources */,
 				38E44538274E411700EC9A94 /* Disk+[Data].swift in Sources */,
 				98641AF4F92123DA668AB931 /* CREditorRootView.swift in Sources */,
 				38E4453D274E411700EC9A94 /* Disk+Errors.swift in Sources */,
@@ -3204,7 +3122,6 @@
 				5075C1608E6249A51495C422 /* TargetsEditorProvider.swift in Sources */,
 				E13B7DAB2A435F57066AF02E /* TargetsEditorStateModel.swift in Sources */,
 				19DC678129CA676A00FD9EC4 /* OverrideProfilesProvider.swift in Sources */,
-				5825D1442BD4058F00F36E9B /* Autosens_+CoreDataClass.swift in Sources */,
 				9702FF92A09C53942F20D7EA /* TargetsEditorRootView.swift in Sources */,
 				1967DFBE29D052C200759F30 /* Icons.swift in Sources */,
 				38E8754F275556FA00975559 /* WatchManager.swift in Sources */,
@@ -3253,17 +3170,13 @@
 				38E4453B274E411700EC9A94 /* Disk+VolumeInformation.swift in Sources */,
 				7BCFACB97C821041BA43A114 /* ManualTempBasalRootView.swift in Sources */,
 				38E44534274E411700EC9A94 /* Disk+InternalHelpers.swift in Sources */,
-				5825D1532BD4058F00F36E9B /* LastLoop+CoreDataProperties.swift in Sources */,
 				38A00B2325FC2B55006BC0B0 /* LRUCache.swift in Sources */,
 				3083261C4B268E353F36CD0B /* AutotuneConfigDataFlow.swift in Sources */,
 				891DECF7BC20968D7F566161 /* AutotuneConfigProvider.swift in Sources */,
-				5825D15C2BD4058F00F36E9B /* Target+CoreDataClass.swift in Sources */,
 				D76333C9256787610B3B4875 /* AutotuneConfigStateModel.swift in Sources */,
 				A05235B9112E677ED03B6E8E /* AutotuneConfigRootView.swift in Sources */,
-				5825D14F2BD4058F00F36E9B /* HbA1c+CoreDataProperties.swift in Sources */,
 				7F7B756BE8543965D9FDF1A2 /* DataTableDataFlow.swift in Sources */,
 				1D845DF2E3324130E1D95E67 /* DataTableProvider.swift in Sources */,
-				5825D1372BD4058F00F36E9B /* BGmedian+CoreDataProperties.swift in Sources */,
 				19F95FFA29F1102A00314DDC /* StatRootView.swift in Sources */,
 				0D9A5E34A899219C5C4CDFAF /* DataTableStateModel.swift in Sources */,
 				6BCF84DD2B16843A003AD46E /* LiveActitiyShared.swift in Sources */,
@@ -3293,7 +3206,6 @@
 				6B1F539F9FF75646D1606066 /* SnoozeDataFlow.swift in Sources */,
 				6FFAE524D1D9C262F2407CAE /* SnoozeProvider.swift in Sources */,
 				8194B80890CDD6A3C13B0FEE /* SnoozeStateModel.swift in Sources */,
-				5825D1362BD4058F00F36E9B /* BGmedian+CoreDataClass.swift in Sources */,
 				0437CE46C12535A56504EC19 /* SnoozeRootView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -265,30 +265,6 @@ final class OpenAPS {
                     // save to core data asynchronously
                     self.processDetermination(determination)
 
-                    if determination.tdd ?? 0 > 0 {
-                        self.context.perform {
-                            let saveToTDD = TDD(context: self.context)
-
-                            saveToTDD.timestamp = determination.timestamp ?? Date()
-                            saveToTDD.tdd = (determination.tdd ?? 0) as NSDecimalNumber?
-                            do {
-                                guard self.context.hasChanges else { return }
-                                try self.context.save()
-                            } catch {
-                                print(error.localizedDescription)
-                            }
-
-                            let saveTarget = Target(context: self.context)
-                            saveTarget.current = (determination.current_target ?? 100) as NSDecimalNumber?
-                            do {
-                                guard self.context.hasChanges else { return }
-                                try self.context.save()
-                            } catch {
-                                print(error.localizedDescription)
-                            }
-                        }
-                    }
-
                     promise(.success(determination))
                 } else {
                     promise(.success(nil))
@@ -308,9 +284,10 @@ final class OpenAPS {
             let tenDaysAgo = Date().addingTimeInterval(-10.days.timeInterval)
             let twoHoursAgo = Date().addingTimeInterval(-2.hours.timeInterval)
 
-            var uniqueEvents = [TDD]()
-            let requestTDD = TDD.fetchRequest() as NSFetchRequest<TDD>
-            requestTDD.predicate = NSPredicate(format: "timestamp > %@ AND tdd > 0", tenDaysAgo as NSDate)
+            var uniqueEvents = [OrefDetermination]()
+            let requestTDD = OrefDetermination.fetchRequest() as NSFetchRequest<OrefDetermination>
+            requestTDD.predicate = NSPredicate(format: "timestamp > %@ AND totalDailyDose > 0", tenDaysAgo as NSDate)
+            requestTDD.propertiesToFetch = ["timestamp", "totalDailyDose"]
             let sortTDD = NSSortDescriptor(key: "timestamp", ascending: true)
             requestTDD.sortDescriptors = [sortTDD]
             try? uniqueEvents = context.fetch(requestTDD)
@@ -336,12 +313,12 @@ final class OpenAPS {
             requestTempTargets.fetchLimit = 1
             try? tempTargetsArray = context.fetch(requestTempTargets)
 
-            let total = uniqueEvents.compactMap({ each in each.tdd as? Decimal ?? 0 }).reduce(0, +)
+            let total = uniqueEvents.compactMap({ each in each.totalDailyDose as? Decimal ?? 0 }).reduce(0, +)
             var indeces = uniqueEvents.count
             // Only fetch once. Use same (previous) fetch
             let twoHoursArray = uniqueEvents.filter({ ($0.timestamp ?? Date()) >= twoHoursAgo })
             var nrOfIndeces = twoHoursArray.count
-            let totalAmount = twoHoursArray.compactMap({ each in each.tdd as? Decimal ?? 0 }).reduce(0, +)
+            let totalAmount = twoHoursArray.compactMap({ each in each.totalDailyDose as? Decimal ?? 0 }).reduce(0, +)
 
             var temptargetActive = tempTargetsArray.first?.active ?? false
             let isPercentageEnabled = sliderArray.first?.enabled ?? false
@@ -351,7 +328,7 @@ final class OpenAPS {
             var unlimited = overrideArray.first?.indefinite ?? true
             var disableSMBs = overrideArray.first?.smbIsOff ?? false
 
-            let currentTDD = (uniqueEvents.last?.tdd ?? 0) as Decimal
+            let currentTDD = (uniqueEvents.last?.totalDailyDose ?? 0) as Decimal
 
             if indeces == 0 {
                 indeces = 1
