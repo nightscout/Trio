@@ -72,15 +72,19 @@ struct CurrentGlucoseView: View {
 
             VStack(alignment: .center) {
                 HStack {
-                    let glucoseValue = combinedGlucoseValues.first?.glucose ?? 100
-                    let displayGlucose = convertGlucose(glucoseValue, to: units)
-
-                    Text(
-                        glucoseValue == 400 ? "HIGH" :
-                            glucoseFormatter.string(from: NSNumber(value: displayGlucose)) ?? "--"
-                    )
-                    .font(.system(size: 40, weight: .bold, design: .rounded))
-                    .foregroundColor(alarm == nil ? colourGlucoseText : .loopRed)
+                    if let glucoseValue = combinedGlucoseValues.first?.glucose {
+                        let displayGlucose = convertGlucose(glucoseValue, to: units)
+                        Text(
+                            glucoseValue == 400 ? "HIGH" :
+                                glucoseFormatter.string(from: NSNumber(value: displayGlucose)) ?? "--"
+                        )
+                        .font(.system(size: 40, weight: .bold, design: .rounded))
+                        .foregroundColor(alarm == nil ? colourGlucoseText : .loopRed)
+                    } else {
+                        Text("--")
+                            .font(.system(size: 40, weight: .bold, design: .rounded))
+                            .foregroundColor(.secondary)
+                    }
                 }
                 HStack {
                     let minutesAgo = -1 * (combinedGlucoseValues.first?.date?.timeIntervalSinceNow ?? 0) / 60
