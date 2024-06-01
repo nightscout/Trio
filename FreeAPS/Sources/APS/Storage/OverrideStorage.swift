@@ -5,7 +5,7 @@ import Swinject
 
 /// Observer to register to be informed by a change in the current override
 protocol OverrideObserver {
-    func overrideDidUpdate(_ targets: [OverrideProfil?])
+    func overrideDidUpdate(_ targets: [OverrideProfil?], current: OverrideProfil?)
 }
 
 protocol OverrideStorage {
@@ -129,6 +129,10 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
     /// Store new or updated override target
     /// - Parameter targets: List of new or updated override
     func storeOverride(_ targets: [OverrideProfil]) {
+        // if recent, close it before apply new override
+        if current() != nil {
+            _ = cancelCurrentOverride()
+        }
         storeOverride(targets, isPresets: false)
     }
 
@@ -202,8 +206,12 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             coredataContext.performAndWait {
                 try? coredataContext.save()
             }
-            // update the previous current value
-            _ = current()
+
+            processQueue.async {
+                self.broadcaster.notify(OverrideObserver.self, on: self.processQueue) {
+                    $0.overrideDidUpdate(self.recent(), current: self.current())
+                }
+            }
         }
         // }
     }
@@ -285,14 +293,6 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             newCurrentOverride = nil
         }
 
-        processQueue.sync {
-            if lastCurrentOverride != newCurrentOverride {
-                broadcaster.notify(OverrideObserver.self, on: processQueue) {
-                    $0.overrideDidUpdate([newCurrentOverride])
-                }
-            }
-        }
-
         lastCurrentOverride = newCurrentOverride
 
         return newCurrentOverride
@@ -310,7 +310,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
                     .minutes
             )
 
-        storeOverride([currentOverride])
+        storeOverride([currentOverride], isPresets: false)
 
         return currentOverride.duration
     }
@@ -321,9 +321,8 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
     func applyOverridePreset(_ presetId: String) -> Date? {
         guard var preset = presets().first(where: { $0.id == presetId }) else { return nil }
 
-        // cancel the eventual current override
-        _ = cancelCurrentOverride()
-
+        // delete the target preset id to not use as a identifier of the new override
+        preset.id = UUID().uuidString
         preset.createdAt = Date()
         storeOverride([preset])
         return preset.createdAt

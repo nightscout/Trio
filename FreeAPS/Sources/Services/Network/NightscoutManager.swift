@@ -650,14 +650,13 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     /// Upload all new and updated override as a exercise in NS
-    private func uploadOverride() {
-        let overrides = overrideStorage.recent()
-        guard !overrides.isEmpty, let nightscout = nightscoutAPI, isUploadEnabled else {
+    private func uploadOverride(_ targets: [OverrideProfil?]) {
+        guard !targets.isEmpty, let nightscout = nightscoutAPI, isUploadEnabled else {
             return
         }
 
         processQueue.async {
-            let exercises = overrides.compactMap { override -> NightscoutExercise? in
+            let exercises = targets.compactMap { override -> NightscoutExercise? in
                 if let override = override {
                     return NightscoutExercise(
                         duration: override
@@ -718,7 +717,7 @@ extension BaseNightscoutManager: TempTargetsObserver {
 }
 
 extension BaseNightscoutManager: OverrideObserver {
-    func overrideDidUpdate(_: [OverrideProfil?]) {
-        uploadOverride()
+    func overrideDidUpdate(_ targets: [OverrideProfil?], current _: OverrideProfil?) {
+        uploadOverride(targets)
     }
 }
