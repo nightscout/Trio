@@ -184,7 +184,7 @@ extension Home {
         }
 
         var tempBasalString: String? {
-            guard let tempRate = state.insulinFromPersistence.last?.tempBasal?.rate else {
+            guard let lastTempBasal = state.tempBasals.last?.tempBasal, let tempRate = lastTempBasal.rate else {
                 return nil
             }
             let rateString = numberFormatter.string(from: tempRate as NSNumber) ?? "0"
