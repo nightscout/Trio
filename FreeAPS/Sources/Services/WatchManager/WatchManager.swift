@@ -64,7 +64,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         updateState(.all)
     }
 
-    private func updateState(_ typeUpdate: TypeUpdate, _ currentOverride: OverrideProfil? = nil) {
+    private func updateState(_ typeUpdate: TypeUpdate, _ currentOverride: OverrideProfile? = nil) {
         processQueue.async {
             switch typeUpdate {
             case .BGandISF:
@@ -156,7 +156,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         return tempTargetPresetArray
     }
 
-    private func updateOverride(_ currentOverride: OverrideProfil?) -> [TempTargetWatchPreset] {
+    private func updateOverride(_ currentOverride: OverrideProfile?) -> [TempTargetWatchPreset] {
         // add override in the temp target list
         let current = currentOverride ?? overrideStorage.current()
         if current != nil {
@@ -435,7 +435,7 @@ extension BaseWatchManager:
     PumpReservoirObserver,
     OverrideObserver
 {
-    func overrideDidUpdate(_: [OverrideProfil?], current: OverrideProfil?) {
+    func overrideDidUpdate(_: [OverrideProfile?], current: OverrideProfile?) {
         updateState(.override, current)
     }
 
