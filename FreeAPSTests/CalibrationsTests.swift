@@ -12,6 +12,9 @@ class CalibrationsTests: XCTestCase, Injectable {
     }
 
     func testCreateSimpleCalibration() {
+        // restore state so each test is independent
+        calibrationService.removeAllCalibrations()
+
         let calibration = Calibration(x: 100.0, y: 102.0)
         calibrationService.addCalibration(calibration)
 
@@ -25,17 +28,18 @@ class CalibrationsTests: XCTestCase, Injectable {
     }
 
     func testCreateMultipleCalibration() {
+        // restore state so each test is independent
+        calibrationService.removeAllCalibrations()
+
         let calibration = Calibration(x: 100.0, y: 120)
         calibrationService.addCalibration(calibration)
 
         let calibration2 = Calibration(x: 120.0, y: 130.0)
         calibrationService.addCalibration(calibration2)
 
-        XCTAssertTrue(calibrationService.slope == 0.8)
-
-        XCTAssertTrue(calibrationService.intercept == 37)
-
-        XCTAssertTrue(calibrationService.calibrate(value: 80) == 101)
+        XCTAssertEqual(calibrationService.slope, 0.8, accuracy: 0.0001)
+        XCTAssertEqual(calibrationService.intercept, 37, accuracy: 0.0001)
+        XCTAssertEqual(calibrationService.calibrate(value: 80), 101, accuracy: 0.0001)
 
         calibrationService.removeLast()
 

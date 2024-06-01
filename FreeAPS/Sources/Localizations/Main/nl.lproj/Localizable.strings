@@ -357,10 +357,10 @@ Enact a temp Basal or a temp target */
 "Skip Bolus screen after carbs" = "Sla bolusscherm over na koolhydraten";
 
 /* Allow remote control from NS */
-"Remote control" = "Afstandsbediening";
+"Remote Control" = "Afstandsbediening";
 
 /* Imported Profiles Alert */
-"\nNow please verify all of your new settings thoroughly:\n\n* Basal Settings\n * Carb Ratios\n * Glucose Targets\n * Insulin Sensitivities\n * DIA\n\n in Trio Settings > Configuration.\n\nBad or invalid profile settings could have disatrous effects." = "\nCheck nu al je nieuwe instellingen:\n\n* Basaal instellingen\n * Koolhydraat ratio's\n * Doel glucose waarde\n * Insuline sensitiviteit\n * DIA\n\n in Trio instellingen > Configuratie.\n\nSlechte of ongeldige profielinstellingen kunnen  desastreuze effecten hebben!";
+"\nNow please verify all of your new settings thoroughly: \n\n • DIA (Pump settings)\n • Basal Profile\n • Insulin Sensitivities\n • Carb Ratios\n • Target Glucose\n\n in Trio Settings -> Configuration.\n\nBad or invalid profile settings could have disastrous effects." = "\nCheck nu al je nieuwe instellingen:\n\n* Basaal instellingen\n * Koolhydraat ratio's\n * Doel glucose waarde\n * Insuline sensitiviteit\n * DIA\n\n in Trio instellingen > Configuratie.\n\nSlechte of ongeldige profielinstellingen kunnen  desastreuze effecten hebben!";
 
 /* Profile Import Alert */
 "This will replace some or all of your current pump settings. Are you sure you want to import profile settings from Nightscout?" = "Dit zal enkele of al je huidige pomp instellingen vervangen. Weet je zeker dat je de profielinstellingen uit Nightscout wilt importeren?";
