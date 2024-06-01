@@ -13,7 +13,6 @@ extension OverrideProfilesConfig {
         @Published var profileName: String = ""
         @Published var isPreset: Bool = false
         @Published var presets: [OverrideProfil] = []
-//        @Published var selection: OverrideProfil?
         @Published var advancedSettings: Bool = false
         @Published var isfAndCr: Bool = true
         @Published var isf: Bool = true
@@ -29,6 +28,24 @@ extension OverrideProfilesConfig {
         @Injected() private var overrideStorage: OverrideStorage!
 
         var units: GlucoseUnits = .mmolL
+
+        private var formatter: NumberFormatter {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            formatter.maximumFractionDigits = 0
+            return formatter
+        }
+
+        private var glucoseFormatter: NumberFormatter {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            formatter.maximumFractionDigits = 0
+            if units == .mmolL {
+                formatter.maximumFractionDigits = 1
+            }
+            formatter.roundingMode = .halfUp
+            return formatter
+        }
 
         override func subscribe() {
             units = settingsManager.settings.units
@@ -68,7 +85,7 @@ extension OverrideProfilesConfig {
                 duration: _indefinite ? nil : duration,
                 indefinite: _indefinite,
                 percentage: percentage,
-                target: override_target ? (units == .mmolL ? target.asMgdL : target) : 0,
+                target: override_target ? (units == .mmolL ? target.asMgdL : target) : nil,
                 advancedSettings: advancedSettings,
                 smbIsOff: smbIsOff,
                 isfAndCr: isfAndCr,
@@ -90,43 +107,47 @@ extension OverrideProfilesConfig {
             _ = overrideStorage.applyOverridePreset(id_)
         }
 
-        func savedSettings() {
+        func loadCurrentProfil() {
             guard let currentOverride = overrideStorage.current() else {
                 isEnabled = false
                 return
             }
 
             isEnabled = true
-            percentage = currentOverride.percentage ?? 100
-            _indefinite = currentOverride.indefinite ?? true
-            duration = currentOverride.duration ?? 0
-            smbIsOff = currentOverride.smbIsOff ?? false
-            advancedSettings = currentOverride.advancedSettings ?? false
-            isfAndCr = currentOverride.isfAndCr ?? true
-            smbIsScheduledOff = currentOverride.smbIsScheduledOff ?? false
+            populateSettings(from: currentOverride)
+        }
+
+        func populateSettings(from preset: OverrideProfil) {
+            percentage = preset.percentage ?? 100
+            _indefinite = preset.indefinite ?? true
+            duration = preset.duration ?? 0
+            smbIsOff = preset.smbIsOff ?? false
+            advancedSettings = preset.advancedSettings ?? false
+            isfAndCr = preset.isfAndCr ?? true
+            smbIsScheduledOff = preset.smbIsScheduledOff ?? false
 
             if advancedSettings {
                 if !isfAndCr {
-                    isf = currentOverride.isf ?? false
-                    cr = currentOverride.cr ?? false
+                    isf = preset.isf ?? false
+                    cr = preset.cr ?? false
                 }
                 if smbIsScheduledOff {
-                    start = currentOverride.start ?? 0
-                    end = currentOverride.end ?? 0
+                    start = preset.start ?? 0
+                    end = preset.end ?? 0
                 }
 
-                smbMinutes = currentOverride.smbMinutes ?? defaultSmbMinutes
-                uamMinutes = currentOverride.uamMinutes ?? defaultUamMinutes
+                smbMinutes = preset.smbMinutes ?? defaultSmbMinutes
+                uamMinutes = preset.uamMinutes ?? defaultUamMinutes
             }
 
-            let overrideTarget = currentOverride.target ?? 0
+            let overrideTarget = preset.target ?? 0
             if overrideTarget != 0 {
                 override_target = true
                 target = units == .mmolL ? overrideTarget.asMmolL : overrideTarget
             }
             if !_indefinite {
-                let durationOverride = currentOverride.duration ?? 0
-                let date = currentOverride.createdAt ?? Date()
+                let durationOverride = preset.duration ?? 0
+                let date = preset.createdAt ?? Date()
                 duration = max(0, durationOverride + Decimal(Date().distance(to: date).minutes))
             }
         }
@@ -148,6 +169,31 @@ extension OverrideProfilesConfig {
 
         func removeOverrideProfile(presetId: String) {
             overrideStorage.deleteOverridePreset(presetId)
+            presets = overrideStorage.presets()
+        }
+
+        func updatePreset(_ presetId: String) {
+            let overridePresetToSave = OverrideProfil(
+                id: presetId,
+                name: profileName,
+                duration: _indefinite ? nil : duration,
+                indefinite: _indefinite,
+                percentage: percentage,
+                target: override_target ? (units == .mmolL ? target.asMgdL : target) : nil,
+                advancedSettings: advancedSettings,
+                smbIsOff: smbIsOff,
+                isfAndCr: isfAndCr,
+                isf: isfAndCr ? false : isf,
+                cr: isfAndCr ? false : cr,
+                smbIsScheduledOff: smbIsScheduledOff,
+                start: smbIsScheduledOff ? start : nil,
+                end: smbIsScheduledOff ? end : nil,
+                smbMinutes: smbMinutes,
+                uamMinutes: uamMinutes
+            )
+
+            overrideStorage.storeOverridePresets([overridePresetToSave])
+            presets = overrideStorage.presets()
         }
     }
 }

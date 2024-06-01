@@ -133,7 +133,9 @@ extension NightscoutConfig {
                 {
                     do {
                         let fetchedProfileStore = try jsonDecoder.decode([FetchedNightscoutProfileStore].self, from: data)
-                        guard let fetchedProfile: ScheduledNightscoutProfile = fetchedProfileStore.first?.store["default"]
+                        let loop = fetchedProfileStore.first?.enteredBy.contains("Loop")
+                        guard let fetchedProfile: FetchedNightscoutProfile = fetchedProfileStore.first?
+                            .store[loop! ? "Default" : "default"]
                         else {
                             error = "\nCan't find the default Nightscout Profile."
                             group.leave()
