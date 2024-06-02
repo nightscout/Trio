@@ -60,16 +60,18 @@ extension ISFEditor {
                         header: !state.settingsManager.preferences
                             .useNewFormula ? Text("Autosens") : Text("Dynamic Sensitivity")
                     ) {
-                        let dynamicRatio = state.provider.suggestion?.sensitivityRatio ?? 0
-                        let dynamicISF = state.provider.suggestion?.isf ?? 0
+                        let dynamicRatio = state.determinationsFromPersistence.first?.sensitivityRatio
+                        let dynamicISF = state.determinationsFromPersistence.first?.insulinSensitivity
                         HStack {
                             Text("Sensitivity Ratio")
                             Spacer()
                             Text(
                                 rateFormatter
                                     .string(from: (
-                                        !state.settingsManager.preferences.useNewFormula ? state
-                                            .autosensRatio : dynamicRatio
+                                        (
+                                            !state.settingsManager.preferences.useNewFormula ? state
+                                                .autosensRatio as NSDecimalNumber : dynamicRatio
+                                        ) ?? 1
                                     ) as NSNumber) ?? "1"
                             )
                         }
@@ -79,8 +81,10 @@ extension ISFEditor {
                             Text(
                                 rateFormatter
                                     .string(from: (
-                                        !state.settingsManager.preferences
-                                            .useNewFormula ? newISF : dynamicISF
+                                        (
+                                            !state.settingsManager.preferences
+                                                .useNewFormula ? newISF as NSDecimalNumber : dynamicISF
+                                        ) ?? 0
                                     ) as NSNumber) ?? "0"
                             )
                             Text(state.units.rawValue + "/U").foregroundColor(.secondary)

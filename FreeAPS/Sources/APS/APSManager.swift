@@ -23,7 +23,7 @@ protocol APSManager {
     var bolusProgress: CurrentValueSubject<Decimal?, Never> { get }
     var pumpExpiresAtDate: CurrentValueSubject<Date?, Never> { get }
     var isManualTempBasal: Bool { get }
-    func enactTempBasal(rate: Double, duration: TimeInterval)
+    func enactTempBasal(rate: Double, duration: TimeInterval) async
     func makeProfiles() -> AnyPublisher<Bool, Never>
     func determineBasal() -> AnyPublisher<Bool, Never>
     func determineBasalSync()
@@ -533,7 +533,7 @@ final class BaseAPSManager: APSManager, Injectable {
         bolusProgress.send(nil)
     }
 
-    func enactTempBasal(rate: Double, duration: TimeInterval) {
+    func enactTempBasal(rate: Double, duration: TimeInterval) async {
         if let error = verifyStatus() {
             processError(error)
             return
@@ -550,20 +550,52 @@ final class BaseAPSManager: APSManager, Injectable {
         debug(.apsManager, "Enact temp basal \(rate) - \(duration)")
 
         let roundedAmout = pump.roundToSupportedBasalRate(unitsPerHour: rate)
-        pump.enactTempBasal(unitsPerHour: roundedAmout, for: duration) { error in
-            if let error = error {
-                debug(.apsManager, "Temp Basal failed with error: \(error.localizedDescription)")
-                self.processError(APSError.pumpError(error))
-            } else {
-                debug(.apsManager, "Temp Basal succeeded")
-                let temp = TempBasal(duration: Int(duration / 60), rate: Decimal(rate), temp: .absolute, timestamp: Date())
-                self.storage.save(temp, as: OpenAPS.Monitor.tempBasal)
-                if rate == 0, duration == 0 {
-                    self.pumpHistoryStorage.saveCancelTempEvents()
-                }
+
+        do {
+            try await pump.enactTempBasal(unitsPerHour: roundedAmout, for: duration)
+            debug(.apsManager, "Temp Basal succeeded")
+            let temp = TempBasal(duration: Int(duration / 60), rate: Decimal(rate), temp: .absolute, timestamp: Date())
+            storage.save(temp, as: OpenAPS.Monitor.tempBasal)
+            if rate == 0, duration == 0 {
+                pumpHistoryStorage.saveCancelTempEvents()
             }
+        } catch {
+            debug(.apsManager, "Temp Basal failed with error: \(error.localizedDescription)")
+            processError(APSError.pumpError(error))
         }
     }
+
+//    func enactTempBasal(rate: Double, duration: TimeInterval) {
+//        if let error = verifyStatus() {
+//            processError(error)
+//            return
+//        }
+//
+//        guard let pump = pumpManager else { return }
+//
+//        // unable to do temp basal during manual temp basal 😁
+//        if isManualTempBasal {
+//            processError(APSError.manualBasalTemp(message: "Loop not possible during the manual basal temp"))
+//            return
+//        }
+//
+//        debug(.apsManager, "Enact temp basal \(rate) - \(duration)")
+//
+//        let roundedAmout = pump.roundToSupportedBasalRate(unitsPerHour: rate)
+//        pump.enactTempBasal(unitsPerHour: roundedAmout, for: duration) { error in
+//            if let error = error {
+//                debug(.apsManager, "Temp Basal failed with error: \(error.localizedDescription)")
+//                self.processError(APSError.pumpError(error))
+//            } else {
+//                debug(.apsManager, "Temp Basal succeeded")
+//                let temp = TempBasal(duration: Int(duration / 60), rate: Decimal(rate), temp: .absolute, timestamp: Date())
+//                self.storage.save(temp, as: OpenAPS.Monitor.tempBasal)
+//                if rate == 0, duration == 0 {
+//                    self.pumpHistoryStorage.saveCancelTempEvents()
+//                }
+//            }
+//        }
+//    }
 
     func dailyAutotune() -> AnyPublisher<Bool, Never> {
         guard settings.useAutotune else {

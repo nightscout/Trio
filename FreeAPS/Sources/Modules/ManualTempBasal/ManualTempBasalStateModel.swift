@@ -11,14 +11,18 @@ extension ManualTempBasal {
         override func subscribe() {}
 
         func cancel() {
-            apsManager.enactTempBasal(rate: 0, duration: 0)
-            showModal(for: nil)
+            Task {
+                await apsManager.enactTempBasal(rate: 0, duration: 0)
+                showModal(for: nil)
+            }
         }
 
         func enact() {
-            let duration = durationValues[durationIndex]
-            apsManager.enactTempBasal(rate: Double(rate), duration: duration * 60)
-            showModal(for: nil)
+            Task {
+                let duration = durationValues[durationIndex]
+                await apsManager.enactTempBasal(rate: Double(rate), duration: duration * 60)
+                showModal(for: nil)
+            }
         }
     }
 }

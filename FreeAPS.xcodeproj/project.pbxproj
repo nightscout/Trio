@@ -143,7 +143,6 @@
 		3862CC2E2743F9F700BF832C /* CalendarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3862CC2D2743F9F700BF832C /* CalendarManager.swift */; };
 		386A124F271707F000DDC61C /* DexcomSourceG6.swift in Sources */ = {isa = PBXBuildFile; fileRef = 386A124E271707F000DDC61C /* DexcomSourceG6.swift */; };
 		3870FF4725EC187A0088248F /* BloodGlucose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3870FF4225EC13F40088248F /* BloodGlucose.swift */; };
-		3871F38725ED661C0013ECB5 /* Suggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3871F38625ED661C0013ECB5 /* Suggestion.swift */; };
 		3871F39C25ED892B0013ECB5 /* TempTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3871F39B25ED892B0013ECB5 /* TempTarget.swift */; };
 		3871F39F25ED895A0013ECB5 /* Decimal+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3871F39E25ED895A0013ECB5 /* Decimal+Extensions.swift */; };
 		3883581C25EE79BB00E024B2 /* DecimalTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3883581B25EE79BB00E024B2 /* DecimalTextField.swift */; };
@@ -743,7 +742,6 @@
 		3862CC2D2743F9F700BF832C /* CalendarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarManager.swift; sourceTree = "<group>"; };
 		386A124E271707F000DDC61C /* DexcomSourceG6.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DexcomSourceG6.swift; sourceTree = "<group>"; };
 		3870FF4225EC13F40088248F /* BloodGlucose.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BloodGlucose.swift; sourceTree = "<group>"; };
-		3871F38625ED661C0013ECB5 /* Suggestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suggestion.swift; sourceTree = "<group>"; };
 		3871F39B25ED892B0013ECB5 /* TempTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTarget.swift; sourceTree = "<group>"; };
 		3871F39E25ED895A0013ECB5 /* Decimal+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Decimal+Extensions.swift"; sourceTree = "<group>"; };
 		3883581B25EE79BB00E024B2 /* DecimalTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecimalTextField.swift; sourceTree = "<group>"; };
@@ -1792,7 +1790,6 @@
 				3883583325EEB38000E024B2 /* PumpSettings.swift */,
 				38E989DC25F5021400C0CED0 /* PumpStatus.swift */,
 				38BF021C25E7E3AF00579895 /* Reservoir.swift */,
-				3871F38625ED661C0013ECB5 /* Suggestion.swift */,
 				38A0364125ED069400FCBB52 /* TempBasal.swift */,
 				3871F39B25ED892B0013ECB5 /* TempTarget.swift */,
 				3811DE8E25C9D80400A708ED /* User.swift */,
@@ -3023,7 +3020,6 @@
 				3811DE4325C9D4A100A708ED /* SettingsProvider.swift in Sources */,
 				45252C95D220E796FDB3B022 /* ConfigEditorDataFlow.swift in Sources */,
 				587DA1F62B77F3DD00B28F8A /* SettingsRowView.swift in Sources */,
-				3871F38725ED661C0013ECB5 /* Suggestion.swift in Sources */,
 				CE7CA34E2A064973004BE681 /* AppShortcuts.swift in Sources */,
 				38C4D33A25E9A1ED00D30B77 /* NSObject+AssociatedValues.swift in Sources */,
 				38DF179027733EAD00B3528F /* SnowScene.swift in Sources */,

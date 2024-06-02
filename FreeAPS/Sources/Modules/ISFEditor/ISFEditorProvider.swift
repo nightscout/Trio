@@ -20,10 +20,6 @@ extension ISFEditor {
                 ?? Autosens(ratio: 1, newisf: nil, timestamp: nil)
         }
 
-        var suggestion: Suggestion? {
-            storage.retrieve(OpenAPS.Enact.suggested, as: Suggestion.self)
-        }
-
         var autotune: Autotune? {
             storage.retrieve(OpenAPS.Settings.autotune, as: Autotune.self)
         }

@@ -32,6 +32,20 @@ struct Determination: JSON, Equatable {
     let carbRatio: Decimal?
 }
 
+struct Predictions: JSON, Equatable {
+    let iob: [Int]?
+    let zt: [Int]?
+    let cob: [Int]?
+    let uam: [Int]?
+}
+
+struct Insulin: JSON, Equatable {
+    let TDD: Decimal?
+    let bolus: Decimal?
+    let temp_basal: Decimal?
+    let scheduled_basal: Decimal?
+}
+
 extension Determination {
     private enum CodingKeys: String, CodingKey {
         case reason

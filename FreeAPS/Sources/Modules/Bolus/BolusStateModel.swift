@@ -16,7 +16,6 @@ extension Bolus {
         @Injected() var carbsStorage: CarbsStorage!
         @Injected() var glucoseStorage: GlucoseStorage!
 
-        @Published var suggestion: Suggestion?
         @Published var predictions: Predictions?
         @Published var amount: Decimal = 0
         @Published var insulinRecommended: Decimal = 0
@@ -110,7 +109,6 @@ extension Bolus {
             broadcaster.register(BolusFailureObserver.self, observer: self)
             units = settingsManager.settings.units
             percentage = settingsManager.settings.insulinReqPercentage
-            threshold = provider.suggestion?.threshold ?? 0
             maxBolus = provider.pumpSettings().maxBolus
             // added
             fraction = settings.settings.overrideFactor
@@ -121,7 +119,6 @@ extension Bolus {
             sweetMealFactor = settings.settings.sweetMealFactor
             displayPresets = settings.settings.displayPresets
 
-            carbsRequired = provider.suggestion?.carbsReq
             maxCarbs = settings.settings.maxCarbs
             skipBolus = settingsManager.settings.skipBolusScreenAfterCarbs
             useFPUconversion = settingsManager.settings.useFPUconversion
@@ -137,12 +134,6 @@ extension Bolus {
                             self.insulinRecommended = 0
                         }
                     }.store(in: &lifetime)
-            }
-            if let notNilSugguestion = provider.suggestion {
-                suggestion = notNilSugguestion
-                if let notNilPredictions = suggestion?.predictions {
-                    predictions = notNilPredictions
-                }
             }
         }
 

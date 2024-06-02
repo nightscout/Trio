@@ -53,7 +53,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         configureState()
     }
 
-    private func fetchLastDeterminationDate() -> Date? {
+    private func fetchlastDetermination() -> [OrefDetermination]? {
         let predicate = NSPredicate.enactedDetermination
 
         return CoreDataStack.shared.fetchEntities(
@@ -64,7 +64,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
             ascending: false,
             fetchLimit: 1,
             propertiesToFetch: ["timestamp"]
-        ).first?.timestamp
+        )
     }
 
     private func fetchLatestOverride() -> Override? {
@@ -87,11 +87,11 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
             Date()
         )
 
-        context.performAndWait {
+        context.perform {
             let predicate = NSPredicate.predicateFor120MinAgo
             let fetchedGlucose = CoreDataStack.shared.fetchEntities(
                 ofType: GlucoseStored.self,
-                onContext: context,
+                onContext: self.context,
                 predicate: predicate,
                 key: "date",
                 ascending: false,
@@ -108,7 +108,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
             let date = firstGlucose.date ?? .distantPast
             let delta = fetchedGlucose.count >= 2 ? glucoseValue - fetchedGlucose[1].glucose : 0
 
-            let units = settingsManager.settings.units
+            let units = self.settingsManager.settings.units
             let glucoseFormatter = NumberFormatter()
             glucoseFormatter.numberStyle = .decimal
             glucoseFormatter.maximumFractionDigits = (units == .mmolL) ? 1 : 0
@@ -133,13 +133,14 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         processQueue.async {
             self.context.performAndWait {
                 let glucoseValues = self.fetchAndProcessGlucose()
+                let lastDetermination = self.fetchlastDetermination()?.first
 
                 self.state.glucose = glucoseValues.glucose
                 self.state.trend = glucoseValues.trend
                 self.state.delta = glucoseValues.delta
                 self.state.trendRaw = glucoseValues.trend
                 self.state.glucoseDate = glucoseValues.date
-                self.state.lastLoopDate = self.fetchLastDeterminationDate()
+                self.state.lastLoopDate = lastDetermination?.timestamp
                 self.state.lastLoopDateInterval = self.state.lastLoopDate.map {
                     guard $0.timeIntervalSince1970 > 0 else { return 0 }
                     return UInt64($0.timeIntervalSince1970)
@@ -147,13 +148,13 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
                 self.state.bolusIncrement = self.settingsManager.preferences.bolusIncrement
                 self.state.maxCOB = self.settingsManager.preferences.maxCOB
                 self.state.maxBolus = self.settingsManager.pumpSettings.maxBolus
-                self.state.carbsRequired = self.suggestion?.carbsReq
+                self.state.carbsRequired = lastDetermination?.carbsRequired as? Decimal
 
-                var insulinRequired = self.suggestion?.insulinReq ?? 0
+                var insulinRequired = lastDetermination?.insulinReq as? Decimal ?? 0
 
                 var double: Decimal = 2
-                if self.suggestion?.manualBolusErrorString == 0 {
-                    insulinRequired = self.suggestion?.insulinForManualBolus ?? 0
+                if lastDetermination?.manualBolusErrorString == 0 {
+                    insulinRequired = lastDetermination?.insulinForManualBolus as? Decimal ?? 0
                     double = 1
                 }
 
@@ -166,13 +167,16 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
                             0
                         ))
                 } else {
-                    let recommended = self.newBolusCalc(ids: glucoseValues.ids, suggestion: self.suggestion)
+                    let recommended = self.newBolusCalc(
+                        ids: glucoseValues.ids,
+                        determination: lastDetermination
+                    )
                     self.state.bolusRecommended = self.apsManager
                         .roundBolus(amount: max(recommended, 0))
                 }
 
-                self.state.iob = self.suggestion?.iob
-                self.state.cob = self.suggestion?.cob
+                self.state.iob = lastDetermination?.iob as? Decimal
+                self.state.cob = lastDetermination?.cob as? Decimal
                 self.state.tempTargets = self.tempTargetsStorage.presets()
                     .map { target -> TempTargetWatchPreset in
                         let untilDate = self.tempTargetsStorage.current().flatMap { currentTarget -> Date? in
@@ -196,7 +200,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
                 self.state.eventualBG = eBG.map { "⇢ " + $0 }
                 self.state.eventualBGRaw = eBG
 
-                self.state.isf = self.suggestion?.isf
+                self.state.isf = lastDetermination?.insulinSensitivity as? Decimal
 
                 let latestOverride = self.fetchLatestOverride()
 
@@ -246,16 +250,18 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
     }
 
     private func evetualBGStraing() -> String? {
-        guard let eventualBG = suggestion?.eventualBG else {
-            return nil
+        context.perform {
+            guard let eventualBG = self.fetchlastDetermination()?.first?.eventualBG as? Int else {
+                return nil
+            }
+            let units = self.settingsManager.settings.units
+            return eventualFormatter.string(
+                from: (units == .mmolL ? eventualBG.asMmolL : Decimal(eventualBG)) as NSNumber
+            )!
         }
-        let units = settingsManager.settings.units
-        return eventualFormatter.string(
-            from: (units == .mmolL ? eventualBG.asMmolL : Decimal(eventualBG)) as NSNumber
-        )!
     }
 
-    private func newBolusCalc(ids: [NSManagedObjectID], suggestion: Suggestion?) -> Decimal {
+    private func newBolusCalc(ids: [NSManagedObjectID], determination: OrefDetermination?) -> Decimal {
         var insulinCalculated: Decimal = 0
 
         context.performAndWait {
@@ -272,12 +278,12 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
             }
 
             let conversion: Decimal = settingsManager.settings.units == .mmolL ? 0.0555 : 1
-            let isf = state.isf ?? 0
-            let target = suggestion?.current_target ?? 0
-            let carbratio = suggestion?.carbRatio ?? 0
-            let cob = state.cob ?? 0
-            let iob = state.iob ?? 0
-            let fattyMealFactor = settingsManager.settings.fattyMealFactor
+            let isf = self.state.isf ?? 0
+            let target = determination?.currentTarget as? Decimal ?? 100
+            let carbratio = determination?.carbRatio as? Decimal ?? 10
+            let cob = self.state.cob ?? 0
+            let iob = self.state.iob ?? 0
+            let fattyMealFactor = self.settingsManager.settings.fattyMealFactor
 
             // Complete bolus calculation logic
             let targetDifference = Decimal(bg) - target
@@ -332,10 +338,6 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         formatter.numberStyle = .decimal
         formatter.maximumFractionDigits = 1
         return formatter
-    }
-
-    private var suggestion: Suggestion? {
-        storage.retrieve(OpenAPS.Enact.suggested, as: Suggestion.self)
     }
 }
 

@@ -260,7 +260,6 @@ final class OpenAPS {
 
                 if var determination = Determination(from: orefDetermination) {
                     determination.timestamp = determination.deliverAt ?? clock
-                    self.storage.save(determination, as: Enact.suggested)
 
                     // save to core data asynchronously
                     self.processDetermination(determination)

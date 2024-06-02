@@ -59,7 +59,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         center.delegate = self
         injectServices(resolver)
         broadcaster.register(GlucoseObserver.self, observer: self)
-        broadcaster.register(SuggestionObserver.self, observer: self)
+        broadcaster.register(DeterminationObserver.self, observer: self)
         broadcaster.register(BolusFailureObserver.self, observer: self)
         broadcaster.register(pumpNotificationObserver.self, observer: self)
 
@@ -445,9 +445,9 @@ extension BaseUserNotificationsManager: pumpNotificationObserver {
     }
 }
 
-extension BaseUserNotificationsManager: SuggestionObserver {
-    func suggestionDidUpdate(_ suggestion: Suggestion) {
-        guard let carndRequired = suggestion.carbsReq else { return }
+extension BaseUserNotificationsManager: DeterminationObserver {
+    func determinationDidUpdate(_ determination: Determination) {
+        guard let carndRequired = determination.carbsReq else { return }
         notifyCarbsRequired(Int(carndRequired))
     }
 }

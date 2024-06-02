@@ -1,3 +1,4 @@
+import CoreData
 import SwiftUI
 
 extension ISFEditor {
@@ -6,6 +7,9 @@ extension ISFEditor {
         private(set) var autosensISF: Decimal?
         private(set) var autosensRatio: Decimal = 0
         @Published var autotune: Autotune?
+        @Published var determinationsFromPersistence: [OrefDetermination] = []
+
+        let context = CoreDataStack.shared.newTaskContext()
 
         let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
 
@@ -45,6 +49,7 @@ extension ISFEditor {
             }
 
             autosensRatio = provider.autosense.ratio
+            setupDeterminationsArray()
         }
 
         func add() {
@@ -88,6 +93,38 @@ extension ISFEditor {
                 if self.items.isEmpty {
                     self.units = self.settingsManager.settings.units
                 }
+            }
+        }
+
+        private func setupDeterminationsArray() {
+            Task {
+                let ids = await self.fetchDeterminations()
+                await updateDeterminationsArray(with: ids)
+            }
+        }
+
+        private func fetchDeterminations() async -> [NSManagedObjectID] {
+            CoreDataStack.shared.fetchEntities(
+                ofType: OrefDetermination.self,
+                onContext: context,
+                predicate: NSPredicate.enactedDetermination,
+                key: "deliverAt",
+                ascending: false,
+                fetchLimit: 1
+            ).map(\.objectID)
+        }
+
+        @MainActor private func updateDeterminationsArray(with IDs: [NSManagedObjectID]) {
+            do {
+                let objects = try IDs.compactMap { id in
+                    try context.existingObject(with: id) as? OrefDetermination
+                }
+                determinationsFromPersistence = objects
+
+            } catch {
+                debugPrint(
+                    "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the glucose array: \(error.localizedDescription)"
+                )
             }
         }
     }
