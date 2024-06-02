@@ -123,8 +123,6 @@ extension Settings {
                                 .navigationLink(to: .configEditor(file: OpenAPS.Settings.bgTargets), from: self)
                             Text("Temp targets")
                                 .navigationLink(to: .configEditor(file: OpenAPS.Settings.tempTargets), from: self)
-                            Text("Meal")
-                                .navigationLink(to: .configEditor(file: OpenAPS.Monitor.meal), from: self)
                         }
 
                         Group {

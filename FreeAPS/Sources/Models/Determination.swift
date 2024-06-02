@@ -80,13 +80,26 @@ extension Determination {
     }
 }
 
-protocol DeterminationObserver {
-    func determinationDidUpdate(_ determination: Determination)
+extension Predictions {
+    private enum CodingKeys: String, CodingKey {
+        case iob = "IOB"
+        case zt = "ZT"
+        case cob = "COB"
+        case uam = "UAM"
+    }
 }
 
-// needed?
-protocol EnactedDeterminationObserver {
-    func enactedDeterminationDidUpdate(_ determination: Determination)
+extension Insulin {
+    private enum CodingKeys: String, CodingKey {
+        case TDD
+        case bolus
+        case temp_basal
+        case scheduled_basal
+    }
+}
+
+protocol DeterminationObserver {
+    func determinationDidUpdate(_ determination: Determination)
 }
 
 extension Determination {

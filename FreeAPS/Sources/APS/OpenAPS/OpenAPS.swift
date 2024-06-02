@@ -197,7 +197,6 @@ final class OpenAPS {
 
                 // temp_basal
                 let tempBasal = currentTemp.rawJSON
-                self.storage.save(tempBasal, as: Monitor.tempBasal)
 
                 let pumpHistoryObjectIDs = self.fetchPumpHistoryObjectIDs() ?? []
                 let pumpHistoryJSON = self.parsePumpHistory(pumpHistoryObjectIDs)
@@ -208,6 +207,7 @@ final class OpenAPS {
                 /// glucose
                 let glucoseAsJSON = self.fetchAndProcessGlucose()
 
+                // TODO: - Save and fetch profile/basalProfile in/from UserDefaults
                 /// profile
                 let profile = self.loadFileFromStorage(name: Settings.profile)
                 let basalProfile = self.loadFileFromStorage(name: Settings.basalProfile)
@@ -221,7 +221,6 @@ final class OpenAPS {
                     carbs: carbsAsJSON,
                     glucose: glucoseAsJSON
                 )
-                self.storage.save(meal, as: Monitor.meal)
 
                 // iob
                 let autosens = self.loadFileFromStorage(name: Settings.autosense)

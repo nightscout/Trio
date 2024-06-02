@@ -416,8 +416,8 @@ final class BaseAPSManager: APSManager, Injectable {
             }
 
             let now = Date()
-            let temp = currentTemp(date: now)
-
+            let temp = fetchCurrentTempBasal(date: now)
+        
             let mainPublisher = makeProfiles()
                 .flatMap { _ in self.autosens() }
                 .flatMap { _ in self.dailyAutotune() }
@@ -713,17 +713,33 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
-    private func currentTemp(date: Date) -> TempBasal {
-        let defaultTemp = { () -> TempBasal in
-            guard let temp = storage.retrieve(OpenAPS.Monitor.tempBasal, as: TempBasal.self) else {
-                return TempBasal(duration: 0, rate: 0, temp: .absolute, timestamp: Date())
-            }
-            let delta = Int((date.timeIntervalSince1970 - temp.timestamp.timeIntervalSince1970) / 60)
-            let duration = max(0, temp.duration - delta)
-            return TempBasal(duration: duration, rate: temp.rate, temp: .absolute, timestamp: date)
-        }()
+    private func fetchCurrentTempBasal(date: Date) -> TempBasal {
+        var fetchedTempBasal = TempBasal(duration: 0, rate: 0, temp: .absolute, timestamp: Date())
 
-        guard let state = pumpManager?.status.basalDeliveryState else { return defaultTemp }
+        privateContext.performAndWait {
+            let results = CoreDataStack.shared.fetchEntities(
+                ofType: PumpEventStored.self,
+                onContext: privateContext,
+                predicate: NSPredicate.recentPumpHistory,
+                key: "timestamp",
+                ascending: false,
+                fetchLimit: 1
+            )
+
+            guard let tempBasalEvent = results.first,
+                  let tempBasal = tempBasalEvent.tempBasal,
+                  let eventTimestamp = tempBasalEvent.timestamp
+            else {
+                return
+            }
+
+            let delta = Int((date.timeIntervalSince1970 - eventTimestamp.timeIntervalSince1970) / 60)
+            let duration = max(0, Int(tempBasal.duration) - delta)
+            let rate = tempBasal.rate as? Decimal ?? 0
+            fetchedTempBasal = TempBasal(duration: duration, rate: rate, temp: .absolute, timestamp: date)
+        }
+
+        guard let state = pumpManager?.status.basalDeliveryState else { return fetchedTempBasal }
         switch state {
         case .active:
             return TempBasal(duration: 0, rate: 0, temp: .absolute, timestamp: date)
@@ -732,7 +748,7 @@ final class BaseAPSManager: APSManager, Injectable {
             let durationMin = max(0, Int((dose.endDate.timeIntervalSince1970 - date.timeIntervalSince1970) / 60))
             return TempBasal(duration: durationMin, rate: rate, temp: .absolute, timestamp: date)
         default:
-            return defaultTemp
+            return fetchedTempBasal
         }
     }
 
