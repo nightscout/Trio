@@ -157,7 +157,7 @@ extension PreferencesEditor {
                     displayName: NSLocalizedString("Minimum Safety Threshold (mg/dL)", comment: "Minimum Safety Threshold"),
                     type: .decimal(keypath: \.threshold_setting),
                     infoText: NSLocalizedString(
-                        "All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nIf you use mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted.",
+                        "All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted.",
                         comment: "Minimum Safety Threshold"
                     ),
                     settable: self
