@@ -457,7 +457,10 @@ extension Home {
                         .font(.system(size: 16))
                         .foregroundColor(Color.insulin)
                     Text(
-                        (numberFormatter.string(from: (state.determinationsFromPersistence.first?.iob ?? 0) as NSNumber) ?? "0") +
+                        (
+                            numberFormatter
+                                .string(from: (state.enactedAndNonEnactedDeterminations.first?.iob ?? 0) as NSNumber) ?? "0"
+                        ) +
                             NSLocalizedString(" U", comment: "Insulin unit")
                     )
                     .font(.system(size: 16, weight: .bold, design: .rounded))
@@ -470,7 +473,10 @@ extension Home {
                         .font(.system(size: 16))
                         .foregroundColor(.loopYellow)
                     Text(
-                        (numberFormatter.string(from: (state.determinationsFromPersistence.first?.cob ?? 0) as NSNumber) ?? "0") +
+                        (
+                            numberFormatter
+                                .string(from: (state.enactedAndNonEnactedDeterminations.first?.cob ?? 0) as NSNumber) ?? "0"
+                        ) +
                             NSLocalizedString(" g", comment: "gram of carbs")
                     )
                     .font(.system(size: 16, weight: .bold, design: .rounded))

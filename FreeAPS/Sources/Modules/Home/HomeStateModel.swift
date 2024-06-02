@@ -69,6 +69,7 @@ extension Home {
         @Published var carbsFromPersistence: [CarbEntryStored] = []
         @Published var fpusFromPersistence: [CarbEntryStored] = []
         @Published var determinationsFromPersistence: [OrefDetermination] = []
+        @Published var enactedAndNonEnactedDeterminations: [OrefDetermination] = []
         @Published var insulinFromPersistence: [PumpEventStored] = []
         @Published var tempBasals: [PumpEventStored] = []
         var boluses: [PumpEventStored] = []
@@ -612,31 +613,40 @@ extension Home.StateModel {
     // Setup Determinations
     private func setupDeterminationsArray() {
         Task {
-            let ids = await self.fetchDeterminations()
-            await updateDeterminationsArray(with: ids)
+            let enactedObjectIDs = await fetchDeterminations(predicate: NSPredicate.enactedDetermination)
+            let enactedAndNonEnactedObjectIDs = await fetchDeterminations(
+                predicate: NSPredicate
+                    .predicateFor30MinAgoForDetermination
+            )
+
+            await updateDeterminationsArray(with: enactedObjectIDs, keyPath: \.determinationsFromPersistence)
+            await updateDeterminationsArray(with: enactedAndNonEnactedObjectIDs, keyPath: \.enactedAndNonEnactedDeterminations)
         }
     }
 
-    private func fetchDeterminations() async -> [NSManagedObjectID] {
+    private func fetchDeterminations(predicate: NSPredicate) async -> [NSManagedObjectID] {
         CoreDataStack.shared.fetchEntities(
             ofType: OrefDetermination.self,
             onContext: context,
-            predicate: NSPredicate.enactedDetermination,
+            predicate: predicate,
             key: "deliverAt",
             ascending: false,
             fetchLimit: 1
         ).map(\.objectID)
     }
 
-    @MainActor private func updateDeterminationsArray(with IDs: [NSManagedObjectID]) {
+    @MainActor private func updateDeterminationsArray(
+        with IDs: [NSManagedObjectID],
+        keyPath: ReferenceWritableKeyPath<Home.StateModel, [OrefDetermination]>
+    ) {
         do {
             let determinationObjects = try IDs.compactMap { id in
                 try viewContext.existingObject(with: id) as? OrefDetermination
             }
-            determinationsFromPersistence = determinationObjects
+            self[keyPath: keyPath] = determinationObjects
         } catch {
             debugPrint(
-                "Home State: \(#function) \(DebuggingIdentifiers.failed)  error while updating the determinations array: \(error.localizedDescription)"
+                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the determinations array: \(error.localizedDescription)"
             )
         }
     }
