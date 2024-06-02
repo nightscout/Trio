@@ -62,6 +62,11 @@ class CoreDataStack: ObservableObject {
         /// - Tag: persistentHistoryTracking
         description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
 
+        // Enable lightweight migration
+        /// - Tag: lightweightMigration
+        description.shouldMigrateStoreAutomatically = true
+        description.shouldInferMappingModelAutomatically = true
+
         container.loadPersistentStores { _, error in
             if let error = error as NSError? {
                 fatalError("Unresolved Error \(DebuggingIdentifiers.failed) \(error), \(error.userInfo)")
