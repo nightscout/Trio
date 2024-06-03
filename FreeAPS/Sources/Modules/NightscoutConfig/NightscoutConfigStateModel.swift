@@ -241,7 +241,8 @@ extension NightscoutConfig {
                                 let median = loop! ? self.getMedianTarget(
                                     lowTargetValue: target.value,
                                     lowTargetTime: target.time,
-                                    highTarget: fetchedProfile.target_high, units: self.units
+                                    highTarget: fetchedProfile.target_high,
+                                    units: self.units
                                 ) : target.value
                                 return BGTargetEntry(
                                     low: median,
