@@ -7,6 +7,7 @@
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>com.freeapsx.background-task.critical-event-log</string>
+		<string>com.openiaps.cleanup</string>
 	</array>
 	<key>CBBundleDisplayName</key>
 	<string>$(APP_DISPLAY_NAME)</string>
@@ -97,6 +98,7 @@
 	<array>
 		<string>bluetooth-central</string>
 		<string>bluetooth-peripheral</string>
+		<string>fetch</string>
 		<string>processing</string>
 	</array>
 	<key>UIFileSharingEnabled</key>

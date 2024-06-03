@@ -79,10 +79,6 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
-    private var cleanupTimer: Timer?
-    @Persisted(key: "lastHistoryCleanupDate") private var lastHistoryCleanupDate = Date.distantPast
-    @Persisted(key: "lastPurgeDate") private var lastPurgeDate = Date.distantPast
-
     let viewContext = CoreDataStack.shared.persistentContainer.viewContext
     let privateContext = CoreDataStack.shared.newTaskContext()
 
@@ -133,55 +129,6 @@ final class BaseAPSManager: APSManager, Injectable {
         isLooping
             .weakAssign(to: \.deviceDataManager.loopInProgress, on: self)
             .store(in: &lifetime)
-        startCleanupTimer()
-    }
-
-    private func startCleanupTimer() {
-        // Call the timer once every 12 hours to ensure that no clean gets missed
-        cleanupTimer = Timer.scheduledTimer(withTimeInterval: 12 * 60 * 60, repeats: true) { [weak self] _ in
-            self?.performCleanupIfNeeded()
-        }
-        RunLoop.current.add(cleanupTimer!, forMode: .common)
-    }
-
-    private func performCleanupIfNeeded() {
-        let now = Date()
-        let calendar = Calendar.current
-
-        // Check if last clean is longer than one day ago
-        if !calendar.isDateInToday(lastHistoryCleanupDate) {
-            // Perform daily cleanup
-            Task {
-                await CoreDataStack.shared.cleanupPersistentHistoryTokens(before: Date.oneWeekAgo)
-                // Update lastHistoryCleanupDate only if cleanup was successful
-                lastHistoryCleanupDate = now
-            }
-        }
-
-        // Check if last purge is longer than one week ago
-        if let lastPurge = calendar.date(byAdding: .day, value: 7, to: lastPurgeDate), now >= lastPurge {
-            // Perform weekly purge
-            Task {
-                do {
-                    try await purgeOldNSManagedObjects()
-                    // Update lastPurgeDate only if purge was successful
-                    lastPurgeDate = now
-                } catch {
-                    debugPrint("Failed to purge old managed objects: \(error.localizedDescription)")
-                }
-            }
-        }
-    }
-
-    private func purgeOldNSManagedObjects() async throws {
-        try await CoreDataStack.shared.batchDeleteOlderThan(GlucoseStored.self, dateKey: "date", days: 90)
-        try await CoreDataStack.shared.batchDeleteOlderThan(PumpEventStored.self, dateKey: "timestamp", days: 90)
-        try await CoreDataStack.shared.batchDeleteOlderThan(OrefDetermination.self, dateKey: "deliverAt", days: 90)
-        try await CoreDataStack.shared.batchDeleteOlderThan(OpenAPS_Battery.self, dateKey: "date", days: 90)
-        try await CoreDataStack.shared.batchDeleteOlderThan(CarbEntryStored.self, dateKey: "date", days: 90)
-        try await CoreDataStack.shared.batchDeleteOlderThan(Forecast.self, dateKey: "date", days: 90)
-
-        // TODO: - Purge Data of other (future) entities as well
     }
 
     private func subscribe() {
@@ -564,38 +511,6 @@ final class BaseAPSManager: APSManager, Injectable {
             processError(APSError.pumpError(error))
         }
     }
-
-//    func enactTempBasal(rate: Double, duration: TimeInterval) {
-//        if let error = verifyStatus() {
-//            processError(error)
-//            return
-//        }
-//
-//        guard let pump = pumpManager else { return }
-//
-//        // unable to do temp basal during manual temp basal 😁
-//        if isManualTempBasal {
-//            processError(APSError.manualBasalTemp(message: "Loop not possible during the manual basal temp"))
-//            return
-//        }
-//
-//        debug(.apsManager, "Enact temp basal \(rate) - \(duration)")
-//
-//        let roundedAmout = pump.roundToSupportedBasalRate(unitsPerHour: rate)
-//        pump.enactTempBasal(unitsPerHour: roundedAmout, for: duration) { error in
-//            if let error = error {
-//                debug(.apsManager, "Temp Basal failed with error: \(error.localizedDescription)")
-//                self.processError(APSError.pumpError(error))
-//            } else {
-//                debug(.apsManager, "Temp Basal succeeded")
-//                let temp = TempBasal(duration: Int(duration / 60), rate: Decimal(rate), temp: .absolute, timestamp: Date())
-//                self.storage.save(temp, as: OpenAPS.Monitor.tempBasal)
-//                if rate == 0, duration == 0 {
-//                    self.pumpHistoryStorage.saveCancelTempEvents()
-//                }
-//            }
-//        }
-//    }
 
     func dailyAutotune() -> AnyPublisher<Bool, Never> {
         guard settings.useAutotune else {

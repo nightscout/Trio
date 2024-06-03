@@ -1,4 +1,5 @@
 import ActivityKit
+import BackgroundTasks
 import CoreData
 import Foundation
 import SwiftUI
@@ -76,6 +77,21 @@ import Swinject
             if newScenePhase == .background {
                 coreDataStack.save()
             }
+        }
+        .backgroundTask(.appRefresh("com.openiaps.cleanup")) {
+            await scheduleDatabaseCleaning()
+            await cleanupOldData()
+        }
+    }
+
+    func scheduleDatabaseCleaning() {
+        let request = BGAppRefreshTaskRequest(identifier: "com.openiaps.cleanup")
+        request.earliestBeginDate = .now.addingTimeInterval(7 * 24 * 60 * 60) // 7 days
+        do {
+            try BGTaskScheduler.shared.submit(request)
+            debugPrint("Task scheduled successfully")
+        } catch {
+            debugPrint("Failed to schedule tasks")
         }
     }
 
