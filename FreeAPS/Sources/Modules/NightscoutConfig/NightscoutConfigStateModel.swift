@@ -151,9 +151,12 @@ extension NightscoutConfig {
                 {
                     do {
                         let fetchedProfileStore = try jsonDecoder.decode([FetchedNightscoutProfileStore].self, from: data)
-                        let loop = fetchedProfileStore.first?.enteredBy.contains("Loop")
-                        guard let fetchedProfile: FetchedNightscoutProfile = fetchedProfileStore.first?
-                            .store[loop! ? "Default" : "default"]
+                        let loop = ((fetchedProfileStore.first?.enteredBy.contains("Loop")) != nil) ||
+                            ((fetchedProfileStore.first?.enteredBy.contains("AndroidAPS")) != nil)
+                        guard let fetchedProfile: FetchedNightscoutProfile =
+                            (fetchedProfileStore.first?.store["default"] != nil) ?
+                            fetchedProfileStore.first?.store["default"] :
+                            fetchedProfileStore.first?.store["Default"]
                         else {
                             error = "\nCan't find the default Nightscout Profile."
                             group.leave()
@@ -238,7 +241,7 @@ extension NightscoutConfig {
 
                         let targets = fetchedProfile.target_low
                             .map { target -> BGTargetEntry in
-                                let median = loop! ? self.getMedianTarget(
+                                let median = loop ? self.getMedianTarget(
                                     lowTargetValue: target.value,
                                     lowTargetTime: target.time,
                                     highTarget: fetchedProfile.target_high,
