@@ -131,7 +131,7 @@ extension AddCarbs {
                                 || (state.carbs <= 0 && state.fat <= 0 && state.protein <= 0)
                         )
                         .foregroundStyle(
-                            (state.carbs <= 0 && state.fat <= 0 && state.protein <= 0) ? .gray :
+                            mealSaved || (state.carbs <= 0 && state.fat <= 0 && state.protein <= 0) ? .gray :
                                 state.carbs > state.maxCarbs || state.fat > state.maxFat || state.protein > state
                                 .maxProtein ? .red : .blue
                         )
