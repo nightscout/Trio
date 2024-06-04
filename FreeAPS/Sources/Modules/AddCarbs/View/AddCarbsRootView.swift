@@ -8,7 +8,8 @@ extension AddCarbs {
         @StateObject var state = StateModel()
         @State var dish: String = ""
         @State var isPromtPresented = false
-        @State var saved = false
+        @State var noteSaved = false
+        @State var mealSaved = false
         @State private var showAlert = false
         @FocusState private var isFocused: Bool
 
@@ -117,10 +118,14 @@ extension AddCarbs {
                 }
 
                 Section {
-                    Button { state.add() }
+                    Button {
+                        mealSaved = true
+                        state.add()
+                    }
                     label: { Text(state.saveButtonText()).font(.title3) }
                         .disabled(
-                            state.carbs > state.maxCarbs
+                            mealSaved
+                                || state.carbs > state.maxCarbs
                                 || state.fat > state.maxFat
                                 || state.protein > state.maxProtein
                                 || (state.carbs <= 0 && state.fat <= 0 && state.protein <= 0)
@@ -148,8 +153,8 @@ extension AddCarbs {
                 Section {
                     TextField("Name Of Dish", text: $dish)
                     Button {
-                        saved = true
-                        if dish != "", saved {
+                        noteSaved = true
+                        if dish != "", noteSaved {
                             let preset = Presets(context: moc)
                             preset.dish = dish
                             preset.fat = state.fat as NSDecimalNumber
@@ -157,14 +162,14 @@ extension AddCarbs {
                             preset.carbs = state.carbs as NSDecimalNumber
                             try? moc.save()
                             state.addNewPresetToWaitersNotepad(dish)
-                            saved = false
+                            noteSaved = false
                             isPromtPresented = false
                         }
                     }
                     label: { Text("Save") }
                     Button {
                         dish = ""
-                        saved = false
+                        noteSaved = false
                         isPromtPresented = false }
                     label: { Text("Cancel") }
                 } header: { Text("Enter Meal Preset Name") }
