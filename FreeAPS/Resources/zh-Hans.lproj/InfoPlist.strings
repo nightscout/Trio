@@ -14,7 +14,7 @@
 "NSCalendarsUsageDescription" = "日历用于创建一个新的葡萄糖事件。";
 
 /* Privacy - Health Update Usage Description */
-"NSHealthUpdateUsageDescription" = "Health App is used to store blood glucose, insulin and carbohydrates";
+"NSHealthUpdateUsageDescription" = "健康应用用于存储血糖、绝缘和碳水合物。";
 
 /* Privacy - Health Share Usage Description */
-"NSHealthShareUsageDescription" = "Health App is used to store blood glucose, insulin and carbohydrates";
+"NSHealthShareUsageDescription" = "健康应用用于存储血糖、绝缘和碳水合物。";
