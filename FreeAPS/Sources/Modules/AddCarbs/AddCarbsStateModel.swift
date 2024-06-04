@@ -16,7 +16,9 @@ extension AddCarbs {
         @Published var dish: String = ""
         @Published var selection: Presets?
         @Published var summation: [String] = []
-        @Published var maxCarbs: Decimal = 0
+        @Published var maxCarbs: Decimal = 250
+        @Published var maxFat: Decimal = 250
+        @Published var maxProtein: Decimal = 250
         @Published var note: String = ""
 
         let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
@@ -25,6 +27,8 @@ extension AddCarbs {
             subscribeSetting(\.useFPUconversion, on: $useFPUconversion) { useFPUconversion = $0 }
             carbsRequired = provider.suggestion?.carbsReq
             maxCarbs = settings.settings.maxCarbs
+            maxFat = settings.settings.maxFat
+            maxProtein = settings.settings.maxProtein
         }
 
         func add() {
@@ -159,6 +163,18 @@ extension AddCarbs {
                 }
             }
             return waitersNotepadString
+        }
+
+        func saveButtonText() -> String {
+            if carbs > maxCarbs {
+                return "\(NSLocalizedString("Max Carbs of", comment: "")) \(maxCarbs) \(NSLocalizedString("g", comment: "")) \(NSLocalizedString("exceeded", comment: ""))"
+            } else if fat > maxFat {
+                return "\(NSLocalizedString("Max Fat of", comment: "")) \(maxFat) \(NSLocalizedString("g", comment: "")) \(NSLocalizedString("exceeded", comment: ""))"
+            } else if protein > maxProtein {
+                return "\(NSLocalizedString("Max Protein of", comment: "")) \(maxProtein) \(NSLocalizedString("g", comment: "")) \(NSLocalizedString("exceeded", comment: ""))"
+            } else {
+                return NSLocalizedString("Save and continue", comment: "")
+            }
         }
     }
 }

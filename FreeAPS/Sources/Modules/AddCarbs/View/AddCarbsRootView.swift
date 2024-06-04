@@ -48,7 +48,7 @@ extension AddCarbs {
                             autofocus: true,
                             cleanInput: true
                         )
-                        Text("grams").foregroundColor(.secondary)
+                        Text(state.carbs > state.maxCarbs ? "⚠️" : "g").foregroundColor(.secondary)
                     }.padding(.vertical)
 
                     if state.useFPUconversion {
@@ -118,23 +118,17 @@ extension AddCarbs {
 
                 Section {
                     Button { state.add() }
-                    label: {
-                        Text(
-                            state.carbs <= state.maxCarbs ? NSLocalizedString("Save and continue", comment: "") :
-                                NSLocalizedString("Max Carbs of", comment: "")
-                                + " "
-                                + formatter.string(from: state.maxCarbs as NSNumber)!
-                                + NSLocalizedString("g", comment: "The short unit display string for grams")
-                                + " "
-                                + NSLocalizedString("exceeded", comment: "")
-                        ).font(.title3) }
+                    label: { Text(state.saveButtonText()).font(.title3) }
                         .disabled(
                             state.carbs > state.maxCarbs
+                                || state.fat > state.maxFat
+                                || state.protein > state.maxProtein
                                 || (state.carbs <= 0 && state.fat <= 0 && state.protein <= 0)
                         )
                         .foregroundStyle(
                             (state.carbs <= 0 && state.fat <= 0 && state.protein <= 0) ? .gray :
-                                state.carbs > state.maxCarbs ? .red : .blue
+                                state.carbs > state.maxCarbs || state.fat > state.maxFat || state.protein > state
+                                .maxProtein ? .red : .blue
                         )
                         .frame(maxWidth: .infinity, alignment: .center)
                 } footer: { Text(state.waitersNotepad().description) }
@@ -276,7 +270,7 @@ extension AddCarbs {
                     autofocus: false,
                     cleanInput: true
                 )
-                Text("grams").foregroundColor(.secondary)
+                Text(state.fat > state.maxFat ? "⚠️" : "g").foregroundColor(.secondary)
             }
             HStack {
                 Text("Protein").foregroundColor(.red) // .fontWeight(.thin)
@@ -287,9 +281,8 @@ extension AddCarbs {
                     formatter: formatter,
                     autofocus: false,
                     cleanInput: true
-                ).foregroundColor(.loopRed)
-
-                Text("grams").foregroundColor(.secondary)
+                )
+                Text(state.protein > state.maxProtein ? "⚠️" : "g").foregroundColor(.secondary)
             }
         }
     }

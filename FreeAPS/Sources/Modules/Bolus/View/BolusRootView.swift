@@ -72,7 +72,7 @@ extension Bolus {
                                 autofocus: true,
                                 cleanInput: true
                             )
-                            Text("U").foregroundColor(.secondary)
+                            Text(state.amount > state.maxBolus ? "⚠️" : "U").foregroundColor(.secondary)
                         }
                     }
                     header: { Text("Bolus") }
