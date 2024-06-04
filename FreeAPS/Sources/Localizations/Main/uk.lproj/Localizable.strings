@@ -441,10 +441,10 @@ Enact a temp Basal or a temp target */
 " U" = "U";
 
 /* /Insulin unit */
-"/U" = "/U";
+"/U" = "/У";
 
 /* Insulin unit */
-"U" = "U";
+"U" = "У";
 
 /* Unit per hour with space */
 " U/hr" = " U/год";
@@ -516,7 +516,7 @@ Enact a temp Basal or a temp target */
 "Steps" = "Кроки";
 
 /* */
-"ISF" = "ISF";
+"ISF" = "ІСФ";
 
 /* */
 "The app Garmin Connect must be installed to use for Trio.\n Go to App Store to download it" = "Щоб використовувати Trio, необхідно встановити програму Garmin Connect.\n Перейдіть до App Store, щоб завантажити її";
@@ -618,13 +618,13 @@ Enact a temp Basal or a temp target */
 "External" = "Зовнішній";
 
 /* */
-"Other" = "Other";
+"Other" = "Інше";
 
 /* */
-"Libre Transmitter" = "Libre Transmitter";
+"Libre Transmitter" = "Лібр-трансмітер";
 
 /* */
-"Libre Transmitters" = "Libre Transmitters";
+"Libre Transmitters" = "Перевізники Libre";
 
 /* */
 "Bluetooth Transmitters" = "Bluetooth передавачі";
@@ -1149,7 +1149,7 @@ Enact a temp Basal or a temp target */
 "Save as your Normal Basal Rates" = "Зберегти як  Нормальний Базальний Профіль";
 
 /* */
-"Save on Pump" = "Save on Pump";
+"Save on Pump" = "Зберегти на насосі";
 
 /* Debug option view Pump History */
 "Pump History" = "Історія Помпи";
@@ -1192,7 +1192,7 @@ Enact a temp Basal or a temp target */
 
 /* --------------- HealthKit intergration --------------------*/
 /* */
-"Apple Health" = "Apple Health";
+"Apple Health" = "Здоров'я Apple";
 
 /* */
 "Connect to Apple Health" = "З'єднатися з Apple Health";
@@ -1205,13 +1205,13 @@ Enact a temp Basal or a temp target */
 
 /* New ALerts ------------------------- */
 /* Info title */
-"Info" = "Info";
+"Info" = "Інформація";
 
 /* Warning title */
 "Warning" = "Попередження";
 
 /* Error title */
-"Error" = "Error";
+"Error" = "Помилка";
 
 /* Manual temp basal mode */
 "Manual" = "Інструкція";
@@ -1240,7 +1240,7 @@ Enact a temp Basal or a temp target */
 "Enable" = "Увімкнути";
 
 /* Header */
-"Fat and Protein Conversion Settings" = "Fat and Protein Conversion Settings";
+"Fat and Protein Conversion Settings" = "Перетворення жирів і білків";
 
 /* Delay */
 "Delay In Minutes" = "Затримка в Хвилинах";
@@ -1258,7 +1258,7 @@ Enact a temp Basal or a temp target */
 "Allows fat and protein to be converted into future carb equivalents using the Warsaw formula of kilocalories divided by 10.\n\nThis spreads the carb equivilants over a maximum duration setting that can be configured from 5-12 hours.\n\nDelay is time from now until the first future carb entry.\n\nInterval in minutes is how many minutes are between entries. The shorter the interval, the smoother the result. 10, 15, 20, 30, or 60 are reasonable choices.\n\nAdjustment factor is how much effect the fat and protein has on the entries. 1.0 is full effect (original Warsaw Method) and 0.5 is half effect. Note that you may find that your normal carb ratio needs to increase to a larger number if you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 0.5 to ease into it.\n\nDefault settings: Time Cap: 8 h, Interval: 30 min, Factor: 0.5, Delay 60 min" = "Дозволяє перетворювати жири та білки в майбутні еквіваленти вуглеводів, використовуючи варшавську формулу поділу кілокалорій на 10.\n\nЦе розподіляє еквіваленти вуглеводів за максимальною тривалістю, яка може бути встановлена в межах 5-12 годин. до першого введення вуглеводів у майбутньому.\n\nІнтервал у хвилинах - це кількість хвилин між записами. Чим коротший інтервал, тим паче плавний результат. 10, 15, 20, 30 або 60 - розумний вибір. Коригуючий коефіцієнт - це те, наскільки сильно жир і білок впливають на кількість продуктів. 1.0 – це повний ефект (оригінальний Варшавський метод), а 0.5 – половинний ефект. Зверніть увагу, що ви можете виявити, що ваше нормальне співвідношення вуглеводів потребує збільшення, якщо ви почнете додавати жири та білки. З цієї причини найкраще починати з коефіцієнта приблизно 0.5, щоб полегшити його використання.";
 
 /* FPU Settings Title */
-"Fat and Protein" = "Fat and Protein";
+"Fat and Protein" = "Жири та білки";
 
 /* Display fat and protein entities */
 "Fat & Protein" = "Жир та Білок";
@@ -1273,7 +1273,7 @@ Enact a temp Basal or a temp target */
 "Protein" = "Білки";
 
 /* Service Section */
-"Meal Settings" = "Meal Settings";
+"Meal Settings" = "Налаштування Meal";
 
 /* Service Section */
 "Profile Override" = "Перевизначення Профілю";
@@ -1404,7 +1404,7 @@ Enact a temp Basal or a temp target */
 "Save and continue" = "Зберегти та продовжити";
 
 /* */
-"Save as Preset" = "Save as Preset";
+"Save as Preset" = "Зберегти як пресет";
 
 /* */
 "Predictions" = "Прогнози";
@@ -1498,10 +1498,10 @@ Enact a temp Basal or a temp target */
 "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Сигнали підтвердження — це звукові сигнали Podʼа, які можна використовувати для підтвердження вибраних команд.";
 
 /* button title for saving low reservoir reminder while saving */
-"Saving..." = "Saving...";
+"Saving..." = "Збереження...";
 
 /* button title for saving low reservoir reminder */
-"Save" = "Save";
+"Save" = "Зберегти";
 
 /* Alert title for error when updating confidence reminder preference */
 "Failed to update confidence reminder preference." = "Не вдалося оновити налаштування нагадування про конфіденційність.";
@@ -1554,7 +1554,7 @@ Enact a temp Basal or a temp target */
 "Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains." = "Змініть Pod зараз. Введення інсуліну припиниться через %1$@ або коли інсулін закінчиться.";
 
 /* Label text for temporary basal rate summary */
-"Rate" = "Rate";
+"Rate" = "Оцінка";
 
 /* Summary string for temporary basal rate configuration page */
 "%1$@ for %2$@" = "%1$@ для %2$@";
@@ -1583,7 +1583,7 @@ Enact a temp Basal or a temp target */
 "This PumpManager has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to therapy settings -> delivery limits and set a new maximum basal rate." = "Помічник налаштування помпи не був налаштований щодо максимального рівня базального інсуліну. Будь ласка, перейдіть в \"Параметри помпи\" -> \"Межа подачі\" і встановіть новий максимальний рівень базального інсуліну.";
 
 /* description label for active time pod details row */
-"Active Time" = "Active Time";
+"Active Time" = "Активний час";
 
 /* description label for total delivery pod details row */
 "Total Delivery" = "Повна Доставка";
@@ -1632,7 +1632,7 @@ Enact a temp Basal or a temp target */
 "Month" = "Місяць";
 
 /* */
-"Total" = "Total";
+"Total" = "Загальна сума замовлення";
 
 /* Headline Statistics */
 "Statistics" = "Статистика";
@@ -1641,10 +1641,10 @@ Enact a temp Basal or a temp target */
 "Allow Upload of Statistics to NS" = "Дозволити Завантаження Статистики в NS";
 
 /* Low Glucose Threshold in Statistics settings */
-"Low" = "Low";
+"Low" = "Низька";
 
 /* High Glucose Threshold in Statistics settings */
-"High" = "High";
+"High" = "Високий";
 
 /* In Range */
 "In Range" = "В Межах";
@@ -1707,13 +1707,13 @@ Enact a temp Basal or a temp target */
 "Low (<" = "Низький (<";
 
 /* SD */
-"SD" = "SD";
+"SD" = "СМД";
 
 /* CV */
-"CV" = "CV";
+"CV" = "МП";
 
 /* Estimated HbA1c */
-"HbA1c" = "HbA1c";
+"HbA1c" = "Хба1c";
 
 /* Total number of days of data for HbA1c estimation, part 1/2*/
 "All" = "Все";
@@ -1731,7 +1731,7 @@ Enact a temp Basal or a temp target */
 "Interval" = "Інтервал";
 
 /* Median loop interval */
-"Duration" = "Duration";
+"Duration" = "Тривалість";
 
 /* "Display SD */
 "Display SD instead of CV" = "Показати SD замість CV";
@@ -1889,7 +1889,7 @@ Enact a temp Basal or a temp target */
 "Allow SMB With High Temptarget" = "Дозволити SMB з Високою Тимчасовою Метою";
 
 /* Headline "Allow SMB With High Temptarget" */
-"Allow SMB With High Temptarget" = "Allow SMB With High Temptarget";
+"Allow SMB With High Temptarget" = "Дозволити SMB зі встановленою командою";
 
 /* "Allow SMB With High Temptarget" */
 "Defaults to false. When true, allows supermicrobolus (if otherwise enabled) even with high temp targets (> 100 mg/dl)." = "За замовченням вимкнено. Включення дозволяє супермікроболюси (SMB) навіть з високими тимчасовими цілями.";
@@ -2032,13 +2032,13 @@ Enact a temp Basal or a temp target */
 "Adjust Dynamic ISF constant" = "Налаштувати константу Динамічного ISF";
 
 /* Adjust Dynamic ISF constant */
-"Adjust Dynamic ISF constant" = "Adjust Dynamic ISF constant";
+"Adjust Dynamic ISF constant" = "Налаштування динамічної константи ISF";
 
 /* Enable Dynamic ISF, Headline */
 "Enable Dynamic ISF" = "Включити Динамічний ISF";
 
 /* Headline "Enable Dynamic ISF" */
-"Enable Dynamic ISF" = "Enable Dynamic ISF";
+"Enable Dynamic ISF" = "Увімкнути динамічний ISF";
 
 /* Enable Dynamic ISF */
 "Calculate a new ISF with every loop cycle. New ISF will be based on current BG, TDD of insulin (past 24 hours or a weighted average) and an Adjustment Factor (default is 1).\n\nDynamic ISF and CR ratios will be limited by your autosens.min/max limits.\n\nDynamic ratio replaces the autosens.ratio: New ISF = Static ISF / Dynamic ratio,\nDynamic ratio = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes" = "Вважати новий ISF з кожним циклом петлі. Новий ISF буде залежати від поточного BG, TDD (за останні 24 години або зважене середнє значення) та Adjustment Factor (за замовчуванням - 1). nDynamic ratio замінює autosens.ratio: Новий ISF = Постійний ISF/ Dynamic ratio,\nDynamic ratio = profile.sens*adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPe";
@@ -2056,7 +2056,7 @@ Enact a temp Basal or a temp target */
 "Activate Dynamic Carb Ratio (CR)" = "Активація динамічного співвідношення вуглеводів (CR)";
 
 /* Headline "Adjust Dynamic ISF constant" */
-"Adjust Dynamic ISF constant" = "Adjust Dynamic ISF constant";
+"Adjust Dynamic ISF constant" = "Налаштування динамічної константи ISF";
 
 /* Adjust Dynamic ISF constant */
 "Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula there is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users" = "Налаштуйте динамічні коефіцієнти за константою. За замовчуванням 0,5. Чим вище значення, тим більшою буде корекція вашого ISF для високого або низького рівня ГК. Максимальна корекція визначається параметрами min/max Автосенс. Для сигмоподібної функції спочатку рекомендується коригуючий коефіцієнт 0,4 - 0,5. Для логарифмічної формули threre є менш узгодженим, але починати з 0,5 - 0,8 є більш прийнятним для більшості користувачів";
