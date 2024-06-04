@@ -431,6 +431,30 @@ Enact a temp Basal or a temp target */
 /* Max setting */
 "Max Carbs" = "Maksimalt antall karbohydrater";
 
+/* Max setting */
+"Max Fat" = "Max Fat";
+
+/* Max setting */
+"Max Protein" = "Max Protein";
+
+/* Max setting */
+"Limit Per Entry" = "Limit Per Entry";
+
+/* Max Carbs limit exceeded */
+"Max Carbs of" = "Max Carbs of";
+
+/* Max Fat limit exceeded */
+"Max Fat of" = "Max Fat of";
+
+/* Max Protein limit exceeded */
+"Max Protein of" = "Max Protein of";
+
+/* Max Bolus limit exceeded */
+"Max Bolus of" = "Max Bolus of";
+
+/* Limit Exceeded label */
+"exceeded" = "exceeded";
+
 /* */
 "Pump Settings" = "Pumpeinnstillinger";
 
@@ -1051,9 +1075,6 @@ Enact a temp Basal or a temp target */
 
 /* */
 "Bolus failed" = "Bolus mislyktes";
-
-/* "Max Bolus Exceeded label" */
-"Max Bolus exceeded!" = "Max Bolus overskredet!";
 
 /* */
 "Bolus failed or inaccurate. Check pump history before repeating." = "Bolus mislyktes eller var upresis. Kontroller bolus-historikken før du gjentar.";
