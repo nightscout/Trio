@@ -333,7 +333,7 @@ Enact a temp Basal or a temp target */
 "Port" = "Cổng";
 
 /*  */
-"URL" = "URL";
+"URL" = "Địa chỉ URL";
 
 /**/
 "Use local glucose server" = "Sử dụng nguồn glucose nội tại";
@@ -366,7 +366,7 @@ Enact a temp Basal or a temp target */
 "This will replace some or all of your current pump settings. Are you sure you want to import profile settings from Nightscout?" = "Việc này có thể thay thế một vài hoặc tất cả những cấu hình bơm hiện tại của bạn. Bạn có chắc bạn muốn nhập cấu hình từ Nightscout?";
 
 /* Import Error */
-"\nInvalid Nightcsout Basal Settings. \n\nImport aborted. Please check your Nightscout Profile Basal Settings!" = "\nCác cấu hình liều nền trên Nightscout không hợp lệ.\n\n Việc cập nhật bị bỏ. Đề nghị bạn kiểm tra cấu hình liều nền trên Nightscout!";
+"\nInvalid Nightcsout Basal Settings. \n\nImport aborted. Please check your Nightscout Profile Basal Settings!" = "\nCác cấu hình liều nền trên Nightscout không hợp lệ.\n\n Việc cập nhật bị hủy bỏ. Đề nghị bạn kiểm tra cấu hình liều nền trên Nightscout!";
 
 /* Import Error */
 "\nSettings were imported but the Basals couldn't be saved to pump (No pump). Check your basal settings and tap ´Save on Pump´ to sync the new basal settings" = "\n Các cấu hình đã được nhập nhưng liều nền không được lưu vào bơm (không có bơm). Kiểm tra cấu hình liều nền của bạn và nhấn 'Lưu vào bơm' để đồng hóa cấu hình liều nền mới";
@@ -435,7 +435,7 @@ Enact a temp Basal or a temp target */
 "Pump Settings" = "Cấu hình bơm";
 
 /* Insulin unit per hour */
-"U/hr" = "U/hr";
+"U/hr" = "U/giờ";
 
 /* Unit in number of units delivered (keep the space character!) */
 " U" = " U";
@@ -447,10 +447,10 @@ Enact a temp Basal or a temp target */
 "U" = "U";
 
 /* Unit per hour with space */
-" U/hr" = " U/hr";
+" U/hr" = " U/giờ";
 
 /* Number of units per hour*/
-"%@ U/hr" = "%@ U/hr";
+"%@ U/hr" = "%@ U/giờ";
 
 /* Number of units insulin delivered */
 "%@ U" = "%@ U";
@@ -465,7 +465,7 @@ Enact a temp Basal or a temp target */
 "g" = "g";
 
 /* when 0 U/hr */
-"0 U/hr" = "U/hr";
+"0 U/hr" = "U/giờ";
 
 /* abbreviation for days */
 "d" = "ngày";
@@ -486,7 +486,7 @@ Enact a temp Basal or a temp target */
 "Devices" = "Thiết bị";
 
 /*  */
-"Pump" = "Bơm";
+"Pump" = "Bơm Insulin";
 
 /* */
 "Watch" = "Đồng hồ";
@@ -507,7 +507,7 @@ Enact a temp Basal or a temp target */
 "Add devices" = "Thêm thiết bị";
 
 /* */
-"Glucose Target" = "Glucose Target";
+"Glucose Target" = "Mục tiêu đường huyết";
 
 /* */
 "Heart Rate" = "Heart Rate";
@@ -618,7 +618,7 @@ Enact a temp Basal or a temp target */
 "External" = "Bên ngoài";
 
 /* */
-"Other" = "Other";
+"Other" = "Khác";
 
 /* */
 "Libre Transmitter" = "Libre Transmitter";
@@ -669,7 +669,7 @@ Enact a temp Basal or a temp target */
 "Remove" = "Loại bỏ";
 
 /* */
-"Remove Last" = "Loại bỏ mục sau cùng";
+"Remove Last" = "Loại bỏ mục gần nhất";
 
 /* */
 "Remove All" = "Loại bỏ tất cả";
@@ -1059,7 +1059,7 @@ Enact a temp Basal or a temp target */
 "Bolus failed or inaccurate. Check pump history before repeating." = "Liều bolus thất bại hoặc không chính xác. Kiểm tra lại bơm trước khi lặp lại.";
 
 /* */
-"Carbs" = "Carbs";
+"Carbs" = "Lượng Carbs";
 
 /* Food Type / Meal Note */
 "Note" = "Lưu ý";
@@ -1077,7 +1077,7 @@ Enact a temp Basal or a temp target */
 "Suspend" = "Đã tạm ngưng";
 
 /* */
-"Animated Background" = "Animated Background";
+"Animated Background" = "Nền màn hình động";
 
 /* Sensor day(s) */
 " day(s)" = " ngày(s)";
@@ -1149,7 +1149,7 @@ Enact a temp Basal or a temp target */
 "Save as your Normal Basal Rates" = "Lưu như liều nền của bạn";
 
 /* */
-"Save on Pump" = "Save on Pump";
+"Save on Pump" = "Lưu vào bơm";
 
 /* Debug option view Pump History */
 "Pump History" = "Lịch sử Bơm";
@@ -2119,7 +2119,7 @@ Enact a temp Basal or a temp target */
 "Live Activity" = "Hoạt động trực tiếp";
 
 /* Notification option */
-"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "Hoạt động trực tiếp hiển thị đường huyết trực tiếp trên màn hình khóa và trên đảo động (nếu có)";
+"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "Hoạt động trực tiếp hiển thị đường huyết trực tiếp trên màn hình khóa và năng động (nếu có)";
 
 /* Notification option */
 "Show live activity" = "Hiển thị hoạt động trực tiếp";
