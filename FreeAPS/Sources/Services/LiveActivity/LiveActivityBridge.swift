@@ -4,106 +4,6 @@ import Foundation
 import Swinject
 import UIKit
 
-extension LiveActivityAttributes.ContentState {
-    static func formatGlucose(_ value: Int, mmol: Bool, forceSign: Bool) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        if mmol {
-            formatter.minimumFractionDigits = 1
-            formatter.maximumFractionDigits = 1
-        }
-        if forceSign {
-            formatter.positivePrefix = formatter.plusSign
-        }
-        formatter.roundingMode = .halfUp
-
-        return formatter
-            .string(from: mmol ? value.asMmolL as NSNumber : NSNumber(value: value))!
-    }
-
-    static func calculateChange(chart: [GlucoseStored]) -> String {
-        guard chart.count > 2 else { return "" }
-        let lastGlucose = chart.first?.glucose ?? 0
-        let secondLastGlucose = chart.dropFirst().first?.glucose ?? 0
-        let delta = lastGlucose - secondLastGlucose
-        let deltaAsDecimal = Decimal(delta)
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 1
-        formatter.positivePrefix = "  +"
-        formatter.negativePrefix = "  -"
-        return formatter.string(from: deltaAsDecimal as NSNumber) ?? "--"
-    }
-
-    init?(
-        new bg: GlucoseStored,
-        prev _: GlucoseStored?,
-        mmol: Bool,
-        chart: [GlucoseStored],
-        settings: FreeAPSSettings,
-        determination: OrefDetermination?
-    ) {
-        let glucose = bg.glucose
-        let formattedBG = Self.formatGlucose(Int(glucose), mmol: mmol, forceSign: false)
-        var rotationDegrees: Double = 0.0
-
-        switch bg.direction {
-        case "DoubleUp",
-             "SingleUp",
-             "TripleUp":
-            rotationDegrees = -90
-        case "FortyFiveUp":
-            rotationDegrees = -45
-        case "Flat":
-            rotationDegrees = 0
-        case "FortyFiveDown":
-            rotationDegrees = 45
-        case "DoubleDown",
-             "SingleDown",
-             "TripleDown":
-            rotationDegrees = 90
-        case "NONE",
-             "NOT COMPUTABLE",
-             "RATE OUT OF RANGE":
-            rotationDegrees = 0
-        default:
-            rotationDegrees = 0
-        }
-
-        let trendString = bg.direction?.symbol as? String
-        let change = Self.calculateChange(chart: chart)
-        let chartBG = chart.map(\.glucose)
-        let conversionFactor: Double = settings.units == .mmolL ? 18.0 : 1.0
-        let convertedChartBG = chartBG.map { Double($0) / conversionFactor }
-        let chartDate = chart.map(\.date)
-
-        /// glucose limits from UI settings, not from notifications settings
-        let highGlucose = settings.high / Decimal(conversionFactor)
-        let lowGlucose = settings.low / Decimal(conversionFactor)
-        let cob = determination?.cob ?? 0
-        let iob = determination?.iob ?? 0
-        let lockScreenView = settings.lockScreenView.displayName
-        let unit = settings.units == .mmolL ? " mmol/L" : " mg/dL"
-
-        self.init(
-            bg: formattedBG,
-            direction: trendString,
-            change: change,
-            date: bg.date ?? Date(),
-            chart: convertedChartBG,
-            chartDate: chartDate,
-            rotationDegrees: rotationDegrees,
-            highGlucose: Double(highGlucose),
-            lowGlucose: Double(lowGlucose),
-            cob: Decimal(cob),
-            iob: iob as Decimal,
-            lockScreenView: lockScreenView,
-            unit: unit
-        )
-    }
-}
-
 @available(iOS 16.2, *) private struct ActiveActivity {
     let activity: Activity<LiveActivityAttributes>
     let startDate: Date
@@ -124,8 +24,7 @@ extension LiveActivityAttributes.ContentState {
     }
 }
 
-@available(iOS 16.2, *) final class LiveActivityBridge: NSObject, Injectable, ObservableObject,
-    NSFetchedResultsControllerDelegate
+@available(iOS 16.2, *) final class LiveActivityBridge: Injectable, ObservableObject
 {
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var broadcaster: Broadcaster!
@@ -138,62 +37,49 @@ extension LiveActivityAttributes.ContentState {
         settingsManager.settings
     }
 
-    private var determination: OrefDetermination?
+    var determination: DeterminationData?
     private var currentActivity: ActiveActivity?
-    private var latestGlucose: GlucoseStored?
-    private var fetchedResultsController: NSFetchedResultsController<GlucoseStored>?
+    private var latestGlucose: GlucoseData?
+    var glucoseFromPersistence: [GlucoseData]?
+
+    let context = CoreDataStack.shared.newTaskContext()
 
     init(resolver: Resolver) {
         systemEnabled = activityAuthorizationInfo.areActivitiesEnabled
-        super.init()
-
         injectServices(resolver)
         setupNotifications()
         monitorForLiveActivityAuthorizationChanges()
-        initializeFetchedResultsController()
+        setupGlucoseArray()
     }
 
     private func setupNotifications() {
-        Foundation.NotificationCenter.default.addObserver(
-            forName: UIApplication.didEnterBackgroundNotification,
-            object: nil,
-            queue: nil
-        ) { [weak self] _ in
-            self?.forceActivityUpdate()
-        }
-
-        Foundation.NotificationCenter.default.addObserver(
-            forName: UIApplication.didBecomeActiveNotification,
-            object: nil,
-            queue: nil
-        ) { [weak self] _ in
-            self?.forceActivityUpdate()
-        }
+        let notificationCenter = Foundation.NotificationCenter.default
+        notificationCenter.addObserver(self, selector: #selector(handleBatchInsert), name: .didPerformBatchInsert, object: nil)
+        notificationCenter
+            .addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { [weak self] _ in
+                self?.forceActivityUpdate()
+            }
+        notificationCenter
+            .addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: nil) { [weak self] _ in
+                self?.forceActivityUpdate()
+            }
     }
 
-    private func initializeFetchedResultsController() {
-        let fetchRequest: NSFetchRequest<GlucoseStored> = GlucoseStored.fetchRequest()
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
-        fetchRequest.fetchLimit = 72
-        fetchRequest.predicate = NSPredicate.predicateForSixHoursAgo
+    @objc private func handleBatchInsert() {
+        setupGlucoseArray()
+    }
 
-        fetchedResultsController = NSFetchedResultsController(
-            fetchRequest: fetchRequest,
-            managedObjectContext: CoreDataStack.shared.persistentContainer.viewContext,
-            sectionNameKeyPath: nil,
-            cacheName: nil
-        )
-        fetchedResultsController?.delegate = self
+    private func setupGlucoseArray() {
+        Task {
+            // Fetch and map glucose to GlucoseData struct
+            await fetchAndMapGlucose()
 
-        do {
-            try fetchedResultsController?.performFetch()
-            debugPrint(
-                "LA Bridge: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched glucose"
-            )
-        } catch {
-            debugPrint(
-                "LA Bridge: \(#function) \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) failed to fetch glucose"
-            ) }
+            // Fetch and map Determination to DeterminationData struct
+            await fetchAndMapDetermination()
+
+            // Push the update to the Live Activity
+            glucoseDidUpdate(glucoseFromPersistence ?? [])
+        }
     }
 
     private func monitorForLiveActivityAuthorizationChanges() {
@@ -208,21 +94,6 @@ extension LiveActivityAttributes.ContentState {
         }
     }
 
-    private func fetchDetermination() -> OrefDetermination? {
-        let context = CoreDataStack.shared.persistentContainer.viewContext
-        do {
-            let determinations = try context.fetch(OrefDetermination.fetch(NSPredicate.enactedDetermination))
-            debugPrint("LA Bridge: \(#function) \(DebuggingIdentifiers.succeeded) fetched determinations")
-            if let latestDetermination = determinations.first {
-                return latestDetermination
-            }
-            return nil
-        } catch {
-            debugPrint("LA Bridge: \(#function) \(DebuggingIdentifiers.failed) failed to fetch determinaions")
-            return nil
-        }
-    }
-
     /// creates and tries to present a new activity update from the current GlucoseStorage values if live activities are enabled in settings
     /// Ends existing live activities if live activities are not enabled in settings
     private func forceActivityUpdate() {
@@ -231,9 +102,7 @@ extension LiveActivityAttributes.ContentState {
         if settings.useLiveActivity {
             if currentActivity?.needsRecreation() ?? true
             {
-                if let glucoseRecords = fetchedResultsController?.fetchedObjects as? [GlucoseStored] {
-                    glucoseDidUpdate(glucoseRecords)
-                }
+                glucoseDidUpdate(glucoseFromPersistence ?? [])
             }
         } else {
             Task {
@@ -244,31 +113,26 @@ extension LiveActivityAttributes.ContentState {
 
     /// attempts to present this live activity state, creating a new activity if none exists yet
     @MainActor private func pushUpdate(_ state: LiveActivityAttributes.ContentState) async {
-        // hide duplicate/unknown activities
-        for unknownActivity in Activity<LiveActivityAttributes>.activities
-            .filter({ self.currentActivity?.activity.id != $0.id })
-        {
-            await unknownActivity.end(nil, dismissalPolicy: .immediate)
-        }
+//        // End all activities that are not the current one
+//        for unknownActivity in Activity<LiveActivityAttributes>.activities.filter({ self.currentActivity?.activity.id != $0.id }) {
+//            await unknownActivity.end(nil, dismissalPolicy: .immediate)
+//        }
 
-        if let currentActivity {
+        if let currentActivity = currentActivity {
             if currentActivity.needsRecreation(), UIApplication.shared.applicationState == .active {
-                // activity is no longer visible or old. End it and try to push the update again
                 await endActivity()
                 await pushUpdate(state)
             } else {
                 let content = ActivityContent(
                     state: state,
-                    staleDate: min(state.date, Date.now).addingTimeInterval(TimeInterval(6 * 60))
+                    staleDate: min(state.date, Date.now).addingTimeInterval(360) // 6 minutes in seconds
                 )
                 await currentActivity.activity.update(content)
             }
         } else {
             do {
-                // always push a non-stale content as the first update
-                // pushing a stale content as the frst content results in the activity not being shown at all
-                // we want it shown though even if it is iniially stale, as we expect new BG readings to become available soon, which should then be displayed
-                let nonStale = ActivityContent(
+                // Create initial non-stale content
+                let nonStaleContent = ActivityContent(
                     state: LiveActivityAttributes.ContentState(
                         bg: "--",
                         direction: nil,
@@ -277,8 +141,8 @@ extension LiveActivityAttributes.ContentState {
                         chart: [],
                         chartDate: [],
                         rotationDegrees: 0,
-                        highGlucose: Double(180),
-                        lowGlucose: Double(70),
+                        highGlucose: 180,
+                        lowGlucose: 70,
                         cob: 0,
                         iob: 0,
                         lockScreenView: "Simple",
@@ -287,17 +151,18 @@ extension LiveActivityAttributes.ContentState {
                     staleDate: Date.now.addingTimeInterval(60)
                 )
 
+                // Request a new activity
                 let activity = try Activity.request(
                     attributes: LiveActivityAttributes(startDate: Date.now),
-                    content: nonStale,
+                    content: nonStaleContent,
                     pushType: nil
                 )
                 currentActivity = ActiveActivity(activity: activity, startDate: Date.now)
 
-                // then show the actual content
+                // Push the actual content
                 await pushUpdate(state)
             } catch {
-                print("activity creation error: \(error)")
+                print("Activity creation error: \(error)")
             }
         }
     }
@@ -318,18 +183,7 @@ extension LiveActivityAttributes.ContentState {
 
 @available(iOS 16.2, *)
 extension LiveActivityBridge {
-    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        guard let glucoseChanges = controller.fetchedObjects as? [GlucoseStored] else {
-            return
-        }
-
-        glucoseDidUpdate(glucoseChanges)
-    }
-}
-
-@available(iOS 16.2, *)
-extension LiveActivityBridge {
-    func glucoseDidUpdate(_ glucose: [GlucoseStored]) {
+    func glucoseDidUpdate(_ glucose: [GlucoseData]) {
         guard settings.useLiveActivity else {
             if currentActivity != nil {
                 Task {
@@ -350,8 +204,6 @@ extension LiveActivityBridge {
         guard let bg = glucose.first else {
             return
         }
-
-        determination = fetchDetermination()
 
         if let determination = determination {
             let content = LiveActivityAttributes.ContentState(

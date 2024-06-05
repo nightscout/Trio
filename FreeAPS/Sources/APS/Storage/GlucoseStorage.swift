@@ -81,6 +81,8 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                         glucoseEntry.glucose = Int16(entry.glucose ?? 0)
                         glucoseEntry.date = entry.dateString
                         glucoseEntry.direction = entry.direction?.symbol
+                        debugPrint("\(DebuggingIdentifiers.failed)")
+                        debugPrint("\(String(describing: glucoseEntry.direction))")
                         return false // Continue processing
                     }
                 )

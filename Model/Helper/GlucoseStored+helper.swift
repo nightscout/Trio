@@ -102,3 +102,10 @@ extension GlucoseStored: Encodable {
         }
     }
 }
+
+// In order to show the correct direction in the bobble we convert the direction property of the NSManagedObject GlucoseStored back to the Direction type
+extension GlucoseStored {
+    var directionEnum: BloodGlucose.Direction? {
+        BloodGlucose.Direction(rawValue: direction ?? "")
+    }
+}

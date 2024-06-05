@@ -104,26 +104,26 @@ struct CurrentGlucoseView: View {
                 }.frame(alignment: .top)
             }
         }
-        .onChange(of: combinedGlucoseValues.first?.direction) { newDirection in
+        .onChange(of: combinedGlucoseValues.first?.directionEnum) { newDirection in
             withAnimation {
                 switch newDirection {
-                case "DoubleUp",
-                     "SingleUp",
-                     "TripleUp":
+                case .doubleUp,
+                     .singleUp,
+                     .tripleUp:
                     rotationDegrees = -90
-                case "FortyFiveUp":
+                case .fortyFiveUp:
                     rotationDegrees = -45
-                case "Flat":
+                case .flat:
                     rotationDegrees = 0
-                case "FortyFiveDown":
+                case .fortyFiveDown:
                     rotationDegrees = 45
-                case "DoubleDown",
-                     "SingleDown",
-                     "TripleDown":
+                case .doubleDown,
+                     .singleDown,
+                     .tripleDown:
                     rotationDegrees = 90
-                case "NONE",
-                     "NOT COMPUTABLE",
-                     "RATE OUT OF RANGE":
+                case nil,
+                     .notComputable,
+                     .rateOutOfRange:
                     rotationDegrees = 0
                 default:
                     rotationDegrees = 0

@@ -298,7 +298,7 @@ struct LiveActivity: Widget {
                 .padding(.all, 14)
                 .imageScale(.small)
                 .foregroundColor(Color.white)
-                .activityBackgroundTint(Color.black)
+                .activityBackgroundTint(Color.black.opacity(0.8))
             }
         } dynamicIsland: { context in
             DynamicIsland {
