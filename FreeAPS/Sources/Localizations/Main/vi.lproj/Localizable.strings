@@ -152,7 +152,7 @@
 "Delete preset \"%@\"" = "Xóa mẫu cài đặt \"%@\"";
 
 /* Duration of target temp or temp basal */
-"Duration" = "Duration";
+"Duration" = "Khoảng thời gian";
 
 /*  */
 "Enact Temp Target" = "Chấp nhận mục tiêu tạm thời";
@@ -209,7 +209,7 @@
 "[ -1 ]" = "[ -1 ]";
 
 /* Upper temp target limit */
-"Top target" = "Top target";
+"Top target" = "Mục tiêu cao";
 
 /*  Temp target set for ... minutes */
 "for" = "của";
@@ -408,7 +408,7 @@ Enact a temp Basal or a temp target */
 "Add Simulator" = "Thêm Bơm mô phỏng";
 
 /* Insulin model */
-"Model" = "Model";
+"Model" = "Loại thiết bị";
 
 /*  */
 "Pump config" = "Cấu hình bơm";
