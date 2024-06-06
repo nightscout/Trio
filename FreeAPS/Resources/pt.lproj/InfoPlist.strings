@@ -2,7 +2,7 @@
 "NFCReaderUsageDescription" = "O NFC é usado para escanear sensores Libre";
 
 /* Privacy - Bluetooth Always Usage Description */
-"NSBluetoothAlwaysUsageDescription" = "Bluetooth é usado para se comunicar com a bomba de insulina e dispositivos de monitor de glicose contínuo";
+"NSBluetoothAlwaysUsageDescription" = "Bluetooth é usado para comunicar com a bomba de insulina e os dispositivos de monitor de glicose contínuo";
 
 /* Privacy - Bluetooth Peripheral Usage Description */
 "NSBluetoothPeripheralUsageDescription" = "Bluetooth é usado para se comunicar com a bomba de insulina e dispositivos de monitor de glicose contínuo";
