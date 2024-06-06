@@ -675,25 +675,25 @@ Arquivo: Localizador. cadeias de caracteres";
 "Remove" = "Excluir";
 
 /* */
-"Remove Last" = "Remover último";
+"Remove Last" = "Remover o último";
 
 /* */
-"Remove All" = "Remover tudo";
+"Remove All" = "Remover todos";
 
 /* */
 "About the Process" = "Sobre o processo";
 
 /* */
-"Please make sure that your Libre 2 sensor is already activated and finished warming up. If you have other apps connecting to the sensor via bluetooth, these need to be shut down or uninstalled. \n\n You can only have one app communicating with the sensor via bluetooth. Then press the \"pariring and connection\" button below to start the process. Please note that the bluetooth connection might take up to a couple of minutes before it starts working." = "Por favor, certifique-se de que seu sensor Libre 2 já está ativado e que o aquecimento acabou. Se você tem outros apps conectando ao sensor via bluetooth, eles precisam ser desligados ou desinstalados. \n\n Você só pode ter um aplicativo comunicando com o sensor via bluetooth. Em seguida, pressione o botão \"pareamento e conexão\" abaixo para iniciar o processo. Por favor, note que a conexão bluetooth pode levar alguns minutos antes de começar a funcionar.";
+"Please make sure that your Libre 2 sensor is already activated and finished warming up. If you have other apps connecting to the sensor via bluetooth, these need to be shut down or uninstalled. \n\n You can only have one app communicating with the sensor via bluetooth. Then press the \"pariring and connection\" button below to start the process. Please note that the bluetooth connection might take up to a couple of minutes before it starts working." = "Por favor, certifique-se de que seu sensor Libre 2 já está ativado e que o tempo de aquecimento acabou. Se você tem outros aplicativos conectando ao sensor via bluetooth, eles precisam ser desligados ou desinstalados. \n\n Você só pode ter um aplicativo comunicando com o sensor via bluetooth. Em seguida, pressione o botão \"pareamento e conexão\" abaixo para iniciar o processo. Por favor, note que a conexão bluetooth pode levar alguns minutos antes de começar a funcionar.";
 
 /* */
-"Pairinginfo" = "Pairinginfo";
+"Pairinginfo" = "Informações de emparelhamento";
 
 /* */
-"PatchInfo" = "Retalhão";
+"PatchInfo" = "Informações do Patch";
 
 /* */
-"Calibrationinfo" = "Informação";
+"Calibrationinfo" = "Informaçãoes de calibraçāo";
 
 /* */
 "Unknown" = "Desconhecido";
@@ -705,13 +705,13 @@ Arquivo: Localizador. cadeias de caracteres";
 "Pair Sensor & connect" = "Emparelhar Sensor e conectar";
 
 /* */
-"Phone NFC required!" = "NFC do telefone necessário!";
+"Phone NFC required!" = "NFC do telefone é necessário!";
 
 /* */
 "Your phone or app is not enabled for NFC communications, which is needed to pair to libre2 sensors" = "Seu telefone ou aplicativo não está habilitado para comunicações NFC, que é necessário para emparelhar sensores libre2";
 
 /* Bluetooth Power Off */
-"Bluetooth Power Off" = "Desligar o Bluetooth";
+"Bluetooth Power Off" = "Desativar Bluetooth";
 
 /* Please turn on Bluetooth */
 "Please turn on Bluetooth" = "Por favor, ative o Bluetooth";
@@ -723,7 +723,7 @@ Arquivo: Localizador. cadeias de caracteres";
 "Delete CGMManager and start anew. Your libreoopweb credentials will be preserved" = "Excluir o CGMManager e começar de novo. Suas credenciais de libreoopweb serão preservadas";
 
 /* Invalid libre checksum */
-"Invalid libre checksum" = "Checksum inválido";
+"Invalid libre checksum" = "Checksum libre inválido";
 
 /* Libre sensor was incorrectly read, CRCs were not valid */
 "Libre sensor was incorrectly read, CRCs were not valid" = "Sensor Libre foi lido incorretamente, CRCs não eram válidos";
@@ -732,10 +732,10 @@ Arquivo: Localizador. cadeias de caracteres";
 "Glucose" = "Glicose";
 
 /* LOWALERT! */
-"LOWALERT!" = "LOWALERT!";
+"LOWALERT!" = "ALERTA DE BAIXA!";
 
 /* HIGHALERT! */
-"HIGHALERT!" = "ALERTA!";
+"HIGHALERT!" = "ALERTA DE ALTA!";
 
 /* (Snoozed)*/
 "(Snoozed)" = "(Adiado)";
@@ -750,7 +750,7 @@ Arquivo: Localizador. cadeias de caracteres";
 "No Sensor Detected" = "Nenhum Sensor Detectado";
 
 /* This might be an intermittent problem, but please check that your transmitter is tightly secured over your sensor */
-"This might be an intermittent problem, but please check that your transmitter is tightly secured over your sensor" = "Isto pode ser um problema intermitente, mas verifique se seu transmissor está firmemente protegido sobre seu sensor";
+"This might be an intermittent problem, but please check that your transmitter is tightly secured over your sensor" = "Isto pode ser um problema intermitente, mas verifique se seu transmissor está firmemente seguro sobre seu sensor";
 
 /* New Sensor Detected */
 "New Sensor Detected" = "Novo Sensor Detectado";
@@ -762,7 +762,7 @@ Arquivo: Localizador. cadeias de caracteres";
 "Invalid Glucose sample detected, try again later" = "Amostra de glicose inválida detectada, tente novamente mais tarde";
 
 /* ensor might have temporarily stopped, fallen off or is too cold or too warm */
-"Sensor might have temporarily stopped, fallen off or is too cold or too warm" = "Sensor pode ter parado temporariamente, caído ou está muito frio ou quente";
+"Sensor might have temporarily stopped, fallen off or is too cold or too warm" = "Sensor pode ter parado temporariamente, pode ter caído ou está muito frio ou quente";
 
 /* Invalid Sensor Detected */
 "Invalid Sensor Detected" = "Sensor inválido detectado";
@@ -774,13 +774,13 @@ Arquivo: Localizador. cadeias de caracteres";
 "Detected sensor is invalid: %@" = "Sensor detectado é inválido: %@";
 
 /* Low Battery */
-"Low battery" = "Bateria baixa";
+"Low battery" = "Bateria fraca";
 
 /* */
 "Invalid sensor" = "Sensor inválido";
 
 /* */
-"Sensor change" = "Alterar sensor";
+"Sensor change" = "Mudar o sensor";
 
 /* */
 "Sensor expires soon" = "O sensor expira em breve";
@@ -789,55 +789,55 @@ Arquivo: Localizador. cadeias de caracteres";
 "Battery is running low %@, consider charging your %@ device as soon as possible" = "A bateria está acabando com %@, considere carregar o seu dispositivo %@ o mais rápido possível";
 
 /* Extracting calibrationdata from sensor */
-"Extracting calibrationdata from sensor" = "Extraindo calibrationdata do sensor";
+"Extracting calibrationdata from sensor" = "Extraindo dados de calibraçāo do sensor";
 
 /* Sensor Ending Soon */
-"Sensor Ending Soon" = "Encerramento do Sensor em breve";
+"Sensor Ending Soon" = "Finalização do Sensor em breve";
 
 /* Current Sensor is Ending soon! Sensor Life left in %@ */
-"Current Sensor is Ending soon! Sensor Life left in %@" = "Sensor atual já vai encerrar! Vida do Sensor restante em %@";
+"Current Sensor is Ending soon! Sensor Life left in %@" = "Sensor atual já vai encerrar! O Sensor terminará em %@";
 
 /* */
 "Libre Bluetooth" = "Bluetooth Libre";
 
 /* */
-"Snooze Alerts" = "Snooze Alerts";
+"Snooze Alerts" = "Silenciar Alerta";
 
 /* */
 "Last measurement" = "Última medição";
 
 /* */
-"Sensor Footer checksum" = "Sensor checksum do Rodapé";
+"Sensor Footer checksum" = "Sensor verificação do Rodapé";
 
 /* */
-"Last Blood Sugar prediction" = "Previsão do açúcar do último sangue";
+"Last Blood Sugar prediction" = "Última previsão de açúcar no sangue";
 
 /* */
-"CurrentBG" = "BG";
+"CurrentBG" = "Atual glicemia no sangue";
 
 /* */
-"Sensor Info" = "Sensor Info";
+"Sensor Info" = "Informação do Sensor";
 
 /* */
 "Sensor Age" = "Idade do Sensor";
 
 /* */
-"Sensor Age Left" = "Idade do Sensor Esquerda";
+"Sensor Age Left" = "Idade do Sensor da esquerda";
 
 /* */
-"Sensor Endtime" = "Sensor Endtime";
+"Sensor Endtime" = "Tempo final do sensor";
 
 /* */
 "Sensor State" = "Estado do Sensor";
 
 /* */
-"Sensor Serial" = "Série de Sensor";
+"Sensor Serial" = "Série do Sensor";
 
 /* */
 "Transmitter Info" = "Informações do transmissor";
 
 /* */
-"Hardware" = "Hardware";
+"Hardware" = "Equipamento";
 
 /* */
 "Firmware" = "Firmware";
@@ -855,7 +855,7 @@ Arquivo: Localizador. cadeias de caracteres";
 "Factory Calibration Parameters" = "Parâmetros da Calibração de Fábrica";
 
 /* */
-"Valid for footer" = "Válido para rodapé";
+"Valid for footer" = "Válidado para o rodapé";
 
 /* */
 "Edit calibrations" = "Editar calibrações";
@@ -903,10 +903,10 @@ Arquivo: Localizador. cadeias de caracteres";
 "No logs available" = "Não há registros disponíveis";
 
 /* */
-"Glucose Notification visibility" = "Visibilidade da Notificação Glicose";
+"Glucose Notification visibility" = "Visibilidade da Notificação da Glicose";
 
 /* */
-"Always Notify Glucose" = "Sempre notificar Glicose";
+"Always Notify Glucose" = "Sempre notificar a Glicose";
 
 /* */
 "Notify per reading" = "Notificar por leitura";
@@ -921,7 +921,7 @@ Arquivo: Localizador. cadeias de caracteres";
 "Adds Transmitter Battery" = "Adiciona Bateria de Transmissor";
 
 /* */
-"Also vibrate" = "Também vibrar";
+"Also vibrate" = "Vibrar também";
 
 /* */
 "Additional notification types" = "Tipos adicionais de notificação";
@@ -945,7 +945,7 @@ Arquivo: Localizador. cadeias de caracteres";
 "Schedule " = "Agendamento ";
 
 /* */
-"tapped save schedules" = "agenda de salvamento tocada";
+"tapped save schedules" = "toque para salvar os horários";
 
 /* */
 "Error" = "ERRO";
@@ -960,25 +960,25 @@ Arquivo: Localizador. cadeias de caracteres";
 "Schedules were saved successfully!" = "Agendas foram salvas com sucesso!";
 
 /* */
-"High Glucose Alarm active" = "Alarme de Glicémia Alta ativo";
+"High Glucose Alarm active" = "Alarme de Glicémia Alta está ativo";
 
 /* */
-"Low Glucose Alarm active" = "Alarme de Glicose Baixo ativo";
+"Low Glucose Alarm active" = "Alarme de Glicose Baixo está ativo";
 
 /* */
-"No Glucose Alarm active" = "Nenhum alarme de Glicémia ativo";
+"No Glucose Alarm active" = "Nenhum alarme de Glicémia está ativo";
 
 /* */
 "snoozing until %@" = "adiando até %@";
 
 /* */
-"not snoozing" = "não soneca";
+"not snoozing" = "não está adiado";
 
 /* */
 "nothing to see here" = "nada para ver aqui";
 
 /* */
-"snooze from testview clicked" = "soneca do testview clicado";
+"snooze from testview clicked" = "o testview está adiado";
 
 /* */
 "will snooze for %@ until %@" = "vai silenciar por %@ até %@";
@@ -996,7 +996,7 @@ Arquivo: Localizador. cadeias de caracteres";
 "Sensor not found" = "Sensor não encontrado";
 
 /* */
-"Also play alert sound" = "Também reproduza som de alerta";
+"Also play alert sound" = "Também toque o som de alerta";
 
 /* */
 "Notification Settings" = "Configurações de notificação";
@@ -1008,10 +1008,10 @@ Arquivo: Localizador. cadeias de caracteres";
 "Backfill options" = "Opções de recarga";
 
 /* */
-"Backfilling from trend is currently not well supported by Loop" = "O preenchimento de backups da tendência atualmente não é bem suportado pelo Loop";
+"Backfilling from trend is currently not well supported by Loop" = "O preenchimento de backups atualmente não é bem suportado pelo Loop";
 
 /* */
-"Backfill from history" = "Backfill do histórico";
+"Backfill from history" = "Preenchimento do histórico";
 
 /* */
 "Backfill from trend" = "Preenchimento de tendências";
@@ -1023,7 +1023,7 @@ Arquivo: Localizador. cadeias de caracteres";
 "Adds a lot of data to the Issue Report " = "Adiciona um monte de dados ao relatório de problemas ";
 
 /* */
-"Persist sensordata" = "Persist sensordata";
+"Persist sensordata" = "Persistir dados do sensor";
 
 /* */
 "Battery" = "Bateria";
@@ -1035,16 +1035,16 @@ Arquivo: Localizador. cadeias de caracteres";
 "Carbs Required Threshold" = "Limite necessário de Carboidratos";
 
 /* */
-"Carbs required: %d g" = "Carbs necessários: %d g";
+"Carbs required: %d g" = "Carboidratos necessários: %d g";
 
 /* */
-"To prevent LOW required %d g of carbs" = "Para prevenir BAIXA requer %d g de hidratos";
+"To prevent LOW required %d g of carbs" = "Para prevenir BAIXA requer %d g de carboidratos";
 
 /* */
 "Trio Not Active" = "Trio Não Ativo";
 
 /* */
-"Last loop was more than %d min ago" = "O último laço foi mais de %d min atrás";
+"Last loop was more than %d min ago" = "O último loop foi mais de %d minutos atrás";
 
 /* Glucose badge */
 "Show glucose on the app badge" = "Mostrar glicose no ícone do aplicativo";
@@ -1062,7 +1062,7 @@ Arquivo: Localizador. cadeias de caracteres";
 "Max Bolus exceeded!" = "Limite de Bólus excedido!";
 
 /* */
-"Bolus failed or inaccurate. Check pump history before repeating." = "O bólus falhou ou não foi preciso. Verifique o histórico da bomba antes de repetir.";
+"Bolus failed or inaccurate. Check pump history before repeating." = "O bólus falhou ou incorreto. Verifique o histórico da bomba antes de repetir.";
 
 /* */
 "Carbs" = "Carboidratos";
@@ -1071,7 +1071,7 @@ Arquivo: Localizador. cadeias de caracteres";
 "Note" = "Observação";
 
 /* */
-"Temp Basal" = "Basal temporaria";
+"Temp Basal" = "Basal temporario";
 
 /* */
 "Temp Target" = "Temp Target";
