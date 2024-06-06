@@ -1074,7 +1074,7 @@ Arquivo: Localizador. cadeias de caracteres";
 "Temp Basal" = "Basal temporario";
 
 /* */
-"Temp Target" = "Temp Target";
+"Temp Target" = "Alvo temporario";
 
 /* */
 "Resume" = "Retomar";
@@ -1134,13 +1134,13 @@ Arquivo: Localizador. cadeias de caracteres";
 /* -------------- Developer settings ---------------------- */
 /* Debug options */
 
-"Developer" = "Desenvolvedores";
+"Developer" = "Desenvolvedor";
 
 /* Debug option view NS Upload Profile */
 "NS Upload Profile" = "Perfil de envio NS";
 
 /* Debug option view NS Uploaded Profile */
-"NS Uploaded Profile" = "Perfil de envio NS";
+"NS Uploaded Profile" = "Perfil enviado NS";
 
 /* Debug option view Autosense */
 "Autosense" = "Autosense";
@@ -1149,16 +1149,16 @@ Arquivo: Localizador. cadeias de caracteres";
 "Dynamic Sensitivity" = "Sensibilidade dinâmica";
 
 /* Autotune config */
-"Only Autotune Basal Insulin" = "Apenas Autotunar Insulina Basal";
+"Only Autotune Basal Insulin" = "Apenas Autotune Insulina Basal";
 
 /* */
 "Save as your Normal Basal Rates" = "Salvar como suas taxas normais de Basal";
 
 /* */
-"Save on Pump" = "Salvar na Bomba";
+"Save on Pump" = "Salvar na Bomba (pod)";
 
 /* Debug option view Pump History */
-"Pump History" = "Histórico da Bomba";
+"Pump History" = "Histórico da Bomba (pod)";
 
 /* Debug option view Target Ranges */
 "Target ranges" = "Intervalos alvo";
