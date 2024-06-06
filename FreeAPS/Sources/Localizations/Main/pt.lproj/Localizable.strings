@@ -642,7 +642,7 @@ Arquivo: Localizador. cadeias de caracteres";
 "Libre 2 Direct" = "Libre 2 Direto";
 
 /* */
-"Select the third party transmitter you want to connect to" = "Selecione o transmissor de terceiros que você deseja se conectar";
+"Select the third party transmitter you want to connect to" = "Selecione o transmissor de terceiros que você deseja conectar";
 
 /* State was restored */
 "State was restored" = "Estado foi restaurado";
@@ -657,7 +657,7 @@ Arquivo: Localizador. cadeias de caracteres";
 "Add calibration" = "Adicionar calibração";
 
 /* When adding capillary glucose meater reading */
-"Meter glucose" = "Glicose do medidor";
+"Meter glucose" = "Medidor de glicose";
 
 /* */
 "Info" = "Informações";
