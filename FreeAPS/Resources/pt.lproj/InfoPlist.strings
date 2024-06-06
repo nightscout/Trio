@@ -14,7 +14,7 @@
 "NSCalendarsUsageDescription" = "O calendário é utilizado para criar novos eventos de glicose.";
 
 /* Privacy - Health Update Usage Description */
-"NSHealthUpdateUsageDescription" = "App de Saúde é usado para armazenar glicose no sangue, insulina e carboidratos";
+"NSHealthUpdateUsageDescription" = "O aplicativo de Saúde é usado para armazenar glicose no sangue, insulina e carboidratos";
 
 /* Privacy - Health Share Usage Description */
-"NSHealthShareUsageDescription" = "App de Saúde é usado para armazenar glicose no sangue, insulina e carboidratos";
+"NSHealthShareUsageDescription" = "O aplicativo de Saúde é usado para armazenar glicose no sangue, insulina e carboidratos";
