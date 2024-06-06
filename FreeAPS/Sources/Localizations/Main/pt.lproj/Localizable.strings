@@ -4,10 +4,10 @@
 */
 /* -------------------------------- */
 /* Bolus screen when adding insulin */
-"Add insulin without actually bolusing" = "Adicionar insulina sem na verdade bolusing";
+"Add insulin without actually bolusing" = "Adicionar insulina sem bolusing";
 
 /* Add insulin from source outside of pump */
-"Add %@ without bolusing" = "Adicionar %@ sem negrito";
+"Add %@ without bolusing" = "Adicionar %@ sem usar o bolus";
 
 "Bolus" = "Bolus";
 
@@ -17,13 +17,13 @@
 "Continue without bolus" = "Continuar sem bolus";
 
 /* Alert when adding large amount without bolusing */
-"\nAmount is more than your Max Bolus setting! \nAre you sure you want to add " = "\nValor é maior do que a configuração de seu Bólus Máximo! \nTem certeza que deseja adicionar ";
+"\nAmount is more than your Max Bolus setting! \nAre you sure you want to add " = "\nValor é maior do que a configuração de seu Bólus Máximo! \nVocê tem certeza que deseja adicionar ";
 
 /* Header */
-"Enact Bolus" = "Enact Bolus";
+"Enact Bolus" = "Administrar Bolus";
 
 /* Button */
-"Enact bolus" = "Enact bolus";
+"Enact bolus" = "Administrar Bolus";
 
 /*  */
 "Insulin recommended" = "Insulina recomendada";
@@ -59,7 +59,7 @@
 "Error at" = "Erro em";
 
 /* Bolus View Meal Summary Header */
-"Meal Summary" = "Resumo da refeição";
+"Meal Summary" = "Resumo de refeição";
 
 /* Bolus View Meal Edit Meal Button */
 "Edit Meal" = "Editar a refeição";
@@ -68,22 +68,22 @@
 "Add Meal" = "Adicionar refeição";
 
 /* Bolus View Bolus Summary Header */
-"Bolus Summary" = "Bolus Summary";
+"Bolus Summary" = "Resumo do Bolus";
 
 /* For the  Bolus View pop-up */
 "Calculations" = "Cálculos";
 
 /* For the  Bolus View pop-up */
-"Fatty Meal" = "Refeição Fataz";
+"Fatty Meal" = "Refeição Gordurosa";
 
 /* For the  Bolus View pop-up */
-"Full Bolus" = "Cheio de Bólus";
+"Full Bolus" = "Bolus completo";
 
 /* For the  Bolus View pop-up */
 "Fraction" = "Fração";
 
 /* For the  Bolus View pop-up */
-"Fatty Meal Factor" = "Fator de refeição Fataz";
+"Fatty Meal Factor" = "Fator de refeição gordurosa";
 
 /* For the  Bolus View pop-up */
 "Result" = "Resultado";
@@ -95,10 +95,10 @@
 "Continue" = "Continuar";
 
 /* Home title */
-"Home" = "Residencial";
+"Home" = "Menu Inicial";
 
 /* Looping in progress */
-"looping" = "looping";
+"looping" = "repetição";
 
 /* min ago since last loop */
 "min ago" = "minutos atrás";
@@ -107,7 +107,7 @@
 "No suggestion" = "Sem sugestão";
 
 /* Replace pod text in Header */
-"Replace pod" = "Substituir servidor";
+"Replace pod" = "Substituir a bomba (Pod)";
 
 /* Add carbs screen */
 "Add Carbs" = "Adicionar Carboidratos";
@@ -122,10 +122,10 @@
 "grams" = "gramas";
 
 /*  */
-"Carbs required" = "Carbos necessários";
+"Carbs required" = "Carboidratos necessários";
 
 /* Saved Food Presets */
-"Saved Food" = "Comida Salva";
+"Saved Food" = "Alimento salvo";
 
 /* */
 "Are you sure?" = "Você tem certeza?";
@@ -137,34 +137,34 @@
 "Cancel" = "cancelar";
 
 /*  */
-"Cancel Temp Target" = "Cancel Temp Target";
+"Cancel Temp Target" = "Cancelar alvo temporário";
 
 /* Custom temp target */
 "Custom" = "Personalizado";
 
 /*  */
-"Date" = "Encontro";
+"Date" = "Data";
 
 /*  */
-"Delete" = "excluir";
+"Delete" = "Apagar";
 
 /* Delete preset temp target */
-"Delete preset \"%@\"" = "Excluir predefinição \"%@\"";
+"Delete preset \"%@\"" = "Apagar predefinido \"%@\"";
 
 /* Duration of target temp or temp basal */
 "Duration" = "Duração";
 
 /*  */
-"Enact Temp Target" = "Enact Temp Target";
+"Enact Temp Target" = "Executar alvo temporário";
 
 /* */
-"Target" = "Target";
+"Target" = "Alvo";
 
 /* */
 "Basal Insulin and Sensitivity ratio" = "Insulina Basal e Taxa de Sensibilidade";
 
 /* */
-"A lower 'Half Basal Target' setting will reduce the basal and raise the ISF earlier, at a lower target glucose." = "Uma configuração inferior de 'meta metálica' reduzirá a basal e elevará o ISF mais cedo, numa glicose alvo inferior.";
+"A lower 'Half Basal Target' setting will reduce the basal and raise the ISF earlier, at a lower target glucose." = "Uma configuração de 'Metade do Alvo Basal' irá reduzir o basal e aumentará o ISF mais cedo, de um alvo glicêmico mais baixo.";
 
 /* */
 " Your setting: " = " Sua configuração: ";
@@ -176,7 +176,7 @@
 "Enter preset name" = "Digite o nome da predefinição";
 
 /* Preset name */
-"Name" = "Nome:";
+"Name" = "Nome";
 
 /* minutes of target temp */
 "minutes" = "Minutos";
@@ -209,13 +209,13 @@
 "[ -1 ]" = "[ -1 ]";
 
 /* Upper temp target limit */
-"Top target" = "Top target";
+"Top target" = "Limite alto";
 
 /*  Temp target set for ... minutes */
 "for" = "para";
 
 /*  Temp target set for ... minutes */
-"min" = "min.";
+"min" = "minutos";
 
 /*  */
 "Autotune" = "Autotune";
@@ -224,7 +224,7 @@
 "Basal profile" = "Perfil Basal";
 
 /*  */
-"Carb ratio" = "Taxa de Carbo";
+"Carb ratio" = "Taxa de Carboidratos";
 
 /*  */
 "Delete autotune data" = "Excluir dados automáticos";
@@ -263,16 +263,16 @@
 "starts at" = "inicia em";
 
 /* Time basal profile */
-"Time" = "Horário";
+"Time" = "Hora";
 
 /* */
 "Calculated Ratio" = "Taxa Calculada";
 
 /* Carb Ratios header */
-"Carb Ratios" = "Proporções de Carb";
+"Carb Ratios" = "Proporções de Carboidrato";
 
 /*  */
-"Ratio" = "Tarifa";
+"Ratio" = "Taxa";
 
 /*  */
 "Autosens" = "Autosens";
@@ -281,7 +281,7 @@
 "Calculated Sensitivity" = "Sensibilidade calculada";
 
 /*  */
-"Insulin Sensitivities" = "Sensibilidade da Insulina";
+"Insulin Sensitivities" = "Sensibilidade de Insulina";
 
 /* */
 "Sensitivity Ratio" = "Relação de Sensibilidade";
@@ -296,20 +296,20 @@
 "Amount" = "Quantidade";
 
 /* */
-"Cancel Temp Basal" = "Cancelar Temp Basal";
+"Cancel Temp Basal" = "Cancelar Basal Temporária";
 
 /* Enact
 Enact a temp Basal or a temp target */
 "Enact" = "Realizar";
 
 /* */
-"Manual Temp Basal" = "Basal Temp Manual";
+"Manual Temp Basal" = "Manual de basal temporario";
 
 /* Allow uploads to different services */
 "Allow uploads" = "Permitir uploads";
 
 /* API secret in NS */
-"API secret" = "Segredo da API";
+"API secret" = "Chave secreta de API";
 
 /* Connect to NS */
 "Connect" = "Conectar";
@@ -318,7 +318,7 @@ Enact a temp Basal or a temp target */
 "Connected!" = "Conectado!";
 
 /* Connecting to NS */
-"Connecting..." = "Conectandochar@@0";
+"Connecting..." = "Conectando...";
 
 /*  */
 "Invalid URL" = "URL inválida";
@@ -330,16 +330,16 @@ Enact a temp Basal or a temp target */
 "Nightscout Config" = "Configuração do Nightscout";
 
 /*  */
-"Port" = "Porta";
+"Port" = "Porto";
 
 /*  */
-"URL" = "URL:";
+"URL" = "URL";
 
 /**/
-"Use local glucose server" = "Usar servidor de glicose local";
+"Use local glucose server" = "Usar servidor local de glicose";
 
 /* Enable Statistics */
-"This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n" = "Isso permite o upload de statistics.json para o Nightscout, que pode ser usado pelo Projeto de Estatísticas Comunitárias e Demográficos.\n\nParticipação em Estatísticas da Comunidade é opt-in, e requer registro separado em:\n";
+"This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n" = "Isso permite o upload de statistics.json para o Nightscout, que pode ser usado pelo Projeto de Estatísticas Comunitárias e Demográficos.\n\nParticipação em Estatísticas da Comunidade é opt-in, e requere registro separado em:\n";
 
 /*  */
 "Edit settings json" = "Editar configurações json";
@@ -351,10 +351,10 @@ Enact a temp Basal or a temp target */
 "Preferences" = "Preferências:";
 
 /* Recommended Insulin Fraction in preferences */
-"Recommended Insulin Fraction" = "Fração Insulina recomendada";
+"Recommended Insulin Fraction" = "Fração de Insulina recomendada";
 
 /* Do you want to show bolus screen after added carbs? */
-"Skip Bolus screen after carbs" = "Pular tela de bólus após carbs";
+"Skip Bolus screen after carbs" = "Pular tela do Bolus após carboidratos";
 
 /* Allow remote control from NS */
 "Remote Control" = "Controle remoto";
@@ -372,7 +372,7 @@ Arquivo: Localizable. strings.";
 "\nInvalid Nightcsout Basal Settings. \n\nImport aborted. Please check your Nightscout Profile Basal Settings!" = "\nConfigurações de Basal inválidas. \n\nImportação abortada. Por favor, verifique suas configurações de perfil Basal do Nightscout!";
 
 /* Import Error */
-"\nSettings were imported but the Basals couldn't be saved to pump (No pump). Check your basal settings and tap ´Save on Pump´ to sync the new basal settings" = "U\nConfigurações foram importadas, mas os basais não puderam ser salvos na bomba (Sem bomba). Verifique as suas configurações de basal e toque em Salvar na Bomba para sincronizar as novas configurações de basal";
+"\nSettings were imported but the Basals couldn't be saved to pump (No pump). Check your basal settings and tap ´Save on Pump´ to sync the new basal settings" = "U\nConfigurações foram importadas, mas os basais não puderam ser salvos na bomba (Sem bomba). Verifique as suas configurações de basal e toque em \"Salvar na Bomba\" para sincronizar as novas configurações de basal";
 
 /* Import Error Headline */
 "Import Error" = "Erro ao importar";
@@ -393,7 +393,7 @@ Arquivo: Localizable. strings.";
 "Settings imported" = "Configurações importadas";
 
 /* Import Error */
-"\nMismatching glucose units in Nightscout and Pump Settings. Import settings aborted." = "\nUnidades de glicose não coincidem nas configurações do Nightscout e da bomba. Importar configurações foi interrompido.";
+"\nMismatching glucose units in Nightscout and Pump Settings. Import settings aborted." = "\nUnidades de glicose não coincidem nas configurações do Nightscout e da bomba. As configurações do importar foi interrompido.";
 
 /* Import Error */
 "Can't find the default Nightscout Profile." = "Não foi possível encontrar o perfil padrão do Nightscout.";
@@ -420,7 +420,7 @@ Arquivo: Localizable. strings.";
 "Delivery limits" = "Limites de entrega";
 
 /*  */
-"Duration of Insulin Action" = "Duração da Ação da Insulina";
+"Duration of Insulin Action" = "Duração da Ação de Insulina";
 
 /* hours of duration of insulin activity */
 "hours" = "horas";
@@ -429,7 +429,7 @@ Arquivo: Localizable. strings.";
 "Max Basal" = "Basal Máxima";
 
 /* Max setting */
-"Max Bolus" = "Max Bolus";
+"Max Bolus" = "Bolus Máximo";
 
 /* Max setting */
 "Max Carbs" = "Máximo de Carboidratos";
@@ -438,7 +438,7 @@ Arquivo: Localizable. strings.";
 "Pump Settings" = "Configurações da Bomba";
 
 /* Insulin unit per hour */
-"U/hr" = "U/h";
+"U/hr" = "U/hr";
 
 /* Unit in number of units delivered (keep the space character!) */
 " U" = " U";
@@ -450,10 +450,10 @@ Arquivo: Localizable. strings.";
 "U" = "U";
 
 /* Unit per hour with space */
-" U/hr" = " U/h";
+" U/hr" = " U/hr";
 
 /* Number of units per hour*/
-"%@ U/hr" = "%@ U/h";
+"%@ U/hr" = "%@ U/hr";
 
 /* Number of units insulin delivered */
 "%@ U" = "Identificador (Chave): %@ U
@@ -465,13 +465,13 @@ Arquivo: Localizador. cadeias de caracteres";
 "g/U" = "g/U";
 
 /* grams */
-" g" = " mg";
+" g" = " gr";
 
 /* The short unit display string for grams */
-"g" = "mg";
+"g" = "gr";
 
 /* when 0 U/hr */
-"0 U/hr" = "0 U/h";
+"0 U/hr" = "U/hr";
 
 /* abbreviation for days */
 "d" = "d";
@@ -480,7 +480,7 @@ Arquivo: Localizador. cadeias de caracteres";
 "h" = "h";
 
 /* abbreviation for minutes */
-"m" = "min";
+"m" = "m";
 
 /*  */
 "Closed loop" = "Loop fechado";
@@ -495,13 +495,13 @@ Arquivo: Localizador. cadeias de caracteres";
 "Pump" = "Bomba";
 
 /* */
-"Watch" = "Acompanhar";
+"Watch" = "Relógio";
 
 /* */
 "Watch Configuration" = "Configuração do relógio";
 
 /* */
-"Apple Watch" = "Relógio de Maçã";
+"Apple Watch" = "Relógio da Apple";
 
 /* */
 "Display on Watch" = "Exibir no Relógio";
@@ -513,7 +513,7 @@ Arquivo: Localizador. cadeias de caracteres";
 "Add devices" = "Adicionar dispositivos";
 
 /* */
-"Glucose Target" = "Glicémia alvo";
+"Glucose Target" = "Alvo Glicêmico";
 
 /* */
 "Heart Rate" = "Frequência cardíaca";
@@ -525,7 +525,7 @@ Arquivo: Localizador. cadeias de caracteres";
 "ISF" = "ISF";
 
 /* */
-"The app Garmin Connect must be installed to use for Trio.\n Go to App Store to download it" = "O app Garmin Connect precisa ser instalado para usar no Trio.\n Vá para App Store para baixá-lo";
+"The app Garmin Connect must be installed to use for Trio.\n Go to App Store to download it" = "O aplicativo Garmin Connect precisa ser instalado para usar no Trio.\n Vá para App Store para baixá-lo";
 
 /* */
 "Garmin is not available" = "Garmin não está disponível";
@@ -537,25 +537,25 @@ Arquivo: Localizador. cadeias de caracteres";
 "Settings" = "Confirgurações";
 
 /* Recommendation for a Manual Bolus */
-"Recommended Bolus Percentage" = "Porcentagem Bólus recomendada";
+"Recommended Bolus Percentage" = "Porcentagem do Bólus recomendada";
 
 /* 2 log files to share */
 "Share logs" = "Compartilhar logs";
 
 /* Upper target */
-"High target" = "Alvo Alvo";
+"High target" = "Meta alta";
 
 /* Lower target */
-"Low target" = "Low target";
+"Low target" = "Meta baixa";
 
 /* When bolusing */
-"Bolusing" = "Bolus";
+"Bolusing" = "Aplicando bolus";
 
 /* */
 "Pump suspended" = "Bomba suspensa";
 
 /* */
-"Middleware" = "Mediador";
+"Middleware" = "Middleware";
 
 /* Header */
 "History" = "Histórico";
@@ -564,7 +564,7 @@ Arquivo: Localizador. cadeias de caracteres";
 "Upload" = "Transferir";
 
 /* Nightscout option */
-"Allow Uploads" = "Permitir envios";
+"Allow Uploads" = "Permitir Uploads";
 
 /* Type of CGM or glucose source */
 "Type" = "tipo";
@@ -591,13 +591,13 @@ Arquivo: Localizador. cadeias de caracteres";
 "Delete Carbs?" = "Excluir carboidratos?";
 
 /* Delete insulin from pump history and Nightscout */
-"Delete Insulin?" = "Apagar Isolamento?";
+"Delete Insulin?" = "Excluir insulina?";
 
 /* Treatments list */
 "Treatments" = "Tratamentos";
 
 /* " min" in Treatments list */
-" min" = " min.";
+" min" = " minutos";
 
 /* */
 "Unable to change anything" = "Não é possível alterar nada";
@@ -627,10 +627,10 @@ Arquivo: Localizador. cadeias de caracteres";
 "Other" = "Outros";
 
 /* */
-"Libre Transmitter" = "Transmissor Livre";
+"Libre Transmitter" = "Transmissor Libre";
 
 /* */
-"Libre Transmitters" = "Transmissores Livres";
+"Libre Transmitters" = "Transmissor Libre";
 
 /* */
 "Bluetooth Transmitters" = "Transmissores Bluetooth";
