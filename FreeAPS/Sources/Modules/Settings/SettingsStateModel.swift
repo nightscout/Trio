@@ -62,6 +62,19 @@ extension Settings {
         func hideSettingsModal() {
             hideModal()
         }
+
+        func resetLoopDocuments() {
+            guard let localDocuments = try? FileManager.default.url(
+                for: .documentDirectory,
+                in: .userDomainMask,
+                appropriateFor: nil,
+                create: true
+            ) else {
+                preconditionFailure("Could not get a documents directory URL.")
+            }
+            let storageURL = localDocuments.appendingPathComponent("PumpManagerState" + ".plist")
+            try? FileManager.default.removeItem(at: storageURL)
+        }
     }
 }
 

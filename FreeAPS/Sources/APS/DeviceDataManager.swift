@@ -304,7 +304,6 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
 
     func pumpManagerDidUpdateState(_ pumpManager: PumpManager) {
         rawPumpManager = pumpManager.rawValue
-        UserDefaults.standard.clearLegacyPumpManagerRawValue()
         if self.pumpManager == nil, let newPumpManager = pumpManager as? PumpManagerUI {
             self.pumpManager = newPumpManager
         }

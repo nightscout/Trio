@@ -61,6 +61,12 @@ extension Settings {
                                     .frame(maxWidth: .infinity, alignment: .trailing)
                                     .buttonStyle(.borderedProminent)
                             }
+                            HStack {
+                                Text("Delete Pump State nlist")
+                                Button("Delete") { state.resetLoopDocuments() }
+                                    .frame(maxWidth: .infinity, alignment: .trailing)
+                                    .buttonStyle(.borderedProminent)
+                            }
                         }
                         Group {
                             Text("Preferences")

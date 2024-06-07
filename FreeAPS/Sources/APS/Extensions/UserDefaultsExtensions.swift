@@ -25,11 +25,11 @@ extension UserDefaults {
     }
 
     var legacyPumpManagerRawValue: PumpManager.RawValue? {
-        dictionary(forKey: Key.legacyPumpManagerState.rawValue)
+        dictionary(forKey: Key.legacyPumpManagerRawValue.rawValue)
     }
 
     func clearLegacyPumpManagerRawValue() {
-        set(nil, forKey: Key.legacyPumpManagerState.rawValue)
+        set(nil, forKey: Key.legacyPumpManagerRawValue.rawValue)
     }
 
     var legacyCGMManagerRawValue: CGMManager.RawValue? {
