@@ -28,10 +28,18 @@ extension FPUConfig {
 
         var body: some View {
             Form {
-                Section(header: Text("Carbohydrate limit")) {
+                Section(header: Text("Limit Per Entry")) {
                     HStack {
                         Text("Max Carbs")
                         DecimalTextField("g", value: $state.maxCarbs, formatter: formatter)
+                    }
+                    HStack {
+                        Text("Max Fat")
+                        DecimalTextField("g", value: $state.maxFat, formatter: formatter)
+                    }
+                    HStack {
+                        Text("Max Protein")
+                        DecimalTextField("g", value: $state.maxProtein, formatter: formatter)
                     }
                 }
 

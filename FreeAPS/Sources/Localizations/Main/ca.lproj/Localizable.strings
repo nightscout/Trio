@@ -344,6 +344,33 @@ Enact a temp Basal or a temp target */
 /* Max setting */
 "Max Bolus" = "Max Bolus";
 
+/* Max setting */
+"Max Carbs" = "Max Carbs";
+
+/* Max setting */
+"Max Fat" = "Max Fat";
+
+/* Max setting */
+"Max Protein" = "Max Protein";
+
+/* Max setting */
+"Limit Per Entry" = "Limit Per Entry";
+
+/* Max Carbs limit exceeded */
+"Max Carbs of" = "Max Carbs of";
+
+/* Max Fat limit exceeded */
+"Max Fat of" = "Max Fat of";
+
+/* Max Protein limit exceeded */
+"Max Protein of" = "Max Protein of";
+
+/* Max Bolus limit exceeded */
+"Max Bolus of" = "Max Bolus of";
+
+/* Limit Exceeded label */
+"exceeded" = "exceeded";
+
 /* */
 "Pump Settings" = "Pump Settings";
 

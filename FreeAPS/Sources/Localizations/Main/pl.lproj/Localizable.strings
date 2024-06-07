@@ -433,6 +433,30 @@ Połączono z Nightscout!";
 /* Max setting */
 "Max Carbs" = "Max Carbs";
 
+/* Max setting */
+"Max Fat" = "Max Fat";
+
+/* Max setting */
+"Max Protein" = "Max Protein";
+
+/* Max setting */
+"Limit Per Entry" = "Limit Per Entry";
+
+/* Max Carbs limit exceeded */
+"Max Carbs of" = "Max Carbs of";
+
+/* Max Fat limit exceeded */
+"Max Fat of" = "Max Fat of";
+
+/* Max Protein limit exceeded */
+"Max Protein of" = "Max Protein of";
+
+/* Max Bolus limit exceeded */
+"Max Bolus of" = "Max Bolus of";
+
+/* Limit Exceeded label */
+"exceeded" = "exceeded";
+
 /* */
 "Pump Settings" = "Pump Settings";
 
@@ -1053,9 +1077,6 @@ Połączono z Nightscout!";
 
 /* */
 "Bolus failed" = "Bolus failed";
-
-/* "Max Bolus Exceeded label" */
-"Max Bolus exceeded!" = "Max Bolus exceeded!";
 
 /* */
 "Bolus failed or inaccurate. Check pump history before repeating." = "Bolus failed or inaccurate. Check pump history before repeating.";
