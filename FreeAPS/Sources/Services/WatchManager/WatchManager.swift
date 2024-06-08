@@ -106,6 +106,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
             self.state.bolusAfterCarbs = !self.settingsManager.settings.skipBolusScreenAfterCarbs
             self.state.displayOnWatch = self.settingsManager.settings.displayOnWatch
             self.state.displayFatAndProteinOnWatch = self.settingsManager.settings.displayFatAndProteinOnWatch
+            self.state.confirmBolusFaster = self.settingsManager.settings.confirmBolusFaster
 
             let eBG = self.evetualBGStraing()
             self.state.eventualBG = eBG.map { "⇢ " + $0 }
