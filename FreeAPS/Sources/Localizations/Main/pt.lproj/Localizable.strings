@@ -434,6 +434,30 @@ Arquivo: Localizable. strings.";
 /* Max setting */
 "Max Carbs" = "Máximo de Carboidratos";
 
+/* Max setting */
+"Max Fat" = "Gordura máxima";
+
+/* Max setting */
+"Max Protein" = "Proteínas Máximas";
+
+/* Max setting */
+"Limit Per Entry" = "Limitar por entrada";
+
+/* Max Carbs limit exceeded */
+"Max Carbs of" = "Máximo de Carboidratos de";
+
+/* Max Fat limit exceeded */
+"Max Fat of" = "Gordura máxima de";
+
+/* Max Protein limit exceeded */
+"Max Protein of" = "Proteínas Máximas de";
+
+/* Max Bolus limit exceeded */
+"Max Bolus of" = "Bólus Máximo de";
+
+/* Limit Exceeded label */
+"exceeded" = "excedido";
+
 /* */
 "Pump Settings" = "Configurações da Bomba";
 
@@ -1057,9 +1081,6 @@ Arquivo: Localizador. cadeias de caracteres";
 
 /* */
 "Bolus failed" = "Bolus falhou";
-
-/* "Max Bolus Exceeded label" */
-"Max Bolus exceeded!" = "Limite de Bólus excedido!";
 
 /* */
 "Bolus failed or inaccurate. Check pump history before repeating." = "O bólus falhou ou incorreto. Verifique o histórico da bomba antes de repetir.";
@@ -2084,10 +2105,10 @@ Arquivo: Localizable.strings.";
 "Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function." = "Usar uma função sigmoid para ISF (e para CR, quando ativado), em vez da fórmula logarítmica padrão. Requer a configuração do ISF dinâmico para estar habilitado nas configurações\n\nO ajuste ajuste ajusta o coeficiente angular da curva (Y: Taxa dinâmica, X: Blood Glucose). Um valor mais baixo ==> menos íngreme == menos agressivo.\n\nO autosens. configurações in/max determina ambos os limites máx/min para a proporção dinâmica e quanto a proporção dinâmica é ajustada. Se AF é a inclinação da curva, o autosenso. in/max é a altura do gráfico, o Y-interval, onde Y: proporção dinâmica. A curva sempre terá uma forma sigmoid, não importa qual autorsens. configurações in/max são usadas, o que significa que estas configurações têm grandes consequências para o resultado do ISF dinâmico computado. Por favor, tenha cuidado ao definir um autosens.max muito alto. Com uma configuração de ISF de perfil correta, você provavelmente nunca precisará que ela seja superior a 1.\n\nUm limite Autosens.max > 1.5 não é aconselhável quando se usa a função sigmoid.";
 
 /* Headline Threshold Setting */
-"Threshold Setting" = "Definição de Limite";
+"Minimum Safety Threshold (mg/dL)" = "Limite mínimo de segurança (mg/dL)";
 
-/* Threshold Setting */
-"The default threshold in Trio depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl." = "O limite padrão do Trio depende do seu alvo mínimo de glicemia, assim:\n\nSe seu alvo mínimo de gg/dl -> threshold = 65 mg/dl,\n\nse alvo mínimo de glicemia = 100 mg/dl -> limite = 70 mg/dl,\n\nalvo mínimo de glicemia = 110 mg/dl -> threshold = 75 mg/dl,\n\ne se o alvo mínimo de gB = 130 mg/dl -> threshold = 85 mg/dl.\n\nEsta configuração permite alterar o padrão para um limite mais alto para looping com dynISF. Valores válidos são 65 mg/dl<= Configuração de Limite <= 120 mg/dl.";
+/* Minimum Safety Threshold */
+"All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted." = "Toda a insulina será suspensa se sua glicose for prevista para ficar abaixo do limite de segurança.\n\nDeve ser definida entre 60-120 mg/dL.\nPara converter de mmol/L, multiplique por 18.\n\nNota: Basal pode ser retomada se houver IOB negativo e a glicose estiver aumentando mais rápido do que o previsto.";
 
 /* Header */
 "Calculator settings" = "Configurações da calculadora";
