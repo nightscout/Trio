@@ -63,7 +63,9 @@ enum PreferencesEditor {
                 settable?.set(keypath, value: value)
             case let (.decimal(keypath, minVal, maxVal), value as Decimal):
                 let constrainedValue: Decimal
-                if let minValue = minVal, let minValueDecimal: Decimal = settable?.get(minValue), let maxValue = maxVal, let maxValueDecimal: Decimal = settable?.get(maxValue) {
+                if let minValue = minVal, let minValueDecimal: Decimal = settable?.get(minValue), let maxValue = maxVal,
+                   let maxValueDecimal: Decimal = settable?.get(maxValue)
+                {
                     constrainedValue = min(max(value, minValueDecimal), maxValueDecimal)
                 } else if let minValue = minVal, let minValueDecimal: Decimal = settable?.get(minValue) {
                     constrainedValue = max(value, minValueDecimal)
