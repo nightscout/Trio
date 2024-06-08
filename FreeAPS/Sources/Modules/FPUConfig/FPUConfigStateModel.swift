@@ -3,6 +3,8 @@ import SwiftUI
 extension FPUConfig {
     final class StateModel: BaseStateModel<Provider> {
         @Published var maxCarbs: Decimal = 250
+        @Published var maxFat: Decimal = 250
+        @Published var maxProtein: Decimal = 250
         @Published var individualAdjustmentFactor: Decimal = 0
         @Published var timeCap: Decimal = 0
         @Published var minuteInterval: Decimal = 0
@@ -10,6 +12,8 @@ extension FPUConfig {
 
         override func subscribe() {
             subscribeSetting(\.maxCarbs, on: $maxCarbs) { maxCarbs = $0 }
+            subscribeSetting(\.maxFat, on: $maxFat) { maxFat = $0 }
+            subscribeSetting(\.maxProtein, on: $maxProtein) { maxProtein = $0 }
             subscribeSetting(\.timeCap, on: $timeCap.map(Int.init), initial: {
                 let value = max(min($0, 12), 5)
                 timeCap = Decimal(value)

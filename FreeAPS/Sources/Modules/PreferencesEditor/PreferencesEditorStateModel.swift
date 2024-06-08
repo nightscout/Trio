@@ -154,11 +154,11 @@ extension PreferencesEditor {
                     settable: self
                 ),
                 Field(
-                    displayName: NSLocalizedString("Threshold Setting (mg/dl)", comment: "Threshold Setting"),
+                    displayName: NSLocalizedString("Minimum Safety Threshold (mg/dL)", comment: "Minimum Safety Threshold"),
                     type: .decimal(keypath: \.threshold_setting),
                     infoText: NSLocalizedString(
-                        "The default threshold in Trio depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl.",
-                        comment: "Threshold Setting"
+                        "All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted.",
+                        comment: "Minimum Safety Threshold"
                     ),
                     settable: self
                 )

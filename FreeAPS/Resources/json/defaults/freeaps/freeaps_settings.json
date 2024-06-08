@@ -41,6 +41,8 @@
   "oneDimensionalGraph" : false,
   "rulerMarks" : true,
   "maxCarbs": 250,
+  "maxFat": 250,
+  "maxProtein": 250,
   "displayFatAndProteinOnWatch": false,
   "confirmBolusFaster": false,
   "lockScreenView": "simple"

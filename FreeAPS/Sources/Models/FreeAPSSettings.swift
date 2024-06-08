@@ -42,6 +42,8 @@ struct FreeAPSSettings: JSON, Equatable {
     var oneDimensionalGraph: Bool = false
     var rulerMarks: Bool = true
     var maxCarbs: Decimal = 250
+    var maxFat: Decimal = 250
+    var maxProtein: Decimal = 250
     var displayFatAndProteinOnWatch: Bool = false
     var confirmBolusFaster: Bool = false
     var onlyAutotuneBasals: Bool = false
@@ -222,6 +224,14 @@ extension FreeAPSSettings: Decodable {
 
         if let maxCarbs = try? container.decode(Decimal.self, forKey: .maxCarbs) {
             settings.maxCarbs = maxCarbs
+        }
+
+        if let maxFat = try? container.decode(Decimal.self, forKey: .maxFat) {
+            settings.maxFat = maxFat
+        }
+
+        if let maxProtein = try? container.decode(Decimal.self, forKey: .maxProtein) {
+            settings.maxProtein = maxProtein
         }
 
         if let displayFatAndProteinOnWatch = try? container.decode(Bool.self, forKey: .displayFatAndProteinOnWatch) {
