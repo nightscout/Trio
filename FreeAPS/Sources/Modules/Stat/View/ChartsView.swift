@@ -114,7 +114,7 @@ struct ChartsView: View {
                 type: NSLocalizedString(
                     "Low",
                     comment: ""
-                ) + " (≤\(low.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))))",
+                ) + " (<\(low.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))))",
                 percent: fetched[0].decimal
             ),
             .init(type: NSLocalizedString("In Range", comment: ""), percent: fetched[1].decimal),
@@ -122,7 +122,7 @@ struct ChartsView: View {
                 type: NSLocalizedString(
                     "High",
                     comment: ""
-                ) + " (≥\(high.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))))",
+                ) + " (>\(high.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))))",
                 percent: fetched[2].decimal
             )
         ]
@@ -142,12 +142,12 @@ struct ChartsView: View {
             NSLocalizedString(
                 "Low",
                 comment: ""
-            ) + " (≤\(low.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))))": .red,
+            ) + " (<\(low.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))))": .red,
             NSLocalizedString("In Range", comment: ""): .green,
             NSLocalizedString(
                 "High",
                 comment: ""
-            ) + " (≥\(high.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))))": .orange
+            ) + " (>\(high.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))))": .orange
         ]).frame(maxHeight: 25)
     }
 
@@ -161,18 +161,18 @@ struct ChartsView: View {
                 type: NSLocalizedString(
                     "Low",
                     comment: ""
-                ) + " (≤ \(low.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))))",
+                ) + " (< \(low.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))))",
                 percent: fetched[0].decimal
             ),
             .init(
-                type: "> \(low.formatted(.number.precision(.fractionLength(fraction)))) - < \(high.formatted(.number.precision(.fractionLength(fraction))))",
+                type: "\(low.formatted(.number.precision(.fractionLength(fraction)))) - \(high.formatted(.number.precision(.fractionLength(fraction))))",
                 percent: fetched[1].decimal
             ),
             .init(
                 type: NSLocalizedString(
                     "High",
                     comment: ""
-                ) + " (≥ \(high.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))))",
+                ) + " (> \(high.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))))",
                 percent: fetched[2].decimal
             )
         ]
@@ -196,12 +196,12 @@ struct ChartsView: View {
             NSLocalizedString(
                 "Low",
                 comment: ""
-            ) + " (≤ \(low.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))))": .red,
-            "> \(low.formatted(.number.precision(.fractionLength(fraction)))) - < \(high.formatted(.number.precision(.fractionLength(fraction))))": .green,
+            ) + " (< \(low.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))))": .red,
+            "\(low.formatted(.number.precision(.fractionLength(fraction)))) - \(high.formatted(.number.precision(.fractionLength(fraction))))": .green,
             NSLocalizedString(
                 "High",
                 comment: ""
-            ) + " (≥ \(high.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))))": .orange
+            ) + " (> \(high.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))))": .orange
         ])
     }
 
@@ -276,11 +276,11 @@ struct ChartsView: View {
         let justGlucoseArray = glucose.compactMap({ each in Int(each.glucose as Int16) })
         let totalReadings = justGlucoseArray.count
 
-        let hyperArray = glucose.filter({ $0.glucose >= hyperLimit })
+        let hyperArray = glucose.filter({ $0.glucose > hyperLimit })
         let hyperReadings = hyperArray.compactMap({ each in each.glucose as Int16 }).count
         let hyperPercentage = Double(hyperReadings) / Double(totalReadings) * 100
 
-        let hypoArray = glucose.filter({ $0.glucose <= hypoLimit })
+        let hypoArray = glucose.filter({ $0.glucose < hypoLimit })
         let hypoReadings = hypoArray.compactMap({ each in each.glucose as Int16 }).count
         let hypoPercentage = Double(hypoReadings) / Double(totalReadings) * 100
 
