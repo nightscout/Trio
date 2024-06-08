@@ -431,6 +431,30 @@ Enact a temp Basal or a temp target */
 /* Max setting */
 "Max Carbs" = "Maks Kulhydrater";
 
+/* Max setting */
+"Max Fat" = "Maks. Fedt";
+
+/* Max setting */
+"Max Protein" = "Max Protein";
+
+/* Max setting */
+"Limit Per Entry" = "Grænse Pr. Indgang";
+
+/* Max Carbs limit exceeded */
+"Max Carbs of" = "Maks. kulhydrater af";
+
+/* Max Fat limit exceeded */
+"Max Fat of" = "Maks. fedt af";
+
+/* Max Protein limit exceeded */
+"Max Protein of" = "Max protein af";
+
+/* Max Bolus limit exceeded */
+"Max Bolus of" = "Max Bolus af";
+
+/* Limit Exceeded label */
+"exceeded" = "overskredet";
+
 /* */
 "Pump Settings" = "Pumpe Indstillinger";
 
@@ -1051,9 +1075,6 @@ Enact a temp Basal or a temp target */
 
 /* */
 "Bolus failed" = "Bolus mislykkedes";
-
-/* "Max Bolus Exceeded label" */
-"Max Bolus exceeded!" = "Max Bolus overskredet!";
 
 /* */
 "Bolus failed or inaccurate. Check pump history before repeating." = "Bolus mislykkedes eller unøjagtige. Tjek pumpehistorik før gentagelse.";
@@ -2074,10 +2095,10 @@ Enact a temp Basal or a temp target */
 "Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function." = "Brug en sigmoidfunktion til ISF (og til CR, når aktiveret) i stedet for standard Logaritmisk formel. Kræver, at Dynamic ISF-indstillingen aktiveres i indstillingerne\n\nJusteringsindstillingen justerer kurvens hældning (Y: Dynamisk ratio, X: Blodglukose). En lavere værdi ==> mindre stejl == mindre aggressiv.\n\nAutosenerne. / max indstillinger bestemmer både max/min grænser for det dynamiske forhold OG hvor meget det dynamiske forhold er justeret. Hvis AF er hældningen af kurven, autosenerne. in/max er højden af grafen, Y-intervallet, hvor Y: dynamisk forhold. Kurven vil altid have en sigmoid form, uanset hvilke autosener. / max indstillinger anvendes, hvilket betyder at disse indstillinger har store konsekvenser for resultatet af den beregnede dynamiske ISF. Vær forsigtig med at indstille en for høj autosens.max værdi. Med en korrekt profil ISF indstilling, vil du sandsynligvis aldrig brug for det for at være højere end 1.\n\nEn Autosens.max grænse > 1, 5 er ikke tilrådelig, når sigmoid funktion.";
 
 /* Headline Threshold Setting */
-"Threshold Setting" = "Tærskel Indstilling";
+"Minimum Safety Threshold (mg/dL)" = "Minimumssikkerhedsgrænse (mg/dl)";
 
-/* Threshold Setting */
-"The default threshold in Trio depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl." = "Standard tærsklen i Trio afhænger af dit nuværende minimum BG mål, som følger:\n\nHvis dit minimum BG-mål = 90 mg/dl -> tærskel = 65 mg/dl,\n\n, hvis minimum BG mål = 100 mg/ dl -> tærskel = 70 mg/ dl,\n\nminimum BG target = 110 mg/ dl -> tærskel = 75 mg/ dl,\n\nog hvis BG-minimumsmål = 130 mg/dl -> tærskel = 85 mg/dl.\n\nDenne indstilling giver dig mulighed for at ændre standard til en højere tærskel for looping med dynISF. Gyldige værdier er 65 mg/dl<= Tærskelværdi <= 120 mg/dl.";
+/* Minimum Safety Threshold */
+"All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted." = "Al insulin vil blive suspenderet, hvis dit blodsukker forventes at falde under sikkerhedstærsklen.\n\nSkal indstilles mellem 60-120 mg/dl.\nSådan konverteres fra mmol/l, multipliceres med 18.\n\nBemærk: Basal kan genoptages, hvis der er negativ IOB og glucose stiger hurtigere end forventet.";
 
 /* Header */
 "Calculator settings" = "Lommeregner indstillinger";
