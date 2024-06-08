@@ -61,12 +61,16 @@ extension Settings {
                                     .frame(maxWidth: .infinity, alignment: .trailing)
                                     .buttonStyle(.borderedProminent)
                             }
-                            HStack {
-                                Text("Delete Pump State nlist")
-                                Button("Delete") { state.resetLoopDocuments() }
-                                    .frame(maxWidth: .infinity, alignment: .trailing)
-                                    .buttonStyle(.borderedProminent)
-                            }
+// Commenting this out for now, as not needed and possibly dangerous for users to be able to nuke their pump pairing informations via the debug menu
+// Leaving it in here, as it may be a handy functionality for further testing or developers.
+// See https://github.com/nightscout/Trio/pull/277 for more information
+//
+//                            HStack {
+//                                Text("Delete Stored Pump State Binary Files")
+//                                Button("Delete") { state.resetLoopDocuments() }
+//                                    .frame(maxWidth: .infinity, alignment: .trailing)
+//                                    .buttonStyle(.borderedProminent)
+//                            }
                         }
                         Group {
                             Text("Preferences")
