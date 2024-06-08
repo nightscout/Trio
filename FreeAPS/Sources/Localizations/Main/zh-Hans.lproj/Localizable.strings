@@ -431,6 +431,30 @@ Enact a temp Basal or a temp target */
 /* Max setting */
 "Max Carbs" = "最大卡片数";
 
+/* Max setting */
+"Max Fat" = "最大脂肪数";
+
+/* Max setting */
+"Max Protein" = "最大蛋白质数";
+
+/* Max setting */
+"Limit Per Entry" = "每条条目限制";
+
+/* Max Carbs limit exceeded */
+"Max Carbs of" = "最大卡片：";
+
+/* Max Fat limit exceeded */
+"Max Fat of" = "最大脂肪：";
+
+/* Max Protein limit exceeded */
+"Max Protein of" = "蛋白质的最大值";
+
+/* Max Bolus limit exceeded */
+"Max Bolus of" = "最大卷数";
+
+/* Limit Exceeded label */
+"exceeded" = "已超过";
+
 /* */
 "Pump Settings" = "泵设置";
 
@@ -1051,9 +1075,6 @@ Enact a temp Basal or a temp target */
 
 /* */
 "Bolus failed" = "大剂量输注失败";
-
-/* "Max Bolus Exceeded label" */
-"Max Bolus exceeded!" = "超过最大卷数！";
 
 /* */
 "Bolus failed or inaccurate. Check pump history before repeating." = "大剂量失败或者不准确，请在重复操作前检查胰岛素泵历史";
@@ -2076,10 +2097,10 @@ Enact a temp Basal or a temp target */
 "Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function." = "为 ISF (启用时为 CR) 使用sigmoid 函数，而不是默认对数公式。 需要在设置\n\n设置中启用动态ISF 设置。调整设置调整曲线的斜坡(Y：动态比) X：血糖。 较低的值 ==> 较低的step == 较不积极。\n\n自动降落。 in/max 设置决定动态比率的最大/最小限制和动态比率调整的数量。 如果AF 是曲线的斜坡，秋季。 in/max 是图形的高度, Y-间隔, 其中Y: 动态比值. 曲线总是有一个信号形状, 不论是自动的。 in/max 设置被使用，意味着这些设置对计算中的 ISF 动态结果有很大影响。 请仔细设置一个太高的自动缩放. 最大值。 通过正确的配置文件ISF设置，您可能永远不需要超过 1。\n\n使用 sigmoid 函数时不推荐使用 Autosens.max 限制 > 1.5 。";
 
 /* Headline Threshold Setting */
-"Threshold Setting" = "阈值设置";
+"Minimum Safety Threshold (mg/dL)" = "最低安全阈值（mg/dL）";
 
-/* Threshold Setting */
-"The default threshold in Trio depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl." = "Trio的默认阈值取决于您当前最小的 BG 目标。 如下所示：\n\n如果您的最低BG 目标 = 90 mg/dl -> 阈值= 65 mg/dl，\n\n如果最低BG目标 = 100 毫克/dl -> 阈值 = 70 毫克/dl,\n\n最低BG目标 = 110 mg/dl -> 阈值 = 75 mg/dl\n\n如果最低BG目标=130 mg/dl -> 阈值=85 mg/dl。\n\n此设置允许您将默认值更改为更高的阈值来循环使用 dynISF。 有效值为65 毫克/dl<= 阈值设定<= 120 毫克/dl。";
+/* Minimum Safety Threshold */
+"All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted." = "如果您的葡萄糖预计会降到安全阈值以下，则所有绝缘物质都会暂停。\n\n必须设置在 60-120 毫克/dL 之间。\n从mmol/L转换，乘以18。\n\n注：如果负IOB和葡萄糖的上升速度比预计的快，则可以恢复Basal。";
 
 /* Header */
 "Calculator settings" = "计算器设置";
