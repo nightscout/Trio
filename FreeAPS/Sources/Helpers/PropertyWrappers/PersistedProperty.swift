@@ -57,7 +57,6 @@ import Foundation
         self.key = key
 
         let documents: URL
-
         guard let localDocuments = try? FileManager.default.url(
             for: .documentDirectory,
             in: .userDomainMask,
