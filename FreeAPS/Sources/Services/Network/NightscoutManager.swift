@@ -15,6 +15,7 @@ protocol NightscoutManager: GlucoseSource {
     func uploadGlucose()
     func uploadPreferences(_ preferences: Preferences)
     func uploadProfileAndSettings(_: Bool)
+
     var cgmURL: URL? { get }
 }
 
@@ -30,6 +31,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var reachabilityManager: ReachabilityManager!
     @Injected() var healthkitManager: HealthKitManager!
+    @Injected() private var overrideStorage: OverrideStorage!
 
     private let processQueue = DispatchQueue(label: "BaseNetworkManager.processQueue")
     private var ping: TimeInterval?
@@ -71,6 +73,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         broadcaster.register(PumpHistoryObserver.self, observer: self)
         broadcaster.register(CarbsObserver.self, observer: self)
         broadcaster.register(TempTargetsObserver.self, observer: self)
+        broadcaster.register(OverrideObserver.self, observer: self)
         _ = reachabilityManager.startListening(onQueue: processQueue) { status in
             debug(.nightscout, "Network status: \(status)")
         }
@@ -161,6 +164,20 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
         let since = tempTargetsStorage.syncDate()
         return nightscout.fetchTempTargets(sinceDate: since)
+            .replaceError(with: [])
+            .eraseToAnyPublisher()
+    }
+
+    /// Fetch all overrides available in NS as a exercise
+    /// Limit to exercise with the attribute enteredBy = the name of local app (as defined in NightscoutExercise
+    /// - Returns: a publisher of a array of NightscoutExercise.
+    func fetchOverride() -> AnyPublisher<[NightscoutExercise], Never> {
+        guard let nightscout = nightscoutAPI, isNetworkReachable else {
+            return Just([]).eraseToAnyPublisher()
+        }
+
+        let since = overrideStorage.syncDate()
+        return nightscout.fetchOverrides(sinceDate: since)
             .replaceError(with: [])
             .eraseToAnyPublisher()
     }
@@ -631,6 +648,54 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 .store(in: &self.lifetime)
         }
     }
+
+    /// Upload all new and updated override as a exercise in NS
+    private func uploadOverride(_ targets: [OverrideProfile?]) {
+        guard !targets.isEmpty, let nightscout = nightscoutAPI, isUploadEnabled else {
+            return
+        }
+
+        processQueue.async {
+            let exercises = targets.compactMap { override -> NightscoutExercise? in
+                if let override = override {
+                    return NightscoutExercise(
+                        duration: override
+                            .indefinite! ?
+                            Int(Date().timeIntervalSinceReferenceDate - override.createdAt!.timeIntervalSinceReferenceDate + 60) :
+                            Int(override.duration ?? 0),
+                        // by default if indefinite = + 60 minutes
+                        eventType: EventType.nsExercise,
+                        createdAt: override.createdAt,
+                        enteredBy: NightscoutExercise.local,
+                        notes: override.displayName
+                    )
+                } else {
+                    return nil
+                }
+            }
+
+            exercises.chunks(ofCount: 100)
+                .map { chunk -> AnyPublisher<Void, Error> in
+                    nightscout.uploadOverrides(Array(chunk))
+                }
+                .reduce(
+                    Just(()).setFailureType(to: Error.self)
+                        .eraseToAnyPublisher()
+                ) { (result, next) -> AnyPublisher<Void, Error> in
+                    Publishers.Concatenate(prefix: result, suffix: next).eraseToAnyPublisher()
+                }
+                .dropFirst()
+                .sink { completion in
+                    switch completion {
+                    case .finished:
+                        debug(.nightscout, "Overrides uploaded")
+                    case let .failure(error):
+                        debug(.nightscout, error.localizedDescription)
+                    }
+                } receiveValue: {}
+                .store(in: &self.lifetime)
+        }
+    }
 }
 
 extension BaseNightscoutManager: PumpHistoryObserver {
@@ -648,5 +713,11 @@ extension BaseNightscoutManager: CarbsObserver {
 extension BaseNightscoutManager: TempTargetsObserver {
     func tempTargetsDidUpdate(_: [TempTarget]) {
         uploadTempTargets()
+    }
+}
+
+extension BaseNightscoutManager: OverrideObserver {
+    func overrideDidUpdate(_ targets: [OverrideProfile?], current _: OverrideProfile?) {
+        uploadOverride(targets)
     }
 }

@@ -1,5 +1,3 @@
-import CoreData
-import Foundation
 import SwiftUI
 import Swinject
 
@@ -11,25 +9,16 @@ extension OverrideProfilesConfig {
         @State private var isEditing = false
         @State private var showAlert = false
         @State private var showingDetail = false
-        @State private var selectedPreset: OverridePresets?
+        @State private var selectedPreset: OverrideProfile?
         @State private var isEditSheetPresented: Bool = false
         @State private var alertSring = ""
         @State var isSheetPresented: Bool = false
-        @State private var originalPreset: OverridePresets?
+        @State private var originalPreset: OverrideProfile?
         @State private var showDeleteAlert = false
         @State private var indexToDelete: Int?
         @State private var profileNameToDelete: String = ""
 
         @Environment(\.dismiss) var dismiss
-        @Environment(\.managedObjectContext) var moc
-
-        @FetchRequest(
-            entity: OverridePresets.entity(),
-            sortDescriptors: [NSSortDescriptor(key: "name", ascending: true)], predicate: NSPredicate(
-                format: "name != %@", "" as String
-            )
-        ) var fetchedProfiles: FetchedResults<OverridePresets>
-        var units: GlucoseUnits = .mmolL
 
         private var formatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -58,10 +47,8 @@ extension OverrideProfilesConfig {
                         state.savePreset()
                         isSheetPresented = false
                     }
-                    .disabled(
-                        state.profileName.isEmpty || fetchedProfiles
-                            .contains(where: { $0.name == state.profileName })
-                    )
+
+                    .disabled(state.profileName.isEmpty || state.presets.filter({ $0.name == state.profileName }).isNotEmpty)
 
                     Button("Cancel") {
                         isSheetPresented = false
@@ -78,7 +65,7 @@ extension OverrideProfilesConfig {
                 Section {
                     Button("Save") {
                         guard let selectedPreset = selectedPreset else { return }
-                        state.updatePreset(selectedPreset)
+                        state.updatePreset(selectedPreset.id)
                         isEditSheetPresented = false
                     }
                     .disabled(!hasChanges())
@@ -96,7 +83,7 @@ extension OverrideProfilesConfig {
                 }
             }
             .onDisappear {
-                state.savedSettings()
+                state.loadCurrentProfil()
             }
         }
 
@@ -261,8 +248,8 @@ extension OverrideProfilesConfig {
             Form {
                 if state.presets.isNotEmpty {
                     Section {
-                        ForEach(fetchedProfiles.indices, id: \.self) { index in
-                            let preset = fetchedProfiles[index]
+                        ForEach(state.presets.indices, id: \.self) { index in
+                            let preset = state.presets[index]
                             profilesView(for: preset)
                                 .swipeActions {
                                     Button(role: .none) {
@@ -378,13 +365,12 @@ extension OverrideProfilesConfig {
                 .tint(.red)
             }
             .onAppear(perform: configureView)
-            .onAppear { state.savedSettings() }
+            .onAppear { state.loadCurrentProfil() }
             .navigationBarTitle("Profiles")
             .navigationBarTitleDisplayMode(.automatic)
             .navigationBarItems(leading: Button("Close", action: state.hideModal))
             .sheet(isPresented: $isEditSheetPresented) {
                 editPresetPopover
-                    .padding()
             }
             .alert(isPresented: $showDeleteAlert) {
                 Alert(
@@ -400,29 +386,46 @@ extension OverrideProfilesConfig {
             }
         }
 
-        @ViewBuilder private func profilesView(for preset: OverridePresets) -> some View {
-            let data = state.profileViewData(for: preset)
+        @ViewBuilder private func profilesView(for preset: OverrideProfile) -> some View {
+            let target = state.units == .mmolL ? (preset.target ?? 0).asMmolL : preset.target ?? 0
+            let duration = preset.duration ?? 0
+            let name = ((preset.name ?? "") == "") || (preset.name?.isEmpty ?? true) ? "" : preset.name!
+            let percent = (preset.percentage ?? 100) / 100
+            let perpetual = preset.indefinite ?? false
+            let durationString = perpetual ? "" : "\(formatter.string(from: duration as NSNumber)!)"
+            let scheduledSMBstring = ((preset.smbIsOff ?? false) && (preset.smbIsScheduledOff ?? false)) ? "Scheduled SMBs" : ""
+            let smbString = ((preset.smbIsOff ?? false) && scheduledSMBstring == "") ? "SMBs are off" : ""
+            let targetString = target != 0 ? "\(glucoseFormatter.string(from: target as NSNumber)!)" : ""
+            let eventualSmbMinutes = preset.smbMinutes != nil && preset.smbMinutes != state.defaultSmbMinutes ? preset
+                .smbMinutes : nil
+            let eventualUamMinutes = preset.uamMinutes != nil && preset.uamMinutes != state.defaultUamMinutes ? preset
+                .uamMinutes : nil
+            let isfString = (preset.isf ?? false) ? "ISF" : ""
+            let crString = (preset.cr ?? false) ? "CR" : ""
+            let dash = crString != "" ? "/" : ""
+            let isfAndCRstring = isfString + dash + crString
 
-            if data.name != "" {
+            if name != "" {
                 HStack {
                     VStack {
                         HStack {
-                            Text(data.name)
+                            Text(name)
                             Spacer()
                         }
                         HStack(spacing: 5) {
-                            Text(data.percent.formatted(.percent.grouping(.never).rounded().precision(.fractionLength(0))))
-                            if data.targetString != "" {
-                                Text(data.targetString)
-                                Text(data.targetString != "" ? state.units.rawValue : "")
+                            Text(percent.formatted(.percent.grouping(.never).rounded().precision(.fractionLength(0))))
+                            if targetString != "" {
+                                Text(targetString)
+                                Text(targetString != "" ? state.units.rawValue : "")
                             }
-                            if data.durationString != "" { Text(data.durationString + (data.perpetual ? "" : "min")) }
-                            if data.smbString != "" { Text(data.smbString).foregroundColor(.secondary).font(.caption) }
-                            if data.scheduledSMBString != "" { Text(data.scheduledSMBString) }
-                            if preset.advancedSettings {
-                                Text(data.maxMinutesSMB == 0 ? "" : data.maxMinutesSMB.formatted() + " SMB")
-                                Text(data.maxMinutesUAM == 0 ? "" : data.maxMinutesUAM.formatted() + " UAM")
-                                Text(data.isfAndCRString)
+
+                            if durationString != "" { Text(durationString + (perpetual ? "" : "min")) }
+                            if smbString != "" { Text(smbString).foregroundColor(.secondary).font(.caption) }
+                            if scheduledSMBstring != "" { Text(scheduledSMBstring) }
+                            if let advanced = preset.advancedSettings, advanced {
+                                Text(eventualSmbMinutes == nil ? "" : eventualSmbMinutes!.formatted() + "min SMB")
+                                Text(eventualUamMinutes == nil ? "" : eventualUamMinutes!.formatted() + "min UAM")
+                                Text(isfAndCRstring)
                             }
                             Spacer()
                         }
@@ -432,7 +435,7 @@ extension OverrideProfilesConfig {
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        state.selectProfile(id_: preset.id ?? "")
+                        state.selectProfile(id_: preset.id)
                         state.hideModal()
                     }
                 }
@@ -484,13 +487,7 @@ extension OverrideProfilesConfig {
 
         private func removeProfile(at offsets: IndexSet) {
             for index in offsets {
-                let language = fetchedProfiles[index]
-                moc.delete(language)
-            }
-            do {
-                try moc.save()
-            } catch {
-                // To do: add error
+                state.removeOverrideProfile(presetId: state.presets[index].id)
             }
         }
     }

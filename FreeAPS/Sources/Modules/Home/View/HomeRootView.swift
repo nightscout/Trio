@@ -15,27 +15,11 @@ extension Home {
         @Environment(\.managedObjectContext) var moc
         @Environment(\.colorScheme) var colorScheme
 
-        @FetchRequest(
-            entity: Override.entity(),
-            sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
-        ) var fetchedPercent: FetchedResults<Override>
-
-        @FetchRequest(
-            entity: OverridePresets.entity(),
-            sortDescriptors: [NSSortDescriptor(key: "name", ascending: true)], predicate: NSPredicate(
-                format: "name != %@", "" as String
-            )
-        ) var fetchedProfiles: FetchedResults<OverridePresets>
-
+        // * TODO: To remove with #154 https://github.com/nightscout/Open-iAPS/issues/154
         @FetchRequest(
             entity: TempTargets.entity(),
             sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
         ) var sliderTTpresets: FetchedResults<TempTargets>
-
-        @FetchRequest(
-            entity: TempTargetsSlider.entity(),
-            sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
-        ) var enactedSliderTT: FetchedResults<TempTargetsSlider>
 
         private var numberFormatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -197,6 +181,7 @@ extension Home {
             let rawString = (tirFormatter.string(from: (tempTarget.targetBottom ?? 0) as NSNumber) ?? "") + " " + state.units
                 .rawValue
 
+            // * TODO: To remove with #154 https://github.com/nightscout/Open-iAPS/issues/154
             var string = ""
             if sliderTTpresets.first?.active ?? false {
                 let hbt = sliderTTpresets.first?.hbt ?? 0
@@ -209,12 +194,12 @@ extension Home {
         }
 
         var overrideString: String? {
-            guard fetchedPercent.first?.enabled ?? false else {
+            guard state.currentOverride != nil else {
                 return nil
             }
-            var percentString = "\((fetchedPercent.first?.percentage ?? 100).formatted(.number)) %"
-            var target = (fetchedPercent.first?.target ?? 100) as Decimal
-            let indefinite = (fetchedPercent.first?.indefinite ?? false)
+            var percentString = "\((state.currentOverride?.percentage ?? 100).formatted(.number)) %"
+            var target = (state.currentOverride?.target ?? 100) as Decimal
+            let indefinite = (state.currentOverride?.indefinite ?? false)
             let unit = state.units.rawValue
             if state.units == .mmolL {
                 target = target.asMmolL
@@ -223,16 +208,16 @@ extension Home {
             if tempTargetString != nil || target == 0 { targetString = "" }
             percentString = percentString == "100 %" ? "" : percentString
 
-            let duration = (fetchedPercent.first?.duration ?? 0) as Decimal
+            let duration = state.currentOverride?.duration ?? 0
             let addedMinutes = Int(duration)
-            let date = fetchedPercent.first?.date ?? Date()
+            let date = state.currentOverride?.createdAt ?? Date()
             var newDuration: Decimal = 0
 
             if date.addingTimeInterval(addedMinutes.minutes.timeInterval) > Date() {
                 newDuration = Decimal(Date().distance(to: date.addingTimeInterval(addedMinutes.minutes.timeInterval)).minutes)
             }
 
-            var durationString = indefinite ?
+            let durationString = indefinite ?
                 "" : newDuration >= 1 ?
                 (newDuration.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + " min") :
                 (
@@ -247,12 +232,12 @@ extension Home {
             }
 
             let smbToggleString = (
-                (fetchedPercent.first?.smbIsOff ?? false) || fetchedPercent.first?.smbIsScheduledOff ?? false
+                (state.currentOverride?.smbIsOff ?? false) || state.currentOverride?.smbIsScheduledOff ?? false
             ) ?
                 " \u{20e0}" : ""
-            let smbScheduleString = (fetchedPercent.first?.smbIsScheduledOff ?? false) &&
-                !(fetchedPercent.first?.smbIsOff ?? false) ?
-                " \(fetchedPercent.first?.start ?? 0)-\(fetchedPercent.first?.end ?? 0)" : ""
+            let smbScheduleString = (state.currentOverride?.smbIsScheduledOff ?? false) &&
+                !(state.currentOverride?.smbIsOff ?? false) ?
+                " \(state.currentOverride?.start ?? 0)-\(state.currentOverride?.end ?? 0)" : ""
             let comma1 = (percentString == "" || (targetString == "" && durationString == "" && smbToggleString == ""))
                 ? "" : " , "
             let comma2 = (targetString == "" || (durationString == "" && smbToggleString == ""))
@@ -384,7 +369,9 @@ extension Home {
                     screenHours: $state.screenHours,
                     displayXgridLines: $state.displayXgridLines,
                     displayYgridLines: $state.displayYgridLines,
-                    thresholdLines: $state.thresholdLines
+                    thresholdLines: $state.thresholdLines,
+                    overrideHistory: $state.overrideHistory,
+                    targetBG: $state.targetBG
                 )
             }
             .padding(.bottom)
@@ -396,7 +383,7 @@ extension Home {
             // Rectangle().fill(colour).frame(maxHeight: 1)
             ZStack {
                 Rectangle().fill(Color.gray.opacity(0.2)).frame(maxHeight: 40)
-                let cancel = fetchedPercent.first?.enabled ?? false
+                let cancel = state.currentOverride != nil
                 HStack(spacing: cancel ? 25 : 15) {
                     Text(selectedProfile().name).foregroundColor(.secondary)
                     if cancel, selectedProfile().isOn {
@@ -411,9 +398,9 @@ extension Home {
                         Image(systemName: "person.3.sequence.fill")
                             .symbolRenderingMode(.palette)
                             .foregroundStyle(
-                                !(fetchedPercent.first?.enabled ?? false) ? .green : .cyan,
-                                !(fetchedPercent.first?.enabled ?? false) ? .cyan : .green,
-                                .purple
+                                !(state.currentOverride != nil) ? .green : .cyan,
+                                !(state.currentOverride != nil) ? .cyan : .green,
+                                Color.profil
                             )
                     }
                 }
@@ -434,24 +421,21 @@ extension Home {
             var profileString = ""
             var display: Bool = false
 
-            let duration = (fetchedPercent.first?.duration ?? 0) as Decimal
-            let indefinite = fetchedPercent.first?.indefinite ?? false
+            let duration = (state.currentOverride?.duration ?? 0) as Decimal
+            let indefinite = state.currentOverride?.indefinite ?? false
             let addedMinutes = Int(duration)
-            let date = fetchedPercent.first?.date ?? Date()
+            let date = state.currentOverride?.createdAt ?? Date()
             if date.addingTimeInterval(addedMinutes.minutes.timeInterval) > Date() || indefinite {
                 display.toggle()
             }
 
-            if fetchedPercent.first?.enabled ?? false, !(fetchedPercent.first?.isPreset ?? false), display {
-                profileString = NSLocalizedString("Custom Profile", comment: "Custom but unsaved Profile")
-            } else if !(fetchedPercent.first?.enabled ?? false) || !display {
-                profileString = NSLocalizedString("Normal Profile", comment: "Your normal Profile. Use a short string")
+            if let currentOverride = state.currentOverride, display {
+                profileString = currentOverride.name != nil ? currentOverride.displayName : NSLocalizedString(
+                    "Custom Profile",
+                    comment: "Custom but unsaved Profile"
+                )
             } else {
-                let id_ = fetchedPercent.first?.id ?? ""
-                let profile = fetchedProfiles.filter({ $0.id == id_ }).first
-                if profile != nil {
-                    profileString = profile?.name?.description ?? ""
-                }
+                profileString = NSLocalizedString("Normal Profile", comment: "Your normal Profile. Use a short string")
             }
             return (name: profileString, isOn: display)
         }

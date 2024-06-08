@@ -73,6 +73,7 @@ final class BaseAPSManager: APSManager, Injectable {
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var healthKitManager: HealthKitManager!
+    @Injected() private var overrideStorage: OverrideStorage!
     @Persisted(key: "lastAutotuneDate") private var lastAutotuneDate = Date()
     @Persisted(key: "lastStartLoopDate") private var lastStartLoopDate: Date = .distantPast
     @Persisted(key: "lastLoopDate") var lastLoopDate: Date = .distantPast {
@@ -359,10 +360,12 @@ final class BaseAPSManager: APSManager, Injectable {
         let now = Date()
         let temp = currentTemp(date: now)
 
+        let eventualCurrentOverride: OverrideProfile? = overrideStorage.current()
+
         let mainPublisher = makeProfiles()
             .flatMap { _ in self.autosens() }
             .flatMap { _ in self.dailyAutotune() }
-            .flatMap { _ in self.openAPS.determineBasal(currentTemp: temp, clock: now) }
+            .flatMap { _ in self.openAPS.determineBasal(currentTemp: temp, clock: now, override: eventualCurrentOverride) }
             .map { suggestion -> Bool in
                 if let suggestion = suggestion {
                     DispatchQueue.main.async {

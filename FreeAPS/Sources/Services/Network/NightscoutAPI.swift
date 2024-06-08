@@ -243,6 +243,49 @@ extension NightscoutAPI {
             .eraseToAnyPublisher()
     }
 
+    /// fetch the overrides available in NS as a exercise since the date specified in the parameter
+    /// Limit to exercise with the attribute enteredBy = the name of local app (as defined in NightscoutExercise
+    /// - Parameter sinceDate: the oldest date to fetch exercises
+    /// - Returns: A publisher with a array of NightscoutExercise or error
+    func fetchOverrides(sinceDate: Date? = nil) -> AnyPublisher<[NightscoutExercise], Swift.Error> {
+        var components = URLComponents()
+        components.scheme = url.scheme
+        components.host = url.host
+        components.port = url.port
+        components.path = Config.treatmentsPath
+        components.queryItems = [
+            URLQueryItem(name: "find[eventType]", value: "Exercise"),
+            URLQueryItem(
+                name: "find[enteredBy]",
+                value: NightscoutExercise.local.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
+            )
+        ]
+        if let date = sinceDate {
+            let dateItem = URLQueryItem(
+                name: "find[created_at][$gt]",
+                value: Formatter.iso8601withFractionalSeconds.string(from: date)
+            )
+            components.queryItems?.append(dateItem)
+        }
+
+        var request = URLRequest(url: components.url!)
+        request.allowsConstrainedNetworkAccess = false
+        request.timeoutInterval = Config.timeout
+
+        if let secret = secret {
+            request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
+        }
+
+        return service.run(request)
+            .retry(Config.retryCount)
+            .decode(type: [NightscoutExercise].self, decoder: JSONCoding.decoder)
+            .catch { error -> AnyPublisher<[NightscoutExercise], Swift.Error> in
+                warning(.nightscout, "Override fetching error: \(error.localizedDescription)")
+                return Just([]).setFailureType(to: Swift.Error.self).eraseToAnyPublisher()
+            }
+            .eraseToAnyPublisher()
+    }
+
     func fetchAnnouncement(sinceDate: Date? = nil) -> AnyPublisher<[Announcement], Swift.Error> {
         var components = URLComponents()
         components.scheme = url.scheme
@@ -415,6 +458,65 @@ extension NightscoutAPI {
         }
         request.httpBody = try! JSONCoding.encoder.encode(profile)
         request.httpMethod = "POST"
+
+        return service.run(request)
+            .retry(Config.retryCount)
+            .map { _ in () }
+            .eraseToAnyPublisher()
+    }
+
+    /// Upload old, new and updated overrides in NS as a exercise.
+    /// - Parameter overrides: a array of NightscoutExercise to upload
+    /// - Returns: A publisher with only error response.
+    func uploadOverrides(_ overrides: [NightscoutExercise]) -> AnyPublisher<Void, Swift.Error> {
+        var components = URLComponents()
+        components.scheme = url.scheme
+        components.host = url.host
+        components.port = url.port
+        components.path = Config.treatmentsPath
+
+        var request = URLRequest(url: components.url!)
+        request.allowsConstrainedNetworkAccess = false
+        request.timeoutInterval = Config.timeout
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let secret = secret {
+            request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
+        }
+        request.httpBody = try! JSONCoding.encoder.encode(overrides)
+        request.httpMethod = "POST"
+
+        return service.run(request)
+            .retry(Config.retryCount)
+            .map { _ in () }
+            .eraseToAnyPublisher()
+    }
+
+    /// delete a override in NS as exercise for a specific date
+    /// - Parameter date: the date of the override to delete
+    /// - Returns: A publisher with only error response.
+    func deleteOverride(at date: Date) -> AnyPublisher<Void, Swift.Error> {
+        var components = URLComponents()
+        components.scheme = url.scheme
+        components.host = url.host
+        components.port = url.port
+        components.path = Config.treatmentsPath
+        components.queryItems = [
+            URLQueryItem(name: "find[eventType]", value: "Exercise"),
+            URLQueryItem(
+                name: "find[created_at][$eq]",
+                value: Formatter.iso8601withFractionalSeconds.string(from: date)
+            )
+        ]
+
+        var request = URLRequest(url: components.url!)
+        request.allowsConstrainedNetworkAccess = false
+        request.timeoutInterval = Config.timeout
+        request.httpMethod = "DELETE"
+
+        if let secret = secret {
+            request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
+        }
 
         return service.run(request)
             .retry(Config.retryCount)

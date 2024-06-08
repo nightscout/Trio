@@ -31,6 +31,7 @@ struct MainChartView: View {
         static let bolusScale: CGFloat = 2.5
         static let carbsSize: CGFloat = 10
         static let carbsScale: CGFloat = 0.3
+        static let overrideNoTargetDefault: Decimal = 50
     }
 
     @Binding var glucose: [BloodGlucose]
@@ -53,6 +54,8 @@ struct MainChartView: View {
     @Binding var displayXgridLines: Bool
     @Binding var displayYgridLines: Bool
     @Binding var thresholdLines: Bool
+    @Binding var overrideHistory: [OverrideProfile?]
+    @Binding var targetBG: BGTargets?
 
     @State var didAppearTrigger = false
     @State private var glucoseDots: [CGRect] = []
@@ -63,6 +66,7 @@ struct MainChartView: View {
     @State private var tempBasalPath = Path()
     @State private var regularBasalPath = Path()
     @State private var tempTargetsPath = Path()
+    @State private var overridesPath = Path()
     @State private var suspensionsPath = Path()
     @State private var carbsDots: [DotInfo] = []
     @State private var carbsPath = Path()
@@ -155,6 +159,7 @@ struct MainChartView: View {
             ScrollViewReader { scroll in
                 ZStack(alignment: .top) {
                     tempTargetsView(fullSize: fullSize).drawingGroup()
+                    overridesView(fullSize: fullSize).drawingGroup()
                     basalView(fullSize: fullSize).drawingGroup()
 
                     mainView(fullSize: fullSize).id(Config.endID)
@@ -444,6 +449,24 @@ struct MainChartView: View {
         }
         .onChange(of: didAppearTrigger) { _ in
             calculateTempTargetsRects(fullSize: fullSize)
+        }
+    }
+
+    private func overridesView(fullSize: CGSize) -> some View {
+        ZStack {
+            overridesPath
+                .fill(Color.profil.opacity(0.5))
+            overridesPath
+                .stroke(Color.profil.opacity(0.5), lineWidth: 1)
+        }
+        .onChange(of: glucose) { _ in
+            calculateOverridesRects(fullSize: fullSize)
+        }
+        .onChange(of: overrideHistory) { _ in
+            calculateOverridesRects(fullSize: fullSize)
+        }
+        .onChange(of: didAppearTrigger) { _ in
+            calculateOverridesRects(fullSize: fullSize)
         }
     }
 
@@ -801,6 +824,58 @@ extension MainChartView {
 
             DispatchQueue.main.async {
                 tempTargetsPath = path
+            }
+        }
+    }
+
+    private func calculateOverridesRects(fullSize: CGSize) {
+        calculationQueue.async {
+            let rects = overrideHistory.enumerated().compactMap { (index, override) -> CGRect? in
+                if let override = override {
+                    let x0 = timeToXCoordinate(override.createdAt!.timeIntervalSince1970, fullSize: fullSize)
+                    var y0: CGFloat
+                    if override.target != nil, override.target! > 0 {
+                        y0 = glucoseToYCoordinate(Int(override.target!), fullSize: fullSize)
+                    } else if let targetBG = targetBG {
+                        // find the targetBG at the beginning
+                        let bestOffset = override.createdAt!.hour * 60 + override.createdAt!.minute
+                        let targetItemBG = targetBG.targets.sorted(by: { $0.offset < $1.offset })
+                            .last(where: { $0.offset < bestOffset })?.low ?? Config.overrideNoTargetDefault
+                        y0 = glucoseToYCoordinate(Int(targetItemBG), fullSize: fullSize)
+                    } else {
+                        y0 = glucoseToYCoordinate(Int(Config.overrideNoTargetDefault), fullSize: fullSize)
+                    }
+
+                    // only the first override could be indefinite
+                    let x1 = override.indefinite! && index == 0 ?
+                        timeToXCoordinate(Date().timeIntervalSince1970, fullSize: fullSize)
+                        :
+                        timeToXCoordinate(
+                            override.createdAt!.timeIntervalSince1970 + Int(override.duration ?? 0).minutes.timeInterval,
+                            fullSize: fullSize
+                        )
+                    let widthRect = override.indefinite! && index == 0 ?
+                        x1 - x0 + additionalWidth(viewWidth: fullSize.width)
+                        :
+                        x1 - x0
+
+                    return CGRect(
+                        x: x0,
+                        y: y0 - 3,
+                        width: widthRect,
+                        height: 6
+                    )
+                } else {
+                    return nil
+                }
+            }
+
+            let path = Path { path in
+                path.addRects(rects)
+            }
+
+            DispatchQueue.main.async {
+                overridesPath = path
             }
         }
     }

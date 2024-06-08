@@ -2,12 +2,19 @@ import CoreData
 import Foundation
 
 class CoreDataStack: ObservableObject {
+    public static let modelName = "Core_Data"
+
+    public static let model: NSManagedObjectModel = {
+        let modelURL = Bundle.main.url(forResource: modelName, withExtension: "momd")!
+        return NSManagedObjectModel(contentsOf: modelURL)!
+    }()
+
     init() {}
 
     static let shared = CoreDataStack()
 
     lazy var persistentContainer: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "Core_Data")
+        let container = NSPersistentContainer(name: CoreDataStack.modelName)
 
         container.loadPersistentStores(completionHandler: { _, error in
             guard let error = error as NSError? else { return }

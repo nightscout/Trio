@@ -9,6 +9,7 @@ extension Home {
         @Injected() var broadcaster: Broadcaster!
         @Injected() var apsManager: APSManager!
         @Injected() var fetchGlucoseManager: FetchGlucoseManager!
+        @Injected() private var overrideStorage: OverrideStorage!
 
         private let timer = DispatchTimer(timeInterval: 5)
         private(set) var filteredHours = 24
@@ -60,6 +61,9 @@ extension Home {
         @Published var thresholdLines: Bool = false
         @Published var cgmAvailable: Bool = false
         @Published var pumpStatusHighlightMessage: String? = nil
+        @Published var currentOverride: OverrideProfile?
+        @Published var overrideHistory: [OverrideProfile?] = []
+        @Published var targetBG: BGTargets?
 
         let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
 
@@ -74,6 +78,7 @@ extension Home {
             setupCarbs()
             setupBattery()
             setupReservoir()
+            setupOverride(overrideStorage.recent(), overrideStorage.current())
 
             suggestion = provider.suggestion
             enactedSuggestion = provider.enactedSuggestion
@@ -96,6 +101,8 @@ extension Home {
             displayYgridLines = settingsManager.settings.yGridLines
             thresholdLines = settingsManager.settings.rulerMarks
 
+            targetBG = provider.profile
+
             broadcaster.register(GlucoseObserver.self, observer: self)
             broadcaster.register(SuggestionObserver.self, observer: self)
             broadcaster.register(SettingsObserver.self, observer: self)
@@ -107,6 +114,7 @@ extension Home {
             broadcaster.register(EnactedSuggestionObserver.self, observer: self)
             broadcaster.register(PumpBatteryObserver.self, observer: self)
             broadcaster.register(PumpReservoirObserver.self, observer: self)
+            broadcaster.register(OverrideObserver.self, observer: self)
 
             animatedBackground = settingsManager.settings.animatedBackground
 
@@ -209,11 +217,15 @@ extension Home {
         }
 
         func cancelProfile() {
-            coredataContext.perform { [self] in
-                let profiles = Override(context: self.coredataContext)
-                profiles.enabled = false
-                profiles.date = Date()
-                try? self.coredataContext.save()
+            _ = overrideStorage.cancelCurrentOverride()
+        }
+
+        func setupOverride(_ targets: [OverrideProfile?], _ current: OverrideProfile?) {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                self.targetBG = self.provider.profile
+                self.currentOverride = current
+                self.overrideHistory = targets
             }
         }
 
@@ -395,8 +407,13 @@ extension Home.StateModel:
     CarbsObserver,
     EnactedSuggestionObserver,
     PumpBatteryObserver,
-    PumpReservoirObserver
+    PumpReservoirObserver,
+    OverrideObserver
 {
+    func overrideDidUpdate(_ targets: [OverrideProfile?], current: OverrideProfile?) {
+        setupOverride(targets, current)
+    }
+
     func glucoseDidUpdate(_: [BloodGlucose]) {
         setupGlucose()
     }

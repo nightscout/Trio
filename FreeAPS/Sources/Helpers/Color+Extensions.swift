@@ -63,4 +63,5 @@ extension Color {
     static let lemon = Color("Lemon")
     static let minus = Color("minus")
     static let darkGray = Color("darkGray")
+    static let profil = Color("OverrideProfile")
 }
