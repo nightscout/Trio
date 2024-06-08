@@ -24,7 +24,26 @@ final class PluginSource: GlucoseSource {
         cgmManager?.cgmManagerDelegate = self
     }
 
+    /// Function that fetches blood glucose data
+    /// This function combines two data fetching mechanisms (`callBLEFetch` and `fetchIfNeeded`) into a single publisher.
+    /// It returns the first non-empty result from either of the sources within a 5-minute timeout period.
+    /// If no valid data is fetched within the timeout, it returns an empty array.
+    ///
+    /// - Parameter timer: An optional `DispatchTimer` (not used in the function but can be used to trigger fetch logic).
+    /// - Returns: An `AnyPublisher` that emits an array of `BloodGlucose` values or an empty array if an error occurs or the timeout is reached.
     func fetch(_: DispatchTimer?) -> AnyPublisher<[BloodGlucose], Never> {
+        Publishers.Merge(
+            callBLEFetch(),
+            fetchIfNeeded()
+        )
+        .filter { !$0.isEmpty }
+        .first()
+        .timeout(60 * 5, scheduler: processQueue, options: nil, customError: nil)
+        .replaceError(with: [])
+        .eraseToAnyPublisher()
+    }
+
+    func callBLEFetch() -> AnyPublisher<[BloodGlucose], Never> {
         Future<[BloodGlucose], Error> { [weak self] promise in
             self?.promise = promise
         }
@@ -35,17 +54,15 @@ final class PluginSource: GlucoseSource {
     }
 
     func fetchIfNeeded() -> AnyPublisher<[BloodGlucose], Never> {
-        Future<[BloodGlucose], Error> { _ in
+        Future<[BloodGlucose], Error> { [weak self] promise in
+            guard let self = self else { return }
             self.processQueue.async {
                 guard let cgmManager = self.cgmManager else { return }
                 cgmManager.fetchNewDataIfNeeded { result in
-                    self.processCGMReadingResult(cgmManager, readingResult: result) {
-                        // nothing to do
-                    }
+                    promise(self.readCGMResult(readingResult: result))
                 }
             }
         }
-        .timeout(60, scheduler: processQueue, options: nil, customError: nil)
         .replaceError(with: [])
         .replaceEmpty(with: [])
         .eraseToAnyPublisher()
@@ -92,11 +109,10 @@ extension PluginSource: CGMManagerDelegate {
         glucoseManager?.cgmGlucoseSourceType = .none
     }
 
-    func cgmManager(_ manager: CGMManager, hasNew readingResult: CGMReadingResult) {
+    func cgmManager(_: CGMManager, hasNew readingResult: CGMReadingResult) {
         dispatchPrecondition(condition: .onQueue(processQueue))
-        processCGMReadingResult(manager, readingResult: readingResult) {
-            debug(.deviceManager, "CGM PLUGIN - Direct return done")
-        }
+        promise?(readCGMResult(readingResult: readingResult))
+        debug(.deviceManager, "CGM PLUGIN - Direct return done")
     }
 
     func cgmManager(_: LoopKit.CGMManager, hasNew events: [LoopKit.PersistedCgmEvent]) {
@@ -140,11 +156,7 @@ extension PluginSource: CGMManagerDelegate {
         }
     }
 
-    private func processCGMReadingResult(
-        _: CGMManager,
-        readingResult: CGMReadingResult,
-        completion: @escaping () -> Void
-    ) {
+    private func readCGMResult(readingResult: CGMReadingResult) -> Result<[BloodGlucose], Error> {
         debug(.deviceManager, "PLUGIN CGM - Process CGM Reading Result launched with \(readingResult)")
         switch readingResult {
         case let .newData(values):
@@ -177,19 +189,23 @@ extension PluginSource: CGMManagerDelegate {
                     transmitterID: sensorTransmitterID
                 )
             }
-            promise?(.success(bloodGlucose))
-            completion()
+            return .success(bloodGlucose)
         case .unreliableData:
             // loopManager.receivedUnreliableCGMReading()
-            promise?(.failure(GlucoseDataError.unreliableData))
-            completion()
+            return .failure(GlucoseDataError.unreliableData)
         case .noData:
-            promise?(.failure(GlucoseDataError.noData))
-            completion()
+            return .failure(GlucoseDataError.noData)
         case let .error(error):
-            promise?(.failure(error))
-            completion()
+            return .failure(error)
         }
+    }
+
+    private func processCGMReadingResultCompletion(
+        _: CGMManager,
+        readingResult: CGMReadingResult,
+        completion: @escaping (Result<[BloodGlucose], Error>) -> Void
+    ) {
+        completion(readCGMResult(readingResult: readingResult))
     }
 }
 
