@@ -199,14 +199,6 @@ extension PluginSource: CGMManagerDelegate {
             return .failure(error)
         }
     }
-
-    private func processCGMReadingResultCompletion(
-        _: CGMManager,
-        readingResult: CGMReadingResult,
-        completion: @escaping (Result<[BloodGlucose], Error>) -> Void
-    ) {
-        completion(readCGMResult(readingResult: readingResult))
-    }
 }
 
 extension PluginSource {
