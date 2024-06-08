@@ -431,6 +431,9 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
     func pumpManagerWillDeactivate(_: PumpManager) {
         dispatchPrecondition(condition: .onQueue(processQueue))
         pumpManager = nil
+        broadcaster.notify(PumpDeactivatedObserver.self, on: processQueue) {
+            $0.pumpDeactivatedDidChange()
+        }
     }
 
     func pumpManager(_: PumpManager, didUpdatePumpRecordsBasalProfileStartEvents _: Bool) {}
@@ -666,4 +669,8 @@ protocol PumpReservoirObserver {
 
 protocol PumpBatteryObserver {
     func pumpBatteryDidChange(_ battery: Battery)
+}
+
+protocol PumpDeactivatedObserver {
+    func pumpDeactivatedDidChange()
 }
