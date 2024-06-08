@@ -431,6 +431,30 @@ Enact a temp Basal or a temp target */
 /* Max setting */
 "Max Carbs" = "Максимум углеводов";
 
+/* Max setting */
+"Max Fat" = "Макс жир";
+
+/* Max setting */
+"Max Protein" = "Макс белок";
+
+/* Max setting */
+"Limit Per Entry" = "Лимит на запись";
+
+/* Max Carbs limit exceeded */
+"Max Carbs of" = "Макс. угля";
+
+/* Max Fat limit exceeded */
+"Max Fat of" = "Максимальный жир";
+
+/* Max Protein limit exceeded */
+"Max Protein of" = "Максимальный белок";
+
+/* Max Bolus limit exceeded */
+"Max Bolus of" = "Максимальный Болус";
+
+/* Limit Exceeded label */
+"exceeded" = "превышен";
+
 /* */
 "Pump Settings" = "Настройки помпы";
 
@@ -1051,9 +1075,6 @@ Enact a temp Basal or a temp target */
 
 /* */
 "Bolus failed" = "Болюс не выполнен";
-
-/* "Max Bolus Exceeded label" */
-"Max Bolus exceeded!" = "Максимальный болюс превышен!";
 
 /* */
 "Bolus failed or inaccurate. Check pump history before repeating." = "Болюс не выполнен или неточный. Перед повторением проверьте историю помпы.";
@@ -2074,10 +2095,10 @@ Enact a temp Basal or a temp target */
 "Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function." = "Использовать сигмоидную функцию для ISF (и для CR, если включено), вместо логарифмической функции. Требует включенного в настройках режима Dynamic ISF\n\nКоэффициент регулировки AF регулирует наклон кривой (Y: Динамическое соотношение, X: Глюкоза крови). Ниже значения ==> меньше крутизна == меньше агрессивность.\n\nAutosens минимум и максимум определяют оба - максимальный и минимальный лимиты для динамического соотношения и как сильно динамическое соотношение будет изменять ISF/CR. Коэффициент регулировки AF - это высота кривой, Y - интервал, где Y - динамическое соотношение. Кривая всегда будет иметь сигмовидную форму, не важно какой autosens минимум/максимум указаны. Это означает, что эти настройки имеют большие последствия для результата вычисляемого динамического ISF. Пожалуйста, будьте осторожны с высокими значениями параметра алгоритма максимума для autosens. При правильной настройке профиля ISF, никогда не понадобится значение выше 1,5.\n\nAn Предел Autosens максимум > 1,5 не рекомендуется при использовании сигмовидной функции.";
 
 /* Headline Threshold Setting */
-"Threshold Setting" = "Настройка порога";
+"Minimum Safety Threshold (mg/dL)" = "Минимальный порог безопасности (мг/дл)";
 
-/* Threshold Setting */
-"The default threshold in Trio depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl." = "Порог, в мг/дл, в Trio по-умолчанию зависит от Вашей текущей минимальной цели BG, следующим образом:\n\nЕсли минимальная цель BG = 5 ммоль/л -> порог = 3,6 ммоль/л,\n\nесли минимальная цель BG = 5.6 ммоль/л -> порог = 3,9 ммоль/л,\n\nминимальная цель BG  = 6.1 ммоль/л -> порог = 4,2 ммоль/л,\n\nи если минимальная цель BG = 7.2 ммоль/л  -> порог = 4,7 ммоль/л.\n\nЭта настройка позволяет Вам увеличить уровень порога для более безопасной работы с dynISF. Валидным будет значение 65 мг/дл=3,6 ммоль/л <= Threshold Setting <= 120 мг/дл=6,7 ммоль/л.";
+/* Minimum Safety Threshold */
+"All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted." = "All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted.";
 
 /* Header */
 "Calculator settings" = "Настройки калькулятора";
