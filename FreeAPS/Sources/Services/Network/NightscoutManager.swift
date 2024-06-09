@@ -44,6 +44,10 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         settingsManager.settings.isUploadEnabled
     }
 
+    private var isDownloadEnabled: Bool {
+        settingsManager.settings.isDownloadEnabled
+    }
+
     private var isUploadGlucoseEnabled: Bool {
         settingsManager.settings.uploadGlucose
     }
@@ -140,7 +144,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     func fetchCarbs() -> AnyPublisher<[CarbsEntry], Never> {
-        guard let nightscout = nightscoutAPI, isNetworkReachable else {
+        guard let nightscout = nightscoutAPI, isNetworkReachable, isDownloadEnabled else {
             return Just([]).eraseToAnyPublisher()
         }
 
@@ -151,7 +155,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     func fetchTempTargets() -> AnyPublisher<[TempTarget], Never> {
-        guard let nightscout = nightscoutAPI, isNetworkReachable else {
+        guard let nightscout = nightscoutAPI, isNetworkReachable, isDownloadEnabled else {
             return Just([]).eraseToAnyPublisher()
         }
 
@@ -162,7 +166,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     func fetchAnnouncements() -> AnyPublisher<[Announcement], Never> {
-        guard let nightscout = nightscoutAPI, isNetworkReachable else {
+        guard let nightscout = nightscoutAPI, isNetworkReachable, isDownloadEnabled else {
             return Just([]).eraseToAnyPublisher()
         }
 

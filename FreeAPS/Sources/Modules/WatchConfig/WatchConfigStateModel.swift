@@ -31,6 +31,7 @@ extension WatchConfig {
         @Published var devices: [IQDevice] = []
         @Published var selectedAwConfig: AwConfig = .HR
         @Published var displayFatAndProteinOnWatch = false
+        @Published var confirmBolusFaster = false
 
         private(set) var preferences = Preferences()
 
@@ -38,6 +39,7 @@ extension WatchConfig {
             preferences = provider.preferences
 
             subscribeSetting(\.displayFatAndProteinOnWatch, on: $displayFatAndProteinOnWatch) { displayFatAndProteinOnWatch = $0 }
+            subscribeSetting(\.confirmBolusFaster, on: $confirmBolusFaster) { confirmBolusFaster = $0 }
             subscribeSetting(\.displayOnWatch, on: $selectedAwConfig) { selectedAwConfig = $0 }
             didSet: { [weak self] value in
                 // for compatibility with old displayHR
