@@ -25,7 +25,10 @@ extension PumpSettingsEditor {
             provider.save(settings: settings)
                 .receive(on: DispatchQueue.main)
                 .sink { _ in
+                    let settings = self.provider.settings()
                     self.syncInProgress = false
+                    self.maxBasal = settings.maxBasal
+                    self.maxBolus = settings.maxBolus
 
                 } receiveValue: {}
                 .store(in: &lifetime)

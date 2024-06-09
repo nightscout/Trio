@@ -2,6 +2,8 @@ import LoopKit
 import LoopKitUI
 
 extension PumpManager {
+    typealias RawValue = [String: Any]
+
     var rawValue: [String: Any] {
         [
             "managerIdentifier": pluginIdentifier, // "managerIdentifier": type(of: self).managerIdentifier,
@@ -11,14 +13,6 @@ extension PumpManager {
 }
 
 extension PumpManagerUI {
-//    static func setupViewController() -> PumpManagerSetupViewController & UIViewController & CompletionNotifying {
-//        setupViewController(
-//            insulinTintColor: .accentColor,
-//            guidanceColors: GuidanceColors(acceptable: .green, warning: .orange, critical: .red),
-//            allowedInsulinTypes: [.apidra, .humalog, .novolog, .fiasp, .lyumjev]
-//        )
-//    }
-
     func settingsViewController(
         bluetoothProvider: BluetoothProvider,
         pumpManagerOnboardingDelegate: PumpManagerOnboardingDelegate?
@@ -32,14 +26,6 @@ extension PumpManagerUI {
         vc.pumpManagerOnboardingDelegate = pumpManagerOnboardingDelegate
         return vc
     }
-
-//    func settingsViewController() -> UIViewController & CompletionNotifying {
-//        settingsViewController(
-//            insulinTintColor: .accentColor,
-//            guidanceColors: GuidanceColors(acceptable: .green, warning: .orange, critical: .red),
-//            allowedInsulinTypes: [.apidra, .humalog, .novolog, .fiasp, .lyumjev]
-//        )
-//    }
 }
 
 protocol PumpSettingsBuilder {
