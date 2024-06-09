@@ -45,6 +45,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     var cgmManager: CGMManagerUI? {
         didSet {
             rawCGMManager = cgmManager?.rawValue
+            UserDefaults.standard.clearLegacyCGMManagerRawValue()
         }
     }
 
