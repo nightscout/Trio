@@ -1,6 +1,11 @@
-oref0 branch: dev - git version: e023125
+oref0 branch: dev - git version: d1dfb70
 
 Last commits:
+d1dfb70 Merge pull request #26 from MikePlante1/typo
+d9f1662 fix `threshold_setting` typo
+b454837 Merge pull request #24 from nightscout/Trio_renames
+5319e39 update Discord url
+5b7affa Github issue templates and config.yml: rename from Open-iAPS to Trio
 e023125 Replace Open-iAPS with Trio (#23)
 fa373c9 Merge pull request #22 from nightscout/tmhastings-tddAdjBasal
 fc0ae69 tddAdjBasal pop-up correction

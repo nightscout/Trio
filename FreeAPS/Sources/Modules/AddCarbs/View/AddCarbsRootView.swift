@@ -49,7 +49,7 @@ extension AddCarbs {
                             autofocus: true,
                             cleanInput: true
                         )
-                        Text("grams").foregroundColor(.secondary)
+                        Text(state.carbs > state.maxCarbs ? "⚠️" : "g").foregroundColor(.secondary)
                     }.padding(.vertical)
 
                     if state.useFPUconversion {
@@ -122,8 +122,19 @@ extension AddCarbs {
                         mealSaved = true
                         state.add()
                     }
-                    label: { Text("Save and continue").font(.title3) }
-                        .disabled(mealSaved || state.carbs <= 0 && state.fat <= 0 && state.protein <= 0)
+                    label: { Text(state.saveButtonText()).font(.title3) }
+                        .disabled(
+                            mealSaved
+                                || state.carbs > state.maxCarbs
+                                || state.fat > state.maxFat
+                                || state.protein > state.maxProtein
+                                || (state.carbs <= 0 && state.fat <= 0 && state.protein <= 0)
+                        )
+                        .foregroundStyle(
+                            mealSaved || (state.carbs <= 0 && state.fat <= 0 && state.protein <= 0) ? .gray :
+                                state.carbs > state.maxCarbs || state.fat > state.maxFat || state.protein > state
+                                .maxProtein ? .red : .blue
+                        )
                         .frame(maxWidth: .infinity, alignment: .center)
                 } footer: { Text(state.waitersNotepad().description) }
 
@@ -264,7 +275,7 @@ extension AddCarbs {
                     autofocus: false,
                     cleanInput: true
                 )
-                Text("grams").foregroundColor(.secondary)
+                Text(state.fat > state.maxFat ? "⚠️" : "g").foregroundColor(.secondary)
             }
             HStack {
                 Text("Protein").foregroundColor(.red) // .fontWeight(.thin)
@@ -275,9 +286,8 @@ extension AddCarbs {
                     formatter: formatter,
                     autofocus: false,
                     cleanInput: true
-                ).foregroundColor(.loopRed)
-
-                Text("grams").foregroundColor(.secondary)
+                )
+                Text(state.protein > state.maxProtein ? "⚠️" : "g").foregroundColor(.secondary)
             }
         }
     }
