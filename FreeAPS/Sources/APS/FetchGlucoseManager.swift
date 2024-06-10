@@ -30,7 +30,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     private let processQueue = DispatchQueue(label: "BaseGlucoseManager.processQueue")
     @Injected() var glucoseStorage: GlucoseStorage!
     @Injected() var nightscoutManager: NightscoutManager!
-    @Injected() var tidePoolService: TidePoolManager!
+    @Injected() var tidepoolService: TidepoolManager!
     @Injected() var apsManager: APSManager!
     @Injected() var settingsManager: SettingsManager!
     @Injected() var healthKitManager: HealthKitManager!
@@ -45,6 +45,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     var cgmManager: CGMManagerUI? {
         didSet {
             rawCGMManager = cgmManager?.rawValue
+            UserDefaults.standard.clearLegacyCGMManagerRawValue()
         }
     }
 
@@ -235,7 +236,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         deviceDataManager.heartbeat(date: Date())
 
         nightscoutManager.uploadGlucose()
-        tidePoolService.uploadGlucose(device: cgmManager?.cgmManagerStatus.device)
+        tidepoolService.uploadGlucose(device: cgmManager?.cgmManagerStatus.device)
 
         let glucoseForHealth = filteredByDate.filter { !glucoseFromHealth.contains($0) }
 

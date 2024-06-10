@@ -146,12 +146,11 @@ extension Home {
                 battery: $state.battery,
                 name: $state.pumpName,
                 expiresAtDate: $state.pumpExpiresAtDate,
-                timerDate: $state.timerDate
+                timerDate: $state.timerDate,
+                pumpStatusHighlightMessage: $state.pumpStatusHighlightMessage
             )
             .onTapGesture {
-                if state.pumpDisplayState != nil {
-                    state.setupPump = true
-                }
+                state.setupPump = true
             }
         }
 

@@ -3,13 +3,13 @@ import LoopKit
 import LoopKitUI
 import SwiftUI
 
-struct TidePoolSetupView: UIViewControllerRepresentable {
+struct TidepoolSetupView: UIViewControllerRepresentable {
     let serviceUIType: ServiceUI.Type
     let pluginHost: PluginHost
     let serviceOnBoardDelegate: ServiceOnboardingDelegate
     let serviceDelegate: CompletionDelegate
 
-    func makeUIViewController(context _: UIViewControllerRepresentableContext<TidePoolSetupView>) -> UIViewController {
+    func makeUIViewController(context _: UIViewControllerRepresentableContext<TidepoolSetupView>) -> UIViewController {
         let result = serviceUIType.setupViewController(
             colorPalette: .default,
             pluginHost: pluginHost
@@ -26,20 +26,20 @@ struct TidePoolSetupView: UIViewControllerRepresentable {
         }
     }
 
-    func updateUIViewController(_: UIViewController, context _: UIViewControllerRepresentableContext<TidePoolSetupView>) {}
+    func updateUIViewController(_: UIViewController, context _: UIViewControllerRepresentableContext<TidepoolSetupView>) {}
 }
 
-struct TidePoolSettingsView: UIViewControllerRepresentable {
+struct TidepoolSettingsView: UIViewControllerRepresentable {
     let serviceUI: ServiceUI
     let serviceOnBoardDelegate: ServiceOnboardingDelegate
     let serviceDelegate: CompletionDelegate?
 
-    func makeUIViewController(context _: UIViewControllerRepresentableContext<TidePoolSettingsView>) -> UIViewController {
+    func makeUIViewController(context _: UIViewControllerRepresentableContext<TidepoolSettingsView>) -> UIViewController {
         var vc = serviceUI.settingsViewController(colorPalette: .default)
         vc.completionDelegate = serviceDelegate
         vc.serviceOnboardingDelegate = serviceOnBoardDelegate
         return vc
     }
 
-    func updateUIViewController(_: UIViewController, context _: UIViewControllerRepresentableContext<TidePoolSettingsView>) {}
+    func updateUIViewController(_: UIViewController, context _: UIViewControllerRepresentableContext<TidepoolSettingsView>) {}
 }

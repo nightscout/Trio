@@ -14,7 +14,7 @@ extension Settings {
         @Published var debugOptions = false
         @Published var animatedBackground = false
         @Published var serviceUIType: ServiceUI.Type?
-        @Published var setupTidePool = false
+        @Published var setupTidepool = false
 
         private(set) var buildNumber = ""
         private(set) var versionNumber = ""
@@ -62,6 +62,23 @@ extension Settings {
         func hideSettingsModal() {
             hideModal()
         }
+
+        // Commenting this out for now, as not needed and possibly dangerous for users to be able to nuke their pump pairing informations via the debug menu
+        // Leaving it in here, as it may be a handy functionality for further testing or developers.
+        // See https://github.com/nightscout/Trio/pull/277 for more information
+//
+//        func resetLoopDocuments() {
+//            guard let localDocuments = try? FileManager.default.url(
+//                for: .documentDirectory,
+//                in: .userDomainMask,
+//                appropriateFor: nil,
+//                create: true
+//            ) else {
+//                preconditionFailure("Could not get a documents directory URL.")
+//            }
+//            let storageURL = localDocuments.appendingPathComponent("PumpManagerState" + ".plist")
+//            try? FileManager.default.removeItem(at: storageURL)
+//        }
     }
 }
 
@@ -75,7 +92,7 @@ extension Settings.StateModel: SettingsObserver {
 extension Settings.StateModel: ServiceOnboardingDelegate {
     func serviceOnboarding(didCreateService service: Service) {
         debug(.nightscout, "Service with identifier \(service.pluginIdentifier) created")
-        provider.tidePoolManager.addTidePoolService(service: service)
+        provider.tidepoolManager.addTidepoolService(service: service)
     }
 
     func serviceOnboarding(didOnboardService service: Service) {
@@ -86,7 +103,7 @@ extension Settings.StateModel: ServiceOnboardingDelegate {
 
 extension Settings.StateModel: CompletionDelegate {
     func completionNotifyingDidComplete(_: CompletionNotifying) {
-        setupTidePool = false
-        provider.tidePoolManager.forceUploadData(device: fetchCgmManager.cgmManager?.cgmManagerStatus.device)
+        setupTidepool = false
+        provider.tidepoolManager.forceUploadData(device: fetchCgmManager.cgmManager?.cgmManagerStatus.device)
     }
 }
