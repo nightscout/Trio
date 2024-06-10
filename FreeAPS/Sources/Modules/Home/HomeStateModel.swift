@@ -107,6 +107,7 @@ extension Home {
             broadcaster.register(EnactedSuggestionObserver.self, observer: self)
             broadcaster.register(PumpBatteryObserver.self, observer: self)
             broadcaster.register(PumpReservoirObserver.self, observer: self)
+            broadcaster.register(PumpDeactivatedObserver.self, observer: self)
 
             animatedBackground = settingsManager.settings.animatedBackground
 
@@ -169,7 +170,7 @@ extension Home {
                     } else {
                         self.setupBattery()
                         self.setupReservoir()
-                        self.displaypumpStatusHighlightMessage()
+                        self.displayPumpStatusHighlightMessage()
                     }
                 }
                 .store(in: &lifetime)
@@ -352,13 +353,14 @@ extension Home {
 
         /// Display the eventual status message provided by the manager of the pump
         /// Only display if state is warning or critical message else return nil
-        private func displaypumpStatusHighlightMessage() {
+        private func displayPumpStatusHighlightMessage(_ didDeactivate: Bool = false) {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
-                if let statusHL = self.provider.deviceManager.pumpManager?.pumpStatusHighlight,
-                   statusHL.state == .warning || statusHL.state == .critical
+                if let statusHighlight = self.provider.deviceManager.pumpManager?.pumpStatusHighlight,
+                   statusHighlight.state == .warning || statusHighlight.state == .critical, !didDeactivate
                 {
-                    pumpStatusHighlightMessage = (statusHL.state == .warning ? "⚠️\n" : "‼️\n") + statusHL.localizedMessage
+                    pumpStatusHighlightMessage = (statusHighlight.state == .warning ? "⚠️\n" : "‼️\n") + statusHighlight
+                        .localizedMessage
                 } else {
                     pumpStatusHighlightMessage = nil
                 }
@@ -395,7 +397,8 @@ extension Home.StateModel:
     CarbsObserver,
     EnactedSuggestionObserver,
     PumpBatteryObserver,
-    PumpReservoirObserver
+    PumpReservoirObserver,
+    PumpDeactivatedObserver
 {
     func glucoseDidUpdate(_: [BloodGlucose]) {
         setupGlucose()
@@ -429,7 +432,7 @@ extension Home.StateModel:
         setupBasals()
         setupBoluses()
         setupSuspensions()
-        displaypumpStatusHighlightMessage()
+        displayPumpStatusHighlightMessage()
     }
 
     func pumpSettingsDidChange(_: PumpSettings) {
@@ -455,12 +458,16 @@ extension Home.StateModel:
 
     func pumpBatteryDidChange(_: Battery) {
         setupBattery()
-        displaypumpStatusHighlightMessage()
+        displayPumpStatusHighlightMessage()
     }
 
     func pumpReservoirDidChange(_: Decimal) {
         setupReservoir()
-        displaypumpStatusHighlightMessage()
+        displayPumpStatusHighlightMessage()
+    }
+
+    func pumpDeactivatedDidChange() {
+        displayPumpStatusHighlightMessage(true)
     }
 }
 

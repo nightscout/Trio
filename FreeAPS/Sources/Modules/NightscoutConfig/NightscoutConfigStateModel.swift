@@ -84,6 +84,24 @@ extension NightscoutConfig {
             return NightscoutAPI(url: url, secret: secret)
         }
 
+        private func getMedianTarget(
+            lowTargetValue: Decimal,
+            lowTargetTime: String,
+            highTarget: [NightscoutTimevalue],
+            units: GlucoseUnits
+        ) -> Decimal {
+            if let idx = highTarget.firstIndex(where: { $0.time == lowTargetTime }) {
+                let median = (lowTargetValue + highTarget[idx].value) / 2
+                switch units {
+                case .mgdL:
+                    return Decimal(round(Double(median)))
+                case .mmolL:
+                    return Decimal(round(Double(median) * 10) / 10)
+                }
+            }
+            return lowTargetValue
+        }
+
         func importSettings() {
             guard let nightscout = nightscoutAPI else {
                 saveError("Can't access nightscoutAPI")
@@ -134,8 +152,10 @@ extension NightscoutConfig {
                     do {
                         let fetchedProfileStore = try jsonDecoder.decode([FetchedNightscoutProfileStore].self, from: data)
                         let loop = fetchedProfileStore.first?.enteredBy.contains("Loop")
-                        guard let fetchedProfile: FetchedNightscoutProfile = fetchedProfileStore.first?
-                            .store[loop! ? "Default" : "default"]
+                        guard let fetchedProfile: FetchedNightscoutProfile =
+                            (fetchedProfileStore.first?.store["default"] != nil) ?
+                            fetchedProfileStore.first?.store["default"] :
+                            fetchedProfileStore.first?.store["Default"]
                         else {
                             error = "\nCan't find the default Nightscout Profile."
                             group.leave()
@@ -220,9 +240,15 @@ extension NightscoutConfig {
 
                         let targets = fetchedProfile.target_low
                             .map { target -> BGTargetEntry in
-                                BGTargetEntry(
-                                    low: target.value,
-                                    high: target.value,
+                                let median = loop! ? self.getMedianTarget(
+                                    lowTargetValue: target.value,
+                                    lowTargetTime: target.time,
+                                    highTarget: fetchedProfile.target_high,
+                                    units: self.units
+                                ) : target.value
+                                return BGTargetEntry(
+                                    low: median,
+                                    high: median,
                                     start: target.time,
                                     offset: self.offset(target.time) / 60
                                 ) }
