@@ -1,4 +1,5 @@
 import Combine
+import Foundation
 import SwiftUI
 
 struct DecimalTextField: UIViewRepresentable {
@@ -20,6 +21,13 @@ struct DecimalTextField: UIViewRepresentable {
         self.formatter = formatter
         self.autofocus = autofocus
         self.cleanInput = cleanInput
+        NotificationBroadcaster.shared.register(event: "ClearButtonTappedObserver") { [self] _ in
+            self.clearButtonTappedDidUpdate()
+        }
+    }
+
+    func clearButtonTappedDidUpdate() {
+        value = 0
     }
 
     func makeUIView(context: Context) -> UITextField {
@@ -139,15 +147,44 @@ struct DecimalTextField: UIViewRepresentable {
     }
 }
 
+// MARK: Singleton NotificationBroadcaster class
+
+class NotificationBroadcaster {
+    static let shared = NotificationBroadcaster()
+
+    private var listeners: [String: [(Any) -> Void]] = [:]
+
+    func register(event: String, listener: @escaping (Any) -> Void) {
+        if listeners[event] == nil {
+            listeners[event] = []
+        }
+        listeners[event]?.append(listener)
+    }
+
+    func notify(event: String, object: Any?) {
+        listeners[event]?.forEach { $0(object ?? ()) }
+    }
+
+    func removeListeners(for event: String) {
+        listeners[event] = nil
+    }
+}
+
 // MARK: extension for done button
 
 extension UITextField {
+    private var broadcaster: NotificationBroadcaster {
+        NotificationBroadcaster.shared
+    }
+
     @objc func doneButtonTapped(button _: UIBarButtonItem) {
         resignFirstResponder()
+        broadcaster.removeListeners(for: "ClearButtonTappedObserver")
     }
 
     @objc func clearButtonTapped(button _: UIBarButtonItem) {
         text = ""
+        broadcaster.notify(event: "ClearButtonTappedObserver", object: self)
     }
 }
 
