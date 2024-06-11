@@ -21,9 +21,6 @@ struct DecimalTextField: UIViewRepresentable {
         self.formatter = formatter
         self.autofocus = autofocus
         self.cleanInput = cleanInput
-        NotificationBroadcaster.shared.register(event: "ClearButtonTappedObserver") { [self] _ in
-            self.clearButtonTappedDidUpdate()
-        }
     }
 
     func clearButtonTappedDidUpdate() {
@@ -117,6 +114,9 @@ struct DecimalTextField: UIViewRepresentable {
             if isNumber || withDecimal,
                let currentValue = textField.text as NSString?
             {
+                NotificationBroadcaster.shared.register(event: "ClearButtonTappedObserver") { [self] _ in
+                    parent.clearButtonTappedDidUpdate()
+                }
                 // Update Value
                 let proposedValue = currentValue.replacingCharacters(in: range, with: string) as String
 
