@@ -23,10 +23,6 @@ struct DecimalTextField: UIViewRepresentable {
         self.cleanInput = cleanInput
     }
 
-    func clearButtonTappedDidUpdate() {
-        value = 0
-    }
-
     func makeUIView(context: Context) -> UITextField {
         let textfield = UITextField()
         textfield.keyboardType = .decimalPad
@@ -91,6 +87,8 @@ struct DecimalTextField: UIViewRepresentable {
         }
 
         private(set) var isEditing = false
+        private(set) var _beganEditing = false
+        private(set) var _rightAlign = true
         private var editingCancellable: AnyCancellable?
 
         func resetEditing() {
@@ -114,9 +112,6 @@ struct DecimalTextField: UIViewRepresentable {
             if isNumber || withDecimal,
                let currentValue = textField.text as NSString?
             {
-                NotificationBroadcaster.shared.register(event: "ClearButtonTappedObserver") { [self] _ in
-                    parent.clearButtonTappedDidUpdate()
-                }
                 // Update Value
                 let proposedValue = currentValue.replacingCharacters(in: range, with: string) as String
 
@@ -142,7 +137,34 @@ struct DecimalTextField: UIViewRepresentable {
         ) {
             // Format value with formatter at End Editing
             textField.text = parent.formatter.string(for: parent.value)
+            if textField.text == "0"
+            {
+                textField.text = ""
+            }
             isEditing = false
+            NotificationBroadcaster.shared.removeListeners(for: "ClearButtonTappedObserver")
+        }
+
+        func textFieldDidBeginEditing(_: UITextField) {
+            _beganEditing =
+                true // if we change cursor position here (with DispatchQueue), cursor jumps ; instead, do in DidChangeSelection
+            NotificationBroadcaster.shared.register(event: "ClearButtonTappedObserver") { [self] _ in
+                clearButtonTappedDidUpdate(object: self)
+            }
+        }
+
+        func textFieldDidChangeSelection(_ textField: UITextField) {
+            if _beganEditing {
+                _beganEditing = false
+                if _rightAlign {
+                    let position = textField.endOfDocument
+                    textField.selectedTextRange = textField.textRange(from: position, to: position)
+                }
+            }
+        }
+
+        func clearButtonTappedDidUpdate(object _: Any) {
+            parent.value = 0
         }
     }
 }
@@ -179,7 +201,6 @@ extension UITextField {
 
     @objc func doneButtonTapped(button _: UIBarButtonItem) {
         resignFirstResponder()
-        broadcaster.removeListeners(for: "ClearButtonTappedObserver")
     }
 
     @objc func clearButtonTapped(button _: UIBarButtonItem) {
