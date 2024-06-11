@@ -27,6 +27,8 @@ This method for building without a Mac was ported from Loop. If you have used th
 
 There are more detailed instructions in LoopDocs for doing Browser Builds of Loop and other apps, including troubleshooting and build errors. Please refer to [LoopDocs](https://loopkit.github.io/loopdocs/gh-actions/gh-other-apps/) for more details.
 
+If you build multiple apps, you may want to use a free *GitHub* organization. Please refer to [LoopDocs: Use a *GitHub* Organization Account](https://loopkit.github.io/loopdocs/gh-actions/gh-other-apps/#use-a-github-organization-account).
+
 ## Prerequisites
 
 * A [github account](https://github.com/signup). The free level comes with plenty of storage and free compute time to build Trio, multiple times a day, if you wanted to.
@@ -121,18 +123,27 @@ _Please note that in default builds of Trio, the app group is actually identical
 
 ## Add App Group to Bundle Identifiers
 
+> Each Identifier **NAME** listed below is the same as the **NAME** used by iAPS, they are distinguised by the **IDENTIFIER** itself, which includes the new BundleID for your Trio app
+
+> If you built Trio with Xcode before, the **NAME** will start with XC
+
+> Use the **IDENTIFIER** string rather than the **NAME** to select the correct identifier
+
 1. Go to [Certificates, Identifiers & Profiles](https://developer.apple.com/account/resources/identifiers/list) on the Apple developer site.
-1. For each of the following identifier names:
-    * FreeAPS
-    * FreeAPS watchkitapp
-    * FreeAPS watchkitapp watchkitextension
-1. Click on the identifier's name.
+1. Repeat this step for each **NAME** with associated **IDENTIFIER**:
+    * FreeAPS: `org.nightscout.TEAMID.trio`
+    * FreeAPS watchkitapp: `org.nightscout.TEAMID.trio.watchkitapp`
+    * FreeAPS watchkitapp watchkitextension: `org.nightscout.TEAMID.trio.watchkitapp.watchkitextension`
+1. Click on the **IDENTIFIER** row.
 1. On the "App Groups" capabilies, click on the "Configure" button.
 1. Select the "Loop App Group" _(yes, "Loop App Group" is correct)_
 1. Click "Continue".
 1. Click "Save".
 1. Click "Confirm".
 1. Remember to do this for each of the identifiers above.
+
+There is an additional identifier, but it does not need the App Group added to it:
+* LiveActivityExtension: `org.nightscout.TEAMID.trio.LiveActivity`
 
 ## Create Trio App in App Store Connect
 
