@@ -216,3 +216,48 @@ extension UIApplication {
         sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 }
+
+struct RightAdjustedTextField: UIViewRepresentable {
+    @Binding var text: String
+    var textAlignment: NSTextAlignment
+
+    class Coordinator: NSObject, UITextFieldDelegate {
+        var parent: RightAdjustedTextField
+
+        init(parent: RightAdjustedTextField) {
+            self.parent = parent
+        }
+
+        // Position cursor at end of text
+        func textFieldDidBeginEditing(_ textField: UITextField) {
+            DispatchQueue.main.async {
+                let endPosition = textField.endOfDocument
+                textField.selectedTextRange = textField.textRange(from: endPosition, to: endPosition)
+            }
+        }
+
+        @objc func textFieldEditingChanged(_ textField: UITextField) {
+            parent.text = textField.text ?? ""
+        }
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(parent: self)
+    }
+
+    func makeUIView(context: Context) -> UITextField {
+        let textField = UITextField()
+        textField.delegate = context.coordinator
+        textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        textField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        textField.textAlignment = textAlignment
+        textField.addTarget(context.coordinator, action: #selector(Coordinator.textFieldEditingChanged(_:)), for: .editingChanged)
+        return textField
+    }
+
+    func updateUIView(_ uiView: UITextField, context _: Context) {
+        uiView.text = text
+        uiView.textAlignment = textAlignment
+    }
+}
