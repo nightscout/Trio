@@ -58,10 +58,6 @@ extension AddCarbs {
                     HStack {
                         Text("Note").foregroundColor(.secondary)
                         RightAdjustedTextField(text: $state.note, textAlignment: .right)
-                        if isFocused {
-                            Button { isFocused = false } label: { Image(systemName: "keyboard.chevron.compact.down") }
-                                .controlSize(.mini)
-                        }
                     }.focused($isFocused)
                     HStack {
                         Button {

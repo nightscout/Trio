@@ -249,6 +249,11 @@ struct RightAdjustedTextField: UIViewRepresentable {
             NotificationBroadcaster.shared.removeListeners(for: "ClearButtonTappedObserver")
         }
 
+        func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+            textField.resignFirstResponder()
+            return true
+        }
+
         func clearButtonTappedDidUpdate(object _: Any) {
             parent.text = ""
         }
