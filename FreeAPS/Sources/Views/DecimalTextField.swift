@@ -217,6 +217,8 @@ extension UIApplication {
     }
 }
 
+// MARK: RightAdjustedTextField UITextField implementation
+
 struct RightAdjustedTextField: UIViewRepresentable {
     @Binding var text: String
     var textAlignment: NSTextAlignment
@@ -234,6 +236,21 @@ struct RightAdjustedTextField: UIViewRepresentable {
                 let endPosition = textField.endOfDocument
                 textField.selectedTextRange = textField.textRange(from: endPosition, to: endPosition)
             }
+            NotificationBroadcaster.shared.register(event: "ClearButtonTappedObserver") { [self] _ in
+                clearButtonTappedDidUpdate(object: self)
+            }
+        }
+
+        func textFieldDidEndEditing(
+            _ textField: UITextField,
+            reason _: UITextField.DidEndEditingReason
+        ) {
+            textField.text = parent.text
+            NotificationBroadcaster.shared.removeListeners(for: "ClearButtonTappedObserver")
+        }
+
+        func clearButtonTappedDidUpdate(object _: Any) {
+            parent.text = ""
         }
 
         @objc func textFieldEditingChanged(_ textField: UITextField) {
@@ -253,6 +270,31 @@ struct RightAdjustedTextField: UIViewRepresentable {
         textField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         textField.textAlignment = textAlignment
         textField.addTarget(context.coordinator, action: #selector(Coordinator.textFieldEditingChanged(_:)), for: .editingChanged)
+        let toolBar = UIToolbar(frame: CGRect(
+            x: 0,
+            y: 0,
+            width: textField.frame.size.width,
+            height: 44
+        ))
+        let clearButton = UIBarButtonItem(
+            title: NSLocalizedString("Clear", comment: "Clear button"),
+            style: .plain,
+            target: self,
+            action: #selector(textField.clearButtonTapped(button:))
+        )
+        let doneButton = UIBarButtonItem(
+            title: NSLocalizedString("Done", comment: "Done button"),
+            style: .done,
+            target: self,
+            action: #selector(textField.doneButtonTapped(button:))
+        )
+        let space = UIBarButtonItem(
+            barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace,
+            target: nil,
+            action: nil
+        )
+        toolBar.setItems([clearButton, space, doneButton], animated: true)
+        textField.inputAccessoryView = toolBar
         return textField
     }
 
