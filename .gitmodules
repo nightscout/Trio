@@ -4,8 +4,8 @@
 	branch = dev
 [submodule "CGMBLEKit"]
 	path = CGMBLEKit
-	url = https://github.com/LoopKit/CGMBLEKit.git
-	branch = dev
+	url = https://github.com/loopandlearn/CGMBLEKit.git
+	branch = trio
 [submodule "dexcom-share-client-swift"]
 	path = dexcom-share-client-swift
 	url = https://github.com/LoopKit/dexcom-share-client-swift.git
@@ -20,8 +20,8 @@
 	branch = dev
 [submodule "G7SensorKit"]
 	path = G7SensorKit
-	url = https://github.com/LoopKit/G7SensorKit.git
-	branch = main
+	url = https://github.com/loopandlearn/G7SensorKit.git
+	branch = trio
 [submodule "OmniKit"]
 	path = OmniKit
 	url = https://github.com/LoopKit/OmniKit.git
@@ -32,8 +32,8 @@
 	branch = main
 [submodule "LibreTransmitter"]
 	path = LibreTransmitter
-	url = https://github.com/LoopKit/LibreTransmitter.git
-	branch = main
+	url = https://github.com/loopandlearn/LibreTransmitter.git
+	branch = trio
 [submodule "TidepoolService"]
 	path = TidepoolService
 	url = https://github.com/LoopKit/TidepoolService.git
