@@ -1,6 +1,6 @@
 [submodule "LoopKit"]
 	path = LoopKit
-	url = https://github.com/LoopKit/LoopKit.git
+	url = https://github.com/bastiaanv/LoopKit.git
 	branch = dev
 [submodule "CGMBLEKit"]
 	path = CGMBLEKit
