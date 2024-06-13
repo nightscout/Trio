@@ -921,7 +921,7 @@ final class BaseAPSManager: APSManager, Injectable {
         bolusReporter = nil
         processQueue.asyncAfter(deadline: .now() + 0.5) {
             self.bolusProgress.send(nil)
-            self.updateStatus()
+            // self.updateStatus()
         }
     }
 }
