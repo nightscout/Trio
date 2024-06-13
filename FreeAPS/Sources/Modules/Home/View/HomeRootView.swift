@@ -831,7 +831,8 @@ extension Home {
                 .tint(Color.tabBar)
 
                 Button(
-                    action: { print("hey") },
+                    action: {
+                        state.showModal(for: .bolus) },
                     label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 40))
