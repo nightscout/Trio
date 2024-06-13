@@ -613,7 +613,7 @@ extension Bolus.StateModel {
     private func fetchGlucose() async -> [NSManagedObjectID] {
         CoreDataStack.shared.fetchEntities(
             ofType: GlucoseStored.self,
-            onContext: context,
+            onContext: backgroundContext,
             predicate: NSPredicate.predicateFor30MinAgo,
             key: "date",
             ascending: false,
@@ -652,7 +652,7 @@ extension Bolus.StateModel {
     private func fetchDeterminations() async -> [NSManagedObjectID] {
         CoreDataStack.shared.fetchEntities(
             ofType: OrefDetermination.self,
-            onContext: context,
+            onContext: backgroundContext,
             predicate: NSPredicate.enactedDetermination,
             key: "deliverAt",
             ascending: false,
