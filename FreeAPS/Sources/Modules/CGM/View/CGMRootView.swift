@@ -129,6 +129,7 @@ extension CGM {
                 .onChange(of: state.setupCGM) { setupCGM in
                     self.setupCGM = setupCGM
                 }
+                .screenNavigation(self)
             }
         }
     }

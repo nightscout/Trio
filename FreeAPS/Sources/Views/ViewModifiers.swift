@@ -59,19 +59,30 @@ struct NavigationLazyView: View {
     }
 }
 
-struct Link<T>: ViewModifier where T: View {
-    private let destination: () -> T
+struct Link: ViewModifier {
     let screen: Screen
 
-    init(destination: @autoclosure @escaping () -> T, screen: Screen) {
-        self.destination = destination
+    init(screen: Screen) {
         self.screen = screen
     }
 
     func body(content: Content) -> some View {
-        NavigationLink(destination: NavigationLazyView(destination().asAny(), screen: screen)) {
-            content
-        }
+        NavigationLink(value: screen, label: { content })
+    }
+}
+
+struct ScreenNavigation<T>: ViewModifier where T: View {
+    private let destination: (Screen) -> T
+
+    init(destination: @escaping (Screen) -> T) {
+        self.destination = destination
+    }
+
+    func body(content: Content) -> some View {
+        content.navigationDestination(
+            for: Screen.self,
+            destination: { screen in NavigationLazyView(destination(screen).asAny(), screen: screen) }
+        )
     }
 }
 
@@ -130,8 +141,14 @@ extension View {
         modifier(RoundedBackground(color: .accentColor))
     }
 
-    func navigationLink<V: BaseView>(to screen: Screen, from view: V) -> some View {
-        modifier(Link(destination: view.state.view(for: screen), screen: screen))
+    func navigationLink<V: BaseView>(to screen: Screen, from _: V) -> some View {
+        modifier(Link(screen: screen))
+    }
+
+    func screenNavigation<V: BaseView>(_ view: V) -> some View {
+        modifier(ScreenNavigation { screen in
+            view.state.view(for: screen)
+        })
     }
 
     func adaptsToSoftwareKeyboard() -> some View {

@@ -788,9 +788,11 @@ extension Home {
             }
         }
 
+        @State var settingsPath = NavigationPath()
+
         @ViewBuilder func tabBar() -> some View {
             ZStack(alignment: .bottom) {
-                TabView {
+                TabView(selection: $selectedTab) {
                     let carbsRequiredBadge: String? = {
                         guard let carbsRequired = state.determinationsFromPersistence.first?.carbsRequired as? Decimal
                         else { return nil }
@@ -805,10 +807,10 @@ extension Home {
 
                     NavigationStack { mainView() }
                         .tabItem { Label("Main", systemImage: "chart.xyaxis.line") }
-                        .badge(carbsRequiredBadge)
+                        .badge(carbsRequiredBadge).tag(0)
 
                     NavigationStack { DataTable.RootView(resolver: resolver) }
-                        .tabItem { Label("History", systemImage: historySFSymbol) }
+                        .tabItem { Label("History", systemImage: historySFSymbol) }.tag(1)
 
                     Spacer()
 
@@ -817,20 +819,19 @@ extension Home {
                             Label(
                                 "Profile",
                                 systemImage: "person.fill"
-                            ) }
+                            ) }.tag(2)
 
-                    NavigationStack { Settings.RootView(resolver: resolver) }
-                        .tabItem {
-                            Label(
-                                "Menu",
-                                systemImage: "text.justify"
-                            ) }
+                    NavigationStack(path: self.$settingsPath) {
+                        Settings.RootView(resolver: resolver) }
+                        .tabItem { Label(
+                            "Menu",
+                            systemImage: "text.justify"
+                        ) }.tag(3)
                 }
                 .tint(Color.tabBar)
 
                 Button(
-                    action: {
-                        state.showModal(for: .bolus) },
+                    action: { print("hey") },
                     label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 40))
@@ -840,6 +841,10 @@ extension Home {
                     }
                 )
             }.ignoresSafeArea(.keyboard, edges: .bottom).blur(radius: state.waitForSuggestion ? 8 : 0)
+                .onChange(of: selectedTab) { _ in
+                    print("current path is empty: \(settingsPath.isEmpty)")
+                    settingsPath = NavigationPath()
+                }
         }
 
         var body: some View {

@@ -39,7 +39,7 @@
       },
       {
         "package": "SwiftCharts",
-        "repositoryURL": "https://github.com/ivanschuetz/SwiftCharts",
+        "repositoryURL": "https://github.com/ivanschuetz/SwiftCharts.git",
         "state": {
           "branch": "master",
           "revision": "c354c1945bb35a1f01b665b22474f6db28cba4a2",
@@ -69,8 +69,8 @@
         "repositoryURL": "https://github.com/Swinject/Swinject",
         "state": {
           "branch": null,
-          "revision": "3125943807991bc271d366205d98713696d65a1f",
-          "version": "2.8.8"
+          "revision": "be9dbcc7b86811bc131539a20c6f9c2d3e56919f",
+          "version": "2.9.1"
         }
       }
     ]

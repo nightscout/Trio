@@ -173,6 +173,7 @@ extension Settings {
                 .navigationTitle("Menu")
                 .navigationBarTitleDisplayMode(.large)
                 .onDisappear(perform: { state.uploadProfileAndSettings(false) })
+                .screenNavigation(self)
         }
     }
 }

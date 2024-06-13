@@ -772,7 +772,9 @@ public class PodCommsSession {
                     let _: StatusResponse = try send([CancelDeliveryCommand(nonce: podState.currentNonce, deliveryType: .all, beepType: .noBeepCancel)])
                 }
             }
+            podState.unacknowledgedCommand = PendingCommand.program(.basalProgram(schedule: schedule), transport.messageNumber, currentDate)
             var status: StatusResponse = try send([basalScheduleCommand, basalExtraCommand])
+            podState.unacknowledgedCommand = nil
             let now = currentDate
             podState.suspendState = .resumed(now)
             podState.unfinalizedResume = UnfinalizedDose(resumeStartTime: now, scheduledCertainty: .certain, insulinType: podState.insulinType)
@@ -783,12 +785,12 @@ public class PodCommsSession {
             }
             podState.updateFromStatusResponse(status, at: currentDate)
             return status
-        } catch PodCommsError.nonceResyncFailed {
-            throw PodCommsError.nonceResyncFailed
-        } catch PodCommsError.rejectedMessage(let errorCode) {
-            throw PodCommsError.rejectedMessage(errorCode: errorCode)
+        } catch PodCommsError.unacknowledgedMessage(let seq, let error) {
+            podState.unacknowledgedCommand = podState.unacknowledgedCommand?.commsFinished
+            log.error("Unacknowledged resume: command seq = %d, error = %{public}@", seq, String(describing: error))
+            throw error
         } catch let error {
-            podState.unfinalizedResume = UnfinalizedDose(resumeStartTime: currentDate, scheduledCertainty: .uncertain, insulinType: podState.insulinType)
+            podState.unacknowledgedCommand = nil
             throw error
         }
     }
