@@ -17,7 +17,7 @@ import Foundation
     @Parameter(
         title: LocalizedStringResource("Preset", table: "ShortcutsDetail"),
         description: LocalizedStringResource("Preset choice", table: "ShortcutsDetail")
-    ) var preset: overridePreset?
+    ) var preset: OverridePreset?
 
     @Parameter(
         title: LocalizedStringResource("Confirm Before applying", table: "ShortcutsDetail"),
@@ -39,7 +39,7 @@ import Foundation
 
     @MainActor func perform() async throws -> some ProvidesDialog {
         do {
-            let presetToApply: overridePreset
+            let presetToApply: OverridePreset
             if let preset = preset {
                 presetToApply = preset
             } else {

@@ -16,13 +16,13 @@ import Foundation
     @Parameter(
         title: LocalizedStringResource("Temporary Target", table: "ShortcutsDetail"),
         description: LocalizedStringResource("Target choice", table: "ShortcutsDetail")
-    ) var preset: tempPreset?
+    ) var preset: TempPreset?
 
     static var parameterSummary: some ParameterSummary {
         Summary("Choose the TempTarget  \(\.$preset)", table: "ShortcutsDetail")
     }
 
-    @MainActor func perform() async throws -> some ReturnsValue<tempPreset> {
+    @MainActor func perform() async throws -> some ReturnsValue<TempPreset> {
         .result(
             value: preset!
         )

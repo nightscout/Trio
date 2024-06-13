@@ -12,8 +12,6 @@ extension ShortcutsConfig {
         @Published var maxBolusByShortcuts: BolusShortcutLimit = .noAllowed
 
         override func subscribe() {
-            // allowBolusByShortcuts = (maxBolusByShortcuts != .noAllowed)
-
             subscribeSetting(\.bolusShortcut, on: $maxBolusByShortcuts) {
                 maxBolusByShortcuts = ($0 == .noAllowed) ? .limitBolusMax : $0
                 allowBolusByShortcuts = ($0 != .noAllowed)

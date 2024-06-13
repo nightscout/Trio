@@ -7,26 +7,26 @@ import Foundation
         case noDurationDefined
     }
 
-    private func convert(tt: [TempTarget]) -> [tempPreset] {
-        tt.map { tempPreset.convert($0) }
+    private func convert(tt: [TempTarget]) -> [TempPreset] {
+        tt.map { TempPreset.convert($0) }
     }
 
-    func fetchAll() -> [tempPreset] {
+    func fetchAll() -> [TempPreset] {
         convert(tt: tempTargetsStorage.presets())
     }
 
-    func fetchIDs(_ uuid: [tempPreset.ID]) -> [tempPreset] {
+    func fetchIDs(_ uuid: [TempPreset.ID]) -> [TempPreset] {
         let UUIDTempTarget = tempTargetsStorage.presets().filter { uuid.contains(UUID(uuidString: $0.id)!) }
         return convert(tt: UUIDTempTarget)
     }
 
-    func fetchOne(_ uuid: tempPreset.ID) -> tempPreset? {
+    func fetchOne(_ uuid: TempPreset.ID) -> TempPreset? {
         let UUIDTempTarget = tempTargetsStorage.presets().filter { UUID(uuidString: $0.id) == uuid }
         guard let OneTempTarget = UUIDTempTarget.first else { return nil }
-        return tempPreset.convert(OneTempTarget)
+        return TempPreset.convert(OneTempTarget)
     }
 
-    func findTempTarget(_ tempPreset: tempPreset) throws -> TempTarget {
+    func findTempTarget(_ tempPreset: TempPreset) throws -> TempTarget {
         let tempTargetFound = tempTargetsStorage.presets().filter { $0.id == tempPreset.id.uuidString }
         guard let tempOneTarget = tempTargetFound.first else { throw TempPresetsError.noTempTargetFound }
         return tempOneTarget

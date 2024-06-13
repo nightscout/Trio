@@ -9,7 +9,7 @@ import Foundation
         return formatter
     }
 
-    private var presetCarbsList: [carbPresetResult] = []
+    private var presetCarbsList: [CarbPresetResult] = []
 
     override init() {
         super.init()
@@ -17,7 +17,7 @@ import Foundation
         let requestCarbsList = Presets.fetchRequest() as NSFetchRequest<Presets>
         try? carbsList = coredataContext.fetch(requestCarbsList)
         presetCarbsList = carbsList.compactMap {
-            carbPresetResult(
+            CarbPresetResult(
                 id: $0.objectID.uriRepresentation().absoluteString,
                 name: $0.dish ?? "-",
                 carbs: ($0.carbs ?? 0.0) as! Double,
@@ -61,17 +61,17 @@ import Foundation
         )
     }
 
-    func listPresetCarbs() async throws -> [carbPresetResult] {
+    func listPresetCarbs() async throws -> [CarbPresetResult] {
         presetCarbsList
     }
 
-    func listPresetCarbs(_ ids: [String]) async throws -> [carbPresetResult] {
+    func listPresetCarbs(_ ids: [String]) async throws -> [CarbPresetResult] {
         presetCarbsList.filter {
             ids.contains($0.id)
         }
     }
 
-    func getCarbsPresetInfo(presetId: String) async throws -> carbPresetResult? {
+    func getCarbsPresetInfo(presetId: String) async throws -> CarbPresetResult? {
         presetCarbsList.first {
             $0.id == presetId
         }

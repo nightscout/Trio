@@ -40,11 +40,10 @@ import Foundation
         guard let lastGlucose = glucose.last, let glucoseValue = lastGlucose.glucose else { return nil }
         let units = settingsManager.settings.units
 
-        return glucoseFormatter
-            .string(from: Double(
-                units == .mmolL ? glucoseValue
-                    .asMmolL : Decimal(glucoseValue)
-            ) as NSNumber)! + " " + units.rawValue
+        let glucoseNumber = units == .mmolL ? glucoseValue.asMmolL : Decimal(glucoseValue)
+        let formattedString = glucoseFormatter.string(from: Double(glucoseNumber) as NSNumber) ?? Double(0.0)
+
+        return formattedString + " " + units.rawValue
     }
 
     private var glucoseFormatter: NumberFormatter {
