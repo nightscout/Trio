@@ -41,7 +41,7 @@ import Foundation
         let units = settingsManager.settings.units
 
         let glucoseNumber = units == .mmolL ? glucoseValue.asMmolL : Decimal(glucoseValue)
-        let formattedString = glucoseFormatter.string(from: Double(glucoseNumber) as NSNumber) ?? Double(0.0)
+        let formattedString = glucoseFormatter.string(from: Double(glucoseNumber) as NSNumber) ?? "0.0"
 
         return formattedString + " " + units.rawValue
     }
