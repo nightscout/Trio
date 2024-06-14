@@ -247,6 +247,9 @@
         }
       }
     },
+    "Activating ${preset}" : {
+
+    },
     "Add Carbs" : {
       "localizations" : {
         "fr" : {
@@ -256,6 +259,9 @@
           }
         }
       }
+    },
+    "Adding ${carbQuantity} g at ${dateAdded}" : {
+
     },
     "Allow to add carbs" : {
       "localizations" : {
@@ -538,6 +544,7 @@
       }
     },
     "Amount not correctly defined" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -576,6 +583,9 @@
           }
         }
       }
+    },
+    "Applying ${bolusQuantity} U " : {
+
     },
     "Applying ${carbQuantity} g at ${dateAdded}" : {
       "extractionState" : "manual",
@@ -658,6 +668,9 @@
           }
         }
       }
+    },
+    "Applying ${preset} override" : {
+
     },
     "Are you sure to add %@ g of carbs ?" : {
       "localizations" : {
@@ -904,6 +917,15 @@
           }
         }
       }
+    },
+    "Choose the Carb preset ${preset}" : {
+
+    },
+    "Choose the temporary override  ${preset}" : {
+
+    },
+    "Choose the TempTarget  ${preset}" : {
+
     },
     "COB" : {
       "localizations" : {
@@ -1422,6 +1444,15 @@
         }
       }
     },
+    "Immediately activating ${preset}" : {
+
+    },
+    "Immediately adding ${carbQuantity} g at ${dateAdded}" : {
+
+    },
+    "Immediately applying ${bolusQuantity} U" : {
+
+    },
     "Immediately applying ${carbQuantity} g at ${dateAdded}" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1503,6 +1534,12 @@
           }
         }
       }
+    },
+    "Immediately applying ${preset} override" : {
+
+    },
+    "Immediatly starting ${target} ${unit} TempTarget for ${duration} min" : {
+
     },
     "IOB" : {
       "localizations" : {
@@ -2632,6 +2669,9 @@
           }
         }
       }
+    },
+    "Starting ${target} ${unit} TempTarget for ${duration} min" : {
+
     },
     "Starting Date" : {
       "extractionState" : "manual",
