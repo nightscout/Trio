@@ -35,15 +35,14 @@ import Foundation
 
     func fetchOne(_ uuid: OverridePreset.ID) -> OverridePreset? {
         let UUIDTempTarget = overrideList.filter { uuid == $0.id }
-        guard let OneTempTarget = UUIDTempTarget.first 
+        guard let OneTempTarget = UUIDTempTarget.first
         else { return nil }
         guard let id = OneTempTarget.id,
-              let name = OneTempTarget.name 
+              let name = OneTempTarget.name
         else { return nil }
 
         return OverridePreset(id: id, name: name)
     }
-
 
     func enactTempOverride(_ presetTarget: OverridePreset) throws -> Bool {
         let id = presetTarget.id
