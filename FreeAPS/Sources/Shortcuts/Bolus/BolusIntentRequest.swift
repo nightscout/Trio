@@ -8,7 +8,7 @@ import Foundation
     }
 
     func bolus(_ bolusAmount: Double) throws -> LocalizedStringResource {
-        var bolusQ: Decimal = 0
+        var bolusQuantity: Decimal = 0
         switch settingsManager.settings.bolusShortcut {
         case .notAllowed:
             return LocalizedStringResource(
@@ -16,21 +16,21 @@ import Foundation
                 table: "ShortcutsDetail"
             )
         case .limitBolusMax:
-            bolusQ = apsManager
+            bolusQuantity = apsManager
                 .roundBolus(amount: min(settingsManager.pumpSettings.maxBolus, Decimal(bolusAmount)))
         case .limitInsulinSuggestion:
             let insulinSuggestion = suggestion?.insulinForManualBolus ?? 0
 
-            bolusQ = apsManager
+            bolusQuantity = apsManager
                 .roundBolus(amount: min(
                     insulinSuggestion * (settingsManager.settings.insulinReqPercentage / 100),
                     Decimal(bolusAmount)
                 ))
         }
 
-        apsManager.enactBolus(amount: Double(bolusQ), isSMB: false)
+        apsManager.enactBolus(amount: Double(bolusQuantity), isSMB: false)
         return LocalizedStringResource(
-            "A bolus command of \(bolusQ.formatted()) U of insulin was sent",
+            "A bolus command of \(bolusQuantity.formatted()) U of insulin was sent",
             table: "ShortcutsDetail"
         )
     }
