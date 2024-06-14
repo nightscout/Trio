@@ -46,9 +46,9 @@ import Foundation
 
 
     func enactTempOverride(_ presetTarget: OverridePreset) throws -> Bool {
-        let id_ = presetTarget.id
+        let id = presetTarget.id
         coredataContext.performAndWait {
-            guard let profile = overrideList.filter({ $0.id == id_ }).first else { return }
+            guard let profile = overrideList.filter({ $0.id == id }).first else { return }
 
             let saveOverride = Override(context: self.coredataContext)
             saveOverride.duration = (profile.duration ?? 0) as NSDecimalNumber
@@ -59,7 +59,7 @@ import Foundation
             saveOverride.isPreset = true
             saveOverride.date = Date()
             saveOverride.target = profile.target
-            saveOverride.id = id_
+            saveOverride.id = id
 
             if profile.advancedSettings {
                 saveOverride.advancedSettings = true
