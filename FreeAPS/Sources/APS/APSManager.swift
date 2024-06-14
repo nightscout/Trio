@@ -470,6 +470,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 debug(.apsManager, "Bolus cancelled")
             }
 
+            self.updateStatus()
             self.bolusReporter?.removeObserver(self)
             self.bolusReporter = nil
             self.bolusProgress.send(nil)
@@ -921,7 +922,6 @@ final class BaseAPSManager: APSManager, Injectable {
         bolusReporter = nil
         processQueue.asyncAfter(deadline: .now() + 0.5) {
             self.bolusProgress.send(nil)
-            // self.updateStatus()
         }
     }
 }
