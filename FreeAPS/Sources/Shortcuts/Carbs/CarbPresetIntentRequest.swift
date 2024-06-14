@@ -28,10 +28,10 @@ import Foundation
     }
 
     func addCarbs(
-        _ quantityCarbs: Double,
-        _ quantityFat: Double,
-        _ quantityProtein: Double,
-        _ dateAdded: Date
+        quantityCarbs: Double,
+        quantityFat: Double,
+        quantityProtein: Double,
+        dateAdded: Date
     ) throws -> LocalizedStringResource {
         guard quantityCarbs >= 0.0 || quantityFat >= 0.0 || quantityProtein >= 0.0 else {
             return LocalizedStringResource("no adding carbs", table: "ShortcutsDetail")
