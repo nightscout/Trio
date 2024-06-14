@@ -9,19 +9,19 @@ import SwiftUI
 extension ShortcutsConfig {
     final class StateModel: BaseStateModel<Provider> {
         @Published var allowBolusByShortcuts: Bool = false
-        @Published var maxBolusByShortcuts: BolusShortcutLimit = .noAllowed
+        @Published var maxBolusByShortcuts: BolusShortcutLimit = .notAllowed
 
         override func subscribe() {
             subscribeSetting(\.bolusShortcut, on: $maxBolusByShortcuts) {
-                maxBolusByShortcuts = ($0 == .noAllowed) ? .limitBolusMax : $0
-                allowBolusByShortcuts = ($0 != .noAllowed)
+                maxBolusByShortcuts = ($0 == .notAllowed) ? .limitBolusMax : $0
+                allowBolusByShortcuts = ($0 != .notAllowed)
             }
 
             $allowBolusByShortcuts.receive(on: DispatchQueue.main)
                 .sink { [weak self] value in
                     if !value {
                         // the bolus is not allowed
-                        self?.settingsManager.settings.bolusShortcut = .noAllowed
+                        self?.settingsManager.settings.bolusShortcut = .notAllowed
                     } else {
                         //
                         if let bs = self?.maxBolusByShortcuts {

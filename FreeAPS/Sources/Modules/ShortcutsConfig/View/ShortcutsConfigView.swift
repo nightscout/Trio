@@ -31,7 +31,7 @@ extension ShortcutsConfig {
                         label: Text("Method to limit the bolus amount", tableName: "ShortcutsDetail")
                     ) {
                         ForEach(BolusShortcutLimit.allCases) { v in
-                            v != .noAllowed ? Text(v.displayName).tag(v) : nil
+                            v != .notAllowed ? Text(v.displayName).tag(v) : nil
                             // Text(v.displayName).tag(v)
                         }
                     }

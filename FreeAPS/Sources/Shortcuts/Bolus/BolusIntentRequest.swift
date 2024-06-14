@@ -10,7 +10,7 @@ import Foundation
     func bolus(_ bolusAmount: Double) throws -> LocalizedStringResource {
         var bolusQ: Decimal = 0
         switch settingsManager.settings.bolusShortcut {
-        case .noAllowed:
+        case .notAllowed:
             return LocalizedStringResource(
                 "the bolus is not allowed with shortcuts",
                 table: "ShortcutsDetail"
