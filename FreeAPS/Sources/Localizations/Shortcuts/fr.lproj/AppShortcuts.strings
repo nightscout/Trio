@@ -2,32 +2,40 @@
   AppShortcuts.strings
 */
 /* -------------------------------- */
-/* Trio Temporary Target shortcut*/
-"Activate ${applicationName} temporary target" = "Activer une cible temporaire à ${applicationName}";
 
-/* Trio Temporary Target shortcut Description */
-"${applicationName} apply a temporary target" = "${applicationName} permet d'appliquer une cible temporaire";
+/* Trio appliquer Bolus */
+"${applicationName} Bolus" = "${applicationName} Bolus";
 
-/* Trio Status shortcut */
-"List ${applicationName} state" = "Lister les états de ${applicationName}";
+"Enacts a ${applicationName} Bolus" = "Effectue un bolus ${applicationName}";
 
-/* Trio Status shortcut Description*/
-"${applicationName} state" = "Etat de ${applicationName}";
+/* Trio raccourci Cible Temporaire */
+"Activate ${applicationName} TempTarget Preset" = "Activer le préréglage temporaire de ${applicationName}";
 
-/* Trio Add carbs shortcut */
-"Add carbs in ${applicationName}" = "Ajouter des glucides à ${applicationName}";
+"Activates an available ${applicationName} TempTarget Preset" = "Active un préréglage temporaire disponible de ${applicationName}";
 
-/* Trio Add carbs shortcut description */
-"${applicationName} allows to add carbs" = "${applicationName} permet d'ajouter des glucides";
+"New ${applicationName} TempTarget" = "Nouveau TempTarget ${applicationName}";
 
-/* Trio Create and apply Temporary Target shortcut*/
-"Create and apply a temporary target in ${applicationName}" = "Définir et appliquer une cible temporaire à ${applicationName}";
+"Creates and applies a newly configured ${applicationName} TempTarget" = "Crée et applique un nouveau prérégleage temporaire configuré de ${applicationName}";
 
-/* Trio Create and apply Temporary Target description*/
-"${applicationName} allows to create and apply a temporary target" = "${applicationName} permet de définir et appliquer une cible temporaire";
+"Cancel ${applicationName} TempTarget" = "Annuler le préréglage temporaire ${applicationName}";
 
-/* Trio Temporary override shortcut*/
-"Activate ${applicationName} temporary override" = "Activer une surcharge temporaire à ${applicationName}";
+"Cancels an active ${applicationName} TempTarget" = "Annule un préréglage temporaire actif de ${applicationName}";
 
-/* Trio Temporary override shortcut Description */
-"${applicationName} apply a temporary override" = "${applicationName} permet d'appliquer une surcharge temporaire";
+/* Trio lister l'état */
+"List ${applicationName} state" = "Lister l'état de ${applicationName}";
+
+"Lists different states of ${applicationName}" = "Liste les différents états de ${applicationName}";
+
+/* Trio ajouter des glucides */
+"${applicationName} Carbs" = "Glucides ${applicationName}";
+
+"Adds carbs to ${applicationName}" = "Ajoute des glucides à ${applicationName}";
+
+/* Trio raccourci de remplacement */
+"Activate ${applicationName} Override Preset" = "Activer le profil de ${applicationName}";
+
+"Activates an available ${applicationName} Override Preset" = "Active un profil disponible de ${applicationName}";
+
+"Cancel ${applicationName} Override" = "Annuler profil ${applicationName}";
+
+"Cancels an active ${applicationName} Override" = "Annule le profil actif de ${applicationName}";

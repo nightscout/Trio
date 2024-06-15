@@ -1,36 +1,41 @@
 /*
   AppShortcuts.strings
 */
-/* --------- has to be redone after finalizing the shortcuts ----------------------- */
+/* -------------------------------- */
+
+/* Trio apply Bolus*/
+"${applicationName} Bolus" = "${applicationName} Bolus";
+
+"Enacts a ${applicationName} Bolus" = "Enacts a ${applicationName} Bolus";
+
 /* Trio Temporary Target shortcut*/
-"Activate ${applicationName} temporary target" = "Activate ${applicationName} temporary target";
+"Activate ${applicationName} TempTarget Preset" = "Activate ${applicationName} TempTarget Preset";
 
-/* Trio Temporary Target shortcut Description */
-"${applicationName} apply a temporary target" = "${applicationName} apply a temporary target";
+"Activates an available ${applicationName} TempTarget Preset" = "Activates an available ${applicationName} TempTarget Preset";
 
-/* Trio Status shortcut */
-"List ${applicationName} state" = "List ${applicationName} state";
+"New ${applicationName} TempTarget" = "New ${applicationName} TempTarget";
 
-/* Trio Status shortcut Description*/
-"${applicationName} state" = "${applicationName} state";
+"Creates and applies a newly configured ${applicationName} TempTarget"  = "Creates and applies a newly configured ${applicationName} TempTarget";
 
-/* Trio Add carbs shortcut */
-"Add carbs in ${applicationName}" = "Add carbs in ${applicationName}";
+"Cancel ${applicationName} TempTarget" =  "Cancel ${applicationName} TempTarget";
 
-/* Trio Add carbs shortcut description */
-"${applicationName} allows to add carbs" = "${applicationName} allows to add carbs";
+"Cancels an active ${applicationName} TempTarget" = "Cancels an active ${applicationName} TempTarget";
 
-/* Trio Add carbs shortcut description */
-"${applicationName} allows to add carbs" = "${applicationName} allows to add carbs";
+/* Trio List state shortcut*/
+"List ${applicationName} state" =  "List ${applicationName} state";
 
-/* Trio Create and apply Temporary Target shortcut*/
-"Create and apply a temporary target in ${applicationName}" = "Create and apply a temporary target in ${applicationName}";
+"Lists different states of ${applicationName}"="Lists different states of ${applicationName}";
 
-/* Trio Create and apply Temporary Target description*/
-"${applicationName} allows to create and apply a temporary target" = "${applicationName} allows to create and apply a temporary target";
+/* Trio add carbs shortcut*/
+"${applicationName} Carbs" = "${applicationName} Carbs";
 
-/* Trio Temporary override shortcut*/
-"Activate ${applicationName} temporary override" = "Activate ${applicationName} temporary override";
+"Adds carbs to ${applicationName}" = "Adds carbs to ${applicationName}";
 
-/* Trio Temporary override shortcut Description */
-"${applicationName} apply a temporary override" = "${applicationName} apply a temporary override";
+/* Trio override shortcut*/
+"Activate ${applicationName} Override Preset" = "Activate ${applicationName} Override Preset";
+
+"Activates an available ${applicationName} Override Preset" = "Activates an available ${applicationName} Override Preset";
+
+"Cancel ${applicationName} Override" =  "Cancel ${applicationName} Override";
+
+"Cancels an active ${applicationName} Override" = "Cancels an active ${applicationName} Override";
