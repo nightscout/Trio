@@ -30,8 +30,8 @@ final class OpenAPS {
     }
 
     // Use the helper function for cleaner code
-    func processDetermination(_ determination: Determination) {
-        context.perform {
+    func processDetermination(_ determination: Determination) async {
+        await context.perform {
             let newOrefDetermination = OrefDetermination(context: self.context)
             newOrefDetermination.id = UUID()
 
@@ -48,7 +48,7 @@ final class OpenAPS {
             newOrefDetermination.temp = determination.temp?.rawValue ?? "absolute"
             newOrefDetermination.rate = self.decimalToNSDecimalNumber(determination.rate)
             newOrefDetermination.reason = determination.reason
-            newOrefDetermination.duration = Int16(determination.duration ?? 0)
+            newOrefDetermination.duration = self.decimalToNSDecimalNumber(determination.duration)
             newOrefDetermination.iob = self.decimalToNSDecimalNumber(determination.iob)
             newOrefDetermination.threshold = self.decimalToNSDecimalNumber(determination.threshold)
             newOrefDetermination.minDelta = self.decimalToNSDecimalNumber(determination.minDelta)
@@ -82,86 +82,77 @@ final class OpenAPS {
                         }
                     }
             }
-
-            self.attemptToSaveContext()
         }
+        await attemptToSaveContext()
     }
 
-    func attemptToSaveContext() {
-        do {
-            guard context.hasChanges else { return }
-            try context.save()
-        } catch {
-            print(error.localizedDescription)
+    func attemptToSaveContext() async {
+        await context.perform {
+            do {
+                guard self.context.hasChanges else { return }
+                try self.context.save()
+            } catch {
+                debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save Determination to Core Data")
+            }
         }
     }
 
     // fetch glucose to pass it to the meal function and to determine basal
-    private func fetchAndProcessGlucose() -> String {
-        var glucoseAsJSON: String?
+    private func fetchAndProcessGlucose() async -> String {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: GlucoseStored.self,
+            onContext: context,
+            predicate: NSPredicate.predicateForSixHoursAgo,
+            key: "date",
+            ascending: false,
+            fetchLimit: 72,
+            batchSize: 24
+        )
 
-        context.performAndWait {
-            let results = CoreDataStack.shared.fetchEntities(
-                ofType: GlucoseStored.self,
-                onContext: context,
-                predicate: NSPredicate.predicateForSixHoursAgo,
-                key: "date",
-                ascending: false,
-                fetchLimit: 72,
-                batchSize: 24
-            )
-
+        return await context.perform {
             // convert to json
-            glucoseAsJSON = self.jsonConverter.convertToJSON(results)
+            return self.jsonConverter.convertToJSON(results)
         }
-
-        return glucoseAsJSON ?? "{}"
     }
 
-    private func fetchAndProcessCarbs() -> String {
-        // perform fetch AND conversion on the same thread
-        // if we do it like this we do not change the thread and do not have to pass the objectIDs
-        var carbsAsJSON: String?
+    private func fetchAndProcessCarbs() async -> String {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: CarbEntryStored.self,
+            onContext: context,
+            predicate: NSPredicate.predicateForOneDayAgo,
+            key: "date",
+            ascending: false
+        )
 
-        context.performAndWait {
-            let results = CoreDataStack.shared.fetchEntities(
-                ofType: CarbEntryStored.self,
-                onContext: context,
-                predicate: NSPredicate.predicateForOneDayAgo,
-                key: "date",
-                ascending: false
-            )
-
-            // convert to json
-            carbsAsJSON = self.jsonConverter.convertToJSON(results)
+        // convert to json
+        return await context.perform {
+            return self.jsonConverter.convertToJSON(results)
         }
-
-        return carbsAsJSON ?? "{}"
     }
 
-    private func fetchPumpHistoryObjectIDs() -> [NSManagedObjectID]? {
-        context.performAndWait {
-            let results = CoreDataStack.shared.fetchEntities(
-                ofType: PumpEventStored.self,
-                onContext: context,
-                predicate: NSPredicate.pumpHistoryLast24h,
-                key: "timestamp",
-                ascending: false,
-                batchSize: 50
-            )
+    private func fetchPumpHistoryObjectIDs() async -> [NSManagedObjectID]? {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: PumpEventStored.self,
+            onContext: context,
+            predicate: NSPredicate.pumpHistoryLast24h,
+            key: "timestamp",
+            ascending: false,
+            batchSize: 50
+        )
+        return await context.perform {
             return results.map(\.objectID)
         }
     }
 
-    private func parsePumpHistory(_ pumpHistoryObjectIDs: [NSManagedObjectID]) -> String {
+    private func parsePumpHistory(_ pumpHistoryObjectIDs: [NSManagedObjectID]) async -> String {
         // Return an empty JSON object if the list of object IDs is empty
         guard !pumpHistoryObjectIDs.isEmpty else { return "{}" }
 
         // Execute all operations on the background context
-        let jsonResult = context.performAndWait {
+        return await context.perform {
             // Load the pump events from the object IDs
             let pumpHistory: [PumpEventStored] = pumpHistoryObjectIDs
-                .compactMap { context.object(with: $0) as? PumpEventStored }
+                .compactMap { self.context.object(with: $0) as? PumpEventStored }
 
             // Create the DTOs
             let dtos: [PumpEventDTO] = pumpHistory.flatMap { event -> [PumpEventDTO] in
@@ -179,42 +170,45 @@ final class OpenAPS {
             }
 
             // Convert the DTOs to JSON
-            return jsonConverter.convertToJSON(dtos)
+            return self.jsonConverter.convertToJSON(dtos)
         }
-
-        // Return the JSON result
-        return jsonResult
     }
 
-    func determineBasal(currentTemp: TempBasal, clock: Date = Date()) -> Future<Determination?, Never> {
-        Future { promise in
+    func determineBasal(currentTemp: TempBasal, clock: Date = Date()) async throws -> Determination? {
+        debug(.openAPS, "Start determineBasal")
+
+        // clock
+        let dateFormatted = OpenAPS.dateFormatter.string(from: clock)
+        let dateFormattedAsString = "\"\(dateFormatted)\""
+
+        // temp_basal
+        let tempBasal = currentTemp.rawJSON
+
+        // Perform asynchronous calls in parallel
+        async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
+        async let carbs = fetchAndProcessCarbs()
+        async let glucose = fetchAndProcessGlucose()
+        async let oref2 = oref2()
+
+        // Await the results of asynchronous tasks
+        let pumpHistoryJSON = await parsePumpHistory(await pumpHistoryObjectIDs)
+        let carbsAsJSON = await carbs
+        let glucoseAsJSON = await glucose
+        let oref2_variables = await oref2
+
+        // TODO: - Save and fetch profile/basalProfile in/from UserDefaults!
+
+        // Load files from Storage
+        let profile = loadFileFromStorage(name: Settings.profile)
+        let basalProfile = loadFileFromStorage(name: Settings.basalProfile)
+        let autosens = loadFileFromStorage(name: Settings.autosense)
+        let reservoir = loadFileFromStorage(name: Monitor.reservoir)
+        let preferences = loadFileFromStorage(name: Settings.preferences)
+
+        // Meal
+        let meal: RawJSON = await withCheckedContinuation { continuation in
             self.processQueue.async {
-                debug(.openAPS, "Start determineBasal")
-
-                // clock
-                let dateFormatted = OpenAPS.dateFormatter.string(from: clock)
-                let dateFormattedAsString = "\"\(dateFormatted)\""
-
-                // temp_basal
-                let tempBasal = currentTemp.rawJSON
-
-                let pumpHistoryObjectIDs = self.fetchPumpHistoryObjectIDs() ?? []
-                let pumpHistoryJSON = self.parsePumpHistory(pumpHistoryObjectIDs)
-
-                // carbs
-                let carbsAsJSON = self.fetchAndProcessCarbs()
-
-                // glucose
-                let glucoseAsJSON = self.fetchAndProcessGlucose()
-
-                // TODO: - Save and fetch profile/basalProfile in/from UserDefaults
-
-                // profile
-                let profile = self.loadFileFromStorage(name: Settings.profile)
-                let basalProfile = self.loadFileFromStorage(name: Settings.basalProfile)
-
-                // meal
-                let meal = self.meal(
+                let result = self.meal(
                     pumphistory: pumpHistoryJSON,
                     profile: profile,
                     basalProfile: basalProfile,
@@ -222,24 +216,29 @@ final class OpenAPS {
                     carbs: carbsAsJSON,
                     glucose: glucoseAsJSON
                 )
+                continuation.resume(returning: result)
+            }
+        }
 
-                // iob
-                let autosens = self.loadFileFromStorage(name: Settings.autosense)
-                let iob = self.iob(
+        // IOB
+        let iob: RawJSON = await withCheckedContinuation { continuation in
+            self.processQueue.async {
+                let result = self.iob(
                     pumphistory: pumpHistoryJSON,
                     profile: profile,
                     clock: dateFormattedAsString,
                     autosens: autosens.isEmpty ? .null : autosens
                 )
+                continuation.resume(returning: result)
+            }
+        }
 
-                self.storage.save(iob, as: Monitor.iob)
+        storage.save(iob, as: Monitor.iob)
 
-                // determine-basal
-                let reservoir = self.loadFileFromStorage(name: Monitor.reservoir)
-                let preferences = self.loadFileFromStorage(name: Settings.preferences)
-                let oref2_variables = self.oref2()
-
-                let orefDetermination = self.determineBasal(
+        // Determine basal
+        let orefDetermination: RawJSON = await withCheckedContinuation { continuation in
+            self.processQueue.async {
+                let result = self.determineBasal(
                     glucose: glucoseAsJSON,
                     currentTemp: tempBasal,
                     iob: iob,
@@ -253,25 +252,27 @@ final class OpenAPS {
                     basalProfile: basalProfile,
                     oref2_variables: oref2_variables
                 )
-                debug(.openAPS, "Determinated: \(orefDetermination)")
-
-                if var determination = Determination(from: orefDetermination) {
-                    determination.timestamp = determination.deliverAt ?? clock
-
-                    // save to core data asynchronously
-                    self.processDetermination(determination)
-
-                    promise(.success(determination))
-                } else {
-                    promise(.success(nil))
-                }
+                continuation.resume(returning: result)
             }
+        }
+
+        debug(.openAPS, "Determinated: \(orefDetermination)")
+
+        if var determination = Determination(from: orefDetermination) {
+            determination.timestamp = determination.deliverAt ?? clock
+
+            // save to core data asynchronously
+            await processDetermination(determination)
+
+            return determination
+        } else {
+            return nil
         }
     }
 
-    func oref2() -> RawJSON {
-        context.performAndWait {
-            let preferences = storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self)
+    func oref2() async -> RawJSON {
+        await context.perform {
+            let preferences = self.storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self)
             var hbt_ = preferences?.halfBasalExerciseTarget ?? 160
             let wp = preferences?.weightPercentage ?? 1
             let smbMinutes = (preferences?.maxSMBBasalMinutes ?? 30) as NSDecimalNumber
@@ -286,28 +287,28 @@ final class OpenAPS {
             requestTDD.propertiesToFetch = ["timestamp", "totalDailyDose"]
             let sortTDD = NSSortDescriptor(key: "timestamp", ascending: true)
             requestTDD.sortDescriptors = [sortTDD]
-            try? uniqueEvents = context.fetch(requestTDD)
+            try? uniqueEvents = self.context.fetch(requestTDD)
 
             var sliderArray = [TempTargetsSlider]()
             let requestIsEnbled = TempTargetsSlider.fetchRequest() as NSFetchRequest<TempTargetsSlider>
             let sortIsEnabled = NSSortDescriptor(key: "date", ascending: false)
             requestIsEnbled.sortDescriptors = [sortIsEnabled]
             // requestIsEnbled.fetchLimit = 1
-            try? sliderArray = context.fetch(requestIsEnbled)
+            try? sliderArray = self.context.fetch(requestIsEnbled)
 
             var overrideArray = [Override]()
             let requestOverrides = Override.fetchRequest() as NSFetchRequest<Override>
             let sortOverride = NSSortDescriptor(key: "date", ascending: false)
             requestOverrides.sortDescriptors = [sortOverride]
             // requestOverrides.fetchLimit = 1
-            try? overrideArray = context.fetch(requestOverrides)
+            try? overrideArray = self.context.fetch(requestOverrides)
 
             var tempTargetsArray = [TempTargets]()
             let requestTempTargets = TempTargets.fetchRequest() as NSFetchRequest<TempTargets>
             let sortTT = NSSortDescriptor(key: "date", ascending: false)
             requestTempTargets.sortDescriptors = [sortTT]
             requestTempTargets.fetchLimit = 1
-            try? tempTargetsArray = context.fetch(requestTempTargets)
+            try? tempTargetsArray = self.context.fetch(requestTempTargets)
 
             let total = uniqueEvents.compactMap({ each in each.totalDailyDose as? Decimal ?? 0 }).reduce(0, +)
             var indeces = uniqueEvents.count
@@ -422,7 +423,7 @@ final class OpenAPS {
                     smbMinutes: (overrideArray.first?.smbMinutes ?? smbMinutes) as Decimal,
                     uamMinutes: (overrideArray.first?.uamMinutes ?? uamMinutes) as Decimal
                 )
-                storage.save(averages, as: OpenAPS.Monitor.oref2_variables)
+                self.storage.save(averages, as: OpenAPS.Monitor.oref2_variables)
                 return self.loadFileFromStorage(name: Monitor.oref2_variables)
 
             } else {
@@ -450,31 +451,34 @@ final class OpenAPS {
                     smbMinutes: (overrideArray.first?.smbMinutes ?? smbMinutes) as Decimal,
                     uamMinutes: (overrideArray.first?.uamMinutes ?? uamMinutes) as Decimal
                 )
-                storage.save(averages, as: OpenAPS.Monitor.oref2_variables)
+                self.storage.save(averages, as: OpenAPS.Monitor.oref2_variables)
                 return self.loadFileFromStorage(name: Monitor.oref2_variables)
             }
         }
     }
 
-    func autosense() -> Future<Autosens?, Never> {
-        Future { promise in
+    func autosense() async throws -> Autosens? {
+        debug(.openAPS, "Start autosens")
+
+        // Perform asynchronous calls in parallel
+        async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
+        async let carbs = fetchAndProcessCarbs()
+        async let glucose = fetchAndProcessGlucose()
+
+        // Await the results of asynchronous tasks
+        let pumpHistoryJSON = await parsePumpHistory(await pumpHistoryObjectIDs)
+        let carbsAsJSON = await carbs
+        let glucoseAsJSON = await glucose
+
+        // Load files from Storage
+        let profile = loadFileFromStorage(name: Settings.profile)
+        let basalProfile = loadFileFromStorage(name: Settings.basalProfile)
+        let tempTargets = loadFileFromStorage(name: Settings.tempTargets)
+
+        // Autosense
+        let autosenseResult: RawJSON = await withCheckedContinuation { continuation in
             self.processQueue.async {
-                debug(.openAPS, "Start autosens")
-
-                // pump history
-                let pumpHistoryObjectIDs = self.fetchPumpHistoryObjectIDs() ?? []
-                let pumpHistoryJSON = self.parsePumpHistory(pumpHistoryObjectIDs)
-
-                // carbs
-                let carbsAsJSON = self.fetchAndProcessCarbs()
-
-                /// glucose
-                let glucoseAsJSON = self.fetchAndProcessGlucose()
-
-                let profile = self.loadFileFromStorage(name: Settings.profile)
-                let basalProfile = self.loadFileFromStorage(name: Settings.basalProfile)
-                let tempTargets = self.loadFileFromStorage(name: Settings.tempTargets)
-                let autosensResult = self.autosense(
+                let result = self.autosense(
                     glucose: glucoseAsJSON,
                     pumpHistory: pumpHistoryJSON,
                     basalprofile: basalProfile,
@@ -482,38 +486,43 @@ final class OpenAPS {
                     carbs: carbsAsJSON,
                     temptargets: tempTargets
                 )
-
-                debug(.openAPS, "AUTOSENS: \(autosensResult)")
-                if var autosens = Autosens(from: autosensResult) {
-                    autosens.timestamp = Date()
-                    self.storage.save(autosens, as: Settings.autosense)
-                    promise(.success(autosens))
-                } else {
-                    promise(.success(nil))
-                }
+                continuation.resume(returning: result)
             }
+        }
+
+        debug(.openAPS, "AUTOSENS: \(autosenseResult)")
+        if var autosens = Autosens(from: autosenseResult) {
+            autosens.timestamp = Date()
+            storage.save(autosens, as: Settings.autosense)
+
+            return autosens
+        } else {
+            return nil
         }
     }
 
-    func autotune(categorizeUamAsBasal: Bool = false, tuneInsulinCurve: Bool = false) -> Future<Autotune?, Never> {
-        Future { promise in
+    func autotune(categorizeUamAsBasal: Bool = false, tuneInsulinCurve: Bool = false) async -> Autotune? {
+        debug(.openAPS, "Start autotune")
+
+        // Perform asynchronous calls in parallel
+        async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
+        async let carbs = fetchAndProcessCarbs()
+        async let glucose = fetchAndProcessGlucose()
+
+        // Await the results of asynchronous tasks
+        let pumpHistoryJSON = await parsePumpHistory(await pumpHistoryObjectIDs)
+        let carbsAsJSON = await carbs
+        let glucoseAsJSON = await glucose
+
+        // Load files from storage
+        let profile = loadFileFromStorage(name: Settings.profile)
+        let pumpProfile = loadFileFromStorage(name: Settings.pumpProfile)
+        let previousAutotune = storage.retrieve(Settings.autotune, as: RawJSON.self)
+
+        // Autotune
+        let autotunePreppedGlucose: RawJSON = await withCheckedContinuation { continuation in
             self.processQueue.async {
-                debug(.openAPS, "Start autotune")
-
-                // pump history
-                let pumpHistoryObjectIDs = self.fetchPumpHistoryObjectIDs() ?? []
-                let pumpHistoryJSON = self.parsePumpHistory(pumpHistoryObjectIDs)
-
-                /// glucose
-                let glucoseAsJSON = self.fetchAndProcessGlucose()
-
-                let profile = self.loadFileFromStorage(name: Settings.profile)
-                let pumpProfile = self.loadFileFromStorage(name: Settings.pumpProfile)
-
-                // carbs
-                let carbsAsJSON = self.fetchAndProcessCarbs()
-
-                let autotunePreppedGlucose = self.autotunePrepare(
+                let result = self.autotunePrepare(
                     pumphistory: pumpHistoryJSON,
                     profile: profile,
                     glucose: glucoseAsJSON,
@@ -522,32 +531,38 @@ final class OpenAPS {
                     categorizeUamAsBasal: categorizeUamAsBasal,
                     tuneInsulinCurve: tuneInsulinCurve
                 )
-                debug(.openAPS, "AUTOTUNE PREP: \(autotunePreppedGlucose)")
+                continuation.resume(returning: result)
+            }
+        }
 
-                let previousAutotune = self.storage.retrieve(Settings.autotune, as: RawJSON.self)
+        debug(.openAPS, "AUTOTUNE PREP: \(autotunePreppedGlucose)")
 
-                let autotuneResult = self.autotuneRun(
+        let autotuneResult: RawJSON = await withCheckedContinuation { continuation in
+            self.processQueue.async {
+                let result = self.autotuneRun(
                     autotunePreparedData: autotunePreppedGlucose,
                     previousAutotuneResult: previousAutotune ?? profile,
                     pumpProfile: pumpProfile
                 )
-
-                debug(.openAPS, "AUTOTUNE RESULT: \(autotuneResult)")
-
-                if let autotune = Autotune(from: autotuneResult) {
-                    self.storage.save(autotuneResult, as: Settings.autotune)
-                    promise(.success(autotune))
-                } else {
-                    promise(.success(nil))
-                }
+                continuation.resume(returning: result)
             }
+        }
+
+        debug(.openAPS, "AUTOTUNE RESULT: \(autotuneResult)")
+
+        if let autotune = Autotune(from: autotuneResult) {
+            storage.save(autotuneResult, as: Settings.autotune)
+
+            return autotune
+        } else {
+            return nil
         }
     }
 
-    func makeProfiles(useAutotune: Bool) -> Future<Autotune?, Never> {
-        Future { promise in
+    func makeProfiles(useAutotune: Bool) async -> Autotune? {
+        await withCheckedContinuation { continuation in
             debug(.openAPS, "Start makeProfiles")
-            self.processQueue.async {
+            processQueue.async {
                 var preferences = self.loadFileFromStorage(name: Settings.preferences)
                 if preferences.isEmpty {
                     preferences = Preferences().rawJSON
@@ -592,11 +607,10 @@ final class OpenAPS {
                 self.storage.save(profile, as: Settings.profile)
 
                 if let tunedProfile = Autotune(from: profile) {
-                    promise(.success(tunedProfile))
-                    return
+                    continuation.resume(returning: tunedProfile)
+                } else {
+                    continuation.resume(returning: nil)
                 }
-
-                promise(.success(nil))
             }
         }
     }

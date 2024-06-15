@@ -278,12 +278,10 @@ extension CoreDataStack {
         return result ?? []
     }
 
-    // TODO: -refactor this, currently only the BolusStateModel uses this because we need to fetch in the background, then do calculations and after this update the UI
-
-    // Fetch and update UI
-    /// - Tag: uiFetch
-    func fetchEntitiesAndUpdateUI<T: NSManagedObject>(
+    // Fetch Async
+    func fetchEntitiesAsync<T: NSManagedObject>(
         ofType type: T.Type,
+        onContext context: NSManagedObjectContext,
         predicate: NSPredicate,
         key: String,
         ascending: Bool,
@@ -291,111 +289,39 @@ extension CoreDataStack {
         batchSize: Int? = nil,
         propertiesToFetch: [String]? = nil,
         callingFunction: String = #function,
-        callingClass: String = #fileID,
-        completion: @escaping ([T]) -> Void
-    ) {
-        let request = NSFetchRequest<NSManagedObjectID>(entityName: String(describing: type))
+        callingClass: String = #fileID
+    ) async -> [T] {
+        let request = NSFetchRequest<T>(entityName: String(describing: type))
         request.sortDescriptors = [NSSortDescriptor(key: key, ascending: ascending)]
         request.predicate = predicate
-        request.resultType = .managedObjectIDResultType
         if let limit = fetchLimit {
             request.fetchLimit = limit
         }
         if let batchSize = batchSize {
             request.fetchBatchSize = batchSize
         }
-        if let propertiesToFetch = propertiesToFetch {
-            request.propertiesToFetch = propertiesToFetch
+        if let propertiesTofetch = propertiesToFetch {
+            request.propertiesToFetch = propertiesTofetch
+            request.resultType = .managedObjectResultType
+        } else {
+            request.resultType = .managedObjectResultType
         }
 
-        let taskContext = newTaskContext()
-        taskContext.name = "fetchContext"
-        taskContext.transactionAuthor = "fetchEntities"
+        context.name = "fetchContext"
+        context.transactionAuthor = "fetchEntities"
 
-        // perform fetch in the background
-        //
-        // the fetch returns a NSManagedObjectID which can be safely passed to the main queue because they are thread safe
-        taskContext.perform {
-            var result: [NSManagedObjectID]?
-
+        return await context.perform {
             do {
                 debugPrint(
-                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.succeeded) on thread \(Thread.current)"
+                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.succeeded) on Thread: \(Thread.current)"
                 )
-                result = try taskContext.fetch(request)
+                return try context.fetch(request)
             } catch let error as NSError {
                 debugPrint(
-                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.failed) \(error) on thread \(Thread.current)"
+                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.failed) \(error) on Thread: \(Thread.current)"
                 )
+                return []
             }
-
-            // change to the main queue to update UI
-            DispatchQueue.main.async {
-                if let result = result {
-                    debugPrint(
-                        "Returning fetch result to main thread in \(callingFunction) from \(callingClass) on thread \(Thread.current)"
-                    )
-                    // Convert NSManagedObjectIDs to objects in the main context
-                    let mainContext = CoreDataStack.shared.persistentContainer.viewContext
-                    let mainContextObjects = result.compactMap { mainContext.object(with: $0) as? T }
-                    completion(mainContextObjects)
-                } else {
-                    debugPrint("Fetch result is nil in \(callingFunction) from \(callingClass) on thread \(Thread.current)")
-                    completion([])
-                }
-            }
-        }
-    }
-
-    // Fetch the NSManagedObjectIDs
-    // Useful if we need to pass the NSManagedObject to another thread as the objectID is thread safe
-    /// - Tag: fetchIDs
-    func fetchNSManagedObjectID<T: NSManagedObject>(
-        ofType type: T.Type,
-        predicate: NSPredicate,
-        key: String,
-        ascending: Bool,
-        fetchLimit: Int? = nil,
-        batchSize: Int? = nil,
-        propertiesToFetch: [String]? = nil,
-        callingFunction: String = #function,
-        callingClass: String = #fileID,
-        completion: @escaping ([NSManagedObjectID]) -> Void
-    ) {
-        let request = NSFetchRequest<NSManagedObjectID>(entityName: String(describing: type))
-        request.sortDescriptors = [NSSortDescriptor(key: key, ascending: ascending)]
-        request.predicate = predicate
-        request.resultType = .managedObjectIDResultType
-        if let limit = fetchLimit {
-            request.fetchLimit = limit
-        }
-        if let batchSize = batchSize {
-            request.fetchBatchSize = batchSize
-        }
-        if let propertiesToFetch = propertiesToFetch {
-            request.propertiesToFetch = propertiesToFetch
-        }
-
-        let taskContext = newTaskContext()
-        taskContext.name = "fetchContext"
-        taskContext.transactionAuthor = "fetchEntities"
-
-        // Perform fetch in the background
-        taskContext.perform {
-            var result: [NSManagedObjectID]?
-
-            do {
-                debugPrint(
-                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.succeeded) on thread \(Thread.current)"
-                )
-                result = try taskContext.fetch(request)
-            } catch let error as NSError {
-                debugPrint(
-                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.failed) \(error) on thread \(Thread.current)"
-                )
-            }
-
-            completion(result ?? [])
         }
     }
 }

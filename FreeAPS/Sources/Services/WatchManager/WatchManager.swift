@@ -375,24 +375,24 @@ extension BaseWatchManager: WCSessionDelegate {
                     actualDate: nil,
                     carbs: Decimal(carbs),
                     fat: Decimal(fat),
-                    protein: Decimal(protein), note: nil,
+                    protein: Decimal(protein),
+                    note: nil,
                     enteredBy: CarbsEntry.manual,
-                    isFPU: false, fpuID: nil
+                    isFPU: false,
+                    fpuID: nil
                 )]
             )
 
-            if settingsManager.settings.skipBolusScreenAfterCarbs {
-                apsManager.determineBasalSync()
-                replyHandler(["confirmation": true])
-                return
-            } else {
-                apsManager.determineBasal()
-                    .sink { _ in
-                        replyHandler(["confirmation": true])
-                    }
-                    .store(in: &lifetime)
-                return
+            Task {
+                if settingsManager.settings.skipBolusScreenAfterCarbs {
+                    let success = await apsManager.determineBasal()
+                    replyHandler(["confirmation": success])
+                } else {
+                    _ = await apsManager.determineBasal()
+                    replyHandler(["confirmation": true])
+                }
             }
+            return
         }
 
         if let tempTargetID = message["tempTarget"] as? String {

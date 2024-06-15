@@ -8,10 +8,6 @@ extension AutotuneConfig {
             storage.retrieve(OpenAPS.Settings.autotune, as: Autotune.self)
         }
 
-        func runAutotune() -> AnyPublisher<Autotune?, Never> {
-            apsManager.autotune()
-        }
-
         func deleteAutotune() {
             storage.remove(OpenAPS.Settings.autotune)
         }

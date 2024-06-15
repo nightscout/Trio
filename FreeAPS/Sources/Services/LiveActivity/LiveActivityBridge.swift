@@ -114,9 +114,11 @@ import UIKit
     /// attempts to present this live activity state, creating a new activity if none exists yet
     @MainActor private func pushUpdate(_ state: LiveActivityAttributes.ContentState) async {
 //        // End all activities that are not the current one
-//        for unknownActivity in Activity<LiveActivityAttributes>.activities.filter({ self.currentActivity?.activity.id != $0.id }) {
-//            await unknownActivity.end(nil, dismissalPolicy: .immediate)
-//        }
+        for unknownActivity in Activity<LiveActivityAttributes>.activities
+            .filter({ self.currentActivity?.activity.id != $0.id })
+        {
+            await unknownActivity.end(nil, dismissalPolicy: .immediate)
+        }
 
         if let currentActivity = currentActivity {
             if currentActivity.needsRecreation(), UIApplication.shared.applicationState == .active {

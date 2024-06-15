@@ -138,7 +138,7 @@ extension DataTable {
             // Delete carbs also from Nightscout and perform a determine basal sync to update cob
             if let carbEntry = carbEntry {
                 provider.deleteCarbs(carbEntry)
-                apsManager.determineBasalSync()
+                await apsManager.determineBasalSync()
             }
         }
 
@@ -160,7 +160,9 @@ extension DataTable {
                     CoreDataStack.shared.deleteObject(identifiedBy: treatmentObjectID)
 
                     provider.deleteInsulin(with: treatmentObjectID)
-                    apsManager.determineBasalSync()
+
+                    await apsManager.determineBasalSync()
+
                 } else {
                     print("authentication failed")
                 }
@@ -172,25 +174,6 @@ extension DataTable {
         func addManualGlucose() {
             let glucose = units == .mmolL ? manualGlucose.asMgdL : manualGlucose
             let glucoseAsInt = Int(glucose)
-            let now = Date()
-            let id = UUID().uuidString
-
-            let saveToJSON = BloodGlucose(
-                _id: id,
-                direction: nil,
-                date: Decimal(now.timeIntervalSince1970) * 1000,
-                dateString: now,
-                unfiltered: nil,
-                filtered: nil,
-                noise: nil,
-                glucose: Int(glucose),
-                type: GlucoseType.manual.rawValue
-            )
-
-            // TODO: -do we need this?
-            // Save to Health
-            var saveToHealth = [BloodGlucose]()
-//            saveToHealth.append(saveToJSON)
 
             // save to core data
             coredataContext.perform {

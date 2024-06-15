@@ -43,10 +43,6 @@ private let staticPumpManagersByIdentifier: [String: PumpManagerUI.Type] = [
     MockPumpManager.managerIdentifier: MockPumpManager.self
 ]
 
-// private let staticPumpManagersByIdentifier: [String: PumpManagerUI.Type] = staticPumpManagers.reduce(into: [:]) { map, Type in
-//    map[Type.managerIdentifier] = Type
-// }
-
 private let accessLock = NSRecursiveLock(label: "BaseDeviceDataManager.accessLock")
 
 final class BaseDeviceDataManager: DeviceDataManager, Injectable {
@@ -164,20 +160,6 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                 self.updateUpdateFinished(true)
             }
         }
-
-//        pumpUpdateCancellable = Future<Bool, Never> { [unowned self] promise in
-//            pumpUpdatePromise = promise
-//            debug(.deviceManager, "Waiting for pump update and loop recommendation")
-//            processQueue.safeSync {
-//                pumpManager.ensureCurrentPumpData { _ in
-//                    debug(.deviceManager, "Pump data updated.")
-//                }
-//            }
-//        }
-//        .timeout(30, scheduler: processQueue)
-//        .replaceError(with: false)
-//        .replaceEmpty(with: false)
-//        .sink(receiveValue: updateUpdateFinished)
     }
 
     private func updateUpdateFinished(_ recommendsLoop: Bool) {
@@ -186,12 +168,6 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
         if !recommendsLoop {
             warning(.deviceManager, "Loop recommendation time out or got error. Trying to loop right now.")
         }
-
-        // directly in loop() function
-//        guard !loopInProgress else {
-//            warning(.deviceManager, "Loop already in progress. Skip recommendation.")
-//            return
-//        }
         self.recommendsLoop.send()
     }
 
@@ -340,29 +316,6 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
         }
 
         let batteryPercent = Int((status.pumpBatteryChargeRemaining ?? 1) * 100)
-        let battery = Battery(
-            percent: batteryPercent,
-            voltage: nil,
-            string: batteryPercent >= 10 ? .normal : .low,
-            display: pumpManager.status.pumpBatteryChargeRemaining != nil
-        )
-
-        privateContext.perform {
-            let batteryToStore = OpenAPS_Battery(context: self.privateContext)
-            batteryToStore.id = UUID()
-            batteryToStore.date = Date()
-            batteryToStore.percent = Int16(batteryPercent)
-            batteryToStore.voltage = nil
-            batteryToStore.status = batteryPercent > 10 ? "normal" : "low"
-            batteryToStore.display = status.pumpBatteryChargeRemaining != nil
-
-            do {
-                guard self.privateContext.hasChanges else { return }
-                try self.privateContext.save()
-            } catch {
-                print(error.localizedDescription)
-            }
-        }
         broadcaster.notify(PumpTimeZoneObserver.self, on: processQueue) {
             $0.pumpTimeZoneDidChange(status.timeZone)
         }

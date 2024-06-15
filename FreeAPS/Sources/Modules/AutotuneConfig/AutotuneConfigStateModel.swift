@@ -33,33 +33,45 @@ extension AutotuneConfig {
                         return Just(false).eraseToAnyPublisher()
                     }
                     self.settingsManager.settings.useAutotune = use
-                    return self.apsManager.makeProfiles()
+                    return Future { promise in
+                        Task.init(priority: .background) {
+                            do {
+                                _ = try await self.apsManager.makeProfiles()
+                                promise(.success(true))
+
+                            } catch {
+                                promise(.success(false))
+                            }
+                        }
+                    }
+                    .eraseToAnyPublisher()
                 }
                 .cancellable()
                 .store(in: &lifetime)
         }
 
         func run() {
-            provider.runAutotune()
-                .receive(on: DispatchQueue.main)
-                .flatMap { [weak self] result -> AnyPublisher<Bool, Never> in
-                    guard let self = self else {
-                        return Just(false).eraseToAnyPublisher()
+            Task {
+                do {
+                    if let result = await self.apsManager.autotune() {
+                        autotune = result
+                        _ = try await self.apsManager.makeProfiles()
+                        lastAutotuneDate = Date()
                     }
-                    self.autotune = result
-                    return self.apsManager.makeProfiles()
+                } catch {
+                    debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to run Autotune")
                 }
-                .sink { [weak self] _ in
-                    self?.lastAutotuneDate = Date()
-                }.store(in: &lifetime)
+            }
         }
 
-        func delete() {
+        func delete() async {
             provider.deleteAutotune()
             autotune = nil
-            apsManager.makeProfiles()
-                .cancellable()
-                .store(in: &lifetime)
+            do {
+                _ = try await apsManager.makeProfiles()
+            } catch {
+                return
+            }
         }
 
         func replace() {

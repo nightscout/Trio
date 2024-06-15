@@ -124,16 +124,14 @@ extension Bolus {
             useFPUconversion = settingsManager.settings.useFPUconversion
 
             if waitForSuggestionInitial {
-                apsManager.determineBasal()
-                    .receive(on: DispatchQueue.main)
-                    .sink { [weak self] ok in
-                        guard let self = self else { return }
-                        if !ok {
-                            self.waitForSuggestion = false
-                            self.insulinRequired = 0
-                            self.insulinRecommended = 0
-                        }
-                    }.store(in: &lifetime)
+                Task {
+                    let ok = await apsManager.determineBasal()
+                    if !ok {
+                        self.waitForSuggestion = false
+                        self.insulinRequired = 0
+                        self.insulinRecommended = 0
+                    }
+                }
             }
         }
 
@@ -361,13 +359,12 @@ extension Bolus {
                     )
                 ]
             )
-            debug(.default, "External insulin saved to pumphistory.json")
+            debug(.default, "External insulin saved")
 
             // save to core data asynchronously
             context.perform {
                 // create pump event
                 let newPumpEvent = PumpEventStored(context: self.context)
-//                newPumpEvent.id = UUID().uuidString
                 newPumpEvent.timestamp = self.date
                 newPumpEvent.type = PumpEvent.bolus.rawValue
 
@@ -387,12 +384,12 @@ extension Bolus {
             }
 
             // perform determine basal sync
-            apsManager.determineBasalSync()
+            Task {
+                await apsManager.determineBasalSync()
+            }
         }
 
         // MARK: - Carbs
-
-        // we need to also fetch the data after we have saved them in order to update the array and the UI because of the MVVM Architecture
 
         func saveMeal() {
             guard carbs > 0 || fat > 0 || protein > 0 else { return }
@@ -415,7 +412,9 @@ extension Bolus {
             if carbs > 0 {
                 // only perform determine basal sync if the user doesn't use the pump bolus, otherwise the enact bolus func in the APSManger does a sync
                 if amount <= 0 {
-                    apsManager.determineBasalSync()
+                    Task {
+                        await apsManager.determineBasalSync()
+                    }
                 }
             }
         }

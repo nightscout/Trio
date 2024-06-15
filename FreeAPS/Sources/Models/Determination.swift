@@ -7,7 +7,7 @@ struct Determination: JSON, Equatable {
     let eventualBG: Int?
     let sensitivityRatio: Decimal?
     let rate: Decimal?
-    let duration: Int?
+    let duration: Decimal?
     let iob: Decimal?
     let cob: Decimal?
     var predictions: Predictions?

@@ -109,7 +109,11 @@ extension AutotuneConfig {
                     }
 
                     Section {
-                        Button { state.delete() }
+                        Button {
+                            Task {
+                                await state.delete()
+                            }
+                        }
                         label: { Text("Delete autotune data") }
                             .foregroundColor(.red)
                     }
