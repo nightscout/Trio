@@ -98,9 +98,14 @@ import Foundation
         }
 
         // convert target if required the unit in regard of the settings unit
+        // but the storage should be in MgdL
+        // mmol || unit : mmol -> convert to mgdL
+        // mmol || unit : mgdL -> convert to mgdL
+        // mgdl || unit : mgdL -> nothing
+        // mgdl || unit : mmol --> nothing
         var targetCorrectUnit: Decimal = target
-        if glucoseUnit != settingsManager.settings.units {
-            targetCorrectUnit = (settingsManager.settings.units == .mgdL) ? target.asMgdL : target.asMmolL
+        if glucoseUnit == .mmolL {
+            targetCorrectUnit = Decimal(round(Double(target.asMgdL)))
         }
 
         coredataContext.performAndWait {
