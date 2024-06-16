@@ -56,13 +56,13 @@ extension StatConfig {
                     HStack {
                         Text("Low")
                         Spacer()
-                        DecimalTextField("0", value: $state.low, formatter: glucoseFormatter)
+                        TextFieldWithToolBar(text: $state.low, placeholder: "0", numberFormatter: glucoseFormatter)
                         Text(state.units.rawValue).foregroundColor(.secondary)
                     }
                     HStack {
                         Text("High")
                         Spacer()
-                        DecimalTextField("0", value: $state.high, formatter: glucoseFormatter)
+                        TextFieldWithToolBar(text: $state.high, placeholder: "0", numberFormatter: glucoseFormatter)
                         Text(state.units.rawValue).foregroundColor(.secondary)
                     }
                     Toggle("Override HbA1c Unit", isOn: $state.overrideHbA1cUnit)

@@ -72,13 +72,13 @@ extension Dynamic {
                         HStack {
                             Text("Adjustment Factor")
                             Spacer()
-                            DecimalTextField("0", value: $state.adjustmentFactor, formatter: formatter)
+                            TextFieldWithToolBar(text: $state.adjustmentFactor, placeholder: "0", numberFormatter: formatter)
                         }
 
                         HStack {
                             Text("Weighted Average of TDD. Weight of past 24 hours:")
                             Spacer()
-                            DecimalTextField("0", value: $state.weightPercentage, formatter: formatter)
+                            TextFieldWithToolBar(text: $state.weightPercentage, placeholder: "0", numberFormatter: formatter)
                         }
 
                         HStack {
@@ -90,7 +90,11 @@ extension Dynamic {
                         HStack {
                             Text("Threshold Setting")
                             Spacer()
-                            DecimalTextField("0", value: $state.threshold_setting, formatter: glucoseFormatter)
+                            TextFieldWithToolBar(
+                                text: $state.threshold_setting,
+                                placeholder: "0",
+                                numberFormatter: glucoseFormatter
+                            )
                             Text(state.unit.rawValue)
                         }
                     } header: { Text("Safety") }

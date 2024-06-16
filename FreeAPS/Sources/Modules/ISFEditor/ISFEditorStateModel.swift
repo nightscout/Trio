@@ -10,6 +10,7 @@ extension ISFEditor {
         @Published var determinationsFromPersistence: [OrefDetermination] = []
 
         let context = CoreDataStack.shared.newTaskContext()
+        let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
         let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
 
@@ -117,7 +118,7 @@ extension ISFEditor {
         @MainActor private func updateDeterminationsArray(with IDs: [NSManagedObjectID]) {
             do {
                 let objects = try IDs.compactMap { id in
-                    try context.existingObject(with: id) as? OrefDetermination
+                    try viewContext.existingObject(with: id) as? OrefDetermination
                 }
                 determinationsFromPersistence = objects
 

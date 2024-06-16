@@ -49,14 +49,18 @@ extension BolusCalculatorConfig {
                         HStack {
                             Text("Override With A Factor Of ")
                             Spacer()
-                            DecimalTextField("0.8", value: $state.overrideFactor, formatter: conversionFormatter)
+                            TextFieldWithToolBar(
+                                text: $state.overrideFactor,
+                                placeholder: "0.8",
+                                numberFormatter: conversionFormatter
+                            )
                         }
                     }
 
                     if !state.useCalc {
                         HStack {
                             Text("Recommended Bolus Percentage")
-                            DecimalTextField("", value: $state.insulinReqPercentage, formatter: formatter)
+                            TextFieldWithToolBar(text: $state.insulinReqPercentage, placeholder: "", numberFormatter: formatter)
                         }
                     }
                 } header: { Text("Calculator settings") }
@@ -74,7 +78,11 @@ extension BolusCalculatorConfig {
                         HStack {
                             Text("Override With A Factor Of ")
                             Spacer()
-                            DecimalTextField("0.7", value: $state.fattyMealFactor, formatter: conversionFormatter)
+                            TextFieldWithToolBar(
+                                text: $state.fattyMealFactor,
+                                placeholder: "0.7",
+                                numberFormatter: conversionFormatter
+                            )
                         }
                     } header: { Text("Fatty Meals") }
 
@@ -85,7 +93,11 @@ extension BolusCalculatorConfig {
                         HStack {
                             Text("Factor how often current basalrate is added")
                             Spacer()
-                            DecimalTextField("2", value: $state.sweetMealFactor, formatter: conversionFormatter)
+                            TextFieldWithToolBar(
+                                text: $state.sweetMealFactor,
+                                placeholder: "2",
+                                numberFormatter: conversionFormatter
+                            )
                         }
                     } header: { Text("Sweet Meals") }
 

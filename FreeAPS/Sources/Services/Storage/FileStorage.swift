@@ -2,7 +2,9 @@ import Foundation
 
 protocol FileStorage {
     func save<Value: JSON>(_ value: Value, as name: String)
+    func saveAsync<Value: JSON>(_ value: Value, as name: String) async
     func retrieve<Value: JSON>(_ name: String, as type: Value.Type) -> Value?
+    func retrieveAsync<Value: JSON>(_ name: String, as type: Value.Type) async -> Value?
     func retrieveRaw(_ name: String) -> RawJSON?
     func append<Value: JSON>(_ newValue: Value, to name: String)
     func append<Value: JSON>(_ newValues: [Value], to name: String)
@@ -28,9 +30,31 @@ final class BaseFileStorage: FileStorage {
         }
     }
 
+    func saveAsync<Value: JSON>(_ value: Value, as name: String) async {
+        await withCheckedContinuation { continuation in
+            processQueue.safeSync {
+                if let value = value as? RawJSON, let data = value.data(using: .utf8) {
+                    try? Disk.save(data, to: .documents, as: name)
+                } else {
+                    try? Disk.save(value, to: .documents, as: name, encoder: JSONCoding.encoder)
+                }
+                continuation.resume()
+            }
+        }
+    }
+
     func retrieve<Value: JSON>(_ name: String, as type: Value.Type) -> Value? {
         processQueue.safeSync {
             try? Disk.retrieve(name, from: .documents, as: type, decoder: JSONCoding.decoder)
+        }
+    }
+
+    func retrieveAsync<Value: JSON>(_ name: String, as type: Value.Type) async -> Value? {
+        await withCheckedContinuation { continuation in
+            processQueue.safeSync {
+                let result = try? Disk.retrieve(name, from: .documents, as: type, decoder: JSONCoding.decoder)
+                continuation.resume(returning: result)
+            }
         }
     }
 

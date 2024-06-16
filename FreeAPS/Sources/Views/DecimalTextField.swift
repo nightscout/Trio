@@ -1,171 +1,163 @@
-import Combine
 import SwiftUI
+import UIKit
 
-struct DecimalTextField: UIViewRepresentable {
-    private var placeholder: String
-    @Binding var value: Decimal
-    private var formatter: NumberFormatter
-    private var autofocus: Bool
-    private var cleanInput: Bool
-    private var useButtons: Bool
-    private var textColor: UIColor?
+public struct TextFieldWithToolBar: UIViewRepresentable {
+    @Binding var text: Decimal
+    var placeholder: String
+    var textColor: UIColor
+    var textAlignment: NSTextAlignment
+    var keyboardType: UIKeyboardType
+    var autocapitalizationType: UITextAutocapitalizationType
+    var autocorrectionType: UITextAutocorrectionType
+    var shouldBecomeFirstResponder: Bool
+    var maxLength: Int?
+    var isDismissible: Bool
+    var textFieldDidBeginEditing: (() -> Void)?
+    var numberFormatter: NumberFormatter
 
-    init(
-        _ placeholder: String,
-        value: Binding<Decimal>,
-        formatter: NumberFormatter,
-        autofocus: Bool = false,
-        cleanInput: Bool = false,
-        useButtons: Bool = true,
-        textColor: UIColor? = nil
+    public init(
+        text: Binding<Decimal>,
+        placeholder: String,
+        textColor: UIColor = .label,
+        textAlignment: NSTextAlignment = .right,
+        keyboardType: UIKeyboardType = .decimalPad,
+        autocapitalizationType: UITextAutocapitalizationType = .none,
+        autocorrectionType: UITextAutocorrectionType = .no,
+        shouldBecomeFirstResponder: Bool = false,
+        maxLength: Int? = nil,
+        isDismissible: Bool = true,
+        textFieldDidBeginEditing: (() -> Void)? = nil,
+        numberFormatter: NumberFormatter = NumberFormatter()
     ) {
+        _text = text
         self.placeholder = placeholder
-        _value = value
-        self.formatter = formatter
-        self.autofocus = autofocus
-        self.cleanInput = cleanInput
-        self.useButtons = useButtons
         self.textColor = textColor
+        self.textAlignment = textAlignment
+        self.keyboardType = keyboardType
+        self.autocapitalizationType = autocapitalizationType
+        self.autocorrectionType = autocorrectionType
+        self.shouldBecomeFirstResponder = shouldBecomeFirstResponder
+        self.maxLength = maxLength
+        self.isDismissible = isDismissible
+        self.textFieldDidBeginEditing = textFieldDidBeginEditing
+        self.numberFormatter = numberFormatter
+        self.numberFormatter.numberStyle = .decimal
     }
 
-    func makeUIView(context: Context) -> UITextField {
-        let textfield = UITextField()
-        textfield.keyboardType = .decimalPad
-        textfield.delegate = context.coordinator
-        textfield.placeholder = placeholder
-        textfield.text = cleanInput ? "" : formatter.string(for: value) ?? placeholder
-        textfield.textAlignment = .right
-
-        if let textColor = textColor {
-            textfield.textColor = textColor
-        }
-
-        lazy var toolBar: UIToolbar = {
-            let tool: UIToolbar = .init(frame: .init(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 35))
-            tool.barStyle = .default
-            tool.isTranslucent = true
-            tool.sizeToFit()
-
-            let spaceArea: UIBarButtonItem = .init(systemItem: .flexibleSpace)
-            let clearButton: UIBarButtonItem = .init(
-                title: "Clear",
-                style: .plain,
-                target: self,
-                action: #selector(textfield.clearButtonTapped(button:))
-            )
-            let doneButton: UIBarButtonItem = .init(
-                title: "Done",
-                style: .done,
-                target: self,
-                action: #selector(textfield.doneButtonTapped(button:))
-            )
-            tool.setItems([clearButton, spaceArea, doneButton], animated: false)
-            tool.isUserInteractionEnabled = true
-
-            return tool
-        }()
-
-        if useButtons {
-            textfield.inputAccessoryView = toolBar
-        }
-
-        if autofocus {
-            DispatchQueue.main.async {
-                textfield.becomeFirstResponder()
-            }
-        }
-        return textfield
+    public func makeUIView(context: Context) -> UITextField {
+        let textField = UITextField()
+        textField.inputAccessoryView = isDismissible ? makeDoneToolbar(for: textField, context: context) : nil
+        textField.addTarget(context.coordinator, action: #selector(Coordinator.textChanged), for: .editingChanged)
+        textField.addTarget(context.coordinator, action: #selector(Coordinator.editingDidBegin), for: .editingDidBegin)
+        textField.delegate = context.coordinator
+        return textField
     }
 
-    func updateUIView(_ textField: UITextField, context: Context) {
-        let coordinator = context.coordinator
-        if coordinator.isEditing {
-            coordinator.resetEditing()
-        } else if value == 0 {
-            textField.text = ""
+    private func makeDoneToolbar(for textField: UITextField, context: Context) -> UIToolbar {
+        let toolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 50))
+        let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        let doneButton = UIBarButtonItem(
+            image: UIImage(systemName: "keyboard.chevron.compact.down"),
+            style: .done,
+            target: textField,
+            action: #selector(UITextField.resignFirstResponder)
+        )
+        let clearButton = UIBarButtonItem(
+            image: UIImage(systemName: "trash"),
+            style: .plain,
+            target: context.coordinator,
+            action: #selector(Coordinator.clearText)
+        )
+
+        toolbar.items = [clearButton, flexibleSpace, doneButton]
+        toolbar.sizeToFit()
+        return toolbar
+    }
+
+    public func updateUIView(_ textField: UITextField, context: Context) {
+        if text != 0 {
+            textField.text = numberFormatter.string(from: text as NSNumber)
         } else {
-            textField.text = formatter.string(for: value)
+            textField.text = ""
         }
-    }
+        textField.placeholder = placeholder
+        textField.textColor = textColor
+        textField.textAlignment = textAlignment
+        textField.keyboardType = keyboardType
+        textField.autocapitalizationType = autocapitalizationType
+        textField.autocorrectionType = autocorrectionType
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-
-    class Coordinator: NSObject, UITextFieldDelegate {
-        var parent: DecimalTextField
-
-        init(_ textField: DecimalTextField) {
-            parent = textField
-        }
-
-        private(set) var isEditing = false
-        private var editingCancellable: AnyCancellable?
-
-        func resetEditing() {
-            editingCancellable = Just(false)
-                .delay(for: 0.5, scheduler: DispatchQueue.main)
-                .weakAssign(to: \.isEditing, on: self)
-        }
-
-        func textField(
-            _ textField: UITextField,
-            shouldChangeCharactersIn range: NSRange,
-            replacementString string: String
-        ) -> Bool {
-            // Allow only numbers and decimal characters
-            let isNumber = CharacterSet.decimalDigits.isSuperset(of: CharacterSet(charactersIn: string))
-            let withDecimal = (
-                string == NumberFormatter().decimalSeparator &&
-                    textField.text?.contains(string) == false
-            )
-
-            if isNumber || withDecimal,
-               let currentValue = textField.text as NSString?
-            {
-                // Update Value
-                let proposedValue = currentValue.replacingCharacters(in: range, with: string) as String
-
-                let decimalFormatter = NumberFormatter()
-                decimalFormatter.locale = Locale.current
-                decimalFormatter.numberStyle = .decimal
-
-                // Try currency formatter then Decimal formatrer
-                let number = parent.formatter.number(from: proposedValue) ?? decimalFormatter.number(from: proposedValue) ?? 0.0
-
-                // Set Value
-                let double = number.doubleValue
-                isEditing = true
-                parent.value = Decimal(double)
+        if shouldBecomeFirstResponder, !context.coordinator.didBecomeFirstResponder {
+            if textField.window != nil, textField.becomeFirstResponder() {
+                context.coordinator.didBecomeFirstResponder = true
             }
+        } else if !shouldBecomeFirstResponder, context.coordinator.didBecomeFirstResponder {
+            context.coordinator.didBecomeFirstResponder = false
+        }
+    }
 
-            return isNumber || withDecimal
+    public func makeCoordinator() -> Coordinator {
+        Coordinator(self, maxLength: maxLength)
+    }
+
+    public final class Coordinator: NSObject {
+        var parent: TextFieldWithToolBar
+        let maxLength: Int?
+
+        var didBecomeFirstResponder = false
+
+        init(_ parent: TextFieldWithToolBar, maxLength: Int?) {
+            self.parent = parent
+            self.maxLength = maxLength
         }
 
-        func textFieldDidEndEditing(
-            _ textField: UITextField,
-            reason _: UITextField.DidEndEditingReason
-        ) {
-            // Format value with formatter at End Editing
-            textField.text = parent.formatter.string(for: parent.value)
-            isEditing = false
+        @objc fileprivate func textChanged(_ textField: UITextField) {
+            if let text = textField.text, let value = parent.numberFormatter.number(from: text)?.decimalValue {
+                parent.text = value
+            } else {
+                parent.text = 0
+            }
+        }
+
+        @objc fileprivate func clearText() {
+            parent.text = 0
+        }
+
+        @objc fileprivate func editingDidBegin(_ textField: UITextField) {
+            DispatchQueue.main.async {
+                textField.moveCursorToEnd()
+            }
         }
     }
 }
 
-// MARK: extension for done button
+extension TextFieldWithToolBar.Coordinator: UITextFieldDelegate {
+    public func textField(
+        _ textField: UITextField,
+        shouldChangeCharactersIn range: NSRange,
+        replacementString string: String
+    ) -> Bool {
+        guard let maxLength = maxLength else {
+            return true
+        }
+        let currentString: NSString = (textField.text ?? "") as NSString
+        let newString: NSString =
+            currentString.replacingCharacters(in: range, with: string) as NSString
+        return newString.length <= maxLength
+    }
+
+    public func textFieldDidBeginEditing(_: UITextField) {
+        parent.textFieldDidBeginEditing?()
+    }
+}
 
 extension UITextField {
-    @objc func doneButtonTapped(button _: UIBarButtonItem) {
-        resignFirstResponder()
-    }
-
-    @objc func clearButtonTapped(button _: UIBarButtonItem) {
-        text = ""
+    func moveCursorToEnd() {
+        dispatchPrecondition(condition: .onQueue(.main))
+        let newPosition = endOfDocument
+        selectedTextRange = textRange(from: newPosition, to: newPosition)
     }
 }
-
-// MARK: extension for keyboard to dismiss
 
 extension UIApplication {
     func endEditing() {

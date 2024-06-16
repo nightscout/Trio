@@ -189,72 +189,72 @@ final class OpenAPS {
         async let carbs = fetchAndProcessCarbs()
         async let glucose = fetchAndProcessGlucose()
         async let oref2 = oref2()
+        async let profileAsync = loadFileFromStorageAsync(name: Settings.profile)
+        async let basalAsync = loadFileFromStorageAsync(name: Settings.basalProfile)
+        async let autosenseAsync = loadFileFromStorageAsync(name: Settings.autosense)
+        async let reservoirAsync = loadFileFromStorageAsync(name: Monitor.reservoir)
+        async let preferencesAsync = loadFileFromStorageAsync(name: Settings.preferences)
 
         // Await the results of asynchronous tasks
-        let pumpHistoryJSON = await parsePumpHistory(await pumpHistoryObjectIDs)
-        let carbsAsJSON = await carbs
-        let glucoseAsJSON = await glucose
-        let oref2_variables = await oref2
+        let (
+            pumpHistoryJSON,
+            carbsAsJSON,
+            glucoseAsJSON,
+            oref2_variables,
+            profile,
+            basalProfile,
+            autosens,
+            reservoir,
+            preferences
+        ) = await (
+            parsePumpHistory(await pumpHistoryObjectIDs),
+            carbs,
+            glucose,
+            oref2,
+            profileAsync,
+            basalAsync,
+            autosenseAsync,
+            reservoirAsync,
+            preferencesAsync
+        )
 
         // TODO: - Save and fetch profile/basalProfile in/from UserDefaults!
 
-        // Load files from Storage
-        let profile = loadFileFromStorage(name: Settings.profile)
-        let basalProfile = loadFileFromStorage(name: Settings.basalProfile)
-        let autosens = loadFileFromStorage(name: Settings.autosense)
-        let reservoir = loadFileFromStorage(name: Monitor.reservoir)
-        let preferences = loadFileFromStorage(name: Settings.preferences)
-
         // Meal
-        let meal: RawJSON = await withCheckedContinuation { continuation in
-            self.processQueue.async {
-                let result = self.meal(
-                    pumphistory: pumpHistoryJSON,
-                    profile: profile,
-                    basalProfile: basalProfile,
-                    clock: dateFormattedAsString,
-                    carbs: carbsAsJSON,
-                    glucose: glucoseAsJSON
-                )
-                continuation.resume(returning: result)
-            }
-        }
+        let meal = try await self.meal(
+            pumphistory: pumpHistoryJSON,
+            profile: profile,
+            basalProfile: basalProfile,
+            clock: dateFormattedAsString,
+            carbs: carbsAsJSON,
+            glucose: glucoseAsJSON
+        )
 
         // IOB
-        let iob: RawJSON = await withCheckedContinuation { continuation in
-            self.processQueue.async {
-                let result = self.iob(
-                    pumphistory: pumpHistoryJSON,
-                    profile: profile,
-                    clock: dateFormattedAsString,
-                    autosens: autosens.isEmpty ? .null : autosens
-                )
-                continuation.resume(returning: result)
-            }
-        }
+        let iob = try await self.iob(
+            pumphistory: pumpHistoryJSON,
+            profile: profile,
+            clock: dateFormattedAsString,
+            autosens: autosens.isEmpty ? .null : autosens
+        )
 
         storage.save(iob, as: Monitor.iob)
 
         // Determine basal
-        let orefDetermination: RawJSON = await withCheckedContinuation { continuation in
-            self.processQueue.async {
-                let result = self.determineBasal(
-                    glucose: glucoseAsJSON,
-                    currentTemp: tempBasal,
-                    iob: iob,
-                    profile: profile,
-                    autosens: autosens.isEmpty ? .null : autosens,
-                    meal: meal,
-                    microBolusAllowed: true,
-                    reservoir: reservoir,
-                    pumpHistory: pumpHistoryJSON,
-                    preferences: preferences,
-                    basalProfile: basalProfile,
-                    oref2_variables: oref2_variables
-                )
-                continuation.resume(returning: result)
-            }
-        }
+        let orefDetermination = try await determineBasal(
+            glucose: glucoseAsJSON,
+            currentTemp: tempBasal,
+            iob: iob,
+            profile: profile,
+            autosens: autosens.isEmpty ? .null : autosens,
+            meal: meal,
+            microBolusAllowed: true,
+            reservoir: reservoir,
+            pumpHistory: pumpHistoryJSON,
+            preferences: preferences,
+            basalProfile: basalProfile,
+            oref2_variables: oref2_variables
+        )
 
         debug(.openAPS, "Determinated: \(orefDetermination)")
 
@@ -464,31 +464,29 @@ final class OpenAPS {
         async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
         async let carbs = fetchAndProcessCarbs()
         async let glucose = fetchAndProcessGlucose()
+        async let getProfile = loadFileFromStorageAsync(name: Settings.profile)
+        async let getBasalProfile = loadFileFromStorageAsync(name: Settings.basalProfile)
+        async let getTempTargets = loadFileFromStorageAsync(name: Settings.tempTargets)
 
         // Await the results of asynchronous tasks
-        let pumpHistoryJSON = await parsePumpHistory(await pumpHistoryObjectIDs)
-        let carbsAsJSON = await carbs
-        let glucoseAsJSON = await glucose
-
-        // Load files from Storage
-        let profile = loadFileFromStorage(name: Settings.profile)
-        let basalProfile = loadFileFromStorage(name: Settings.basalProfile)
-        let tempTargets = loadFileFromStorage(name: Settings.tempTargets)
+        let (pumpHistoryJSON, carbsAsJSON, glucoseAsJSON, profile, basalProfile, tempTargets) = await (
+            parsePumpHistory(await pumpHistoryObjectIDs),
+            carbs,
+            glucose,
+            getProfile,
+            getBasalProfile,
+            getTempTargets
+        )
 
         // Autosense
-        let autosenseResult: RawJSON = await withCheckedContinuation { continuation in
-            self.processQueue.async {
-                let result = self.autosense(
-                    glucose: glucoseAsJSON,
-                    pumpHistory: pumpHistoryJSON,
-                    basalprofile: basalProfile,
-                    profile: profile,
-                    carbs: carbsAsJSON,
-                    temptargets: tempTargets
-                )
-                continuation.resume(returning: result)
-            }
-        }
+        let autosenseResult = try await autosense(
+            glucose: glucoseAsJSON,
+            pumpHistory: pumpHistoryJSON,
+            basalprofile: basalProfile,
+            profile: profile,
+            carbs: carbsAsJSON,
+            temptargets: tempTargets
+        )
 
         debug(.openAPS, "AUTOSENS: \(autosenseResult)")
         if var autosens = Autosens(from: autosenseResult) {
@@ -508,148 +506,181 @@ final class OpenAPS {
         async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
         async let carbs = fetchAndProcessCarbs()
         async let glucose = fetchAndProcessGlucose()
+        async let getProfile = loadFileFromStorageAsync(name: Settings.profile)
+        async let getPumpProfile = loadFileFromStorageAsync(name: Settings.pumpProfile)
+        async let getPreviousAutotune = storage.retrieveAsync(Settings.autotune, as: RawJSON.self)
 
         // Await the results of asynchronous tasks
-        let pumpHistoryJSON = await parsePumpHistory(await pumpHistoryObjectIDs)
-        let carbsAsJSON = await carbs
-        let glucoseAsJSON = await glucose
+        let (pumpHistoryJSON, carbsAsJSON, glucoseAsJSON, profile, pumpProfile, previousAutotune) = await (
+            parsePumpHistory(await pumpHistoryObjectIDs),
+            carbs,
+            glucose,
+            getProfile,
+            getPumpProfile,
+            getPreviousAutotune
+        )
 
-        // Load files from storage
-        let profile = loadFileFromStorage(name: Settings.profile)
-        let pumpProfile = loadFileFromStorage(name: Settings.pumpProfile)
-        let previousAutotune = storage.retrieve(Settings.autotune, as: RawJSON.self)
+        // Error need to be handled here because the function is not declared as throws
+        do {
+            // Autotune Prepare
+            let autotunePreppedGlucose = try await autotunePrepare(
+                pumphistory: pumpHistoryJSON,
+                profile: profile,
+                glucose: glucoseAsJSON,
+                pumpprofile: pumpProfile,
+                carbs: carbsAsJSON,
+                categorizeUamAsBasal: categorizeUamAsBasal,
+                tuneInsulinCurve: tuneInsulinCurve
+            )
 
-        // Autotune
-        let autotunePreppedGlucose: RawJSON = await withCheckedContinuation { continuation in
-            self.processQueue.async {
-                let result = self.autotunePrepare(
-                    pumphistory: pumpHistoryJSON,
-                    profile: profile,
-                    glucose: glucoseAsJSON,
-                    pumpprofile: pumpProfile,
-                    carbs: carbsAsJSON,
-                    categorizeUamAsBasal: categorizeUamAsBasal,
-                    tuneInsulinCurve: tuneInsulinCurve
-                )
-                continuation.resume(returning: result)
+            debug(.openAPS, "AUTOTUNE PREP: \(autotunePreppedGlucose)")
+
+            // Autotune Run
+            let autotuneResult = try await autotuneRun(
+                autotunePreparedData: autotunePreppedGlucose,
+                previousAutotuneResult: previousAutotune ?? profile,
+                pumpProfile: pumpProfile
+            )
+
+            debug(.openAPS, "AUTOTUNE RESULT: \(autotuneResult)")
+
+            if let autotune = Autotune(from: autotuneResult) {
+                storage.save(autotuneResult, as: Settings.autotune)
+
+                return autotune
+            } else {
+                return nil
             }
-        }
-
-        debug(.openAPS, "AUTOTUNE PREP: \(autotunePreppedGlucose)")
-
-        let autotuneResult: RawJSON = await withCheckedContinuation { continuation in
-            self.processQueue.async {
-                let result = self.autotuneRun(
-                    autotunePreparedData: autotunePreppedGlucose,
-                    previousAutotuneResult: previousAutotune ?? profile,
-                    pumpProfile: pumpProfile
-                )
-                continuation.resume(returning: result)
-            }
-        }
-
-        debug(.openAPS, "AUTOTUNE RESULT: \(autotuneResult)")
-
-        if let autotune = Autotune(from: autotuneResult) {
-            storage.save(autotuneResult, as: Settings.autotune)
-
-            return autotune
-        } else {
+        } catch {
+            debug(.openAPS, "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to prepare/run Autotune")
             return nil
         }
     }
 
-    func makeProfiles(useAutotune: Bool) async -> Autotune? {
-        await withCheckedContinuation { continuation in
-            debug(.openAPS, "Start makeProfiles")
-            processQueue.async {
-                var preferences = self.loadFileFromStorage(name: Settings.preferences)
-                if preferences.isEmpty {
-                    preferences = Preferences().rawJSON
-                }
-                let pumpSettings = self.loadFileFromStorage(name: Settings.settings)
-                let bgTargets = self.loadFileFromStorage(name: Settings.bgTargets)
-                let basalProfile = self.loadFileFromStorage(name: Settings.basalProfile)
-                let isf = self.loadFileFromStorage(name: Settings.insulinSensitivities)
-                let cr = self.loadFileFromStorage(name: Settings.carbRatios)
-                let tempTargets = self.loadFileFromStorage(name: Settings.tempTargets)
-                let model = self.loadFileFromStorage(name: Settings.model)
-                let autotune = useAutotune ? self.loadFileFromStorage(name: Settings.autotune) : .empty
-                let freeaps = self.loadFileFromStorage(name: FreeAPS.settings)
+    func makeProfiles(useAutotune _: Bool) async -> Autotune? {
+        debug(.openAPS, "Start makeProfiles")
 
-                let pumpProfile = self.makeProfile(
-                    preferences: preferences,
-                    pumpSettings: pumpSettings,
-                    bgTargets: bgTargets,
-                    basalProfile: basalProfile,
-                    isf: isf,
-                    carbRatio: cr,
-                    tempTargets: tempTargets,
-                    model: model,
-                    autotune: RawJSON.null,
-                    freeaps: freeaps
-                )
+        async let getPreferences = loadFileFromStorageAsync(name: Settings.preferences)
+        async let getPumpSettings = loadFileFromStorageAsync(name: Settings.settings)
+        async let getBGTargets = loadFileFromStorageAsync(name: Settings.bgTargets)
+        async let getBasalProfile = loadFileFromStorageAsync(name: Settings.basalProfile)
+        async let getISF = loadFileFromStorageAsync(name: Settings.insulinSensitivities)
+        async let getCR = loadFileFromStorageAsync(name: Settings.carbRatios)
+        async let getTempTargets = loadFileFromStorageAsync(name: Settings.tempTargets)
+        async let getModel = loadFileFromStorageAsync(name: Settings.model)
+        async let getAutotune = loadFileFromStorageAsync(name: Settings.autotune)
+        async let getFreeAPS = loadFileFromStorageAsync(name: FreeAPS.settings)
 
-                let profile = self.makeProfile(
-                    preferences: preferences,
-                    pumpSettings: pumpSettings,
-                    bgTargets: bgTargets,
-                    basalProfile: basalProfile,
-                    isf: isf,
-                    carbRatio: cr,
-                    tempTargets: tempTargets,
-                    model: model,
-                    autotune: autotune.isEmpty ? .null : autotune,
-                    freeaps: freeaps
-                )
+        let (preferences, pumpSettings, bgTargets, basalProfile, isf, cr, tempTargets, model, autotune, freeaps) = await (
+            getPreferences,
+            getPumpSettings,
+            getBGTargets,
+            getBasalProfile,
+            getISF,
+            getCR,
+            getTempTargets,
+            getModel,
+            getAutotune,
+            getFreeAPS
+        )
 
-                self.storage.save(pumpProfile, as: Settings.pumpProfile)
-                self.storage.save(profile, as: Settings.profile)
+        var adjustedPreferences = preferences
+        if adjustedPreferences.isEmpty {
+            adjustedPreferences = Preferences().rawJSON
+        }
 
-                if let tunedProfile = Autotune(from: profile) {
-                    continuation.resume(returning: tunedProfile)
-                } else {
-                    continuation.resume(returning: nil)
-                }
+        do {
+            // Pump Profile
+            let pumpProfile = try await makeProfile(
+                preferences: adjustedPreferences,
+                pumpSettings: pumpSettings,
+                bgTargets: bgTargets,
+                basalProfile: basalProfile,
+                isf: isf,
+                carbRatio: cr,
+                tempTargets: tempTargets,
+                model: model,
+                autotune: RawJSON.null,
+                freeaps: freeaps
+            )
+
+            // Profile
+            let profile = try await makeProfile(
+                preferences: adjustedPreferences,
+                pumpSettings: pumpSettings,
+                bgTargets: bgTargets,
+                basalProfile: basalProfile,
+                isf: isf,
+                carbRatio: cr,
+                tempTargets: tempTargets,
+                model: model,
+                autotune: autotune.isEmpty ? .null : autotune,
+                freeaps: freeaps
+            )
+
+            await storage.saveAsync(pumpProfile, as: Settings.pumpProfile)
+            await storage.saveAsync(profile, as: Settings.profile)
+
+            if let tunedProfile = Autotune(from: profile) {
+                return tunedProfile
+            } else {
+                return nil
             }
+        } catch {
+            debug(
+                .apsManager,
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to execute makeProfiles() to return Autoune results"
+            )
+            return nil
         }
     }
 
     // MARK: - Private
 
-    private func iob(pumphistory: JSON, profile: JSON, clock: JSON, autosens: JSON) -> RawJSON {
-        dispatchPrecondition(condition: .onQueue(processQueue))
-        return jsWorker.inCommonContext { worker in
-            worker.evaluateBatch(scripts: [
-                Script(name: Prepare.log),
-                Script(name: Bundle.iob),
-                Script(name: Prepare.iob)
-            ])
-            return worker.call(function: Function.generate, with: [
-                pumphistory,
-                profile,
-                clock,
-                autosens
-            ])
+    private func iob(pumphistory: JSON, profile: JSON, clock: JSON, autosens: JSON) async throws -> RawJSON {
+        await withCheckedContinuation { continuation in
+            jsWorker.inCommonContext { worker in
+                worker.evaluateBatch(scripts: [
+                    Script(name: Prepare.log),
+                    Script(name: Bundle.iob),
+                    Script(name: Prepare.iob)
+                ])
+                let result = worker.call(function: Function.generate, with: [
+                    pumphistory,
+                    profile,
+                    clock,
+                    autosens
+                ])
+                continuation.resume(returning: result)
+            }
         }
     }
 
-    private func meal(pumphistory: JSON, profile: JSON, basalProfile: JSON, clock: JSON, carbs: JSON, glucose: JSON) -> RawJSON {
-        dispatchPrecondition(condition: .onQueue(processQueue))
-        return jsWorker.inCommonContext { worker in
-            worker.evaluateBatch(scripts: [
-                Script(name: Prepare.log),
-                Script(name: Bundle.meal),
-                Script(name: Prepare.meal)
-            ])
-            return worker.call(function: Function.generate, with: [
-                pumphistory,
-                profile,
-                clock,
-                glucose,
-                basalProfile,
-                carbs
-            ])
+    private func meal(
+        pumphistory: JSON,
+        profile: JSON,
+        basalProfile: JSON,
+        clock: JSON,
+        carbs: JSON,
+        glucose: JSON
+    ) async throws -> RawJSON {
+        try await withCheckedThrowingContinuation { continuation in
+            jsWorker.inCommonContext { worker in
+                worker.evaluateBatch(scripts: [
+                    Script(name: Prepare.log),
+                    Script(name: Bundle.meal),
+                    Script(name: Prepare.meal)
+                ])
+                let result = worker.call(function: Function.generate, with: [
+                    pumphistory,
+                    profile,
+                    clock,
+                    glucose,
+                    basalProfile,
+                    carbs
+                ])
+                continuation.resume(returning: result)
+            }
         }
     }
 
@@ -660,22 +691,24 @@ final class OpenAPS {
         profile: JSON,
         carbs: JSON,
         temptargets: JSON
-    ) -> RawJSON {
-        dispatchPrecondition(condition: .onQueue(processQueue))
-        return jsWorker.inCommonContext { worker in
-            worker.evaluateBatch(scripts: [
-                Script(name: Prepare.log),
-                Script(name: Bundle.autosens),
-                Script(name: Prepare.autosens)
-            ])
-            return worker.call(function: Function.generate, with: [
-                glucose,
-                pumpHistory,
-                basalprofile,
-                profile,
-                carbs,
-                temptargets
-            ])
+    ) async throws -> RawJSON {
+        try await withCheckedThrowingContinuation { continuation in
+            jsWorker.inCommonContext { worker in
+                worker.evaluateBatch(scripts: [
+                    Script(name: Prepare.log),
+                    Script(name: Bundle.autosens),
+                    Script(name: Prepare.autosens)
+                ])
+                let result = worker.call(function: Function.generate, with: [
+                    glucose,
+                    pumpHistory,
+                    basalprofile,
+                    profile,
+                    carbs,
+                    temptargets
+                ])
+                continuation.resume(returning: result)
+            }
         }
     }
 
@@ -687,39 +720,47 @@ final class OpenAPS {
         carbs: JSON,
         categorizeUamAsBasal: Bool,
         tuneInsulinCurve: Bool
-    ) -> RawJSON {
-        dispatchPrecondition(condition: .onQueue(processQueue))
-        return jsWorker.inCommonContext { worker in
-            worker.evaluateBatch(scripts: [
-                Script(name: Prepare.log),
-                Script(name: Bundle.autotunePrep),
-                Script(name: Prepare.autotunePrep)
-            ])
-            return worker.call(function: Function.generate, with: [
-                pumphistory,
-                profile,
-                glucose,
-                pumpprofile,
-                carbs,
-                categorizeUamAsBasal,
-                tuneInsulinCurve
-            ])
+    ) async throws -> RawJSON {
+        try await withCheckedThrowingContinuation { continuation in
+            jsWorker.inCommonContext { worker in
+                worker.evaluateBatch(scripts: [
+                    Script(name: Prepare.log),
+                    Script(name: Bundle.autotunePrep),
+                    Script(name: Prepare.autotunePrep)
+                ])
+                let result = worker.call(function: Function.generate, with: [
+                    pumphistory,
+                    profile,
+                    glucose,
+                    pumpprofile,
+                    carbs,
+                    categorizeUamAsBasal,
+                    tuneInsulinCurve
+                ])
+                continuation.resume(returning: result)
+            }
         }
     }
 
-    private func autotuneRun(autotunePreparedData: JSON, previousAutotuneResult: JSON, pumpProfile: JSON) -> RawJSON {
-        dispatchPrecondition(condition: .onQueue(processQueue))
-        return jsWorker.inCommonContext { worker in
-            worker.evaluateBatch(scripts: [
-                Script(name: Prepare.log),
-                Script(name: Bundle.autotuneCore),
-                Script(name: Prepare.autotuneCore)
-            ])
-            return worker.call(function: Function.generate, with: [
-                autotunePreparedData,
-                previousAutotuneResult,
-                pumpProfile
-            ])
+    private func autotuneRun(
+        autotunePreparedData: JSON,
+        previousAutotuneResult: JSON,
+        pumpProfile: JSON
+    ) async throws -> RawJSON {
+        try await withCheckedThrowingContinuation { continuation in
+            jsWorker.inCommonContext { worker in
+                worker.evaluateBatch(scripts: [
+                    Script(name: Prepare.log),
+                    Script(name: Bundle.autotuneCore),
+                    Script(name: Prepare.autotuneCore)
+                ])
+                let result = worker.call(function: Function.generate, with: [
+                    autotunePreparedData,
+                    previousAutotuneResult,
+                    pumpProfile
+                ])
+                continuation.resume(returning: result)
+            }
         }
     }
 
@@ -736,36 +777,39 @@ final class OpenAPS {
         preferences: JSON,
         basalProfile: JSON,
         oref2_variables: JSON
-    ) -> RawJSON {
-        dispatchPrecondition(condition: .onQueue(processQueue))
-        return jsWorker.inCommonContext { worker in
-            worker.evaluateBatch(scripts: [
-                Script(name: Prepare.log),
-                Script(name: Prepare.determineBasal),
-                Script(name: Bundle.basalSetTemp),
-                Script(name: Bundle.getLastGlucose),
-                Script(name: Bundle.determineBasal)
-            ])
+    ) async throws -> RawJSON {
+        try await withCheckedThrowingContinuation { continuation in
+            jsWorker.inCommonContext { worker in
+                worker.evaluateBatch(scripts: [
+                    Script(name: Prepare.log),
+                    Script(name: Prepare.determineBasal),
+                    Script(name: Bundle.basalSetTemp),
+                    Script(name: Bundle.getLastGlucose),
+                    Script(name: Bundle.determineBasal)
+                ])
 
-            if let middleware = self.middlewareScript(name: OpenAPS.Middleware.determineBasal) {
-                worker.evaluate(script: middleware)
+                if let middleware = self.middlewareScript(name: OpenAPS.Middleware.determineBasal) {
+                    worker.evaluate(script: middleware)
+                }
+
+                let result = worker.call(function: Function.generate, with: [
+                    iob,
+                    currentTemp,
+                    glucose,
+                    profile,
+                    autosens,
+                    meal,
+                    microBolusAllowed,
+                    reservoir,
+                    Date(),
+                    pumpHistory,
+                    preferences,
+                    basalProfile,
+                    oref2_variables
+                ])
+
+                continuation.resume(returning: result)
             }
-
-            return worker.call(function: Function.generate, with: [
-                iob,
-                currentTemp,
-                glucose,
-                profile,
-                autosens,
-                meal,
-                microBolusAllowed,
-                reservoir,
-                Date(),
-                pumpHistory,
-                preferences,
-                basalProfile,
-                oref2_variables
-            ])
         }
     }
 
@@ -792,26 +836,28 @@ final class OpenAPS {
         model: JSON,
         autotune: JSON,
         freeaps: JSON
-    ) -> RawJSON {
-        dispatchPrecondition(condition: .onQueue(processQueue))
-        return jsWorker.inCommonContext { worker in
-            worker.evaluateBatch(scripts: [
-                Script(name: Prepare.log),
-                Script(name: Bundle.profile),
-                Script(name: Prepare.profile)
-            ])
-            return worker.call(function: Function.generate, with: [
-                pumpSettings,
-                bgTargets,
-                isf,
-                basalProfile,
-                preferences,
-                carbRatio,
-                tempTargets,
-                model,
-                autotune,
-                freeaps
-            ])
+    ) async throws -> RawJSON {
+        try await withCheckedThrowingContinuation { continuation in
+            jsWorker.inCommonContext { worker in
+                worker.evaluateBatch(scripts: [
+                    Script(name: Prepare.log),
+                    Script(name: Bundle.profile),
+                    Script(name: Prepare.profile)
+                ])
+                let result = worker.call(function: Function.generate, with: [
+                    pumpSettings,
+                    bgTargets,
+                    isf,
+                    basalProfile,
+                    preferences,
+                    carbRatio,
+                    tempTargets,
+                    model,
+                    autotune,
+                    freeaps
+                ])
+                continuation.resume(returning: result)
+            }
         }
     }
 
@@ -821,6 +867,15 @@ final class OpenAPS {
 
     private func loadFileFromStorage(name: String) -> RawJSON {
         storage.retrieveRaw(name) ?? OpenAPS.defaults(for: name)
+    }
+
+    private func loadFileFromStorageAsync(name: String) async -> RawJSON {
+        await withCheckedContinuation { continuation in
+            DispatchQueue.global(qos: .userInitiated).async {
+                let result = self.storage.retrieveRaw(name) ?? OpenAPS.defaults(for: name)
+                continuation.resume(returning: result)
+            }
+        }
     }
 
     private func middlewareScript(name: String) -> Script? {

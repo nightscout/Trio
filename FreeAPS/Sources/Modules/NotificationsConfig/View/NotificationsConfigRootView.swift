@@ -99,14 +99,14 @@ extension NotificationsConfig {
                     HStack {
                         Text("Low")
                         Spacer()
-                        DecimalTextField("0", value: $state.lowGlucose, formatter: glucoseFormatter)
+                        TextFieldWithToolBar(text: $state.lowGlucose, placeholder: "0", numberFormatter: glucoseFormatter)
                         Text(state.units.rawValue).foregroundColor(.secondary)
                     }
 
                     HStack {
                         Text("High")
                         Spacer()
-                        DecimalTextField("0", value: $state.highGlucose, formatter: glucoseFormatter)
+                        TextFieldWithToolBar(text: $state.highGlucose, placeholder: "0", numberFormatter: glucoseFormatter)
                         Text(state.units.rawValue).foregroundColor(.secondary)
                     }
                 }
@@ -115,7 +115,11 @@ extension NotificationsConfig {
                     HStack {
                         Text("Carbs Required Threshold")
                         Spacer()
-                        DecimalTextField("0", value: $state.carbsRequiredThreshold, formatter: carbsFormatter)
+                        TextFieldWithToolBar(
+                            text: $state.carbsRequiredThreshold,
+                            placeholder: "0",
+                            numberFormatter: carbsFormatter
+                        )
                         Text("g").foregroundColor(.secondary)
                     }
                 }

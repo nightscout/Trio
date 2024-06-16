@@ -44,22 +44,26 @@ extension FPUConfig {
                     HStack {
                         Text("Delay In Minutes")
                         Spacer()
-                        DecimalTextField("60", value: $state.delay, formatter: intFormater)
+                        TextFieldWithToolBar(text: $state.delay, placeholder: "60", numberFormatter: intFormater)
                     }
                     HStack {
                         Text("Maximum Duration In Hours")
                         Spacer()
-                        DecimalTextField("8", value: $state.timeCap, formatter: intFormater)
+                        TextFieldWithToolBar(text: $state.timeCap, placeholder: "8", numberFormatter: intFormater)
                     }
                     HStack {
                         Text("Interval In Minutes")
                         Spacer()
-                        DecimalTextField("30", value: $state.minuteInterval, formatter: intFormater)
+                        TextFieldWithToolBar(text: $state.minuteInterval, placeholder: "30", numberFormatter: intFormater)
                     }
                     HStack {
                         Text("Override With A Factor Of ")
                         Spacer()
-                        DecimalTextField("0.5", value: $state.individualAdjustmentFactor, formatter: conversionFormatter)
+                        TextFieldWithToolBar(
+                            text: $state.individualAdjustmentFactor,
+                            placeholder: "0.5",
+                            numberFormatter: conversionFormatter
+                        )
                     }
                 }
 

@@ -311,12 +311,10 @@ extension DataTable {
                         Section {
                             HStack {
                                 Text("New Glucose")
-                                DecimalTextField(
-                                    " ... ",
-                                    value: $state.manualGlucose,
-                                    formatter: manualGlucoseFormatter,
-                                    autofocus: true,
-                                    cleanInput: true
+                                TextFieldWithToolBar(
+                                    text: $state.manualGlucose,
+                                    placeholder: " ... ",
+                                    numberFormatter: manualGlucoseFormatter
                                 )
                                 Text(state.units.rawValue).foregroundStyle(.secondary)
                             }

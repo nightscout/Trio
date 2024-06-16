@@ -6,6 +6,14 @@ import Swinject
 
 extension Bolus {
     struct RootView: BaseView {
+        enum FocusedField {
+            case carbs
+            case fat
+            case protein
+        }
+
+        @FocusState private var focusedField: FocusedField?
+
         let resolver: Resolver
 
         @StateObject var state = StateModel()
@@ -251,26 +259,32 @@ extension Bolus {
             HStack {
                 Text("Fat").foregroundColor(.orange)
                 Spacer()
-                DecimalTextField(
-                    "0",
-                    value: $state.fat,
-                    formatter: formatter,
-                    autofocus: false,
-                    cleanInput: true
-                )
+                TextFieldWithToolBar(text: $state.fat, placeholder: "0", numberFormatter: mealFormatter)
                 Text("g").foregroundColor(.secondary)
             }
             HStack {
                 Text("Protein").foregroundColor(.red)
                 Spacer()
-                DecimalTextField(
-                    "0",
-                    value: $state.protein,
-                    formatter: formatter,
-                    autofocus: false,
-                    cleanInput: true
-                ).foregroundColor(.loopRed)
+                TextFieldWithToolBar(text: $state.protein, placeholder: "0", numberFormatter: mealFormatter)
+                Text("g").foregroundColor(.secondary)
+            }
+        }
 
+        @ViewBuilder private func carbsTextField() -> some View {
+            HStack {
+                Text("Carbs").fontWeight(.semibold)
+                Spacer()
+                TextFieldWithToolBar(
+                    text: $state.carbs,
+                    placeholder: "0",
+                    shouldBecomeFirstResponder: true,
+                    numberFormatter: mealFormatter
+                )
+                .onChange(of: state.carbs) { _ in
+                    if state.carbs > 0 {
+                        handleDebouncedInput()
+                    }
+                }
                 Text("g").foregroundColor(.secondary)
             }
         }
@@ -280,22 +294,7 @@ extension Bolus {
                 VStack {
                     Form {
                         Section {
-                            HStack {
-                                Text("Carbs").fontWeight(.semibold)
-                                Spacer()
-                                DecimalTextField(
-                                    "0",
-                                    value: $state.carbs,
-                                    formatter: formatter,
-                                    autofocus: false,
-                                    cleanInput: true
-                                ).onChange(of: state.carbs) { _ in
-                                    if state.carbs > 0 {
-                                        handleDebouncedInput()
-                                    }
-                                }
-                                Text("g").foregroundColor(.secondary)
-                            }
+                            carbsTextField()
 
                             if state.useFPUconversion {
                                 proteinAndFat()
@@ -413,13 +412,12 @@ extension Bolus {
                             HStack {
                                 Text("Bolus")
                                 Spacer()
-                                DecimalTextField(
-                                    "0",
-                                    value: $state.amount,
-                                    formatter: formatter,
-                                    autofocus: false,
-                                    cleanInput: true,
-                                    textColor: .systemBlue
+                                TextFieldWithToolBar(
+                                    text: $state.amount,
+                                    placeholder: "0",
+                                    textColor: .blue,
+                                    maxLength: 5,
+                                    numberFormatter: formatter
                                 )
                                 Text(" U").foregroundColor(.secondary)
                             }
@@ -433,7 +431,8 @@ extension Bolus {
                             }
                         }.listRowBackground(Color.chart)
                     }
-                }.safeAreaInset(edge: .bottom, spacing: 0) {
+                }
+                .safeAreaInset(edge: .bottom, spacing: 0) {
                     stickyButton
                 }.blur(radius: state.waitForSuggestion ? 5 : 0)
 
