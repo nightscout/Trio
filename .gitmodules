@@ -1,7 +1,7 @@
 [submodule "LoopKit"]
 	path = LoopKit
-	url = https://github.com/bastiaanv/LoopKit.git
-	branch = dev
+	url = https://github.com/loopandlearn/LoopKit.git
+	branch = add_dana_support
 [submodule "CGMBLEKit"]
 	path = CGMBLEKit
 	url = https://github.com/LoopKit/CGMBLEKit.git
