@@ -26,8 +26,9 @@ else
     # Attempt to retrieve the current tag
     git_tag=$(git describe --tags --exact-match 2>/dev/null || echo "")
 
-    # Retrieve the current SHA of the latest commit
-    git_commit_sha=$(git log -1 --format="%h" --abbrev=7)
+    # Retrieve SHA of the latest commit and parent commits
+    git_commit_sha=$(git log -1 --format="%h %p" --abbrev=7 | awk '{ printf "%s", $1; for(i=2;i<=NF;i++) printf " Parent%d: %s", i-1, $i; printf "\n"; }'
+)
 
     # Determine the branch or tag information
     git_branch_or_tag="${git_branch:-${git_tag}}"
