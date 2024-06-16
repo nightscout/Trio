@@ -5,6 +5,7 @@ import Foundation
     enum TempPresetsError: Error {
         case noTempTargetFound
         case noDurationDefined
+        case noActiveTempPresets
     }
 
     private func convert(tt: [TempTarget]) -> [TempPreset] {
@@ -66,9 +67,16 @@ import Foundation
         return tempTarget
     }
 
-    func cancelTempTarget() throws {
+    func cancelTempTarget() throws -> String? {
+        var cancelledTempTargetName: String?
+        if let currentTempTarget = storage.current() {
+            cancelledTempTargetName = currentTempTarget.name
+        } else {
+            throw TempPresetsError.noActiveTempPresets
+        }
         storage.storeTempTargets([TempTarget.cancel(at: Date())])
-        try coredataContext.performAndWait {
+
+        try coredataContext.perform {
             let saveToCoreData = TempTargets(context: self.coredataContext)
             saveToCoreData.active = false
             saveToCoreData.date = Date()
@@ -80,6 +88,8 @@ import Foundation
 
             try self.coredataContext.save()
         }
+
+        return cancelledTempTargetName
     }
 
     /// function to enact a new temp target from date, target and duration information

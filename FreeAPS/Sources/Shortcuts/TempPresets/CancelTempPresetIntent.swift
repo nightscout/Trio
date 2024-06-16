@@ -16,9 +16,20 @@ import Foundation
 
     @MainActor func perform() async throws -> some ProvidesDialog {
         do {
-            try intentRequest.cancelTempTarget()
+            if let canceledTempPresetName = try intentRequest.cancelTempTarget() {
+                return .result(
+                    dialog: IntentDialog(LocalizedStringResource(
+                        "TempTarget '\(canceledTempPresetName)' canceled",
+                        table: "ShortcutsDetail"
+                    ))
+                )
+            } else {
+                throw TempPresetsIntentRequest.TempPresetsError.noActiveTempPresets
+            }
+
+        } catch TempPresetsIntentRequest.TempPresetsError.noActiveTempPresets {
             return .result(
-                dialog: IntentDialog(LocalizedStringResource("TempTarget canceled", table: "ShortcutsDetail"))
+                dialog: IntentDialog(LocalizedStringResource("No active TempTarget to cancel", table: "ShortcutsDetail"))
             )
         } catch {
             throw error
