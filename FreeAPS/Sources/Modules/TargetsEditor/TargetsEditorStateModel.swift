@@ -50,14 +50,14 @@ extension TargetsEditor {
 
         func save() {
             let targets = items.map { item -> BGTargetEntry in
-                let fotmatter = DateFormatter()
-                fotmatter.timeZone = TimeZone(secondsFromGMT: 0)
-                fotmatter.dateFormat = "HH:mm:ss"
+                let formatter = DateFormatter()
+                formatter.timeZone = TimeZone(secondsFromGMT: 0)
+                formatter.dateFormat = "HH:mm:ss"
                 let date = Date(timeIntervalSince1970: self.timeValues[item.timeIndex])
                 let minutes = Int(date.timeIntervalSince1970 / 60)
                 let low = self.rateValues[item.lowIndex]
                 let high = low
-                return BGTargetEntry(low: low, high: high, start: fotmatter.string(from: date), offset: minutes)
+                return BGTargetEntry(low: low, high: high, start: formatter.string(from: date), offset: minutes)
             }
             let profile = BGTargets(units: units, userPrefferedUnits: settingsManager.settings.units, targets: targets)
             provider.saveProfile(profile)
