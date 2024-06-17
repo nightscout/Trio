@@ -27,8 +27,8 @@ extension TargetsEditor {
             units = profile.units
             items = profile.targets.map { value in
                 let timeIndex = timeValues.firstIndex(of: Double(value.offset * 60)) ?? 0
-                let highIndex = lowIndex
                 let lowIndex = rateValues.firstIndex(of: value.low) ?? 0
+                let highIndex = rateValues.firstIndex(of: value.high) ?? 0
                 return Item(lowIndex: lowIndex, highIndex: highIndex, timeIndex: timeIndex)
             }
         }
@@ -68,7 +68,7 @@ extension TargetsEditor {
                 let uniq = Array(Set(self.items))
                 let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
                     .map { item -> Item in
-                        Item(lowIndex: item.lowIndex, highIndex: item.lowIndex, timeIndex: item.timeIndex)
+                        Item(lowIndex: item.lowIndex, highIndex: item.highIndex, timeIndex: item.timeIndex)
                     }
                 sorted.first?.timeIndex = 0
                 self.items = sorted
