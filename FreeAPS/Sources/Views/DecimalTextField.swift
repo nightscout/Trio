@@ -77,8 +77,6 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
     public func updateUIView(_ textField: UITextField, context: Context) {
         if text != 0 {
             textField.text = numberFormatter.string(from: text as NSNumber)
-        } else {
-            textField.text = ""
         }
         textField.placeholder = placeholder
         textField.textColor = textColor
