@@ -432,28 +432,28 @@ Enact a temp Basal or a temp target */
 "Max Carbs" = "Khối lượng carbs tối đa";
 
 /* Max setting */
-"Max Fat" = "Max Fat";
+"Max Fat" = "Chất béo tối đa";
 
 /* Max setting */
-"Max Protein" = "Max Protein";
+"Max Protein" = "Chất đạm tối đa";
 
 /* Max setting */
-"Limit Per Entry" = "Limit Per Entry";
+"Limit Per Entry" = "Giới hạn mỗi lần nhập";
 
 /* Max Carbs limit exceeded */
-"Max Carbs of" = "Max Carbs of";
+"Max Carbs of" = "Carbs tối đa của";
 
 /* Max Fat limit exceeded */
-"Max Fat of" = "Max Fat of";
+"Max Fat of" = "Chất béo tối đa của";
 
 /* Max Protein limit exceeded */
-"Max Protein of" = "Max Protein of";
+"Max Protein of" = "Chất đạm tối đa của";
 
 /* Max Bolus limit exceeded */
-"Max Bolus of" = "Max Bolus of";
+"Max Bolus of" = "Bolus tối đa của";
 
 /* Limit Exceeded label */
-"exceeded" = "exceeded";
+"exceeded" = "đã vượt quá";
 
 /* */
 "Pump Settings" = "Cấu hình bơm";
@@ -2096,10 +2096,10 @@ Enact a temp Basal or a temp target */
 "Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function." = "Sử dụng hàm sigmoid cho ISF (và cho CR, khi được bật), thay vì công thức logarit mặc định. Yêu cầu bật cài đặt ISF động trong cài đặt\n\nCài đặt Điều chỉnh điều chỉnh độ dốc của đường cong (Y: Tỷ lệ động, X: Đường huyết). Giá trị thấp hơn ==> ít dốc hơn == ít linh hoạt hơn.\n\nCài đặt autosens.min/max xác định cả giới hạn tối đa/phút cho tỷ lệ động VÀ mức độ điều chỉnh tỷ lệ động. Nếu AF là độ dốc của đường cong thì autosens.min/max là chiều cao của biểu đồ, khoảng Y, trong đó Y: tỷ lệ động. Đường cong sẽ luôn có dạng sigmoid, bất kể cài đặt autosens.min/max nào được sử dụng, nghĩa là những cài đặt này có hậu quả lớn đối với kết quả của ISF động được tính toán. Hãy cẩn thận khi đặt giá trị autosens.max quá cao. Với cài đặt ISF cấu hình phù hợp, bạn có thể sẽ không bao giờ cần nó cao hơn 1,5\n\nGiới hạn Autosens.max > 1,5 là không nên khi sử dụng chức năng sigmoid.";
 
 /* Headline Threshold Setting */
-"Minimum Safety Threshold (mg/dL)" = "Minimum Safety Threshold (mg/dL)";
+"Minimum Safety Threshold (mg/dL)" = "Ngưỡng an toàn tối thiểu (mg/dl)";
 
 /* Minimum Safety Threshold */
-"All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted." = "All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted.";
+"All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted." = "Tất cả insulin sẽ bị đình chỉ nếu lượng đường của bạn được dự đoán sẽ giảm xuống dưới ngưỡng an toàn.\n\nPhải được đặt trong khoảng 60-120 mg.";
 
 /* Header */
 "Calculator settings" = "Thiết lập tính toán";
