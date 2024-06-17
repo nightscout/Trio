@@ -46,6 +46,7 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
 
     public func makeUIView(context: Context) -> UITextField {
         let textField = UITextField()
+        context.coordinator.textField = textField
         textField.inputAccessoryView = isDismissible ? makeDoneToolbar(for: textField, context: context) : nil
         textField.addTarget(context.coordinator, action: #selector(Coordinator.textChanged), for: .editingChanged)
         textField.addTarget(context.coordinator, action: #selector(Coordinator.editingDidBegin), for: .editingDidBegin)
@@ -75,9 +76,19 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
     }
 
     public func updateUIView(_ textField: UITextField, context: Context) {
-        if text != 0 {
-            textField.text = numberFormatter.string(from: text as NSNumber)
+        if textField.isFirstResponder {
+            return
         }
+
+        if text != 0 {
+            let newText = numberFormatter.string(from: text as NSNumber) ?? ""
+            if textField.text != newText {
+                textField.text = newText
+            }
+        } else {
+            textField.text = ""
+        }
+
         textField.placeholder = placeholder
         textField.textColor = textColor
         textField.textAlignment = textAlignment
@@ -100,6 +111,7 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
 
     public final class Coordinator: NSObject {
         var parent: TextFieldWithToolBar
+        var textField: UITextField?
         let maxLength: Int?
 
         var didBecomeFirstResponder = false
@@ -119,6 +131,7 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
 
         @objc fileprivate func clearText() {
             parent.text = 0
+            textField?.text = ""
         }
 
         @objc fileprivate func editingDidBegin(_ textField: UITextField) {
