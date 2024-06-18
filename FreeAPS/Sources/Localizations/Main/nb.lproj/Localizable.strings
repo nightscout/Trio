@@ -1294,7 +1294,7 @@ Enact a temp Basal or a temp target */
 "Protein" = "Proteiner";
 
 /* Service Section */
-"Meal Settings" = "Innstillinger for måltid";
+"Meal Settings" = "Måltidsinstillinger";
 
 /* Service Section */
 "Profile Override" = "Overstyring av profil";
@@ -1362,7 +1362,7 @@ Enact a temp Basal or a temp target */
 "Cancel Profile Override" = "Cancel Profile Override";
 
 /* Alert */
-"Cancel Temp Target" = "Cancel Temp Target";
+"Cancel Temp Target" = "Avbryt midlertidig mål";
 
 /* Alert */
 "Return to Normal?" = "Gå tilbake til normal?";
@@ -1425,7 +1425,7 @@ Enact a temp Basal or a temp target */
 "Save and continue" = "Lagre og fortsett";
 
 /* */
-"Save as Preset" = "Lagre som forhåndsinnstilling";
+"Save as Preset" = "Lagre som forvalg";
 
 /* */
 "Predictions" = "Prediksjoner";
