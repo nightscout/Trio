@@ -184,24 +184,22 @@ platform :ios do
       }
     end
 
-    configure_bundle_id("FreeAPS", "#{BUNDLE_ID}", [
+    configure_bundle_id("Trio", "#{BUNDLE_ID}", [
       Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS,
       Spaceship::ConnectAPI::BundleIdCapability::Type::HEALTHKIT,
       Spaceship::ConnectAPI::BundleIdCapability::Type::NFC_TAG_READING
     ])
 
-    configure_bundle_id("FreeAPSWatch WatchKit Extension", "#{BUNDLE_ID}.watchkitapp.watchkitextension", [
+    configure_bundle_id("Trio WatchKit Extension", "#{BUNDLE_ID}.watchkitapp.watchkitextension", [
       Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS,
       Spaceship::ConnectAPI::BundleIdCapability::Type::HEALTHKIT
     ])
     
-    configure_bundle_id("FreeAPSWatch", "#{BUNDLE_ID}.watchkitapp", [
+    configure_bundle_id("Trio Watch", "#{BUNDLE_ID}.watchkitapp", [
       Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS
     ])
 
-    configure_bundle_id("LiveActivityExtension", "#{BUNDLE_ID}.LiveActivity", [
-      Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS
-    ])
+    configure_bundle_id("Trio LiveActivity", "#{BUNDLE_ID}.LiveActivity", [])
     
   end
 
