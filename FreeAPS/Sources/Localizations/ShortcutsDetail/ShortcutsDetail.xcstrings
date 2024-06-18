@@ -368,7 +368,45 @@
       }
     },
     "Activating ${preset}" : {
-
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktivieren von ${preset}"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activando ${preset}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activer ${preset}"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attivazione di ${preset}"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activeren van ${preset}"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktivering av ${preset}"
+          }
+        }
+      }
     },
     "Add Carbs" : {
       "localizations" : {
@@ -411,7 +449,45 @@
       }
     },
     "Adding ${carbQuantity} g at ${dateAdded}" : {
-
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hinzufügen von ${carbQuantity} g am ${dateAdded}"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadiendo ${carbQuantity} g en ${dateAdded}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter ${carbQuantity} g à${dateAdded}"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aggiunta di ${carbQuantity} g a ${dateAdded}"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toevoeging van ${carbQuantity} g op ${dateAdded}"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lägger till ${carbQuantity} g på ${dateAdded}"
+          }
+        }
+      }
     },
     "Allow to add carbs" : {
       "localizations" : {
@@ -694,7 +770,45 @@
       }
     },
     "Applying ${bolusQuantity} U " : {
-
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anwenden von ${bolusQuantity} U"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aplicando ${bolusQuantity} U"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appliquer ${bolusQuantity} U"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applicazione di ${bolusQuantity} U"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "${bolusQuantity} toepassen U"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tillämpning av ${bolusQuantity} U"
+          }
+        }
+      }
     },
     "Applying ${carbQuantity} g at ${dateAdded}" : {
       "extractionState" : "manual",
@@ -779,7 +893,45 @@
       }
     },
     "Applying ${preset} override" : {
-
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "${preset} override anwenden"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aplicar la anulación ${preset}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appliquer le profil ${preset}"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applicazione dell'override di ${preset}"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "${preset} override toepassen"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tillämpa ${preset} åsidosättande"
+          }
+        }
+      }
     },
     "Are you sure to add %@ g of carbs ?" : {
       "localizations" : {
@@ -1148,13 +1300,127 @@
       }
     },
     "Choose the Carb preset ${preset}" : {
-
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle die Carb-Voreinstellung ${preset}"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige el preajuste Carb ${preset}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisir le repas ${preset}"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scegli il preset Carb ${preset}"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kies de Carb preset ${preset}"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Välj förinställning för Carb ${preset}"
+          }
+        }
+      }
     },
     "Choose the temporary override  ${preset}" : {
-
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle den temporären Override ${preset}"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige la anulación temporal ${preset}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisir un profil temporaire ${preset}"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scegli l'override temporaneo ${preset}"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kies de tijdelijke opheffing ${preset}"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Välj den tillfälliga åsidosättningen ${preset}"
+          }
+        }
+      }
     },
     "Choose the TempTarget  ${preset}" : {
-
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle das TempTarget ${preset}"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige el TempTarget ${preset}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisir la cible temporaire ${preset}"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scegli il TempTarget ${preset}"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kies de TempTarget ${preset}"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Välj TempTarget ${preset}"
+          }
+        }
+      }
     },
     "COB" : {
       "localizations" : {
@@ -1884,13 +2150,127 @@
       }
     },
     "Immediately activating ${preset}" : {
-
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sofortiges Aktivieren von ${preset}"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activar inmediatamente ${preset}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activer immédiatement ${preset}"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attiva immediatamente ${preset}"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Onmiddellijk activeren van ${preset}"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Omedelbar aktivering av ${preset}"
+          }
+        }
+      }
     },
     "Immediately adding ${carbQuantity} g at ${dateAdded}" : {
-
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sofortiges Hinzufügen von ${carbQuantity} g am ${dateAdded}"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadir inmediatamente ${carbQuantity} g en ${dateAdded}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter ${carbQuantity} g à ${dateAdded}"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aggiungendo immediatamente ${carbQuantity} g a ${dateAdded}"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Onmiddellijk toevoegen van ${carbQuantity} g om ${dateAdded}"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Omedelbart lägga till ${carbQuantity} g vid ${dateAdded}"
+          }
+        }
+      }
     },
     "Immediately applying ${bolusQuantity} U" : {
-
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sofortige Anwendung von ${bolusQuantity} U"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aplicando inmediatamente ${bolusQuantity} U"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appliquer immédiatement ${bolusQuantity} U"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applica immediatamente ${bolusQuantity} U"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Onmiddellijke toepassing van ${bolusQuantity} U"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Omedelbar tillämpning av ${bolusQuantity} U"
+          }
+        }
+      }
     },
     "Immediately applying ${carbQuantity} g at ${dateAdded}" : {
       "extractionState" : "manual",
@@ -1975,10 +2355,86 @@
       }
     },
     "Immediately applying ${preset} override" : {
-
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sofortige Anwendung von ${preset} override"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aplicar inmediatamente la anulación ${preset}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appliquer immédiatement le profil ${preset}"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applicazione immediata dell'override di ${preset}"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Onmiddellijk toepassen van ${preset} override"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Omedelbar tillämpning av ${preset} åsidosättande"
+          }
+        }
+      }
     },
     "Immediatly starting ${target} ${unit} TempTarget for ${duration} min" : {
-
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sofortiger Start von ${Ziel} ${Einheit} TempTarget für ${duration} min"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iniciar inmediatamente ${objetivo} ${unidad} TempTarget durante ${duración} min"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Débuter immédiatement la cible temp ${target} ${unit} pour ${duration} min"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avvia immediatamente ${target} ${unità} TempTarget per ${durata} min"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Onmiddellijk starten van ${target} ${eenheid} TempTarget voor ${duur} min"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Omedelbar start av ${mål} ${enhet} TempTarget för ${duration} min"
+          }
+        }
+      }
     },
     "IOB" : {
       "localizations" : {
@@ -2507,10 +2963,84 @@
       }
     },
     "No active Override to cancel" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein aktiver Override zum Abbrechen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No activo Anular para cancelar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pas de profil à annuler"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non attivo Annullamento per annullare"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen actieve Override om te annuleren"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingen aktiv Åsidosätt för att avbryta"
+          }
+        }
+      }
     },
     "No active TempTarget to cancel" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein aktives TempTarget zum Abbrechen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay TempTarget activo para cancelar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pas de cible temporaire à annuler"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nessun TempTarget attivo da annullare"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen actief TempTarget om te annuleren"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inget aktivt TempTarget för att avbryta"
+          }
+        }
+      }
     },
     "no adding carbs" : {
       "localizations" : {
@@ -2675,45 +3205,41 @@
       }
     },
     "Override '%@' canceled" : {
-
-    },
-    "Override canceled" : {
-      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Überschreibung abgebrochen"
+            "value" : "Überschreibung '%@' abgebrochen"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Anulación cancelada"
+            "value" : "Anulación '%@' cancelada"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Annulation du profil"
+            "value" : "Profil '%@' annulée"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Annullamento dell'annullamento"
+            "value" : "Sovrascrittura di '%@' annullata"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Opheffen geannuleerd"
+            "value" : "Overschrijven '%@' geannuleerd"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Åsidosättande avbrutet"
+            "value" : "Åsidosätt '%@' avbruten"
           }
         }
       }
@@ -3360,7 +3886,45 @@
       }
     },
     "Starting ${target} ${unit} TempTarget for ${duration} min" : {
-
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starten von ${Ziel} ${Einheit} TempTarget für ${duration} min"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iniciando ${objetivo} ${unidad} TempTarget durante ${duración} min"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Débuter la cible temporaire ${target} ${unit} pour ${duration} min"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avvio di ${target} ${unità} TempTarget per ${durata} min"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start ${target} ${eenheid} TempTarget voor ${duur} min"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Startar ${mål} ${enhet} TempTarget för ${duration} min"
+          }
+        }
+      }
     },
     "Starting Date" : {
       "extractionState" : "manual",
@@ -3732,7 +4296,44 @@
       }
     },
     "TempTarget '%@' canceled" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TempTarget '%@' abgebrochen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TempTarget '%@' cancelado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cible temporaire '%@' annulée"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TempTarget '%@' annullato"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TempDoel '%@' geannuleerd"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TempTarget \"%@\" avbruten"
+          }
+        }
+      }
     },
     "TempTarget activated for %@" : {
       "localizations" : {
@@ -3770,47 +4371,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "TempTarget aktiverat för %@"
-          }
-        }
-      }
-    },
-    "TempTarget canceled" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TempTarget abgebrochen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TempTarget cancelado"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cible temp annulée"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TempTarget annullato"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TempTarget geannuleerd"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TempTarget avbruten"
           }
         }
       }
