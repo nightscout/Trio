@@ -2,7 +2,7 @@
 
 These instructions allow you to build Trio without having access to a Mac.
 
-* You can install Trio on phones via TestFlight that are not connected to your computer
+* You can install Trio on phones using TestFlight that are not connected to your computer
 * You can send builds and updates to those you care for
 * You can install Trio on your phone using only the TestFlight app if a phone was lost or the app is accidentally deleted
 * You do not need to worry about specific Xcode/Mac versions for a given iOS
@@ -22,7 +22,7 @@ These instructions allow you to build Trio without having access to a Mac.
 
 The setup steps are somewhat involved, but nearly all are one time steps. Subsequent builds are trivial. Your app must be updated once every 90 days, but it's a simple click to make a new build and can be done from anywhere.
 
-Note that TestFlight requires apple id accounts 13 years or older. This can be circumvented by logging into Media & Purchase on the child's phone with an adult's account. More details on this can be found in [LoopDocs](https://loopkit.github.io/loopdocs/gh-actions/gh-deploy/#install-testflight-loop-for-child).
+Note that installing with TestFlight requires the Apple ID account holder for the phone be 13 years or older (age varies with country). This can be circumvented by logging into Media & Purchase on the child's phone with an adult's account. More details on this can be found in [LoopDocs](https://loopkit.github.io/loopdocs/gh-actions/gh-deploy/#install-testflight-loop-for-child).
 
 This method for building without a Mac was ported from Loop. If you have used this method for Loop or one of the other DIY apps (Loop Caregiver, Loop Follow, Xdrip4iOS), some of the steps can be re-used and the full set of instructions does not need to be repeated. This will be mentioned in relevant sections below.
 
@@ -46,6 +46,8 @@ You require 6 Secrets (alphanumeric items) to use the GitHub build method and if
 * Be sure to save the 6 Secrets in a text file using a text editor
     - Do **NOT** use a smart editor, which might auto-correct and change case, because these Secrets are case sensitive
 
+Refer to [LoopDocs: Make a Secrets Reference File](https://loopkit.github.io/loopdocs/gh-actions/gh-first-time/#make-a-secrets-reference-file) for a handy template to use when saving your Secrets.
+
 ## Generate App Store Connect API Key
 
 This step is common for all GitHub Browser Builds; do this step only once. You will be saving 4 Secrets from your Apple Account in this step.
@@ -59,7 +61,7 @@ This step is common for all GitHub Browser Builds; do this step only once. You w
 
 ## Create GitHub Personal Access Token
 
-If you have previously built another app using the "browser build" method, you can can re-use your previous personal access token (`GH_PAT`) and skip this step.
+If you have previously built another app using the "browser build" method, you use the same personal access token (`GH_PAT`), so skip this step.
 
 Log into your GitHub account to create a personal access token; this is one of two GitHub secrets needed for your build.
 
@@ -74,15 +76,13 @@ Log into your GitHub account to create a personal access token; this is one of t
 
 This is the second one of two GitHub secrets needed for your build.
 
-The first time you build with the GitHub Browser Build method for any DIY app, you will make up a password and record it as `MATCH_PASSWORD`. Note, if you later lose `MATCH_PASSWORD`, you will need to delete and make a new Match-Secrets repository (next step).
+The first time you build with the GitHub Browser Build method for any DIY app, you will make up a password and record it as `MATCH_PASSWORD`. Note, if you later lose `MATCH_PASSWORD`, you will need to delete and make a new Match-Secrets repository (next step). You use the same password for all DIY apps.
 
 ## Setup GitHub Match-Secrets Repository
 
-The creation of the Match-Secrets repository is a common step for all GitHub Browser Builds; do this step only once. You must be logged into your GitHub account.
+> This step is no longer required, your Match-Secrets repository is automatically created the first time you run a GitHub Action. You can skip ahead to [Setup Github Trio repository](#setup-github-trio-repository).
 
-1. Create a [new empty repository](https://github.com/new) titled `Match-Secrets`. It should be private.
-
-Once created, you will not take any direct actions with this repository; it needs to be there for the GitHub to use as you progress through the steps.
+> Because it is private - only you can see your Match-Secrets repository. You will not take any direct actions with this repository; it needs to be there for GitHub to use as you progress through the steps.
 
 ## Setup Github Trio repository
 1. Fork https://github.com/nightscout/Trio into your account. If you already have a fork of Trio in GitHub, you can't make another one. You can continue to work with your existing fork, or delete that from GitHub and then and fork https://github.com/nightscout/Trio.
@@ -97,13 +97,15 @@ Once created, you will not take any direct actions with this repository; it need
 
 ## Validate repository secrets
 
-This step validates most of your six Secrets and provides error messages if it detects an issue with one or more.
+This step validates most of your six Secrets and provides error messages if it detects an issue with one or more. In addition, if you do not have a private Match-Secrets repository it creates one for you.
 
 1. Click on the "Actions" tab of your Trio repository and enable workflows if needed
 1. On the left side, select "1. Validate Secrets".
 1. On the right side, click "Run Workflow", and tap the green `Run workflow` button.
 1. Wait, and within a minute or two you should see a green checkmark indicating the workflow succeeded.
 1. The workflow will check if the required secrets are added and that they are correctly formatted. If errors are detected, please check the run log for details.
+
+> There can be a delay after you start the workflow before the screen changes. Refresh your browser to see if it started. And if it seems to take a long time to finish - refresh your browser to see if it is done.
 
 ## Add Identifiers for Trio App
 
@@ -114,29 +116,66 @@ This step validates most of your six Secrets and provides error messages if it d
 
 ## Create App Group
 
-If you have already built Trio via Xcode using this Apple ID, you can skip on to [Create Trio App in App Store Connect](#create-trio-app-in-app-store-connect).
-_Please note that in default builds of Trio, the app group is actually identical to the one used with Loop, so please enter these details exactly as described below. This is to ease the setup of apps such as Xdrip4iOS. It may require some caution if transfering between Trio and Loop._
+If you previously built Trio using Mac with Xcode with this Apple ID, skip ahead to [Optional: App Group Description Modification](#optional-app-group-description-modification).
+
+_Please note that Trio uses the same app group as Loop. This enables other apps such as Xdrip4iOS to share data with Trio. It may require some caution if transfering between Trio and Loop._
 
 1. Go to [Register an App Group](https://developer.apple.com/account/resources/identifiers/applicationGroup/add/) on the apple developer site.
 1. For Description, use "Loop App Group".
 1. For Identifier, enter "group.com.TEAMID.loopkit.LoopGroup", substituting your team id for `TEAMID`.
+    * If you are told that this group already exists, skip ahead to [Optional: App Group Description Modification](#optional-app-group-description-modification)
 1. Click "Continue" and then "Register".
+
+### Optional: App Group Description Modification
+
+> This step is not required, but if you previously built using a Mac with Xcode, it is a good idea to update the **NAME** associated with the **IDENTIFIER** for the Loop App Group. Notice in the table below that the XCode version of the **NAME** is the same as the **IDENTIFIER** but with the `.` replaced with a space.
+
+_Referring to the link and table below, tap on the **IDENTIFIER** for the `Loop App Group`, edit the Description to match the **NAME**, then Save the change._
+
+* [App Group List](https://developer.apple.com/account/resources/identifiers/list/applicationGroup)
+
+| NAME | XCode version | IDENTIFIER |
+|:--|:--|:--|
+| Loop App Group | group com TEAMID loopkit LoopGroup| group.com.TEAMID.loopkit.LoopGroup |
+
+## Bundle Identifiers
+
+Open this link in a separate browser window:
+
+* [Certificates, Identifiers & Profiles](https://developer.apple.com/account/resources/identifiers/list) on the Apple developer site
+* You will select each of the Identifiers as instructed below, modify it if needed and then save it.
+
+### Optional: Identifier Description Modification
+
+> This step is not required, but if you previously built using a Mac with Xcode or during Beta testing for Trio, it is a good idea to update the **NAME** associated with each **IDENTIFIER** to match the table below.
+
+_Referring to the table below, tap on each **IDENTIFIER** that has a different **NAME**, edit the Description to match the **NAME**, then Save the change for that identifier._
+
+#### Table of Identifiers
+
+* If you built previously using a Mac with Xcode, you may see the XCode version in your **NAME** column - it starts with XC and then the **IDENTIFIER** is appended where the `.` is replaced with a space, the example for Trio is shown in detail
+* If you built during beta testing, you might not have `Trio` at the beginning of each **IDENTIFIER** and the full **NAME** may be slightly different
+
+| NAME | XCode version | IDENTIFIER |
+|:--|:--|:--|
+| Trio | XC org nightscout TEAMID trio | org.nightscout.TEAMID.trio |
+| Trio LiveActivity | - | org.nightscout.TEAMID.trio.LiveActivity |
+| Trio Watch | XC IDENTIFIER | org.nightscout.TEAMID.trio.watchkitapp |
+| Trio WatchKit Extension | XC IDENTIFIER | org.nightscout.TEAMID.trio.watchkitapp.watchkitextension |
 
 ## Add App Group to Bundle Identifiers
 
-> Each Identifier **NAME** listed below is the same as the **NAME** used by iAPS, they are distinguised by the **IDENTIFIER** itself, which includes the new BundleID for your Trio app
+> This step is required for first-time builders using GitHub Actions (Browser Build).
 
-> If you built Trio with Xcode before, the **NAME** will start with XC
-
-> Use the **IDENTIFIER** string rather than the **NAME** to select the correct identifier
+> If you previously built using a Mac with Xcode you can skip ahead to [Create Trio App in App Store Connect](#create-trio-app-in-app-store-connect).
 
 1. Go to [Certificates, Identifiers & Profiles](https://developer.apple.com/account/resources/identifiers/list) on the Apple developer site.
-1. Repeat this step for each **NAME** with associated **IDENTIFIER**:
-    * FreeAPS: `org.nightscout.TEAMID.trio`
-    * FreeAPS watchkitapp: `org.nightscout.TEAMID.trio.watchkitapp`
-    * FreeAPS watchkitapp watchkitextension: `org.nightscout.TEAMID.trio.watchkitapp.watchkitextension`
+1. Repeat this step for these three Identifiers - refer to the Table above if your Names look different
+    * Trio
+    * Trio Watch
+    * Trio WatchKit Extension
 1. Click on the **IDENTIFIER** row.
-1. On the "App Groups" capabilies, click on the "Configure" button.
+1. Scroll down to the "App Groups" capabilies, click on the "Configure" button.
 1. Select the "Loop App Group" _(yes, "Loop App Group" is correct)_
 1. Click "Continue".
 1. Click "Save".
@@ -144,11 +183,11 @@ _Please note that in default builds of Trio, the app group is actually identical
 1. Remember to do this for each of the identifiers above.
 
 There is an additional identifier, but it does not need the App Group added to it:
-* LiveActivityExtension: `org.nightscout.TEAMID.trio.LiveActivity`
+* Trio LiveActivity
 
 ## Create Trio App in App Store Connect
 
-If you have created a Trio app in App Store Connect before, you can skip this section as well.
+If you created a Trio app in App Store Connect before, skip ahead to [Create Building Certficates](#create-building-certficates).
 
 1. Go to the [apps list](https://appstoreconnect.apple.com/apps) on App Store Connect and click the blue "plus" icon to create a New App.
     * Select "iOS".
