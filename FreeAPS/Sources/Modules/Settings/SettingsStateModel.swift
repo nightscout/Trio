@@ -19,6 +19,7 @@ extension Settings {
         private(set) var buildNumber = ""
         private(set) var versionNumber = ""
         private(set) var branch = ""
+        private(set) var sha = ""
         private(set) var copyrightNotice = ""
 
         override func subscribe() {
@@ -31,7 +32,9 @@ extension Settings {
 
             versionNumber = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
 
-            branch = BuildDetails.default.branchAndSha
+            branch = BuildDetails.default.branch
+
+            sha = BuildDetails.default.sha
 
             copyrightNotice = Bundle.main.infoDictionary?["NSHumanReadableCopyright"] as? String ?? ""
 
