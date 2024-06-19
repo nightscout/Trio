@@ -76,16 +76,14 @@ Log into your GitHub account to create a personal access token; this is one of t
 
 This is the second one of two GitHub secrets needed for your build.
 
-The first time you build with the GitHub Browser Build method for any DIY app, you will make up a password and record it as `MATCH_PASSWORD`. Note, if you later lose `MATCH_PASSWORD`, you will need to delete and make a new Match-Secrets repository (next step). You use the same password for all DIY apps.
+The first time you build with the GitHub Browser Build method for any DIY app, you will make up a password and record it as `MATCH_PASSWORD`. You use the same password for all DIY apps. Note, if you later lose `MATCH_PASSWORD`, you will need to delete your Match-Secrets repository (automatically created), and go through the GitHub actions again.
 
-## Setup GitHub Match-Secrets Repository
+## GitHub Match-Secrets Repository
 
-> This step is no longer required, your Match-Secrets repository is automatically created the first time you run a GitHub Action. You can skip ahead to [Setup Github Trio repository](#setup-github-trio-repository).
-
-> Because it is private - only you can see your Match-Secrets repository. You will not take any direct actions with this repository; it needs to be there for GitHub to use as you progress through the steps.
+> A private Match-Secrets repository is automatically created under your GitHub username the first time you run a GitHub Action. Because it is a private repository - only you can see it. You will not take any direct actions with this repository; it needs to be there for GitHub to use as you progress through the steps.
 
 ## Setup Github Trio repository
-1. Fork https://github.com/nightscout/Trio into your account. If you already have a fork of Trio in GitHub, you can't make another one. You can continue to work with your existing fork, or delete that from GitHub and then and fork https://github.com/nightscout/Trio.
+1. Fork https://github.com/nightscout/Trio into your account. If you already have a fork of Trio in GitHub, you can't make another one. You can continue to work with your existing fork, or delete that from GitHub and then fork https://github.com/nightscout/Trio.
 1. In the forked Trio repo, go to Settings -> Secrets and variables -> Actions.
 1. For each of the following secrets, tap on "New repository secret", then add the name of the secret, along with the value you recorded for it:
     * `TEAMID`
@@ -105,7 +103,7 @@ This step validates most of your six Secrets and provides error messages if it d
 1. Wait, and within a minute or two you should see a green checkmark indicating the workflow succeeded.
 1. The workflow will check if the required secrets are added and that they are correctly formatted. If errors are detected, please check the run log for details.
 
-> There can be a delay after you start the workflow before the screen changes. Refresh your browser to see if it started. And if it seems to take a long time to finish - refresh your browser to see if it is done.
+> There can be a delay after you start a workflow before the screen changes. Refresh your browser to see if it started. And if it seems to take a long time to finish - refresh your browser to see if it is done.
 
 ## Add Identifiers for Trio App
 
@@ -147,14 +145,14 @@ Open this link in a separate browser window:
 
 ### Optional: Identifier Description Modification
 
-> This step is not required, but if you previously built using a Mac with Xcode or during Beta testing for Trio, it is a good idea to update the **NAME** associated with each **IDENTIFIER** to match the table below.
+> This step is not required, but if you previously built using a Mac with Xcode or during early Beta testing for Trio, it is a good idea to update the **NAME** associated with each **IDENTIFIER** to match the table below.
 
 _Referring to the table below, tap on each **IDENTIFIER** that has a different **NAME**, edit the Description to match the **NAME**, then Save the change for that identifier._
 
 #### Table of Identifiers
 
 * If you built previously using a Mac with Xcode, you may see the XCode version in your **NAME** column - it starts with XC and then the **IDENTIFIER** is appended where the `.` is replaced with a space, the example for Trio is shown in detail
-* If you built during beta testing, you might not have `Trio` at the beginning of each **IDENTIFIER** and the full **NAME** may be slightly different
+* If you built during early beta testing, you might not have `Trio` at the beginning of each **IDENTIFIER** and the full **NAME** may be slightly different
 
 | NAME | XCode version | IDENTIFIER |
 |:--|:--|:--|
@@ -170,17 +168,17 @@ _Referring to the table below, tap on each **IDENTIFIER** that has a different *
 > If you previously built using a Mac with Xcode you can skip ahead to [Create Trio App in App Store Connect](#create-trio-app-in-app-store-connect).
 
 1. Go to [Certificates, Identifiers & Profiles](https://developer.apple.com/account/resources/identifiers/list) on the Apple developer site.
-1. Repeat this step for these three Identifiers - refer to the Table above if your Names look different
+1. Repeat this step for these three Identifier **NAMES** - refer to the [Table](#table-of-identifiers) above if your Names look different; if they do, see [Optional: Identifier Description Modification](#optional-identifier-description-modification)
     * Trio
     * Trio Watch
     * Trio WatchKit Extension
 1. Click on the **IDENTIFIER** row.
-1. Scroll down to the "App Groups" capabilies, click on the "Configure" button.
-1. Select the "Loop App Group" _(yes, "Loop App Group" is correct)_
+1. Scroll down to the "App Groups" capabilies row, click on the "Configure" (or "Edit") button.
+1. Select (or verify the selection for) the "Loop App Group" _(yes, "Loop App Group" is correct)_
 1. Click "Continue".
 1. Click "Save".
 1. Click "Confirm".
-1. Remember to do this for each of the identifiers above.
+1. Remember to do this for each of three identifiers listed under step 2.
 
 There is an additional identifier, but it does not need the App Group added to it:
 * Trio LiveActivity
