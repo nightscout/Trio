@@ -3,6 +3,42 @@ import JavaScriptCore
 
 private let contextLock = NSRecursiveLock()
 
+extension String {
+    func replacingRegex(
+        matching pattern: String,
+        findingOptions: NSRegularExpression.Options = .caseInsensitive,
+        replacingOptions: NSRegularExpression.MatchingOptions = [],
+        with template: String
+    ) throws -> String {
+        let regex = try NSRegularExpression(pattern: pattern, options: findingOptions)
+        let range = NSRange(startIndex..., in: self)
+        return regex.stringByReplacingMatches(in: self, options: replacingOptions, range: range, withTemplate: template)
+    }
+}
+
+extension String {
+    var lowercasingFirst: String { prefix(1).lowercased() + dropFirst() }
+    var uppercasingFirst: String { prefix(1).uppercased() + dropFirst() }
+
+    var camelCased: String {
+        guard !isEmpty else { return "" }
+        let parts = components(separatedBy: .alphanumerics.inverted)
+        let first = parts.first!.lowercasingFirst
+        let rest = parts.dropFirst().map(\.uppercasingFirst)
+
+        return ([first] + rest).joined()
+    }
+
+    var pascalCased: String {
+        guard !isEmpty else { return "" }
+        let parts = components(separatedBy: .alphanumerics.inverted)
+        let first = parts.first!.uppercasingFirst
+        let rest = parts.dropFirst().map(\.uppercasingFirst)
+
+        return ([first] + rest).joined()
+    }
+}
+
 final class JavaScriptWorker {
     private let processQueue = DispatchQueue(label: "DispatchQueue.JavaScriptWorker")
     private let virtualMachine: JSVirtualMachine
@@ -21,9 +57,36 @@ final class JavaScriptWorker {
             }
         }
         let consoleLog: @convention(block) (String) -> Void = { message in
-            let trimmedMessage = message.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !trimmedMessage.isEmpty {
-                self.aggregatedLogs.append(trimmedMessage)
+
+            var parsedMessage = message.trimmingCharacters(in: .whitespacesAndNewlines)
+            parsedMessage = try! parsedMessage.replacingRegex(matching: ";", with: ", ")
+            parsedMessage = try! parsedMessage.replacingRegex(matching: "\\s?:\\s?,?", with: ": ")
+            parsedMessage = try! parsedMessage.replacingRegex(matching: "(\\w+: \\d+(?= [^,:\\s]+:))", with: "$1,")
+            parsedMessage = try! parsedMessage.replacingRegex(matching: "^[^\\w]*", with: "")
+            parsedMessage = try! parsedMessage.replacingRegex(matching: "(\\sset)?\\sto:?\\s+", with: ": ")
+            parsedMessage = try! parsedMessage.replacingRegex(matching: "(\\w+) is (\\w+)\\!?", with: "$1: $2")
+            parsedMessage = try! parsedMessage.replacingRegex(matching: "NaN \\(\\. (.+)\\)", with: "$1, ")
+            parsedMessage = try! parsedMessage.replacingRegex(matching: "Setting (.+) of (.*)", with: "$1: $2 ")
+            parsedMessage = try! parsedMessage.replacingRegex(matching: "(Using\\s|\\sused)", with: "")
+            parsedMessage = try! parsedMessage.replacingRegex(
+                matching: " instead of past 24 h \\((" + "(-?\\d+(\\.\\d+)?)" + " U)\\)",
+                with: "weighted TDD average past 24h: $1"
+            )
+            parsedMessage = try! parsedMessage.replacingRegex(matching: "^(.+) \\((.+)\\)$", with: "$1: $2")
+            parsedMessage = try! parsedMessage.replacingRegex(matching: "\\s?,\\s?$", with: "")
+
+            // Step 2: Split parsedMessage by ',' and, then split by ':' to get the key-value pair
+            // Step 3: Convert the key to a camelCased string
+            parsedMessage.split(separator: ",").forEach { property in
+                let keyPair = property.split(separator: ":")
+                if keyPair.count != 2 {
+                    self.aggregatedLogs.append("\"unknown\": \"\(property)\"")
+                    return
+                }
+                let key = keyPair[0].trimmingCharacters(in: .whitespacesAndNewlines).pascalCased
+                let value = keyPair[1].trimmingCharacters(in: .whitespacesAndNewlines)
+                let keyPairResult = "\"\(key)\": \"\(value)\""
+                self.aggregatedLogs.append("\(keyPairResult)")
             }
         }
         context.setObject(
@@ -35,137 +98,16 @@ final class JavaScriptWorker {
 
     // New method to flush aggregated logs
     private func aggregateLogs() {
-        let patternsAndReplacements: [(pattern: String, replacement: String)] = [
-            (
-                "Middleware reason: (.*)",
-                "\"middlewareReason\": \"$1\", "
-            ),
-            (
-                "Pumphistory is empty!",
-                "\"pumpHistory\": \"empty\", "
-            ),
-            (
-                "insulinFactor set to : (-?\\d+(\\.\\d+)?)",
-                "\"insulineFactor\": \"$1\", "
-            ),
-            (
-                "Using weighted TDD average: (-?\\d+(\\.\\d+)?) U",
-                "\"weightedTDDAverage\": \"$1\", "
-            ),
-            (
-                ", instead of past 24 h \\((-?\\d+(\\.\\d+)?) U\\)",
-                "\"past24TTDAverage\": \"$1\", "
-            ),
-            (
-                ", weight: (-?\\d+(\\.\\d+)?)",
-                "\"weight\": \"$1\", "
-            ),
-            (
-                ", Dynamic ratios log: (.*)",
-                "\"dynamicRatiosLog\": \"$1\", "
-            ),
-            (
-                "Default Half Basal Target used: (-?\\d+(\\.\\d+)?) mmol/L",
-                "\"halfBasalTarget\": \"$1\", "
-            ),
-            (
-                "Autosens ratio: (-?\\d+(\\.\\d+)?);",
-                "\"autosensRatio\": \"$1\", "
-            ),
-            (
-                "Threshold set to (-?\\d+(\\.\\d+)?)",
-                "\"threshold\": \"$1\", "
-            ),
-            (
-                "ISF unchanged: (-?\\d+(\\.\\d+)?)",
-                "\"isf\": \"$1\", " + "\"prevIsf\": \"$1\", "
-            ),
-            (
-                "ISF from (-?\\d+(\\.\\d+)?) to (-?\\d+(\\.\\d+)?)",
-                "\"isf\": \"$3\", " + "\"prevIsf\": \"$1\", "
-            ),
-            (
-                "CR:(-?\\d+(\\.\\d+)?)",
-                "\"cr\": \"$1\", "
-            ),
-            (
-                "currenttemp:(-?\\d+(\\.\\d+)?) lastTempAge:(-?\\d+(\\.\\d+)?)m, tempModulus:(-?\\d+(\\.\\d+)?)m",
-                "\"currenttemp\": \"$1\", " + "\"lastTempAge\": \"$3\", " + "\"tempModulus\": \"$5\", "
-            ),
-            (
-                "SMB (\\w+) \\((.*)\\)",
-                "\"smb\": \"$1\", " + "\"smbReason\": \"$2\", "
-            ),
-            (
-                "profile.sens:(-?\\d+(\\.\\d+)?), sens:(-?\\d+(\\.\\d+)?), CSF:(-?\\d+(\\.\\d+)?)",
-                "\"profileSens\": \"$1\", " + "\"sens\": \"$3\", " + "\"csf\": \"$5\", "
-            ),
-            (
-                "Carb Impact:(-?\\d+(\\.\\d+)?)mg/dL per 5m; CI Duration:(-?\\d+(\\.\\d+)?)hours; remaining CI \\((-?\\d+(\\.\\d+)?)h peak\\):(-?\\d+(\\.\\d+)?)mg/dL per 5m",
-                "\"carbImpact\": \"$1\", " + "\"carbImpactDuration\": \"$3\", " + "\"carbImpactRemainingTime\": \"$5\", " +
-                    "\"carbImpactRemaining\": \"$7\", "
-            ),
-            (
-                "UAM Impact:(-?\\d+(\\.\\d+)?)mg/dL per 5m; UAM Duration:(-?\\d+(\\.\\d+)?)hours",
-                "\"uamImpact\": \"$1\", " + "\"uamImpactDuration\": \"$3\", "
-            ),
-            (
-                "minPredBG: (-?\\d+(\\.\\d+)?) minIOBPredBG: (-?\\d+(\\.\\d+)?) minZTGuardBG: (-?\\d+(\\.\\d+)?)",
-                "\"minPredBG\": \"$1\", " + "\"minIOBPredBG\": \"$3\", " + "\"minZTGuardBG\": \"$5\", "
-            ),
-            (
-                "avgPredBG:(-?\\d+(\\.\\d+)?) COB\\/Carbs:(-?\\d+(\\.\\d+)?)\\/(-?\\d+(\\.\\d+)?)",
-                "\"avgPredBG\": \"$1\", " + "\"cob\": \"$3\", " + "\"carbs\": \"$5\", "
-            ),
-            (
-                "BG projected to remain above (-?\\d+(\\.\\d+)?) for (-?\\d+(\\.\\d+)?)minutes",
-                "\"projectedBG\": \"$1\", " + "\"projectedBGDuration\": \"$3\", "
-            ),
-            (
-                "naive_eventualBG:,(-?\\d+(\\.\\d+)?),bgUndershoot:,(-?\\d+(\\.\\d+)?),zeroTempDuration:,(-?\\d+(\\.\\d+)?),zeroTempEffect:,(-?\\d+(\\.\\d+)?),carbsReq:,(-?\\d+(\\.\\d+)?)",
-                "\"naiveEventualBG\": \"$1\", " + "\"bgUndershoot\": \"$3\", " + "\"zeroTempDuration\": \"$5\", " +
-                    "\"zeroTempEffect\": \"$7\", " + "\"carbsReq\": \"$9\", "
-            ),
-            (
-                "(.*) \\(\\.? insulinReq: (-?\\d+(\\.\\d+)?) U\\)",
-                "\"insulinReqReason\": \"$1\", " + "\"insulinReq\": \"$2\", "
-            ),
-            (
-                "(.*) \\(\\.? insulinForManualBolus: (-?\\d+(\\.\\d+)?) U\\)",
-                "\"insulinForManualBolusReason\": \"$1\", " + "\"insulinForManualBolus\": \"$2\", "
-            ),
-            (
-                "Setting neutral temp basal of (-?\\d+(\\.\\d+)?)U/hr",
-                "\"basalRate\": \"$1\"/hr', "
-            )
-        ]
-        var combinedLogs = aggregatedLogs.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+        let combinedLogs = aggregatedLogs.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
         aggregatedLogs.removeAll()
 
         if !combinedLogs.isEmpty {
-            // Apply each pattern and replace matches
-            for (pattern, replacement) in patternsAndReplacements {
-                if let regex = try? NSRegularExpression(pattern: pattern, options: []) {
-                    let range = NSRange(combinedLogs.startIndex..., in: combinedLogs)
-                    combinedLogs = regex.stringByReplacingMatches(
-                        in: combinedLogs,
-                        options: [],
-                        range: range,
-                        withTemplate: replacement
-                    )
-                } else {
-                    error(.openAPS, "Invalid regex pattern: \(pattern)")
-                }
-            }
-
             // Check if combinedLogs is a valid JSON string. If so, print it as JSON, if not, print it as a string
             if let jsonData = "{\(combinedLogs)}".data(using: .utf8) {
                 do {
                     let jsonObject = try JSONSerialization.jsonObject(with: jsonData, options: [])
-                    let prettyPrintedData = try JSONSerialization.data(withJSONObject: jsonObject, options: .prettyPrinted)
-                    if let prettyPrintedString = String(data: prettyPrintedData, encoding: .utf8) {
-                        debug(.openAPS, "JavaScript log [JSON]: \(prettyPrintedString)")
-                    }
+                    _ = try JSONSerialization.data(withJSONObject: jsonObject, options: .prettyPrinted)
+                    debug(.openAPS, "JavaScript log [JSON]: \n{\n\(combinedLogs)\n}")
                 } catch {
                     debug(.openAPS, "JavaScript log: \(combinedLogs)")
                 }
