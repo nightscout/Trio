@@ -77,17 +77,18 @@ final class JavaScriptWorker {
 
             // Step 2: Split parsedMessage by ',' and, then split by ':' to get the key-value pair
             // Step 3: Convert the key to a camelCased string
+            var keyPairResults = "    "
             parsedMessage.split(separator: ",").forEach { property in
                 let keyPair = property.split(separator: ":")
                 if keyPair.count != 2 {
-                    self.aggregatedLogs.append("\"unknown\": \"\(property)\"")
-                    return
+                    keyPairResults += "\"unknown\": \"\(property)\", "
+                } else {
+                    let key = keyPair[0].trimmingCharacters(in: .whitespacesAndNewlines).pascalCased
+                    let value = keyPair[1].trimmingCharacters(in: .whitespacesAndNewlines)
+                    keyPairResults += "\"\(key)\": \"\(value)\", "
                 }
-                let key = keyPair[0].trimmingCharacters(in: .whitespacesAndNewlines).pascalCased
-                let value = keyPair[1].trimmingCharacters(in: .whitespacesAndNewlines)
-                let keyPairResult = "\"\(key)\": \"\(value)\""
-                self.aggregatedLogs.append("\(keyPairResult)")
             }
+            self.aggregatedLogs.append("\(keyPairResults)")
         }
         context.setObject(
             consoleLog,
@@ -98,7 +99,7 @@ final class JavaScriptWorker {
 
     // New method to flush aggregated logs
     private func aggregateLogs() {
-        let combinedLogs = aggregatedLogs.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+        let combinedLogs = aggregatedLogs.joined(separator: "\n")
         aggregatedLogs.removeAll()
 
         if !combinedLogs.isEmpty {
