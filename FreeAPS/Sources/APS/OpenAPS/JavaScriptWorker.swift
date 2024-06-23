@@ -58,6 +58,7 @@ final class JavaScriptWorker {
         }
         let consoleLog: @convention(block) (String) -> Void = { message in
 
+            // Step 1: Format/Leandup the log entry using RegEx
             var parsedMessage = message.trimmingCharacters(in: .whitespacesAndNewlines)
             parsedMessage = try! parsedMessage.replacingRegex(matching: ";", with: ", ")
             parsedMessage = try! parsedMessage.replacingRegex(matching: "\\s?:\\s?,?", with: ": ")
@@ -76,13 +77,13 @@ final class JavaScriptWorker {
             parsedMessage = try! parsedMessage.replacingRegex(matching: "\\s?,\\s?$", with: "")
 
             // Step 2: Split parsedMessage by ',' and, then split by ':' to get the key-value pair
-            // Step 3: Convert the key to a camelCased string
             var keyPairResults = "    "
             parsedMessage.split(separator: ",").forEach { property in
                 let keyPair = property.split(separator: ":")
                 if keyPair.count != 2 {
                     keyPairResults += "\"unknown\": \"\(property)\", "
                 } else {
+                    // Step 3: Convert the key to a PascalCased string
                     let key = keyPair[0].trimmingCharacters(in: .whitespacesAndNewlines).pascalCased
                     let value = keyPair[1].trimmingCharacters(in: .whitespacesAndNewlines)
                     keyPairResults += "\"\(key)\": \"\(value)\", "
