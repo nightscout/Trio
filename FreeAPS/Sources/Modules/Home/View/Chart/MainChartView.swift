@@ -232,7 +232,7 @@ extension MainChartView {
                 calculateTTs()
             }
             .frame(minHeight: UIScreen.main.bounds.height * 0.2)
-            .frame(width: fullWidth(viewWidth: screenSize.width - 10))
+            .frame(width: fullWidth(viewWidth: screenSize.width))
             .chartXScale(domain: startMarker ... endMarker)
             .chartXAxis { mainChartXAxis }
             .chartYAxis(.hidden)
@@ -296,10 +296,10 @@ extension MainChartView {
                 calculateBasals()
             }
             .frame(height: UIScreen.main.bounds.height * 0.08)
-            .frame(width: fullWidth(viewWidth: screenSize.width - 10))
+            .frame(width: fullWidth(viewWidth: screenSize.width))
             .chartXScale(domain: startMarker ... endMarker)
             .chartXAxis { basalChartXAxis }
-            .chartYAxis { basalChartYAxis }
+            .chartYAxis(.hidden)
         }
     }
 
@@ -893,13 +893,6 @@ extension MainChartView {
                 }
                 AxisValueLabel().font(.footnote)
             }
-        }
-    }
-
-    private var basalChartYAxis: some AxisContent {
-        AxisMarks(position: .trailing) { _ in
-            AxisTick(length: units == .mmolL ? 25 : 27, stroke: .init(lineWidth: 4))
-                .foregroundStyle(Color.clear).font(.footnote)
         }
     }
 }
