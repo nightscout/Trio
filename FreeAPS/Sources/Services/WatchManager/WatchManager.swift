@@ -208,8 +208,8 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         }
         let units = settingsManager.settings.units
         return glucoseFormatter.string(
-            from: (units == .mmolL ? isfValue.asMmolL : Decimal(isfValue)) as NSNumber
-        )!
+            from: units == .mmolL ? isfValue.asMmolL as NSNumber : isfValue as NSNumber
+        )
     }
 
     private var glucoseFormatter: NumberFormatter {
