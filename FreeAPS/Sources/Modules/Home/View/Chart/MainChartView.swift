@@ -189,7 +189,7 @@ extension MainChartView {
         }
         .id("DummyMainChart")
         .frame(minHeight: UIScreen.main.bounds.height * 0.2)
-        .frame(width: screenSize.width)
+        .frame(width: screenSize.width - 10)
         .chartYAxis { mainChartYAxis }
         .chartXAxis(.hidden)
         .chartYScale(domain: minValue ... maxValue)
@@ -232,7 +232,7 @@ extension MainChartView {
                 calculateTTs()
             }
             .frame(minHeight: UIScreen.main.bounds.height * 0.2)
-            .frame(width: fullWidth(viewWidth: screenSize.width))
+            .frame(width: fullWidth(viewWidth: screenSize.width - 10))
             .chartXScale(domain: startMarker ... endMarker)
             .chartXAxis { mainChartXAxis }
             .chartYAxis(.hidden)
@@ -296,7 +296,7 @@ extension MainChartView {
                 calculateBasals()
             }
             .frame(height: UIScreen.main.bounds.height * 0.08)
-            .frame(width: fullWidth(viewWidth: screenSize.width))
+            .frame(width: fullWidth(viewWidth: screenSize.width - 10))
             .chartXScale(domain: startMarker ... endMarker)
             .chartXAxis { basalChartXAxis }
             .chartYAxis { basalChartYAxis }

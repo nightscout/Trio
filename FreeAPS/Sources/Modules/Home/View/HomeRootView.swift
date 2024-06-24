@@ -718,9 +718,6 @@ extension Home {
         @ViewBuilder func mainView() -> some View {
             GeometryReader { geo in
                 VStack(spacing: 0) {
-//                    Spacer()
-//                        .frame(height: UIScreen.main.bounds.height / 40)
-
                     ZStack {
                         /// glucose bobble
                         glucoseView
