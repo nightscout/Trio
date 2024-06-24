@@ -114,35 +114,39 @@ struct MainChartView: View {
 
     var body: some View {
         VStack {
-            ScrollViewReader { scroller in
-                ScrollView(.horizontal, showsIndicators: false) {
-                    VStack(spacing: 0) {
-                        mainChart
-                        basalChart
-                    }.onChange(of: screenHours) { _ in
-                        updateStartEndMarkers()
-                        yAxisChartData()
-                        scroller.scrollTo("MainChart", anchor: .trailing)
-                    }
-                    .onChange(of: state.glucoseFromPersistence.last?.glucose) { _ in
-                        updateStartEndMarkers()
-                        yAxisChartData()
-                        scroller.scrollTo("MainChart", anchor: .trailing)
-                    }
-                    .onChange(of: state.determinationsFromPersistence.last?.deliverAt) { _ in
-                        updateStartEndMarkers()
-                        scroller.scrollTo("MainChart", anchor: .trailing)
-                    }
-                    .onChange(of: state.tempBasals) { _ in
-                        updateStartEndMarkers()
-                        scroller.scrollTo("MainChart", anchor: .trailing)
-                    }
-                    .onChange(of: units) { _ in
-                        yAxisChartData()
-                    }
-                    .onAppear {
-                        updateStartEndMarkers()
-                        scroller.scrollTo("MainChart", anchor: .trailing)
+            ZStack {
+                staticYAxisChart
+
+                ScrollViewReader { scroller in
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        VStack(spacing: 0) {
+                            mainChart
+                            basalChart
+                        }.onChange(of: screenHours) { _ in
+                            updateStartEndMarkers()
+                            yAxisChartData()
+                            scroller.scrollTo("MainChart", anchor: .trailing)
+                        }
+                        .onChange(of: state.glucoseFromPersistence.last?.glucose) { _ in
+                            updateStartEndMarkers()
+                            yAxisChartData()
+                            scroller.scrollTo("MainChart", anchor: .trailing)
+                        }
+                        .onChange(of: state.determinationsFromPersistence.last?.deliverAt) { _ in
+                            updateStartEndMarkers()
+                            scroller.scrollTo("MainChart", anchor: .trailing)
+                        }
+                        .onChange(of: state.tempBasals) { _ in
+                            updateStartEndMarkers()
+                            scroller.scrollTo("MainChart", anchor: .trailing)
+                        }
+                        .onChange(of: units) { _ in
+                            yAxisChartData()
+                        }
+                        .onAppear {
+                            updateStartEndMarkers()
+                            scroller.scrollTo("MainChart", anchor: .trailing)
+                        }
                     }
                 }
             }
@@ -172,6 +176,26 @@ extension Backport {
 }
 
 extension MainChartView {
+    /// empty chart that just shows the Y axis and Y grid lines. Created separately from `mainChart` to allow main chart to scroll horizontally while having a fixed Y axis
+    private var staticYAxisChart: some View {
+        Chart {
+            /// high and low threshold lines
+            if thresholdLines {
+                RuleMark(y: .value("High", highGlucose * conversionFactor)).foregroundStyle(Color.loopYellow)
+                    .lineStyle(.init(lineWidth: 1, dash: [5]))
+                RuleMark(y: .value("Low", lowGlucose * conversionFactor)).foregroundStyle(Color.loopRed)
+                    .lineStyle(.init(lineWidth: 1, dash: [5]))
+            }
+        }
+        .id("DummyMainChart")
+        .frame(minHeight: UIScreen.main.bounds.height * 0.2)
+        .frame(width: screenSize.width)
+        .chartYAxis { mainChartYAxis }
+        .chartXAxis(.hidden)
+        .chartYScale(domain: minValue ... maxValue)
+        .chartLegend(.hidden)
+    }
+
     private var mainChart: some View {
         VStack {
             Chart {
@@ -185,14 +209,6 @@ extension MainChartView {
                 drawForecasts()
                 drawGlucose()
                 drawManualGlucose()
-
-                /// high and low threshold lines
-                if thresholdLines {
-                    RuleMark(y: .value("High", highGlucose * conversionFactor)).foregroundStyle(Color.loopYellow)
-                        .lineStyle(.init(lineWidth: 1, dash: [5]))
-                    RuleMark(y: .value("Low", lowGlucose * conversionFactor)).foregroundStyle(Color.loopRed)
-                        .lineStyle(.init(lineWidth: 1, dash: [5]))
-                }
 
                 /// show glucose value when hovering over it
                 if let selectedGlucose {
@@ -219,8 +235,8 @@ extension MainChartView {
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .chartXScale(domain: startMarker ... endMarker)
             .chartXAxis { mainChartXAxis }
+            .chartYAxis(.hidden)
             .backport.chartXSelection(value: $selection)
-            .chartYAxis { mainChartYAxis }
             .chartYScale(domain: minValue ... maxValue)
             .chartForegroundStyleScale([
                 "zt": Color.zt,
