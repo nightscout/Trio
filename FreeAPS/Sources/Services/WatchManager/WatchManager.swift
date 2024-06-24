@@ -18,7 +18,6 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
     @Injected() private var tempTargetsStorage: TempTargetsStorage!
     @Injected() private var garmin: GarminManager!
 
-    let coreDataStorage = CoreDataStorage()
     let context = CoreDataStack.shared.newTaskContext()
 
     private var lifetime = Lifetime()
@@ -67,9 +66,9 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         )
     }
 
-    private func fetchLatestOverride() -> Override? {
+    private func fetchLatestOverride() -> OverrideStored? {
         CoreDataStack.shared.fetchEntities(
-            ofType: Override.self,
+            ofType: OverrideStored.self,
             onContext: context,
             predicate: NSPredicate.predicateForOneDayAgo,
             key: "date",

@@ -1,20 +1,22 @@
 import CoreData
 import Foundation
 
-public extension OverridePresets {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<OverridePresets> {
-        NSFetchRequest<OverridePresets>(entityName: "OverridePresets")
+public extension OverrideStored {
+    @nonobjc class func fetchRequest() -> NSFetchRequest<OverrideStored> {
+        NSFetchRequest<OverrideStored>(entityName: "OverrideStored")
     }
 
     @NSManaged var advancedSettings: Bool
     @NSManaged var cr: Bool
     @NSManaged var date: Date?
     @NSManaged var duration: NSDecimalNumber?
+    @NSManaged var enabled: Bool
     @NSManaged var end: NSDecimalNumber?
     @NSManaged var id: String?
     @NSManaged var indefinite: Bool
     @NSManaged var isf: Bool
     @NSManaged var isfAndCr: Bool
+    @NSManaged var isPreset: Bool
     @NSManaged var name: String?
     @NSManaged var percentage: Double
     @NSManaged var smbIsAlwaysOff: Bool
@@ -25,4 +27,9 @@ public extension OverridePresets {
     @NSManaged var uamMinutes: NSDecimalNumber?
 }
 
-extension OverridePresets: Identifiable {}
+extension OverrideStored: Identifiable {
+    override public func awakeFromInsert() {
+        super.awakeFromInsert()
+        id = UUID().uuidString
+    }
+}

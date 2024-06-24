@@ -76,10 +76,6 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
     }
 
     public func updateUIView(_ textField: UITextField, context: Context) {
-        if textField.isFirstResponder {
-            return
-        }
-
         if text != 0 {
             let newText = numberFormatter.string(from: text as NSNumber) ?? ""
             if textField.text != newText {

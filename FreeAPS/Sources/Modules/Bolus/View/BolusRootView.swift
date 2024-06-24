@@ -277,7 +277,7 @@ extension Bolus {
                 TextFieldWithToolBar(
                     text: $state.carbs,
                     placeholder: "0",
-                    shouldBecomeFirstResponder: true,
+                    shouldBecomeFirstResponder: false,
                     numberFormatter: mealFormatter
                 )
                 .onChange(of: state.carbs) { _ in
@@ -415,7 +415,7 @@ extension Bolus {
                                 TextFieldWithToolBar(
                                     text: $state.amount,
                                     placeholder: "0",
-                                    textColor: .blue,
+                                    textColor: colorScheme == .dark ? .white : .blue,
                                     maxLength: 5,
                                     numberFormatter: formatter
                                 )

@@ -21,7 +21,6 @@
 		1927C8E62744606D00347C69 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1927C8E82744606D00347C69 /* InfoPlist.strings */; };
 		1935364028496F7D001E0B16 /* Oref2_variables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1935363F28496F7D001E0B16 /* Oref2_variables.swift */; };
 		193F6CDD2A512C8F001240FD /* Loops.swift in Sources */ = {isa = PBXBuildFile; fileRef = 193F6CDC2A512C8F001240FD /* Loops.swift */; };
-		1956FB212AFF79E200C7B4FF /* CoreDataStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1956FB202AFF79E200C7B4FF /* CoreDataStorage.swift */; };
 		195D80B42AF6973A00D25097 /* DynamicRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 195D80B32AF6973A00D25097 /* DynamicRootView.swift */; };
 		195D80B72AF697B800D25097 /* DynamicDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 195D80B62AF697B800D25097 /* DynamicDataFlow.swift */; };
 		195D80B92AF697F700D25097 /* DynamicProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 195D80B82AF697F700D25097 /* DynamicProvider.swift */; };
@@ -275,8 +274,6 @@
 		5825D1412BD4058F00F36E9B /* TempTargetsSlider+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1132BD4058F00F36E9B /* TempTargetsSlider+CoreDataProperties.swift */; };
 		5825D1422BD4058F00F36E9B /* Presets+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1142BD4058F00F36E9B /* Presets+CoreDataClass.swift */; };
 		5825D1432BD4058F00F36E9B /* Presets+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1152BD4058F00F36E9B /* Presets+CoreDataProperties.swift */; };
-		5825D1482BD4058F00F36E9B /* Override+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D11A2BD4058F00F36E9B /* Override+CoreDataClass.swift */; };
-		5825D1492BD4058F00F36E9B /* Override+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D11B2BD4058F00F36E9B /* Override+CoreDataProperties.swift */; };
 		5825D14A2BD4058F00F36E9B /* OrefDetermination+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D11C2BD4058F00F36E9B /* OrefDetermination+CoreDataClass.swift */; };
 		5825D14B2BD4058F00F36E9B /* OrefDetermination+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D11D2BD4058F00F36E9B /* OrefDetermination+CoreDataProperties.swift */; };
 		5825D14C2BD4058F00F36E9B /* TempTargets+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D11E2BD4058F00F36E9B /* TempTargets+CoreDataClass.swift */; };
@@ -285,8 +282,6 @@
 		5825D1552BD4058F00F36E9B /* CarbEntryStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D1272BD4058F00F36E9B /* CarbEntryStored+CoreDataProperties.swift */; };
 		5825D1582BD4058F00F36E9B /* StatsData+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D12A2BD4058F00F36E9B /* StatsData+CoreDataClass.swift */; };
 		5825D1592BD4058F00F36E9B /* StatsData+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D12B2BD4058F00F36E9B /* StatsData+CoreDataProperties.swift */; };
-		5825D15A2BD4058F00F36E9B /* OverridePresets+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D12C2BD4058F00F36E9B /* OverridePresets+CoreDataClass.swift */; };
-		5825D15B2BD4058F00F36E9B /* OverridePresets+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825D12D2BD4058F00F36E9B /* OverridePresets+CoreDataProperties.swift */; };
 		582FAE432C05102C00D1C13F /* CoreDataError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 582FAE422C05102C00D1C13F /* CoreDataError.swift */; };
 		583684062BD178DB00070A60 /* GlucoseStored+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 583684052BD178DB00070A60 /* GlucoseStored+helper.swift */; };
 		583684082BD195A700070A60 /* Determination.swift in Sources */ = {isa = PBXBuildFile; fileRef = 583684072BD195A700070A60 /* Determination.swift */; };
@@ -359,6 +354,11 @@
 		BDB3C1042C0341E600CEEAA1 /* TempBasalStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB3C0FE2C0341E500CEEAA1 /* TempBasalStored+CoreDataClass.swift */; };
 		BDB3C1052C0341E600CEEAA1 /* TempBasalStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB3C0FF2C0341E500CEEAA1 /* TempBasalStored+CoreDataProperties.swift */; };
 		BDB3C1192C03DD1000CEEAA1 /* UserDefaultsExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB3C1182C03DD1000CEEAA1 /* UserDefaultsExtension.swift */; };
+		BDCD47AF2C1F3F1700F8BCD5 /* OverrideStored+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCD47AE2C1F3F1700F8BCD5 /* OverrideStored+helper.swift */; };
+		BDCD47BA2C2203A600F8BCD5 /* EditProfileForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCD47B92C2203A600F8BCD5 /* EditProfileForm.swift */; };
+		BDCD47C32C26331400F8BCD5 /* AddProfileForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCD47C22C26331400F8BCD5 /* AddProfileForm.swift */; };
+		BDCD47DE2C2861F400F8BCD5 /* OverrideStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCD47DC2C2861F400F8BCD5 /* OverrideStored+CoreDataClass.swift */; };
+		BDCD47DF2C2861F400F8BCD5 /* OverrideStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCD47DD2C2861F400F8BCD5 /* OverrideStored+CoreDataProperties.swift */; };
 		BDF34EBE2C0A31D100D51995 /* CustomNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF34EBD2C0A31D000D51995 /* CustomNotification.swift */; };
 		BDF34F832C10C5B600D51995 /* DataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF34F822C10C5B600D51995 /* DataManager.swift */; };
 		BDF34F852C10C62E00D51995 /* GlucoseData.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF34F842C10C62E00D51995 /* GlucoseData.swift */; };
@@ -607,7 +607,6 @@
 		1927C8FE274489BA00347C69 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		1935363F28496F7D001E0B16 /* Oref2_variables.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Oref2_variables.swift; sourceTree = "<group>"; };
 		193F6CDC2A512C8F001240FD /* Loops.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loops.swift; sourceTree = "<group>"; };
-		1956FB202AFF79E200C7B4FF /* CoreDataStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataStorage.swift; sourceTree = "<group>"; };
 		195D80B32AF6973A00D25097 /* DynamicRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicRootView.swift; sourceTree = "<group>"; };
 		195D80B62AF697B800D25097 /* DynamicDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicDataFlow.swift; sourceTree = "<group>"; };
 		195D80B82AF697F700D25097 /* DynamicProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicProvider.swift; sourceTree = "<group>"; };
@@ -881,8 +880,6 @@
 		5825D1132BD4058F00F36E9B /* TempTargetsSlider+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetsSlider+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		5825D1142BD4058F00F36E9B /* Presets+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Presets+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		5825D1152BD4058F00F36E9B /* Presets+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Presets+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		5825D11A2BD4058F00F36E9B /* Override+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Override+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		5825D11B2BD4058F00F36E9B /* Override+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Override+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		5825D11C2BD4058F00F36E9B /* OrefDetermination+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OrefDetermination+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		5825D11D2BD4058F00F36E9B /* OrefDetermination+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OrefDetermination+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		5825D11E2BD4058F00F36E9B /* TempTargets+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargets+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
@@ -891,8 +888,6 @@
 		5825D1272BD4058F00F36E9B /* CarbEntryStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CarbEntryStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		5825D12A2BD4058F00F36E9B /* StatsData+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StatsData+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		5825D12B2BD4058F00F36E9B /* StatsData+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StatsData+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		5825D12C2BD4058F00F36E9B /* OverridePresets+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverridePresets+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		5825D12D2BD4058F00F36E9B /* OverridePresets+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverridePresets+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		582FAE422C05102C00D1C13F /* CoreDataError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataError.swift; sourceTree = "<group>"; };
 		583684052BD178DB00070A60 /* GlucoseStored+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GlucoseStored+helper.swift"; sourceTree = "<group>"; };
 		583684072BD195A700070A60 /* Determination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Determination.swift; sourceTree = "<group>"; };
@@ -966,6 +961,11 @@
 		BDB3C0FE2C0341E500CEEAA1 /* TempBasalStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempBasalStored+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		BDB3C0FF2C0341E500CEEAA1 /* TempBasalStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempBasalStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		BDB3C1182C03DD1000CEEAA1 /* UserDefaultsExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsExtension.swift; sourceTree = "<group>"; };
+		BDCD47AE2C1F3F1700F8BCD5 /* OverrideStored+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideStored+helper.swift"; sourceTree = "<group>"; };
+		BDCD47B92C2203A600F8BCD5 /* EditProfileForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileForm.swift; sourceTree = "<group>"; };
+		BDCD47C22C26331400F8BCD5 /* AddProfileForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddProfileForm.swift; sourceTree = "<group>"; };
+		BDCD47DC2C2861F400F8BCD5 /* OverrideStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideStored+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
+		BDCD47DD2C2861F400F8BCD5 /* OverrideStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		BDF34EBD2C0A31D000D51995 /* CustomNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomNotification.swift; sourceTree = "<group>"; };
 		BDF34F822C10C5B600D51995 /* DataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataManager.swift; sourceTree = "<group>"; };
 		BDF34F842C10C62E00D51995 /* GlucoseData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseData.swift; sourceTree = "<group>"; };
@@ -1275,6 +1275,8 @@
 			isa = PBXGroup;
 			children = (
 				19DC678429CA67A400FD9EC4 /* OverrideProfilesRootView.swift */,
+				BDCD47B92C2203A600F8BCD5 /* EditProfileForm.swift */,
+				BDCD47C22C26331400F8BCD5 /* AddProfileForm.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -2122,6 +2124,8 @@
 		5825D1052BD4056700F36E9B /* Classes+Properties */ = {
 			isa = PBXGroup;
 			children = (
+				BDCD47DC2C2861F400F8BCD5 /* OverrideStored+CoreDataClass.swift */,
+				BDCD47DD2C2861F400F8BCD5 /* OverrideStored+CoreDataProperties.swift */,
 				BDB3C0FA2C0341E500CEEAA1 /* BolusStored+CoreDataClass.swift */,
 				BDB3C0FB2C0341E500CEEAA1 /* BolusStored+CoreDataProperties.swift */,
 				BDB3C0FC2C0341E500CEEAA1 /* PumpEventStored+CoreDataClass.swift */,
@@ -2144,8 +2148,6 @@
 				5825D1132BD4058F00F36E9B /* TempTargetsSlider+CoreDataProperties.swift */,
 				5825D1142BD4058F00F36E9B /* Presets+CoreDataClass.swift */,
 				5825D1152BD4058F00F36E9B /* Presets+CoreDataProperties.swift */,
-				5825D11A2BD4058F00F36E9B /* Override+CoreDataClass.swift */,
-				5825D11B2BD4058F00F36E9B /* Override+CoreDataProperties.swift */,
 				5825D11C2BD4058F00F36E9B /* OrefDetermination+CoreDataClass.swift */,
 				5825D11D2BD4058F00F36E9B /* OrefDetermination+CoreDataProperties.swift */,
 				5825D11E2BD4058F00F36E9B /* TempTargets+CoreDataClass.swift */,
@@ -2154,8 +2156,6 @@
 				5825D1272BD4058F00F36E9B /* CarbEntryStored+CoreDataProperties.swift */,
 				5825D12A2BD4058F00F36E9B /* StatsData+CoreDataClass.swift */,
 				5825D12B2BD4058F00F36E9B /* StatsData+CoreDataProperties.swift */,
-				5825D12C2BD4058F00F36E9B /* OverridePresets+CoreDataClass.swift */,
-				5825D12D2BD4058F00F36E9B /* OverridePresets+CoreDataProperties.swift */,
 			);
 			path = "Classes+Properties";
 			sourceTree = "<group>";
@@ -2163,7 +2163,6 @@
 		5825D1622BD405AE00F36E9B /* Helper */ = {
 			isa = PBXGroup;
 			children = (
-				1956FB202AFF79E200C7B4FF /* CoreDataStorage.swift */,
 				581516A82BCEEDF800BF67D7 /* NSPredicates.swift */,
 				583684052BD178DB00070A60 /* GlucoseStored+helper.swift */,
 				58F107732BD1A4D000B1A680 /* Determination+helper.swift */,
@@ -2175,6 +2174,7 @@
 				BDB3C1182C03DD1000CEEAA1 /* UserDefaultsExtension.swift */,
 				582FAE422C05102C00D1C13F /* CoreDataError.swift */,
 				BDF34EBD2C0A31D000D51995 /* CustomNotification.swift */,
+				BDCD47AE2C1F3F1700F8BCD5 /* OverrideStored+helper.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -2889,9 +2889,7 @@
 				38B4F3CD25E5031100E76A18 /* Broadcaster.swift in Sources */,
 				383420D925FFEB3F002D46C1 /* Popup.swift in Sources */,
 				3811DE3025C9D49500A708ED /* HomeStateModel.swift in Sources */,
-				5825D15A2BD4058F00F36E9B /* OverridePresets+CoreDataClass.swift in Sources */,
 				38BF021725E7CBBC00579895 /* PumpManagerExtensions.swift in Sources */,
-				5825D1492BD4058F00F36E9B /* Override+CoreDataProperties.swift in Sources */,
 				19F95FF529F10FCF00314DDC /* StatProvider.swift in Sources */,
 				38F3B2EF25ED8E2A005C48AA /* TempTargetsStorage.swift in Sources */,
 				19B0EF2128F6D66200069496 /* Statistics.swift in Sources */,
@@ -2901,6 +2899,7 @@
 				3811DE1725C9D40400A708ED /* Screen.swift in Sources */,
 				383948DA25CD64D500E91849 /* Glucose.swift in Sources */,
 				CE94598029E9E3BD0047C9C6 /* WatchConfigDataFlow.swift in Sources */,
+				BDCD47C32C26331400F8BCD5 /* AddProfileForm.swift in Sources */,
 				388E596C25AD95110019842D /* OpenAPS.swift in Sources */,
 				E00EEC0527368630002FF094 /* StorageAssembly.swift in Sources */,
 				384E803825C388640086DB71 /* Script.swift in Sources */,
@@ -2920,7 +2919,6 @@
 				5825D13A2BD4058F00F36E9B /* LoopStatRecord+CoreDataClass.swift in Sources */,
 				5887527C2BD986E1008B081D /* OpenAPSBattery.swift in Sources */,
 				38569348270B5DFB0002C50D /* GlucoseSource.swift in Sources */,
-				5825D15B2BD4058F00F36E9B /* OverridePresets+CoreDataProperties.swift in Sources */,
 				CEB434E328B8F9DB00B70274 /* BluetoothStateManager.swift in Sources */,
 				3811DE4225C9D4A100A708ED /* SettingsDataFlow.swift in Sources */,
 				3811DE2525C9D48300A708ED /* MainRootView.swift in Sources */,
@@ -2951,6 +2949,7 @@
 				3811DE1825C9D40400A708ED /* Router.swift in Sources */,
 				CE7950262998056D00FA576E /* CGMSetupView.swift in Sources */,
 				582FAE432C05102C00D1C13F /* CoreDataError.swift in Sources */,
+				BDCD47BA2C2203A600F8BCD5 /* EditProfileForm.swift in Sources */,
 				38A0363B25ECF07E00FCBB52 /* GlucoseStorage.swift in Sources */,
 				190EBCC629FF138000BA767D /* StatConfigProvider.swift in Sources */,
 				38E98A2725F52C9300C0CED0 /* CollectionIssueReporter.swift in Sources */,
@@ -2970,7 +2969,6 @@
 				384E803425C385E60086DB71 /* JavaScriptWorker.swift in Sources */,
 				3811DE5D25C9D4D500A708ED /* Publisher.swift in Sources */,
 				E00EEC0727368630002FF094 /* APSAssembly.swift in Sources */,
-				5825D1482BD4058F00F36E9B /* Override+CoreDataClass.swift in Sources */,
 				38B4F3AF25E2979F00E76A18 /* IndexedCollection.swift in Sources */,
 				3811DEAE25C9D88300A708ED /* Cache.swift in Sources */,
 				383420D625FFE38C002D46C1 /* LoopView.swift in Sources */,
@@ -3023,6 +3021,7 @@
 				581516A92BCEEDF800BF67D7 /* NSPredicates.swift in Sources */,
 				38DAB28A260D349500F74C1A /* FetchGlucoseManager.swift in Sources */,
 				38F37828261260DC009DB701 /* Color+Extensions.swift in Sources */,
+				BDCD47AF2C1F3F1700F8BCD5 /* OverrideStored+helper.swift in Sources */,
 				3811DE3F25C9D4A100A708ED /* SettingsStateModel.swift in Sources */,
 				CE7CA3582A064E2F004BE681 /* ListStateView.swift in Sources */,
 				193F6CDD2A512C8F001240FD /* Loops.swift in Sources */,
@@ -3172,6 +3171,8 @@
 				BDF34F852C10C62E00D51995 /* GlucoseData.swift in Sources */,
 				3862CC1F273FDC9200BF832C /* CalibrationsChart.swift in Sources */,
 				19E1F7EC29D082FE005C8D20 /* IconConfigStateModel.swift in Sources */,
+				BDCD47DE2C2861F400F8BCD5 /* OverrideStored+CoreDataClass.swift in Sources */,
+				BDCD47DF2C2861F400F8BCD5 /* OverrideStored+CoreDataProperties.swift in Sources */,
 				711C0CB42CAABE788916BC9D /* ManualTempBasalDataFlow.swift in Sources */,
 				588752842BD9986A008B081D /* OpenAPS_Battery+CoreDataClass.swift in Sources */,
 				BF1667ADE69E4B5B111CECAE /* ManualTempBasalProvider.swift in Sources */,
@@ -3213,7 +3214,6 @@
 				E25073BC86C11C3D6A42F5AC /* CalibrationsStateModel.swift in Sources */,
 				BA90041DC8991147E5C8C3AA /* CalibrationsRootView.swift in Sources */,
 				E3A08AAE59538BC8A8ABE477 /* NotificationsConfigDataFlow.swift in Sources */,
-				1956FB212AFF79E200C7B4FF /* CoreDataStorage.swift in Sources */,
 				0F7A65FBD2CD8D6477ED4539 /* NotificationsConfigProvider.swift in Sources */,
 				3171D2818C7C72CD1584BB5E /* NotificationsConfigStateModel.swift in Sources */,
 				CD78BB94E43B249D60CC1A1B /* NotificationsConfigRootView.swift in Sources */,

@@ -220,18 +220,16 @@ extension Home {
             }
         }
 
-        func cancelProfile() {
-            context.perform { [self] in
-                let profiles = Override(context: self.context)
-                profiles.enabled = false
-                profiles.date = Date()
+        @MainActor func cancelProfile(withID id: NSManagedObjectID) async {
+            do {
+                let profileToCancel = try viewContext.existingObject(with: id) as? OverrideStored
+                profileToCancel?.enabled = false
+                profileToCancel?.date = Date()
 
-                do {
-                    guard self.context.hasChanges else { return }
-                    try self.context.save()
-                } catch {
-                    print(error.localizedDescription)
-                }
+                guard viewContext.hasChanges else { return }
+                try viewContext.save()
+            } catch {
+                debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to cancel Profile")
             }
         }
 

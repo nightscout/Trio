@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22222" systemVersion="22G120" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22758" systemVersion="23E214" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
     <entity name="BolusStored" representedClassName="BolusStored" syncable="YES">
         <attribute name="amount" optional="YES" attributeType="Decimal" defaultValueString="0"/>
         <attribute name="isExternal" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
@@ -108,7 +108,7 @@
             <fetchIndexElement property="deliverAt" type="Binary" order="descending"/>
         </fetchIndex>
     </entity>
-    <entity name="Override" representedClassName="Override" syncable="YES">
+    <entity name="OverrideStored" representedClassName="OverrideStored" syncable="YES">
         <attribute name="advancedSettings" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="cr" optional="YES" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
         <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -120,35 +120,20 @@
         <attribute name="isf" optional="YES" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
         <attribute name="isfAndCr" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="isPreset" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="percentage" optional="YES" attributeType="Double" defaultValueString="100" usesScalarValueType="YES"/>
         <attribute name="smbIsAlwaysOff" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="smbIsOff" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="smbMinutes" optional="YES" attributeType="Decimal" defaultValueString="30"/>
         <attribute name="start" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
-        <attribute name="target" optional="YES" attributeType="Decimal" defaultValueString="100"/>
+        <attribute name="target" optional="YES" attributeType="Decimal" defaultValueString="0"/>
         <attribute name="uamMinutes" optional="YES" attributeType="Decimal" defaultValueString="30"/>
         <fetchIndex name="byDate">
             <fetchIndexElement property="date" type="Binary" order="descending"/>
         </fetchIndex>
-    </entity>
-    <entity name="OverridePresets" representedClassName="OverridePresets" syncable="YES">
-        <attribute name="advancedSettings" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
-        <attribute name="cr" optional="YES" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
-        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="duration" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
-        <attribute name="end" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
-        <attribute name="id" optional="YES" attributeType="String"/>
-        <attribute name="indefinite" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
-        <attribute name="isf" optional="YES" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
-        <attribute name="isfAndCr" optional="YES" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
-        <attribute name="name" optional="YES" attributeType="String"/>
-        <attribute name="percentage" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="smbIsAlwaysOff" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
-        <attribute name="smbIsOff" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
-        <attribute name="smbMinutes" optional="YES" attributeType="Decimal" defaultValueString="30"/>
-        <attribute name="start" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
-        <attribute name="target" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
-        <attribute name="uamMinutes" optional="YES" attributeType="Decimal" defaultValueString="30"/>
+        <fetchIndex name="byIsPreset">
+            <fetchIndexElement property="isPreset" type="Binary" order="ascending"/>
+        </fetchIndex>
     </entity>
     <entity name="Presets" representedClassName="Presets" syncable="YES">
         <attribute name="carbs" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>

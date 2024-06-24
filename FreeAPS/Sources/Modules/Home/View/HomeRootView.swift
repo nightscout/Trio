@@ -37,18 +37,11 @@ extension Home {
         @Environment(\.managedObjectContext) var moc
         @Environment(\.colorScheme) var colorScheme
 
-        // TODO: rework this stuff -> remove fetch requests; no one wants this here.
-        @FetchRequest(
-            entity: Override.entity(),
-            sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
-        ) var fetchedPercent: FetchedResults<Override>
-
-        @FetchRequest(
-            entity: OverridePresets.entity(),
-            sortDescriptors: [NSSortDescriptor(key: "name", ascending: true)], predicate: NSPredicate(
-                format: "name != %@", "" as String
-            )
-        ) var fetchedProfiles: FetchedResults<OverridePresets>
+        @FetchRequest(fetchRequest: OverrideStored.fetch(
+            NSPredicate.lastActiveOverride,
+            ascending: false,
+            fetchLimit: 1
+        )) var latestOverride: FetchedResults<OverrideStored>
 
         @FetchRequest(
             entity: TempTargets.entity(),
@@ -201,15 +194,15 @@ extension Home {
         }
 
         var overrideString: String? {
-            guard let fetched = fetchedPercent.first, fetched.enabled else {
+            guard let latestOverride = latestOverride.first else {
                 return nil
             }
 
-            let percent = fetched.percentage
+            let percent = latestOverride.percentage
             let percentString = percent == 100 ? "" : "\(percent.formatted(.number)) %"
 
             let unit = state.units
-            var target = (fetched.target ?? 100) as Decimal
+            var target = (latestOverride.target ?? 100) as Decimal
             target = unit == .mmolL ? target.asMmolL : target
 
             var targetString = target == 0 ? "" : (fetchedTargetFormatter.string(from: target as NSNumber) ?? "") + " " + unit
@@ -218,14 +211,14 @@ extension Home {
                 targetString = ""
             }
 
-            let duration = fetched.duration ?? 0
+            let duration = latestOverride.duration ?? 0
             let addedMinutes = Int(truncating: duration)
-            let date = fetched.date ?? Date()
+            let date = latestOverride.date ?? Date()
             let newDuration = max(
                 Decimal(Date().distance(to: date.addingTimeInterval(addedMinutes.minutes.timeInterval)).minutes),
                 0
             )
-            let indefinite = fetched.indefinite
+            let indefinite = latestOverride.indefinite
             var durationString = ""
 
             if !indefinite {
@@ -238,7 +231,7 @@ extension Home {
                 }
             }
 
-            let smbToggleString = fetched.smbIsOff ? " \u{20e0}" : ""
+            let smbToggleString = latestOverride.smbIsOff ? " \u{20e0}" : ""
 
             let components = [percentString, targetString, durationString, smbToggleString].filter { !$0.isEmpty }
             return components.isEmpty ? nil : components.joined(separator: ", ")
@@ -357,31 +350,31 @@ extension Home {
             .padding(.bottom)
         }
 
-        private func selectedProfile() -> (name: String, isOn: Bool) {
-            var profileString = ""
-            var display: Bool = false
-
-            let duration = (fetchedPercent.first?.duration ?? 0) as Decimal
-            let indefinite = fetchedPercent.first?.indefinite ?? false
-            let addedMinutes = Int(duration)
-            let date = fetchedPercent.first?.date ?? Date()
-            if date.addingTimeInterval(addedMinutes.minutes.timeInterval) > Date() || indefinite {
-                display.toggle()
-            }
-
-            if fetchedPercent.first?.enabled ?? false, !(fetchedPercent.first?.isPreset ?? false), display {
-                profileString = NSLocalizedString("Custom Profile", comment: "Custom but unsaved Profile")
-            } else if !(fetchedPercent.first?.enabled ?? false) || !display {
-                profileString = NSLocalizedString("Normal Profile", comment: "Your normal Profile. Use a short string")
-            } else {
-                let id_ = fetchedPercent.first?.id ?? ""
-                let profile = fetchedProfiles.filter({ $0.id == id_ }).first
-                if profile != nil {
-                    profileString = profile?.name?.description ?? ""
-                }
-            }
-            return (name: profileString, isOn: display)
-        }
+//        private func selectedProfile() -> (name: String, isOn: Bool) {
+//            var profileString = ""
+//            var display: Bool = false
+//
+//            let duration = (fetchedPercent.first?.duration ?? 0) as Decimal
+//            let indefinite = fetchedPercent.first?.indefinite ?? false
+//            let addedMinutes = Int(duration)
+//            let date = fetchedPercent.first?.date ?? Date()
+//            if date.addingTimeInterval(addedMinutes.minutes.timeInterval) > Date() || indefinite {
+//                display.toggle()
+//            }
+//
+//            if fetchedPercent.first?.enabled ?? false, !(fetchedPercent.first?.isPreset ?? false), display {
+//                profileString = NSLocalizedString("Custom Profile", comment: "Custom but unsaved Profile")
+//            } else if !(fetchedPercent.first?.enabled ?? false) || !display {
+//                profileString = NSLocalizedString("Normal Profile", comment: "Your normal Profile. Use a short string")
+//            } else {
+//                let id_ = fetchedPercent.first?.id ?? ""
+//                let profile = fetchedProfiles.filter({ $0.id == id_ }).first
+//                if profile != nil {
+//                    profileString = profile?.name?.description ?? ""
+//                }
+//            }
+//            return (name: profileString, isOn: display)
+//        }
 
         func highlightButtons() {
             for i in 0 ..< timeButtons.count {
@@ -553,12 +546,14 @@ extension Home {
 
                     if let overrideString = overrideString {
                         VStack {
-                            Text(selectedProfile().name)
+                            Text(latestOverride.first?.name ?? "Custom Override")
                                 .font(.subheadline)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                            Text(overrideString)
+
+                            Text("\(overrideString)")
                                 .font(.caption)
                                 .frame(maxWidth: .infinity, alignment: .leading)
+
                         }.padding(.leading, 5)
                         Spacer()
                         Image(systemName: "xmark.app")
@@ -566,7 +561,7 @@ extension Home {
                     } else {
                         if tempTargetString == nil {
                             VStack {
-                                Text(selectedProfile().name)
+                                Text("Normal Profile")
                                     .font(.subheadline)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                 Text("100 %")
@@ -586,13 +581,16 @@ extension Home {
                         actions: {
                             Button("No", role: .cancel) {}
                             Button("Yes", role: .destructive) {
-                                state.cancelProfile()
+                                Task {
+                                    guard let objectID = latestOverride.first?.objectID else { return }
+                                    await state.cancelProfile(withID: objectID)
+                                }
                             }
                         }, message: { Text("This will change settings back to your normal profile.") }
                     )
                     .padding(.trailing, 8)
                     .onTapGesture {
-                        if selectedProfile().name != "Normal Profile" {
+                        if !latestOverride.isEmpty {
                             showCancelAlert = true
                         }
                     }

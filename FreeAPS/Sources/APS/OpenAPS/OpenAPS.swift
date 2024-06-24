@@ -296,11 +296,13 @@ final class OpenAPS {
             // requestIsEnbled.fetchLimit = 1
             try? sliderArray = self.context.fetch(requestIsEnbled)
 
-            var overrideArray = [Override]()
-            let requestOverrides = Override.fetchRequest() as NSFetchRequest<Override>
+            /// Get the last active Override as only this information is apparently used in oref2
+            var overrideArray = [OverrideStored]()
+            let requestOverrides = OverrideStored.fetchRequest() as NSFetchRequest<OverrideStored>
             let sortOverride = NSSortDescriptor(key: "date", ascending: false)
             requestOverrides.sortDescriptors = [sortOverride]
-            // requestOverrides.fetchLimit = 1
+            requestOverrides.predicate = NSPredicate.lastActiveOverride
+            requestOverrides.fetchLimit = 1
             try? overrideArray = self.context.fetch(requestOverrides)
 
             var tempTargetsArray = [TempTargets]()
@@ -354,7 +356,7 @@ final class OpenAPS {
                    !unlimited
                 {
                     useOverride = false
-                    let saveToCoreData = Override(context: self.context)
+                    let saveToCoreData = OverrideStored(context: self.context)
                     saveToCoreData.enabled = false
                     saveToCoreData.date = Date()
                     saveToCoreData.duration = 0
