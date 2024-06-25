@@ -111,12 +111,15 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
         var parent: TextFieldWithToolBar
         var textField: UITextField?
         let maxLength: Int?
-
         var didBecomeFirstResponder = false
+        let decimalFormatter: NumberFormatter
 
         init(_ parent: TextFieldWithToolBar, maxLength: Int?) {
             self.parent = parent
             self.maxLength = maxLength
+            decimalFormatter = NumberFormatter()
+            decimalFormatter.locale = Locale.current
+            decimalFormatter.numberStyle = .decimal
         }
 
         @objc fileprivate func clearText() {
@@ -140,7 +143,7 @@ extension TextFieldWithToolBar.Coordinator: UITextFieldDelegate {
     ) -> Bool {
         // Check if the input is a number or the decimal separator
         let isNumber = CharacterSet.decimalDigits.isSuperset(of: CharacterSet(charactersIn: string))
-        let isDecimalSeparator = (string == NumberFormatter().decimalSeparator && textField.text?.contains(string) == false)
+        let isDecimalSeparator = (string == decimalFormatter.decimalSeparator && textField.text?.contains(string) == false)
 
         // Only proceed if the input is a valid number or decimal separator
         if isNumber || isDecimalSeparator,
@@ -148,11 +151,6 @@ extension TextFieldWithToolBar.Coordinator: UITextFieldDelegate {
         {
             // Get the proposed new text
             let proposedText = currentText.replacingCharacters(in: range, with: string)
-
-            // Initialize number formatter
-            let decimalFormatter = NumberFormatter()
-            decimalFormatter.locale = Locale.current
-            decimalFormatter.numberStyle = .decimal
 
             // Try to convert proposed text to number
             let number = parent.numberFormatter.number(from: proposedText) ?? decimalFormatter.number(from: proposedText)
