@@ -317,12 +317,8 @@ extension DataTable {
                     ) as NSNumber)!
                 } ?? "--")
                 if item.glucose.type == "Manual" {
-                    ZStack {
                         Image(systemName: "drop.fill")
                             .foregroundColor(Color.loopRed)
-                        Image(systemName: "drop")
-                            .foregroundColor(Color.primary)
-                    }
                 } else {
                     Text(item.glucose.direction?.symbol ?? "--")
                 }
