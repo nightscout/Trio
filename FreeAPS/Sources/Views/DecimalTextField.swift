@@ -27,7 +27,7 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
         maxLength: Int? = nil,
         isDismissible: Bool = true,
         textFieldDidBeginEditing: (() -> Void)? = nil,
-        numberFormatter: NumberFormatter = NumberFormatter()
+        numberFormatter: NumberFormatter
     ) {
         _text = text
         self.placeholder = placeholder
@@ -48,9 +48,10 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
         let textField = UITextField()
         context.coordinator.textField = textField
         textField.inputAccessoryView = isDismissible ? makeDoneToolbar(for: textField, context: context) : nil
-        textField.addTarget(context.coordinator, action: #selector(Coordinator.textChanged), for: .editingChanged)
+//        textField.addTarget(context.coordinator, action: #selector(Coordinator.textChanged), for: .editingChanged)
         textField.addTarget(context.coordinator, action: #selector(Coordinator.editingDidBegin), for: .editingDidBegin)
         textField.delegate = context.coordinator
+        textField.text = numberFormatter.string(for: text)
         return textField
     }
 
@@ -77,7 +78,7 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
 
     public func updateUIView(_ textField: UITextField, context: Context) {
         if text != 0 {
-            let newText = numberFormatter.string(from: text as NSNumber) ?? ""
+            let newText = numberFormatter.string(for: text) ?? ""
             if textField.text != newText {
                 textField.text = newText
             }
@@ -117,13 +118,13 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
             self.maxLength = maxLength
         }
 
-        @objc fileprivate func textChanged(_ textField: UITextField) {
-            if let text = textField.text, let value = parent.numberFormatter.number(from: text)?.decimalValue {
-                parent.text = value
-            } else {
-                parent.text = 0
-            }
-        }
+//        @objc fileprivate func textChanged(_ textField: UITextField) {
+//            if let text = textField.text, let value = parent.numberFormatter.number(from: text)?.decimalValue {
+//                parent.text = value
+//            } else {
+//                parent.text = 0
+//            }
+//        }
 
         @objc fileprivate func clearText() {
             parent.text = 0
@@ -144,13 +145,33 @@ extension TextFieldWithToolBar.Coordinator: UITextFieldDelegate {
         shouldChangeCharactersIn range: NSRange,
         replacementString string: String
     ) -> Bool {
-        guard let maxLength = maxLength else {
-            return true
+        // Allow only numbers and decimal characters
+        let isNumber = CharacterSet.decimalDigits.isSuperset(of: CharacterSet(charactersIn: string))
+        let withDecimal = (
+            string == NumberFormatter().decimalSeparator &&
+                textField.text?.contains(string) == false
+        )
+
+        if isNumber || withDecimal,
+           let currentValue = textField.text as NSString?
+        {
+            // Update Value
+            let proposedValue = currentValue.replacingCharacters(in: range, with: string) as String
+
+            let decimalFormatter = NumberFormatter()
+            decimalFormatter.locale = Locale.current
+            decimalFormatter.numberStyle = .decimal
+
+            // Try currency formatter then Decimal formatrer
+            let number = parent.numberFormatter.number(from: proposedValue) ?? decimalFormatter
+                .number(from: proposedValue) ?? 0.0
+
+            // Set Value
+            let double = number.doubleValue
+            parent.text = Decimal(double)
         }
-        let currentString: NSString = (textField.text ?? "") as NSString
-        let newString: NSString =
-            currentString.replacingCharacters(in: range, with: string) as NSString
-        return newString.length <= maxLength
+
+        return isNumber || withDecimal
     }
 
     public func textFieldDidBeginEditing(_: UITextField) {
