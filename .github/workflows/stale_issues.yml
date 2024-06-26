@@ -8,7 +8,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       issues: write
-      pull-requests: write
     steps:
       - uses: actions/stale@v9.0.0
         with:
@@ -18,7 +17,27 @@ jobs:
           stale-issue-message: "hey 👋 - silence for 30 days 🤐 ... anybody? triage is required!"
           close-issue-message: "closed 📴 because silencio 🤫 since an additional 14 days after staleness 📠"
           close-issue-label: "not-planned"
-          exempt-issue-labels: "needs-triage, long-term"
+          exempt-issue-labels: "needs-triage, long-term, in-progress"
           days-before-pr-stale: -1
           days-before-pr-close: -1
           repo-token: ${{ secrets.STALE_ISSUES_PAT }}
+
+  close-issues-triage:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/stale@v9.0.0
+        with:
+          days-before-issue-stale: 30
+          days-before-issue-close: 30
+          stale-issue-label: "stale"
+          stale-issue-message: "hey 👋 - no triage is done for 30 days 🤐 ... anybody? triage is required!"
+          close-issue-message: "closed 📴 because silencio 🤫 since an additional 30 days after staleness 📠"
+          close-issue-label: "not-planned"
+          exempt-issue-labels: "long-term, in-progress"
+          any-of-labels: "needs-triage"
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+          repo-token: ${{ secrets.STALE_ISSUES_PAT }}
+
