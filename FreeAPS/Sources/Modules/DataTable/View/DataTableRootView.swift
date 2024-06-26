@@ -317,8 +317,8 @@ extension DataTable {
                     ) as NSNumber)!
                 } ?? "--")
                 if item.glucose.type == "Manual" {
-                        Image(systemName: "drop.fill")
-                            .foregroundColor(Color.loopRed)
+                    Image(systemName: "drop.fill")
+                        .foregroundColor(Color.loopRed)
                 } else {
                     Text(item.glucose.direction?.symbol ?? "--")
                 }
