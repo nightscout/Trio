@@ -528,7 +528,9 @@ extension MainChartView {
 
     private func calculateGlucoseDots(fullSize: CGSize) {
         calculationQueue.async {
-            let sgvs = glucose.filter { $0.type == "sgv" }
+            let sgvs = glucose
+                .filter { $0.type != "Manual"
+                } // as fingerpricks will be drawn differently, slightly larger and red - so do not draw them here
             let dots = sgvs.concurrentMap { value -> CGRect in
                 let position = glucoseToCoordinate(value, fullSize: fullSize)
                 return CGRect(x: position.x - 2, y: position.y - 2, width: 4, height: 4)
