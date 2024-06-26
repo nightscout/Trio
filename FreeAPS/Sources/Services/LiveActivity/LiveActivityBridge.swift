@@ -65,35 +65,44 @@ extension LiveActivityAttributes.ContentState {
             Self.formatGlucose(glucose - $0, mmol: mmol, forceSign: true)
         }) ?? ""
 
-        let chartBG = chart.map(\.glucose)
+        let detailedState: LiveActivityAttributes.ContentAdditionalState?
 
-        let conversionFactor: Double = settings.units == .mmolL ? 18.0 : 1.0
-        let convertedChartBG = chartBG.map { Double($0) / conversionFactor }
+        switch settings.lockScreenView {
+        case .detailed:
+            let chartBG = chart.map(\.glucose)
 
-        let chartDate = chart.map(\.date)
+            let conversionFactor: Double = settings.units == .mmolL ? 18.0 : 1.0
+            let convertedChartBG = chartBG.map { Double($0) / conversionFactor }
 
-        /// glucose limits from UI settings
-        let highGlucose = settings.high / Decimal(conversionFactor)
-        let lowGlucose = settings.low / Decimal(conversionFactor)
+            let chartDate = chart.map(\.date)
 
-        let cob = suggestion.cob ?? 0
-        let iob = suggestion.iob ?? 0
+            /// glucose limits from UI settings
+            let highGlucose = settings.high / Decimal(conversionFactor)
+            let lowGlucose = settings.low / Decimal(conversionFactor)
 
-        let lockScreenView = settings.lockScreenView.displayName
+            let cob = suggestion.cob ?? 0
+            let iob = suggestion.iob ?? 0
+
+            detailedState = LiveActivityAttributes.ContentAdditionalState(
+                chart: convertedChartBG,
+                chartDate: chartDate,
+                rotationDegrees: rotationDegrees,
+                highGlucose: Double(highGlucose),
+                lowGlucose: Double(lowGlucose),
+                cob: cob,
+                iob: iob
+            )
+        case .simple:
+            detailedState = nil
+        }
 
         self.init(
             bg: formattedBG,
             direction: trendString,
             change: change,
             date: bg.dateString,
-            chart: convertedChartBG,
-            chartDate: chartDate,
-            rotationDegrees: rotationDegrees,
-            highGlucose: Double(highGlucose),
-            lowGlucose: Double(lowGlucose),
-            cob: cob,
-            iob: iob,
-            lockScreenView: lockScreenView
+            detailedViewState: detailedState,
+            isInitialState: false
         )
     }
 }
@@ -216,28 +225,22 @@ extension LiveActivityAttributes.ContentState {
             do {
                 // always push a non-stale content as the first update
                 // pushing a stale content as the frst content results in the activity not being shown at all
-                // we want it shown though even if it is iniially stale, as we expect new BG readings to become available soon, which should then be displayed
-                let nonStale = ActivityContent(
+                // apparently this initial state is also what is shown after the live activity expires (after 8h)
+                let expired = ActivityContent(
                     state: LiveActivityAttributes.ContentState(
                         bg: "--",
                         direction: nil,
                         change: "--",
                         date: Date.now,
-                        chart: [],
-                        chartDate: [],
-                        rotationDegrees: 0,
-                        highGlucose: Double(180),
-                        lowGlucose: Double(70),
-                        cob: 0,
-                        iob: 0,
-                        lockScreenView: "Simple"
+                        detailedViewState: nil,
+                        isInitialState: true
                     ),
                     staleDate: Date.now.addingTimeInterval(60)
                 )
 
                 let activity = try Activity.request(
                     attributes: LiveActivityAttributes(startDate: Date.now),
-                    content: nonStale,
+                    content: expired,
                     pushType: nil
                 )
                 currentActivity = ActiveActivity(activity: activity, startDate: Date.now)
