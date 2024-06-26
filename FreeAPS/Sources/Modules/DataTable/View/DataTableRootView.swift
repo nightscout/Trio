@@ -316,7 +316,12 @@ extension DataTable {
                         state.units == .mmolL ? $0.asMmolL : Decimal($0)
                     ) as NSNumber)!
                 } ?? "--")
-                Text(item.glucose.direction?.symbol ?? "--")
+                if item.glucose.type == "Manual" {
+                    Image(systemName: "drop.fill")
+                        .foregroundColor(Color.loopRed)
+                } else {
+                    Text(item.glucose.direction?.symbol ?? "--")
+                }
                 Spacer()
 
                 Text(dateFormatter.string(from: item.glucose.dateString))
