@@ -42,13 +42,7 @@ extension AddCarbs {
                     HStack {
                         Text("Carbs").fontWeight(.semibold)
                         Spacer()
-                        DecimalTextField(
-                            "0",
-                            value: $state.carbs,
-                            formatter: formatter,
-                            autofocus: true,
-                            cleanInput: true
-                        )
+                        TextFieldWithToolBar(text: $state.carbs, placeholder: "0", shouldBecomeFirstResponder: true, numberFormatter: formatter)
                         Text(state.carbs > state.maxCarbs ? "⚠️" : "g").foregroundColor(.secondary)
                     }.padding(.vertical)
 
@@ -268,25 +262,13 @@ extension AddCarbs {
             HStack {
                 Text("Fat").foregroundColor(.orange) // .fontWeight(.thin)
                 Spacer()
-                DecimalTextField(
-                    "0",
-                    value: $state.fat,
-                    formatter: formatter,
-                    autofocus: false,
-                    cleanInput: true
-                )
+                TextFieldWithToolBar(text: $state.fat, placeholder: "0", numberFormatter: formatter)
                 Text(state.fat > state.maxFat ? "⚠️" : "g").foregroundColor(.secondary)
             }
             HStack {
                 Text("Protein").foregroundColor(.red) // .fontWeight(.thin)
                 Spacer()
-                DecimalTextField(
-                    "0",
-                    value: $state.protein,
-                    formatter: formatter,
-                    autofocus: false,
-                    cleanInput: true
-                )
+                TextFieldWithToolBar(text: $state.protein, placeholder: "0", numberFormatter: formatter)
                 Text(state.protein > state.maxProtein ? "⚠️" : "g").foregroundColor(.secondary)
             }
         }
