@@ -10,10 +10,11 @@ enum StateIntentError: Error {
 @available(iOS 16, *) struct StateResults: AppEntity {
     static var defaultQuery = StateBGQuery()
 
-    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Trio State Result"
+    static var typeDisplayRepresentation: TypeDisplayRepresentation =
+        .init(name: LocalizedStringResource("State Result", table: "ShortcutsDetail"))
 
     var displayRepresentation: DisplayRepresentation {
-        DisplayRepresentation(title: "\(glucose)")
+        DisplayRepresentation(title: LocalizedStringResource("\(glucose)", table: "ShortcutsDetail"))
     }
 
     var id: UUID
@@ -54,10 +55,6 @@ enum StateIntentError: Error {
 }
 
 @available(iOS 16.0, *) final class StateIntentRequest: BaseIntentsRequest {
-    @Injected() private var glucoseStorage: GlucoseStorage!
-    @Injected() private var carbsStorage: CarbsStorage!
-    @Injected() private var apsManager: APSManager!
-
     func getLastBG() throws -> (dateGlucose: Date, glucose: String, trend: String, delta: String) {
         let glucose = glucoseStorage.recent()
         guard let lastGlucose = glucose.last, let glucoseValue = lastGlucose.glucose else { throw StateIntentError.NoBG }
