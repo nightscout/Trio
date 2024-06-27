@@ -171,7 +171,7 @@ struct MainView: View {
                     }
                 case .isf:
                     Spacer()
-                    let isf: String = state.isf != nil ? "\(state.isf ?? 0)" : "-"
+                    let isf: String = state.isf != nil ? state.isf! : "-"
                     HStack {
                         Image(systemName: "arrow.up.arrow.down")
                             .renderingMode(.template)

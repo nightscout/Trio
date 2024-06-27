@@ -55,7 +55,7 @@ class WatchStateModel: NSObject, ObservableObject {
     @Published var lastUpdate: Date = .distantPast
     @Published var timerDate = Date()
     @Published var pendingBolus: Double?
-    @Published var isf: Decimal?
+    @Published var isf: String?
     @Published var override: String?
 
     private var lifetime = Set<AnyCancellable>()
@@ -176,7 +176,7 @@ class WatchStateModel: NSObject, ObservableObject {
         displayOnWatch = state.displayOnWatch ?? .BGTarget
         displayFatAndProteinOnWatch = state.displayFatAndProteinOnWatch ?? false
         confirmBolusFaster = state.confirmBolusFaster ?? false
-        isf = state.isf
+        isf = state.isf ?? ""
         override = state.override
     }
 }

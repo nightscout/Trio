@@ -23,7 +23,7 @@ struct WatchState: Codable {
     var displayOnWatch: AwConfig?
     var displayFatAndProteinOnWatch: Bool?
     var confirmBolusFaster: Bool?
-    var isf: Decimal?
+    var isf: String?
     var override: String?
 }
 

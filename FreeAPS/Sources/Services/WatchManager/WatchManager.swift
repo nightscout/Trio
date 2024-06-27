@@ -112,7 +112,8 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
             self.state.eventualBG = eBG.map { "⇢ " + $0 }
             self.state.eventualBGRaw = eBG
 
-            self.state.isf = self.suggestion?.isf
+            let isfString = self.isfString()
+            self.state.isf = isfString
 
             var overrideArray = [Override]()
             let requestOverrides = Override.fetchRequest() as NSFetchRequest<Override>
@@ -199,6 +200,16 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         return eventualFormatter.string(
             from: (units == .mmolL ? eventualBG.asMmolL : Decimal(eventualBG)) as NSNumber
         )!
+    }
+
+    private func isfString() -> String? {
+        guard let isfValue = suggestion?.isf else {
+            return nil
+        }
+        let units = settingsManager.settings.units
+        return glucoseFormatter.string(
+            from: units == .mmolL ? isfValue.asMmolL as NSNumber : isfValue as NSNumber
+        )
     }
 
     private var glucoseFormatter: NumberFormatter {
