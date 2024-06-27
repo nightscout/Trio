@@ -10,7 +10,7 @@ struct Preferences: JSON {
     var rewindResetsAutosens: Bool = true
     var highTemptargetRaisesSensitivity: Bool = false
     var lowTemptargetLowersSensitivity: Bool = false
-    var sensitivityRaisesTarget: Bool = true
+    var sensitivityRaisesTarget: Bool = false
     var resistanceLowersTarget: Bool = false
     var advTargetAdjustments: Bool = false
     var exerciseMode: Bool = false
@@ -42,7 +42,8 @@ struct Preferences: JSON {
     var suspendZerosIOB: Bool = false
     var timestamp: Date?
     var maxDeltaBGthreshold: Decimal = 0.2
-    var adjustmentFactor: Decimal = 0.5
+    var adjustmentFactor: Decimal = 0.8
+    var adjustmentFactorSigmoid: Decimal = 0.5
     var sigmoid: Bool = false
     var enableDynamicCR: Bool = false
     var useNewFormula: Bool = false
@@ -67,7 +68,7 @@ extension Preferences {
         case highTemptargetRaisesSensitivity = "high_temptarget_raises_sensitivity"
         case lowTemptargetLowersSensitivity = "low_temptarget_lowers_sensitivity"
         case sensitivityRaisesTarget = "sensitivity_raises_target"
-        case resistanceLowersTarget
+        case resistanceLowersTarget = "resistance_lowers_target"
         case advTargetAdjustments = "adv_target_adjustments"
         case exerciseMode = "exercise_mode"
         case halfBasalExerciseTarget = "half_basal_exercise_target"
@@ -98,6 +99,7 @@ extension Preferences {
         case suspendZerosIOB = "suspend_zeros_iob"
         case maxDeltaBGthreshold = "maxDelta_bg_threshold"
         case adjustmentFactor
+        case adjustmentFactorSigmoid
         case sigmoid
         case enableDynamicCR
         case useNewFormula

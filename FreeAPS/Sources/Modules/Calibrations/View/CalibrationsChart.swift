@@ -29,7 +29,7 @@ struct CalibrationsChart: View {
                     path.addLine(
                         to: CGPoint(
                             x: size,
-                            y: size - state.calibrate(maxValue) / maxValue * geo.size.width
+                            y: size - state.calibrate(Int(maxValue)) / maxValue * geo.size.width
                         )
                     )
                 }

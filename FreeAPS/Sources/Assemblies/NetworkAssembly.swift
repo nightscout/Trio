@@ -8,5 +8,6 @@ final class NetworkAssembly: Assembly {
         }
 
         container.register(NightscoutManager.self) { r in BaseNightscoutManager(resolver: r) }
+        container.register(TidepoolManager.self) { r in BaseTidepoolManager(resolver: r) }
     }
 }

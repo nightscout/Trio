@@ -1,9 +1,0 @@
-/* The title of the cancel action in an action sheet */
-"Cancel" = "निरस्त";
-
-/* Text for continue button */
-"Continue" = "जारी";
-
-/* The title of the cell showing device name */
-"Name" = "नाम";
-

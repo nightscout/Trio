@@ -1,9 +1,0 @@
-/* Title displayed during backfill response */
-"Backfill" = "Backfill";
-
-/* Title displayed during error response */
-"Error" = "Fejl";
-
-/* Title displayed during unknown data response */
-"Unknown Data" = "Ukendte data";
-

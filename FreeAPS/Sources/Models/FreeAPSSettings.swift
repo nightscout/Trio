@@ -6,13 +6,15 @@ struct FreeAPSSettings: JSON, Equatable {
     var allowAnnouncements: Bool = false
     var useAutotune: Bool = false
     var isUploadEnabled: Bool = false
+    var isDownloadEnabled: Bool = false
     var useLocalGlucoseSource: Bool = false
     var localGlucosePort: Int = 8080
     var debugOptions: Bool = false
     var insulinReqPercentage: Decimal = 70
     var skipBolusScreenAfterCarbs: Bool = false
     var displayHR: Bool = false
-    var cgm: CGMType = .nightscout
+    var cgm: CGMType = .none
+    var cgmPluginIdentifier: String = ""
     var uploadGlucose: Bool = true
     var useCalendar: Bool = false
     var glucoseBadge: Bool = false
@@ -32,17 +34,21 @@ struct FreeAPSSettings: JSON, Equatable {
     var smoothGlucose: Bool = false
     var displayOnWatch: AwConfig = .BGTarget
     var overrideHbA1cUnit: Bool = false
-    var high: Decimal = 145
+    var high: Decimal = 180
     var low: Decimal = 70
-    var uploadStats: Bool = true
     var hours: Int = 6
     var xGridLines: Bool = true
     var yGridLines: Bool = true
     var oneDimensionalGraph: Bool = false
-    var rulerMarks: Bool = false
-    var maxCarbs: Decimal = 1000
+    var rulerMarks: Bool = true
+    var maxCarbs: Decimal = 250
+    var maxFat: Decimal = 250
+    var maxProtein: Decimal = 250
     var displayFatAndProteinOnWatch: Bool = false
+    var confirmBolusFaster: Bool = false
     var onlyAutotuneBasals: Bool = false
+    var useLiveActivity: Bool = false
+    var lockScreenView: LockScreenView = .simple
 }
 
 extension FreeAPSSettings: Decodable {
@@ -69,6 +75,10 @@ extension FreeAPSSettings: Decodable {
 
         if let isUploadEnabled = try? container.decode(Bool.self, forKey: .isUploadEnabled) {
             settings.isUploadEnabled = isUploadEnabled
+        }
+
+        if let isDownloadEnabled = try? container.decode(Bool.self, forKey: .isDownloadEnabled) {
+            settings.isDownloadEnabled = isDownloadEnabled
         }
 
         if let useLocalGlucoseSource = try? container.decode(Bool.self, forKey: .useLocalGlucoseSource) {
@@ -103,6 +113,10 @@ extension FreeAPSSettings: Decodable {
 
         if let cgm = try? container.decode(CGMType.self, forKey: .cgm) {
             settings.cgm = cgm
+        }
+
+        if let cgmPluginIdentifier = try? container.decode(String.self, forKey: .cgmPluginIdentifier) {
+            settings.cgmPluginIdentifier = cgmPluginIdentifier
         }
 
         if let uploadGlucose = try? container.decode(Bool.self, forKey: .uploadGlucose) {
@@ -184,10 +198,6 @@ extension FreeAPSSettings: Decodable {
             settings.high = high
         }
 
-        if let uploadStats = try? container.decode(Bool.self, forKey: .uploadStats) {
-            settings.uploadStats = uploadStats
-        }
-
         if let hours = try? container.decode(Int.self, forKey: .hours) {
             settings.hours = hours
         }
@@ -216,12 +226,31 @@ extension FreeAPSSettings: Decodable {
             settings.maxCarbs = maxCarbs
         }
 
+        if let maxFat = try? container.decode(Decimal.self, forKey: .maxFat) {
+            settings.maxFat = maxFat
+        }
+
+        if let maxProtein = try? container.decode(Decimal.self, forKey: .maxProtein) {
+            settings.maxProtein = maxProtein
+        }
+
         if let displayFatAndProteinOnWatch = try? container.decode(Bool.self, forKey: .displayFatAndProteinOnWatch) {
             settings.displayFatAndProteinOnWatch = displayFatAndProteinOnWatch
         }
 
+        if let confirmBolusFaster = try? container.decode(Bool.self, forKey: .confirmBolusFaster) {
+            settings.confirmBolusFaster = confirmBolusFaster
+        }
+
         if let onlyAutotuneBasals = try? container.decode(Bool.self, forKey: .onlyAutotuneBasals) {
             settings.onlyAutotuneBasals = onlyAutotuneBasals
+        }
+
+        if let useLiveActivity = try? container.decode(Bool.self, forKey: .useLiveActivity) {
+            settings.useLiveActivity = useLiveActivity
+        }
+        if let lockScreenView = try? container.decode(LockScreenView.self, forKey: .lockScreenView) {
+            settings.lockScreenView = lockScreenView
         }
 
         self = settings

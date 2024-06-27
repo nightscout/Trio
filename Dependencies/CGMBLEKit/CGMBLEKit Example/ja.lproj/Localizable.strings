@@ -1,9 +1,0 @@
-/* Title displayed during backfill response */
-"Backfill" = "埋め戻し";
-
-/* Title displayed during error response */
-"Error" = "エラー";
-
-/* Title displayed during unknown data response */
-"Unknown Data" = "不明なデータ";
-

@@ -10,7 +10,7 @@ extension Calibrations {
         @Published var intercept: Double = 1
         @Published var newCalibration: Decimal = 0
         @Published var calibrations: [Calibration] = []
-        @Published var calibrate: (Double) -> Double = { $0 }
+        @Published var calibrate: (Int) -> Double = { Double($0) }
         @Published var items: [Item] = []
 
         var units: GlucoseUnits = .mmolL

@@ -9,7 +9,6 @@ extension AddTempTarget {
         let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
 
         @Published var low: Decimal = 0
-        // @Published var target: Decimal = 0
         @Published var high: Decimal = 0
         @Published var duration: Decimal = 0
         @Published var date = Date()
@@ -93,6 +92,14 @@ extension AddTempTarget {
             }
         }
 
+        private func convertAndRound(_ value: Decimal) -> Decimal {
+            if units == .mmolL {
+                return Decimal(round(Double(value.asMgdL)))
+            } else {
+                return Decimal(round(Double(value)))
+            }
+        }
+
         func save() {
             guard duration > 0 else {
                 return
@@ -158,7 +165,6 @@ extension AddTempTarget {
                         saveToCoreData.active = true
                         saveToCoreData.date = Date()
                         saveToCoreData.hbt = whichID?.hbt ?? 160
-                        // saveToCoreData.id = id
                         saveToCoreData.startDate = Date()
                         saveToCoreData.duration = whichID?.duration ?? 0
 
@@ -188,6 +194,47 @@ extension AddTempTarget {
                 target = (c / ratio) - c + 100
             }
             return Decimal(Double(target))
+        }
+
+        func computePercentage(target: Decimal) -> Decimal {
+            let c = Decimal(hbt - 100)
+            var ratio = c / (c + target - 100)
+
+            if ratio > maxValue {
+                ratio = maxValue
+            }
+
+            let adjustedPercentage = ratio * 100
+            let roundedPercentage = (adjustedPercentage as NSDecimalNumber).rounding(accordingToBehavior: nil)
+            return roundedPercentage as Decimal
+        }
+
+        func updatePreset(_ preset: TempTarget) {
+            var lowTarget = low
+
+            if viewPercantage {
+                lowTarget = Decimal(round(Double(computeTarget())))
+            }
+
+            if units == .mmolL, !viewPercantage {
+                lowTarget = Decimal(round(Double(lowTarget.asMgdL)))
+            }
+
+            let updatedPreset = TempTarget(
+                id: preset.id,
+                name: newPresetName.isEmpty ? preset.name : newPresetName,
+                createdAt: preset.createdAt,
+                targetTop: lowTarget,
+                targetBottom: lowTarget,
+                duration: duration,
+                enteredBy: preset.enteredBy,
+                reason: newPresetName.isEmpty ? preset.reason : newPresetName
+            )
+
+            if let index = presets.firstIndex(where: { $0.id == preset.id }) {
+                presets[index] = updatedPreset
+                storage.storePresets(presets)
+            }
         }
     }
 }

@@ -20,5 +20,11 @@ final class ServiceAssembly: Assembly {
         container.register(UserNotificationsManager.self) { r in BaseUserNotificationsManager(resolver: r) }
         container.register(WatchManager.self) { r in BaseWatchManager(resolver: r) }
         container.register(GarminManager.self) { r in BaseGarminManager(resolver: r) }
+
+        if #available(iOS 16.2, *) {
+            container.register(LiveActivityBridge.self) { r in
+                LiveActivityBridge(resolver: r)
+            }
+        }
     }
 }

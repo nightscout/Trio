@@ -20,9 +20,30 @@ extension FPUConfig {
             return formatter
         }
 
+        private var formatter: NumberFormatter {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            return formatter
+        }
+
         var body: some View {
             Form {
-                Section(header: Text("Conversion settings")) {
+                Section(header: Text("Limit Per Entry")) {
+                    HStack {
+                        Text("Max Carbs")
+                        DecimalTextField("g", value: $state.maxCarbs, formatter: formatter)
+                    }
+                    HStack {
+                        Text("Max Fat")
+                        DecimalTextField("g", value: $state.maxFat, formatter: formatter)
+                    }
+                    HStack {
+                        Text("Max Protein")
+                        DecimalTextField("g", value: $state.maxProtein, formatter: formatter)
+                    }
+                }
+
+                Section(header: Text("Fat and Protein Conversion Settings")) {
                     HStack {
                         Text("Delay In Minutes")
                         Spacer()
@@ -53,7 +74,7 @@ extension FPUConfig {
                     {}
             }
             .onAppear(perform: configureView)
-            .navigationBarTitle("Fat and Protein")
+            .navigationBarTitle("Meal Settings")
             .navigationBarTitleDisplayMode(.automatic)
         }
     }

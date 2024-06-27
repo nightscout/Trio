@@ -1,0 +1,35 @@
+[
+{
+    "pancreabble": {
+      "path": ".",
+      "module": "pancreabble"
+    },
+    "type": "vendor",
+    "name": "pancreabble"
+  },
+  {
+    "type": "device",
+    "pbbl": {
+      "vendor": "pancreabble",
+      "extra": "pbbl.ini"
+    },
+    "name": "pbbl",
+    "extra": {
+      "port": "/dev/rfcomm0"
+    }    
+    },
+  {
+    "type": "report",
+    "name": "upload/urchin-data.json",
+    "upload/urchin-data.json": {
+      "use": "format_urchin_data",
+      "reporter": "JSON",
+      "cgm_clock": "monitor/clock-zoned.json",
+      "action": "add",
+      "device": "pbbl",
+      "glucose_history": "monitor/glucose.json",
+      "status_text": "",
+      "status_json": "upload/urchin-status.json"
+    }
+  }
+]

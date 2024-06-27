@@ -3,13 +3,13 @@ import SwiftUI
 extension StatConfig {
     final class StateModel: BaseStateModel<Provider> {
         @Published var overrideHbA1cUnit = false
-        @Published var low: Decimal = 4 / 0.0555
-        @Published var high: Decimal = 10 / 0.0555
+        @Published var low: Decimal = 70
+        @Published var high: Decimal = 180
         @Published var hours: Decimal = 6
         @Published var xGridLines = false
         @Published var yGridLines: Bool = false
         @Published var oneDimensionalGraph = false
-        @Published var rulerMarks: Bool = false
+        @Published var rulerMarks: Bool = true
 
         var units: GlucoseUnits = .mmolL
 

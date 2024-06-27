@@ -72,42 +72,34 @@ extension Bolus {
                                 autofocus: true,
                                 cleanInput: true
                             )
-                            Text("U").foregroundColor(.secondary)
+                            Text(state.amount > state.maxBolus ? "⚠️" : "U").foregroundColor(.secondary)
                         }
                     }
                     header: { Text("Bolus") }
                     Section {
                         Button { state.add() }
-                        label: { Text("Enact bolus") }
-                            .disabled(state.amount <= 0)
+                        label: {
+                            Text(
+                                state.amount <= state.maxBolus ? NSLocalizedString("Enact bolus", comment: "") :
+                                    NSLocalizedString("Max Bolus of", comment: "")
+                                    + " "
+                                    + formatter.string(from: state.maxBolus as NSNumber)!
+                                    + NSLocalizedString("U", comment: "Insulin unit")
+                                    + " "
+                                    + NSLocalizedString("exceeded", comment: "")
+                            ).font(.title3) }
+                            .disabled(state.amount <= 0 || state.amount > state.maxBolus)
+                            .foregroundStyle(
+                                state.amount <= 0 ? .gray :
+                                    state.amount > state.maxBolus ? .red : .blue
+                            )
+                            .frame(maxWidth: .infinity, alignment: .center)
                     }
-                    Section {
-                        if waitForSuggestion {
+                    if waitForSuggestion {
+                        Section {
                             Button { state.showModal(for: nil) }
                             label: { Text("Continue without bolus") }
-                        } else {
-                            Button { isAddInsulinAlertPresented = true }
-                            label: { Text("Add insulin without actually bolusing") }
-                                .disabled(state.amount <= 0)
-                        }
-                    }
-                    .alert(isPresented: $isAddInsulinAlertPresented) {
-                        Alert(
-                            title: Text("Are you sure?"),
-                            message: Text(
-                                NSLocalizedString("Add", comment: "Add insulin without bolusing alert") + " " + formatter
-                                    .string(from: state.amount as NSNumber)! + NSLocalizedString(" U", comment: "Insulin unit") +
-                                    NSLocalizedString(" without bolusing", comment: "Add insulin without bolusing alert")
-                            ),
-                            primaryButton: .destructive(
-                                Text("Add"),
-                                action: {
-                                    state.addWithoutBolus()
-                                    isAddInsulinAlertPresented = false
-                                }
-                            ),
-                            secondaryButton: .cancel()
-                        )
+                        }.frame(maxWidth: .infinity, alignment: .center)
                     }
                 }
             }

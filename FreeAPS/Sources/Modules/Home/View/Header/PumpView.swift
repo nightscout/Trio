@@ -6,6 +6,7 @@ struct PumpView: View {
     @Binding var name: String
     @Binding var expiresAtDate: Date?
     @Binding var timerDate: Date
+    @Binding var pumpStatusHighlightMessage: String?
 
     private var reservoirFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -21,48 +22,67 @@ struct PumpView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            if let reservoir = reservoir {
-                HStack {
-                    Image(systemName: "drop.fill")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(maxHeight: 10)
-                        .foregroundColor(reservoirColor)
-                    if reservoir == 0xDEAD_BEEF {
-                        Text("50+ " + NSLocalizedString("U", comment: "Insulin unit")).font(.footnote)
-                            .fontWeight(.bold)
-                    } else {
-                        Text(
-                            reservoirFormatter
-                                .string(from: reservoir as NSNumber)! + NSLocalizedString(" U", comment: "Insulin unit")
-                        )
-                        .font(.footnote).fontWeight(.bold)
-                    }
-                }.frame(alignment: .top)
-            }
-            if let battery = battery, battery.display ?? false, expiresAtDate == nil {
-                HStack {
-                    Image(systemName: "battery.100")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(maxHeight: 10)
-                        .foregroundColor(batteryColor)
-                    Text("\(Int(battery.percent ?? 100)) %").font(.footnote)
-                        .fontWeight(.bold)
-                }.frame(alignment: .bottom)
-            }
+        if let pumpStatusHighlightMessage = pumpStatusHighlightMessage { // display message instead pump info
+            VStack(alignment: .center) {
+                Text(pumpStatusHighlightMessage).font(.footnote).fontWeight(.bold)
+                    .multilineTextAlignment(.center).frame(maxWidth: /*@START_MENU_TOKEN@*/ .infinity/*@END_MENU_TOKEN@*/)
+            }.frame(width: 100)
+        } else {
+            VStack(alignment: .leading, spacing: 12) {
+                if reservoir == nil && battery == nil {
+                    VStack(alignment: .center, spacing: 12) {
+                        HStack { // no cgm defined so display a generic CGM
+                            Image(systemName: "keyboard.onehanded.left").font(.body).imageScale(.large)
+                        }
+                        HStack {
+                            Text("Add pump").font(.caption).bold()
+                        }
+                    }.frame(alignment: .top)
+                }
 
-            if let date = expiresAtDate {
-                HStack {
-                    Image(systemName: "stopwatch.fill")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(maxHeight: 10)
-                        .foregroundColor(timerColor)
-                    Text(remainingTimeString(time: date.timeIntervalSince(timerDate))).font(.footnote)
-                        .fontWeight(.bold)
-                }.frame(alignment: .bottom)
+                if let reservoir = reservoir {
+                    HStack {
+                        Image(systemName: "drop.fill")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxHeight: 10)
+                            .foregroundColor(reservoirColor)
+                        if reservoir == 0xDEAD_BEEF {
+                            Text("50+ " + NSLocalizedString("U", comment: "Insulin unit")).font(.footnote)
+                                .fontWeight(.bold)
+                        } else {
+                            Text(
+                                reservoirFormatter
+                                    .string(from: reservoir as NSNumber)! +
+                                    NSLocalizedString(" U", comment: "Insulin unit")
+                            )
+                            .font(.footnote).fontWeight(.bold)
+                        }
+                    }.frame(alignment: .top)
+                }
+                if let battery = battery, battery.display ?? false, expiresAtDate == nil {
+                    HStack {
+                        Image(systemName: "battery.100")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxHeight: 10)
+                            .foregroundColor(batteryColor)
+                        Text("\(Int(battery.percent ?? 100)) %").font(.footnote)
+                            .fontWeight(.bold)
+                    }.frame(alignment: .bottom)
+                }
+
+                if let date = expiresAtDate {
+                    HStack {
+                        Image(systemName: "stopwatch.fill")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxHeight: 10)
+                            .foregroundColor(timerColor)
+                        Text(remainingTimeString(time: date.timeIntervalSince(timerDate))).font(.footnote)
+                            .fontWeight(.bold)
+                    }.frame(alignment: .bottom)
+                }
             }
         }
     }
@@ -137,4 +157,48 @@ struct PumpView: View {
             return .loopGreen
         }
     }
+}
+
+#Preview("message") {
+    PumpView(
+        reservoir: .constant(Decimal(10.0)),
+        battery: .constant(nil),
+        name: .constant("Pump test"),
+        expiresAtDate: .constant(Date().addingTimeInterval(24.hours)),
+        timerDate: .constant(Date()),
+        pumpStatusHighlightMessage: .constant("⚠️\n Insulin suspended")
+    )
+}
+
+#Preview("pump reservoir") {
+    PumpView(
+        reservoir: .constant(Decimal(40.0)),
+        battery: .constant(Battery(percent: 50, voltage: 2.0, string: BatteryState.normal, display: true)),
+        name: .constant("Pump test"),
+        expiresAtDate: .constant(nil),
+        timerDate: .constant(Date().addingTimeInterval(-24.hours)),
+        pumpStatusHighlightMessage: .constant(nil)
+    )
+}
+
+#Preview("pump expiration") {
+    PumpView(
+        reservoir: .constant(Decimal(10.0)),
+        battery: .constant(Battery(percent: 50, voltage: 2.0, string: BatteryState.normal, display: false)),
+        name: .constant("Pump test"),
+        expiresAtDate: .constant(Date().addingTimeInterval(2.hours)),
+        timerDate: .constant(Date().addingTimeInterval(2.hours)),
+        pumpStatusHighlightMessage: .constant(nil)
+    )
+}
+
+#Preview("no pump") {
+    PumpView(
+        reservoir: .constant(nil),
+        battery: .constant(nil),
+        name: .constant(""),
+        expiresAtDate: .constant(nil),
+        timerDate: .constant(Date()),
+        pumpStatusHighlightMessage: .constant(nil)
+    )
 }

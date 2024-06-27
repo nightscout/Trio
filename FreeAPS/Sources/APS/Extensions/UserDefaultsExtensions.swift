@@ -5,17 +5,10 @@ import RileyLinkKit
 
 extension UserDefaults {
     private enum Key: String {
-        case pumpManagerRawValue = "com.rileylink.PumpManagerRawValue"
+        case legacyPumpManagerRawValue = "com.rileylink.PumpManagerRawValue"
         case rileyLinkConnectionManagerState = "com.rileylink.RileyLinkConnectionManagerState"
-    }
-
-    var pumpManagerRawValue: PumpManager.RawStateValue? {
-        get {
-            dictionary(forKey: Key.pumpManagerRawValue.rawValue)
-        }
-        set {
-            set(newValue, forKey: Key.pumpManagerRawValue.rawValue)
-        }
+        case legacyPumpManagerState = "com.loopkit.Loop.PumpManagerState"
+        case legacyCGMManagerState = "com.loopkit.Loop.CGMManagerState"
     }
 
     var rileyLinkConnectionManagerState: RileyLinkConnectionState? {
@@ -29,5 +22,21 @@ extension UserDefaults {
         set {
             set(newValue?.rawValue, forKey: Key.rileyLinkConnectionManagerState.rawValue)
         }
+    }
+
+    var legacyPumpManagerRawValue: PumpManager.RawValue? {
+        dictionary(forKey: Key.legacyPumpManagerRawValue.rawValue)
+    }
+
+    func clearLegacyPumpManagerRawValue() {
+        set(nil, forKey: Key.legacyPumpManagerRawValue.rawValue)
+    }
+
+    var legacyCGMManagerRawValue: CGMManager.RawValue? {
+        dictionary(forKey: Key.legacyCGMManagerState.rawValue)
+    }
+
+    func clearLegacyCGMManagerRawValue() {
+        set(nil, forKey: Key.legacyCGMManagerState.rawValue)
     }
 }

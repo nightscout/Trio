@@ -1,0 +1,40 @@
+[submodule "LoopKit"]
+	path = LoopKit
+	url = https://github.com/loopandlearn/LoopKit.git
+	branch = trio
+[submodule "CGMBLEKit"]
+	path = CGMBLEKit
+	url = https://github.com/loopandlearn/CGMBLEKit.git
+	branch = trio
+[submodule "dexcom-share-client-swift"]
+	path = dexcom-share-client-swift
+	url = https://github.com/loopandlearn/dexcom-share-client-swift.git
+	branch = trio
+[submodule "RileyLinkKit"]
+	path = RileyLinkKit
+	url = https://github.com/loopandlearn/RileyLinkKit
+	branch = trio
+[submodule "OmniBLE"]
+	path = OmniBLE
+	url = https://github.com/loopandlearn/OmniBLE.git
+	branch = trio
+[submodule "G7SensorKit"]
+	path = G7SensorKit
+	url = https://github.com/loopandlearn/G7SensorKit.git
+	branch = trio
+[submodule "OmniKit"]
+	path = OmniKit
+	url = https://github.com/loopandlearn/OmniKit.git
+	branch = trio
+[submodule "MinimedKit"]
+	path = MinimedKit
+	url = https://github.com/loopandlearn/MinimedKit.git
+	branch = trio
+[submodule "LibreTransmitter"]
+	path = LibreTransmitter
+	url = https://github.com/loopandlearn/LibreTransmitter.git
+	branch = trio
+[submodule "TidepoolService"]
+	path = TidepoolService
+	url = https://github.com/loopandlearn/TidepoolService.git
+	branch = trio

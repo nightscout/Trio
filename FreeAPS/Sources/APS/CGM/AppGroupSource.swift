@@ -1,7 +1,28 @@
 import Combine
 import Foundation
-import LibreTransmitter
+import LoopKit
 import LoopKitUI
+
+public extension GlucoseTrend {
+    var direction: String {
+        switch self {
+        case .upUpUp:
+            return "DoubleUp"
+        case .upUp:
+            return "SingleUp"
+        case .up:
+            return "FortyFiveUp"
+        case .flat:
+            return "Flat"
+        case .down:
+            return "FortyFiveDown"
+        case .downDown:
+            return "SingleDown"
+        case .downDownDown:
+            return "DoubleDown"
+        }
+    }
+}
 
 struct AppGroupSource: GlucoseSource {
     var cgmManager: CGMManagerUI?

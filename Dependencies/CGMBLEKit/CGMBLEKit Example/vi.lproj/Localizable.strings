@@ -1,9 +1,0 @@
-/* Title displayed during backfill response */
-"Backfill" = "Lấp đầy";
-
-/* Title displayed during error response */
-"Error" = "Lỗi";
-
-/* Title displayed during unknown data response */
-"Unknown Data" = "Không nhận biết dữ liệu";
-

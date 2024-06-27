@@ -1,6 +1,15 @@
 import Foundation
 
-struct NigtscoutTreatment: JSON, Hashable, Equatable {
+func determineBolusEventType(for event: PumpHistoryEvent) -> EventType {
+    if event.isExternalInsulin ?? false {
+        return .nsExternalInsulin
+    } else if event.isSMB ?? false {
+        return .smb
+    }
+    return event.type
+}
+
+struct NightscoutTreatment: JSON, Hashable, Equatable {
     var duration: Int?
     var rawDuration: PumpHistoryEvent?
     var rawRate: PumpHistoryEvent?
@@ -19,11 +28,11 @@ struct NigtscoutTreatment: JSON, Hashable, Equatable {
     let targetTop: Decimal?
     let targetBottom: Decimal?
 
-    static let local = "freeaps-x"
+    static let local = "Trio"
 
-    static let empty = NigtscoutTreatment(from: "{}")!
+    static let empty = NightscoutTreatment(from: "{}")!
 
-    static func == (lhs: NigtscoutTreatment, rhs: NigtscoutTreatment) -> Bool {
+    static func == (lhs: NightscoutTreatment, rhs: NightscoutTreatment) -> Bool {
         (lhs.createdAt ?? Date()) == (rhs.createdAt ?? Date())
     }
 
@@ -32,7 +41,7 @@ struct NigtscoutTreatment: JSON, Hashable, Equatable {
     }
 }
 
-extension NigtscoutTreatment {
+extension NightscoutTreatment {
     private enum CodingKeys: String, CodingKey {
         case duration
         case rawDuration = "raw_duration"
