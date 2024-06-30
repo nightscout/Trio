@@ -29,7 +29,7 @@ extension PreferencesEditor {
                     }
                     HStack {
                         Text("Recommended Bolus Percentage")
-                        DecimalTextField("", value: $state.insulinReqPercentage, formatter: formatter)
+                        TextFieldWithToolBar(text: $state.insulinReqPercentage, placeholder: "", numberFormatter: formatter)
                     }
 
                     Toggle("Skip Bolus screen after carbs", isOn: $state.skipBolusScreenAfterCarbs)
@@ -62,10 +62,10 @@ extension PreferencesEditor {
                                         })
                                         Text(field.displayName)
                                     }
-                                    DecimalTextField(
-                                        "0",
-                                        value: self.$state.sections[sectionIndex].fields[fieldIndex].decimalValue,
-                                        formatter: formatter
+                                    TextFieldWithToolBar(
+                                        text: self.$state.sections[sectionIndex].fields[fieldIndex].decimalValue,
+                                        placeholder: "0",
+                                        numberFormatter: formatter
                                     )
                                 case .insulinCurve:
                                     Picker(

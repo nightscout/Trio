@@ -31,15 +31,15 @@ extension FPUConfig {
                 Section(header: Text("Limit Per Entry")) {
                     HStack {
                         Text("Max Carbs")
-                        DecimalTextField("g", value: $state.maxCarbs, formatter: formatter)
+                        TextFieldWithToolBar(text: $state.maxCarbs, placeholder: "g", numberFormatter: formatter)
                     }
                     HStack {
                         Text("Max Fat")
-                        DecimalTextField("g", value: $state.maxFat, formatter: formatter)
+                        TextFieldWithToolBar(text: $state.maxFat, placeholder: "g", numberFormatter: formatter)
                     }
                     HStack {
                         Text("Max Protein")
-                        DecimalTextField("g", value: $state.maxProtein, formatter: formatter)
+                        TextFieldWithToolBar(text: $state.maxProtein, placeholder: "g", numberFormatter: formatter)
                     }
                 }
 
@@ -47,22 +47,26 @@ extension FPUConfig {
                     HStack {
                         Text("Delay In Minutes")
                         Spacer()
-                        DecimalTextField("60", value: $state.delay, formatter: intFormater)
+                        TextFieldWithToolBar(text: $state.delay, placeholder: "60", numberFormatter: intFormater)
                     }
                     HStack {
                         Text("Maximum Duration In Hours")
                         Spacer()
-                        DecimalTextField("8", value: $state.timeCap, formatter: intFormater)
+                        TextFieldWithToolBar(text: $state.timeCap, placeholder: "8", numberFormatter: intFormater)
                     }
                     HStack {
                         Text("Interval In Minutes")
                         Spacer()
-                        DecimalTextField("30", value: $state.minuteInterval, formatter: intFormater)
+                        TextFieldWithToolBar(text: $state.minuteInterval, placeholder: "30", numberFormatter: intFormater)
                     }
                     HStack {
                         Text("Override With A Factor Of ")
                         Spacer()
-                        DecimalTextField("0.5", value: $state.individualAdjustmentFactor, formatter: conversionFormatter)
+                        TextFieldWithToolBar(
+                            text: $state.individualAdjustmentFactor,
+                            placeholder: "0.5",
+                            numberFormatter: conversionFormatter
+                        )
                     }
                 }
 

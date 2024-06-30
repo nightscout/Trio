@@ -36,21 +36,21 @@ extension StatConfig {
                     HStack {
                         Text("Hours X-Axis (6 default)")
                         Spacer()
-                        DecimalTextField("6", value: $state.hours, formatter: carbsFormatter)
+                        TextFieldWithToolBar(text: $state.hours, placeholder: "6", numberFormatter: carbsFormatter)
                         Text("hours").foregroundColor(.secondary)
                     }
 
                     HStack {
                         Text("Low")
                         Spacer()
-                        DecimalTextField("0", value: $state.low, formatter: glucoseFormatter)
+                        TextFieldWithToolBar(text: $state.low, placeholder: "0", numberFormatter: glucoseFormatter)
                         Text(state.units.rawValue).foregroundColor(.secondary)
                     }
 
                     HStack {
                         Text("High")
                         Spacer()
-                        DecimalTextField("0", value: $state.high, formatter: glucoseFormatter)
+                        TextFieldWithToolBar(text: $state.high, placeholder: "0", numberFormatter: glucoseFormatter)
                         Text(state.units.rawValue).foregroundColor(.secondary)
                     }
                 }

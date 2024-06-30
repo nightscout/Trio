@@ -42,12 +42,11 @@ extension AddCarbs {
                     HStack {
                         Text("Carbs").fontWeight(.semibold)
                         Spacer()
-                        DecimalTextField(
-                            "0",
-                            value: $state.carbs,
-                            formatter: formatter,
-                            autofocus: true,
-                            cleanInput: true
+                        TextFieldWithToolBar(
+                            text: $state.carbs,
+                            placeholder: "0",
+                            shouldBecomeFirstResponder: true,
+                            numberFormatter: formatter
                         )
                         Text(state.carbs > state.maxCarbs ? "⚠️" : "g").foregroundColor(.secondary)
                     }.padding(.vertical)
@@ -55,14 +54,22 @@ extension AddCarbs {
                     if state.useFPUconversion {
                         proteinAndFat()
                     }
-                    HStack {
-                        Text("Note").foregroundColor(.secondary)
-                        TextField("", text: $state.note).multilineTextAlignment(.trailing)
-                        if isFocused {
-                            Button { isFocused = false } label: { Image(systemName: "keyboard.chevron.compact.down") }
-                                .controlSize(.mini)
+                    VStack {
+                        HStack {
+                            Text("Note").foregroundColor(.secondary)
+                            TextFieldWithToolBarString(text: $state.note, placeholder: "", maxLength: 25)
+                            if isFocused {
+                                Button { isFocused = false } label: { Image(systemName: "keyboard.chevron.compact.down") }
+                                    .controlSize(.mini)
+                            }
+                        }.focused($isFocused)
+
+                        HStack {
+                            Spacer()
+                            Text("\(state.note.count) / 25")
+                                .foregroundStyle(.secondary)
                         }
-                    }.focused($isFocused)
+                    }
                     HStack {
                         Button {
                             state.useFPUconversion.toggle()
@@ -268,25 +275,13 @@ extension AddCarbs {
             HStack {
                 Text("Fat").foregroundColor(.orange) // .fontWeight(.thin)
                 Spacer()
-                DecimalTextField(
-                    "0",
-                    value: $state.fat,
-                    formatter: formatter,
-                    autofocus: false,
-                    cleanInput: true
-                )
+                TextFieldWithToolBar(text: $state.fat, placeholder: "0", numberFormatter: formatter)
                 Text(state.fat > state.maxFat ? "⚠️" : "g").foregroundColor(.secondary)
             }
             HStack {
                 Text("Protein").foregroundColor(.red) // .fontWeight(.thin)
                 Spacer()
-                DecimalTextField(
-                    "0",
-                    value: $state.protein,
-                    formatter: formatter,
-                    autofocus: false,
-                    cleanInput: true
-                )
+                TextFieldWithToolBar(text: $state.protein, placeholder: "0", numberFormatter: formatter)
                 Text(state.protein > state.maxProtein ? "⚠️" : "g").foregroundColor(.secondary)
             }
         }

@@ -49,7 +49,7 @@ struct NightscoutConnectView: View {
                 Toggle("Use local glucose server", isOn: $state.useLocalSource)
                 HStack {
                     Text("Port")
-                    DecimalTextField("", value: $state.localPort, formatter: portFormater)
+                    TextFieldWithToolBar(text: $state.localPort, placeholder: "", numberFormatter: portFormater)
                 }
             } header: { Text("Local glucose source") }
         }
