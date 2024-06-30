@@ -62,7 +62,11 @@ extension FPUConfig {
                     HStack {
                         Text("Override With A Factor Of ")
                         Spacer()
-                        TextFieldWithToolBar(text: $state.individualAdjustmentFactor, placeholder: "0.5", numberFormatter: conversionFormatter)
+                        TextFieldWithToolBar(
+                            text: $state.individualAdjustmentFactor,
+                            placeholder: "0.5",
+                            numberFormatter: conversionFormatter
+                        )
                     }
                 }
 

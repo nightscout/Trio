@@ -62,7 +62,11 @@ extension PreferencesEditor {
                                         })
                                         Text(field.displayName)
                                     }
-                                    TextFieldWithToolBar(text: self.$state.sections[sectionIndex].fields[fieldIndex].decimalValue, placeholder: "0", numberFormatter: formatter)
+                                    TextFieldWithToolBar(
+                                        text: self.$state.sections[sectionIndex].fields[fieldIndex].decimalValue,
+                                        placeholder: "0",
+                                        numberFormatter: formatter
+                                    )
                                 case .insulinCurve:
                                     Picker(
                                         selection: $state.sections[sectionIndex].fields[fieldIndex].insulinCurveValue,

@@ -65,7 +65,12 @@ extension Bolus {
                         HStack {
                             Text("Amount")
                             Spacer()
-                            TextFieldWithToolBar(text: $state.amount, placeholder: "0", shouldBecomeFirstResponder: true, numberFormatter: formatter)
+                            TextFieldWithToolBar(
+                                text: $state.amount,
+                                placeholder: "0",
+                                shouldBecomeFirstResponder: true,
+                                numberFormatter: formatter
+                            )
                             Text(state.amount > state.maxBolus ? "⚠️" : "U").foregroundColor(.secondary)
                         }
                     }

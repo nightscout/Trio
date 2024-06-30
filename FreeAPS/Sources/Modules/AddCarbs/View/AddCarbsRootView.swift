@@ -42,21 +42,34 @@ extension AddCarbs {
                     HStack {
                         Text("Carbs").fontWeight(.semibold)
                         Spacer()
-                        TextFieldWithToolBar(text: $state.carbs, placeholder: "0", shouldBecomeFirstResponder: true, numberFormatter: formatter)
+                        TextFieldWithToolBar(
+                            text: $state.carbs,
+                            placeholder: "0",
+                            shouldBecomeFirstResponder: true,
+                            numberFormatter: formatter
+                        )
                         Text(state.carbs > state.maxCarbs ? "⚠️" : "g").foregroundColor(.secondary)
                     }.padding(.vertical)
 
                     if state.useFPUconversion {
                         proteinAndFat()
                     }
-                    HStack {
-                        Text("Note").foregroundColor(.secondary)
-                        TextField("", text: $state.note).multilineTextAlignment(.trailing)
-                        if isFocused {
-                            Button { isFocused = false } label: { Image(systemName: "keyboard.chevron.compact.down") }
-                                .controlSize(.mini)
+                    VStack {
+                        HStack {
+                            Text("Note").foregroundColor(.secondary)
+                            TextFieldWithToolBarString(text: $state.note, placeholder: "", maxLength: 25)
+                            if isFocused {
+                                Button { isFocused = false } label: { Image(systemName: "keyboard.chevron.compact.down") }
+                                    .controlSize(.mini)
+                            }
+                        }.focused($isFocused)
+
+                        HStack {
+                            Spacer()
+                            Text("\(state.note.count) / 25")
+                                .foregroundStyle(.secondary)
                         }
-                    }.focused($isFocused)
+                    }
                     HStack {
                         Button {
                             state.useFPUconversion.toggle()

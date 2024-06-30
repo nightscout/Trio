@@ -140,7 +140,12 @@ extension DataTable {
                         Section {
                             HStack {
                                 Text("New Glucose")
-                                TextFieldWithToolBar(text: $state.manualGlucose, placeholder: " ... ", shouldBecomeFirstResponder: true, numberFormatter: glucoseFormatter)
+                                TextFieldWithToolBar(
+                                    text: $state.manualGlucose,
+                                    placeholder: " ... ",
+                                    shouldBecomeFirstResponder: true,
+                                    numberFormatter: glucoseFormatter
+                                )
                                 Text(state.units.rawValue).foregroundStyle(.secondary)
                             }
                         }
@@ -247,7 +252,12 @@ extension DataTable {
                             HStack {
                                 Text("Amount")
                                 Spacer()
-                                TextFieldWithToolBar(text: $state.externalInsulinAmount, placeholder: "0", shouldBecomeFirstResponder: true, numberFormatter: insulinFormatter)
+                                TextFieldWithToolBar(
+                                    text: $state.externalInsulinAmount,
+                                    placeholder: "0",
+                                    shouldBecomeFirstResponder: true,
+                                    numberFormatter: insulinFormatter
+                                )
                                 Text("U").foregroundColor(.secondary)
                             }
                         }

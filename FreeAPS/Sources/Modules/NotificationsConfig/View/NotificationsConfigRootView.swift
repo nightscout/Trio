@@ -105,7 +105,11 @@ extension NotificationsConfig {
                     HStack {
                         Text("Carbs Required Threshold")
                         Spacer()
-                        TextFieldWithToolBar(text: $state.carbsRequiredThreshold, placeholder: "0", numberFormatter: carbsFormatter)
+                        TextFieldWithToolBar(
+                            text: $state.carbsRequiredThreshold,
+                            placeholder: "0",
+                            numberFormatter: carbsFormatter
+                        )
                         Text("g").foregroundColor(.secondary)
                     }
                 }
