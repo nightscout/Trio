@@ -515,14 +515,18 @@ extension Home.StateModel {
     }
 
     private func fetchGlucose() async -> [NSManagedObjectID] {
-        CoreDataStack.shared.fetchEntities(
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: context,
             predicate: NSPredicate.glucose,
             key: "date",
             ascending: false,
             fetchLimit: 288
-        ).map(\.objectID)
+        )
+
+        return await context.perform {
+            return results.map(\.objectID)
+        }
     }
 
     @MainActor private func updateGlucoseArray(with IDs: [NSManagedObjectID]) {
@@ -547,14 +551,18 @@ extension Home.StateModel {
     }
 
     private func fetchManualGlucose() async -> [NSManagedObjectID] {
-        CoreDataStack.shared.fetchEntities(
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: context,
             predicate: NSPredicate.manualGlucose,
             key: "date",
             ascending: false,
             fetchLimit: 288
-        ).map(\.objectID)
+        )
+
+        return await context.perform {
+            return results.map(\.objectID)
+        }
     }
 
     @MainActor private func updateManualGlucoseArray(with IDs: [NSManagedObjectID]) {
@@ -579,13 +587,17 @@ extension Home.StateModel {
     }
 
     private func fetchCarbs() async -> [NSManagedObjectID] {
-        CoreDataStack.shared.fetchEntities(
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: context,
             predicate: NSPredicate.carbsForChart,
             key: "date",
             ascending: false
-        ).map(\.objectID)
+        )
+
+        return await context.perform {
+            return results.map(\.objectID)
+        }
     }
 
     @MainActor private func updateCarbsArray(with IDs: [NSManagedObjectID]) {
@@ -610,13 +622,17 @@ extension Home.StateModel {
     }
 
     private func fetchFPUs() async -> [NSManagedObjectID] {
-        CoreDataStack.shared.fetchEntities(
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: context,
             predicate: NSPredicate.fpusForChart,
             key: "date",
             ascending: false
-        ).map(\.objectID)
+        )
+
+        return await context.perform {
+            return results.map(\.objectID)
+        }
     }
 
     @MainActor private func updateFPUsArray(with IDs: [NSManagedObjectID]) {
@@ -635,26 +651,38 @@ extension Home.StateModel {
     // Setup Determinations
     private func setupDeterminationsArray() {
         Task {
-            let enactedObjectIDs = await fetchDeterminations(predicate: NSPredicate.enactedDetermination)
-            let enactedAndNonEnactedObjectIDs = await fetchDeterminations(
+            async let enactedObjectIDs = fetchDeterminations(predicate: NSPredicate.enactedDetermination)
+            async let enactedAndNonEnactedObjectIDs = fetchDeterminations(
                 predicate: NSPredicate
                     .predicateFor30MinAgoForDetermination
             )
 
-            await updateDeterminationsArray(with: enactedObjectIDs, keyPath: \.determinationsFromPersistence)
-            await updateDeterminationsArray(with: enactedAndNonEnactedObjectIDs, keyPath: \.enactedAndNonEnactedDeterminations)
+            let enactedIDs = await enactedObjectIDs
+            let enactedAndNonEnactedIDs = await enactedAndNonEnactedObjectIDs
+
+            async let updateEnacted: () = updateDeterminationsArray(with: enactedIDs, keyPath: \.determinationsFromPersistence)
+            async let updateEnactedAndNonEnacted: () = updateDeterminationsArray(
+                with: enactedAndNonEnactedIDs,
+                keyPath: \.enactedAndNonEnactedDeterminations
+            )
+
+            await updateEnacted
+            await updateEnactedAndNonEnacted
         }
     }
 
     private func fetchDeterminations(predicate: NSPredicate) async -> [NSManagedObjectID] {
-        CoreDataStack.shared.fetchEntities(
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
             onContext: context,
             predicate: predicate,
             key: "deliverAt",
             ascending: false,
             fetchLimit: 1
-        ).map(\.objectID)
+        )
+        return await context.perform {
+            results.map(\.objectID)
+        }
     }
 
     @MainActor private func updateDeterminationsArray(
@@ -682,13 +710,17 @@ extension Home.StateModel {
     }
 
     private func fetchInsulin() async -> [NSManagedObjectID] {
-        CoreDataStack.shared.fetchEntities(
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
             predicate: NSPredicate.pumpHistoryLast24h,
             key: "timestamp",
             ascending: true
-        ).map(\.objectID)
+        )
+
+        return await context.perform {
+            return results.map(\.objectID)
+        }
     }
 
     @MainActor private func updateInsulinArray(with IDs: [NSManagedObjectID]) {
@@ -728,14 +760,18 @@ extension Home.StateModel {
     }
 
     private func fetchLastBolus() async -> NSManagedObjectID? {
-        CoreDataStack.shared.fetchEntities(
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
             predicate: NSPredicate.lastPumpBolus,
             key: "timestamp",
             ascending: false,
             fetchLimit: 1
-        ).map(\.objectID).first
+        )
+
+        return await context.perform {
+            return results.map(\.objectID).first
+        }
     }
 
     @MainActor private func updateLastBolus(with ID: NSManagedObjectID) {
@@ -757,13 +793,17 @@ extension Home.StateModel {
     }
 
     private func fetchBattery() async -> [NSManagedObjectID] {
-        CoreDataStack.shared.fetchEntities(
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OpenAPS_Battery.self,
             onContext: context,
             predicate: NSPredicate.predicateFor30MinAgo,
             key: "date",
             ascending: false
-        ).map(\.objectID)
+        )
+
+        return await context.perform {
+            return results.map(\.objectID)
+        }
     }
 
     @MainActor private func updateBatteryArray(with IDs: [NSManagedObjectID]) {

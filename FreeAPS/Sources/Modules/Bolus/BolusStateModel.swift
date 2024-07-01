@@ -568,14 +568,18 @@ extension Bolus.StateModel {
     }
 
     private func fetchGlucose() async -> [NSManagedObjectID] {
-        CoreDataStack.shared.fetchEntities(
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: backgroundContext,
             predicate: NSPredicate.predicateFor30MinAgo,
             key: "date",
             ascending: false,
             fetchLimit: 3
-        ).map(\.objectID)
+        )
+
+        return await backgroundContext.perform {
+            return results.map(\.objectID)
+        }
     }
 
     @MainActor private func updateGlucoseArray(with IDs: [NSManagedObjectID]) {
@@ -607,14 +611,18 @@ extension Bolus.StateModel {
     }
 
     private func fetchDeterminations() async -> [NSManagedObjectID] {
-        CoreDataStack.shared.fetchEntities(
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
             onContext: backgroundContext,
             predicate: NSPredicate.enactedDetermination,
             key: "deliverAt",
             ascending: false,
             fetchLimit: 1
-        ).map(\.objectID)
+        )
+
+        return await backgroundContext.perform {
+            return results.map(\.objectID)
+        }
     }
 
     @MainActor private func updateDeterminationsArray(with IDs: [NSManagedObjectID]) {
