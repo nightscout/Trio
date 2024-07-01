@@ -170,7 +170,7 @@ extension OverrideProfilesConfig {
             } footer: {
                 HStack {
                     Image(systemName: "hand.draw.fill")
-                    Text("Swipe left to edit or delete an override preset. Drag, hold and drop to reorder a preset.")
+                    Text("Swipe left to edit or delete an override preset. Hold, drag and drop to reorder a preset.")
                 }
             }
         }
@@ -517,6 +517,10 @@ extension OverrideProfilesConfig {
                             .imageScale(.large)
                             .fontWeight(.bold)
                             .foregroundStyle(Color.green)
+                    } else {
+                        Image(systemName: "line.3.horizontal")
+                            .imageScale(.medium)
+                            .foregroundStyle(.secondary)
                     }
                 })
             }
