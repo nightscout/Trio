@@ -9,7 +9,7 @@
 /* Add insulin from source outside of pump */
 "Add %@ without bolusing" = "Thêm %@ và bỏ qua liều bolus";
 
-"Bolus" = "Liều bolus";
+"Bolus" = "Bolus";
 
 "Close" = "Đóng";
 
@@ -161,7 +161,7 @@
 "Target" = "Mục tiêu";
 
 /* */
-"Basal Insulin and Sensitivity ratio" = "Tỷ lệ Insulin cơ bản và độ nhạy";
+"Basal Insulin and Sensitivity ratio" = "Tỷ lệ cơ bản và độ nhạy Insulin";
 
 /* */
 "A lower 'Half Basal Target' setting will reduce the basal and raise the ISF earlier, at a lower target glucose." = "Cài đặt '1/2 mục tiêu cơ bản' thấp hơn sẽ giảm mức cơ bản và tăng ISF sớm hơn, ở mức glucose mục tiêu thấp hơn.";
@@ -336,7 +336,7 @@ Enact a temp Basal or a temp target */
 "URL" = "Địa chỉ URL";
 
 /**/
-"Use local glucose server" = "Sử dụng nguồn glucose nội tại";
+"Use local glucose server" = "Sử dụng nguồn glucose cục bộ";
 
 /* Enable Statistics */
 "This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n" = "Điều này cho phép tải số liệu thống kê lên Nightscout mà có thể được sử dụng bởi Dự án Community Statictics và Demographics. \n\nTham gia vào Thống kê Cộng đồng là tùy chọn và yêu cầu đăng ký riêng tại:\n";
@@ -1062,7 +1062,7 @@ Enact a temp Basal or a temp target */
 "Trio Not Active" = "Trio chưa hoạt động";
 
 /* */
-"Last loop was more than %d min ago" = "Loop dừng hoạt động hơn %d phút trước";
+"Last loop was more than %d min ago" = "Vòng lặp dừng hoạt động hơn %d phút trước";
 
 /* Glucose badge */
 "Show glucose on the app badge" = "Thể hiện đường huyết lên trên Trio";
@@ -1086,7 +1086,7 @@ Enact a temp Basal or a temp target */
 "Note" = "Lưu ý";
 
 /* */
-"Temp Basal" = "Liều cơ bản tạm thời";
+"Temp Basal" = "Temp Basal";
 
 /* */
 "Temp Target" = "Mục tiêu tạm thời";
@@ -1144,7 +1144,7 @@ Enact a temp Basal or a temp target */
 "Direct connection with Libre 1 transmitters or European Libre 2 sensors" = "Kết nối trực tiếp với bộ phát Libre 1 hoặc cảm biến Libre 2 của Châu Âu";
 
 /* Online or internal server */
-"Online or internal server" = "Máy chủ trực tuyến hoặc nội bộ";
+"Online or internal server" = "Trực tuyến hoặc máy chủ nội bộ";
 
 /* -------------- Developer settings ---------------------- */
 /* Debug options */
@@ -1261,7 +1261,7 @@ Enact a temp Basal or a temp target */
 "Enable" = "Cho phép";
 
 /* Header */
-"Fat and Protein Conversion Settings" = "Chuyển đổi chất béo và chất đạm";
+"Fat and Protein Conversion Settings" = "Cài đặt chất béo và chất đạm";
 
 /* Delay */
 "Delay In Minutes" = "Độ trễ theo phút";
@@ -1478,19 +1478,19 @@ Enact a temp Basal or a temp target */
 "which is below your Threshold (" = "nằm dưới Ngưỡng của bạn (";
 
 /* Bolus pop-up / Alert string. Make translations concise! */
-"Eventual Glucose > Target Glucose, but glucose is climbing slower than expected. Expected: " = "Glucose hiện tại > Glucose mục tiêu, nhưng glucose tăng chậm hơn dự kiến. Hy vọng: ";
+"Eventual Glucose > Target Glucose, but glucose is climbing slower than expected. Expected: " = "Glucose hiện tại > Glucose mục tiêu, nhưng glucose tăng chậm hơn dự kiến. Dự kiến: ";
 
 //* Bolus pop-up / Alert string. Make translations concise! */
 ". Climbing: " = ". Leo: ";
 
 /* Bolus pop-up / Alert string. Make translations concise! */
-"Eventual Glucose > Target Glucose, but glucose is falling faster than expected. Expected: " = "Glucose hiện tại > Glucose mục tiêu, nhưng glucose đang giảm nhanh hơn dự kiến. Hy vọng: ";
+"Eventual Glucose > Target Glucose, but glucose is falling faster than expected. Expected: " = "Glucose hiện tại > Glucose mục tiêu, nhưng glucose đang giảm nhanh hơn dự kiến. Dự kiến: ";
 
 /* Bolus pop-up / Alert string. Make translations concise! */
-". Falling: " = ". Lao xuóng: ";
+". Falling: " = ". Đang giảm xuống: ";
 
 /* Bolus pop-up / Alert string. Make translations concise! */
-"Eventual Glucose > Target Glucose, but glucose is changing faster than expected. Expected: " = "Glucose cuối cùng > Glucose mục tiêu, nhưng glucose đang thay đổi nhanh hơn dự kiến. Hy vọng: ";
+"Eventual Glucose > Target Glucose, but glucose is changing faster than expected. Expected: " = "Glucose hiện tại > Glucose mục tiêu, nhưng glucose đang giảm nhanh hơn dự kiến. Dự kiến: ";
 
 /* Bolus pop-up / Alert string. Make translations concise! */
 ". Changing: " = ". Đang thay đổi: ";
@@ -1570,7 +1570,7 @@ Enact a temp Basal or a temp target */
 "Low Reservoir Reminder" = "Báo nhắc gần hết thuốc";
 
 /* The action string on pod status page when pod data is stale */
-"Make sure your phone and pod are close to each other. If communication issues persist, move to a new area." = "Đảm bảo điện thoại và pod được đặt gần nhau. Nếu kết nối vẫn gặp trở ngại, đặt lại chổ khác.";
+"Make sure your phone and pod are close to each other. If communication issues persist, move to a new area." = "Đảm bảo điện thoại và pod được đặt gần nhau. Nếu kết nối vẫn gặp trở ngại, đặt lại chỗ khác.";
 /* Format string for the action string on pod status page when pod expired. (1: service time remaining) */
 "Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains." = "Thay pod ngay. Insulin sẽ ngưng tiêm trong %1$@ hoặc khi không còn insulin.";
 
@@ -1581,7 +1581,7 @@ Enact a temp Basal or a temp target */
 "%1$@ for %2$@" = "%1$@ cho %2$@";
 
 /* Description text on manual temp basal action sheet */
-"Loop will not automatically adjust your insulin delivery until the temporary basal rate finishes or is canceled." = "Loop sẽ không tự động điều chỉnh liều insulin đến khi liều nền tạm thời thực hiện xong hoặc bị hủy bỏ.";
+"Loop will not automatically adjust your insulin delivery until the temporary basal rate finishes or is canceled." = "Vòng lặp sẽ không tự động điều chỉnh liều insulin đến khi liều nền tạm thời thực hiện xong hoặc bị hủy bỏ.";
 /* Button text for setting manual temporary basal rate*/
 "Set Temporary Basal" = "Cài đặt liều nền tạm thời";
 
@@ -1641,19 +1641,19 @@ Enact a temp Basal or a temp target */
 /* */
 
 
-"Today" = "Hôm nay";
+"Today" = "Today";
 
 /* */
-"Day" = "Ngày";
+"Day" = "Day";
 
 /* */
-"Week" = "Tuần";
+"Week" = "Week";
 
 /* */
-"Month" = "Tháng";
+"Month" = "Month";
 
 /* */
-"Total" = "Tổng";
+"Total" = "Total";
 
 /* Headline Statistics */
 "Statistics" = "Thống kê";
@@ -1674,7 +1674,7 @@ Enact a temp Basal or a temp target */
 "Change HbA1c Unit" = "Thay đổi đơn vị của HbA1c";
 
 /* */
-"Display Chart X - Grid lines" = "Hiển thị biểu đồ dạng X-Grid";
+"Display Chart X - Grid lines" = "Hiển thị biểu đồ dạng trục X - đường lưới";
 
 /* */
 "Display Chart Y - Grid lines" = "Hiển thị biểu đồ dạng Y-Grid";
@@ -1683,7 +1683,7 @@ Enact a temp Basal or a temp target */
 "Display Chart Threshold lines for Low and High" = "Hiển thị các đường hiển thị Thấp và Cao";
 
 /* */
-"Standing / Laying TIR Chart" = "Đứng/nằm biểu đồ TIR";
+"Standing / Laying TIR Chart" = "Đứng/nằm biểu đồ trong phạm vi (TIR)";
 
 /* */
 "Hours X-Axis (6 default)" = "Giờ trục X (mặc định 6)";
@@ -1791,7 +1791,7 @@ Enact a temp Basal or a temp target */
 "Change default HbA1c unit in statPanlel. The unit in statPanel will be updateded with next statistics.json update" = "Thay đổi đơn vị HbA1c mặc định trong statPanlel. Đơn vị trong statPanel sẽ được cập nhật với bản cập nhật stats.json tiếp theo";
 
 /* HbA1c for all glucose storage days */
-"all" = "Tất cả";
+"all" = "tất cả";
 
 /* --------------------------------------------------------  Dexcom G7 --------------------------------------*/
 
@@ -1983,7 +1983,7 @@ Enact a temp Basal or a temp target */
 "This is a setting for default carb absorption impact per 5 minutes. The default is an expected 8 mg/dL/5min. This affects how fast COB is decayed in situations when carb absorption is not visible in BG deviations. The default of 8 mg/dL/5min corresponds to a minimum carb absorption rate of 24g/hr at a CSF of 4 mg/dL/g." = "Đây là cài đặt cho tác động hấp thụ carb mặc định trong 5 phút. Giá trị mặc định là 8 mg/dL/5 phút dự kiến. Điều này ảnh hưởng đến tốc độ phân hủy của COB trong các tình huống khi không thể nhìn thấy sự hấp thụ carb ở độ lệch BG. Giá trị mặc định là 8 mg/dL/5 phút tương ứng với tốc độ hấp thụ carb tối thiểu là 24g/giờ ở CSF là 4 mg/dL/g.";
 
 /* Headline "Autotune ISF Adjustment Fraction" */
-"Autotune ISF Adjustment Fraction" = "Phân số (AF) điều chỉnh ISF tự động điều chỉnh";
+"Autotune ISF Adjustment Fraction" = "Phân số điều chỉnh ISF tự động điều chỉnh";
 
 /* "Autotune ISF Adjustment Fraction" */
 "The default of 0.5 for this value keeps autotune ISF closer to pump ISF via a weighted average of fullNewISF and pumpISF. 1.0 allows full adjustment, 0 is no adjustment from pump ISF." = "Giá trị mặc định là 0,5 cho giá trị này giữ cho ISF tự động điều chỉnh gần hơn với ISF bơm thông qua mức trung bình có trọng số của fullNewISF và PumpISF. 1.0 cho phép điều chỉnh hoàn toàn, 0 là không điều chỉnh từ bơm ISF.";
@@ -2084,7 +2084,7 @@ Enact a temp Basal or a temp target */
 "Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula there is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users" = "Điều chỉnh tỷ lệ động theo một hằng số. Mặc định là 0,5. Giá trị càng cao thì mức điều chỉnh ISF của bạn sẽ càng lớn đối với BG cao hay thấp. Hiệu chỉnh tối đa được xác định bởi cài đặt tối thiểu/tối đa của Autosens. Đối với hàm Sigmoid, hệ số điều chỉnh được khuyến nghị là 0,4 - 0,5 để bắt đầu. Đối với công thức logarit, thre có ít sự đồng thuận hơn, nhưng bắt đầu bằng 0,5 - 0,8 thì phù hợp hơn với hầu hết người dùng";
 
 /* Headline Use Sigmoid Function */
-"Use Sigmoid Function" = "Sử dụng hàm Sigmoid (SF)";
+"Use Sigmoid Function" = "Sử dụng hàm Sigmoid";
 
 /* Which dyn ISF function to use */
 "Formula" = "Công thức";
@@ -2099,7 +2099,7 @@ Enact a temp Basal or a temp target */
 "Minimum Safety Threshold (mg/dL)" = "Ngưỡng an toàn tối thiểu (mg/dl)";
 
 /* Minimum Safety Threshold */
-"All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted." = "Tất cả insulin sẽ bị đình chỉ nếu lượng đường của bạn được dự đoán sẽ giảm xuống dưới ngưỡng an toàn.\n\nPhải được đặt trong khoảng 60-120 mg.";
+"All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted." = "Tất cả insulin sẽ bị đình chỉ nếu lượng đường của bạn được dự đoán sẽ giảm xuống dưới ngưỡng an toàn.\n\nPhải được đặt trong khoảng 60-120mg.";
 
 /* Header */
 "Calculator settings" = "Thiết lập tính toán";
