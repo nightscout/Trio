@@ -246,7 +246,7 @@ extension Bolus {
                     return
                 }
 
-                saveMeal()
+                await saveMeal()
                 addButtonPressed = true
 
                 // if glucose data is stale end the custom loading animation by hiding the modal
@@ -349,7 +349,7 @@ extension Bolus {
 
         // MARK: - Carbs
 
-        func saveMeal() {
+        @MainActor func saveMeal() async {
             guard carbs > 0 || fat > 0 || protein > 0 else { return }
             carbs = min(carbs, maxCarbs)
             id_ = UUID().uuidString
@@ -365,14 +365,12 @@ extension Bolus {
                 enteredBy: CarbsEntry.manual,
                 isFPU: false, fpuID: UUID().uuidString
             )]
-            carbsStorage.storeCarbs(carbsToStore)
+            await carbsStorage.storeCarbs(carbsToStore)
 
             if carbs > 0 || fat > 0 || protein > 0 {
                 // only perform determine basal sync if the user doesn't use the pump bolus, otherwise the enact bolus func in the APSManger does a sync
                 if amount <= 0 {
-                    Task {
-                        await apsManager.determineBasalSync()
-                    }
+                    await apsManager.determineBasalSync()
                 }
             }
         }

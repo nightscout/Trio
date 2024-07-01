@@ -30,14 +30,18 @@ final class BaseFetchTreatmentsManager: FetchTreatmentsManager, Injectable {
                     self.nightscoutManager.fetchTempTargets()
                 ).eraseToAnyPublisher()
             }
-            .sink { carbs, targets in
-                let filteredCarbs = carbs.filter { !($0.enteredBy?.contains(CarbsEntry.manual) ?? false) }
-                if filteredCarbs.isNotEmpty {
-                    self.carbsStorage.storeCarbs(filteredCarbs)
-                }
-                let filteredTargets = targets.filter { !($0.enteredBy?.contains(TempTarget.manual) ?? false) }
-                if filteredTargets.isNotEmpty {
-                    self.tempTargetsStorage.storeTempTargets(filteredTargets)
+            .sink { [weak self] carbs, targets in
+                guard let self = self else { return }
+
+                Task {
+                    let filteredCarbs = carbs.filter { !($0.enteredBy?.contains(CarbsEntry.manual) ?? false) }
+                    if filteredCarbs.isNotEmpty {
+                        await self.carbsStorage.storeCarbs(filteredCarbs)
+                    }
+                    let filteredTargets = targets.filter { !($0.enteredBy?.contains(TempTarget.manual) ?? false) }
+                    if filteredTargets.isNotEmpty {
+                        self.tempTargetsStorage.storeTempTargets(filteredTargets)
+                    }
                 }
             }
             .store(in: &lifetime)

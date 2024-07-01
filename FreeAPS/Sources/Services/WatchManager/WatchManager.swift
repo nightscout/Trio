@@ -367,22 +367,22 @@ extension BaseWatchManager: WCSessionDelegate {
            let protein = message["protein"] as? Double,
            carbs > 0 || fat > 0 || protein > 0
         {
-            carbsStorage.storeCarbs(
-                [CarbsEntry(
-                    id: UUID().uuidString,
-                    createdAt: Date(),
-                    actualDate: nil,
-                    carbs: Decimal(carbs),
-                    fat: Decimal(fat),
-                    protein: Decimal(protein),
-                    note: nil,
-                    enteredBy: CarbsEntry.manual,
-                    isFPU: false,
-                    fpuID: nil
-                )]
-            )
-
             Task {
+                await carbsStorage.storeCarbs(
+                    [CarbsEntry(
+                        id: UUID().uuidString,
+                        createdAt: Date(),
+                        actualDate: nil,
+                        carbs: Decimal(carbs),
+                        fat: Decimal(fat),
+                        protein: Decimal(protein),
+                        note: nil,
+                        enteredBy: CarbsEntry.manual,
+                        isFPU: false,
+                        fpuID: nil
+                    )]
+                )
+
                 if settingsManager.settings.skipBolusScreenAfterCarbs {
                     let success = await apsManager.determineBasal()
                     replyHandler(["confirmation": success])
@@ -395,32 +395,35 @@ extension BaseWatchManager: WCSessionDelegate {
         }
 
         if let tempTargetID = message["tempTarget"] as? String {
-            if var preset = tempTargetsStorage.presets().first(where: { $0.id == tempTargetID }) {
-                preset.createdAt = Date()
-                tempTargetsStorage.storeTempTargets([preset])
-                replyHandler(["confirmation": true])
-                return
-            } else if tempTargetID == "cancel" {
-                let entry = TempTarget(
-                    name: TempTarget.cancel,
-                    createdAt: Date(),
-                    targetTop: 0,
-                    targetBottom: 0,
-                    duration: 0,
-                    enteredBy: TempTarget.manual,
-                    reason: TempTarget.cancel
-                )
-                tempTargetsStorage.storeTempTargets([entry])
-                replyHandler(["confirmation": true])
-                return
+            Task {
+                if var preset = tempTargetsStorage.presets().first(where: { $0.id == tempTargetID }) {
+                    preset.createdAt = Date()
+                    await tempTargetsStorage.storeTempTargets([preset])
+                    replyHandler(["confirmation": true])
+                } else if tempTargetID == "cancel" {
+                    let entry = TempTarget(
+                        name: TempTarget.cancel,
+                        createdAt: Date(),
+                        targetTop: 0,
+                        targetBottom: 0,
+                        duration: 0,
+                        enteredBy: TempTarget.manual,
+                        reason: TempTarget.cancel
+                    )
+                    await tempTargetsStorage.storeTempTargets([entry])
+                    replyHandler(["confirmation": true])
+                } else {
+                    replyHandler(["confirmation": false])
+                }
             }
+            return
         }
 
         if let bolus = message["bolus"] as? Double, bolus > 0 {
             Task {
                 await apsManager.enactBolus(amount: bolus, isSMB: false)
+                replyHandler(["confirmation": true])
             }
-            replyHandler(["confirmation": true])
             return
         }
 

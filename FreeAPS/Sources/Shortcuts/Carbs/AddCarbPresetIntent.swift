@@ -82,7 +82,7 @@ import Swinject
                 )
             }
 
-            let finalQuantityCarbsDisplay = try carbRequest.addCarbs(quantityCarbs, fatQuantity, proteinQuantity, dateAdded)
+            let finalQuantityCarbsDisplay = try await carbRequest.addCarbs(quantityCarbs, fatQuantity, proteinQuantity, dateAdded)
             return .result(
                 dialog: IntentDialog(stringLiteral: finalQuantityCarbsDisplay)
             )
