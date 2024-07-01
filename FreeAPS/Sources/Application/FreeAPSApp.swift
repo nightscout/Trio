@@ -105,10 +105,31 @@ import Swinject
     private func purgeOldNSManagedObjects() async throws {
         try await coreDataStack.batchDeleteOlderThan(GlucoseStored.self, dateKey: "date", days: 90)
         try await coreDataStack.batchDeleteOlderThan(PumpEventStored.self, dateKey: "timestamp", days: 90)
+        try await coreDataStack.batchDeleteOlderThan(
+            parentType: PumpEventStored.self,
+            childType: BolusStored.self,
+            dateKey: "timestamp",
+            days: 90,
+            relationshipKey: "pumpEvent"
+        )
+        try await coreDataStack.batchDeleteOlderThan(
+            parentType: PumpEventStored.self,
+            childType: TempBasalStored.self,
+            dateKey: "timestamp",
+            days: 90,
+            relationshipKey: "pumpEvent"
+        )
         try await coreDataStack.batchDeleteOlderThan(OrefDetermination.self, dateKey: "deliverAt", days: 90)
         try await coreDataStack.batchDeleteOlderThan(OpenAPS_Battery.self, dateKey: "date", days: 90)
         try await coreDataStack.batchDeleteOlderThan(CarbEntryStored.self, dateKey: "date", days: 90)
-        try await coreDataStack.batchDeleteOlderThan(Forecast.self, dateKey: "date", days: 90)
+        try await coreDataStack.batchDeleteOlderThan(Forecast.self, dateKey: "date", days: 2)
+        try await coreDataStack.batchDeleteOlderThan(
+            parentType: Forecast.self,
+            childType: ForecastValue.self,
+            dateKey: "date",
+            days: 2,
+            relationshipKey: "forecast"
+        )
         try await coreDataStack.batchDeleteOlderThan(OverrideStored.self, dateKey: "date", days: 3)
         try await coreDataStack.batchDeleteOlderThan(OverrideRunStored.self, dateKey: "startDate", days: 3)
 

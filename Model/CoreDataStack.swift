@@ -221,6 +221,70 @@ extension CoreDataStack {
             throw CoreDataError.batchDeleteError
         }
     }
+
+    func batchDeleteOlderThan<Parent: NSManagedObject, Child: NSManagedObject>(
+        parentType: Parent.Type,
+        childType: Child.Type,
+        dateKey: String,
+        days: Int,
+        relationshipKey: String // The key of the Child Entity that links to the parent Entity
+    ) async throws {
+        let taskContext = newTaskContext()
+        taskContext.name = "deleteContext"
+        taskContext.transactionAuthor = "batchDelete"
+
+        // Get the target date
+        let targetDate = Calendar.current.date(byAdding: .day, value: -days, to: Date())!
+
+        // Fetch Parent objects older than the target date
+        let fetchParentRequest = NSFetchRequest<NSManagedObjectID>(entityName: String(describing: parentType))
+        fetchParentRequest.predicate = NSPredicate(format: "%K < %@", dateKey, targetDate as NSDate)
+        fetchParentRequest.resultType = .managedObjectIDResultType
+
+        do {
+            let parentObjectIDs = try await taskContext.perform {
+                try taskContext.fetch(fetchParentRequest)
+            }
+
+            guard !parentObjectIDs.isEmpty else {
+                debugPrint("No \(parentType) objects found older than \(days) days.")
+                return
+            }
+
+            // Fetch Child objects related to the fetched Parent objects
+            let fetchChildRequest = NSFetchRequest<NSManagedObjectID>(entityName: String(describing: childType))
+            fetchChildRequest.predicate = NSPredicate(format: "ANY %K IN %@", relationshipKey, parentObjectIDs)
+            fetchChildRequest.resultType = .managedObjectIDResultType
+
+            let childObjectIDs = try await taskContext.perform {
+                try taskContext.fetch(fetchChildRequest)
+            }
+
+            guard !childObjectIDs.isEmpty else {
+                debugPrint("No \(childType) objects found related to \(parentType) objects older than \(days) days.")
+                return
+            }
+
+            // Execute the batch delete for Child objects
+            try await taskContext.perform {
+                let batchDeleteRequest = NSBatchDeleteRequest(objectIDs: childObjectIDs)
+                guard let fetchResult = try? taskContext.execute(batchDeleteRequest),
+                      let batchDeleteResult = fetchResult as? NSBatchDeleteResult,
+                      let success = batchDeleteResult.result as? Bool, success
+                else {
+                    debugPrint("Failed to execute batch delete request \(DebuggingIdentifiers.failed)")
+                    throw CoreDataError.batchDeleteError
+                }
+            }
+
+            debugPrint(
+                "Successfully deleted \(childType) data related to \(parentType) objects older than \(days) days. \(DebuggingIdentifiers.succeeded)"
+            )
+        } catch {
+            debugPrint("Failed to fetch or delete data: \(error.localizedDescription) \(DebuggingIdentifiers.failed)")
+            throw CoreDataError.batchDeleteError
+        }
+    }
 }
 
 // MARK: - Fetch Requests
