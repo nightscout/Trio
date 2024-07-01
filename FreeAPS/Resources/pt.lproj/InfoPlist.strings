@@ -1,0 +1,20 @@
+/* Privacy - NFC Scan Usage Description */
+"NFCReaderUsageDescription" = "O NFC é usado para escanear sensores Libre";
+
+/* Privacy - Bluetooth Always Usage Description */
+"NSBluetoothAlwaysUsageDescription" = "Bluetooth é usado para comunicar com a bomba de insulina e os dispositivos de monitor de glicose contínuo";
+
+/* Privacy - Bluetooth Peripheral Usage Description */
+"NSBluetoothPeripheralUsageDescription" = "Bluetooth é usado para se comunicar com a bomba de insulina e dispositivos de monitor de glicose contínuo";
+
+/* Privacy - Face ID Usage Description */
+"NSFaceIDUsageDescription" = "Para acessos autorizados no bolus";
+
+/* Privacy - Calendars Usage Description */
+"NSCalendarsUsageDescription" = "O calendário é utilizado para criar novos eventos de glicose.";
+
+/* Privacy - Health Update Usage Description */
+"NSHealthUpdateUsageDescription" = "O aplicativo de Saúde é usado para armazenar glicose no sangue, insulina e carboidratos";
+
+/* Privacy - Health Share Usage Description */
+"NSHealthShareUsageDescription" = "O aplicativo de Saúde é usado para armazenar glicose no sangue, insulina e carboidratos";

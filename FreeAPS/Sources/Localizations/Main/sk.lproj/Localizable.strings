@@ -642,7 +642,7 @@ Enact a temp Basal or a temp target */
 "External" = "Externý";
 
 /* */
-"Other" = "Iné";
+"Other" = "Other";
 
 /* */
 "Libre Transmitter" = "Libre vysielač";
@@ -1170,7 +1170,7 @@ Enact a temp Basal or a temp target */
 "Save as your Normal Basal Rates" = "Uložiť ako normálne bazálne sadzby";
 
 /* */
-"Save on Pump" = "Ušetrite na čerpadle";
+"Save on Pump" = "Save on Pump";
 
 /* Debug option view Pump History */
 "Pump History" = "História pumpy";
@@ -1226,13 +1226,13 @@ Enact a temp Basal or a temp target */
 
 /* New ALerts ------------------------- */
 /* Info title */
-"Info" = "Informácie";
+"Info" = "Info";
 
 /* Warning title */
 "Warning" = "Upozornenie";
 
 /* Error title */
-"Error" = "Chyba";
+"Error" = "Error";
 
 /* Manual temp basal mode */
 "Manual" = "Manuálny";
@@ -1362,7 +1362,7 @@ Enact a temp Basal or a temp target */
 "Cancel Profile Override" = "Zrušiť prepísanie profilu?";
 
 /* Alert */
-"Cancel Temp Target" = "Zrušiť dočasný cieľ";
+"Cancel Temp Target" = "Cancel Temp Target";
 
 /* Alert */
 "Return to Normal?" = "Návrat do normálu?";
@@ -1425,7 +1425,7 @@ Enact a temp Basal or a temp target */
 "Save and continue" = "Uložiť a pokračovať";
 
 /* */
-"Save as Preset" = "Uložiť ako predvoľbu";
+"Save as Preset" = "Save as Preset";
 
 /* */
 "Predictions" = "Predikcia";
@@ -1519,10 +1519,10 @@ Enact a temp Basal or a temp target */
 "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Upozornenia s pípnutím zo zariadenia Pod, ktoré možno použiť na potvrdenie vybraných príkazov, keď zariadenie Pod nie je vypnuté.";
 
 /* button title for saving low reservoir reminder while saving */
-"Saving..." = "Úspora...";
+"Saving..." = "Saving...";
 
 /* button title for saving low reservoir reminder */
-"Save" = "Uložiť";
+"Save" = "Save";
 
 /* Alert title for error when updating confidence reminder preference */
 "Failed to update confidence reminder preference." = "Nepodarilo sa aktualizovať predvoľbu pripomenutia dôveryhodnosti.";
@@ -1575,7 +1575,7 @@ Enact a temp Basal or a temp target */
 "Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains." = "Ihneď vymeniť pod. Podávanie inzulínu sa zastaví o %1$@ alebo keď sa minie inzulín.";
 
 /* Label text for temporary basal rate summary */
-"Rate" = "Hodnotenie";
+"Rate" = "Rate";
 
 /* Summary string for temporary basal rate configuration page */
 "%1$@ for %2$@" = "%1$@ pre %2$@";
@@ -1604,7 +1604,7 @@ Enact a temp Basal or a temp target */
 "This PumpManager has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to therapy settings -> delivery limits and set a new maximum basal rate." = "Tento manažér čerpadiel nebol nakonfigurovaný s maximálnou bazálnou rýchlosťou, pretože bol pridaný skôr, ako bola pridaná funkcia manuálneho bazálneho nastavenia. Prejdite do nastavení terapie -> limity dodávok a nastavte novú maximálnu bazálnu rýchlosť.";
 
 /* description label for active time pod details row */
-"Active Time" = "Aktívny Čas";
+"Active Time" = "Active Time";
 
 /* description label for total delivery pod details row */
 "Total Delivery" = "Celková dávka";
@@ -1653,7 +1653,7 @@ Enact a temp Basal or a temp target */
 "Month" = "Mesiac";
 
 /* */
-"Total" = "Celkom";
+"Total" = "Total";
 
 /* Headline Statistics */
 "Statistics" = "Štatistiky";
@@ -1662,10 +1662,10 @@ Enact a temp Basal or a temp target */
 "Allow Upload of Statistics to NS" = "Povolenie nahrávania štatistík do NS";
 
 /* Low Glucose Threshold in Statistics settings */
-"Low" = "Nízka";
+"Low" = "Low";
 
 /* High Glucose Threshold in Statistics settings */
-"High" = "Vysoká";
+"High" = "High";
 
 /* In Range */
 "In Range" = "V dosahu";
@@ -1752,7 +1752,7 @@ Enact a temp Basal or a temp target */
 "Interval" = "Intervalové";
 
 /* Median loop interval */
-"Duration" = "Trvanie";
+"Duration" = "Duration";
 
 /* "Display SD */
 "Display SD instead of CV" = "Zobrazenie SD namiesto CV";
@@ -1910,7 +1910,7 @@ Enact a temp Basal or a temp target */
 "Allow SMB With High Temptarget" = "Povolenie SMB s vysokým dočasným cieľom";
 
 /* Headline "Allow SMB With High Temptarget" */
-"Allow SMB With High Temptarget" = "Povolenie SMB s vysokým dočasným cieľom";
+"Allow SMB With High Temptarget" = "Allow SMB With High Temptarget";
 
 /* "Allow SMB With High Temptarget" */
 "Defaults to false. When true, allows supermicrobolus (if otherwise enabled) even with high temp targets (> 100 mg/dl)." = "Predvolené nastavenie je false. Ak je true, umožní supermikrobolus (ak je inak povolený) aj pri vysokých cieľových teplotách (> 100 mg/dl).";
@@ -2053,13 +2053,13 @@ Enact a temp Basal or a temp target */
 "Adjust Dynamic ISF constant" = "Nastavenie konštanty Dynamic ISF";
 
 /* Adjust Dynamic ISF constant */
-"Adjust Dynamic ISF constant" = "Nastavenie konštanty Dynamic ISF";
+"Adjust Dynamic ISF constant" = "Adjust Dynamic ISF constant";
 
 /* Enable Dynamic ISF, Headline */
 "Enable Dynamic ISF" = "Povolenie funkcie Dynamic ISF";
 
 /* Headline "Enable Dynamic ISF" */
-"Enable Dynamic ISF" = "Povolenie funkcie Dynamic ISF";
+"Enable Dynamic ISF" = "Enable Dynamic ISF";
 
 /* Enable Dynamic ISF */
 "Calculate a new ISF with every loop cycle. New ISF will be based on current BG, TDD of insulin (past 24 hours or a weighted average) and an Adjustment Factor (default is 1).\n\nDynamic ISF and CR ratios will be limited by your autosens.min/max limits.\n\nDynamic ratio replaces the autosens.ratio: New ISF = Static ISF / Dynamic ratio,\nDynamic ratio = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes" = "Pri každom cykle slučky vypočítajte novú hodnotu ISF. Nový ISF bude založený na aktuálnom BG, TDD inzulínu (posledných 24 hodín alebo vážený priemer) a korekčnom faktore (predvolená hodnota je 1).\n\nDynamický pomer ISF a CR bude obmedzený limitmi autosens.min/max.\n\nDynamický pomer nahrádza autosens.pomer: Nový ISF = statický ISF / dynamický pomer,\nDynamický pomer = profil.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes";
@@ -2077,7 +2077,7 @@ Enact a temp Basal or a temp target */
 "Activate Dynamic Carb Ratio (CR)" = "Activate Dynamic Carb Ratio (CR)";
 
 /* Headline "Adjust Dynamic ISF constant" */
-"Adjust Dynamic ISF constant" = "Nastavenie konštanty Dynamic ISF";
+"Adjust Dynamic ISF constant" = "Adjust Dynamic ISF constant";
 
 /* Adjust Dynamic ISF constant */
 "Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula there is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users" = "Upravte dynamické pomery pomocou konštanty. Predvolená hodnota je 0,5. Čím vyššia je táto hodnota, tým väčšia bude korekcia vášho ISF pre vysoký alebo nízky BG. Maximálna korekcia je určená nastavením min/max v položke Autosens. Pre funkciu Sigmoid sa na začiatku odporúča korekčný faktor 0,4 - 0,5. Pre logaritmický vzorec existuje menej konsenzu, ale pre väčšinu používateľov je vhodnejšie začať s 0,5 - 0,8";

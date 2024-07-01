@@ -432,28 +432,28 @@ Enact a temp Basal or a temp target */
 "Max Carbs" = "Максимум углеводов";
 
 /* Max setting */
-"Max Fat" = "Max Fat";
+"Max Fat" = "Макс жир";
 
 /* Max setting */
-"Max Protein" = "Max Protein";
+"Max Protein" = "Макс белок";
 
 /* Max setting */
-"Limit Per Entry" = "Limit Per Entry";
+"Limit Per Entry" = "Лимит на запись";
 
 /* Max Carbs limit exceeded */
-"Max Carbs of" = "Max Carbs of";
+"Max Carbs of" = "Макс. угля";
 
 /* Max Fat limit exceeded */
-"Max Fat of" = "Max Fat of";
+"Max Fat of" = "Максимальный жир";
 
 /* Max Protein limit exceeded */
-"Max Protein of" = "Max Protein of";
+"Max Protein of" = "Максимальный белок";
 
 /* Max Bolus limit exceeded */
-"Max Bolus of" = "Max Bolus of";
+"Max Bolus of" = "Максимальный Болус";
 
 /* Limit Exceeded label */
-"exceeded" = "exceeded";
+"exceeded" = "превышен";
 
 /* */
 "Pump Settings" = "Настройки помпы";
@@ -519,13 +519,13 @@ Enact a temp Basal or a temp target */
 "Watch Configuration" = "Конфигурация часов";
 
 /* */
-"Apple Watch" = "Apple Watch";
+"Apple Watch" = "Часы Apple";
 
 /* */
 "Display on Watch" = "Отображать на часах";
 
 /* */
-"Garmin Watch" = "Garmin Watch";
+"Garmin Watch" = "Часы Гармина";
 
 /* */
 "Add devices" = "Добавить устройства";
@@ -611,9 +611,6 @@ Enact a temp Basal or a temp target */
 /* Delete insulin from pump history and Nightscout */
 "Delete Insulin?" = "Удалить инсулин?";
 
-/* */
-"Delete Carbs?" = "Delete Carbs?";
-
 /* Treatments list */
 "Treatments" = "События";
 
@@ -645,7 +642,7 @@ Enact a temp Basal or a temp target */
 "External" = "Внешний";
 
 /* */
-"Other" = "Прочее";
+"Other" = "Прочие вопросы";
 
 /* */
 "Libre Transmitter" = "Libre трансмиттер";
@@ -1173,7 +1170,7 @@ Enact a temp Basal or a temp target */
 "Save as your Normal Basal Rates" = "Сохранить как Ваш нормальный базальный профиль";
 
 /* */
-"Save on Pump" = "Сохранить на помпу";
+"Save on Pump" = "Сохранить на насосе";
 
 /* Debug option view Pump History */
 "Pump History" = "История помпы";
@@ -1203,7 +1200,7 @@ Enact a temp Basal or a temp target */
 "Enacted announcements" = "Принятые оповещения";
 
 /* Debug option view Autotune */
-"Autotune" = "Автотюн";
+"Autotune" = "Autotune";
 
 /* Debug option view Target presets */
 "Target presets" = "Предустановки временных целей";
@@ -1241,7 +1238,7 @@ Enact a temp Basal or a temp target */
 "Manual" = "Ручной режим";
 
 /* An Automatic delivered bolus (SMB) */
-"SMB" = "SMB";
+"SMB" = "СМБ";
 
 /* A manually entered dose of external insulin */
 "External Insulin" = "Внешний инсулин";
@@ -1264,7 +1261,7 @@ Enact a temp Basal or a temp target */
 "Enable" = "Включить";
 
 /* Header */
-"Fat and Protein Conversion Settings" = "Fat and Protein Conversion Settings";
+"Fat and Protein Conversion Settings" = "Настройки преобразования жиров и протеинов";
 
 /* Delay */
 "Delay In Minutes" = "Задержка в минутах";
@@ -1282,7 +1279,7 @@ Enact a temp Basal or a temp target */
 "Allows fat and protein to be converted into future carb equivalents using the Warsaw formula of kilocalories divided by 10.\n\nThis spreads the carb equivilants over a maximum duration setting that can be configured from 5-12 hours.\n\nDelay is time from now until the first future carb entry.\n\nInterval in minutes is how many minutes are between entries. The shorter the interval, the smoother the result. 10, 15, 20, 30, or 60 are reasonable choices.\n\nAdjustment factor is how much effect the fat and protein has on the entries. 1.0 is full effect (original Warsaw Method) and 0.5 is half effect. Note that you may find that your normal carb ratio needs to increase to a larger number if you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 0.5 to ease into it.\n\nDefault settings: Time Cap: 8 h, Interval: 30 min, Factor: 0.5, Delay 60 min" = "Позволяет преобразовывать жиры и белки в будущие эквиваленты углеводов, используя варшавскую формулу деления килокалорий на 10.\n\nЭто распределяет эквиваленты углеводов по максимальной продолжительности, которая может быть установлена в пределах 5-12 часов.\n\nЗадержка - это время с настоящего момента до первого ввода углеводов в будущем.\n\nИнтервал в минутах - это количество минут между записями. Чем короче интервал, тем более плавный результат. 10, 15, 20, 30 или 60 - разумный выбор.\n\nКорректирующий коэффициент - это то, насколько сильно жир и белок влияют на количество продуктов. 1.0 - это полный эффект (оригинальный Варшавский метод), а 0.5 - половинный эффект. Обратите внимание, что вы можете обнаружить, что ваше нормальное соотношение углеводов нуждается в увеличении, если вы начнете добавлять жиры и белки. По этой причине лучше всего начинать с коэффициента примерно 0.5, чтобы облегчить его использование.\n\nНастройки по умолчанию: Ограничение по времени: 8 часов, Интервал: 30 минут, Коэффициент: 0.5, Задержка 60 минут";
 
 /* FPU Settings Title */
-"Fat and Protein" = "Fat and Protein";
+"Fat and Protein" = "Жир и белок";
 
 /* Display fat and protein entities */
 "Fat & Protein" = "Жиры и белки";
@@ -1297,7 +1294,7 @@ Enact a temp Basal or a temp target */
 "Protein" = "Белки";
 
 /* Service Section */
-"Meal Settings" = "Meal Settings";
+"Meal Settings" = "Настройки питания";
 
 /* Service Section */
 "Profile Override" = "Переопределение профиля";
@@ -1365,7 +1362,7 @@ Enact a temp Basal or a temp target */
 "Cancel Profile Override" = "Отменить переопределение профиля?";
 
 /* Alert */
-"Cancel Temp Target" = "Отменить временную цель";
+"Cancel Temp Target" = "Cancel Temp Target";
 
 /* Alert */
 "Return to Normal?" = "Вернуться к нормальному?";
@@ -1428,7 +1425,7 @@ Enact a temp Basal or a temp target */
 "Save and continue" = "Сохранить и продолжить";
 
 /* */
-"Save as Preset" = "Сохранить как шаблон";
+"Save as Preset" = "Сохранить как пресет";
 
 /* */
 "Predictions" = "Прогноз";
@@ -1578,7 +1575,7 @@ Enact a temp Basal or a temp target */
 "Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains." = "Замените Под сейчас. Подача инсулина будет остановлена спустя %1$@ или когда резервуар будет пуст.";
 
 /* Label text for temporary basal rate summary */
-"Rate" = "Скорость";
+"Rate" = "Оценить";
 
 /* Summary string for temporary basal rate configuration page */
 "%1$@ for %2$@" = "%1$@ на %2$@";
@@ -1607,7 +1604,7 @@ Enact a temp Basal or a temp target */
 "This PumpManager has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to therapy settings -> delivery limits and set a new maximum basal rate." = "Помощник настройки помпы не был сконфигурирован относительно максимального уровня базального инсулина. Пожалуйста, перейдите в \"Настройки помпы\" -> \"Предел подачи\" и установите новый максимальный уровень базального инсулина.";
 
 /* description label for active time pod details row */
-"Active Time" = "Активирован в";
+"Active Time" = "Активное время";
 
 /* description label for total delivery pod details row */
 "Total Delivery" = "Всего доставлено";
@@ -1656,7 +1653,7 @@ Enact a temp Basal or a temp target */
 "Month" = "Месяц";
 
 /* */
-"Total" = "Всего";
+"Total" = "Итого";
 
 /* Headline Statistics */
 "Statistics" = "Статистика";
@@ -1731,7 +1728,7 @@ Enact a temp Basal or a temp target */
 "Low (<" = "Низкий (<";
 
 /* SD */
-"SD" = "SD";
+"SD" = "УР";
 
 /* CV */
 "CV" = "CV";
@@ -1755,7 +1752,7 @@ Enact a temp Basal or a temp target */
 "Interval" = "Интервал";
 
 /* Median loop interval */
-"Duration" = "Длительность";
+"Duration" = "Продолжительность";
 
 /* "Display SD */
 "Display SD instead of CV" = "Отображать SD вместо CV";
@@ -1913,7 +1910,7 @@ Enact a temp Basal or a temp target */
 "Allow SMB With High Temptarget" = "Разрешить SMB с высокой временной целью";
 
 /* Headline "Allow SMB With High Temptarget" */
-"Allow SMB With High Temptarget" = "Разрешить SMB с высокой временной целью";
+"Allow SMB With High Temptarget" = "Разрешить SMB с высоким темпом";
 
 /* "Allow SMB With High Temptarget" */
 "Defaults to false. When true, allows supermicrobolus (if otherwise enabled) even with high temp targets (> 100 mg/dl)." = "По умолчанию выключено. Включение разрешает супермикроболюсы Smb даже с высокими временными целями.";
@@ -2056,7 +2053,7 @@ Enact a temp Basal or a temp target */
 "Adjust Dynamic ISF constant" = "Настроить константу динамического ISF";
 
 /* Adjust Dynamic ISF constant */
-"Adjust Dynamic ISF constant" = "Настроить константу динамического ISF";
+"Adjust Dynamic ISF constant" = "Настройка константы динамического ISF";
 
 /* Enable Dynamic ISF, Headline */
 "Enable Dynamic ISF" = "Включить динамический ISF";
@@ -2080,7 +2077,7 @@ Enact a temp Basal or a temp target */
 "Activate Dynamic Carb Ratio (CR)" = "Включить динамический углеводный коэффициент (CR)";
 
 /* Headline "Adjust Dynamic ISF constant" */
-"Adjust Dynamic ISF constant" = "Настроить константу динамического ISF";
+"Adjust Dynamic ISF constant" = "Настройка константы динамического ISF";
 
 /* Adjust Dynamic ISF constant */
 "Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula there is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users" = "Отрегулируйте динамические коэффициенты на постоянную величину. Значение по умолчанию равно 0.5. Чем выше значение, тем больше будет коррекция вашего ISF для высокого или низкого BG. Максимальная коррекция определяется настройками Auto sens min/max. Для сигмовидной функции рекомендуется для начала использовать коэффициент регулировки 0.4 - 0.5. В отношении логарифмической формулы консенсуса меньше, но большинству пользователей более подходит начинать с 0.5 - 0.8";
@@ -2098,7 +2095,7 @@ Enact a temp Basal or a temp target */
 "Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function." = "Использовать сигмоидную функцию для ISF (и для CR, если включено), вместо логарифмической функции. Требует включенного в настройках режима Dynamic ISF\n\nКоэффициент регулировки AF регулирует наклон кривой (Y: Динамическое соотношение, X: Глюкоза крови). Ниже значения ==> меньше крутизна == меньше агрессивность.\n\nAutosens минимум и максимум определяют оба - максимальный и минимальный лимиты для динамического соотношения и как сильно динамическое соотношение будет изменять ISF/CR. Коэффициент регулировки AF - это высота кривой, Y - интервал, где Y - динамическое соотношение. Кривая всегда будет иметь сигмовидную форму, не важно какой autosens минимум/максимум указаны. Это означает, что эти настройки имеют большие последствия для результата вычисляемого динамического ISF. Пожалуйста, будьте осторожны с высокими значениями параметра алгоритма максимума для autosens. При правильной настройке профиля ISF, никогда не понадобится значение выше 1,5.\n\nAn Предел Autosens максимум > 1,5 не рекомендуется при использовании сигмовидной функции.";
 
 /* Headline Threshold Setting */
-"Minimum Safety Threshold (mg/dL)" = "Minimum Safety Threshold (mg/dL)";
+"Minimum Safety Threshold (mg/dL)" = "Минимальный порог безопасности (мг/дл)";
 
 /* Minimum Safety Threshold */
 "All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted." = "All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted.";
