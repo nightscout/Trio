@@ -97,43 +97,59 @@ import Swinject
 
     private func cleanupOldData() {
         Task {
-            await coreDataStack.cleanupPersistentHistoryTokens(before: Date.oneWeekAgo)
-            try await purgeOldNSManagedObjects()
+            async let cleanupTokens: () = coreDataStack.cleanupPersistentHistoryTokens(before: Date.oneWeekAgo)
+            async let purgeData: () = purgeOldNSManagedObjects()
+
+            await cleanupTokens
+            try await purgeData
         }
     }
 
     private func purgeOldNSManagedObjects() async throws {
-        try await coreDataStack.batchDeleteOlderThan(GlucoseStored.self, dateKey: "date", days: 90)
-        try await coreDataStack.batchDeleteOlderThan(PumpEventStored.self, dateKey: "timestamp", days: 90)
-        try await coreDataStack.batchDeleteOlderThan(
+        async let glucoseDeletion: () = coreDataStack.batchDeleteOlderThan(GlucoseStored.self, dateKey: "date", days: 90)
+        async let pumpEventDeletion: () = coreDataStack.batchDeleteOlderThan(PumpEventStored.self, dateKey: "timestamp", days: 90)
+        async let bolusDeletion: () = coreDataStack.batchDeleteOlderThan(
             parentType: PumpEventStored.self,
             childType: BolusStored.self,
             dateKey: "timestamp",
             days: 90,
             relationshipKey: "pumpEvent"
         )
-        try await coreDataStack.batchDeleteOlderThan(
+        async let tempBasalDeletion: () = coreDataStack.batchDeleteOlderThan(
             parentType: PumpEventStored.self,
             childType: TempBasalStored.self,
             dateKey: "timestamp",
             days: 90,
             relationshipKey: "pumpEvent"
         )
-        try await coreDataStack.batchDeleteOlderThan(OrefDetermination.self, dateKey: "deliverAt", days: 90)
-        try await coreDataStack.batchDeleteOlderThan(OpenAPS_Battery.self, dateKey: "date", days: 90)
-        try await coreDataStack.batchDeleteOlderThan(CarbEntryStored.self, dateKey: "date", days: 90)
-        try await coreDataStack.batchDeleteOlderThan(Forecast.self, dateKey: "date", days: 2)
-        try await coreDataStack.batchDeleteOlderThan(
+        async let determinationDeletion: () = coreDataStack
+            .batchDeleteOlderThan(OrefDetermination.self, dateKey: "deliverAt", days: 90)
+        async let batteryDeletion: () = coreDataStack.batchDeleteOlderThan(OpenAPS_Battery.self, dateKey: "date", days: 90)
+        async let carbEntryDeletion: () = coreDataStack.batchDeleteOlderThan(CarbEntryStored.self, dateKey: "date", days: 90)
+        async let forecastDeletion: () = coreDataStack.batchDeleteOlderThan(Forecast.self, dateKey: "date", days: 2)
+        async let forecastValueDeletion: () = coreDataStack.batchDeleteOlderThan(
             parentType: Forecast.self,
             childType: ForecastValue.self,
             dateKey: "date",
             days: 2,
             relationshipKey: "forecast"
         )
-        try await coreDataStack.batchDeleteOlderThan(OverrideStored.self, dateKey: "date", days: 3)
-        try await coreDataStack.batchDeleteOlderThan(OverrideRunStored.self, dateKey: "startDate", days: 3)
+        async let overrideDeletion: () = coreDataStack.batchDeleteOlderThan(OverrideStored.self, dateKey: "date", days: 3)
+        async let overrideRunDeletion: () = coreDataStack
+            .batchDeleteOlderThan(OverrideRunStored.self, dateKey: "startDate", days: 3)
 
-        // TODO: - Purge Data of other (future) entities as well
+        // Await each task to ensure they are all completed
+        try await glucoseDeletion
+        try await pumpEventDeletion
+        try await bolusDeletion
+        try await tempBasalDeletion
+        try await determinationDeletion
+        try await batteryDeletion
+        try await carbEntryDeletion
+        try await forecastDeletion
+        try await forecastValueDeletion
+        try await overrideDeletion
+        try await overrideRunDeletion
     }
 
     private func handleURL(_ url: URL) {
