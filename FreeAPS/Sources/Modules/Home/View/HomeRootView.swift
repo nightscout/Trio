@@ -228,6 +228,11 @@ extension Home {
                 } else if newDuration > 0 {
                     durationString =
                         "\((newDuration * 60).formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) s"
+                } else {
+                    /// Do not show the Override anymore
+                    Task {
+                        await state.cancelProfile(withID: latestOverride.objectID)
+                    }
                 }
             }
 
@@ -344,7 +349,8 @@ extension Home {
                     displayXgridLines: $state.displayXgridLines,
                     displayYgridLines: $state.displayYgridLines,
                     thresholdLines: $state.thresholdLines,
-                    isTempTargetActive: $state.isTempTargetActive, state: state
+                    isTempTargetActive: $state.isTempTargetActive,
+                    state: state
                 )
             }
             .padding(.bottom)
@@ -557,6 +563,7 @@ extension Home {
                             Button("Yes", role: .destructive) {
                                 Task {
                                     guard let objectID = latestOverride.first?.objectID else { return }
+                                    await state.saveToOverrideRunStored(withID: objectID)
                                     await state.cancelProfile(withID: objectID)
                                 }
                             }
@@ -786,15 +793,15 @@ extension Home {
                     NavigationStack { OverrideProfilesConfig.RootView(resolver: resolver) }
                         .tabItem {
                             Label(
-                                "Profile",
-                                systemImage: "person.fill"
+                                "Adjustments",
+                                systemImage: "slider.horizontal.2.gobackward"
                             ) }.tag(2)
 
                     NavigationStack(path: self.$settingsPath) {
                         Settings.RootView(resolver: resolver) }
                         .tabItem { Label(
-                            "Menu",
-                            systemImage: "text.justify"
+                            "Settings",
+                            systemImage: "gear"
                         ) }.tag(3)
                 }
                 .tint(Color.tabBar)

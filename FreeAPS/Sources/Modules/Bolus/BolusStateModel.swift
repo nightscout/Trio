@@ -80,7 +80,7 @@ extension Bolus {
         @Published var carbsRequired: Decimal?
         @Published var useFPUconversion: Bool = false
         @Published var dish: String = ""
-        @Published var selection: Presets?
+        @Published var selection: MealPresetStored?
         @Published var summation: [String] = []
         @Published var maxCarbs: Decimal = 0
 
@@ -234,10 +234,12 @@ extension Bolus {
             Task {
                 let isInsulinGiven = amount > 0
                 let isCarbsPresent = carbs > 0
+                let isFatPresent = fat > 0
+                let isProteinPresent = protein > 0
 
                 if isInsulinGiven {
                     try await handleInsulin(isExternal: externalInsulin)
-                } else if isCarbsPresent {
+                } else if isCarbsPresent || isFatPresent || isProteinPresent {
                     waitForSuggestion = true
                 } else {
                     hideModal()
@@ -327,7 +329,10 @@ extension Bolus {
             do {
                 let authenticated = try await unlockmanager.unlock()
                 if authenticated {
-                    storeExternalInsulinEvent()
+                    // store external dose to pump history
+                    await pumpHistoryStorage.storeExternalInsulinEvent(amount: amount, timestamp: date)
+                    // perform determine basal sync
+                    await apsManager.determineBasalSync()
                 } else {
                     print("authentication failed")
                 }
@@ -339,53 +344,6 @@ extension Bolus {
                         self.hideModal()
                     }
                 }
-            }
-        }
-
-        private func storeExternalInsulinEvent() {
-            pumpHistoryStorage.storeEvents(
-                [
-                    PumpHistoryEvent(
-                        id: UUID().uuidString,
-                        type: .bolus,
-                        timestamp: date,
-                        amount: amount,
-                        duration: nil,
-                        durationMin: nil,
-                        rate: nil,
-                        temp: nil,
-                        carbInput: nil,
-                        isExternal: true
-                    )
-                ]
-            )
-            debug(.default, "External insulin saved")
-
-            // save to core data asynchronously
-            context.perform {
-                // create pump event
-                let newPumpEvent = PumpEventStored(context: self.context)
-                newPumpEvent.timestamp = self.date
-                newPumpEvent.type = PumpEvent.bolus.rawValue
-
-                // create bolus entry and specify relationship to pump event
-                let newBolusEntry = BolusStored(context: self.context)
-                newBolusEntry.pumpEvent = newPumpEvent
-                newBolusEntry.amount = self.amount as NSDecimalNumber
-                newBolusEntry.isExternal = true
-                newBolusEntry.isSMB = false
-
-                do {
-                    guard self.context.hasChanges else { return }
-                    try self.context.save()
-                } catch {
-                    print(error.localizedDescription)
-                }
-            }
-
-            // perform determine basal sync
-            Task {
-                await apsManager.determineBasalSync()
             }
         }
 
@@ -409,7 +367,7 @@ extension Bolus {
             )]
             carbsStorage.storeCarbs(carbsToStore)
 
-            if carbs > 0 {
+            if carbs > 0 || fat > 0 || protein > 0 {
                 // only perform determine basal sync if the user doesn't use the pump bolus, otherwise the enact bolus func in the APSManger does a sync
                 if amount <= 0 {
                     Task {
@@ -473,10 +431,10 @@ extension Bolus {
             var carbs_: Decimal = 0.0
             var fat_: Decimal = 0.0
             var protein_: Decimal = 0.0
-            var presetArray = [Presets]()
+            var presetArray = [MealPresetStored]()
 
             context.performAndWait {
-                let requestPresets = Presets.fetchRequest() as NSFetchRequest<Presets>
+                let requestPresets = MealPresetStored.fetchRequest() as NSFetchRequest<MealPresetStored>
                 try? presetArray = context.fetch(requestPresets)
             }
             var waitersNotepad = [String]()

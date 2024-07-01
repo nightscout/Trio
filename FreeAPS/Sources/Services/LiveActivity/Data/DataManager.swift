@@ -5,29 +5,46 @@ import Foundation
 @available(iOS 16.2, *)
 extension LiveActivityBridge {
     func fetchAndMapGlucose() async {
+        let result = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: GlucoseStored.self,
+            onContext: context,
+            predicate: NSPredicate.predicateForSixHoursAgo,
+            key: "date",
+            ascending: false,
+            fetchLimit: 72
+        )
         await context.perform {
-            self.glucoseFromPersistence = CoreDataStack.shared.fetchEntities(
-                ofType: GlucoseStored.self,
-                onContext: self.context,
-                predicate: NSPredicate.predicateForSixHoursAgo,
-                key: "date",
-                ascending: false,
-                fetchLimit: 72
-            ).map { GlucoseData(glucose: Int($0.glucose), date: $0.date ?? Date(), direction: $0.directionEnum) }
+            self.glucoseFromPersistence = result
+                .map { GlucoseData(glucose: Int($0.glucose), date: $0.date ?? Date(), direction: $0.directionEnum) }
         }
     }
 
     func fetchAndMapDetermination() async {
+        let result = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: OrefDetermination.self,
+            onContext: context,
+            predicate: NSPredicate.enactedDetermination,
+            key: "deliverAt",
+            ascending: false,
+            fetchLimit: 1,
+            propertiesToFetch: ["iob", "cob", "deliverAt"]
+        )
         await context.perform {
-            self.determination = CoreDataStack.shared.fetchEntities(
-                ofType: OrefDetermination.self,
-                onContext: self.context,
-                predicate: NSPredicate.enactedDetermination,
-                key: "deliverAt",
-                ascending: false,
-                fetchLimit: 1,
-                propertiesToFetch: ["iob", "cob", "deliverAt"]
-            ).first.map { DeterminationData(cob: Int($0.cob), iob: $0.iob?.decimalValue ?? 0) }
+            self.determination = result.first.map { DeterminationData(cob: Int($0.cob), iob: $0.iob?.decimalValue ?? 0) }
+        }
+    }
+
+    func fetchAndMapOverride() async {
+        let result = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: OverrideStored.self,
+            onContext: context,
+            predicate: NSPredicate.predicateForOneDayAgo,
+            key: "date",
+            ascending: false,
+            fetchLimit: 1
+        )
+        await context.perform {
+            self.isOverridesActive = result.first.map { OverrideData(isActive: $0.enabled) }
         }
     }
 }

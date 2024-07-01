@@ -25,11 +25,8 @@ public extension OverrideStored {
     @NSManaged var start: NSDecimalNumber?
     @NSManaged var target: NSDecimalNumber?
     @NSManaged var uamMinutes: NSDecimalNumber?
+    @NSManaged var orderPosition: Int16
+    @NSManaged var overrideRun: OverrideRunStored?
 }
 
-extension OverrideStored: Identifiable {
-    override public func awakeFromInsert() {
-        super.awakeFromInsert()
-        id = UUID().uuidString
-    }
-}
+extension OverrideStored: Identifiable {}

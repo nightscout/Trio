@@ -326,20 +326,22 @@ extension NightscoutConfig {
             }
         }
 
-        func backfillGlucose() {
+        func backfillGlucose() async {
             backfilling = true
-            nightscoutManager.fetchGlucose(since: Date().addingTimeInterval(-1.days.timeInterval))
-                .sink { [weak self] glucose in
-                    guard let self = self else { return }
-                    DispatchQueue.main.async {
-                        self.backfilling = false
-                    }
 
-                    guard glucose.isNotEmpty else { return }
+            let glucose = await nightscoutManager.fetchGlucose(since: Date().addingTimeInterval(-1.days.timeInterval))
+
+            if glucose.isNotEmpty {
+                await MainActor.run {
+                    self.backfilling = false
                     self.healthKitManager.saveIfNeeded(bloodGlucose: glucose)
                     self.glucoseStorage.storeGlucose(glucose)
                 }
-                .store(in: &lifetime)
+            } else {
+                await MainActor.run {
+                    self.backfilling = false
+                }
+            }
         }
 
         func delete() {

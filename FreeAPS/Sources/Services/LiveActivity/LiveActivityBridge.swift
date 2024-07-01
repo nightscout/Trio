@@ -41,6 +41,7 @@ import UIKit
     private var currentActivity: ActiveActivity?
     private var latestGlucose: GlucoseData?
     var glucoseFromPersistence: [GlucoseData]?
+    var isOverridesActive: OverrideData?
 
     let context = CoreDataStack.shared.newTaskContext()
 
@@ -76,6 +77,10 @@ import UIKit
 
             // Fetch and map Determination to DeterminationData struct
             await fetchAndMapDetermination()
+
+            // Fetch and map Override to OverrideData struct
+            /// to show if there is an active Override
+            await fetchAndMapOverride()
 
             // Push the update to the Live Activity
             glucoseDidUpdate(glucoseFromPersistence ?? [])
@@ -148,7 +153,8 @@ import UIKit
                         cob: 0,
                         iob: 0,
                         lockScreenView: "Simple",
-                        unit: "--"
+                        unit: "--",
+                        isOverrideActive: false
                     ),
                     staleDate: Date.now.addingTimeInterval(60)
                 )
@@ -214,7 +220,8 @@ extension LiveActivityBridge {
                 mmol: settings.units == .mmolL,
                 chart: glucose,
                 settings: settings,
-                determination: determination
+                determination: determination,
+                override: isOverridesActive
             )
 
             if let content = content {

@@ -158,11 +158,11 @@ class CoreDataStack: ObservableObject {
 extension CoreDataStack {
     /// Synchronously delete entry with specified object IDs
     ///  - Tag: synchronousDelete
-    func deleteObject(identifiedBy objectID: NSManagedObjectID) {
+    func deleteObject(identifiedBy objectID: NSManagedObjectID) async {
         let viewContext = persistentContainer.viewContext
         debugPrint("Start deleting data from the store ...\(DebuggingIdentifiers.inProgress)")
 
-        viewContext.perform {
+        await viewContext.perform {
             do {
                 let entryToDelete = viewContext.object(with: objectID)
                 viewContext.delete(entryToDelete)

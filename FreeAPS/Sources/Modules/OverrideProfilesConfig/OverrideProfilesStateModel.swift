@@ -3,21 +3,22 @@ import SwiftUI
 
 extension OverrideProfilesConfig {
     final class StateModel: BaseStateModel<Provider> {
+        @Injected() var broadcaster: Broadcaster!
         @Injected() var storage: TempTargetsStorage!
         @Injected() var apsManager: APSManager!
+        @Injected() var overrideStorage: OverrideStorage!
 
-        @Published var percentageProfiles: Double = 100
+        @Published var overrideSliderPercentage: Double = 100
         @Published var isEnabled = false
-        @Published var _indefinite = true
-        @Published var durationProfile: Decimal = 0
+        @Published var indefinite = true
+        @Published var overrideDuration: Decimal = 0
         @Published var target: Decimal = 0
-        @Published var override_target: Bool = false
+        @Published var shouldOverrideTarget: Bool = false
         @Published var smbIsOff: Bool = false
-        @Published var id: String = ""
-        @Published var profileName: String = ""
+        @Published var id = ""
+        @Published var overrideName: String = ""
         @Published var isPreset: Bool = false
-        @Published var profilePresets: [OverrideStored] = []
-        @Published var selection: OverrideStored?
+        @Published var overridePresets: [OverrideStored] = []
         @Published var advancedSettings: Bool = false
         @Published var isfAndCr: Bool = true
         @Published var isf: Bool = true
@@ -29,15 +30,15 @@ extension OverrideProfilesConfig {
         @Published var uamMinutes: Decimal = 0
         @Published var defaultSmbMinutes: Decimal = 0
         @Published var defaultUamMinutes: Decimal = 0
-        @Published var selectedTab: Tab = .profiles
+        @Published var selectedTab: Tab = .overrides
         @Published var activeOverrideName: String = ""
         @Published var currentActiveOverride: OverrideStored?
+        @Published var showOverrideEditSheet = false
 
         var units: GlucoseUnits = .mmolL
 
         // temp target stuff
         @Published var low: Decimal = 0
-        // @Published var target: Decimal = 0
         @Published var high: Decimal = 0
         @Published var durationTT: Decimal = 0
         @Published var date = Date()
@@ -49,12 +50,6 @@ extension OverrideProfilesConfig {
         @Published var hbt: Double = 160
         @Published var didSaveSettings: Bool = false
 
-        private var dateFormatter: DateFormatter {
-            let df = DateFormatter()
-            df.dateFormat = "dd.MM.yy HH:mm"
-            return df
-        }
-
         override func subscribe() {
             setupNotification()
             units = settingsManager.settings.units
@@ -64,6 +59,7 @@ extension OverrideProfilesConfig {
             updateLatestOverrideConfiguration()
             presetsTT = storage.presets()
             maxValue = settingsManager.preferences.autosensMax
+            broadcaster.register(SettingsObserver.self, observer: self)
         }
 
         let coredataContext = CoreDataStack.shared.newTaskContext()
@@ -97,7 +93,6 @@ extension OverrideProfilesConfig.StateModel {
     }
 
     /// determine the actions when the context has changed
-    ///
     /// its done on a background thread and after that the UI gets updated on the main thread
     @objc private func contextDidSave(_ notification: Notification) {
         guard let userInfo = notification.userInfo else { return }
@@ -120,214 +115,173 @@ extension OverrideProfilesConfig.StateModel {
             }
         }
     }
-}
 
-// MARK: - Enact Overrides
+    // MARK: - Enact Overrides
 
-extension OverrideProfilesConfig.StateModel {
-    func scheduleOverrideDisabling(for override: OverrideStored) {
-        let now = Date()
-        guard let toCancelDuration = override.duration,
-              let endTime = override.date?
-              .addingTimeInterval(
-                  TimeInterval(truncating: toCancelDuration) *
-                      60
-              ) // ensuring duration is minutes, not seconds!
-        else {
-            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) End time calculation failed")
-            return
+    func reorderOverride(from source: IndexSet, to destination: Int) {
+        overridePresets.move(fromOffsets: source, toOffset: destination)
+
+        for (index, override) in overridePresets.enumerated() {
+            override.orderPosition = Int16(index + 1)
         }
 
-        debugPrint(
-            "\(DebuggingIdentifiers.inProgress) \(#file) \(#function) Scheduling cancellation at \(endTime) (in \(endTime.timeIntervalSince(now)) seconds)"
-        )
-
-        guard endTime > now else {
-            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) End time is in the past or now")
-            return
-        }
-
-        let timeInterval = endTime.timeIntervalSince(now)
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + timeInterval) { [weak self] in
-            debugPrint("\(DebuggingIdentifiers.inProgress) \(#file) \(#function) Executing scheduled cancelActiveProfile")
-            self?.cancelActiveProfile()
+        do {
+            guard viewContext.hasChanges else { return }
+            try viewContext.save()
+        } catch {
+            debugPrint(
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save after reordering Override Presets with error: \(error.localizedDescription)"
+            )
         }
     }
 
-    // Enact Preset
     /// here we only have to update the Boolean Flag 'enabled'
-    @MainActor func enactProfilePreset(withID id: NSManagedObjectID) async {
+    @MainActor func enactOverridePreset(withID id: NSManagedObjectID) async {
         do {
-            /// get the underlying NSManagedObject of the Profile that should be enabled
-            let profileToEnact = try viewContext.existingObject(with: id) as? OverrideStored
-            profileToEnact?.enabled = true
-            profileToEnact?.date = Date()
+            /// get the underlying NSManagedObject of the Override that should be enabled
+            let overrideToEnact = try viewContext.existingObject(with: id) as? OverrideStored
+            overrideToEnact?.enabled = true
+            overrideToEnact?.date = Date()
 
-            /// Update the 'Cancel Profile' button state
+            /// Update the 'Cancel Override' button state
             isEnabled = true
 
-            /// disable all active Profiles and reset state variables
-            await disableAllActiveProfiles(except: id)
-            await resetStateVariables()
+            /// disable all active Overrides and reset state variables
+            /// do not create a OverrideRunEntry because we only want that if we cancel a running Override, not when enacting a Preset
+            await disableAllActiveOverrides(except: id, createOverrideRunEntry: false)
 
-            if let toSchedule = profileToEnact {
-                scheduleOverrideDisabling(for: toSchedule)
-            }
+            await resetStateVariables()
 
             guard viewContext.hasChanges else { return }
             try viewContext.save()
         } catch {
-            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to enact Profile Preset")
+            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to enact Override Preset")
         }
     }
-}
 
-// MARK: - Profile (presets) save operations
+    // MARK: - Save the Override that we want to cancel to the OverrideRunStored Entity, then cancel ALL active overrides
 
-extension OverrideProfilesConfig.StateModel {
-    // Saves Profile in a background context
-    /// not a Preset
-    func saveAsProfile() async {
-        await coredataContext.perform { [self] in
-            let newProfile = OverrideStored(context: self.coredataContext)
-            if self.profileName.isNotEmpty {
-                newProfile.name = self.profileName
-            } else {
-                let formattedDate = dateFormatter.string(from: Date())
-                newProfile.name = "Preset <\(formattedDate)>"
-            }
-            newProfile.duration = self.durationProfile as NSDecimalNumber
-            newProfile.indefinite = self._indefinite
-            newProfile.percentage = self.percentageProfiles
-            newProfile.enabled = true
-            newProfile.smbIsOff = self.smbIsOff
-            if self.isPreset {
-                newProfile.isPreset = true
-                newProfile.id = id
-            } else { newProfile.isPreset = false }
-            newProfile.date = Date()
-            if override_target {
-                if units == .mmolL {
-                    target = target.asMgdL
-                }
-                newProfile.target = target as NSDecimalNumber
-            } else { newProfile.target = 0 }
+    @MainActor func disableAllActiveOverrides(except overrideID: NSManagedObjectID? = nil, createOverrideRunEntry: Bool) async {
+        // Get ALL NSManagedObject IDs of ALL active Override to cancel every single Override
+        let ids = await overrideStorage.loadLatestOverrideConfigurations(fetchLimit: 0) // 0 = no fetch limit
 
-            if advancedSettings {
-                newProfile.advancedSettings = true
-
-                if !isfAndCr {
-                    newProfile.isfAndCr = false
-                    newProfile.isf = isf
-                    newProfile.cr = cr
-                } else { newProfile.isfAndCr = true }
-                if smbIsAlwaysOff {
-                    newProfile.smbIsAlwaysOff = true
-                    newProfile.start = start as NSDecimalNumber
-                    newProfile.end = end as NSDecimalNumber
-                } else { newProfile.smbIsAlwaysOff = false }
-
-                newProfile.smbMinutes = smbMinutes as NSDecimalNumber
-                newProfile.uamMinutes = uamMinutes as NSDecimalNumber
-            }
+        await viewContext.perform {
             do {
-                guard coredataContext.hasChanges else { return }
-                try coredataContext.save()
-                self.scheduleOverrideDisabling(for: newProfile)
+                // Fetch the existing OverrideStored objects from the context
+                let results = try ids.compactMap { id in
+                    try self.viewContext.existingObject(with: id) as? OverrideStored
+                }
+
+                // If there are no results, return early
+                guard !results.isEmpty else { return }
+
+                // Check if we also need to create a corresponding OverrideRunStored entry, i.e. when the User uses the Cancel Button in Override View
+                if createOverrideRunEntry {
+                    // Use the first override to create a new OverrideRunStored entry
+                    if let canceledOverride = results.first {
+                        let newOverrideRunStored = OverrideRunStored(context: self.viewContext)
+                        newOverrideRunStored.id = UUID()
+                        newOverrideRunStored.startDate = canceledOverride.date ?? .distantPast
+                        newOverrideRunStored.endDate = Date()
+                        newOverrideRunStored
+                            .target = NSDecimalNumber(decimal: self.overrideStorage.calculateTarget(override: canceledOverride))
+                        newOverrideRunStored.override = canceledOverride
+                    }
+                }
+
+                // Disable all override except the one with overrideID
+                for overrideToCancel in results {
+                    if overrideToCancel.objectID != overrideID {
+                        overrideToCancel.enabled = false
+                    }
+                }
+
+                // Save the context if there are changes
+                if self.viewContext.hasChanges {
+                    try self.viewContext.save()
+                }
             } catch {
-                print(error.localizedDescription)
-            }
-        }
-    }
-
-    // Save Presets
-    /// enabled has to be false, isPreset has to be true
-    func savePreset() async {
-        await coredataContext.perform { [self] in
-            let newOverride = OverrideStored(context: self.coredataContext)
-            newOverride.duration = self.durationProfile as NSDecimalNumber
-            newOverride.indefinite = self._indefinite
-            newOverride.percentage = self.percentageProfiles
-            newOverride.smbIsOff = self.smbIsOff
-            if self.profileName.isNotEmpty {
-                newOverride.name = self.profileName
-            } else {
-                let formattedDate = dateFormatter.string(from: Date())
-                newOverride.name = "Profile \(formattedDate)"
-            }
-            newOverride.isPreset = true
-            newOverride.date = Date()
-            newOverride.enabled = false
-
-            if override_target {
-                newOverride.target = (
-                    units == .mmolL
-                        ? target.asMgdL
-                        : target
-                ) as NSDecimalNumber
-            }
-
-            if advancedSettings {
-                newOverride.advancedSettings = true
-
-                if !isfAndCr {
-                    newOverride.isfAndCr = false
-                    newOverride.isf = isf
-                    newOverride.cr = cr
-                } else { newOverride.isfAndCr = true }
-                if smbIsAlwaysOff {
-                    newOverride.smbIsAlwaysOff = true
-                    newOverride.start = start as NSDecimalNumber
-                    newOverride.end = end as NSDecimalNumber
-                } else { newOverride.smbIsAlwaysOff = false }
-
-                newOverride.smbMinutes = smbMinutes as NSDecimalNumber
-                newOverride.uamMinutes = uamMinutes as NSDecimalNumber
-            }
-            do {
-                guard coredataContext.hasChanges else { return }
-                try coredataContext.save()
-
-                /// Custom Notification to update Presets View
-                Foundation.NotificationCenter.default.post(name: .didUpdateOverridePresets, object: nil)
-
-                /// prevent showing the current config of the recently added Preset
-                Task {
-                    await resetStateVariables()
-                }
-            } catch let error as NSError {
                 debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save Override Preset to Core Data with error: \(error.userInfo)"
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to disable active Overrides with error: \(error.localizedDescription)"
                 )
             }
         }
     }
-}
 
-// MARK: - Setup Override Presets Array
+    // MARK: - Override (presets) save operations
 
-extension OverrideProfilesConfig.StateModel {
-    // Fill the array of the Profile Presets to display them in the UI
-    private func setupOverridePresetsArray() {
-        Task {
-            let ids = await self.fetchForProfilePresets()
-            await updateOverridePresetsArray(with: ids)
-        }
-    }
-
-    /// Returns the NSManagedObjectID of the Override Presets
-    private func fetchForProfilePresets() async -> [NSManagedObjectID] {
-        let result = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: OverrideStored.self,
-            onContext: coredataContext,
-            predicate: NSPredicate.allOverridePresets,
-            key: "name",
-            ascending: true
+    // Saves a Custom Override in a background context
+    /// not a Preset
+    func saveCustomOverride() async {
+        let override = Override(
+            name: overrideName,
+            enabled: true,
+            date: Date(),
+            duration: overrideDuration,
+            indefinite: indefinite,
+            percentage: overrideSliderPercentage,
+            smbIsOff: smbIsOff,
+            isPreset: isPreset,
+            id: id,
+            overrideTarget: shouldOverrideTarget,
+            target: target,
+            advancedSettings: advancedSettings,
+            isfAndCr: isfAndCr,
+            isf: isf,
+            cr: cr,
+            smbIsAlwaysOff: smbIsAlwaysOff,
+            start: start,
+            end: end,
+            smbMinutes: smbMinutes,
+            uamMinutes: uamMinutes
         )
 
-        return await coredataContext.perform {
-            return result.map(\.objectID)
+        await overrideStorage.storeOverride(override: override)
+        await resetStateVariables()
+    }
+
+    // Save Presets
+    /// enabled has to be false, isPreset has to be true
+    func saveOverridePreset() async {
+        let preset = Override(
+            name: overrideName,
+            enabled: false,
+            date: Date(),
+            duration: overrideDuration,
+            indefinite: indefinite,
+            percentage: overrideSliderPercentage,
+            smbIsOff: smbIsOff,
+            isPreset: true,
+            id: id,
+            overrideTarget: shouldOverrideTarget,
+            target: target,
+            advancedSettings: advancedSettings,
+            isfAndCr: isfAndCr,
+            isf: isf,
+            cr: cr,
+            smbIsAlwaysOff: smbIsAlwaysOff,
+            start: start,
+            end: end,
+            smbMinutes: smbMinutes,
+            uamMinutes: uamMinutes
+        )
+
+        await overrideStorage.storeOverride(override: preset)
+
+        // Custom Notification to update Presets View
+        Foundation.NotificationCenter.default.post(name: .didUpdateOverridePresets, object: nil)
+
+        // Prevent showing the current config of the recently added Preset
+        await resetStateVariables()
+    }
+
+    // MARK: - Setup Override Presets Array
+
+    // Fill the array of the Override Presets to display them in the UI
+    private func setupOverridePresetsArray() {
+        Task {
+            let ids = await self.overrideStorage.fetchForOverridePresets()
+            await updateOverridePresetsArray(with: ids)
         }
     }
 
@@ -336,118 +290,32 @@ extension OverrideProfilesConfig.StateModel {
             let overrideObjects = try IDs.compactMap { id in
                 try viewContext.existingObject(with: id) as? OverrideStored
             }
-            profilePresets = overrideObjects
+            overridePresets = overrideObjects
         } catch {
             debugPrint(
                 "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to extract Overrides as NSManagedObjects from the NSManagedObjectIDs with error: \(error.localizedDescription)"
             )
         }
     }
-}
 
-// MARK: - Profile Cancelling
+    // MARK: - Override Preset Deletion
 
-extension OverrideProfilesConfig.StateModel {
-    /// Gets the corresponding NSManagedObjectID of the current active Profile and cancels it
-    func cancelActiveProfile() {
-        Task {
-            let id = await getActiveProfile()
-            await cancelActiveProfile(withID: id)
-        }
+    func invokeOverridePresetDeletion(_ objectID: NSManagedObjectID) async {
+        await overrideStorage.deleteOverridePreset(objectID)
+        // Custom Notification to update Presets View
+        Foundation.NotificationCenter.default.post(name: .didUpdateOverridePresets, object: nil)
     }
 
-    func getActiveProfile() async -> NSManagedObjectID? {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: OverrideStored.self,
-            onContext: coredataContext,
-            predicate: NSPredicate.lastActiveOverride,
-            key: "date",
-            ascending: false,
-            fetchLimit: 1
-        )
+    // MARK: - Setup the State variables with the last Override configuration
 
-        return await coredataContext.perform {
-            return results.first.map(\.objectID)
-        }
-    }
-
-    @MainActor func cancelActiveProfile(withID id: NSManagedObjectID?) async {
-        guard let id = id else { return }
-
-        return await viewContext.perform {
-            do {
-                let profileToCancel = try self.viewContext.existingObject(with: id) as? OverrideStored
-                profileToCancel?.enabled = false
-
-                /// Update the 'Cancel Profile' button state
-                self.isEnabled = false
-
-                guard self.viewContext.hasChanges else { return }
-                try self.viewContext.save()
-            } catch {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to cancel Profile with error: \(error.localizedDescription)"
-                )
-            }
-        }
-    }
-
-    /// Gets the corresponding NSManagedObjectIDs of all active Profiles and cancels them
-    @MainActor func disableAllActiveProfiles(except profileID: NSManagedObjectID? = nil) async {
-        /// get all NSManagedObject IDs of all active Profiles
-        let ids = await loadLatestOverrideConfigurations(fetchLimit: 0) /// 0 = no fetch limit
-
-        /// end all active profiles
-        do {
-            let results = try ids.compactMap { id in
-                try viewContext.existingObject(with: id) as? OverrideStored
-            }
-
-            for profile in results {
-                if profile.objectID != profileID {
-                    profile.enabled = false
-                }
-            }
-
-            try await viewContext.perform {
-                guard self.viewContext.hasChanges else { return }
-                try self.viewContext.save()
-            }
-        } catch {
-            debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to disable active Profiles with error: \(error.localizedDescription)"
-            )
-        }
-    }
-}
-
-// MARK: - Setup the State variables with the last Override configuration
-
-extension OverrideProfilesConfig.StateModel {
     /// First get the latest Overrides corresponding NSManagedObjectID with a background fetch
     /// Then unpack it on the view context and update the State variables which can be used on in the View for some Logic
-    /// This also needs to be called when we cancel a Profile via the Home View to update the State of the Button for this case
+    /// This also needs to be called when we cancel an Override via the Home View to update the State of the Button for this case
     func updateLatestOverrideConfiguration() {
         Task {
-            let id = await loadLatestOverrideConfigurations(fetchLimit: 1)
-
+            let id = await overrideStorage.loadLatestOverrideConfigurations(fetchLimit: 1)
             await updateLatestOverrideConfigurationOfState(from: id)
-            await setCurrentOverrideName(from: id)
-        }
-    }
-
-    func loadLatestOverrideConfigurations(fetchLimit: Int) async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: OverrideStored.self,
-            onContext: coredataContext,
-            predicate: NSPredicate.lastActiveOverride,
-            key: "date",
-            ascending: false,
-            fetchLimit: fetchLimit
-        )
-
-        return await coredataContext.perform {
-            return results.map(\.objectID)
+            await setCurrentOverride(from: id)
         }
     }
 
@@ -468,8 +336,8 @@ extension OverrideProfilesConfig.StateModel {
         }
     }
 
-    /// Sets the current active Preset name to show in the UI
-    @MainActor func setCurrentOverrideName(from IDs: [NSManagedObjectID]) async {
+    // Sets the current active Preset name to show in the UI
+    @MainActor func setCurrentOverride(from IDs: [NSManagedObjectID]) async {
         do {
             guard let firstID = IDs.first else {
                 activeOverrideName = "Custom Override"
@@ -478,12 +346,8 @@ extension OverrideProfilesConfig.StateModel {
             }
 
             if let overrideToEdit = try viewContext.existingObject(with: firstID) as? OverrideStored {
-                if overrideToEdit.isPreset {
-                    await handlePresetOverride(overrideToEdit)
-                } else {
-                    currentActiveOverride = overrideToEdit
-                    activeOverrideName = overrideToEdit.name ?? "Custom Override"
-                }
+                currentActiveOverride = overrideToEdit
+                activeOverrideName = overrideToEdit.name ?? "Custom Override"
             }
         } catch {
             debugPrint(
@@ -492,54 +356,42 @@ extension OverrideProfilesConfig.StateModel {
         }
     }
 
-    @MainActor private func handlePresetOverride(_ overrideToEdit: OverrideStored) async {
-        do {
-            await copyOverride(overrideToEdit)
-            await cancelActiveProfile(withID: overrideToEdit.objectID)
+    @MainActor func duplicateOverridePresetAndCancelPreviousOverride() async {
+        // We get the current active Preset by using currentActiveOverride which can either be a Preset or a custom Override
+        guard let overridePresetToDuplicate = currentActiveOverride, overridePresetToDuplicate.isPreset == true else { return }
 
-            let ids = await loadLatestOverrideConfigurations(fetchLimit: 1)
-            if let copiedID = ids.first,
-               let copiedOverride = try viewContext.existingObject(with: copiedID) as? OverrideStored
-            {
-                currentActiveOverride = copiedOverride
-                activeOverrideName = copiedOverride.name ?? "Custom Override"
+        // Copy the current Override-Preset to not edit the underlying Preset
+        await overrideStorage.copyRunningOverride(overridePresetToDuplicate)
+
+        // Cancel the duplicated Override
+        /// As we are on the Main Thread already we don't need to cancel via the objectID in this case
+        do {
+            try await viewContext.perform {
+                overridePresetToDuplicate.enabled = false
+
+                guard self.viewContext.hasChanges else { return }
+                try self.viewContext.save()
             }
         } catch {
             debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to handle preset override with error: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to cancel previous override with error: \(error.localizedDescription)"
             )
         }
     }
-}
 
-// MARK: - Profile Preset Deletion
+    // MARK: - Helper functions for Overrides
 
-extension OverrideProfilesConfig.StateModel {
-    /// marked as MainActor to be able to publish changes from the background
-    /// - Parameter: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
-    @MainActor func invokeProfilePresetDeletion(_ objectID: NSManagedObjectID) {
-        Task {
-            await deleteProfile(objectID)
-        }
-    }
-
-    private func deleteProfile(_ objectID: NSManagedObjectID) async {
-        CoreDataStack.shared.deleteObject(identifiedBy: objectID)
-    }
-}
-
-// MARK: - Helper functions for Overrides
-
-extension OverrideProfilesConfig.StateModel {
     @MainActor func resetStateVariables() async {
-        durationProfile = 0
-        _indefinite = true
-        percentageProfiles = 100
+        id = ""
+
+        overrideDuration = 0
+        indefinite = true
+        overrideSliderPercentage = 100
 
         advancedSettings = false
         smbIsOff = false
-        profileName = ""
-        override_target = false
+        overrideName = ""
+        shouldOverrideTarget = false
         isf = true
         cr = true
         isfAndCr = true
@@ -549,41 +401,6 @@ extension OverrideProfilesConfig.StateModel {
         smbMinutes = defaultSmbMinutes
         uamMinutes = defaultUamMinutes
         target = 0
-    }
-
-    // Copy the current Override if it is a running Preset
-    /// otherwise we would edit the current running Preset
-    @MainActor private func copyOverride(_ override: OverrideStored) async {
-        let newOverride = OverrideStored(context: viewContext)
-        newOverride.duration = override.duration
-        newOverride.indefinite = override.indefinite
-        newOverride.percentage = override.percentage
-        newOverride.smbIsOff = override.smbIsOff
-        newOverride.name = override.name
-        newOverride.isPreset = false // no Preset
-        newOverride.date = Date()
-        newOverride.enabled = override.enabled
-        newOverride.target = override.target
-        newOverride.advancedSettings = override.advancedSettings
-        newOverride.isfAndCr = override.isfAndCr
-        newOverride.isf = override.isf
-        newOverride.cr = override.cr
-        newOverride.smbIsAlwaysOff = override.smbIsAlwaysOff
-        newOverride.start = override.start
-        newOverride.end = override.end
-        newOverride.smbMinutes = override.smbMinutes
-        newOverride.uamMinutes = override.uamMinutes
-
-        await viewContext.perform {
-            do {
-                guard self.viewContext.hasChanges else { return }
-                try self.viewContext.save()
-            } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to copy Override with error: \(error.userInfo)"
-                )
-            }
-        }
     }
 }
 
@@ -779,5 +596,14 @@ extension OverrideProfilesConfig.StateModel {
             target = (c / ratio) - c + 100
         }
         return Decimal(Double(target))
+    }
+}
+
+extension OverrideProfilesConfig.StateModel: SettingsObserver {
+    func settingsDidChange(_: FreeAPSSettings) {
+        units = settingsManager.settings.units
+        defaultSmbMinutes = settingsManager.preferences.maxSMBBasalMinutes
+        defaultUamMinutes = settingsManager.preferences.maxUAMSMBBasalMinutes
+        maxValue = settingsManager.preferences.autosensMax
     }
 }

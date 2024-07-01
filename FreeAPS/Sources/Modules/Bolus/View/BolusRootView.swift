@@ -37,9 +37,9 @@ extension Bolus {
         @Environment(\.colorScheme) var colorScheme
 
         @FetchRequest(
-            entity: Presets.entity(),
+            entity: MealPresetStored.entity(),
             sortDescriptors: [NSSortDescriptor(key: "dish", ascending: true)]
-        ) var carbPresets: FetchedResults<Presets>
+        ) var carbPresets: FetchedResults<MealPresetStored>
 
         private var formatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -109,7 +109,7 @@ extension Bolus {
                     Button {
                         saved = true
                         if dish != "", saved {
-                            let preset = Presets(context: moc)
+                            let preset = MealPresetStored(context: moc)
                             preset.dish = dish
                             preset.fat = state.fat as NSDecimalNumber
                             preset.protein = state.protein as NSDecimalNumber
@@ -193,9 +193,9 @@ extension Bolus {
                         minusButton
                     }
                     Picker("Preset", selection: $state.selection) {
-                        Text("Saved Food").tag(nil as Presets?)
-                        ForEach(carbPresets, id: \.self) { (preset: Presets) in
-                            Text(preset.dish ?? "").tag(preset as Presets?)
+                        Text("Saved Food").tag(nil as MealPresetStored?)
+                        ForEach(carbPresets, id: \.self) { (preset: MealPresetStored) in
+                            Text(preset.dish ?? "").tag(preset as MealPresetStored?)
                         }
                     }
                     .labelsHidden()

@@ -1,9 +1,8 @@
 import Foundation
 import SwiftUI
 
-struct EditProfileForm: View {
-//    @Injected() var settingsManager: SettingsManager!
-    @ObservedObject var profile: OverrideStored
+struct EditOverrideForm: View {
+    @ObservedObject var override: OverrideStored
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) var colorScheme
     @StateObject var state: OverrideProfilesConfig.StateModel
@@ -28,25 +27,28 @@ struct EditProfileForm: View {
     @State private var isEditing = false
     @State private var target_override = false
 
-    init(profile: OverrideStored, state: OverrideProfilesConfig.StateModel) {
-        self.profile = profile
+    init(overrideToEdit: OverrideStored, state: OverrideProfilesConfig.StateModel) {
+        override = overrideToEdit
         _state = StateObject(wrappedValue: state)
-        _name = State(initialValue: profile.name ?? "")
-        _percentage = State(initialValue: profile.percentage)
-        _indefinite = State(initialValue: profile.indefinite)
-        _duration = State(initialValue: profile.duration?.decimalValue ?? 0)
-        _target = State(initialValue: profile.target?.decimalValue)
-        _target_override = State(initialValue: profile.target?.decimalValue != 0)
-        _advancedSettings = State(initialValue: profile.advancedSettings)
-        _smbIsOff = State(initialValue: profile.smbIsOff)
-        _smbIsAlwaysOff = State(initialValue: profile.smbIsAlwaysOff)
-        _start = State(initialValue: profile.start?.decimalValue)
-        _end = State(initialValue: profile.end?.decimalValue)
-        _isfAndCr = State(initialValue: profile.isfAndCr)
-        _isf = State(initialValue: profile.isf)
-        _cr = State(initialValue: profile.cr)
-        _smbMinutes = State(initialValue: profile.smbMinutes?.decimalValue)
-        _uamMinutes = State(initialValue: profile.uamMinutes?.decimalValue)
+        _name = State(initialValue: overrideToEdit.name ?? "")
+        _percentage = State(initialValue: overrideToEdit.percentage)
+        _indefinite = State(initialValue: overrideToEdit.indefinite)
+        _duration = State(initialValue: overrideToEdit.duration?.decimalValue ?? 0)
+        _target = State(
+            initialValue: state.units == .mgdL ? overrideToEdit.target?.decimalValue : overrideToEdit.target?
+                .decimalValue.asMmolL
+        )
+        _target_override = State(initialValue: overrideToEdit.target?.decimalValue != 0)
+        _advancedSettings = State(initialValue: overrideToEdit.advancedSettings)
+        _smbIsOff = State(initialValue: overrideToEdit.smbIsOff)
+        _smbIsAlwaysOff = State(initialValue: overrideToEdit.smbIsAlwaysOff)
+        _start = State(initialValue: overrideToEdit.start?.decimalValue)
+        _end = State(initialValue: overrideToEdit.end?.decimalValue)
+        _isfAndCr = State(initialValue: overrideToEdit.isfAndCr)
+        _isf = State(initialValue: overrideToEdit.isf)
+        _cr = State(initialValue: overrideToEdit.cr)
+        _smbMinutes = State(initialValue: overrideToEdit.smbMinutes?.decimalValue)
+        _uamMinutes = State(initialValue: overrideToEdit.uamMinutes?.decimalValue)
     }
 
     var color: LinearGradient {
@@ -86,12 +88,12 @@ struct EditProfileForm: View {
     var body: some View {
         NavigationView {
             Form {
-                editProfile()
+                editOverride()
 
                 saveButton
 
             }.scrollContentBackground(.hidden).background(color)
-                .navigationTitle("Edit Profile")
+                .navigationTitle("Edit Override")
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationBarItems(leading: Button("Close") {
                     presentationMode.wrappedValue.dismiss()
@@ -105,8 +107,8 @@ struct EditProfileForm: View {
         }
     }
 
-    @ViewBuilder private func editProfile() -> some View {
-        if profile.name != nil {
+    @ViewBuilder private func editOverride() -> some View {
+        if override.name != nil {
             Section {
                 VStack {
                     TextField("Name", text: $name)
@@ -122,7 +124,7 @@ struct EditProfileForm: View {
                 Text("\(percentage.formatted(.number)) %")
                     .foregroundColor(
                         state
-                            .percentageProfiles >= 130 ? .red :
+                            .overrideSliderPercentage >= 130 ? .red :
                             (isEditing ? .orange : Color.tabBar)
                     )
                     .font(.largeTitle)
@@ -156,7 +158,7 @@ struct EditProfileForm: View {
 
             HStack {
                 Toggle(isOn: $target_override) {
-                    Text("Override Profile Target")
+                    Text("Override Override Target")
                 }.onChange(of: target_override) { _ in
                     hasChanges = true
                 }
@@ -165,7 +167,9 @@ struct EditProfileForm: View {
                 HStack {
                     Text("Target Glucose")
                     TextFieldWithToolBar(text: Binding(
-                        get: { target ?? 0 },
+                        get: {
+                            target ?? 0
+                        },
                         set: {
                             target = $0
                             hasChanges = true
@@ -277,11 +281,11 @@ struct EditProfileForm: View {
             Button(action: {
                 saveChanges()
                 do {
-                    try profile.managedObjectContext?.save()
+                    try override.managedObjectContext?.save()
                     hasChanges = false
                     presentationMode.wrappedValue.dismiss()
                 } catch {
-                    debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to edit Profile")
+                    debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to edit Override")
                 }
             }, label: {
                 Text("Save")
@@ -295,47 +299,47 @@ struct EditProfileForm: View {
     }
 
     private func saveChanges() {
-        if !profile.isPreset, hasChanges, name == (profile.name ?? "") {
-            profile.name = "Custom Override"
+        if !override.isPreset, hasChanges, name == (override.name ?? "") {
+            override.name = "Custom Override"
         } else {
-            profile.name = name
+            override.name = name
         }
-        profile.percentage = percentage
-        profile.indefinite = indefinite
-        profile.duration = NSDecimalNumber(decimal: duration)
+        override.percentage = percentage
+        override.indefinite = indefinite
+        override.duration = NSDecimalNumber(decimal: duration)
         if target_override {
-            profile.target = target.map { NSDecimalNumber(decimal: $0) }
+            override.target = target.map {
+                state.units == .mmolL ? NSDecimalNumber(decimal: $0.asMgdL) : NSDecimalNumber(decimal: $0) }
         } else {
-            profile.target = 0
+            override.target = 0
         }
-        profile.advancedSettings = advancedSettings
-        profile.smbIsOff = smbIsOff
-        profile.smbIsAlwaysOff = smbIsAlwaysOff
-        profile.start = start.map { NSDecimalNumber(decimal: $0) }
-        profile.end = end.map { NSDecimalNumber(decimal: $0) }
-        profile.isfAndCr = isfAndCr
-        profile.isf = isf
-        profile.cr = cr
-        profile.smbMinutes = smbMinutes.map { NSDecimalNumber(decimal: $0) }
-        profile.uamMinutes = uamMinutes.map { NSDecimalNumber(decimal: $0) }
-        state.scheduleOverrideDisabling(for: profile)
+        override.advancedSettings = advancedSettings
+        override.smbIsOff = smbIsOff
+        override.smbIsAlwaysOff = smbIsAlwaysOff
+        override.start = start.map { NSDecimalNumber(decimal: $0) }
+        override.end = end.map { NSDecimalNumber(decimal: $0) }
+        override.isfAndCr = isfAndCr
+        override.isf = isf
+        override.cr = cr
+        override.smbMinutes = smbMinutes.map { NSDecimalNumber(decimal: $0) }
+        override.uamMinutes = uamMinutes.map { NSDecimalNumber(decimal: $0) }
     }
 
     private func resetValues() {
-        name = profile.name ?? ""
-        percentage = profile.percentage
-        indefinite = profile.indefinite
-        duration = profile.duration?.decimalValue ?? 0
-        target = profile.target?.decimalValue
-        advancedSettings = profile.advancedSettings
-        smbIsOff = profile.smbIsOff
-        smbIsAlwaysOff = profile.smbIsAlwaysOff
-        start = profile.start?.decimalValue
-        end = profile.end?.decimalValue
-        isfAndCr = profile.isfAndCr
-        isf = profile.isf
-        cr = profile.cr
-        smbMinutes = profile.smbMinutes?.decimalValue ?? state.defaultSmbMinutes
-        uamMinutes = profile.uamMinutes?.decimalValue ?? state.defaultUamMinutes
+        name = override.name ?? ""
+        percentage = override.percentage
+        indefinite = override.indefinite
+        duration = override.duration?.decimalValue ?? 0
+        target = override.target?.decimalValue
+        advancedSettings = override.advancedSettings
+        smbIsOff = override.smbIsOff
+        smbIsAlwaysOff = override.smbIsAlwaysOff
+        start = override.start?.decimalValue
+        end = override.end?.decimalValue
+        isfAndCr = override.isfAndCr
+        isf = override.isf
+        cr = override.cr
+        smbMinutes = override.smbMinutes?.decimalValue ?? state.defaultSmbMinutes
+        uamMinutes = override.uamMinutes?.decimalValue ?? state.defaultUamMinutes
     }
 }

@@ -5,7 +5,7 @@ enum OverrideProfilesConfig {
     enum Config {}
 
     enum Tab: String, Hashable, Identifiable, CaseIterable {
-        case profiles
+        case overrides
         case tempTargets
 
         var id: String { rawValue }
@@ -13,8 +13,8 @@ enum OverrideProfilesConfig {
         var name: String {
             var name: String = ""
             switch self {
-            case .profiles:
-                name = "Profiles"
+            case .overrides:
+                name = "Overrides"
             case .tempTargets:
                 name = "Temp Targets"
             }

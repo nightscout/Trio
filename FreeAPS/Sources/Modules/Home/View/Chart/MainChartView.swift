@@ -206,6 +206,8 @@ extension MainChartView {
                 drawFpus()
                 drawBoluses()
                 drawTempTargets()
+                drawActiveOverrides()
+                drawOverrideRunStored()
                 drawForecasts()
                 drawGlucose()
                 drawManualGlucose()
@@ -537,6 +539,48 @@ extension MainChartView {
                 y: .value("Value", targetLimited)
             )
             .foregroundStyle(Color.purple.opacity(0.5)).lineStyle(.init(lineWidth: 8))
+        }
+    }
+
+    private func drawActiveOverrides() -> some ChartContent {
+        ForEach(state.overrides) { override in
+            let start: Date = override.date ?? .distantPast
+            let duration = state.calculateDuration(override: override)
+            let end: Date = start.addingTimeInterval(duration)
+            let target = state.calculateTarget(override: override)
+
+            RuleMark(
+                xStart: .value("Start", start, unit: .second),
+                xEnd: .value("End", end, unit: .second),
+                y: .value("Value", target)
+            )
+            .foregroundStyle(Color.purple.opacity(0.6))
+            .lineStyle(.init(lineWidth: 8))
+//            .annotation(position: .overlay, spacing: 0) {
+//                if let name = override.name {
+//                    Text("\(name)").foregroundStyle(.secondary).font(.footnote)
+//                }
+//            }
+        }
+    }
+
+    private func drawOverrideRunStored() -> some ChartContent {
+        ForEach(state.overrideRunStored) { overrideRunStored in
+            let start: Date = overrideRunStored.startDate ?? .distantPast
+            let end: Date = overrideRunStored.endDate ?? Date()
+            let target = overrideRunStored.target?.decimalValue ?? 100
+            RuleMark(
+                xStart: .value("Start", start, unit: .second),
+                xEnd: .value("End", end, unit: .second),
+                y: .value("Value", target)
+            )
+            .foregroundStyle(Color.purple.opacity(0.4))
+            .lineStyle(.init(lineWidth: 8))
+//            .annotation(position: .bottom, spacing: 0) {
+//                if let name = overrideRunStored.override?.name {
+//                    Text("\(name)").foregroundStyle(.secondary).font(.footnote)
+//                }
+//            }
         }
     }
 

@@ -37,8 +37,8 @@ extension NightscoutAPI {
     func checkConnection() -> AnyPublisher<Void, Swift.Error> {
         struct Check: Codable, Equatable {
             var eventType = "Note"
-            var enteredBy = "iAPS"
-            var notes = "iAPS connected"
+            var enteredBy = "Trio"
+            var notes = "Trio connected"
         }
         let check = Check()
         var request = URLRequest(url: url.appendingPathComponent(Config.treatmentsPath))
@@ -57,7 +57,7 @@ extension NightscoutAPI {
             .eraseToAnyPublisher()
     }
 
-    func fetchLastGlucose(sinceDate: Date? = nil) -> AnyPublisher<[BloodGlucose], Swift.Error> {
+    func fetchLastGlucose(sinceDate: Date? = nil) async throws -> [BloodGlucose] {
         var components = URLComponents()
         components.scheme = url.scheme
         components.host = url.host
@@ -72,7 +72,11 @@ extension NightscoutAPI {
             components.queryItems?.append(dateItem)
         }
 
-        var request = URLRequest(url: components.url!)
+        guard let url = components.url else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
         request.allowsConstrainedNetworkAccess = false
         request.timeoutInterval = Config.timeout
 
@@ -80,22 +84,18 @@ extension NightscoutAPI {
             request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
         }
 
-        return service.run(request)
-            .retry(Config.retryCount)
-            .decode(type: [BloodGlucose].self, decoder: JSONCoding.decoder)
-            .catch { error -> AnyPublisher<[BloodGlucose], Swift.Error> in
-                warning(.nightscout, "Glucose fetching error: \(error.localizedDescription)")
-                return Just([]).setFailureType(to: Swift.Error.self).eraseToAnyPublisher()
+        do {
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let glucose = try JSONCoding.decoder.decode([BloodGlucose].self, from: data)
+            return glucose.map {
+                var reading = $0
+                reading.glucose = $0.sgv
+                return reading
             }
-            .map { glucose in
-                glucose
-                    .map {
-                        var reading = $0
-                        reading.glucose = $0.sgv
-                        return reading
-                    }
-            }
-            .eraseToAnyPublisher()
+        } catch {
+            warning(.nightscout, "Glucose fetching error: \(error.localizedDescription)")
+            return []
+        }
     }
 
     func fetchCarbs(sinceDate: Date? = nil) -> AnyPublisher<[CarbsEntry], Swift.Error> {
@@ -112,7 +112,7 @@ extension NightscoutAPI {
             ),
             URLQueryItem(
                 name: "find[enteredBy][$ne]",
-                value: NigtscoutTreatment.local.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
+                value: NightscoutTreatment.local.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
             )
         ]
         if let date = sinceDate {
@@ -141,26 +141,15 @@ extension NightscoutAPI {
             .eraseToAnyPublisher()
     }
 
-    func deleteCarbs(_ treatment: DataTable.Treatment) -> AnyPublisher<Void, Swift.Error> {
+    func deleteCarbs(withId id: String) async throws {
         var components = URLComponents()
         components.scheme = url.scheme
         components.host = url.host
         components.port = url.port
         components.path = Config.treatmentsPath
 
-        var arguments = "find[id][$eq]"
-        if treatment.isFPU ?? false {
-            arguments = "find[fpuID][$eq]"
-        }
-        let value = !(treatment.isFPU ?? false) ? treatment.id : (treatment.fpuID ?? "")
-
         components.queryItems = [
-            // Removed below because it prevented all futire entries to be deleted. Don't know why?
-            /* URLQueryItem(name: "find[carbs][$exists]", value: "true"), */
-            URLQueryItem(
-                name: arguments,
-                value: value
-            )
+            URLQueryItem(name: "find[id][$eq]", value: id)
         ]
 
         var request = URLRequest(url: components.url!)
@@ -172,27 +161,30 @@ extension NightscoutAPI {
             request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
         }
 
-        return service.run(request)
-            .retry(Config.retryCount)
-            .map { _ in () }
-            .eraseToAnyPublisher()
+        let (_, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
+            throw URLError(.badServerResponse)
+        }
+
+        return
     }
 
-    func deleteManualGlucose(at date: Date) -> AnyPublisher<Void, Swift.Error> {
+    func deleteManualGlucose(withId id: String) async throws {
         var components = URLComponents()
         components.scheme = url.scheme
         components.host = url.host
         components.port = url.port
         components.path = Config.treatmentsPath
         components.queryItems = [
-            URLQueryItem(name: "find[glucose][$exists]", value: "true"),
-            URLQueryItem(
-                name: "find[created_at][$eq]",
-                value: Formatter.iso8601withFractionalSeconds.string(from: date)
-            )
+            URLQueryItem(name: "find[id][$eq]", value: id)
         ]
 
-        var request = URLRequest(url: components.url!)
+        guard let url = components.url else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
         request.allowsConstrainedNetworkAccess = false
         request.timeoutInterval = Config.timeout
         request.httpMethod = "DELETE"
@@ -201,27 +193,30 @@ extension NightscoutAPI {
             request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
         }
 
-        return service.run(request)
-            .retry(Config.retryCount)
-            .map { _ in () }
-            .eraseToAnyPublisher()
+        let (_, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
+            throw URLError(.badServerResponse)
+        }
+
+        debugPrint("Delete successful for ID \(id)")
     }
 
-    func deleteInsulin(at date: Date) -> AnyPublisher<Void, Swift.Error> {
+    func deleteInsulin(withId id: String) async throws {
         var components = URLComponents()
         components.scheme = url.scheme
         components.host = url.host
         components.port = url.port
         components.path = Config.treatmentsPath
         components.queryItems = [
-            URLQueryItem(name: "find[bolus][$exists]", value: "true"),
-            URLQueryItem(
-                name: "find[created_at][$eq]",
-                value: Formatter.iso8601withFractionalSeconds.string(from: date)
-            )
+            URLQueryItem(name: "find[id][$eq]", value: id)
         ]
 
-        var request = URLRequest(url: components.url!)
+        guard let url = components.url else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
         request.allowsConstrainedNetworkAccess = false
         request.timeoutInterval = Config.timeout
         request.httpMethod = "DELETE"
@@ -230,11 +225,41 @@ extension NightscoutAPI {
             request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
         }
 
-        return service.run(request)
-            .retry(Config.retryCount)
-            .map { _ in () }
-            .eraseToAnyPublisher()
+        let (_, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
+            throw URLError(.badServerResponse)
+        }
     }
+
+//    func deleteInsulin(at date: Date) -> AnyPublisher<Void, Swift.Error> {
+//        var components = URLComponents()
+//        components.scheme = url.scheme
+//        components.host = url.host
+//        components.port = url.port
+//        components.path = Config.treatmentsPath
+//        components.queryItems = [
+//            URLQueryItem(name: "find[bolus][$exists]", value: "true"),
+//            URLQueryItem(
+//                name: "find[created_at][$eq]",
+//                value: Formatter.iso8601withFractionalSeconds.string(from: date)
+//            )
+//        ]
+//
+//        var request = URLRequest(url: components.url!)
+//        request.allowsConstrainedNetworkAccess = false
+//        request.timeoutInterval = Config.timeout
+//        request.httpMethod = "DELETE"
+//
+//        if let secret = secret {
+//            request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
+//        }
+//
+//        return service.run(request)
+//            .retry(Config.retryCount)
+//            .map { _ in () }
+//            .eraseToAnyPublisher()
+//    }
 
     func fetchTempTargets(sinceDate: Date? = nil) -> AnyPublisher<[TempTarget], Swift.Error> {
         var components = URLComponents()
@@ -250,7 +275,7 @@ extension NightscoutAPI {
             ),
             URLQueryItem(
                 name: "find[enteredBy][$ne]",
-                value: NigtscoutTreatment.local.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
+                value: NightscoutTreatment.local.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
             ),
             URLQueryItem(name: "find[duration][$exists]", value: "true")
         ]
@@ -315,14 +340,18 @@ extension NightscoutAPI {
             .eraseToAnyPublisher()
     }
 
-    func uploadTreatments(_ treatments: [NigtscoutTreatment]) -> AnyPublisher<Void, Swift.Error> {
+    func uploadTreatments(_ treatments: [NightscoutTreatment]) async throws {
         var components = URLComponents()
         components.scheme = url.scheme
         components.host = url.host
         components.port = url.port
         components.path = Config.treatmentsPath
 
-        var request = URLRequest(url: components.url!)
+        guard let requestURL = components.url else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: requestURL)
         request.allowsConstrainedNetworkAccess = false
         request.timeoutInterval = Config.timeout
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -330,16 +359,29 @@ extension NightscoutAPI {
         if let secret = secret {
             request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
         }
-        request.httpBody = try? JSONCoding.encoder.encode(treatments)
+
+        do {
+            let encodedBody = try JSONCoding.encoder.encode(treatments)
+            request.httpBody = encodedBody
+            debugPrint("Payload treatments size: \(encodedBody.count) bytes")
+            debugPrint(String(data: encodedBody, encoding: .utf8) ?? "Invalid payload")
+        } catch {
+            debugPrint("Error encoding payload: \(error.localizedDescription)")
+            throw error
+        }
         request.httpMethod = "POST"
 
-        return service.run(request)
-            .retry(Config.retryCount)
-            .map { _ in () }
-            .eraseToAnyPublisher()
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        // Check the response status code
+        guard let httpResponse = response as? HTTPURLResponse, 200 ..< 300 ~= httpResponse.statusCode else {
+            throw URLError(.badServerResponse)
+        }
+
+        debugPrint("Upload successful, response data: \(String(data: data, encoding: .utf8) ?? "No data")")
     }
 
-    func uploadGlucose(_ glucose: [BloodGlucose]) -> AnyPublisher<Void, Swift.Error> {
+    func uploadGlucose(_ glucose: [BloodGlucose]) async throws {
         var components = URLComponents()
         components.scheme = url.scheme
         components.host = url.host
@@ -354,13 +396,25 @@ extension NightscoutAPI {
         if let secret = secret {
             request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
         }
-        request.httpBody = try! JSONCoding.encoder.encode(glucose)
+        do {
+            let encodedBody = try JSONCoding.encoder.encode(glucose)
+            request.httpBody = encodedBody
+            debugPrint("Payload glucose size: \(encodedBody.count) bytes")
+            debugPrint(String(data: encodedBody, encoding: .utf8) ?? "Invalid payload")
+        } catch {
+            debugPrint("Error encoding payload: \(error.localizedDescription)")
+            throw error
+        }
         request.httpMethod = "POST"
 
-        return service.run(request)
-            .retry(Config.retryCount)
-            .map { _ in () }
-            .eraseToAnyPublisher()
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        // Check the response status code
+        guard let httpResponse = response as? HTTPURLResponse, 200 ..< 300 ~= httpResponse.statusCode else {
+            throw URLError(.badServerResponse)
+        }
+
+        debugPrint("Upload successful, response data: \(String(data: data, encoding: .utf8) ?? "No data")")
     }
 
     func uploadStats(_ stats: NightscoutStatistics) -> AnyPublisher<Void, Swift.Error> {

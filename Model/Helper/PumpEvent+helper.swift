@@ -70,6 +70,11 @@ extension NSPredicate {
         let date20m = Date.twentyMinutesAgo
         return NSPredicate(format: "timestamp >= %@ && timestamp == %@", date20m as NSDate, date as NSDate)
     }
+
+    static var pumpEventsNotYetUploadedToNightscout: NSPredicate {
+        let date = Date.oneDayAgo
+        return NSPredicate(format: "timestamp >= %@ AND isUploadedToNS == %@", date as NSDate, false as NSNumber)
+    }
 }
 
 // Declare helper structs ("data transfer objects" = DTO) to utilize parsing a flattened pump history
@@ -137,7 +142,7 @@ extension PumpEventStored {
         }
 
         let bolusDTO = BolusDTO(
-            id: id,
+            id: id ?? UUID().uuidString,
             timestamp: PumpEventStored.dateFormatter.string(from: timestamp),
             amount: amount.doubleValue,
             isExternal: bolus.isExternal,
@@ -167,7 +172,7 @@ extension PumpEventStored {
         }
 
         let tempBasalDurationDTO = TempBasalDurationDTO(
-            id: id,
+            id: id ?? UUID().uuidString,
             timestamp: PumpEventStored.dateFormatter.string(from: timestamp),
             duration: Int(tempBasal.duration)
         )

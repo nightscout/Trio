@@ -93,6 +93,18 @@ struct LiveActivity: Widget {
                     }
                 }
             })
+            VStack(alignment: .trailing, spacing: 1, content: {
+                if context.state.isOverrideActive {
+                    if !context.isStale {
+                        Image(systemName: "person.crop.circle.fill.badge.checkmark")
+                            .font(.title3)
+                    } else {
+                        Image(systemName: "person.crop.circle.fill.badge.checkmark")
+                            .font(.title3)
+                            .strikethrough(pattern: .solid, color: .red.opacity(0.6))
+                    }
+                }
+            })
         }
     }
 
@@ -282,7 +294,7 @@ struct LiveActivity: Widget {
                 .activityBackgroundTint(Color.clear)
             } else {
                 HStack(spacing: 12) {
-                    chart(context: context).frame(width: UIScreen.main.bounds.width / 1.8)
+                    chart(context: context).frame(maxWidth: UIScreen.main.bounds.width / 1.8)
                     VStack(alignment: .leading) {
                         Spacer()
                         bgLabel(context: context)

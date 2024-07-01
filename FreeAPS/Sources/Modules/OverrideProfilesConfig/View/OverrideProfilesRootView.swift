@@ -9,12 +9,11 @@ extension OverrideProfilesConfig {
         @StateObject var state = StateModel()
 
         @State private var isEditing = false
-        @State private var showProfileCreationSheet = false
+        @State private var showOverrideCreationSheet = false
         @State private var showingDetail = false
         @State private var showCheckmark: Bool = false
         @State private var selectedPresetID: String?
-        @State private var showOverrideEditSheet = false
-        @State private var selectedProfile: OverrideStored?
+        @State private var selectedOverride: OverrideStored?
         // temp targets
         @State private var isPromptPresented = false
         @State private var isRemoveAlertPresented = false
@@ -74,21 +73,21 @@ extension OverrideProfilesConfig {
 
                 Form {
                     switch state.selectedTab {
-                    case .profiles: profiles()
+                    case .overrides: overrides()
                     case .tempTargets: tempTargets() }
                 }.scrollContentBackground(.hidden).background(color)
                     .onAppear(perform: configureView)
-                    .navigationBarTitle("Profiles")
+                    .navigationBarTitle("Adjustments")
                     .navigationBarTitleDisplayMode(.large)
                     .toolbar {
                         ToolbarItem(placement: .topBarTrailing) {
                             switch state.selectedTab {
-                            case .profiles:
+                            case .overrides:
                                 Button(action: {
-                                    showProfileCreationSheet = true
+                                    showOverrideCreationSheet = true
                                 }, label: {
                                     HStack {
-                                        Text("Add Profile")
+                                        Text("Add Override")
                                         Image(systemName: "plus")
                                     }
                                 })
@@ -97,69 +96,82 @@ extension OverrideProfilesConfig {
                             }
                         }
                     }
-                    .sheet(isPresented: $showOverrideEditSheet, onDismiss: {
+                    .sheet(isPresented: $state.showOverrideEditSheet, onDismiss: {
                         Task {
                             await state.resetStateVariables()
-                            showOverrideEditSheet = false
+                            state.showOverrideEditSheet = false
                         }
 
                     }) {
-                        if let profile = selectedProfile {
-                            EditProfileForm(profile: profile, state: state)
+                        if let override = selectedOverride {
+                            EditOverrideForm(overrideToEdit: override, state: state)
                         }
                     }
-                    .sheet(isPresented: $showProfileCreationSheet, onDismiss: {
+                    .sheet(isPresented: $showOverrideCreationSheet, onDismiss: {
                         Task {
                             await state.resetStateVariables()
-                            showProfileCreationSheet = false
+                            showOverrideCreationSheet = false
                         }
                     }) {
-                        AddProfileForm(state: state)
+                        AddOverrideForm(state: state)
                     }
             }.background(color)
         }
 
-        @ViewBuilder func profiles() -> some View {
-            if state.profilePresets.isNotEmpty {
+        @ViewBuilder func overrides() -> some View {
+            if state.overridePresets.isNotEmpty {
                 overridePresets
-
-                if state.isEnabled, state.activeOverrideName.isNotEmpty {
-                    currentActiveOverride
-                }
             } else {
                 defaultText
             }
-            cancelProfileButton
+
+            if state.isEnabled, state.activeOverrideName.isNotEmpty {
+                currentActiveOverride
+            }
+
+            if state.overridePresets.isNotEmpty || state.currentActiveOverride != nil {
+                cancelOverrideButton
+            }
         }
 
         private var defaultText: some View {
-            Text("Add Preset or Override by tapping the '+'")
+            Section {} header: {
+                Text("Add Preset or Override by tapping the '+'").foregroundStyle(.secondary)
+            }
         }
 
         private var overridePresets: some View {
             Section {
-                ForEach(state.profilePresets) { preset in
-                    profilesView(for: preset)
+                ForEach(state.overridePresets) { preset in
+                    overridesView(for: preset)
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button(role: .none) {
-                                state.invokeProfilePresetDeletion(preset.objectID)
+                                Task {
+                                    await state.invokeOverridePresetDeletion(preset.objectID)
+                                }
                             } label: {
                                 Label("Delete", systemImage: "trash")
                                     .tint(.red)
                             }
                             Button(action: {
-                                selectedProfile = preset
-                                showOverrideEditSheet = true
+                                // Set the selected Override to the chosen Preset and pass it to the Edit Sheet
+                                selectedOverride = preset
+                                state.showOverrideEditSheet = true
                             }, label: {
                                 Label("Edit", systemImage: "pencil")
                                     .tint(.blue)
                             })
                         }
-                }.listRowBackground(Color.chart)
+                }
+                .onMove(perform: state.reorderOverride)
+                .listRowBackground(Color.chart)
             } header: {
                 Text("Presets")
             } footer: {
-                Text("Swipe left to edit or delete a Profile Preset")
+                HStack {
+                    Image(systemName: "hand.draw.fill")
+                    Text("Swipe left to edit or delete an override preset. Drag, hold and drop to reorder a preset.")
+                }
             }
         }
 
@@ -174,20 +186,31 @@ extension OverrideProfilesConfig {
                 }
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    selectedProfile = state.currentActiveOverride
-                    showOverrideEditSheet = true
+                    Task {
+                        /// To avoid editing the Preset when a Preset-Override is running we first duplicate the Preset-Override as a non-Preset Override
+                        /// The currentActiveOverride variable in the State will update automatically via MOC notification
+                        await state.duplicateOverridePresetAndCancelPreviousOverride()
+
+                        /// selectedOverride is used for passing the chosen Override to the EditSheet so we have to set the updated currentActiveOverride to be the selectedOverride
+                        selectedOverride = state.currentActiveOverride
+
+                        /// Now we can show the Edit sheet
+                        state.showOverrideEditSheet = true
+                    }
                 }
             }
             .listRowBackground(Color.blue.opacity(0.2))
         }
 
-        private var cancelProfileButton: some View {
+        private var cancelOverrideButton: some View {
             Button(action: {
                 Task {
-                    await state.disableAllActiveProfiles()
+                    // Save cancelled Override in OverrideRunStored Entity
+                    // Cancel ALL active Override
+                    await state.disableAllActiveOverrides(createOverrideRunEntry: true)
                 }
             }, label: {
-                Text("Cancel Profile")
+                Text("Cancel Override")
 
             })
                 .frame(maxWidth: .infinity, alignment: .center)
@@ -425,7 +448,7 @@ extension OverrideProfilesConfig {
             })
         }
 
-        @ViewBuilder private func profilesView(for preset: OverrideStored) -> some View {
+        @ViewBuilder private func overridesView(for preset: OverrideStored) -> some View {
             let target = state.units == .mmolL ? (((preset.target ?? 0) as NSDecimalNumber) as Decimal)
                 .asMmolL : (preset.target ?? 0) as Decimal
             let duration = (preset.duration ?? 0) as Decimal
@@ -476,7 +499,7 @@ extension OverrideProfilesConfig {
                         .onTapGesture {
                             Task {
                                 let objectID = preset.objectID
-                                await state.enactProfilePreset(withID: objectID)
+                                await state.enactOverridePreset(withID: objectID)
                                 state.hideModal()
                                 showCheckmark.toggle()
                                 selectedPresetID = preset.id

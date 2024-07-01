@@ -38,7 +38,8 @@ extension LiveActivityAttributes.ContentState {
         mmol: Bool,
         chart: [GlucoseData],
         settings: FreeAPSSettings,
-        determination: DeterminationData?
+        determination: DeterminationData?,
+        override: OverrideData?
     ) {
         let glucose = bg.glucose
         let formattedBG = Self.formatGlucose(Int(glucose), mmol: mmol, forceSign: false)
@@ -81,6 +82,7 @@ extension LiveActivityAttributes.ContentState {
         let iob = determination?.iob ?? 0
         let lockScreenView = settings.lockScreenView.displayName
         let unit = settings.units == .mmolL ? " mmol/L" : " mg/dL"
+        let isOverrideActive = override?.isActive ?? false
 
         self.init(
             bg: formattedBG,
@@ -95,7 +97,8 @@ extension LiveActivityAttributes.ContentState {
             cob: Decimal(cob),
             iob: iob as Decimal,
             lockScreenView: lockScreenView,
-            unit: unit
+            unit: unit,
+            isOverrideActive: isOverrideActive
         )
     }
 }

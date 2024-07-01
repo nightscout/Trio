@@ -76,7 +76,9 @@ extension Home {
         @Published var suspensions: [PumpEventStored] = []
         @Published var batteryFromPersistence: [OpenAPS_Battery] = []
         @Published var lastPumpBolus: PumpEventStored?
-
+        @Published var overrides: [OverrideStored] = []
+        @Published var overrideRunStored: [OverrideRunStored] = []
+        @Published var isOverrideCancelled: Bool = false
         let context = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
@@ -96,6 +98,8 @@ extension Home {
             setupReservoir()
             setupAnnouncements()
             setupCurrentPumpTimezone()
+            setupOverrides()
+            setupOverrideRunStored()
 
             uploadStats = settingsManager.settings.uploadStats
             units = settingsManager.settings.units
@@ -425,6 +429,14 @@ extension Home.StateModel {
             name: .didPerformBatchInsert,
             object: nil
         )
+
+        /// custom notification that is sent when a batch delete of fpus is done
+        Foundation.NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleBatchDelete),
+            name: .didPerformBatchDelete,
+            object: nil
+        )
     }
 
     /// determine the actions when the context has changed
@@ -442,6 +454,10 @@ extension Home.StateModel {
         setupGlucoseArray()
     }
 
+    @objc private func handleBatchDelete() {
+        setupFPUsArray()
+    }
+
     private func processUpdates(userInfo: [AnyHashable: Any]) async {
         var objects = Set((userInfo[NSInsertedObjectsKey] as? Set<NSManagedObject>) ?? [])
         objects.formUnion((userInfo[NSUpdatedObjectsKey] as? Set<NSManagedObject>) ?? [])
@@ -453,6 +469,8 @@ extension Home.StateModel {
         let carbUpdates = objects.filter { $0 is CarbEntryStored }
         let insulinUpdates = objects.filter { $0 is PumpEventStored }
         let batteryUpdates = objects.filter { $0 is OpenAPS_Battery }
+        let overrideUpdates = objects.filter { $0 is OverrideStored }
+        let overrideRunStoredUpdates = objects.filter { $0 is OverrideRunStored }
 
         DispatchQueue.global(qos: .background).async {
             if !glucoseUpdates.isEmpty {
@@ -474,6 +492,12 @@ extension Home.StateModel {
             }
             if !batteryUpdates.isEmpty {
                 self.setupBatteryArray()
+            }
+            if !overrideUpdates.isEmpty {
+                self.setupOverrides()
+            }
+            if !overrideRunStoredUpdates.isEmpty {
+                self.setupOverrideRunStored()
             }
         }
     }
@@ -752,6 +776,117 @@ extension Home.StateModel {
             debugPrint(
                 "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the battery array: \(error.localizedDescription)"
             )
+        }
+    }
+}
+
+extension Home.StateModel {
+    // Setup Overrides
+    private func setupOverrides() {
+        Task {
+            let ids = await self.fetchOverrides()
+            await updateOverrideArray(with: ids)
+        }
+    }
+
+    private func fetchOverrides() async -> [NSManagedObjectID] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: OverrideStored.self,
+            onContext: context,
+            predicate: NSPredicate.lastActiveOverride, // this predicate filters for all Overrides within the last 24h
+            key: "date",
+            ascending: false
+        )
+
+        return await context.perform {
+            return results.map(\.objectID)
+        }
+    }
+
+    @MainActor private func updateOverrideArray(with IDs: [NSManagedObjectID]) {
+        do {
+            let overrideObjects = try IDs.compactMap { id in
+                try viewContext.existingObject(with: id) as? OverrideStored
+            }
+
+            overrides = overrideObjects
+        } catch {
+            debugPrint(
+                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the override array: \(error.localizedDescription)"
+            )
+        }
+    }
+
+    @MainActor func calculateDuration(override: OverrideStored) -> TimeInterval {
+        guard let overrideDuration = override.duration as? Double, overrideDuration != 0 else {
+            return TimeInterval(60 * 60 * 24) // one day
+        }
+        return TimeInterval(overrideDuration * 60) // return seconds
+    }
+
+    @MainActor func calculateTarget(override: OverrideStored) -> Decimal {
+        guard let overrideTarget = override.target, overrideTarget != 0 else {
+            return 100 // default
+        }
+        return overrideTarget.decimalValue
+    }
+
+    // Setup expired Overrides
+    private func setupOverrideRunStored() {
+        Task {
+            let ids = await self.fetchOverrideRunStored()
+            await updateOverrideRunStoredArray(with: ids)
+        }
+    }
+
+    private func fetchOverrideRunStored() async -> [NSManagedObjectID] {
+        let predicate = NSPredicate(format: "startDate >= %@", Date.oneDayAgo as NSDate)
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: OverrideRunStored.self,
+            onContext: context,
+            predicate: predicate,
+            key: "startDate",
+            ascending: false
+        )
+
+        return await context.perform {
+            return results.map(\.objectID)
+        }
+    }
+
+    @MainActor private func updateOverrideRunStoredArray(with IDs: [NSManagedObjectID]) {
+        do {
+            let overrideObjects = try IDs.compactMap { id in
+                try viewContext.existingObject(with: id) as? OverrideRunStored
+            }
+
+            overrideRunStored = overrideObjects
+            debugPrint("expiredOverrides: \(DebuggingIdentifiers.inProgress) \(overrideRunStored)")
+        } catch {
+            debugPrint(
+                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the Override Run Stored array: \(error.localizedDescription)"
+            )
+        }
+    }
+
+    @MainActor func saveToOverrideRunStored(withID id: NSManagedObjectID) async {
+        await viewContext.perform {
+            do {
+                guard let object = try self.viewContext.existingObject(with: id) as? OverrideStored else { return }
+
+                let newOverrideRunStored = OverrideRunStored(context: self.viewContext)
+                newOverrideRunStored.id = UUID()
+                newOverrideRunStored.startDate = object.date ?? .distantPast
+                newOverrideRunStored.endDate = Date()
+                newOverrideRunStored.target = NSDecimalNumber(decimal: self.calculateTarget(override: object))
+                newOverrideRunStored.override = object
+
+                guard self.viewContext.hasChanges else { return }
+                try self.viewContext.save()
+
+            } catch {
+                print(error.localizedDescription)
+            }
         }
     }
 }

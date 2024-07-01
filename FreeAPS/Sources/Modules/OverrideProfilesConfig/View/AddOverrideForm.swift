@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-struct AddProfileForm: View {
+struct AddOverrideForm: View {
     @Environment(\.presentationMode) var presentationMode
     @StateObject var state: OverrideProfilesConfig.StateModel
     @State private var isEditing = false
@@ -50,19 +50,19 @@ struct AddProfileForm: View {
     var body: some View {
         NavigationView {
             Form {
-                addProfile()
+                addOverride()
             }.scrollContentBackground(.hidden).background(color)
-                .navigationTitle("Add Profile")
+                .navigationTitle("Add Override")
                 .navigationBarItems(trailing: Button("Cancel") {
                     presentationMode.wrappedValue.dismiss()
                 })
         }
     }
 
-    @ViewBuilder private func addProfile() -> some View {
+    @ViewBuilder private func addOverride() -> some View {
         Section {
             VStack {
-                TextField("Name", text: $state.profileName)
+                TextField("Name", text: $state.overrideName)
             }
         } header: {
             Text("Name")
@@ -71,15 +71,15 @@ struct AddProfileForm: View {
         Section {
             VStack {
                 Spacer()
-                Text("\(state.percentageProfiles.formatted(.number)) %")
+                Text("\(state.overrideSliderPercentage.formatted(.number)) %")
                     .foregroundColor(
                         state
-                            .percentageProfiles >= 130 ? .red :
+                            .overrideSliderPercentage >= 130 ? .red :
                             (isEditing ? .orange : Color.tabBar)
                     )
                     .font(.largeTitle)
                 Slider(
-                    value: $state.percentageProfiles,
+                    value: $state.overrideSliderPercentage,
                     in: 10 ... 200,
                     step: 1,
                     onEditingChanged: { editing in
@@ -87,24 +87,24 @@ struct AddProfileForm: View {
                     }
                 )
                 Spacer()
-                Toggle(isOn: $state._indefinite) {
+                Toggle(isOn: $state.indefinite) {
                     Text("Enable indefinitely")
                 }
             }
-            if !state._indefinite {
+            if !state.indefinite {
                 HStack {
                     Text("Duration")
-                    TextFieldWithToolBar(text: $state.durationProfile, placeholder: "0", numberFormatter: formatter)
+                    TextFieldWithToolBar(text: $state.overrideDuration, placeholder: "0", numberFormatter: formatter)
                     Text("minutes").foregroundColor(.secondary)
                 }
             }
 
             HStack {
-                Toggle(isOn: $state.override_target) {
+                Toggle(isOn: $state.shouldOverrideTarget) {
                     Text("Override Profile Target")
                 }
             }
-            if state.override_target {
+            if state.shouldOverrideTarget {
                 HStack {
                     Text("Target Glucose")
                     TextFieldWithToolBar(text: $state.target, placeholder: "0", numberFormatter: glucoseFormatter)
@@ -180,23 +180,23 @@ struct AddProfileForm: View {
 
     private var startAndSaveProfiles: some View {
         HStack {
-            Button("Start new Profile") {
+            Button("Start new Override") {
                 showAlert.toggle()
 
-                alertString = "\(state.percentageProfiles.formatted(.number)) %, " +
+                alertString = "\(state.overrideSliderPercentage.formatted(.number)) %, " +
                     (
-                        state.durationProfile > 0 || !state
-                            ._indefinite ?
+                        state.overrideDuration > 0 || !state
+                            .indefinite ?
                             (
                                 state
-                                    .durationProfile
+                                    .overrideDuration
                                     .formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) +
                                     " min."
                             ) :
                             NSLocalizedString(" infinite duration.", comment: "")
                     ) +
                     (
-                        (state.target == 0 || !state.override_target) ? "" :
+                        (state.target == 0 || !state.shouldOverrideTarget) ? "" :
                             (" Target: " + state.target.formatted() + " " + state.units.rawValue + ".")
                     )
                     +
@@ -212,7 +212,7 @@ struct AddProfileForm: View {
                     "\n\n"
                     +
                     NSLocalizedString(
-                        "Starting this override will change your Profiles and/or your Target Glucose used for looping during the entire selected duration. Tapping ”Start Profile” will start your new profile or edit your current active profile.",
+                        "Starting this override will change your profiles and/or your Target Glucose used for looping during the entire selected duration. Tapping ”Start Override” will start your new Override or edit your current active Override.",
                         comment: ""
                     )
             }
@@ -221,15 +221,15 @@ struct AddProfileForm: View {
             .font(.callout)
             .controlSize(.mini)
             .alert(
-                "Start Profile",
+                "Start Override",
                 isPresented: $showAlert,
                 actions: {
                     Button("Cancel", role: .cancel) { state.isEnabled = false }
-                    Button("Start Profile", role: .destructive) {
+                    Button("Start Override", role: .destructive) {
                         Task {
-                            if state._indefinite { state.durationProfile = 0 }
+                            if state.indefinite { state.overrideDuration = 0 }
                             state.isEnabled.toggle()
-                            await state.saveAsProfile()
+                            await state.saveCustomOverride()
                             await state.resetStateVariables()
                             dismiss()
                         }
@@ -241,11 +241,11 @@ struct AddProfileForm: View {
             )
             Button {
                 Task {
-                    await state.savePreset()
+                    await state.saveOverridePreset()
                     dismiss()
                 }
             }
-            label: { Text("Save as Profile") }
+            label: { Text("Save as Override") }
                 .tint(.orange)
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .buttonStyle(BorderlessButtonStyle())
@@ -256,12 +256,13 @@ struct AddProfileForm: View {
 
     private func unChanged() -> Bool {
         let isChanged = (
-            state.percentageProfiles == 100 && !state.override_target && !state.smbIsOff && !state
+            state.overrideSliderPercentage == 100 && !state.shouldOverrideTarget && !state.smbIsOff && !state
                 .advancedSettings
         ) ||
-            (!state._indefinite && state.durationProfile == 0) || (state.override_target && state.target == 0) ||
+            (!state.indefinite && state.overrideDuration == 0) || (state.shouldOverrideTarget && state.target == 0) ||
             (
-                state.percentageProfiles == 100 && !state.override_target && !state.smbIsOff && state.isf && state.cr && state
+                state.overrideSliderPercentage == 100 && !state.shouldOverrideTarget && !state.smbIsOff && state.isf && state
+                    .cr && state
                     .smbMinutes == state.defaultSmbMinutes && state.uamMinutes == state.defaultUamMinutes
             )
 

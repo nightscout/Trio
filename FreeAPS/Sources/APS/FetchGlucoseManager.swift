@@ -114,12 +114,14 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             guard let results = fetchGlucose() else { return [] }
             return results.map { result in
                 BloodGlucose(
+                    sgv: Int(result.glucose),
+                    direction: BloodGlucose.Direction(from: result.direction ?? ""),
                     date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
                     dateString: result.date ?? Date(),
                     unfiltered: Decimal(result.glucose),
                     filtered: Decimal(result.glucose),
                     noise: nil,
-                    type: ""
+                    glucose: Int(result.glucose)
                 )
             }
         }
@@ -177,7 +179,9 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
 
         deviceDataManager.heartbeat(date: Date())
 
-        nightscoutManager.uploadGlucose()
+        Task.detached {
+            await self.nightscoutManager.uploadGlucose()
+        }
 
         let glucoseForHealth = filteredByDate.filter { !glucoseFromHealth.contains($0) }
 

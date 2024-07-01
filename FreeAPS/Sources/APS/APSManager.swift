@@ -345,7 +345,7 @@ final class BaseAPSManager: APSManager, Injectable {
         debug(.apsManager, "Start determine basal")
 
         // Fetch glucose asynchronously
-        let glucose = await fetchGlucose(predicate: NSPredicate.predicateFor30MinAgo, fetchLimit: 4)
+        let glucose = await fetchGlucose(predicate: NSPredicate.predicateForOneHourAgo, fetchLimit: 6)
 
         // Perform the context-related checks and actions
         let isValidGlucoseData = await privateContext.perform {
@@ -362,13 +362,10 @@ final class BaseAPSManager: APSManager, Injectable {
                 return false
             }
 
-            // Only let glucose be flat when 400 mg/dl
-            if (glucose.first?.glucose ?? 100) != 400 {
-                guard !GlucoseStored.glucoseIsFlat(glucose) else {
-                    debug(.apsManager, "Glucose data is too flat")
-                    self.processError(APSError.glucoseError(message: "Glucose data is too flat"))
-                    return false
-                }
+            guard !GlucoseStored.glucoseIsFlat(glucose) else {
+                debug(.apsManager, "Glucose data is too flat")
+                self.processError(APSError.glucoseError(message: "Glucose data is too flat"))
+                return false
             }
 
             return true

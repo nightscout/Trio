@@ -21,12 +21,11 @@ extension GlucoseStored {
     }
 
     static func glucoseIsFlat(_ glucose: [GlucoseStored]) -> Bool {
-        guard glucose.count >= 4 else { return false }
+        guard glucose.count >= 6 else { return false }
 
-        let lastThreeValues = glucose.suffix(4)
-        let firstValue = lastThreeValues.last?.glucose
+        let firstValue = glucose.first?.glucose
 
-        return lastThreeValues.allSatisfy { $0.glucose == firstValue }
+        return glucose.allSatisfy { $0.glucose == firstValue }
     }
 }
 
@@ -64,6 +63,21 @@ extension NSPredicate {
     static var glucoseForStatsWeek: NSPredicate {
         let date = Date.oneWeekAgo
         return NSPredicate(format: "date >= %@", date as NSDate)
+    }
+
+    static var glucoseNotYetUploadedToNightscout: NSPredicate {
+        let date = Date.oneDayAgo
+        return NSPredicate(format: "date >= %@ AND isUploadedToNS == %@", date as NSDate, false as NSNumber)
+    }
+
+    static var manualGlucoseNotYetUploadedToNightscout: NSPredicate {
+        let date = Date.oneDayAgo
+        return NSPredicate(
+            format: "date >= %@ AND isUploadedToNS == %@ AND isManual == %@",
+            date as NSDate,
+            false as NSNumber,
+            true as NSNumber
+        )
     }
 }
 

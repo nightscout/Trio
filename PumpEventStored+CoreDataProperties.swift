@@ -6,17 +6,13 @@ public extension PumpEventStored {
         NSFetchRequest<PumpEventStored>(entityName: "PumpEventStored")
     }
 
-    @NSManaged var id_: String!
+    @NSManaged var id: String?
     @NSManaged var timestamp: Date?
     @NSManaged var type: String?
+    @NSManaged var isUploadedToNS: Bool
+    @NSManaged var note: String?
     @NSManaged var bolus: BolusStored?
     @NSManaged var tempBasal: TempBasalStored?
 }
 
 extension PumpEventStored: Identifiable {}
-
-public extension PumpEventStored {
-    var id: String {
-        id_ ?? UUID().uuidString
-    }
-}

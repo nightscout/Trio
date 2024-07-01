@@ -11,6 +11,7 @@ public extension GlucoseStored {
     @NSManaged var glucose: Int16
     @NSManaged var id: UUID?
     @NSManaged var isManual: Bool
+    @NSManaged var isUploadedToNS: Bool
 }
 
 extension GlucoseStored: Identifiable {}

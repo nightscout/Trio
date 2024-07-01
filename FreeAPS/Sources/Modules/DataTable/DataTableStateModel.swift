@@ -45,15 +45,20 @@ extension DataTable {
             taskContext.name = "deleteContext"
             taskContext.transactionAuthor = "deleteGlucose"
 
-            var glucose: GlucoseStored?
-
             await taskContext.perform {
                 do {
-                    glucose = try taskContext.existingObject(with: treatmentObjectID) as? GlucoseStored
+                    let result = try taskContext.existingObject(with: treatmentObjectID) as? GlucoseStored
 
-                    guard let glucoseToDelete = glucose else {
+                    guard let glucoseToDelete = result else {
                         debugPrint("Data Table State: \(#function) \(DebuggingIdentifiers.failed) glucose not found in core data")
                         return
+                    }
+
+                    // Delete Manual Glucose from Nightscout
+                    if glucoseToDelete.isManual == true {
+                        if let id = glucoseToDelete.id?.uuidString {
+                            self.provider.deleteManualGlucose(withID: id)
+                        }
                     }
 
                     taskContext.delete(glucoseToDelete)
@@ -67,15 +72,6 @@ extension DataTable {
                     )
                 }
             }
-
-            guard let glucoseToDelete = glucose else {
-                debugPrint(
-                    "Data Table State: \(#function) \(DebuggingIdentifiers.failed) glucose not found after task context execution"
-                )
-                return
-            }
-
-            provider.deleteManualGlucose(date: glucoseToDelete.date)
         }
 
         // Carb and FPU deletion from history
@@ -104,10 +100,13 @@ extension DataTable {
                         return
                     }
 
-                    if carbEntry.isFPU, let fpuID = carbEntry.id {
+                    if carbEntry.isFPU, let fpuID = carbEntry.fpuID {
+                        // Delete FPUs from Nightscout
+                        self.provider.deleteCarbsFromNightscout(withID: fpuID.uuidString)
+
                         // fetch request for all carb entries with the same id
                         let fetchRequest: NSFetchRequest<NSFetchRequestResult> = CarbEntryStored.fetchRequest()
-                        fetchRequest.predicate = NSPredicate(format: "id == %@", fpuID as CVarArg)
+                        fetchRequest.predicate = NSPredicate(format: "fpuID == %@", fpuID as CVarArg)
 
                         // NSBatchDeleteRequest
                         let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
@@ -117,14 +116,19 @@ extension DataTable {
                         let result = try taskContext.execute(deleteRequest) as? NSBatchDeleteResult
                         debugPrint("\(DebuggingIdentifiers.succeeded) Deleted \(result?.result ?? 0) items with FpuID \(fpuID)")
 
-                        guard taskContext.hasChanges else { return }
-                        try taskContext.save()
-
+                        Foundation.NotificationCenter.default.post(name: .didPerformBatchDelete, object: nil)
                     } else {
+                        // Delete carbs from Nightscout
+                        if let id = carbEntry.id?.uuidString {
+                            self.provider.deleteCarbsFromNightscout(withID: id)
+                        }
+
+                        // Now delete carbs also from the Database
                         taskContext.delete(carbEntry)
 
                         guard taskContext.hasChanges else { return }
                         try taskContext.save()
+
                         debugPrint(
                             "Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted carb entry from core data"
                         )
@@ -135,11 +139,8 @@ extension DataTable {
                 }
             }
 
-            // Delete carbs also from Nightscout and perform a determine basal sync to update cob
-            if let carbEntry = carbEntry {
-                provider.deleteCarbs(carbEntry)
-                await apsManager.determineBasalSync()
-            }
+            // Perform a determine basal sync to update cob
+            await apsManager.determineBasalSync()
         }
 
         // Insulin deletion from history
@@ -156,18 +157,24 @@ extension DataTable {
         func deleteInsulin(_ treatmentObjectID: NSManagedObjectID) async {
             do {
                 let authenticated = try await unlockmanager.unlock()
-                if authenticated {
-                    CoreDataStack.shared.deleteObject(identifiedBy: treatmentObjectID)
 
-                    provider.deleteInsulin(with: treatmentObjectID)
-
-                    await apsManager.determineBasalSync()
-
-                } else {
-                    print("authentication failed")
+                guard authenticated else {
+                    debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Authentication Error")
+                    return
                 }
+
+                async let deleteNSManagedObjectTask: () = CoreDataStack.shared.deleteObject(identifiedBy: treatmentObjectID)
+                async let deleteInsulinFromNightScoutTask: () = provider.deleteInsulin(with: treatmentObjectID)
+                async let determineBasalTask: () = apsManager.determineBasalSync()
+
+                await deleteNSManagedObjectTask
+                await deleteInsulinFromNightScoutTask
+                await determineBasalTask
+
             } catch {
-                print("authentication error: \(error.localizedDescription)")
+                debugPrint(
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Error while Insulin Deletion Task: \(error.localizedDescription)"
+                )
             }
         }
 
@@ -182,6 +189,7 @@ extension DataTable {
                 newItem.date = Date()
                 newItem.glucose = Int16(glucoseAsInt)
                 newItem.isManual = true
+                newItem.isUploadedToNS = false
 
                 do {
                     guard self.coredataContext.hasChanges else { return }

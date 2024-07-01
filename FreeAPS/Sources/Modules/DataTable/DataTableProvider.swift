@@ -12,24 +12,32 @@ extension DataTable {
                 ?? PumpSettings(insulinActionCurve: 6, maxBolus: 10, maxBasal: 2)
         }
 
-        func deleteCarbs(_: CarbEntryStored) {
-            // TODO: fix this and refactor nightscoutManager.deleteCarbs()
-//            nightscoutManager.deleteCarbs(treatment, complexMeal: false)
+        func deleteCarbsFromNightscout(withID id: String) {
+            Task {
+                await nightscoutManager.deleteCarbs(withID: id)
+            }
         }
 
-        func deleteInsulin(with treatmentObjectID: NSManagedObjectID) {
+        func deleteInsulin(with treatmentObjectID: NSManagedObjectID) async {
             let taskContext = CoreDataStack.shared.newTaskContext()
 
-            taskContext.perform {
+            await taskContext.perform {
                 do {
                     guard let treatmentToDelete = try taskContext.existingObject(with: treatmentObjectID) as? PumpEventStored
                     else {
                         debug(.default, "Could not cast the object to PumpEventStored")
                         return
                     }
-                    self.nightscoutManager.deleteInsulin(at: treatmentToDelete.timestamp ?? Date())
-                    let id = treatmentToDelete.id
-                    self.healthkitManager.deleteInsulin(syncID: id)
+
+                    // Delete Insulin from Nightscout
+                    if let id = treatmentToDelete.id {
+                        self.deleteInsulinFromNightscout(withID: id)
+                    }
+
+                    // TODO: - Rewrite healthkit implementation
+
+//                    let id = treatmentToDelete.id
+//                    self.healthkitManager.deleteInsulin(syncID: id)
 
                     taskContext.delete(treatmentToDelete)
                     try taskContext.save()
@@ -41,8 +49,16 @@ extension DataTable {
             }
         }
 
-        func deleteManualGlucose(date: Date?) {
-            nightscoutManager.deleteManualGlucose(at: date ?? .distantPast)
+        func deleteInsulinFromNightscout(withID id: String) {
+            Task {
+                await nightscoutManager.deleteInsulin(withID: id)
+            }
+        }
+
+        func deleteManualGlucose(withID id: String) {
+            Task {
+                await nightscoutManager.deleteManualGlucose(withID: id)
+            }
         }
     }
 }

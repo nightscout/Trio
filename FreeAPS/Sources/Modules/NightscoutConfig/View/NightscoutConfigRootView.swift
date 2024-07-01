@@ -149,8 +149,12 @@ extension NightscoutConfig {
                     }
                 } header: { Text("Local glucose source") }
                 Section {
-                    Button("Backfill glucose") { state.backfillGlucose() }
-                        .disabled(state.url.isEmpty || state.connecting || state.backfilling)
+                    Button("Backfill glucose") {
+                        Task {
+                            await state.backfillGlucose()
+                        }
+                    }
+                    .disabled(state.url.isEmpty || state.connecting || state.backfilling)
                 }
 
                 Section {

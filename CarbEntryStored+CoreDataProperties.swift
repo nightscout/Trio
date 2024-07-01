@@ -11,8 +11,10 @@ public extension CarbEntryStored {
     @NSManaged var fat: Double
     @NSManaged var id: UUID?
     @NSManaged var isFPU: Bool
+    @NSManaged var fpuID: UUID?
     @NSManaged var note: String?
     @NSManaged var protein: Double
+    @NSManaged var isUploadedToNS: Bool
 }
 
 extension CarbEntryStored: Identifiable {}

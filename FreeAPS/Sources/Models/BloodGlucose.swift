@@ -16,9 +16,9 @@ struct BloodGlucose: JSON, Identifiable, Hashable {
         case rateOutOfRange = "RATE OUT OF RANGE"
     }
 
-    var _id = UUID().uuidString
+    var _id: String?
     var id: String {
-        _id
+        _id ?? UUID().uuidString
     }
 
     var sgv: Int?
@@ -29,7 +29,7 @@ struct BloodGlucose: JSON, Identifiable, Hashable {
     let filtered: Decimal?
     let noise: Int?
     var glucose: Int?
-    let type: String?
+    var type: String? = nil
     var activationDate: Date? = nil
     var sessionStartDate: Date? = nil
     var transmitterID: String? = nil

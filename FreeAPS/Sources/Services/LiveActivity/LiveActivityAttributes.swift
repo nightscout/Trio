@@ -16,6 +16,7 @@ struct LiveActivityAttributes: ActivityAttributes {
         let iob: Decimal
         let lockScreenView: String
         let unit: String
+        let isOverrideActive: Bool
     }
 
     let startDate: Date
