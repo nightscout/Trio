@@ -232,6 +232,7 @@ extension Bolus {
 
         @MainActor func invokeTreatmentsTask() {
             Task {
+                addButtonPressed = true
                 let isInsulinGiven = amount > 0
                 let isCarbsPresent = carbs > 0
                 let isFatPresent = fat > 0
@@ -247,7 +248,6 @@ extension Bolus {
                 }
 
                 await saveMeal()
-                addButtonPressed = true
 
                 // if glucose data is stale end the custom loading animation by hiding the modal
 //                guard glucoseOfLast20Min.first?.date ?? now >= Date().addingTimeInterval(-12.minutes.timeInterval) else {
