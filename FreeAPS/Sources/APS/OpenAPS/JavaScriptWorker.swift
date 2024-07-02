@@ -4,28 +4,13 @@ import JavaScriptCore
 private let contextLock = NSRecursiveLock()
 
 extension String {
-    func replacingRegex(
-        matching pattern: String,
-        findingOptions: NSRegularExpression.Options = .caseInsensitive,
-        replacingOptions: NSRegularExpression.MatchingOptions = [],
-        with template: String
-    ) throws -> String {
-        let regex = try NSRegularExpression(pattern: pattern, options: findingOptions)
-        let range = NSRange(startIndex..., in: self)
-        return regex.stringByReplacingMatches(in: self, options: replacingOptions, range: range, withTemplate: template)
-    }
-}
-
-extension String {
     var lowercasingFirst: String { prefix(1).lowercased() + dropFirst() }
     var uppercasingFirst: String { prefix(1).uppercased() + dropFirst() }
-
     var camelCased: String {
         guard !isEmpty else { return "" }
         let parts = components(separatedBy: .alphanumerics.inverted)
         let first = parts.first!.lowercasingFirst
         let rest = parts.dropFirst().map(\.uppercasingFirst)
-
         return ([first] + rest).joined()
     }
 
@@ -34,7 +19,6 @@ extension String {
         let parts = components(separatedBy: .alphanumerics.inverted)
         let first = parts.first!.uppercasingFirst
         let rest = parts.dropFirst().map(\.uppercasingFirst)
-
         return ([first] + rest).joined()
     }
 }
@@ -43,7 +27,8 @@ final class JavaScriptWorker {
     private let processQueue = DispatchQueue(label: "DispatchQueue.JavaScriptWorker")
     private let virtualMachine: JSVirtualMachine
     @SyncAccess(lock: contextLock) private var commonContext: JSContext? = nil
-    private var aggregatedLogs: [String] = [] // Step 1: Property to store log messages
+    private var aggregatedLogs: [String] = []
+    private var logFormatting: String = ""
 
     init() {
         virtualMachine = processQueue.sync { JSVirtualMachine()! }
@@ -57,39 +42,11 @@ final class JavaScriptWorker {
             }
         }
         let consoleLog: @convention(block) (String) -> Void = { message in
-
-            // Step 1: Format/Leandup the log entry using RegEx
-            var parsedMessage = message.trimmingCharacters(in: .whitespacesAndNewlines)
-            parsedMessage = try! parsedMessage.replacingRegex(matching: ";", with: ", ")
-            parsedMessage = try! parsedMessage.replacingRegex(matching: "\\s?:\\s?,?", with: ": ")
-            parsedMessage = try! parsedMessage.replacingRegex(matching: "(\\w+: \\d+(?= [^,:\\s]+:))", with: "$1,")
-            parsedMessage = try! parsedMessage.replacingRegex(matching: "^[^\\w]*", with: "")
-            parsedMessage = try! parsedMessage.replacingRegex(matching: "(\\sset)?\\sto:?\\s+", with: ": ")
-            parsedMessage = try! parsedMessage.replacingRegex(matching: "(\\w+) is (\\w+)\\!?", with: "$1: $2")
-            parsedMessage = try! parsedMessage.replacingRegex(matching: "NaN \\(\\. (.+)\\)", with: "$1, ")
-            parsedMessage = try! parsedMessage.replacingRegex(matching: "Setting (.+) of (.*)", with: "$1: $2 ")
-            parsedMessage = try! parsedMessage.replacingRegex(matching: "(Using\\s|\\sused)", with: "")
-            parsedMessage = try! parsedMessage.replacingRegex(
-                matching: " instead of past 24 h \\((" + "(-?\\d+(\\.\\d+)?)" + " U)\\)",
-                with: "weighted TDD average past 24h: $1"
-            )
-            parsedMessage = try! parsedMessage.replacingRegex(matching: "^(.+) \\((.+)\\)$", with: "$1: $2")
-            parsedMessage = try! parsedMessage.replacingRegex(matching: "\\s?,\\s?$", with: "")
-
-            // Step 2: Split parsedMessage by ',' and, then split by ':' to get the key-value pair
-            var keyPairResults = "    "
-            parsedMessage.split(separator: ",").forEach { property in
-                let keyPair = property.split(separator: ":")
-                if keyPair.count != 2 {
-                    keyPairResults += "\"unknown\": \"\(property)\", "
-                } else {
-                    // Step 3: Convert the key to a PascalCased string
-                    let key = keyPair[0].trimmingCharacters(in: .whitespacesAndNewlines).pascalCased
-                    let value = keyPair[1].trimmingCharacters(in: .whitespacesAndNewlines)
-                    keyPairResults += "\"\(key)\": \"\(value)\", "
-                }
+            let trimmedMessage = message.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmedMessage.isEmpty {
+//                debug(.openAPS, "JavaScript log: \(trimmedMessage)")
+                self.aggregatedLogs.append("\(trimmedMessage)")
             }
-            self.aggregatedLogs.append("\(keyPairResults)")
         }
         context.setObject(
             consoleLog,
@@ -100,26 +57,92 @@ final class JavaScriptWorker {
 
     // New method to flush aggregated logs
     private func aggregateLogs() {
-        let combinedLogs = aggregatedLogs.joined(separator: "\n")
+        let combinedLogs = aggregatedLogs.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
         aggregatedLogs.removeAll()
 
-        if !combinedLogs.isEmpty {
-            // Check if combinedLogs is a valid JSON string. If so, print it as JSON, if not, print it as a string
-            if let jsonData = "{\(combinedLogs)}".data(using: .utf8) {
-                do {
-                    let jsonObject = try JSONSerialization.jsonObject(with: jsonData, options: [])
-                    _ = try JSONSerialization.data(withJSONObject: jsonObject, options: .prettyPrinted)
-                    debug(.openAPS, "JavaScript log [JSON]: \n{\n\(combinedLogs)\n}")
-                } catch {
-                    debug(.openAPS, "JavaScript log: \(combinedLogs)")
+        if combinedLogs.isEmpty { return }
+
+        var logOutput = ""
+        var jsonOutput = ""
+        if logFormatting == "Middleware" {
+            jsonOutput += "{\n"
+            combinedLogs.replacingOccurrences(of: ";", with: ",")
+                .replacingOccurrences(of: "\\s?:\\s?,?", with: ": ", options: .regularExpression)
+                .replacingOccurrences(of: "(\\w+: \\d+(?= [^,:\\s]+:))", with: "$1,", options: .regularExpression)
+                .replacingOccurrences(of: "^[^\\w]*", with: "", options: .regularExpression)
+                .replacingOccurrences(of: "(\\sset)?\\sto:?\\s+", with: ": ", options: .regularExpression)
+                .replacingOccurrences(of: "(\\w+) is (\\w+)\\!?", with: "$1: $2", options: .regularExpression)
+                .replacingOccurrences(of: "NaN \\(\\. (.+)\\)", with: "$1, ", options: .regularExpression)
+                .replacingOccurrences(of: "Setting (.+) of (.*)", with: "$1: $2 ", options: .regularExpression)
+                .replacingOccurrences(of: "(Using\\s|\\sused)", with: "", options: .regularExpression)
+                .replacingOccurrences(
+                    of: " instead of past 24 h \\((" + "(-?\\d+(\\.\\d+)?)" + " U)\\)",
+                    with: "weighted TDD average past 24h: $1",
+                    options: .regularExpression
+                )
+                .replacingOccurrences(of: "^(.+) \\((.+)\\)$", with: "$1: $2", options: .regularExpression)
+                .replacingOccurrences(of: "\\s?,\\s?$", with: "", options: .regularExpression)
+                .split(separator: "\n").forEach { logLine in
+                    jsonOutput += "    "
+                    logLine.split(separator: ",").forEach { logItem in
+                        let keyPair = logItem.split(separator: ":")
+                        if keyPair.count != 2 {
+                            jsonOutput += "\"unknown\": \"\(logItem)\", "
+                        } else {
+                            let key = keyPair[0].trimmingCharacters(in: .whitespacesAndNewlines).pascalCased
+                            let value = keyPair[1].trimmingCharacters(in: .whitespacesAndNewlines)
+                            jsonOutput += "\"\(key)\": \"\(value)\", "
+                        }
+                    }
+                    jsonOutput += "\n"
                 }
-            } else {
-                debug(.openAPS, "JavaScript log: \(combinedLogs)")
+            jsonOutput += "}"
+        }
+
+        if logFormatting == "prepare/autosens.js" {
+            logOutput += combinedLogs.replacingOccurrences(
+                of: "((?:[\\=\\+\\-]\\n)+)?\\d+h\\n((?:[\\=\\+\\-]\\n)+)?",
+                with: "",
+                options: .regularExpression
+            )
+        }
+
+        if logFormatting == "prepare/autotune-prep.js" {
+            // print(combinedLogs)
+        }
+
+        if logFormatting == "prepare/autotune-core.js" {
+            // print(combinedLogs)
+        }
+
+        debug(.openAPS, "JavaScript Format: \(logFormatting)")
+
+        // Check if combinedLogs is a valid JSON string. If so, print it as JSON, if not, print it as a string
+        if let jsonData = "\(jsonOutput)".data(using: .utf8) {
+            do {
+                let jsonObject = try JSONSerialization.jsonObject(with: jsonData, options: [])
+                _ = try JSONSerialization.data(withJSONObject: jsonObject, options: .prettyPrinted)
+                debug(.openAPS, "JavaScript log: \(jsonOutput)")
+                return
+            } catch {
+                // debug(.openAPS, "JavaScript log: \(combinedLogs)")
             }
+        }
+
+        if !logOutput.isEmpty {
+            logOutput.split(separator: "\n").forEach { logLine in
+                debug(.openAPS, "JavaScript log: \(logLine)")
+            }
+            return
+        }
+
+        combinedLogs.split(separator: "\n").forEach { logLine in
+            debug(.openAPS, "JavaScript log: \(logLine)")
         }
     }
 
     @discardableResult func evaluate(script: Script) -> JSValue! {
+        logFormatting = script.name
         let result = evaluate(string: script.body)
         aggregateLogs()
         return result
