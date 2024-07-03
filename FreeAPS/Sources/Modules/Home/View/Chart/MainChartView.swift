@@ -115,7 +115,10 @@ struct MainChartView: View {
     var body: some View {
         VStack {
             ZStack {
-                staticYAxisChart
+                VStack {
+                    staticYAxisChart
+                    dummyBasalChart
+                }
 
                 ScrollViewReader { scroller in
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -194,6 +197,17 @@ extension MainChartView {
         .chartXAxis(.hidden)
         .chartYScale(domain: minValue ... maxValue)
         .chartLegend(.hidden)
+    }
+
+    private var dummyBasalChart: some View {
+        Chart {}
+            .id("DummyBasalChart")
+            .frame(height: UIScreen.main.bounds.height * 0.08)
+            .frame(width: screenSize.width - 10)
+            .chartYAxis(.hidden)
+            .chartXAxis(.hidden)
+            .chartYScale(domain: minValue ... maxValue)
+            .chartLegend(.hidden)
     }
 
     private var mainChart: some View {
