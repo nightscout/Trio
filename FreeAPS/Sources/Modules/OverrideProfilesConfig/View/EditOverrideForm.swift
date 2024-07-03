@@ -26,6 +26,7 @@ struct EditOverrideForm: View {
     @State private var hasChanges = false
     @State private var isEditing = false
     @State private var target_override = false
+    @State private var showAlert = false
 
     init(overrideToEdit: OverrideStored, state: OverrideProfilesConfig.StateModel) {
         override = overrideToEdit
@@ -103,6 +104,13 @@ struct EditOverrideForm: View {
                         // Reset UI changes
                         resetValues()
                     }
+                }
+                .alert(isPresented: $state.showInvalidTargetAlert) {
+                    Alert(
+                        title: Text("Invalid Input"),
+                        message: Text("\(state.alertMessage)"),
+                        dismissButton: .default(Text("OK")) { state.showInvalidTargetAlert = false }
+                    )
                 }
         }
     }
@@ -279,13 +287,18 @@ struct EditOverrideForm: View {
         HStack {
             Spacer()
             Button(action: {
-                saveChanges()
-                do {
-                    try override.managedObjectContext?.save()
-                    hasChanges = false
-                    presentationMode.wrappedValue.dismiss()
-                } catch {
-                    debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to edit Override")
+                if !state.isInputInvalid(target: target ?? 0) {
+                    saveChanges()
+
+                    do {
+                        guard let moc = override.managedObjectContext else { return }
+                        guard moc.hasChanges else { return }
+                        try moc.save()
+                        hasChanges = false
+                        presentationMode.wrappedValue.dismiss()
+                    } catch {
+                        debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to edit Override")
+                    }
                 }
             }, label: {
                 Text("Save")
@@ -309,7 +322,8 @@ struct EditOverrideForm: View {
         override.duration = NSDecimalNumber(decimal: duration)
         if target_override {
             override.target = target.map {
-                state.units == .mmolL ? NSDecimalNumber(decimal: $0.asMgdL) : NSDecimalNumber(decimal: $0) }
+                state.units == .mmolL ? NSDecimalNumber(decimal: $0.asMgdL) : NSDecimalNumber(decimal: $0)
+            }
         } else {
             override.target = 0
         }

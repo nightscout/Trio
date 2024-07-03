@@ -47,6 +47,11 @@ struct AddOverrideForm: View {
         return formatter
     }
 
+    private var alertMessage: String {
+        let target: String = state.units == .mgdL ? "70-270 mg/dl" : "4-15 mmol/l"
+        return "Please enter a valid target between" + " \(target)."
+    }
+
     var body: some View {
         NavigationView {
             Form {
@@ -181,40 +186,42 @@ struct AddOverrideForm: View {
     private var startAndSaveProfiles: some View {
         HStack {
             Button("Start new Override") {
-                showAlert.toggle()
+                if !state.isInputInvalid(target: state.target) {
+                    showAlert.toggle()
 
-                alertString = "\(state.overrideSliderPercentage.formatted(.number)) %, " +
-                    (
-                        state.overrideDuration > 0 || !state
-                            .indefinite ?
-                            (
-                                state
-                                    .overrideDuration
-                                    .formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) +
-                                    " min."
-                            ) :
-                            NSLocalizedString(" infinite duration.", comment: "")
-                    ) +
-                    (
-                        (state.target == 0 || !state.shouldOverrideTarget) ? "" :
-                            (" Target: " + state.target.formatted() + " " + state.units.rawValue + ".")
-                    )
-                    +
-                    (
-                        state
-                            .smbIsOff ?
-                            NSLocalizedString(
-                                " SMBs are disabled either by schedule or during the entire duration.",
-                                comment: ""
-                            ) : ""
-                    )
-                    +
-                    "\n\n"
-                    +
-                    NSLocalizedString(
-                        "Starting this override will change your profiles and/or your Target Glucose used for looping during the entire selected duration. Tapping ”Start Override” will start your new Override or edit your current active Override.",
-                        comment: ""
-                    )
+                    alertString = "\(state.overrideSliderPercentage.formatted(.number)) %, " +
+                        (
+                            state.overrideDuration > 0 || !state
+                                .indefinite ?
+                                (
+                                    state
+                                        .overrideDuration
+                                        .formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) +
+                                        " min."
+                                ) :
+                                NSLocalizedString(" infinite duration.", comment: "")
+                        ) +
+                        (
+                            (state.target == 0 || !state.shouldOverrideTarget) ? "" :
+                                (" Target: " + state.target.formatted() + " " + state.units.rawValue + ".")
+                        )
+                        +
+                        (
+                            state
+                                .smbIsOff ?
+                                NSLocalizedString(
+                                    " SMBs are disabled either by schedule or during the entire duration.",
+                                    comment: ""
+                                ) : ""
+                        )
+                        +
+                        "\n\n"
+                        +
+                        NSLocalizedString(
+                            "Starting this override will change your profiles and/or your Target Glucose used for looping during the entire selected duration. Tapping ”Start Override” will start your new Override or edit your current active Override.",
+                            comment: ""
+                        )
+                }
             }
             .disabled(unChanged())
             .buttonStyle(BorderlessButtonStyle())
@@ -239,10 +246,19 @@ struct AddOverrideForm: View {
                     Text(alertString)
                 }
             )
+            .alert(isPresented: $state.showInvalidTargetAlert) {
+                Alert(
+                    title: Text("Invalid Input"),
+                    message: Text("\(state.alertMessage)"),
+                    dismissButton: .default(Text("OK")) { state.showInvalidTargetAlert = false }
+                )
+            }
             Button {
                 Task {
-                    await state.saveOverridePreset()
-                    dismiss()
+                    if !state.isInputInvalid(target: state.target) {
+                        await state.saveOverridePreset()
+                        dismiss()
+                    }
                 }
             }
             label: { Text("Save as Override") }

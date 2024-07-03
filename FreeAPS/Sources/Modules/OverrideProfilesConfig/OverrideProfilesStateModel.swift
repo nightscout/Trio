@@ -34,6 +34,7 @@ extension OverrideProfilesConfig {
         @Published var activeOverrideName: String = ""
         @Published var currentActiveOverride: OverrideStored?
         @Published var showOverrideEditSheet = false
+        @Published var showInvalidTargetAlert = false
 
         var units: GlucoseUnits = .mmolL
 
@@ -50,6 +51,11 @@ extension OverrideProfilesConfig {
         @Published var hbt: Double = 160
         @Published var didSaveSettings: Bool = false
 
+        var alertMessage: String {
+            let target: String = units == .mgdL ? "70-270 mg/dl" : "4-15 mmol/l"
+            return "Please enter a valid target between" + " \(target)."
+        }
+
         override func subscribe() {
             setupNotification()
             units = settingsManager.settings.units
@@ -64,6 +70,22 @@ extension OverrideProfilesConfig {
 
         let coredataContext = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
+
+        func isInputInvalid(target: Decimal) -> Bool {
+            if units == .mgdL,
+               target < 70 || target > 270
+            {
+                showInvalidTargetAlert = true
+                return true
+            } else if units == .mmolL,
+                      target < 4 || target > 15
+            {
+                showInvalidTargetAlert = true
+                return true
+            } else {
+                return false
+            }
+        }
     }
 }
 
