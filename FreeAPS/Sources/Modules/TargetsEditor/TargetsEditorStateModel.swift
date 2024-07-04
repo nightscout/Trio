@@ -6,7 +6,7 @@ extension TargetsEditor {
 
         let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
 
-        var rateValues: [Double] {
+        var rateValues: [Decimal] {
             switch units {
             case .mgdL:
                 return stride(from: 72, to: 180.01, by: 1.0).map { $0 }
@@ -27,8 +27,8 @@ extension TargetsEditor {
             units = profile.units
             items = profile.targets.map { value in
                 let timeIndex = timeValues.firstIndex(of: Double(value.offset * 60)) ?? 0
-                let lowIndex = rateValues.firstIndex(of: Double(value.low)) ?? 0
-                let highIndex = lowIndex
+                let lowIndex = rateValues.firstIndex(of: value.low) ?? 0
+                let highIndex = rateValues.firstIndex(of: value.high) ?? 0
                 return Item(lowIndex: lowIndex, highIndex: highIndex, timeIndex: timeIndex)
             }
         }
@@ -50,14 +50,14 @@ extension TargetsEditor {
 
         func save() {
             let targets = items.map { item -> BGTargetEntry in
-                let fotmatter = DateFormatter()
-                fotmatter.timeZone = TimeZone(secondsFromGMT: 0)
-                fotmatter.dateFormat = "HH:mm:ss"
+                let formatter = DateFormatter()
+                formatter.timeZone = TimeZone(secondsFromGMT: 0)
+                formatter.dateFormat = "HH:mm:ss"
                 let date = Date(timeIntervalSince1970: self.timeValues[item.timeIndex])
                 let minutes = Int(date.timeIntervalSince1970 / 60)
-                let low = Decimal(self.rateValues[item.lowIndex])
+                let low = self.rateValues[item.lowIndex]
                 let high = low
-                return BGTargetEntry(low: low, high: high, start: fotmatter.string(from: date), offset: minutes)
+                return BGTargetEntry(low: low, high: high, start: formatter.string(from: date), offset: minutes)
             }
             let profile = BGTargets(units: units, userPrefferedUnits: settingsManager.settings.units, targets: targets)
             provider.saveProfile(profile)
@@ -68,8 +68,7 @@ extension TargetsEditor {
                 let uniq = Array(Set(self.items))
                 let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
                     .map { item -> Item in
-                        guard item.highIndex < item.lowIndex else { return item }
-                        return Item(lowIndex: item.lowIndex, highIndex: item.lowIndex, timeIndex: item.timeIndex)
+                        Item(lowIndex: item.lowIndex, highIndex: item.highIndex, timeIndex: item.timeIndex)
                     }
                 sorted.first?.timeIndex = 0
                 self.items = sorted
