@@ -236,15 +236,26 @@ struct LiveActivity: Widget {
             .activityBackgroundTint(Color.black.opacity(0.7))
             .activitySystemActionForegroundColor(Color.white)
         } else {
-            HStack(spacing: 3) {
+            Group {
                 if context.state.isInitialState {
-                    expiredLabel()
+                    // add vertical and horizontal spacers around the label to ensure that the live activity view gets filled completely
+                    HStack {
+                        Spacer()
+                        VStack {
+                            Spacer()
+                            expiredLabel()
+                            Spacer()
+                        }
+                        Spacer()
+                    }
                 } else {
-                    bgAndTrend(context: context, size: .expanded).0.font(.title)
-                    Spacer()
-                    VStack(alignment: .trailing, spacing: 5) {
-                        changeLabel(context: context).font(.title3)
-                        updatedLabel(context: context).font(.caption).foregroundStyle(.primary.opacity(0.7))
+                    HStack(spacing: 3) {
+                        bgAndTrend(context: context, size: .expanded).0.font(.title)
+                        Spacer()
+                        VStack(alignment: .trailing, spacing: 5) {
+                            changeLabel(context: context).font(.title3)
+                            updatedLabel(context: context).font(.caption).foregroundStyle(.primary.opacity(0.7))
+                        }
                     }
                 }
             }
