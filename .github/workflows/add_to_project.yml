@@ -1,4 +1,4 @@
-name: Add bugs to bugs project
+name: 8. DONT RUN Add bugs to bugs project
 
 on:
   issues:
@@ -9,6 +9,7 @@ jobs:
   add-to-project:
     name: Add issue to project
     runs-on: ubuntu-latest
+    if: github.repository_owner == 'nightscout'
     steps:
       - uses: actions/add-to-project@v1.0.2
         with:
@@ -18,3 +19,4 @@ jobs:
           github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
           labeled: bug, needs-triage
           label-operator: OR
+
