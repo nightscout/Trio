@@ -72,6 +72,8 @@ extension OverrideProfilesConfig {
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
         func isInputInvalid(target: Decimal) -> Bool {
+            guard target != 0 else { return false }
+
             if units == .mgdL,
                target < 70 || target > 270
             {
