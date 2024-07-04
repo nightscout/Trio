@@ -33,6 +33,7 @@ public extension PumpEventStored {
         case prime = "Prime"
         case journalCarbs = "JournalEntryMealMarker"
 
+        case nsNote = "Note"
         case nsTempBasal = "Temp Basal"
         case nsCarbCorrection = "Carb Correction"
         case nsTempTarget = "Temporary Target"

@@ -71,6 +71,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                                         // Update existing event with new smaller value
                                         existingEvent.bolus?.amount = amount as NSDecimalNumber
                                         existingEvent.bolus?.isSMB = dose.automatic ?? true
+                                        existingEvent.isUploadedToNS = false
 
                                         print("Updated existing event with smaller value: \(amount)")
                                     }
@@ -306,7 +307,6 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         targetBottom: nil,
                         id: event.id
                     )
-                // TODO: should we really upload pumpSuspend as announcement ?!
                 case PumpEvent.pumpSuspend.rawValue:
                     return NightscoutTreatment(
                         duration: nil,
@@ -314,7 +314,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         rawRate: nil,
                         absolute: nil,
                         rate: nil,
-                        eventType: .nsAnnouncement,
+                        eventType: .nsNote,
                         createdAt: event.timestamp,
                         enteredBy: NightscoutTreatment.local,
                         bolus: nil,
@@ -326,7 +326,6 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         targetTop: nil,
                         targetBottom: nil
                     )
-                // TODO: should we really upload pumpResume as announcement ?!
                 case PumpEvent.pumpResume.rawValue:
                     return NightscoutTreatment(
                         duration: nil,
@@ -334,7 +333,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         rawRate: nil,
                         absolute: nil,
                         rate: nil,
-                        eventType: .nsAnnouncement,
+                        eventType: .nsNote,
                         createdAt: event.timestamp,
                         enteredBy: NightscoutTreatment.local,
                         bolus: nil,
