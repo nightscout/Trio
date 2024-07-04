@@ -1,4 +1,4 @@
-name: 8. DONT RUN - Add bugs to bugs project
+name: 8. DONT RUN Add bugs to bugs project
 
 on:
   issues:
