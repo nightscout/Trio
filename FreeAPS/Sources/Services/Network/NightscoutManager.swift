@@ -1013,11 +1013,8 @@ extension BaseNightscoutManager {
     /// its done on a background thread and after that the UI gets updated on the main thread
     @objc private func contextDidSave(_ notification: Notification) {
         guard let userInfo = notification.userInfo else {
-            print("No userInfo in notification")
             return
         }
-
-        print("Notification userInfo: \(userInfo)")
 
         Task { [weak self] in
             await self?.processUpdates(userInfo: userInfo)

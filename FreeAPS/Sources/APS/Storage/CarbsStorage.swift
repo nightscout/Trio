@@ -29,7 +29,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     }
 
     func storeCarbs(_ entries: [CarbsEntry]) async {
-        await storeCarbEquivalents(entries: entries)
+        await saveCarbEquivalents(entries: entries)
         await saveCarbsToCoreData(entries: entries)
     }
 
@@ -72,7 +72,13 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
 
      - Returns: A tuple containing the array of future carb entries and the total carb equivalents.
      */
-    private func processFPU(entries _: [CarbsEntry], fat: Decimal, protein: Decimal, createdAt: Date) -> ([CarbsEntry], Decimal) {
+    private func processFPU(
+        entries _: [CarbsEntry],
+        fat: Decimal,
+        protein: Decimal,
+        createdAt: Date,
+        actualDate: Date?
+    ) -> ([CarbsEntry], Decimal) {
         let interval = settings.settings.minuteInterval
         let timeCap = settings.settings.timeCap
         let adjustment = settings.settings.individualAdjustmentFactor
@@ -95,7 +101,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         carbEquivalentSize = Decimal(roundedEquivalent)
         var numberOfEquivalents = carbEquivalents / carbEquivalentSize
 
-        var useDate = createdAt
+        var useDate = actualDate ?? createdAt
         let fpuID = UUID().uuidString
         var futureCarbArray = [CarbsEntry]()
         var firstIndex = true
@@ -123,7 +129,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         return (futureCarbArray, carbEquivalents)
     }
 
-    private func storeCarbEquivalents(entries: [CarbsEntry]) async {
+    private func saveCarbEquivalents(entries: [CarbsEntry]) async {
         guard let lastEntry = entries.last else { return }
 
         if let fat = lastEntry.fat, let protein = lastEntry.protein, fat > 0 || protein > 0 {
@@ -131,7 +137,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                 entries: entries,
                 fat: fat,
                 protein: protein,
-                createdAt: lastEntry.createdAt
+                createdAt: lastEntry.createdAt,
+                actualDate: lastEntry.actualDate
             )
 
             if carbEquivalentCount > 0 {
@@ -184,6 +191,9 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             do {
                 try self.coredataContext.execute(batchInsert)
                 debugPrint("Carbs Storage: \(DebuggingIdentifiers.succeeded) saved fpus to core data")
+
+                // Send notification for triggering a fetch in Home State Model to update the FPU Array
+                Foundation.NotificationCenter.default.post(name: .didPerformBatchInsert, object: nil)
             } catch {
                 debugPrint("Carbs Storage: \(DebuggingIdentifiers.failed) error while saving fpus to core data")
             }

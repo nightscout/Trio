@@ -451,6 +451,7 @@ extension Home.StateModel {
     }
 
     @objc private func handleBatchInsert() {
+        setupFPUsArray()
         setupGlucoseArray()
     }
 
