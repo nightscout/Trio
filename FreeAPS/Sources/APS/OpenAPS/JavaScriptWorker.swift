@@ -64,7 +64,9 @@ final class JavaScriptWorker {
 
         var logOutput = ""
         var jsonOutput = ""
-        if logFormatting == "Middleware" {
+
+        switch logFormatting {
+        case "Middleware":
             jsonOutput += "{\n"
             combinedLogs.replacingOccurrences(of: ";", with: ",")
                 .replacingOccurrences(of: "\\s?:\\s?,?", with: ": ", options: .regularExpression)
@@ -86,58 +88,50 @@ final class JavaScriptWorker {
                     jsonOutput += "    "
                     logLine.split(separator: ",").forEach { logItem in
                         let keyPair = logItem.split(separator: ":")
-                        if keyPair.count != 2 {
-                            jsonOutput += "\"unknown\": \"\(logItem)\", "
-                        } else {
+                        if keyPair.count == 2 {
                             let key = keyPair[0].trimmingCharacters(in: .whitespacesAndNewlines).pascalCased
                             let value = keyPair[1].trimmingCharacters(in: .whitespacesAndNewlines)
                             jsonOutput += "\"\(key)\": \"\(value)\", "
+                        } else {
+                            logOutput += "\(logItem)\n"
                         }
                     }
                     jsonOutput += "\n"
                 }
             jsonOutput += "}"
-        }
+            jsonOutput = jsonOutput.replacingOccurrences(of: "\\s+\\n+", with: "\n", options: .regularExpression)
 
-        if logFormatting == "prepare/autosens.js" {
+        case "prepare/autosens.js":
             logOutput += combinedLogs.replacingOccurrences(
                 of: "((?:[\\=\\+\\-]\\n)+)?\\d+h\\n((?:[\\=\\+\\-]\\n)+)?",
                 with: "",
                 options: .regularExpression
             )
+        // case "prepare/autotune-prep.js"
+        // case "prepare/autotune-core.js"
+        default:
+            debug(.openAPS, "JavaScript Format: \(logFormatting)")
+            logOutput = combinedLogs
         }
 
-        if logFormatting == "prepare/autotune-prep.js" {
-            // print(combinedLogs)
-        }
-
-        if logFormatting == "prepare/autotune-core.js" {
-            // print(combinedLogs)
-        }
-
-        debug(.openAPS, "JavaScript Format: \(logFormatting)")
-
-        // Check if combinedLogs is a valid JSON string. If so, print it as JSON, if not, print it as a string
-        if let jsonData = "\(jsonOutput)".data(using: .utf8) {
-            do {
-                let jsonObject = try JSONSerialization.jsonObject(with: jsonData, options: [])
-                _ = try JSONSerialization.data(withJSONObject: jsonObject, options: .prettyPrinted)
-                debug(.openAPS, "JavaScript log: \(jsonOutput)")
-                return
-            } catch {
-                // debug(.openAPS, "JavaScript log: \(combinedLogs)")
+        if !jsonOutput.isEmpty {
+            if let jsonData = "\(jsonOutput)".data(using: .utf8) {
+                do {
+                    let jsonObject = try JSONSerialization.jsonObject(with: jsonData, options: [])
+                    _ = try JSONSerialization.data(withJSONObject: jsonObject, options: .prettyPrinted)
+                    debug(.openAPS, "JavaScript log: \(jsonOutput)")
+                } catch {
+                    logOutput = combinedLogs
+                }
             }
         }
 
         if !logOutput.isEmpty {
             logOutput.split(separator: "\n").forEach { logLine in
-                debug(.openAPS, "JavaScript log: \(logLine)")
+                if !"\(logLine)".trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    debug(.openAPS, "JavaScript log: \(logLine)")
+                }
             }
-            return
-        }
-
-        combinedLogs.split(separator: "\n").forEach { logLine in
-            debug(.openAPS, "JavaScript log: \(logLine)")
         }
     }
 
