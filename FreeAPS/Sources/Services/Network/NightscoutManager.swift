@@ -7,8 +7,8 @@ import UIKit
 
 protocol NightscoutManager: GlucoseSource {
     func fetchGlucose(since date: Date) async -> [BloodGlucose]
-    func fetchCarbs() -> AnyPublisher<[CarbsEntry], Never>
-    func fetchTempTargets() -> AnyPublisher<[TempTarget], Never>
+    func fetchCarbs() async -> [CarbsEntry]
+    func fetchTempTargets() async -> [TempTarget]
     func fetchAnnouncements() -> AnyPublisher<[Announcement], Never>
     func deleteCarbs(withID id: String) async
     func deleteInsulin(withID id: String) async
@@ -153,26 +153,34 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         fetch(nil)
     }
 
-    func fetchCarbs() -> AnyPublisher<[CarbsEntry], Never> {
+    func fetchCarbs() async -> [CarbsEntry] {
         guard let nightscout = nightscoutAPI, isNetworkReachable else {
-            return Just([]).eraseToAnyPublisher()
+            return []
         }
 
         let since = carbsStorage.syncDate()
-        return nightscout.fetchCarbs(sinceDate: since)
-            .replaceError(with: [])
-            .eraseToAnyPublisher()
+        do {
+            let carbs = try await nightscout.fetchCarbs(sinceDate: since)
+            return carbs
+        } catch {
+            debug(.nightscout, "Error fetching carbs: \(error.localizedDescription)")
+            return []
+        }
     }
 
-    func fetchTempTargets() -> AnyPublisher<[TempTarget], Never> {
+    func fetchTempTargets() async -> [TempTarget] {
         guard let nightscout = nightscoutAPI, isNetworkReachable else {
-            return Just([]).eraseToAnyPublisher()
+            return []
         }
 
         let since = tempTargetsStorage.syncDate()
-        return nightscout.fetchTempTargets(sinceDate: since)
-            .replaceError(with: [])
-            .eraseToAnyPublisher()
+        do {
+            let tempTargets = try await nightscout.fetchTempTargets(sinceDate: since)
+            return tempTargets
+        } catch {
+            debug(.nightscout, "Error fetching temp targets: \(error.localizedDescription)")
+            return []
+        }
     }
 
     func fetchAnnouncements() -> AnyPublisher<[Announcement], Never> {
