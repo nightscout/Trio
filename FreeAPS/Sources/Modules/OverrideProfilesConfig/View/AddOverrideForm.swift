@@ -261,7 +261,7 @@ struct AddOverrideForm: View {
                     }
                 }
             }
-            label: { Text("Save as Override") }
+            label: { Text("Save as Preset") }
                 .tint(.orange)
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .buttonStyle(BorderlessButtonStyle())

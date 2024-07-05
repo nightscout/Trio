@@ -26,6 +26,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     @Injected() private var keychain: Keychain!
     @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var tempTargetsStorage: TempTargetsStorage!
+    @Injected() private var overridesStorage: OverrideStorage!
     @Injected() private var carbsStorage: CarbsStorage!
     @Injected() private var pumpHistoryStorage: PumpHistoryStorage!
     @Injected() private var storage: FileStorage!
@@ -808,6 +809,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         await uploadCarbs(carbsStorage.getFPUsNotYetUploadedToNightscout())
     }
 
+    private func uploadOverrides() async {
+        await uploadOverrides(overridesStorage.getOverridesNotYetUploadedToNightscout())
+        await uploadOverrideRuns(overridesStorage.getOverrideRunsNotYetUploadedToNightscout())
+    }
+
     private func uploadTempTargets() async {
         await uploadTreatments(
             tempTargetsStorage.nightscoutTreatmentsNotUploaded(),
@@ -987,6 +993,92 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             }
         }
     }
+
+    private func uploadOverrides(_ overrides: [NightscoutExercise]) async {
+        guard !overrides.isEmpty, let nightscout = nightscoutAPI, isUploadEnabled else {
+            return
+        }
+
+        do {
+            for chunk in overrides.chunks(ofCount: 100) {
+                try await nightscout.uploadOverrides(Array(chunk))
+            }
+
+            // If successful, update the isUploadedToNS property of the OverrideStored objects
+            await updateOverridesAsUploaded(overrides)
+
+            debug(.nightscout, "Overrides uploaded")
+        } catch {
+            debug(.nightscout, error.localizedDescription)
+        }
+    }
+
+    private func updateOverridesAsUploaded(_ overrides: [NightscoutExercise]) async {
+        await backgroundContext.perform {
+            let ids = overrides.map(\.id) as NSArray
+            print("\(DebuggingIdentifiers.inProgress) ids: \(ids)")
+            let fetchRequest: NSFetchRequest<OverrideStored> = OverrideStored.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
+
+            do {
+                let results = try self.backgroundContext.fetch(fetchRequest)
+                print("\(DebuggingIdentifiers.inProgress) results: \(results)")
+                for result in results {
+                    result.isUploadedToNS = true
+                }
+
+                guard self.backgroundContext.hasChanges else { return }
+                try self.backgroundContext.save()
+            } catch let error as NSError {
+                debugPrint(
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
+                )
+            }
+        }
+    }
+
+    private func uploadOverrideRuns(_ overrideRuns: [NightscoutExercise]) async {
+        guard !overrideRuns.isEmpty, let nightscout = nightscoutAPI, isUploadEnabled else {
+            return
+        }
+
+        do {
+            for chunk in overrideRuns.chunks(ofCount: 100) {
+                try await nightscout.uploadOverrides(Array(chunk))
+            }
+
+            // If successful, update the isUploadedToNS property of the OverrideRunStored objects
+            await updateOverrideRunsAsUploaded(overrideRuns)
+
+            debug(.nightscout, "Overrides uploaded")
+        } catch {
+            debug(.nightscout, error.localizedDescription)
+        }
+    }
+
+    private func updateOverrideRunsAsUploaded(_ overrideRuns: [NightscoutExercise]) async {
+        await backgroundContext.perform {
+            let ids = overrideRuns.map(\.id) as NSArray
+            print("\(DebuggingIdentifiers.inProgress) ids: \(ids)")
+            let fetchRequest: NSFetchRequest<OverrideRunStored> = OverrideRunStored.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
+
+            do {
+                let results = try self.backgroundContext.fetch(fetchRequest)
+                print("\(DebuggingIdentifiers.inProgress) results: \(results)")
+                for result in results {
+                    result.isUploadedToNS = true
+                }
+
+                guard self.backgroundContext.hasChanges else { return }
+                try self.backgroundContext.save()
+            } catch let error as NSError {
+                debugPrint(
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
+                )
+            }
+        }
+    }
 }
 
 extension Array {
@@ -1029,6 +1121,7 @@ extension BaseNightscoutManager {
         let manualGlucoseUpdates = objects.filter { $0 is GlucoseStored }
         let carbUpdates = objects.filter { $0 is CarbEntryStored }
         let pumpHistoryUpdates = objects.filter { $0 is PumpEventStored }
+        let overrideUpdates = objects.filter { $0 is OverrideStored || $0 is OverrideRunStored }
 
         if manualGlucoseUpdates.isNotEmpty {
             Task.detached {
@@ -1043,6 +1136,11 @@ extension BaseNightscoutManager {
         if pumpHistoryUpdates.isNotEmpty {
             Task.detached {
                 await self.uploadPumpHistory()
+            }
+        }
+        if overrideUpdates.isNotEmpty {
+            Task.detached {
+                await self.uploadOverrides()
             }
         }
     }

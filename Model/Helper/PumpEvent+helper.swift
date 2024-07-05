@@ -42,6 +42,7 @@ public extension PumpEventStored {
         case nsBatteryChange = "Pump Battery Change"
         case nsAnnouncement = "Announcement"
         case nsSensorChange = "Sensor Start"
+        case nsExercise = "Exercise"
         case capillaryGlucose = "BG Check"
     }
 

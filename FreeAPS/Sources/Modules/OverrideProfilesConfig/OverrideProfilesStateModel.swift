@@ -210,6 +210,7 @@ extension OverrideProfilesConfig.StateModel {
                         newOverrideRunStored
                             .target = NSDecimalNumber(decimal: self.overrideStorage.calculateTarget(override: canceledOverride))
                         newOverrideRunStored.override = canceledOverride
+                        newOverrideRunStored.isUploadedToNS = false
                     }
                 }
 

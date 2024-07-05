@@ -560,6 +560,42 @@ extension NightscoutAPI {
             .map { _ in () }
             .eraseToAnyPublisher()
     }
+
+    func uploadOverrides(_ overrides: [NightscoutExercise]) async throws {
+        var components = URLComponents()
+        components.scheme = url.scheme
+        components.host = url.host
+        components.port = url.port
+        components.path = Config.treatmentsPath
+
+        var request = URLRequest(url: components.url!)
+        request.allowsConstrainedNetworkAccess = false
+        request.timeoutInterval = Config.timeout
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let secret = secret {
+            request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
+        }
+        do {
+            let encodedBody = try JSONCoding.encoder.encode(overrides)
+            request.httpBody = encodedBody
+            debugPrint("Payload glucose size: \(encodedBody.count) bytes")
+            debugPrint(String(data: encodedBody, encoding: .utf8) ?? "Invalid payload")
+        } catch {
+            debugPrint("Error encoding payload: \(error.localizedDescription)")
+            throw error
+        }
+        request.httpMethod = "POST"
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        // Check the response status code
+        guard let httpResponse = response as? HTTPURLResponse, 200 ..< 300 ~= httpResponse.statusCode else {
+            throw URLError(.badServerResponse)
+        }
+
+        debugPrint("Upload successful, response data: \(String(data: data, encoding: .utf8) ?? "No data")")
+    }
 }
 
 private extension String {

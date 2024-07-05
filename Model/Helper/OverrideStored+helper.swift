@@ -14,6 +14,16 @@ extension NSPredicate {
             true as NSNumber
         )
     }
+
+    static var lastActiveOverrideNotYetUploadedToNightscout: NSPredicate {
+        let date = Date.oneDayAgo
+        return NSPredicate(
+            format: "date >= %@ AND enabled == %@ AND isUploadedToNS == %@",
+            date as NSDate,
+            true as NSNumber,
+            false as NSNumber
+        )
+    }
 }
 
 extension OverrideStored {
@@ -25,5 +35,11 @@ extension OverrideStored {
             request.fetchLimit = fetchLimit
         }
         return request
+    }
+}
+
+extension OverrideStored {
+    enum EventType: String, JSON {
+        case nsExercise = "Exercise"
     }
 }

@@ -921,6 +921,7 @@ extension Home.StateModel {
                 newOverrideRunStored.endDate = Date()
                 newOverrideRunStored.target = NSDecimalNumber(decimal: self.calculateTarget(override: object))
                 newOverrideRunStored.override = object
+                newOverrideRunStored.isUploadedToNS = false
 
                 guard self.viewContext.hasChanges else { return }
                 try self.viewContext.save()

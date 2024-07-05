@@ -9,6 +9,8 @@ protocol OverrideStorage {
     func storeOverride(override: Override) async
     func copyRunningOverride(_ override: OverrideStored) async
     func deleteOverridePreset(_ objectID: NSManagedObjectID) async
+    func getOverridesNotYetUploadedToNightscout() async -> [NightscoutExercise]
+    func getOverrideRunsNotYetUploadedToNightscout() async -> [NightscoutExercise]
 }
 
 final class BaseOverrideStorage: OverrideStorage, Injectable {
@@ -84,6 +86,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             newOverride.id = UUID().uuidString
             newOverride.date = override.date
             newOverride.isPreset = override.isPreset
+            newOverride.isUploadedToNS = false
 
             // Assign orderPosition if it's a preset and presetCount is valid
             if override.isPreset, presetCount > -1 {
@@ -176,5 +179,55 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
     /// - Parameter: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
     @MainActor func deleteOverridePreset(_ objectID: NSManagedObjectID) async {
         await CoreDataStack.shared.deleteObject(identifiedBy: objectID)
+    }
+
+    func getOverridesNotYetUploadedToNightscout() async -> [NightscoutExercise] {
+        let fetchedOverrides = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: OverrideStored.self,
+            onContext: backgroundContext,
+            predicate: NSPredicate.lastActiveOverrideNotYetUploadedToNightscout,
+            key: "date",
+            ascending: false
+        )
+
+        return await backgroundContext.perform {
+            return fetchedOverrides.map { override in
+                let duration = override.indefinite ? 86400 : override.duration ?? 0 // 86400 min = 1 day
+                return NightscoutExercise(
+                    duration: Int(truncating: duration),
+                    eventType: OverrideStored.EventType.nsExercise,
+                    createdAt: override.date ?? Date(),
+                    enteredBy: NightscoutExercise.local,
+                    notes: override.name ?? "Custom Override"
+                )
+            }
+        }
+    }
+
+    func getOverrideRunsNotYetUploadedToNightscout() async -> [NightscoutExercise] {
+        let fetchedOverrideRuns = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: OverrideRunStored.self,
+            onContext: backgroundContext,
+            predicate: NSPredicate(
+                format: "startDate >= %@ AND isUploadedToNS == %@",
+                Date.oneDayAgo as NSDate,
+                false as NSNumber
+            ),
+            key: "startDate",
+            ascending: false
+        )
+
+        return await backgroundContext.perform {
+            return fetchedOverrideRuns.map { overrideRun in
+                let durationInMinutes = (overrideRun.endDate?.timeIntervalSince(overrideRun.startDate ?? Date()) ?? 0) / 60
+                return NightscoutExercise(
+                    duration: Int(durationInMinutes),
+                    eventType: OverrideStored.EventType.nsExercise,
+                    createdAt: (overrideRun.startDate ?? overrideRun.override?.date) ?? Date(),
+                    enteredBy: NightscoutExercise.local,
+                    notes: overrideRun.override?.name ?? "Custom Override"
+                )
+            }
+        }
     }
 }

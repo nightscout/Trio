@@ -18,6 +18,7 @@ public extension OverrideStored {
     @NSManaged var isfAndCr: Bool
     @NSManaged var isPreset: Bool
     @NSManaged var name: String?
+    @NSManaged var orderPosition: Int16
     @NSManaged var percentage: Double
     @NSManaged var smbIsAlwaysOff: Bool
     @NSManaged var smbIsOff: Bool
@@ -25,7 +26,7 @@ public extension OverrideStored {
     @NSManaged var start: NSDecimalNumber?
     @NSManaged var target: NSDecimalNumber?
     @NSManaged var uamMinutes: NSDecimalNumber?
-    @NSManaged var orderPosition: Int16
+    @NSManaged var isUploadedToNS: Bool
     @NSManaged var overrideRun: OverrideRunStored?
 }
 
