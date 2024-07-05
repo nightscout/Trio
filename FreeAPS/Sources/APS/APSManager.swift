@@ -938,32 +938,34 @@ final class BaseAPSManager: APSManager, Injectable {
 
             // MARK: - Core Data related
 
-            let glucoseStats = await glucoseForStats()
-            let lastLoopForStats = await lastLoopForStats()
-            let loopStats = await loopStats(oneDayGlucose: glucoseStats.oneDayGlucose.readings)
-            let carbTotal = await carbsForStats()
+            async let glucoseStats = glucoseForStats()
+            async let lastLoopForStats = lastLoopForStats()
+            async let carbTotal = carbsForStats()
+            async let preferences = settingsManager.preferences
+
+            let loopStats = await loopStats(oneDayGlucose: await glucoseStats.oneDayGlucose.readings)
 
             // Only save and upload once per day
-            guard (-1 * (lastLoopForStats ?? .distantPast).timeIntervalSinceNow.hours) > 22 else { return }
+            guard (-1 * (await lastLoopForStats ?? .distantPast).timeIntervalSinceNow.hours) > 22 else { return }
 
             let units = settingsManager.settings.units
-            let preferences = settingsManager.preferences
 
             // MARK: - Not Core Data related stuff
 
+            let pref = await preferences
             var algo_ = "Oref0"
 
-            if preferences.sigmoid, preferences.enableDynamicCR {
+            if pref.sigmoid, pref.enableDynamicCR {
                 algo_ = "Dynamic ISF + CR: Sigmoid"
-            } else if preferences.sigmoid, !preferences.enableDynamicCR {
+            } else if pref.sigmoid, !pref.enableDynamicCR {
                 algo_ = "Dynamic ISF: Sigmoid"
-            } else if preferences.useNewFormula, preferences.enableDynamicCR {
+            } else if pref.useNewFormula, pref.enableDynamicCR {
                 algo_ = "Dynamic ISF + CR: Logarithmic"
-            } else if preferences.useNewFormula, !preferences.sigmoid,!preferences.enableDynamicCR {
+            } else if pref.useNewFormula, !pref.sigmoid,!pref.enableDynamicCR {
                 algo_ = "Dynamic ISF: Logarithmic"
             }
-            let af = preferences.adjustmentFactor
-            let insulin_type = preferences.curve
+            let af = pref.adjustmentFactor
+            let insulin_type = pref.curve
             let buildDate = Bundle.main.buildDate
             let version = Bundle.main.releaseVersionNumber
             let build = Bundle.main.buildVersionNumber
@@ -995,11 +997,11 @@ final class BaseAPSManager: APSManager, Injectable {
             let cgm = settingsManager.settings.cgm
             let file = OpenAPS.Monitor.statistics
             var iPa: Decimal = 75
-            if preferences.useCustomPeakTime {
-                iPa = preferences.insulinPeakTime
-            } else if preferences.curve.rawValue == "rapid-acting" {
+            if pref.useCustomPeakTime {
+                iPa = pref.insulinPeakTime
+            } else if pref.curve.rawValue == "rapid-acting" {
                 iPa = 65
-            } else if preferences.curve.rawValue == "ultra-rapid" {
+            } else if pref.curve.rawValue == "ultra-rapid" {
                 iPa = 50
             }
 
@@ -1012,7 +1014,8 @@ final class BaseAPSManager: APSManager, Injectable {
                 total_average: 0
             )
 
-            let overrideHbA1cUnit = glucoseStats.overrideHbA1cUnit
+            let gs = await glucoseStats
+            let overrideHbA1cUnit = gs.overrideHbA1cUnit
             let hbA1cUnit = !overrideHbA1cUnit ? (units == .mmolL ? "mmol/mol" : "%") : (units == .mmolL ? "%" : "mmol/mol")
 
             let dailystat = await Statistics(
@@ -1030,19 +1033,19 @@ final class BaseAPSManager: APSManager, Injectable {
                 CGM: cgm.rawValue,
                 insulinType: insulin_type.rawValue,
                 peakActivityTime: iPa,
-                Carbs_24h: carbTotal,
-                GlucoseStorage_Days: Decimal(roundDouble(glucoseStats.numberofDays, 1)),
+                Carbs_24h: await carbTotal,
+                GlucoseStorage_Days: Decimal(roundDouble(gs.numberofDays, 1)),
                 Statistics: Stats(
-                    Distribution: glucoseStats.TimeInRange,
-                    Glucose: glucoseStats.avg,
-                    HbA1c: glucoseStats.hbs, Units: Units(Glucose: units.rawValue, HbA1c: hbA1cUnit),
+                    Distribution: gs.TimeInRange,
+                    Glucose: gs.avg,
+                    HbA1c: gs.hbs, Units: Units(Glucose: units.rawValue, HbA1c: hbA1cUnit),
                     LoopCycles: loopStats,
                     Insulin: insulin,
-                    Variance: glucoseStats.variance
+                    Variance: gs.variance
                 )
             )
             storage.save(dailystat, as: file)
-            nightscout.uploadStatistics(dailystat: dailystat)
+            await nightscout.uploadStatistics(dailystat: dailystat)
 
             await saveStatsToCoreData()
         }

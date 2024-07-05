@@ -417,7 +417,7 @@ extension NightscoutAPI {
         debugPrint("Upload successful, response data: \(String(data: data, encoding: .utf8) ?? "No data")")
     }
 
-    func uploadStats(_ stats: NightscoutStatistics) -> AnyPublisher<Void, Swift.Error> {
+    func uploadStats(_ stats: NightscoutStatistics) async throws {
         var components = URLComponents()
         components.scheme = url.scheme
         components.host = url.host
@@ -432,14 +432,39 @@ extension NightscoutAPI {
         if let secret = secret {
             request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
         }
-        request.httpBody = try! JSONCoding.encoder.encode(stats)
+        request.httpBody = try JSONCoding.encoder.encode(stats)
         request.httpMethod = "POST"
 
-        return service.run(request)
-            .retry(Config.retryCount)
-            .map { _ in () }
-            .eraseToAnyPublisher()
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
+            throw URLError(.badServerResponse)
+        }
     }
+
+//    func uploadStats(_ stats: NightscoutStatistics) -> AnyPublisher<Void, Swift.Error> {
+//        var components = URLComponents()
+//        components.scheme = url.scheme
+//        components.host = url.host
+//        components.port = url.port
+//        components.path = Config.statusPath
+//
+//        var request = URLRequest(url: components.url!)
+//        request.allowsConstrainedNetworkAccess = false
+//        request.timeoutInterval = Config.timeout
+//        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+//
+//        if let secret = secret {
+//            request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
+//        }
+//        request.httpBody = try! JSONCoding.encoder.encode(stats)
+//        request.httpMethod = "POST"
+//
+//        return service.run(request)
+//            .retry(Config.retryCount)
+//            .map { _ in () }
+//            .eraseToAnyPublisher()
+//    }
 
     func uploadStatus(_ status: NightscoutStatus) -> AnyPublisher<Void, Swift.Error> {
         var components = URLComponents()

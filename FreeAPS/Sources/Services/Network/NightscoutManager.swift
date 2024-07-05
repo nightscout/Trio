@@ -16,7 +16,7 @@ protocol NightscoutManager: GlucoseSource {
     func uploadStatus()
     func uploadGlucose() async
     func uploadManualGlucose() async
-    func uploadStatistics(dailystat: Statistics)
+    func uploadStatistics(dailystat: Statistics) async
     func uploadPreferences(_ preferences: Preferences)
     func uploadProfileAndSettings(_: Bool)
     var cgmURL: URL? { get }
@@ -230,28 +230,43 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-    func uploadStatistics(dailystat: Statistics) {
-        let stats = NightscoutStatistics(
-            dailystats: dailystat
-        )
+    func uploadStatistics(dailystat: Statistics) async {
+        let stats = NightscoutStatistics(dailystats: dailystat)
 
         guard let nightscout = nightscoutAPI, isUploadEnabled else {
             return
         }
 
-        processQueue.async {
-            nightscout.uploadStats(stats)
-                .sink { completion in
-                    switch completion {
-                    case .finished:
-                        debug(.nightscout, "Statistics uploaded")
-                    case let .failure(error):
-                        debug(.nightscout, error.localizedDescription)
-                    }
-                } receiveValue: {}
-                .store(in: &self.lifetime)
+        do {
+            try await nightscout.uploadStats(stats)
+            debug(.nightscout, "Statistics uploaded")
+        } catch {
+            debug(.nightscout, error.localizedDescription)
         }
     }
+
+//    func uploadStatistics(dailystat: Statistics) {
+//        let stats = NightscoutStatistics(
+//            dailystats: dailystat
+//        )
+//
+//        guard let nightscout = nightscoutAPI, isUploadEnabled else {
+//            return
+//        }
+//
+//        processQueue.async {
+//            nightscout.uploadStats(stats)
+//                .sink { completion in
+//                    switch completion {
+//                    case .finished:
+//                        debug(.nightscout, "Statistics uploaded")
+//                    case let .failure(error):
+//                        debug(.nightscout, error.localizedDescription)
+//                    }
+//                } receiveValue: {}
+//                .store(in: &self.lifetime)
+//        }
+//    }
 
     func uploadPreferences(_ preferences: Preferences) {
         let prefs = NightscoutPreferences(
