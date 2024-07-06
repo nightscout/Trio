@@ -918,6 +918,7 @@ extension Home.StateModel {
 
                 let newOverrideRunStored = OverrideRunStored(context: self.viewContext)
                 newOverrideRunStored.id = UUID()
+                newOverrideRunStored.name = object.name
                 newOverrideRunStored.startDate = object.date ?? .distantPast
                 newOverrideRunStored.endDate = Date()
                 newOverrideRunStored.target = NSDecimalNumber(decimal: self.calculateTarget(override: object))

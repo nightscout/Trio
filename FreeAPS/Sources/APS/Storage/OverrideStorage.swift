@@ -226,7 +226,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
                     eventType: OverrideStored.EventType.nsExercise,
                     createdAt: (overrideRun.startDate ?? overrideRun.override?.date) ?? Date(),
                     enteredBy: NightscoutExercise.local,
-                    notes: overrideRun.override?.name ?? "Custom Override"
+                    notes: overrideRun.name ?? "Custom Override"
                 )
             }
         }

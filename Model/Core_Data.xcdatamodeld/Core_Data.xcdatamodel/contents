@@ -124,6 +124,7 @@
         <attribute name="endDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="isUploadedToNS" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="startDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="target" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <relationship name="override" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="OverrideStored" inverseName="overrideRun" inverseEntity="OverrideStored"/>

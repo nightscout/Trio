@@ -11,6 +11,7 @@ public extension OverrideRunStored {
     @NSManaged var startDate: Date?
     @NSManaged var target: NSDecimalNumber?
     @NSManaged var isUploadedToNS: Bool
+    @NSManaged var name: String?
     @NSManaged var override: OverrideStored?
 }
 
