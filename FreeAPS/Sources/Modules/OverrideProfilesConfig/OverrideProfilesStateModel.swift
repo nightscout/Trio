@@ -262,6 +262,10 @@ extension OverrideProfilesConfig.StateModel {
             uamMinutes: uamMinutes
         )
 
+        if currentActiveOverride != nil {
+            await disableAllActiveOverrides(except: currentActiveOverride?.objectID, createOverrideRunEntry: true)
+        }
+
         await overrideStorage.storeOverride(override: override)
         await resetStateVariables()
     }
