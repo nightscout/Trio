@@ -27,8 +27,8 @@ final class JavaScriptWorker {
     private let processQueue = DispatchQueue(label: "DispatchQueue.JavaScriptWorker")
     private let virtualMachine: JSVirtualMachine
     @SyncAccess(lock: contextLock) private var commonContext: JSContext? = nil
-    private var aggregatedLogs: [String] = []
-    private var logFormatting: String = ""
+    private var consoleLogs: [String] = []
+    private var logContext: String = ""
 
     init() {
         virtualMachine = processQueue.sync { JSVirtualMachine()! }
@@ -45,7 +45,7 @@ final class JavaScriptWorker {
             let trimmedMessage = message.trimmingCharacters(in: .whitespacesAndNewlines)
             if !trimmedMessage.isEmpty {
 //                debug(.openAPS, "JavaScript log: \(trimmedMessage)")
-                self.aggregatedLogs.append("\(trimmedMessage)")
+                self.consoleLogs.append("\(trimmedMessage)")
             }
         }
         context.setObject(
@@ -56,89 +56,33 @@ final class JavaScriptWorker {
     }
 
     // New method to flush aggregated logs
-    private func aggregateLogs() {
-        let combinedLogs = aggregatedLogs.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
-        aggregatedLogs.removeAll()
+    private func outputLogs() {
+        var outputLogs = consoleLogs.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+        consoleLogs.removeAll()
 
-        if combinedLogs.isEmpty { return }
+        if outputLogs.isEmpty { return }
 
-        var logOutput = ""
-        var jsonOutput = ""
-
-        switch logFormatting {
-        case "Middleware":
-            jsonOutput += "{\n"
-            combinedLogs.replacingOccurrences(of: ";", with: ",")
-                .replacingOccurrences(of: "\\s?:\\s?,?", with: ": ", options: .regularExpression)
-                .replacingOccurrences(of: "(\\w+: \\d+(?= [^,:\\s]+:))", with: "$1,", options: .regularExpression)
-                .replacingOccurrences(of: "^[^\\w]*", with: "", options: .regularExpression)
-                .replacingOccurrences(of: "(\\sset)?\\sto:?\\s+", with: ": ", options: .regularExpression)
-                .replacingOccurrences(of: "(\\w+) is (\\w+)\\!?", with: "$1: $2", options: .regularExpression)
-                .replacingOccurrences(of: "NaN \\(\\. (.+)\\)", with: "$1, ", options: .regularExpression)
-                .replacingOccurrences(of: "Setting (.+) of (.*)", with: "$1: $2 ", options: .regularExpression)
-                .replacingOccurrences(of: "(Using\\s|\\sused)", with: "", options: .regularExpression)
-                .replacingOccurrences(
-                    of: " instead of past 24 h \\((" + "(-?\\d+(\\.\\d+)?)" + " U)\\)",
-                    with: "weighted TDD average past 24h: $1",
-                    options: .regularExpression
-                )
-                .replacingOccurrences(of: "^(.+) \\((.+)\\)$", with: "$1: $2", options: .regularExpression)
-                .replacingOccurrences(of: "\\s?,\\s?$", with: "", options: .regularExpression)
-                .split(separator: "\n").forEach { logLine in
-                    jsonOutput += "    "
-                    logLine.split(separator: ",").forEach { logItem in
-                        let keyPair = logItem.split(separator: ":")
-                        if keyPair.count == 2 {
-                            let key = keyPair[0].trimmingCharacters(in: .whitespacesAndNewlines).pascalCased
-                            let value = keyPair[1].trimmingCharacters(in: .whitespacesAndNewlines)
-                            jsonOutput += "\"\(key)\": \"\(value)\", "
-                        } else {
-                            logOutput += "\(logItem)\n"
-                        }
-                    }
-                    jsonOutput += "\n"
-                }
-            jsonOutput += "}"
-            jsonOutput = jsonOutput.replacingOccurrences(of: "\\s+\\n+", with: "\n", options: .regularExpression)
-
-        case "prepare/autosens.js":
-            logOutput += combinedLogs.replacingOccurrences(
+        if logContext == "prepare/autosens.js" {
+            outputLogs = outputLogs.replacingOccurrences(
                 of: "((?:[\\=\\+\\-]\\n)+)?\\d+h\\n((?:[\\=\\+\\-]\\n)+)?",
                 with: "",
                 options: .regularExpression
             )
-        // case "prepare/autotune-prep.js"
-        // case "prepare/autotune-core.js"
-        default:
-            debug(.openAPS, "JavaScript Format: \(logFormatting)")
-            logOutput = combinedLogs
         }
 
-        if !jsonOutput.isEmpty {
-            if let jsonData = "\(jsonOutput)".data(using: .utf8) {
-                do {
-                    let jsonObject = try JSONSerialization.jsonObject(with: jsonData, options: [])
-                    _ = try JSONSerialization.data(withJSONObject: jsonObject, options: .prettyPrinted)
-                    debug(.openAPS, "JavaScript log: \(jsonOutput)")
-                } catch {
-                    logOutput = combinedLogs
-                }
-            }
-        }
-
-        if !logOutput.isEmpty {
-            logOutput.split(separator: "\n").forEach { logLine in
+        if !outputLogs.isEmpty {
+            outputLogs.split(separator: "\n").forEach { logLine in
                 if !"\(logLine)".trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    debug(.openAPS, "JavaScript log: \(logLine)")
+                    debug(.openAPS, "\(logContext): \(logLine)")
                 }
             }
         }
     }
 
     @discardableResult func evaluate(script: Script) -> JSValue! {
-        logFormatting = script.name
+        logContext = script.name
         let result = evaluate(string: script.body)
-        aggregateLogs()
+        outputLogs()
         return result
     }
 
@@ -160,7 +104,7 @@ final class JavaScriptWorker {
         commonContext = createContext()
         defer {
             commonContext = nil
-            aggregateLogs()
+            outputLogs()
         }
         return execute(self)
     }
