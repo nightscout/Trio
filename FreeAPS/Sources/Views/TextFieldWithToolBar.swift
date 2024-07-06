@@ -14,6 +14,7 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
     var isDismissible: Bool
     var textFieldDidBeginEditing: (() -> Void)?
     var numberFormatter: NumberFormatter
+    var allowDecimalSeparator: Bool
 
     public init(
         text: Binding<Decimal>,
@@ -27,7 +28,8 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
         maxLength: Int? = nil,
         isDismissible: Bool = true,
         textFieldDidBeginEditing: (() -> Void)? = nil,
-        numberFormatter: NumberFormatter
+        numberFormatter: NumberFormatter,
+        allowDecimalSeparator: Bool = true
     ) {
         _text = text
         self.placeholder = placeholder
@@ -42,6 +44,7 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
         self.textFieldDidBeginEditing = textFieldDidBeginEditing
         self.numberFormatter = numberFormatter
         self.numberFormatter.numberStyle = .decimal
+        self.allowDecimalSeparator = allowDecimalSeparator
     }
 
     public func makeUIView(context: Context) -> UITextField {
@@ -146,7 +149,7 @@ extension TextFieldWithToolBar.Coordinator: UITextFieldDelegate {
         let isDecimalSeparator = (string == decimalFormatter.decimalSeparator && textField.text?.contains(string) == false)
 
         // Only proceed if the input is a valid number or decimal separator
-        if isNumber || isDecimalSeparator,
+        if isNumber || isDecimalSeparator && parent.allowDecimalSeparator,
            let currentText = textField.text as NSString?
         {
             // Get the proposed new text
@@ -164,7 +167,7 @@ extension TextFieldWithToolBar.Coordinator: UITextFieldDelegate {
         }
 
         // Allow the change if it's a valid number or decimal separator
-        return isNumber || isDecimalSeparator
+        return isNumber || isDecimalSeparator && parent.allowDecimalSeparator
     }
 
     public func textFieldDidBeginEditing(_: UITextField) {
