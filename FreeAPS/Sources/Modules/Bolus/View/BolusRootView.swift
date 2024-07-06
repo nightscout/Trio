@@ -259,13 +259,18 @@ extension Bolus {
             HStack {
                 Text("Fat").foregroundColor(.orange)
                 Spacer()
-                TextFieldWithToolBar(text: $state.fat, placeholder: "0", numberFormatter: mealFormatter)
+                TextFieldWithToolBar(text: $state.fat, placeholder: "0", keyboardType: .numberPad, numberFormatter: mealFormatter)
                 Text("g").foregroundColor(.secondary)
             }
             HStack {
                 Text("Protein").foregroundColor(.red)
                 Spacer()
-                TextFieldWithToolBar(text: $state.protein, placeholder: "0", numberFormatter: mealFormatter)
+                TextFieldWithToolBar(
+                    text: $state.protein,
+                    placeholder: "0",
+                    keyboardType: .numberPad,
+                    numberFormatter: mealFormatter
+                )
                 Text("g").foregroundColor(.secondary)
             }
         }
@@ -277,7 +282,7 @@ extension Bolus {
                 TextFieldWithToolBar(
                     text: $state.carbs,
                     placeholder: "0",
-                    shouldBecomeFirstResponder: false,
+                    keyboardType: .numberPad,
                     numberFormatter: mealFormatter
                 )
                 .onChange(of: state.carbs) { _ in

@@ -38,6 +38,7 @@ extension NightscoutConfig {
         private var portFormater: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.allowsFloats = false
+            formatter.usesGroupingSeparator = false
             return formatter
         }
 
@@ -145,7 +146,13 @@ extension NightscoutConfig {
                     Toggle("Use local glucose server", isOn: $state.useLocalSource)
                     HStack {
                         Text("Port")
-                        TextFieldWithToolBar(text: $state.localPort, placeholder: "", numberFormatter: portFormater)
+                        TextFieldWithToolBar(
+                            text: $state.localPort,
+                            placeholder: "",
+                            keyboardType: .numberPad,
+                            numberFormatter: portFormater,
+                            allowDecimalSeparator: false
+                        )
                     }
                 } header: { Text("Local glucose source") }
                 Section {
