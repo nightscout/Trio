@@ -231,7 +231,8 @@ extension Home {
                 } else {
                     /// Do not show the Override anymore
                     Task {
-                        await state.cancelProfile(withID: latestOverride.objectID)
+                        guard let objectID = self.latestOverride.first?.objectID else { return }
+                        await state.cancelProfile(withID: objectID)
                     }
                 }
             }
@@ -563,7 +564,6 @@ extension Home {
                             Button("Yes", role: .destructive) {
                                 Task {
                                     guard let objectID = latestOverride.first?.objectID else { return }
-                                    await state.saveToOverrideRunStored(withID: objectID)
                                     await state.cancelProfile(withID: objectID)
                                 }
                             }

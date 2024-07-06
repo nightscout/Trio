@@ -228,7 +228,8 @@ extension Home {
             do {
                 let profileToCancel = try viewContext.existingObject(with: id) as? OverrideStored
                 profileToCancel?.enabled = false
-                profileToCancel?.date = Date()
+
+                await saveToOverrideRunStored(withID: id)
 
                 guard viewContext.hasChanges else { return }
                 try viewContext.save()
@@ -247,7 +248,7 @@ extension Home {
             let startTime = calendar.date(byAdding: offsetComponents, to: date)!
 
             let bolusesForCurrentDay = boluses.filter { $0.timestamp ?? .distantPast >= startTime }
-            let totalBolus = bolusesForCurrentDay.map { Double($0.bolus?.amount ?? 0.0) }.reduce(0.0, +)
+            let totalBolus = bolusesForCurrentDay.map { Double(truncating: $0.bolus?.amount ?? 0.0) }.reduce(0.0, +)
             roundedTotalBolus = Decimal(round(100 * Double(totalBolus)) / 100).formatted()
 
             return roundedTotalBolus

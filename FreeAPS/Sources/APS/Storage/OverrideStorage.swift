@@ -192,7 +192,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
 
         return await backgroundContext.perform {
             return fetchedOverrides.map { override in
-                let duration = override.indefinite ? 86400 : override.duration ?? 0 // 86400 min = 1 day
+                let duration = override.indefinite ? 1440 : override.duration ?? 0 // 1440 min = 1 day
                 return NightscoutExercise(
                     duration: Int(truncating: duration),
                     eventType: OverrideStored.EventType.nsExercise,
