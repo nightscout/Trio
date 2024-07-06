@@ -7,8 +7,8 @@ import UIKit
 
 protocol NightscoutManager: GlucoseSource {
     func fetchGlucose(since date: Date) async -> [BloodGlucose]
-    func fetchCarbs() -> AnyPublisher<[CarbsEntry], Never>
-    func fetchTempTargets() -> AnyPublisher<[TempTarget], Never>
+    func fetchCarbs() async -> [CarbsEntry]
+    func fetchTempTargets() async -> [TempTarget]
     func fetchAnnouncements() -> AnyPublisher<[Announcement], Never>
     func deleteCarbs(withID id: String) async
     func deleteInsulin(withID id: String) async
@@ -16,7 +16,7 @@ protocol NightscoutManager: GlucoseSource {
     func uploadStatus()
     func uploadGlucose() async
     func uploadManualGlucose() async
-    func uploadStatistics(dailystat: Statistics)
+    func uploadStatistics(dailystat: Statistics) async
     func uploadPreferences(_ preferences: Preferences)
     func uploadProfileAndSettings(_: Bool)
     var cgmURL: URL? { get }
@@ -154,26 +154,34 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         fetch(nil)
     }
 
-    func fetchCarbs() -> AnyPublisher<[CarbsEntry], Never> {
+    func fetchCarbs() async -> [CarbsEntry] {
         guard let nightscout = nightscoutAPI, isNetworkReachable else {
-            return Just([]).eraseToAnyPublisher()
+            return []
         }
 
         let since = carbsStorage.syncDate()
-        return nightscout.fetchCarbs(sinceDate: since)
-            .replaceError(with: [])
-            .eraseToAnyPublisher()
+        do {
+            let carbs = try await nightscout.fetchCarbs(sinceDate: since)
+            return carbs
+        } catch {
+            debug(.nightscout, "Error fetching carbs: \(error.localizedDescription)")
+            return []
+        }
     }
 
-    func fetchTempTargets() -> AnyPublisher<[TempTarget], Never> {
+    func fetchTempTargets() async -> [TempTarget] {
         guard let nightscout = nightscoutAPI, isNetworkReachable else {
-            return Just([]).eraseToAnyPublisher()
+            return []
         }
 
         let since = tempTargetsStorage.syncDate()
-        return nightscout.fetchTempTargets(sinceDate: since)
-            .replaceError(with: [])
-            .eraseToAnyPublisher()
+        do {
+            let tempTargets = try await nightscout.fetchTempTargets(sinceDate: since)
+            return tempTargets
+        } catch {
+            debug(.nightscout, "Error fetching temp targets: \(error.localizedDescription)")
+            return []
+        }
     }
 
     func fetchAnnouncements() -> AnyPublisher<[Announcement], Never> {
@@ -231,28 +239,43 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-    func uploadStatistics(dailystat: Statistics) {
-        let stats = NightscoutStatistics(
-            dailystats: dailystat
-        )
+    func uploadStatistics(dailystat: Statistics) async {
+        let stats = NightscoutStatistics(dailystats: dailystat)
 
         guard let nightscout = nightscoutAPI, isUploadEnabled else {
             return
         }
 
-        processQueue.async {
-            nightscout.uploadStats(stats)
-                .sink { completion in
-                    switch completion {
-                    case .finished:
-                        debug(.nightscout, "Statistics uploaded")
-                    case let .failure(error):
-                        debug(.nightscout, error.localizedDescription)
-                    }
-                } receiveValue: {}
-                .store(in: &self.lifetime)
+        do {
+            try await nightscout.uploadStats(stats)
+            debug(.nightscout, "Statistics uploaded")
+        } catch {
+            debug(.nightscout, error.localizedDescription)
         }
     }
+
+//    func uploadStatistics(dailystat: Statistics) {
+//        let stats = NightscoutStatistics(
+//            dailystats: dailystat
+//        )
+//
+//        guard let nightscout = nightscoutAPI, isUploadEnabled else {
+//            return
+//        }
+//
+//        processQueue.async {
+//            nightscout.uploadStats(stats)
+//                .sink { completion in
+//                    switch completion {
+//                    case .finished:
+//                        debug(.nightscout, "Statistics uploaded")
+//                    case let .failure(error):
+//                        debug(.nightscout, error.localizedDescription)
+//                    }
+//                } receiveValue: {}
+//                .store(in: &self.lifetime)
+//        }
+//    }
 
     func uploadPreferences(_ preferences: Preferences) {
         let prefs = NightscoutPreferences(

@@ -98,7 +98,7 @@ extension NightscoutAPI {
         }
     }
 
-    func fetchCarbs(sinceDate: Date? = nil) -> AnyPublisher<[CarbsEntry], Swift.Error> {
+    func fetchCarbs(sinceDate: Date? = nil) async throws -> [CarbsEntry] {
         var components = URLComponents()
         components.scheme = url.scheme
         components.host = url.host
@@ -131,14 +131,19 @@ extension NightscoutAPI {
             request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
         }
 
-        return service.run(request)
-            .retry(Config.retryCount)
-            .decode(type: [CarbsEntry].self, decoder: JSONCoding.decoder)
-            .catch { error -> AnyPublisher<[CarbsEntry], Swift.Error> in
-                warning(.nightscout, "Carbs fetching error: \(error.localizedDescription)")
-                return Just([]).setFailureType(to: Swift.Error.self).eraseToAnyPublisher()
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+
+            guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
+                throw URLError(.badServerResponse)
             }
-            .eraseToAnyPublisher()
+
+            let carbs = try JSONCoding.decoder.decode([CarbsEntry].self, from: data)
+            return carbs
+        } catch {
+            warning(.nightscout, "Carbs fetching error: \(error.localizedDescription)")
+            throw error
+        }
     }
 
     func deleteCarbs(withId id: String) async throws {
@@ -232,36 +237,7 @@ extension NightscoutAPI {
         }
     }
 
-//    func deleteInsulin(at date: Date) -> AnyPublisher<Void, Swift.Error> {
-//        var components = URLComponents()
-//        components.scheme = url.scheme
-//        components.host = url.host
-//        components.port = url.port
-//        components.path = Config.treatmentsPath
-//        components.queryItems = [
-//            URLQueryItem(name: "find[bolus][$exists]", value: "true"),
-//            URLQueryItem(
-//                name: "find[created_at][$eq]",
-//                value: Formatter.iso8601withFractionalSeconds.string(from: date)
-//            )
-//        ]
-//
-//        var request = URLRequest(url: components.url!)
-//        request.allowsConstrainedNetworkAccess = false
-//        request.timeoutInterval = Config.timeout
-//        request.httpMethod = "DELETE"
-//
-//        if let secret = secret {
-//            request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
-//        }
-//
-//        return service.run(request)
-//            .retry(Config.retryCount)
-//            .map { _ in () }
-//            .eraseToAnyPublisher()
-//    }
-
-    func fetchTempTargets(sinceDate: Date? = nil) -> AnyPublisher<[TempTarget], Swift.Error> {
+    func fetchTempTargets(sinceDate: Date? = nil) async throws -> [TempTarget] {
         var components = URLComponents()
         components.scheme = url.scheme
         components.host = url.host
@@ -295,14 +271,19 @@ extension NightscoutAPI {
             request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
         }
 
-        return service.run(request)
-            .retry(Config.retryCount)
-            .decode(type: [TempTarget].self, decoder: JSONCoding.decoder)
-            .catch { error -> AnyPublisher<[TempTarget], Swift.Error> in
-                warning(.nightscout, "TempTarget fetching error: \(error.localizedDescription)")
-                return Just([]).setFailureType(to: Swift.Error.self).eraseToAnyPublisher()
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+
+            guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
+                throw URLError(.badServerResponse)
             }
-            .eraseToAnyPublisher()
+
+            let tempTargets = try JSONCoding.decoder.decode([TempTarget].self, from: data)
+            return tempTargets
+        } catch {
+            warning(.nightscout, "TempTarget fetching error: \(error.localizedDescription)")
+            throw error
+        }
     }
 
     func fetchAnnouncement(sinceDate: Date? = nil) -> AnyPublisher<[Announcement], Swift.Error> {
@@ -417,7 +398,7 @@ extension NightscoutAPI {
         debugPrint("Upload successful, response data: \(String(data: data, encoding: .utf8) ?? "No data")")
     }
 
-    func uploadStats(_ stats: NightscoutStatistics) -> AnyPublisher<Void, Swift.Error> {
+    func uploadStats(_ stats: NightscoutStatistics) async throws {
         var components = URLComponents()
         components.scheme = url.scheme
         components.host = url.host
@@ -432,13 +413,14 @@ extension NightscoutAPI {
         if let secret = secret {
             request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
         }
-        request.httpBody = try! JSONCoding.encoder.encode(stats)
+        request.httpBody = try JSONCoding.encoder.encode(stats)
         request.httpMethod = "POST"
 
-        return service.run(request)
-            .retry(Config.retryCount)
-            .map { _ in () }
-            .eraseToAnyPublisher()
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
+            throw URLError(.badServerResponse)
+        }
     }
 
     func uploadStatus(_ status: NightscoutStatus) -> AnyPublisher<Void, Swift.Error> {

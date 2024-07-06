@@ -172,7 +172,7 @@ extension OverrideProfilesConfig.StateModel {
 
             /// disable all active Overrides and reset state variables
             /// do not create a OverrideRunEntry because we only want that if we cancel a running Override, not when enacting a Preset
-            await disableAllActiveOverrides(except: id, createOverrideRunEntry: false)
+            await disableAllActiveOverrides(except: id, createOverrideRunEntry: currentActiveOverride != nil)
 
             await resetStateVariables()
 

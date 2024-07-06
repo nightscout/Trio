@@ -22,23 +22,21 @@ final class BaseFetchTreatmentsManager: FetchTreatmentsManager, Injectable {
     private func subscribe() {
         timer.publisher
             .receive(on: processQueue)
-            .flatMap { _ -> AnyPublisher<([CarbsEntry], [TempTarget]), Never> in
+            .sink { [weak self] _ in
+                guard let self = self else { return }
                 debug(.nightscout, "FetchTreatmentsManager heartbeat")
                 debug(.nightscout, "Start fetching carbs and temptargets")
-                return Publishers.CombineLatest(
-                    self.nightscoutManager.fetchCarbs(),
-                    self.nightscoutManager.fetchTempTargets()
-                ).eraseToAnyPublisher()
-            }
-            .sink { [weak self] carbs, targets in
-                guard let self = self else { return }
 
                 Task {
-                    let filteredCarbs = carbs.filter { !($0.enteredBy?.contains(CarbsEntry.manual) ?? false) }
+                    async let carbs = self.nightscoutManager.fetchCarbs()
+                    async let tempTargets = self.nightscoutManager.fetchTempTargets()
+
+                    let filteredCarbs = await carbs.filter { !($0.enteredBy?.contains(CarbsEntry.manual) ?? false) }
                     if filteredCarbs.isNotEmpty {
                         await self.carbsStorage.storeCarbs(filteredCarbs)
                     }
-                    let filteredTargets = targets.filter { !($0.enteredBy?.contains(TempTarget.manual) ?? false) }
+
+                    let filteredTargets = await tempTargets.filter { !($0.enteredBy?.contains(TempTarget.manual) ?? false) }
                     if filteredTargets.isNotEmpty {
                         self.tempTargetsStorage.storeTempTargets(filteredTargets)
                     }
