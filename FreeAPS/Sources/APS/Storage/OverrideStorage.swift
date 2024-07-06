@@ -219,7 +219,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
 
         return await backgroundContext.perform {
             return fetchedOverrideRuns.map { overrideRun in
-                var durationInMinutes = (overrideRun.endDate?.timeIntervalSince(overrideRun.startDate ?? Date()) ?? 0) / 60
+                var durationInMinutes = (overrideRun.endDate?.timeIntervalSince(overrideRun.startDate ?? Date()) ?? 1) / 60
                 durationInMinutes = durationInMinutes < 1 ? 1 : durationInMinutes
                 return NightscoutExercise(
                     duration: Int(durationInMinutes),
