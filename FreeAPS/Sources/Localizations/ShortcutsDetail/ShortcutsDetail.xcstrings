@@ -489,6 +489,9 @@
         }
       }
     },
+    "Allow bolusing with shortcuts" : {
+
+    },
     "Allow to add carbs" : {
       "localizations" : {
         "de" : {
@@ -690,6 +693,7 @@
       }
     },
     "Allows to bolus with shortcuts" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1069,6 +1073,9 @@
           }
         }
       }
+    },
+    "Bolusing is not allowed with shortcuts." : {
+
     },
     "Cancel active TempTarget" : {
       "localizations" : {
@@ -2447,6 +2454,9 @@
         }
       }
     },
+    "Insulin recommended" : {
+
+    },
     "IOB" : {
       "localizations" : {
         "de" : {
@@ -2486,6 +2496,9 @@
           }
         }
       }
+    },
+    "Limit bolus from shortcuts to" : {
+
     },
     "Limit by insulin suggestion estimation" : {
       "extractionState" : "manual",
@@ -2769,6 +2782,9 @@
           }
         }
       }
+    },
+    "Max bolus" : {
+
     },
     "Method to limit the bolus amount" : {
       "extractionState" : "manual",
@@ -4437,13 +4453,14 @@
         }
       }
     },
-    "The bolus cannot be larger than the pump setting max bolus" : {
+    "The bolus cannot be larger than the pump setting max bolus." : {
 
     },
-    "The bolus cannot be larger than the suggested insulin" : {
+    "The bolus cannot be larger than the suggested insulin." : {
 
     },
     "the bolus is not allowed with shortcuts" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

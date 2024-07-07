@@ -11,9 +11,9 @@ enum BolusShortcutLimit: String, JSON, CaseIterable, Identifiable {
         case .notAllowed:
             return String(localized: "Not allowed", table: "ShortcutsDetail")
         case .limitBolusMax:
-            return String(localized: "Limit by max bolus", table: "ShortcutsDetail")
+            return String(localized: "Max bolus", table: "ShortcutsDetail")
         case .limitInsulinSuggestion:
-            return String(localized: "Limit by insulin suggestion estimation", table: "ShortcutsDetail")
+            return String(localized: "Insulin recommended", table: "ShortcutsDetail")
         }
     }
 }

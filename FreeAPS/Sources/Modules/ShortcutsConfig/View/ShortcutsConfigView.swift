@@ -22,13 +22,13 @@ extension ShortcutsConfig {
 
                 Section(header: Text("Options", tableName: "ShorcutsDetail")) {
                     Toggle(
-                        String(localized: "Allows to bolus with shortcuts", table: "ShortcutsDetail"),
+                        String(localized: "Allow bolusing with shortcuts", table: "ShortcutsDetail"),
                         isOn: $state.allowBolusByShortcuts
                     )
 
                     Picker(
                         selection: $state.maxBolusByShortcuts,
-                        label: Text("Method to limit the bolus amount", tableName: "ShortcutsDetail")
+                        label: Text("Limit bolus from shortcuts to", tableName: "ShortcutsDetail")
                     ) {
                         ForEach(BolusShortcutLimit.allCases) { v in
                             v != .notAllowed ? Text(v.displayName).tag(v) : nil
