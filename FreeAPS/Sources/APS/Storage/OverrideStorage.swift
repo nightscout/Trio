@@ -3,11 +3,12 @@ import Foundation
 import Swinject
 
 protocol OverrideStorage {
+    func fetchLastCreatedOverride() async -> [NSManagedObjectID]
     func loadLatestOverrideConfigurations(fetchLimit: Int) async -> [NSManagedObjectID]
     func fetchForOverridePresets() async -> [NSManagedObjectID]
     func calculateTarget(override: OverrideStored) -> Decimal
     func storeOverride(override: Override) async
-    func copyRunningOverride(_ override: OverrideStored) async
+    func copyRunningOverride(_ override: OverrideStored) async -> NSManagedObjectID
     func deleteOverridePreset(_ objectID: NSManagedObjectID) async
     func getOverridesNotYetUploadedToNightscout() async -> [NightscoutExercise]
     func getOverrideRunsNotYetUploadedToNightscout() async -> [NightscoutExercise]
@@ -27,6 +28,24 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
         let df = DateFormatter()
         df.dateFormat = "dd.MM.yy HH:mm"
         return df
+    }
+
+    func fetchLastCreatedOverride() async -> [NSManagedObjectID] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: OverrideStored.self,
+            onContext: backgroundContext,
+            predicate: NSPredicate(
+                format: "date >= %@",
+                Date.oneDayAgo as NSDate
+            ),
+            key: "date",
+            ascending: false,
+            fetchLimit: 1
+        )
+
+        return await backgroundContext.perform {
+            return results.map(\.objectID)
+        }
     }
 
     func loadLatestOverrideConfigurations(fetchLimit: Int) async -> [NSManagedObjectID] {
@@ -142,7 +161,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
 
     // Copy the current Override if it is a RUNNING Preset
     /// otherwise we would edit the Preset
-    @MainActor func copyRunningOverride(_ override: OverrideStored) async {
+    @MainActor func copyRunningOverride(_ override: OverrideStored) async -> NSManagedObjectID {
         let newOverride = OverrideStored(context: viewContext)
         newOverride.duration = override.duration
         newOverride.indefinite = override.indefinite
@@ -162,6 +181,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
         newOverride.end = override.end
         newOverride.smbMinutes = override.smbMinutes
         newOverride.uamMinutes = override.uamMinutes
+        newOverride.isUploadedToNS = true // set to true to avoid getting duplicate entries on NS
 
         await viewContext.perform {
             do {
@@ -173,6 +193,8 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
                 )
             }
         }
+
+        return newOverride.objectID
     }
 
     /// marked as MainActor to be able to publish changes from the background

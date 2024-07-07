@@ -294,6 +294,15 @@ struct EditOverrideForm: View {
                         guard let moc = override.managedObjectContext else { return }
                         guard moc.hasChanges else { return }
                         try moc.save()
+
+                        if let currentActiveOverride = state.currentActiveOverride {
+                            Task {
+                                await state.disableAllActiveOverrides(
+                                    except: currentActiveOverride.objectID,
+                                    createOverrideRunEntry: true
+                                )
+                            }
+                        }
                         hasChanges = false
                         presentationMode.wrappedValue.dismiss()
                     } catch {
@@ -337,6 +346,7 @@ struct EditOverrideForm: View {
         override.cr = cr
         override.smbMinutes = smbMinutes.map { NSDecimalNumber(decimal: $0) }
         override.uamMinutes = uamMinutes.map { NSDecimalNumber(decimal: $0) }
+        override.isUploadedToNS = false
     }
 
     private func resetValues() {

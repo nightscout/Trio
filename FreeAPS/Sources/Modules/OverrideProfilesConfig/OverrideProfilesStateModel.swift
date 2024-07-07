@@ -391,7 +391,7 @@ extension OverrideProfilesConfig.StateModel {
         guard let overridePresetToDuplicate = currentActiveOverride, overridePresetToDuplicate.isPreset == true else { return }
 
         // Copy the current Override-Preset to not edit the underlying Preset
-        await overrideStorage.copyRunningOverride(overridePresetToDuplicate)
+        let duplidateId = await overrideStorage.copyRunningOverride(overridePresetToDuplicate)
 
         // Cancel the duplicated Override
         /// As we are on the Main Thread already we don't need to cancel via the objectID in this case
@@ -401,6 +401,12 @@ extension OverrideProfilesConfig.StateModel {
 
                 guard self.viewContext.hasChanges else { return }
                 try self.viewContext.save()
+            }
+
+            if let overrideToEdit = try viewContext.existingObject(with: duplidateId) as? OverrideStored
+            {
+                currentActiveOverride = overrideToEdit
+                activeOverrideName = overrideToEdit.name ?? "Custom Override"
             }
         } catch {
             debugPrint(
