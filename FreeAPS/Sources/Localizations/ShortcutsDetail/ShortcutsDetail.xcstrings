@@ -934,6 +934,7 @@
       }
     },
     "Are you sure to add %@ g of carbs ?" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1015,6 +1016,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Är du säker på att du vill skapa ett TempTarget med %1$@ %2$@ för %3$@ min vid %4$@?"
+          }
+        }
+      }
+    },
+    "Are you sure you would like to to add %@ g of carbs, %@ g of fat, %@ g of protein?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Are you sure you would like to to add %1$@ g of carbs, %2$@ g of fat, %3$@ g of protein?"
           }
         }
       }
@@ -2962,6 +2973,16 @@
         }
       }
     },
+    "No action taken. The entered quantity of %@ exceeds the maximum allowed limit of %@ g." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No action taken. The entered quantity of %1$@ exceeds the maximum allowed limit of %2$@ g."
+          }
+        }
+      }
+    },
     "No active Override to cancel" : {
       "localizations" : {
         "de" : {
@@ -4737,6 +4758,12 @@
           }
         }
       }
+    },
+    "What is the quantity of the fat to add ?" : {
+
+    },
+    "What is the quantity of the protein to add ?" : {
+
     },
     "What is the temporary target in the current unit ?" : {
       "extractionState" : "manual",
