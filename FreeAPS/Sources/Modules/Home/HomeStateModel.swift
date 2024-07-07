@@ -72,7 +72,6 @@ extension Home {
         @Published var enactedAndNonEnactedDeterminations: [OrefDetermination] = []
         @Published var insulinFromPersistence: [PumpEventStored] = []
         @Published var tempBasals: [PumpEventStored] = []
-        var boluses: [PumpEventStored] = []
         @Published var suspensions: [PumpEventStored] = []
         @Published var batteryFromPersistence: [OpenAPS_Battery] = []
         @Published var lastPumpBolus: PumpEventStored?
@@ -81,6 +80,8 @@ extension Home {
         @Published var isOverrideCancelled: Bool = false
         let context = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
+
+        typealias PumpEvent = PumpEventStored.EventType
 
         override func subscribe() {
             setupNotification()
@@ -224,7 +225,7 @@ extension Home {
             }
         }
 
-        @MainActor func cancelProfile(withID id: NSManagedObjectID) async {
+        @MainActor func cancelOverride(withID id: NSManagedObjectID) async {
             do {
                 let profileToCancel = try viewContext.existingObject(with: id) as? OverrideStored
                 profileToCancel?.enabled = false
@@ -233,25 +234,60 @@ extension Home {
 
                 guard viewContext.hasChanges else { return }
                 try viewContext.save()
+
+                Foundation.NotificationCenter.default.post(name: .didUpdateOverrideConfiguration, object: nil)
             } catch {
                 debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to cancel Profile")
             }
         }
 
         func calculateTINS() -> String {
+            let startTime = calculateStartTime(hours: Int(hours))
+
+            let totalBolus = calculateTotalBolus(from: insulinFromPersistence, since: startTime)
+            let totalBasal = calculateTotalBasal(from: insulinFromPersistence, since: startTime)
+
+            let totalInsulin = totalBolus + totalBasal
+
+            return formatInsulinAmount(totalInsulin)
+        }
+
+        private func calculateStartTime(hours: Int) -> Date {
             let date = Date()
             let calendar = Calendar.current
-            let offset = hours
-
             var offsetComponents = DateComponents()
-            offsetComponents.hour = -Int(offset)
-            let startTime = calendar.date(byAdding: offsetComponents, to: date)!
+            offsetComponents.hour = -hours
+            return calendar.date(byAdding: offsetComponents, to: date)!
+        }
 
-            let bolusesForCurrentDay = boluses.filter { $0.timestamp ?? .distantPast >= startTime }
-            let totalBolus = bolusesForCurrentDay.map { Double(truncating: $0.bolus?.amount ?? 0.0) }.reduce(0.0, +)
-            roundedTotalBolus = Decimal(round(100 * Double(totalBolus)) / 100).formatted()
+        private func calculateTotalBolus(from events: [PumpEventStored], since startTime: Date) -> Double {
+            let bolusEvents = events.filter { $0.timestamp ?? .distantPast >= startTime && $0.type == PumpEvent.bolus.rawValue }
+            return bolusEvents.compactMap { $0.bolus?.amount?.doubleValue }.reduce(0, +)
+        }
 
-            return roundedTotalBolus
+        private func calculateTotalBasal(from events: [PumpEventStored], since startTime: Date) -> Double {
+            let basalEvents = events
+                .filter { $0.timestamp ?? .distantPast >= startTime && $0.type == PumpEvent.tempBasal.rawValue }
+                .sorted { $0.timestamp ?? .distantPast < $1.timestamp ?? .distantPast }
+
+            var basalDurations: [Double] = []
+            for (index, basalEntry) in basalEvents.enumerated() {
+                if index + 1 < basalEvents.count {
+                    let nextEntry = basalEvents[index + 1]
+                    let durationInSeconds = nextEntry.timestamp?.timeIntervalSince(basalEntry.timestamp ?? Date()) ?? 0
+                    basalDurations.append(durationInSeconds / 3600) // Conversion to hours
+                }
+            }
+
+            return zip(basalEvents, basalDurations).map { entry, duration in
+                guard let rate = entry.tempBasal?.rate?.doubleValue else { return 0 }
+                return rate * duration
+            }.reduce(0, +)
+        }
+
+        private func formatInsulinAmount(_ amount: Double) -> String {
+            let roundedAmount = Decimal(round(100 * amount) / 100)
+            return roundedAmount.formatted()
         }
 
         private func setupPumpSettings() {
@@ -925,11 +961,8 @@ extension Home.StateModel {
                 newOverrideRunStored.override = object
                 newOverrideRunStored.isUploadedToNS = false
 
-                guard self.viewContext.hasChanges else { return }
-                try self.viewContext.save()
-
             } catch {
-                print(error.localizedDescription)
+                debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to initialize a new Override Run Object")
             }
         }
     }

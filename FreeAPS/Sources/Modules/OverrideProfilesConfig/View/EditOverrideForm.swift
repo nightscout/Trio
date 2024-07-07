@@ -299,10 +299,13 @@ struct EditOverrideForm: View {
                             Task {
                                 await state.disableAllActiveOverrides(
                                     except: currentActiveOverride.objectID,
-                                    createOverrideRunEntry: true
+                                    createOverrideRunEntry: false
                                 )
                             }
                         }
+
+                        // Update View
+                        state.updateLatestOverrideConfiguration()
                         hasChanges = false
                         presentationMode.wrappedValue.dismiss()
                     } catch {

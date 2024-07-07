@@ -140,25 +140,41 @@ extension Bolus {
         func getCurrentBasal() {
             let basalEntries = provider.getProfile()
             let now = Date()
+            let calendar = Calendar.current
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "HH:mm:ss"
+            dateFormatter.timeZone = TimeZone.current
 
-            // iterate over basal entries
             for (index, entry) in basalEntries.enumerated() {
-                guard let entryStartTime = dateFormatter.date(from: entry.start) else { continue }
+                guard let entryTime = dateFormatter.date(from: entry.start) else {
+                    print("Invalid entry start time: \(entry.start)")
+                    continue
+                }
+
+                // Combine the current date with the time from entry.start
+                let entryStartTime = calendar.date(
+                    bySettingHour: calendar.component(.hour, from: entryTime),
+                    minute: calendar.component(.minute, from: entryTime),
+                    second: calendar.component(.second, from: entryTime),
+                    of: now
+                )!
 
                 let entryEndTime: Date
                 if index < basalEntries.count - 1,
-                   let nextEntryStartTime = dateFormatter.date(from: basalEntries[index + 1].start)
+                   let nextEntryTime = dateFormatter.date(from: basalEntries[index + 1].start)
                 {
-                    // end of current entry should equal start of next entry
+                    let nextEntryStartTime = calendar.date(
+                        bySettingHour: calendar.component(.hour, from: nextEntryTime),
+                        minute: calendar.component(.minute, from: nextEntryTime),
+                        second: calendar.component(.second, from: nextEntryTime),
+                        of: now
+                    )!
                     entryEndTime = nextEntryStartTime
                 } else {
-                    // if it is the last entry use current time as end of entry
-                    entryEndTime = now
+                    // If it's the last entry, use the same start time plus one day as the end time
+                    entryEndTime = calendar.date(byAdding: .day, value: 1, to: entryStartTime)!
                 }
 
-                // proof if current time is between start and end of entry
                 if now >= entryStartTime, now < entryEndTime {
                     currentBasal = entry.rate
                     break

@@ -169,7 +169,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
         newOverride.smbIsOff = override.smbIsOff
         newOverride.name = override.name
         newOverride.isPreset = false // no Preset
-        newOverride.date = Date()
+        newOverride.date = override.date
         newOverride.enabled = override.enabled
         newOverride.target = override.target
         newOverride.advancedSettings = override.advancedSettings
@@ -220,7 +220,8 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
                     eventType: OverrideStored.EventType.nsExercise,
                     createdAt: override.date ?? Date(),
                     enteredBy: NightscoutExercise.local,
-                    notes: override.name ?? "Custom Override"
+                    notes: override.name ?? "Custom Override",
+                    id: UUID(uuidString: override.id ?? UUID().uuidString)
                 )
             }
         }
@@ -248,7 +249,8 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
                     eventType: OverrideStored.EventType.nsExercise,
                     createdAt: (overrideRun.startDate ?? overrideRun.override?.date) ?? Date(),
                     enteredBy: NightscoutExercise.local,
-                    notes: overrideRun.name ?? "Custom Override"
+                    notes: overrideRun.name ?? "Custom Override",
+                    id: overrideRun.id
                 )
             }
         }

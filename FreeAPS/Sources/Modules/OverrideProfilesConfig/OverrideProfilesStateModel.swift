@@ -94,50 +94,18 @@ extension OverrideProfilesConfig {
 // MARK: - Setup Notifications
 
 extension OverrideProfilesConfig.StateModel {
-    /// listens for the notifications sent when the managedObjectContext has saved!
+    // Custom Notification to update View when an Override has been cancelled via Home View
     func setupNotification() {
         Foundation.NotificationCenter.default.addObserver(
             self,
-            selector: #selector(contextDidSave(_:)),
-            name: Notification.Name.NSManagedObjectContextDidSave,
-            object: nil
-        )
-
-        /// listens for notifications sent when a Preset was added
-        Foundation.NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handlePresetsUpdate),
-            name: .didUpdateOverridePresets,
+            selector: #selector(handleOverrideConfigurationUpdate),
+            name: .didUpdateOverrideConfiguration,
             object: nil
         )
     }
 
-    @objc private func handlePresetsUpdate() {
-        setupOverridePresetsArray()
-    }
-
-    /// determine the actions when the context has changed
-    /// its done on a background thread and after that the UI gets updated on the main thread
-    @objc private func contextDidSave(_ notification: Notification) {
-        guard let userInfo = notification.userInfo else { return }
-
-        Task { [weak self] in
-            await self?.processUpdates(userInfo: userInfo)
-        }
-    }
-
-    private func processUpdates(userInfo: [AnyHashable: Any]) async {
-        var objects = Set((userInfo[NSInsertedObjectsKey] as? Set<NSManagedObject>) ?? [])
-        objects.formUnion((userInfo[NSUpdatedObjectsKey] as? Set<NSManagedObject>) ?? [])
-        objects.formUnion((userInfo[NSDeletedObjectsKey] as? Set<NSManagedObject>) ?? [])
-
-        let overrideUpdates = objects.filter { $0 is OverrideStored }
-
-        DispatchQueue.global(qos: .background).async {
-            if overrideUpdates.isNotEmpty {
-                self.updateLatestOverrideConfiguration()
-            }
-        }
+    @objc private func handleOverrideConfigurationUpdate() {
+        updateLatestOverrideConfiguration()
     }
 
     // MARK: - Enact Overrides
@@ -152,6 +120,9 @@ extension OverrideProfilesConfig.StateModel {
         do {
             guard viewContext.hasChanges else { return }
             try viewContext.save()
+
+            // Update Presets View
+            setupOverridePresetsArray()
         } catch {
             debugPrint(
                 "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save after reordering Override Presets with error: \(error.localizedDescription)"
@@ -166,6 +137,7 @@ extension OverrideProfilesConfig.StateModel {
             let overrideToEnact = try viewContext.existingObject(with: id) as? OverrideStored
             overrideToEnact?.enabled = true
             overrideToEnact?.date = Date()
+            overrideToEnact?.isUploadedToNS = false
 
             /// Update the 'Cancel Override' button state
             isEnabled = true
@@ -178,6 +150,9 @@ extension OverrideProfilesConfig.StateModel {
 
             guard viewContext.hasChanges else { return }
             try viewContext.save()
+
+            // Update View
+            updateLatestOverrideConfiguration()
         } catch {
             debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to enact Override Preset")
         }
@@ -225,6 +200,9 @@ extension OverrideProfilesConfig.StateModel {
                 // Save the context if there are changes
                 if self.viewContext.hasChanges {
                     try self.viewContext.save()
+
+                    // Update the View
+                    self.updateLatestOverrideConfiguration()
                 }
             } catch {
                 debugPrint(
@@ -262,12 +240,17 @@ extension OverrideProfilesConfig.StateModel {
             uamMinutes: uamMinutes
         )
 
-        if currentActiveOverride != nil {
-            await disableAllActiveOverrides(except: currentActiveOverride?.objectID, createOverrideRunEntry: true)
-        }
+        // First disable all Overrides
+        await disableAllActiveOverrides(createOverrideRunEntry: true)
 
-        await overrideStorage.storeOverride(override: override)
-        await resetStateVariables()
+        // Then save and activate a new custom Override and reset the State variables
+        async let storeOverride: () = overrideStorage.storeOverride(override: override)
+        async let resetState: () = resetStateVariables()
+
+        _ = await (storeOverride, resetState)
+
+        // Update View
+        updateLatestOverrideConfiguration()
     }
 
     // Save Presets
@@ -296,13 +279,13 @@ extension OverrideProfilesConfig.StateModel {
             uamMinutes: uamMinutes
         )
 
-        await overrideStorage.storeOverride(override: preset)
+        async let storeOverride: () = overrideStorage.storeOverride(override: preset)
+        async let resetState: () = resetStateVariables()
 
-        // Custom Notification to update Presets View
-        Foundation.NotificationCenter.default.post(name: .didUpdateOverridePresets, object: nil)
+        _ = await (storeOverride, resetState)
 
-        // Prevent showing the current config of the recently added Preset
-        await resetStateVariables()
+        // Update Presets View
+        setupOverridePresetsArray()
     }
 
     // MARK: - Setup Override Presets Array
@@ -332,8 +315,9 @@ extension OverrideProfilesConfig.StateModel {
 
     func invokeOverridePresetDeletion(_ objectID: NSManagedObjectID) async {
         await overrideStorage.deleteOverridePreset(objectID)
-        // Custom Notification to update Presets View
-        Foundation.NotificationCenter.default.post(name: .didUpdateOverridePresets, object: nil)
+
+        // Update Presets View
+        setupOverridePresetsArray()
     }
 
     // MARK: - Setup the State variables with the last Override configuration
@@ -344,8 +328,10 @@ extension OverrideProfilesConfig.StateModel {
     func updateLatestOverrideConfiguration() {
         Task {
             let id = await overrideStorage.loadLatestOverrideConfigurations(fetchLimit: 1)
-            await updateLatestOverrideConfigurationOfState(from: id)
-            await setCurrentOverride(from: id)
+            async let updateState: () = updateLatestOverrideConfigurationOfState(from: id)
+            async let setOverride: () = setCurrentOverride(from: id)
+
+            _ = await (updateState, setOverride)
         }
     }
 
@@ -403,6 +389,8 @@ extension OverrideProfilesConfig.StateModel {
                 try self.viewContext.save()
             }
 
+            // Update View
+            // TODO: -
             if let overrideToEdit = try viewContext.existingObject(with: duplidateId) as? OverrideStored
             {
                 currentActiveOverride = overrideToEdit

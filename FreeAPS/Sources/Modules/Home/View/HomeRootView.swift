@@ -232,7 +232,7 @@ extension Home {
                     /// Do not show the Override anymore
                     Task {
                         guard let objectID = self.latestOverride.first?.objectID else { return }
-                        await state.cancelProfile(withID: objectID)
+                        await state.cancelOverride(withID: objectID)
                     }
                 }
             }
@@ -564,7 +564,7 @@ extension Home {
                             Button("Yes", role: .destructive) {
                                 Task {
                                     guard let objectID = latestOverride.first?.objectID else { return }
-                                    await state.cancelProfile(withID: objectID)
+                                    await state.cancelOverride(withID: objectID)
                                 }
                             }
                         }, message: { Text("This will change settings back to your normal profile.") }

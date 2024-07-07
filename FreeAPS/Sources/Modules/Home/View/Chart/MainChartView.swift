@@ -238,7 +238,7 @@ extension MainChartView {
                 }
             }
             .id("MainChart")
-            .onChange(of: state.boluses) { _ in
+            .onChange(of: state.insulinFromPersistence) { _ in
                 state.roundedTotalBolus = state.calculateTINS()
             }
             .onChange(of: tempTargets) { _ in

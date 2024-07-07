@@ -6,6 +6,7 @@ struct NightscoutExercise: JSON, Hashable, Equatable {
     var createdAt: Date
     var enteredBy: String?
     var notes: String?
+    var id: UUID?
 
     static let local = "Trio"
 
