@@ -4437,6 +4437,12 @@
         }
       }
     },
+    "The bolus cannot be larger than the pump setting max bolus" : {
+
+    },
+    "The bolus cannot be larger than the suggested insulin" : {
+
+    },
     "the bolus is not allowed with shortcuts" : {
       "localizations" : {
         "de" : {
