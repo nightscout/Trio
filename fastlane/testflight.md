@@ -11,17 +11,13 @@ These instructions allow you to build Trio without having access to a Mac.
 
 > The browser build defaults to automatically updating and building a new version of Trio according to this schedule:
 >
-> <<<<<<< HEAD
->
 > - automatically checks for updates weekly on Wednesdays and if updates are found, it will build a new version of the app
 > - automatically builds once a month regardless of whether there are updates on the first of the month
-> - with each scheduled run (weekly or monthly), a successful Build Trio log appears _ if the time is very short, it did not need to build _ only the long actions (>10 minutes) built a new Trio app
+> - with each scheduled run (weekly or monthly), a successful Build Trio log appears - if the time is very short, it did not need to build - only the long actions (>10 minutes) built a new Trio app
 >
 > # It also creates an alive branch, if you don't already have one. See [Why do I have an alive branch?](#why-do-i-have-an-alive-branch).
 >
-> The [**Optional**](#optional) section provides instructions to modify the default behavior if desired. >
->
-> > > > > > > 3ec6176db95109463300f5c322b1acdce4286d0c
+> The Optional section provides instructions to modify the default behavior if desired. >
 
 ## Introduction
 
