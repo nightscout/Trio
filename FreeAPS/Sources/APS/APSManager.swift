@@ -245,7 +245,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
                 // Open loop completed
                 guard settings.closedLoop else {
-                    nightscout.uploadStatus()
+                    await nightscout.uploadStatus()
                     loopStatRecord.end = Date()
                     loopStatRecord.duration = roundDouble((loopStatRecord.end! - loopStatRecord.start).timeInterval / 60, 2)
                     loopStatRecord.loopStatus = "Success"
@@ -253,7 +253,7 @@ final class BaseAPSManager: APSManager, Injectable {
                     return
                 }
 
-                nightscout.uploadStatus()
+                await nightscout.uploadStatus()
 
                 // Closed loop - enact Determination
                 try await enactDetermination()
@@ -298,7 +298,7 @@ final class BaseAPSManager: APSManager, Injectable {
         loopStats(loopStatRecord: loopStatRecord)
 
         if settings.closedLoop {
-            await reportEnacted(received: error == nil)
+            await reportEnacted(wasEnacted: error == nil)
         }
 
         // End of the BG tasks
@@ -577,7 +577,9 @@ final class BaseAPSManager: APSManager, Injectable {
                     } else {
                         debug(.apsManager, "Pump suspended by Announcement")
                         self.announcementsStorage.storeAnnouncements([announcement], enacted: true)
-                        self.nightscout.uploadStatus()
+                        Task.detached(priority: .low) {
+                            await self.nightscout.uploadStatus()
+                        }
                     }
                 }
             case .resume:
@@ -590,7 +592,9 @@ final class BaseAPSManager: APSManager, Injectable {
                     } else {
                         debug(.apsManager, "Pump resumed by Announcement")
                         self.announcementsStorage.storeAnnouncements([announcement], enacted: true)
-                        self.nightscout.uploadStatus()
+                        Task.detached(priority: .low) {
+                            await self.nightscout.uploadStatus()
+                        }
                     }
                 }
             }
@@ -725,14 +729,14 @@ final class BaseAPSManager: APSManager, Injectable {
         bolusProgress.send(0)
     }
 
-    private func reportEnacted(received: Bool) async {
+    private func reportEnacted(wasEnacted: Bool) async {
         guard let determinationID = await fetchDetermination() else {
             return
         }
         await privateContext.perform {
             if let determinationUpdated = self.privateContext.object(with: determinationID) as? OrefDetermination {
                 determinationUpdated.timestamp = Date()
-                determinationUpdated.received = received
+                determinationUpdated.enacted = wasEnacted
 
                 do {
                     guard self.privateContext.hasChanges else { return }
@@ -744,11 +748,10 @@ final class BaseAPSManager: APSManager, Injectable {
                     )
                 }
 
-                debug(.apsManager, "Determination enacted. Received: \(received)")
-
-                self.nightscout.uploadStatus()
+                debug(.apsManager, "Determination enacted. Enacted: \(wasEnacted)")
 
                 Task.detached(priority: .low) {
+                    await self.nightscout.uploadStatus()
                     await self.statistics()
                 }
             } else {

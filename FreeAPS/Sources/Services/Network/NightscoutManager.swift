@@ -13,7 +13,7 @@ protocol NightscoutManager: GlucoseSource {
     func deleteCarbs(withID id: String) async
     func deleteInsulin(withID id: String) async
     func deleteManualGlucose(withID id: String) async
-    func uploadStatus()
+    func uploadStatus() async
     func uploadGlucose() async
     func uploadManualGlucose() async
     func uploadStatistics(dailystat: Statistics) async
@@ -67,7 +67,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
     private let context = CoreDataStack.shared.newTaskContext()
 
-    private var lastTwoDeterminations: [OrefDetermination]?
+    private var lastEnactedDetermination: OrefDetermination?
+    private var lastSuggestedDetermination: OrefDetermination?
 
     init(resolver: Resolver) {
         injectServices(resolver)
@@ -357,223 +358,198 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-    private func fetchDeterminations() {
-        let fetchRequest: NSFetchRequest<OrefDetermination> = OrefDetermination.fetchRequest()
-        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \OrefDetermination.deliverAt, ascending: false)]
-        fetchRequest.predicate = NSPredicate.predicateFor30MinAgoForDetermination
-        fetchRequest.fetchLimit = 2
+//    private func fetchDeterminations() async {
+//        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+//            ofType: OrefDetermination.self,
+//            onContext: backgroundContext,
+//            predicate: NSPredicate.predicateFor30MinAgoForDetermination,
+//            key: "deliverAt",
+//            ascending: false,
+//            fetchLimit: 2
+//        )
+//
+//        let determinationIds = await backgroundContext.perform {
+//            results.map(\.objectID)
+//        }
+//
+//        do {
+//            // Ensure this is performed on the correct context
+//            let determinationObjects: [OrefDetermination] = try await context.perform {
+//                try determinationIds.compactMap { id in
+//                    try self.context.existingObject(with: id) as? OrefDetermination
+//                }
+//            }
+//
+//            // Assign fetched objects to the determination property
+//            determinations = determinationObjects
+//
+//        } catch {
+//            debugPrint(
+//                "NightscoutManager \(#function) \(DebuggingIdentifiers.failed) error while updating the determinations: \(error.localizedDescription)"
+//            )
+//        }
+//    }
 
-        context.performAndWait {
+    private func fetchEnactedDetermination() async -> [OrefDetermination] {
+        let enactedDeterminations = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: OrefDetermination.self,
+            onContext: backgroundContext,
+            predicate: NSPredicate.enactedDetermination,
+            key: "deliverAt",
+            ascending: false,
+            fetchLimit: 1
+        )
+
+        let enactedIds = await backgroundContext.perform {
+            enactedDeterminations.map(\.objectID)
+        }
+
+        return await context.perform {
             do {
-                lastTwoDeterminations = try context.fetch(fetchRequest)
+                let enacted = try enactedIds.compactMap { id in
+                    try self.context.existingObject(with: id) as? OrefDetermination
+                }
+
                 debugPrint(
-                    "Home State Model: \(#function) \(DebuggingIdentifiers.succeeded) fetched determinations from core data"
+                    "NightscoutManager \(#function) \(DebuggingIdentifiers.succeeded) fetched ENACTED determinations: \(String(describing: enacted))"
                 )
+
+                return enacted
             } catch {
                 debugPrint(
-                    "Home State Model: \(#function) \(DebuggingIdentifiers.failed) failed to fetch determinations from core data"
+                    "NightscoutManager \(#function) \(DebuggingIdentifiers.failed) error while fetching the determinations: \(error.localizedDescription)"
                 )
+                return []
             }
         }
     }
 
-    func uploadStatus() {
-        let iob = storage.retrieve(OpenAPS.Monitor.iob, as: [IOBEntry].self)
+    private func fetchSuggestedDetermination() async -> [OrefDetermination] {
+        let suggestedDeterminations = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: OrefDetermination.self,
+            onContext: backgroundContext,
+            predicate: NSPredicate(
+                format: "(enacted == %@ OR enacted == NULL) AND deliverAt >= %@",
+                false as NSNumber,
+                Date.halfHourAgo as NSDate
+            ),
+            key: "deliverAt",
+            ascending: false,
+            fetchLimit: 1
+        )
 
-        let penultimateDetermination = lastTwoDeterminations?.last
-        let lastDetermination = lastTwoDeterminations?.first
+        let suggestedIds = await backgroundContext.perform {
+            suggestedDeterminations.map(\.objectID)
+        }
 
-        var suggested: Determination?
-        var enacted: Determination?
+        return await context.perform {
+            do {
+                let suggested = try suggestedIds.compactMap { id in
+                    try self.context.existingObject(with: id) as? OrefDetermination
+                }
 
-        if let lastDetermination = lastDetermination, let penultimateDetermination = penultimateDetermination {
-            if lastDetermination.enacted, penultimateDetermination.enacted {
-                suggested = Determination(
-                    reason: lastDetermination.reason ?? "",
-                    units: lastDetermination.smbToDeliver?.decimalValue,
-                    insulinReq: lastDetermination.insulinReq?.decimalValue,
-                    eventualBG: Int(truncating: lastDetermination.eventualBG ?? 0),
-                    sensitivityRatio: lastDetermination.sensitivityRatio?.decimalValue,
-                    rate: lastDetermination.rate?.decimalValue,
-                    duration: lastDetermination.duration?.decimalValue,
-                    iob: lastDetermination.iob?.decimalValue,
-                    cob: Decimal(lastDetermination.cob),
-                    predictions: nil,
-                    deliverAt: lastDetermination.deliverAt ?? Date(),
-                    carbsReq: Decimal(lastDetermination.carbsRequired),
-                    temp: TempType(rawValue: lastDetermination.temp ?? ""),
-                    bg: lastDetermination.glucose?.decimalValue,
-                    reservoir: lastDetermination.reservoir?.decimalValue,
-                    isf: lastDetermination.insulinSensitivity?.decimalValue,
-                    timestamp: lastDetermination.timestamp,
-                    recieved: lastDetermination.received,
-                    tdd: lastDetermination.totalDailyDose?.decimalValue ?? Decimal(0),
-                    insulin: Insulin(
-                        TDD: lastDetermination.totalDailyDose?.decimalValue ?? Decimal(0),
-                        bolus: lastDetermination.bolus?.decimalValue ?? Decimal(0),
-                        temp_basal: lastDetermination.tempBasal?.decimalValue ?? Decimal(0),
-                        scheduled_basal: lastDetermination.scheduledBasal?.decimalValue ?? Decimal(0)
-                    ),
-                    current_target: lastDetermination.currentTarget?.decimalValue ?? Decimal(0),
-                    insulinForManualBolus: lastDetermination.insulinForManualBolus?.decimalValue ?? Decimal(0),
-                    manualBolusErrorString: lastDetermination.manualBolusErrorString?.decimalValue ?? Decimal(0),
-                    minDelta: lastDetermination.minDelta?.decimalValue ?? Decimal(0),
-                    expectedDelta: lastDetermination.expectedDelta?.decimalValue ?? Decimal(0),
-                    minGuardBG: nil, minPredBG: nil, threshold: lastDetermination.threshold?.decimalValue ?? Decimal(0),
-                    carbRatio: lastDetermination.carbRatio?.decimalValue ?? Decimal(0)
+                debugPrint(
+                    "NightscoutManager \(#function) \(DebuggingIdentifiers.succeeded) fetched SUGGESTED determinations: \(String(describing: suggested))"
                 )
-                enacted = Determination(
-                    reason: lastDetermination.reason ?? "",
-                    units: lastDetermination.smbToDeliver?.decimalValue,
-                    insulinReq: lastDetermination.insulinReq?.decimalValue,
-                    eventualBG: Int(truncating: lastDetermination.eventualBG ?? 0),
-                    sensitivityRatio: lastDetermination.sensitivityRatio?.decimalValue,
-                    rate: lastDetermination.rate?.decimalValue,
-                    duration: lastDetermination.duration?.decimalValue,
-                    iob: lastDetermination.iob?.decimalValue,
-                    cob: Decimal(lastDetermination.cob),
-                    predictions: nil,
-                    deliverAt: lastDetermination.deliverAt ?? Date(),
-                    carbsReq: Decimal(lastDetermination.carbsRequired),
-                    temp: TempType(rawValue: lastDetermination.temp ?? ""),
-                    bg: lastDetermination.glucose?.decimalValue,
-                    reservoir: lastDetermination.reservoir?.decimalValue,
-                    isf: lastDetermination.insulinSensitivity?.decimalValue,
-                    timestamp: lastDetermination.timestamp,
-                    recieved: lastDetermination.received,
-                    tdd: lastDetermination.totalDailyDose?.decimalValue ?? Decimal(0),
-                    insulin: Insulin(
-                        TDD: lastDetermination.totalDailyDose?.decimalValue ?? Decimal(0),
-                        bolus: lastDetermination.bolus?.decimalValue ?? Decimal(0),
-                        temp_basal: lastDetermination.tempBasal?.decimalValue ?? Decimal(0),
-                        scheduled_basal: lastDetermination.scheduledBasal?.decimalValue ?? Decimal(0)
-                    ),
-                    current_target: lastDetermination.currentTarget?.decimalValue ?? Decimal(0),
-                    insulinForManualBolus: lastDetermination.insulinForManualBolus?.decimalValue ?? Decimal(0),
-                    manualBolusErrorString: lastDetermination.manualBolusErrorString?.decimalValue ?? Decimal(0),
-                    minDelta: lastDetermination.minDelta?.decimalValue ?? Decimal(0),
-                    expectedDelta: lastDetermination.expectedDelta?.decimalValue ?? Decimal(0),
-                    minGuardBG: nil, minPredBG: nil, threshold: lastDetermination.threshold?.decimalValue ?? Decimal(0),
-                    carbRatio: lastDetermination.carbRatio?.decimalValue ?? Decimal(0)
+
+                return suggested
+            } catch {
+                debugPrint(
+                    "NightscoutManager \(#function) \(DebuggingIdentifiers.failed) error while fetching the determinations: \(error.localizedDescription)"
                 )
-            } else if !lastDetermination.enacted, penultimateDetermination.enacted {
-                suggested = Determination(
-                    reason: lastDetermination.reason ?? "",
-                    units: lastDetermination.smbToDeliver?.decimalValue,
-                    insulinReq: lastDetermination.insulinReq?.decimalValue,
-                    eventualBG: Int(truncating: lastDetermination.eventualBG ?? 0),
-                    sensitivityRatio: lastDetermination.sensitivityRatio?.decimalValue,
-                    rate: lastDetermination.rate?.decimalValue,
-                    duration: lastDetermination.duration?.decimalValue,
-                    iob: lastDetermination.iob?.decimalValue,
-                    cob: Decimal(lastDetermination.cob),
-                    predictions: nil,
-                    deliverAt: lastDetermination.deliverAt ?? Date(),
-                    carbsReq: Decimal(lastDetermination.carbsRequired),
-                    temp: TempType(rawValue: lastDetermination.temp ?? ""),
-                    bg: lastDetermination.glucose?.decimalValue,
-                    reservoir: lastDetermination.reservoir?.decimalValue,
-                    isf: lastDetermination.insulinSensitivity?.decimalValue,
-                    timestamp: lastDetermination.timestamp,
-                    recieved: lastDetermination.received,
-                    tdd: lastDetermination.totalDailyDose?.decimalValue ?? Decimal(0),
-                    insulin: Insulin(
-                        TDD: lastDetermination.totalDailyDose?.decimalValue ?? Decimal(0),
-                        bolus: lastDetermination.bolus?.decimalValue ?? Decimal(0),
-                        temp_basal: lastDetermination.tempBasal?.decimalValue ?? Decimal(0),
-                        scheduled_basal: lastDetermination.scheduledBasal?.decimalValue ?? Decimal(0)
-                    ),
-                    current_target: lastDetermination.currentTarget?.decimalValue ?? Decimal(0),
-                    insulinForManualBolus: lastDetermination.insulinForManualBolus?.decimalValue ?? Decimal(0),
-                    manualBolusErrorString: lastDetermination.manualBolusErrorString?.decimalValue ?? Decimal(0),
-                    minDelta: lastDetermination.minDelta?.decimalValue ?? Decimal(0),
-                    expectedDelta: lastDetermination.expectedDelta?.decimalValue ?? Decimal(0),
-                    minGuardBG: nil, minPredBG: nil, threshold: lastDetermination.threshold?.decimalValue ?? Decimal(0),
-                    carbRatio: lastDetermination.carbRatio?.decimalValue ?? Decimal(0)
-                )
-                enacted = Determination(
-                    reason: penultimateDetermination.reason ?? "",
-                    units: penultimateDetermination.smbToDeliver?.decimalValue,
-                    insulinReq: penultimateDetermination.insulinReq?.decimalValue,
-                    eventualBG: Int(truncating: penultimateDetermination.eventualBG ?? 0),
-                    sensitivityRatio: penultimateDetermination.sensitivityRatio?.decimalValue,
-                    rate: penultimateDetermination.rate?.decimalValue,
-                    duration: lastDetermination.duration?.decimalValue,
-                    iob: penultimateDetermination.iob?.decimalValue,
-                    cob: Decimal(penultimateDetermination.cob),
-                    predictions: nil,
-                    deliverAt: penultimateDetermination.deliverAt ?? Date(),
-                    carbsReq: Decimal(penultimateDetermination.carbsRequired),
-                    temp: TempType(rawValue: penultimateDetermination.temp ?? ""),
-                    bg: penultimateDetermination.glucose?.decimalValue,
-                    reservoir: penultimateDetermination.reservoir?.decimalValue,
-                    isf: penultimateDetermination.insulinSensitivity?.decimalValue,
-                    timestamp: penultimateDetermination.timestamp,
-                    recieved: penultimateDetermination.received,
-                    tdd: penultimateDetermination.totalDailyDose?.decimalValue ?? Decimal(0),
-                    insulin: Insulin(
-                        TDD: penultimateDetermination.totalDailyDose?.decimalValue ?? Decimal(0),
-                        bolus: penultimateDetermination.bolus?.decimalValue ?? Decimal(0),
-                        temp_basal: penultimateDetermination.tempBasal?.decimalValue ?? Decimal(0),
-                        scheduled_basal: penultimateDetermination.scheduledBasal?.decimalValue ?? Decimal(0)
-                    ),
-                    current_target: penultimateDetermination.currentTarget?.decimalValue ?? Decimal(0),
-                    insulinForManualBolus: penultimateDetermination.insulinForManualBolus?.decimalValue ?? Decimal(0),
-                    manualBolusErrorString: penultimateDetermination.manualBolusErrorString?.decimalValue ?? Decimal(0),
-                    minDelta: penultimateDetermination.minDelta?.decimalValue ?? Decimal(0),
-                    expectedDelta: penultimateDetermination.expectedDelta?.decimalValue ?? Decimal(0),
-                    minGuardBG: nil,
-                    minPredBG: nil,
-                    threshold: penultimateDetermination.threshold?.decimalValue ?? Decimal(0),
-                    carbRatio: penultimateDetermination.carbRatio?.decimalValue ?? Decimal(0)
-                )
-            } else if !lastDetermination.enacted, !penultimateDetermination.enacted {
-                suggested = Determination(
-                    reason: lastDetermination.reason ?? "",
-                    units: lastDetermination.smbToDeliver?.decimalValue,
-                    insulinReq: lastDetermination.insulinReq?.decimalValue,
-                    eventualBG: Int(truncating: lastDetermination.eventualBG ?? 0),
-                    sensitivityRatio: lastDetermination.sensitivityRatio?.decimalValue,
-                    rate: lastDetermination.rate?.decimalValue,
-                    duration: lastDetermination.duration?.decimalValue,
-                    iob: lastDetermination.iob?.decimalValue,
-                    cob: Decimal(lastDetermination.cob),
-                    predictions: nil,
-                    deliverAt: lastDetermination.deliverAt ?? Date(),
-                    carbsReq: Decimal(lastDetermination.carbsRequired),
-                    temp: TempType(rawValue: lastDetermination.temp ?? ""),
-                    bg: lastDetermination.glucose?.decimalValue,
-                    reservoir: lastDetermination.reservoir?.decimalValue,
-                    isf: lastDetermination.insulinSensitivity?.decimalValue,
-                    timestamp: lastDetermination.timestamp,
-                    recieved: lastDetermination.received,
-                    tdd: lastDetermination.totalDailyDose?.decimalValue ?? Decimal(0),
-                    insulin: Insulin(
-                        TDD: lastDetermination.totalDailyDose?.decimalValue ?? Decimal(0),
-                        bolus: lastDetermination.bolus?.decimalValue ?? Decimal(0),
-                        temp_basal: lastDetermination.tempBasal?.decimalValue ?? Decimal(0),
-                        scheduled_basal: lastDetermination.scheduledBasal?.decimalValue ?? Decimal(0)
-                    ),
-                    current_target: lastDetermination.currentTarget?.decimalValue ?? Decimal(0),
-                    insulinForManualBolus: lastDetermination.insulinForManualBolus?.decimalValue ?? Decimal(0),
-                    manualBolusErrorString: lastDetermination.manualBolusErrorString?.decimalValue ?? Decimal(0),
-                    minDelta: lastDetermination.minDelta?.decimalValue ?? Decimal(0),
-                    expectedDelta: lastDetermination.expectedDelta?.decimalValue ?? Decimal(0),
-                    minGuardBG: nil, minPredBG: nil, threshold: lastDetermination.threshold?.decimalValue ?? Decimal(0),
-                    carbRatio: lastDetermination.carbRatio?.decimalValue ?? Decimal(0)
-                )
+
+                return []
             }
         }
+    }
+
+    func parseOrefDetermination(_ orefDetermination: OrefDetermination) -> Determination {
+        // Convert NSDecimalNumber to Decimal
+        func decimal(from nsDecimalNumber: NSDecimalNumber?) -> Decimal? {
+            nsDecimalNumber?.decimalValue
+        }
+
+        // Convert NSSet to array of Ints for Predictions
+        func parseForecastValues(ofType type: String, from orefDetermination: OrefDetermination) -> [Int]? {
+            guard let forecasts = orefDetermination.forecasts?.filter({ ($0 as? Forecast)?.type == type }) as? [Forecast] else {
+                return nil
+            }
+
+            return forecasts.flatMap { forecast in
+                (forecast.forecastValues as? [ForecastValue])?.map { Int($0.value) } ?? []
+            }
+        }
+
+        // Parse Insulin data
+        let insulin = Insulin(
+            TDD: decimal(from: orefDetermination.totalDailyDose),
+            bolus: orefDetermination.bolus as Decimal?,
+            temp_basal: orefDetermination.tempBasal as Decimal?,
+            scheduled_basal: orefDetermination.scheduledBasal as Decimal?
+        )
+
+        // Parse Predictions data
+        let predictions = Predictions(
+            iob: parseForecastValues(ofType: "iob", from: orefDetermination),
+            zt: parseForecastValues(ofType: "zt", from: orefDetermination),
+            cob: parseForecastValues(ofType: "cob", from: orefDetermination),
+            uam: parseForecastValues(ofType: "uam", from: orefDetermination)
+        )
+
+        return Determination(
+            reason: orefDetermination.reason ?? "",
+            units: orefDetermination.smbToDeliver as Decimal?,
+            insulinReq: decimal(from: orefDetermination.insulinReq),
+            eventualBG: orefDetermination.eventualBG as? Int,
+            sensitivityRatio: decimal(from: orefDetermination.sensitivityRatio),
+            rate: decimal(from: orefDetermination.rate),
+            duration: decimal(from: orefDetermination.duration),
+            iob: decimal(from: orefDetermination.iob),
+            cob: orefDetermination.cob != 0 ? Decimal(orefDetermination.cob) : nil,
+            predictions: predictions,
+            deliverAt: orefDetermination.deliverAt,
+            carbsReq: orefDetermination.carbsRequired != 0 ? Decimal(orefDetermination.carbsRequired) : nil,
+            temp: TempType(rawValue: orefDetermination.temp ?? "absolute"),
+            bg: decimal(from: orefDetermination.glucose),
+            reservoir: decimal(from: orefDetermination.reservoir),
+            isf: decimal(from: orefDetermination.insulinSensitivity),
+            timestamp: orefDetermination.timestamp, // Assuming you have this property
+            tdd: decimal(from: orefDetermination.totalDailyDose),
+            insulin: insulin,
+            current_target: decimal(from: orefDetermination.currentTarget),
+            insulinForManualBolus: decimal(from: orefDetermination.insulinForManualBolus),
+            manualBolusErrorString: decimal(from: orefDetermination.manualBolusErrorString),
+            minDelta: decimal(from: orefDetermination.minDelta),
+            expectedDelta: decimal(from: orefDetermination.expectedDelta),
+            minGuardBG: nil,
+            minPredBG: nil,
+            threshold: decimal(from: orefDetermination.threshold),
+            carbRatio: decimal(from: orefDetermination.carbRatio)
+        )
+    }
+
+    func uploadStatus() async {
+        let enactedFromPersistence = await fetchEnactedDetermination()
+        let suggestedFromPersistence = await fetchSuggestedDetermination()
+
+        var enacted: Determination?
+        var suggested: Determination?
+
+        if let lastEnacted = enactedFromPersistence.first, let lastSuggested = suggestedFromPersistence.first {
+            enacted = parseOrefDetermination(lastEnacted)
+            suggested = parseOrefDetermination(lastSuggested)
+        }
+
+        let iob = storage.retrieve(OpenAPS.Monitor.iob, as: [IOBEntry].self)
 
         let loopIsClosed = settingsManager.settings.closedLoop
 
         var openapsStatus: OpenAPSStatus
 
-        // Only upload suggested in Open Loop Mode. Only upload enacted in Closed Loop Mode.
         if loopIsClosed {
             openapsStatus = OpenAPSStatus(
                 iob: iob?.first,
-                suggested: nil,
+                suggested: suggested,
                 enacted: enacted,
                 version: "0.7.1"
             )
@@ -596,9 +572,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
         let pump = NSPumpStatus(clock: Date(), battery: battery, reservoir: reservoir, status: pumpStatus)
 
-        let device = UIDevice.current
+        let device = await UIDevice.current
 
-        let uploader = Uploader(batteryVoltage: nil, battery: Int(device.batteryLevel * 100))
+        let uploader = await Uploader(batteryVoltage: nil, battery: Int(device.batteryLevel * 100))
 
         var status: NightscoutStatus
 
@@ -615,18 +591,24 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             return
         }
 
-        processQueue.async {
-            nightscout.uploadStatus(status)
-                .sink { completion in
-                    switch completion {
-                    case .finished:
-                        debug(.nightscout, "Status uploaded")
-                    case let .failure(error):
-                        debug(.nightscout, error.localizedDescription)
-                    }
-                } receiveValue: {}
-                .store(in: &self.lifetime)
+        do {
+            try await nightscout.uploadStatus(status)
+            debug(.nightscout, "OpenAPS Status uploaded")
+        } catch {
+            debug(.nightscout, error.localizedDescription)
         }
+//        processQueue.async {
+//            nightscout.uploadStatus(status)
+//                .sink { completion in
+//                    switch completion {
+//                    case .finished:
+//                        debug(.nightscout, "Status uploaded")
+//                    case let .failure(error):
+//                        debug(.nightscout, error.localizedDescription)
+//                    }
+//                } receiveValue: {}
+//                .store(in: &self.lifetime)
+//        }
 
         Task {
             await uploadPodAge()

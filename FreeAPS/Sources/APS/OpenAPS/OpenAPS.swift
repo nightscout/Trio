@@ -238,6 +238,7 @@ final class OpenAPS {
             autosens: autosens.isEmpty ? .null : autosens
         )
 
+        // TODO: refactor this to core data
         storage.save(iob, as: Monitor.iob)
 
         // Determine basal
