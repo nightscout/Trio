@@ -187,13 +187,13 @@ extension AddTempTarget {
                     HStack {
                         Text("Target")
                         Spacer()
-                        DecimalTextField("0", value: $state.low, formatter: formatter, cleanInput: true)
+                        TextFieldWithToolBar(text: $state.low, placeholder: "0", numberFormatter: formatter)
                         Text(state.units.rawValue).foregroundColor(.secondary)
                     }
                     HStack {
                         Text("Duration")
                         Spacer()
-                        DecimalTextField("0", value: $state.duration, formatter: formatter, cleanInput: true)
+                        TextFieldWithToolBar(text: $state.duration, placeholder: "0", numberFormatter: formatter)
                         Text("minutes").foregroundColor(.secondary)
                     }
                 }
@@ -203,7 +203,7 @@ extension AddTempTarget {
                     HStack {
                         Text("Duration")
                         Spacer()
-                        DecimalTextField("0", value: $state.duration, formatter: formatter, cleanInput: true)
+                        TextFieldWithToolBar(text: $state.duration, placeholder: "0", numberFormatter: formatter)
                         Text("minutes").foregroundColor(.secondary)
                     }
                 }

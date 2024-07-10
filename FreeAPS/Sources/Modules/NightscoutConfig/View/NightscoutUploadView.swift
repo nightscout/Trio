@@ -13,6 +13,10 @@ struct NightscoutUploadView: View {
                         "The Upload Treatments toggle enables uploading of carbs, temp targets, device status, preferences and settings."
                     )
                     Text("\nThe Upload Glucose toggle enables uploading of CGM readings.")
+
+                    if !state.changeUploadGlucose {
+                        Text("\nTo flip the Upload Glucose toggle, go to ⚙️ > CGM > CGM Configuration")
+                    }
                 }
             )
                 {
