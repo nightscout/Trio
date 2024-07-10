@@ -2,22 +2,22 @@
 
 These instructions allow you to build Trio without having access to a Mac.
 
-- You can install Trio on phones using TestFlight that are not connected to your computer
-- You can send builds and updates to those you care for
-- You can install Trio on your phone using only the TestFlight app if a phone was lost or the app is accidentally deleted
-- You do not need to worry about specific Xcode/Mac versions for a given iOS
+* You can install Trio on phones using TestFlight that are not connected to your computer
+* You can send builds and updates to those you care for
+* You can install Trio on your phone using only the TestFlight app if a phone was lost or the app is accidentally deleted
+* You do not need to worry about specific Xcode/Mac versions for a given iOS
 
 ## **Automatic Builds**
-
+>
 > The browser build defaults to automatically updating and building a new version of Trio according to this schedule:
 >
-> - automatically checks for updates weekly on Wednesdays and if updates are found, it will build a new version of the app
-> - automatically builds once a month regardless of whether there are updates on the first of the month
-> - with each scheduled run (weekly or monthly), a successful Build Trio log appears - if the time is very short, it did not need to build - only the long actions (>10 minutes) built a new Trio app
+> * automatically checks for updates weekly on Wednesdays and if updates are found, it will build a new version of the app
+> * automatically builds once a month regardless of whether there are updates on the first of the month
+> * with each scheduled run (weekly or monthly), a successful Build Trio log appears - if the time is very short, it did not need to build - only the long actions (>10 minutes) built a new Trio app
 >
-> # It also creates an alive branch, if you don't already have one. See [Why do I have an alive branch?](#why-do-i-have-an-alive-branch).
+> It also creates an alive branch, if you don't already have one. See [Why do I have an alive branch?](#why-do-i-have-an-alive-branch).
 >
-> The Optional section provides instructions to modify the default behavior if desired. >
+> The Optional section provides instructions to modify the default behavior if desired.
 
 ## Introduction
 
@@ -25,27 +25,27 @@ The setup steps are somewhat involved, but nearly all are one time steps. Subseq
 
 Note that installing with TestFlight requires the Apple ID account holder for the phone be 13 years or older (age varies with country). This can be circumvented by logging into Media & Purchase on the child's phone with an adult's account. More details on this can be found in [LoopDocs](https://loopkit.github.io/loopdocs/gh-actions/gh-deploy/#install-testflight-loop-for-child).
 
-This method for building without a Mac was ported from Loop. If you have used this method for Loop or one of the other DIY apps (Loop Caregiver, Loop Follow, Xdrip4iOS), some of the steps can be re-used and the full set of instructions does not need to be repeated. This will be mentioned in relevant sections below.
+This method for building without a Mac was ported from Loop. If you have used this method for Loop or one of the other DIY apps (Loop Caregiver, Loop Follow, xDrip4iOS), some of the steps can be re-used and the full set of instructions does not need to be repeated. This will be mentioned in relevant sections below.
 
 There are more detailed instructions in LoopDocs for doing Browser Builds of Loop and other apps, including troubleshooting and build errors. Please refer to [LoopDocs](https://loopkit.github.io/loopdocs/gh-actions/gh-other-apps/) for more details.
 
-If you build multiple apps, you may want to use a free _GitHub_ organization. Please refer to [LoopDocs: Use a _GitHub_ Organization Account](https://loopkit.github.io/loopdocs/gh-actions/gh-other-apps/#use-a-github-organization-account).
+If you build multiple apps, you may want to use a free *GitHub* organization. Please refer to [LoopDocs: Use a *GitHub* Organization Account](https://loopkit.github.io/loopdocs/gh-actions/gh-other-apps/#use-a-github-organization-account).
 
 ## Prerequisites
 
-- A [github account](https://github.com/signup). The free level comes with plenty of storage and free compute time to build Trio, multiple times a day, if you wanted to.
-- A paid [Apple Developer account](https://developer.apple.com).
-- Some time. Set aside a couple of hours to perform the setup.
-- Use the same GitHub account for all "Browser Builds" of the various DIY apps.
+* A [github account](https://github.com/signup). The free level comes with plenty of storage and free compute time to build Trio, multiple times a day, if you wanted to.
+* A paid [Apple Developer account](https://developer.apple.com).
+* Some time. Set aside a couple of hours to perform the setup.
+* Use the same GitHub account for all "Browser Builds" of the various DIY apps.
 
 ## Save 6 Secrets
 
-You require 6 Secrets (alphanumeric items) to use the GitHub build method and if you use the GitHub method to build other apps, e.g., Loop Follow or Xdrip4iOS, you will use the same 6 Secrets for each app you build with this method. Each secret is indentified below by `ALL_CAPITAL_LETTER_NAMES`.
+You require 6 Secrets (alphanumeric items) to use the GitHub build method and if you use the GitHub method to build other apps, e.g., Loop Follow or xDrip4iOS, you will use the same 6 Secrets for each app you build with this method. Each secret is indentified below by `ALL_CAPITAL_LETTER_NAMES`.
 
-- Four Secrets are from your Apple Account
-- Two Secrets are from your GitHub account
-- Be sure to save the 6 Secrets in a text file using a text editor
-  - Do **NOT** use a smart editor, which might auto-correct and change case, because these Secrets are case sensitive
+* Four Secrets are from your Apple Account
+* Two Secrets are from your GitHub account
+* Be sure to save the 6 Secrets in a text file using a text editor
+  * Do **NOT** use a smart editor, which might auto-correct and change case, because these Secrets are case sensitive
 
 Refer to [LoopDocs: Make a Secrets Reference File](https://loopkit.github.io/loopdocs/gh-actions/gh-first-time/#make-a-secrets-reference-file) for a handy template to use when saving your Secrets.
 
@@ -67,11 +67,11 @@ If you have previously built another app using the "browser build" method, you u
 Log into your GitHub account to create a personal access token; this is one of two GitHub secrets needed for your build.
 
 1. Create a [new personal access token](https://github.com/settings/tokens/new):
-   - Enter a name for your token, use "FastLane Access Token".
-   - Change the Expiration selection to `No expiration`.
-   - Select the `workflow` permission scope \* this also selects `repo` scope.
-   - Click "Generate token".
-   - Copy the token and record it. It will be used below as `GH_PAT`.
+    * Enter a name for your token, use "FastLane Access Token".
+    * Change the Expiration selection to `No expiration`.
+    * Select the `workflow` permission scope \* this also selects `repo` scope.
+    * Click "Generate token".
+    * Copy the token and record it. It will be used below as `GH_PAT`.
 
 ## Make up a Password
 
@@ -88,12 +88,12 @@ The first time you build with the GitHub Browser Build method for any DIY app, y
 1. Fork https://github.com/nightscout/Trio into your account. If you already have a fork of Trio in GitHub, you can't make another one. You can continue to work with your existing fork, or delete that from GitHub and then fork https://github.com/nightscout/Trio.
 1. In the forked Trio repo, go to Settings -> Secrets and variables -> Actions.
 1. For each of the following secrets, tap on "New repository secret", then add the name of the secret, along with the value you recorded for it:
-   - `TEAMID`
-   - `FASTLANE_ISSUER_ID`
-   - `FASTLANE_KEY_ID`
-   - `FASTLANE_KEY`
-   - `GH_PAT`
-   - `MATCH_PASSWORD`
+    * `TEAMID`
+    * `FASTLANE_ISSUER_ID`
+    * `FASTLANE_KEY_ID`
+    * `FASTLANE_KEY`
+    * `GH_PAT`
+    * `MATCH_PASSWORD`
 
 ## Validate repository secrets
 
@@ -116,34 +116,34 @@ This step validates most of your six Secrets and provides error messages if it d
 
 ## Create App Group
 
-If you previously built Trio using Mac with Xcode with this Apple ID, you can skip on to [Optional: Description Modification](#optional-description-modification) or [Create Trio App in App Store Connect](#create-trio-app-in-app-store-connect).
+If you previously built Trio using Mac with Xcode with this Apple ID, skip ahead to [Optional: App Group Description Modification](#optional-app-group-description-modification).
+
+_Please note that Trio uses the a Trio-specific app group, not the same as Loop. This enables other apps such as xDrip4iOS to share data with Trio. It may require some caution if transfering between Trio and Loop._
 
 1. Go to [Register an App Group](https://developer.apple.com/account/resources/identifiers/applicationGroup/add/) on the apple developer site.
 1. For Description, use "Trio App Group".
-1. For Identifier, enter "group.org.nightscout.TEAMID.trio.trio-app-group", substituting your team id for `TEAMID`.
-
-- If you previously built Trio using Mac with Xcode with this Apple ID, skip ahead to [Optional: App Group Description Modification](#optional-app-group-description-modification).
-
+1. For Identifier, enter `group.org.nightscout.TEAMID.trio.trio-app-group`, substituting your team id for `TEAMID`.
+    * If you are told that this group already exists, skip ahead to [Optional: App Group Description Modification](#optional-app-group-description-modification)
 1. Click "Continue" and then "Register".
 
 ### Optional: App Group Description Modification
 
-> This step is not required, but if you previously built using a Mac with Xcode, it is a good idea to update the **NAME** associated with the **IDENTIFIER** for the Loop App Group. Notice in the table below that the XCode version of the **NAME** is the same as the **IDENTIFIER** but with the `.` replaced with a space.
+> This step is not required, but if you previously built using a Mac with Xcode, it is a good idea to update the **NAME** associated with the **IDENTIFIER** for the `Trio App Group`. Notice in the table below that the Xcode version of the **NAME** is the same as the **IDENTIFIER** but with the `.` replaced with a space.
 
-_Referring to the link and table below, tap on the **IDENTIFIER** for the `Loop App Group`, edit the Description to match the **NAME**, then Save the change._
+_Referring to the link and table below, tap on the **IDENTIFIER** for the `Trio App Group`, edit the Description to match the **NAME**, then Save the change._
 
-- [App Group List](https://developer.apple.com/account/resources/identifiers/list/applicationGroup)
+* [App Group List](https://developer.apple.com/account/resources/identifiers/list/applicationGroup)
 
-| NAME           | XCode version                                   | IDENTIFIER                                      |
-| :------------- | :---------------------------------------------- | :---------------------------------------------- |
+| NAME | Xcode version | IDENTIFIER |
+|:--|:--|:--|
 | Trio App Group | group org nightscout TEAMID trio trio-app-group | group.org.nightscout.TEAMID.trio.trio-app-group |
 
 ## Bundle Identifiers
 
 Open this link in a separate browser window:
 
-- [Certificates, Identifiers & Profiles](https://developer.apple.com/account/resources/identifiers/list) on the Apple developer site
-- You will select each of the Identifiers as instructed below, modify it if needed and then save it.
+* [Certificates, Identifiers & Profiles](https://developer.apple.com/account/resources/identifiers/list) on the Apple developer site
+* You will select each of the Identifiers as instructed below, modify it if needed and then save it.
 
 ### Optional: Identifier Description Modification
 
@@ -153,15 +153,15 @@ _Referring to the table below, tap on each **IDENTIFIER** that has a different *
 
 #### Table of Identifiers
 
-- If you built previously using a Mac with Xcode, you may see the XCode version in your **NAME** column - it starts with XC and then the **IDENTIFIER** is appended where the `.` is replaced with a space, the example for Trio is shown in detail
-- If you built during early beta testing, you might not have `Trio` at the beginning of each **IDENTIFIER** and the full **NAME** may be slightly different
+* If you built previously using a Mac with Xcode, you may see the Xcode version in your **NAME** column - it starts with XC and then the **IDENTIFIER** is appended where the `.` is replaced with a space, the example for Trio is shown in detail
+* If you built during early beta testing, you might not have `Trio` at the beginning of each **IDENTIFIER** and the full **NAME** may be slightly different
 
-| NAME                    | XCode version                 | IDENTIFIER                                               |
-| :---------------------- | :---------------------------- | :------------------------------------------------------- |
-| Trio                    | XC org nightscout TEAMID trio | org.nightscout.TEAMID.trio                               |
-| Trio LiveActivity       | -                             | org.nightscout.TEAMID.trio.LiveActivity                  |
-| Trio Watch              | XC IDENTIFIER                 | org.nightscout.TEAMID.trio.watchkitapp                   |
-| Trio WatchKit Extension | XC IDENTIFIER                 | org.nightscout.TEAMID.trio.watchkitapp.watchkitextension |
+| NAME | Xcode version | IDENTIFIER |
+|:--|:--|:--|
+| Trio | XC org nightscout TEAMID trio | org.nightscout.TEAMID.trio |
+| Trio LiveActivity | - | org.nightscout.TEAMID.trio.LiveActivity |
+| Trio Watch | XC IDENTIFIER | org.nightscout.TEAMID.trio.watchkitapp |
+| Trio WatchKit Extension | XC IDENTIFIER | org.nightscout.TEAMID.trio.watchkitapp.watchkitextension |
 
 ## Add App Group to Bundle Identifiers
 
@@ -171,9 +171,9 @@ _Referring to the table below, tap on each **IDENTIFIER** that has a different *
 
 1. Go to [Certificates, Identifiers & Profiles](https://developer.apple.com/account/resources/identifiers/list) on the Apple developer site.
 1. Repeat this step for these three Identifier **NAMES** - refer to the [Table](#table-of-identifiers) above if your Names look different; if they do, see [Optional: Identifier Description Modification](#optional-identifier-description-modification)
-   - Trio
-   - Trio Watch
-   - Trio WatchKit Extension
+    * Trio
+    * Trio Watch
+    * Trio WatchKit Extension
 1. Click on the **IDENTIFIER** row.
 1. Scroll down to the "App Groups" capabilies row, click on the "Configure" (or "Edit") button.
 1. Select the "Trio App Group" _(yes, "Trio App Group" is correct)_
@@ -184,7 +184,7 @@ _Referring to the table below, tap on each **IDENTIFIER** that has a different *
 
 There is an additional identifier, but it does not need the App Group added to it:
 
-- Trio LiveActivity
+* Trio LiveActivity
 
 There is one more identifier: LiveActivity, but it does not require the Trio App Group be added.
 
@@ -196,26 +196,26 @@ For all builders, especially if you build more that one app, it is convenient to
 
 For either Group names or Identifiers, you select a row from the list (links below) to edit the description.
 
-- [App Group List](https://developer.apple.com/account/resources/identifiers/list/applicationGroup)
-- [Identifier List](https://developer.apple.com/account/resources/identifiers/list)
+* [App Group List](https://developer.apple.com/account/resources/identifiers/list/applicationGroup)
+* [Identifier List](https://developer.apple.com/account/resources/identifiers/list)
 
 For example:
 
-- Trio App Group: If you first built with Mac-Xcode, the default NAME is `group.org.nightscout.TEAMID.trio.trio-app-group`; you can edit that to `Trio App Group`
-- Trio Identifiers: If you first built with Mac-Xcode, the default NAME is `XC org.nightscout.TEAMID.XXX` where XXX varies for each identifier
+* Trio App Group: If you first built with Mac-Xcode, the default NAME is `group.org.nightscout.TEAMID.trio.trio-app-group`; you can edit that to `Trio App Group`
+* Trio Identifiers: If you first built with Mac-Xcode, the default NAME is `XC org.nightscout.TEAMID.XXX` where XXX varies for each identifier
 
 ## Create Trio App in App Store Connect
 
 If you created a Trio app in App Store Connect before, skip ahead to [Create Building Certficates](#create-building-certficates).
 
 1. Go to the [apps list](https://appstoreconnect.apple.com/apps) on App Store Connect and click the blue "plus" icon to create a New App.
-   - Select "iOS".
-   - Select a name: this will have to be unique, so you may have to try a few different names here, but it will not be the name you see on your phone, so it's not that important.
-   - Select your primary language.
-   - Choose the bundle ID that matches the `BUNDLE_IDENTIFIER` in your `Config.xcconfig` file
-   - This is typically `org.nightscout.TEAMID.trio` with `TEAMID` matching your team id
-   - SKU can be anything; e.g. "123".
-   - Select "Full Access".
+    * Select "iOS".
+    * Select a name: this will have to be unique, so you may have to try a few different names here, but it will not be the name you see on your phone, so it's not that important.
+    * Select your primary language.
+    * Choose the bundle ID that matches the `BUNDLE_IDENTIFIER` in your `Config.xcconfig` file
+    * This is typically `org.nightscout.TEAMID.trio` with `TEAMID` matching your team id
+    * SKU can be anything; e.g. "123".
+    * Select "Full Access".
 1. Click Create
 
 You do not need to fill out the next form. That is for submitting to the app store.
@@ -235,8 +235,8 @@ You do not need to fill out the next form. That is for submitting to the app sto
 1. You have some time now. Go enjoy a coffee. The build should take about 15 minutes.
 1. Your app should eventually appear on [App Store Connect](https://appstoreconnect.apple.com/apps).
 1. For each phone/person you would like to support Trio on:
-   - Add them in [Users and Access](https://appstoreconnect.apple.com/access/users) on App Store Connect.
-   - Add them to your TestFlight Internal Testing group.
+    * Add them in [Users and Access](https://appstoreconnect.apple.com/access/users) on App Store Connect.
+    * Add them to your TestFlight Internal Testing group.
 
 ## TestFlight and Deployment Details
 
@@ -282,40 +282,40 @@ To configure the automated build more granularly involves creating up to two env
 
 Note that the weekly and monthly Build Trio actions will continue, but the actions are modified if one or more of these variables is set to false. **A successful Action Log will still appear, even if no automatic activity happens**.
 
-- If you want to manually decide when to update your repository to the latest commit, but you want the monthly builds and keep-alive to continue: set `SCHEDULED_SYNC` to false and either do not create `SCHEDULED_BUILD` or set it to true
-- If you want to only build when an update has been found: set `SCHEDULED_BUILD` to false and either do not create `SCHEDULED_SYNC` or set it to true
-  - **Warning**: if no updates to your default branch are detected within 90 days, your previous TestFlight build may expire requiring a manual build
+* If you want to manually decide when to update your repository to the latest commit, but you want the monthly builds and keep-alive to continue: set `SCHEDULED_SYNC` to false and either do not create `SCHEDULED_BUILD` or set it to true
+* If you want to only build when an update has been found: set `SCHEDULED_BUILD` to false and either do not create `SCHEDULED_SYNC` or set it to true
+    * **Warning**: if no updates to your default branch are detected within 90 days, your previous TestFlight build may expire requiring a manual build
 
-| `SCHEDULED_SYNC` | `SCHEDULED_BUILD` | Automatic Actions                                                                   |
-| ---------------- | ----------------- | ----------------------------------------------------------------------------------- |
-| `true` (or NA)   | `true` (or NA)    | keep-alive, weekly update check (auto update/build), monthly build with auto update |
-| `true` (or NA)   | `false`           | keep-alive, weekly update check with auto update, only builds if update detected    |
-| `false`          | `true` (or NA)    | keep-alive, monthly build, no auto update                                           |
-| `false`          | `false`           | no automatic activity, no keep-alive                                                |
+|`SCHEDULED_SYNC`|`SCHEDULED_BUILD`|Automatic Actions|
+|---|---|---|
+| `true` (or NA) | `true` (or NA) | keep-alive, weekly update check (auto update/build), monthly build with auto update |
+| `true` (or NA) | `false` | keep-alive, weekly update check with auto update, only builds if update detected |
+| `false` | `true` (or NA) | keep-alive, monthly build, no auto update |
+| `false` | `false` | no automatic activity, no keep-alive |
 
 ### How to configure a variable
 
 1. Go to the "Settings" tab of your Trio repository.
 2. Click on `Secrets and Variables`.
 3. Click on `Actions`
-4. You will now see a page titled _Actions secrets and variables_. Click on the `Variables` tab
+4. You will now see a page titled *Actions secrets and variables*. Click on the `Variables` tab
 5. To disable ONLY scheduled building, do the following:
-   - Click on the green `New repository variable` button (upper right)
-   - Type `SCHEDULED_BUILD` in the "Name" field
-   - Type `false` in the "Value" field
-   - Click the green `Add variable` button to save.
+    * Click on the green `New repository variable` button (upper right)
+    * Type `SCHEDULED_BUILD` in the "Name" field
+    * Type `false` in the "Value" field
+    * Click the green `Add variable` button to save.
 6. To disable scheduled syncing, add a variable:
-   - Click on the green `New repository variable` button (upper right)
-   - - Type `SCHEDULED_SYNC` in the "Name" field
-   - Type `false` in the "Value" field
-   - Click the green `Add variable` button to save
+    * Click on the green `New repository variable` button (upper right)
+    * Type `SCHEDULED_SYNC` in the "Name" field
+    * Type `false` in the "Value" field
+    * Click the green `Add variable` button to save
 
 Your build will run on the following conditions:
 
-- Default behaviour:
-  - Run weekly, every Wednesday at 08:00 UTC to check for changes; if there are changes, it will update your repository and build
-  - Run monthly, every first of the month at 06:00 UTC, if there are changes, it will update your repository; regardless of changes, it will build
-  - Each time the action runs, it makes a keep-alive commit to the `alive` branch if necessary
-- If you disable any automation (both variables set to `false`), no updates, keep-alive or building happens when Build Trio runs
-- If you disabled just scheduled synchronization (`SCHEDULED_SYNC` set to`false`), it will only run once a month, on the first of the month, no update will happen; keep-alive will run
-- If you disabled just scheduled build (`SCHEDULED_BUILD` set to`false`), it will run once weekly, every Wednesday, to check for changes; if there are changes, it will update and build; keep-alive will run
+* Default behaviour:
+  * Run weekly, every Wednesday at 08:00 UTC to check for changes; if there are changes, it will update your repository and build
+  * Run monthly, every first of the month at 06:00 UTC, if there are changes, it will update your repository; regardless of changes, it will build
+  * Each time the action runs, it makes a keep-alive commit to the `alive` branch if necessary
+* If you disable any automation (both variables set to `false`), no updates, keep-alive or building happens when Build Trio runs
+* If you disabled just scheduled synchronization (`SCHEDULED_SYNC` set to`false`), it will only run once a month, on the first of the month, no update will happen; keep-alive will run
+* If you disabled just scheduled build (`SCHEDULED_BUILD` set to`false`), it will run once weekly, every Wednesday, to check for changes; if there are changes, it will update and build; keep-alive will run
