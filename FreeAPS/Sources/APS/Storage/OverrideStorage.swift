@@ -25,9 +25,11 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
     }
 
     private var dateFormatter: DateFormatter {
-        let df = DateFormatter()
-        df.dateFormat = "dd.MM.yy HH:mm"
-        return df
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .short
+        dateFormatter.timeStyle = .short
+        dateFormatter.locale = Locale.current
+        return dateFormatter
     }
 
     func fetchLastCreatedOverride() async -> [NSManagedObjectID] {
@@ -100,7 +102,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
                 newOverride.name = override.name
             } else {
                 let formattedDate = self.dateFormatter.string(from: Date())
-                newOverride.name = "Preset <\(formattedDate)>"
+                newOverride.name = "Override \(formattedDate)"
             }
             newOverride.id = UUID().uuidString
             newOverride.date = override.date
