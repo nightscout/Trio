@@ -17,7 +17,7 @@ These instructions allow you to build Trio without having access to a Mac.
 >
 > It also creates an alive branch, if you don't already have one. See [Why do I have an alive branch?](#why-do-i-have-an-alive-branch).
 >
-> The Optional section provides instructions to modify the default behavior if desired.
+> The [**Optional**](#optional) section provides instructions to modify the default behavior if desired.
 
 ## Introduction
 
@@ -118,7 +118,7 @@ This step validates most of your six Secrets and provides error messages if it d
 
 If you previously built Trio using Mac with Xcode with this Apple ID, skip ahead to [Optional: App Group Description Modification](#optional-app-group-description-modification).
 
-_Please note that Trio uses the a Trio-specific app group, not the same as Loop. This enables other apps such as xDrip4iOS to share data with Trio. It may require some caution if transfering between Trio and Loop._
+_Please note that Trio uses a Trio-specific app group, not the same as Loop. This enables other apps such as xDrip4iOS to share data with Trio. It may require some caution if transfering between Trio and Loop._
 
 1. Go to [Register an App Group](https://developer.apple.com/account/resources/identifiers/applicationGroup/add/) on the apple developer site.
 1. For Description, use "Trio App Group".
@@ -155,6 +155,7 @@ _Referring to the table below, tap on each **IDENTIFIER** that has a different *
 
 * If you built previously using a Mac with Xcode, you may see the Xcode version in your **NAME** column - it starts with XC and then the **IDENTIFIER** is appended where the `.` is replaced with a space, the example for Trio is shown in detail
 * If you built during early beta testing, you might not have `Trio` at the beginning of each **IDENTIFIER** and the full **NAME** may be slightly different
+* If you built during early beta testing, you might have the Loop App Group associated with the Trio identifiers. If so, use instructions to [Create App Group](#create-app-group) for Trio. Subsequently, modify the App Group associated with the Trio Identifiers using [Add App Group to Bundle Identifiers](#add-app-group-to-bundle-identifiers).
 
 | NAME | Xcode version | IDENTIFIER |
 |:--|:--|:--|
