@@ -151,7 +151,7 @@ Open this link in a separate browser window:
 
 _Referring to the table below, tap on each **IDENTIFIER** that has a different **NAME**, edit the Description to match the **NAME**, then Save the change for that identifier._
 
-#### Table of Identifiers
+### Table of Identifiers
 
 * If you built previously using a Mac with Xcode, you may see the Xcode version in your **NAME** column - it starts with XC and then the **IDENTIFIER** is appended where the `.` is replaced with a space, the example for Trio is shown in detail
 * If you built during early beta testing, you might not have `Trio` at the beginning of each **IDENTIFIER** and the full **NAME** may be slightly different
@@ -170,6 +170,8 @@ _Referring to the table below, tap on each **IDENTIFIER** that has a different *
 
 > If you previously built using a Mac with Xcode you can skip ahead to [Create Trio App in App Store Connect](#create-trio-app-in-app-store-connect).
 
+> If you have previously built Trio as a beta tester (between May 13th, 2024, and today), you will already have an app group (`Loop App Group`) created and configured for your bundle identifiers. In this case, please *do not* skip this section; you are required to create the `Trio App Group` and configure it for your identifiers, as described below.
+
 1. Go to [Certificates, Identifiers & Profiles](https://developer.apple.com/account/resources/identifiers/list) on the Apple developer site.
 1. Repeat this step for these three Identifier **NAMES** - refer to the [Table](#table-of-identifiers) above if your Names look different; if they do, see [Optional: Identifier Description Modification](#optional-identifier-description-modification)
     * Trio
@@ -186,24 +188,6 @@ _Referring to the table below, tap on each **IDENTIFIER** that has a different *
 There is an additional identifier, but it does not need the App Group added to it:
 
 * Trio LiveActivity
-
-There is one more identifier: LiveActivity, but it does not require the Trio App Group be added.
-
-## Optional: Description Modification
-
-If you build first with Mac-Xcode, the Descriptions for Identifiers and App Groups, which show up in the NAME column, will not match what you see when you build first with GitHub Actions. It is the IDENTIFIER that Apple and GitHub use. The NAME (or Description) can be whatever is convenient.
-
-For all builders, especially if you build more that one app, it is convenient to edit the descriptions to prefix `Trio` to the beginning of the NAME. This way all Trio identifiers sort to be on adjacent rows.
-
-For either Group names or Identifiers, you select a row from the list (links below) to edit the description.
-
-* [App Group List](https://developer.apple.com/account/resources/identifiers/list/applicationGroup)
-* [Identifier List](https://developer.apple.com/account/resources/identifiers/list)
-
-For example:
-
-* Trio App Group: If you first built with Mac-Xcode, the default NAME is `group.org.nightscout.TEAMID.trio.trio-app-group`; you can edit that to `Trio App Group`
-* Trio Identifiers: If you first built with Mac-Xcode, the default NAME is `XC org.nightscout.TEAMID.XXX` where XXX varies for each identifier
 
 ## Create Trio App in App Store Connect
 
