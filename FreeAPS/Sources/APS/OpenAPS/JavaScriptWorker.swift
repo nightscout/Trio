@@ -63,11 +63,13 @@ final class JavaScriptWorker {
         if outputLogs.isEmpty { return }
 
         if logContext == "prepare/autosens.js" {
-            outputLogs = outputLogs.replacingOccurrences(
-                of: "((?:[\\=\\+\\-]\\n)+)?\\d+h\\n((?:[\\=\\+\\-]\\n)+)?",
-                with: "",
-                options: .regularExpression
-            )
+            outputLogs = outputLogs.split(separator: "\n").map { logLine in
+                logLine.replacingOccurrences(
+                    of: "^[-+=]|\\d{1,2}h$",
+                    with: "",
+                    options: .regularExpression
+                )
+            }.joined(separator: "\n")
         }
 
         if !outputLogs.isEmpty {
