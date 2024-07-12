@@ -309,7 +309,7 @@ Enact a temp Basal or a temp target */
 "Allow uploads" = "Cho phép tải lên";
 
 /* API secret in NS */
-"API secret" = "Khóa API";
+"API secret" = "API secret";
 
 /* Connect to NS */
 "Connect" = "Kết nối";
@@ -324,7 +324,7 @@ Enact a temp Basal or a temp target */
 "Invalid URL" = "URL không xác thực";
 
 /*  */
-"Local glucose source" = "NGUỒN GLUCOSE NỘI TẠI";
+"Local glucose source" = "Nguồn Glucose cục bộ";
 
 /* Header */
 "Nightscout Config" = "Cấu hình Nightscout";
@@ -351,7 +351,7 @@ Enact a temp Basal or a temp target */
 "Preferences" = "Tùy chỉnh";
 
 /* Recommended Insulin Fraction in preferences */
-"Recommended Insulin Fraction" = "Insulin được đề xuất";
+"Recommended Insulin Fraction" = "Phần Insulin được đề xuất";
 
 /* Do you want to show bolus screen after added carbs? */
 "Skip Bolus screen after carbs" = "Bỏ qua màn hình bolus sau carbs";
@@ -372,25 +372,25 @@ Enact a temp Basal or a temp target */
 "\nSettings were imported but the Basals couldn't be saved to pump (No pump). Check your basal settings and tap ´Save on Pump´ to sync the new basal settings" = "\n Các cấu hình đã được nhập nhưng liều nền không được lưu vào bơm (không có bơm). Kiểm tra cấu hình liều nền của bạn và nhấn 'Lưu vào bơm' để đồng hóa cấu hình liều nền mới";
 
 /* Import Error Headline */
-"Import Error" = "Cập nhật lỗi";
+"Import Error" = "Lỗi nhập";
 
 /* */
-"Yes, Import" = "Đồng ý, hãy cập nhật";
+"Yes, Import" = "Đồng ý, hãy nhập";
 
 /* */
 "Import settings from Nightscout" = "Cập nhật cấu hình từ Nightscout";
 
 /* */
-"Import settings?" = "Cập nhật các cấu hình?";
+"Import settings?" = "Nhập các Cài đặt không?";
 
 /* */
-"Import from Nightscout" = "Cập nhật từ Nightscout";
+"Import from Nightscout" = "Nhập từ Nightscout";
 
 /* */
-"Settings imported" = "Các cấu hình đã được cập nhật";
+"Settings imported" = "Các cấu hình đã được nhập";
 
 /* Import Error */
-"\nMismatching glucose units in Nightscout and Pump Settings. Import settings aborted." = "\n Sai khác đơn vị Glucose giữa Nightscout và Bơm. Cập nhật cấu hình bị bỏ.";
+"\nMismatching glucose units in Nightscout and Pump Settings. Import settings aborted." = "\n Sai khác đơn vị Glucose giữa Nightscout và Bơm. Nhập cấu hình bị bỏ.";
 
 /* Import Error */
 "Can't find the default Nightscout Profile." = "Không thể tìm thấy Profile Nightscout mặc định.";
@@ -459,7 +459,7 @@ Enact a temp Basal or a temp target */
 "Pump Settings" = "Cấu hình bơm";
 
 /* Insulin unit per hour */
-"U/hr" = "U/giờ";
+"U/hr" = "U/hr";
 
 /* Unit in number of units delivered (keep the space character!) */
 " U" = " U";
@@ -471,10 +471,10 @@ Enact a temp Basal or a temp target */
 "U" = "U";
 
 /* Unit per hour with space */
-" U/hr" = " U/giờ";
+" U/hr" = " U/hr";
 
 /* Number of units per hour*/
-"%@ U/hr" = "%@ U/giờ";
+"%@ U/hr" = "%@ U/hr";
 
 /* Number of units insulin delivered */
 "%@ U" = "%@ U";
@@ -489,16 +489,16 @@ Enact a temp Basal or a temp target */
 "g" = "g";
 
 /* when 0 U/hr */
-"0 U/hr" = "U/giờ";
+"0 U/hr" = "U/hr";
 
 /* abbreviation for days */
-"d" = "ngày";
+"d" = "d";
 
 /* abbreviation for hours */
-"h" = "giờ";
+"h" = "h";
 
 /* abbreviation for minutes */
-"m" = "phút";
+"m" = "m";
 
 /*  */
 "Closed loop" = "Vòng lặp kín";
@@ -852,7 +852,7 @@ Enact a temp Basal or a temp target */
 "Sensor Serial" = "Serial cảm biến";
 
 /* */
-"Transmitter Info" = "Số ID của Transmitter";
+"Transmitter Info" = "Thông tin Transmitter";
 
 /* */
 "Hardware" = "Phần cứng";
@@ -945,7 +945,7 @@ Enact a temp Basal or a temp target */
 "Additional notification types" = "Thêm các loại thông báo";
 
 /* */
-"Misc" = "Misc";
+"Misc" = "Hỗn hợp";
 
 /* */
 "Unit override" = "Đơn vị ghi đè";
@@ -1808,7 +1808,7 @@ Enact a temp Basal or a temp target */
 /* New Experimental feature */
 "Experimental" = "Thực hiện";
 /* Smoothing of CGM readings */
-"Smooth Glucose Value" = "Giá trị Glucose mịn";
+"Smooth Glucose Value" = "Làm mịn Glucose";
 
 /* -----------------------------------------------------------------------------------------------------------
 
@@ -1865,16 +1865,16 @@ Enact a temp Basal or a temp target */
 "Defaults to false, which means by default only the low end of the pump’s BG target range is used as OpenAPS target. This is a safety feature to prevent too-wide targets and less-optimal outcomes. Therefore the higher end of the target range is used only for avoiding bolus wizard overcorrections. Use wide_bg_target_range: true to force neutral temps over a wider range of eventualBGs." = "Giá trị mặc định là False, có nghĩa là theo mặc định chỉ phần thấp nhất trong phạm vi mục tiêu BG của máy bơm được sử dụng làm mục tiêu OpenAPS. Đây là tính năng an toàn nhằm ngăn chặn các mục tiêu quá rộng và kết quả kém tối ưu. Do đó, mức cao hơn của phạm vi mục tiêu chỉ được sử dụng để tránh việc điều chỉnh quá mức của thuật sĩ truyền nhanh. Sử dụng Phạm vi mục tiêu BG rộng: true để buộc nhiệt độ trung tính trên phạm vi BG cuối cùng rộng hơn.";
 
 /* Headline "Skip Neutral Temps" */
-"Skip Neutral Temps" = "Bỏ qua tạm thời trung lập";
+"Skip Neutral Temps" = "Bỏ qua liều trung lập tạm thời";
 
 /* "Skip Neutral Temps" */
 "Defaults to false, so that Trio will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means Trio will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night." = "Mặc định là False, do đó Trio sẽ đặt nhiệt độ bất cứ khi nào có thể, do đó, sẽ dễ dàng hơn để xem hệ thống có hoạt động hay không, ngay cả khi bạn ngoại tuyến. Điều này có nghĩa là OpenAPS sẽ đặt Temp “trung tính” (giống như Temp cơ bản mặc định của bạn) nếu không cần điều chỉnh. Đây là cài đặt cũ để OpenAPS có các tùy chọn giảm thiểu âm thanh và thông báo từ 'giàn khoan' có thể đánh thức bạn vào ban đêm. ";
 
 /* Headline "Unsuspend If No Temp” */
-"Unsuspend If No Temp" = "Bỏ tạm dừng nếu không có tạm thời";
+"Unsuspend If No Temp" = "Bỏ tạm dừng nếu không có liều tạm thời";
 
 /* "Unsuspend If No Temp” */
-"Many people occasionally forget to resume / unsuspend their pump after reconnecting it. If you’re one of them, and you are willing to reliably set a zero temp basal whenever suspending and disconnecting your pump, this feature has your back. If enabled, it will automatically resume / unsuspend the pump if you forget to do so before your zero temp expires. As long as the zero temp is still running, it will leave the pump suspended." = "Nhiều người thỉnh thoảng quên tiếp tục/hủy tạm dừng máy bơm sau khi kết nối lại. Nếu bạn là một trong số họ và sẵn sàng đặt nhiệt độ cơ bản bằng 0 một cách đáng tin cậy bất cứ khi nào tạm dừng và ngắt kết nối máy bơm của mình, thì tính năng này sẽ hỗ trợ bạn. Nếu được bật, nó sẽ tự động tiếp tục/hủy tạm dừng máy bơm nếu bạn quên làm như vậy trước khi hết tạm thời 0. Miễn là tạm thời bằng 0 vẫn đang chạy, nó sẽ khiến máy bơm bị treo.";
+"Many people occasionally forget to resume / unsuspend their pump after reconnecting it. If you’re one of them, and you are willing to reliably set a zero temp basal whenever suspending and disconnecting your pump, this feature has your back. If enabled, it will automatically resume / unsuspend the pump if you forget to do so before your zero temp expires. As long as the zero temp is still running, it will leave the pump suspended." = "Nhiều người thỉnh thoảng quên tiếp tục/hủy tạm dừng máy bơm sau khi kết nối lại. Nếu bạn là một trong số họ và sẵn sàng đặt nhiệt độ cơ bản bằng 0 một cách đáng tin cậy bất cứ khi nào tạm dừng và ngắt kết nối máy bơm của mình, thì tính năng này sẽ hỗ trợ bạn. Nếu được bật, nó sẽ tự động tiếp tục/hủy tạm dừng máy bơm nếu bạn quên làm như vậy trước khi hết tạm thời 0. Miễn là liều tạm thời bằng 0 vẫn đang chạy, nó sẽ khiến máy bơm bị treo.";
 
 /* Headline "Enable UAM" */
 "Enable UAM" = "Kích hoạt UAM";
@@ -1892,7 +1892,7 @@ Enact a temp Basal or a temp target */
 "Enable SMB With Temptarget" = "Kích hoạt SMB với mục tiêu tạm thời";
 
 /* "Enable SMB With Temptarget” */
-"This enables supermicrobolus (SMB) with eating soon / low temp targets. With this feature enabled, any temporary target below 100mg/dL, such as a temp target of 99 (or 80, the typical eating soon target) will enable SMB." = "Điều này cho phép supermicrobolus (SMB) đạt được mục tiêu ăn sớm / nhiệt độ thấp. Khi tính năng này được bật, mọi mục tiêu tạm thời dưới 100mg/dL, chẳng hạn như mục tiêu tạm thời là 99 (hoặc 80, mục tiêu ăn sớm thông thường) sẽ kích hoạt SMB.";
+"This enables supermicrobolus (SMB) with eating soon / low temp targets. With this feature enabled, any temporary target below 100mg/dL, such as a temp target of 99 (or 80, the typical eating soon target) will enable SMB." = "Điều này cho phép supermicrobolus (SMB) đạt được mục tiêu ăn sớm / liều tạm thời thấp. Khi tính năng này được bật, mọi mục tiêu tạm thời dưới 100mg/dL, chẳng hạn như mục tiêu tạm thời là 99 (hoặc 80, mục tiêu ăn sớm thông thường) sẽ kích hoạt SMB.";
 
 /* Headline "Enable SMB Always" */
 "Enable SMB Always" = "Luôn bật SMB";
@@ -1916,7 +1916,7 @@ Enact a temp Basal or a temp target */
 "Defaults to false. When true, allows supermicrobolus (if otherwise enabled) even with high temp targets (> 100 mg/dl)." = "Mặc định là False. Khi True, cho phép supermicrobolus (nếu được bật khác) ngay cả với mục tiêu nhiệt độ cao (> 100 mg/dl).";
 
 /* Headline "Use Custom Peak Time” */
-"Use Custom Peak Time" = "Sử dụng giờ cao điểm tùy chỉnh";
+"Use Custom Peak Time" = "Tuỳ chỉnh đỉnh Insulin";
 
 /* "Use Custom Peak Time” */
 "Defaults to false. Setting to true allows changing insulinPeakTime" = "Mặc định là False. Đặt thành True cho phép thay đổi đỉnh của insulin";
@@ -2004,13 +2004,13 @@ Enact a temp Basal or a temp target */
 "Max SMB Basal Minutes" = "Số phút cơ bản SMB tối đa";
 
 /* ”Max SMB Basal Minutes" */
-"Defaults to start at 30. This is the maximum minutes of basal that can be delivered as a single SMB with uncovered COB. This gives the ability to make SMB more aggressive if you choose. It is recommended that the value is set to start at 30, in line with the default, and if you choose to increase this value, do so in no more than 15 minute increments, keeping a close eye on the effects of the changes. It is not recommended to set this value higher than 90 mins, as this may affect the ability for the algorithm to safely zero temp. It is also recommended that pushover is used when setting the value to be greater than default, so that alerts are generated for any predicted lows or highs." = "Mặc định bắt đầu từ 30. Đây là số phút cơ bản tối đa có thể được phân phối dưới dạng một SMB duy nhất không có COB. Điều này mang lại khả năng làm cho SMB trở nên hung hãn hơn nếu bạn chọn. Bạn nên đặt giá trị này để bắt đầu ở mức 30, phù hợp với giá trị mặc định và nếu bạn chọn tăng giá trị này, hãy thực hiện với khoảng tăng không quá 15 phút, đồng thời theo dõi chặt chẽ tác động của các thay đổi. Không nên đặt giá trị này cao hơn 90 phút vì điều này có thể ảnh hưởng đến khả năng thuật toán về nhiệt độ bằng 0 một cách an toàn. Chúng tôi cũng khuyên bạn nên sử dụng tính năng đẩy khi đặt giá trị lớn hơn giá trị mặc định để cảnh báo được tạo ra cho bất kỳ mức thấp hoặc mức cao được dự đoán nào.";
+"Defaults to start at 30. This is the maximum minutes of basal that can be delivered as a single SMB with uncovered COB. This gives the ability to make SMB more aggressive if you choose. It is recommended that the value is set to start at 30, in line with the default, and if you choose to increase this value, do so in no more than 15 minute increments, keeping a close eye on the effects of the changes. It is not recommended to set this value higher than 90 mins, as this may affect the ability for the algorithm to safely zero temp. It is also recommended that pushover is used when setting the value to be greater than default, so that alerts are generated for any predicted lows or highs." = "Mặc định bắt đầu từ 30. Đây là số phút cơ bản tối đa có thể được phân phối dưới dạng một SMB duy nhất không có COB. Điều này mang lại khả năng làm cho SMB trở nên hung hãn hơn nếu bạn chọn. Bạn nên đặt giá trị này để bắt đầu ở mức 30, phù hợp với giá trị mặc định và nếu bạn chọn tăng giá trị này, hãy thực hiện với khoảng tăng không quá 15 phút, đồng thời theo dõi chặt chẽ tác động của các thay đổi. Không nên đặt giá trị này cao hơn 90 phút vì điều này có thể ảnh hưởng đến khả năng thuật toán về liều tạm thời (temp) bằng 0 một cách an toàn. Chúng tôi cũng khuyên bạn nên sử dụng tính năng đẩy khi đặt giá trị lớn hơn giá trị mặc định để cảnh báo được tạo ra cho bất kỳ mức thấp hoặc mức cao được dự đoán nào.";
 
 /* Headline "Max UAM SMB Basal Minutes" */
 "Max UAM SMB Basal Minutes" = "Số phút cơ bản UAM SMB tối đa";
 
 /* "Max UAM SMB Basal Minutes" */
-"Defaults to start at 30. This is the maximum minutes of basal that can be delivered by UAM as a single SMB when IOB exceeds COB. This gives the ability to make UAM more or less aggressive if you choose. It is recommended that the value is set to start at 30, in line with the default, and if you choose to increase this value, do so in no more than 15 minute increments, keeping a close eye on the effects of the changes. Reducing the value will cause UAM to dose less insulin for each SMB. It is not recommended to set this value higher than 60 mins, as this may affect the ability for the algorithm to safely zero temp. It is also recommended that pushover is used when setting the value to be greater than default, so that alerts are generated for any predicted lows or highs." = "Mặc định bắt đầu từ 30. Đây là số phút cơ bản tối đa mà UAM có thể phân phối dưới dạng một SMB khi IOB vượt quá COB. Điều này mang lại khả năng khiến UAM trở nên hung hãn hơn hoặc ít hơn nếu bạn chọn. Bạn nên đặt giá trị này để bắt đầu ở mức 30, phù hợp với giá trị mặc định và nếu bạn chọn tăng giá trị này, hãy thực hiện với khoảng tăng không quá 15 phút, đồng thời theo dõi chặt chẽ tác động của các thay đổi. Việc giảm giá trị sẽ khiến UAM giảm liều insulin cho mỗi SMB. Không nên đặt giá trị này cao hơn 60 phút vì điều này có thể ảnh hưởng đến khả năng thuật toán về nhiệt độ bằng 0 một cách an toàn. Chúng tôi cũng khuyên bạn nên sử dụng tính năng đẩy khi đặt giá trị lớn hơn giá trị mặc định để cảnh báo được tạo ra cho bất kỳ mức thấp hoặc mức cao được dự đoán nào.";
+"Defaults to start at 30. This is the maximum minutes of basal that can be delivered by UAM as a single SMB when IOB exceeds COB. This gives the ability to make UAM more or less aggressive if you choose. It is recommended that the value is set to start at 30, in line with the default, and if you choose to increase this value, do so in no more than 15 minute increments, keeping a close eye on the effects of the changes. Reducing the value will cause UAM to dose less insulin for each SMB. It is not recommended to set this value higher than 60 mins, as this may affect the ability for the algorithm to safely zero temp. It is also recommended that pushover is used when setting the value to be greater than default, so that alerts are generated for any predicted lows or highs." = "Mặc định bắt đầu từ 30. Đây là số phút cơ bản tối đa mà UAM có thể phân phối dưới dạng một SMB khi IOB vượt quá COB. Điều này mang lại khả năng khiến UAM trở nên hung hãn hơn hoặc ít hơn nếu bạn chọn. Bạn nên đặt giá trị này để bắt đầu ở mức 30, phù hợp với giá trị mặc định và nếu bạn chọn tăng giá trị này, hãy thực hiện với khoảng tăng không quá 15 phút, đồng thời theo dõi chặt chẽ tác động của các thay đổi. Việc giảm giá trị sẽ khiến UAM giảm liều insulin cho mỗi SMB. Không nên đặt giá trị này cao hơn 60 phút vì điều này có thể ảnh hưởng đến khả năng thuật toán về liều tạm thời bằng 0 một cách an toàn. Chúng tôi cũng khuyên bạn nên sử dụng tính năng đẩy khi đặt giá trị lớn hơn giá trị mặc định để cảnh báo được tạo ra cho bất kỳ mức thấp hoặc mức cao được dự đoán nào.";
 
 /* Headline "SMB Interval" */
 "SMB Interval" = "Khoảng thời gian SMB";
