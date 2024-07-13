@@ -67,6 +67,7 @@ final class BaseAPSManager: APSManager, Injectable {
     @Injected() private var tempTargetsStorage: TempTargetsStorage!
     @Injected() private var carbsStorage: CarbsStorage!
     @Injected() private var announcementsStorage: AnnouncementsStorage!
+    @Injected() private var determinationStorage: DeterminationStorage!
     @Injected() private var deviceDataManager: DeviceDataManager!
     @Injected() private var nightscout: NightscoutManager!
     @Injected() private var settingsManager: SettingsManager!
@@ -245,7 +246,10 @@ final class BaseAPSManager: APSManager, Injectable {
 
                 // Open loop completed
                 guard settings.closedLoop else {
-                    nightscout.uploadStatus()
+                    Task.detached(priority: .low) {
+                        await self.nightscout.uploadStatus()
+                    }
+
                     loopStatRecord.end = Date()
                     loopStatRecord.duration = roundDouble((loopStatRecord.end! - loopStatRecord.start).timeInterval / 60, 2)
                     loopStatRecord.loopStatus = "Success"
@@ -253,7 +257,9 @@ final class BaseAPSManager: APSManager, Injectable {
                     return
                 }
 
-                nightscout.uploadStatus()
+                Task.detached(priority: .low) {
+                    await self.nightscout.uploadStatus()
+                }
 
                 // Closed loop - enact Determination
                 try await enactDetermination()
@@ -270,9 +276,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
             // End background task after all the operations are completed
             if let backgroundTask = self.backGroundTaskID {
-                Task {
-                    await UIApplication.shared.endBackgroundTask(backgroundTask)
-                }
+                await UIApplication.shared.endBackgroundTask(backgroundTask)
                 self.backGroundTaskID = .invalid
             }
         }
@@ -298,7 +302,7 @@ final class BaseAPSManager: APSManager, Injectable {
         loopStats(loopStatRecord: loopStatRecord)
 
         if settings.closedLoop {
-            await reportEnacted(received: error == nil)
+            await reportEnacted(wasEnacted: error == nil)
         }
 
         // End of the BG tasks
@@ -577,7 +581,9 @@ final class BaseAPSManager: APSManager, Injectable {
                     } else {
                         debug(.apsManager, "Pump suspended by Announcement")
                         self.announcementsStorage.storeAnnouncements([announcement], enacted: true)
-                        self.nightscout.uploadStatus()
+                        Task {
+                            await self.nightscout.uploadStatus()
+                        }
                     }
                 }
             case .resume:
@@ -590,8 +596,9 @@ final class BaseAPSManager: APSManager, Injectable {
                     } else {
                         debug(.apsManager, "Pump resumed by Announcement")
                         self.announcementsStorage.storeAnnouncements([announcement], enacted: true)
-                        self.nightscout.uploadStatus()
-                    }
+                        Task {
+                            await self.nightscout.uploadStatus()
+                        } }
                 }
             }
         case let .looping(closedLoop):
@@ -661,19 +668,10 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
-    private func fetchDetermination() async -> NSManagedObjectID? {
-        await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: OrefDetermination.self,
-            onContext: privateContext,
-            predicate: NSPredicate.predicateFor30MinAgoForDetermination,
-            key: "deliverAt",
-            ascending: false,
-            fetchLimit: 1
-        ).first?.objectID
-    }
-
     private func enactDetermination() async throws {
-        guard let determinationID = await fetchDetermination() else {
+        guard let determinationID = await determinationStorage
+            .fetchLastDeterminationObjectID(predicate: NSPredicate.predicateFor30MinAgoForDetermination).first
+        else {
             throw APSError.apsError(message: "Determination not found")
         }
 
@@ -725,14 +723,16 @@ final class BaseAPSManager: APSManager, Injectable {
         bolusProgress.send(0)
     }
 
-    private func reportEnacted(received: Bool) async {
-        guard let determinationID = await fetchDetermination() else {
+    private func reportEnacted(wasEnacted: Bool) async {
+        guard let determinationID = await determinationStorage
+            .fetchLastDeterminationObjectID(predicate: NSPredicate.predicateFor30MinAgoForDetermination).first
+        else {
             return
         }
         await privateContext.perform {
             if let determinationUpdated = self.privateContext.object(with: determinationID) as? OrefDetermination {
                 determinationUpdated.timestamp = Date()
-                determinationUpdated.received = received
+                determinationUpdated.enacted = wasEnacted
 
                 do {
                     guard self.privateContext.hasChanges else { return }
@@ -744,9 +744,11 @@ final class BaseAPSManager: APSManager, Injectable {
                     )
                 }
 
-                debug(.apsManager, "Determination enacted. Received: \(received)")
+                debug(.apsManager, "Determination enacted. Enacted: \(wasEnacted)")
 
-                self.nightscout.uploadStatus()
+                Task.detached(priority: .low) {
+                    await self.nightscout.uploadStatus()
+                }
 
                 Task.detached(priority: .low) {
                     await self.statistics()

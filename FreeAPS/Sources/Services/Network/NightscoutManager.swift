@@ -13,7 +13,7 @@ protocol NightscoutManager: GlucoseSource {
     func deleteCarbs(withID id: String) async
     func deleteInsulin(withID id: String) async
     func deleteManualGlucose(withID id: String) async
-    func uploadStatus()
+    func uploadStatus() async
     func uploadGlucose() async
     func uploadManualGlucose() async
     func uploadStatistics(dailystat: Statistics) async
@@ -254,29 +254,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-//    func uploadStatistics(dailystat: Statistics) {
-//        let stats = NightscoutStatistics(
-//            dailystats: dailystat
-//        )
-//
-//        guard let nightscout = nightscoutAPI, isUploadEnabled else {
-//            return
-//        }
-//
-//        processQueue.async {
-//            nightscout.uploadStats(stats)
-//                .sink { completion in
-//                    switch completion {
-//                    case .finished:
-//                        debug(.nightscout, "Statistics uploaded")
-//                    case let .failure(error):
-//                        debug(.nightscout, error.localizedDescription)
-//                    }
-//                } receiveValue: {}
-//                .store(in: &self.lifetime)
-//        }
-//    }
-
     func uploadPreferences(_ preferences: Preferences) {
         let prefs = NightscoutPreferences(
             preferences: settingsManager.preferences
@@ -357,27 +334,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-    private func fetchDeterminations() {
-        let fetchRequest: NSFetchRequest<OrefDetermination> = OrefDetermination.fetchRequest()
-        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \OrefDetermination.deliverAt, ascending: false)]
-        fetchRequest.predicate = NSPredicate.predicateFor30MinAgoForDetermination
-        fetchRequest.fetchLimit = 2
+    // TODO: - Fetch Determination here
 
-        context.performAndWait {
-            do {
-                lastTwoDeterminations = try context.fetch(fetchRequest)
-                debugPrint(
-                    "Home State Model: \(#function) \(DebuggingIdentifiers.succeeded) fetched determinations from core data"
-                )
-            } catch {
-                debugPrint(
-                    "Home State Model: \(#function) \(DebuggingIdentifiers.failed) failed to fetch determinations from core data"
-                )
-            }
-        }
-    }
-
-    func uploadStatus() {
+    func uploadStatus() async {
         let iob = storage.retrieve(OpenAPS.Monitor.iob, as: [IOBEntry].self)
 
         let penultimateDetermination = lastTwoDeterminations?.last
@@ -596,9 +555,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
         let pump = NSPumpStatus(clock: Date(), battery: battery, reservoir: reservoir, status: pumpStatus)
 
-        let device = UIDevice.current
+        let device = await UIDevice.current
 
-        let uploader = Uploader(batteryVoltage: nil, battery: Int(device.batteryLevel * 100))
+        let uploader = await Uploader(batteryVoltage: nil, battery: Int(device.batteryLevel * 100))
 
         var status: NightscoutStatus
 
@@ -615,21 +574,15 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             return
         }
 
-        processQueue.async {
-            nightscout.uploadStatus(status)
-                .sink { completion in
-                    switch completion {
-                    case .finished:
-                        debug(.nightscout, "Status uploaded")
-                    case let .failure(error):
-                        debug(.nightscout, error.localizedDescription)
-                    }
-                } receiveValue: {}
-                .store(in: &self.lifetime)
+        do {
+            try await nightscout.uploadStatus(status)
+            debug(.nightscout, "Status uploaded")
+        } catch {
+            debug(.nightscout, error.localizedDescription)
         }
 
-        Task {
-            await uploadPodAge()
+        Task.detached {
+            await self.uploadPodAge()
         }
     }
 

@@ -10,6 +10,7 @@ extension Home {
         @Injected() var broadcaster: Broadcaster!
         @Injected() var apsManager: APSManager!
         @Injected() var nightscoutManager: NightscoutManager!
+        @Injected() var determinationStorage: DeterminationStorage!
         private let timer = DispatchTimer(timeInterval: 5)
         private(set) var filteredHours = 24
         @Published var manualGlucose: [BloodGlucose] = []
@@ -689,8 +690,9 @@ extension Home.StateModel {
     // Setup Determinations
     private func setupDeterminationsArray() {
         Task {
-            async let enactedObjectIDs = fetchDeterminations(predicate: NSPredicate.enactedDetermination)
-            async let enactedAndNonEnactedObjectIDs = fetchDeterminations(
+            async let enactedObjectIDs = determinationStorage
+                .fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDetermination)
+            async let enactedAndNonEnactedObjectIDs = determinationStorage.fetchLastDeterminationObjectID(
                 predicate: NSPredicate
                     .predicateFor30MinAgoForDetermination
             )
@@ -706,20 +708,6 @@ extension Home.StateModel {
 
             await updateEnacted
             await updateEnactedAndNonEnacted
-        }
-    }
-
-    private func fetchDeterminations(predicate: NSPredicate) async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: OrefDetermination.self,
-            onContext: context,
-            predicate: predicate,
-            key: "deliverAt",
-            ascending: false,
-            fetchLimit: 1
-        )
-        return await context.perform {
-            results.map(\.objectID)
         }
     }
 
@@ -965,5 +953,25 @@ extension Home.StateModel {
                 debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to initialize a new Override Run Object")
             }
         }
+    }
+}
+
+// MARK: Extension for Main Chart to draw Forecasts
+
+extension Home.StateModel {
+    func preprocessForecastData() -> [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] {
+        determinationsFromPersistence
+            .compactMap { determination -> NSManagedObjectID? in
+                determination.objectID
+            }
+            .flatMap { determinationID -> [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] in
+                let forecasts = determinationStorage.getForecasts(for: determinationID, in: viewContext)
+
+                return forecasts.flatMap { forecast in
+                    determinationStorage.getForecastValues(for: forecast.objectID, in: viewContext).map { forecastValue in
+                        (id: UUID(), forecast: forecast, forecastValue: forecastValue)
+                    }
+                }
+            }
     }
 }

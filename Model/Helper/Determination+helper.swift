@@ -24,6 +24,6 @@ extension OrefDetermination {
 extension NSPredicate {
     static var enactedDetermination: NSPredicate {
         let date = Date.halfHourAgo
-        return NSPredicate(format: "received == %@ AND deliverAt >= %@", true as NSNumber, date as NSDate)
+        return NSPredicate(format: "enacted == %@ AND deliverAt >= %@", true as NSNumber, date as NSDate)
     }
 }

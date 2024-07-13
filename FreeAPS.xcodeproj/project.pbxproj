@@ -283,6 +283,7 @@
 		583684082BD195A700070A60 /* Determination.swift in Sources */ = {isa = PBXBuildFile; fileRef = 583684072BD195A700070A60 /* Determination.swift */; };
 		5837A5302BD2E3C700A5DC04 /* CarbEntryStored+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5837A52F2BD2E3C700A5DC04 /* CarbEntryStored+helper.swift */; };
 		585E2CAE2BE7BF46006ECF1A /* PumpEvent+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 585E2CAD2BE7BF46006ECF1A /* PumpEvent+helper.swift */; };
+		5864E8592C42CFAE00294306 /* DeterminationStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5864E8582C42CFAE00294306 /* DeterminationStorage.swift */; };
 		587DA1F62B77F3DD00B28F8A /* SettingsRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 587DA1F52B77F3DD00B28F8A /* SettingsRowView.swift */; };
 		5887527C2BD986E1008B081D /* OpenAPSBattery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5887527B2BD986E1008B081D /* OpenAPSBattery.swift */; };
 		588752842BD9986A008B081D /* OpenAPS_Battery+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 588752822BD9986A008B081D /* OpenAPS_Battery+CoreDataClass.swift */; };
@@ -895,6 +896,7 @@
 		583684072BD195A700070A60 /* Determination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Determination.swift; sourceTree = "<group>"; };
 		5837A52F2BD2E3C700A5DC04 /* CarbEntryStored+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CarbEntryStored+helper.swift"; sourceTree = "<group>"; };
 		585E2CAD2BE7BF46006ECF1A /* PumpEvent+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PumpEvent+helper.swift"; sourceTree = "<group>"; };
+		5864E8582C42CFAE00294306 /* DeterminationStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeterminationStorage.swift; sourceTree = "<group>"; };
 		587DA1F52B77F3DD00B28F8A /* SettingsRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRowView.swift; sourceTree = "<group>"; };
 		5887527B2BD986E1008B081D /* OpenAPSBattery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAPSBattery.swift; sourceTree = "<group>"; };
 		588752822BD9986A008B081D /* OpenAPS_Battery+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OpenAPS_Battery+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
@@ -1879,6 +1881,7 @@
 				38F3B2EE25ED8E2A005C48AA /* TempTargetsStorage.swift */,
 				CE82E02428E867BA00473A9C /* AlertStorage.swift */,
 				BDC2EA442C3043B000E5BBD0 /* OverrideStorage.swift */,
+				5864E8582C42CFAE00294306 /* DeterminationStorage.swift */,
 			);
 			path = Storage;
 			sourceTree = "<group>";
@@ -3138,6 +3141,7 @@
 				1BBB001DAD60F3B8CEA4B1C7 /* ISFEditorStateModel.swift in Sources */,
 				F816826028DB441800054060 /* BluetoothTransmitter.swift in Sources */,
 				DD68889D2C386E17006E3C44 /* NightscoutExercise.swift in Sources */,
+				5864E8592C42CFAE00294306 /* DeterminationStorage.swift in Sources */,
 				BD7DA9A72AE06E2B00601B20 /* BolusCalculatorConfigProvider.swift in Sources */,
 				38192E0D261BAF980094D973 /* ConvenienceExtensions.swift in Sources */,
 				FEFA5C0F299F810B00765C17 /* Core_Data.xcdatamodeld in Sources */,

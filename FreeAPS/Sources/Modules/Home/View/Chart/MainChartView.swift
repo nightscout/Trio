@@ -447,42 +447,8 @@ extension MainChartView {
         return currentTime.addingTimeInterval(timeInterval)
     }
 
-    private func getForecasts(for determinationID: NSManagedObjectID, in context: NSManagedObjectContext) -> [Forecast] {
-        do {
-            guard let determination = try context.existingObject(with: determinationID) as? OrefDetermination,
-                  let forecastSet = determination.forecasts,
-                  let forecasts = Array(forecastSet) as? [Forecast]
-            else {
-                return []
-            }
-            return forecasts
-        } catch {
-            debugPrint(
-                "Failed \(DebuggingIdentifiers.failed) to fetch OrefDetermination with ID \(determinationID): \(error.localizedDescription)"
-            )
-            return []
-        }
-    }
-
-    private func getForecastValues(for forecastID: NSManagedObjectID, in context: NSManagedObjectContext) -> [ForecastValue] {
-        do {
-            guard let forecast = try context.existingObject(with: forecastID) as? Forecast,
-                  let forecastValueSet = forecast.forecastValues,
-                  let forecastValues = Array(forecastValueSet) as? [ForecastValue]
-            else {
-                return []
-            }
-            return forecastValues.sorted(by: { $0.index < $1.index })
-        } catch {
-            debugPrint(
-                "Failed \(DebuggingIdentifiers.failed) to fetch Forecast with ID \(forecastID): \(error.localizedDescription)"
-            )
-            return []
-        }
-    }
-
     private func drawForecasts() -> some ChartContent {
-        let preprocessedData = preprocessForecastData()
+        let preprocessedData = state.preprocessForecastData()
 
         return ForEach(preprocessedData, id: \.id) { tuple in
             let forecastValue = tuple.forecastValue
@@ -494,22 +460,6 @@ extension MainChartView {
             )
             .foregroundStyle(by: .value("Predictions", forecast.type ?? ""))
         }
-    }
-
-    private func preprocessForecastData() -> [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] {
-        state.determinationsFromPersistence
-            .compactMap { determination -> NSManagedObjectID? in
-                determination.objectID
-            }
-            .flatMap { determinationID -> [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] in
-                let forecasts = getForecasts(for: determinationID, in: context)
-
-                return forecasts.flatMap { forecast in
-                    getForecastValues(for: forecast.objectID, in: context).map { forecastValue in
-                        (id: UUID(), forecast: forecast, forecastValue: forecastValue)
-                    }
-                }
-            }
     }
 
     private func drawCurrentTimeMarker() -> some ChartContent {
