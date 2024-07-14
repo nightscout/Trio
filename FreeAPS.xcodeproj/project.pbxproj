@@ -478,7 +478,7 @@
 		FE41E4D429463C660047FD55 /* NightscoutStatistics.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE41E4D329463C660047FD55 /* NightscoutStatistics.swift */; };
 		FE41E4D629463EE20047FD55 /* NightscoutPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE41E4D529463EE20047FD55 /* NightscoutPreferences.swift */; };
 		FE66D16B291F74F8005D6F77 /* Bundle+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE66D16A291F74F8005D6F77 /* Bundle+Extensions.swift */; };
-		FEFA5C0F299F810B00765C17 /* Core_Data.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = FEFA5C0D299F810B00765C17 /* Core_Data.xcdatamodeld */; };
+		FEFA5C0F299F810B00765C17 /* TriosPersistentContainer.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = FEFA5C0D299F810B00765C17 /* TriosPersistentContainer.xcdatamodeld */; };
 		FEFFA7A22929FE49007B8193 /* UIDevice+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEFFA7A12929FE49007B8193 /* UIDevice+Extensions.swift */; };
 /* End PBXBuildFile section */
 
@@ -2202,7 +2202,7 @@
 		587A54C82BCDCE0F009D38E2 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				FEFA5C0D299F810B00765C17 /* Core_Data.xcdatamodeld */,
+				FEFA5C0D299F810B00765C17 /* TriosPersistentContainer.xcdatamodeld */,
 				BDF34F8F2C10CF8C00D51995 /* CoreDataStack.swift */,
 				5825D1052BD4056700F36E9B /* Classes+Properties */,
 				5825D1622BD405AE00F36E9B /* Helper */,
@@ -3144,7 +3144,7 @@
 				5864E8592C42CFAE00294306 /* DeterminationStorage.swift in Sources */,
 				BD7DA9A72AE06E2B00601B20 /* BolusCalculatorConfigProvider.swift in Sources */,
 				38192E0D261BAF980094D973 /* ConvenienceExtensions.swift in Sources */,
-				FEFA5C0F299F810B00765C17 /* Core_Data.xcdatamodeld in Sources */,
+				FEFA5C0F299F810B00765C17 /* TriosPersistentContainer.xcdatamodeld in Sources */,
 				88AB39B23C9552BD6E0C9461 /* ISFEditorRootView.swift in Sources */,
 				F816825E28DB441200054060 /* HeartBeatManager.swift in Sources */,
 				58F107742BD1A4D000B1A680 /* Determination+helper.swift in Sources */,
@@ -3999,13 +3999,13 @@
 /* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
-		FEFA5C0D299F810B00765C17 /* Core_Data.xcdatamodeld */ = {
+		FEFA5C0D299F810B00765C17 /* TriosPersistentContainer.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
 				FEFA5C0E299F810B00765C17 /* Core_Data.xcdatamodel */,
 			);
 			currentVersion = FEFA5C0E299F810B00765C17 /* Core_Data.xcdatamodel */;
-			path = Core_Data.xcdatamodeld;
+			path = TriosPersistentContainer.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
 		};
