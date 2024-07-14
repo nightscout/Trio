@@ -115,9 +115,10 @@ struct MainChartView: View {
     var body: some View {
         VStack {
             ZStack {
-                VStack {
+                VStack(spacing: 0) {
                     staticYAxisChart
                     dummyBasalChart
+                    dummyCobChart.offset(y: 20)
                 }
 
                 ScrollViewReader { scroller in
@@ -125,6 +126,7 @@ struct MainChartView: View {
                         VStack(spacing: 0) {
                             mainChart
                             basalChart
+                            cobChart.offset(y: 20)
                         }.onChange(of: screenHours) { _ in
                             updateStartEndMarkers()
                             yAxisChartData()
@@ -153,7 +155,7 @@ struct MainChartView: View {
                     }
                 }
             }
-            legendPanel.padding(.top, 8)
+//            legendPanel.padding(.top, 8)
         }
     }
 }
@@ -200,14 +202,34 @@ extension MainChartView {
     }
 
     private var dummyBasalChart: some View {
-        Chart {}
-            .id("DummyBasalChart")
-            .frame(height: UIScreen.main.bounds.height * 0.08)
-            .frame(width: screenSize.width - 10)
-            .chartYAxis(.hidden)
-            .chartXAxis(.hidden)
-            .chartYScale(domain: minValue ... maxValue)
-            .chartLegend(.hidden)
+        Chart {
+            drawTempBasals().foregroundStyle(.clear)
+        }
+        .id("DummyBasalChart")
+        .frame(height: UIScreen.main.bounds.height * 0.05)
+        .frame(width: screenSize.width - 10)
+        .chartYAxis(.hidden)
+        .chartXAxis(.hidden)
+        .chartYScale(domain: minValue ... maxValue)
+        .chartLegend(.hidden)
+    }
+
+    private var dummyCobChart: some View {
+        Chart {
+            ForEach(state.enactedAndNonEnactedDeterminations) { cob in
+                let amount = Int(cob.cob)
+                let date: Date = cob.deliverAt ?? Date()
+
+                LineMark(x: .value("Time", date), y: .value("Value", amount)).foregroundStyle(.clear)
+                AreaMark(x: .value("Time", date), y: .value("Value", amount)).foregroundStyle(.clear)
+            }
+        }
+        .id("DummyCobChart")
+        .frame(height: UIScreen.main.bounds.height * 0.1)
+        .frame(width: screenSize.width - 10)
+        .chartXAxis(.hidden)
+        .chartYAxis { cobChartYAxis }
+        .chartLegend(.hidden)
     }
 
     private var mainChart: some View {
@@ -311,12 +333,32 @@ extension MainChartView {
             }.onChange(of: basalProfile) { _ in
                 calculateBasals()
             }
-            .frame(height: UIScreen.main.bounds.height * 0.08)
+            .frame(height: UIScreen.main.bounds.height * 0.05)
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .chartXScale(domain: startMarker ... endMarker)
             .chartXAxis { basalChartXAxis }
+            .chartXAxis(.hidden)
             .chartYAxis(.hidden)
         }
+    }
+
+    private var cobChart: some View {
+        Chart {
+            drawCurrentTimeMarker()
+            ForEach(state.enactedAndNonEnactedDeterminations) { cob in
+                let amount = Int(cob.cob)
+                let date: Date = cob.deliverAt ?? Date()
+
+                LineMark(x: .value("Time", date), y: .value("Value", amount)).foregroundStyle(Color.orange.gradient)
+                AreaMark(x: .value("Time", date), y: .value("Value", amount)).foregroundStyle(Color.orange.gradient.opacity(0.3))
+            }
+        }
+        .frame(height: UIScreen.main.bounds.height * 0.1)
+        .frame(width: fullWidth(viewWidth: screenSize.width))
+        .chartXScale(domain: startMarker ... endMarker)
+        .chartXAxis { basalChartXAxis }
+//        .chartYAxis { cobChartYAxis }
+        .chartYAxis(.hidden)
     }
 
     var legendPanel: some View {
@@ -901,6 +943,18 @@ extension MainChartView {
                 }
                 AxisValueLabel().font(.footnote)
             }
+        }
+    }
+
+    private var cobChartYAxis: some AxisContent {
+        AxisMarks(position: .trailing) { _ in
+            if displayXgridLines {
+                AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
+            } else {
+                AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
+            }
+
+            AxisValueLabel().font(.system(.footnote))
         }
     }
 }

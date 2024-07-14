@@ -26,4 +26,9 @@ extension NSPredicate {
         let date = Date.halfHourAgo
         return NSPredicate(format: "enacted == %@ AND deliverAt >= %@", true as NSNumber, date as NSDate)
     }
+
+    static var determinationsForCobIobCharts: NSPredicate {
+        let date = Date.oneDayAgo
+        return NSPredicate(format: "deliverAt >= %@", date as NSDate)
+    }
 }

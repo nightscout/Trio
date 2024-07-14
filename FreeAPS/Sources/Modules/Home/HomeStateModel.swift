@@ -691,10 +691,10 @@ extension Home.StateModel {
     private func setupDeterminationsArray() {
         Task {
             async let enactedObjectIDs = determinationStorage
-                .fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDetermination)
+                .fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDetermination, fetchLimit: 1)
             async let enactedAndNonEnactedObjectIDs = determinationStorage.fetchLastDeterminationObjectID(
                 predicate: NSPredicate
-                    .predicateFor30MinAgoForDetermination
+                    .determinationsForCobIobCharts, fetchLimit: 288
             )
 
             let enactedIDs = await enactedObjectIDs

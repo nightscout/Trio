@@ -3,7 +3,7 @@ import Foundation
 import Swinject
 
 protocol DeterminationStorage {
-    func fetchLastDeterminationObjectID(predicate: NSPredicate) async -> [NSManagedObjectID]
+    func fetchLastDeterminationObjectID(predicate: NSPredicate, fetchLimit: Int) async -> [NSManagedObjectID]
     func getForecasts(for determinationID: NSManagedObjectID, in context: NSManagedObjectContext) -> [Forecast]
     func getForecastValues(for forecastID: NSManagedObjectID, in context: NSManagedObjectContext) -> [ForecastValue]
 }
@@ -16,14 +16,15 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
         injectServices(resolver)
     }
 
-    func fetchLastDeterminationObjectID(predicate: NSPredicate) async -> [NSManagedObjectID] {
+    func fetchLastDeterminationObjectID(predicate: NSPredicate, fetchLimit: Int) async -> [NSManagedObjectID] {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
             onContext: backgroundContext,
             predicate: predicate,
             key: "deliverAt",
             ascending: false,
-            fetchLimit: 1
+            fetchLimit: fetchLimit,
+            batchSize: 50
         )
         return await backgroundContext.perform {
             results.map(\.objectID)
