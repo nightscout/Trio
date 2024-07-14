@@ -119,7 +119,6 @@ struct MainChartView: View {
                     staticYAxisChart
                     dummyBasalChart
                     dummyCobChart.offset(y: 20)
-                    dummyIobChart.offset(y: 40)
                 }
 
                 ScrollViewReader { scroller in
@@ -128,7 +127,6 @@ struct MainChartView: View {
                             mainChart
                             basalChart
                             cobChart.offset(y: 20)
-                            iobChart.offset(y: 40)
                         }.onChange(of: screenHours) { _ in
                             updateStartEndMarkers()
                             yAxisChartData()
@@ -195,7 +193,7 @@ extension MainChartView {
             }
         }
         .id("DummyMainChart")
-        .frame(minHeight: UIScreen.main.bounds.height * 0.01)
+        .frame(minHeight: UIScreen.main.bounds.height * 0.2)
         .frame(width: screenSize.width - 10)
         .chartYAxis { mainChartYAxis }
         .chartXAxis(.hidden)
@@ -227,25 +225,7 @@ extension MainChartView {
             }
         }
         .id("DummyCobChart")
-        .frame(height: UIScreen.main.bounds.height * 0.08)
-        .frame(width: screenSize.width - 10)
-        .chartXAxis(.hidden)
-        .chartYAxis { cobChartYAxis }
-        .chartLegend(.hidden)
-    }
-
-    private var dummyIobChart: some View {
-        Chart {
-            ForEach(state.enactedAndNonEnactedDeterminations) { iob in
-                let amount = iob.iob?.decimalValue ?? 0
-                let date: Date = iob.deliverAt ?? Date()
-
-                LineMark(x: .value("Time", date), y: .value("Value", amount)).foregroundStyle(.clear)
-                AreaMark(x: .value("Time", date), y: .value("Value", amount)).foregroundStyle(.clear)
-            }
-        }
-        .id("DummyIobChart")
-        .frame(height: UIScreen.main.bounds.height * 0.08)
+        .frame(height: UIScreen.main.bounds.height * 0.1)
         .frame(width: screenSize.width - 10)
         .chartXAxis(.hidden)
         .chartYAxis { cobChartYAxis }
@@ -289,7 +269,7 @@ extension MainChartView {
             .onChange(of: didAppearTrigger) { _ in
                 calculateTTs()
             }
-            .frame(minHeight: UIScreen.main.bounds.height * 0.01)
+            .frame(minHeight: UIScreen.main.bounds.height * 0.2)
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .chartXScale(domain: startMarker ... endMarker)
             .chartXAxis { mainChartXAxis }
@@ -373,29 +353,11 @@ extension MainChartView {
                 AreaMark(x: .value("Time", date), y: .value("Value", amount)).foregroundStyle(Color.orange.gradient.opacity(0.3))
             }
         }
-        .frame(height: UIScreen.main.bounds.height * 0.08)
+        .frame(height: UIScreen.main.bounds.height * 0.1)
         .frame(width: fullWidth(viewWidth: screenSize.width))
         .chartXScale(domain: startMarker ... endMarker)
         .chartXAxis { basalChartXAxis }
-        .chartXAxis(.hidden)
-        .chartYAxis(.hidden)
-    }
-
-    private var iobChart: some View {
-        Chart {
-            drawCurrentTimeMarker()
-            ForEach(state.enactedAndNonEnactedDeterminations) { iob in
-                let amount: Decimal = iob.iob?.decimalValue ?? 0
-                let date: Date = iob.deliverAt ?? Date()
-
-                LineMark(x: .value("Time", date), y: .value("Value", amount)).foregroundStyle(Color.insulin.gradient)
-                AreaMark(x: .value("Time", date), y: .value("Value", amount)).foregroundStyle(Color.insulin.gradient.opacity(0.3))
-            }
-        }
-        .frame(height: UIScreen.main.bounds.height * 0.08)
-        .frame(width: fullWidth(viewWidth: screenSize.width))
-        .chartXScale(domain: startMarker ... endMarker)
-        .chartXAxis { basalChartXAxis }
+//        .chartYAxis { cobChartYAxis }
         .chartYAxis(.hidden)
     }
 

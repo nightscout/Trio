@@ -720,12 +720,12 @@ extension Home {
 
                     mainChart
 
-                    timeInterval.padding(.top, 20).padding(.bottom, 15)
+                    timeInterval.padding(.top, 20).padding(.bottom, 40)
 
                     if let progress = state.bolusProgress {
                         bolusView(geo, progress).padding(.bottom, 10)
                     } else {
-//                        profileView(geo).padding(.bottom, 10)
+                        profileView(geo).padding(.bottom, 10)
                     }
                 }
                 .background(color)
