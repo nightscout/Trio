@@ -35,6 +35,7 @@ struct MainChartView: View {
         static let minGlucose = 45
     }
 
+    var geo: GeometryProxy
     @Binding var units: GlucoseUnits
     @Binding var announcement: [Announcement]
     @Binding var hours: Int
@@ -115,18 +116,24 @@ struct MainChartView: View {
     var body: some View {
         VStack {
             ZStack {
-                VStack(spacing: 0) {
-                    staticYAxisChart
+                VStack(spacing: 5) {
                     dummyBasalChart
-                    dummyCobChart.offset(y: 20)
+                    staticYAxisChart
+                    Spacer()
+                    dummyCobChart
                 }
 
                 ScrollViewReader { scroller in
                     ScrollView(.horizontal, showsIndicators: false) {
-                        VStack(spacing: 0) {
-                            mainChart
+                        VStack(spacing: 5) {
                             basalChart
-                            cobChart.offset(y: 20)
+                            mainChart
+                            Spacer()
+                            ZStack {
+                                cobChart
+                                iobChart
+                            }
+
                         }.onChange(of: screenHours) { _ in
                             updateStartEndMarkers()
                             yAxisChartData()
@@ -193,42 +200,39 @@ extension MainChartView {
             }
         }
         .id("DummyMainChart")
-        .frame(minHeight: UIScreen.main.bounds.height * 0.2)
+        .frame(minHeight: geo.size.height * 0.3)
         .frame(width: screenSize.width - 10)
-        .chartYAxis { mainChartYAxis }
+        .chartXAxis { mainChartXAxis }
+        .chartXScale(domain: startMarker ... endMarker)
         .chartXAxis(.hidden)
+        .chartYAxis { mainChartYAxis }
         .chartYScale(domain: minValue ... maxValue)
         .chartLegend(.hidden)
     }
 
     private var dummyBasalChart: some View {
-        Chart {
-            drawTempBasals().foregroundStyle(.clear)
-        }
-        .id("DummyBasalChart")
-        .frame(height: UIScreen.main.bounds.height * 0.05)
-        .frame(width: screenSize.width - 10)
-        .chartYAxis(.hidden)
-        .chartXAxis(.hidden)
-        .chartYScale(domain: minValue ... maxValue)
-        .chartLegend(.hidden)
+        Chart {}
+            .id("DummyBasalChart")
+            .frame(minHeight: geo.size.height * 0.05)
+            .frame(width: screenSize.width - 10)
+            .chartXAxis { basalChartXAxis }
+            .chartXAxis(.hidden)
+            .chartYAxis(.hidden)
+            .chartLegend(.hidden)
     }
 
     private var dummyCobChart: some View {
         Chart {
-            ForEach(state.enactedAndNonEnactedDeterminations) { cob in
-                let amount = Int(cob.cob)
-                let date: Date = cob.deliverAt ?? Date()
-
-                LineMark(x: .value("Time", date), y: .value("Value", amount)).foregroundStyle(.clear)
-                AreaMark(x: .value("Time", date), y: .value("Value", amount)).foregroundStyle(.clear)
-            }
+            drawCOB(dummy: true)
         }
         .id("DummyCobChart")
-        .frame(height: UIScreen.main.bounds.height * 0.1)
+        .frame(minHeight: geo.size.height * 0.1)
         .frame(width: screenSize.width - 10)
+        .chartXScale(domain: startMarker ... endMarker)
+        .chartXAxis { basalChartXAxis }
         .chartXAxis(.hidden)
         .chartYAxis { cobChartYAxis }
+        .chartYAxis(.hidden)
         .chartLegend(.hidden)
     }
 
@@ -238,14 +242,13 @@ extension MainChartView {
                 drawStartRuleMark()
                 drawEndRuleMark()
                 drawCurrentTimeMarker()
-                drawCarbs()
                 drawFpus()
                 drawBoluses()
                 drawTempTargets()
                 drawActiveOverrides()
                 drawOverrideRunStored()
                 drawForecasts()
-                drawGlucose()
+                drawGlucose(dummy: false)
                 drawManualGlucose()
 
                 /// show glucose value when hovering over it
@@ -269,10 +272,11 @@ extension MainChartView {
             .onChange(of: didAppearTrigger) { _ in
                 calculateTTs()
             }
-            .frame(minHeight: UIScreen.main.bounds.height * 0.2)
+            .frame(minHeight: geo.size.height * 0.3)
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .chartXScale(domain: startMarker ... endMarker)
             .chartXAxis { mainChartXAxis }
+            .chartYAxis { mainChartYAxis }
             .chartYAxis(.hidden)
             .backport.chartXSelection(value: $selection)
             .chartYScale(domain: minValue ... maxValue)
@@ -316,7 +320,7 @@ extension MainChartView {
                 drawStartRuleMark()
                 drawEndRuleMark()
                 drawCurrentTimeMarker()
-                drawTempBasals()
+                drawTempBasals(dummy: false)
                 drawBasalProfile()
                 drawSuspensions()
             }.onChange(of: state.tempBasals) { _ in
@@ -333,11 +337,28 @@ extension MainChartView {
             }.onChange(of: basalProfile) { _ in
                 calculateBasals()
             }
-            .frame(height: UIScreen.main.bounds.height * 0.05)
+            .frame(minHeight: geo.size.height * 0.05)
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .chartXScale(domain: startMarker ... endMarker)
             .chartXAxis { basalChartXAxis }
             .chartXAxis(.hidden)
+            .chartYAxis(.hidden)
+            .rotationEffect(.degrees(180))
+            .scaleEffect(x: -1, y: 1, anchor: .center)
+        }
+    }
+
+    private var iobChart: some View {
+        VStack {
+            Chart {
+                drawIOB()
+            }
+            .frame(minHeight: geo.size.height * 0.1)
+            .frame(width: fullWidth(viewWidth: screenSize.width))
+            .chartXScale(domain: startMarker ... endMarker)
+            .chartXAxis { basalChartXAxis }
+//            .chartXAxis(.hidden)
+            .chartYAxis { cobChartYAxis }
             .chartYAxis(.hidden)
         }
     }
@@ -345,19 +366,15 @@ extension MainChartView {
     private var cobChart: some View {
         Chart {
             drawCurrentTimeMarker()
-            ForEach(state.enactedAndNonEnactedDeterminations) { cob in
-                let amount = Int(cob.cob)
-                let date: Date = cob.deliverAt ?? Date()
-
-                LineMark(x: .value("Time", date), y: .value("Value", amount)).foregroundStyle(Color.orange.gradient)
-                AreaMark(x: .value("Time", date), y: .value("Value", amount)).foregroundStyle(Color.orange.gradient.opacity(0.3))
-            }
+            drawCOB(dummy: false)
+            drawCarbs()
         }
-        .frame(height: UIScreen.main.bounds.height * 0.1)
+        .frame(minHeight: geo.size.height * 0.1)
         .frame(width: fullWidth(viewWidth: screenSize.width))
         .chartXScale(domain: startMarker ... endMarker)
         .chartXAxis { basalChartXAxis }
-//        .chartYAxis { cobChartYAxis }
+//        .chartXAxis(.hidden)
+        .chartYAxis { cobChartYAxis }
         .chartYAxis(.hidden)
     }
 
@@ -410,15 +427,17 @@ extension MainChartView {
         /// carbs
         ForEach(state.carbsFromPersistence) { carb in
             let carbAmount = carb.carbs
-            let yPosition = units == .mgdL ? 60 : 3.33
+            let yPosition = state.enactedAndNonEnactedDeterminations.first?.cob == 0 ? 0 : 15
+            let size = (Config.carbsSize + CGFloat(carbAmount) * Config.carbsScale)
 
             PointMark(
                 x: .value("Time", carb.date ?? Date(), unit: .second),
                 y: .value("Value", yPosition)
             )
-            .symbolSize((Config.carbsSize + CGFloat(carbAmount) * Config.carbsScale) * 10)
-            .foregroundStyle(Color.orange)
-            .annotation(position: .bottom) {
+            .symbol {
+                Image(systemName: "arrowtriangle.down.fill").font(.system(size: size)).foregroundStyle(Color.orange)
+            }
+            .annotation(position: .top) {
                 Text(carbsFormatter.string(from: carbAmount as NSNumber)!).font(.caption2)
                     .foregroundStyle(Color.orange)
             }
@@ -441,7 +460,7 @@ extension MainChartView {
         }
     }
 
-    private func drawGlucose() -> some ChartContent {
+    private func drawGlucose(dummy _: Bool) -> some ChartContent {
         /// glucose point mark
         /// filtering for high and low bounds in settings
         ForEach(state.glucoseFromPersistence) { item in
@@ -635,6 +654,59 @@ extension MainChartView {
         }
     }
 
+    private func drawIOB() -> some ChartContent {
+        ForEach(state.enactedAndNonEnactedDeterminations) { iob in
+            let amount: Double = (iob.iob?.doubleValue ?? 0 / 10)
+            let date: Date = iob.deliverAt ?? Date()
+
+            LineMark(x: .value("Time", date), y: .value("Amount", amount))
+                .foregroundStyle(Color.purple)
+            AreaMark(x: .value("Time", date), y: .value("Amount", amount))
+                .foregroundStyle(
+                    LinearGradient(
+                        gradient: Gradient(
+                            colors: [
+                                Color.purple.opacity(0.8),
+                                Color.purple.opacity(0.01)
+                            ]
+                        ),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+        }
+    }
+
+    private func drawCOB(dummy: Bool) -> some ChartContent {
+        ForEach(state.enactedAndNonEnactedDeterminations) { cob in
+            let amount = Int(cob.cob)
+            let date: Date = cob.deliverAt ?? Date()
+
+            if dummy {
+                LineMark(x: .value("Time", date), y: .value("Value", amount))
+                    .foregroundStyle(Color.clear)
+                AreaMark(x: .value("Time", date), y: .value("Value", amount)).foregroundStyle(
+                    Color.clear
+                )
+            } else {
+                LineMark(x: .value("Time", date), y: .value("Value", amount))
+                    .foregroundStyle(Color.orange.gradient)
+                AreaMark(x: .value("Time", date), y: .value("Value", amount)).foregroundStyle(
+                    LinearGradient(
+                        gradient: Gradient(
+                            colors: [
+                                Color.orange.opacity(0.8),
+                                Color.orange.opacity(0.01)
+                            ]
+                        ),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+            }
+        }
+    }
+
     private func prepareTempBasals() -> [(start: Date, end: Date, rate: Double)] {
         let now = Date()
         let tempBasals = state.tempBasals
@@ -655,20 +727,35 @@ extension MainChartView {
         }
     }
 
-    private func drawTempBasals() -> some ChartContent {
+    private func drawTempBasals(dummy: Bool) -> some ChartContent {
         ForEach(prepareTempBasals(), id: \.rate) { basal in
-            RectangleMark(
-                xStart: .value("start", basal.start),
-                xEnd: .value("end", basal.end),
-                yStart: .value("rate-start", 0),
-                yEnd: .value("rate-end", basal.rate)
-            ).foregroundStyle(Color.insulin.opacity(0.2))
+            if dummy {
+                RectangleMark(
+                    xStart: .value("start", basal.start),
+                    xEnd: .value("end", basal.end),
+                    yStart: .value("rate-start", 0),
+                    yEnd: .value("rate-end", basal.rate)
+                ).foregroundStyle(Color.clear)
 
-            LineMark(x: .value("Start Date", basal.start), y: .value("Amount", basal.rate))
-                .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+                LineMark(x: .value("Start Date", basal.start), y: .value("Amount", basal.rate))
+                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.clear)
 
-            LineMark(x: .value("End Date", basal.end), y: .value("Amount", basal.rate))
-                .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+                LineMark(x: .value("End Date", basal.end), y: .value("Amount", basal.rate))
+                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.clear)
+            } else {
+                RectangleMark(
+                    xStart: .value("start", basal.start),
+                    xEnd: .value("end", basal.end),
+                    yStart: .value("rate-start", 0),
+                    yEnd: .value("rate-end", basal.rate)
+                ).foregroundStyle(Color.insulin.opacity(0.2))
+
+                LineMark(x: .value("Start Date", basal.start), y: .value("Amount", basal.rate))
+                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+
+                LineMark(x: .value("End Date", basal.end), y: .value("Amount", basal.rate))
+                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+            }
         }
     }
 
@@ -941,7 +1028,7 @@ extension MainChartView {
                 if units == .mmolL {
                     AxisTick(length: 7, stroke: .init(lineWidth: 7)).foregroundStyle(Color.clear)
                 }
-                AxisValueLabel().font(.footnote)
+                AxisValueLabel().font(.footnote).foregroundStyle(Color.primary)
             }
         }
     }
