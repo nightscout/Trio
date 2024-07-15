@@ -41,7 +41,7 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
             return forecasts
         } catch {
             debugPrint(
-                "Failed \(DebuggingIdentifiers.failed) to fetch OrefDetermination with ID \(determinationID): \(error.localizedDescription)"
+                "Failed \(DebuggingIdentifiers.failed) to fetch Forecasts OrefDetermination with ID \(determinationID): \(error.localizedDescription)"
             )
             return []
         }
@@ -58,7 +58,7 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
             return forecastValues.sorted(by: { $0.index < $1.index })
         } catch {
             debugPrint(
-                "Failed \(DebuggingIdentifiers.failed) to fetch Forecast with ID \(forecastID): \(error.localizedDescription)"
+                "Failed \(DebuggingIdentifiers.failed) to fetch Forecast Values with ID \(forecastID): \(error.localizedDescription)"
             )
             return []
         }

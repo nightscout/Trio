@@ -724,7 +724,6 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     private func reportEnacted(wasEnacted: Bool) async {
-
         guard let determinationID = await determinationStorage
             .fetchLastDeterminationObjectID(predicate: NSPredicate.predicateFor30MinAgoForDetermination).first
         else {
