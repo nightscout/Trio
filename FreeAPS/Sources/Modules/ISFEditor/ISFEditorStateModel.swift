@@ -3,6 +3,7 @@ import SwiftUI
 
 extension ISFEditor {
     final class StateModel: BaseStateModel<Provider> {
+        @Injected() var determinationStorage: DeterminationStorage!
         @Published var items: [Item] = []
         private(set) var autosensISF: Decimal?
         private(set) var autosensRatio: Decimal = 0
@@ -99,20 +100,9 @@ extension ISFEditor {
 
         private func setupDeterminationsArray() {
             Task {
-                let ids = await self.fetchDeterminations()
+                let ids = await determinationStorage.fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDetermination)
                 await updateDeterminationsArray(with: ids)
             }
-        }
-
-        private func fetchDeterminations() async -> [NSManagedObjectID] {
-            CoreDataStack.shared.fetchEntities(
-                ofType: OrefDetermination.self,
-                onContext: context,
-                predicate: NSPredicate.enactedDetermination,
-                key: "deliverAt",
-                ascending: false,
-                fetchLimit: 1
-            ).map(\.objectID)
         }
 
         @MainActor private func updateDeterminationsArray(with IDs: [NSManagedObjectID]) {

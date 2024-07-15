@@ -438,7 +438,7 @@ extension NightscoutAPI {
         if let secret = secret {
             request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
         }
-        request.httpBody = try! JSONCoding.encoder.encode(status)
+        request.httpBody = try JSONCoding.encoder.encode(status)
         request.httpMethod = "POST"
 
         let (data, response) = try await URLSession.shared.data(for: request)
@@ -446,10 +446,6 @@ extension NightscoutAPI {
         guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
             throw URLError(.badServerResponse)
         }
-//        return service.run(request)
-//            .retry(Config.retryCount)
-//            .map { _ in () }
-//            .eraseToAnyPublisher()
     }
 
     func uploadPrefs(_ prefs: NightscoutPreferences) -> AnyPublisher<Void, Swift.Error> {

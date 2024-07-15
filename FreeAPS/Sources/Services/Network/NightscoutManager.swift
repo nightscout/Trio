@@ -255,29 +255,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-//    func uploadStatistics(dailystat: Statistics) {
-//        let stats = NightscoutStatistics(
-//            dailystats: dailystat
-//        )
-//
-//        guard let nightscout = nightscoutAPI, isUploadEnabled else {
-//            return
-//        }
-//
-//        processQueue.async {
-//            nightscout.uploadStats(stats)
-//                .sink { completion in
-//                    switch completion {
-//                    case .finished:
-//                        debug(.nightscout, "Statistics uploaded")
-//                    case let .failure(error):
-//                        debug(.nightscout, error.localizedDescription)
-//                    }
-//                } receiveValue: {}
-//                .store(in: &self.lifetime)
-//        }
-//    }
-
     func uploadPreferences(_ preferences: Preferences) {
         let prefs = NightscoutPreferences(
             preferences: settingsManager.preferences
@@ -358,37 +335,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-//    private func fetchDeterminations() async {
-//        let results = await CoreDataStack.shared.fetchEntitiesAsync(
-//            ofType: OrefDetermination.self,
-//            onContext: backgroundContext,
-//            predicate: NSPredicate.predicateFor30MinAgoForDetermination,
-//            key: "deliverAt",
-//            ascending: false,
-//            fetchLimit: 2
-//        )
-//
-//        let determinationIds = await backgroundContext.perform {
-//            results.map(\.objectID)
-//        }
-//
-//        do {
-//            // Ensure this is performed on the correct context
-//            let determinationObjects: [OrefDetermination] = try await context.perform {
-//                try determinationIds.compactMap { id in
-//                    try self.context.existingObject(with: id) as? OrefDetermination
-//                }
-//            }
-//
-//            // Assign fetched objects to the determination property
-//            determinations = determinationObjects
-//
-//        } catch {
-//            debugPrint(
-//                "NightscoutManager \(#function) \(DebuggingIdentifiers.failed) error while updating the determinations: \(error.localizedDescription)"
-//            )
-//        }
-//    }
 
     private func fetchEnactedDetermination() async -> [OrefDetermination] {
         let enactedDeterminations = await CoreDataStack.shared.fetchEntitiesAsync(
@@ -593,25 +539,13 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
         do {
             try await nightscout.uploadStatus(status)
-            debug(.nightscout, "OpenAPS Status uploaded")
+            debug(.nightscout, "Status uploaded")
         } catch {
             debug(.nightscout, error.localizedDescription)
         }
-//        processQueue.async {
-//            nightscout.uploadStatus(status)
-//                .sink { completion in
-//                    switch completion {
-//                    case .finished:
-//                        debug(.nightscout, "Status uploaded")
-//                    case let .failure(error):
-//                        debug(.nightscout, error.localizedDescription)
-//                    }
-//                } receiveValue: {}
-//                .store(in: &self.lifetime)
-//        }
 
-        Task {
-            await uploadPodAge()
+        Task.detached {
+            await self.uploadPodAge()
         }
     }
 

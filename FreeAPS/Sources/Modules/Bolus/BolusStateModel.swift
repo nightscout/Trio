@@ -15,6 +15,7 @@ extension Bolus {
         @Injected() var nsManager: NightscoutManager!
         @Injected() var carbsStorage: CarbsStorage!
         @Injected() var glucoseStorage: GlucoseStorage!
+        @Injected() var determinationStorage: DeterminationStorage!
 
         @Published var predictions: Predictions?
         @Published var amount: Decimal = 0
@@ -619,23 +620,8 @@ extension Bolus.StateModel {
     // Determinations
     private func setupDeterminationsArray() {
         Task {
-            let ids = await self.fetchDeterminations()
+            let ids = await determinationStorage.fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDetermination)
             await updateDeterminationsArray(with: ids)
-        }
-    }
-
-    private func fetchDeterminations() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: OrefDetermination.self,
-            onContext: backgroundContext,
-            predicate: NSPredicate.enactedDetermination,
-            key: "deliverAt",
-            ascending: false,
-            fetchLimit: 1
-        )
-
-        return await backgroundContext.perform {
-            return results.map(\.objectID)
         }
     }
 
