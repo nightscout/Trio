@@ -31,19 +31,27 @@ struct CurrentGlucoseView: View {
     private var glucoseFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
+
         if units == .mmolL {
-            formatter.minimumFractionDigits = 1
             formatter.maximumFractionDigits = 1
+            formatter.minimumFractionDigits = 1
+            formatter.roundingMode = .halfUp
+        } else {
+            formatter.maximumFractionDigits = 0
         }
-        formatter.roundingMode = .halfUp
         return formatter
     }
 
     private var deltaFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 1
+        if units == .mmolL {
+            formatter.maximumFractionDigits = 1
+            formatter.minimumFractionDigits = 1
+            formatter.roundingMode = .halfUp
+        } else {
+            formatter.maximumFractionDigits = 0
+        }
         formatter.positivePrefix = "  +"
         formatter.negativePrefix = "  -"
         return formatter
@@ -149,7 +157,7 @@ struct CurrentGlucoseView: View {
         let lastGlucose = combinedGlucoseValues.first?.glucose ?? 0
         let secondLastGlucose = combinedGlucoseValues.dropFirst().first?.glucose ?? 0
         let delta = lastGlucose - secondLastGlucose
-        let deltaAsDecimal = Decimal(delta)
+        let deltaAsDecimal = units == .mmolL ? Decimal(delta).asMmolL : Decimal(delta)
         return deltaFormatter.string(from: deltaAsDecimal as NSNumber) ?? "--"
     }
 

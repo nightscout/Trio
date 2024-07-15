@@ -217,7 +217,7 @@ extension LiveActivityBridge {
             let content = LiveActivityAttributes.ContentState(
                 new: bg,
                 prev: latestGlucose,
-                mmol: settings.units == .mmolL,
+                units: settings.units,
                 chart: glucose,
                 settings: settings,
                 determination: determination,

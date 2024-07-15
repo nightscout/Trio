@@ -1,11 +1,11 @@
 import Foundation
 
 extension LiveActivityAttributes.ContentState {
-    static func formatGlucose(_ value: Int, mmol: Bool, forceSign: Bool) -> String {
+    static func formatGlucose(_ value: Int, units: GlucoseUnits, forceSign: Bool) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.maximumFractionDigits = 0
-        if mmol {
+        if units == .mmolL {
             formatter.minimumFractionDigits = 1
             formatter.maximumFractionDigits = 1
         }
@@ -15,18 +15,22 @@ extension LiveActivityAttributes.ContentState {
         formatter.roundingMode = .halfUp
 
         return formatter
-            .string(from: mmol ? value.asMmolL as NSNumber : NSNumber(value: value))!
+            .string(from: units == .mmolL ? value.asMmolL as NSNumber : NSNumber(value: value))!
     }
 
-    static func calculateChange(chart: [GlucoseData]) -> String {
+    static func calculateChange(chart: [GlucoseData], units: GlucoseUnits) -> String {
         guard chart.count > 2 else { return "" }
         let lastGlucose = chart.first?.glucose ?? 0
         let secondLastGlucose = chart.dropFirst().first?.glucose ?? 0
         let delta = lastGlucose - secondLastGlucose
-        let deltaAsDecimal = Decimal(delta)
+        let deltaAsDecimal = units == .mmolL ? Decimal(delta).asMmolL : Decimal(delta)
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.maximumFractionDigits = 1
+        if units == .mmolL {
+            formatter.minimumFractionDigits = 1
+            formatter.maximumFractionDigits = 1
+        }
         formatter.positivePrefix = "  +"
         formatter.negativePrefix = "  -"
         return formatter.string(from: deltaAsDecimal as NSNumber) ?? "--"
@@ -35,14 +39,14 @@ extension LiveActivityAttributes.ContentState {
     init?(
         new bg: GlucoseData,
         prev _: GlucoseData?,
-        mmol: Bool,
+        units: GlucoseUnits,
         chart: [GlucoseData],
         settings: FreeAPSSettings,
         determination: DeterminationData?,
         override: OverrideData?
     ) {
         let glucose = bg.glucose
-        let formattedBG = Self.formatGlucose(Int(glucose), mmol: mmol, forceSign: false)
+        let formattedBG = Self.formatGlucose(Int(glucose), units: units, forceSign: false)
         var rotationDegrees: Double = 0.0
 
         switch bg.direction {
@@ -69,7 +73,7 @@ extension LiveActivityAttributes.ContentState {
         }
 
         let trendString = bg.direction?.symbol as? String
-        let change = Self.calculateChange(chart: chart)
+        let change = Self.calculateChange(chart: chart, units: units)
         let chartBG = chart.map(\.glucose)
         let conversionFactor: Double = settings.units == .mmolL ? 18.0 : 1.0
         let convertedChartBG = chartBG.map { Double($0) / conversionFactor }

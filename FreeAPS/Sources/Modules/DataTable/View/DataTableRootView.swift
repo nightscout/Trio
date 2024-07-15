@@ -56,6 +56,7 @@ extension DataTable {
 
             if state.units == .mmolL {
                 formatter.maximumFractionDigits = 1
+                formatter.minimumFractionDigits = 1
                 formatter.roundingMode = .halfUp
             } else {
                 formatter.maximumFractionDigits = 0
@@ -68,6 +69,7 @@ extension DataTable {
             formatter.numberStyle = .decimal
             if state.units == .mmolL {
                 formatter.maximumFractionDigits = 1
+                formatter.minimumFractionDigits = 1
                 formatter.roundingMode = .ceiling
             } else {
                 formatter.maximumFractionDigits = 0
@@ -226,7 +228,7 @@ extension DataTable {
                 if !glucoseStored.isEmpty {
                     ForEach(glucoseStored) { glucose in
                         HStack {
-                            Text(formatGlucose(glucose.glucose, isManual: glucose.isManual))
+                            Text(formatGlucose(Decimal(glucose.glucose), isManual: glucose.isManual))
 
                             /// check for manual glucose
                             if glucose.isManual {
@@ -496,16 +498,12 @@ extension DataTable {
 
         // MARK: - Format glucose
 
-        private func formatGlucose(_ value: Int16, isManual: Bool) -> String {
+        private func formatGlucose(_ value: Decimal, isManual: Bool) -> String {
             let formatter = isManual ? manualGlucoseFormatter : glucoseFormatter
-            let formattedValue = formatter.string(from: NSNumber(value: value)) ?? "--"
+            let glucoseValue = state.units == .mmolL ? value.asMmolL : value
+            let formattedValue = formatter.string(from: glucoseValue as NSNumber) ?? "--"
 
-            return state.units == .mmolL ? convertToMMOL(Double(value)) : formattedValue
-        }
-
-        private func convertToMMOL(_ value: Double) -> String {
-            let mmolValue = value * 0.0555
-            return "\(mmolValue) mmol/L"
+            return formattedValue
         }
     }
 }
