@@ -79,6 +79,8 @@ extension Home {
         @Published var overrides: [OverrideStored] = []
         @Published var overrideRunStored: [OverrideRunStored] = []
         @Published var isOverrideCancelled: Bool = false
+        @Published var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
+
         let context = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
@@ -91,6 +93,9 @@ extension Home {
             setupCarbsArray()
             setupFPUsArray()
             setupDeterminationsArray()
+            Task {
+                await updateForecastData()
+            }
             setupInsulinArray()
             setupLastBolus()
             setupBatteryArray()
@@ -519,7 +524,10 @@ extension Home.StateModel {
                 self.setupManualGlucoseArray()
             }
             if !determinationUpdates.isEmpty {
-                self.setupDeterminationsArray()
+                Task {
+                    self.setupDeterminationsArray()
+                    await self.updateForecastData()
+                }
             }
             if !carbUpdates.isEmpty {
                 self.setupCarbsArray()
@@ -959,19 +967,38 @@ extension Home.StateModel {
 // MARK: Extension for Main Chart to draw Forecasts
 
 extension Home.StateModel {
-    func preprocessForecastData() -> [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] {
-        determinationsFromPersistence
-            .compactMap { determination -> NSManagedObjectID? in
-                determination.objectID
-            }
-            .flatMap { determinationID -> [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] in
-                let forecasts = determinationStorage.getForecasts(for: determinationID, in: viewContext)
+    func preprocessForecastData() async -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] {
+        guard let id = determinationsFromPersistence.first?.objectID else {
+            return []
+        }
 
-                return forecasts.flatMap { forecast in
-                    determinationStorage.getForecastValues(for: forecast.objectID, in: viewContext).map { forecastValue in
-                        (id: UUID(), forecast: forecast, forecastValue: forecastValue)
-                    }
+        // Get forecast and forecast values
+        let forecastIDs = await determinationStorage.getForecastIDs(for: id, in: context)
+        var result: [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] = []
+
+        for forecastID in forecastIDs {
+            // Get the forecast value IDs for the given forecast ID
+            let forecastValueIDs = await determinationStorage.getForecastValueIDs(for: forecastID, in: context)
+            let uuid = UUID()
+            result.append((id: uuid, forecastID: forecastID, forecastValueIDs: forecastValueIDs))
+        }
+
+        return result
+    }
+
+    @MainActor func updateForecastData() async {
+        let forecastData = await preprocessForecastData()
+
+        preprocessedData = forecastData.reduce(into: []) { result, data in
+            guard let forecast = try? viewContext.existingObject(with: data.forecastID) as? Forecast else {
+                return
+            }
+
+            for forecastValueID in data.forecastValueIDs {
+                if let forecastValue = try? viewContext.existingObject(with: forecastValueID) as? ForecastValue {
+                    result.append((id: data.id, forecast: forecast, forecastValue: forecastValue))
                 }
             }
+        }
     }
 }

@@ -448,9 +448,7 @@ extension MainChartView {
     }
 
     private func drawForecasts() -> some ChartContent {
-        let preprocessedData = state.preprocessForecastData()
-
-        return ForEach(preprocessedData, id: \.id) { tuple in
+        ForEach(state.preprocessedData, id: \.id) { tuple in
             let forecastValue = tuple.forecastValue
             let forecast = tuple.forecast
 

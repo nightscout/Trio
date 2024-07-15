@@ -750,7 +750,6 @@ final class BaseAPSManager: APSManager, Injectable {
                 }
 
                 Task.detached(priority: .low) {
-                    await self.nightscout.uploadStatus()
                     await self.statistics()
                 }
             } else {
