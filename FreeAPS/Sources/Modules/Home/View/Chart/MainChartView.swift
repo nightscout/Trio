@@ -103,6 +103,10 @@ struct MainChartView: View {
         units == .mgdL ? 30 : 1.66
     }
 
+    private var interpolationFactor: Double {
+        Double(state.determinationsFromPersistence.first?.cob ?? 1) * 10
+    }
+
     private var selectedGlucose: GlucoseStored? {
         if let selection = selection {
             let lowerBound = selection.addingTimeInterval(-120)
@@ -656,18 +660,18 @@ extension MainChartView {
 
     private func drawIOB() -> some ChartContent {
         ForEach(state.enactedAndNonEnactedDeterminations) { iob in
-            let amount: Double = (iob.iob?.doubleValue ?? 0 / 10)
+            let amount: Double = (iob.iob?.doubleValue ?? 0 / interpolationFactor)
             let date: Date = iob.deliverAt ?? Date()
 
             LineMark(x: .value("Time", date), y: .value("Amount", amount))
-                .foregroundStyle(Color.purple)
+                .foregroundStyle(Color.darkerBlue)
             AreaMark(x: .value("Time", date), y: .value("Amount", amount))
                 .foregroundStyle(
                     LinearGradient(
                         gradient: Gradient(
                             colors: [
-                                Color.purple.opacity(0.8),
-                                Color.purple.opacity(0.01)
+                                Color.darkerBlue.opacity(0.8),
+                                Color.darkerBlue.opacity(0.01)
                             ]
                         ),
                         startPoint: .top,

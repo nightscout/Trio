@@ -687,15 +687,30 @@ extension Home.StateModel {
         }
     }
 
+    // Custom fetch to more efficiently filter only for cob and iob
+    private func fetchCobAndIob() async -> [NSManagedObjectID] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: OrefDetermination.self,
+            onContext: context,
+            predicate: NSPredicate.determinationsForCobIobCharts,
+            key: "deliverAt",
+            ascending: true,
+            fetchLimit: 288,
+            batchSize: 50,
+            propertiesToFetch: ["cob", "iob"]
+        )
+
+        return await context.perform {
+            return results.map(\.objectID)
+        }
+    }
+
     // Setup Determinations
     private func setupDeterminationsArray() {
         Task {
             async let enactedObjectIDs = determinationStorage
-                .fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDetermination, fetchLimit: 1)
-            async let enactedAndNonEnactedObjectIDs = determinationStorage.fetchLastDeterminationObjectID(
-                predicate: NSPredicate
-                    .determinationsForCobIobCharts, fetchLimit: 288
-            )
+                .fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDetermination)
+            async let enactedAndNonEnactedObjectIDs = fetchCobAndIob()
 
             let enactedIDs = await enactedObjectIDs
             let enactedAndNonEnactedIDs = await enactedAndNonEnactedObjectIDs

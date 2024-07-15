@@ -670,7 +670,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
     private func enactDetermination() async throws {
         guard let determinationID = await determinationStorage
-            .fetchLastDeterminationObjectID(predicate: NSPredicate.predicateFor30MinAgoForDetermination, fetchLimit: 1).first
+            .fetchLastDeterminationObjectID(predicate: NSPredicate.predicateFor30MinAgoForDetermination).first
         else {
             throw APSError.apsError(message: "Determination not found")
         }
@@ -725,7 +725,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
     private func reportEnacted(wasEnacted: Bool) async {
         guard let determinationID = await determinationStorage
-            .fetchLastDeterminationObjectID(predicate: NSPredicate.predicateFor30MinAgoForDetermination, fetchLimit: 1).first
+            .fetchLastDeterminationObjectID(predicate: NSPredicate.predicateFor30MinAgoForDetermination).first
         else {
             return
         }

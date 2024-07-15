@@ -621,8 +621,7 @@ extension Bolus.StateModel {
     private func setupDeterminationsArray() {
         Task {
             let ids = await determinationStorage.fetchLastDeterminationObjectID(
-                predicate: NSPredicate.enactedDetermination,
-                fetchLimit: 1
+                predicate: NSPredicate.enactedDetermination
             )
             await updateDeterminationsArray(with: ids)
         }
