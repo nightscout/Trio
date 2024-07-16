@@ -470,7 +470,6 @@ final class BaseAPSManager: APSManager, Injectable {
                 debug(.apsManager, "Bolus cancelled")
             }
 
-            self.updateStatus()
             self.bolusReporter?.removeObserver(self)
             self.bolusReporter = nil
             self.bolusProgress.send(nil)
