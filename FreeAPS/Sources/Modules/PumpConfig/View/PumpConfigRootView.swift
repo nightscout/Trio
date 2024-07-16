@@ -4,6 +4,7 @@ import Swinject
 extension PumpConfig {
     struct RootView: BaseView {
         let resolver: Resolver
+        let displayClose: Bool
         @StateObject var state = StateModel()
 
         @Environment(\.colorScheme) var colorScheme
@@ -53,6 +54,7 @@ extension PumpConfig {
                 .onAppear(perform: configureView)
                 .navigationTitle("Pump config")
                 .navigationBarTitleDisplayMode(.automatic)
+                .navigationBarItems(leading: displayClose ? Button("Close", action: state.hideModal) : nil)
                 .sheet(isPresented: $state.setupPump) {
                     if let pumpManager = state.provider.apsManager.pumpManager {
                         PumpSettingsView(

@@ -7,6 +7,7 @@ struct PumpView: View {
     @Binding var expiresAtDate: Date?
     @Binding var timerDate: Date
     @Binding var timeZone: TimeZone?
+    @Binding var pumpStatusHighlightMessage: String?
     var battery: [OpenAPS_Battery]
 
     @Environment(\.colorScheme) var colorScheme
@@ -38,47 +39,71 @@ struct PumpView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            if let reservoir = reservoir {
-                HStack {
-                    Image(systemName: "cross.vial.fill")
-                        .font(.system(size: 16))
-                        .foregroundColor(reservoirColor)
-                    if reservoir == 0xDEAD_BEEF {
-                        Text("50+ " + NSLocalizedString("U", comment: "Insulin unit")).font(.system(size: 15, design: .rounded))
-                    } else {
-                        Text(
-                            reservoirFormatter
-                                .string(from: reservoir as NSNumber)! + NSLocalizedString(" U", comment: "Insulin unit")
-                        )
-                        .font(.system(size: 16, design: .rounded))
+        if let pumpStatusHighlightMessage = pumpStatusHighlightMessage { // display message instead pump info
+            VStack(alignment: .center) {
+                Text(pumpStatusHighlightMessage).font(.footnote).fontWeight(.bold)
+                    .multilineTextAlignment(.center).frame(maxWidth: /*@START_MENU_TOKEN@*/ .infinity/*@END_MENU_TOKEN@*/)
+            }.frame(width: 100)
+        } else {
+            VStack(alignment: .leading, spacing: 20) {
+                if reservoir == nil && battery.isEmpty {
+                    VStack(alignment: .center, spacing: 12) {
+                        HStack {
+                            Image(systemName: "keyboard.onehanded.left")
+                                .font(.body)
+                                .imageScale(.large)
+                        }
+                        HStack {
+                            Text("Add pump")
+                                .font(.caption)
+                                .bold()
+                        }
+                    }
+                    .frame(alignment: .top)
+                }
+                if let reservoir = reservoir {
+                    HStack {
+                        Image(systemName: "cross.vial.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(reservoirColor)
+                        if reservoir == 0xDEAD_BEEF {
+                            Text("50+ " + NSLocalizedString("U", comment: "Insulin unit"))
+                                .font(.system(size: 15, design: .rounded))
+                        } else {
+                            Text(
+                                reservoirFormatter
+                                    .string(from: reservoir as NSNumber)! + NSLocalizedString(" U", comment: "Insulin unit")
+                            )
+                            .font(.system(size: 16, design: .rounded))
+                        }
+                    }
+
+                    if let timeZone = timeZone, timeZone.secondsFromGMT() != TimeZone.current.secondsFromGMT() {
+                        Image(systemName: "clock.badge.exclamationmark.fill")
+                            .font(.system(size: 16))
+                            .symbolRenderingMode(.palette)
+                            .foregroundStyle(.red, Color(.warning))
                     }
                 }
 
-                if let timeZone = timeZone, timeZone.secondsFromGMT() != TimeZone.current.secondsFromGMT() {
-                    Image(systemName: "clock.badge.exclamationmark.fill")
-                        .font(.system(size: 16))
-                        .symbolRenderingMode(.palette)
-                        .foregroundStyle(.red, Color(.warning))
+                if (battery.first?.display) != nil, expiresAtDate == nil {
+                    HStack {
+                        Image(systemName: "battery.100")
+                            .font(.system(size: 16))
+                            .foregroundColor(batteryColor)
+                        Text("\(Int(battery.first?.percent ?? 100)) %").font(.system(size: 16, design: .rounded))
+                    }
                 }
-            }
 
-            if (battery.first?.display) != nil, expiresAtDate == nil {
-                HStack {
-                    Image(systemName: "battery.100")
-                        .font(.system(size: 16))
-                        .foregroundColor(batteryColor)
-                    Text("\(Int(battery.first?.percent ?? 100)) %").font(.system(size: 16, design: .rounded))
-                }
-            }
+                if let date = expiresAtDate {
+                    HStack {
+                        Image(systemName: "stopwatch.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(timerColor)
 
-            if let date = expiresAtDate {
-                HStack {
-                    Image(systemName: "stopwatch.fill")
-                        .font(.system(size: 16))
-                        .foregroundColor(timerColor)
-
-                    Text(remainingTimeString(time: date.timeIntervalSince(timerDate))).font(.system(size: 16, design: .rounded))
+                        Text(remainingTimeString(time: date.timeIntervalSince(timerDate)))
+                            .font(.system(size: 16, design: .rounded))
+                    }
                 }
             }
         }

@@ -80,6 +80,7 @@ extension Home {
         @Published var overrideRunStored: [OverrideRunStored] = []
         @Published var isOverrideCancelled: Bool = false
         @Published var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
+        @Published var pumpStatusHighlightMessage: String? = nil
 
         let context = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
@@ -130,6 +131,7 @@ extension Home {
             broadcaster.register(BasalProfileObserver.self, observer: self)
             broadcaster.register(TempTargetsObserver.self, observer: self)
             broadcaster.register(PumpReservoirObserver.self, observer: self)
+            broadcaster.register(PumpDeactivatedObserver.self, observer: self)
 
             animatedBackground = settingsManager.settings.animatedBackground
 
@@ -191,6 +193,7 @@ extension Home {
                         self.setupPump = false
                     } else {
                         self.setupReservoir()
+                        self.displayPumpStatusHighlightMessage()
                     }
                 }
                 .store(in: &lifetime)
@@ -208,11 +211,29 @@ extension Home {
                             setupDelegate: self
                         ).asAny()
                         self.router.mainSecondaryModalView.send(view)
+                    } else if show {
+                        self.router.mainSecondaryModalView.send(self.router.view(for: .pumpConfigDirect))
                     } else {
                         self.router.mainSecondaryModalView.send(nil)
                     }
                 }
                 .store(in: &lifetime)
+        }
+
+        /// Display the eventual status message provided by the manager of the pump
+        /// Only display if state is warning or critical message else return nil
+        private func displayPumpStatusHighlightMessage(_ didDeactivate: Bool = false) {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                if let statusHighlight = self.provider.deviceManager.pumpManager?.pumpStatusHighlight,
+                   statusHighlight.state == .warning || statusHighlight.state == .critical, !didDeactivate
+                {
+                    pumpStatusHighlightMessage = (statusHighlight.state == .warning ? "⚠️\n" : "‼️\n") + statusHighlight
+                        .localizedMessage
+                } else {
+                    pumpStatusHighlightMessage = nil
+                }
+            }
         }
 
         func runLoop() {
@@ -375,7 +396,8 @@ extension Home.StateModel:
     BasalProfileObserver,
     TempTargetsObserver,
     PumpReservoirObserver,
-    PumpTimeZoneObserver
+    PumpTimeZoneObserver,
+    PumpDeactivatedObserver
 {
     func glucoseDidUpdate(_: [BloodGlucose]) {
 //        setupGlucose()
@@ -424,6 +446,10 @@ extension Home.StateModel:
 
     func pumpTimeZoneDidChange(_: TimeZone) {
         setupCurrentPumpTimezone()
+    }
+
+    func pumpDeactivatedDidChange() {
+        displayPumpStatusHighlightMessage(true)
     }
 }
 
@@ -533,6 +559,7 @@ extension Home.StateModel {
             if !insulinUpdates.isEmpty {
                 self.setupInsulinArray()
                 self.setupLastBolus()
+                self.displayPumpStatusHighlightMessage()
             }
             if !batteryUpdates.isEmpty {
                 self.setupBatteryArray()
