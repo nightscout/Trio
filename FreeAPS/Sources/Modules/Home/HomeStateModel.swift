@@ -93,9 +93,6 @@ extension Home {
             setupCarbsArray()
             setupFPUsArray()
             setupDeterminationsArray()
-            Task {
-                await updateForecastData()
-            }
             setupInsulinArray()
             setupLastBolus()
             setupBatteryArray()
@@ -716,6 +713,7 @@ extension Home.StateModel {
 
             await updateEnacted
             await updateEnactedAndNonEnacted
+            await updateForecastData()
         }
     }
 
