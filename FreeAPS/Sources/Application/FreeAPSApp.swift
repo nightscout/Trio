@@ -134,7 +134,7 @@ import Swinject
             days: 2,
             relationshipKey: "forecast"
         )
-        async let overrideDeletion: () = coreDataStack.batchDeleteOlderThan(OverrideStored.self, dateKey: "date", days: 3)
+        async let overrideDeletion: () = coreDataStack.batchDeleteOlderThan(OverrideStored.self, dateKey: "date", days: 3, isPresetKey: "isPreset")
         async let overrideRunDeletion: () = coreDataStack
             .batchDeleteOlderThan(OverrideRunStored.self, dateKey: "startDate", days: 3)
 

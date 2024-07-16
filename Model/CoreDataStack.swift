@@ -178,7 +178,7 @@ extension CoreDataStack {
 
     /// Asynchronously deletes records for entities
     ///  - Tag: batchDelete
-    func batchDeleteOlderThan<T: NSManagedObject>(_ objectType: T.Type, dateKey: String, days: Int) async throws {
+    func batchDeleteOlderThan<T: NSManagedObject>(_ objectType: T.Type, dateKey: String, days: Int, isPresetKey: String? = nil) async throws {
         let taskContext = newTaskContext()
         taskContext.name = "deleteContext"
         taskContext.transactionAuthor = "batchDelete"
@@ -188,7 +188,13 @@ extension CoreDataStack {
 
         // Fetch all the objects that are older than the specified days
         let fetchRequest = NSFetchRequest<NSManagedObjectID>(entityName: String(describing: objectType))
-        fetchRequest.predicate = NSPredicate(format: "%K < %@", dateKey, targetDate as NSDate)
+        
+        // Construct the predicate
+        var predicates: [NSPredicate] = [NSPredicate(format: "%K < %@", dateKey, targetDate as NSDate)]
+        if let isPresetKey = isPresetKey {
+            predicates.append(NSPredicate(format: "%K == NO", isPresetKey))
+        }
+        fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
         fetchRequest.resultType = .managedObjectIDResultType
 
         do {
@@ -197,7 +203,7 @@ extension CoreDataStack {
                 try taskContext.fetch(fetchRequest)
             }
 
-            // Guard check if there are NSManagedObjects older than 90 days
+            // Guard check if there are NSManagedObjects older than the specified days
             guard !objectIDs.isEmpty else {
                 debugPrint("No objects found older than \(days) days.")
                 return
