@@ -140,12 +140,11 @@ extension DataTable {
                         Section {
                             HStack {
                                 Text("New Glucose")
-                                DecimalTextField(
-                                    " ... ",
-                                    value: $state.manualGlucose,
-                                    formatter: glucoseFormatter,
-                                    autofocus: true,
-                                    cleanInput: true
+                                TextFieldWithToolBar(
+                                    text: $state.manualGlucose,
+                                    placeholder: " ... ",
+                                    shouldBecomeFirstResponder: true,
+                                    numberFormatter: glucoseFormatter
                                 )
                                 Text(state.units.rawValue).foregroundStyle(.secondary)
                             }
@@ -253,12 +252,11 @@ extension DataTable {
                             HStack {
                                 Text("Amount")
                                 Spacer()
-                                DecimalTextField(
-                                    "0",
-                                    value: $state.externalInsulinAmount,
-                                    formatter: insulinFormatter,
-                                    autofocus: true,
-                                    cleanInput: true
+                                TextFieldWithToolBar(
+                                    text: $state.externalInsulinAmount,
+                                    placeholder: "0",
+                                    shouldBecomeFirstResponder: true,
+                                    numberFormatter: insulinFormatter
                                 )
                                 Text("U").foregroundColor(.secondary)
                             }
@@ -316,7 +314,12 @@ extension DataTable {
                         state.units == .mmolL ? $0.asMmolL : Decimal($0)
                     ) as NSNumber)!
                 } ?? "--")
-                Text(item.glucose.direction?.symbol ?? "--")
+                if item.glucose.type == "Manual" {
+                    Image(systemName: "drop.fill")
+                        .foregroundColor(Color.loopRed)
+                } else {
+                    Text(item.glucose.direction?.symbol ?? "--")
+                }
                 Spacer()
 
                 Text(dateFormatter.string(from: item.glucose.dateString))

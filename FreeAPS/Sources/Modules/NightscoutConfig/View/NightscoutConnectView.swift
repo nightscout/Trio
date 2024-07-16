@@ -2,12 +2,13 @@ import SwiftUI
 
 struct NightscoutConnectView: View {
     @ObservedObject var state: NightscoutConfig.StateModel
-    @State private var portFormater: NumberFormatter
+    @State private var portFormatter: NumberFormatter
 
     init(state: NightscoutConfig.StateModel) {
         self.state = state
-        portFormater = NumberFormatter()
-        portFormater.allowsFloats = false
+        portFormatter = NumberFormatter()
+        portFormatter.allowsFloats = false
+        portFormatter.usesGroupingSeparator = false
     }
 
     var body: some View {
@@ -49,7 +50,13 @@ struct NightscoutConnectView: View {
                 Toggle("Use local glucose server", isOn: $state.useLocalSource)
                 HStack {
                     Text("Port")
-                    DecimalTextField("", value: $state.localPort, formatter: portFormater)
+                    TextFieldWithToolBar(
+                        text: $state.localPort,
+                        placeholder: "",
+                        keyboardType: .numberPad,
+                        numberFormatter: portFormatter,
+                        allowDecimalSeparator: false
+                    )
                 }
             } header: { Text("Local glucose source") }
         }
