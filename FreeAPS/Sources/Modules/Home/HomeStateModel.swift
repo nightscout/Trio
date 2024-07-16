@@ -79,6 +79,9 @@ extension Home {
         @Published var overrides: [OverrideStored] = []
         @Published var overrideRunStored: [OverrideRunStored] = []
         @Published var isOverrideCancelled: Bool = false
+        @Published var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
+        @Published var pumpStatusHighlightMessage: String? = nil
+
         let context = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
@@ -128,6 +131,7 @@ extension Home {
             broadcaster.register(BasalProfileObserver.self, observer: self)
             broadcaster.register(TempTargetsObserver.self, observer: self)
             broadcaster.register(PumpReservoirObserver.self, observer: self)
+            broadcaster.register(PumpDeactivatedObserver.self, observer: self)
 
             animatedBackground = settingsManager.settings.animatedBackground
 
@@ -189,6 +193,7 @@ extension Home {
                         self.setupPump = false
                     } else {
                         self.setupReservoir()
+                        self.displayPumpStatusHighlightMessage()
                     }
                 }
                 .store(in: &lifetime)
@@ -206,11 +211,29 @@ extension Home {
                             setupDelegate: self
                         ).asAny()
                         self.router.mainSecondaryModalView.send(view)
+                    } else if show {
+                        self.router.mainSecondaryModalView.send(self.router.view(for: .pumpConfigDirect))
                     } else {
                         self.router.mainSecondaryModalView.send(nil)
                     }
                 }
                 .store(in: &lifetime)
+        }
+
+        /// Display the eventual status message provided by the manager of the pump
+        /// Only display if state is warning or critical message else return nil
+        private func displayPumpStatusHighlightMessage(_ didDeactivate: Bool = false) {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                if let statusHighlight = self.provider.deviceManager.pumpManager?.pumpStatusHighlight,
+                   statusHighlight.state == .warning || statusHighlight.state == .critical, !didDeactivate
+                {
+                    pumpStatusHighlightMessage = (statusHighlight.state == .warning ? "⚠️\n" : "‼️\n") + statusHighlight
+                        .localizedMessage
+                } else {
+                    pumpStatusHighlightMessage = nil
+                }
+            }
         }
 
         func runLoop() {
@@ -373,7 +396,8 @@ extension Home.StateModel:
     BasalProfileObserver,
     TempTargetsObserver,
     PumpReservoirObserver,
-    PumpTimeZoneObserver
+    PumpTimeZoneObserver,
+    PumpDeactivatedObserver
 {
     func glucoseDidUpdate(_: [BloodGlucose]) {
 //        setupGlucose()
@@ -422,6 +446,10 @@ extension Home.StateModel:
 
     func pumpTimeZoneDidChange(_: TimeZone) {
         setupCurrentPumpTimezone()
+    }
+
+    func pumpDeactivatedDidChange() {
+        displayPumpStatusHighlightMessage(true)
     }
 }
 
@@ -519,7 +547,10 @@ extension Home.StateModel {
                 self.setupManualGlucoseArray()
             }
             if !determinationUpdates.isEmpty {
-                self.setupDeterminationsArray()
+                Task {
+                    self.setupDeterminationsArray()
+                    await self.updateForecastData()
+                }
             }
             if !carbUpdates.isEmpty {
                 self.setupCarbsArray()
@@ -528,6 +559,7 @@ extension Home.StateModel {
             if !insulinUpdates.isEmpty {
                 self.setupInsulinArray()
                 self.setupLastBolus()
+                self.displayPumpStatusHighlightMessage()
             }
             if !batteryUpdates.isEmpty {
                 self.setupBatteryArray()
@@ -708,6 +740,7 @@ extension Home.StateModel {
 
             await updateEnacted
             await updateEnactedAndNonEnacted
+            await updateForecastData()
         }
     }
 
@@ -959,19 +992,38 @@ extension Home.StateModel {
 // MARK: Extension for Main Chart to draw Forecasts
 
 extension Home.StateModel {
-    func preprocessForecastData() -> [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] {
-        determinationsFromPersistence
-            .compactMap { determination -> NSManagedObjectID? in
-                determination.objectID
-            }
-            .flatMap { determinationID -> [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] in
-                let forecasts = determinationStorage.getForecasts(for: determinationID, in: viewContext)
+    func preprocessForecastData() async -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] {
+        guard let id = determinationsFromPersistence.first?.objectID else {
+            return []
+        }
 
-                return forecasts.flatMap { forecast in
-                    determinationStorage.getForecastValues(for: forecast.objectID, in: viewContext).map { forecastValue in
-                        (id: UUID(), forecast: forecast, forecastValue: forecastValue)
-                    }
+        // Get forecast and forecast values
+        let forecastIDs = await determinationStorage.getForecastIDs(for: id, in: context)
+        var result: [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] = []
+
+        for forecastID in forecastIDs {
+            // Get the forecast value IDs for the given forecast ID
+            let forecastValueIDs = await determinationStorage.getForecastValueIDs(for: forecastID, in: context)
+            let uuid = UUID()
+            result.append((id: uuid, forecastID: forecastID, forecastValueIDs: forecastValueIDs))
+        }
+
+        return result
+    }
+
+    @MainActor func updateForecastData() async {
+        let forecastData = await preprocessForecastData()
+
+        preprocessedData = forecastData.reduce(into: []) { result, data in
+            guard let forecast = try? viewContext.existingObject(with: data.forecastID) as? Forecast else {
+                return
+            }
+
+            for forecastValueID in data.forecastValueIDs {
+                if let forecastValue = try? viewContext.existingObject(with: forecastValueID) as? ForecastValue {
+                    result.append((id: data.id, forecast: forecast, forecastValue: forecastValue))
                 }
             }
+        }
     }
 }

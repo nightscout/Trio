@@ -24,6 +24,7 @@ protocol NightscoutManager: GlucoseSource {
 
 final class BaseNightscoutManager: NightscoutManager, Injectable {
     @Injected() private var keychain: Keychain!
+    @Injected() private var determinationStorage: DeterminationStorage!
     @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var tempTargetsStorage: TempTargetsStorage!
     @Injected() private var overridesStorage: OverrideStorage!
@@ -64,8 +65,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
         return NightscoutAPI(url: url, secret: secret)
     }
-
-    private let context = CoreDataStack.shared.newTaskContext()
 
     private var lastEnactedDetermination: OrefDetermination?
     private var lastSuggestedDetermination: OrefDetermination?
@@ -304,9 +303,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func fetchBattery() -> Battery {
-        context.performAndWait {
+        backgroundContext.performAndWait {
             do {
-                let results = try context.fetch(OpenAPS_Battery.fetch(NSPredicate.predicateFor30MinAgo))
+                let results = try backgroundContext.fetch(OpenAPS_Battery.fetch(NSPredicate.predicateFor30MinAgo))
                 if let last = results.first {
                     let percent: Int? = Int(last.percent)
                     let voltage: Decimal? = last.voltage as Decimal?
@@ -335,156 +334,22 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-
-    private func fetchEnactedDetermination() async -> [OrefDetermination] {
-        let enactedDeterminations = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: OrefDetermination.self,
-            onContext: backgroundContext,
-            predicate: NSPredicate.enactedDetermination,
-            key: "deliverAt",
-            ascending: false,
-            fetchLimit: 1
-        )
-
-        let enactedIds = await backgroundContext.perform {
-            enactedDeterminations.map(\.objectID)
-        }
-
-        return await context.perform {
-            do {
-                let enacted = try enactedIds.compactMap { id in
-                    try self.context.existingObject(with: id) as? OrefDetermination
-                }
-
-                debugPrint(
-                    "NightscoutManager \(#function) \(DebuggingIdentifiers.succeeded) fetched ENACTED determinations: \(String(describing: enacted))"
-                )
-
-                return enacted
-            } catch {
-                debugPrint(
-                    "NightscoutManager \(#function) \(DebuggingIdentifiers.failed) error while fetching the determinations: \(error.localizedDescription)"
-                )
-                return []
-            }
-        }
-    }
-
-    private func fetchSuggestedDetermination() async -> [OrefDetermination] {
-        let suggestedDeterminations = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: OrefDetermination.self,
-            onContext: backgroundContext,
-            predicate: NSPredicate(
-                format: "(enacted == %@ OR enacted == NULL) AND deliverAt >= %@",
-                false as NSNumber,
-                Date.halfHourAgo as NSDate
-            ),
-            key: "deliverAt",
-            ascending: false,
-            fetchLimit: 1
-        )
-
-        let suggestedIds = await backgroundContext.perform {
-            suggestedDeterminations.map(\.objectID)
-        }
-
-        return await context.perform {
-            do {
-                let suggested = try suggestedIds.compactMap { id in
-                    try self.context.existingObject(with: id) as? OrefDetermination
-                }
-
-                debugPrint(
-                    "NightscoutManager \(#function) \(DebuggingIdentifiers.succeeded) fetched SUGGESTED determinations: \(String(describing: suggested))"
-                )
-
-                return suggested
-            } catch {
-                debugPrint(
-                    "NightscoutManager \(#function) \(DebuggingIdentifiers.failed) error while fetching the determinations: \(error.localizedDescription)"
-                )
-
-                return []
-            }
-        }
-    }
-
-    func parseOrefDetermination(_ orefDetermination: OrefDetermination) -> Determination {
-        // Convert NSDecimalNumber to Decimal
-        func decimal(from nsDecimalNumber: NSDecimalNumber?) -> Decimal? {
-            nsDecimalNumber?.decimalValue
-        }
-
-        // Convert NSSet to array of Ints for Predictions
-        func parseForecastValues(ofType type: String, from orefDetermination: OrefDetermination) -> [Int]? {
-            guard let forecasts = orefDetermination.forecasts?.filter({ ($0 as? Forecast)?.type == type }) as? [Forecast] else {
-                return nil
-            }
-
-            return forecasts.flatMap { forecast in
-                (forecast.forecastValues as? [ForecastValue])?.map { Int($0.value) } ?? []
-            }
-        }
-
-        // Parse Insulin data
-        let insulin = Insulin(
-            TDD: decimal(from: orefDetermination.totalDailyDose),
-            bolus: orefDetermination.bolus as Decimal?,
-            temp_basal: orefDetermination.tempBasal as Decimal?,
-            scheduled_basal: orefDetermination.scheduledBasal as Decimal?
-        )
-
-        // Parse Predictions data
-        let predictions = Predictions(
-            iob: parseForecastValues(ofType: "iob", from: orefDetermination),
-            zt: parseForecastValues(ofType: "zt", from: orefDetermination),
-            cob: parseForecastValues(ofType: "cob", from: orefDetermination),
-            uam: parseForecastValues(ofType: "uam", from: orefDetermination)
-        )
-
-        return Determination(
-            reason: orefDetermination.reason ?? "",
-            units: orefDetermination.smbToDeliver as Decimal?,
-            insulinReq: decimal(from: orefDetermination.insulinReq),
-            eventualBG: orefDetermination.eventualBG as? Int,
-            sensitivityRatio: decimal(from: orefDetermination.sensitivityRatio),
-            rate: decimal(from: orefDetermination.rate),
-            duration: decimal(from: orefDetermination.duration),
-            iob: decimal(from: orefDetermination.iob),
-            cob: orefDetermination.cob != 0 ? Decimal(orefDetermination.cob) : nil,
-            predictions: predictions,
-            deliverAt: orefDetermination.deliverAt,
-            carbsReq: orefDetermination.carbsRequired != 0 ? Decimal(orefDetermination.carbsRequired) : nil,
-            temp: TempType(rawValue: orefDetermination.temp ?? "absolute"),
-            bg: decimal(from: orefDetermination.glucose),
-            reservoir: decimal(from: orefDetermination.reservoir),
-            isf: decimal(from: orefDetermination.insulinSensitivity),
-            timestamp: orefDetermination.timestamp, // Assuming you have this property
-            tdd: decimal(from: orefDetermination.totalDailyDose),
-            insulin: insulin,
-            current_target: decimal(from: orefDetermination.currentTarget),
-            insulinForManualBolus: decimal(from: orefDetermination.insulinForManualBolus),
-            manualBolusErrorString: decimal(from: orefDetermination.manualBolusErrorString),
-            minDelta: decimal(from: orefDetermination.minDelta),
-            expectedDelta: decimal(from: orefDetermination.expectedDelta),
-            minGuardBG: nil,
-            minPredBG: nil,
-            threshold: decimal(from: orefDetermination.threshold),
-            carbRatio: decimal(from: orefDetermination.carbRatio)
-        )
-    }
-
     func uploadStatus() async {
-        let enactedFromPersistence = await fetchEnactedDetermination()
-        let suggestedFromPersistence = await fetchSuggestedDetermination()
+//        var enacted: Determination?
+//        var suggested: Determination?
+        let enacted = await determinationStorage.parseOrefDetermination(
+            await determinationStorage
+                .fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDetermination)
+        )
 
-        var enacted: Determination?
-        var suggested: Determination?
-
-        if let lastEnacted = enactedFromPersistence.first, let lastSuggested = suggestedFromPersistence.first {
-            enacted = parseOrefDetermination(lastEnacted)
-            suggested = parseOrefDetermination(lastSuggested)
-        }
+        let suggested = await determinationStorage.parseOrefDetermination(
+            await determinationStorage
+                .fetchLastDeterminationObjectID(predicate: NSPredicate(
+                    format: "(enacted == %@ OR enacted == NULL) AND deliverAt >= %@",
+                    false as NSNumber,
+                    Date.halfHourAgo as NSDate
+                ))
+        )
 
         let iob = storage.retrieve(OpenAPS.Monitor.iob, as: [IOBEntry].self)
 

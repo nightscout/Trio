@@ -168,7 +168,9 @@ extension Home {
                 name: $state.pumpName,
                 expiresAtDate: $state.pumpExpiresAtDate,
                 timerDate: $state.timerDate,
-                timeZone: $state.timeZone, battery: state.batteryFromPersistence
+                timeZone: $state.timeZone,
+                pumpStatusHighlightMessage: $state.pumpStatusHighlightMessage,
+                battery: state.batteryFromPersistence
             ).onTapGesture {
                 if state.pumpDisplayState != nil {
                     state.setupPump = true
