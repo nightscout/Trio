@@ -697,7 +697,7 @@ extension Home.StateModel {
             ascending: true,
             fetchLimit: 288,
             batchSize: 50,
-            propertiesToFetch: ["cob", "iob"]
+            propertiesToFetch: ["cob", "iob", "deliverAt"]
         )
 
         return await context.perform {

@@ -204,7 +204,7 @@ extension MainChartView {
             }
         }
         .id("DummyMainChart")
-        .frame(minHeight: geo.size.height * 0.3)
+        .frame(minHeight: geo.size.height * 0.28)
         .frame(width: screenSize.width - 10)
         .chartXAxis { mainChartXAxis }
         .chartXScale(domain: startMarker ... endMarker)
@@ -230,7 +230,7 @@ extension MainChartView {
             drawCOB(dummy: true)
         }
         .id("DummyCobChart")
-        .frame(minHeight: geo.size.height * 0.1)
+        .frame(minHeight: geo.size.height * 0.12)
         .frame(width: screenSize.width - 10)
         .chartXScale(domain: startMarker ... endMarker)
         .chartXAxis { basalChartXAxis }
@@ -254,6 +254,7 @@ extension MainChartView {
                 drawForecasts()
                 drawGlucose(dummy: false)
                 drawManualGlucose()
+                drawCarbs()
 
                 /// show glucose value when hovering over it
                 if let selectedGlucose {
@@ -276,7 +277,7 @@ extension MainChartView {
             .onChange(of: didAppearTrigger) { _ in
                 calculateTTs()
             }
-            .frame(minHeight: geo.size.height * 0.3)
+            .frame(minHeight: geo.size.height * 0.28)
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .chartXScale(domain: startMarker ... endMarker)
             .chartXAxis { mainChartXAxis }
@@ -357,7 +358,7 @@ extension MainChartView {
             Chart {
                 drawIOB()
             }
-            .frame(minHeight: geo.size.height * 0.1)
+            .frame(minHeight: geo.size.height * 0.12)
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .chartXScale(domain: startMarker ... endMarker)
             .chartXAxis { basalChartXAxis }
@@ -371,15 +372,14 @@ extension MainChartView {
         Chart {
             drawCurrentTimeMarker()
             drawCOB(dummy: false)
-            drawCarbs()
         }
-        .frame(minHeight: geo.size.height * 0.1)
+        .frame(minHeight: geo.size.height * 0.12)
         .frame(width: fullWidth(viewWidth: screenSize.width))
         .chartXScale(domain: startMarker ... endMarker)
         .chartXAxis { basalChartXAxis }
 //        .chartXAxis(.hidden)
         .chartYAxis { cobChartYAxis }
-        .chartYAxis(.hidden)
+//        .chartYAxis(.hidden)
     }
 
     var legendPanel: some View {
@@ -431,19 +431,24 @@ extension MainChartView {
         /// carbs
         ForEach(state.carbsFromPersistence) { carb in
             let carbAmount = carb.carbs
-            let yPosition = state.enactedAndNonEnactedDeterminations.first?.cob == 0 ? 0 : 15
-            let size = (Config.carbsSize + CGFloat(carbAmount) * Config.carbsScale)
+            let carbDate = carb.date ?? Date()
 
-            PointMark(
-                x: .value("Time", carb.date ?? Date(), unit: .second),
-                y: .value("Value", yPosition)
-            )
-            .symbol {
-                Image(systemName: "arrowtriangle.down.fill").font(.system(size: size)).foregroundStyle(Color.orange)
-            }
-            .annotation(position: .top) {
-                Text(carbsFormatter.string(from: carbAmount as NSNumber)!).font(.caption2)
-                    .foregroundStyle(Color.orange)
+            if let glucose = timeToNearestGlucose(time: carbDate.timeIntervalSince1970)?.glucose {
+                let yPosition = (Decimal(glucose) * conversionFactor) - bolusOffset
+                let size = (Config.carbsSize + CGFloat(carbAmount) * Config.carbsScale) * 2
+
+                PointMark(
+                    x: .value("Time", carbDate, unit: .second),
+                    y: .value("Value", yPosition)
+                )
+                .symbol {
+                    Image(systemName: "arrowtriangle.down.fill").font(.system(size: size)).foregroundStyle(Color.orange)
+                        .rotationEffect(.degrees(180))
+                }
+                .annotation(position: .bottom) {
+                    Text(carbsFormatter.string(from: carbAmount as NSNumber)!).font(.caption2)
+                        .foregroundStyle(Color.orange)
+                }
             }
         }
     }
@@ -453,7 +458,7 @@ extension MainChartView {
         ForEach(state.fpusFromPersistence, id: \.id) { fpu in
             let fpuAmount = fpu.carbs
             let size = (Config.fpuSize + CGFloat(fpuAmount) * Config.carbsScale) * 1.8
-            let yPosition = units == .mgdL ? 60 : 3.33
+            let yPosition = minValue
 
             PointMark(
                 x: .value("Time", fpu.date ?? Date(), unit: .second),
@@ -974,16 +979,23 @@ extension MainChartView {
     // MARK: - Chart formatting
 
     private func yAxisChartData() {
-        let glucoseMapped = state.glucoseFromPersistence.map(\.glucose)
-        guard let minGlucose = glucoseMapped.min(), let maxGlucose = glucoseMapped.max() else {
+        let glucoseMapped = state.glucoseFromPersistence.map { Decimal($0.glucose) }
+        let forecastValues = state.preprocessForecastData().map { Decimal($0.forecastValue.value) }
+
+        guard let minGlucose = glucoseMapped.min(), let maxGlucose = glucoseMapped.max(),
+              let minForecast = forecastValues.min(), let maxForecast = forecastValues.max()
+        else {
             // default values
             minValue = 45 * conversionFactor - 20 * conversionFactor
             maxValue = 270 * conversionFactor + 50 * conversionFactor
             return
         }
 
-        minValue = Decimal(minGlucose) * conversionFactor - 20 * conversionFactor
-        maxValue = Decimal(maxGlucose) * conversionFactor + 50 * conversionFactor
+        let minOverall = min(minGlucose, minForecast)
+        let maxOverall = max(maxGlucose, maxForecast)
+
+        minValue = minOverall * conversionFactor - 20 * conversionFactor
+        maxValue = maxOverall * conversionFactor + 50 * conversionFactor
 
         debug(.default, "min \(minValue)")
         debug(.default, "max \(maxValue)")
@@ -1014,7 +1026,7 @@ extension MainChartView {
                 AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
             }
             AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
-                .font(.footnote)
+                .font(.footnote).foregroundStyle(Color.primary)
         }
     }
 
@@ -1045,7 +1057,7 @@ extension MainChartView {
                 AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
             }
 
-            AxisValueLabel().font(.system(.footnote))
+//            AxisValueLabel().font(.system(.footnote))
         }
     }
 }
