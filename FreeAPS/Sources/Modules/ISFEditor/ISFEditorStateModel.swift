@@ -100,7 +100,9 @@ extension ISFEditor {
 
         private func setupDeterminationsArray() {
             Task {
-                let ids = await determinationStorage.fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDetermination)
+                let ids = await determinationStorage.fetchLastDeterminationObjectID(
+                    predicate: NSPredicate.enactedDetermination
+                )
                 await updateDeterminationsArray(with: ids)
             }
         }

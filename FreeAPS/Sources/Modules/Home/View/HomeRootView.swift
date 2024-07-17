@@ -361,7 +361,7 @@ extension Home {
             .font(buttonFont)
         }
 
-        var mainChart: some View {
+        @ViewBuilder func mainChart(geo: GeometryProxy) -> some View {
             ZStack {
                 if state.animatedBackground {
                     SpriteView(scene: spriteScene, options: [.allowsTransparency])
@@ -370,6 +370,7 @@ extension Home {
                 }
 
                 MainChartView(
+                    geo: geo,
                     units: $state.units,
                     announcement: $state.announcement,
                     hours: .constant(state.filteredHours),
@@ -467,7 +468,7 @@ extension Home {
                     Text(
                         (
                             numberFormatter
-                                .string(from: (state.enactedAndNonEnactedDeterminations.first?.iob ?? 0) as NSNumber) ?? "0"
+                                .string(from: (state.enactedAndNonEnactedDeterminations.last?.iob ?? 0) as NSNumber) ?? "0"
                         ) +
                             NSLocalizedString(" U", comment: "Insulin unit")
                     )
@@ -483,7 +484,7 @@ extension Home {
                     Text(
                         (
                             numberFormatter
-                                .string(from: (state.enactedAndNonEnactedDeterminations.first?.cob ?? 0) as NSNumber) ?? "0"
+                                .string(from: (state.enactedAndNonEnactedDeterminations.last?.cob ?? 0) as NSNumber) ?? "0"
                         ) +
                             NSLocalizedString(" g", comment: "gram of carbs")
                     )
@@ -537,7 +538,7 @@ extension Home {
             }.padding(.horizontal, 10)
         }
 
-        @ViewBuilder func profileView(_: GeometryProxy) -> some View {
+        @ViewBuilder func profileView(geo: GeometryProxy) -> some View {
             ZStack {
                 /// rectangle as background
                 RoundedRectangle(cornerRadius: 15)
@@ -546,7 +547,7 @@ extension Home {
                             .opacity(0.1)
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 15))
-                    .frame(height: UIScreen.main.bounds.height / 18)
+                    .frame(height: geo.size.height * 0.08)
                     .shadow(
                         color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
                             Color.black.opacity(0.33),
@@ -667,7 +668,7 @@ extension Home {
             }
         }
 
-        @ViewBuilder func bolusView(_: GeometryProxy, _ progress: Decimal) -> some View {
+        @ViewBuilder func bolusView(geo: GeometryProxy, _ progress: Decimal) -> some View {
             /// ensure that state.lastPumpBolus has a value, i.e. there is a last bolus done by the pump and not an external bolus
             /// - TRUE:  show the pump bolus
             /// - FALSE:  do not show a progress bar at all
@@ -688,7 +689,7 @@ extension Home {
                                 .opacity(0.2)
                         )
                         .clipShape(RoundedRectangle(cornerRadius: 15))
-                        .frame(height: UIScreen.main.bounds.height / 18)
+                        .frame(height: geo.size.height * 0.08)
                         .shadow(
                             color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
                                 Color.black.opacity(0.33),
@@ -725,7 +726,7 @@ extension Home {
 
                 }.padding(.horizontal, 10).padding(.bottom, 10)
                     .overlay(alignment: .bottom) {
-                        bolusProgressBar(progress).padding(.horizontal, 18).offset(y: 45)
+                        bolusProgressBar(progress).padding(.horizontal, 18).offset(y: 48)
                     }.clipShape(RoundedRectangle(cornerRadius: 15))
             }
         }
@@ -752,14 +753,14 @@ extension Home {
 
                     mealPanel(geo).padding(.top, 30).padding(.bottom, 20)
 
-                    mainChart
+                    mainChart(geo: geo)
 
-                    timeInterval.padding(.top, 20).padding(.bottom, 40)
+                    timeInterval.padding(.top, 12).padding(.bottom, 12)
 
                     if let progress = state.bolusProgress {
-                        bolusView(geo, progress).padding(.bottom, 10)
+                        bolusView(geo: geo, progress).padding(.bottom, 40)
                     } else {
-                        profileView(geo).padding(.bottom, 10)
+                        profileView(geo: geo).padding(.bottom, 40)
                     }
                 }
                 .background(color)
