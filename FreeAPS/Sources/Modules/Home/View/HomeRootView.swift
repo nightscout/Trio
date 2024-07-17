@@ -692,7 +692,7 @@ extension Home {
 
                 }.padding(.horizontal, 10).padding(.bottom, 10)
                     .overlay(alignment: .bottom) {
-                        bolusProgressBar(progress).padding(.horizontal, 18).offset(y: 45)
+                        bolusProgressBar(progress).padding(.horizontal, 18).offset(y: 48)
                     }.clipShape(RoundedRectangle(cornerRadius: 15))
             }
         }
