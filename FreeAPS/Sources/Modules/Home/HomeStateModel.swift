@@ -56,6 +56,8 @@ extension Home {
         @Published var totalBolus: Decimal = 0
 
         @Published var isStatusPopupPresented: Bool = false
+        @Published var isLegendPresented: Bool = false
+        @Published var legendSheetDetent = PresentationDetent.large
         @Published var tins: Bool = false
         @Published var isTempTargetActive: Bool = false
 

@@ -34,6 +34,25 @@ extension Home {
 
         let buttonFont = Font.custom("TimeButtonFont", size: 14)
 
+        struct DefinitionRow: View {
+            var term: String
+            var definition: String
+            var color: Color
+
+            var body: some View {
+                VStack(alignment: .leading) {
+                    HStack {
+                        Image(systemName: "circle.fill").foregroundStyle(color)
+                        Text(term).font(.subheadline).fontWeight(.semibold)
+                    }
+                    Text(definition)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.vertical, 5)
+            }
+        }
+
         @Environment(\.managedObjectContext) var moc
         @Environment(\.colorScheme) var colorScheme
 
@@ -321,6 +340,19 @@ extension Home {
                     )
                     .cornerRadius(20)
                 }
+                Button(action: {
+                    state.isLegendPresented.toggle()
+                }) {
+                    Image(systemName: "info")
+                        .foregroundColor(colorScheme == .dark ? Color.white : Color.black).opacity(0.9)
+                        .frame(width: 20, height: 20)
+                        .background(
+                            colorScheme == .dark ? Color(red: 0.1176470588, green: 0.2352941176, blue: 0.3725490196) :
+                                Color.white
+                        )
+                        .clipShape(Circle())
+                }
+                .padding([.top, .bottom])
             }
             .shadow(
                 color: Color.black.opacity(colorScheme == .dark ? 0.75 : 0.33),
@@ -763,6 +795,50 @@ extension Home {
                                 }
                             }
                     )
+            }
+            .sheet(isPresented: $state.isLegendPresented) {
+                NavigationStack {
+                    Text(
+                        "The oref algorithm determines insulin dosing based on a number of scenarios that it estimates with different types of forecasts."
+                    )
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                    List {
+                        DefinitionRow(
+                            term: "IOB (Insulin on Board)",
+                            definition: "Forecasts BG based on the amount of insulin still active in the body.",
+                            color: .insulin
+                        )
+                        DefinitionRow(
+                            term: "ZT (Zero-Temp)",
+                            definition: "Forecasts the worst-case blood glucose (BG) scenario if no carbs are absorbed and insulin delivery is stopped until BG starts rising.",
+                            color: .zt
+                        )
+                        DefinitionRow(
+                            term: "COB (Carbs on Board)",
+                            definition: "Forecasts BG changes by considering the amount of carbohydrates still being absorbed in the body.",
+                            color: .loopYellow
+                        )
+                        DefinitionRow(
+                            term: "UAM (Unannounced Meal)",
+                            definition: "Forecasts BG levels and insulin dosing needs for unexpected meals or other causes of BG rises without prior notice.",
+                            color: .uam
+                        )
+                    }
+                    .padding(.trailing, 10)
+                    .navigationBarTitle("Legend", displayMode: .inline)
+
+                    Button { state.isLegendPresented.toggle() }
+                    label: { Text("Got it!").frame(maxWidth: .infinity, alignment: .center) }
+                        .buttonStyle(.bordered)
+                        .padding(.top)
+                }
+                .padding()
+                .presentationDetents(
+                    [.fraction(0.9), .large],
+                    selection: $state.legendSheetDetent
+                )
             }
         }
 

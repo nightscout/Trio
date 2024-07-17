@@ -153,7 +153,6 @@ struct MainChartView: View {
                     }
                 }
             }
-            legendPanel.padding(.top, 8)
         }
     }
 }
@@ -317,22 +316,6 @@ extension MainChartView {
             .chartXAxis { basalChartXAxis }
             .chartYAxis(.hidden)
         }
-    }
-
-    var legendPanel: some View {
-        HStack(spacing: 10) {
-            Spacer()
-
-            LegendItem(color: .loopGreen, label: "BG")
-            LegendItem(color: .insulin, label: "IOB")
-            LegendItem(color: .zt, label: "ZT")
-            LegendItem(color: .loopYellow, label: "COB")
-            LegendItem(color: .uam, label: "UAM")
-
-            Spacer()
-        }
-        .padding(.horizontal, 10)
-        .frame(maxWidth: .infinity)
     }
 }
 

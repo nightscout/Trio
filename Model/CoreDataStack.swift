@@ -178,7 +178,12 @@ extension CoreDataStack {
 
     /// Asynchronously deletes records for entities
     ///  - Tag: batchDelete
-    func batchDeleteOlderThan<T: NSManagedObject>(_ objectType: T.Type, dateKey: String, days: Int, isPresetKey: String? = nil) async throws {
+    func batchDeleteOlderThan<T: NSManagedObject>(
+        _ objectType: T.Type,
+        dateKey: String,
+        days: Int,
+        isPresetKey: String? = nil
+    ) async throws {
         let taskContext = newTaskContext()
         taskContext.name = "deleteContext"
         taskContext.transactionAuthor = "batchDelete"
@@ -188,7 +193,7 @@ extension CoreDataStack {
 
         // Fetch all the objects that are older than the specified days
         let fetchRequest = NSFetchRequest<NSManagedObjectID>(entityName: String(describing: objectType))
-        
+
         // Construct the predicate
         var predicates: [NSPredicate] = [NSPredicate(format: "%K < %@", dateKey, targetDate as NSDate)]
         if let isPresetKey = isPresetKey {
