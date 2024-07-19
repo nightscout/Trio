@@ -335,20 +335,21 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     func uploadStatus() async {
-        let fetchedDetermination = await determinationStorage.getOrefDeterminationNotYetUploadedToNightscout(
+        let fetchedEnactedDetermination = await determinationStorage.getOrefDeterminationNotYetUploadedToNightscout(
             await determinationStorage
-                .fetchLastDeterminationObjectID(predicate: NSPredicate.determinationsNotYetUploadedToNightscout)
+                .fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDeterminationsNotYetUploadedToNightscout)
         )
 
-        guard let determination = fetchedDetermination, let nightscout = nightscoutAPI, isUploadEnabled else {
-            debug(.nightscout, "Abort NS uploadStatus")
+        let fetchedSuggestedDetermination = await determinationStorage.getOrefDeterminationNotYetUploadedToNightscout(
+            await determinationStorage
+                .fetchLastDeterminationObjectID(predicate: NSPredicate.suggestedDeterminationsNotYetUploadedToNightscout)
+        )
+
+        // Guard to ensure both determinations are not nil
+        guard fetchedEnactedDetermination != nil || fetchedSuggestedDetermination != nil else {
+            debug(.nightscout, "Both fetchedEnactedDetermination and fetchedSuggestedDetermination are nil. Aborting upload.")
             return
         }
-
-        let wasDeterminationEnacted = determination.deliverAt != nil && determination.timestamp != nil
-
-        var suggested = determination
-        suggested.timestamp = suggested.deliverAt
 
         let iob = storage.retrieve(OpenAPS.Monitor.iob, as: [IOBEntry].self)
 
@@ -359,14 +360,15 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         if loopIsClosed {
             openapsStatus = OpenAPSStatus(
                 iob: iob?.first,
-                suggested: wasDeterminationEnacted ? nil : suggested,
-                enacted: wasDeterminationEnacted ? determination : nil,
+                suggested: fetchedSuggestedDetermination,
+                enacted: fetchedEnactedDetermination,
                 version: "0.7.1"
             )
         } else {
+            // in this case, we will never see an actually enacted determination, so both timestamp and deliverAt are the same
             openapsStatus = OpenAPSStatus(
                 iob: iob?.first,
-                suggested: determination, // in this case, we will never see an actually enacted determination, so both timestamp and deliverAt are the same
+                suggested: fetchedSuggestedDetermination,
                 enacted: nil,
                 version: "0.7.1"
             )
@@ -397,6 +399,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
         storage.save(status, as: OpenAPS.Upload.nsStatus)
 
+        guard let nightscout = nightscoutAPI, isUploadEnabled else {
+            debug(.nightscout, "Abort NS uploadStatus")
+            return
+        }
+
         do {
             try await nightscout.uploadStatus(status)
             debug(.nightscout, "Status uploaded")
@@ -404,8 +411,13 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             debug(.nightscout, error.localizedDescription)
         }
 
-        // If successful, update the isUploadedToNS property of the OrefDetermination objects
-        await updateOrefDeterminationAsUploaded([determination])
+        if let enacted = fetchedEnactedDetermination {
+            await updateOrefDeterminationAsUploaded([enacted])
+        }
+
+        if let suggested = fetchedSuggestedDetermination {
+            await updateOrefDeterminationAsUploaded([suggested])
+        }
 
         debug(.nightscout, "NSDeviceStatus with Determination uploaded")
 
