@@ -8,7 +8,7 @@ extension PreferencesEditor {
         @Published var skipBolusScreenAfterCarbs = false
         @Published var sections: [FieldSection] = []
         @Published var useAlternativeBolusCalc: Bool = false
-        @Published var units: GlucoseUnits = .mmolL
+        @Published var units: GlucoseUnits = .mgdL
 
         override func subscribe() {
             preferences = provider.preferences

@@ -23,7 +23,7 @@ extension DataTable {
         @Published var insulinEntryDeleted: Bool = false
         @Published var carbEntryDeleted: Bool = false
 
-        var units: GlucoseUnits = .mmolL
+        var units: GlucoseUnits = .mgdL
 
         override func subscribe() {
             units = settingsManager.settings.units

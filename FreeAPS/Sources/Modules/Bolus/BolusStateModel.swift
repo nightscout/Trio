@@ -21,7 +21,7 @@ extension Bolus {
         @Published var amount: Decimal = 0
         @Published var insulinRecommended: Decimal = 0
         @Published var insulinRequired: Decimal = 0
-        @Published var units: GlucoseUnits = .mmolL
+        @Published var units: GlucoseUnits = .mgdL
         @Published var percentage: Decimal = 0
         @Published var threshold: Decimal = 0
         @Published var maxBolus: Decimal = 0

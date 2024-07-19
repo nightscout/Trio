@@ -1,7 +1,7 @@
 import Foundation
 
 struct FreeAPSSettings: JSON, Equatable {
-    var units: GlucoseUnits = .mmolL
+    var units: GlucoseUnits = .mgdL
     var closedLoop: Bool = false
     var allowAnnouncements: Bool = false
     var useAutotune: Bool = false

@@ -36,7 +36,7 @@ extension OverrideProfilesConfig {
         @Published var showOverrideEditSheet = false
         @Published var showInvalidTargetAlert = false
 
-        var units: GlucoseUnits = .mmolL
+        var units: GlucoseUnits = .mgdL
 
         // temp target stuff
         @Published var low: Decimal = 0

@@ -9,7 +9,7 @@ extension AutotuneConfig {
         @Published var useAutotune = false
         @Published var onlyAutotuneBasals = false
         @Published var autotune: Autotune?
-        private(set) var units: GlucoseUnits = .mmolL
+        private(set) var units: GlucoseUnits = .mgdL
         @Published var publishedDate = Date()
         @Persisted(key: "lastAutotuneDate") private var lastAutotuneDate = Date() {
             didSet {

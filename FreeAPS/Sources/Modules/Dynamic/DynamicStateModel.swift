@@ -12,7 +12,7 @@ extension Dynamic {
         @Published var weightPercentage: Decimal = 0.65
         @Published var tddAdjBasal: Bool = false
         @Published var threshold_setting: Decimal = 65
-        @Published var unit: GlucoseUnits = .mmolL
+        @Published var unit: GlucoseUnits = .mgdL
 
         var preferences: Preferences {
             settingsManager.preferences

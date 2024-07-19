@@ -21,7 +21,7 @@ extension AddTempTarget {
         @Published var hbt: Double = 160
         @Published var saveSettings: Bool = false
 
-        private(set) var units: GlucoseUnits = .mmolL
+        private(set) var units: GlucoseUnits = .mgdL
 
         override func subscribe() {
             units = settingsManager.settings.units

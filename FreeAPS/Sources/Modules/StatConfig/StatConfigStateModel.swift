@@ -15,7 +15,7 @@ extension StatConfig {
         @Published var historyLayout: HistoryLayout = .twoTabs
         @Published var lockScreenView: LockScreenView = .simple
 
-        var units: GlucoseUnits = .mmolL
+        var units: GlucoseUnits = .mgdL
 
         override func subscribe() {
             let units = settingsManager.settings.units

@@ -28,7 +28,7 @@ extension NightscoutConfig {
         @Published var uploadGlucose = true // Upload Glucose
         @Published var useLocalSource = false
         @Published var localPort: Decimal = 0
-        @Published var units: GlucoseUnits = .mmolL
+        @Published var units: GlucoseUnits = .mgdL
         @Published var dia: Decimal = 6
         @Published var maxBasal: Decimal = 2
         @Published var maxBolus: Decimal = 10

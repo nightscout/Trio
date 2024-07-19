@@ -4,8 +4,8 @@ extension ISFEditor {
             storage.retrieve(OpenAPS.Settings.insulinSensitivities, as: InsulinSensitivities.self)
                 ?? InsulinSensitivities(from: OpenAPS.defaults(for: OpenAPS.Settings.insulinSensitivities))
                 ?? InsulinSensitivities(
-                    units: .mmolL,
-                    userPrefferedUnits: .mmolL,
+                    units: .mgdL,
+                    userPrefferedUnits: .mgdL,
                     sensitivities: []
                 )
         }

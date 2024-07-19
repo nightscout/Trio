@@ -38,7 +38,7 @@ extension Home {
         @Published var bolusProgress: Decimal?
         @Published var eventualBG: Int?
         @Published var allowManualTemp = false
-        @Published var units: GlucoseUnits = .mmolL
+        @Published var units: GlucoseUnits = .mgdL
         @Published var pumpDisplayState: PumpDisplayState?
         @Published var alarm: GlucoseAlarm?
         @Published var animatedBackground = false

@@ -10,7 +10,7 @@ extension Stat {
         @Published var lowLimit: Decimal = 4 / 0.0555
         @Published var overrideUnit: Bool = false
         @Published var layingChart: Bool = false
-        @Published var units: GlucoseUnits = .mmolL
+        @Published var units: GlucoseUnits = .mgdL
         @Published var glucoseFromPersistence: [GlucoseStored] = []
 
         @Published var selectedDuration: Duration = .Today

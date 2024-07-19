@@ -10,7 +10,7 @@ extension NotificationsConfig {
         @Published var highGlucose: Decimal = 0
         @Published var carbsRequiredThreshold: Decimal = 0
         @Published var useLiveActivity = false
-        var units: GlucoseUnits = .mmolL
+        var units: GlucoseUnits = .mgdL
 
         override func subscribe() {
             let units = settingsManager.settings.units

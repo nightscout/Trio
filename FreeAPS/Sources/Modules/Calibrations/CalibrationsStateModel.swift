@@ -13,7 +13,7 @@ extension Calibrations {
         @Published var calibrate: (Double) -> Double = { $0 }
         @Published var items: [Item] = []
 
-        var units: GlucoseUnits = .mmolL
+        var units: GlucoseUnits = .mgdL
 
         // TODO: - test if we need to use the viewContext here
         private let context = CoreDataStack.shared.newTaskContext()

@@ -20,7 +20,7 @@ extension TargetsEditor {
             return lastItem.timeIndex < timeValues.count - 1
         }
 
-        private(set) var units: GlucoseUnits = .mmolL
+        private(set) var units: GlucoseUnits = .mgdL
 
         override func subscribe() {
             let profile = provider.profile
