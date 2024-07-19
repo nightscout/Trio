@@ -31,4 +31,12 @@ extension NSPredicate {
         let date = Date.oneDayAgo
         return NSPredicate(format: "deliverAt >= %@", date as NSDate)
     }
+
+    static var determinationsNotYetUploadedToNightscout: NSPredicate {
+        NSPredicate(
+            format: "deliverAt >= %@ AND isUploadedToNS == %@",
+            Date.oneDayAgo as NSDate,
+            false as NSNumber
+        )
+    }
 }

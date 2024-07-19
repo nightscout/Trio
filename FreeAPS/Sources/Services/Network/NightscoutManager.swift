@@ -335,21 +335,12 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     func uploadStatus() async {
-//        var enacted: Determination?
-//        var suggested: Determination?
-        let enacted = await determinationStorage.parseOrefDetermination(
+        let determination = await determinationStorage.getOrefDeterminationNotYetUploadedToNightscout(
             await determinationStorage
-                .fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDetermination)
+                .fetchLastDeterminationObjectID(predicate: NSPredicate.determinationsNotYetUploadedToNightscout)
         )
 
-        let suggested = await determinationStorage.parseOrefDetermination(
-            await determinationStorage
-                .fetchLastDeterminationObjectID(predicate: NSPredicate(
-                    format: "(enacted == %@ OR enacted == NULL) AND deliverAt >= %@",
-                    false as NSNumber,
-                    Date.halfHourAgo as NSDate
-                ))
-        )
+        let wasDeterminationEnacted = determination?.deliverAt != nil && determination?.timestamp != nil
 
         let iob = storage.retrieve(OpenAPS.Monitor.iob, as: [IOBEntry].self)
 
@@ -360,14 +351,14 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         if loopIsClosed {
             openapsStatus = OpenAPSStatus(
                 iob: iob?.first,
-                suggested: suggested,
-                enacted: enacted,
+                suggested: wasDeterminationEnacted ? nil : determination,
+                enacted: wasDeterminationEnacted ? determination : nil,
                 version: "0.7.1"
             )
         } else {
             openapsStatus = OpenAPSStatus(
                 iob: iob?.first,
-                suggested: suggested,
+                suggested: determination,
                 enacted: nil,
                 version: "0.7.1"
             )
@@ -398,7 +389,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
         storage.save(status, as: OpenAPS.Upload.nsStatus)
 
-        guard let nightscout = nightscoutAPI, isUploadEnabled else {
+        guard let determination = determination, let nightscout = nightscoutAPI, isUploadEnabled else {
             return
         }
 
@@ -409,8 +400,37 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             debug(.nightscout, error.localizedDescription)
         }
 
+        // If successful, update the isUploadedToNS property of the OrefDetermination objects
+        await updateOrefDeterminationAsUploaded([determination])
+
+        debug(.nightscout, "NSDeviceStatus with Determination uploaded")
+
         Task.detached {
             await self.uploadPodAge()
+        }
+    }
+
+    private func updateOrefDeterminationAsUploaded(_ determination: [Determination]) async {
+        await backgroundContext.perform {
+            let ids = determination.map(\.id) as NSArray
+            print("\(DebuggingIdentifiers.inProgress) ids: \(ids)")
+            let fetchRequest: NSFetchRequest<OrefDetermination> = OrefDetermination.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
+
+            do {
+                let results = try self.backgroundContext.fetch(fetchRequest)
+                print("\(DebuggingIdentifiers.inProgress) results: \(results)")
+                for result in results {
+                    result.isUploadedToNS = true
+                }
+
+                guard self.backgroundContext.hasChanges else { return }
+                try self.backgroundContext.save()
+            } catch let error as NSError {
+                debugPrint(
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
+                )
+            }
         }
     }
 
@@ -926,6 +946,7 @@ extension BaseNightscoutManager {
         let carbUpdates = objects.filter { $0 is CarbEntryStored }
         let pumpHistoryUpdates = objects.filter { $0 is PumpEventStored }
         let overrideUpdates = objects.filter { $0 is OverrideStored || $0 is OverrideRunStored }
+        let determinationUpdates = objects.filter { $0 is OrefDetermination }
 
         if manualGlucoseUpdates.isNotEmpty {
             Task.detached {
@@ -945,6 +966,11 @@ extension BaseNightscoutManager {
         if overrideUpdates.isNotEmpty {
             Task.detached {
                 await self.uploadOverrides()
+            }
+        }
+        if determinationUpdates.isNotEmpty {
+            Task.detached {
+                await self.uploadStatus()
             }
         }
     }

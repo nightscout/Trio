@@ -438,7 +438,17 @@ extension NightscoutAPI {
         if let secret = secret {
             request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
         }
-        request.httpBody = try JSONCoding.encoder.encode(status)
+
+        do {
+            let encodedBody = try JSONCoding.encoder.encode(status)
+            request.httpBody = encodedBody
+            debugPrint("Payload glucose size: \(encodedBody.count) bytes")
+            debugPrint(String(data: encodedBody, encoding: .utf8) ?? "Invalid payload")
+        } catch {
+            debugPrint("Error encoding payload: \(error.localizedDescription)")
+            throw error
+        }
+
         request.httpMethod = "POST"
 
         let (data, response) = try await URLSession.shared.data(for: request)

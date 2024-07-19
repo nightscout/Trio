@@ -6,7 +6,7 @@ protocol DeterminationStorage {
     func fetchLastDeterminationObjectID(predicate: NSPredicate) async -> [NSManagedObjectID]
     func getForecastIDs(for determinationID: NSManagedObjectID, in context: NSManagedObjectContext) async -> [NSManagedObjectID]
     func getForecastValueIDs(for forecastID: NSManagedObjectID, in context: NSManagedObjectContext) async -> [NSManagedObjectID]
-    func parseOrefDetermination(_ determinationIds: [NSManagedObjectID]) async -> Determination?
+    func getOrefDeterminationNotYetUploadedToNightscout(_ determinationIds: [NSManagedObjectID]) async -> Determination?
 }
 
 final class BaseDeterminationStorage: DeterminationStorage, Injectable {
@@ -35,12 +35,12 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
         await context.perform {
             do {
                 guard let determination = try context.existingObject(with: determinationID) as? OrefDetermination,
-                      let forecastSet = determination.forecasts
+                      let forecastSet = determination.forecasts as? Set<NSManagedObject>
                 else {
                     return []
                 }
                 let forecasts = Array(forecastSet)
-                return forecasts.map(\.objectID)
+                return forecasts.map(\.objectID) as [NSManagedObjectID]
             } catch {
                 debugPrint(
                     "Failed \(DebuggingIdentifiers.failed) to fetch Forecast IDs for OrefDetermination with ID \(determinationID): \(error.localizedDescription)"
@@ -96,7 +96,7 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
         return forecastValuesList
     }
 
-    func parseOrefDetermination(_ determinationIds: [NSManagedObjectID]) async -> Determination? {
+    func getOrefDeterminationNotYetUploadedToNightscout(_ determinationIds: [NSManagedObjectID]) async -> Determination? {
         var result: Determination?
 
         guard let determinationId = determinationIds.first else {
@@ -129,6 +129,7 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
                     print("Fetched forecast set: \(forecastSet)")
 
                     result = Determination(
+                        id: orefDetermination.id ?? UUID(),
                         reason: orefDetermination.reason ?? "",
                         units: orefDetermination.smbToDeliver as Decimal?,
                         insulinReq: self.decimal(from: orefDetermination.insulinReq),

@@ -34,7 +34,6 @@ final class OpenAPS {
         await context.perform {
             let newOrefDetermination = OrefDetermination(context: self.context)
             newOrefDetermination.id = UUID()
-
             newOrefDetermination.totalDailyDose = self.decimalToNSDecimalNumber(determination.tdd)
             newOrefDetermination.insulinSensitivity = self.decimalToNSDecimalNumber(determination.isf)
             newOrefDetermination.currentTarget = self.decimalToNSDecimalNumber(determination.current_target)
@@ -61,6 +60,7 @@ final class OpenAPS {
             newOrefDetermination.bolus = determination.insulin?.bolus.map { NSDecimalNumber(decimal: $0) }
             newOrefDetermination.smbToDeliver = determination.units.map { NSDecimalNumber(decimal: $0) }
             newOrefDetermination.carbsRequired = Int16(Int(determination.carbsReq ?? 0))
+            newOrefDetermination.isUploadedToNS = false
 
             if let predictions = determination.predictions {
                 ["iob": predictions.iob, "zt": predictions.zt, "cob": predictions.cob, "uam": predictions.uam]
@@ -260,6 +260,7 @@ final class OpenAPS {
         debug(.openAPS, "Determinated: \(orefDetermination)")
 
         if var determination = Determination(from: orefDetermination) {
+            // TODO: this is so DRASTICALLY wrong… FIX THIS OMFG
             determination.timestamp = determination.deliverAt ?? clock
 
             // save to core data asynchronously

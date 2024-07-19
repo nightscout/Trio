@@ -1,6 +1,7 @@
 import Foundation
 
 struct Determination: JSON, Equatable {
+    let id: UUID?
     let reason: String
     let units: Decimal?
     let insulinReq: Decimal?
@@ -48,6 +49,7 @@ struct Insulin: JSON, Equatable {
 
 extension Determination {
     private enum CodingKeys: String, CodingKey {
+        case id
         case reason
         case units
         case insulinReq

@@ -33,11 +33,12 @@ public extension OrefDetermination {
     @NSManaged var smbToDeliver: NSDecimalNumber?
     @NSManaged var temp: String?
     @NSManaged var tempBasal: NSDecimalNumber?
+    @NSManaged var threshold: NSDecimalNumber?
     @NSManaged var timestamp: Date?
     @NSManaged var timestampEnacted: Date?
     @NSManaged var totalDailyDose: NSDecimalNumber?
-    @NSManaged var threshold: NSDecimalNumber?
-    @NSManaged var forecasts: Set<Forecast>?
+    @NSManaged var isUploadedToNS: Bool
+    @NSManaged var forecasts: NSSet?
 }
 
 // MARK: Generated accessors for forecasts

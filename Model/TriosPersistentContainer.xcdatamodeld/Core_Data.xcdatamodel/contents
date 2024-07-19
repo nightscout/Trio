@@ -100,6 +100,7 @@
         <attribute name="insulinReq" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="insulinSensitivity" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="iob" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="isUploadedToNS" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="manualBolusErrorString" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="minDelta" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="rate" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>

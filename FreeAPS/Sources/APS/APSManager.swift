@@ -246,18 +246,11 @@ final class BaseAPSManager: APSManager, Injectable {
 
                 // Open loop completed
                 guard settings.closedLoop else {
-                    Task.detached(priority: .low) {
-                        await self.nightscout.uploadStatus()
-                    }
                     loopStatRecord.end = Date()
                     loopStatRecord.duration = roundDouble((loopStatRecord.end! - loopStatRecord.start).timeInterval / 60, 2)
                     loopStatRecord.loopStatus = "Success"
                     await loopCompleted(loopStatRecord: loopStatRecord)
                     return
-                }
-
-                Task.detached(priority: .low) {
-                    await self.nightscout.uploadStatus()
                 }
 
                 // Closed loop - enact Determination
@@ -580,9 +573,6 @@ final class BaseAPSManager: APSManager, Injectable {
                     } else {
                         debug(.apsManager, "Pump suspended by Announcement")
                         self.announcementsStorage.storeAnnouncements([announcement], enacted: true)
-                        Task.detached(priority: .low) {
-                            await self.nightscout.uploadStatus()
-                        }
                     }
                 }
             case .resume:
@@ -595,9 +585,6 @@ final class BaseAPSManager: APSManager, Injectable {
                     } else {
                         debug(.apsManager, "Pump resumed by Announcement")
                         self.announcementsStorage.storeAnnouncements([announcement], enacted: true)
-                        Task.detached(priority: .low) {
-                            await self.nightscout.uploadStatus()
-                        }
                     }
                 }
             }
@@ -733,6 +720,7 @@ final class BaseAPSManager: APSManager, Injectable {
             if let determinationUpdated = self.privateContext.object(with: determinationID) as? OrefDetermination {
                 determinationUpdated.timestamp = Date()
                 determinationUpdated.enacted = wasEnacted
+                determinationUpdated.isUploadedToNS = false
 
                 do {
                     guard self.privateContext.hasChanges else { return }
@@ -745,9 +733,6 @@ final class BaseAPSManager: APSManager, Injectable {
                 }
 
                 debug(.apsManager, "Determination enacted. Enacted: \(wasEnacted)")
-                Task.detached(priority: .low) {
-                    await self.nightscout.uploadStatus()
-                }
 
                 Task.detached(priority: .low) {
                     await self.statistics()
