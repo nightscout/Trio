@@ -259,9 +259,10 @@ final class OpenAPS {
 
         debug(.openAPS, "Determinated: \(orefDetermination)")
 
-        if var determination = Determination(from: orefDetermination) {
-            // TODO: this is so DRASTICALLY wrong… FIX THIS OMFG
-            determination.timestamp = determination.deliverAt ?? clock
+        if var determination = Determination(from: orefDetermination), let deliverAt = determination.deliverAt {
+            // set both timestamp and deliverAt to the SAME date; this will be updated for timestamp once it is enacted
+            // AAPS does it the same way! we'll follow their example!
+            determination.timestamp = deliverAt
 
             // save to core data asynchronously
             await processDetermination(determination)

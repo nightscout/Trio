@@ -335,12 +335,20 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     func uploadStatus() async {
-        let determination = await determinationStorage.getOrefDeterminationNotYetUploadedToNightscout(
+        let fetchedDetermination = await determinationStorage.getOrefDeterminationNotYetUploadedToNightscout(
             await determinationStorage
                 .fetchLastDeterminationObjectID(predicate: NSPredicate.determinationsNotYetUploadedToNightscout)
         )
 
-        let wasDeterminationEnacted = determination?.deliverAt != nil && determination?.timestamp != nil
+        guard let determination = fetchedDetermination, let nightscout = nightscoutAPI, isUploadEnabled else {
+            debug(.nightscout, "Abort NS uploadStatus")
+            return
+        }
+
+        let wasDeterminationEnacted = determination.deliverAt != nil && determination.timestamp != nil
+
+        var suggested = determination
+        suggested.timestamp = suggested.deliverAt
 
         let iob = storage.retrieve(OpenAPS.Monitor.iob, as: [IOBEntry].self)
 
@@ -351,14 +359,14 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         if loopIsClosed {
             openapsStatus = OpenAPSStatus(
                 iob: iob?.first,
-                suggested: wasDeterminationEnacted ? nil : determination,
+                suggested: wasDeterminationEnacted ? nil : suggested,
                 enacted: wasDeterminationEnacted ? determination : nil,
                 version: "0.7.1"
             )
         } else {
             openapsStatus = OpenAPSStatus(
                 iob: iob?.first,
-                suggested: determination,
+                suggested: determination, // in this case, we will never see an actually enacted determination, so both timestamp and deliverAt are the same
                 enacted: nil,
                 version: "0.7.1"
             )
@@ -388,10 +396,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         )
 
         storage.save(status, as: OpenAPS.Upload.nsStatus)
-
-        guard let determination = determination, let nightscout = nightscoutAPI, isUploadEnabled else {
-            return
-        }
 
         do {
             try await nightscout.uploadStatus(status)

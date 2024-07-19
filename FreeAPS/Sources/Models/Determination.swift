@@ -12,7 +12,7 @@ struct Determination: JSON, Equatable {
     let iob: Decimal?
     let cob: Decimal?
     var predictions: Predictions?
-    let deliverAt: Date?
+    var deliverAt: Date?
     let carbsReq: Decimal?
     let temp: TempType?
     let bg: Decimal?
