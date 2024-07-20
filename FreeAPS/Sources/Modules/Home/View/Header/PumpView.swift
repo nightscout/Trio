@@ -181,7 +181,7 @@ struct PumpView: View {
     }
 }
 
-//#Preview("message") {
+// #Preview("message") {
 //    PumpView(
 //        reservoir: .constant(Decimal(10.0)),
 //        battery: .constant(nil),
@@ -190,9 +190,9 @@ struct PumpView: View {
 //        timerDate: .constant(Date()),
 //        pumpStatusHighlightMessage: .constant("⚠️\n Insulin suspended")
 //    )
-//}
+// }
 //
-//#Preview("pump reservoir") {
+// #Preview("pump reservoir") {
 //    PumpView(
 //        reservoir: .constant(Decimal(40.0)),
 //        battery: .constant(Battery(percent: 50, voltage: 2.0, string: BatteryState.normal, display: true)),
@@ -201,9 +201,9 @@ struct PumpView: View {
 //        timerDate: .constant(Date().addingTimeInterval(-24.hours)),
 //        pumpStatusHighlightMessage: .constant(nil)
 //    )
-//}
+// }
 //
-//#Preview("pump expiration") {
+// #Preview("pump expiration") {
 //    PumpView(
 //        reservoir: .constant(Decimal(10.0)),
 //        battery: .constant(Battery(percent: 50, voltage: 2.0, string: BatteryState.normal, display: false)),
@@ -212,9 +212,9 @@ struct PumpView: View {
 //        timerDate: .constant(Date().addingTimeInterval(2.hours)),
 //        pumpStatusHighlightMessage: .constant(nil)
 //    )
-//}
+// }
 //
-//#Preview("no pump") {
+// #Preview("no pump") {
 //    PumpView(
 //        reservoir: .constant(nil),
 //        name: .constant(nil),
@@ -223,4 +223,4 @@ struct PumpView: View {
 //        timeZone: .constant(Date()),
 //        pumpStatusHighlightMessage: .constant(nil)
 //    )
-//}
+// }

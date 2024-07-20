@@ -38,7 +38,7 @@ extension Settings {
                 header: {
                     Text(viewModel.headerText).textCase(nil)
                 }.listRowBackground(Color.chart)
-                
+
                 Section {
                     SettingsRowView(imageName: "chart.xyaxis.line", title: "Statistics", tint: Color.green, spacing: 10)
                         .navigationLink(to: .statistics, from: self)

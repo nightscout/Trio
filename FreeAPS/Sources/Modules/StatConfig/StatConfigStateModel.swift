@@ -3,7 +3,7 @@ import SwiftUI
 extension StatConfig {
     final class StateModel: BaseStateModel<Provider> {
         @Published var overrideHbA1cUnit = false
-        
+
         @Published var skipBolusScreenAfterCarbs: Bool = false
         @Published var useFPUconversion: Bool = true
         @Published var tins: Bool = false

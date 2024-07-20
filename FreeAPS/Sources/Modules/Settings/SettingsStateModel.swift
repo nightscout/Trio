@@ -33,7 +33,6 @@ extension Settings {
 
             branch = BuildDetails.default.branchAndSha
 
-
             copyrightNotice = Bundle.main.infoDictionary?["NSHumanReadableCopyright"] as? String ?? ""
 
             subscribeSetting(\.animatedBackground, on: $animatedBackground) { animatedBackground = $0 }

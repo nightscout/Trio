@@ -173,10 +173,10 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
                     self.state.bolusRecommended = self.apsManager
                         .roundBolus(amount: max(recommended, 0))
                 }
-            self.state.bolusAfterCarbs = !self.settingsManager.settings.skipBolusScreenAfterCarbs
-            self.state.displayOnWatch = self.settingsManager.settings.displayOnWatch
-            self.state.displayFatAndProteinOnWatch = self.settingsManager.settings.displayFatAndProteinOnWatch
-            self.state.confirmBolusFaster = self.settingsManager.settings.confirmBolusFaster
+                self.state.bolusAfterCarbs = !self.settingsManager.settings.skipBolusScreenAfterCarbs
+                self.state.displayOnWatch = self.settingsManager.settings.displayOnWatch
+                self.state.displayFatAndProteinOnWatch = self.settingsManager.settings.displayFatAndProteinOnWatch
+                self.state.confirmBolusFaster = self.settingsManager.settings.confirmBolusFaster
 
                 self.state.iob = lastDetermination?.iob as? Decimal
                 self.state.cob = lastDetermination?.cob as? Decimal

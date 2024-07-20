@@ -27,7 +27,7 @@ enum Screen: Identifiable, Hashable {
     case notificationsConfig
     case fpuConfig
     case iconConfig
-    case overrideProfilesConfig
+    case overrideConfig
     case snooze
     case statistics
     case watch
@@ -92,8 +92,8 @@ extension Screen {
             FPUConfig.RootView(resolver: resolver)
         case .iconConfig:
             IconConfig.RootView(resolver: resolver)
-        case .overrideProfilesConfig:
-            OverrideProfilesConfig.RootView(resolver: resolver)
+        case .overrideConfig:
+            OverrideConfig.RootView(resolver: resolver)
         case .snooze:
             Snooze.RootView(resolver: resolver)
         case .watch:

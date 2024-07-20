@@ -3,7 +3,7 @@ import SwiftUI
 
 struct AddOverrideForm: View {
     @Environment(\.presentationMode) var presentationMode
-    @StateObject var state: OverrideProfilesConfig.StateModel
+    @StateObject var state: OverrideConfig.StateModel
     @State private var isEditing = false
     @State private var overrideTarget = false
     @Environment(\.colorScheme) var colorScheme

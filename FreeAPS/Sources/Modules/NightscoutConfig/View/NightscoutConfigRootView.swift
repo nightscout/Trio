@@ -102,14 +102,14 @@ extension NightscoutConfig {
                             )
                         }
                 }
-                
+
                 Section {
-                    Button("Backfill glucose") { 
+                    Button("Backfill glucose") {
                         Task {
-                            state.backfillGlucose()
+                            await state.backfillGlucose()
                         }
                     }
-                        .disabled(state.url.isEmpty || state.connecting || state.backfilling)
+                    .disabled(state.url.isEmpty || state.connecting || state.backfilling)
                 } header: { Text("Backfill glucose from Nightscout")
                 }
             }

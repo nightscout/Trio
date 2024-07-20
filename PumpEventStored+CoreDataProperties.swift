@@ -1,23 +1,18 @@
-import Foundation
 import CoreData
+import Foundation
 
-
-extension PumpEventStored {
-
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<PumpEventStored> {
-        return NSFetchRequest<PumpEventStored>(entityName: "PumpEventStored")
+public extension PumpEventStored {
+    @nonobjc class func fetchRequest() -> NSFetchRequest<PumpEventStored> {
+        NSFetchRequest<PumpEventStored>(entityName: "PumpEventStored")
     }
 
-    @NSManaged public var id: String?
-    @NSManaged public var isUploadedToNS: Bool
-    @NSManaged public var note: String?
-    @NSManaged public var timestamp: Date?
-    @NSManaged public var type: String?
-    @NSManaged public var bolus: BolusStored?
-    @NSManaged public var tempBasal: TempBasalStored?
-
+    @NSManaged var id: String?
+    @NSManaged var isUploadedToNS: Bool
+    @NSManaged var note: String?
+    @NSManaged var timestamp: Date?
+    @NSManaged var type: String?
+    @NSManaged var bolus: BolusStored?
+    @NSManaged var tempBasal: TempBasalStored?
 }
 
-extension PumpEventStored : Identifiable {
-
-}
+extension PumpEventStored: Identifiable {}

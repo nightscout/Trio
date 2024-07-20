@@ -69,16 +69,11 @@ extension PumpConfig {
                 )
             }
 
-            // setupViewController.setupDelegate = setupDelegate
-            // setupViewController.completionDelegate = completionDelegate
-            // return setupViewController
-
             switch setupViewController {
             case var .userInteractionRequired(setupViewControllerUI):
                 setupViewControllerUI.pumpManagerOnboardingDelegate = setupDelegate
                 setupViewControllerUI.completionDelegate = completionDelegate
                 return setupViewControllerUI
-            // show(setupViewController, sender: self)
             case let .createdAndOnboarded(pumpManagerUI):
                 debug(.default, "Pump manager  created and onboarded")
                 setupDelegate?.pumpManagerOnboarding(didCreatePumpManager: pumpManagerUI)

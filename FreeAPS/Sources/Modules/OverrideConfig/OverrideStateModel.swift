@@ -1,7 +1,7 @@
 import CoreData
 import SwiftUI
 
-extension OverrideProfilesConfig {
+extension OverrideConfig {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() var broadcaster: Broadcaster!
         @Injected() var storage: TempTargetsStorage!
@@ -93,7 +93,7 @@ extension OverrideProfilesConfig {
 
 // MARK: - Setup Notifications
 
-extension OverrideProfilesConfig.StateModel {
+extension OverrideConfig.StateModel {
     // Custom Notification to update View when an Override has been cancelled via Home View
     func setupNotification() {
         Foundation.NotificationCenter.default.addObserver(
@@ -430,7 +430,7 @@ extension OverrideProfilesConfig.StateModel {
 
 // MARK: - TEMP TARGET
 
-extension OverrideProfilesConfig.StateModel {
+extension OverrideConfig.StateModel {
     func enact() {
         guard durationTT > 0 else {
             return
@@ -623,7 +623,7 @@ extension OverrideProfilesConfig.StateModel {
     }
 }
 
-extension OverrideProfilesConfig.StateModel: SettingsObserver {
+extension OverrideConfig.StateModel: SettingsObserver {
     func settingsDidChange(_: FreeAPSSettings) {
         units = settingsManager.settings.units
         defaultSmbMinutes = settingsManager.preferences.maxSMBBasalMinutes

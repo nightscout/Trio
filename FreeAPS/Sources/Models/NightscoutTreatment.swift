@@ -1,14 +1,5 @@
 import Foundation
 
-func determineBolusEventType(for event: PumpHistoryEvent) -> EventType {
-    if event.isExternalInsulin ?? false {
-        return .nsExternalInsulin
-    } else if event.isSMB ?? false {
-        return .smb
-    }
-    return event.type
-}
-
 struct NightscoutTreatment: JSON, Hashable, Equatable {
     var duration: Int?
     var rawDuration: PumpHistoryEvent?

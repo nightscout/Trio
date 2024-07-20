@@ -270,7 +270,6 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             self.tidepoolService.uploadGlucose(device: self.cgmManager?.cgmManagerStatus.device)
         }
 
-
         let glucoseForHealth = filteredByDate.filter { !glucoseFromHealth.contains($0) }
 
         guard glucoseForHealth.isNotEmpty else {

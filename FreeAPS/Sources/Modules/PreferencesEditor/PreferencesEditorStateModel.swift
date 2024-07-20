@@ -76,7 +76,7 @@ extension PreferencesEditor {
                     settable: self
                 )
             ]
-            
+
             let smbFields = [
                 Field(
                     displayName: NSLocalizedString("Enable SMB Always", comment: "Enable SMB Always"),

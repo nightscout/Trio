@@ -1,20 +1,15 @@
-import Foundation
 import CoreData
+import Foundation
 
-
-extension MealPresetStored {
-
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<MealPresetStored> {
-        return NSFetchRequest<MealPresetStored>(entityName: "MealPresetStored")
+public extension MealPresetStored {
+    @nonobjc class func fetchRequest() -> NSFetchRequest<MealPresetStored> {
+        NSFetchRequest<MealPresetStored>(entityName: "MealPresetStored")
     }
 
-    @NSManaged public var carbs: NSDecimalNumber?
-    @NSManaged public var dish: String?
-    @NSManaged public var fat: NSDecimalNumber?
-    @NSManaged public var protein: NSDecimalNumber?
-
+    @NSManaged var carbs: NSDecimalNumber?
+    @NSManaged var dish: String?
+    @NSManaged var fat: NSDecimalNumber?
+    @NSManaged var protein: NSDecimalNumber?
 }
 
-extension MealPresetStored : Identifiable {
-
-}
+extension MealPresetStored: Identifiable {}

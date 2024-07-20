@@ -1,20 +1,15 @@
-import Foundation
 import CoreData
+import Foundation
 
-
-extension BolusStored {
-
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<BolusStored> {
-        return NSFetchRequest<BolusStored>(entityName: "BolusStored")
+public extension BolusStored {
+    @nonobjc class func fetchRequest() -> NSFetchRequest<BolusStored> {
+        NSFetchRequest<BolusStored>(entityName: "BolusStored")
     }
 
-    @NSManaged public var amount: NSDecimalNumber?
-    @NSManaged public var isExternal: Bool
-    @NSManaged public var isSMB: Bool
-    @NSManaged public var pumpEvent: PumpEventStored?
-
+    @NSManaged var amount: NSDecimalNumber?
+    @NSManaged var isExternal: Bool
+    @NSManaged var isSMB: Bool
+    @NSManaged var pumpEvent: PumpEventStored?
 }
 
-extension BolusStored : Identifiable {
-
-}
+extension BolusStored: Identifiable {}

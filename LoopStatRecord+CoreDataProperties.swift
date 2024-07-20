@@ -1,21 +1,16 @@
-import Foundation
 import CoreData
+import Foundation
 
-
-extension LoopStatRecord {
-
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<LoopStatRecord> {
-        return NSFetchRequest<LoopStatRecord>(entityName: "LoopStatRecord")
+public extension LoopStatRecord {
+    @nonobjc class func fetchRequest() -> NSFetchRequest<LoopStatRecord> {
+        NSFetchRequest<LoopStatRecord>(entityName: "LoopStatRecord")
     }
 
-    @NSManaged public var duration: Double
-    @NSManaged public var end: Date?
-    @NSManaged public var interval: Double
-    @NSManaged public var loopStatus: String?
-    @NSManaged public var start: Date?
-
+    @NSManaged var duration: Double
+    @NSManaged var end: Date?
+    @NSManaged var interval: Double
+    @NSManaged var loopStatus: String?
+    @NSManaged var start: Date?
 }
 
-extension LoopStatRecord : Identifiable {
-
-}
+extension LoopStatRecord: Identifiable {}

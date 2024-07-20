@@ -854,7 +854,7 @@ extension Home {
 
                     Spacer()
 
-                    NavigationStack { OverrideProfilesConfig.RootView(resolver: resolver) }
+                    NavigationStack { OverrideConfig.RootView(resolver: resolver) }
                         .tabItem {
                             Label(
                                 "Adjustments",

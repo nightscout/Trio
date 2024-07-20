@@ -104,7 +104,7 @@ extension Home {
             setupOverrides()
             setupOverrideRunStored()
 
-        // TODO: isUploadEnabled the right var here??
+            // TODO: isUploadEnabled the right var here??
             uploadStats = settingsManager.settings.isUploadEnabled
             units = settingsManager.settings.units
             allowManualTemp = !settingsManager.settings.closedLoop

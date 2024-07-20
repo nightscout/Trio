@@ -50,13 +50,6 @@ extension DataTable {
             return formatter
         }
 
-        private var insulinFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 2
-            return formatter
-        }
-
         private var glucoseFormatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
@@ -185,19 +178,6 @@ extension DataTable {
             default:
                 return .updatingHistory
             }
-            .sheet(isPresented: $showManualGlucose) {
-                logGlucoseView
-            }
-        }
-
-        private var logInsulinButton: some View {
-            Button(action: { showExternalInsulin = true
-                state.externalInsulinDate = Date() }, label: {
-                Text("Log Insulin")
-                    .foregroundColor(Color.accentColor)
-                Image(systemName: "plus")
-                    .foregroundColor(Color.accentColor)
-            }).buttonStyle(.borderless)
         }
 
         private var logGlucoseButton: some View {

@@ -41,7 +41,7 @@ extension PumpSettingsEditor {
                         Text("Max Bolus")
                         TextFieldWithToolBar(text: $state.maxBolus, placeholder: "U", numberFormatter: formatter)
                     }
-                    //TODO: is max carbs now somewhere else?
+                    // TODO: is max carbs now somewhere else?
 //                    HStack {
 //                        Text("Max Carbs")
 //                        TextFieldWithToolBar(text: $state.maxCarbs, placeholder: "g", numberFormatter: formatter)

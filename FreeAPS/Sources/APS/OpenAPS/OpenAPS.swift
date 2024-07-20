@@ -430,7 +430,7 @@ final class OpenAPS {
                 )
 
                 self.storage.save(averages, as: OpenAPS.Monitor.oref2_variables)
-                
+
                 return self.loadFileFromStorage(name: Monitor.oref2_variables)
 
             } else {

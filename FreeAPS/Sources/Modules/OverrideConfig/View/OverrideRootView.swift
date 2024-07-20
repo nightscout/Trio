@@ -2,7 +2,7 @@ import CoreData
 import SwiftUI
 import Swinject
 
-extension OverrideProfilesConfig {
+extension OverrideConfig {
     struct RootView: BaseView {
         let resolver: Resolver
 

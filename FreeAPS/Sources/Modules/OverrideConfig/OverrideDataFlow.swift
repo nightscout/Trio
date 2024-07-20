@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-enum OverrideProfilesConfig {
+enum OverrideConfig {
     enum Config {}
 
     enum Tab: String, Hashable, Identifiable, CaseIterable {
@@ -24,4 +24,4 @@ enum OverrideProfilesConfig {
     }
 }
 
-protocol OverrideProfilesProvider: Provider {}
+protocol OverrideProvider: Provider {}

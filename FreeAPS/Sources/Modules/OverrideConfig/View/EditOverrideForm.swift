@@ -5,7 +5,7 @@ struct EditOverrideForm: View {
     @ObservedObject var override: OverrideStored
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) var colorScheme
-    @StateObject var state: OverrideProfilesConfig.StateModel
+    @StateObject var state: OverrideConfig.StateModel
 
     @State private var name: String
     @State private var percentage: Double
@@ -28,7 +28,7 @@ struct EditOverrideForm: View {
     @State private var target_override = false
     @State private var showAlert = false
 
-    init(overrideToEdit: OverrideStored, state: OverrideProfilesConfig.StateModel) {
+    init(overrideToEdit: OverrideStored, state: OverrideConfig.StateModel) {
         override = overrideToEdit
         _state = StateObject(wrappedValue: state)
         _name = State(initialValue: overrideToEdit.name ?? "")

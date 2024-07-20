@@ -1,20 +1,15 @@
-import Foundation
 import CoreData
+import Foundation
 
-
-extension TempBasalStored {
-
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<TempBasalStored> {
-        return NSFetchRequest<TempBasalStored>(entityName: "TempBasalStored")
+public extension TempBasalStored {
+    @nonobjc class func fetchRequest() -> NSFetchRequest<TempBasalStored> {
+        NSFetchRequest<TempBasalStored>(entityName: "TempBasalStored")
     }
 
-    @NSManaged public var duration: Int16
-    @NSManaged public var rate: NSDecimalNumber?
-    @NSManaged public var tempType: String?
-    @NSManaged public var pumpEvent: PumpEventStored?
-
+    @NSManaged var duration: Int16
+    @NSManaged var rate: NSDecimalNumber?
+    @NSManaged var tempType: String?
+    @NSManaged var pumpEvent: PumpEventStored?
 }
 
-extension TempBasalStored : Identifiable {
-
-}
+extension TempBasalStored: Identifiable {}
