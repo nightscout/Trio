@@ -244,10 +244,6 @@ final class BaseAPSManager: APSManager, Injectable {
                     throw APSError.apsError(message: "Determine basal failed")
                 }
 
-                Task.detached(priority: .low) {
-                    await self.nightscout.uploadStatus()
-                }
-
                 // Open loop completed
                 guard settings.closedLoop else {
                     loopStatRecord.end = Date()
@@ -404,7 +400,6 @@ final class BaseAPSManager: APSManager, Injectable {
 
     func determineBasalSync() async {
         _ = await determineBasal()
-        await nightscout.uploadStatus()
     }
 
     func makeProfiles() async throws -> Bool {
@@ -740,7 +735,6 @@ final class BaseAPSManager: APSManager, Injectable {
                 debug(.apsManager, "Determination enacted. Enacted: \(wasEnacted)")
 
                 Task.detached(priority: .low) {
-                    await self.nightscout.uploadStatus()
                     await self.statistics()
                 }
             } else {
