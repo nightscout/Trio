@@ -50,7 +50,6 @@ struct FreeAPSSettings: JSON, Equatable {
     var displayFatAndProteinOnWatch: Bool = false
     var confirmBolusFaster: Bool = false
     var onlyAutotuneBasals: Bool = false
-<<<<<<< HEAD
     var overrideFactor: Decimal = 0.8
     var useCalc: Bool = true
     var fattyMeals: Bool = false
@@ -60,9 +59,6 @@ struct FreeAPSSettings: JSON, Equatable {
     var displayPresets: Bool = true
     var useLiveActivity: Bool = false
     var historyLayout: HistoryLayout = .twoTabs
-=======
-    var useLiveActivity: Bool = false
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
     var lockScreenView: LockScreenView = .simple
 }
 
@@ -297,7 +293,6 @@ extension FreeAPSSettings: Decodable {
             settings.onlyAutotuneBasals = onlyAutotuneBasals
         }
 
-<<<<<<< HEAD
         if let displayPresets = try? container.decode(Bool.self, forKey: .displayPresets) {
             settings.displayPresets = displayPresets
         }
@@ -310,11 +305,6 @@ extension FreeAPSSettings: Decodable {
             settings.historyLayout = historyLayout
         }
 
-=======
-        if let useLiveActivity = try? container.decode(Bool.self, forKey: .useLiveActivity) {
-            settings.useLiveActivity = useLiveActivity
-        }
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
         if let lockScreenView = try? container.decode(LockScreenView.self, forKey: .lockScreenView) {
             settings.lockScreenView = lockScreenView
         }

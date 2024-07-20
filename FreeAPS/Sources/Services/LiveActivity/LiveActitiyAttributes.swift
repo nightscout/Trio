@@ -7,14 +7,6 @@ struct LiveActivityAttributes: ActivityAttributes {
         let direction: String?
         let change: String
         let date: Date
-
-        let detailedViewState: ContentAdditionalState?
-
-        /// true for the first state that is set on the activity
-        let isInitialState: Bool
-    }
-
-    public struct ContentAdditionalState: Codable, Hashable {
         let chart: [Double]
         let chartDate: [Date?]
         let rotationDegrees: Double
@@ -22,6 +14,9 @@ struct LiveActivityAttributes: ActivityAttributes {
         let lowGlucose: Double
         let cob: Decimal
         let iob: Decimal
+        let lockScreenView: String
+        let unit: String
+        let isOverrideActive: Bool
     }
 
     let startDate: Date

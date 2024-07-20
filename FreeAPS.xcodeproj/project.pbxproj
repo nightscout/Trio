@@ -288,8 +288,8 @@
 		6B1A8D2E2B156EEF00E76752 /* LiveActivityBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B1A8D2D2B156EEF00E76752 /* LiveActivityBridge.swift */; };
 		6B1F539F9FF75646D1606066 /* SnoozeDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36A708CDB546692C2230B385 /* SnoozeDataFlow.swift */; };
 		6B9625766B697D1C98E455A2 /* PumpSettingsEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72778B68C3004F71F6E79BDC /* PumpSettingsEditorStateModel.swift */; };
-		6BCF84DD2B16843A003AD46E /* LiveActitiyShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BCF84DC2B16843A003AD46E /* LiveActitiyShared.swift */; };
-		6BCF84DE2B16843A003AD46E /* LiveActitiyShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BCF84DC2B16843A003AD46E /* LiveActitiyShared.swift */; };
+		6BCF84DD2B16843A003AD46E /* LiveActitiyAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BCF84DC2B16843A003AD46E /* LiveActitiyAttributes.swift */; };
+		6BCF84DE2B16843A003AD46E /* LiveActitiyAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BCF84DC2B16843A003AD46E /* LiveActitiyAttributes.swift */; };
 		6EADD581738D64431902AC0A /* (null) in Sources */ = {isa = PBXBuildFile; };
 		6FFAE524D1D9C262F2407CAE /* SnoozeProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CAE81192B118804DCD23034 /* SnoozeProvider.swift */; };
 		711C0CB42CAABE788916BC9D /* ManualTempBasalDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96653287EDB276A111288305 /* ManualTempBasalDataFlow.swift */; };
@@ -884,7 +884,7 @@
 		6B1A8D232B14D91700E76752 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		6B1A8D252B14D91700E76752 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6B1A8D2D2B156EEF00E76752 /* LiveActivityBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityBridge.swift; sourceTree = "<group>"; };
-		6BCF84DC2B16843A003AD46E /* LiveActitiyShared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActitiyShared.swift; sourceTree = "<group>"; };
+		6BCF84DC2B16843A003AD46E /* LiveActitiyAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActitiyAttributes.swift; sourceTree = "<group>"; };
 		6F8BA8533F56BC55748CA877 /* PreferencesEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PreferencesEditorProvider.swift; sourceTree = "<group>"; };
 		72778B68C3004F71F6E79BDC /* PumpSettingsEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpSettingsEditorStateModel.swift; sourceTree = "<group>"; };
 		79BDA519C9B890FD9A5DFCF3 /* ISFEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ISFEditorDataFlow.swift; sourceTree = "<group>"; };
@@ -2208,7 +2208,7 @@
 			isa = PBXGroup;
 			children = (
 				6B1A8D2D2B156EEF00E76752 /* LiveActivityBridge.swift */,
-				6BCF84DC2B16843A003AD46E /* LiveActitiyShared.swift */,
+				6BCF84DC2B16843A003AD46E /* LiveActitiyAttributes.swift */,
 				BDF34F922C10D0E100D51995 /* LiveActivityAttributes+Helper.swift */,
 				BDF34F882C10C65E00D51995 /* Data */,
 			);
@@ -3203,9 +3203,9 @@
 				1D845DF2E3324130E1D95E67 /* DataTableProvider.swift in Sources */,
 				19F95FFA29F1102A00314DDC /* StatRootView.swift in Sources */,
 				0D9A5E34A899219C5C4CDFAF /* DataTableStateModel.swift in Sources */,
-				6BCF84DD2B16843A003AD46E /* LiveActitiyShared.swift in Sources */,
+				6BCF84DD2B16843A003AD46E /* LiveActitiyAttributes.swift in Sources */,
 				195D80B92AF697F700D25097 /* DynamicProvider.swift in Sources */,
-				6BCF84DD2B16843A003AD46E /* LiveActitiyShared.swift in Sources */,
+				6BCF84DD2B16843A003AD46E /* LiveActitiyAttributes.swift in Sources */,
 				D6D02515BBFBE64FEBE89856 /* DataTableRootView.swift in Sources */,
 				38569349270B5DFB0002C50D /* AppGroupSource.swift in Sources */,
 				F5CA3DB1F9DC8B05792BBFAA /* CGMDataFlow.swift in Sources */,
@@ -3270,8 +3270,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6BCF84DE2B16843A003AD46E /* LiveActitiyShared.swift in Sources */,
-				6BCF84DE2B16843A003AD46E /* LiveActitiyShared.swift in Sources */,
+				6BCF84DE2B16843A003AD46E /* LiveActitiyAttributes.swift in Sources */,
+				6BCF84DE2B16843A003AD46E /* LiveActitiyAttributes.swift in Sources */,
 				6B1A8D1E2B14D91600E76752 /* LiveActivityBundle.swift in Sources */,
 				6B1A8D202B14D91600E76752 /* LiveActivity.swift in Sources */,
 			);
