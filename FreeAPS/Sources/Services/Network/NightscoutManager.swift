@@ -370,7 +370,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         // Apparently we are too fast; so the flag update is not fast enough to have the predicate filter last suggestion out
         // If this check is truthy, set suggestion to nil so it's not uploaded again
         if let lastSuggested = lastSuggestedDetermination, let suggestion = modifiedSuggestedDetermination,
-           lastSuggested.deliverAt == suggestion.deliverAt
+           lastSuggested.deliverAt == suggestion.deliverAt 
         {
             modifiedSuggestedDetermination = nil
         }

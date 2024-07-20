@@ -31,6 +31,7 @@ struct Determination: JSON, Equatable {
     let minPredBG: Decimal?
     let threshold: Decimal?
     let carbRatio: Decimal?
+    let received: Bool?
 }
 
 struct Predictions: JSON, Equatable {
@@ -79,6 +80,7 @@ extension Determination {
         case minPredBG
         case threshold
         case carbRatio = "CR"
+        case received
     }
 }
 

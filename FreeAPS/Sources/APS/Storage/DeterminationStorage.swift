@@ -157,7 +157,8 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
                         minGuardBG: nil,
                         minPredBG: nil,
                         threshold: self.decimal(from: orefDetermination.threshold),
-                        carbRatio: self.decimal(from: orefDetermination.carbRatio)
+                        carbRatio: self.decimal(from: orefDetermination.carbRatio),
+                        received: orefDetermination.enacted // this is actually part of NS...
                     )
                 } else {
                     print("Fetched object is not of type OrefDetermination")
