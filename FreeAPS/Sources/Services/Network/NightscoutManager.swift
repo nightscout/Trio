@@ -66,8 +66,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         return NightscoutAPI(url: url, secret: secret)
     }
 
-    private var lastEnactedDetermination: OrefDetermination?
-    private var lastSuggestedDetermination: OrefDetermination?
+    private var lastEnactedDetermination: Determination?
+    private var lastSuggestedDetermination: Determination?
 
     init(resolver: Resolver) {
         injectServices(resolver)
@@ -335,6 +335,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     func uploadStatus() async {
+        guard let nightscout = nightscoutAPI, isUploadEnabled else {
+            debug(.nightscout, "NS API not available or upload disabled. Aborting NS Status upload.")
+            return
+        }
+
         let fetchedEnactedDetermination = await determinationStorage.getOrefDeterminationNotYetUploadedToNightscout(
             await determinationStorage
                 .fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDeterminationsNotYetUploadedToNightscout)
@@ -345,64 +350,68 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 .fetchLastDeterminationObjectID(predicate: NSPredicate.suggestedDeterminationsNotYetUploadedToNightscout)
         )
 
-        // Guard to ensure both determinations are not nil
+        //         TODO: this seems to block to many things… when just adding meal or a bolus, we don't always see upload. race condition?
+        //         Guard to ensure both determinations are not nil
         guard fetchedEnactedDetermination != nil || fetchedSuggestedDetermination != nil else {
-            debug(.nightscout, "Both fetchedEnactedDetermination and fetchedSuggestedDetermination are nil. Aborting upload.")
+            debug(
+                .nightscout,
+                "Both fetchedEnactedDetermination and fetchedSuggestedDetermination are nil. Aborting NS Status upload."
+            )
             return
         }
+        // Unwrap fetchedSuggestedDetermination and manipulate the timestamp field to ensure deliverAt and timestamp for a suggestion truly match!
+        var modifiedSuggestedDetermination = fetchedSuggestedDetermination
+        if var suggestion = fetchedSuggestedDetermination {
+            suggestion.timestamp = suggestion.deliverAt
+            modifiedSuggestedDetermination = suggestion
+        }
 
+        // Check whether the last suggestion that was uploaded is the same that is fetched again when we are attempting to upload the enacted determination
+        // Apparently we are too fast; so the flag update is not fast enough to have the predicate filter last suggestion out
+        // If this check is truthy, set suggestion to nil so it's not uploaded again
+        if let lastSuggested = lastSuggestedDetermination, let suggestion = modifiedSuggestedDetermination,
+           lastSuggested.deliverAt == suggestion.deliverAt
+        {
+            modifiedSuggestedDetermination = nil
+        }
+
+        // Gather all relevant data for OpenAPS Status
         let iob = storage.retrieve(OpenAPS.Monitor.iob, as: [IOBEntry].self)
+        let openapsStatus = OpenAPSStatus(
+            iob: iob?.first,
+            suggested: modifiedSuggestedDetermination,
+            enacted: settingsManager.settings.closedLoop ? fetchedEnactedDetermination : nil,
+            version: "0.7.1"
+        )
 
-        let loopIsClosed = settingsManager.settings.closedLoop
-
-        var openapsStatus: OpenAPSStatus
-
-        if loopIsClosed {
-            openapsStatus = OpenAPSStatus(
-                iob: iob?.first,
-                suggested: fetchedSuggestedDetermination,
-                enacted: fetchedEnactedDetermination,
-                version: "0.7.1"
-            )
-        } else {
-            // in this case, we will never see an actually enacted determination, so both timestamp and deliverAt are the same
-            openapsStatus = OpenAPSStatus(
-                iob: iob?.first,
-                suggested: fetchedSuggestedDetermination,
-                enacted: nil,
-                version: "0.7.1"
-            )
-        }
-
+        // Gather all relevant data for NS Status
         let battery = fetchBattery()
-
-        var reservoir = Decimal(from: storage.retrieveRaw(OpenAPS.Monitor.reservoir) ?? "0")
-        if reservoir == 0xDEAD_BEEF {
-            reservoir = nil
-        }
+        let reservoir = Decimal(from: storage.retrieveRaw(OpenAPS.Monitor.reservoir) ?? "0")
         let pumpStatus = storage.retrieve(OpenAPS.Monitor.status, as: PumpStatus.self)
-
-        let pump = NSPumpStatus(clock: Date(), battery: battery, reservoir: reservoir, status: pumpStatus)
-
+        let pump = NSPumpStatus(
+            clock: Date(),
+            battery: battery,
+            reservoir: reservoir != 0xDEAD_BEEF ? reservoir : nil,
+            status: pumpStatus
+        )
         let device = await UIDevice.current
-
         let uploader = await Uploader(batteryVoltage: nil, battery: Int(device.batteryLevel * 100))
-
-        var status: NightscoutStatus
-
-        status = NightscoutStatus(
+        let status = NightscoutStatus(
             device: NightscoutTreatment.local,
             openaps: openapsStatus,
             pump: pump,
             uploader: uploader
         )
 
-        storage.save(status, as: OpenAPS.Upload.nsStatus)
-
-        guard let nightscout = nightscoutAPI, isUploadEnabled else {
-            debug(.nightscout, "Abort NS uploadStatus")
-            return
-        }
+//        if let lastSuggested = lastSuggestedDetermination, let fetchedEnacted = fetchedEnactedDetermination,
+//           lastSuggested.deliverAt == fetchedEnacted.deliverAt
+//        {
+//            debug(
+//                .nightscout,
+//                "Matching deliverAt detected and less than 1 second since lastSuggested, delaying upload by 3 seconds"
+//            )
+//            try? await Task.sleep(nanoseconds: 3 * 1_000_000_000) // 3 seconds delay
+//        }
 
         do {
             try await nightscout.uploadStatus(status)
@@ -424,6 +433,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         Task.detached {
             await self.uploadPodAge()
         }
+
+        lastEnactedDetermination = fetchedEnactedDetermination
+        lastSuggestedDetermination = fetchedSuggestedDetermination
     }
 
     private func updateOrefDeterminationAsUploaded(_ determination: [Determination]) async {
@@ -984,10 +996,10 @@ extension BaseNightscoutManager {
                 await self.uploadOverrides()
             }
         }
-        if determinationUpdates.isNotEmpty {
-            Task.detached {
-                await self.uploadStatus()
-            }
-        }
+//        if determinationUpdates.isNotEmpty {
+//            Task.detached {
+//                await self.uploadStatus()
+//            }
+//        }
     }
 }
