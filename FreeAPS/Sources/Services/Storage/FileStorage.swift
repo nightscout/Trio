@@ -6,6 +6,7 @@ protocol FileStorage {
     func retrieve<Value: JSON>(_ name: String, as type: Value.Type) -> Value?
     func retrieveAsync<Value: JSON>(_ name: String, as type: Value.Type) async -> Value?
     func retrieveRaw(_ name: String) -> RawJSON?
+    func retrieveRawAsync(_ name: String) async -> RawJSON?
     func append<Value: JSON>(_ newValue: Value, to name: String)
     func append<Value: JSON>(_ newValues: [Value], to name: String)
     func append<Value: JSON, T: Equatable>(_ newValue: Value, to name: String, uniqBy keyPath: KeyPath<Value, T>)
@@ -64,6 +65,18 @@ final class BaseFileStorage: FileStorage {
                 return nil
             }
             return String(data: data, encoding: .utf8)
+        }
+    }
+
+    func retrieveRawAsync(_ name: String) async -> RawJSON? {
+        await withCheckedContinuation { continuation in
+            processQueue.safeSync {
+                guard let data = try? Disk.retrieve(name, from: .documents, as: Data.self) else {
+                    continuation.resume(returning: nil)
+                    return
+                }
+                continuation.resume(returning: String(data: data, encoding: .utf8))
+            }
         }
     }
 

@@ -435,7 +435,7 @@ extension MainChartView {
 
             if let glucose = timeToNearestGlucose(time: carbDate.timeIntervalSince1970)?.glucose {
                 let yPosition = (Decimal(glucose) * conversionFactor) - bolusOffset
-                let size = (Config.carbsSize + CGFloat(carbAmount) * Config.carbsScale) * 2
+                let size = (Config.carbsSize + CGFloat(carbAmount) * Config.carbsScale)
 
                 PointMark(
                     x: .value("Time", carbDate, unit: .second),
@@ -478,34 +478,34 @@ extension MainChartView {
                     PointMark(
                         x: .value("Time", item.date ?? Date(), unit: .second),
                         y: .value("Value", Decimal(item.glucose) * conversionFactor)
-                    ).foregroundStyle(Color.orange.gradient).symbolSize(25).interpolationMethod(.cardinal)
+                    ).foregroundStyle(Color.orange.gradient).symbolSize(20).interpolationMethod(.cardinal)
                 } else if item.glucose < Int(lowGlucose) {
                     PointMark(
                         x: .value("Time", item.date ?? Date(), unit: .second),
                         y: .value("Value", Decimal(item.glucose) * conversionFactor)
-                    ).foregroundStyle(Color.red.gradient).symbolSize(25).interpolationMethod(.cardinal)
+                    ).foregroundStyle(Color.red.gradient).symbolSize(20).interpolationMethod(.cardinal)
                 } else {
                     PointMark(
                         x: .value("Time", item.date ?? Date(), unit: .second),
                         y: .value("Value", Decimal(item.glucose) * conversionFactor)
-                    ).foregroundStyle(Color.green.gradient).symbolSize(25).interpolationMethod(.cardinal)
+                    ).foregroundStyle(Color.green.gradient).symbolSize(20).interpolationMethod(.cardinal)
                 }
             } else {
                 if item.glucose > Int(highGlucose) {
                     PointMark(
                         x: .value("Time", item.date ?? Date(), unit: .second),
                         y: .value("Value", Decimal(item.glucose) * conversionFactor)
-                    ).foregroundStyle(Color.orange.gradient).symbolSize(25)
+                    ).foregroundStyle(Color.orange.gradient).symbolSize(20)
                 } else if item.glucose < Int(lowGlucose) {
                     PointMark(
                         x: .value("Time", item.date ?? Date(), unit: .second),
                         y: .value("Value", Decimal(item.glucose) * conversionFactor)
-                    ).foregroundStyle(Color.red.gradient).symbolSize(25)
+                    ).foregroundStyle(Color.red.gradient).symbolSize(20)
                 } else {
                     PointMark(
                         x: .value("Time", item.date ?? Date(), unit: .second),
                         y: .value("Value", Decimal(item.glucose) * conversionFactor)
-                    ).foregroundStyle(Color.green.gradient).symbolSize(25)
+                    ).foregroundStyle(Color.green.gradient).symbolSize(20)
                 }
             }
         }
@@ -992,8 +992,8 @@ extension MainChartView {
         let minOverall = min(minGlucose, minForecast)
         let maxOverall = max(maxGlucose, maxForecast)
 
-        minValue = minOverall * conversionFactor - 20 * conversionFactor
-        maxValue = maxOverall * conversionFactor + 50 * conversionFactor
+        minValue = minOverall * conversionFactor - 50 * conversionFactor
+        maxValue = maxOverall * conversionFactor + 80 * conversionFactor
 
         debug(.default, "min \(minValue)")
         debug(.default, "max \(maxValue)")
