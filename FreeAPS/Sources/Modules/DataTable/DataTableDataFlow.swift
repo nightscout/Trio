@@ -137,29 +137,18 @@ enum DataTable {
 
             switch type {
             case .carbs:
-<<<<<<< HEAD
                 return numberFormatter
                     .string(from: amount as NSNumber)! + NSLocalizedString(" g", comment: "gram of carbs")
-=======
-                return numberFormatter.string(from: amount as NSNumber)! + NSLocalizedString(" g", comment: "gram of carbs")
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
             case .fpus:
                 return numberFormatter
                     .string(from: amount as NSNumber)! + NSLocalizedString(" g", comment: "gram of carb equilvalents")
             case .bolus:
-<<<<<<< HEAD
                 var bolusText = " "
                 if isSMB ?? false {}
                 else if isExternal ?? false {
                     bolusText += NSLocalizedString("External", comment: "External Insulin")
                 } else {
                     bolusText += NSLocalizedString("Manual", comment: "Manual Bolus")
-=======
-                var bolusText = ""
-
-                if isExternal ?? false {
-                    bolusText += " " + NSLocalizedString("External", comment: "External Insulin")
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                 }
 
                 return numberFormatter

@@ -34,7 +34,6 @@ extension NotificationsConfig {
             return formatter
         }
 
-<<<<<<< HEAD
         @Environment(\.colorScheme) var colorScheme
 
         var color: LinearGradient {
@@ -54,8 +53,6 @@ extension NotificationsConfig {
                 )
         }
 
-=======
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
         @ViewBuilder private func liveActivitySection() -> some View {
             if #available(iOS 16.2, *) {
                 Section(
@@ -69,9 +66,6 @@ extension NotificationsConfig {
                                 UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
                             }
                         } else {
-<<<<<<< HEAD
-                            Toggle("Show Live Activity", isOn: $state.useLiveActivity) }
-=======
                             Toggle("Show Live Activity", isOn: $state.useLiveActivity)
                         }
                         Picker(
@@ -82,7 +76,6 @@ extension NotificationsConfig {
                                 Text(selection.displayName).tag(selection)
                             }
                         }
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                     }
                 )
                 .onReceive(resolver.resolve(LiveActivityBridge.self)!.$systemEnabled, perform: {
@@ -97,11 +90,7 @@ extension NotificationsConfig {
 
             if !systemLiveActivitySetting {
                 footer =
-<<<<<<< HEAD
-                    "Live activities are turned OFF in system settings. To enable live activities, go to Settings app -> iAPS -> Turn live Activities ON.\n\n" +
-=======
                     "Live activities are turned OFF in system settings. To enable live activities, go to Settings app -> Trio -> Turn live Activities ON.\n\n" +
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                     footer
             }
 
@@ -145,11 +134,7 @@ extension NotificationsConfig {
                 }
 
                 liveActivitySection()
-<<<<<<< HEAD
             }.scrollContentBackground(.hidden).background(color)
-=======
-            }.scrollContentBackground(.hidden)
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                 .onAppear(perform: configureView)
                 .navigationBarTitle("Notifications")
                 .navigationBarTitleDisplayMode(.automatic)

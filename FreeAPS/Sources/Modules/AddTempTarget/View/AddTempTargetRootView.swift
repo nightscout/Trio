@@ -27,7 +27,6 @@ extension AddTempTarget {
             return formatter
         }
 
-<<<<<<< HEAD
         private var color: LinearGradient {
             colorScheme == .dark ? LinearGradient(
                 gradient: Gradient(colors: [
@@ -43,7 +42,7 @@ extension AddTempTarget {
                     startPoint: .top,
                     endPoint: .bottom
                 )
-=======
+
         private var displayString: String {
             guard let preset = selectedPreset else { return "" }
             var low = preset.targetBottom
@@ -57,7 +56,6 @@ extension AddTempTarget {
             let formattedDuration = formatter.string(from: preset.duration as NSNumber) ?? ""
 
             return "\(formattedLow) \(state.units.rawValue) for \(formattedDuration) min"
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
         }
 
         var body: some View {
