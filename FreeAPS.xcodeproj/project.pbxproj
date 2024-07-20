@@ -415,7 +415,6 @@
 		DBA5254DBB2586C98F61220C /* ISFEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F9F137F126D9F8DEB799F26 /* ISFEditorProvider.swift */; };
 		DD1DB7CC2BECCA1F0048B367 /* BuildDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */; };
 		DD1DB7CE2BED00CF0048B367 /* SettingsRootViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1DB7CD2BED00CF0048B367 /* SettingsRootViewModel.swift */; };
-		DD3251872C4C52F500E957C4 /* TrioPersistentContainer.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = DD3251852C4C52F500E957C4 /* TrioPersistentContainer.xcdatamodeld */; };
 		DD399FB31EACB9343C944C4C /* PreferencesEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CA3E609094E064C99A4752C /* PreferencesEditorStateModel.swift */; };
 		DD68889D2C386E17006E3C44 /* NightscoutExercise.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD68889C2C386E17006E3C44 /* NightscoutExercise.swift */; };
 		DDD163122C4C689900CD525A /* OverrideStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163112C4C689900CD525A /* OverrideStateModel.swift */; };
@@ -424,6 +423,7 @@
 		DDD163182C4C694000CD525A /* OverrideRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163172C4C694000CD525A /* OverrideRootView.swift */; };
 		DDD1631A2C4C695E00CD525A /* EditOverrideForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163192C4C695E00CD525A /* EditOverrideForm.swift */; };
 		DDD1631C2C4C697400CD525A /* AddOverrideForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD1631B2C4C697400CD525A /* AddOverrideForm.swift */; };
+		DDD1631F2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = DDD1631D2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodeld */; };
 		E00EEC0327368630002FF094 /* ServiceAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00EEBFD27368630002FF094 /* ServiceAssembly.swift */; };
 		E00EEC0427368630002FF094 /* SecurityAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00EEBFE27368630002FF094 /* SecurityAssembly.swift */; };
 		E00EEC0527368630002FF094 /* StorageAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00EEBFF27368630002FF094 /* StorageAssembly.swift */; };
@@ -1011,7 +1011,6 @@
 		DC2C6489D29ECCCAD78E0721 /* NotificationsConfigStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotificationsConfigStateModel.swift; sourceTree = "<group>"; };
 		DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildDetails.swift; sourceTree = "<group>"; };
 		DD1DB7CD2BED00CF0048B367 /* SettingsRootViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRootViewModel.swift; sourceTree = "<group>"; };
-		DD3251862C4C52F500E957C4 /* TrioPersistentContainer.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = TrioPersistentContainer.xcdatamodel; sourceTree = "<group>"; };
 		DD68889C2C386E17006E3C44 /* NightscoutExercise.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutExercise.swift; sourceTree = "<group>"; };
 		DDD163112C4C689900CD525A /* OverrideStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideStateModel.swift; sourceTree = "<group>"; };
 		DDD163132C4C68D300CD525A /* OverrideProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideProvider.swift; sourceTree = "<group>"; };
@@ -1019,6 +1018,7 @@
 		DDD163172C4C694000CD525A /* OverrideRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideRootView.swift; sourceTree = "<group>"; };
 		DDD163192C4C695E00CD525A /* EditOverrideForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditOverrideForm.swift; sourceTree = "<group>"; };
 		DDD1631B2C4C697400CD525A /* AddOverrideForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddOverrideForm.swift; sourceTree = "<group>"; };
+		DDD1631E2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = TrioCoreDataPersistentContainer.xcdatamodel; sourceTree = "<group>"; };
 		E00EEBFD27368630002FF094 /* ServiceAssembly.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceAssembly.swift; sourceTree = "<group>"; };
 		E00EEBFE27368630002FF094 /* SecurityAssembly.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SecurityAssembly.swift; sourceTree = "<group>"; };
 		E00EEBFF27368630002FF094 /* StorageAssembly.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StorageAssembly.swift; sourceTree = "<group>"; };
@@ -2117,7 +2117,7 @@
 				BDF34F8F2C10CF8C00D51995 /* CoreDataStack.swift */,
 				5825D1052BD4056700F36E9B /* Classes+Properties */,
 				5825D1622BD405AE00F36E9B /* Helper */,
-				DD3251852C4C52F500E957C4 /* TrioPersistentContainer.xcdatamodeld */,
+				DDD1631D2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodeld */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -2930,6 +2930,7 @@
 				3811DEE825CA063400A708ED /* Injected.swift in Sources */,
 				5825D14A2BD4058F00F36E9B /* OrefDetermination+CoreDataClass.swift in Sources */,
 				585E2CAE2BE7BF46006ECF1A /* PumpEvent+helper.swift in Sources */,
+				DDD1631F2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodeld in Sources */,
 				3811DEAF25C9D88300A708ED /* KeyValueStorage.swift in Sources */,
 				38FE826D25CC8461001FF17A /* NightscoutAPI.swift in Sources */,
 				388358C825EEF6D200E024B2 /* BasalProfileEntry.swift in Sources */,
@@ -3091,7 +3092,6 @@
 				DD68889D2C386E17006E3C44 /* NightscoutExercise.swift in Sources */,
 				5864E8592C42CFAE00294306 /* DeterminationStorage.swift in Sources */,
 				BD7DA9A72AE06E2B00601B20 /* BolusCalculatorConfigProvider.swift in Sources */,
-				DD3251872C4C52F500E957C4 /* TrioPersistentContainer.xcdatamodeld in Sources */,
 				38192E0D261BAF980094D973 /* ConvenienceExtensions.swift in Sources */,
 				88AB39B23C9552BD6E0C9461 /* ISFEditorRootView.swift in Sources */,
 				F816825E28DB441200054060 /* HeartBeatManager.swift in Sources */,
@@ -3471,10 +3471,6 @@
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = "$(DEVELOPER_TEAM)";
 				ENABLE_PREVIEWS = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/Dependencies/ios-armv7_arm64",
-				);
 				INFOPLIST_FILE = FreeAPS/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -3513,10 +3509,6 @@
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = "$(DEVELOPER_TEAM)";
 				ENABLE_PREVIEWS = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/Dependencies/ios-armv7_arm64",
-				);
 				INFOPLIST_FILE = FreeAPS/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -3948,14 +3940,14 @@
 /* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
-		DD3251852C4C52F500E957C4 /* TrioPersistentContainer.xcdatamodeld */ = {
+		DDD1631D2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
-				DD3251862C4C52F500E957C4 /* TrioPersistentContainer.xcdatamodel */,
+				DDD1631E2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodel */,
 			);
-			currentVersion = DD3251862C4C52F500E957C4 /* TrioPersistentContainer.xcdatamodel */;
-			name = TrioPersistentContainer.xcdatamodeld;
-			path = "/Users/deniz.cengiz/dnzxy_workspaces/Open-iAPS/Model/TrioPersistentContainer.xcdatamodeld";
+			currentVersion = DDD1631E2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodel */;
+			name = TrioCoreDataPersistentContainer.xcdatamodeld;
+			path = "/Users/deniz.cengiz/dnzxy_workspaces/Open-iAPS/Model/TrioCoreDataPersistentContainer.xcdatamodeld";
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
 		};
