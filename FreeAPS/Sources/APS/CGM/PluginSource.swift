@@ -161,21 +161,12 @@ extension PluginSource: CGMManagerDelegate {
         switch readingResult {
         case let .newData(values):
 
-<<<<<<< HEAD:FreeAPS/Sources/APS/CGM/dexcomSourceG7.swift
-            var activationDate: Date = .distantPast
-            var sessionStart: Date = .distantPast
-            if let cgmG7Manager = cgmManager as? G7CGMManager {
-                activationDate = cgmG7Manager.sensorActivatedAt ?? .distantPast
-                sessionStart = cgmG7Manager.sensorFinishesWarmupAt ?? .distantPast
-                print("Activastion date: " + activationDate.description)
-=======
             var sensorActivatedAt: Date?
             var sensorTransmitterID: String?
             /// specific for Libre transmitter and send SAGE
             if let cgmTransmitterManager = cgmManager as? LibreTransmitterManagerV3 {
                 sensorActivatedAt = cgmTransmitterManager.sensorInfoObservable.activatedAt
                 sensorTransmitterID = cgmTransmitterManager.sensorInfoObservable.sensorSerial
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133:FreeAPS/Sources/APS/CGM/PluginSource.swift
             }
 
             let bloodGlucose = values.compactMap { newGlucoseSample -> BloodGlucose? in
@@ -193,14 +184,9 @@ extension PluginSource: CGMManagerDelegate {
                     noise: nil,
                     glucose: value,
                     type: "sgv",
-<<<<<<< HEAD:FreeAPS/Sources/APS/CGM/dexcomSourceG7.swift
-                    activationDate: activationDate,
-                    sessionStartDate: sessionStart
-=======
                     activationDate: sensorActivatedAt,
                     sessionStartDate: sensorActivatedAt,
                     transmitterID: sensorTransmitterID
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133:FreeAPS/Sources/APS/CGM/PluginSource.swift
                 )
             }
             return .success(bloodGlucose)
