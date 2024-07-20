@@ -33,87 +33,22 @@ extension Settings {
         var body: some View {
             Form {
                 Section {
-<<<<<<< HEAD
-                    HStack(spacing: 15) {
-                        Image(systemName: "circle")
-                            .imageScale(.small)
-                            .font(.system(size: 32))
-                            .foregroundColor(Color.green)
-                        Toggle("Closed loop", isOn: $state.closedLoop)
-                            .font(.subheadline)
-                            .foregroundStyle(.primary)
-                    }
-                } header: {
-                    Text(
-                        "iAPS v\(state.versionNumber) (\(state.buildNumber))\nBranch: \(state.branch) \(state.copyrightNotice)\nBuild Expires: \(Bundle.main.profileExpiration)"
-                    )
-                    .textCase(nil)
+                    Toggle("Closed loop", isOn: $state.closedLoop)
+                }
+                header: {
+                    Text(viewModel.headerText).textCase(nil)
                 }.listRowBackground(Color.chart)
-
+                
                 Section {
                     SettingsRowView(imageName: "chart.xyaxis.line", title: "Statistics", tint: Color.green, spacing: 10)
                         .navigationLink(to: .statistics, from: self)
                 } header: { Text("Statistics") }.listRowBackground(Color.chart)
 
                 Section {
-                    SettingsRowViewCustomImage(imageName: "pod", title: "Pump")
-                        .navigationLink(to: .pumpConfig, from: self)
-                    SettingsRowViewCustomImage(imageName: "g6", title: "CGM")
-                        .navigationLink(to: .cgm, from: self)
-                    SettingsRowView(imageName: "applewatch.watchface", title: "Watch", tint: Color.primary, spacing: 18)
-                        .navigationLink(to: .watch, from: self)
-                } header: { Text("Select Devices") }.listRowBackground(Color.chart)
-
-                Section {
-                    SettingsRowViewCustomImage(imageName: "owl", title: "Nightscout", frame: 32)
-                        .navigationLink(to: .nighscoutConfig, from: self)
-                    if HKHealthStore.isHealthDataAvailable() {
-                        SettingsRowView(imageName: "heart.circle.fill", title: "Apple Health", tint: Color.red)
-                            .navigationLink(to: .healthkit, from: self)
-                    }
-                    SettingsRowView(imageName: "message.circle.fill", title: "Notifications", tint: Color.blue)
-                        .navigationLink(to: .notificationsConfig, from: self)
-                } header: { Text("Services") }.listRowBackground(Color.chart)
-
-                Section {
-                    SettingsRowViewCustomImage(imageName: "pod", title: "Pump Settings")
-                        .navigationLink(to: .pumpSettingsEditor, from: self)
-                    SettingsRowView(imageName: "chart.bar.xaxis", title: "Basal Profile", tint: Color.insulin, spacing: 10)
-                        .navigationLink(to: .basalProfileEditor, from: self)
-                    SettingsRowView(imageName: "drop.fill", title: "Insulin Sensitivities", tint: Color.insulin, spacing: 22)
-                        .navigationLink(to: .isfEditor, from: self)
-                    SettingsRowView(imageName: "fork.knife.circle", title: "Carb Ratios", tint: Color.orange, spacing: 14)
-                        .navigationLink(to: .crEditor, from: self)
-                    SettingsRowView(imageName: "target", title: "Target Glucose", tint: Color.green, spacing: 14)
-                        .navigationLink(to: .targetsEditor, from: self)
-                } header: { Text("Configuration") }.listRowBackground(Color.chart)
-
-                Section {
-                    Text("OpenAPS").navigationLink(to: .preferencesEditor, from: self)
-                    Text("Autotune").navigationLink(to: .autotuneConfig, from: self)
-                } header: { Text("OpenAPS") }.listRowBackground(Color.chart)
-
-                Section {
-                    Text("UI/UX").navigationLink(to: .statisticsConfig, from: self)
-                    Text("App Icons").navigationLink(to: .iconConfig, from: self)
-                    Text("Bolus Calculator").navigationLink(to: .bolusCalculatorConfig, from: self)
-                    Text("Fat And Protein Conversion").navigationLink(to: .fpuConfig, from: self)
-                    Text("Dynamic ISF").navigationLink(to: .dynamicISF, from: self)
-                } header: { Text("Extra Features") }.listRowBackground(Color.chart)
-
-                Section {
-=======
-                    Toggle("Closed loop", isOn: $state.closedLoop)
-                }
-                header: {
-                    Text(viewModel.headerText).textCase(nil)
-                }
-
-                Section {
                     Text("Pump").navigationLink(to: .pumpConfig, from: self)
                     Text("CGM").navigationLink(to: .cgm, from: self)
                     Text("Watch").navigationLink(to: .watch, from: self)
-                } header: { Text("Devices") }
+                } header: { Text("Devices") }.listRowBackground(Color.chart)
 
                 Section {
                     Text("Nightscout").navigationLink(to: .nighscoutConfig, from: self)
@@ -125,12 +60,14 @@ extension Settings {
                         Text("Apple Health").navigationLink(to: .healthkit, from: self)
                     }
                     Text("Notifications").navigationLink(to: .notificationsConfig, from: self)
+                    Text("Bolus Calculator").navigationLink(to: .bolusCalculatorConfig, from: self)
                     Text("App Icons").navigationLink(to: .iconConfig, from: self)
                     Text("Statistics and Home View").navigationLink(to: .statisticsConfig, from: self)
-                } header: { Text("Services") }
+                } header: { Text("Services") }.listRowBackground(Color.chart)
 
                 Section {
                     Text("Preferences").navigationLink(to: .preferencesEditor, from: self)
+                    Text("Dynamic ISF").navigationLink(to: .dynamicISF, from: self)
                     Text("Pump Settings").navigationLink(to: .pumpSettingsEditor, from: self)
                     Text("Meal Settings").navigationLink(to: .fpuConfig, from: self)
                     Text("Basal Profile").navigationLink(to: .basalProfileEditor, from: self)
@@ -138,10 +75,9 @@ extension Settings {
                     Text("Carb Ratios").navigationLink(to: .crEditor, from: self)
                     Text("Target Glucose").navigationLink(to: .targetsEditor, from: self)
                     Text("Autotune").navigationLink(to: .autotuneConfig, from: self)
-                } header: { Text("Configuration") }
+                } header: { Text("Configuration") }.listRowBackground(Color.chart)
 
                 Section {
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                     Toggle("Debug options", isOn: $state.debugOptions)
                     if state.debugOptions {
                         Group {
@@ -151,8 +87,6 @@ extension Settings {
                                     .frame(maxWidth: .infinity, alignment: .trailing)
                                     .buttonStyle(.borderedProminent)
                             }
-<<<<<<< HEAD
-=======
                             // Commenting this out for now, as not needed and possibly dangerous for users to be able to nuke their pump pairing informations via the debug menu
                             // Leaving it in here, as it may be a handy functionality for further testing or developers.
                             // See https://github.com/nightscout/Trio/pull/277 for more information
@@ -163,7 +97,6 @@ extension Settings {
 //                                    .frame(maxWidth: .infinity, alignment: .trailing)
 //                                    .buttonStyle(.borderedProminent)
 //                            }
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                         }
                         Group {
                             Text("Preferences")
@@ -210,11 +143,7 @@ extension Settings {
                                 .navigationLink(to: .configEditor(file: OpenAPS.FreeAPS.settings), from: self)
                         }
                     }
-<<<<<<< HEAD
                 } header: { Text("Developer") }.listRowBackground(Color.chart)
-=======
-                } header: { Text("Developer") }
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 
                 Section {
                     Toggle("Animated Background", isOn: $state.animatedBackground)
@@ -230,23 +159,11 @@ extension Settings {
                 .sheet(isPresented: $showShareSheet) {
                     ShareSheet(activityItems: state.logItems())
                 }
-<<<<<<< HEAD
                 .onAppear(perform: configureView)
                 .navigationTitle("Settings")
                 .navigationBarTitleDisplayMode(.large)
                 .onDisappear(perform: { state.uploadProfileAndSettings(false) })
                 .screenNavigation(self)
-=======
-            }
-            .sheet(isPresented: $showShareSheet) {
-                ShareSheet(activityItems: state.logItems())
-            }
-            .onAppear(perform: configureView)
-            .navigationTitle("Settings")
-            .navigationBarItems(leading: Button("Close", action: state.hideSettingsModal))
-            .navigationBarTitleDisplayMode(.automatic)
-            .onDisappear(perform: { state.uploadProfileAndSettings(false) })
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
         }
     }
 }

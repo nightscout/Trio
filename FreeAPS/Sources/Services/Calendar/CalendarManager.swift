@@ -139,7 +139,6 @@ final class BaseCalendarManager: CalendarManager, Injectable {
 
         let directionText = glucose.direction ?? "↔︎"
 
-<<<<<<< HEAD
         let deltaValue = settingsManager.settings.units == .mmolL ? Int(delta.asMmolL) : delta
         let deltaText = deltaFormatter.string(from: NSNumber(value: deltaValue)) ?? "--"
 
@@ -166,11 +165,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         }
 
         event.title = glucoseDisplayText
-        event.notes = "iAPS"
-=======
-        event.title = title
         event.notes = "Trio"
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
         event.startDate = Date()
         event.endDate = Date(timeIntervalSinceNow: 60 * 10)
         event.calendar = calendar

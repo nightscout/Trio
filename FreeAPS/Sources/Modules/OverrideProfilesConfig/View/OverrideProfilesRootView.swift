@@ -8,20 +8,6 @@ extension OverrideProfilesConfig {
         let resolver: Resolver
 
         @StateObject var state = StateModel()
-<<<<<<< HEAD
-=======
-        @State private var isEditing = false
-        @State private var showAlert = false
-        @State private var showingDetail = false
-        @State private var selectedPreset: OverridePresets?
-        @State private var isEditSheetPresented: Bool = false
-        @State private var alertSring = ""
-        @State var isSheetPresented: Bool = false
-        @State private var originalPreset: OverridePresets?
-        @State private var showDeleteAlert = false
-        @State private var indexToDelete: Int?
-        @State private var profileNameToDelete: String = ""
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 
         @State private var isEditing = false
         @State private var showOverrideCreationSheet = false
@@ -55,18 +41,9 @@ extension OverrideProfilesConfig {
         }
 
         @FetchRequest(
-<<<<<<< HEAD
             entity: TempTargetsSlider.entity(),
             sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
         ) var isEnabledArray: FetchedResults<TempTargetsSlider>
-=======
-            entity: OverridePresets.entity(),
-            sortDescriptors: [NSSortDescriptor(key: "name", ascending: true)], predicate: NSPredicate(
-                format: "name != %@", "" as String
-            )
-        ) var fetchedProfiles: FetchedResults<OverridePresets>
-        var units: GlucoseUnits = .mmolL
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 
         private var formatter: NumberFormatter {
             let formatter = NumberFormatter()

@@ -19,15 +19,9 @@ protocol HealthKitManager: GlucoseSource {
     func saveIfNeeded(carbs: [CarbsEntry])
     /// Save Insulin to Health store
     func saveIfNeeded(pumpEvents events: [PumpHistoryEvent])
-<<<<<<< HEAD
-    /// Create observer for data passing beetwen Health Store and iAPS
-    func createBGObserver()
-    /// Enable background delivering objects from Apple Health to iAPS
-=======
     /// Create observer for data passing beetwen Health Store and Trio
     func createBGObserver()
     /// Enable background delivering objects from Apple Health to Trio
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
     func enableBackgroundDelivery()
     /// Delete glucose with syncID
     func deleteGlucose(syncID: String)
@@ -52,11 +46,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
         static let healthInsulinObject = HKObjectType.quantityType(forIdentifier: .insulinDelivery)
 
         // Meta-data key of FreeASPX data in HealthStore
-<<<<<<< HEAD
-        static let freeAPSMetaKey = "From iAPS"
-=======
         static let freeAPSMetaKey = "From Trio"
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
     }
 
     @Injected() private var glucoseStorage: GlucoseStorage!
@@ -214,11 +204,9 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
             let sampleDates = samples.map(\.startDate)
             let samplesToSave = carbsWithId
                 .filter { !sampleIDs.contains($0.id ?? "") } // id existing in AH
-<<<<<<< HEAD
-                .filter { !sampleDates.contains($0.actualDate ?? $0.createdAt) } // not id but exactly the same datetime
-=======
+//                .filter { !sampleDates.contains($0.actualDate ?? $0.createdAt) } // not id but exactly the same datetime
                 .filter { !sampleDates.contains($0.createdAt) } // not id but exactly the same datetime
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
+
                 .map {
                     HKQuantitySample(
                         type: sampleType,
@@ -636,10 +624,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
                 withMetadataKey: HKMetadataKeySyncIdentifier,
                 allowedValues: ids
             )
-<<<<<<< HEAD
             print("found IDs: " + ids.description)
-=======
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
             healthKitStore.deleteObjects(of: sampleType, predicate: predicate) { _, _, error in
                 guard let error = error else { return }
                 warning(.service, "Cannot delete sample with fpuID: \(fpuID)", error: error)
