@@ -37,7 +37,16 @@ extension ManualTempBasal {
                     HStack {
                         Text("Amount")
                         Spacer()
+<<<<<<< HEAD
                         TextFieldWithToolBar(text: $state.rate, placeholder: "0", numberFormatter: formatter)
+=======
+                        TextFieldWithToolBar(
+                            text: $state.rate,
+                            placeholder: "0",
+                            shouldBecomeFirstResponder: true,
+                            numberFormatter: formatter
+                        )
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                         Text("U/hr").foregroundColor(.secondary)
                     }
                     Picker(selection: $state.durationIndex, label: Text("Duration")) {

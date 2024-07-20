@@ -155,11 +155,18 @@ extension Home {
 
         var glucoseView: some View {
             CurrentGlucoseView(
+<<<<<<< HEAD
                 timerDate: $state.timerDate,
+=======
+                recentGlucose: $state.recentGlucose,
+                timerDate: $state.timerDate,
+                delta: $state.glucoseDelta,
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                 units: $state.units,
                 alarm: $state.alarm,
                 lowGlucose: $state.lowGlucose,
                 highGlucose: $state.highGlucose,
+<<<<<<< HEAD
                 glucose: state.glucoseFromPersistence,
                 manualGlucose: state.manualGlucoseFromPersistence
             ).scaleEffect(0.9)
@@ -179,6 +186,18 @@ extension Home {
                         state.openCGM()
                     }
                 }
+=======
+                cgmAvailable: $state.cgmAvailable
+            )
+            .onTapGesture {
+                state.openCGM()
+            }
+            .onLongPressGesture {
+                let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+                impactHeavy.impactOccurred()
+                state.showModal(for: .snooze)
+            }
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
         }
 
         var pumpView: some View {
@@ -187,6 +206,7 @@ extension Home {
                 name: $state.pumpName,
                 expiresAtDate: $state.pumpExpiresAtDate,
                 timerDate: $state.timerDate,
+<<<<<<< HEAD
                 timeZone: $state.timeZone,
                 pumpStatusHighlightMessage: $state.pumpStatusHighlightMessage,
                 battery: state.batteryFromPersistence
@@ -194,6 +214,12 @@ extension Home {
                 if state.pumpDisplayState != nil {
                     state.setupPump = true
                 }
+=======
+                pumpStatusHighlightMessage: $state.pumpStatusHighlightMessage
+            )
+            .onTapGesture {
+                state.setupPump = true
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
             }
         }
 
@@ -284,6 +310,64 @@ extension Home {
             return tempTarget.displayName + " " + percentString
         }
 
+<<<<<<< HEAD
+=======
+        var overrideString: String? {
+            guard fetchedPercent.first?.enabled ?? false else {
+                return nil
+            }
+            var percentString = "\((fetchedPercent.first?.percentage ?? 100).formatted(.number)) %"
+            var target = (fetchedPercent.first?.target ?? 100) as Decimal
+            let indefinite = (fetchedPercent.first?.indefinite ?? false)
+            let unit = state.units.rawValue
+            if state.units == .mmolL {
+                target = target.asMmolL
+            }
+            var targetString = (fetchedTargetFormatter.string(from: target as NSNumber) ?? "") + " " + unit
+            if tempTargetString != nil || target == 0 { targetString = "" }
+            percentString = percentString == "100 %" ? "" : percentString
+
+            let duration = (fetchedPercent.first?.duration ?? 0) as Decimal
+            let addedMinutes = Int(duration)
+            let date = fetchedPercent.first?.date ?? Date()
+            var newDuration: Decimal = 0
+
+            if date.addingTimeInterval(addedMinutes.minutes.timeInterval) > Date() {
+                newDuration = Decimal(Date().distance(to: date.addingTimeInterval(addedMinutes.minutes.timeInterval)).minutes)
+            }
+
+            var durationString = indefinite ?
+                "" : newDuration >= 1 ?
+                (newDuration.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + " min") :
+                (
+                    newDuration > 0 ? (
+                        (newDuration * 60).formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + " s"
+                    ) :
+                        ""
+                )
+
+            if durationString == "", !indefinite {
+                return nil
+            }
+
+            let smbToggleString = (
+                (fetchedPercent.first?.smbIsOff ?? false) || fetchedPercent.first?.smbIsScheduledOff ?? false
+            ) ?
+                " \u{20e0}" : ""
+            let smbScheduleString = (fetchedPercent.first?.smbIsScheduledOff ?? false) &&
+                !(fetchedPercent.first?.smbIsOff ?? false) ?
+                " \(fetchedPercent.first?.start ?? 0)-\(fetchedPercent.first?.end ?? 0)" : ""
+            let comma1 = (percentString == "" || (targetString == "" && durationString == "" && smbToggleString == ""))
+                ? "" : " , "
+            let comma2 = (targetString == "" || (durationString == "" && smbToggleString == ""))
+                ? "" : " , "
+            let comma3 = (durationString == "" || smbToggleString == "")
+                ? "" : " , "
+
+            return percentString + comma1 + targetString + comma2 + durationString + comma3 + smbToggleString + smbScheduleString
+        }
+
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
         var infoPanel: some View {
             HStack(alignment: .center) {
                 if state.pumpSuspended {
@@ -320,11 +404,54 @@ extension Home {
             .frame(maxWidth: .infinity, maxHeight: 30)
         }
 
+<<<<<<< HEAD
         var timeInterval: some View {
             HStack(alignment: .center) {
                 ForEach(timeButtons) { button in
                     Text(button.active ? NSLocalizedString(button.label, comment: "") : button.number).onTapGesture {
                         state.hours = button.hours
+=======
+        var legendPanel: some View {
+            ZStack {
+                HStack(alignment: .center) {
+                    Group {
+                        Circle().fill(Color.loopGreen).frame(width: 8, height: 8)
+                        Text("BG")
+                            .font(.system(size: 12, weight: .bold)).foregroundColor(.loopGreen)
+                    }
+                    Group {
+                        Circle().fill(Color.insulin).frame(width: 8, height: 8)
+                            .padding(.leading, 8)
+                        Text("IOB")
+                            .font(.system(size: 12, weight: .bold)).foregroundColor(.insulin)
+                    }
+                    Group {
+                        Circle().fill(Color.zt).frame(width: 8, height: 8)
+                            .padding(.leading, 8)
+                        Text("ZT")
+                            .font(.system(size: 12, weight: .bold)).foregroundColor(.zt)
+                    }
+                    Group {
+                        Circle().fill(Color.loopYellow).frame(width: 8, height: 8)
+                            .padding(.leading, 8)
+                        Text("COB")
+                            .font(.system(size: 12, weight: .bold)).foregroundColor(.loopYellow)
+                    }
+                    Group {
+                        Circle().fill(Color.uam).frame(width: 8, height: 8)
+                            .padding(.leading, 8)
+                        Text("UAM")
+                            .font(.system(size: 12, weight: .bold)).foregroundColor(.uam)
+                    }
+
+                    if let eventualBG = state.eventualBG {
+                        Text(
+                            "⇢ " + targetFormatter.string(
+                                from: (state.units == .mmolL ? eventualBG.asMmolL : Decimal(eventualBG)) as NSNumber
+                            )!
+                        )
+                        .font(.system(size: 12, weight: .bold)).foregroundColor(.secondary)
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                     }
                     .foregroundStyle(button.active ? (colorScheme == .dark ? Color.white : Color.black).opacity(0.9) : .secondary)
                     .frame(maxHeight: 30).padding(.horizontal, 8)
@@ -937,6 +1064,9 @@ extension Home {
                         .padding(.bottom, 4)
                         .padding(.top, 8)
                     Text(errorMessage).font(.caption).foregroundColor(.loopRed)
+                } else if let suggestion = state.suggestion, (suggestion.bg ?? 100) == 400 {
+                    Text("Invalid CGM reading (HIGH).").font(.callout).bold().foregroundColor(.loopRed).padding(.top, 8)
+                    Text("SMBs and High Temps Disabled.").font(.caption).foregroundColor(.white).padding(.bottom, 4)
                 }
             }
         }

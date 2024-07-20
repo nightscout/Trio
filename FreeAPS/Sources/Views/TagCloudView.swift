@@ -69,6 +69,10 @@ struct TagCloudView: View {
                  textTag where textTag.contains("Basal ratio"),
                  textTag where textTag.contains("SMB Ratio"):
                 return .zt
+            case textTag where textTag.contains("Middleware:"):
+                return .red
+            case textTag where textTag.contains("SMB Ratio"):
+                return .orange
             default:
                 return .insulin
             }

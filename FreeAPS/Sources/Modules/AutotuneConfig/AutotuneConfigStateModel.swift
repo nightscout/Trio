@@ -103,5 +103,35 @@ extension AutotuneConfig {
                 }
             }
         }
+
+        func replace() {
+            if let autotunedBasals = autotune {
+                let basals = autotunedBasals.basalProfile
+                    .map { basal -> BasalProfileEntry in
+                        BasalProfileEntry(
+                            start: String(basal.start.prefix(5)),
+                            minutes: basal.minutes,
+                            rate: basal.rate
+                        )
+                    }
+                guard let pump = apsManager.pumpManager else {
+                    storage.save(basals, as: OpenAPS.Settings.basalProfile)
+                    debug(.service, "Basals have been replaced with Autotuned Basals by user.")
+                    return
+                }
+                let syncValues = basals.map {
+                    RepeatingScheduleValue(startTime: TimeInterval($0.minutes * 60), value: Double($0.rate))
+                }
+                pump.syncBasalRateSchedule(items: syncValues) { result in
+                    switch result {
+                    case .success:
+                        self.storage.save(basals, as: OpenAPS.Settings.basalProfile)
+                        debug(.service, "Basals saved to pump!")
+                    case .failure:
+                        debug(.service, "Basals couldn't be save to pump")
+                    }
+                }
+            }
+        }
     }
 }

@@ -40,11 +40,20 @@ extension PreferencesEditor {
 
         var body: some View {
             Form {
-                Section(header: Text("iAPS").textCase(nil)) {
+                Section(header: Text("Trio").textCase(nil)) {
                     Picker("Glucose units", selection: $state.unitsIndex) {
                         Text("mg/dL").tag(0)
                         Text("mmol/L").tag(1)
                     }
+<<<<<<< HEAD
+=======
+                    HStack {
+                        Text("Recommended Bolus Percentage")
+                        TextFieldWithToolBar(text: $state.insulinReqPercentage, placeholder: "", numberFormatter: formatter)
+                    }
+
+                    Toggle("Skip Bolus screen after carbs", isOn: $state.skipBolusScreenAfterCarbs)
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                 }
 
                 ForEach(state.sections.indexed(), id: \.1.id) { sectionIndex, section in

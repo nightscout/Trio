@@ -55,6 +55,7 @@ struct MainChartView: View {
     @StateObject var state: Home.StateModel
 
     @State var didAppearTrigger = false
+<<<<<<< HEAD
     @State private var basalProfiles: [BasalProfile] = []
     @State private var chartTempTargets: [ChartTempTarget] = []
     @State private var count: Decimal = 1
@@ -63,6 +64,25 @@ struct MainChartView: View {
     @State private var minValue: Decimal = 45
     @State private var maxValue: Decimal = 270
     @State private var selection: Date? = nil
+=======
+    @State private var glucoseDots: [CGRect] = []
+    @State private var unSmoothedGlucoseDots: [CGRect] = []
+    @State private var manualGlucoseDots: [CGRect] = []
+    @State private var predictionDots: [PredictionType: [CGRect]] = [:]
+    @State private var bolusDots: [DotInfo] = []
+    @State private var bolusPath = Path()
+    @State private var tempBasalPath = Path()
+    @State private var regularBasalPath = Path()
+    @State private var tempTargetsPath = Path()
+    @State private var suspensionsPath = Path()
+    @State private var carbsDots: [DotInfo] = []
+    @State private var carbsPath = Path()
+    @State private var fpuDots: [DotInfo] = []
+    @State private var fpuPath = Path()
+    @State private var glucoseYRange: GlucoseYRange = (0, 0, 0, 0)
+    @State private var offset: CGFloat = 0
+    @State private var cachedMaxBasalRate: Decimal?
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 
     private let now = Date.now
 
@@ -299,6 +319,7 @@ extension MainChartView {
         if let sgv = selectedGlucose?.glucose {
             let glucoseToShow = Decimal(sgv) * conversionFactor
             VStack {
+<<<<<<< HEAD
                 Text(selectedGlucose?.date?.formatted(.dateTime.hour().minute(.twoDigits)) ?? "")
                 HStack {
                     Text(glucoseToShow.formatted(.number.precision(units == .mmolL ? .fractionLength(1) : .fractionLength(0))))
@@ -308,6 +329,36 @@ extension MainChartView {
                                 .red : (Decimal(sgv) > highGlucose ? Color.orange : Color.primary)
                         )
                     Text(units.rawValue).foregroundColor(.secondary)
+=======
+                ZStack {
+                    xGridView(fullSize: fullSize)
+                    carbsView(fullSize: fullSize)
+                    fpuView(fullSize: fullSize)
+                    bolusView(fullSize: fullSize)
+                    if smooth { unSmoothedGlucoseView(fullSize: fullSize) }
+                    glucoseView(fullSize: fullSize)
+                    manualGlucoseView(fullSize: fullSize)
+                    predictionsView(fullSize: fullSize)
+                }
+                timeLabelsView(fullSize: fullSize)
+            }
+        }
+        .frame(width: fullGlucoseWidth(viewWidth: fullSize.width) + additionalWidth(viewWidth: fullSize.width))
+    }
+
+    @Environment(\.colorScheme) var colorScheme
+
+    private func xGridView(fullSize: CGSize) -> some View {
+        let useColour = displayXgridLines ? Color.secondary : Color.clear
+        return ZStack {
+            Path { path in
+                for hour in 0 ..< hours + hours {
+                    let x = firstHourPosition(viewWidth: fullSize.width) +
+                        oneSecondStep(viewWidth: fullSize.width) *
+                        CGFloat(hour) * CGFloat(1.hours.timeInterval)
+                    path.move(to: CGPoint(x: x, y: 0))
+                    path.addLine(to: CGPoint(x: x, y: fullSize.height - 20))
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                 }
             }
             .padding(6)
@@ -331,8 +382,63 @@ extension MainChartView {
             }.onChange(of: state.tempBasals) { _ in
                 calculateBasals()
             }
+<<<<<<< HEAD
             .onChange(of: maxBasal) { _ in
                 calculateBasals()
+=======
+            path.addLines(lines)
+        }
+        .stroke(Color.loopGray, lineWidth: 0.5)
+        .onChange(of: glucose) { _ in
+            update(fullSize: fullSize)
+        }
+        .onChange(of: didAppearTrigger) { _ in
+            update(fullSize: fullSize)
+        }
+        .onReceive(Foundation.NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            update(fullSize: fullSize)
+        }
+    }
+
+    private func manualGlucoseView(fullSize: CGSize) -> some View {
+        ZStack {
+            Path { path in
+                for rect in manualGlucoseDots {
+                    path.addEllipse(in: rect)
+                }
+            }
+            .fill(Color.loopRed)
+            Path { path in
+                for rect in manualGlucoseDots {
+                    path.addEllipse(in: rect)
+                }
+            }
+            .stroke(Color.primary, lineWidth: 0.5)
+        }
+        .onChange(of: glucose) { _ in
+            update(fullSize: fullSize)
+        }
+        .onChange(of: didAppearTrigger) { _ in
+            update(fullSize: fullSize)
+        }
+        .onReceive(Foundation.NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            update(fullSize: fullSize)
+        }
+    }
+
+    private func bolusView(fullSize: CGSize) -> some View {
+        ZStack {
+            bolusPath
+                .fill(Color.insulin)
+            bolusPath
+                .stroke(Color.primary, lineWidth: 0.5)
+
+            ForEach(bolusDots, id: \.rect.minX) { info -> AnyView in
+                let position = CGPoint(x: info.rect.midX, y: info.rect.maxY + 8)
+                return Text(bolusFormatter.string(from: info.value as NSNumber)!).font(.caption2)
+                    .position(position)
+                    .asAny()
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
             }
             .onChange(of: autotunedBasalProfile) { _ in
                 calculateBasals()
@@ -402,6 +508,7 @@ extension MainChartView {
 // MARK: - Calculations
 
 extension MainChartView {
+<<<<<<< HEAD
     private func drawBoluses() -> some ChartContent {
         ForEach(state.insulinFromPersistence) { insulin in
             let amount = insulin.bolus?.amount ?? 0 as NSDecimalNumber
@@ -422,6 +529,89 @@ extension MainChartView {
                     Text(bolusFormatter.string(from: amount) ?? "")
                         .font(.caption2)
                         .foregroundStyle(Color.insulin)
+=======
+    private func update(fullSize: CGSize) {
+        calculatePredictionDots(fullSize: fullSize, type: .iob)
+        calculatePredictionDots(fullSize: fullSize, type: .cob)
+        calculatePredictionDots(fullSize: fullSize, type: .zt)
+        calculatePredictionDots(fullSize: fullSize, type: .uam)
+        calculateGlucoseDots(fullSize: fullSize)
+        calculateUnSmoothedGlucoseDots(fullSize: fullSize)
+        calculateManualGlucoseDots(fullSize: fullSize)
+        calculateBolusDots(fullSize: fullSize)
+        calculateCarbsDots(fullSize: fullSize)
+        calculateFPUsDots(fullSize: fullSize)
+        calculateTempTargetsRects(fullSize: fullSize)
+        calculateBasalPoints(fullSize: fullSize)
+        calculateSuspensions(fullSize: fullSize)
+    }
+
+    private func calculateGlucoseDots(fullSize: CGSize) {
+        calculationQueue.async {
+            let sgvs = glucose
+                .filter { $0.type != "Manual"
+                } // as fingerpricks will be drawn differently, slightly larger and red - so do not draw them here
+            let dots = sgvs.concurrentMap { value -> CGRect in
+                let position = glucoseToCoordinate(value, fullSize: fullSize)
+                return CGRect(x: position.x - 2, y: position.y - 2, width: 4, height: 4)
+            }
+
+            let range = self.getGlucoseYRange(fullSize: fullSize)
+
+            DispatchQueue.main.async {
+                glucoseYRange = range
+                glucoseDots = dots
+            }
+        }
+    }
+
+    private func calculateUnSmoothedGlucoseDots(fullSize: CGSize) {
+        calculationQueue.async {
+            let sgvs = glucose.filter { $0.type == "sgv" }
+            let dots = sgvs.concurrentMap { value -> CGRect in
+                let position = UnSmoothedGlucoseToCoordinate(value, fullSize: fullSize)
+                return CGRect(x: position.x - 2, y: position.y - 2, width: 4, height: 4)
+            }
+
+            let range = self.getGlucoseYRange(fullSize: fullSize)
+
+            DispatchQueue.main.async {
+                glucoseYRange = range
+                unSmoothedGlucoseDots = dots
+            }
+        }
+    }
+
+    private func calculateManualGlucoseDots(fullSize: CGSize) {
+        calculationQueue.async {
+            let manuals = glucose.filter { $0.type == "Manual" }
+            let dots = manuals.concurrentMap { value -> CGRect in
+                let position = glucoseToCoordinate(value, fullSize: fullSize)
+                return CGRect(x: position.x - 2, y: position.y - 2, width: 6, height: 6)
+            }
+
+            let range = self.getGlucoseYRange(fullSize: fullSize)
+
+            DispatchQueue.main.async {
+                glucoseYRange = range
+                manualGlucoseDots = dots
+            }
+        }
+    }
+
+    private func calculateBolusDots(fullSize: CGSize) {
+        calculationQueue.async {
+            let dots = boluses.map { value -> DotInfo in
+                let center = timeToInterpolatedPoint(value.timestamp.timeIntervalSince1970, fullSize: fullSize)
+                let size = Config.bolusSize + CGFloat(value.amount ?? 0) * Config.bolusScale
+                let rect = CGRect(x: center.x - size / 2, y: center.y - size / 2, width: size, height: size)
+                return DotInfo(rect: rect, value: value.amount ?? 0)
+            }
+
+            let path = Path { path in
+                for dot in dots {
+                    path.addEllipse(in: dot.rect)
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                 }
             }
         }

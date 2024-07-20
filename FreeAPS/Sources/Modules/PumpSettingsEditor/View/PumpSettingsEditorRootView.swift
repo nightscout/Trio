@@ -40,10 +40,13 @@ extension PumpSettingsEditor {
                     HStack {
                         Text("Max Bolus")
                         TextFieldWithToolBar(text: $state.maxBolus, placeholder: "U", numberFormatter: formatter)
+<<<<<<< HEAD
                     }
                     HStack {
                         Text("Max Carbs")
                         TextFieldWithToolBar(text: $state.maxCarbs, placeholder: "g", numberFormatter: formatter)
+=======
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                     }
                 }
 

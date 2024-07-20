@@ -373,9 +373,20 @@ final class BaseAPSManager: APSManager, Injectable {
             return false
         }
 
+<<<<<<< HEAD
         do {
             let now = Date()
             let temp = await fetchCurrentTempBasal(date: now)
+=======
+        // Only let glucose be flat when 400 mg/dl
+        if (glucoseStorage.recent().last?.glucose ?? 100) != 400 {
+            guard glucoseStorage.isGlucoseNotFlat() else {
+                debug(.apsManager, "Glucose data is too flat")
+                processError(APSError.glucoseError(message: "Glucose data is too flat"))
+                return Just(false).eraseToAnyPublisher()
+            }
+        }
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 
             _ = try await makeProfiles()
             _ = try await autosens()
@@ -740,6 +751,10 @@ final class BaseAPSManager: APSManager, Injectable {
             } else {
                 debugPrint("Failed to update OrefDetermination in reportEnacted()")
             }
+<<<<<<< HEAD
+=======
+            nightscout.uploadStatus()
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
         }
     }
 
@@ -898,6 +913,7 @@ final class BaseAPSManager: APSManager, Injectable {
         return output
     }
 
+<<<<<<< HEAD
     // fetch glucose for time interval
     func fetchGlucose(predicate: NSPredicate, fetchLimit: Int? = nil, batchSize: Int? = nil) async -> [GlucoseStored] {
         await CoreDataStack.shared.fetchEntitiesAsync(
@@ -1346,6 +1362,11 @@ final class BaseAPSManager: APSManager, Injectable {
     private func loopStats(loopStatRecord: LoopStats) {
         privateContext.perform {
             let nLS = LoopStatRecord(context: self.privateContext)
+=======
+    private func loopStats(loopStatRecord: LoopStats) {
+        coredataContext.perform {
+            let nLS = LoopStatRecord(context: self.coredataContext)
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 
             nLS.start = loopStatRecord.start
             nLS.end = loopStatRecord.end ?? Date()
@@ -1405,7 +1426,11 @@ private extension PumpManager {
                     continuation.resume(throwing: error)
                 } else {
                     debug(.apsManager, "Temp basal succeeded: \(unitsPerHour) for: \(duration)")
+<<<<<<< HEAD
                     continuation.resume(returning: ())
+=======
+                    promise(.success(nil))
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                 }
             }
         }
@@ -1421,7 +1446,11 @@ private extension PumpManager {
                     continuation.resume(throwing: error)
                 } else {
                     debug(.apsManager, "Bolus succeeded: \(units)")
+<<<<<<< HEAD
                     continuation.resume(returning: ())
+=======
+                    promise(.success(nil))
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                 }
             }
         }
@@ -1433,7 +1462,11 @@ private extension PumpManager {
                 switch result {
                 case let .success(dose):
                     debug(.apsManager, "Cancel Bolus succeeded")
+<<<<<<< HEAD
                     continuation.resume(returning: dose)
+=======
+                    promise(.success(dose))
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                 case let .failure(error):
                     debug(.apsManager, "Cancel Bolus failed")
                     continuation.resume(throwing: APSError.pumpError(error))

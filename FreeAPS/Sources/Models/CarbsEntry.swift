@@ -1,4 +1,5 @@
 import Foundation
+import LoopKit
 
 struct CarbsEntry: JSON, Equatable, Hashable, Identifiable {
     let id: String?
@@ -36,5 +37,27 @@ extension CarbsEntry {
         case enteredBy
         case isFPU
         case fpuID
+    }
+}
+
+extension CarbsEntry {
+    func convertSyncCarb(operation: LoopKit.Operation = .create) -> SyncCarbObject {
+        SyncCarbObject(
+            absorptionTime: nil,
+            createdByCurrentApp: true,
+            foodType: nil,
+            grams: Double(carbs),
+            startDate: createdAt,
+            uuid: UUID(uuidString: id!),
+            provenanceIdentifier: enteredBy ?? "",
+            syncIdentifier: id,
+            syncVersion: nil,
+            userCreatedDate: nil,
+            userUpdatedDate: nil,
+            userDeletedDate: nil,
+            operation: operation,
+            addedDate: nil,
+            supercededDate: nil
+        )
     }
 }

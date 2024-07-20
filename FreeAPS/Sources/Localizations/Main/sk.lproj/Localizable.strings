@@ -1,6 +1,6 @@
 /*
   Localizable.strings
-  iAPS
+  Trio
 */
 /* -------------------------------- */
 /* Bolus screen when adding insulin */
@@ -357,10 +357,10 @@ Enact a temp Basal or a temp target */
 "Skip Bolus screen after carbs" = "Preskočiť pridanie dávky po sacharidoch";
 
 /* Allow remote control from NS */
-"Remote control" = "Vzdialené ovládanie";
+"Remote Control" = "Vzdialené ovládanie";
 
 /* Imported Profiles Alert */
-"\nNow please verify all of your new settings thoroughly:\n\n* Basal Settings\n * Carb Ratios\n * Glucose Targets\n * Insulin Sensitivities\n * DIA\n\n in iAPS Settings > Configuration.\n\nBad or invalid profile settings could have disatrous effects." = "\\Teraz dôkladne skontrolujte všetky nové nastavenia:\n\n* Bazálne nastavenia\n * Pomery uhľohydrátov\n * Cieľové hodnoty glukózy\n * Citlivosť na inzulín\n * DIA\n\n v iAPS Nastavenia > Konfigurácia.\n\nZlé alebo neplatné nastavenia profilu by mohli mať škodlivé účinky.";
+"\nNow please verify all of your new settings thoroughly: \n\n • DIA (Pump settings)\n • Basal Profile\n • Insulin Sensitivities\n • Carb Ratios\n • Target Glucose\n\n in Trio Settings -> Configuration.\n\nBad or invalid profile settings could have disastrous effects." = "\nTeraz dôkladne skontrolujte všetky nové nastavenia:\n\n* Bazálne nastavenia\n * Pomery uhľohydrátov\n * Cieľové hodnoty glukózy\n * Citlivosť na inzulín\n * DIA\n\n v Trio Nastavenia > Konfigurácia.\n\nZlé alebo neplatné nastavenia profilu by mohli mať škodlivé účinky.";
 
 /* Profile Import Alert */
 "This will replace some or all of your current pump settings. Are you sure you want to import profile settings from Nightscout?" = "Tým sa nahradia niektoré alebo všetky aktuálne nastavenia čerpadla. Ste si istí, že chcete importovať nastavenia profilu z programu Nightscout?";
@@ -430,6 +430,30 @@ Enact a temp Basal or a temp target */
 
 /* Max setting */
 "Max Carbs" = "Maximum sacharidov";
+
+/* Max setting */
+"Max Fat" = "Max Fat";
+
+/* Max setting */
+"Max Protein" = "Max Protein";
+
+/* Max setting */
+"Limit Per Entry" = "Limit Per Entry";
+
+/* Max Carbs limit exceeded */
+"Max Carbs of" = "Max Carbs of";
+
+/* Max Fat limit exceeded */
+"Max Fat of" = "Max Fat of";
+
+/* Max Protein limit exceeded */
+"Max Protein of" = "Max Protein of";
+
+/* Max Bolus limit exceeded */
+"Max Bolus of" = "Max Bolus of";
+
+/* Limit Exceeded label */
+"exceeded" = "exceeded";
 
 /* */
 "Pump Settings" = "Nastavenia pumpy";
@@ -519,7 +543,7 @@ Enact a temp Basal or a temp target */
 "ISF" = "Citlivosť";
 
 /* */
-"The app Garmin Connect must be installed to use for iAPS.\n Go to App Store to download it" = "Aplikácia Garmin Connect musí byť nainštalovaná pre použitie s iAPS.\n Pre stiahnutie choďte do App Store";
+"The app Garmin Connect must be installed to use for Trio.\n Go to App Store to download it" = "Aplikácia Garmin Connect musí byť nainštalovaná pre použitie s Trio.\n Pre stiahnutie choďte do App Store";
 
 /* */
 "Garmin is not available" = "Garmin je nedostupný";
@@ -1035,7 +1059,7 @@ Enact a temp Basal or a temp target */
 "To prevent LOW required %d g of carbs" = "Na zabránenie NÍZKY potrebných %d g sacharidov";
 
 /* */
-"iAPS not active" = "iAPS nie je aktívny";
+"Trio Not Active" = "Trio nie je aktívny";
 
 /* */
 "Last loop was more than %d min ago" = "Posledná slučka bola pred viac ako %d min";
@@ -1051,9 +1075,6 @@ Enact a temp Basal or a temp target */
 
 /* */
 "Bolus failed" = "Chyba pri aplikácii bolusu";
-
-/* "Max Bolus Exceeded label" */
-"Max Bolus exceeded!" = "Maximálny bolus prekročený!";
 
 /* */
 "Bolus failed or inaccurate. Check pump history before repeating." = "Bolus zlyhal alebo bol nepresný. Pred opakovaním skontrolujte históriu čerpadla.";
@@ -1201,7 +1222,7 @@ Enact a temp Basal or a temp target */
 "For write data to Apple Health you must give permissions in Settings > Health > Data Access" = "Ak chcete zapisovať údaje do aplikácie Apple Health, musíte udeliť oprávnenia v ponuke Nastavenia > Zdravie > Prístup k údajom";
 
 /* */
-"This allows iAPS to read from and write to Apple Heath. You must also give permissions in Settings > Health > Data Access. If you enter a glucose value into Apple Health, open iAPS to confirm it shows up." = "To umožňuje iAPS čítať z Apple Heath a zapisovať do neho. Oprávnenia musíte udeliť aj v ponuke Nastavenia > Zdravie > Prístup k údajom. Ak do aplikácie Apple Health zadáte hodnotu glukózy, otvorte iAPS a potvrďte, že sa zobrazí.";
+"This allows Trio to read from and write to Apple Heath. You must also give permissions in Settings > Health > Data Access. If you enter a glucose value into Apple Health, open Trio to confirm it shows up." = "To umožňuje Trio čítať z Apple Heath a zapisovať do neho. Oprávnenia musíte udeliť aj v ponuke Nastavenia > Zdravie > Prístup k údajom. Ak do aplikácie Apple Health zadáte hodnotu glukózy, otvorte Trio a potvrďte, že sa zobrazí.";
 
 /* New ALerts ------------------------- */
 /* Info title */
@@ -1240,7 +1261,7 @@ Enact a temp Basal or a temp target */
 "Enable" = "Povoliť";
 
 /* Header */
-"Conversion settings" = "Nastavenia konverzie";
+"Fat and Protein Conversion Settings" = "Fat and Protein Conversion Settings";
 
 /* Delay */
 "Delay In Minutes" = "Oneskorenie v minútach";
@@ -1273,7 +1294,7 @@ Enact a temp Basal or a temp target */
 "Protein" = "Bielkoviny";
 
 /* Service Section */
-"Fat And Protein Conversion" = "Konverzia tukov a bielkovín";
+"Meal Settings" = "Meal Settings";
 
 /* Service Section */
 "Profile Override" = "Prepísanie profilu";
@@ -1371,7 +1392,7 @@ Enact a temp Basal or a temp target */
 "App Icons" = "Ikony aplikácie";
 
 /* */
-"iAPS Icon" = "ikona iAPS";
+"Trio Icon" = "ikona Trio";
 
 /* Service Section */
 "Statistics and Home View" = "Štatistiky a domovské zobrazenie";
@@ -1560,7 +1581,7 @@ Enact a temp Basal or a temp target */
 "%1$@ for %2$@" = "%1$@ pre %2$@";
 
 /* Description text on manual temp basal action sheet */
-"Loop will not automatically adjust your insulin delivery until the temporary basal rate finishes or is canceled." = "iAPS vám automaticky neupraví dávkovanie inzulínu, kým sa dočasná bazálna rýchlosť neskončí alebo nezruší.";
+"Loop will not automatically adjust your insulin delivery until the temporary basal rate finishes or is canceled." = "Trio vám automaticky neupraví dávkovanie inzulínu, kým sa dočasná bazálna rýchlosť neskončí alebo nezruší.";
 /* Button text for setting manual temporary basal rate*/
 "Set Temporary Basal" = "Nastaviť dočasný bazál";
 
@@ -1792,7 +1813,7 @@ Enact a temp Basal or a temp target */
 /* -----------------------------------------------------------------------------------------------------------
 
   Infotexts from openaps.docs and androidaps.docs
-  iAPS
+  Trio
 */
 /* Headline Rewind Resets Autosens */
 
@@ -1847,7 +1868,7 @@ Enact a temp Basal or a temp target */
 "Skip Neutral Temps" = "Vynechanie neutrálnych teplôt";
 
 /* "Skip Neutral Temps" */
-"Defaults to false, so that iAPS will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means iAPS will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night." = "Predvolené nastavenie je false, takže iAPS nastaví teploty vždy, keď to bude možné, takže bude jednoduchšie zistiť, či systém funguje, aj keď ste offline. To znamená, že iAPS nastaví \"neutrálnu\" teplotu (rovnakú ako vaša predvolená bazálna teplota), ak nie sú potrebné žiadne úpravy. Toto je staré nastavenie systému OpenAPS, aby mal možnosti minimalizovať zvuky a oznámenia z \"platformy\", ktoré vás môžu počas noci zobudiť. ";
+"Defaults to false, so that Trio will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means Trio will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night." = "Predvolené nastavenie je false, takže Trio nastaví teploty vždy, keď to bude možné, takže bude jednoduchšie zistiť, či systém funguje, aj keď ste offline. To znamená, že Trio nastaví \"neutrálnu\" teplotu (rovnakú ako vaša predvolená bazálna teplota), ak nie sú potrebné žiadne úpravy. Toto je staré nastavenie systému OpenAPS, aby mal možnosti minimalizovať zvuky a oznámenia z \"platformy\", ktoré vás môžu počas noci zobudiť. ";
 
 /* Headline "Unsuspend If No Temp” */
 "Unsuspend If No Temp" = "Zrušenie pozastavenia Ak nie je dočasné";
@@ -1859,7 +1880,7 @@ Enact a temp Basal or a temp target */
 "Enable UAM" = "Povoliť UAM";
 
 /* "Enable UAM" */
-"With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell iAPS about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier." = "Ak je táto možnosť povolená, algoritmus SMB dokáže rozpoznať neohlásené jedlá. To je užitočné, ak zabudnete iAPS informovať o sacharidoch alebo ich nesprávne odhadnete a množstvo zadaných sacharidov je nesprávne, alebo ak jedlo s veľkým množstvom tukov a bielkovín má dlhšie trvanie, ako sa očakávalo. Bez akéhokoľvek zadávania sacharidov dokáže UAM rozpoznať rýchle zvýšenie glukózy spôsobené sacharidmi, adrenalínom atď. a snaží sa ho upraviť pomocou SMB. Funguje to aj opačne: ak dôjde k rýchlemu poklesu glukózy, môže zastaviť SMB skôr.";
+"With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell Trio about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier." = "Ak je táto možnosť povolená, algoritmus SMB dokáže rozpoznať neohlásené jedlá. To je užitočné, ak zabudnete Trio informovať o sacharidoch alebo ich nesprávne odhadnete a množstvo zadaných sacharidov je nesprávne, alebo ak jedlo s veľkým množstvom tukov a bielkovín má dlhšie trvanie, ako sa očakávalo. Bez akéhokoľvek zadávania sacharidov dokáže UAM rozpoznať rýchle zvýšenie glukózy spôsobené sacharidmi, adrenalínom atď. a snaží sa ho upraviť pomocou SMB. Funguje to aj opačne: ak dôjde k rýchlemu poklesu glukózy, môže zastaviť SMB skôr.";
 
 /* Headline "Enable SMB With COB" */
 "Enable SMB With COB" = "Povoliť SMB zo sacharidmi";
@@ -1946,7 +1967,7 @@ Enact a temp Basal or a temp target */
 "Max COB" = "Maximálna hodnota COB";
 
 /* "Max COB" */
-"The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, iAPS will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)" = "Predvolená hodnota maxCOB je 120. (Ak niekto zadá viac sacharidov v jednom alebo viacerých záznamoch, iAPS obmedzí COB na maxCOB a udrží ho na maxCOB, kým sa nepreukáže, že sacharidy zadané nad maxCOB sa vstrebávajú. V podstate to len obmedzuje UAM ako bezpečnostný limit proti podivným výpočtom COB v dôsledku fluktuačných údajov)";
+"The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, Trio will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)" = "Predvolená hodnota maxCOB je 120. (Ak niekto zadá viac sacharidov v jednom alebo viacerých záznamoch, Trio obmedzí COB na maxCOB a udrží ho na maxCOB, kým sa nepreukáže, že sacharidy zadané nad maxCOB sa vstrebávajú. V podstate to len obmedzuje UAM ako bezpečnostný limit proti podivným výpočtom COB v dôsledku fluktuačných údajov)";
 
 /* Headline "Bolus Snooze DIA Divisor" */
 "Bolus Snooze DIA Divisor" = "Bolus Snooze DIA Deliteľ";
@@ -2006,7 +2027,7 @@ Enact a temp Basal or a temp target */
 "Insulin Peak Time" = "Čas inzulínového vrcholu";
 
 /* "Insulin Peak Time" */
-"Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with iAPS, longer loop calculations and possible red loops." = "Čas maximálneho účinku inzulínu na zníženie hladiny glukózy v krvi v minútach. Pozor: Oref predpokladá pre ultra-rýchle (Lyumjev) a rýchlo pôsobiace (Fiasp) krivky minimálny (35 a 50 min) a maximálny (100 a 120 min) použiteľný inzulínPeakTimes. Použitie vlastného insulinPeakTime mimo týchto hraníc bude mať za následok problémy s iAPS, dlhšie výpočty slučiek a možné červené slučky.";
+"Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with Trio, longer loop calculations and possible red loops." = "Čas maximálneho účinku inzulínu na zníženie hladiny glukózy v krvi v minútach. Pozor: Oref predpokladá pre ultra-rýchle (Lyumjev) a rýchlo pôsobiace (Fiasp) krivky minimálny (35 a 50 min) a maximálny (100 a 120 min) použiteľný inzulínPeakTimes. Použitie vlastného insulinPeakTime mimo týchto hraníc bude mať za následok problémy s Trio, dlhšie výpočty slučiek a možné červené slučky.";
 
 /* Headline "Carbs Req Threshold" */
 "Carbs Req Threshold" = "Požadovaný prah uhľohydrátov";
@@ -2041,7 +2062,7 @@ Enact a temp Basal or a temp target */
 "Enable Dynamic ISF" = "Povolenie funkcie Dynamic ISF";
 
 /* Enable Dynamic ISF */
-"Calculate a new Insulin Sensitivity Setting (ISF) upon every loop cycle. The new ISF will be based on your current Glucose, total daily dose of insulin (TDD, past 24 hours of all delivered insulin) and an individual Adjustment Factor (recommendation to start with is 0.5 if using Sigmoid Function and 0.8 if not).\n\nAll of the Dynamic ISF and CR adjustments will be limited by your autosens.min/max limits." = "Vypočítajte nové nastavenie citlivosti na inzulín (ISF) pri každom cykle slučky. Nové nastavenie ISF bude založené na vašej aktuálnej glykémii, celkovej dennej dávke inzulínu (TDD, posledných 24 hodín všetkého podaného inzulínu) a vašom individuálnom korekčnom faktore (odporúčanie na začiatok je 0,5, ak používate sigmoidnú funkciu, a 0,8, ak nie).\n\\Všetky dynamické úpravy ISF a CR budú obmedzené vašimi limitmi min/max automatického snímania.";
+"Calculate a new ISF with every loop cycle. New ISF will be based on current BG, TDD of insulin (past 24 hours or a weighted average) and an Adjustment Factor (default is 1).\n\nDynamic ISF and CR ratios will be limited by your autosens.min/max limits.\n\nDynamic ratio replaces the autosens.ratio: New ISF = Static ISF / Dynamic ratio,\nDynamic ratio = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes" = "Pri každom cykle slučky vypočítajte novú hodnotu ISF. Nový ISF bude založený na aktuálnom BG, TDD inzulínu (posledných 24 hodín alebo vážený priemer) a korekčnom faktore (predvolená hodnota je 1).\n\nDynamický pomer ISF a CR bude obmedzený limitmi autosens.min/max.\n\nDynamický pomer nahrádza autosens.pomer: Nový ISF = statický ISF / dynamický pomer,\nDynamický pomer = profil.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes";
 
 /* Headline Enable Dynamic CR */
 "Enable Dynamic CR" = "Povolenie funkcie Dynamic CR";
@@ -2050,129 +2071,78 @@ Enact a temp Basal or a temp target */
 "Use Dynamic CR. The dynamic ratio will be used for CR as follows:\n\n When ratio > 1:  dynCR = (newRatio - 1) / 2 + 1.\nWhen ratio < 1: dynCR = CR/dynCR.\n\nDon't use toghether with a high Insulin Fraction (> 2)" = "Používajte dynamický CR. Dynamický pomer sa použije pre CR takto:\n\n Keď pomer > 1: dynCR = (newRatio - 1) / 2 + 1.\nKeď pomer < 1: dynCR = CR/dynCR.\n\nNepoužívajte spolu s vysokou inzulínovou frakciou (> 2)";
 
 /* Enable Dyn ISF */
-"Activate Dynamic Sensitivity (ISF)" = "Aktivácia funkcie Dynamic Sensitivity (ISF)";
+"Activate Dynamic Sensitivity (ISF)" = "Activate Dynamic Sensitivity (ISF)";
 
 /* Enable Dyn CR */
-"Activate Dynamic Carb Ratio (CR)" = "Aktivácia funkcie Dynamic Carb Ratio (CR)";
+"Activate Dynamic Carb Ratio (CR)" = "Activate Dynamic Carb Ratio (CR)";
 
 /* Headline "Adjust Dynamic ISF constant" */
 "Adjust Dynamic ISF constant" = "Nastavenie konštanty Dynamic ISF";
 
 /* Adjust Dynamic ISF constant */
-"Individual adjustment of the computed dynamic ratios. Default is 0.5. The higher the value, the larger the correction of your ISF/CR will be for a high or a low blood glucose. Maximum/minumum correction is determined by the Autosens min/max settings.\n\nFor Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with.\n\nFor the logaritmic formula threre is less consensus, but starting around 0.8 is probably appropiate for most adult users. For younger users it's recommended to start even lower when using logaritmic formula, to avoid overly aggressive treatment." = "Individuálne nastavenie vypočítaných dynamických pomerov. Predvolená hodnota je 0,5. Čím vyššia je táto hodnota, tým väčšia bude korekcia vášho ISF/CR pre vysokú alebo nízku hladinu glukózy v krvi. Maximálna/minimálna korekcia je určená nastavením min/max v programe Autosens.\n\nPre sigmoidnú funkciu sa na začiatok odporúča korekčný faktor 0,4 - 0,5.\n\nPre logaritmický vzorec existuje menej konsenzu, ale začiatok okolo 0,8 je pravdepodobne vhodný pre väčšinu dospelých používateľov. U mladších používateľov sa pri používaní logaritmickej formuly odporúča začať ešte nižšie, aby sa zabránilo príliš agresívnej liečbe.";
+"Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula there is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users" = "Upravte dynamické pomery pomocou konštanty. Predvolená hodnota je 0,5. Čím vyššia je táto hodnota, tým väčšia bude korekcia vášho ISF pre vysoký alebo nízky BG. Maximálna korekcia je určená nastavením min/max v položke Autosens. Pre funkciu Sigmoid sa na začiatku odporúča korekčný faktor 0,4 - 0,5. Pre logaritmický vzorec existuje menej konsenzu, ale pre väčšinu používateľov je vhodnejšie začať s 0,5 - 0,8";
 
 /* Headline Use Sigmoid Function */
 "Use Sigmoid Function" = "Použitie funkcie Sigmoid";
 
 /* Which dyn ISF function to use */
-"Formula" = "Vzorec";
+"Formula" = "Formula";
 
 /* Extra Safety Features when using dyn ISF */
-"Safety" = "Bezpečnosť";
+"Safety" = "Safety";
 
 /* Use Sigmoid Function */
 "Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function." = "Použitie sigmoidnej funkcie pre ISF (a pre CR, ak je povolená) namiesto predvoleného logaritmického vzorca. Vyžaduje, aby bolo v nastaveniach povolené nastavenie Dynamická ISF.\n\nNastavenie Adjustment (Úprava) upravuje sklon krivky (Y: dynamický pomer, X: glykémia). Nižšia hodnota ==> menej strmá == menej agresívna.\n\nNastavenie autosens.min/max určuje limity max/min pre dynamický pomer A tiež to, ako veľmi sa dynamický pomer upravuje. Ak AF je sklon krivky, autosens.min/max je výška grafu, interval Y, kde Y: dynamický pomer. Krivka bude mať vždy sigmoidný tvar bez ohľadu na to, aké nastavenia autosens.min/max sa použijú, čo znamená, že tieto nastavenia majú veľké dôsledky na výsledok vypočítaného dynamického ISF. Buďte opatrní pri nastavení príliš vysokej hodnoty autosens.max. Pri správnom nastavení profilu ISF ju pravdepodobne nikdy nebudete potrebovať vyššiu ako 1.5\n\nLimit autosens.max > 1.5 sa pri použití sigmoidnej funkcie neodporúča.";
 
 /* Headline Threshold Setting */
-"Threshold Setting" = "Nastavenie prahové hodnoty";
+"Minimum Safety Threshold (mg/dL)" = "Minimum Safety Threshold (mg/dL)";
 
-/* Dynamic ISF Setting Title */
-"Minimum Threshold Setting" = "Nastavenie minimálneho prahu";
-
-/* Minimum Threshold Setting, Part 1 */
-"This setting lets you choose a level below which no insulin will be given.\n\nThe threshold is using the largest amount of your threshold setting and the computed threshold:\n\nTarget Glucose - (Target Glucose - 40) / 2\n, here using mg/dl as glucose unit.\n\nFor example, if your Target Glucose is " = "Toto nastavenie vám umožňuje zvoliť hladinu, pod ktorou nebude podaný žiadny inzulín.\n\nPrahová hodnota používa najväčšiu hodnotu vášho nastavenia prahovej hodnoty a vypočítanú prahovú hodnotu:\n\nCielová glykémia - (cieľová glykémia - 40) / 2\n, tu s použitím mg/dl ako jednotky glukózy.\n\nNapr. ak je vaša cieľová glykémia ";
-
-/* Minimum Threshold Setting, Part 2 */
-"the threshold will be " = "prahová hodnota bude ";
-
-/* Minimum Threshold Setting, Part 3 */
-"unless your threshold setting is set higher:" = "pokiaľ nie je nastavená vyššia prahová hodnota:";
-
-/* Threshold Table Columns Title */
-"Setting" = "Nastavenia";
-
-/* Threshold Table Columns Title */
-"Threshold" = "Hranica";
+/* Minimum Safety Threshold */
+"All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted." = "All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted.";
 
 /* Header */
-"Calculator settings" = "Nastavenia výpočtu";
-
-/* Bolus Calculator Setting */
-"Use alternate Bolus Calculator" = "Použite alternatívnu kalkulačku Bolus";
-
-/* Bolus Calculator Setting */
-"Fatty Meals" = "Mastné jedlo";
-
-/* Bolus Calculator Setting */
-"Apply factor for fatty meals" = "Použite faktor pre mastné jedlá";
-
-/* Bolus Calculator Footer */
-"The new alternate bolus calculator is another approach to the default bolus calculator in iAPS. If the toggle is on you use this bolus calculator and not the original iAPS calculator. At the end of the calculation a custom factor is applied as it is supposed to be when using smbs (default 0.8).\n\nYou can also add the option in your bolus calculator to apply another (!) customizable factor at the end of the calculation which could be useful for fatty meals, e.g Pizza (default 0.7)." = "Nová alternatívna bolusová kalkulačka je ďalším prístupom k predvolenej bolusovej kalkulačke v systéme iAPS. Ak je prepínač zapnutý, používate túto kalkulačku bolusu a nie pôvodnú kalkulačku iAPS. Na konci výpočtu sa použije vlastný faktor, ako to má byť pri používaní smbs (predvolene 0,8).\n\nV kalkulačke bolusu môžete tiež pridať možnosť použiť na konci výpočtu ďalší (!) prispôsobiteľný faktor, ktorý by mohol byť užitočný pre tučné jedlá, napr. pizzu (predvolene 0,7).";
+"Calculator settings" = "Calculator settings";
 
 /* UI/UX option */
-"Display Predictions" = "Zobraziť predpovede";
+"Display Predictions" = "Display Predictions";
 
 /* UI/UX option */
-"Smaller iPhone Screens" = "Menšie obrazovky iPhonu";
+"Smaller iPhone Screens" = "Smaller iPhone Screens";
 
 /* UI/UX option */
-"Display and allow Fat and Protein entries" = "Zobrazenie a povolenie vstupov pre tuky a bielkoviny";
+"Display and allow Fat and Protein entries" = "Display and allow Fat and Protein entries";
 
 /* UI/UX option */
-"Add Meal View settings " = "Pridanie nastavení zobrazenia jedla ";
+"Add Meal View settings " = "Add Meal View settings ";
 
 /* UI/UX option */
-"Display Temp Targets Button" = "Zobraziť dočasné cieľové tlačidlo";
+"Display Temp Targets Button" = "Display Temp Targets Button";
 
 /* UI/UX option */
-"Home View Button Panel " = "Panel tlačidiel zobrazenia Domov ";
-
-/* UI/UX title */
-"Home Chart settings " = "Domov Nastavenia grafu ";
-
-/* UI/UX title */
-"Statistics settings " = "Nastavenia štatistík ";
-
-/* UI/UX title */
-"Override HbA1c Unit" = "Prepísanie jednotky HbA1c";
+"Home View Button Panel " = "Home View Button Panel ";
 
 /* UI/UX option */
-"In case you're using both profiles and temp targets" = "V prípade, že používate profily aj dočasný cieľ";
+"In case you're using both profiles and temp targets" = "In case you're using both profiles and temp targets";
 
 /* UI/UX option */
-"Always Color Glucose Value (green, yellow etc)" = "Vždy farebná hodnota glukózy (zelená, žltá atď.)";
+"Always Color Glucose Value (green, yellow etc)" = "Always Color Glucose Value (green, yellow etc)";
 
 /* UI/UX option */
-"Header settings" = "Nastavenia záhlavia";
+"Header settings" = "Header settings";
 /* UI/UX option */
-"Normally glucose is colored red only when over or under your notification limits for high/low" = "Normálne sa glukóza sfarbí na červeno len vtedy, keď je nad alebo pod vašimi limitmi pre vysoké/nízke hodnoty";
-
-/* UI/UX option */
-"Horizontal Scroll View Visible hours" = "Horizontálne rolovacie zobrazenie Viditeľné hodiny";
+"Normally glucose is colored red only when over or under your notification limits for high/low" = "Normally glucose is colored red only when over or under your notification limits for high/low";
 
 /* UI/UX option */
-"Display Time Interval Setting Button" = "Tlačidlo nastavenia časového intervalu zobrazenia";
-
-/* Setting title */
-"Bolus Calculator" = "Kalkulátor bolusu";
-
-/* Setting title */
-"Dynamic ISF" = "Dynamická ISF";
+"Horizontal Scroll View Visible hours" = "Horizontal Scroll View Visible hours";
 
 /* Notification option */
-"Live Activity" = "Živá aktivita";
+"Live Activity" = "Live Activity";
 
 /* Notification option */
-"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "Živá aktivita zobrazuje glukózu v krvi na uzamknutej obrazovke a na dynamickom ostrove (ak je k dispozícii)";
+"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)";
 
 /* Notification option */
-"Show Live activity" = "Zobraziť živú aktivitu";
-
-/* Live Activity Footer */
-"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "Živá aktivita zobrazuje glukózu v krvi na uzamknutej obrazovke a na dynamickom ostrove (ak je k dispozícii)";
-
-/* Live Activity Footer when off */
-"Live activities are turned OFF in system settings. To enable live activities, go to Settings app -> iAPS -> Turn live Activities ON.\n\n" = "Aktivity v režime Live sú v nastaveniach systému vypnuté. Ak chcete zapnúť živé aktivity, prejdite do Nastavenia -> iAPS -> Zapnúť živé aktivity.\n\n";
+"Show live activity" = "Show live activity";
 
 /* Headline "Weighted Average of TDD. Weight of past 24 hours:" */
 "Weighted Average of TDD. Weight of past 24 hours:" = "Vážený priemer TDD. Váha za posledných 24 hodín:";
@@ -2212,6 +2182,3 @@ Enact a temp Basal or a temp target */
 
 /* Headline "Adjustment Factor" */
 "Adjustment Factor" = "Faktor úpravy";
-
-/* Menu */
-"Menu" = "Menu";

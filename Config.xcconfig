@@ -1,12 +1,12 @@
-APP_DISPLAY_NAME = iAPS
-APP_VERSION = 2.3.3
+APP_DISPLAY_NAME = Trio
+APP_VERSION = 0.1.0
 APP_BUILD_NUMBER = 1
 COPYRIGHT_NOTICE =
 DEVELOPER_TEAM = ##TEAM_ID##
-BUNDLE_IDENTIFIER = ru.artpancreas.$(DEVELOPMENT_TEAM).FreeAPS
-APP_GROUP_ID = group.com.$(DEVELOPMENT_TEAM).loopkit.LoopGroup
-APP_ICON = oiapsBlack
-APP_URL_SCHEME = freeaps-x
+BUNDLE_IDENTIFIER = org.nightscout.$(DEVELOPMENT_TEAM).trio
+APP_ICON = trioBlack
+APP_URL_SCHEME = Trio
 
+#include? "../../ConfigOverride.xcconfig"
 #include? "ConfigOverride.xcconfig"
 #include? "../../ConfigOverride.xcconfig"

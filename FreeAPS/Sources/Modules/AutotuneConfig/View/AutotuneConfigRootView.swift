@@ -6,6 +6,7 @@ extension AutotuneConfig {
         let resolver: Resolver
         @StateObject var state = StateModel()
         @State var replaceAlert = false
+<<<<<<< HEAD
 
         @Environment(\.colorScheme) var colorScheme
         var color: LinearGradient {
@@ -24,6 +25,8 @@ extension AutotuneConfig {
                     endPoint: .bottom
                 )
         }
+=======
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 
         private var isfFormatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -124,7 +127,11 @@ extension AutotuneConfig {
                         }
                         label: { Text("Save as your Normal Basal Rates") }
                     } header: {
+<<<<<<< HEAD
                         Text("Save on Pump")
+=======
+                        Text("Replace Normal Basal")
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                     }
                 }
             }

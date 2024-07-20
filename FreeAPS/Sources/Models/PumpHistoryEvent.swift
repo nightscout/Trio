@@ -1,4 +1,5 @@
 import Foundation
+import LoopKit
 
 struct PumpHistoryEvent: JSON, Equatable, Identifiable {
     let id: String
@@ -10,9 +11,15 @@ struct PumpHistoryEvent: JSON, Equatable, Identifiable {
     let rate: Decimal?
     let temp: TempType?
     let carbInput: Int?
+    let fatInput: Int?
+    let proteinInput: Int?
     let note: String?
     let isSMB: Bool?
+<<<<<<< HEAD
     let isExternal: Bool?
+=======
+    let isExternalInsulin: Bool?
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 
     init(
         id: String,
@@ -24,9 +31,17 @@ struct PumpHistoryEvent: JSON, Equatable, Identifiable {
         rate: Decimal? = nil,
         temp: TempType? = nil,
         carbInput: Int? = nil,
+<<<<<<< HEAD
         note: String? = nil,
         isSMB: Bool? = nil,
         isExternal: Bool? = nil
+=======
+        fatInput: Int? = nil,
+        proteinInput: Int? = nil,
+        note: String? = nil,
+        isSMB: Bool? = nil,
+        isExternalInsulin: Bool? = nil
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
     ) {
         self.id = id
         self.type = type
@@ -37,16 +52,25 @@ struct PumpHistoryEvent: JSON, Equatable, Identifiable {
         self.rate = rate
         self.temp = temp
         self.carbInput = carbInput
+        self.fatInput = fatInput
+        self.proteinInput = proteinInput
         self.note = note
         self.isSMB = isSMB
+<<<<<<< HEAD
         self.isExternal = isExternal
+=======
+        self.isExternalInsulin = isExternalInsulin
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
     }
 }
 
 enum EventType: String, JSON {
     case bolus = "Bolus"
     case smb = "SMB"
+<<<<<<< HEAD
     case isExternal = "External Insulin"
+=======
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
     case mealBolus = "Meal Bolus"
     case correctionBolus = "Correction Bolus"
     case snackBolus = "Snack Bolus"
@@ -69,7 +93,11 @@ enum EventType: String, JSON {
     case nsBatteryChange = "Pump Battery Change"
     case nsAnnouncement = "Announcement"
     case nsSensorChange = "Sensor Start"
+<<<<<<< HEAD
     case capillaryGlucose = "BG Check"
+=======
+    case nsExternalInsulin = "External Insulin"
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 }
 
 enum TempType: String, JSON {
@@ -88,8 +116,40 @@ extension PumpHistoryEvent {
         case rate
         case temp
         case carbInput = "carb_input"
+        case fatInput
+        case proteinInput
         case note
         case isSMB
+<<<<<<< HEAD
         case isExternal
+=======
+        case isExternalInsulin
+    }
+}
+
+extension EventType {
+    func mapEventTypeToPumpEventType() -> PumpEventType? {
+        switch self {
+        case .prime:
+            return PumpEventType.prime
+        case .pumpResume:
+            return PumpEventType.resume
+        case .rewind:
+            return PumpEventType.rewind
+        case .pumpSuspend:
+            return PumpEventType.suspend
+        case .nsBatteryChange,
+             .pumpBattery:
+            return PumpEventType.replaceComponent(componentType: .pump)
+        case .nsInsulinChange:
+            return PumpEventType.replaceComponent(componentType: .reservoir)
+        case .nsSiteChange:
+            return PumpEventType.replaceComponent(componentType: .infusionSet)
+        case .pumpAlarm:
+            return PumpEventType.alarm
+        default:
+            return nil
+        }
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
     }
 }

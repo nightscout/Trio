@@ -1,6 +1,6 @@
 /*
   Localizable.strings
-  iAPS
+  Trio
 */
 /* -------------------------------- */
 /* Bolus screen when adding insulin */
@@ -47,7 +47,7 @@
 "Agree and continue" = "Godta og fortsett";
 
 /* Bolus progress view */
-"of" = "av";
+"of" = "of";
 
 /* Headline in enacted pop up (at: at what time) */
 "Enacted at" = "Utført kl.";
@@ -339,7 +339,7 @@ Enact a temp Basal or a temp target */
 "Use local glucose server" = "Bruk lokal glukoseserver";
 
 /* Enable Statistics */
-"This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n" = "Dette skrur på opplasting av statistics.json til Nightscout, som kan brukes av prosjektet \"Community Statistics and Demographics\".\n\nDeltakelse er frivillig og krever en egen registrering på:\n";
+"This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n" = "This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n";
 
 /*  */
 "Edit settings json" = "Rediger \"freeaps_settings.json\"";
@@ -357,7 +357,46 @@ Enact a temp Basal or a temp target */
 "Skip Bolus screen after carbs" = "Hopp over Bolus-skjerm etter karbo";
 
 /* Allow remote control from NS */
-"Remote control" = "Fjernstyring";
+"Remote Control" = "Fjernstyring";
+
+/* Imported Profiles Alert */
+"\nNow please verify all of your new settings thoroughly: \n\n • DIA (Pump settings)\n • Basal Profile\n • Insulin Sensitivities\n • Carb Ratios\n • Target Glucose\n\n in Trio Settings -> Configuration.\n\nBad or invalid profile settings could have disastrous effects." = "\nGå nøye gjennom alle de nye innstillingene:\n\n* Basalprofil\n * Karbohydratforhold\n * Blodsukkermål\n * Insulinfølsomhet\n\n i Trio Innstillinger > Oppsett.\n\nFeil eller ugyldige profilinnstillinger kan ha katastrofale følger.";
+
+/* Profile Import Alert */
+"This will replace some or all of your current pump settings. Are you sure you want to import profile settings from Nightscout?" = "Dette vil erstatte alle eller deler av dine nåværende pumpeinnstillinger. Er du sikker på at du vil importere profilinnstillinger fra Nightscout?";
+
+/* Import Error */
+"\nInvalid Nightcsout Basal Settings. \n\nImport aborted. Please check your Nightscout Profile Basal Settings!" = "\nUgyldig Basalprofil fra Nightscout. \n\nImport avbrutt. Sjekk Basalprofil i Nightscout!";
+
+/* Import Error */
+"\nSettings were imported but the Basals couldn't be saved to pump (No pump). Check your basal settings and tap ´Save on Pump´ to sync the new basal settings" = "\nInnstillinger ble importert men Basalprofilen kunne ikke lagres til pumpen (ingen pumpe). Sjekk din Basalprofil og trykk ´Lagre på pumpen´ for å sende den nye basalprofilen til pumpen.";
+
+/* Import Error Headline */
+"Import Error" = "Feil ved import";
+
+/* */
+"Yes, Import" = "Ja, importer";
+
+/* */
+"Import settings from Nightscout" = "Importer innstillinger fra Nightscout";
+
+/* */
+"Import settings?" = "Importere innstillinger?";
+
+/* */
+"Import from Nightscout" = "Import fra Nightscout";
+
+/* */
+"Settings imported" = "Innstillinger importert";
+
+/* Import Error */
+"\nMismatching glucose units in Nightscout and Pump Settings. Import settings aborted." = "\nBlodsukkerenhet i Nightscout samsvarer ikke med blodsukkerenhet i Pumpeinnstillinger. Import av innstillinger er avbrutt.";
+
+/* Import Error */
+"Can't find the default Nightscout Profile." = "Finner ikke standard profil i Nightscout.";
+
+/* Add Blood Glucose Test, header */
+"Blood Glucose Test" = "Blodsukkermåling";
 
 /* Imported Profiles Alert */
 "\nNow please verify all of your new settings thoroughly:\n\n* Basal Settings\n * Carb Ratios\n * Glucose Targets\n * Insulin Sensitivities\n * DIA\n\n in iAPS Settings > Configuration.\n\nBad or invalid profile settings could have disatrous effects." = "\nGå nøye gjennom alle de nye innstillingene:\n\n* Basalprofil\n * Karbohydratforhold\n * Blodsukkermål\n * Insulinfølsomhet\n\n i iAPS Innstillinger > Oppsett.\n\nFeil eller ugyldige profilinnstillinger kan ha katastrofale følger.";
@@ -430,6 +469,30 @@ Enact a temp Basal or a temp target */
 
 /* Max setting */
 "Max Carbs" = "Maksimalt antall karbohydrater";
+
+/* Max setting */
+"Max Fat" = "Max Fat";
+
+/* Max setting */
+"Max Protein" = "Max Protein";
+
+/* Max setting */
+"Limit Per Entry" = "Limit Per Entry";
+
+/* Max Carbs limit exceeded */
+"Max Carbs of" = "Max Carbs of";
+
+/* Max Fat limit exceeded */
+"Max Fat of" = "Max Fat of";
+
+/* Max Protein limit exceeded */
+"Max Protein of" = "Max Protein of";
+
+/* Max Bolus limit exceeded */
+"Max Bolus of" = "Max Bolus of";
+
+/* Limit Exceeded label */
+"exceeded" = "exceeded";
 
 /* */
 "Pump Settings" = "Pumpeinnstillinger";
@@ -519,7 +582,7 @@ Enact a temp Basal or a temp target */
 "ISF" = "ISF";
 
 /* */
-"The app Garmin Connect must be installed to use for iAPS.\n Go to App Store to download it" = "Garmin Connect-appen må være installert.\n Gå til App Store for å laste den ned";
+"The app Garmin Connect must be installed to use for Trio.\n Go to App Store to download it" = "Garmin Connect-appen må være installert.\n Gå til App Store for å laste den ned";
 
 /* */
 "Garmin is not available" = "Garmin er ikke tilgjengelig";
@@ -582,10 +645,10 @@ Enact a temp Basal or a temp target */
 "Temp Targets" = "Midlertidige mål";
 
 /* Delete carbs from data table and Nightscout */
-"Delete Carbs?" = "Slette karbohydrater?";
+"Delete Carbs?" = "Delete Carbs?";
 
 /* Delete insulin from pump history and Nightscout */
-"Delete Insulin?" = "Slette insulin?";
+"Delete Insulin?" = "Delete Insulin?";
 
 /* Treatments list */
 "Treatments" = "Behandlinger";
@@ -1035,7 +1098,7 @@ Enact a temp Basal or a temp target */
 "To prevent LOW required %d g of carbs" = "For å forhindre lavt blodsukker: %d g karbo nødvendig";
 
 /* */
-"iAPS not active" = "iAPS ikke aktiv";
+"Trio Not Active" = "Trio ikke aktiv";
 
 /* */
 "Last loop was more than %d min ago" = "Siste loop var mer enn %d min siden";
@@ -1201,7 +1264,7 @@ Enact a temp Basal or a temp target */
 "For write data to Apple Health you must give permissions in Settings > Health > Data Access" = "For å skrive data til Apple Health må du gi rettigheter i Innstillinger > Helse > Datatilgang";
 
 /* */
-"This allows iAPS to read from and write to Apple Heath. You must also give permissions in Settings > Health > Data Access. If you enter a glucose value into Apple Health, open iAPS to confirm it shows up." = "Dette tillater at iAPS leser og skriver til Apple Helse. Du må også gi tillatelse under Innstillinger > Helse > Datatilgang. Hvis du legger inn en blodsukkerverdi i Apple Helse, bør du åpne iAPS for å se at verdien dukker opp.";
+"This allows Trio to read from and write to Apple Heath. You must also give permissions in Settings > Health > Data Access. If you enter a glucose value into Apple Health, open Trio to confirm it shows up." = "Dette tillater at Trio leser og skriver til Apple Helse. Du må også gi tillatelse under Innstillinger > Helse > Datatilgang. Hvis du legger inn en blodsukkerverdi i Apple Helse, bør du åpne Trio for å se at verdien dukker opp.";
 
 /* New ALerts ------------------------- */
 /* Info title */
@@ -1240,7 +1303,7 @@ Enact a temp Basal or a temp target */
 "Enable" = "Aktiver";
 
 /* Header */
-"Conversion settings" = "Innstillinger for omregning";
+"Fat and Protein Conversion Settings" = "Fat and Protein Conversion Settings";
 
 /* Delay */
 "Delay In Minutes" = "Forsinkelse i minutter";
@@ -1258,7 +1321,7 @@ Enact a temp Basal or a temp target */
 "Allows fat and protein to be converted into future carb equivalents using the Warsaw formula of kilocalories divided by 10.\n\nThis spreads the carb equivilants over a maximum duration setting that can be configured from 5-12 hours.\n\nDelay is time from now until the first future carb entry.\n\nInterval in minutes is how many minutes are between entries. The shorter the interval, the smoother the result. 10, 15, 20, 30, or 60 are reasonable choices.\n\nAdjustment factor is how much effect the fat and protein has on the entries. 1.0 is full effect (original Warsaw Method) and 0.5 is half effect. Note that you may find that your normal carb ratio needs to increase to a larger number if you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 0.5 to ease into it.\n\nDefault settings: Time Cap: 8 h, Interval: 30 min, Factor: 0.5, Delay 60 min" = "Bruker Warsaw-formelen til å konvertere fett og proteiner til fremtidige karbohydrat-ekvivalenter.\n\nDette fordeler karbohydrat-ekvivalentene over et antall timer som kan justeres mellom 5 og 12.\n\nForsinkelse er tiden fra nå til den første fremtidige karbohydrat-ekvivalenten blir lagt til.\n\nIntervall i minutter er antall minutter mellom hver registrering. Jo kortere intervall, jo jevnere blir resultatet. 10, 15, 20, 30 eller 60 er fornuftige valg.\n\nJusteringsfaktor er hvor stor effekt fett og proteiner har på registreringene. 1,0 er full effekt (original Warsaw-formel) og 0,5 er halv effekt. Merk at du kan ha behov for å justere opp din vanlige karbohydrat-ratio hvis du begynner å registrere fett og proteiner. På grunn av dette, anbefales det å starte med en faktor på rundt 0,5 for å starte forsiktig.\n\nStandardinnstilling: Maks varighet: 8 t, Intervall: 30 min, Faktor: 0,5, Forsinkelse: 60 min";
 
 /* FPU Settings Title */
-"Fat and Protein" = "Fett og Proteiner";
+"Fat and Protein" = "Fat and Protein";
 
 /* Display fat and protein entities */
 "Fat & Protein" = "Fett og protein";
@@ -1273,7 +1336,7 @@ Enact a temp Basal or a temp target */
 "Protein" = "Proteiner";
 
 /* Service Section */
-"Fat And Protein Conversion" = "Omregning av fett og protein";
+"Meal Settings" = "Meal Settings";
 
 /* Service Section */
 "Profile Override" = "Overstyring av profil";
@@ -1371,19 +1434,19 @@ Enact a temp Basal or a temp target */
 "App Icons" = "App-ikon";
 
 /* */
-"iAPS Icon" = "iAPS ikon";
+"Trio Icon" = "Trio ikon";
 
 /* Service Section */
 "Statistics and Home View" = "Statistikk og startskjerm";
 
 /* Alert text */
-"Delete Carb Equivalents?" = "Slette karboekvivalenter?";
+"Delete Carb Equivalents?" = "Delete Carb Equivalents?";
 
 /* */
-"All FPUs of the meal will be deleted." = "Alle karboekvivalenter for måltidet vil bli slettet.";
+"All FPUs of the meal will be deleted." = "All FPUs of the meal will be deleted.";
 
 /* */
-"Delete Glucose?" = "Slette blodsukker?";
+"Delete Glucose?" = "Delete Glucose?";
 
 /* */
 "Meal Presets" = "Forvalg av måltid";
@@ -1671,16 +1734,16 @@ Enact a temp Basal or a temp target */
 "2 hours" = "2 timer";
 
 /* */
-"4 hours" = "4 timer";
+"4 hours" = "4 hours";
 
 /* */
-"6 hours" = "6 timer";
+"6 hours" = "6 hours";
 
 /* */
-"12 hours" = "12 timer";
+"12 hours" = "12 hours";
 
 /* */
-"24 hours" = "24 timer";
+"24 hours" = "24 hours";
 
 /* Average BG = */
 "Average" = "Gj.snitt";
@@ -1792,7 +1855,7 @@ Enact a temp Basal or a temp target */
 /* -----------------------------------------------------------------------------------------------------------
 
   Infotexts from openaps.docs and androidaps.docs
-  iAPS
+  Trio
 */
 /* Headline Rewind Resets Autosens */
 
@@ -1847,7 +1910,7 @@ Enact a temp Basal or a temp target */
 "Skip Neutral Temps" = "Hopp over nøytrale midlertidige mål";
 
 /* "Skip Neutral Temps" */
-"Defaults to false, so that iAPS will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means iAPS will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night." = "Standard slått av. iAPS setter midlertidige mål så ofte den kan, slik at det blir enklere å se at systemet jobber, selv når du er offline. Dette betyr at OpenAPS vil sette et \"nøytralt\" midlertidig mål (samme som din standard basal) hvis det ikke trengs noen justeringer. Dette er en gammel innstilling for OpenAPS for å ha muligheten til å minimere antall varsler og lyder fra pumpen, som ellers kunne ha vekket deg om natten. ";
+"Defaults to false, so that Trio will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means Trio will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night." = "Standard slått av. Trio setter midlertidige mål så ofte den kan, slik at det blir enklere å se at systemet jobber, selv når du er offline. Dette betyr at OpenAPS vil sette et \"nøytralt\" midlertidig mål (samme som din standard basal) hvis det ikke trengs noen justeringer. Dette er en gammel innstilling for OpenAPS for å ha muligheten til å minimere antall varsler og lyder fra pumpen, som ellers kunne ha vekket deg om natten. ";
 
 /* Headline "Unsuspend If No Temp” */
 "Unsuspend If No Temp" = "Fjern pause hvis det ikke finnes et midlertidig mål";
@@ -1859,7 +1922,7 @@ Enact a temp Basal or a temp target */
 "Enable UAM" = "Aktiver UAM";
 
 /* "Enable UAM" */
-"With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell iAPS about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier." = "Med denne funksjonen påslått, vil SMB-algoritmen kjenne igjen uannonserte måltider. Dette er til hjelp hvis du glemmer å fortelle iAPS om karbohydrater eller hvis du estimerer og legger inn feil antall karbohydrater. Det er også til hjelp ved måltider med mye fett og protein som har lenger varighet enn antatt. Uten registrering av karbohydrater, vil UAM kjenne igjen rask stigning i blodsukkeret forårsaket av karbohydrater, adrenalin, etc, og forsøker å justere dette med SMB. Dette fungerer også motsatt, hvis blodsukkeret synker raskt vil den stoppe SMB tidligere.";
+"With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell Trio about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier." = "Med denne funksjonen påslått, vil SMB-algoritmen kjenne igjen uannonserte måltider. Dette er til hjelp hvis du glemmer å fortelle Trio om karbohydrater eller hvis du estimerer og legger inn feil antall karbohydrater. Det er også til hjelp ved måltider med mye fett og protein som har lenger varighet enn antatt. Uten registrering av karbohydrater, vil UAM kjenne igjen rask stigning i blodsukkeret forårsaket av karbohydrater, adrenalin, etc, og forsøker å justere dette med SMB. Dette fungerer også motsatt, hvis blodsukkeret synker raskt vil den stoppe SMB tidligere.";
 
 /* Headline "Enable SMB With COB" */
 "Enable SMB With COB" = "Aktiver SMB med COB";
@@ -1946,7 +2009,7 @@ Enact a temp Basal or a temp target */
 "Max COB" = "Maks COB";
 
 /* "Max COB" */
-"The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, iAPS will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)" = "Standardverdi for maxCOB er 120. (Hvis noen legger til flere karbohydrater i en eller flere oppføringer, vil iAPS begrense COB i henhold til maxCOB frem til registreringen over maxCOB er absorbert. I bunn og grunn er dette bare en begrensning for UAM, slik at det ikke blir gjort feilberegninger ved dårlige data.)";
+"The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, Trio will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)" = "Standardverdi for maxCOB er 120. (Hvis noen legger til flere karbohydrater i en eller flere oppføringer, vil Trio begrense COB i henhold til maxCOB frem til registreringen over maxCOB er absorbert. I bunn og grunn er dette bare en begrensning for UAM, slik at det ikke blir gjort feilberegninger ved dårlige data.)";
 
 /* Headline "Bolus Snooze DIA Divisor" */
 "Bolus Snooze DIA Divisor" = "Divisor for Bolus Snooze";
@@ -2006,7 +2069,7 @@ Enact a temp Basal or a temp target */
 "Insulin Peak Time" = "Topptid for insulineffekt";
 
 /* "Insulin Peak Time" */
-"Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with iAPS, longer loop calculations and possible red loops." = "Tid for maksimal blodsukker-reduserende effekt av insulin, i minutter. OBS: For ultra-rapid (Lyumjev) og rapid-acting (Fiasp) minimum (35 & 50 min) og maksimalt (100 & 120 min) insulinPeakTimes. Hvis du bruker en tilpasset insulinPeakTime utenfor disse områdene vil du få problemer med iAPS, lengre beregningstid for loop og mulig røde loops.";
+"Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with Trio, longer loop calculations and possible red loops." = "Tid for maksimal blodsukker-reduserende effekt av insulin, i minutter. OBS: For ultra-rapid (Lyumjev) og rapid-acting (Fiasp) minimum (35 & 50 min) og maksimalt (100 & 120 min) insulinPeakTimes. Hvis du bruker en tilpasset insulinPeakTime utenfor disse områdene vil du få problemer med Trio, lengre beregningstid for loop og mulig røde loops.";
 
 /* Headline "Carbs Req Threshold" */
 "Carbs Req Threshold" = "Grense for varsling om nødvendige karbo";
@@ -2050,10 +2113,10 @@ Enact a temp Basal or a temp target */
 "Use Dynamic CR. The dynamic ratio will be used for CR as follows:\n\n When ratio > 1:  dynCR = (newRatio - 1) / 2 + 1.\nWhen ratio < 1: dynCR = CR/dynCR.\n\nDon't use toghether with a high Insulin Fraction (> 2)" = "Bruk dynamisk CR. Dynamisk ratio brukes for CR som følger:\n\n Når ratio > 1: dynCR = (newRatio - 1) / 2 + 1.\nNår ratio < 1: dynCR = CR/dynCR.\n\nIkke bruk denne innstillingen sammen med en høy insulinbrøk (Insulin Fraction > 2)";
 
 /* Enable Dyn ISF */
-"Activate Dynamic Sensitivity (ISF)" = "Aktivere dynamisk insulinfølsomhet (ISF)";
+"Activate Dynamic Sensitivity (ISF)" = "Activate Dynamic Sensitivity (ISF)";
 
 /* Enable Dyn CR */
-"Activate Dynamic Carb Ratio (CR)" = "Aktivere dynamisk karbohydratforhold (CR)";
+"Activate Dynamic Carb Ratio (CR)" = "Activate Dynamic Carb Ratio (CR)";
 
 /* Headline "Adjust Dynamic ISF constant" */
 "Adjust Dynamic ISF constant" = "Juster konstant for dynamisk ISF";
@@ -2065,114 +2128,63 @@ Enact a temp Basal or a temp target */
 "Use Sigmoid Function" = "Bruk sigmoid-funksjon";
 
 /* Which dyn ISF function to use */
-"Formula" = "Formel";
+"Formula" = "Formula";
 
 /* Extra Safety Features when using dyn ISF */
-"Safety" = "Sikkerhet";
+"Safety" = "Safety";
 
 /* Use Sigmoid Function */
 "Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function." = "Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function.";
 
 /* Headline Threshold Setting */
-"Threshold Setting" = "Terskelinnstilling";
+"Minimum Safety Threshold (mg/dL)" = "Minimum Safety Threshold (mg/dL)";
 
-/* Dynamic ISF Setting Title */
-"Minimum Threshold Setting" = "Minimum terskelinnstilling";
-
-/* Minimum Threshold Setting, Part 1 */
-"This setting lets you choose a level below which no insulin will be given.\n\nThe threshold is using the largest amount of your threshold setting and the computed threshold:\n\nTarget Glucose - (Target Glucose - 40) / 2\n, here using mg/dl as glucose unit.\n\nFor example, if your Target Glucose is " = "Denne innstillingen lar deg velge et blodsukkernivå for å stoppe insulintilførsel.\n\nSystemet ser på denne innstillingen og den beregnede terskelverdien, og velger den høyeste av disse:\n\nMålverdi - (Målverdi - 40) / 2\n, her med mg/dl.\n\nFor eksempel, hvis blodsukkermålet ditt er ";
-
-/* Minimum Threshold Setting, Part 2 */
-"the threshold will be " = "så vil terskelverdien bli ";
-
-/* Minimum Threshold Setting, Part 3 */
-"unless your threshold setting is set higher:" = "med mindre din terskelinnstilling er satt høyere:";
-
-/* Threshold Table Columns Title */
-"Setting" = "Innstilling";
-
-/* Threshold Table Columns Title */
-"Threshold" = "Terskel";
+/* Minimum Safety Threshold */
+"All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted." = "All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted.";
 
 /* Header */
-"Calculator settings" = "Innstillinger for kalkulator";
-
-/* Bolus Calculator Setting */
-"Use alternate Bolus Calculator" = "Bruk alternativ boluskalkulator";
-
-/* Bolus Calculator Setting */
-"Fatty Meals" = "Måltid med høyt fettinnhold";
-
-/* Bolus Calculator Setting */
-"Apply factor for fatty meals" = "Bruk egen faktor for fete måltider";
-
-/* Bolus Calculator Footer */
-"The new alternate bolus calculator is another approach to the default bolus calculator in iAPS. If the toggle is on you use this bolus calculator and not the original iAPS calculator. At the end of the calculation a custom factor is applied as it is supposed to be when using smbs (default 0.8).\n\nYou can also add the option in your bolus calculator to apply another (!) customizable factor at the end of the calculation which could be useful for fatty meals, e.g Pizza (default 0.7)." = "Den nye alternative boluskalkulatoren bruker en annen tilnærming enn den vanlige boluskalkulatoren i iAPS. Ved slutten av beregningen brukes det en faktor for å begrense hvor mye av beregnet bolus som blir gitt med en gang. Tanken er at resten av nødvendig insulin blir gitt via SMB. Standard faktor er 0.8, som betyr at kalkulatoren foreslår å dosere 80% av insulinbehovet som bolus.\n\nDu kan også legge til en annen faktor for måltider med høyt fettinnhold, for eksempel pizza. Tanken er at slike måltider trenger mindre insulin ved måltidsstart. Standard faktor er derfor 0.7 (70%).";
+"Calculator settings" = "Calculator settings";
 
 /* UI/UX option */
-"Display Predictions" = "Vis prognoser";
+"Display Predictions" = "Display Predictions";
 
 /* UI/UX option */
-"Smaller iPhone Screens" = "Mindre iPhone-skjermer";
+"Smaller iPhone Screens" = "Smaller iPhone Screens";
 
 /* UI/UX option */
-"Display and allow Fat and Protein entries" = "Vis og tillat registrering av fett og protein";
+"Display and allow Fat and Protein entries" = "Display and allow Fat and Protein entries";
 
 /* UI/UX option */
-"Add Meal View settings " = "Innstillinger for registrering av måltid ";
+"Add Meal View settings " = "Add Meal View settings ";
 
 /* UI/UX option */
-"Display Temp Targets Button" = "Vis knapp for midlertidig mål";
+"Display Temp Targets Button" = "Display Temp Targets Button";
 
 /* UI/UX option */
-"Home View Button Panel " = "Knapperad på startskjerm ";
-
-/* UI/UX title */
-"Home Chart settings " = "Innstillinger for graf på startskjerm ";
-
-/* UI/UX title */
-"Statistics settings " = "Innstillinger for statistikk ";
-
-/* UI/UX title */
-"Override HbA1c Unit" = "Overstyre HbA1c-enhet";
+"Home View Button Panel " = "Home View Button Panel ";
 
 /* UI/UX option */
-"In case you're using both profiles and temp targets" = "I tilfelle du bruker både profiler og midlertidige mål";
+"In case you're using both profiles and temp targets" = "In case you're using both profiles and temp targets";
 
 /* UI/UX option */
-"Always Color Glucose Value (green, yellow etc)" = "Alltid bruk farge på blodsukkerverdi (grønn, gul, osv)";
+"Always Color Glucose Value (green, yellow etc)" = "Always Color Glucose Value (green, yellow etc)";
 
 /* UI/UX option */
-"Header settings" = "Innstillinger for topplinjen";
+"Header settings" = "Header settings";
 /* UI/UX option */
-"Normally glucose is colored red only when over or under your notification limits for high/low" = "Vanligvis er blodsukkerverdien rød bare når den er over og under varslingsinnstillingene for høy/lav";
-
-/* UI/UX option */
-"Horizontal Scroll View Visible hours" = "Antall synlige timer for horisontal visning";
+"Normally glucose is colored red only when over or under your notification limits for high/low" = "Normally glucose is colored red only when over or under your notification limits for high/low";
 
 /* UI/UX option */
-"Display Time Interval Setting Button" = "Vis knapp for tidsintervall";
-
-/* Setting title */
-"Bolus Calculator" = "Boluskalkulator";
-
-/* Setting title */
-"Dynamic ISF" = "Dynamisk ISF";
+"Horizontal Scroll View Visible hours" = "Horizontal Scroll View Visible hours";
 
 /* Notification option */
-"Live Activity" = "Oppdateringer i sanntid";
+"Live Activity" = "Live Activity";
 
 /* Notification option */
-"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "Sanntidsoppdatering (Live Activity) viser blodsukkerverdi på låseskjerm og i Dynamic Island (hvis telefonen har dette)";
+"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)";
 
 /* Notification option */
-"Show Live activity" = "Vis sanntidsoppdatering";
-
-/* Live Activity Footer */
-"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "Sanntidsoppdatering (Live Activity) viser blodsukkerverdi på låseskjerm og i Dynamic Island (hvis telefonen har dette)";
-
-/* Live Activity Footer when off */
-"Live activities are turned OFF in system settings. To enable live activities, go to Settings app -> iAPS -> Turn live Activities ON.\n\n" = "Sanntidsoppdatering er skrudd av i systeminnstillingene. For å skru på, gå til Innstillinger-appen -> iAPS og skru på Oppdateringer i sanntid.\n\n";
+"Show live activity" = "Show live activity";
 
 /* Headline "Weighted Average of TDD. Weight of past 24 hours:" */
 "Weighted Average of TDD. Weight of past 24 hours:" = "Vektet snitt av TDD. Vekting av siste 24 timer:";

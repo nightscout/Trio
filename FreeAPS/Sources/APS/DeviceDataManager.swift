@@ -37,10 +37,10 @@ private let staticPumpManagers: [PumpManagerUI.Type] = [
 ]
 
 private let staticPumpManagersByIdentifier: [String: PumpManagerUI.Type] = [
-    MinimedPumpManager.managerIdentifier: MinimedPumpManager.self,
-    OmnipodPumpManager.managerIdentifier: OmnipodPumpManager.self,
-    OmniBLEPumpManager.managerIdentifier: OmniBLEPumpManager.self,
-    MockPumpManager.managerIdentifier: MockPumpManager.self
+    MinimedPumpManager.pluginIdentifier: MinimedPumpManager.self,
+    OmnipodPumpManager.pluginIdentifier: OmnipodPumpManager.self,
+    OmniBLEPumpManager.pluginIdentifier: OmniBLEPumpManager.self,
+    MockPumpManager.pluginIdentifier: MockPumpManager.self
 ]
 
 private let accessLock = NSRecursiveLock(label: "BaseDeviceDataManager.accessLock")
@@ -75,7 +75,8 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
         didSet {
             pumpManager?.pumpManagerDelegate = self
             pumpManager?.delegateQueue = processQueue
-            UserDefaults.standard.pumpManagerRawValue = pumpManager?.rawValue
+            rawPumpManager = pumpManager?.rawValue
+            UserDefaults.standard.clearLegacyPumpManagerRawValue()
             if let pumpManager = pumpManager {
                 pumpDisplayState.value = PumpDisplayState(name: pumpManager.localizedTitle, image: pumpManager.smallImage)
                 pumpName.send(pumpManager.localizedTitle)
@@ -102,6 +103,8 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
         }
     }
 
+    @PersistedProperty(key: "PumpManagerState") var rawPumpManager: PumpManager.RawValue?
+
     var bluetoothManager: BluetoothStateManager { bluetoothProvider }
 
     var hasBLEHeartbeat: Bool {
@@ -120,7 +123,11 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     }
 
     func setupPumpManager() {
-        pumpManager = UserDefaults.standard.pumpManagerRawValue.flatMap { pumpManagerFromRawValue($0) }
+        if let pumpManagerRawValue = rawPumpManager ?? UserDefaults.standard.legacyPumpManagerRawValue {
+            pumpManager = pumpManagerFromRawValue(pumpManagerRawValue)
+        } else {
+            pumpManager = nil
+        }
     }
 
     func createBolusProgressReporter() -> DoseProgressReporter? {
@@ -168,6 +175,10 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
         if !recommendsLoop {
             warning(.deviceManager, "Loop recommendation time out or got error. Trying to loop right now.")
         }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
         self.recommendsLoop.send()
     }
 
@@ -270,6 +281,18 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
 // MARK: - PumpManagerDelegate
 
 extension BaseDeviceDataManager: PumpManagerDelegate {
+    var automaticDosingEnabled: Bool {
+        settingsManager.settings.closedLoop // Take if close or open loop
+    }
+
+    func pumpManager(
+        _: LoopKit.PumpManager,
+        didRequestBasalRateScheduleChange _: LoopKit.BasalRateSchedule,
+        completion _: @escaping (Error?) -> Void
+    ) {
+        debug(.deviceManager, "pumpManagerBasalRateChange")
+    }
+
     func pumpManagerPumpWasReplaced(_: PumpManager) {
         debug(.deviceManager, "pumpManagerPumpWasReplaced")
     }
@@ -284,7 +307,7 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
     }
 
     func pumpManagerDidUpdateState(_ pumpManager: PumpManager) {
-        UserDefaults.standard.pumpManagerRawValue = pumpManager.rawValue
+        rawPumpManager = pumpManager.rawValue
         if self.pumpManager == nil, let newPumpManager = pumpManager as? PumpManagerUI {
             self.pumpManager = newPumpManager
         }
@@ -406,6 +429,7 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
         _: PumpManager,
         hasNewPumpEvents events: [NewPumpEvent],
         lastReconciliation _: Date?,
+        replacePendingEvents _: Bool,
         completion: @escaping (_ error: Error?) -> Void
     ) {
         dispatchPrecondition(condition: .onQueue(processQueue))
@@ -497,29 +521,6 @@ extension BaseDeviceDataManager: DeviceManagerDelegate {
 
     func recordRetractedAlert(_: Alert, at _: Date) {}
 
-//    func scheduleNotification(
-//        for _: DeviceManager,
-//        identifier: String,
-//        content: UNNotificationContent,
-//        trigger: UNNotificationTrigger?
-//    ) {
-//        let request = UNNotificationRequest(
-//            identifier: identifier,
-//            content: content,
-//            trigger: trigger
-//        )
-//
-//        DispatchQueue.main.async {
-//            UNUserNotificationCenter.current().add(request)
-//        }
-//    }
-//
-//    func clearNotification(for _: DeviceManager, identifier: String) {
-//        DispatchQueue.main.async {
-//            UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [identifier])
-//        }
-//    }
-
     func removeNotificationRequests(for _: DeviceManager, identifiers: [String]) {
         DispatchQueue.main.async {
             UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: identifiers)
@@ -545,6 +546,8 @@ extension BaseDeviceDataManager: CGMManagerDelegate {
     }
 
     func cgmManager(_: CGMManager, hasNew _: CGMReadingResult) {}
+
+    func cgmManager(_: LoopKit.CGMManager, hasNew _: [LoopKit.PersistedCgmEvent]) {}
 
     func cgmManagerWantsDeletion(_: CGMManager) {}
 
@@ -626,10 +629,13 @@ protocol PumpBatteryObserver {
     func pumpBatteryDidChange(_ battery: Battery)
 }
 
+<<<<<<< HEAD
 protocol PumpTimeZoneObserver {
     func pumpTimeZoneDidChange(_ timezone: TimeZone)
 }
 
+=======
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 protocol PumpDeactivatedObserver {
     func pumpDeactivatedDidChange()
 }

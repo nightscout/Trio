@@ -35,12 +35,17 @@ extension WatchConfig {
                             Text(v.displayName).tag(v)
                         }
                     }
+                    Toggle("Display Protein & Fat", isOn: $state.displayFatAndProteinOnWatch)
+                    Toggle("Confirm Bolus Faster", isOn: $state.confirmBolusFaster)
                 }
 
+<<<<<<< HEAD
                 Toggle("Display Protein & Fat", isOn: $state.displayFatAndProteinOnWatch)
 
                 Toggle("Confirm Bolus Faster", isOn: $state.confirmBolusFaster)
 
+=======
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                 Section(header: Text("Garmin Watch")) {
                     List {
                         ForEach(state.devices, id: \.uuid) { device in

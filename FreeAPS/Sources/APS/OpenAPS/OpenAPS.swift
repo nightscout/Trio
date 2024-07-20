@@ -97,6 +97,7 @@ final class OpenAPS {
         }
     }
 
+<<<<<<< HEAD
     // fetch glucose to pass it to the meal function and to determine basal
     private func fetchAndProcessGlucose() async -> String {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
@@ -276,6 +277,11 @@ final class OpenAPS {
     func oref2() async -> RawJSON {
         await context.perform {
             let preferences = self.storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self)
+=======
+    func oref2() -> RawJSON {
+        coredataContext.performAndWait {
+            let preferences = storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self)
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
             var hbt_ = preferences?.halfBasalExerciseTarget ?? 160
             let wp = preferences?.weightPercentage ?? 1
             let smbMinutes = (preferences?.maxSMBBasalMinutes ?? 30) as NSDecimalNumber
@@ -422,13 +428,17 @@ final class OpenAPS {
                     isfAndCr: overrideArray.first?.isfAndCr ?? false,
                     isf: overrideArray.first?.isf ?? false,
                     cr: overrideArray.first?.cr ?? false,
-                    smbIsAlwaysOff: overrideArray.first?.smbIsAlwaysOff ?? false,
+                    smbIsScheduledOff: overrideArray.first?.smbIsScheduledOff ?? false,
                     start: (overrideArray.first?.start ?? 0) as Decimal,
                     end: (overrideArray.first?.end ?? 0) as Decimal,
                     smbMinutes: (overrideArray.first?.smbMinutes ?? smbMinutes) as Decimal,
                     uamMinutes: (overrideArray.first?.uamMinutes ?? uamMinutes) as Decimal
                 )
+<<<<<<< HEAD
                 self.storage.save(averages, as: OpenAPS.Monitor.oref2_variables)
+=======
+                storage.save(averages, as: OpenAPS.Monitor.oref2_variables)
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                 return self.loadFileFromStorage(name: Monitor.oref2_variables)
 
             } else {
@@ -450,7 +460,7 @@ final class OpenAPS {
                     isfAndCr: overrideArray.first?.isfAndCr ?? false,
                     isf: overrideArray.first?.isf ?? false,
                     cr: overrideArray.first?.cr ?? false,
-                    smbIsAlwaysOff: overrideArray.first?.smbIsAlwaysOff ?? false,
+                    smbIsScheduledOff: overrideArray.first?.smbIsScheduledOff ?? false,
                     start: (overrideArray.first?.start ?? 0) as Decimal,
                     end: (overrideArray.first?.end ?? 0) as Decimal,
                     smbMinutes: (overrideArray.first?.smbMinutes ?? smbMinutes) as Decimal,

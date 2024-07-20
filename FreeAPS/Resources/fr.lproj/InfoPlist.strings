@@ -14,7 +14,7 @@
 "NSCalendarsUsageDescription" = "Le calendrier est utilisé pour créer un nouvel événement de glycémie.";
 
 /* Privacy - Health Update Usage Description */
-"NSHealthUpdateUsageDescription" = "Health App is used to store blood glucose, insulin and carbohydrates";
+"NSHealthUpdateUsageDescription" = "L'application Santé est utilisée pour stocker la glycémie, l'insuline et les glucides";
 
 /* Privacy - Health Share Usage Description */
-"NSHealthShareUsageDescription" = "Health App is used to store blood glucose, insulin and carbohydrates";
+"NSHealthShareUsageDescription" = "L'application Santé est utilisée pour stocker la glycémie, l'insuline et les glucides";

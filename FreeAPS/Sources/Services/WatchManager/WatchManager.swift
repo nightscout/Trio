@@ -173,6 +173,13 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
                     self.state.bolusRecommended = self.apsManager
                         .roundBolus(amount: max(recommended, 0))
                 }
+<<<<<<< HEAD
+=======
+            self.state.bolusAfterCarbs = !self.settingsManager.settings.skipBolusScreenAfterCarbs
+            self.state.displayOnWatch = self.settingsManager.settings.displayOnWatch
+            self.state.displayFatAndProteinOnWatch = self.settingsManager.settings.displayFatAndProteinOnWatch
+            self.state.confirmBolusFaster = self.settingsManager.settings.confirmBolusFaster
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 
                 self.state.iob = lastDetermination?.iob as? Decimal
                 self.state.cob = lastDetermination?.cob as? Decimal
@@ -320,7 +327,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
     private var eventualFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 2
+        formatter.maximumFractionDigits = 1
         return formatter
     }
 
@@ -367,6 +374,7 @@ extension BaseWatchManager: WCSessionDelegate {
            let protein = message["protein"] as? Double,
            carbs > 0 || fat > 0 || protein > 0
         {
+<<<<<<< HEAD
             Task {
                 await carbsStorage.storeCarbs(
                     [CarbsEntry(
@@ -382,6 +390,19 @@ extension BaseWatchManager: WCSessionDelegate {
                         fpuID: nil
                     )]
                 )
+=======
+            carbsStorage.storeCarbs(
+                [CarbsEntry(
+                    id: UUID().uuidString,
+                    createdAt: Date.now,
+                    carbs: Decimal(carbs),
+                    fat: Decimal(fat),
+                    protein: Decimal(protein), note: nil,
+                    enteredBy: CarbsEntry.manual,
+                    isFPU: false, fpuID: nil
+                )]
+            )
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 
                 if settingsManager.settings.skipBolusScreenAfterCarbs {
                     let success = await apsManager.determineBasal()

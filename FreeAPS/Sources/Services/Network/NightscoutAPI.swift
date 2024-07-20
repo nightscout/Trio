@@ -321,7 +321,11 @@ extension NightscoutAPI {
             .eraseToAnyPublisher()
     }
 
+<<<<<<< HEAD
     func uploadTreatments(_ treatments: [NightscoutTreatment]) async throws {
+=======
+    func uploadTreatments(_ treatments: [NightscoutTreatment]) -> AnyPublisher<Void, Swift.Error> {
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
         var components = URLComponents()
         components.scheme = url.scheme
         components.host = url.host
@@ -398,6 +402,7 @@ extension NightscoutAPI {
         debugPrint("Upload successful, response data: \(String(data: data, encoding: .utf8) ?? "No data")")
     }
 
+<<<<<<< HEAD
     func uploadStats(_ stats: NightscoutStatistics) async throws {
         var components = URLComponents()
         components.scheme = url.scheme
@@ -424,6 +429,9 @@ extension NightscoutAPI {
     }
 
     func uploadStatus(_ status: NightscoutStatus) async throws {
+=======
+    func uploadStatus(_ status: NightscoutStatus) -> AnyPublisher<Void, Swift.Error> {
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
         var components = URLComponents()
         components.scheme = url.scheme
         components.host = url.host

@@ -4,9 +4,11 @@ function generate(iob, currenttemp, glucose, profile, autosens = null, meal = nu
 
     var clock = new Date();
     
+    var middleware_was_used = "";
     try {
         var middlewareReason = middleware(iob, currenttemp, glucose, profile, autosens, meal, reservoir, clock, pump_history, preferences, basalProfile, oref2_variables);
-        console.log("Middleware reason: " + (middlewareReason || "Nothing changed"));
+        middleware_was_used = (middlewareReason || "Nothing changed");
+        console.log("Middleware reason: " + middleware_was_used);
     } catch (error) {
         console.log("Invalid middleware: " + error);
     };
@@ -43,5 +45,5 @@ function generate(iob, currenttemp, glucose, profile, autosens = null, meal = nu
         oref2_variables_ = oref2_variables;
     }
     
-    return freeaps_determineBasal(glucose_status, currenttemp, iob, profile, autosens_data, meal_data, freeaps_basalSetTemp, microbolusAllowed, reservoir_data, clock, pumphistory, preferences, basalprofile, oref2_variables_);
+    return freeaps_determineBasal(glucose_status, currenttemp, iob, profile, autosens_data, meal_data, freeaps_basalSetTemp, microbolusAllowed, reservoir_data, clock, pumphistory, preferences, basalprofile, oref2_variables_, middleware_was_used);
 }

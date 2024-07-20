@@ -8,7 +8,7 @@ jobs:
     name: Validate
     uses: ./.github/workflows/validate_secrets.yml
     secrets: inherit
-  
+
   certificates:
     name: Create Certificates
     needs: validate
@@ -17,11 +17,11 @@ jobs:
       # Uncomment to manually select Xcode version if needed
       - name: Select Xcode version
         run: "sudo xcode-select --switch /Applications/Xcode_15.0.1.app/Contents/Developer"
-      
+
       # Checks-out the repo
       - name: Checkout Repo
-        uses: actions/checkout@v3
-        
+        uses: actions/checkout@v4
+
       # Patch Fastlane Match to not print tables
       - name: Patch Match Tables
         run: find /usr/local/lib/ruby/gems -name table_printer.rb | xargs sed -i "" "/puts(Terminal::Table.new(params))/d"
@@ -29,10 +29,6 @@ jobs:
       # Install project dependencies
       - name: Install Project Dependencies
         run: bundle install
-
-      # Sync the GitHub runner clock with the Windows time server (workaround as suggested in https://github.com/actions/runner/issues/2996)
-      - name: Sync clock
-        run: sudo sntp -sS time.windows.com
 
       # Create or update certificates for app
       - name: Create Certificates

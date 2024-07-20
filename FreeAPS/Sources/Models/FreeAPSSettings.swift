@@ -6,13 +6,15 @@ struct FreeAPSSettings: JSON, Equatable {
     var allowAnnouncements: Bool = false
     var useAutotune: Bool = false
     var isUploadEnabled: Bool = false
+    var isDownloadEnabled: Bool = false
     var useLocalGlucoseSource: Bool = false
     var localGlucosePort: Int = 8080
     var debugOptions: Bool = false
     var insulinReqPercentage: Decimal = 70
     var skipBolusScreenAfterCarbs: Bool = false
     var displayHR: Bool = false
-    var cgm: CGMType = .nightscout
+    var cgm: CGMType = .none
+    var cgmPluginIdentifier: String = ""
     var uploadGlucose: Bool = true
     var useCalendar: Bool = false
     var displayCalendarIOBandCOB: Bool = false
@@ -35,18 +37,20 @@ struct FreeAPSSettings: JSON, Equatable {
     var smoothGlucose: Bool = false
     var displayOnWatch: AwConfig = .BGTarget
     var overrideHbA1cUnit: Bool = false
-    var high: Decimal = 145
+    var high: Decimal = 180
     var low: Decimal = 70
-    var uploadStats: Bool = true
     var hours: Int = 6
     var xGridLines: Bool = true
     var yGridLines: Bool = true
     var oneDimensionalGraph: Bool = false
-    var rulerMarks: Bool = false
-    var maxCarbs: Decimal = 1000
+    var rulerMarks: Bool = true
+    var maxCarbs: Decimal = 250
+    var maxFat: Decimal = 250
+    var maxProtein: Decimal = 250
     var displayFatAndProteinOnWatch: Bool = false
     var confirmBolusFaster: Bool = false
     var onlyAutotuneBasals: Bool = false
+<<<<<<< HEAD
     var overrideFactor: Decimal = 0.8
     var useCalc: Bool = true
     var fattyMeals: Bool = false
@@ -56,6 +60,9 @@ struct FreeAPSSettings: JSON, Equatable {
     var displayPresets: Bool = true
     var useLiveActivity: Bool = false
     var historyLayout: HistoryLayout = .twoTabs
+=======
+    var useLiveActivity: Bool = false
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
     var lockScreenView: LockScreenView = .simple
 }
 
@@ -83,6 +90,10 @@ extension FreeAPSSettings: Decodable {
 
         if let isUploadEnabled = try? container.decode(Bool.self, forKey: .isUploadEnabled) {
             settings.isUploadEnabled = isUploadEnabled
+        }
+
+        if let isDownloadEnabled = try? container.decode(Bool.self, forKey: .isDownloadEnabled) {
+            settings.isDownloadEnabled = isDownloadEnabled
         }
 
         if let useLocalGlucoseSource = try? container.decode(Bool.self, forKey: .useLocalGlucoseSource) {
@@ -117,6 +128,10 @@ extension FreeAPSSettings: Decodable {
 
         if let cgm = try? container.decode(CGMType.self, forKey: .cgm) {
             settings.cgm = cgm
+        }
+
+        if let cgmPluginIdentifier = try? container.decode(String.self, forKey: .cgmPluginIdentifier) {
+            settings.cgmPluginIdentifier = cgmPluginIdentifier
         }
 
         if let uploadGlucose = try? container.decode(Bool.self, forKey: .uploadGlucose) {
@@ -234,10 +249,6 @@ extension FreeAPSSettings: Decodable {
             settings.high = high
         }
 
-        if let uploadStats = try? container.decode(Bool.self, forKey: .uploadStats) {
-            settings.uploadStats = uploadStats
-        }
-
         if let hours = try? container.decode(Int.self, forKey: .hours) {
             settings.hours = hours
         }
@@ -266,6 +277,14 @@ extension FreeAPSSettings: Decodable {
             settings.maxCarbs = maxCarbs
         }
 
+        if let maxFat = try? container.decode(Decimal.self, forKey: .maxFat) {
+            settings.maxFat = maxFat
+        }
+
+        if let maxProtein = try? container.decode(Decimal.self, forKey: .maxProtein) {
+            settings.maxProtein = maxProtein
+        }
+
         if let displayFatAndProteinOnWatch = try? container.decode(Bool.self, forKey: .displayFatAndProteinOnWatch) {
             settings.displayFatAndProteinOnWatch = displayFatAndProteinOnWatch
         }
@@ -278,6 +297,7 @@ extension FreeAPSSettings: Decodable {
             settings.onlyAutotuneBasals = onlyAutotuneBasals
         }
 
+<<<<<<< HEAD
         if let displayPresets = try? container.decode(Bool.self, forKey: .displayPresets) {
             settings.displayPresets = displayPresets
         }
@@ -290,6 +310,11 @@ extension FreeAPSSettings: Decodable {
             settings.historyLayout = historyLayout
         }
 
+=======
+        if let useLiveActivity = try? container.decode(Bool.self, forKey: .useLiveActivity) {
+            settings.useLiveActivity = useLiveActivity
+        }
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
         if let lockScreenView = try? container.decode(LockScreenView.self, forKey: .lockScreenView) {
             settings.lockScreenView = lockScreenView
         }

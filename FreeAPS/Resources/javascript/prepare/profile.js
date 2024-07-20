@@ -13,7 +13,7 @@ function generate(pumpsettings_data, bgtargets_data, isf_data, basalprofile_data
             return { "error" : 'BG Target data is expected to be expressed in mg/dL or mmol/L. Found '+ bgtargets_data.units };
         }
     }
-
+    
     if (isf_data.units !== 'mg/dL') {
         if (isf_data.units === 'mmol/L') {
             for (var i = 0, len = isf_data.sensitivities.length; i < len; i++) {

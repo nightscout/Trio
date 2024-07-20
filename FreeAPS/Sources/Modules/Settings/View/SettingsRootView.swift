@@ -1,4 +1,6 @@
 import HealthKit
+import LoopKit
+import LoopKitUI
 import SwiftUI
 import Swinject
 
@@ -7,6 +9,7 @@ extension Settings {
         let resolver: Resolver
         @StateObject var state = StateModel()
         @State private var showShareSheet = false
+        @StateObject private var viewModel = SettingsRootViewModel()
 
         @Environment(\.colorScheme) var colorScheme
 
@@ -30,6 +33,7 @@ extension Settings {
         var body: some View {
             Form {
                 Section {
+<<<<<<< HEAD
                     HStack(spacing: 15) {
                         Image(systemName: "circle")
                             .imageScale(.small)
@@ -98,6 +102,46 @@ extension Settings {
                 } header: { Text("Extra Features") }.listRowBackground(Color.chart)
 
                 Section {
+=======
+                    Toggle("Closed loop", isOn: $state.closedLoop)
+                }
+                header: {
+                    Text(viewModel.headerText).textCase(nil)
+                }
+
+                Section {
+                    Text("Pump").navigationLink(to: .pumpConfig, from: self)
+                    Text("CGM").navigationLink(to: .cgm, from: self)
+                    Text("Watch").navigationLink(to: .watch, from: self)
+                } header: { Text("Devices") }
+
+                Section {
+                    Text("Nightscout").navigationLink(to: .nighscoutConfig, from: self)
+
+                    NavigationLink(destination: TidepoolStartView(state: state)) {
+                        Text("Tidepool")
+                    }
+                    if HKHealthStore.isHealthDataAvailable() {
+                        Text("Apple Health").navigationLink(to: .healthkit, from: self)
+                    }
+                    Text("Notifications").navigationLink(to: .notificationsConfig, from: self)
+                    Text("App Icons").navigationLink(to: .iconConfig, from: self)
+                    Text("Statistics and Home View").navigationLink(to: .statisticsConfig, from: self)
+                } header: { Text("Services") }
+
+                Section {
+                    Text("Preferences").navigationLink(to: .preferencesEditor, from: self)
+                    Text("Pump Settings").navigationLink(to: .pumpSettingsEditor, from: self)
+                    Text("Meal Settings").navigationLink(to: .fpuConfig, from: self)
+                    Text("Basal Profile").navigationLink(to: .basalProfileEditor, from: self)
+                    Text("Insulin Sensitivities").navigationLink(to: .isfEditor, from: self)
+                    Text("Carb Ratios").navigationLink(to: .crEditor, from: self)
+                    Text("Target Glucose").navigationLink(to: .targetsEditor, from: self)
+                    Text("Autotune").navigationLink(to: .autotuneConfig, from: self)
+                } header: { Text("Configuration") }
+
+                Section {
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                     Toggle("Debug options", isOn: $state.debugOptions)
                     if state.debugOptions {
                         Group {
@@ -107,6 +151,19 @@ extension Settings {
                                     .frame(maxWidth: .infinity, alignment: .trailing)
                                     .buttonStyle(.borderedProminent)
                             }
+<<<<<<< HEAD
+=======
+                            // Commenting this out for now, as not needed and possibly dangerous for users to be able to nuke their pump pairing informations via the debug menu
+                            // Leaving it in here, as it may be a handy functionality for further testing or developers.
+                            // See https://github.com/nightscout/Trio/pull/277 for more information
+//
+//                            HStack {
+//                                Text("Delete Stored Pump State Binary Files")
+//                                Button("Delete") { state.resetLoopDocuments() }
+//                                    .frame(maxWidth: .infinity, alignment: .trailing)
+//                                    .buttonStyle(.borderedProminent)
+//                            }
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                         }
                         Group {
                             Text("Preferences")
@@ -153,7 +210,11 @@ extension Settings {
                                 .navigationLink(to: .configEditor(file: OpenAPS.FreeAPS.settings), from: self)
                         }
                     }
+<<<<<<< HEAD
                 } header: { Text("Developer") }.listRowBackground(Color.chart)
+=======
+                } header: { Text("Developer") }
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 
                 Section {
                     Toggle("Animated Background", isOn: $state.animatedBackground)
@@ -169,11 +230,23 @@ extension Settings {
                 .sheet(isPresented: $showShareSheet) {
                     ShareSheet(activityItems: state.logItems())
                 }
+<<<<<<< HEAD
                 .onAppear(perform: configureView)
                 .navigationTitle("Settings")
                 .navigationBarTitleDisplayMode(.large)
                 .onDisappear(perform: { state.uploadProfileAndSettings(false) })
                 .screenNavigation(self)
+=======
+            }
+            .sheet(isPresented: $showShareSheet) {
+                ShareSheet(activityItems: state.logItems())
+            }
+            .onAppear(perform: configureView)
+            .navigationTitle("Settings")
+            .navigationBarItems(leading: Button("Close", action: state.hideSettingsModal))
+            .navigationBarTitleDisplayMode(.automatic)
+            .onDisappear(perform: { state.uploadProfileAndSettings(false) })
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
         }
     }
 }

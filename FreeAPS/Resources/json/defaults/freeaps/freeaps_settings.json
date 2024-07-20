@@ -5,13 +5,15 @@
   "useAutotune" : false,
   "onlyAutotuneBasals" : false,
   "isUploadEnabled" : false,
+  "isDownloadEnabled" : false,
   "useLocalGlucoseSource" : false,
   "localGlucosePort" : 8080,
   "debugOptions" : false,
   "insulinReqPercentage" : 70,
   "skipBolusScreenAfterCarbs" : false,
   "displayHR" : false,
-  "cgm" : "nightscout",
+  "cgm" : "none",
+  "cgmManagerTypeByIdentifier":"",
   "uploadGlucose" : true,
   "useCalendar" : false,
   "displayCalendarEmojis" : false,
@@ -34,13 +36,13 @@
   "smoothGlucose" : false,
   "displayOnWatch" : "BGTarget",
   "overrideHbA1cUnit" : false,
-  "high" : 145,
+  "high" : 180,
   "low" : 70,
-  "uploadStats" : true,
   "hours" : 6,
   "xGridLines" : true,
   "yGridLines" : true,
   "oneDimensionalGraph" : false,
+<<<<<<< HEAD
   "rulerMarks" : false,
   "maxCarbs": 1000,
   "displayFatAndProteinOnWatch": false,
@@ -52,5 +54,13 @@
   "sweetMeals": false,
   "sweetMealFactor": 2
   "historyLayout": "twoTabs",
+=======
+  "rulerMarks" : true,
+  "maxCarbs": 250,
+  "maxFat": 250,
+  "maxProtein": 250,
+  "displayFatAndProteinOnWatch": false,
+  "confirmBolusFaster": false,
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
   "lockScreenView": "simple"
 }

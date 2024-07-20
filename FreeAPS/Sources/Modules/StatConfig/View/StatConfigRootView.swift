@@ -52,7 +52,17 @@ extension StatConfig {
                     Toggle("Enable total insulin in scope", isOn: $state.tins)
                 } header: { Text("Home Chart settings ") }
 
+<<<<<<< HEAD
                 Section {
+=======
+                    HStack {
+                        Text("Hours X-Axis (6 default)")
+                        Spacer()
+                        TextFieldWithToolBar(text: $state.hours, placeholder: "6", numberFormatter: carbsFormatter)
+                        Text("hours").foregroundColor(.secondary)
+                    }
+
+>>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                     HStack {
                         Text("Low")
                         Spacer()
