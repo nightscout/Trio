@@ -3952,8 +3952,7 @@
 				DDD1631E2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodel */,
 			);
 			currentVersion = DDD1631E2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodel */;
-			name = TrioCoreDataPersistentContainer.xcdatamodeld;
-			path = "/Users/deniz.cengiz/dnzxy_workspaces/Open-iAPS/Model/TrioCoreDataPersistentContainer.xcdatamodeld";
+			path = TrioCoreDataPersistentContainer.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
 		};
