@@ -107,11 +107,8 @@ extension Calibrations {
                     }
                 }
             }
-<<<<<<< HEAD
             .scrollContentBackground(.hidden).background(color)
-=======
             .dynamicTypeSize(...DynamicTypeSize.xxLarge)
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
             .onAppear(perform: configureView)
             .navigationTitle("Calibrations")
             .navigationBarItems(trailing: EditButton().disabled(state.calibrations.isEmpty))

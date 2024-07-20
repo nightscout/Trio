@@ -268,7 +268,6 @@
 		5A2325522BFCBF55003518CA /* NightscoutUploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A2325512BFCBF55003518CA /* NightscoutUploadView.swift */; };
 		5A2325542BFCBF66003518CA /* NightscoutFetchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A2325532BFCBF65003518CA /* NightscoutFetchView.swift */; };
 		5A2325582BFCC168003518CA /* NightscoutConnectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A2325572BFCC168003518CA /* NightscoutConnectView.swift */; };
-		5BFA1C2208114643B77F8CEB /* AddTempTargetProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEE53A13D26F101B332EFFC8 /* AddTempTargetProvider.swift */; };
 		5D16287A969E64D18CE40E44 /* PumpConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F60E97100041040446F44E7 /* PumpConfigStateModel.swift */; };
 		63E890B4D951EAA91C071D5C /* BasalProfileEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAFF91130F2FCCC7EBBA11AD /* BasalProfileEditorStateModel.swift */; };
 		642F76A05A4FF530463A9FD0 /* NightscoutConfigRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8782B44544F38F2B2D82C38E /* NightscoutConfigRootView.swift */; };
@@ -297,8 +296,6 @@
 		88AB39B23C9552BD6E0C9461 /* ISFEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBB3BAE7494CB771ABAC7B8B /* ISFEditorRootView.swift */; };
 		891DECF7BC20968D7F566161 /* AutotuneConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5EF98E22A39CD656A230704 /* AutotuneConfigProvider.swift */; };
 		8B759CFCF47B392BB365C251 /* BasalProfileEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67F94DD2853CF42BA4E30616 /* BasalProfileEditorDataFlow.swift */; };
-		8BC2F5A29AD1ED08AC0EE013 /* AddTempTargetRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9AAB83FB6C3B41EFD1846A0 /* AddTempTargetRootView.swift */; };
-		919DBD08F13BAFB180DF6F47 /* AddTempTargetStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C3B5FD881CA45DFDEE0EDA9 /* AddTempTargetStateModel.swift */; };
 		9702FF92A09C53942F20D7EA /* TargetsEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD795BA46B193644D48138C /* TargetsEditorRootView.swift */; };
 		9825E5E923F0B8FA80C8C7C7 /* NightscoutConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A48AE3AC813A49A517846A /* NightscoutConfigStateModel.swift */; };
 		98641AF4F92123DA668AB931 /* CREditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0BDC6993C1087310EDFC428 /* CREditorRootView.swift */; };
@@ -415,7 +412,6 @@
 		CEE9A6592BBB418300EB5194 /* CalibrationsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE9A6542BBB418300EB5194 /* CalibrationsDataFlow.swift */; };
 		CEE9A65C2BBB41C800EB5194 /* CalibrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE9A65B2BBB41C800EB5194 /* CalibrationService.swift */; };
 		CEE9A65E2BBC9F6500EB5194 /* CalibrationsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE9A65D2BBC9F6500EB5194 /* CalibrationsTests.swift */; };
-		D2165E9D78EFF692C1DED1C6 /* AddTempTargetDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8A42073A2D03A278914448 /* AddTempTargetDataFlow.swift */; };
 		D6D02515BBFBE64FEBE89856 /* DataTableRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 881E04BA5E0A003DE8E0A9C6 /* DataTableRootView.swift */; };
 		D6DEC113821A7F1056C4AA1E /* NightscoutConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F2A13DF0EDEEEDC4106AA2A /* NightscoutConfigDataFlow.swift */; };
 		D76333C9256787610B3B4875 /* AutotuneConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D295A3F870E826BE371C0BB5 /* AutotuneConfigStateModel.swift */; };
@@ -859,7 +855,6 @@
 		5A2325512BFCBF55003518CA /* NightscoutUploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutUploadView.swift; sourceTree = "<group>"; };
 		5A2325532BFCBF65003518CA /* NightscoutFetchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutFetchView.swift; sourceTree = "<group>"; };
 		5A2325572BFCC168003518CA /* NightscoutConnectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutConnectView.swift; sourceTree = "<group>"; };
-		5B8A42073A2D03A278914448 /* AddTempTargetDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AddTempTargetDataFlow.swift; sourceTree = "<group>"; };
 		5C018D1680307A31C9ED7120 /* CGMStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CGMStateModel.swift; sourceTree = "<group>"; };
 		5D5B4F8B4194BB7E260EF251 /* ConfigEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConfigEditorStateModel.swift; sourceTree = "<group>"; };
 		60744C3E9BB3652895C908CC /* DataTableProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DataTableProvider.swift; sourceTree = "<group>"; };
@@ -884,7 +879,6 @@
 		8782B44544F38F2B2D82C38E /* NightscoutConfigRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NightscoutConfigRootView.swift; sourceTree = "<group>"; };
 		881E04BA5E0A003DE8E0A9C6 /* DataTableRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DataTableRootView.swift; sourceTree = "<group>"; };
 		8A965332F237348B119FB858 /* PreferencesEditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PreferencesEditorRootView.swift; sourceTree = "<group>"; };
-		8C3B5FD881CA45DFDEE0EDA9 /* AddTempTargetStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AddTempTargetStateModel.swift; sourceTree = "<group>"; };
 		8CF5ACEE1F0859670E71B2C0 /* AutotuneConfigRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AutotuneConfigRootView.swift; sourceTree = "<group>"; };
 		8DCCCCE633F5E98E41B0CD3C /* AutotuneConfigDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AutotuneConfigDataFlow.swift; sourceTree = "<group>"; };
 		920DDB21E5D0EB813197500D /* ConfigEditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConfigEditorRootView.swift; sourceTree = "<group>"; };
@@ -896,7 +890,6 @@
 		A401509D21F7F35D4E109EDA /* DataTableDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DataTableDataFlow.swift; sourceTree = "<group>"; };
 		A8630D58BDAD6D9C650B9B39 /* PumpConfigProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpConfigProvider.swift; sourceTree = "<group>"; };
 		AAFF91130F2FCCC7EBBA11AD /* BasalProfileEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BasalProfileEditorStateModel.swift; sourceTree = "<group>"; };
-		AEE53A13D26F101B332EFFC8 /* AddTempTargetProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AddTempTargetProvider.swift; sourceTree = "<group>"; };
 		AF65DA88F972B56090AD6AC3 /* PumpConfigDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpConfigDataFlow.swift; sourceTree = "<group>"; };
 		B5822B15939E719628E9FF7C /* SnoozeRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnoozeRootView.swift; sourceTree = "<group>"; };
 		B5EF98E22A39CD656A230704 /* AutotuneConfigProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AutotuneConfigProvider.swift; sourceTree = "<group>"; };
@@ -1030,7 +1023,6 @@
 		E0D4F80427513ECF00BDF1FE /* HealthKitSample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitSample.swift; sourceTree = "<group>"; };
 		E26904AACA8D9C15D229D675 /* SnoozeStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnoozeStateModel.swift; sourceTree = "<group>"; };
 		E625985B47742D498CB1681A /* NotificationsConfigProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotificationsConfigProvider.swift; sourceTree = "<group>"; };
-		E9AAB83FB6C3B41EFD1846A0 /* AddTempTargetRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AddTempTargetRootView.swift; sourceTree = "<group>"; };
 		F816825D28DB441200054060 /* HeartBeatManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HeartBeatManager.swift; sourceTree = "<group>"; };
 		F816825F28DB441800054060 /* BluetoothTransmitter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BluetoothTransmitter.swift; sourceTree = "<group>"; };
 		F90692A9274B7AAE0037068D /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
@@ -1296,7 +1288,6 @@
 				19E1F7E629D0828B005C8D20 /* IconConfig */,
 				19D466A129AA2B0A004D5F33 /* FPUConfig */,
 				F90692CD274B99850037068D /* HealthKit */,
-				A9A4C88374496B3C89058A89 /* AddTempTarget */,
 				672F63EEAE27400625E14BAD /* AutotuneConfig */,
 				A42F1FEDFFD0DDE00AAD54D3 /* BasalProfileEditor */,
 				3811DE0425C9D32E00A708ED /* Base */,
@@ -1997,14 +1988,6 @@
 			path = PreferencesEditor;
 			sourceTree = "<group>";
 		};
-		3F8670D63672AF88E2E9B09E /* View */ = {
-			isa = PBXGroup;
-			children = (
-				E9AAB83FB6C3B41EFD1846A0 /* AddTempTargetRootView.swift */,
-			);
-			path = View;
-			sourceTree = "<group>";
-		};
 		4E8C7B59F8065047ECE20965 /* View */ = {
 			isa = PBXGroup;
 			children = (
@@ -2231,17 +2214,6 @@
 				18B49BC9587A59E3A347C1CD /* View */,
 			);
 			path = BasalProfileEditor;
-			sourceTree = "<group>";
-		};
-		A9A4C88374496B3C89058A89 /* AddTempTarget */ = {
-			isa = PBXGroup;
-			children = (
-				5B8A42073A2D03A278914448 /* AddTempTargetDataFlow.swift */,
-				AEE53A13D26F101B332EFFC8 /* AddTempTargetProvider.swift */,
-				8C3B5FD881CA45DFDEE0EDA9 /* AddTempTargetStateModel.swift */,
-				3F8670D63672AF88E2E9B09E /* View */,
-			);
-			path = AddTempTarget;
 			sourceTree = "<group>";
 		};
 		B9488883C59C31550E0B4CEC /* View */ = {
@@ -3123,15 +3095,11 @@
 				38E8755427561E9800975559 /* DataFlow.swift in Sources */,
 				38E44522274E3DDC00EC9A94 /* NetworkReachabilityManager.swift in Sources */,
 				CE7CA34F2A064973004BE681 /* BaseIntentsRequest.swift in Sources */,
-				D2165E9D78EFF692C1DED1C6 /* AddTempTargetDataFlow.swift in Sources */,
 				CE82E02728E869DF00473A9C /* AlertEntry.swift in Sources */,
 				38E4451E274DB04600EC9A94 /* AppDelegate.swift in Sources */,
-				5BFA1C2208114643B77F8CEB /* AddTempTargetProvider.swift in Sources */,
 				BD2FF1A02AE29D43005D1C5D /* CheckboxToggleStyle.swift in Sources */,
 				BDF34F932C10D0E100D51995 /* LiveActivityAttributes+Helper.swift in Sources */,
 				E0D4F80527513ECF00BDF1FE /* HealthKitSample.swift in Sources */,
-				919DBD08F13BAFB180DF6F47 /* AddTempTargetStateModel.swift in Sources */,
-				8BC2F5A29AD1ED08AC0EE013 /* AddTempTargetRootView.swift in Sources */,
 				38A00B1F25FC00F7006BC0B0 /* Autotune.swift in Sources */,
 				38AAF85525FFF846004AF583 /* CurrentGlucoseView.swift in Sources */,
 				041D1E995A6AE92E9289DC49 /* BolusDataFlow.swift in Sources */,

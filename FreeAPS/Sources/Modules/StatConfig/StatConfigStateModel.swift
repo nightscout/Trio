@@ -3,19 +3,12 @@ import SwiftUI
 extension StatConfig {
     final class StateModel: BaseStateModel<Provider> {
         @Published var overrideHbA1cUnit = false
-<<<<<<< HEAD
-        @Published var low: Decimal = 4 / 0.0555
-        @Published var high: Decimal = 10 / 0.0555
-        @Published var xGridLines = false
-        @Published var yGridLines: Bool = false
-        @Published var oneDimensionalGraph = false
-        @Published var rulerMarks: Bool = false
+        
         @Published var skipBolusScreenAfterCarbs: Bool = false
         @Published var useFPUconversion: Bool = true
         @Published var tins: Bool = false
         @Published var historyLayout: HistoryLayout = .twoTabs
         @Published var lockScreenView: LockScreenView = .simple
-=======
         @Published var low: Decimal = 70
         @Published var high: Decimal = 180
         @Published var hours: Decimal = 6
@@ -23,7 +16,6 @@ extension StatConfig {
         @Published var yGridLines: Bool = false
         @Published var oneDimensionalGraph = false
         @Published var rulerMarks: Bool = true
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 
         var units: GlucoseUnits = .mgdL
 

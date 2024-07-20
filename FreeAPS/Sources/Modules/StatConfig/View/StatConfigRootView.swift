@@ -50,19 +50,15 @@ extension StatConfig {
                     Toggle("Display Chart Threshold lines for Low and High", isOn: $state.rulerMarks)
                     Toggle("Standing / Laying TIR Chart", isOn: $state.oneDimensionalGraph)
                     Toggle("Enable total insulin in scope", isOn: $state.tins)
-                } header: { Text("Home Chart settings ") }
-
-<<<<<<< HEAD
-                Section {
-=======
                     HStack {
                         Text("Hours X-Axis (6 default)")
                         Spacer()
                         TextFieldWithToolBar(text: $state.hours, placeholder: "6", numberFormatter: carbsFormatter)
                         Text("hours").foregroundColor(.secondary)
                     }
+                } header: { Text("Home Chart settings ") }
 
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
+                Section {
                     HStack {
                         Text("Low")
                         Spacer()
