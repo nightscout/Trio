@@ -1,60 +1,74 @@
-import CoreData
-import Foundation
+//
+//  OrefDetermination+CoreDataProperties.swift
+//  FreeAPS
+//
+//  Created by Cengiz Deniz on 21.07.24.
+//
+//
 
-public extension OrefDetermination {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<OrefDetermination> {
-        NSFetchRequest<OrefDetermination>(entityName: "OrefDetermination")
+import Foundation
+import CoreData
+
+
+extension OrefDetermination {
+
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<OrefDetermination> {
+        return NSFetchRequest<OrefDetermination>(entityName: "OrefDetermination")
     }
 
-    @NSManaged var bolus: NSDecimalNumber?
-    @NSManaged var carbRatio: NSDecimalNumber?
-    @NSManaged var carbsRequired: Int16
-    @NSManaged var cob: Int16
-    @NSManaged var currentTarget: NSDecimalNumber?
-    @NSManaged var deliverAt: Date?
-    @NSManaged var duration: NSDecimalNumber?
-    @NSManaged var enacted: Bool
-    @NSManaged var eventualBG: NSDecimalNumber?
-    @NSManaged var expectedDelta: NSDecimalNumber?
-    @NSManaged var glucose: NSDecimalNumber?
-    @NSManaged var id: UUID?
-    @NSManaged var insulinForManualBolus: NSDecimalNumber?
-    @NSManaged var insulinReq: NSDecimalNumber?
-    @NSManaged var insulinSensitivity: NSDecimalNumber?
-    @NSManaged var iob: NSDecimalNumber?
-    @NSManaged var isUploadedToNS: Bool
-    @NSManaged var manualBolusErrorString: NSDecimalNumber?
-    @NSManaged var minDelta: NSDecimalNumber?
-    @NSManaged var rate: NSDecimalNumber?
-    @NSManaged var reason: String?
-    @NSManaged var received: Bool
-    @NSManaged var reservoir: NSDecimalNumber?
-    @NSManaged var scheduledBasal: NSDecimalNumber?
-    @NSManaged var sensitivityRatio: NSDecimalNumber?
-    @NSManaged var smbToDeliver: NSDecimalNumber?
-    @NSManaged var temp: String?
-    @NSManaged var tempBasal: NSDecimalNumber?
-    @NSManaged var threshold: NSDecimalNumber?
-    @NSManaged var timestamp: Date?
-    @NSManaged var timestampEnacted: Date?
-    @NSManaged var totalDailyDose: NSDecimalNumber?
-    @NSManaged var forecasts: NSSet?
+    @NSManaged public var bolus: NSDecimalNumber?
+    @NSManaged public var carbRatio: NSDecimalNumber?
+    @NSManaged public var carbsRequired: Int16
+    @NSManaged public var cob: Int16
+    @NSManaged public var currentTarget: NSDecimalNumber?
+    @NSManaged public var deliverAt: Date?
+    @NSManaged public var duration: NSDecimalNumber?
+    @NSManaged public var enacted: Bool
+    @NSManaged public var eventualBG: NSDecimalNumber?
+    @NSManaged public var expectedDelta: NSDecimalNumber?
+    @NSManaged public var glucose: NSDecimalNumber?
+    @NSManaged public var id: UUID?
+    @NSManaged public var insulinForManualBolus: NSDecimalNumber?
+    @NSManaged public var insulinReq: NSDecimalNumber?
+    @NSManaged public var insulinSensitivity: NSDecimalNumber?
+    @NSManaged public var iob: NSDecimalNumber?
+    @NSManaged public var isUploadedToNS: Bool
+    @NSManaged public var manualBolusErrorString: NSDecimalNumber?
+    @NSManaged public var minDelta: NSDecimalNumber?
+    @NSManaged public var rate: NSDecimalNumber?
+    @NSManaged public var reason: String?
+    @NSManaged public var received: Bool
+    @NSManaged public var reservoir: NSDecimalNumber?
+    @NSManaged public var scheduledBasal: NSDecimalNumber?
+    @NSManaged public var sensitivityRatio: NSDecimalNumber?
+    @NSManaged public var smbToDeliver: NSDecimalNumber?
+    @NSManaged public var temp: String?
+    @NSManaged public var tempBasal: NSDecimalNumber?
+    @NSManaged public var threshold: NSDecimalNumber?
+    @NSManaged public var timestamp: Date?
+    @NSManaged public var timestampEnacted: Date?
+    @NSManaged public var totalDailyDose: NSDecimalNumber?
+    @NSManaged public var forecasts: NSSet?
+
 }
 
 // MARK: Generated accessors for forecasts
+extension OrefDetermination {
 
-public extension OrefDetermination {
     @objc(addForecastsObject:)
-    @NSManaged func addToForecasts(_ value: Forecast)
+    @NSManaged public func addToForecasts(_ value: Forecast)
 
     @objc(removeForecastsObject:)
-    @NSManaged func removeFromForecasts(_ value: Forecast)
+    @NSManaged public func removeFromForecasts(_ value: Forecast)
 
     @objc(addForecasts:)
-    @NSManaged func addToForecasts(_ values: NSSet)
+    @NSManaged public func addToForecasts(_ values: NSSet)
 
     @objc(removeForecasts:)
-    @NSManaged func removeFromForecasts(_ values: NSSet)
+    @NSManaged public func removeFromForecasts(_ values: NSSet)
+
 }
 
-extension OrefDetermination: Identifiable {}
+extension OrefDetermination : Identifiable {
+
+}

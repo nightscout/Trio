@@ -1,4 +1,15 @@
-import CoreData
-import Foundation
+//
+//  OrefDetermination+CoreDataClass.swift
+//  FreeAPS
+//
+//  Created by Cengiz Deniz on 21.07.24.
+//
+//
 
-@objc(OrefDetermination) public class OrefDetermination: NSManagedObject {}
+import Foundation
+import CoreData
+
+@objc(OrefDetermination)
+public class OrefDetermination: NSManagedObject {
+
+}

@@ -1,4 +1,15 @@
-import CoreData
-import Foundation
+//
+//  TempTargets+CoreDataClass.swift
+//  FreeAPS
+//
+//  Created by Cengiz Deniz on 21.07.24.
+//
+//
 
-@objc(TempTargets) public class TempTargets: NSManagedObject {}
+import Foundation
+import CoreData
+
+@objc(TempTargets)
+public class TempTargets: NSManagedObject {
+
+}

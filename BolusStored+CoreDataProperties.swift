@@ -1,15 +1,28 @@
-import CoreData
-import Foundation
+//
+//  BolusStored+CoreDataProperties.swift
+//  FreeAPS
+//
+//  Created by Cengiz Deniz on 21.07.24.
+//
+//
 
-public extension BolusStored {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<BolusStored> {
-        NSFetchRequest<BolusStored>(entityName: "BolusStored")
+import Foundation
+import CoreData
+
+
+extension BolusStored {
+
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<BolusStored> {
+        return NSFetchRequest<BolusStored>(entityName: "BolusStored")
     }
 
-    @NSManaged var amount: NSDecimalNumber?
-    @NSManaged var isExternal: Bool
-    @NSManaged var isSMB: Bool
-    @NSManaged var pumpEvent: PumpEventStored?
+    @NSManaged public var amount: NSDecimalNumber?
+    @NSManaged public var isExternal: Bool
+    @NSManaged public var isSMB: Bool
+    @NSManaged public var pumpEvent: PumpEventStored?
+
 }
 
-extension BolusStored: Identifiable {}
+extension BolusStored : Identifiable {
+
+}

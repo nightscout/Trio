@@ -1,4 +1,15 @@
-import CoreData
-import Foundation
+//
+//  OverrideRunStored+CoreDataClass.swift
+//  FreeAPS
+//
+//  Created by Cengiz Deniz on 21.07.24.
+//
+//
 
-@objc(OverrideRunStored) public class OverrideRunStored: NSManagedObject {}
+import Foundation
+import CoreData
+
+@objc(OverrideRunStored)
+public class OverrideRunStored: NSManagedObject {
+
+}

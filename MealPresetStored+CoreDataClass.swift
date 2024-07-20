@@ -1,4 +1,15 @@
-import CoreData
-import Foundation
+//
+//  MealPresetStored+CoreDataClass.swift
+//  FreeAPS
+//
+//  Created by Cengiz Deniz on 21.07.24.
+//
+//
 
-@objc(MealPresetStored) public class MealPresetStored: NSManagedObject {}
+import Foundation
+import CoreData
+
+@objc(MealPresetStored)
+public class MealPresetStored: NSManagedObject {
+
+}

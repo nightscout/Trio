@@ -1,4 +1,15 @@
-import CoreData
-import Foundation
+//
+//  ImportError+CoreDataClass.swift
+//  FreeAPS
+//
+//  Created by Cengiz Deniz on 21.07.24.
+//
+//
 
-@objc(ImportError) public class ImportError: NSManagedObject {}
+import Foundation
+import CoreData
+
+@objc(ImportError)
+public class ImportError: NSManagedObject {
+
+}

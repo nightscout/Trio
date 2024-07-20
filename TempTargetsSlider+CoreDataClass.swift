@@ -1,4 +1,15 @@
-import CoreData
-import Foundation
+//
+//  TempTargetsSlider+CoreDataClass.swift
+//  FreeAPS
+//
+//  Created by Cengiz Deniz on 21.07.24.
+//
+//
 
-@objc(TempTargetsSlider) public class TempTargetsSlider: NSManagedObject {}
+import Foundation
+import CoreData
+
+@objc(TempTargetsSlider)
+public class TempTargetsSlider: NSManagedObject {
+
+}

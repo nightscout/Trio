@@ -1,12 +1,25 @@
-import CoreData
-import Foundation
+//
+//  StatsData+CoreDataProperties.swift
+//  FreeAPS
+//
+//  Created by Cengiz Deniz on 21.07.24.
+//
+//
 
-public extension StatsData {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<StatsData> {
-        NSFetchRequest<StatsData>(entityName: "StatsData")
+import Foundation
+import CoreData
+
+
+extension StatsData {
+
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<StatsData> {
+        return NSFetchRequest<StatsData>(entityName: "StatsData")
     }
 
-    @NSManaged var lastrun: Date?
+    @NSManaged public var lastrun: Date?
+
 }
 
-extension StatsData: Identifiable {}
+extension StatsData : Identifiable {
+
+}

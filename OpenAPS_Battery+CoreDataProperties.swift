@@ -1,17 +1,30 @@
-import CoreData
-import Foundation
+//
+//  OpenAPS_Battery+CoreDataProperties.swift
+//  FreeAPS
+//
+//  Created by Cengiz Deniz on 21.07.24.
+//
+//
 
-public extension OpenAPS_Battery {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<OpenAPS_Battery> {
-        NSFetchRequest<OpenAPS_Battery>(entityName: "OpenAPS_Battery")
+import Foundation
+import CoreData
+
+
+extension OpenAPS_Battery {
+
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<OpenAPS_Battery> {
+        return NSFetchRequest<OpenAPS_Battery>(entityName: "OpenAPS_Battery")
     }
 
-    @NSManaged var date: Date?
-    @NSManaged var display: Bool
-    @NSManaged var id: UUID?
-    @NSManaged var percent: Int16
-    @NSManaged var status: String?
-    @NSManaged var voltage: NSDecimalNumber?
+    @NSManaged public var date: Date?
+    @NSManaged public var display: Bool
+    @NSManaged public var id: UUID?
+    @NSManaged public var percent: Int16
+    @NSManaged public var status: String?
+    @NSManaged public var voltage: NSDecimalNumber?
+
 }
 
-extension OpenAPS_Battery: Identifiable {}
+extension OpenAPS_Battery : Identifiable {
+
+}

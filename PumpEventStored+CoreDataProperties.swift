@@ -1,18 +1,31 @@
-import CoreData
-import Foundation
+//
+//  PumpEventStored+CoreDataProperties.swift
+//  FreeAPS
+//
+//  Created by Cengiz Deniz on 21.07.24.
+//
+//
 
-public extension PumpEventStored {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<PumpEventStored> {
-        NSFetchRequest<PumpEventStored>(entityName: "PumpEventStored")
+import Foundation
+import CoreData
+
+
+extension PumpEventStored {
+
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<PumpEventStored> {
+        return NSFetchRequest<PumpEventStored>(entityName: "PumpEventStored")
     }
 
-    @NSManaged var id: String?
-    @NSManaged var isUploadedToNS: Bool
-    @NSManaged var note: String?
-    @NSManaged var timestamp: Date?
-    @NSManaged var type: String?
-    @NSManaged var bolus: BolusStored?
-    @NSManaged var tempBasal: TempBasalStored?
+    @NSManaged public var id: String?
+    @NSManaged public var isUploadedToNS: Bool
+    @NSManaged public var note: String?
+    @NSManaged public var timestamp: Date?
+    @NSManaged public var type: String?
+    @NSManaged public var bolus: BolusStored?
+    @NSManaged public var tempBasal: TempBasalStored?
+
 }
 
-extension PumpEventStored: Identifiable {}
+extension PumpEventStored : Identifiable {
+
+}

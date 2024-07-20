@@ -1,4 +1,15 @@
-import CoreData
-import Foundation
+//
+//  LoopStatRecord+CoreDataClass.swift
+//  FreeAPS
+//
+//  Created by Cengiz Deniz on 21.07.24.
+//
+//
 
-@objc(LoopStatRecord) public class LoopStatRecord: NSManagedObject {}
+import Foundation
+import CoreData
+
+@objc(LoopStatRecord)
+public class LoopStatRecord: NSManagedObject {
+
+}

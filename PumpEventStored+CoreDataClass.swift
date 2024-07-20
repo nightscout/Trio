@@ -1,10 +1,15 @@
-import CoreData
+//
+//  PumpEventStored+CoreDataClass.swift
+//  FreeAPS
+//
+//  Created by Cengiz Deniz on 21.07.24.
+//
+//
+
 import Foundation
+import CoreData
 
-@objc(PumpEventStored) public class PumpEventStored: NSManagedObject {
-    let errorDomain = "PumpEventStoredErrorDomain"
+@objc(PumpEventStored)
+public class PumpEventStored: NSManagedObject {
 
-    enum PumpEventErrorType: Int {
-        case duplicate = 1001
-    }
 }
