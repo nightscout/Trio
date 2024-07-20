@@ -1,13 +1,12 @@
 {
-  "originHash" : "59ac7eba66375d6eb406e758cb0b9964f4b3b0ae45c5665596f00384c32262b9",
   "pins" : [
     {
       "identity" : "cryptoswift",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/krzyzanowskim/CryptoSwift",
       "state" : {
-        "revision" : "19b3c3ceed117c5cc883517c4e658548315ba70b",
-        "version" : "1.6.0"
+        "revision" : "c9c3df6ab812de32bae61fc0cd1bf6d45170ebf0",
+        "version" : "1.8.2"
       }
     },
     {
@@ -49,7 +48,7 @@
     {
       "identity" : "swiftcharts",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/ivanschuetz/SwiftCharts",
+      "location" : "https://github.com/ivanschuetz/SwiftCharts.git",
       "state" : {
         "branch" : "master",
         "revision" : "c354c1945bb35a1f01b665b22474f6db28cba4a2"
@@ -88,9 +87,9 @@
       "location" : "https://github.com/tidepool-org/TidepoolKit",
       "state" : {
         "branch" : "dev",
-        "revision" : "b8185353c0f46a055f6d5681bb3f18ec86a5b974"
+        "revision" : "5c92b4ffc29cabf07609b367e3f82d0f733a6bc1"
       }
     }
   ],
-  "version" : 3
+  "version" : 2
 }
