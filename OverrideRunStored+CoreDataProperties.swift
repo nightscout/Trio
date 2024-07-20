@@ -1,18 +1,23 @@
-import CoreData
 import Foundation
+import CoreData
 
-public extension OverrideRunStored {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<OverrideRunStored> {
-        NSFetchRequest<OverrideRunStored>(entityName: "OverrideRunStored")
+
+extension OverrideRunStored {
+
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<OverrideRunStored> {
+        return NSFetchRequest<OverrideRunStored>(entityName: "OverrideRunStored")
     }
 
-    @NSManaged var endDate: Date?
-    @NSManaged var id: UUID?
-    @NSManaged var startDate: Date?
-    @NSManaged var target: NSDecimalNumber?
-    @NSManaged var isUploadedToNS: Bool
-    @NSManaged var name: String?
-    @NSManaged var override: OverrideStored?
+    @NSManaged public var endDate: Date?
+    @NSManaged public var id: UUID?
+    @NSManaged public var isUploadedToNS: Bool
+    @NSManaged public var name: String?
+    @NSManaged public var startDate: Date?
+    @NSManaged public var target: NSDecimalNumber?
+    @NSManaged public var override: OverrideStored?
+
 }
 
-extension OverrideRunStored: Identifiable {}
+extension OverrideRunStored : Identifiable {
+
+}

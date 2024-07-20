@@ -263,7 +263,6 @@
 		5887527C2BD986E1008B081D /* OpenAPSBattery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5887527B2BD986E1008B081D /* OpenAPSBattery.swift */; };
 		588752842BD9986A008B081D /* OpenAPS_Battery+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 588752822BD9986A008B081D /* OpenAPS_Battery+CoreDataClass.swift */; };
 		588752852BD9986A008B081D /* OpenAPS_Battery+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 588752832BD9986A008B081D /* OpenAPS_Battery+CoreDataProperties.swift */; };
-		5895E7E52C4BF66900127D04 /* TriosPersistentContainer.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 5895E7E32C4BF66900127D04 /* TriosPersistentContainer.xcdatamodeld */; };
 		58F107742BD1A4D000B1A680 /* Determination+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58F107732BD1A4D000B1A680 /* Determination+helper.swift */; };
 		5A2325522BFCBF55003518CA /* NightscoutUploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A2325512BFCBF55003518CA /* NightscoutUploadView.swift */; };
 		5A2325542BFCBF66003518CA /* NightscoutFetchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A2325532BFCBF65003518CA /* NightscoutFetchView.swift */; };
@@ -418,6 +417,7 @@
 		DBA5254DBB2586C98F61220C /* ISFEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F9F137F126D9F8DEB799F26 /* ISFEditorProvider.swift */; };
 		DD1DB7CC2BECCA1F0048B367 /* BuildDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */; };
 		DD1DB7CE2BED00CF0048B367 /* SettingsRootViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1DB7CD2BED00CF0048B367 /* SettingsRootViewModel.swift */; };
+		DD3251872C4C52F500E957C4 /* TrioPersistentContainer.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = DD3251852C4C52F500E957C4 /* TrioPersistentContainer.xcdatamodeld */; };
 		DD399FB31EACB9343C944C4C /* PreferencesEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CA3E609094E064C99A4752C /* PreferencesEditorStateModel.swift */; };
 		DD68889D2C386E17006E3C44 /* NightscoutExercise.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD68889C2C386E17006E3C44 /* NightscoutExercise.swift */; };
 		E00EEC0327368630002FF094 /* ServiceAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00EEBFD27368630002FF094 /* ServiceAssembly.swift */; };
@@ -850,7 +850,6 @@
 		5887527B2BD986E1008B081D /* OpenAPSBattery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAPSBattery.swift; sourceTree = "<group>"; };
 		588752822BD9986A008B081D /* OpenAPS_Battery+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OpenAPS_Battery+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		588752832BD9986A008B081D /* OpenAPS_Battery+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OpenAPS_Battery+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		5895E7E42C4BF66900127D04 /* Core_Data.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Core_Data.xcdatamodel; sourceTree = "<group>"; };
 		58F107732BD1A4D000B1A680 /* Determination+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Determination+helper.swift"; sourceTree = "<group>"; };
 		5A2325512BFCBF55003518CA /* NightscoutUploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutUploadView.swift; sourceTree = "<group>"; };
 		5A2325532BFCBF65003518CA /* NightscoutFetchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutFetchView.swift; sourceTree = "<group>"; };
@@ -1010,6 +1009,7 @@
 		DC2C6489D29ECCCAD78E0721 /* NotificationsConfigStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotificationsConfigStateModel.swift; sourceTree = "<group>"; };
 		DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildDetails.swift; sourceTree = "<group>"; };
 		DD1DB7CD2BED00CF0048B367 /* SettingsRootViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRootViewModel.swift; sourceTree = "<group>"; };
+		DD3251862C4C52F500E957C4 /* TrioPersistentContainer.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = TrioPersistentContainer.xcdatamodel; sourceTree = "<group>"; };
 		DD68889C2C386E17006E3C44 /* NightscoutExercise.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutExercise.swift; sourceTree = "<group>"; };
 		E00EEBFD27368630002FF094 /* ServiceAssembly.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceAssembly.swift; sourceTree = "<group>"; };
 		E00EEBFE27368630002FF094 /* SecurityAssembly.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SecurityAssembly.swift; sourceTree = "<group>"; };
@@ -2107,10 +2107,10 @@
 		587A54C82BCDCE0F009D38E2 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				5895E7E32C4BF66900127D04 /* TriosPersistentContainer.xcdatamodeld */,
 				BDF34F8F2C10CF8C00D51995 /* CoreDataStack.swift */,
 				5825D1052BD4056700F36E9B /* Classes+Properties */,
 				5825D1622BD405AE00F36E9B /* Helper */,
+				DD3251852C4C52F500E957C4 /* TrioPersistentContainer.xcdatamodeld */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -2867,7 +2867,6 @@
 				3811DE3125C9D49500A708ED /* HomeProvider.swift in Sources */,
 				FE41E4D629463EE20047FD55 /* NightscoutPreferences.swift in Sources */,
 				E013D872273AC6FE0014109C /* GlucoseSimulatorSource.swift in Sources */,
-				5895E7E52C4BF66900127D04 /* TriosPersistentContainer.xcdatamodeld in Sources */,
 				388E5A5C25B6F0770019842D /* JSON.swift in Sources */,
 				3811DF0225CA9FEA00A708ED /* Credentials.swift in Sources */,
 				5837A5302BD2E3C700A5DC04 /* CarbEntryStored+helper.swift in Sources */,
@@ -3062,6 +3061,7 @@
 				DD68889D2C386E17006E3C44 /* NightscoutExercise.swift in Sources */,
 				5864E8592C42CFAE00294306 /* DeterminationStorage.swift in Sources */,
 				BD7DA9A72AE06E2B00601B20 /* BolusCalculatorConfigProvider.swift in Sources */,
+				DD3251872C4C52F500E957C4 /* TrioPersistentContainer.xcdatamodeld in Sources */,
 				38192E0D261BAF980094D973 /* ConvenienceExtensions.swift in Sources */,
 				88AB39B23C9552BD6E0C9461 /* ISFEditorRootView.swift in Sources */,
 				F816825E28DB441200054060 /* HeartBeatManager.swift in Sources */,
@@ -3916,14 +3916,14 @@
 /* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
-		5895E7E32C4BF66900127D04 /* TriosPersistentContainer.xcdatamodeld */ = {
+		DD3251852C4C52F500E957C4 /* TrioPersistentContainer.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
-				5895E7E42C4BF66900127D04 /* Core_Data.xcdatamodel */,
+				DD3251862C4C52F500E957C4 /* TrioPersistentContainer.xcdatamodel */,
 			);
-			currentVersion = 5895E7E42C4BF66900127D04 /* Core_Data.xcdatamodel */;
-			name = TriosPersistentContainer.xcdatamodeld;
-			path = "../backup-openiaps/Open-iAPS/Model/TriosPersistentContainer.xcdatamodeld";
+			currentVersion = DD3251862C4C52F500E957C4 /* TrioPersistentContainer.xcdatamodel */;
+			name = TrioPersistentContainer.xcdatamodeld;
+			path = "/Users/deniz.cengiz/dnzxy_workspaces/Open-iAPS/Model/TrioPersistentContainer.xcdatamodeld";
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
 		};

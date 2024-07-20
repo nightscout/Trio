@@ -1,17 +1,22 @@
-import CoreData
 import Foundation
+import CoreData
 
-public extension TempTargets {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<TempTargets> {
-        NSFetchRequest<TempTargets>(entityName: "TempTargets")
+
+extension TempTargets {
+
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<TempTargets> {
+        return NSFetchRequest<TempTargets>(entityName: "TempTargets")
     }
 
-    @NSManaged var active: Bool
-    @NSManaged var date: Date?
-    @NSManaged var duration: NSDecimalNumber?
-    @NSManaged var hbt: Double
-    @NSManaged var id: String?
-    @NSManaged var startDate: Date?
+    @NSManaged public var active: Bool
+    @NSManaged public var date: Date?
+    @NSManaged public var duration: NSDecimalNumber?
+    @NSManaged public var hbt: Double
+    @NSManaged public var id: String?
+    @NSManaged public var startDate: Date?
+
 }
 
-extension TempTargets: Identifiable {}
+extension TempTargets : Identifiable {
+
+}

@@ -1,12 +1,17 @@
-import CoreData
 import Foundation
+import CoreData
 
-public extension StatsData {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<StatsData> {
-        NSFetchRequest<StatsData>(entityName: "StatsData")
+
+extension StatsData {
+
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<StatsData> {
+        return NSFetchRequest<StatsData>(entityName: "StatsData")
     }
 
-    @NSManaged var lastrun: Date?
+    @NSManaged public var lastrun: Date?
+
 }
 
-extension StatsData: Identifiable {}
+extension StatsData : Identifiable {
+
+}

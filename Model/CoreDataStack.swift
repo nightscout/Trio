@@ -44,7 +44,7 @@ class CoreDataStack: ObservableObject {
 
     /// A persistent container to set up the Core Data Stack
     lazy var persistentContainer: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "TriosPersistentContainer")
+        let container = NSPersistentContainer(name: "TrioPersistentContainer")
 
         guard let description = container.persistentStoreDescriptions.first else {
             fatalError("Failed \(DebuggingIdentifiers.failed) to retrieve a persistent store description")

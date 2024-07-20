@@ -1,13 +1,18 @@
-import CoreData
 import Foundation
+import CoreData
 
-public extension ImportError {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<ImportError> {
-        NSFetchRequest<ImportError>(entityName: "ImportError")
+
+extension ImportError {
+
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<ImportError> {
+        return NSFetchRequest<ImportError>(entityName: "ImportError")
     }
 
-    @NSManaged var date: Date?
-    @NSManaged var error: String?
+    @NSManaged public var date: Date?
+    @NSManaged public var error: String?
+
 }
 
-extension ImportError: Identifiable {}
+extension ImportError : Identifiable {
+
+}

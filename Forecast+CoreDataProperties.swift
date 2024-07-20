@@ -1,32 +1,38 @@
-import CoreData
 import Foundation
+import CoreData
 
-public extension Forecast {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<Forecast> {
-        NSFetchRequest<Forecast>(entityName: "Forecast")
+
+extension Forecast {
+
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<Forecast> {
+        return NSFetchRequest<Forecast>(entityName: "Forecast")
     }
 
-    @NSManaged var date: Date?
-    @NSManaged var id: UUID?
-    @NSManaged var type: String?
-    @NSManaged var forecastValues: Set<ForecastValue>?
-    @NSManaged var orefDetermination: OrefDetermination?
+    @NSManaged public var date: Date?
+    @NSManaged public var id: UUID?
+    @NSManaged public var type: String?
+    @NSManaged public var forecastValues: NSSet?
+    @NSManaged public var orefDetermination: OrefDetermination?
+
 }
 
 // MARK: Generated accessors for forecastValues
+extension Forecast {
 
-public extension Forecast {
     @objc(addForecastValuesObject:)
-    @NSManaged func addToForecastValues(_ value: ForecastValue)
+    @NSManaged public func addToForecastValues(_ value: ForecastValue)
 
     @objc(removeForecastValuesObject:)
-    @NSManaged func removeFromForecastValues(_ value: ForecastValue)
+    @NSManaged public func removeFromForecastValues(_ value: ForecastValue)
 
     @objc(addForecastValues:)
-    @NSManaged func addToForecastValues(_ values: NSSet)
+    @NSManaged public func addToForecastValues(_ values: NSSet)
 
     @objc(removeForecastValues:)
-    @NSManaged func removeFromForecastValues(_ values: NSSet)
+    @NSManaged public func removeFromForecastValues(_ values: NSSet)
+
 }
 
-extension Forecast: Identifiable {}
+extension Forecast : Identifiable {
+
+}
