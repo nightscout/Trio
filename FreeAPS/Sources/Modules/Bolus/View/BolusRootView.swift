@@ -122,7 +122,6 @@ extension Bolus {
                             isPromptPresented = false
                         }
                     }
-<<<<<<< HEAD
                     label: { Text("Save") }
                     Button {
                         dish = ""
@@ -130,77 +129,6 @@ extension Bolus {
                         isPromptPresented = false }
                     label: { Text("Cancel") }
                 } header: { Text("Enter Meal Preset Name") }
-=======
-                }
-                header: { Text("Recommendation") }
-
-                if !state.waitForSuggestion {
-                    Section {
-                        HStack {
-                            Text("Amount")
-                            Spacer()
-                            TextFieldWithToolBar(
-                                text: $state.amount,
-                                placeholder: "0",
-                                shouldBecomeFirstResponder: true,
-                                numberFormatter: formatter
-                            )
-                            Text(state.amount > state.maxBolus ? "⚠️" : "U").foregroundColor(.secondary)
-                        }
-                    }
-                    header: { Text("Bolus") }
-                    Section {
-                        Button { state.add() }
-                        label: {
-                            Text(
-                                state.amount <= state.maxBolus ? NSLocalizedString("Enact bolus", comment: "") :
-                                    NSLocalizedString("Max Bolus of", comment: "")
-                                    + " "
-                                    + formatter.string(from: state.maxBolus as NSNumber)!
-                                    + NSLocalizedString("U", comment: "Insulin unit")
-                                    + " "
-                                    + NSLocalizedString("exceeded", comment: "")
-                            ).font(.title3) }
-                            .disabled(state.amount <= 0 || state.amount > state.maxBolus)
-                            .foregroundStyle(
-                                state.amount <= 0 ? .gray :
-                                    state.amount > state.maxBolus ? .red : .blue
-                            )
-                            .frame(maxWidth: .infinity, alignment: .center)
-                    }
-                    if waitForSuggestion {
-                        Section {
-                            Button { state.showModal(for: nil) }
-                            label: { Text("Continue without bolus") }
-                        }.frame(maxWidth: .infinity, alignment: .center)
-                    }
-                }
-            }
-            .alert(isPresented: $displayError) {
-                Alert(
-                    title: Text("Warning!"),
-                    message: Text("\n" + alertString() + "\n"),
-                    primaryButton: .destructive(
-                        Text("Add"),
-                        action: {
-                            state.amount = state.insulinRecommended
-                            displayError = false
-                        }
-                    ),
-                    secondaryButton: .cancel()
-                )
-            }.onAppear {
-                configureView {
-                    state.waitForSuggestionInitial = waitForSuggestion
-                    state.waitForSuggestion = waitForSuggestion
-                }
-            }
-            .navigationTitle("Enact Bolus")
-            .navigationBarTitleDisplayMode(.automatic)
-            .navigationBarItems(leading: Button("Close", action: state.hideModal))
-            .popup(isPresented: presentInfo, alignment: .center, direction: .bottom) {
-                bolusInfo
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
             }
         }
 

@@ -10,11 +10,7 @@ protocol TempTargetsStorage {
     func storeTempTargets(_ targets: [TempTarget])
     func syncDate() -> Date
     func recent() -> [TempTarget]
-<<<<<<< HEAD
     func nightscoutTreatmentsNotUploaded() -> [NightscoutTreatment]
-=======
-    func nightscoutTretmentsNotUploaded() -> [NightscoutTreatment]
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
     func storePresets(_ targets: [TempTarget])
     func presets() -> [TempTarget]
     func current() -> TempTarget?
@@ -86,11 +82,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
         return last
     }
 
-<<<<<<< HEAD
     func nightscoutTreatmentsNotUploaded() -> [NightscoutTreatment] {
-=======
-    func nightscoutTretmentsNotUploaded() -> [NightscoutTreatment] {
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
         let uploaded = storage.retrieve(OpenAPS.Nightscout.uploadedTempTargets, as: [NightscoutTreatment].self) ?? []
 
         let eventsManual = recent().filter { $0.enteredBy == TempTarget.manual }

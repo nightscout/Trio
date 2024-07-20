@@ -16,17 +16,11 @@ import Foundation
         Summary("List all states of Trio")
     }
 
-<<<<<<< HEAD
-    @MainActor func perform() async throws -> some ReturnsValue<StateiAPSResults> & ShowsSnippetView {
+    @MainActor func perform() async throws -> some ReturnsValue<StateResults> & ShowsSnippetView {
         let context = CoreDataStack.shared.persistentContainer.viewContext
 
         let glucoseValues = try? stateIntent.getLastGlucose(onContext: context)
         let iob_cob_value = try? stateIntent.getIobAndCob(onContext: context)
-=======
-    @MainActor func perform() async throws -> some ReturnsValue<StateResults> & ShowsSnippetView {
-        let glucoseValues = try? stateIntent.getLastBG()
-        let iob_cob_value = try? stateIntent.getIOB_COB()
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 
         guard let glucoseValue = glucoseValues else { throw StateIntentError.NoBG }
         guard let iob_cob = iob_cob_value else { throw StateIntentError.NoIOBCOB }

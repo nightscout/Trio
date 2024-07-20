@@ -86,10 +86,7 @@ extension OpenAPS {
         static let uploadedProfile = "upload/uploaded-profile.json"
         static let uploadedPreferences = "upload/uploaded-preferences.json"
         static let uploadedSettings = "upload/uploaded-settings.json"
-<<<<<<< HEAD
         static let uploadedManualGlucose = "upload/uploaded-manual-readings.json"
-=======
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
     }
 
     enum FreeAPS {

@@ -42,9 +42,10 @@
   "xGridLines" : true,
   "yGridLines" : true,
   "oneDimensionalGraph" : false,
-<<<<<<< HEAD
-  "rulerMarks" : false,
-  "maxCarbs": 1000,
+  "rulerMarks" : true,
+  "maxCarbs": 250,
+  "maxFat": 250,
+  "maxProtein": 250,
   "displayFatAndProteinOnWatch": false,
   "confirmBolusFaster": false,
   "overrideFactor": 0.8,
@@ -54,13 +55,5 @@
   "sweetMeals": false,
   "sweetMealFactor": 2
   "historyLayout": "twoTabs",
-=======
-  "rulerMarks" : true,
-  "maxCarbs": 250,
-  "maxFat": 250,
-  "maxProtein": 250,
-  "displayFatAndProteinOnWatch": false,
-  "confirmBolusFaster": false,
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
   "lockScreenView": "simple"
 }

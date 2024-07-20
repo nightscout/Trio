@@ -1,8 +1,5 @@
 import ActivityKit
-<<<<<<< HEAD
 import BackgroundTasks
-=======
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 import CoreData
 import Foundation
 import SwiftUI
@@ -50,10 +47,7 @@ import Swinject
         _ = resolver.resolve(WatchManager.self)!
         _ = resolver.resolve(HealthKitManager.self)!
         _ = resolver.resolve(BluetoothStateManager.self)!
-<<<<<<< HEAD
-=======
         _ = resolver.resolve(PluginManager.self)!
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
         if #available(iOS 16.2, *) {
             _ = resolver.resolve(LiveActivityBridge.self)!
         }
@@ -62,11 +56,7 @@ import Swinject
     init() {
         debug(
             .default,
-<<<<<<< HEAD
-            "iAPS Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(Bundle.main.buildDate)] [buildExpires: \(Bundle.main.profileExpiration)]"
-=======
             "Trio Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(BuildDetails.default.buildDate())] [buildExpires: \(BuildDetails.default.calculateExpirationDate())]"
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
         )
         loadServices()
 

@@ -6,15 +6,11 @@ struct PumpView: View {
     @Binding var name: String
     @Binding var expiresAtDate: Date?
     @Binding var timerDate: Date
-<<<<<<< HEAD
     @Binding var timeZone: TimeZone?
     @Binding var pumpStatusHighlightMessage: String?
     var battery: [OpenAPS_Battery]
 
     @Environment(\.colorScheme) var colorScheme
-=======
-    @Binding var pumpStatusHighlightMessage: String?
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 
     private var reservoirFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -29,7 +25,6 @@ struct PumpView: View {
         return formatter
     }
 
-<<<<<<< HEAD
     private var numberFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
@@ -98,78 +93,17 @@ struct PumpView: View {
                             .foregroundColor(batteryColor)
                         Text("\(Int(battery.first?.percent ?? 100)) %").font(.system(size: 16, design: .rounded))
                     }
-=======
-    var body: some View {
-        if let pumpStatusHighlightMessage = pumpStatusHighlightMessage { // display message instead pump info
-            VStack(alignment: .center) {
-                Text(pumpStatusHighlightMessage).font(.footnote).fontWeight(.bold)
-                    .multilineTextAlignment(.center).frame(maxWidth: /*@START_MENU_TOKEN@*/ .infinity/*@END_MENU_TOKEN@*/)
-            }.frame(width: 100)
-        } else {
-            VStack(alignment: .leading, spacing: 12) {
-                if reservoir == nil && battery == nil {
-                    VStack(alignment: .center, spacing: 12) {
-                        HStack { // no cgm defined so display a generic CGM
-                            Image(systemName: "keyboard.onehanded.left").font(.body).imageScale(.large)
-                        }
-                        HStack {
-                            Text("Add pump").font(.caption).bold()
-                        }
-                    }.frame(alignment: .top)
-                }
-
-                if let reservoir = reservoir {
-                    HStack {
-                        Image(systemName: "drop.fill")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(maxHeight: 10)
-                            .foregroundColor(reservoirColor)
-                        if reservoir == 0xDEAD_BEEF {
-                            Text("50+ " + NSLocalizedString("U", comment: "Insulin unit")).font(.footnote)
-                                .fontWeight(.bold)
-                        } else {
-                            Text(
-                                reservoirFormatter
-                                    .string(from: reservoir as NSNumber)! +
-                                    NSLocalizedString(" U", comment: "Insulin unit")
-                            )
-                            .font(.footnote).fontWeight(.bold)
-                        }
-                    }.frame(alignment: .top)
-                }
-                if let battery = battery, battery.display ?? false, expiresAtDate == nil {
-                    HStack {
-                        Image(systemName: "battery.100")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(maxHeight: 10)
-                            .foregroundColor(batteryColor)
-                        Text("\(Int(battery.percent ?? 100)) %").font(.footnote)
-                            .fontWeight(.bold)
-                    }.frame(alignment: .bottom)
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                 }
 
                 if let date = expiresAtDate {
                     HStack {
                         Image(systemName: "stopwatch.fill")
-<<<<<<< HEAD
                             .font(.system(size: 16))
                             .foregroundColor(timerColor)
 
                         Text(remainingTimeString(time: date.timeIntervalSince(timerDate)))
                             .font(.system(size: 16, design: .rounded))
                     }
-=======
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(maxHeight: 10)
-                            .foregroundColor(timerColor)
-                        Text(remainingTimeString(time: date.timeIntervalSince(timerDate))).font(.footnote)
-                            .fontWeight(.bold)
-                    }.frame(alignment: .bottom)
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                 }
             }
         }
@@ -247,58 +181,46 @@ struct PumpView: View {
     }
 }
 
-<<<<<<< HEAD
-struct Hairline: View {
-    let color: Color
-
-    var body: some View {
-        Rectangle()
-            .fill(color)
-            .frame(width: UIScreen.main.bounds.width / 1.3, height: 1)
-            .opacity(0.5)
-    }
-=======
-#Preview("message") {
-    PumpView(
-        reservoir: .constant(Decimal(10.0)),
-        battery: .constant(nil),
-        name: .constant("Pump test"),
-        expiresAtDate: .constant(Date().addingTimeInterval(24.hours)),
-        timerDate: .constant(Date()),
-        pumpStatusHighlightMessage: .constant("⚠️\n Insulin suspended")
-    )
-}
-
-#Preview("pump reservoir") {
-    PumpView(
-        reservoir: .constant(Decimal(40.0)),
-        battery: .constant(Battery(percent: 50, voltage: 2.0, string: BatteryState.normal, display: true)),
-        name: .constant("Pump test"),
-        expiresAtDate: .constant(nil),
-        timerDate: .constant(Date().addingTimeInterval(-24.hours)),
-        pumpStatusHighlightMessage: .constant(nil)
-    )
-}
-
-#Preview("pump expiration") {
-    PumpView(
-        reservoir: .constant(Decimal(10.0)),
-        battery: .constant(Battery(percent: 50, voltage: 2.0, string: BatteryState.normal, display: false)),
-        name: .constant("Pump test"),
-        expiresAtDate: .constant(Date().addingTimeInterval(2.hours)),
-        timerDate: .constant(Date().addingTimeInterval(2.hours)),
-        pumpStatusHighlightMessage: .constant(nil)
-    )
-}
-
-#Preview("no pump") {
-    PumpView(
-        reservoir: .constant(nil),
-        battery: .constant(nil),
-        name: .constant(""),
-        expiresAtDate: .constant(nil),
-        timerDate: .constant(Date()),
-        pumpStatusHighlightMessage: .constant(nil)
-    )
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
-}
+//#Preview("message") {
+//    PumpView(
+//        reservoir: .constant(Decimal(10.0)),
+//        battery: .constant(nil),
+//        name: .constant("Pump test"),
+//        expiresAtDate: .constant(Date().addingTimeInterval(24.hours)),
+//        timerDate: .constant(Date()),
+//        pumpStatusHighlightMessage: .constant("⚠️\n Insulin suspended")
+//    )
+//}
+//
+//#Preview("pump reservoir") {
+//    PumpView(
+//        reservoir: .constant(Decimal(40.0)),
+//        battery: .constant(Battery(percent: 50, voltage: 2.0, string: BatteryState.normal, display: true)),
+//        name: .constant("Pump test"),
+//        expiresAtDate: .constant(nil),
+//        timerDate: .constant(Date().addingTimeInterval(-24.hours)),
+//        pumpStatusHighlightMessage: .constant(nil)
+//    )
+//}
+//
+//#Preview("pump expiration") {
+//    PumpView(
+//        reservoir: .constant(Decimal(10.0)),
+//        battery: .constant(Battery(percent: 50, voltage: 2.0, string: BatteryState.normal, display: false)),
+//        name: .constant("Pump test"),
+//        expiresAtDate: .constant(Date().addingTimeInterval(2.hours)),
+//        timerDate: .constant(Date().addingTimeInterval(2.hours)),
+//        pumpStatusHighlightMessage: .constant(nil)
+//    )
+//}
+//
+//#Preview("no pump") {
+//    PumpView(
+//        reservoir: .constant(nil),
+//        name: .constant(nil),
+//        expiresAtDate: .constant(""),
+//        timerDate: .constant(nil),
+//        timeZone: .constant(Date()),
+//        pumpStatusHighlightMessage: .constant(nil)
+//    )
+//}

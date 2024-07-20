@@ -175,10 +175,6 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
         if !recommendsLoop {
             warning(.deviceManager, "Loop recommendation time out or got error. Trying to loop right now.")
         }
-<<<<<<< HEAD
-=======
-
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
         self.recommendsLoop.send()
     }
 
@@ -629,13 +625,10 @@ protocol PumpBatteryObserver {
     func pumpBatteryDidChange(_ battery: Battery)
 }
 
-<<<<<<< HEAD
 protocol PumpTimeZoneObserver {
     func pumpTimeZoneDidChange(_ timezone: TimeZone)
 }
 
-=======
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 protocol PumpDeactivatedObserver {
     func pumpDeactivatedDidChange()
 }

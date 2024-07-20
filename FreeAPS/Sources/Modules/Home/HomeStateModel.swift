@@ -9,7 +9,7 @@ extension Home {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() var broadcaster: Broadcaster!
         @Injected() var apsManager: APSManager!
-<<<<<<< HEAD
+        @Injected() var fetchGlucoseManager: FetchGlucoseManager!
         @Injected() var nightscoutManager: NightscoutManager!
         @Injected() var determinationStorage: DeterminationStorage!
         private let timer = DispatchTimer(timeInterval: 5)
@@ -17,15 +17,6 @@ extension Home {
         @Published var manualGlucose: [BloodGlucose] = []
         @Published var announcement: [Announcement] = []
         @Published var uploadStats = false
-=======
-        @Injected() var fetchGlucoseManager: FetchGlucoseManager!
-
-        private let timer = DispatchTimer(timeInterval: 5)
-        private(set) var filteredHours = 24
-        @Published var glucose: [BloodGlucose] = []
-        @Published var suggestion: Suggestion?
-        @Published var enactedSuggestion: Suggestion?
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
         @Published var recentGlucose: BloodGlucose?
         @Published var maxBasal: Decimal = 2
         @Published var autotunedBasalProfile: [BasalProfileEntry] = []
@@ -61,27 +52,17 @@ extension Home {
         @Published var displayXgridLines: Bool = false
         @Published var displayYgridLines: Bool = false
         @Published var thresholdLines: Bool = false
-<<<<<<< HEAD
         @Published var timeZone: TimeZone?
         @Published var hours: Int16 = 6
         @Published var totalBolus: Decimal = 0
-=======
-        @Published var cgmAvailable: Bool = false
-        @Published var pumpStatusHighlightMessage: String? = nil
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
-
         @Published var isStatusPopupPresented: Bool = false
         @Published var isLegendPresented: Bool = false
         @Published var legendSheetDetent = PresentationDetent.large
         @Published var tins: Bool = false
         @Published var isTempTargetActive: Bool = false
-
         @Published var roundedTotalBolus: String = ""
-
         @Published var selectedTab: Int = 0
-
         @Published var waitForSuggestion: Bool = false
-
         @Published var glucoseFromPersistence: [GlucoseStored] = []
         @Published var manualGlucoseFromPersistence: [GlucoseStored] = []
         @Published var carbsFromPersistence: [CarbEntryStored] = []
@@ -123,12 +104,8 @@ extension Home {
             setupOverrides()
             setupOverrideRunStored()
 
-<<<<<<< HEAD
-            uploadStats = settingsManager.settings.uploadStats
-=======
-            suggestion = provider.suggestion
-            enactedSuggestion = provider.enactedSuggestion
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
+        // TODO: isUploadEnabled the right var here??
+            uploadStats = settingsManager.settings.isUploadEnabled
             units = settingsManager.settings.units
             allowManualTemp = !settingsManager.settings.closedLoop
             closedLoop = settingsManager.settings.closedLoop
@@ -271,7 +248,6 @@ extension Home {
             }
         }
 
-<<<<<<< HEAD
         @MainActor func cancelOverride(withID id: NSManagedObjectID) async {
             do {
                 let profileToCancel = try viewContext.existingObject(with: id) as? OverrideStored
@@ -285,20 +261,6 @@ extension Home {
                 Foundation.NotificationCenter.default.post(name: .didUpdateOverrideConfiguration, object: nil)
             } catch {
                 debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to cancel Profile")
-=======
-        private func setupGlucose() {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.glucose = self.provider.filteredGlucose(hours: self.filteredHours)
-                self.recentGlucose = self.glucose.last
-                if self.glucose.count >= 2 {
-                    self.glucoseDelta = (self.recentGlucose?.glucose ?? 0) - (self.glucose[self.glucose.count - 2].glucose ?? 0)
-                } else {
-                    self.glucoseDelta = nil
-                }
-                self.alarm = self.provider.glucoseStorage.alarm
-                cgmAvailable = (fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none)
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
             }
         }
 
@@ -388,32 +350,6 @@ extension Home {
             }
         }
 
-<<<<<<< HEAD
-=======
-        private func setupBattery() {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.battery = self.provider.pumpBattery()
-            }
-        }
-
-        /// Display the eventual status message provided by the manager of the pump
-        /// Only display if state is warning or critical message else return nil
-        private func displayPumpStatusHighlightMessage(_ didDeactivate: Bool = false) {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                if let statusHighlight = self.provider.deviceManager.pumpManager?.pumpStatusHighlight,
-                   statusHighlight.state == .warning || statusHighlight.state == .critical, !didDeactivate
-                {
-                    pumpStatusHighlightMessage = (statusHighlight.state == .warning ? "⚠️\n" : "‼️\n") + statusHighlight
-                        .localizedMessage
-                } else {
-                    pumpStatusHighlightMessage = nil
-                }
-            }
-        }
-
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
         private func setupCurrentTempTarget() {
             tempTarget = provider.tempTarget()
         }
@@ -447,15 +383,8 @@ extension Home.StateModel:
     PumpSettingsObserver,
     BasalProfileObserver,
     TempTargetsObserver,
-<<<<<<< HEAD
     PumpReservoirObserver,
     PumpTimeZoneObserver,
-=======
-    CarbsObserver,
-    EnactedSuggestionObserver,
-    PumpBatteryObserver,
-    PumpReservoirObserver,
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
     PumpDeactivatedObserver
 {
     func glucoseDidUpdate(_: [BloodGlucose]) {
@@ -482,18 +411,9 @@ extension Home.StateModel:
         tins = settingsManager.settings.tins
     }
 
-<<<<<<< HEAD
-//    func pumpHistoryDidUpdate(_: [PumpHistoryEvent]) {
-//        setupAnnouncements()
-//    }
-=======
     func pumpHistoryDidUpdate(_: [PumpHistoryEvent]) {
-        setupBasals()
-        setupBoluses()
-        setupSuspensions()
         displayPumpStatusHighlightMessage()
     }
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 
     func pumpSettingsDidChange(_: PumpSettings) {
         setupPumpSettings()
@@ -507,23 +427,6 @@ extension Home.StateModel:
         setupTempTargets()
     }
 
-<<<<<<< HEAD
-=======
-    func carbsDidUpdate(_: [CarbsEntry]) {
-        setupCarbs()
-    }
-
-    func enactedSuggestionDidUpdate(_ suggestion: Suggestion) {
-        enactedSuggestion = suggestion
-        setStatusTitle()
-    }
-
-    func pumpBatteryDidChange(_: Battery) {
-        setupBattery()
-        displayPumpStatusHighlightMessage()
-    }
-
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
     func pumpReservoirDidChange(_: Decimal) {
         setupReservoir()
         displayPumpStatusHighlightMessage()
@@ -535,10 +438,6 @@ extension Home.StateModel:
 
     func pumpTimeZoneDidChange(_: TimeZone) {
         setupCurrentPumpTimezone()
-    }
-
-    func pumpDeactivatedDidChange() {
-        displayPumpStatusHighlightMessage(true)
     }
 }
 

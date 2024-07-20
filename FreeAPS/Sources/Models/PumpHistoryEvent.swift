@@ -15,11 +15,7 @@ struct PumpHistoryEvent: JSON, Equatable, Identifiable {
     let proteinInput: Int?
     let note: String?
     let isSMB: Bool?
-<<<<<<< HEAD
     let isExternal: Bool?
-=======
-    let isExternalInsulin: Bool?
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 
     init(
         id: String,
@@ -31,17 +27,11 @@ struct PumpHistoryEvent: JSON, Equatable, Identifiable {
         rate: Decimal? = nil,
         temp: TempType? = nil,
         carbInput: Int? = nil,
-<<<<<<< HEAD
-        note: String? = nil,
-        isSMB: Bool? = nil,
-        isExternal: Bool? = nil
-=======
         fatInput: Int? = nil,
         proteinInput: Int? = nil,
         note: String? = nil,
         isSMB: Bool? = nil,
-        isExternalInsulin: Bool? = nil
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
+        isExternal: Bool? = nil
     ) {
         self.id = id
         self.type = type
@@ -56,21 +46,14 @@ struct PumpHistoryEvent: JSON, Equatable, Identifiable {
         self.proteinInput = proteinInput
         self.note = note
         self.isSMB = isSMB
-<<<<<<< HEAD
         self.isExternal = isExternal
-=======
-        self.isExternalInsulin = isExternalInsulin
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
     }
 }
 
 enum EventType: String, JSON {
     case bolus = "Bolus"
     case smb = "SMB"
-<<<<<<< HEAD
     case isExternal = "External Insulin"
-=======
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
     case mealBolus = "Meal Bolus"
     case correctionBolus = "Correction Bolus"
     case snackBolus = "Snack Bolus"
@@ -93,11 +76,8 @@ enum EventType: String, JSON {
     case nsBatteryChange = "Pump Battery Change"
     case nsAnnouncement = "Announcement"
     case nsSensorChange = "Sensor Start"
-<<<<<<< HEAD
     case capillaryGlucose = "BG Check"
-=======
     case nsExternalInsulin = "External Insulin"
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 }
 
 enum TempType: String, JSON {
@@ -120,10 +100,7 @@ extension PumpHistoryEvent {
         case proteinInput
         case note
         case isSMB
-<<<<<<< HEAD
         case isExternal
-=======
-        case isExternalInsulin
     }
 }
 
@@ -150,6 +127,5 @@ extension EventType {
         default:
             return nil
         }
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
     }
 }

@@ -8,27 +8,17 @@ extension DataTable {
         @Injected() var unlockmanager: UnlockManager!
         @Injected() private var storage: FileStorage!
         @Injected() var pumpHistoryStorage: PumpHistoryStorage!
-<<<<<<< HEAD
         @Injected() var healthKitManager: HealthKitManager!
-=======
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 
         let coredataContext = CoreDataStack.shared.newTaskContext()
 
         @Published var mode: Mode = .treatments
         @Published var treatments: [Treatment] = []
         @Published var glucose: [Glucose] = []
-<<<<<<< HEAD
         @Published var meals: [Treatment] = []
         @Published var manualGlucose: Decimal = 0
         @Published var maxBolus: Decimal = 0
         @Published var waitForSuggestion: Bool = false
-=======
-        @Published var manualGlucose: Decimal = 0
-        @Published var maxBolus: Decimal = 0
-        @Published var externalInsulinAmount: Decimal = 0
-        @Published var externalInsulinDate = Date()
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 
         @Published var insulinEntryDeleted: Bool = false
         @Published var carbEntryDeleted: Bool = false
@@ -38,17 +28,7 @@ extension DataTable {
         override func subscribe() {
             units = settingsManager.settings.units
             maxBolus = provider.pumpSettings().maxBolus
-<<<<<<< HEAD
             broadcaster.register(DeterminationObserver.self, observer: self)
-=======
-            setupTreatments()
-            setupGlucose()
-            broadcaster.register(SettingsObserver.self, observer: self)
-            broadcaster.register(PumpHistoryObserver.self, observer: self)
-            broadcaster.register(TempTargetsObserver.self, observer: self)
-            broadcaster.register(CarbsObserver.self, observer: self)
-            broadcaster.register(GlucoseObserver.self, observer: self)
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
         }
 
         // Carb and FPU deletion from history
@@ -60,7 +40,6 @@ extension DataTable {
             }
         }
 
-<<<<<<< HEAD
         func deleteGlucose(_ treatmentObjectID: NSManagedObjectID) async {
             let taskContext = CoreDataStack.shared.newTaskContext()
             taskContext.name = "deleteContext"
@@ -79,141 +58,17 @@ extension DataTable {
                     if glucoseToDelete.isManual == true {
                         if let id = glucoseToDelete.id?.uuidString {
                             self.provider.deleteManualGlucose(withID: id)
-=======
-                let carbs = self.provider.carbs()
-                    .filter { !($0.isFPU ?? false) }
-                    .map {
-                        if let id = $0.id {
-                            return Treatment(
-                                units: units,
-                                type: .carbs,
-                                date: $0.createdAt,
-                                amount: $0.carbs,
-                                id: id,
-                                note: $0.note
-                            )
-                        } else {
-                            return Treatment(
-                                units: units,
-                                type: .carbs,
-                                date: $0.createdAt,
-                                amount: $0.carbs,
-                                note: $0.note
-                            )
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                         }
                     }
 
                     taskContext.delete(glucoseToDelete)
 
-<<<<<<< HEAD
                     guard taskContext.hasChanges else { return }
                     try taskContext.save()
                     debugPrint("Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted glucose from core data")
                 } catch {
                     debugPrint(
                         "Data Table State: \(#function) \(DebuggingIdentifiers.failed) error while deleting glucose from core data: \(error.localizedDescription)"
-=======
-                let boluses = self.provider.pumpHistory()
-                    .filter { $0.type == .bolus }
-                    .map {
-                        Treatment(
-                            units: units,
-                            type: .bolus,
-                            date: $0.timestamp,
-                            amount: $0.amount,
-                            idPumpEvent: $0.id,
-                            isSMB: $0.isSMB,
-                            isExternal: $0.isExternalInsulin
-                        )
-                    }
-
-                let tempBasals = self.provider.pumpHistory()
-                    .filter { $0.type == .tempBasal || $0.type == .tempBasalDuration }
-                    .chunks(ofCount: 2)
-                    .compactMap { chunk -> Treatment? in
-                        let chunk = Array(chunk)
-                        guard chunk.count == 2, chunk[0].type == .tempBasal,
-                              chunk[1].type == .tempBasalDuration else { return nil }
-                        return Treatment(
-                            units: units,
-                            type: .tempBasal,
-                            date: chunk[0].timestamp,
-                            amount: chunk[0].rate ?? 0,
-                            secondAmount: nil,
-                            duration: Decimal(chunk[1].durationMin ?? 0)
-                        )
-                    }
-
-                let tempTargets = self.provider.tempTargets()
-                    .map {
-                        Treatment(
-                            units: units,
-                            type: .tempTarget,
-                            date: $0.createdAt,
-                            amount: $0.targetBottom ?? 0,
-                            secondAmount: $0.targetTop,
-                            duration: $0.duration
-                        )
-                    }
-
-                let suspend = self.provider.pumpHistory()
-                    .filter { $0.type == .pumpSuspend }
-                    .map {
-                        Treatment(units: units, type: .suspend, date: $0.timestamp)
-                    }
-
-                let resume = self.provider.pumpHistory()
-                    .filter { $0.type == .pumpResume }
-                    .map {
-                        Treatment(units: units, type: .resume, date: $0.timestamp)
-                    }
-
-                DispatchQueue.main.async {
-                    self.treatments = [carbs, boluses, tempBasals, tempTargets, suspend, resume, fpus]
-                        .flatMap { $0 }
-                        .sorted { $0.date > $1.date }
-                }
-            }
-        }
-
-        func setupGlucose() {
-            DispatchQueue.main.async {
-                self.glucose = self.provider.glucose().map(Glucose.init)
-            }
-        }
-
-        func deleteCarbs(_ treatment: Treatment) {
-            provider.deleteCarbs(treatment)
-        }
-
-        func deleteInsulin(_ treatment: Treatment) {
-            unlockmanager.unlock()
-                .sink { _ in } receiveValue: { [weak self] _ in
-                    guard let self = self else { return }
-                    self.provider.deleteInsulin(treatment)
-                }
-                .store(in: &lifetime)
-        }
-
-        func deleteGlucose(_ glucose: Glucose) {
-            let id = glucose.id
-            provider.deleteGlucose(id: id)
-
-            let fetchRequest: NSFetchRequest<NSFetchRequestResult>
-            fetchRequest = NSFetchRequest(entityName: "Readings")
-            fetchRequest.predicate = NSPredicate(format: "id == %@", id)
-            let deleteRequest = NSBatchDeleteRequest(
-                fetchRequest: fetchRequest
-            )
-            deleteRequest.resultType = .resultTypeObjectIDs
-            do {
-                let deleteResult = try coredataContext.execute(deleteRequest) as? NSBatchDeleteResult
-                if let objectIDs = deleteResult?.result as? [NSManagedObjectID] {
-                    NSManagedObjectContext.mergeChanges(
-                        fromRemoteContextSave: [NSDeletedObjectsKey: objectIDs],
-                        into: [coredataContext]
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
                     )
                 }
             }
@@ -323,16 +178,9 @@ extension DataTable {
             }
         }
 
-<<<<<<< HEAD
         func addManualGlucose() {
             let glucose = units == .mmolL ? manualGlucose.asMgdL : manualGlucose
             let glucoseAsInt = Int(glucose)
-=======
-        func logManualGlucose() {
-            let glucose = units == .mmolL ? manualGlucose.asMgdL : manualGlucose
-            let now = Date()
-            let id = UUID().uuidString
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 
             // save to core data
             coredataContext.perform {

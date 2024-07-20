@@ -12,12 +12,7 @@ protocol PumpHistoryStorage {
     func storePumpEvents(_ events: [NewPumpEvent])
     func storeExternalInsulinEvent(amount: Decimal, timestamp: Date) async
     func recent() -> [PumpHistoryEvent]
-<<<<<<< HEAD
     func getPumpHistoryNotYetUploadedToNightscout() async -> [NightscoutTreatment]
-=======
-    func nightscoutTreatmentsNotUploaded() -> [NightscoutTreatment]
-    func saveCancelTempEvents()
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
     func deleteInsulin(at date: Date)
 }
 
@@ -43,35 +38,10 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
 
     func storePumpEvents(_ events: [NewPumpEvent]) {
         processQueue.async {
-<<<<<<< HEAD
             self.context.perform {
                 for event in events {
                     // Fetch to filter out duplicates
                     // TODO: - move this to the Core Data Class
-=======
-            let eventsToStore = events.flatMap { event -> [PumpHistoryEvent] in
-                let id = event.raw.md5String
-                switch event.type {
-                case .bolus:
-                    guard let dose = event.dose else { return [] }
-                    let amount = Decimal(string: dose.unitsInDeliverableIncrements.description)
-                    let minutes = Int((dose.endDate - dose.startDate).timeInterval / 60)
-                    return [PumpHistoryEvent(
-                        id: id,
-                        type: .bolus,
-                        timestamp: event.date,
-                        amount: amount,
-                        duration: minutes,
-                        durationMin: nil,
-                        rate: nil,
-                        temp: nil,
-                        carbInput: nil,
-                        isSMB: dose.automatic,
-                        isExternalInsulin: dose.manuallyEntered
-                    )]
-                case .tempBasal:
-                    guard let dose = event.dose else { return [] }
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 
                     let existingEvents: [PumpEventStored] = CoreDataStack.shared.fetchEntities(
                         ofType: PumpEventStored.self,
@@ -272,7 +242,6 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         }
     }
 
-<<<<<<< HEAD
     func determineBolusEventType(for event: PumpEventStored) -> PumpEventStored.EventType {
         if event.bolus!.isSMB {
             return .smb
@@ -281,32 +250,6 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             return .isExternal
         }
         return PumpEventStored.EventType(rawValue: event.type!) ?? PumpEventStored.EventType.bolus
-=======
-    func nightscoutTreatmentsNotUploaded() -> [NightscoutTreatment] {
-        let events = recent()
-        guard !events.isEmpty else { return [] }
-
-        var treatments: [NightscoutTreatment?] = []
-
-        for i in 0 ..< events.count {
-            let event = events[i]
-            var nextEvent: PumpHistoryEvent?
-            if i + 1 < events.count {
-                nextEvent = events[i + 1]
-            }
-            if event.type == .tempBasal, nextEvent?.type == .tempBasalDuration {
-                treatments.append(NightscoutTreatment(event: event, tempBasalDuration: nextEvent))
-            } else {
-                treatments.append(NightscoutTreatment(event: event))
-            }
-        }
-
-        let uploaded = storage.retrieve(OpenAPS.Nightscout.uploadedPumphistory, as: [NightscoutTreatment].self) ?? []
-
-        let treatmentsToUpload = Set(treatments.compactMap { $0 }).subtracting(Set(uploaded))
-
-        return treatmentsToUpload.sorted { $0.createdAt! > $1.createdAt! }
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
     }
 
     func getPumpHistoryNotYetUploadedToNightscout() async -> [NightscoutTreatment] {

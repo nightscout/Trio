@@ -53,16 +53,14 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
 
     private lazy var simulatorSource = GlucoseSimulatorSource()
 
-<<<<<<< HEAD
     private let context = CoreDataStack.shared.newTaskContext()
-=======
+
     var shouldSyncToRemoteService: Bool {
         guard let cgmManager = cgmManager else {
             return true
         }
         return cgmManager.shouldSyncToRemoteService
     }
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 
     init(resolver: Resolver) {
         injectServices(resolver)
@@ -267,14 +265,11 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
 
         deviceDataManager.heartbeat(date: Date())
 
-<<<<<<< HEAD
         Task.detached {
             await self.nightscoutManager.uploadGlucose()
+            self.tidepoolService.uploadGlucose(device: self.cgmManager?.cgmManagerStatus.device)
         }
-=======
-        nightscoutManager.uploadGlucose()
-        tidepoolService.uploadGlucose(device: cgmManager?.cgmManagerStatus.device)
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
+
 
         let glucoseForHealth = filteredByDate.filter { !glucoseFromHealth.contains($0) }
 

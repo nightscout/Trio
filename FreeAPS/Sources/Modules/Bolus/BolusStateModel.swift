@@ -34,15 +34,10 @@ extension Bolus {
         @Published var minDelta: Decimal = 0
         @Published var expectedDelta: Decimal = 0
         @Published var minPredBG: Decimal = 0
-<<<<<<< HEAD
         @Published var waitForSuggestion: Bool = false
         @Published var carbRatio: Decimal = 0
 
         @Published var addButtonPressed: Bool = false
-=======
-        @Published var units: GlucoseUnits = .mmolL
-        @Published var maxBolus: Decimal = 0
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 
         var waitForSuggestionInitial: Bool = false
 
@@ -115,7 +110,6 @@ extension Bolus {
             broadcaster.register(BolusFailureObserver.self, observer: self)
             units = settingsManager.settings.units
             percentage = settingsManager.settings.insulinReqPercentage
-<<<<<<< HEAD
             maxBolus = provider.pumpSettings().maxBolus
             // added
             fraction = settings.settings.overrideFactor
@@ -129,10 +123,6 @@ extension Bolus {
             maxCarbs = settings.settings.maxCarbs
             skipBolus = settingsManager.settings.skipBolusScreenAfterCarbs
             useFPUconversion = settingsManager.settings.useFPUconversion
-=======
-            threshold = provider.suggestion?.threshold ?? 0
-            maxBolus = provider.pumpSettings().maxBolus
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 
             if waitForSuggestionInitial {
                 Task {
@@ -351,7 +341,6 @@ extension Bolus {
                 return
             }
 
-<<<<<<< HEAD
             amount = min(amount, maxBolus * 3)
 
             do {
@@ -373,25 +362,6 @@ extension Bolus {
                     }
                 }
             }
-=======
-            pumpHistoryStorage.storeEvents(
-                [
-                    PumpHistoryEvent(
-                        id: UUID().uuidString,
-                        type: .bolus,
-                        timestamp: Date(),
-                        amount: amount,
-                        duration: nil,
-                        durationMin: nil,
-                        rate: nil,
-                        temp: nil,
-                        carbInput: nil,
-                        isExternalInsulin: true
-                    )
-                ]
-            )
-            showModal(for: nil)
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
         }
 
         // MARK: - Carbs

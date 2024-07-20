@@ -11,14 +11,9 @@ protocol CarbsStorage {
     func storeCarbs(_ carbs: [CarbsEntry]) async
     func syncDate() -> Date
     func recent() -> [CarbsEntry]
-<<<<<<< HEAD
     func getCarbsNotYetUploadedToNightscout() async -> [NightscoutTreatment]
     func getFPUsNotYetUploadedToNightscout() async -> [NightscoutTreatment]
     func deleteCarbs(at uniqueID: String, fpuID: String, complex: Bool)
-=======
-    func nightscoutTretmentsNotUploaded() -> [NightscoutTreatment]
-    func deleteCarbs(at date: Date)
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 }
 
 final class BaseCarbsStorage: CarbsStorage, Injectable {
@@ -33,7 +28,6 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         injectServices(resolver)
     }
 
-<<<<<<< HEAD
     func storeCarbs(_ entries: [CarbsEntry]) async {
         await saveCarbEquivalents(entries: entries)
         await saveCarbsToCoreData(entries: entries)
@@ -149,61 +143,12 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
 
             if carbEquivalentCount > 0 {
                 await saveFPUToCoreDataAsBatchInsert(entries: futureCarbEquivalents)
-=======
-    /**
-     Processes and stores carbohydrate entries, including handling entries with fat and protein to calculate and distribute future carb equivalents.
-
-     - The function processes fat and protein units (FPUs) by creating carb equivalents for future use.
-     - Ensures each carb equivalent is at least 1.0 grams by adjusting the interval if necessary.
-     - Stores the actual carbohydrate entries.
-     - Saves the data to CoreData for statistical purposes.
-     - Notifies observers of the carbohydrate data update.
-
-     - Parameters:
-       - entries: An array of `CarbsEntry` objects representing the carbohydrate entries to be processed and stored.
-     */
-    func storeCarbs(_ entries: [CarbsEntry]) {
-        processQueue.sync {
-            let file = OpenAPS.Monitor.carbHistory
-            var entriesToStore: [CarbsEntry] = []
-
-            guard let lastEntry = entries.last else { return }
-
-            if let fat = lastEntry.fat, let protein = lastEntry.protein, fat > 0 || protein > 0 {
-                let (futureCarbArray, carbEquivalents) = processFPU(
-                    entries: entries,
-                    fat: fat,
-                    protein: protein,
-                    createdAt: lastEntry.createdAt
-                )
-                if carbEquivalents > 0 {
-                    self.storage.transaction { storage in
-                        storage.append(futureCarbArray, to: file, uniqBy: \.id)
-                        entriesToStore = storage.retrieve(file, as: [CarbsEntry].self)?
-                            .filter { $0.createdAt.addingTimeInterval(1.days.timeInterval) > Date() }
-                            .sorted { $0.createdAt > $1.createdAt } ?? []
-                        storage.save(Array(entriesToStore), as: file)
-                    }
-                }
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
             }
         }
     }
 
-<<<<<<< HEAD
     private func saveCarbsToCoreData(entries: [CarbsEntry]) async {
         guard let entry = entries.last, entry.carbs != 0 else { return }
-=======
-            if lastEntry.carbs > 0 {
-                self.storage.transaction { storage in
-                    storage.append(entries, to: file, uniqBy: \.createdAt)
-                    entriesToStore = storage.retrieve(file, as: [CarbsEntry].self)?
-                        .filter { $0.createdAt.addingTimeInterval(1.days.timeInterval) > Date() }
-                        .sorted { $0.createdAt > $1.createdAt } ?? []
-                    storage.save(Array(entriesToStore), as: file)
-                }
-            }
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 
         await coredataContext.perform {
             let newItem = CarbEntryStored(context: self.coredataContext)
@@ -234,7 +179,6 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             else {
                 return true // return true to stop
             }
-<<<<<<< HEAD
             carbEntry.date = entry.actualDate
             carbEntry.carbs = Double(truncating: NSDecimalNumber(decimal: entry.carbs))
             carbEntry.id = UUID.init(uuidString: entryId)
@@ -252,97 +196,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                 Foundation.NotificationCenter.default.post(name: .didPerformBatchInsert, object: nil)
             } catch {
                 debugPrint("Carbs Storage: \(DebuggingIdentifiers.failed) error while saving fpus to core data")
-=======
-            broadcaster.notify(CarbsObserver.self, on: processQueue) {
-                $0.carbsDidUpdate(entriesToStore)
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
             }
         }
-    }
-
-    /**
-     Calculates the duration for processing FPUs (fat and protein units) based on the FPUs and the time cap.
-
-     - The function uses predefined rules to determine the duration based on the number of FPUs.
-     - Ensures that the duration does not exceed the time cap.
-
-     - Parameters:
-       - fpus: The number of FPUs calculated from fat and protein.
-       - timeCap: The maximum allowed duration.
-
-     - Returns: The computed duration in hours.
-     */
-    private func calculateComputedDuration(fpus: Decimal, timeCap: Int) -> Int {
-        switch fpus {
-        case ..<2:
-            return 3
-        case 2 ..< 3:
-            return 4
-        case 3 ..< 4:
-            return 5
-        default:
-            return timeCap
-        }
-    }
-
-    /**
-     Processes fat and protein entries to generate future carb equivalents, ensuring each equivalent is at least 1.0 grams.
-
-     - The function calculates the equivalent carb dosage size and adjusts the interval to ensure each equivalent is at least 1.0 grams.
-     - Creates future carb entries based on the adjusted carb equivalent size and interval.
-
-     - Parameters:
-       - entries: An array of `CarbsEntry` objects representing the carbohydrate entries to be processed.
-       - fat: The amount of fat in the last entry.
-       - protein: The amount of protein in the last entry.
-       - createdAt: The creation date of the last entry.
-
-     - Returns: A tuple containing the array of future carb entries and the total carb equivalents.
-     */
-    private func processFPU(entries _: [CarbsEntry], fat: Decimal, protein: Decimal, createdAt: Date) -> ([CarbsEntry], Decimal) {
-        let interval = settings.settings.minuteInterval
-        let timeCap = settings.settings.timeCap
-        let adjustment = settings.settings.individualAdjustmentFactor
-        let delay = settings.settings.delay
-
-        let kcal = protein * 4 + fat * 9
-        let carbEquivalents = (kcal / 10) * adjustment
-        let fpus = carbEquivalents / 10
-        var computedDuration = calculateComputedDuration(fpus: fpus, timeCap: timeCap)
-
-        var carbEquivalentSize: Decimal = carbEquivalents / Decimal(computedDuration)
-        carbEquivalentSize /= Decimal(60 / interval)
-
-        if carbEquivalentSize < 1.0 {
-            carbEquivalentSize = 1.0
-            computedDuration = Int(carbEquivalents / carbEquivalentSize)
-        }
-
-        let roundedEquivalent: Double = round(Double(carbEquivalentSize * 10)) / 10
-        carbEquivalentSize = Decimal(roundedEquivalent)
-        var numberOfEquivalents = carbEquivalents / carbEquivalentSize
-
-        var useDate = createdAt
-        let fpuID = UUID().uuidString
-        var futureCarbArray = [CarbsEntry]()
-        var firstIndex = true
-
-        while carbEquivalents > 0, numberOfEquivalents > 0 {
-            useDate = firstIndex ? useDate.addingTimeInterval(delay.minutes.timeInterval) : useDate
-                .addingTimeInterval(interval.minutes.timeInterval)
-            firstIndex = false
-
-            let eachCarbEntry = CarbsEntry(
-                id: UUID().uuidString, createdAt: useDate,
-                carbs: carbEquivalentSize, fat: 0, protein: 0, note: nil,
-                enteredBy: CarbsEntry.manual, isFPU: true,
-                fpuID: fpuID
-            )
-            futureCarbArray.append(eachCarbEntry)
-            numberOfEquivalents -= 1
-        }
-
-        return (futureCarbArray, carbEquivalents)
     }
 
     func syncDate() -> Date {
@@ -383,7 +238,6 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         }
     }
 
-<<<<<<< HEAD
     func getCarbsNotYetUploadedToNightscout() async -> [NightscoutTreatment] {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
@@ -449,31 +303,6 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     id: result.fpuID?.uuidString
                 )
             }
-=======
-    func nightscoutTretmentsNotUploaded() -> [NightscoutTreatment] {
-        let uploaded = storage.retrieve(OpenAPS.Nightscout.uploadedPumphistory, as: [NightscoutTreatment].self) ?? []
-
-        let eventsManual = recent().filter { $0.enteredBy == CarbsEntry.manual }
-        let treatments = eventsManual.map {
-            NightscoutTreatment(
-                duration: nil,
-                rawDuration: nil,
-                rawRate: nil,
-                absolute: nil,
-                rate: nil,
-                eventType: .nsCarbCorrection,
-                createdAt: $0.createdAt,
-                enteredBy: CarbsEntry.manual,
-                bolus: nil,
-                insulin: nil,
-                carbs: $0.carbs,
-                fat: $0.fat,
-                protein: $0.protein,
-                foodType: $0.note,
-                targetTop: nil,
-                targetBottom: nil
-            )
->>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
         }
     }
 }
