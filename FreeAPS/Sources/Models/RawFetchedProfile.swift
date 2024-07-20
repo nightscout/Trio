@@ -8,11 +8,10 @@ struct FetchedNightscoutProfileStore: JSON {
     // <<<<<<< HEAD
     let mills: Decimal
     let enteredBy: String
-    let store: [String: ScheduledNightscoutProfile]
+//    let store: [String: ScheduledNightscoutProfile]
     let created_at: String
     //=======
-//    let enteredBy: String
-//    let store: [String: FetchedNightscoutProfile]
+    let store: [String: FetchedNightscoutProfile]
     // >>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 }
 

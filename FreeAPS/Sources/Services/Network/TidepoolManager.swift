@@ -12,7 +12,7 @@ protocol TidepoolManager {
     func deleteCarbs(at date: Date, isFPU: Bool?, fpuID: String?, syncID: String)
     func deleteInsulin(at date: Date)
 //    func uploadStatus()
-    func uploadGlucose(device: HKDevice?)
+    func uploadGlucose(device: HKDevice?) async
     func forceUploadData(device: HKDevice?)
 //    func uploadPreferences(_ preferences: Preferences)
 //    func uploadProfileAndSettings(_: Bool)
@@ -317,39 +317,41 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
         }
     }
 
-    func uploadGlucose(device: HKDevice?) {
-        let glucose: [BloodGlucose] = glucoseStorage.recent()
-
+    func uploadGlucose(device: HKDevice?) async {
+        // TODO: get correct glucose values
+        let glucose: [BloodGlucose] = await glucoseStorage.getGlucoseNotYetUploadedToNightscout()
+        
         guard !glucose.isEmpty, let tidepoolService = self.tidepoolService else { return }
-
-        let glucoseWithoutCorrectID = glucose.filter { UUID(uuidString: $0._id) != nil }
-
+        
+        let glucoseWithoutCorrectID = glucose.filter { UUID(uuidString: $0._id ?? UUID().uuidString) != nil }
+        
+        let chunks = glucoseWithoutCorrectID.chunks(ofCount: tidepoolService.glucoseDataLimit ?? 100)
+        
         processQueue.async {
-            glucoseWithoutCorrectID.chunks(ofCount: tidepoolService.glucoseDataLimit ?? 100)
-                .forEach { chunk in
-                    // all glucose attached with the current device ;-(
-
-                    let chunkStoreGlucose = Array(chunk).map {
-                        $0.convertStoredGlucoseSample(device: device)
-                    }
-                    tidepoolService.uploadGlucoseData(chunkStoreGlucose) { result in
-                        switch result {
-                        case let .failure(error):
-                            debug(.nightscout, "Error synchronizing glucose data: \(String(describing: error))")
-                        // self.uploadFailed(key)
+            for chunk in chunks {
+                // Link all glucose values with the current device
+                let chunkStoreGlucose = chunk.map { $0.convertStoredGlucoseSample(device: device) }
+                
+                tidepoolService.uploadGlucoseData(chunkStoreGlucose) { result in
+                    switch result {
                         case .success:
                             debug(.nightscout, "Success synchronizing glucose data:")
-                        }
+                        case .failure(let error):
+                            debug(.nightscout, "Error synchronizing glucose data: \(String(describing: error))")
+                            // self.uploadFailed(key)
                     }
                 }
+            }
         }
     }
 
     /// force to uploads all data in Tidepool Service
     func forceUploadData(device: HKDevice?) {
-        uploadDose()
-        uploadCarbs()
-        uploadGlucose(device: device)
+        Task {
+            uploadDose()
+            uploadCarbs()
+            await uploadGlucose(device: device)
+        }
     }
 }
 
