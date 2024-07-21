@@ -320,25 +320,25 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     func uploadGlucose(device: HKDevice?) async {
         // TODO: get correct glucose values
         let glucose: [BloodGlucose] = await glucoseStorage.getGlucoseNotYetUploadedToNightscout()
-        
+
         guard !glucose.isEmpty, let tidepoolService = self.tidepoolService else { return }
-        
+
         let glucoseWithoutCorrectID = glucose.filter { UUID(uuidString: $0._id ?? UUID().uuidString) != nil }
-        
+
         let chunks = glucoseWithoutCorrectID.chunks(ofCount: tidepoolService.glucoseDataLimit ?? 100)
-        
+
         processQueue.async {
             for chunk in chunks {
                 // Link all glucose values with the current device
                 let chunkStoreGlucose = chunk.map { $0.convertStoredGlucoseSample(device: device) }
-                
+
                 tidepoolService.uploadGlucoseData(chunkStoreGlucose) { result in
                     switch result {
-                        case .success:
-                            debug(.nightscout, "Success synchronizing glucose data:")
-                        case .failure(let error):
-                            debug(.nightscout, "Error synchronizing glucose data: \(String(describing: error))")
-                            // self.uploadFailed(key)
+                    case .success:
+                        debug(.nightscout, "Success synchronizing glucose data:")
+                    case let .failure(error):
+                        debug(.nightscout, "Error synchronizing glucose data: \(String(describing: error))")
+                        // self.uploadFailed(key)
                     }
                 }
             }

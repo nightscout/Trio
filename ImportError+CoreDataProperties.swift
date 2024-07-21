@@ -1,26 +1,13 @@
-//
-//  ImportError+CoreDataProperties.swift
-//  FreeAPS
-//
-//  Created by Cengiz Deniz on 21.07.24.
-//
-//
-
-import Foundation
 import CoreData
+import Foundation
 
-
-extension ImportError {
-
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<ImportError> {
-        return NSFetchRequest<ImportError>(entityName: "ImportError")
+public extension ImportError {
+    @nonobjc class func fetchRequest() -> NSFetchRequest<ImportError> {
+        NSFetchRequest<ImportError>(entityName: "ImportError")
     }
 
-    @NSManaged public var date: Date?
-    @NSManaged public var error: String?
-
+    @NSManaged var date: Date?
+    @NSManaged var error: String?
 }
 
-extension ImportError : Identifiable {
-
-}
+extension ImportError: Identifiable {}

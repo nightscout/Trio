@@ -267,7 +267,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
 
         Task.detached {
             await self.nightscoutManager.uploadGlucose()
-            self.tidepoolService.uploadGlucose(device: self.cgmManager?.cgmManagerStatus.device)
+            await self.tidepoolService.uploadGlucose(device: self.cgmManager?.cgmManagerStatus.device)
         }
 
         let glucoseForHealth = filteredByDate.filter { !glucoseFromHealth.contains($0) }

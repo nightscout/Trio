@@ -2529,7 +2529,7 @@
 				38E8753D27554D5900975559 /* Embed Watch Content */,
 				6B1A8D122B14D88E00E76752 /* Embed Foundation Extensions */,
 				CE95BF582BA5F8F300DC3DE3 /* Install plugins */,
-				DD1DB7C92BEBF79B0048B367 /* Capture Build Details */,
+				DD88C8DF2C4D583900F2D558 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -2789,7 +2789,7 @@
 			shellPath = /bin/sh;
 			shellScript = "\"${SRCROOT}/Scripts/copy-plugins.sh\"\n";
 		};
-		DD1DB7C92BEBF79B0048B367 /* Capture Build Details */ = {
+		DD88C8DF2C4D583900F2D558 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -2798,7 +2798,6 @@
 			);
 			inputPaths = (
 			);
-			name = "Capture Build Details";
 			outputFileListPaths = (
 			);
 			outputPaths = (

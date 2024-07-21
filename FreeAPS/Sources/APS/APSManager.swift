@@ -915,7 +915,7 @@ final class BaseAPSManager: APSManager, Injectable {
     // Add to statistics.JSON for upload to NS.
     private func statistics() async {
         let now = Date()
-        if settingsManager.settings.uploadStats {
+        if settingsManager.settings.uploadStats != nil {
             let hour = Calendar.current.component(.hour, from: now)
             guard hour > 20 else {
                 return
@@ -951,7 +951,7 @@ final class BaseAPSManager: APSManager, Injectable {
             }
             let af = pref.adjustmentFactor
             let insulin_type = pref.curve
-            let buildDate = Bundle.main.buildDate
+//            let buildDate = Bundle.main.buildDate // TODO: fix this
             let version = Bundle.main.releaseVersionNumber
             let build = Bundle.main.buildVersionNumber
 
@@ -1011,7 +1011,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 Build_Number: build ?? "1",
                 Branch: branch,
                 CopyRightNotice: String(copyrightNotice_.prefix(32)),
-                Build_Date: buildDate,
+                Build_Date: Date(), // TODO: fix this
                 Algorithm: algo_,
                 AdjustmentFactor: af,
                 Pump: pump_,

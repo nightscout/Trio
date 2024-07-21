@@ -16,7 +16,6 @@ enum Screen: Identifiable, Hashable {
     case crEditor
     case targetsEditor
     case preferencesEditor
-    case addTempTarget
     case bolus
     case manualTempBasal
     case autotuneConfig
@@ -70,8 +69,6 @@ extension Screen {
             TargetsEditor.RootView(resolver: resolver)
         case .preferencesEditor:
             PreferencesEditor.RootView(resolver: resolver)
-        case .addTempTarget:
-            AddTempTarget.RootView(resolver: resolver)
         case .bolus:
             Bolus.RootView(resolver: resolver)
         case .manualTempBasal:
