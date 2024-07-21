@@ -19,7 +19,7 @@ extension Forecast {
     @NSManaged public var date: Date?
     @NSManaged public var id: UUID?
     @NSManaged public var type: String?
-    @NSManaged public var forecastValues: NSSet?
+    @NSManaged public var forecastValues: Set<ForecastValue>?
     @NSManaged public var orefDetermination: OrefDetermination?
 
 }
