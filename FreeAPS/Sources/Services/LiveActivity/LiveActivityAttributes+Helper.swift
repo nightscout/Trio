@@ -74,35 +74,50 @@ extension LiveActivityAttributes.ContentState {
 
         let trendString = bg.direction?.symbol as? String
         let change = Self.calculateChange(chart: chart, units: units)
-        let chartBG = chart.map(\.glucose)
-        let conversionFactor: Double = settings.units == .mmolL ? 18.0 : 1.0
-        let convertedChartBG = chartBG.map { Double($0) / conversionFactor }
-        let chartDate = chart.map(\.date)
 
-        /// glucose limits from UI settings, not from notifications settings
-        let highGlucose = settings.high / Decimal(conversionFactor)
-        let lowGlucose = settings.low / Decimal(conversionFactor)
-        let cob = determination?.cob ?? 0
-        let iob = determination?.iob ?? 0
-        let lockScreenView = settings.lockScreenView.displayName
-        let unit = settings.units == .mmolL ? " mmol/L" : " mg/dL"
-        let isOverrideActive = override?.isActive ?? false
+        let detailedState: LiveActivityAttributes.ContentAdditionalState?
+
+        switch settings.lockScreenView {
+        case .detailed:
+            let chartBG = chart.map(\.glucose)
+
+            let conversionFactor: Double = settings.units == .mmolL ? 18.0 : 1.0
+            let convertedChartBG = chartBG.map { Double($0) / conversionFactor }
+
+            let chartDate = chart.map(\.date)
+
+            /// glucose limits from UI settings, not from notifications settings
+            let highGlucose = settings.high / Decimal(conversionFactor)
+            let lowGlucose = settings.low / Decimal(conversionFactor)
+
+            let cob = determination?.cob ?? 0
+            let iob = determination?.iob ?? 0
+            let unit = settings.units == .mmolL ? " mmol/L" : " mg/dL"
+            let isOverrideActive = override?.isActive ?? false
+
+            detailedState = LiveActivityAttributes.ContentAdditionalState(
+                chart: convertedChartBG,
+                chartDate: chartDate,
+                rotationDegrees: rotationDegrees,
+                highGlucose: Double(highGlucose),
+                lowGlucose: Double(lowGlucose),
+                cob: Decimal(cob),
+                iob: iob as Decimal,
+                unit: unit,
+                isOverrideActive: isOverrideActive
+            )
+
+        case .simple:
+            detailedState = nil
+        }
 
         self.init(
             bg: formattedBG,
             direction: trendString,
             change: change,
             date: bg.date,
-            chart: convertedChartBG,
-            chartDate: chartDate,
-            rotationDegrees: rotationDegrees,
-            highGlucose: Double(highGlucose),
-            lowGlucose: Double(lowGlucose),
-            cob: Decimal(cob),
-            iob: iob as Decimal,
-            lockScreenView: lockScreenView,
-            unit: unit,
-            isOverrideActive: isOverrideActive
+            detailedViewState: detailedState,
+            isInitialState: false
         )
     }
 }

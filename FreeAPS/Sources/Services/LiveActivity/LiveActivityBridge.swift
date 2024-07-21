@@ -70,6 +70,15 @@ import UIKit
         setupGlucoseArray()
     }
 
+    @objc private func determinationDidUpdate() {
+        Task {
+            await fetchAndMapDetermination()
+            if let determination = determination {
+                await self.pushDeterminationUpdate(determination)
+            }
+        }
+    }
+
     private func setupGlucoseArray() {
         Task {
             // Fetch and map glucose to GlucoseData struct
@@ -79,7 +88,7 @@ import UIKit
             await fetchAndMapDetermination()
 
             // Fetch and map Override to OverrideData struct
-            /// to show if there is an active Override
+            /// shows if there is an active Override
             await fetchAndMapOverride()
 
             // Push the update to the Live Activity
@@ -138,23 +147,17 @@ import UIKit
             }
         } else {
             do {
-                // Create initial non-stale content
-                let nonStaleContent = ActivityContent(
+                // always push a non-stale content as the first update
+                // pushing a stale content as the frst content results in the activity not being shown at all
+                // apparently this initial state is also what is shown after the live activity expires (after 8h)
+                let expired = ActivityContent(
                     state: LiveActivityAttributes.ContentState(
                         bg: "--",
                         direction: nil,
                         change: "--",
                         date: Date.now,
-                        chart: [],
-                        chartDate: [],
-                        rotationDegrees: 0,
-                        highGlucose: 180,
-                        lowGlucose: 70,
-                        cob: 0,
-                        iob: 0,
-                        lockScreenView: "Simple",
-                        unit: "--",
-                        isOverrideActive: false
+                        detailedViewState: nil,
+                        isInitialState: true
                     ),
                     staleDate: Date.now.addingTimeInterval(60)
                 )
@@ -162,16 +165,34 @@ import UIKit
                 // Request a new activity
                 let activity = try Activity.request(
                     attributes: LiveActivityAttributes(startDate: Date.now),
-                    content: nonStaleContent,
+                    content: expired,
                     pushType: nil
                 )
                 currentActivity = ActiveActivity(activity: activity, startDate: Date.now)
 
-                // Push the actual content
+                // then show the actual content
                 await pushUpdate(state)
             } catch {
                 print("Activity creation error: \(error)")
             }
+        }
+    }
+
+    @MainActor private func pushDeterminationUpdate(_ determination: DeterminationData) async {
+        guard let latestGlucose = latestGlucose else { return }
+
+        let content = LiveActivityAttributes.ContentState(
+            new: latestGlucose,
+            prev: latestGlucose,
+            units: settings.units,
+            chart: glucoseFromPersistence ?? [],
+            settings: settings,
+            determination: determination,
+            override: isOverridesActive
+        )
+
+        if let content = content {
+            await pushUpdate(content)
         }
     }
 
