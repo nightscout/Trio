@@ -23,7 +23,7 @@ extension LiveActivityBridge {
         let result = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
             onContext: context,
-            predicate: NSPredicate.enactedDetermination,
+            predicate: NSPredicate.predicateFor30MinAgoForDetermination,
             key: "deliverAt",
             ascending: false,
             fetchLimit: 1,

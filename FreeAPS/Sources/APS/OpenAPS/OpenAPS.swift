@@ -83,7 +83,34 @@ final class OpenAPS {
                     }
             }
         }
+
+        // First save the current Determination to Core Data
         await attemptToSaveContext()
+
+        // After that check for changes in iob and cob and if there are any post a custom Notification
+        /// this is currently used to update Live Activity so that it stays up to date and not one loop cycle behind
+        await checkForCobIobUpdate(determination)
+    }
+
+    func checkForCobIobUpdate(_ determination: Determination) async {
+        let previousDeterminations = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: OrefDetermination.self,
+            onContext: context,
+            predicate: NSPredicate.predicateFor30MinAgoForDetermination,
+            key: "deliverAt",
+            ascending: false,
+            fetchLimit: 2
+        )
+
+        // We need to get the second last Determination for this comparison because we have saved the current Determination already to Core Data
+        if let previousDetermination = previousDeterminations.dropFirst().first {
+            let iobChanged = previousDetermination.iob != decimalToNSDecimalNumber(determination.iob)
+            let cobChanged = previousDetermination.cob != Int16(Int(determination.cob ?? 0))
+
+            if iobChanged || cobChanged {
+                Foundation.NotificationCenter.default.post(name: .didUpdateCobIob, object: nil)
+            }
+        }
     }
 
     func attemptToSaveContext() async {

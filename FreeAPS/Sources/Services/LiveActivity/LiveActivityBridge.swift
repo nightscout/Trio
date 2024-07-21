@@ -56,6 +56,7 @@ import UIKit
     private func setupNotifications() {
         let notificationCenter = Foundation.NotificationCenter.default
         notificationCenter.addObserver(self, selector: #selector(handleBatchInsert), name: .didPerformBatchInsert, object: nil)
+        notificationCenter.addObserver(self, selector: #selector(cobOrIobDidUpdate), name: .didUpdateCobIob, object: nil)
         notificationCenter
             .addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { [weak self] _ in
                 self?.forceActivityUpdate()
@@ -70,7 +71,7 @@ import UIKit
         setupGlucoseArray()
     }
 
-    @objc private func determinationDidUpdate() {
+    @objc private func cobOrIobDidUpdate() {
         Task {
             await fetchAndMapDetermination()
             if let determination = determination {

@@ -34,21 +34,15 @@ struct LiveActivity: Widget {
 
     @ViewBuilder private func changeLabel(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
         if !context.state.change.isEmpty {
-            if context.isStale {
-                Text(context.state.change).foregroundStyle(.primary.opacity(0.5)).font(.headline)
-                    .strikethrough(pattern: .solid, color: .red.opacity(0.6)).font(.callout)
-            } else {
-                HStack {
-                    Text(context.state.change).font(.headline)
-                }
-            }
+            Text(context.state.change).foregroundStyle(.primary.opacity(0.5)).font(.headline)
+                .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
         } else {
             Text("--")
         }
     }
 
     @ViewBuilder func mealLabel(
-        context _: ActivityViewContext<LiveActivityAttributes>,
+        context: ActivityViewContext<LiveActivityAttributes>,
         additionalState: LiveActivityAttributes.ContentAdditionalState
     ) -> some View {
         HStack {
@@ -68,13 +62,13 @@ struct LiveActivity: Widget {
                 HStack {
                     Text(
                         carbsFormatter.string(from: additionalState.cob as NSNumber) ?? "--"
-                    ).fontWeight(.bold).font(.headline)
+                    ).fontWeight(.bold).font(.headline).strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
                     Text(NSLocalizedString(" g", comment: "grams of carbs")).foregroundStyle(.secondary).font(.footnote)
                 }
                 HStack {
                     Text(
                         bolusFormatter.string(from: additionalState.iob as NSNumber) ?? "--"
-                    ).font(.headline).fontWeight(.bold)
+                    ).font(.headline).fontWeight(.bold).strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
                     Text(NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)"))
                         .foregroundStyle(.secondary).font(.footnote)
                 }
