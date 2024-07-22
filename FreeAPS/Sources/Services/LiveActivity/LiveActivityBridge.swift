@@ -45,10 +45,14 @@ import UIKit
 
     let context = CoreDataStack.shared.newTaskContext()
 
+    private var coreDataObserver: CoreDataObserver?
+
     init(resolver: Resolver) {
         systemEnabled = activityAuthorizationInfo.areActivitiesEnabled
         injectServices(resolver)
         setupNotifications()
+        coreDataObserver = CoreDataObserver()
+        registerHandler()
         monitorForLiveActivityAuthorizationChanges()
         setupGlucoseArray()
     }
@@ -67,6 +71,14 @@ import UIKit
             }
     }
 
+    private func registerHandler() {
+        // Since we are only using this info to show if an Override is active or not in the Live Activity it is enough to observe only the 'OverrideStored' Entity
+        coreDataObserver?.registerHandler(for: "OverrideStored") { [weak self] in
+            guard let self = self else { return }
+            self.overridesDidUpdate()
+        }
+    }
+
     @objc private func handleBatchInsert() {
         setupGlucoseArray()
     }
@@ -74,6 +86,15 @@ import UIKit
     @objc private func cobOrIobDidUpdate() {
         Task {
             await fetchAndMapDetermination()
+            if let determination = determination {
+                await self.pushDeterminationUpdate(determination)
+            }
+        }
+    }
+
+    @objc private func overridesDidUpdate() {
+        Task {
+            await fetchAndMapOverride()
             if let determination = determination {
                 await self.pushDeterminationUpdate(determination)
             }

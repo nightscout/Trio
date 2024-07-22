@@ -99,10 +99,15 @@ extension Bolus {
         let context = CoreDataStack.shared.persistentContainer.viewContext
         let backgroundContext = CoreDataStack.shared.newTaskContext()
 
+        private var coreDataObserver: CoreDataObserver?
+
         typealias PumpEvent = PumpEventStored.EventType
 
         override func subscribe() {
-            setupNotification()
+            setupGlucoseNotification()
+            coreDataObserver = CoreDataObserver()
+            registerHandlers()
+
             setupGlucoseArray()
             setupDeterminationsArray()
 
@@ -528,46 +533,32 @@ extension Bolus.StateModel: DeterminationObserver, BolusFailureObserver {
     }
 }
 
-// MARK: - Setup Notifications
-
 extension Bolus.StateModel {
-    /// listens for the notifications sent when the managedObjectContext has saved!
-    func setupNotification() {
+    private func registerHandlers() {
+        coreDataObserver?.registerHandler(for: "OrefDetermination") { [weak self] in
+            guard let self = self else { return }
+            self.setupDeterminationsArray()
+        }
+
+        // Due to the Batch insert this only is used for observing Deletion of Glucose entries
+        coreDataObserver?.registerHandler(for: "GlucoseStored") { [weak self] in
+            guard let self = self else { return }
+            self.setupGlucoseArray()
+        }
+    }
+
+    private func setupGlucoseNotification() {
+        /// custom notification that is sent when a batch insert of glucose objects is done
         Foundation.NotificationCenter.default.addObserver(
             self,
-            selector: #selector(contextDidSave(_:)),
-            name: Notification.Name.NSManagedObjectContextDidSave,
-            object: backgroundContext
+            selector: #selector(handleBatchInsert),
+            name: .didPerformBatchInsert,
+            object: nil
         )
     }
 
-    /// determine the actions when the context has changed
-    ///
-    /// its done on a background thread and after that the UI gets updated on the main thread
-    @objc private func contextDidSave(_ notification: Notification) {
-        guard let userInfo = notification.userInfo else { return }
-
-        Task { [weak self] in
-            await self?.processUpdates(userInfo: userInfo)
-        }
-    }
-
-    private func processUpdates(userInfo: [AnyHashable: Any]) async {
-        var objects = Set((userInfo[NSInsertedObjectsKey] as? Set<NSManagedObject>) ?? [])
-        objects.formUnion((userInfo[NSUpdatedObjectsKey] as? Set<NSManagedObject>) ?? [])
-        objects.formUnion((userInfo[NSDeletedObjectsKey] as? Set<NSManagedObject>) ?? [])
-
-        let glucoseUpdates = objects.filter { $0 is GlucoseStored }
-        let determinationUpdates = objects.filter { $0 is OrefDetermination }
-
-        DispatchQueue.global(qos: .background).async {
-            if glucoseUpdates.isNotEmpty {
-                self.setupGlucoseArray()
-            }
-            if determinationUpdates.isNotEmpty {
-                self.setupDeterminationsArray()
-            }
-        }
+    @objc private func handleBatchInsert() {
+        setupGlucoseArray()
     }
 }
 
