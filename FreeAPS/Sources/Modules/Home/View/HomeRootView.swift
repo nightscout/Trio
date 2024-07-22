@@ -160,24 +160,17 @@ extension Home {
                 alarm: $state.alarm,
                 lowGlucose: $state.lowGlucose,
                 highGlucose: $state.highGlucose,
+                cgmAvailable: $state.cgmAvailable,
                 glucose: state.glucoseFromPersistence,
                 manualGlucose: state.manualGlucoseFromPersistence
             ).scaleEffect(0.9)
                 .onTapGesture {
-                    if state.alarm == nil {
-                        state.openCGM()
-                    } else {
-                        state.showModal(for: .snooze)
-                    }
+                    state.openCGM()
                 }
                 .onLongPressGesture {
                     let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
                     impactHeavy.impactOccurred()
-                    if state.alarm == nil {
-                        state.showModal(for: .snooze)
-                    } else {
-                        state.openCGM()
-                    }
+                    state.showModal(for: .snooze)
                 }
         }
 
@@ -191,9 +184,7 @@ extension Home {
                 pumpStatusHighlightMessage: $state.pumpStatusHighlightMessage,
                 battery: state.batteryFromPersistence
             ).onTapGesture {
-                if state.pumpDisplayState != nil {
-                    state.setupPump = true
-                }
+                state.setupPump = true
             }
         }
 

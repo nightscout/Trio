@@ -95,6 +95,9 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                     }
                     pumpExpiresAtDate.send(endTime)
                 }
+                if let simulatorPump = pumpManager as? MockPumpManager {
+                    pumpDisplayState.value = PumpDisplayState(name: simulatorPump.localizedTitle, image: simulatorPump.smallImage)
+                }
             } else {
                 pumpDisplayState.value = nil
                 pumpExpiresAtDate.send(nil)
