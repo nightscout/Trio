@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 
 #  capture-build-details.sh
 #  Trio
