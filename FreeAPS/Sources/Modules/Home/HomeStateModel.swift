@@ -84,10 +84,14 @@ extension Home {
         let context = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
+        private var coreDataObserver: CoreDataObserver?
+
         typealias PumpEvent = PumpEventStored.EventType
 
         override func subscribe() {
             setupNotification()
+            coreDataObserver = CoreDataObserver()
+            registerHandlers()
             setupGlucoseArray()
             setupManualGlucoseArray()
             setupCarbsArray()
@@ -219,6 +223,49 @@ extension Home {
                     }
                 }
                 .store(in: &lifetime)
+        }
+
+        private func registerHandlers() {
+            coreDataObserver?.registerHandler(for: "OrefDetermination") { [weak self] in
+                guard let self = self else { return }
+                Task {
+                    self.setupDeterminationsArray()
+                    await self.updateForecastData()
+                }
+            }
+
+            coreDataObserver?.registerHandler(for: "GlucoseStored") { [weak self] in
+                guard let self = self else { return }
+                self.setupGlucoseArray()
+                self.setupManualGlucoseArray()
+            }
+
+            coreDataObserver?.registerHandler(for: "CarbEntryStored") { [weak self] in
+                guard let self = self else { return }
+                self.setupCarbsArray()
+            }
+
+            coreDataObserver?.registerHandler(for: "PumpEventStored") { [weak self] in
+                guard let self = self else { return }
+                self.setupInsulinArray()
+                self.setupLastBolus()
+                self.displayPumpStatusHighlightMessage()
+            }
+
+            coreDataObserver?.registerHandler(for: "OpenAPS_Battery") { [weak self] in
+                guard let self = self else { return }
+                self.setupBatteryArray()
+            }
+
+            coreDataObserver?.registerHandler(for: "OverrideStored") { [weak self] in
+                guard let self = self else { return }
+                self.setupOverrides()
+            }
+
+            coreDataObserver?.registerHandler(for: "OverrideRunStored") { [weak self] in
+                guard let self = self else { return }
+                self.setupOverrideRunStored()
+            }
         }
 
         /// Display the eventual status message provided by the manager of the pump
@@ -475,13 +522,6 @@ extension Home.StateModel: PumpManagerOnboardingDelegate {
 extension Home.StateModel {
     /// listens for the notifications sent when the managedObjectContext has saved!
     func setupNotification() {
-        Foundation.NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(contextDidSave(_:)),
-            name: Notification.Name.NSManagedObjectContextDidSave,
-            object: nil
-        )
-
         /// custom notification that is sent when a batch insert of glucose objects is done
         Foundation.NotificationCenter.default.addObserver(
             self,
@@ -499,17 +539,6 @@ extension Home.StateModel {
         )
     }
 
-    /// determine the actions when the context has changed
-    ///
-    /// its done on a background thread and after that the UI gets updated on the main thread
-    @objc private func contextDidSave(_ notification: Notification) {
-        guard let userInfo = notification.userInfo else { return }
-
-        Task { [weak self] in
-            await self?.processUpdates(userInfo: userInfo)
-        }
-    }
-
     @objc private func handleBatchInsert() {
         setupFPUsArray()
         setupGlucoseArray()
@@ -517,54 +546,6 @@ extension Home.StateModel {
 
     @objc private func handleBatchDelete() {
         setupFPUsArray()
-    }
-
-    private func processUpdates(userInfo: [AnyHashable: Any]) async {
-        var objects = Set((userInfo[NSInsertedObjectsKey] as? Set<NSManagedObject>) ?? [])
-        objects.formUnion((userInfo[NSUpdatedObjectsKey] as? Set<NSManagedObject>) ?? [])
-        objects.formUnion((userInfo[NSDeletedObjectsKey] as? Set<NSManagedObject>) ?? [])
-
-        let glucoseUpdates = objects.filter { $0 is GlucoseStored }
-        let manualGlucoseUpdates = objects.filter { $0 is GlucoseStored }
-        let determinationUpdates = objects.filter { $0 is OrefDetermination }
-        let carbUpdates = objects.filter { $0 is CarbEntryStored }
-        let insulinUpdates = objects.filter { $0 is PumpEventStored }
-        let batteryUpdates = objects.filter { $0 is OpenAPS_Battery }
-        let overrideUpdates = objects.filter { $0 is OverrideStored }
-        let overrideRunStoredUpdates = objects.filter { $0 is OverrideRunStored }
-
-        DispatchQueue.global(qos: .background).async {
-            if !glucoseUpdates.isEmpty {
-                self.setupGlucoseArray()
-            }
-            if !manualGlucoseUpdates.isEmpty {
-                self.setupManualGlucoseArray()
-            }
-            if !determinationUpdates.isEmpty {
-                Task {
-                    self.setupDeterminationsArray()
-                    await self.updateForecastData()
-                }
-            }
-            if !carbUpdates.isEmpty {
-                self.setupCarbsArray()
-                self.setupFPUsArray()
-            }
-            if !insulinUpdates.isEmpty {
-                self.setupInsulinArray()
-                self.setupLastBolus()
-                self.displayPumpStatusHighlightMessage()
-            }
-            if !batteryUpdates.isEmpty {
-                self.setupBatteryArray()
-            }
-            if !overrideUpdates.isEmpty {
-                self.setupOverrides()
-            }
-            if !overrideRunStoredUpdates.isEmpty {
-                self.setupOverrideRunStored()
-            }
-        }
     }
 }
 

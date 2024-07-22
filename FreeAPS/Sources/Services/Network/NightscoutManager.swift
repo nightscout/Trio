@@ -69,15 +69,57 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     private var lastEnactedDetermination: Determination?
     private var lastSuggestedDetermination: Determination?
 
+    private var coreDataObserver: CoreDataObserver?
+
     init(resolver: Resolver) {
         injectServices(resolver)
         subscribe()
+        coreDataObserver = CoreDataObserver()
+        registerHandlers()
     }
 
     private func subscribe() {
-        setupNotification()
         _ = reachabilityManager.startListening(onQueue: processQueue) { status in
             debug(.nightscout, "Network status: \(status)")
+        }
+    }
+
+    private func registerHandlers() {
+        coreDataObserver?.registerHandler(for: "OrefDetermination") { [weak self] in
+            guard let self = self else { return }
+            Task.detached {
+                await self.uploadStatus()
+            }
+        }
+        coreDataObserver?.registerHandler(for: "OverrideStored") { [weak self] in
+            guard let self = self else { return }
+            Task.detached {
+                await self.uploadOverrides()
+            }
+        }
+        coreDataObserver?.registerHandler(for: "OverrideRunStored") { [weak self] in
+            guard let self = self else { return }
+            Task.detached {
+                await self.uploadOverrides()
+            }
+        }
+        coreDataObserver?.registerHandler(for: "PumpEventStored") { [weak self] in
+            guard let self = self else { return }
+            Task.detached {
+                await self.uploadPumpHistory()
+            }
+        }
+        coreDataObserver?.registerHandler(for: "CarbEntryStored") { [weak self] in
+            guard let self = self else { return }
+            Task.detached {
+                await self.uploadCarbs()
+            }
+        }
+        coreDataObserver?.registerHandler(for: "GlucoseStored") { [weak self] in
+            guard let self = self else { return }
+            Task.detached {
+                await self.uploadManualGlucose()
+            }
         }
     }
 
@@ -932,69 +974,6 @@ extension Array {
     func chunks(ofCount count: Int) -> [[Element]] {
         stride(from: 0, to: self.count, by: count).map {
             Array(self[$0 ..< Swift.min($0 + count, self.count)])
-        }
-    }
-}
-
-extension BaseNightscoutManager {
-    /// listens for the notifications sent when the managedObjectContext has saved!
-    func setupNotification() {
-        Foundation.NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(contextDidSave(_:)),
-            name: Notification.Name.NSManagedObjectContextDidSave,
-            object: nil
-        )
-    }
-
-    /// determine the actions when the context has changed
-    ///
-    /// its done on a background thread and after that the UI gets updated on the main thread
-    @objc private func contextDidSave(_ notification: Notification) {
-        guard let userInfo = notification.userInfo else {
-            return
-        }
-
-        Task { [weak self] in
-            await self?.processUpdates(userInfo: userInfo)
-        }
-    }
-
-    private func processUpdates(userInfo: [AnyHashable: Any]) async {
-        var objects = Set((userInfo[NSInsertedObjectsKey] as? Set<NSManagedObject>) ?? [])
-        objects.formUnion((userInfo[NSUpdatedObjectsKey] as? Set<NSManagedObject>) ?? [])
-        objects.formUnion((userInfo[NSDeletedObjectsKey] as? Set<NSManagedObject>) ?? [])
-
-        let manualGlucoseUpdates = objects.filter { $0 is GlucoseStored }
-        let carbUpdates = objects.filter { $0 is CarbEntryStored }
-        let pumpHistoryUpdates = objects.filter { $0 is PumpEventStored }
-        let overrideUpdates = objects.filter { $0 is OverrideStored || $0 is OverrideRunStored }
-        let determinationUpdates = objects.filter { $0 is OrefDetermination }
-
-        if manualGlucoseUpdates.isNotEmpty {
-            Task.detached {
-                await self.uploadManualGlucose()
-            }
-        }
-        if carbUpdates.isNotEmpty {
-            Task.detached {
-                await self.uploadCarbs()
-            }
-        }
-        if pumpHistoryUpdates.isNotEmpty {
-            Task.detached {
-                await self.uploadPumpHistory()
-            }
-        }
-        if overrideUpdates.isNotEmpty {
-            Task.detached {
-                await self.uploadOverrides()
-            }
-        }
-        if determinationUpdates.isNotEmpty {
-            Task.detached {
-                await self.uploadStatus()
-            }
         }
     }
 }
