@@ -32,7 +32,7 @@ else
     # Determine the branch or tag information, or fallback to SHA if in detached state
     git_branch_or_tag="${git_branch:-${git_tag}}"
     if [ -z "${git_branch_or_tag}" ]; then
-        git_branch_or_tag="detached-${git_commit_sha}"
+        git_branch_or_tag="detached"
     fi
 
     # Update BuildDetails.plist with the branch or tag information
