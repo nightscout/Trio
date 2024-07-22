@@ -755,7 +755,18 @@ extension MainChartView {
                     xEnd: .value("end", basal.end),
                     yStart: .value("rate-start", 0),
                     yEnd: .value("rate-end", basal.rate)
-                ).foregroundStyle(Color.insulin.opacity(0.2))
+                ).foregroundStyle(
+                    LinearGradient(
+                        gradient: Gradient(
+                            colors: [
+                                Color.insulin.opacity(0.6),
+                                Color.insulin.opacity(0.1)
+                            ]
+                        ),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
 
                 LineMark(x: .value("Start Date", basal.start), y: .value("Amount", basal.rate))
                     .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
