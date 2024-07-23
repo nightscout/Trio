@@ -12,7 +12,6 @@ extension Settings {
 
         @Published var closedLoop = false
         @Published var debugOptions = false
-        @Published var animatedBackground = false
         @Published var serviceUIType: ServiceUI.Type?
         @Published var setupTidepool = false
 
@@ -34,8 +33,6 @@ extension Settings {
             branch = BuildDetails.default.branchAndSha
 
             copyrightNotice = Bundle.main.infoDictionary?["NSHumanReadableCopyright"] as? String ?? ""
-
-            subscribeSetting(\.animatedBackground, on: $animatedBackground) { animatedBackground = $0 }
 
             serviceUIType = pluginManager.getServiceTypeByIdentifier("TidepoolService")
         }

@@ -34,25 +34,6 @@ extension Home {
 
         let buttonFont = Font.custom("TimeButtonFont", size: 14)
 
-        struct DefinitionRow: View {
-            var term: String
-            var definition: String
-            var color: Color
-
-            var body: some View {
-                VStack(alignment: .leading) {
-                    HStack {
-                        Image(systemName: "circle.fill").foregroundStyle(color)
-                        Text(term).font(.subheadline).fontWeight(.semibold)
-                    }
-                    Text(definition)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                .padding(.vertical, 5)
-            }
-        }
-
         @Environment(\.managedObjectContext) var moc
         @Environment(\.colorScheme) var colorScheme
 
@@ -354,12 +335,6 @@ extension Home {
 
         @ViewBuilder func mainChart(geo: GeometryProxy) -> some View {
             ZStack {
-                if state.animatedBackground {
-                    SpriteView(scene: spriteScene, options: [.allowsTransparency])
-                        .ignoresSafeArea()
-                        .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
-                }
-
                 MainChartView(
                     geo: geo,
                     units: $state.units,

@@ -25,7 +25,6 @@
   "lowGlucose" : 72,
   "highGlucose" : 270,
   "carbsRequiredThreshold" : 10,
-  "animatedBackground" : false,
   "useFPUconversion" : true,
   "tins": false,
   "individualAdjustmentFactor" : 0.5,

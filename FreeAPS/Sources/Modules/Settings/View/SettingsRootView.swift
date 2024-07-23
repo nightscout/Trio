@@ -146,14 +146,14 @@ extension Settings {
                 } header: { Text("Developer") }.listRowBackground(Color.chart)
 
                 Section {
-                    Toggle("Animated Background", isOn: $state.animatedBackground)
-                }.listRowBackground(Color.chart)
-
-                Section {
-                    Text("Share logs")
-                        .onTapGesture {
-                            showShareSheet = true
-                        }
+                    HStack {
+                        Text("Share logs")
+                            .onTapGesture {
+                                showShareSheet.toggle()
+                            }
+                        Spacer()
+                        Image(systemName: "square.and.arrow.up")
+                    }
                 }.listRowBackground(Color.chart)
             }.scrollContentBackground(.hidden).background(color)
                 .sheet(isPresented: $showShareSheet) {

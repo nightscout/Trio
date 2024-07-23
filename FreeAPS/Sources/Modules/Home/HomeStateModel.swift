@@ -42,7 +42,6 @@ extension Home {
         @Published var units: GlucoseUnits = .mgdL
         @Published var pumpDisplayState: PumpDisplayState?
         @Published var alarm: GlucoseAlarm?
-        @Published var animatedBackground = false
         @Published var manualTempBasal = false
         @Published var smooth = false
         @Published var maxValue: Decimal = 1.2
@@ -137,8 +136,6 @@ extension Home {
             broadcaster.register(TempTargetsObserver.self, observer: self)
             broadcaster.register(PumpReservoirObserver.self, observer: self)
             broadcaster.register(PumpDeactivatedObserver.self, observer: self)
-
-            animatedBackground = settingsManager.settings.animatedBackground
 
             timer.eventHandler = {
                 DispatchQueue.main.async { [weak self] in
@@ -450,7 +447,6 @@ extension Home.StateModel:
         allowManualTemp = !settings.closedLoop
         closedLoop = settingsManager.settings.closedLoop
         units = settingsManager.settings.units
-        animatedBackground = settingsManager.settings.animatedBackground
         manualTempBasal = apsManager.isManualTempBasal
         smooth = settingsManager.settings.smoothGlucose
         lowGlucose = settingsManager.settings.low

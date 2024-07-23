@@ -26,7 +26,6 @@ struct FreeAPSSettings: JSON, Equatable {
     var lowGlucose: Decimal = 72
     var highGlucose: Decimal = 270
     var carbsRequiredThreshold: Decimal = 10
-    var animatedBackground: Bool = false
     var useFPUconversion: Bool = true
     var tins: Bool = false
     var individualAdjustmentFactor: Decimal = 0.5
@@ -227,10 +226,6 @@ extension FreeAPSSettings: Decodable {
 
         if let carbsRequiredThreshold = try? container.decode(Decimal.self, forKey: .carbsRequiredThreshold) {
             settings.carbsRequiredThreshold = carbsRequiredThreshold
-        }
-
-        if let animatedBackground = try? container.decode(Bool.self, forKey: .animatedBackground) {
-            settings.animatedBackground = animatedBackground
         }
 
         if let smoothGlucose = try? container.decode(Bool.self, forKey: .smoothGlucose) {
