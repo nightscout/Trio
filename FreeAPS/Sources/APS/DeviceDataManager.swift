@@ -94,6 +94,29 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                     }
                     pumpExpiresAtDate.send(endTime)
                 }
+                if let simulatorPump = pumpManager as? MockPumpManager {
+                    pumpDisplayState.value = PumpDisplayState(name: simulatorPump.localizedTitle, image: simulatorPump.smallImage)
+                    pumpName.send(simulatorPump.localizedTitle)
+                    storage.save(Decimal(simulatorPump.pumpReservoirCapacity), as: OpenAPS.Monitor.reservoir)
+                    DispatchQueue.main.async {
+                        self.broadcaster.notify(PumpReservoirObserver.self, on: .main) {
+                            $0.pumpReservoirDidChange(Decimal(simulatorPump.state.reservoirUnitsRemaining))
+                        }
+                    }
+                    let batteryPercent = Int((simulatorPump.state.pumpBatteryChargeRemaining ?? 1) * 100)
+                    let battery = Battery(
+                        percent: batteryPercent,
+                        voltage: nil,
+                        string: batteryPercent >= 10 ? .normal : .low,
+                        display: simulatorPump.state.pumpBatteryChargeRemaining != nil
+                    )
+                    storage.save(battery, as: OpenAPS.Monitor.battery)
+                    DispatchQueue.main.async {
+                        self.broadcaster.notify(PumpBatteryObserver.self, on: .main) {
+                            $0.pumpBatteryDidChange(battery)
+                        }
+                    }
+                }
             } else {
                 pumpDisplayState.value = nil
                 pumpExpiresAtDate.send(nil)
