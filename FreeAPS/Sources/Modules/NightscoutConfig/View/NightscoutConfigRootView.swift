@@ -119,7 +119,7 @@ extension NightscoutConfig {
             .alert(isPresented: $isImportAlertPresented) {
                 importAlert!
             }
-
+            .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)
         }
     }

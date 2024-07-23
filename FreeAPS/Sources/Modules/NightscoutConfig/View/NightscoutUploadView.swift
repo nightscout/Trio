@@ -4,6 +4,24 @@ import SwiftUI
 struct NightscoutUploadView: View {
     @ObservedObject var state: NightscoutConfig.StateModel
 
+    @Environment(\.colorScheme) var colorScheme
+    var color: LinearGradient {
+        colorScheme == .dark ? LinearGradient(
+            gradient: Gradient(colors: [
+                Color.bgDarkBlue,
+                Color.bgDarkerDarkBlue
+            ]),
+            startPoint: .top,
+            endPoint: .bottom
+        )
+            :
+            LinearGradient(
+                gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+    }
+
     var body: some View {
         Form {
             Section(
@@ -26,5 +44,6 @@ struct NightscoutUploadView: View {
                 }
         }
         .navigationTitle("Upload")
+        .scrollContentBackground(.hidden).background(color)
     }
 }

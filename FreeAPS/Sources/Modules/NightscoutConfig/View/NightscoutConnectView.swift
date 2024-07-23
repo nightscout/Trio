@@ -4,6 +4,24 @@ struct NightscoutConnectView: View {
     @ObservedObject var state: NightscoutConfig.StateModel
     @State private var portFormatter: NumberFormatter
 
+    @Environment(\.colorScheme) var colorScheme
+    var color: LinearGradient {
+        colorScheme == .dark ? LinearGradient(
+            gradient: Gradient(colors: [
+                Color.bgDarkBlue,
+                Color.bgDarkerDarkBlue
+            ]),
+            startPoint: .top,
+            endPoint: .bottom
+        )
+            :
+            LinearGradient(
+                gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+    }
+
     init(state: NightscoutConfig.StateModel) {
         self.state = state
         portFormatter = NumberFormatter()
@@ -61,5 +79,6 @@ struct NightscoutConnectView: View {
             } header: { Text("Local glucose source") }
         }
         .navigationTitle("Connect")
+        .scrollContentBackground(.hidden).background(color)
     }
 }
