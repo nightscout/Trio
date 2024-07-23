@@ -182,7 +182,7 @@ extension Home {
                 timerDate: $state.timerDate,
                 timeZone: $state.timeZone,
                 pumpStatusHighlightMessage: $state.pumpStatusHighlightMessage,
-                battery: state.batteryFromPersistence
+                battery: $state.batteryFromPersistence
             ).onTapGesture {
                 state.setupPump = true
             }
@@ -478,6 +478,12 @@ extension Home {
                             .font(.system(size: 16))
                             .foregroundColor(.insulinTintColor)
                         Text(tempBasalString)
+                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                    } else {
+                        Image(systemName: "drop.circle")
+                            .font(.system(size: 16))
+                            .foregroundColor(.insulinTintColor)
+                        Text("No Data")
                             .font(.system(size: 16, weight: .bold, design: .rounded))
                     }
                 }
