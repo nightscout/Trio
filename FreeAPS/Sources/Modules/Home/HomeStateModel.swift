@@ -199,6 +199,7 @@ extension Home {
                     } else {
                         self.setupReservoir()
                         self.displayPumpStatusHighlightMessage()
+                        self.setupBatteryArray()
                     }
                 }
                 .store(in: &lifetime)
@@ -461,6 +462,7 @@ extension Home.StateModel:
         tins = settingsManager.settings.tins
         cgmAvailable = (fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none)
         displayPumpStatusHighlightMessage()
+        setupBatteryArray()
     }
 
     // TODO: is this ever really triggered? react to MOC changes?
@@ -470,6 +472,7 @@ extension Home.StateModel:
 
     func pumpSettingsDidChange(_: PumpSettings) {
         setupPumpSettings()
+        setupBatteryArray()
     }
 
     func basalProfileDidChange(_: [BasalProfileEntry]) {
@@ -487,6 +490,7 @@ extension Home.StateModel:
 
     func pumpDeactivatedDidChange() {
         displayPumpStatusHighlightMessage(true)
+        batteryFromPersistence = []
     }
 
     func pumpTimeZoneDidChange(_: TimeZone) {

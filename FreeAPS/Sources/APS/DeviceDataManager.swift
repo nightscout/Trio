@@ -97,6 +97,44 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                 }
                 if let simulatorPump = pumpManager as? MockPumpManager {
                     pumpDisplayState.value = PumpDisplayState(name: simulatorPump.localizedTitle, image: simulatorPump.smallImage)
+                    pumpName.send(simulatorPump.localizedTitle)
+                    storage.save(Decimal(simulatorPump.pumpReservoirCapacity), as: OpenAPS.Monitor.reservoir)
+                    DispatchQueue.main.async {
+                        self.broadcaster.notify(PumpReservoirObserver.self, on: .main) {
+                            $0.pumpReservoirDidChange(Decimal(simulatorPump.state.reservoirUnitsRemaining))
+                        }
+                    }
+                    let batteryPercent = Int((simulatorPump.state.pumpBatteryChargeRemaining ?? 1) * 100)
+                    let battery = Battery(
+                        percent: batteryPercent,
+                        voltage: nil,
+                        string: batteryPercent >= 10 ? .normal : .low,
+                        display: simulatorPump.state.pumpBatteryChargeRemaining != nil
+                    )
+                    Task {
+                        await self.privateContext.perform {
+                            let saveBatteryToCoreData = OpenAPS_Battery(context: self.privateContext)
+                            saveBatteryToCoreData.id = UUID()
+                            saveBatteryToCoreData.date = Date()
+                            saveBatteryToCoreData.percent = Int16(batteryPercent)
+                            saveBatteryToCoreData.voltage = nil
+                            saveBatteryToCoreData.status = batteryPercent >= 10 ? BatteryState.normal.rawValue : BatteryState
+                                .low.rawValue
+                            saveBatteryToCoreData.display = simulatorPump.state.pumpBatteryChargeRemaining != nil
+
+                            do {
+                                guard self.privateContext.hasChanges else { return }
+                                try self.privateContext.save()
+                            } catch {
+                                print(error.localizedDescription)
+                            }
+                        }
+                    }
+                    DispatchQueue.main.async {
+                        self.broadcaster.notify(PumpBatteryObserver.self, on: .main) {
+                            $0.pumpBatteryDidChange(battery)
+                        }
+                    }
                 }
             } else {
                 pumpDisplayState.value = nil
@@ -337,7 +375,6 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
             settingsManager.updateInsulinCurve(status.insulinType)
         }
 
-        let batteryPercent = Int((status.pumpBatteryChargeRemaining ?? 1) * 100)
         broadcaster.notify(PumpTimeZoneObserver.self, on: processQueue) {
             $0.pumpTimeZoneDidChange(status.timeZone)
         }
@@ -404,6 +441,12 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
 
             if let startTime = omnipodBLE.state.podState?.activatedAt {
                 storage.save(startTime, as: OpenAPS.Monitor.podAge)
+            }
+        }
+
+        if let simulatorPump = pumpManager as? MockPumpManager {
+            broadcaster.notify(PumpReservoirObserver.self, on: processQueue) {
+                $0.pumpReservoirDidChange(Decimal(simulatorPump.state.reservoirUnitsRemaining))
             }
         }
     }

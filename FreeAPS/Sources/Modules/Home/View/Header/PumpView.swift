@@ -8,7 +8,7 @@ struct PumpView: View {
     @Binding var timerDate: Date
     @Binding var timeZone: TimeZone?
     @Binding var pumpStatusHighlightMessage: String?
-    var battery: [OpenAPS_Battery]
+    @Binding var battery: [OpenAPS_Battery]
 
     @Environment(\.colorScheme) var colorScheme
 
@@ -86,7 +86,7 @@ struct PumpView: View {
                     }
                 }
 
-                if (battery.first?.display) != nil, expiresAtDate == nil {
+                if (battery.first?.display) != nil, let shouldBatteryDisplay = battery.first?.display, shouldBatteryDisplay {
                     HStack {
                         Image(systemName: "battery.100")
                             .font(.system(size: 16))
