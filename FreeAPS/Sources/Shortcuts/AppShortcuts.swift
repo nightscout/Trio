@@ -4,6 +4,13 @@ import Foundation
 @available(iOS 16.0, *) struct AppShortcuts: AppShortcutsProvider {
     @AppShortcutsBuilder static var appShortcuts: [AppShortcut] {
         AppShortcut(
+            intent: BolusIntent(),
+            phrases: [
+                "\(.applicationName) Bolus",
+                "Enacts a \(.applicationName) Bolus"
+            ]
+        )
+        AppShortcut(
             intent: ApplyTempPresetIntent(),
             phrases: [
                 "Activate \(.applicationName) temporary target ?",
