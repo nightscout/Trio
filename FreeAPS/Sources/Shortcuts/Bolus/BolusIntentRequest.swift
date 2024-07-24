@@ -12,7 +12,7 @@ import Foundation
         switch settingsManager.settings.bolusShortcut {
         case .noAllowed:
             return LocalizedStringResource(
-                "the bolus is not allowed with shortcuts",
+                "Bolusing is not allowed with Shortcuts",
                 table: "ShortcutsDetail"
             )
         case .limitBolusMax:
