@@ -79,6 +79,7 @@ extension Home {
         @Published var isOverrideCancelled: Bool = false
         @Published var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
         @Published var pumpStatusHighlightMessage: String? = nil
+        @Published var cgmAvailable: Bool = false
 
         let context = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
@@ -126,6 +127,7 @@ extension Home {
             displayYgridLines = settingsManager.settings.yGridLines
             thresholdLines = settingsManager.settings.rulerMarks
             tins = settingsManager.settings.tins
+            cgmAvailable = fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none
 
             broadcaster.register(GlucoseObserver.self, observer: self)
             broadcaster.register(DeterminationObserver.self, observer: self)
@@ -197,6 +199,7 @@ extension Home {
                     } else {
                         self.setupReservoir()
                         self.displayPumpStatusHighlightMessage()
+                        self.setupBatteryArray()
                     }
                 }
                 .store(in: &lifetime)
@@ -434,6 +437,7 @@ extension Home.StateModel:
     PumpTimeZoneObserver,
     PumpDeactivatedObserver
 {
+    // TODO: still needed?
     func glucoseDidUpdate(_: [BloodGlucose]) {
 //        setupGlucose()
     }
@@ -456,14 +460,19 @@ extension Home.StateModel:
         displayYgridLines = settingsManager.settings.yGridLines
         thresholdLines = settingsManager.settings.rulerMarks
         tins = settingsManager.settings.tins
+        cgmAvailable = (fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none)
+        displayPumpStatusHighlightMessage()
+        setupBatteryArray()
     }
 
+    // TODO: is this ever really triggered? react to MOC changes?
     func pumpHistoryDidUpdate(_: [PumpHistoryEvent]) {
         displayPumpStatusHighlightMessage()
     }
 
     func pumpSettingsDidChange(_: PumpSettings) {
         setupPumpSettings()
+        setupBatteryArray()
     }
 
     func basalProfileDidChange(_: [BasalProfileEntry]) {
@@ -481,6 +490,7 @@ extension Home.StateModel:
 
     func pumpDeactivatedDidChange() {
         displayPumpStatusHighlightMessage(true)
+        batteryFromPersistence = []
     }
 
     func pumpTimeZoneDidChange(_: TimeZone) {

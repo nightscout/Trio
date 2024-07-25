@@ -521,10 +521,12 @@ extension MainChartView {
         ForEach(state.preprocessedData, id: \.id) { tuple in
             let forecastValue = tuple.forecastValue
             let forecast = tuple.forecast
+            let valueAsDecimal = Decimal(forecastValue.value)
+            let displayValue = units == .mmolL ? valueAsDecimal.asMmolL : valueAsDecimal
 
             LineMark(
                 x: .value("Time", timeForIndex(forecastValue.index)),
-                y: .value("Value", Int(forecastValue.value))
+                y: .value("Value", displayValue)
             )
             .foregroundStyle(by: .value("Predictions", forecast.type ?? ""))
         }

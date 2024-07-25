@@ -7,6 +7,8 @@ struct CurrentGlucoseView: View {
     @Binding var alarm: GlucoseAlarm?
     @Binding var lowGlucose: Decimal
     @Binding var highGlucose: Decimal
+    @Binding var cgmAvailable: Bool
+
     var glucose: [GlucoseStored]
     var manualGlucose: [GlucoseStored]
 
@@ -74,69 +76,82 @@ struct CurrentGlucoseView: View {
     var body: some View {
         let triangleColor = Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902)
 
-        ZStack {
-            TrendShape(gradient: angularGradient, color: triangleColor)
-                .rotationEffect(.degrees(rotationDegrees))
+        if cgmAvailable {
+            ZStack {
+                TrendShape(gradient: angularGradient, color: triangleColor)
+                    .rotationEffect(.degrees(rotationDegrees))
 
-            VStack(alignment: .center) {
-                HStack {
-                    if let glucoseValue = combinedGlucoseValues.first?.glucose {
-                        let displayGlucose = convertGlucose(glucoseValue, to: units)
-                        Text(
-                            glucoseValue == 400 ? "HIGH" :
-                                glucoseFormatter.string(from: NSNumber(value: displayGlucose)) ?? "--"
-                        )
-                        .font(.system(size: 40, weight: .bold, design: .rounded))
-                        .foregroundColor(alarm == nil ? colourGlucoseText : .loopRed)
-                    } else {
-                        Text("--")
+                VStack(alignment: .center) {
+                    HStack {
+                        if let glucoseValue = combinedGlucoseValues.first?.glucose {
+                            let displayGlucose = convertGlucose(glucoseValue, to: units)
+                            Text(
+                                glucoseValue == 400 ? "HIGH" :
+                                    glucoseFormatter.string(from: NSNumber(value: displayGlucose)) ?? "--"
+                            )
                             .font(.system(size: 40, weight: .bold, design: .rounded))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(alarm == nil ? colourGlucoseText : .loopRed)
+                        } else {
+                            Text("--")
+                                .font(.system(size: 40, weight: .bold, design: .rounded))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    HStack {
+                        let minutesAgo = -1 * (combinedGlucoseValues.first?.date?.timeIntervalSinceNow ?? 0) / 60
+                        let text = timaAgoFormatter.string(for: Double(minutesAgo)) ?? ""
+                        Text(
+                            minutesAgo <= 1 ? "< 1 " + NSLocalizedString("min", comment: "Short form for minutes") : (
+                                text + " " +
+                                    NSLocalizedString("min", comment: "Short form for minutes") + " "
+                            )
+                        )
+                        .font(.caption2).foregroundColor(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
+
+                        Text(
+                            delta
+                        )
+                        .font(.caption2).foregroundColor(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
+                    }.frame(alignment: .top)
+                }
+            }
+            .onChange(of: combinedGlucoseValues.first?.directionEnum) { newDirection in
+                withAnimation {
+                    switch newDirection {
+                    case .doubleUp,
+                         .singleUp,
+                         .tripleUp:
+                        rotationDegrees = -90
+                    case .fortyFiveUp:
+                        rotationDegrees = -45
+                    case .flat:
+                        rotationDegrees = 0
+                    case .fortyFiveDown:
+                        rotationDegrees = 45
+                    case .doubleDown,
+                         .singleDown,
+                         .tripleDown:
+                        rotationDegrees = 90
+                    case nil,
+                         .notComputable,
+                         .rateOutOfRange:
+                        rotationDegrees = 0
+                    default:
+                        rotationDegrees = 0
                     }
                 }
+            }
+        } else {
+            VStack(alignment: .center, spacing: 12) {
+                HStack
+                    {
+                        // no cgm defined so display a generic CGM
+                        Image(systemName: "sensor.tag.radiowaves.forward.fill").font(.body).imageScale(.large)
+                    }
                 HStack {
-                    let minutesAgo = -1 * (combinedGlucoseValues.first?.date?.timeIntervalSinceNow ?? 0) / 60
-                    let text = timaAgoFormatter.string(for: Double(minutesAgo)) ?? ""
-                    Text(
-                        minutesAgo <= 1 ? "< 1 " + NSLocalizedString("min", comment: "Short form for minutes") : (
-                            text + " " +
-                                NSLocalizedString("min", comment: "Short form for minutes") + " "
-                        )
-                    )
-                    .font(.caption2).foregroundColor(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
-
-                    Text(
-                        delta
-                    )
-                    .font(.caption2).foregroundColor(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
-                }.frame(alignment: .top)
-            }
-        }
-        .onChange(of: combinedGlucoseValues.first?.directionEnum) { newDirection in
-            withAnimation {
-                switch newDirection {
-                case .doubleUp,
-                     .singleUp,
-                     .tripleUp:
-                    rotationDegrees = -90
-                case .fortyFiveUp:
-                    rotationDegrees = -45
-                case .flat:
-                    rotationDegrees = 0
-                case .fortyFiveDown:
-                    rotationDegrees = 45
-                case .doubleDown,
-                     .singleDown,
-                     .tripleDown:
-                    rotationDegrees = 90
-                case nil,
-                     .notComputable,
-                     .rateOutOfRange:
-                    rotationDegrees = 0
-                default:
-                    rotationDegrees = 0
+                    Text("Add CGM").font(.caption).bold()
                 }
-            }
+            }.frame(alignment: .top)
         }
     }
 
