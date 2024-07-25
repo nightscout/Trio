@@ -147,27 +147,51 @@ extension TextFieldWithToolBar.Coordinator: UITextFieldDelegate {
         // Check if the input is a number or the decimal separator
         let isNumber = CharacterSet.decimalDigits.isSuperset(of: CharacterSet(charactersIn: string))
         let isDecimalSeparator = (string == decimalFormatter.decimalSeparator && textField.text?.contains(string) == false)
+        var allowChange = true
 
         // Only proceed if the input is a valid number or decimal separator
         if isNumber || isDecimalSeparator && parent.allowDecimalSeparator,
            let currentText = textField.text as NSString?
         {
             // Get the proposed new text
-            let proposedText = currentText.replacingCharacters(in: range, with: string)
+            var proposedText = currentText.replacingCharacters(in: range, with: string)
 
-            // Try to convert proposed text to number
+            // Remove thousand separator
+            let thousandsSep = Locale.current.groupingSeparator
+            proposedText = proposedText.replacingOccurrences(of: thousandsSep!, with: "")
+
             let number = parent.numberFormatter.number(from: proposedText) ?? decimalFormatter.number(from: proposedText)
 
             // Update the binding value if conversion is successful
             if let number = number {
-                parent.text = number.decimalValue
+                let lastCharIndex = proposedText.index(before: proposedText.endIndex)
+                let hasDecimalSeparator = proposedText.contains(decimalFormatter.decimalSeparator)
+                let hasTrailingZeros = (
+                    parent.numberFormatter
+                        .maximumFractionDigits > 1 && hasDecimalSeparator && proposedText[lastCharIndex] == "0"
+                ) ||
+                    (isDecimalSeparator && parent.numberFormatter.allowsFloats)
+                if !parent.numberFormatter.allowsFloats || !hasTrailingZeros
+                {
+                    parent.text = number.decimalValue
+                }
+                if parent.numberFormatter.allowsFloats, hasDecimalSeparator {
+                    let rangeOfDecimal = proposedText.range(of: decimalFormatter.decimalSeparator)
+                    let decimalIndexInt: Int = proposedText.distance(
+                        from: proposedText.startIndex,
+                        to: rangeOfDecimal!.lowerBound
+                    )
+                    let maxDigits = decimalIndexInt + parent.numberFormatter.maximumFractionDigits + 1
+                    allowChange = proposedText.count > maxDigits ? false : true
+                }
             } else {
                 parent.text = 0
             }
         }
 
         // Allow the change if it's a valid number or decimal separator
-        return isNumber || isDecimalSeparator && parent.allowDecimalSeparator
+        return isNumber && allowChange || isDecimalSeparator && parent.allowDecimalSeparator && parent.numberFormatter
+            .allowsFloats
     }
 
     public func textFieldDidBeginEditing(_: UITextField) {
