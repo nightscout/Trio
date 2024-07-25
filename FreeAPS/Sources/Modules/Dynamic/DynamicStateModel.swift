@@ -8,7 +8,8 @@ extension Dynamic {
         @Published var useNewFormula: Bool = false
         @Published var enableDynamicCR: Bool = false
         @Published var sigmoid: Bool = false
-        @Published var adjustmentFactor: Decimal = 0.5
+        @Published var adjustmentFactor: Decimal = 0.8
+        @Published var adjustmentFactorSigmoid: Decimal = 0.5
         @Published var weightPercentage: Decimal = 0.65
         @Published var tddAdjBasal: Bool = false
         @Published var threshold_setting: Decimal = 65
@@ -24,6 +25,7 @@ extension Dynamic {
             enableDynamicCR = settings.preferences.enableDynamicCR
             sigmoid = settings.preferences.sigmoid
             adjustmentFactor = settings.preferences.adjustmentFactor
+            adjustmentFactorSigmoid = settings.preferences.adjustmentFactorSigmoid
             weightPercentage = settings.preferences.weightPercentage
             tddAdjBasal = settings.preferences.tddAdjBasal
 
@@ -38,6 +40,7 @@ extension Dynamic {
             preferences.enableDynamicCR == enableDynamicCR &&
                 preferences.adjustmentFactor == adjustmentFactor &&
                 preferences.sigmoid == sigmoid &&
+                preferences.adjustmentFactorSigmoid == adjustmentFactorSigmoid &&
                 preferences.tddAdjBasal == tddAdjBasal &&
                 preferences.threshold_setting == convertBack(threshold_setting) &&
                 preferences.useNewFormula == useNewFormula &&
@@ -57,6 +60,7 @@ extension Dynamic {
                 newSettings.enableDynamicCR = enableDynamicCR
                 newSettings.adjustmentFactor = adjustmentFactor
                 newSettings.sigmoid = sigmoid
+                newSettings.adjustmentFactorSigmoid = adjustmentFactorSigmoid
                 newSettings.tddAdjBasal = tddAdjBasal
                 newSettings.threshold_setting = convertBack(threshold_setting)
                 newSettings.useNewFormula = useNewFormula

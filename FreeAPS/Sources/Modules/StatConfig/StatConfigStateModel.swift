@@ -7,7 +7,6 @@ extension StatConfig {
         @Published var skipBolusScreenAfterCarbs: Bool = false
         @Published var useFPUconversion: Bool = true
         @Published var tins: Bool = false
-        @Published var historyLayout: HistoryLayout = .twoTabs
         @Published var lockScreenView: LockScreenView = .simple
         @Published var low: Decimal = 70
         @Published var high: Decimal = 180
@@ -31,7 +30,6 @@ extension StatConfig {
             subscribeSetting(\.tins, on: $tins) { tins = $0 }
             subscribeSetting(\.skipBolusScreenAfterCarbs, on: $skipBolusScreenAfterCarbs) { skipBolusScreenAfterCarbs = $0 }
             subscribeSetting(\.oneDimensionalGraph, on: $oneDimensionalGraph) { oneDimensionalGraph = $0 }
-            subscribeSetting(\.historyLayout, on: $historyLayout) { historyLayout = $0 }
             subscribeSetting(\.lockScreenView, on: $lockScreenView) { lockScreenView = $0 }
 
             subscribeSetting(\.low, on: $low, initial: {

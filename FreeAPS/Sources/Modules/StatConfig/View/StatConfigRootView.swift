@@ -82,17 +82,6 @@ extension StatConfig {
 
                 Section {
                     Picker(
-                        selection: $state.historyLayout,
-                        label: Text("History Layout")
-                    ) {
-                        ForEach(HistoryLayout.allCases) { selection in
-                            Text(selection.displayName).tag(selection)
-                        }
-                    }
-                } header: { Text("History Settings") }
-
-                Section {
-                    Picker(
                         selection: $state.lockScreenView,
                         label: Text("Lock screen widget")
                     ) {
