@@ -154,11 +154,10 @@ extension TextFieldWithToolBar.Coordinator: UITextFieldDelegate {
            let currentText = textField.text as NSString?
         {
             // Get the proposed new text
-            var proposedText = currentText.replacingCharacters(in: range, with: string)
+            let proposedTextOriginal = currentText.replacingCharacters(in: range, with: string)
 
             // Remove thousand separator
-            let thousandsSep = Locale.current.groupingSeparator
-            proposedText = proposedText.replacingOccurrences(of: thousandsSep!, with: "")
+            let proposedText = proposedTextOriginal.replacingOccurrences(of: decimalFormatter.groupingSeparator, with: "")
 
             let number = parent.numberFormatter.number(from: proposedText) ?? decimalFormatter.number(from: proposedText)
 
@@ -183,6 +182,19 @@ extension TextFieldWithToolBar.Coordinator: UITextFieldDelegate {
                     )
                     let maxDigits = decimalIndexInt + parent.numberFormatter.maximumFractionDigits + 1
                     allowChange = proposedText.count > maxDigits ? false : true
+
+                    // Remove trailing zeros when FractionDigits are all zero
+                    if proposedText.count == maxDigits {
+                        var pattern = "[" + decimalFormatter.decimalSeparator + "]{1}[0]"
+                        pattern += "{" + String(parent.numberFormatter.maximumFractionDigits) + "}"
+                        let regex = NSRegularExpression(pattern)
+                        let matches = regex.matches(proposedText)
+                        if matches {
+                            let resultText = String(proposedText[...rangeOfDecimal!.lowerBound])
+                            let trailingZerosNumber = parent.numberFormatter.number(from: resultText)
+                            parent.text = trailingZerosNumber?.decimalValue ?? 0
+                        }
+                    }
                 }
             } else {
                 parent.text = 0
@@ -196,6 +208,21 @@ extension TextFieldWithToolBar.Coordinator: UITextFieldDelegate {
 
     public func textFieldDidBeginEditing(_: UITextField) {
         parent.textFieldDidBeginEditing?()
+    }
+}
+
+extension NSRegularExpression {
+    convenience init(_ pattern: String) {
+        do {
+            try self.init(pattern: pattern)
+        } catch {
+            preconditionFailure("Illegal regular expression: \(pattern).")
+        }
+    }
+
+    func matches(_ string: String) -> Bool {
+        let range = NSRange(location: 0, length: string.utf16.count)
+        return firstMatch(in: string, options: [], range: range) != nil
     }
 }
 
