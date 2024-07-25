@@ -4,6 +4,8 @@ import Foundation
 
 @available(iOS 16.0,*) final class BolusIntentRequest: BaseIntentsRequest {
     private var suggestion: Determination? {
+        //TODO: CRITICAL
+        /// This MUST update to use the latest determination's insulinRequired from Core Data
         fileStorage.retrieve(OpenAPS.Enact.suggested, as: Determination.self)
     }
 
@@ -21,7 +23,7 @@ import Foundation
         case .limitBolusMax:
             if Decimal(bolusAmount) > settingsManager.pumpSettings.maxBolus {
                 return LocalizedStringResource(
-                    "The bolus cannot be larger than the pump setting max bolus.",
+                    "The bolus cannot be larger than the pump setting max bolus (\(settingsManager.pumpSettings.maxBolus.description)).",
                     table: "ShortcutsDetail"
                 )
             } else {
@@ -33,7 +35,14 @@ import Foundation
             let insulinSuggestion = suggestion?.insulinForManualBolus ?? 0
             if Decimal(bolusAmount) > insulinSuggestion {
                 return LocalizedStringResource(
-                    "The bolus cannot be larger than the suggested insulin.",
+                    "The bolus cannot be larger than the suggested insulin (\(insulinSuggestion.description)).",
+                    table: "ShortcutsDetail"
+                )
+            }
+            // Also make sure that no matter what, the bolus doesn't exceed the max setting in Trio
+            else if Decimal(bolusAmount) > settingsManager.pumpSettings.maxBolus {
+                return LocalizedStringResource(
+                    "The bolus cannot be larger than the pump setting max bolus (\(settingsManager.pumpSettings.maxBolus.description)).",
                     table: "ShortcutsDetail"
                 )
             } else {
