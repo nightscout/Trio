@@ -4,7 +4,7 @@ import Foundation
 
 @available(iOS 16.0,*) final class BolusIntentRequest: BaseIntentsRequest {
     private var suggestion: Determination? {
-        //TODO: CRITICAL
+        // TODO: CRITICAL
         /// This MUST update to use the latest determination's insulinRequired from Core Data
         fileStorage.retrieve(OpenAPS.Enact.suggested, as: Determination.self)
     }
@@ -30,8 +30,25 @@ import Foundation
                 bolusQuantity = apsManager.roundBolus(amount: Decimal(bolusAmount))
             }
 
-        // Block any bolus attempted if it is larger than the max bolus in settings
+        // Block any bolus attempted if it is larger than the insulin recommended
         case .limitInsulinSuggestion:
+            /*
+             case .limitInsulinSuggestion:
+                 let lastDetermination = await CoreDataStack.shared.fetchEntitiesAsync(
+                     ofType: OrefDetermination.self,
+                     onContext: coredataContext,
+                     predicate: NSPredicate.predicateFor30MinAgoForDetermination,
+                     key: "deliveryAt", ascending: false,
+                     fetchLimit: 1
+                 )
+                 guard let latest = lastDetermination.first else {
+                     return LocalizedStringResource(
+                         "Error retrieving suggested insulin amount guardrail.",
+                         table: "ShortcutsDetail"
+                     )
+                 }
+                 let insulinSuggestion = latest.insulinForManualBolus ?? 0
+             */
             let insulinSuggestion = suggestion?.insulinForManualBolus ?? 0
             if Decimal(bolusAmount) > insulinSuggestion {
                 return LocalizedStringResource(
