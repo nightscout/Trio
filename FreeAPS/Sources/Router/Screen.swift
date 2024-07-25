@@ -36,7 +36,6 @@ enum Screen: Identifiable, Hashable {
     case calibrations
     case shortcutsConfig
 
-
     var id: Int { String(reflecting: self).hashValue }
 }
 

@@ -327,7 +327,7 @@ extension FreeAPSSettings: Decodable {
         if let lockScreenView = try? container.decode(LockScreenView.self, forKey: .lockScreenView) {
             settings.lockScreenView = lockScreenView
         }
-        
+
         if let bolusShortcut = try? container.decode(BolusShortcutLimit.self, forKey: .bolusShortcut) {
             settings.bolusShortcut = bolusShortcut
         }
