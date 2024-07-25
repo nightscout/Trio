@@ -40,8 +40,9 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
     private var deltaFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 1
+        formatter.maximumFractionDigits = settingsManager.settings.units == .mmolL ? 1 : 0
         formatter.positivePrefix = "+"
+        formatter.negativePrefix = "-"
         return formatter
     }
 
@@ -201,7 +202,8 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
                 state.trend = firstGlucoseValue.direction
                 let delta = glucoseValues
                     .count >= 2 ? Decimal(firstGlucoseValue.glucose) - Decimal(glucoseValues.dropFirst().first?.glucose ?? 0) : 0
-                state.delta = glucoseFormatter.string(from: delta as NSNumber)
+                let deltaConverted = settingsManager.settings.units == .mgdL ? delta : delta.asMmolL
+                state.delta = deltaFormatter.string(from: deltaConverted as NSNumber)
                 state.trendRaw = firstGlucoseValue.direction
                 state.glucoseDate = firstGlucoseValue.date
             }
