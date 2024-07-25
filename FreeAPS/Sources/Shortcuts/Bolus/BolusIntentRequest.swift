@@ -8,29 +8,44 @@ import Foundation
     }
 
     func bolus(_ bolusAmount: Double) async throws -> LocalizedStringResource {
-        var bolusQ: Decimal = 0
+        var bolusQuantity: Decimal = 0
         switch settingsManager.settings.bolusShortcut {
-        case .noAllowed:
+        
+        //Block boluses if they are disabled
+        case .notAllowed:
             return LocalizedStringResource(
-                "Bolusing is not allowed with Shortcuts",
+                "Bolusing is not allowed with shortcuts.",
                 table: "ShortcutsDetail"
             )
+        
+        //Block any bolus attempted if it is larger than the max bolus in settings
         case .limitBolusMax:
-            bolusQ = apsManager
-                .roundBolus(amount: min(settingsManager.pumpSettings.maxBolus, Decimal(bolusAmount)))
+            if Decimal(bolusAmount) > settingsManager.pumpSettings.maxBolus {
+                return LocalizedStringResource(
+                    "The bolus cannot be larger than the pump setting max bolus.",
+                    table: "ShortcutsDetail"
+                )
+            } else {
+                bolusQuantity = apsManager.roundBolus(amount: Decimal(bolusAmount))
+            }
+        
+        //Block any bolus attempted if it is larger than the max bolus in settings
         case .limitInsulinSuggestion:
             let insulinSuggestion = suggestion?.insulinForManualBolus ?? 0
-
-            bolusQ = apsManager
-                .roundBolus(amount: min(
-                    insulinSuggestion * (settingsManager.settings.insulinReqPercentage / 100),
-                    Decimal(bolusAmount)
-                ))
+            if Decimal(bolusAmount) > insulinSuggestion {
+                return LocalizedStringResource(
+                    "The bolus cannot be larger than the suggested insulin.",
+                    table: "ShortcutsDetail"
+                )
+            } else {
+                bolusQuantity = apsManager
+                    .roundBolus(amount: Decimal(bolusAmount))
+            }
         }
 
-        await apsManager.enactBolus(amount: Double(bolusQ), isSMB: false)
+        await apsManager.enactBolus(amount: Double(bolusQuantity), isSMB: false)
         return LocalizedStringResource(
-            "A bolus command of \(bolusQ.formatted()) U of insulin was sent",
+            "A bolus command of \(bolusQuantity.formatted()) U of insulin was sent",
             table: "ShortcutsDetail"
         )
     }

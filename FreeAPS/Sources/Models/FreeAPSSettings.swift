@@ -2,18 +2,18 @@ import Foundation
 
 enum BolusShortcutLimit: String, JSON, CaseIterable, Identifiable {
     var id: String { rawValue }
-    case noAllowed
+    case notAllowed
     case limitBolusMax
     case limitInsulinSuggestion
 
     var displayName: String {
         switch self {
-        case .noAllowed:
+        case .notAllowed:
             return String(localized: "Not allowed", table: "ShortcutsDetail")
         case .limitBolusMax:
-            return String(localized: "Limit by max bolus", table: "ShortcutsDetail")
+            return String(localized: "Max bolus", table: "ShortcutsDetail")
         case .limitInsulinSuggestion:
-            return String(localized: "Limit by insulin suggestion estimation", table: "ShortcutsDetail")
+            return String(localized: "Insulin recommended", table: "ShortcutsDetail")
         }
     }
 }
@@ -78,7 +78,7 @@ struct FreeAPSSettings: JSON, Equatable {
     var useLiveActivity: Bool = false
     var historyLayout: HistoryLayout = .twoTabs
     var lockScreenView: LockScreenView = .simple
-    var bolusShortcut: BolusShortcutLimit = .noAllowed
+    var bolusShortcut: BolusShortcutLimit = .notAllowed
 }
 
 extension FreeAPSSettings: Decodable {
