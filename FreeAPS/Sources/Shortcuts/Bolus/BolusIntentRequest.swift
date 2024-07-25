@@ -10,15 +10,14 @@ import Foundation
     func bolus(_ bolusAmount: Double) async throws -> LocalizedStringResource {
         var bolusQuantity: Decimal = 0
         switch settingsManager.settings.bolusShortcut {
-        
-        //Block boluses if they are disabled
+        // Block boluses if they are disabled
         case .notAllowed:
             return LocalizedStringResource(
                 "Bolusing is not allowed with shortcuts.",
                 table: "ShortcutsDetail"
             )
-        
-        //Block any bolus attempted if it is larger than the max bolus in settings
+
+        // Block any bolus attempted if it is larger than the max bolus in settings
         case .limitBolusMax:
             if Decimal(bolusAmount) > settingsManager.pumpSettings.maxBolus {
                 return LocalizedStringResource(
@@ -28,8 +27,8 @@ import Foundation
             } else {
                 bolusQuantity = apsManager.roundBolus(amount: Decimal(bolusAmount))
             }
-        
-        //Block any bolus attempted if it is larger than the max bolus in settings
+
+        // Block any bolus attempted if it is larger than the max bolus in settings
         case .limitInsulinSuggestion:
             let insulinSuggestion = suggestion?.insulinForManualBolus ?? 0
             if Decimal(bolusAmount) > insulinSuggestion {
