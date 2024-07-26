@@ -142,6 +142,8 @@ extension Settings {
                     if HKHealthStore.isHealthDataAvailable() {
                         Text("Apple Health").navigationLink(to: .healthkit, from: self)
                     }
+
+                    Text("Shortcuts", tableName: "ShortcutsDetail").navigationLink(to: .shortcutsConfig, from: self)
                 } header: { Text("Services") }.listRowBackground(Color.chart)
 
                 Section {
