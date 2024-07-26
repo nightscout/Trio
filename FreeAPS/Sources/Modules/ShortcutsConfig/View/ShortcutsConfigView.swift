@@ -22,7 +22,7 @@ extension ShortcutsConfig {
 
                 Section(header: Text("Options", tableName: "ShorcutsDetail")) {
                     Toggle(
-                        String(localized: "Allow bolusing with shortcuts", table: "ShortcutsDetail"),
+                        String(localized: "Allow bolusing with Shortcuts", table: "ShortcutsDetail"),
                         isOn: $state.allowBolusByShortcuts
                     )
                 }

@@ -25,7 +25,7 @@ import Swinject
         /// A preferred approach would be to just block negatives and not specify an upperBound here, since it is implemented elsewhere
         inclusiveRange: (lowerBound: 0, upperBound: 200),
         requestValueDialog: IntentDialog(LocalizedStringResource(
-            "What is the value of the bolus amount in insulin units?",
+            "Bolus amount (units of insulin)?",
             table: "ShortcutsDetail"
         ))
     ) var bolusQuantity: Double

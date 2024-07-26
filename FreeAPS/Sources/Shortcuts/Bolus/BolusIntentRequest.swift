@@ -9,7 +9,7 @@ import Foundation
         // Block boluses if they are disabled
         case .notAllowed:
             return LocalizedStringResource(
-                "Bolusing is not allowed with shortcuts.",
+                "Bolusing via Shortcuts is disabled in Trio settings.",
                 table: "ShortcutsDetail"
             )
 

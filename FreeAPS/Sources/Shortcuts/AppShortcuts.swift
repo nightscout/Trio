@@ -6,7 +6,7 @@ import Foundation
         AppShortcut(
             intent: BolusIntent(),
             phrases: [
-                "\(.applicationName) Bolus",
+                "\(.applicationName) bolus",
                 "Enacts a \(.applicationName) Bolus"
             ]
         )
