@@ -1,5 +1,20 @@
 import Foundation
 
+enum BolusShortcutLimit: String, JSON, CaseIterable, Identifiable {
+    var id: String { rawValue }
+    case notAllowed
+    case limitBolusMax
+
+    var displayName: String {
+        switch self {
+        case .notAllowed:
+            return String(localized: "Not allowed", table: "ShortcutsDetail")
+        case .limitBolusMax:
+            return String(localized: "Max bolus", table: "ShortcutsDetail")
+        }
+    }
+}
+
 struct FreeAPSSettings: JSON, Equatable {
     var units: GlucoseUnits = .mgdL
     var closedLoop: Bool = false
@@ -60,6 +75,7 @@ struct FreeAPSSettings: JSON, Equatable {
     var useLiveActivity: Bool = false
     var historyLayout: HistoryLayout = .twoTabs
     var lockScreenView: LockScreenView = .simple
+    var bolusShortcut: BolusShortcutLimit = .notAllowed
 }
 
 extension FreeAPSSettings: Decodable {
@@ -307,6 +323,10 @@ extension FreeAPSSettings: Decodable {
 
         if let lockScreenView = try? container.decode(LockScreenView.self, forKey: .lockScreenView) {
             settings.lockScreenView = lockScreenView
+        }
+
+        if let bolusShortcut = try? container.decode(BolusShortcutLimit.self, forKey: .bolusShortcut) {
+            settings.bolusShortcut = bolusShortcut
         }
 
         self = settings

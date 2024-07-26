@@ -59,6 +59,7 @@ extension Settings {
                     if HKHealthStore.isHealthDataAvailable() {
                         Text("Apple Health").navigationLink(to: .healthkit, from: self)
                     }
+                    Text("Shortcuts", tableName: "ShortcutsDetail").navigationLink(to: .shortcutsConfig, from: self)
                     Text("Notifications").navigationLink(to: .notificationsConfig, from: self)
                     Text("Bolus Calculator").navigationLink(to: .bolusCalculatorConfig, from: self)
                     Text("App Icons").navigationLink(to: .iconConfig, from: self)

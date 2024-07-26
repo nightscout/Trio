@@ -11,6 +11,12 @@
 		0437CE46C12535A56504EC19 /* SnoozeRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5822B15939E719628E9FF7C /* SnoozeRootView.swift */; };
 		0D9A5E34A899219C5C4CDFAF /* DataTableStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9455FA2D92E77A6C4AFED8A3 /* DataTableStateModel.swift */; };
 		0F7A65FBD2CD8D6477ED4539 /* NotificationsConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E625985B47742D498CB1681A /* NotificationsConfigProvider.swift */; };
+		110AEDE32C5193D200615CC9 /* BolusIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AEDE02C5193D100615CC9 /* BolusIntent.swift */; };
+		110AEDE42C5193D200615CC9 /* BolusIntentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AEDE12C5193D100615CC9 /* BolusIntentRequest.swift */; };
+		110AEDEB2C51A0AE00615CC9 /* ShortcutsConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AEDE52C51A0AE00615CC9 /* ShortcutsConfigView.swift */; };
+		110AEDEC2C51A0AE00615CC9 /* ShortcutsConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AEDE72C51A0AE00615CC9 /* ShortcutsConfigDataFlow.swift */; };
+		110AEDED2C51A0AE00615CC9 /* ShortcutsConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AEDE82C51A0AE00615CC9 /* ShortcutsConfigProvider.swift */; };
+		110AEDEE2C51A0AE00615CC9 /* ShortcutsConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AEDE92C51A0AE00615CC9 /* ShortcutsConfigStateModel.swift */; };
 		17A9D0899046B45E87834820 /* CREditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C8D5F457B5AFF763F8CF3DF /* CREditorProvider.swift */; };
 		19012CDC291D2CB900FB8210 /* LoopStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19012CDB291D2CB900FB8210 /* LoopStats.swift */; };
 		190EBCC429FF136900BA767D /* StatConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 190EBCC329FF136900BA767D /* StatConfigDataFlow.swift */; };
@@ -543,6 +549,12 @@
 /* Begin PBXFileReference section */
 		0274EE6439B1C3ED70730D41 /* PumpSettingsEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpSettingsEditorDataFlow.swift; sourceTree = "<group>"; };
 		0CA3E609094E064C99A4752C /* PreferencesEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PreferencesEditorStateModel.swift; sourceTree = "<group>"; };
+		110AEDE02C5193D100615CC9 /* BolusIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntent.swift; sourceTree = "<group>"; };
+		110AEDE12C5193D100615CC9 /* BolusIntentRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntentRequest.swift; sourceTree = "<group>"; };
+		110AEDE52C51A0AE00615CC9 /* ShortcutsConfigView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortcutsConfigView.swift; sourceTree = "<group>"; };
+		110AEDE72C51A0AE00615CC9 /* ShortcutsConfigDataFlow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortcutsConfigDataFlow.swift; sourceTree = "<group>"; };
+		110AEDE82C51A0AE00615CC9 /* ShortcutsConfigProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortcutsConfigProvider.swift; sourceTree = "<group>"; };
+		110AEDE92C51A0AE00615CC9 /* ShortcutsConfigStateModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortcutsConfigStateModel.swift; sourceTree = "<group>"; };
 		12204445D7632AF09264A979 /* PreferencesEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PreferencesEditorDataFlow.swift; sourceTree = "<group>"; };
 		19012CDB291D2CB900FB8210 /* LoopStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopStats.swift; sourceTree = "<group>"; };
 		190EBCC329FF136900BA767D /* StatConfigDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatConfigDataFlow.swift; sourceTree = "<group>"; };
@@ -1136,6 +1148,34 @@
 			path = View;
 			sourceTree = "<group>";
 		};
+		110AEDE22C5193D100615CC9 /* Bolus */ = {
+			isa = PBXGroup;
+			children = (
+				110AEDE02C5193D100615CC9 /* BolusIntent.swift */,
+				110AEDE12C5193D100615CC9 /* BolusIntentRequest.swift */,
+			);
+			path = Bolus;
+			sourceTree = "<group>";
+		};
+		110AEDE62C51A0AE00615CC9 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				110AEDE52C51A0AE00615CC9 /* ShortcutsConfigView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		110AEDEA2C51A0AE00615CC9 /* ShortcutsConfig */ = {
+			isa = PBXGroup;
+			children = (
+				110AEDE62C51A0AE00615CC9 /* View */,
+				110AEDE72C51A0AE00615CC9 /* ShortcutsConfigDataFlow.swift */,
+				110AEDE82C51A0AE00615CC9 /* ShortcutsConfigProvider.swift */,
+				110AEDE92C51A0AE00615CC9 /* ShortcutsConfigStateModel.swift */,
+			);
+			path = ShortcutsConfig;
+			sourceTree = "<group>";
+		};
 		18B49BC9587A59E3A347C1CD /* View */ = {
 			isa = PBXGroup;
 			children = (
@@ -1289,6 +1329,7 @@
 		3811DE0325C9D31700A708ED /* Modules */ = {
 			isa = PBXGroup;
 			children = (
+				110AEDEA2C51A0AE00615CC9 /* ShortcutsConfig */,
 				DDD163032C4C67B400CD525A /* OverrideConfig */,
 				195D80B22AF696EE00D25097 /* Dynamic */,
 				BD7DA9A32AE06DBA00601B20 /* BolusCalculatorConfig */,
@@ -2247,6 +2288,7 @@
 		CE7CA3422A064973004BE681 /* Shortcuts */ = {
 			isa = PBXGroup;
 			children = (
+				110AEDE22C5193D100615CC9 /* Bolus */,
 				CE1856F32ADC4835007E39C7 /* Carbs */,
 				CE7CA3432A064973004BE681 /* AppShortcuts.swift */,
 				CE7CA3442A064973004BE681 /* BaseIntentsRequest.swift */,
@@ -2868,6 +2910,7 @@
 				38DF1786276A73D400B3528F /* TagCloudView.swift in Sources */,
 				38B4F3CD25E5031100E76A18 /* Broadcaster.swift in Sources */,
 				383420D925FFEB3F002D46C1 /* Popup.swift in Sources */,
+				110AEDEE2C51A0AE00615CC9 /* ShortcutsConfigStateModel.swift in Sources */,
 				3811DE3025C9D49500A708ED /* HomeStateModel.swift in Sources */,
 				38BF021725E7CBBC00579895 /* PumpManagerExtensions.swift in Sources */,
 				CEE9A6552BBB418300EB5194 /* CalibrationsProvider.swift in Sources */,
@@ -3046,11 +3089,13 @@
 				190EBCC429FF136900BA767D /* StatConfigDataFlow.swift in Sources */,
 				5A2325582BFCC168003518CA /* NightscoutConnectView.swift in Sources */,
 				3811DEB025C9D88300A708ED /* BaseKeychain.swift in Sources */,
+				110AEDE42C5193D200615CC9 /* BolusIntentRequest.swift in Sources */,
 				3811DE4325C9D4A100A708ED /* SettingsProvider.swift in Sources */,
 				45252C95D220E796FDB3B022 /* ConfigEditorDataFlow.swift in Sources */,
 				587DA1F62B77F3DD00B28F8A /* SettingsRowView.swift in Sources */,
 				CE7CA34E2A064973004BE681 /* AppShortcuts.swift in Sources */,
 				38C4D33A25E9A1ED00D30B77 /* NSObject+AssociatedValues.swift in Sources */,
+				110AEDEB2C51A0AE00615CC9 /* ShortcutsConfigView.swift in Sources */,
 				38DF179027733EAD00B3528F /* SnowScene.swift in Sources */,
 				DD1DB7CC2BECCA1F0048B367 /* BuildDetails.swift in Sources */,
 				1935364028496F7D001E0B16 /* Oref2_variables.swift in Sources */,
@@ -3062,6 +3107,7 @@
 				CE7CA3532A064973004BE681 /* tempPresetIntent.swift in Sources */,
 				D6DEC113821A7F1056C4AA1E /* NightscoutConfigDataFlow.swift in Sources */,
 				38E98A3025F52FF700C0CED0 /* Config.swift in Sources */,
+				110AEDE32C5193D200615CC9 /* BolusIntent.swift in Sources */,
 				DDD1631A2C4C695E00CD525A /* EditOverrideForm.swift in Sources */,
 				CE1856F72ADC4869007E39C7 /* CarbPresetIntentRequest.swift in Sources */,
 				CE1F6DDB2BAE08B60064EB8D /* TidepoolManager.swift in Sources */,
@@ -3131,6 +3177,7 @@
 				98641AF4F92123DA668AB931 /* CREditorRootView.swift in Sources */,
 				BDF34F902C10CF8C00D51995 /* CoreDataStack.swift in Sources */,
 				CEE9A65C2BBB41C800EB5194 /* CalibrationService.swift in Sources */,
+				110AEDED2C51A0AE00615CC9 /* ShortcutsConfigProvider.swift in Sources */,
 				38E4453D274E411700EC9A94 /* Disk+Errors.swift in Sources */,
 				38E98A2325F52C9300C0CED0 /* Signpost.swift in Sources */,
 				CE7CA3542A064973004BE681 /* TempPresetsIntentRequest.swift in Sources */,
@@ -3143,6 +3190,7 @@
 				A228DF96647338139F152B15 /* PreferencesEditorDataFlow.swift in Sources */,
 				DDD163182C4C694000CD525A /* OverrideRootView.swift in Sources */,
 				389ECE052601144100D86C4F /* ConcurrentMap.swift in Sources */,
+				110AEDEC2C51A0AE00615CC9 /* ShortcutsConfigDataFlow.swift in Sources */,
 				CE7CA3562A064973004BE681 /* StateIntentRequest.swift in Sources */,
 				E4984C5262A90469788754BB /* PreferencesEditorProvider.swift in Sources */,
 				DD399FB31EACB9343C944C4C /* PreferencesEditorStateModel.swift in Sources */,
@@ -3492,7 +3540,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = $APP_BUILD_NUMBER;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = "$(DEVELOPER_TEAM)";
+				DEVELOPMENT_TEAM = C6U8V99TR3;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = FreeAPS/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
@@ -3530,7 +3578,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = $APP_BUILD_NUMBER;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = "$(DEVELOPER_TEAM)";
+				DEVELOPMENT_TEAM = C6U8V99TR3;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = FreeAPS/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
