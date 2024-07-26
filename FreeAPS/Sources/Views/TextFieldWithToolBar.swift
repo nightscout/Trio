@@ -167,7 +167,7 @@ extension TextFieldWithToolBar.Coordinator: UITextFieldDelegate {
                 let hasDecimalSeparator = proposedText.contains(decimalFormatter.decimalSeparator)
                 let hasTrailingZeros = (
                     parent.numberFormatter
-                        .maximumFractionDigits > 1 && hasDecimalSeparator && proposedText[lastCharIndex] == "0"
+                        .maximumFractionDigits > 0 && hasDecimalSeparator && proposedText[lastCharIndex] == "0"
                 ) ||
                     (isDecimalSeparator && parent.numberFormatter.allowsFloats)
                 if !parent.numberFormatter.allowsFloats || !hasTrailingZeros
@@ -182,19 +182,6 @@ extension TextFieldWithToolBar.Coordinator: UITextFieldDelegate {
                     )
                     let maxDigits = decimalIndexInt + parent.numberFormatter.maximumFractionDigits + 1
                     allowChange = proposedText.count > maxDigits ? false : true
-
-                    // Remove trailing zeros when FractionDigits are all zero
-                    if proposedText.count == maxDigits {
-                        var pattern = "[" + decimalFormatter.decimalSeparator + "]{1}[0]"
-                        pattern += "{" + String(parent.numberFormatter.maximumFractionDigits) + "}"
-                        let regex = NSRegularExpression(pattern)
-                        let matches = regex.matches(proposedText)
-                        if matches {
-                            let resultText = String(proposedText[...rangeOfDecimal!.lowerBound])
-                            let trailingZerosNumber = parent.numberFormatter.number(from: resultText)
-                            parent.text = trailingZerosNumber?.decimalValue ?? 0
-                        }
-                    }
                 }
             } else {
                 parent.text = 0
@@ -208,21 +195,6 @@ extension TextFieldWithToolBar.Coordinator: UITextFieldDelegate {
 
     public func textFieldDidBeginEditing(_: UITextField) {
         parent.textFieldDidBeginEditing?()
-    }
-}
-
-extension NSRegularExpression {
-    convenience init(_ pattern: String) {
-        do {
-            try self.init(pattern: pattern)
-        } catch {
-            preconditionFailure("Illegal regular expression: \(pattern).")
-        }
-    }
-
-    func matches(_ string: String) -> Bool {
-        let range = NSRange(location: 0, length: string.utf16.count)
-        return firstMatch(in: string, options: [], range: range) != nil
     }
 }
 
