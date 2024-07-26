@@ -158,6 +158,7 @@ extension TextFieldWithToolBar.Coordinator: UITextFieldDelegate {
             // Remove thousand separator
             let proposedText = proposedTextOriginal.replacingOccurrences(of: decimalFormatter.groupingSeparator, with: "")
 
+            // Try to convert proposed text to number
             let number = parent.numberFormatter.number(from: proposedText) ?? decimalFormatter.number(from: proposedText)
 
             // Update the binding value if conversion is successful
