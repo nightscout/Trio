@@ -16,6 +16,57 @@ struct BloodGlucose: JSON, Identifiable, Hashable {
         case none = "NONE"
         case notComputable = "NOT COMPUTABLE"
         case rateOutOfRange = "RATE OUT OF RANGE"
+
+        init?(from string: String) {
+            switch string {
+            case "\u{2191}\u{2191}\u{2191}",
+                 "↑↑↑",
+                 "TripleUp":
+                self = .tripleUp
+            case "\u{2191}\u{2191}",
+                 "↑↑",
+                 "DoubleUp":
+                self = .doubleUp
+            case "\u{2191}",
+                 "↑",
+                 "SingleUp":
+                self = .singleUp
+            case "\u{2197}",
+                 "↗︎",
+                 "FortyFiveUp":
+                self = .fortyFiveUp
+            case "\u{2192}",
+                 "→",
+                 "Flat":
+                self = .flat
+            case "\u{2198}",
+                 "↘︎",
+                 "FortyFiveDown":
+                self = .fortyFiveDown
+            case "\u{2193}",
+                 "↓",
+                 "SingleDown":
+                self = .singleDown
+            case "\u{2193}\u{2193}",
+                 "↓↓",
+                 "DoubleDown":
+                self = .doubleDown
+            case "\u{2193}\u{2193}\u{2193}",
+                 "↓↓↓",
+                 "TripleDown":
+                self = .tripleDown
+            case "\u{2194}",
+                 "↔︎",
+                 "NONE":
+                self = .none
+            case "NOT COMPUTABLE":
+                self = .notComputable
+            case "RATE OUT OF RANGE":
+                self = .rateOutOfRange
+            default:
+                return nil
+            }
+        }
     }
 
     var _id: String?
