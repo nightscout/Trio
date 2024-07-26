@@ -35,6 +35,11 @@ enum Screen: Identifiable, Hashable {
     case dynamicISF
     case calibrations
     case shortcutsConfig
+    case devices
+    case therapySettings
+    case featureSettings
+    case notificationSettings
+    case serviceSettings
 
     var id: Int { String(reflecting: self).hashValue }
 }
@@ -108,6 +113,16 @@ extension Screen {
             Calibrations.RootView(resolver: resolver)
         case .shortcutsConfig:
             ShortcutsConfig.RootView(resolver: resolver)
+        case .devices:
+            DevicesView(resolver: resolver, state: Settings.StateModel())
+        case .therapySettings:
+            TherapySettingsView(resolver: resolver, state: Settings.StateModel())
+        case .featureSettings:
+            FeatureSettingsView(resolver: resolver, state: Settings.StateModel())
+        case .notificationSettings:
+            NotificationsView(resolver: resolver, state: Settings.StateModel())
+        case .serviceSettings:
+            ServicesView(resolver: resolver, state: Settings.StateModel())
         }
     }
 
