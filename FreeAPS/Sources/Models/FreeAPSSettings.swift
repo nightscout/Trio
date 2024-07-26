@@ -4,7 +4,6 @@ enum BolusShortcutLimit: String, JSON, CaseIterable, Identifiable {
     var id: String { rawValue }
     case notAllowed
     case limitBolusMax
-    case limitInsulinSuggestion
 
     var displayName: String {
         switch self {
@@ -12,8 +11,6 @@ enum BolusShortcutLimit: String, JSON, CaseIterable, Identifiable {
             return String(localized: "Not allowed", table: "ShortcutsDetail")
         case .limitBolusMax:
             return String(localized: "Max bolus", table: "ShortcutsDetail")
-        case .limitInsulinSuggestion:
-            return String(localized: "Insulin recommended", table: "ShortcutsDetail")
         }
     }
 }

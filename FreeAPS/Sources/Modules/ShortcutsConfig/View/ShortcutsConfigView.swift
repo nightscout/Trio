@@ -25,17 +25,6 @@ extension ShortcutsConfig {
                         String(localized: "Allow bolusing with shortcuts", table: "ShortcutsDetail"),
                         isOn: $state.allowBolusByShortcuts
                     )
-
-                    Picker(
-                        selection: $state.maxBolusByShortcuts,
-                        label: Text("Limit bolus from shortcuts to", tableName: "ShortcutsDetail")
-                    ) {
-                        ForEach(BolusShortcutLimit.allCases) { v in
-                            v != .notAllowed ? Text(v.displayName).tag(v) : nil
-                            // Text(v.displayName).tag(v)
-                        }
-                    }
-                    .disabled(!state.allowBolusByShortcuts)
                 }
             }
             .onAppear(perform: configureView)

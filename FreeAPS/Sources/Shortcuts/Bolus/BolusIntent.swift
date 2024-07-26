@@ -20,22 +20,25 @@ import Swinject
         title: LocalizedStringResource("Amount", table: "ShortcutsDetail"),
         description: LocalizedStringResource("Bolus amount in U", table: "ShortcutsDetail"),
         controlStyle: .field,
+        /// The 200 upperBound does nothing here, the true max is set based on pump max
+        /// An upperBound is specificed so that we can usethe lowerBound of 0, which ensures no negatives are allowed
+        /// A preferred approach would be to just block negatives and not specify an upperBound here, since it is implemented elsewhere
         inclusiveRange: (lowerBound: 0, upperBound: 200),
         requestValueDialog: IntentDialog(LocalizedStringResource(
-            "What is the value of the bolus amount in insulin units ?",
+            "What is the value of the bolus amount in insulin units?",
             table: "ShortcutsDetail"
         ))
     ) var bolusQuantity: Double
 
     @Parameter(
         title: LocalizedStringResource("Confirm Before applying", table: "ShortcutsDetail"),
-        description: LocalizedStringResource("If toggled, you will need to confirm before applying", table: "ShortcutsDetail"),
+        description: LocalizedStringResource("If toggled, you will need to confirm before applying.", table: "ShortcutsDetail"),
         default: true
     ) var confirmBeforeApplying: Bool
 
     static var parameterSummary: some ParameterSummary {
         When(\.$confirmBeforeApplying, .equalTo, true, {
-            Summary("Applying \(\.$bolusQuantity) U ", table: "ShortcutsDetail") {
+            Summary("Applying \(\.$bolusQuantity) U", table: "ShortcutsDetail") {
                 \.$confirmBeforeApplying
             }
         }, otherwise: {
@@ -54,7 +57,7 @@ import Swinject
                 try await requestConfirmation(
                     result: .result(
                         dialog: IntentDialog(LocalizedStringResource(
-                            "Are you sure you want to bolus \(bolusFormatted) U of insulin ?",
+                            "Are you sure you want to bolus \(bolusFormatted) U of insulin?",
                             table: "ShortcutsDetail"
                         ))
                     )
