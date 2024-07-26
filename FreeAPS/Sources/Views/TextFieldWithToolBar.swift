@@ -147,7 +147,6 @@ extension TextFieldWithToolBar.Coordinator: UITextFieldDelegate {
         // Check if the input is a number or the decimal separator
         let isNumber = CharacterSet.decimalDigits.isSuperset(of: CharacterSet(charactersIn: string))
         let isDecimalSeparator = (string == decimalFormatter.decimalSeparator && textField.text?.contains(string) == false)
-        var allowChange = true
 
         // Only proceed if the input is a valid number or decimal separator
         if isNumber || isDecimalSeparator && parent.allowDecimalSeparator,
@@ -165,23 +164,10 @@ extension TextFieldWithToolBar.Coordinator: UITextFieldDelegate {
             if let number = number {
                 let lastCharIndex = proposedText.index(before: proposedText.endIndex)
                 let hasDecimalSeparator = proposedText.contains(decimalFormatter.decimalSeparator)
-                let hasTrailingZeros = (
-                    parent.numberFormatter
-                        .maximumFractionDigits > 0 && hasDecimalSeparator && proposedText[lastCharIndex] == "0"
-                ) ||
-                    (isDecimalSeparator && parent.numberFormatter.allowsFloats)
-                if !parent.numberFormatter.allowsFloats || !hasTrailingZeros
+                let hasTrailingZeros = (hasDecimalSeparator && proposedText[lastCharIndex] == "0") || isDecimalSeparator
+                if !hasTrailingZeros
                 {
                     parent.text = number.decimalValue
-                }
-                if parent.numberFormatter.allowsFloats, hasDecimalSeparator {
-                    let rangeOfDecimal = proposedText.range(of: decimalFormatter.decimalSeparator)
-                    let decimalIndexInt: Int = proposedText.distance(
-                        from: proposedText.startIndex,
-                        to: rangeOfDecimal!.lowerBound
-                    )
-                    let maxDigits = decimalIndexInt + parent.numberFormatter.maximumFractionDigits + 1
-                    allowChange = proposedText.count > maxDigits ? false : true
                 }
             } else {
                 parent.text = 0
@@ -189,8 +175,7 @@ extension TextFieldWithToolBar.Coordinator: UITextFieldDelegate {
         }
 
         // Allow the change if it's a valid number or decimal separator
-        return isNumber && allowChange || isDecimalSeparator && parent.allowDecimalSeparator && parent.numberFormatter
-            .allowsFloats
+        return isNumber || isDecimalSeparator && parent.allowDecimalSeparator
     }
 
     public func textFieldDidBeginEditing(_: UITextField) {
