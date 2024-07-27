@@ -40,6 +40,7 @@ enum Screen: Identifiable, Hashable {
     case featureSettings
     case notificationSettings
     case serviceSettings
+    case smbSettings
 
     var id: Int { String(reflecting: self).hashValue }
 }
@@ -123,6 +124,8 @@ extension Screen {
             NotificationsView(resolver: resolver, state: Settings.StateModel())
         case .serviceSettings:
             ServicesView(resolver: resolver, state: Settings.StateModel())
+        case .smbSettings:
+            SMBSettings.RootView(resolver: resolver)
         }
     }
 

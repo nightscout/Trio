@@ -37,8 +37,8 @@ struct FeatureSettingsView: BaseView {
                 header: Text("Oref Algorithm"),
                 content: {
                     Text("Preferences (to be omitted").navigationLink(to: .preferencesEditor, from: self)
-                    Text("Autosens Settings")
-                    Text("Super-Micro-Bolus (SMB) Settings")
+                    Text("Autosens Settings").navigationLink(to: .preferencesEditor, from: self)
+                    Text("Super-Micro-Bolus (SMB) Settings").navigationLink(to: .smbSettings, from: self)
                     Text("Dynamic Settings").navigationLink(to: .dynamicISF, from: self)
                 }
             ).listRowBackground(Color.chart)
@@ -52,6 +52,14 @@ struct FeatureSettingsView: BaseView {
                     Text("UI/UX").navigationLink(to: .statisticsConfig, from: self)
                     Text("TODO: Move App Icons into UI/UX 👆")
                     Text("App Icons").navigationLink(to: .iconConfig, from: self)
+                }
+            )
+            .listRowBackground(Color.chart)
+
+            Section(
+                header: Text("Data-Driven Settings Tuning"),
+                content: {
+                    Text("Autotune").navigationLink(to: .autotuneConfig, from: self)
                 }
             )
             .listRowBackground(Color.chart)

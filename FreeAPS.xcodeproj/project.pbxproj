@@ -390,6 +390,12 @@
 		DD1745172C54389F00211FAC /* FeatureSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745162C54389F00211FAC /* FeatureSettingsView.swift */; };
 		DD1745192C543B5700211FAC /* NotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745182C543B5700211FAC /* NotificationsView.swift */; };
 		DD17451D2C543C5F00211FAC /* ServicesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD17451C2C543C5F00211FAC /* ServicesView.swift */; };
+		DD1745202C55523E00211FAC /* SMBSettingsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD17451F2C55523E00211FAC /* SMBSettingsDataFlow.swift */; };
+		DD1745222C55524800211FAC /* SMBSettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745212C55524800211FAC /* SMBSettingsProvider.swift */; };
+		DD1745242C55526000211FAC /* SMBSettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745232C55526000211FAC /* SMBSettingsStateModel.swift */; };
+		DD1745262C55526F00211FAC /* SMBSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745252C55526F00211FAC /* SMBSettingsView.swift */; };
+		DD1745292C55642100211FAC /* SettingInputSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745282C55642100211FAC /* SettingInputSection.swift */; };
+		DD17452B2C556E8100211FAC /* SettingInputHintView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD17452A2C556E8100211FAC /* SettingInputHintView.swift */; };
 		DD1DB7CC2BECCA1F0048B367 /* BuildDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */; };
 		DD399FB31EACB9343C944C4C /* PreferencesEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CA3E609094E064C99A4752C /* PreferencesEditorStateModel.swift */; };
 		DD57C4B22C4C7103001A5B28 /* LoopStatRecord+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4902C4C7103001A5B28 /* LoopStatRecord+CoreDataClass.swift */; };
@@ -997,6 +1003,12 @@
 		DD1745162C54389F00211FAC /* FeatureSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureSettingsView.swift; sourceTree = "<group>"; };
 		DD1745182C543B5700211FAC /* NotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsView.swift; sourceTree = "<group>"; };
 		DD17451C2C543C5F00211FAC /* ServicesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesView.swift; sourceTree = "<group>"; };
+		DD17451F2C55523E00211FAC /* SMBSettingsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMBSettingsDataFlow.swift; sourceTree = "<group>"; };
+		DD1745212C55524800211FAC /* SMBSettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMBSettingsProvider.swift; sourceTree = "<group>"; };
+		DD1745232C55526000211FAC /* SMBSettingsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMBSettingsStateModel.swift; sourceTree = "<group>"; };
+		DD1745252C55526F00211FAC /* SMBSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMBSettingsView.swift; sourceTree = "<group>"; };
+		DD1745282C55642100211FAC /* SettingInputSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingInputSection.swift; sourceTree = "<group>"; };
+		DD17452A2C556E8100211FAC /* SettingInputHintView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingInputHintView.swift; sourceTree = "<group>"; };
 		DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildDetails.swift; sourceTree = "<group>"; };
 		DD57C4902C4C7103001A5B28 /* LoopStatRecord+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoopStatRecord+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		DD57C4912C4C7103001A5B28 /* LoopStatRecord+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoopStatRecord+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
@@ -1337,37 +1349,38 @@
 		3811DE0325C9D31700A708ED /* Modules */ = {
 			isa = PBXGroup;
 			children = (
-				110AEDEA2C51A0AE00615CC9 /* ShortcutsConfig */,
-				DDD163032C4C67B400CD525A /* OverrideConfig */,
-				195D80B22AF696EE00D25097 /* Dynamic */,
-				BD7DA9A32AE06DBA00601B20 /* BolusCalculatorConfig */,
-				CEE9A64D2BBB411C00EB5194 /* Calibrations */,
-				190EBCC229FF134900BA767D /* StatConfig */,
-				19F95FF129F10F9C00314DDC /* Stat */,
-				CE94597C29E9E1CD0047C9C6 /* WatchConfig */,
-				19E1F7E629D0828B005C8D20 /* IconConfig */,
-				19D466A129AA2B0A004D5F33 /* FPUConfig */,
-				F90692CD274B99850037068D /* HealthKit */,
+				DD17451E2C55520000211FAC /* SMBSettings */,
 				672F63EEAE27400625E14BAD /* AutotuneConfig */,
 				A42F1FEDFFD0DDE00AAD54D3 /* BasalProfileEditor */,
 				3811DE0425C9D32E00A708ED /* Base */,
+				C2C98283C436DB934D7E7994 /* Bolus */,
+				BD7DA9A32AE06DBA00601B20 /* BolusCalculatorConfig */,
+				CEE9A64D2BBB411C00EB5194 /* Calibrations */,
 				F75CB57ED6971B46F8756083 /* CGM */,
 				0610F7D6D2EC00E3BA1569F0 /* ConfigEditor */,
 				E42231DBF0DBE2B4B92D1B15 /* CREditor */,
 				9E56E3626FAD933385101B76 /* DataTable */,
-				C2C98283C436DB934D7E7994 /* Bolus */,
+				195D80B22AF696EE00D25097 /* Dynamic */,
+				19D466A129AA2B0A004D5F33 /* FPUConfig */,
+				F90692CD274B99850037068D /* HealthKit */,
 				3811DE2725C9D49500A708ED /* Home */,
+				19E1F7E629D0828B005C8D20 /* IconConfig */,
 				D8F047E14D567F2B5DBEFD96 /* ISFEditor */,
 				3811DE1A25C9D48300A708ED /* Main */,
 				5031FE61F63C2A8A8B7674DD /* ManualTempBasal */,
 				D533BF261CDC1C3F871E7BFD /* NightscoutConfig */,
 				F66B236E00924A05D6A9F9DF /* NotificationsConfig */,
+				DDD163032C4C67B400CD525A /* OverrideConfig */,
 				3E1C41D9301B7058AA7BF5EA /* PreferencesEditor */,
 				99C01B871ACAB3F32CE755C7 /* PumpConfig */,
 				E493126EA71765130F64CCE5 /* PumpSettingsEditor */,
 				3811DE3825C9D4A100A708ED /* Settings */,
+				110AEDEA2C51A0AE00615CC9 /* ShortcutsConfig */,
 				29B478DF61BF8D270F7D8954 /* Snooze */,
+				19F95FF129F10F9C00314DDC /* Stat */,
+				190EBCC229FF134900BA767D /* StatConfig */,
 				6517011F19F244F64E1FF14B /* TargetsEditor */,
+				CE94597C29E9E1CD0047C9C6 /* WatchConfig */,
 			);
 			path = Modules;
 			sourceTree = "<group>";
@@ -1707,6 +1720,8 @@
 				38EA05FF262091870064E39B /* BolusProgressViewStyle.swift */,
 				38DF1785276A73D400B3528F /* TagCloudView.swift */,
 				DD88C8E12C50420800F2D558 /* DefinitionRow.swift */,
+				DD1745282C55642100211FAC /* SettingInputSection.swift */,
+				DD17452A2C556E8100211FAC /* SettingInputHintView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -2417,6 +2432,25 @@
 			path = Subviews;
 			sourceTree = "<group>";
 		};
+		DD17451E2C55520000211FAC /* SMBSettings */ = {
+			isa = PBXGroup;
+			children = (
+				DD1745272C5553C400211FAC /* View */,
+				DD17451F2C55523E00211FAC /* SMBSettingsDataFlow.swift */,
+				DD1745212C55524800211FAC /* SMBSettingsProvider.swift */,
+				DD1745232C55526000211FAC /* SMBSettingsStateModel.swift */,
+			);
+			path = SMBSettings;
+			sourceTree = "<group>";
+		};
+		DD1745272C5553C400211FAC /* View */ = {
+			isa = PBXGroup;
+			children = (
+				DD1745252C55526F00211FAC /* SMBSettingsView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
 		DD57C46C2C4C7003001A5B28 /* Classes+Properties */ = {
 			isa = PBXGroup;
 			children = (
@@ -2932,6 +2966,7 @@
 				38B4F3CD25E5031100E76A18 /* Broadcaster.swift in Sources */,
 				383420D925FFEB3F002D46C1 /* Popup.swift in Sources */,
 				110AEDEE2C51A0AE00615CC9 /* ShortcutsConfigStateModel.swift in Sources */,
+				DD1745262C55526F00211FAC /* SMBSettingsView.swift in Sources */,
 				3811DE3025C9D49500A708ED /* HomeStateModel.swift in Sources */,
 				38BF021725E7CBBC00579895 /* PumpManagerExtensions.swift in Sources */,
 				CEE9A6552BBB418300EB5194 /* CalibrationsProvider.swift in Sources */,
@@ -2984,6 +3019,7 @@
 				BDF34F832C10C5B600D51995 /* DataManager.swift in Sources */,
 				38B4F3C625E5017E00E76A18 /* NotificationCenter.swift in Sources */,
 				19D466A729AA2C22004D5F33 /* FPUConfigStateModel.swift in Sources */,
+				DD17452B2C556E8100211FAC /* SettingInputHintView.swift in Sources */,
 				38E44528274E401C00EC9A94 /* Protected.swift in Sources */,
 				3811DEB625C9D88300A708ED /* UnlockManager.swift in Sources */,
 				581516A42BCED84A00BF67D7 /* DebuggingIdentifiers.swift in Sources */,
@@ -3158,6 +3194,7 @@
 				38FEF3FE2738083E00574A46 /* CGMProvider.swift in Sources */,
 				38E98A3725F5509500C0CED0 /* String+Extensions.swift in Sources */,
 				CC76E9512BD4812E008BEB61 /* Forecast+helper.swift in Sources */,
+				DD1745242C55526000211FAC /* SMBSettingsStateModel.swift in Sources */,
 				F90692D1274B99B60037068D /* HealthKitProvider.swift in Sources */,
 				19F95FF729F10FEE00314DDC /* StatStateModel.swift in Sources */,
 				385CEAC125F2EA52002D6D5B /* Announcement.swift in Sources */,
@@ -3244,6 +3281,7 @@
 				BDF34F852C10C62E00D51995 /* GlucoseData.swift in Sources */,
 				19E1F7EC29D082FE005C8D20 /* IconConfigStateModel.swift in Sources */,
 				711C0CB42CAABE788916BC9D /* ManualTempBasalDataFlow.swift in Sources */,
+				DD1745222C55524800211FAC /* SMBSettingsProvider.swift in Sources */,
 				BF1667ADE69E4B5B111CECAE /* ManualTempBasalProvider.swift in Sources */,
 				583684062BD178DB00070A60 /* GlucoseStored+helper.swift in Sources */,
 				F90692D6274B9A450037068D /* HealthKitStateModel.swift in Sources */,
@@ -3267,7 +3305,9 @@
 				6BCF84DD2B16843A003AD46E /* LiveActitiyAttributes.swift in Sources */,
 				195D80B92AF697F700D25097 /* DynamicProvider.swift in Sources */,
 				6BCF84DD2B16843A003AD46E /* LiveActitiyAttributes.swift in Sources */,
+				DD1745202C55523E00211FAC /* SMBSettingsDataFlow.swift in Sources */,
 				D6D02515BBFBE64FEBE89856 /* DataTableRootView.swift in Sources */,
+				DD1745292C55642100211FAC /* SettingInputSection.swift in Sources */,
 				38569349270B5DFB0002C50D /* AppGroupSource.swift in Sources */,
 				F5CA3DB1F9DC8B05792BBFAA /* CGMDataFlow.swift in Sources */,
 				BDF34F952C10D27300D51995 /* DeterminationData.swift in Sources */,
