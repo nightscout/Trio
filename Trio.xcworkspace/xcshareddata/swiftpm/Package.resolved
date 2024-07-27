@@ -1,5 +1,4 @@
 {
-  "originHash" : "59ac7eba66375d6eb406e758cb0b9964f4b3b0ae45c5665596f00384c32262b9",
   "pins" : [
     {
       "identity" : "cryptoswift",
@@ -49,7 +48,7 @@
     {
       "identity" : "swiftcharts",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/ivanschuetz/SwiftCharts.git",
+      "location" : "https://github.com/ivanschuetz/SwiftCharts",
       "state" : {
         "branch" : "master",
         "revision" : "c354c1945bb35a1f01b665b22474f6db28cba4a2"
@@ -92,5 +91,5 @@
       }
     }
   ],
-  "version" : 3
+  "version" : 2
 }

@@ -68,9 +68,9 @@ extension NSPredicate {
         return NSPredicate(format: "timestamp >= %@ AND bolus.isExternal == %@", date as NSDate, false as NSNumber)
     }
 
-    static func duplicateInLastFourLoops(_ date: Date) -> NSPredicate {
-        let date20m = Date.twentyMinutesAgo
-        return NSPredicate(format: "timestamp >= %@ && timestamp == %@", date20m as NSDate, date as NSDate)
+    static func duplicateInLastHour(_ date: Date) -> NSPredicate {
+        let date60m = Date.oneHourAgo
+        return NSPredicate(format: "timestamp >= %@ && timestamp == %@", date60m as NSDate, date as NSDate)
     }
 
     static var pumpEventsNotYetUploadedToNightscout: NSPredicate {

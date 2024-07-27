@@ -63,6 +63,10 @@ struct MainChartView: View {
     @State private var minValue: Decimal = 45
     @State private var maxValue: Decimal = 270
     @State private var selection: Date? = nil
+    @State private var minValueCobChart: Decimal = 0
+    @State private var maxValueCobChart: Decimal = 20
+    @State private var minValueIobChart: Decimal = 0
+    @State private var maxValueIobChart: Decimal = 5
 
     private let now = Date.now
 
@@ -104,7 +108,7 @@ struct MainChartView: View {
     }
 
     private var interpolationFactor: Double {
-        Double(state.determinationsFromPersistence.first?.cob ?? 1) * 10
+        Double(state.enactedAndNonEnactedDeterminations.first?.cob ?? 1) * 10
     }
 
     private var selectedGlucose: GlucoseStored? {
@@ -141,6 +145,8 @@ struct MainChartView: View {
                         }.onChange(of: screenHours) { _ in
                             updateStartEndMarkers()
                             yAxisChartData()
+                            yAxisChartDataCobChart()
+                            yAxisChartDataIobChart()
                             scroller.scrollTo("MainChart", anchor: .trailing)
                         }
                         .onChange(of: state.glucoseFromPersistence.last?.glucose) { _ in
@@ -148,8 +154,10 @@ struct MainChartView: View {
                             yAxisChartData()
                             scroller.scrollTo("MainChart", anchor: .trailing)
                         }
-                        .onChange(of: state.determinationsFromPersistence.last?.deliverAt) { _ in
+                        .onChange(of: state.enactedAndNonEnactedDeterminations.first?.deliverAt) { _ in
                             updateStartEndMarkers()
+                            yAxisChartDataCobChart()
+                            yAxisChartDataIobChart()
                             scroller.scrollTo("MainChart", anchor: .trailing)
                         }
                         .onChange(of: state.tempBasals) { _ in
@@ -161,12 +169,14 @@ struct MainChartView: View {
                         }
                         .onAppear {
                             updateStartEndMarkers()
+                            yAxisChartData()
+                            yAxisChartDataCobChart()
+                            yAxisChartDataIobChart()
                             scroller.scrollTo("MainChart", anchor: .trailing)
                         }
                     }
                 }
             }
-//            legendPanel.padding(.top, 8)
         }
     }
 }
@@ -237,6 +247,7 @@ extension MainChartView {
         .chartXAxis(.hidden)
         .chartYAxis { cobChartYAxis }
         .chartYAxis(.hidden)
+        .chartYScale(domain: minValueCobChart ... maxValueCobChart)
         .chartLegend(.hidden)
     }
 
@@ -362,8 +373,8 @@ extension MainChartView {
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .chartXScale(domain: startMarker ... endMarker)
             .chartXAxis { basalChartXAxis }
-//            .chartXAxis(.hidden)
             .chartYAxis { cobChartYAxis }
+            .chartYScale(domain: minValueIobChart ... maxValueIobChart)
             .chartYAxis(.hidden)
         }
     }
@@ -377,25 +388,8 @@ extension MainChartView {
         .frame(width: fullWidth(viewWidth: screenSize.width))
         .chartXScale(domain: startMarker ... endMarker)
         .chartXAxis { basalChartXAxis }
-//        .chartXAxis(.hidden)
         .chartYAxis { cobChartYAxis }
-//        .chartYAxis(.hidden)
-    }
-
-    var legendPanel: some View {
-        HStack(spacing: 10) {
-            Spacer()
-
-            LegendItem(color: .loopGreen, label: "BG")
-            LegendItem(color: .insulin, label: "IOB")
-            LegendItem(color: .zt, label: "ZT")
-            LegendItem(color: .loopYellow, label: "COB")
-            LegendItem(color: .uam, label: "UAM")
-
-            Spacer()
-        }
-        .padding(.horizontal, 10)
-        .frame(maxWidth: .infinity)
+        .chartYScale(domain: minValueCobChart ... maxValueCobChart)
     }
 }
 
@@ -1012,6 +1006,32 @@ extension MainChartView {
         debug(.default, "max \(maxValue)")
     }
 
+    private func yAxisChartDataCobChart() {
+        let cobMapped = state.enactedAndNonEnactedDeterminations.map { Decimal($0.cob) }
+        guard let maxCob = cobMapped.max() else {
+            // default values
+            minValueCobChart = 0
+            maxValueCobChart = 20
+            return
+        }
+        maxValueCobChart = maxCob == 0 ? 20 : maxCob +
+            20 // 2 is added to the max of iob and to keep the 1:10 ratio we add 20 here
+    }
+
+    private func yAxisChartDataIobChart() {
+        let iobMapped = state.enactedAndNonEnactedDeterminations.compactMap { $0.iob?.decimalValue }
+        guard let minIob = iobMapped.min(), let maxIob = iobMapped.max() else {
+            // default values
+            minValueIobChart = 0
+            maxValueIobChart = 5
+            return
+        }
+        minValueIobChart = minIob // we need to set this here because IOB can also be negative
+        minValueCobChart = minIob < 0 ? minIob - 2 :
+            0 // if there is negative IOB the COB-X-Axis should still align with the IOB-X-Axis; 2 is only subtracted to make the charts align
+        maxValueIobChart = maxIob + 2
+    }
+
     private func basalChartPlotStyle(_ plotContent: ChartPlotContent) -> some View {
         plotContent
             .rotationEffect(.degrees(180))
@@ -1067,8 +1087,6 @@ extension MainChartView {
             } else {
                 AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
             }
-
-//            AxisValueLabel().font(.system(.footnote))
         }
     }
 }
