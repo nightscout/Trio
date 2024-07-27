@@ -46,7 +46,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                     let existingEvents: [PumpEventStored] = CoreDataStack.shared.fetchEntities(
                         ofType: PumpEventStored.self,
                         onContext: self.context,
-                        predicate: NSPredicate.duplicateInLastFourLoops(event.date),
+                        predicate: NSPredicate.duplicateInLastHour(event.date),
                         key: "timestamp",
                         ascending: false,
                         batchSize: 50
