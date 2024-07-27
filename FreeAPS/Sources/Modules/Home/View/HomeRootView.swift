@@ -444,7 +444,7 @@ extension Home {
                     Text(
                         (
                             numberFormatter
-                                .string(from: (state.enactedAndNonEnactedDeterminations.last?.iob ?? 0) as NSNumber) ?? "0"
+                                .string(from: (state.enactedAndNonEnactedDeterminations.first?.iob ?? 0) as NSNumber) ?? "0"
                         ) +
                             NSLocalizedString(" U", comment: "Insulin unit")
                     )
@@ -460,7 +460,7 @@ extension Home {
                     Text(
                         (
                             numberFormatter
-                                .string(from: (state.enactedAndNonEnactedDeterminations.last?.cob ?? 0) as NSNumber) ?? "0"
+                                .string(from: (state.enactedAndNonEnactedDeterminations.first?.cob ?? 0) as NSNumber) ?? "0"
                         ) +
                             NSLocalizedString(" g", comment: "gram of carbs")
                     )
