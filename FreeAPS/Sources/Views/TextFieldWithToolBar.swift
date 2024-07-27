@@ -153,14 +153,23 @@ extension TextFieldWithToolBar.Coordinator: UITextFieldDelegate {
            let currentText = textField.text as NSString?
         {
             // Get the proposed new text
-            let proposedText = currentText.replacingCharacters(in: range, with: string)
+            let proposedTextOriginal = currentText.replacingCharacters(in: range, with: string)
+
+            // Remove thousand separator
+            let proposedText = proposedTextOriginal.replacingOccurrences(of: decimalFormatter.groupingSeparator, with: "")
 
             // Try to convert proposed text to number
             let number = parent.numberFormatter.number(from: proposedText) ?? decimalFormatter.number(from: proposedText)
 
             // Update the binding value if conversion is successful
             if let number = number {
-                parent.text = number.decimalValue
+                let lastCharIndex = proposedText.index(before: proposedText.endIndex)
+                let hasDecimalSeparator = proposedText.contains(decimalFormatter.decimalSeparator)
+                let hasTrailingZeros = (hasDecimalSeparator && proposedText[lastCharIndex] == "0") || isDecimalSeparator
+                if !hasTrailingZeros
+                {
+                    parent.text = number.decimalValue
+                }
             } else {
                 parent.text = 0
             }
