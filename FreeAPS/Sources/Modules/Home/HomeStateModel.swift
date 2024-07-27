@@ -705,8 +705,7 @@ extension Home.StateModel {
             onContext: context,
             predicate: NSPredicate.determinationsForCobIobCharts,
             key: "deliverAt",
-            ascending: true,
-            fetchLimit: 288,
+            ascending: false,
             batchSize: 50,
             propertiesToFetch: ["cob", "iob", "deliverAt"]
         )

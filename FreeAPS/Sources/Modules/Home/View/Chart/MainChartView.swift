@@ -108,7 +108,7 @@ struct MainChartView: View {
     }
 
     private var interpolationFactor: Double {
-        Double(state.enactedAndNonEnactedDeterminations.last?.cob ?? 1) * 10
+        Double(state.enactedAndNonEnactedDeterminations.first?.cob ?? 1) * 10
     }
 
     private var selectedGlucose: GlucoseStored? {
@@ -154,7 +154,7 @@ struct MainChartView: View {
                             yAxisChartData()
                             scroller.scrollTo("MainChart", anchor: .trailing)
                         }
-                        .onChange(of: state.enactedAndNonEnactedDeterminations.last?.deliverAt) { _ in
+                        .onChange(of: state.enactedAndNonEnactedDeterminations.first?.deliverAt) { _ in
                             updateStartEndMarkers()
                             yAxisChartDataCobChart()
                             yAxisChartDataIobChart()
