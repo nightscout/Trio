@@ -4,19 +4,26 @@ struct SettingInputSection: View {
     enum InputType {
         case decimal
         case boolean
+        case conditionalDecimal
     }
 
     @Binding var decimalValue: Decimal
     @Binding var booleanValue: Bool
-    @Binding var showHint: Bool
+    @Binding var shouldDisplayHint: Bool
     @Binding var selectedVerboseHint: String?
 
     var type: InputType
     var label: String
-    var shortHint: String
+    var conditionalLabel: String?
+    var miniHint: String
     var verboseHint: String
     var headerText: String?
     var footerText: String?
+    private var formatter: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        return formatter
+    }
 
     var body: some View {
         Section(
@@ -32,7 +39,7 @@ struct SettingInputSection: View {
                                     set: { decimalValue = $0 }
                                 ),
                                 placeholder: decimalValue.description,
-                                numberFormatter: NumberFormatter()
+                                numberFormatter: formatter
                             )
 
                         }.padding(.top)
@@ -42,18 +49,39 @@ struct SettingInputSection: View {
                                 Text(label)
                             }
                         }
+                    } else if type == .conditionalDecimal, let secondLabel = conditionalLabel {
+                        HStack {
+                            Toggle(isOn: $booleanValue) {
+                                Text(label)
+                            }
+                        }.padding(.vertical)
+
+                        if $booleanValue.wrappedValue {
+                            HStack {
+                                Text(secondLabel)
+
+                                TextFieldWithToolBar(
+                                    text: Binding(
+                                        get: { decimalValue },
+                                        set: { decimalValue = $0 }
+                                    ),
+                                    placeholder: decimalValue.description,
+                                    numberFormatter: formatter
+                                )
+                            }.padding(.bottom)
+                        }
                     }
 
                     HStack(alignment: .top) {
-                        Text(shortHint)
+                        Text(miniHint)
                             .font(.footnote)
                             .foregroundColor(.secondary)
                             .lineLimit(nil)
                         Spacer()
                         Button(
                             action: {
-                                showHint.toggle()
-                                selectedVerboseHint = showHint ? verboseHint : nil
+                                shouldDisplayHint.toggle()
+                                selectedVerboseHint = shouldDisplayHint ? verboseHint : nil
                             },
                             label: {
                                 HStack {

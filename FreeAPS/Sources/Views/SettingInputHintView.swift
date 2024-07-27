@@ -2,7 +2,7 @@ import SwiftUI
 
 struct SettingInputHintView: View {
     @Binding var hintDetent: PresentationDetent
-    @Binding var showHint: Bool
+    @Binding var shouldDisplayHint: Bool
     var hintLabel: String
     var hintText: String
     var sheetTitle: String
@@ -21,7 +21,7 @@ struct SettingInputHintView: View {
             Spacer()
 
             Button {
-                showHint.toggle()
+                shouldDisplayHint.toggle()
             } label: {
                 Text("Got it!")
                     .frame(maxWidth: .infinity, alignment: .center)
