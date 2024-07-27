@@ -41,7 +41,7 @@ struct NightscoutUploadView: View {
                     Toggle("Upload Treatments and Settings", isOn: $state.isUploadEnabled)
 
                     Toggle("Upload Glucose", isOn: $state.uploadGlucose).disabled(!state.changeUploadGlucose)
-                }
+                }.listRowBackground(Color.chart)
         }
         .navigationTitle("Upload")
         .scrollContentBackground(.hidden).background(color)

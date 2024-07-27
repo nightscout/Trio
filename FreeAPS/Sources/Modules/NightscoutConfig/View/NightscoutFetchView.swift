@@ -37,7 +37,8 @@ struct NightscoutFetchView: View {
                 Text(
                     "The Fetch Treatments toggle enables fetching of carbs and temp targets entered in Careportal or by another uploading device than Trio."
                 )
-            }
+            }.listRowBackground(Color.chart)
+
             Section(
                 header: Text("Allow Remote control of Trio"),
                 footer: VStack(alignment: .leading, spacing: 2) {
@@ -52,7 +53,7 @@ struct NightscoutFetchView: View {
                 {
                     Toggle("Remote Control", isOn: $state.allowAnnouncements)
                         .disabled(!state.isDownloadEnabled)
-                }
+                }.listRowBackground(Color.chart)
         }
         .navigationTitle("Fetch and Remote")
         .scrollContentBackground(.hidden).background(color)

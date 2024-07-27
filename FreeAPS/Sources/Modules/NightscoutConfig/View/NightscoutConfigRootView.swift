@@ -45,9 +45,11 @@ extension NightscoutConfig {
 
         var body: some View {
             Form {
-                NavigationLink("Connect", destination: NightscoutConnectView(state: state))
-                NavigationLink("Upload", destination: NightscoutUploadView(state: state))
-                NavigationLink("Fetch and Remote Control", destination: NightscoutFetchView(state: state))
+                Section {
+                    NavigationLink("Connect", destination: NightscoutConnectView(state: state))
+                    NavigationLink("Upload", destination: NightscoutUploadView(state: state))
+                    NavigationLink("Fetch and Remote Control", destination: NightscoutFetchView(state: state))
+                }.listRowBackground(Color.chart)
 
                 Section(
                     header: Text("Import Settings from Nightscout"),
@@ -83,24 +85,26 @@ extension NightscoutConfig {
                             secondaryButton: .cancel()
                         )
                         isImportAlertPresented.toggle()
-                    }.disabled(state.url.isEmpty || state.connecting)
-                        .alert(isPresented: $importedHasRun) {
-                            Alert(
-                                title: Text((fetchedErrors.first?.error ?? "").count < 4 ? "Settings imported" : "Import Error"),
-                                message: Text(
-                                    (fetchedErrors.first?.error ?? "").count < 4 ?
-                                        NSLocalizedString(
-                                            "\nNow please verify all of your new settings thoroughly: \n\n • DIA (Pump settings)\n • Basal Profile\n • Insulin Sensitivities\n • Carb Ratios\n • Target Glucose\n\n in Trio Settings -> Configuration.\n\nBad or invalid profile settings could have disastrous effects.",
-                                            comment: "Imported Profiles Alert"
-                                        ) :
-                                        NSLocalizedString(fetchedErrors.first?.error ?? "", comment: "Import Error")
-                                ),
-                                primaryButton: .destructive(
-                                    Text("OK")
-                                ),
-                                secondaryButton: .cancel()
-                            )
-                        }
+                    }
+                    .listRowBackground(Color.chart)
+                    .disabled(state.url.isEmpty || state.connecting)
+                    .alert(isPresented: $importedHasRun) {
+                        Alert(
+                            title: Text((fetchedErrors.first?.error ?? "").count < 4 ? "Settings imported" : "Import Error"),
+                            message: Text(
+                                (fetchedErrors.first?.error ?? "").count < 4 ?
+                                    NSLocalizedString(
+                                        "\nNow please verify all of your new settings thoroughly: \n\n • DIA (Pump settings)\n • Basal Profile\n • Insulin Sensitivities\n • Carb Ratios\n • Target Glucose\n\n in Trio Settings -> Configuration.\n\nBad or invalid profile settings could have disastrous effects.",
+                                        comment: "Imported Profiles Alert"
+                                    ) :
+                                    NSLocalizedString(fetchedErrors.first?.error ?? "", comment: "Import Error")
+                            ),
+                            primaryButton: .destructive(
+                                Text("OK")
+                            ),
+                            secondaryButton: .cancel()
+                        )
+                    }
                 }
 
                 Section {
@@ -110,8 +114,9 @@ extension NightscoutConfig {
                         }
                     }
                     .disabled(state.url.isEmpty || state.connecting || state.backfilling)
-                } header: { Text("Backfill glucose from Nightscout")
                 }
+                header: { Text("Backfill glucose from Nightscout")
+                }.listRowBackground(Color.chart)
             }
             .navigationBarTitle("Nightscout Config")
             .navigationBarTitleDisplayMode(.automatic)

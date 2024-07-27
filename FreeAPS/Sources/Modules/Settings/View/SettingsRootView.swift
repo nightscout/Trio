@@ -250,7 +250,7 @@ extension Settings {
                     }
                 }
                 // TODO: check how to implement intuitive search
-//                .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
+//                .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .automatic))
                 .onDisappear(perform: { state.uploadProfileAndSettings(false) })
                 .screenNavigation(self)
         }
