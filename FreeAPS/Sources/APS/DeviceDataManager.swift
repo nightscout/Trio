@@ -367,7 +367,7 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
 
         if case .inProgress = status.bolusState {
             bolusTrigger.send(true)
-        } else if status.bolusState != .canceling {
+        } else {
             bolusTrigger.send(false)
         }
 

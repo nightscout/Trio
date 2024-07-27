@@ -19,34 +19,44 @@ struct BloodGlucose: JSON, Identifiable, Hashable {
 
         init?(from string: String) {
             switch string {
-            case "↑↑↑",
+            case "\u{2191}\u{2191}\u{2191}",
+                 "↑↑↑",
                  "TripleUp":
                 self = .tripleUp
-            case "↑↑",
+            case "\u{2191}\u{2191}",
+                 "↑↑",
                  "DoubleUp":
                 self = .doubleUp
-            case "↑",
+            case "\u{2191}",
+                 "↑",
                  "SingleUp":
                 self = .singleUp
-            case "↗︎",
+            case "\u{2197}",
+                 "↗︎",
                  "FortyFiveUp":
                 self = .fortyFiveUp
-            case "→",
+            case "\u{2192}",
+                 "→",
                  "Flat":
                 self = .flat
-            case "↘︎",
+            case "\u{2198}",
+                 "↘︎",
                  "FortyFiveDown":
                 self = .fortyFiveDown
-            case "↓",
+            case "\u{2193}",
+                 "↓",
                  "SingleDown":
                 self = .singleDown
-            case "↓↓",
+            case "\u{2193}\u{2193}",
+                 "↓↓",
                  "DoubleDown":
                 self = .doubleDown
-            case "↓↓↓",
+            case "\u{2193}\u{2193}\u{2193}",
+                 "↓↓↓",
                  "TripleDown":
                 self = .tripleDown
-            case "↔︎",
+            case "\u{2194}",
+                 "↔︎",
                  "NONE":
                 self = .none
             case "NOT COMPUTABLE":

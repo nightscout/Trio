@@ -18,7 +18,45 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
     @Injected() private var tempTargetsStorage: TempTargetsStorage!
     @Injected() private var garmin: GarminManager!
 
+    private var glucoseFormatter: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 0
+        if settingsManager.settings.units == .mmolL {
+            formatter.minimumFractionDigits = 1
+            formatter.maximumFractionDigits = 1
+        }
+        formatter.roundingMode = .halfUp
+        return formatter
+    }
+
+    private var eventualFormatter: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 1
+        return formatter
+    }
+
+    private var deltaFormatter: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = settingsManager.settings.units == .mmolL ? 1 : 0
+        formatter.positivePrefix = "+"
+        formatter.negativePrefix = "-"
+        return formatter
+    }
+
+    private var targetFormatter: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 1
+        return formatter
+    }
+
     let context = CoreDataStack.shared.newTaskContext()
+    let viewContext = CoreDataStack.shared.persistentContainer.viewContext
+
+    private var coreDataObserver: CoreDataObserver?
 
     private var lifetime = Lifetime()
 
@@ -26,13 +64,18 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         self.session = session
         super.init()
         injectServices(resolver)
+        setupNotification()
+        coreDataObserver = CoreDataObserver()
+        registerHandlers()
+        Task {
+            await configureState()
+        }
 
         if WCSession.isSupported() {
             session.delegate = self
             session.activate()
         }
 
-        broadcaster.register(GlucoseObserver.self, observer: self)
         broadcaster.register(SettingsObserver.self, observer: self)
         broadcaster.register(PumpHistoryObserver.self, observer: self)
         broadcaster.register(PumpSettingsObserver.self, observer: self)
@@ -49,179 +92,208 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
             return data
         }
 
-        configureState()
+        Task {
+            await configureState()
+        }
     }
 
-    private func fetchlastDetermination() -> [OrefDetermination]? {
-        let predicate = NSPredicate.enactedDetermination
+    func setupNotification() {
+        /// custom notification that is sent when a batch insert of glucose objects is done
+        Foundation.NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleBatchInsert),
+            name: .didPerformBatchInsert,
+            object: nil
+        )
+    }
 
-        return CoreDataStack.shared.fetchEntities(
+    @objc private func handleBatchInsert() {
+        Task {
+            await self.configureState()
+        }
+    }
+
+    private func registerHandlers() {
+        coreDataObserver?.registerHandler(for: "OrefDetermination") { [weak self] in
+            guard let self = self else { return }
+            Task {
+                await self.configureState()
+            }
+        }
+        coreDataObserver?.registerHandler(for: "OverrideStored") { [weak self] in
+            guard let self = self else { return }
+            Task {
+                await self.configureState()
+            }
+        }
+        // Observes Deletion of Glucose Objects
+        coreDataObserver?.registerHandler(for: "GlucoseStored") { [weak self] in
+            guard let self = self else { return }
+            Task {
+                await self.configureState()
+            }
+        }
+    }
+
+    private func fetchlastDetermination() async -> [NSManagedObjectID] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
             onContext: context,
-            predicate: predicate,
+            predicate: NSPredicate.enactedDetermination,
             key: "timestamp",
             ascending: false,
             fetchLimit: 1,
             propertiesToFetch: ["timestamp"]
         )
+
+        return await context.perform {
+            results.map(\.objectID)
+        }
     }
 
-    private func fetchLatestOverride() -> OverrideStored? {
-        CoreDataStack.shared.fetchEntities(
+    private func fetchLatestOverride() async -> NSManagedObjectID? {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OverrideStored.self,
             onContext: context,
             predicate: NSPredicate.predicateForOneDayAgo,
             key: "date",
             ascending: false,
             fetchLimit: 1
-        ).first
-    }
-
-    func fetchAndProcessGlucose() -> (ids: [NSManagedObjectID], glucose: String, trend: String, delta: String, date: Date) {
-        var results: (ids: [NSManagedObjectID], glucose: String, trend: String, delta: String, date: Date) = (
-            [],
-            "--",
-            "--",
-            "--",
-            Date()
         )
 
-        context.perform {
-            let predicate = NSPredicate.predicateFor120MinAgo
-            let fetchedGlucose = CoreDataStack.shared.fetchEntities(
-                ofType: GlucoseStored.self,
-                onContext: self.context,
-                predicate: predicate,
-                key: "date",
-                ascending: false,
-                fetchLimit: 24,
-                batchSize: 12
-            )
-
-            let ids = fetchedGlucose.map(\.objectID)
-            guard let firstGlucose = fetchedGlucose.first else {
-                return
-            }
-
-            let glucoseValue = firstGlucose.glucose
-            let date = firstGlucose.date ?? .distantPast
-            let delta = fetchedGlucose.count >= 2 ? glucoseValue - fetchedGlucose[1].glucose : 0
-
-            let units = self.settingsManager.settings.units
-            let glucoseFormatter = NumberFormatter()
-            glucoseFormatter.numberStyle = .decimal
-            glucoseFormatter.maximumFractionDigits = (units == .mmolL) ? 1 : 0
-
-            let glucoseText = glucoseFormatter
-                .string(from: Double(units == .mmolL ? Decimal(glucoseValue).asMmolL : Decimal(glucoseValue)) as NSNumber) ?? "--"
-
-            let directionText = firstGlucose.direction ?? "↔︎"
-
-            let deltaFormatter = NumberFormatter()
-            deltaFormatter.numberStyle = .decimal
-            deltaFormatter.maximumFractionDigits = 1
-            let deltaText = deltaFormatter
-                .string(from: Double(units == .mmolL ? Decimal(delta).asMmolL : Decimal(delta)) as NSNumber) ?? "--"
-
-            results = (ids, glucoseText, directionText, deltaText, date)
+        return await context.perform {
+            results.map(\.objectID).first
         }
-        return results
     }
 
-    private func configureState() {
-        processQueue.async {
-            self.context.performAndWait {
-                let glucoseValues = self.fetchAndProcessGlucose()
-                let lastDetermination = self.fetchlastDetermination()?.first
+    private func fetchGlucose() async -> [NSManagedObjectID] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: GlucoseStored.self,
+            onContext: context,
+            predicate: NSPredicate.predicateFor120MinAgo,
+            key: "date",
+            ascending: false,
+            fetchLimit: 24,
+            batchSize: 12
+        )
 
-                self.state.glucose = glucoseValues.glucose
-                self.state.trend = glucoseValues.trend
-                self.state.delta = glucoseValues.delta
-                self.state.trendRaw = glucoseValues.trend
-                self.state.glucoseDate = glucoseValues.date
-                self.state.lastLoopDate = lastDetermination?.timestamp
-                self.state.lastLoopDateInterval = self.state.lastLoopDate.map {
-                    guard $0.timeIntervalSince1970 > 0 else { return 0 }
-                    return UInt64($0.timeIntervalSince1970)
-                }
-                self.state.bolusIncrement = self.settingsManager.preferences.bolusIncrement
-                self.state.maxCOB = self.settingsManager.preferences.maxCOB
-                self.state.maxBolus = self.settingsManager.pumpSettings.maxBolus
-                self.state.carbsRequired = lastDetermination?.carbsRequired as? Decimal
+        return await context.perform {
+            results.map(\.objectID)
+        }
+    }
 
-                var insulinRequired = lastDetermination?.insulinReq as? Decimal ?? 0
+    @MainActor private func configureState() async {
+        let glucoseValuesIDs = await fetchGlucose()
+        guard let lastDeterminationID = await fetchlastDetermination().first,
+              let latestOverrideID = await fetchLatestOverride() else { return }
 
-                var double: Decimal = 2
-                if lastDetermination?.manualBolusErrorString == 0 {
-                    insulinRequired = lastDetermination?.insulinForManualBolus as? Decimal ?? 0
-                    double = 1
-                }
-
-                self.state.useNewCalc = self.settingsManager.settings.useCalc
-
-                if !(self.state.useNewCalc ?? false) {
-                    self.state.bolusRecommended = self.apsManager
-                        .roundBolus(amount: max(
-                            insulinRequired * (self.settingsManager.settings.insulinReqPercentage / 100) * double,
-                            0
-                        ))
-                } else {
-                    let recommended = self.newBolusCalc(
-                        ids: glucoseValues.ids,
-                        determination: lastDetermination
-                    )
-                    self.state.bolusRecommended = self.apsManager
-                        .roundBolus(amount: max(recommended, 0))
-                }
-                self.state.bolusAfterCarbs = !self.settingsManager.settings.skipBolusScreenAfterCarbs
-                self.state.displayOnWatch = self.settingsManager.settings.displayOnWatch
-                self.state.displayFatAndProteinOnWatch = self.settingsManager.settings.displayFatAndProteinOnWatch
-                self.state.confirmBolusFaster = self.settingsManager.settings.confirmBolusFaster
-
-                self.state.iob = lastDetermination?.iob as? Decimal
-                self.state.cob = lastDetermination?.cob as? Decimal
-                self.state.tempTargets = self.tempTargetsStorage.presets()
-                    .map { target -> TempTargetWatchPreset in
-                        let untilDate = self.tempTargetsStorage.current().flatMap { currentTarget -> Date? in
-                            guard currentTarget.id == target.id else { return nil }
-                            let date = currentTarget.createdAt.addingTimeInterval(TimeInterval(currentTarget.duration * 60))
-                            return date > Date() ? date : nil
-                        }
-                        return TempTargetWatchPreset(
-                            name: target.displayName,
-                            id: target.id,
-                            description: self.descriptionForTarget(target),
-                            until: untilDate
-                        )
-                    }
-                self.state.bolusAfterCarbs = !self.settingsManager.settings.skipBolusScreenAfterCarbs
-                self.state.displayOnWatch = self.settingsManager.settings.displayOnWatch
-                self.state.displayFatAndProteinOnWatch = self.settingsManager.settings.displayFatAndProteinOnWatch
-                self.state.confirmBolusFaster = self.settingsManager.settings.confirmBolusFaster
-
-                let eBG = self.evetualBGStraing()
-                self.state.eventualBG = eBG.map { "⇢ " + $0 }
-                self.state.eventualBGRaw = eBG
-
-                self.state.isf = lastDetermination?.insulinSensitivity as? Decimal
-
-                let latestOverride = self.fetchLatestOverride()
-
-                if latestOverride?.enabled ?? false {
-                    let percentString = "\((latestOverride?.percentage ?? 100).formatted(.number)) %"
-                    self.state.override = percentString
-
-                } else {
-                    self.state.override = "100 %"
-                }
+        do {
+            let glucoseValues = try glucoseValuesIDs.compactMap { id in
+                try viewContext.existingObject(with: id) as? GlucoseStored
             }
 
-            self.sendState()
+            let lastDetermination = try viewContext.existingObject(with: lastDeterminationID) as? OrefDetermination
+            let latestOverride = try viewContext.existingObject(with: latestOverrideID) as? OverrideStored
+
+            if let firstGlucoseValue = glucoseValues.first {
+                let value = settingsManager.settings
+                    .units == .mgdL ? Decimal(firstGlucoseValue.glucose) : Decimal(firstGlucoseValue.glucose).asMmolL
+                state.glucose = glucoseFormatter.string(from: value as NSNumber)
+                state.trend = firstGlucoseValue.direction
+                let delta = glucoseValues
+                    .count >= 2 ? Decimal(firstGlucoseValue.glucose) - Decimal(glucoseValues.dropFirst().first?.glucose ?? 0) : 0
+                let deltaConverted = settingsManager.settings.units == .mgdL ? delta : delta.asMmolL
+                state.delta = deltaFormatter.string(from: deltaConverted as NSNumber)
+                state.trendRaw = firstGlucoseValue.direction
+                state.glucoseDate = firstGlucoseValue.date
+            }
+
+            state.lastLoopDate = lastDetermination?.timestamp
+            state.lastLoopDateInterval = state.lastLoopDate.map {
+                guard $0.timeIntervalSince1970 > 0 else { return 0 }
+                return UInt64($0.timeIntervalSince1970)
+            }
+            state.bolusIncrement = settingsManager.preferences.bolusIncrement
+            state.maxCOB = settingsManager.preferences.maxCOB
+            state.maxBolus = settingsManager.pumpSettings.maxBolus
+            state.carbsRequired = lastDetermination?.carbsRequired as? Decimal
+
+            var insulinRequired = lastDetermination?.insulinReq as? Decimal ?? 0
+
+            var double: Decimal = 2
+            if lastDetermination?.manualBolusErrorString == 0 {
+                insulinRequired = lastDetermination?.insulinForManualBolus as? Decimal ?? 0
+                double = 1
+            }
+
+            state.useNewCalc = settingsManager.settings.useCalc
+
+            if !(state.useNewCalc ?? false) {
+                state.bolusRecommended = apsManager
+                    .roundBolus(amount: max(
+                        insulinRequired * (settingsManager.settings.insulinReqPercentage / 100) * double,
+                        0
+                    ))
+            } else {
+                let recommended = await newBolusCalc(
+                    ids: glucoseValuesIDs,
+                    determination: lastDetermination
+                )
+                state.bolusRecommended = apsManager
+                    .roundBolus(amount: max(recommended, 0))
+            }
+            state.bolusAfterCarbs = !settingsManager.settings.skipBolusScreenAfterCarbs
+            state.displayOnWatch = settingsManager.settings.displayOnWatch
+            state.displayFatAndProteinOnWatch = settingsManager.settings.displayFatAndProteinOnWatch
+            state.confirmBolusFaster = settingsManager.settings.confirmBolusFaster
+
+            state.iob = lastDetermination?.iob as? Decimal
+            state.cob = lastDetermination?.cob as? Decimal
+            state.tempTargets = tempTargetsStorage.presets()
+                .map { target -> TempTargetWatchPreset in
+                    let untilDate = self.tempTargetsStorage.current().flatMap { currentTarget -> Date? in
+                        guard currentTarget.id == target.id else { return nil }
+                        let date = currentTarget.createdAt.addingTimeInterval(TimeInterval(currentTarget.duration * 60))
+                        return date > Date() ? date : nil
+                    }
+                    return TempTargetWatchPreset(
+                        name: target.displayName,
+                        id: target.id,
+                        description: self.descriptionForTarget(target),
+                        until: untilDate
+                    )
+                }
+            state.bolusAfterCarbs = !settingsManager.settings.skipBolusScreenAfterCarbs
+            state.displayOnWatch = settingsManager.settings.displayOnWatch
+            state.displayFatAndProteinOnWatch = settingsManager.settings.displayFatAndProteinOnWatch
+            state.confirmBolusFaster = settingsManager.settings.confirmBolusFaster
+
+            if let eventualBG = settingsManager.settings.units == .mgdL ? lastDetermination?.eventualBG : lastDetermination?
+                .eventualBG?.decimalValue.asMmolL as NSDecimalNumber?
+            {
+                let eventualBGAsString = eventualFormatter.string(from: eventualBG)
+                state.eventualBG = eventualBGAsString.map { "⇢ " + $0 }
+                state.eventualBGRaw = eventualBGAsString
+            }
+
+            state.isf = lastDetermination?.insulinSensitivity as? Decimal
+
+            if latestOverride?.enabled ?? false {
+                let percentString = "\((latestOverride?.percentage ?? 100).formatted(.number)) %"
+                state.override = percentString
+
+            } else {
+                state.override = "100 %"
+            }
+
+            sendState()
+
+        } catch let error as NSError {
+            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to configure state with error: \(error)")
         }
     }
 
     private func sendState() {
-        dispatchPrecondition(condition: .onQueue(processQueue))
         guard let data = try? JSONEncoder().encode(state) else {
             warning(.service, "Cannot encode watch state")
             return
@@ -252,25 +324,11 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         return description
     }
 
-    private func evetualBGStraing() -> String? {
-        context.perform {
-            guard let eventualBG = self.fetchlastDetermination()?.first?.eventualBG as? Int else {
-                return nil
-            }
-            let units = self.settingsManager.settings.units
-            return eventualFormatter.string(
-                from: (units == .mmolL ? eventualBG.asMmolL : Decimal(eventualBG)) as NSNumber
-            )!
-        }
-    }
-
-    private func newBolusCalc(ids: [NSManagedObjectID], determination: OrefDetermination?) -> Decimal {
-        var insulinCalculated: Decimal = 0
-
-        context.performAndWait {
+    private func newBolusCalc(ids: [NSManagedObjectID], determination: OrefDetermination?) async -> Decimal {
+        await context.perform {
             let glucoseObjects = ids.compactMap { self.context.object(with: $0) as? GlucoseStored }
             guard let firstGlucose = glucoseObjects.first else {
-                return // If there's no glucose data, exit the block
+                return 0 // If there's no glucose data, exit the block
             }
             let bg = firstGlucose.glucose // Make sure to provide a fallback value for glucose
 
@@ -280,7 +338,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
                 bgDelta = Int(firstGlucose.glucose) - Int(glucoseObjects[2].glucose)
             }
 
-            let conversion: Decimal = settingsManager.settings.units == .mmolL ? 0.0555 : 1
+            let conversion: Decimal = self.settingsManager.settings.units == .mmolL ? 0.0555 : 1
             let isf = self.state.isf ?? 0
             let target = determination?.currentTarget as? Decimal ?? 100
             let carbratio = determination?.carbRatio as? Decimal ?? 10
@@ -296,51 +354,18 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
             let iobInsulinReduction = -iob
             let wholeCalc = targetDifferenceInsulin + iobInsulinReduction + wholeCobInsulin + fifteenMinInsulin
 
-            let result = wholeCalc * settingsManager.settings.overrideFactor
-            if settingsManager.settings.fattyMeals {
+            let result = wholeCalc * self.settingsManager.settings.overrideFactor
+            var insulinCalculated: Decimal
+            if self.settingsManager.settings.fattyMeals {
                 insulinCalculated = result * fattyMealFactor
             } else {
                 insulinCalculated = result
             }
+
+            // Ensure the calculated insulin amount does not exceed the maximum bolus and is not below zero
+            insulinCalculated = max(min(insulinCalculated, self.settingsManager.pumpSettings.maxBolus), 0)
+            return insulinCalculated // Return the calculated insulin outside of the performAndWait block
         }
-
-        // Ensure the calculated insulin amount does not exceed the maximum bolus and is not below zero
-        insulinCalculated = max(min(insulinCalculated, settingsManager.pumpSettings.maxBolus), 0)
-        return insulinCalculated // Return the calculated insulin outside of the performAndWait block
-    }
-
-    private var glucoseFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        if settingsManager.settings.units == .mmolL {
-            formatter.minimumFractionDigits = 1
-            formatter.maximumFractionDigits = 1
-        }
-        formatter.roundingMode = .halfUp
-        return formatter
-    }
-
-    private var eventualFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 1
-        return formatter
-    }
-
-    private var deltaFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 1
-        formatter.positivePrefix = "+"
-        return formatter
-    }
-
-    private var targetFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 1
-        return formatter
     }
 }
 
@@ -402,7 +427,7 @@ extension BaseWatchManager: WCSessionDelegate {
             Task {
                 if var preset = tempTargetsStorage.presets().first(where: { $0.id == tempTargetID }) {
                     preset.createdAt = Date()
-                    await tempTargetsStorage.storeTempTargets([preset])
+                    tempTargetsStorage.storeTempTargets([preset])
                     replyHandler(["confirmation": true])
                 } else if tempTargetID == "cancel" {
                     let entry = TempTarget(
@@ -414,7 +439,7 @@ extension BaseWatchManager: WCSessionDelegate {
                         enteredBy: TempTarget.manual,
                         reason: TempTarget.cancel
                     )
-                    await tempTargetsStorage.storeTempTargets([entry])
+                    tempTargetsStorage.storeTempTargets([entry])
                     replyHandler(["confirmation": true])
                 } else {
                     replyHandler(["confirmation": false])
@@ -446,7 +471,6 @@ extension BaseWatchManager: WCSessionDelegate {
 }
 
 extension BaseWatchManager:
-    GlucoseObserver,
     SettingsObserver,
     PumpHistoryObserver,
     PumpSettingsObserver,
@@ -456,12 +480,10 @@ extension BaseWatchManager:
     PumpBatteryObserver,
     PumpReservoirObserver
 {
-    func glucoseDidUpdate(_: [BloodGlucose]) {
-        configureState()
-    }
-
     func settingsDidChange(_: FreeAPSSettings) {
-        configureState()
+        Task {
+            await configureState()
+        }
     }
 
     func pumpHistoryDidUpdate(_: [PumpHistoryEvent]) {
@@ -469,7 +491,9 @@ extension BaseWatchManager:
     }
 
     func pumpSettingsDidChange(_: PumpSettings) {
-        configureState()
+        Task {
+            await configureState()
+        }
     }
 
     func basalProfileDidChange(_: [BasalProfileEntry]) {
@@ -477,7 +501,9 @@ extension BaseWatchManager:
     }
 
     func tempTargetsDidUpdate(_: [TempTarget]) {
-        configureState()
+        Task {
+            await configureState()
+        }
     }
 
     func carbsDidUpdate(_: [CarbsEntry]) {
