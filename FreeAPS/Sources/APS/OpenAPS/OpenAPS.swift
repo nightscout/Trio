@@ -142,8 +142,8 @@ final class OpenAPS {
         }
     }
 
-    private func fetchAndProcessCarbs() async -> String {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchAndProcessCarbs(additionalCarbs: Decimal? = nil) async -> String {
+        var results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: context,
             predicate: NSPredicate.predicateForOneDayAgo,
@@ -151,10 +151,25 @@ final class OpenAPS {
             ascending: false
         )
 
-        // convert to json
+        if let additionalCarbs = additionalCarbs {
+            let newCarbEntry = createCarbEntry(amount: additionalCarbs)
+            results.append(newCarbEntry)
+        }
+
         return await context.perform {
             return self.jsonConverter.convertToJSON(results)
         }
+    }
+
+    private func createCarbEntry(amount: Decimal) -> CarbEntryStored {
+        let newCarbEntry = CarbEntryStored(context: context)
+        newCarbEntry.date = Date()
+        newCarbEntry.carbs = Double(amount)
+        newCarbEntry.fat = 0
+        newCarbEntry.isFPU = false
+        newCarbEntry.protein = 0
+        newCarbEntry.id = UUID()
+        return newCarbEntry
     }
 
     private func fetchPumpHistoryObjectIDs() async -> [NSManagedObjectID]? {
@@ -244,7 +259,7 @@ final class OpenAPS {
 
         // Perform asynchronous calls in parallel
         async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
-        async let carbs = fetchAndProcessCarbs()
+        async let carbs = fetchAndProcessCarbs(additionalCarbs: carbs)
         async let glucose = fetchAndProcessGlucose()
         async let oref2 = oref2()
         async let profileAsync = loadFileFromStorageAsync(name: Settings.profile)
@@ -275,7 +290,7 @@ final class OpenAPS {
             reservoirAsync,
             preferencesAsync
         )
-//        print("carbs: \(carbsAsJSON)")
+        print("carbs: \(carbsAsJSON)")
 
         // Meal
         let meal = try await self.meal(
@@ -294,7 +309,7 @@ final class OpenAPS {
             clock: dateFormattedAsString,
             autosens: autosens.isEmpty ? .null : autosens
         )
-        print("pumphistory : \(pumpHistoryJSON)")
+//        print("pumphistory : \(pumpHistoryJSON)")
 //        print("iob: \(iob)")
 
         // Determine basal
