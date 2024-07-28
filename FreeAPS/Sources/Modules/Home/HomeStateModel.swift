@@ -229,10 +229,7 @@ extension Home {
         private func registerHandlers() {
             coreDataObserver?.registerHandler(for: "OrefDetermination") { [weak self] in
                 guard let self = self else { return }
-                Task {
-                    self.setupDeterminationsArray()
-                    await self.updateForecastData()
-                }
+                self.setupDeterminationsArray()
             }
 
             coreDataObserver?.registerHandler(for: "GlucoseStored") { [weak self] in

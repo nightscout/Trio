@@ -17,6 +17,9 @@ extension Bolus {
         @Injected() var glucoseStorage: GlucoseStorage!
         @Injected() var determinationStorage: DeterminationStorage!
 
+        @Published var lowGlucose: Decimal = 4 / 0.0555
+        @Published var highGlucose: Decimal = 10 / 0.0555
+
         @Published var predictions: Predictions?
         @Published var amount: Decimal = 0
         @Published var insulinRecommended: Decimal = 0
@@ -93,6 +96,7 @@ extension Bolus {
         @Published var showInfo: Bool = false
         @Published var glucoseFromPersistence: [GlucoseStored] = []
         @Published var determination: [OrefDetermination] = []
+        @Published var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
 
         let now = Date.now
 
@@ -124,6 +128,9 @@ extension Bolus {
             sweetMeals = settings.settings.sweetMeals
             sweetMealFactor = settings.settings.sweetMealFactor
             displayPresets = settings.settings.displayPresets
+
+            lowGlucose = settingsManager.settings.low
+            highGlucose = settingsManager.settings.high
 
             maxCarbs = settings.settings.maxCarbs
             skipBolus = settingsManager.settings.skipBolusScreenAfterCarbs
@@ -577,10 +584,10 @@ extension Bolus.StateModel {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: backgroundContext,
-            predicate: NSPredicate.predicateFor30MinAgo,
+            predicate: NSPredicate.predicateForFourHoursAgo,
             key: "date",
             ascending: false,
-            fetchLimit: 3
+            fetchLimit: 48
         )
 
         return await backgroundContext.perform {
@@ -596,7 +603,7 @@ extension Bolus.StateModel {
             glucoseFromPersistence = glucoseObjects
 
             let lastGlucose = glucoseFromPersistence.first?.glucose ?? 0
-            let thirdLastGlucose = glucoseFromPersistence.last?.glucose ?? 0
+            let thirdLastGlucose = glucoseFromPersistence.dropFirst(2).first?.glucose ?? 0
             let delta = Decimal(lastGlucose) - Decimal(thirdLastGlucose)
 
             currentBG = Decimal(lastGlucose)
@@ -615,6 +622,7 @@ extension Bolus.StateModel {
                 predicate: NSPredicate.enactedDetermination
             )
             await updateDeterminationsArray(with: ids)
+            await updateForecastData()
         }
     }
 
@@ -643,6 +651,45 @@ extension Bolus.StateModel {
             debugPrint(
                 "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the determinations array: \(error.localizedDescription)"
             )
+        }
+    }
+}
+
+extension Bolus.StateModel {
+    func preprocessForecastData() async
+        -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])]
+    {
+        guard let id = determination.first?.objectID else {
+            return []
+        }
+
+        // Get forecast and forecast values
+        let forecastIDs = await determinationStorage.getForecastIDs(for: id, in: context)
+        var result: [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] = []
+
+        for forecastID in forecastIDs {
+            // Get the forecast value IDs for the given forecast ID
+            let forecastValueIDs = await determinationStorage.getForecastValueIDs(for: forecastID, in: context)
+            let uuid = UUID()
+            result.append((id: uuid, forecastID: forecastID, forecastValueIDs: forecastValueIDs))
+        }
+
+        return result
+    }
+
+    @MainActor func updateForecastData() async {
+        let forecastData = await preprocessForecastData()
+
+        preprocessedData = forecastData.reduce(into: []) { result, data in
+            guard let forecast = try? context.existingObject(with: data.forecastID) as? Forecast else {
+                return
+            }
+
+            for forecastValueID in data.forecastValueIDs {
+                if let forecastValue = try? context.existingObject(with: forecastValueID) as? ForecastValue {
+                    result.append((id: data.id, forecast: forecast, forecastValue: forecastValue))
+                }
+            }
         }
     }
 }

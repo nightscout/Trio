@@ -435,6 +435,11 @@ extension Bolus {
                                 }
                             }
                         }.listRowBackground(Color.chart)
+
+                        Section {
+                            ForeCastChart(state: state, units: $state.units)
+                                .padding(.vertical)
+                        }.listRowBackground(Color.chart)
                     }
                 }
                 .safeAreaInset(edge: .bottom, spacing: 0) {
