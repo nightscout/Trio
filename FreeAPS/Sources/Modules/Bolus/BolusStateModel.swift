@@ -97,6 +97,8 @@ extension Bolus {
         @Published var glucoseFromPersistence: [GlucoseStored] = []
         @Published var determination: [OrefDetermination] = []
         @Published var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
+        @Published var simulatedDetermination: Determination?
+        @Published var predictionsForChart: Predictions?
 
         let now = Date.now
 
@@ -694,7 +696,7 @@ extension Bolus.StateModel {
     }
 
     func updateForecasts() async {
-        let dummyDetermination = await apsManager.simulateDetermineBasal(carbs: carbs, iob: amount)
-        print("determination: \(dummyDetermination)")
+        simulatedDetermination = await apsManager.simulateDetermineBasal(carbs: carbs, iob: amount)
+        predictionsForChart = simulatedDetermination?.predictions
     }
 }

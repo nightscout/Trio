@@ -57,26 +57,49 @@ struct ForeCastChart: View {
         }
     }
 
-    private func drawForecasts() -> some ChartContent {
-        ForEach(state.preprocessedData, id: \.id) { tuple in
-            let forecastValue = tuple.forecastValue
-            let forecast = tuple.forecast
-            let valueAsDecimal = Decimal(forecastValue.value)
-            let displayValue = units == .mmolL ? valueAsDecimal.asMmolL : valueAsDecimal
-
-            LineMark(
-                x: .value("Time", timeForIndex(forecastValue.index)),
-                y: .value("Value", displayValue)
-            )
-            .foregroundStyle(by: .value("Predictions", forecast.type ?? ""))
-        }
-    }
-
     private func timeForIndex(_ index: Int32) -> Date {
         let currentTime = Date()
         let timeInterval = TimeInterval(index * 300)
         return currentTime.addingTimeInterval(timeInterval)
     }
+
+    private func drawForecasts() -> some ChartContent {
+        let predictions = state.predictionsForChart
+
+        let predictionData = [
+            ("IOB", predictions?.iob),
+            ("ZT", predictions?.zt),
+            ("COB", predictions?.cob),
+            ("UAM", predictions?.uam)
+        ]
+
+        return ForEach(predictionData, id: \.0) { name, values in
+            if let values = values {
+                ForEach(values.indices, id: \.self) { index in
+                    LineMark(
+                        x: .value("Time", timeForIndex(Int32(index))),
+                        y: .value("Value", Decimal(values[index]) * conversionFactor)
+                    )
+                    .foregroundStyle(by: .value("Prediction Type", name))
+                }
+            }
+        }
+    }
+
+//    private func drawForecasts() -> some ChartContent {
+//        ForEach(state.preprocessedData, id: \.id) { tuple in
+//            let forecastValue = tuple.forecastValue
+//            let forecast = tuple.forecast
+//            let valueAsDecimal = Decimal(forecastValue.value)
+//            let displayValue = units == .mmolL ? valueAsDecimal.asMmolL : valueAsDecimal
+//
+//            LineMark(
+//                x: .value("Time", timeForIndex(forecastValue.index)),
+//                y: .value("Value", displayValue)
+//            )
+//            .foregroundStyle(by: .value("Predictions", forecast.type ?? ""))
+//        }
+//    }
 
     private func drawCurrentTimeMarker() -> some ChartContent {
         RuleMark(
