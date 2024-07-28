@@ -151,25 +151,40 @@ final class OpenAPS {
             ascending: false
         )
 
-        if let additionalCarbs = additionalCarbs {
-            let newCarbEntry = createCarbEntry(amount: additionalCarbs)
-            results.append(newCarbEntry)
+        let json = await context.perform {
+            var jsonArray = self.jsonConverter.convertToJSON(results)
+
+            if let additionalCarbs = additionalCarbs {
+                let additionalEntry = [
+                    "carbs": Double(additionalCarbs),
+                    "actualDate": ISO8601DateFormatter().string(from: Date()),
+                    "id": UUID().uuidString,
+                    "note": NSNull(),
+                    "protein": 0,
+                    "created_at": ISO8601DateFormatter().string(from: Date()),
+                    "isFPU": false,
+                    "fat": 0,
+                    "enteredBy": "Open-iAPS"
+                ] as [String: Any]
+
+                // Assuming jsonArray is a String, convert it to a list of dictionaries first
+                if var jsonData = jsonArray.data(using: .utf8) {
+                    var jsonList = try? JSONSerialization.jsonObject(with: jsonData, options: []) as? [[String: Any]]
+                    jsonList?.append(additionalEntry)
+
+                    // Convert back to JSON string
+                    if let updatedJsonData = try? JSONSerialization
+                        .data(withJSONObject: jsonList ?? [], options: .prettyPrinted)
+                    {
+                        jsonArray = String(data: updatedJsonData, encoding: .utf8) ?? jsonArray
+                    }
+                }
+            }
+
+            return jsonArray
         }
 
-        return await context.perform {
-            return self.jsonConverter.convertToJSON(results)
-        }
-    }
-
-    private func createCarbEntry(amount: Decimal) -> CarbEntryStored {
-        let newCarbEntry = CarbEntryStored(context: context)
-        newCarbEntry.date = Date()
-        newCarbEntry.carbs = Double(amount)
-        newCarbEntry.fat = 0
-        newCarbEntry.isFPU = false
-        newCarbEntry.protein = 0
-        newCarbEntry.id = UUID()
-        return newCarbEntry
+        return json
     }
 
     private func fetchPumpHistoryObjectIDs() async -> [NSManagedObjectID]? {
