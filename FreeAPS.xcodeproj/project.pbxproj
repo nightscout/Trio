@@ -27,10 +27,10 @@
 		1927C8E62744606D00347C69 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1927C8E82744606D00347C69 /* InfoPlist.strings */; };
 		1935364028496F7D001E0B16 /* Oref2_variables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1935363F28496F7D001E0B16 /* Oref2_variables.swift */; };
 		193F6CDD2A512C8F001240FD /* Loops.swift in Sources */ = {isa = PBXBuildFile; fileRef = 193F6CDC2A512C8F001240FD /* Loops.swift */; };
-		195D80B42AF6973A00D25097 /* DynamicRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 195D80B32AF6973A00D25097 /* DynamicRootView.swift */; };
-		195D80B72AF697B800D25097 /* DynamicDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 195D80B62AF697B800D25097 /* DynamicDataFlow.swift */; };
-		195D80B92AF697F700D25097 /* DynamicProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 195D80B82AF697F700D25097 /* DynamicProvider.swift */; };
-		195D80BB2AF6980B00D25097 /* DynamicStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 195D80BA2AF6980B00D25097 /* DynamicStateModel.swift */; };
+		195D80B42AF6973A00D25097 /* DynamicSettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 195D80B32AF6973A00D25097 /* DynamicSettingsRootView.swift */; };
+		195D80B72AF697B800D25097 /* DynamicSettingsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 195D80B62AF697B800D25097 /* DynamicSettingsDataFlow.swift */; };
+		195D80B92AF697F700D25097 /* DynamicSettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 195D80B82AF697F700D25097 /* DynamicSettingsProvider.swift */; };
+		195D80BB2AF6980B00D25097 /* DynamicSettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 195D80BA2AF6980B00D25097 /* DynamicSettingsStateModel.swift */; };
 		1967DFBE29D052C200759F30 /* Icons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1967DFBD29D052C200759F30 /* Icons.swift */; };
 		1967DFC029D053AC00759F30 /* IconSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1967DFBF29D053AC00759F30 /* IconSelection.swift */; };
 		1967DFC229D053D300759F30 /* IconImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1967DFC129D053D300759F30 /* IconImage.swift */; };
@@ -393,9 +393,26 @@
 		DD1745202C55523E00211FAC /* SMBSettingsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD17451F2C55523E00211FAC /* SMBSettingsDataFlow.swift */; };
 		DD1745222C55524800211FAC /* SMBSettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745212C55524800211FAC /* SMBSettingsProvider.swift */; };
 		DD1745242C55526000211FAC /* SMBSettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745232C55526000211FAC /* SMBSettingsStateModel.swift */; };
-		DD1745262C55526F00211FAC /* SMBSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745252C55526F00211FAC /* SMBSettingsView.swift */; };
+		DD1745262C55526F00211FAC /* SMBSettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745252C55526F00211FAC /* SMBSettingsRootView.swift */; };
 		DD1745292C55642100211FAC /* SettingInputSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745282C55642100211FAC /* SettingInputSection.swift */; };
 		DD17452B2C556E8100211FAC /* SettingInputHintView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD17452A2C556E8100211FAC /* SettingInputHintView.swift */; };
+		DD17452E2C55AE4800211FAC /* TargetBehavoirDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD17452D2C55AE4800211FAC /* TargetBehavoirDataFlow.swift */; };
+		DD1745302C55AE5300211FAC /* TargetBehaviorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD17452F2C55AE5300211FAC /* TargetBehaviorProvider.swift */; };
+		DD1745322C55AE6000211FAC /* TargetBehavoirStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745312C55AE6000211FAC /* TargetBehavoirStateModel.swift */; };
+		DD1745352C55AE7E00211FAC /* TargetBehavoirRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745342C55AE7E00211FAC /* TargetBehavoirRootView.swift */; };
+		DD1745372C55B74200211FAC /* AlgorithmSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745362C55B74200211FAC /* AlgorithmSettings.swift */; };
+		DD17453A2C55BFA600211FAC /* AlgorithmVariousDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745392C55BFA600211FAC /* AlgorithmVariousDataFlow.swift */; };
+		DD17453C2C55BFAD00211FAC /* AlgorithmVariousProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD17453B2C55BFAD00211FAC /* AlgorithmVariousProvider.swift */; };
+		DD17453E2C55BFB600211FAC /* AlgorithmVariousStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD17453D2C55BFB600211FAC /* AlgorithmVariousStateModel.swift */; };
+		DD1745402C55BFC100211FAC /* AlgorithmVariousRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD17453F2C55BFC100211FAC /* AlgorithmVariousRootView.swift */; };
+		DD1745442C55C60E00211FAC /* AutosensSettingsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745432C55C60E00211FAC /* AutosensSettingsDataFlow.swift */; };
+		DD1745462C55C61500211FAC /* AutosensSettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745452C55C61500211FAC /* AutosensSettingsProvider.swift */; };
+		DD1745482C55C61D00211FAC /* AutosensSettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745472C55C61D00211FAC /* AutosensSettingsStateModel.swift */; };
+		DD17454B2C55C62800211FAC /* AutosensSettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD17454A2C55C62800211FAC /* AutosensSettingsRootView.swift */; };
+		DD17454E2C55CA4D00211FAC /* GeneralSettingsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD17454D2C55CA4D00211FAC /* GeneralSettingsDataFlow.swift */; };
+		DD1745502C55CA5500211FAC /* GeneralSettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD17454F2C55CA5500211FAC /* GeneralSettingsProvider.swift */; };
+		DD1745522C55CA5D00211FAC /* GeneralSettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745512C55CA5D00211FAC /* GeneralSettingsStateModel.swift */; };
+		DD1745552C55CA6C00211FAC /* GeneralSettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745542C55CA6C00211FAC /* GeneralSettingsRootView.swift */; };
 		DD1DB7CC2BECCA1F0048B367 /* BuildDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */; };
 		DD399FB31EACB9343C944C4C /* PreferencesEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CA3E609094E064C99A4752C /* PreferencesEditorStateModel.swift */; };
 		DD57C4B22C4C7103001A5B28 /* LoopStatRecord+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4902C4C7103001A5B28 /* LoopStatRecord+CoreDataClass.swift */; };
@@ -599,10 +616,10 @@
 		193F1E3B2B44C14800525770 /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = vi.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		193F1E3C2B44C14800525770 /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = vi.lproj/Localizable.strings; sourceTree = "<group>"; };
 		193F6CDC2A512C8F001240FD /* Loops.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loops.swift; sourceTree = "<group>"; };
-		195D80B32AF6973A00D25097 /* DynamicRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicRootView.swift; sourceTree = "<group>"; };
-		195D80B62AF697B800D25097 /* DynamicDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicDataFlow.swift; sourceTree = "<group>"; };
-		195D80B82AF697F700D25097 /* DynamicProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicProvider.swift; sourceTree = "<group>"; };
-		195D80BA2AF6980B00D25097 /* DynamicStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicStateModel.swift; sourceTree = "<group>"; };
+		195D80B32AF6973A00D25097 /* DynamicSettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicSettingsRootView.swift; sourceTree = "<group>"; };
+		195D80B62AF697B800D25097 /* DynamicSettingsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicSettingsDataFlow.swift; sourceTree = "<group>"; };
+		195D80B82AF697F700D25097 /* DynamicSettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicSettingsProvider.swift; sourceTree = "<group>"; };
+		195D80BA2AF6980B00D25097 /* DynamicSettingsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicSettingsStateModel.swift; sourceTree = "<group>"; };
 		1967DFBD29D052C200759F30 /* Icons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Icons.swift; sourceTree = "<group>"; };
 		1967DFBF29D053AC00759F30 /* IconSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconSelection.swift; sourceTree = "<group>"; };
 		1967DFC129D053D300759F30 /* IconImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconImage.swift; sourceTree = "<group>"; };
@@ -1006,9 +1023,26 @@
 		DD17451F2C55523E00211FAC /* SMBSettingsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMBSettingsDataFlow.swift; sourceTree = "<group>"; };
 		DD1745212C55524800211FAC /* SMBSettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMBSettingsProvider.swift; sourceTree = "<group>"; };
 		DD1745232C55526000211FAC /* SMBSettingsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMBSettingsStateModel.swift; sourceTree = "<group>"; };
-		DD1745252C55526F00211FAC /* SMBSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMBSettingsView.swift; sourceTree = "<group>"; };
+		DD1745252C55526F00211FAC /* SMBSettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMBSettingsRootView.swift; sourceTree = "<group>"; };
 		DD1745282C55642100211FAC /* SettingInputSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingInputSection.swift; sourceTree = "<group>"; };
 		DD17452A2C556E8100211FAC /* SettingInputHintView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingInputHintView.swift; sourceTree = "<group>"; };
+		DD17452D2C55AE4800211FAC /* TargetBehavoirDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetBehavoirDataFlow.swift; sourceTree = "<group>"; };
+		DD17452F2C55AE5300211FAC /* TargetBehaviorProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetBehaviorProvider.swift; sourceTree = "<group>"; };
+		DD1745312C55AE6000211FAC /* TargetBehavoirStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetBehavoirStateModel.swift; sourceTree = "<group>"; };
+		DD1745342C55AE7E00211FAC /* TargetBehavoirRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetBehavoirRootView.swift; sourceTree = "<group>"; };
+		DD1745362C55B74200211FAC /* AlgorithmSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlgorithmSettings.swift; sourceTree = "<group>"; };
+		DD1745392C55BFA600211FAC /* AlgorithmVariousDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlgorithmVariousDataFlow.swift; sourceTree = "<group>"; };
+		DD17453B2C55BFAD00211FAC /* AlgorithmVariousProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlgorithmVariousProvider.swift; sourceTree = "<group>"; };
+		DD17453D2C55BFB600211FAC /* AlgorithmVariousStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlgorithmVariousStateModel.swift; sourceTree = "<group>"; };
+		DD17453F2C55BFC100211FAC /* AlgorithmVariousRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlgorithmVariousRootView.swift; sourceTree = "<group>"; };
+		DD1745432C55C60E00211FAC /* AutosensSettingsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutosensSettingsDataFlow.swift; sourceTree = "<group>"; };
+		DD1745452C55C61500211FAC /* AutosensSettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutosensSettingsProvider.swift; sourceTree = "<group>"; };
+		DD1745472C55C61D00211FAC /* AutosensSettingsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutosensSettingsStateModel.swift; sourceTree = "<group>"; };
+		DD17454A2C55C62800211FAC /* AutosensSettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutosensSettingsRootView.swift; sourceTree = "<group>"; };
+		DD17454D2C55CA4D00211FAC /* GeneralSettingsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsDataFlow.swift; sourceTree = "<group>"; };
+		DD17454F2C55CA5500211FAC /* GeneralSettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsProvider.swift; sourceTree = "<group>"; };
+		DD1745512C55CA5D00211FAC /* GeneralSettingsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsStateModel.swift; sourceTree = "<group>"; };
+		DD1745542C55CA6C00211FAC /* GeneralSettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsRootView.swift; sourceTree = "<group>"; };
 		DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildDetails.swift; sourceTree = "<group>"; };
 		DD57C4902C4C7103001A5B28 /* LoopStatRecord+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoopStatRecord+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		DD57C4912C4C7103001A5B28 /* LoopStatRecord+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoopStatRecord+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
@@ -1231,21 +1265,21 @@
 			name = "Recovered References";
 			sourceTree = "<group>";
 		};
-		195D80B22AF696EE00D25097 /* Dynamic */ = {
+		195D80B22AF696EE00D25097 /* DynamicSettings */ = {
 			isa = PBXGroup;
 			children = (
-				195D80B62AF697B800D25097 /* DynamicDataFlow.swift */,
-				195D80B82AF697F700D25097 /* DynamicProvider.swift */,
-				195D80BA2AF6980B00D25097 /* DynamicStateModel.swift */,
+				195D80B62AF697B800D25097 /* DynamicSettingsDataFlow.swift */,
+				195D80B82AF697F700D25097 /* DynamicSettingsProvider.swift */,
+				195D80BA2AF6980B00D25097 /* DynamicSettingsStateModel.swift */,
 				195D80B52AF6974200D25097 /* View */,
 			);
-			path = Dynamic;
+			path = DynamicSettings;
 			sourceTree = "<group>";
 		};
 		195D80B52AF6974200D25097 /* View */ = {
 			isa = PBXGroup;
 			children = (
-				195D80B32AF6973A00D25097 /* DynamicRootView.swift */,
+				195D80B32AF6973A00D25097 /* DynamicSettingsRootView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -1349,6 +1383,10 @@
 		3811DE0325C9D31700A708ED /* Modules */ = {
 			isa = PBXGroup;
 			children = (
+				DD17454C2C55CA0200211FAC /* GeneralSettings */,
+				DD1745422C55C5C400211FAC /* AutosensSettings */,
+				DD1745382C55BF8B00211FAC /* AlgorithmVariousSettings */,
+				DD17452C2C55AE3500211FAC /* TargetBehavoir */,
 				DD17451E2C55520000211FAC /* SMBSettings */,
 				672F63EEAE27400625E14BAD /* AutotuneConfig */,
 				A42F1FEDFFD0DDE00AAD54D3 /* BasalProfileEditor */,
@@ -1360,7 +1398,7 @@
 				0610F7D6D2EC00E3BA1569F0 /* ConfigEditor */,
 				E42231DBF0DBE2B4B92D1B15 /* CREditor */,
 				9E56E3626FAD933385101B76 /* DataTable */,
-				195D80B22AF696EE00D25097 /* Dynamic */,
+				195D80B22AF696EE00D25097 /* DynamicSettings */,
 				19D466A129AA2B0A004D5F33 /* FPUConfig */,
 				F90692CD274B99850037068D /* HealthKit */,
 				3811DE2725C9D49500A708ED /* Home */,
@@ -2428,6 +2466,7 @@
 				DD1745162C54389F00211FAC /* FeatureSettingsView.swift */,
 				DD1745182C543B5700211FAC /* NotificationsView.swift */,
 				DD17451C2C543C5F00211FAC /* ServicesView.swift */,
+				DD1745362C55B74200211FAC /* AlgorithmSettings.swift */,
 			);
 			path = Subviews;
 			sourceTree = "<group>";
@@ -2446,7 +2485,83 @@
 		DD1745272C5553C400211FAC /* View */ = {
 			isa = PBXGroup;
 			children = (
-				DD1745252C55526F00211FAC /* SMBSettingsView.swift */,
+				DD1745252C55526F00211FAC /* SMBSettingsRootView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		DD17452C2C55AE3500211FAC /* TargetBehavoir */ = {
+			isa = PBXGroup;
+			children = (
+				DD1745332C55AE6500211FAC /* View */,
+				DD17452D2C55AE4800211FAC /* TargetBehavoirDataFlow.swift */,
+				DD17452F2C55AE5300211FAC /* TargetBehaviorProvider.swift */,
+				DD1745312C55AE6000211FAC /* TargetBehavoirStateModel.swift */,
+			);
+			path = TargetBehavoir;
+			sourceTree = "<group>";
+		};
+		DD1745332C55AE6500211FAC /* View */ = {
+			isa = PBXGroup;
+			children = (
+				DD1745342C55AE7E00211FAC /* TargetBehavoirRootView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		DD1745382C55BF8B00211FAC /* AlgorithmVariousSettings */ = {
+			isa = PBXGroup;
+			children = (
+				DD1745412C55BFC400211FAC /* View */,
+				DD1745392C55BFA600211FAC /* AlgorithmVariousDataFlow.swift */,
+				DD17453B2C55BFAD00211FAC /* AlgorithmVariousProvider.swift */,
+				DD17453D2C55BFB600211FAC /* AlgorithmVariousStateModel.swift */,
+			);
+			path = AlgorithmVariousSettings;
+			sourceTree = "<group>";
+		};
+		DD1745412C55BFC400211FAC /* View */ = {
+			isa = PBXGroup;
+			children = (
+				DD17453F2C55BFC100211FAC /* AlgorithmVariousRootView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		DD1745422C55C5C400211FAC /* AutosensSettings */ = {
+			isa = PBXGroup;
+			children = (
+				DD1745492C55C62000211FAC /* View */,
+				DD1745432C55C60E00211FAC /* AutosensSettingsDataFlow.swift */,
+				DD1745452C55C61500211FAC /* AutosensSettingsProvider.swift */,
+				DD1745472C55C61D00211FAC /* AutosensSettingsStateModel.swift */,
+			);
+			path = AutosensSettings;
+			sourceTree = "<group>";
+		};
+		DD1745492C55C62000211FAC /* View */ = {
+			isa = PBXGroup;
+			children = (
+				DD17454A2C55C62800211FAC /* AutosensSettingsRootView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		DD17454C2C55CA0200211FAC /* GeneralSettings */ = {
+			isa = PBXGroup;
+			children = (
+				DD1745532C55CA6100211FAC /* View */,
+				DD17454D2C55CA4D00211FAC /* GeneralSettingsDataFlow.swift */,
+				DD17454F2C55CA5500211FAC /* GeneralSettingsProvider.swift */,
+				DD1745512C55CA5D00211FAC /* GeneralSettingsStateModel.swift */,
+			);
+			path = GeneralSettings;
+			sourceTree = "<group>";
+		};
+		DD1745532C55CA6100211FAC /* View */ = {
+			isa = PBXGroup;
+			children = (
+				DD1745542C55CA6C00211FAC /* GeneralSettingsRootView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -2948,7 +3063,7 @@
 				F90692CF274B999A0037068D /* HealthKitDataFlow.swift in Sources */,
 				CE7CA3552A064973004BE681 /* ListStateIntent.swift in Sources */,
 				BDF530D82B40F8AC002CAF43 /* LockScreenView.swift in Sources */,
-				195D80B72AF697B800D25097 /* DynamicDataFlow.swift in Sources */,
+				195D80B72AF697B800D25097 /* DynamicSettingsDataFlow.swift in Sources */,
 				3862CC2E2743F9F700BF832C /* CalendarManager.swift in Sources */,
 				CEA4F62329BE10F70011ADF7 /* SavitzkyGolayFilter.swift in Sources */,
 				38B4F3C325E2A20B00E76A18 /* PumpSetupView.swift in Sources */,
@@ -2965,8 +3080,9 @@
 				38DF1786276A73D400B3528F /* TagCloudView.swift in Sources */,
 				38B4F3CD25E5031100E76A18 /* Broadcaster.swift in Sources */,
 				383420D925FFEB3F002D46C1 /* Popup.swift in Sources */,
+				DD1745402C55BFC100211FAC /* AlgorithmVariousRootView.swift in Sources */,
 				110AEDEE2C51A0AE00615CC9 /* ShortcutsConfigStateModel.swift in Sources */,
-				DD1745262C55526F00211FAC /* SMBSettingsView.swift in Sources */,
+				DD1745262C55526F00211FAC /* SMBSettingsRootView.swift in Sources */,
 				3811DE3025C9D49500A708ED /* HomeStateModel.swift in Sources */,
 				38BF021725E7CBBC00579895 /* PumpManagerExtensions.swift in Sources */,
 				CEE9A6552BBB418300EB5194 /* CalibrationsProvider.swift in Sources */,
@@ -2982,12 +3098,14 @@
 				CE94598029E9E3BD0047C9C6 /* WatchConfigDataFlow.swift in Sources */,
 				388E596C25AD95110019842D /* OpenAPS.swift in Sources */,
 				E00EEC0527368630002FF094 /* StorageAssembly.swift in Sources */,
+				DD1745552C55CA6C00211FAC /* GeneralSettingsRootView.swift in Sources */,
 				384E803825C388640086DB71 /* Script.swift in Sources */,
 				CE94597E29E9E1EE0047C9C6 /* GarminManager.swift in Sources */,
 				3883583425EEB38000E024B2 /* PumpSettings.swift in Sources */,
 				38DAB280260CBB7F00F74C1A /* PumpView.swift in Sources */,
 				DDD1631C2C4C697400CD525A /* AddOverrideForm.swift in Sources */,
 				3811DEB125C9D88300A708ED /* Keychain.swift in Sources */,
+				DD17453E2C55BFB600211FAC /* AlgorithmVariousStateModel.swift in Sources */,
 				CE95BF572BA5F5FE00DC3DE3 /* PluginManager.swift in Sources */,
 				382C133725F13A1E00715CE1 /* InsulinSensitivities.swift in Sources */,
 				19D466A529AA2BD4004D5F33 /* FPUConfigProvider.swift in Sources */,
@@ -2998,6 +3116,7 @@
 				38E44539274E411700EC9A94 /* Disk+UIImage.swift in Sources */,
 				388E595C25AD948C0019842D /* FreeAPSApp.swift in Sources */,
 				38FEF3FC2737E53800574A46 /* MainStateModel.swift in Sources */,
+				DD1745352C55AE7E00211FAC /* TargetBehavoirRootView.swift in Sources */,
 				5887527C2BD986E1008B081D /* OpenAPSBattery.swift in Sources */,
 				38569348270B5DFB0002C50D /* GlucoseSource.swift in Sources */,
 				CEE9A6582BBB418300EB5194 /* CalibrationsStateModel.swift in Sources */,
@@ -3007,6 +3126,7 @@
 				CEE9A6562BBB418300EB5194 /* CalibrationsRootView.swift in Sources */,
 				3811DE2525C9D48300A708ED /* MainRootView.swift in Sources */,
 				CE94598229E9E3D30047C9C6 /* WatchConfigProvider.swift in Sources */,
+				DD1745322C55AE6000211FAC /* TargetBehavoirStateModel.swift in Sources */,
 				38E44535274E411700EC9A94 /* Disk+Data.swift in Sources */,
 				3811DE3125C9D49500A708ED /* HomeProvider.swift in Sources */,
 				FE41E4D629463EE20047FD55 /* NightscoutPreferences.swift in Sources */,
@@ -3038,6 +3158,8 @@
 				DD1745152C54388A00211FAC /* TherapySettingsView.swift in Sources */,
 				585E2CAE2BE7BF46006ECF1A /* PumpEvent+helper.swift in Sources */,
 				DDD1631F2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodeld in Sources */,
+				DD1745482C55C61D00211FAC /* AutosensSettingsStateModel.swift in Sources */,
+				DD1745462C55C61500211FAC /* AutosensSettingsProvider.swift in Sources */,
 				3811DEAF25C9D88300A708ED /* KeyValueStorage.swift in Sources */,
 				38FE826D25CC8461001FF17A /* NightscoutAPI.swift in Sources */,
 				388358C825EEF6D200E024B2 /* BasalProfileEntry.swift in Sources */,
@@ -3070,6 +3192,7 @@
 				DD57C4C22C4C7103001A5B28 /* Forecast+CoreDataClass.swift in Sources */,
 				DD57C4C32C4C7103001A5B28 /* Forecast+CoreDataProperties.swift in Sources */,
 				DD57C4C42C4C7103001A5B28 /* BolusStored+CoreDataClass.swift in Sources */,
+				DD1745302C55AE5300211FAC /* TargetBehaviorProvider.swift in Sources */,
 				DD57C4C52C4C7103001A5B28 /* BolusStored+CoreDataProperties.swift in Sources */,
 				DD57C4C62C4C7103001A5B28 /* CarbEntryStored+CoreDataClass.swift in Sources */,
 				DD57C4C72C4C7103001A5B28 /* CarbEntryStored+CoreDataProperties.swift in Sources */,
@@ -3082,6 +3205,7 @@
 				DD57C4CE2C4C7103001A5B28 /* OverrideRunStored+CoreDataClass.swift in Sources */,
 				DD57C4CF2C4C7103001A5B28 /* OverrideRunStored+CoreDataProperties.swift in Sources */,
 				DD57C4D02C4C7103001A5B28 /* ImportError+CoreDataClass.swift in Sources */,
+				DD17454E2C55CA4D00211FAC /* GeneralSettingsDataFlow.swift in Sources */,
 				DD57C4D12C4C7103001A5B28 /* ImportError+CoreDataProperties.swift in Sources */,
 				DD57C4D22C4C7103001A5B28 /* StatsData+CoreDataClass.swift in Sources */,
 				DD57C4D32C4C7103001A5B28 /* StatsData+CoreDataProperties.swift in Sources */,
@@ -3120,6 +3244,7 @@
 				3811DE5F25C9D4D500A708ED /* ProgressBar.swift in Sources */,
 				38E87408274F9AD000975559 /* UserNotificationsManager.swift in Sources */,
 				CE82E02528E867BA00473A9C /* AlertStorage.swift in Sources */,
+				DD1745372C55B74200211FAC /* AlgorithmSettings.swift in Sources */,
 				38BF021D25E7E3AF00579895 /* Reservoir.swift in Sources */,
 				583684082BD195A700070A60 /* Determination.swift in Sources */,
 				DD17451D2C543C5F00211FAC /* ServicesView.swift in Sources */,
@@ -3144,6 +3269,7 @@
 				38E989DD25F5021400C0CED0 /* PumpStatus.swift in Sources */,
 				BDFD165A2AE40438007F0DDA /* BolusRootView.swift in Sources */,
 				38E98A2525F52C9300C0CED0 /* IssueReporter.swift in Sources */,
+				DD1745522C55CA5D00211FAC /* GeneralSettingsStateModel.swift in Sources */,
 				190EBCC429FF136900BA767D /* StatConfigDataFlow.swift in Sources */,
 				5A2325582BFCC168003518CA /* NightscoutConnectView.swift in Sources */,
 				3811DEB025C9D88300A708ED /* BaseKeychain.swift in Sources */,
@@ -3172,13 +3298,16 @@
 				BD2B464E0745FBE7B79913F4 /* NightscoutConfigProvider.swift in Sources */,
 				9825E5E923F0B8FA80C8C7C7 /* NightscoutConfigStateModel.swift in Sources */,
 				38A43598262E0E4900E80935 /* FetchAnnouncementsManager.swift in Sources */,
+				DD1745442C55C60E00211FAC /* AutosensSettingsDataFlow.swift in Sources */,
 				642F76A05A4FF530463A9FD0 /* NightscoutConfigRootView.swift in Sources */,
 				BD7DA9AC2AE06EB900601B20 /* BolusCalculatorConfigRootView.swift in Sources */,
 				AD3D2CD42CD01B9EB8F26522 /* PumpConfigDataFlow.swift in Sources */,
+				DD17452E2C55AE4800211FAC /* TargetBehavoirDataFlow.swift in Sources */,
 				53F2382465BF74DB1A967C8B /* PumpConfigProvider.swift in Sources */,
 				5D16287A969E64D18CE40E44 /* PumpConfigStateModel.swift in Sources */,
 				19D466AA29AA3099004D5F33 /* FPUConfigRootView.swift in Sources */,
 				E974172296125A5AE99E634C /* PumpConfigRootView.swift in Sources */,
+				DD1745502C55CA5500211FAC /* GeneralSettingsProvider.swift in Sources */,
 				581AC4392BE22ED10038760C /* JSONConverter.swift in Sources */,
 				CE7CA3522A064973004BE681 /* ListTempPresetsIntent.swift in Sources */,
 				BD4064D12C4ED26900582F43 /* CoreDataObserver.swift in Sources */,
@@ -3199,7 +3328,7 @@
 				19F95FF729F10FEE00314DDC /* StatStateModel.swift in Sources */,
 				385CEAC125F2EA52002D6D5B /* Announcement.swift in Sources */,
 				8B759CFCF47B392BB365C251 /* BasalProfileEditorDataFlow.swift in Sources */,
-				195D80B42AF6973A00D25097 /* DynamicRootView.swift in Sources */,
+				195D80B42AF6973A00D25097 /* DynamicSettingsRootView.swift in Sources */,
 				389442CB25F65F7100FA1F27 /* NightscoutTreatment.swift in Sources */,
 				CE7CA3512A064973004BE681 /* ApplyTempPresetIntent.swift in Sources */,
 				FA630397F76B582C8D8681A7 /* BasalProfileEditorProvider.swift in Sources */,
@@ -3208,15 +3337,17 @@
 				38FEF3FA2737E42000574A46 /* BaseStateModel.swift in Sources */,
 				CC6C406E2ACDD69E009B8058 /* RawFetchedProfile.swift in Sources */,
 				385CEA8225F23DFD002D6D5B /* NightscoutStatus.swift in Sources */,
+				DD17453C2C55BFAD00211FAC /* AlgorithmVariousProvider.swift in Sources */,
 				F90692AA274B7AAE0037068D /* HealthKitManager.swift in Sources */,
 				38887CCE25F5725200944304 /* IOBEntry.swift in Sources */,
 				38E98A2425F52C9300C0CED0 /* Logger.swift in Sources */,
 				CA370FC152BC98B3D1832968 /* BasalProfileEditorRootView.swift in Sources */,
-				195D80BB2AF6980B00D25097 /* DynamicStateModel.swift in Sources */,
+				195D80BB2AF6980B00D25097 /* DynamicSettingsStateModel.swift in Sources */,
 				E00EEC0327368630002FF094 /* ServiceAssembly.swift in Sources */,
 				38192E07261BA9960094D973 /* FetchTreatmentsManager.swift in Sources */,
 				19012CDC291D2CB900FB8210 /* LoopStats.swift in Sources */,
 				6632A0DC746872439A858B44 /* ISFEditorDataFlow.swift in Sources */,
+				DD17454B2C55C62800211FAC /* AutosensSettingsRootView.swift in Sources */,
 				DBA5254DBB2586C98F61220C /* ISFEditorProvider.swift in Sources */,
 				BDF34EBE2C0A31D100D51995 /* CustomNotification.swift in Sources */,
 				BDC2EA472C3045AD00E5BBD0 /* Override.swift in Sources */,
@@ -3242,6 +3373,7 @@
 				38E98A2325F52C9300C0CED0 /* Signpost.swift in Sources */,
 				CE7CA3542A064973004BE681 /* TempPresetsIntentRequest.swift in Sources */,
 				F5F7E6C1B7F098F59EB67EC5 /* TargetsEditorDataFlow.swift in Sources */,
+				DD17453A2C55BFA600211FAC /* AlgorithmVariousDataFlow.swift in Sources */,
 				5075C1608E6249A51495C422 /* TargetsEditorProvider.swift in Sources */,
 				E13B7DAB2A435F57066AF02E /* TargetsEditorStateModel.swift in Sources */,
 				9702FF92A09C53942F20D7EA /* TargetsEditorRootView.swift in Sources */,
@@ -3303,7 +3435,7 @@
 				19F95FFA29F1102A00314DDC /* StatRootView.swift in Sources */,
 				0D9A5E34A899219C5C4CDFAF /* DataTableStateModel.swift in Sources */,
 				6BCF84DD2B16843A003AD46E /* LiveActitiyAttributes.swift in Sources */,
-				195D80B92AF697F700D25097 /* DynamicProvider.swift in Sources */,
+				195D80B92AF697F700D25097 /* DynamicSettingsProvider.swift in Sources */,
 				6BCF84DD2B16843A003AD46E /* LiveActitiyAttributes.swift in Sources */,
 				DD1745202C55523E00211FAC /* SMBSettingsDataFlow.swift in Sources */,
 				D6D02515BBFBE64FEBE89856 /* DataTableRootView.swift in Sources */,

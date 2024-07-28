@@ -102,8 +102,9 @@ extension Settings {
                     header: Text("Trio Configuration"),
                     content: {
                         Text("Devices").navigationLink(to: .devices, from: self)
-                        Text("Therapy Settings").navigationLink(to: .therapySettings, from: self)
-                        Text("Feature Settings").navigationLink(to: .featureSettings, from: self)
+                        Text("Therapy").navigationLink(to: .therapySettings, from: self)
+                        Text("Algorithm").navigationLink(to: .algorithmSettings, from: self)
+                        Text("Features").navigationLink(to: .featureSettings, from: self)
                         Text("Notifications").navigationLink(to: .notificationSettings, from: self)
                         Text("Services").navigationLink(to: .serviceSettings, from: self)
                     }

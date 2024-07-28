@@ -37,10 +37,15 @@ enum Screen: Identifiable, Hashable {
     case shortcutsConfig
     case devices
     case therapySettings
+    case algorithmSettings
     case featureSettings
     case notificationSettings
     case serviceSettings
+    case autosensSettings
     case smbSettings
+    case targetBehavior
+    case algorithmVarious
+    case generalSettings
 
     var id: Int { String(reflecting: self).hashValue }
 }
@@ -109,7 +114,7 @@ extension Screen {
         case .bolusCalculatorConfig:
             BolusCalculatorConfig.RootView(resolver: resolver)
         case .dynamicISF:
-            Dynamic.RootView(resolver: resolver)
+            DynamicSettings.RootView(resolver: resolver)
         case .calibrations:
             Calibrations.RootView(resolver: resolver)
         case .shortcutsConfig:
@@ -118,14 +123,24 @@ extension Screen {
             DevicesView(resolver: resolver, state: Settings.StateModel())
         case .therapySettings:
             TherapySettingsView(resolver: resolver, state: Settings.StateModel())
+        case .algorithmSettings:
+            AlgorithmSettings(resolver: resolver, state: Settings.StateModel())
         case .featureSettings:
             FeatureSettingsView(resolver: resolver, state: Settings.StateModel())
         case .notificationSettings:
             NotificationsView(resolver: resolver, state: Settings.StateModel())
         case .serviceSettings:
             ServicesView(resolver: resolver, state: Settings.StateModel())
+        case .autosensSettings:
+            AutosensSettings.RootView(resolver: resolver)
         case .smbSettings:
             SMBSettings.RootView(resolver: resolver)
+        case .targetBehavior:
+            TargetBehavoir.RootView(resolver: resolver)
+        case .algorithmVarious:
+            AlgorithmVarious.RootView(resolver: resolver)
+        case .generalSettings:
+            GeneralSettings.RootView(resolver: resolver)
         }
     }
 

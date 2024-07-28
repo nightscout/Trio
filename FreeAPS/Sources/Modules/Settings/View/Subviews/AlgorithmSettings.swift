@@ -8,7 +8,7 @@ import Foundation
 import SwiftUI
 import Swinject
 
-struct FeatureSettingsView: BaseView {
+struct AlgorithmSettings: BaseView {
     let resolver: Resolver
 
     @ObservedObject var state: Settings.StateModel
@@ -34,28 +34,18 @@ struct FeatureSettingsView: BaseView {
     var body: some View {
         Form {
             Section(
-                header: Text("Trio Personalization"),
+                header: Text("Oref Algorithm"),
                 content: {
-                    Text("Bolus Calculator").navigationLink(to: .bolusCalculatorConfig, from: self)
-                    Text("Meal Settings").navigationLink(to: .fpuConfig, from: self)
-                    Text("Shortcuts").navigationLink(to: .shortcutsConfig, from: self)
-                    Text("UI/UX").navigationLink(to: .statisticsConfig, from: self)
-                    Text("TODO: Move App Icons into UI/UX 👆")
-                    Text("App Icons").navigationLink(to: .iconConfig, from: self)
+                    Text("Autosens").navigationLink(to: .autosensSettings, from: self)
+                    Text("Super Micro Bolus").navigationLink(to: .smbSettings, from: self)
+                    Text("Dynamic Sensitivity").navigationLink(to: .dynamicISF, from: self)
+                    Text("Target Behavior").navigationLink(to: .targetBehavior, from: self)
+                    Text("Various").navigationLink(to: .algorithmVarious, from: self)
                 }
-            )
-            .listRowBackground(Color.chart)
-
-            Section(
-                header: Text("Data-Driven Settings Tuning"),
-                content: {
-                    Text("Autotune").navigationLink(to: .autotuneConfig, from: self)
-                }
-            )
-            .listRowBackground(Color.chart)
+            ).listRowBackground(Color.chart)
         }
         .scrollContentBackground(.hidden).background(color)
-        .navigationTitle("Feature Settings")
+        .navigationTitle("Algorithm Settings")
         .navigationBarTitleDisplayMode(.automatic)
     }
 }

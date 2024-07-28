@@ -48,7 +48,7 @@ struct SettingInputSection: View {
                             Toggle(isOn: $booleanValue) {
                                 Text(label)
                             }
-                        }
+                        }.padding(.top)
                     } else if type == .conditionalDecimal, let secondLabel = conditionalLabel {
                         HStack {
                             Toggle(isOn: $booleanValue) {
@@ -88,7 +88,7 @@ struct SettingInputSection: View {
                                     Image(systemName: "questionmark.circle")
                                 }
                             }
-                        )
+                        ).buttonStyle(BorderlessButtonStyle())
                     }.padding(type == .boolean ? .vertical : .bottom)
                 }
             },

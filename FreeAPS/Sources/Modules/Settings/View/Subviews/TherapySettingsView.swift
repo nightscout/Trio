@@ -34,6 +34,14 @@ struct TherapySettingsView: BaseView {
     var body: some View {
         Form {
             Section(
+                header: Text("Basic Settings"),
+                content: {
+                    Text("General").navigationLink(to: .generalSettings, from: self)
+                }
+            )
+            .listRowBackground(Color.chart)
+
+            Section(
                 header: Text("Basic Insulin Rates & Targets"),
                 content: {
                     Text("Basal Rates").navigationLink(to: .basalProfileEditor, from: self)

@@ -1,6 +1,3 @@
-import HealthKit
-import LoopKit
-import LoopKitUI
 import SwiftUI
 import Swinject
 
@@ -51,7 +48,10 @@ extension SMBSettings {
                     type: .boolean,
                     label: NSLocalizedString("Enable SMB Always", comment: "Enable SMB Always"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Enable SMB always bla bla bla",
+                    verboseHint: NSLocalizedString(
+                        "Defaults to false. When true, always enable supermicrobolus (unless disabled by high temptarget).",
+                        comment: "Enable SMB Always"
+                    ),
                     headerText: "Super-Micro-Bolus"
                 )
 
@@ -283,6 +283,8 @@ extension SMBSettings {
                         comment: "SMB Interval"
                     )
                 )
+
+                Text("Bolus Increment removed – should be pump derived!")
             }
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
@@ -294,11 +296,12 @@ extension SMBSettings {
                 )
             }
             .scrollContentBackground(.hidden).background(color)
+            .onAppear(perform: configureView)
             .navigationTitle("SMB Settings")
             .navigationBarTitleDisplayMode(.automatic)
-//            .onDisappear {
-//                state.saveIfChanged()
-//            }
+            .onDisappear {
+                state.saveIfChanged()
+            }
         }
     }
 }
