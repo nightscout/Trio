@@ -96,6 +96,9 @@ extension Bolus {
             debounce?.cancel()
             debounce = DispatchWorkItem { [self] in
                 state.insulinCalculated = state.calculateInsulin()
+                Task {
+                    await state.updateForecasts()
+                }
             }
             if let debounce = debounce {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.35, execute: debounce)

@@ -24,6 +24,7 @@ protocol APSManager {
     func makeProfiles() async throws -> Bool
     func determineBasal() async -> Bool
     func determineBasalSync() async
+    func simulateDetermineBasal(carbs: Decimal, iob: Decimal) async -> Determination?
     func roundBolus(amount: Decimal) -> Decimal
     var lastError: CurrentValueSubject<Error?, Never> { get }
     func cancelBolus() async
@@ -396,6 +397,18 @@ final class BaseAPSManager: APSManager, Injectable {
 
     func determineBasalSync() async {
         _ = await determineBasal()
+    }
+
+    func simulateDetermineBasal(carbs: Decimal, iob: Decimal) async -> Determination? {
+        do {
+            let temp = await fetchCurrentTempBasal(date: Date.now)
+            return try await openAPS.simulateDetermineBasal(currentTemp: temp, clock: Date(), carbs: carbs, iob: iob)
+        } catch {
+            debugPrint(
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Error occurred in invokeDummyDetermineBasalSync: \(error)"
+            )
+            return nil
+        }
     }
 
     func makeProfiles() async throws -> Bool {

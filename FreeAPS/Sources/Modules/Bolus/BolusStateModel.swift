@@ -692,4 +692,9 @@ extension Bolus.StateModel {
             }
         }
     }
+
+    func updateForecasts() async {
+        let dummyDetermination = await apsManager.simulateDetermineBasal(carbs: carbs, iob: amount)
+        print("determination: \(dummyDetermination)")
+    }
 }

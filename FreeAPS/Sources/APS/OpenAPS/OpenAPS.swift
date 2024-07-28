@@ -171,7 +171,52 @@ final class OpenAPS {
         }
     }
 
-    private func parsePumpHistory(_ pumpHistoryObjectIDs: [NSManagedObjectID]) async -> String {
+//    private func parsePumpHistory(_ pumpHistoryObjectIDs: [NSManagedObjectID], iob: Decimal? = nil) async -> String {
+//        // Return an empty JSON object if the list of object IDs is empty
+//        guard !pumpHistoryObjectIDs.isEmpty else { return "{}" }
+//
+//        // Execute all operations on the background context
+//        return await context.perform {
+//            // Load the pump events from the object IDs
+//            let pumpHistory: [PumpEventStored] = pumpHistoryObjectIDs
+//                .compactMap { self.context.object(with: $0) as? PumpEventStored }
+//
+//            // Create the DTOs
+//            var dtos: [PumpEventDTO] = pumpHistory.flatMap { event -> [PumpEventDTO] in
+//                var eventDTOs: [PumpEventDTO] = []
+//                if let bolusDTO = event.toBolusDTOEnum() {
+//                    eventDTOs.append(bolusDTO)
+//                }
+//                if let tempBasalDTO = event.toTempBasalDTOEnum() {
+//                    eventDTOs.append(tempBasalDTO)
+//                }
+//                if let tempBasalDurationDTO = event.toTempBasalDurationDTOEnum() {
+//                    eventDTOs.append(tempBasalDurationDTO)
+//                }
+//                return eventDTOs
+//            }
+//
+//            // Optionally add the IOB as a DTO
+//            if let iob = iob {
+//                let dateFormatted = OpenAPS.dateFormatter.string(from: Date())
+//                let bolusDTO = BolusDTO(
+//                    id: UUID().uuidString,
+//                    timestamp: dateFormatted,
+//                    amount: Double(iob),
+//                    isExternal: false,
+//                    isSMB: true,
+//                    duration: 0,
+//                    _type: "Bolus"
+//                )
+//                dtos.append(.bolus(bolusDTO))
+//            }
+//
+//            // Convert the DTOs to JSON
+//            return self.jsonConverter.convertToJSON(dtos)
+//        }
+//    }
+
+    private func parsePumpHistory(_ pumpHistoryObjectIDs: [NSManagedObjectID], iob: Decimal? = nil) async -> String {
         // Return an empty JSON object if the list of object IDs is empty
         guard !pumpHistoryObjectIDs.isEmpty else { return "{}" }
 
@@ -182,10 +227,24 @@ final class OpenAPS {
                 .compactMap { self.context.object(with: $0) as? PumpEventStored }
 
             // Create the DTOs
-            let dtos: [PumpEventDTO] = pumpHistory.flatMap { event -> [PumpEventDTO] in
+            var dtos: [PumpEventDTO] = pumpHistory.flatMap { event -> [PumpEventDTO] in
                 var eventDTOs: [PumpEventDTO] = []
                 if let bolusDTO = event.toBolusDTOEnum() {
                     eventDTOs.append(bolusDTO)
+                }
+                // Optionally add the IOB as a DTO
+                if let iob = iob {
+                    let dateFormatted = OpenAPS.dateFormatter.string(from: Date())
+                    let bolusDTO = BolusDTO(
+                        id: UUID().uuidString,
+                        timestamp: dateFormatted,
+                        amount: Double(iob),
+                        isExternal: false,
+                        isSMB: true,
+                        duration: 0,
+                        _type: "Bolus"
+                    )
+                    eventDTOs.append(.bolus(bolusDTO))
                 }
                 if let tempBasalDTO = event.toTempBasalDTOEnum() {
                     eventDTOs.append(tempBasalDTO)
@@ -198,6 +257,106 @@ final class OpenAPS {
 
             // Convert the DTOs to JSON
             return self.jsonConverter.convertToJSON(dtos)
+        }
+    }
+
+    func simulateDetermineBasal(
+        currentTemp: TempBasal,
+        clock: Date = Date(),
+        carbs: Decimal,
+        iob: Decimal
+    ) async throws -> Determination? {
+        debug(.openAPS, "Start determineBasal")
+
+        // clock
+        let dateFormatted = OpenAPS.dateFormatter.string(from: clock)
+        let dateFormattedAsString = "\"\(dateFormatted)\""
+
+        // temp_basal
+        let tempBasal = currentTemp.rawJSON
+
+        // Perform asynchronous calls in parallel
+        async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
+        async let carbs = fetchAndProcessCarbs()
+        async let glucose = fetchAndProcessGlucose()
+        async let oref2 = oref2()
+        async let profileAsync = loadFileFromStorageAsync(name: Settings.profile)
+        async let basalAsync = loadFileFromStorageAsync(name: Settings.basalProfile)
+        async let autosenseAsync = loadFileFromStorageAsync(name: Settings.autosense)
+        async let reservoirAsync = loadFileFromStorageAsync(name: Monitor.reservoir)
+        async let preferencesAsync = loadFileFromStorageAsync(name: Settings.preferences)
+
+        // Await the results of asynchronous tasks
+        let (
+            pumpHistoryJSON,
+            carbsAsJSON,
+            glucoseAsJSON,
+            oref2_variables,
+            profile,
+            basalProfile,
+            autosens,
+            reservoir,
+            preferences
+        ) = await (
+            parsePumpHistory(await pumpHistoryObjectIDs, iob: iob),
+            carbs,
+            glucose,
+            oref2,
+            profileAsync,
+            basalAsync,
+            autosenseAsync,
+            reservoirAsync,
+            preferencesAsync
+        )
+//        print("carbs: \(carbsAsJSON)")
+
+        // Meal
+        let meal = try await self.meal(
+            pumphistory: pumpHistoryJSON,
+            profile: profile,
+            basalProfile: basalProfile,
+            clock: dateFormattedAsString,
+            carbs: carbsAsJSON,
+            glucose: glucoseAsJSON
+        )
+
+        // IOB
+        let iob = try await self.iob(
+            pumphistory: pumpHistoryJSON,
+            profile: profile,
+            clock: dateFormattedAsString,
+            autosens: autosens.isEmpty ? .null : autosens
+        )
+        print("pumphistory : \(pumpHistoryJSON)")
+        print("iob: \(iob)")
+
+        // Determine basal
+        let orefDetermination = try await determineBasal(
+            glucose: glucoseAsJSON,
+            currentTemp: tempBasal,
+            iob: iob,
+            profile: profile,
+            autosens: autosens.isEmpty ? .null : autosens,
+            meal: meal,
+            microBolusAllowed: true,
+            reservoir: reservoir,
+            pumpHistory: pumpHistoryJSON,
+            preferences: preferences,
+            basalProfile: basalProfile,
+            oref2_variables: oref2_variables
+        )
+
+        debug(.openAPS, "oref 2 scheiß: \(oref2_variables)")
+        debug(.openAPS, "Determinated: \(orefDetermination)")
+
+        if var determination = Determination(from: orefDetermination), let deliverAt = determination.deliverAt {
+            // set both timestamp and deliverAt to the SAME date; this will be updated for timestamp once it is enacted
+            // AAPS does it the same way! we'll follow their example!
+            determination.timestamp = deliverAt
+
+            return determination
+        } else {
+            return nil
         }
     }
 
