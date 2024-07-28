@@ -171,93 +171,60 @@ final class OpenAPS {
         }
     }
 
-//    private func parsePumpHistory(_ pumpHistoryObjectIDs: [NSManagedObjectID], iob: Decimal? = nil) async -> String {
-//        // Return an empty JSON object if the list of object IDs is empty
-//        guard !pumpHistoryObjectIDs.isEmpty else { return "{}" }
-//
-//        // Execute all operations on the background context
-//        return await context.perform {
-//            // Load the pump events from the object IDs
-//            let pumpHistory: [PumpEventStored] = pumpHistoryObjectIDs
-//                .compactMap { self.context.object(with: $0) as? PumpEventStored }
-//
-//            // Create the DTOs
-//            var dtos: [PumpEventDTO] = pumpHistory.flatMap { event -> [PumpEventDTO] in
-//                var eventDTOs: [PumpEventDTO] = []
-//                if let bolusDTO = event.toBolusDTOEnum() {
-//                    eventDTOs.append(bolusDTO)
-//                }
-//                if let tempBasalDTO = event.toTempBasalDTOEnum() {
-//                    eventDTOs.append(tempBasalDTO)
-//                }
-//                if let tempBasalDurationDTO = event.toTempBasalDurationDTOEnum() {
-//                    eventDTOs.append(tempBasalDurationDTO)
-//                }
-//                return eventDTOs
-//            }
-//
-//            // Optionally add the IOB as a DTO
-//            if let iob = iob {
-//                let dateFormatted = OpenAPS.dateFormatter.string(from: Date())
-//                let bolusDTO = BolusDTO(
-//                    id: UUID().uuidString,
-//                    timestamp: dateFormatted,
-//                    amount: Double(iob),
-//                    isExternal: false,
-//                    isSMB: true,
-//                    duration: 0,
-//                    _type: "Bolus"
-//                )
-//                dtos.append(.bolus(bolusDTO))
-//            }
-//
-//            // Convert the DTOs to JSON
-//            return self.jsonConverter.convertToJSON(dtos)
-//        }
-//    }
-
     private func parsePumpHistory(_ pumpHistoryObjectIDs: [NSManagedObjectID], iob: Decimal? = nil) async -> String {
         // Return an empty JSON object if the list of object IDs is empty
         guard !pumpHistoryObjectIDs.isEmpty else { return "{}" }
 
         // Execute all operations on the background context
         return await context.perform {
-            // Load the pump events from the object IDs
-            let pumpHistory: [PumpEventStored] = pumpHistoryObjectIDs
-                .compactMap { self.context.object(with: $0) as? PumpEventStored }
+            // Load and map pump events to DTOs
+            var dtos = self.loadAndMapPumpEvents(pumpHistoryObjectIDs)
 
-            // Create the DTOs
-            var dtos: [PumpEventDTO] = pumpHistory.flatMap { event -> [PumpEventDTO] in
-                var eventDTOs: [PumpEventDTO] = []
-                if let bolusDTO = event.toBolusDTOEnum() {
-                    eventDTOs.append(bolusDTO)
-                }
-                // Optionally add the IOB as a DTO
-                if let iob = iob {
-                    let dateFormatted = OpenAPS.dateFormatter.string(from: Date())
-                    let bolusDTO = BolusDTO(
-                        id: UUID().uuidString,
-                        timestamp: dateFormatted,
-                        amount: Double(iob),
-                        isExternal: false,
-                        isSMB: true,
-                        duration: 0,
-                        _type: "Bolus"
-                    )
-                    eventDTOs.append(.bolus(bolusDTO))
-                }
-                if let tempBasalDTO = event.toTempBasalDTOEnum() {
-                    eventDTOs.append(tempBasalDTO)
-                }
-                if let tempBasalDurationDTO = event.toTempBasalDurationDTOEnum() {
-                    eventDTOs.append(tempBasalDurationDTO)
-                }
-                return eventDTOs
+            // Optionally add the IOB as a DTO
+            if let iob = iob {
+                let iobDTO = self.createIOBDTO(iob: iob)
+                dtos.insert(iobDTO, at: 0)
             }
 
             // Convert the DTOs to JSON
             return self.jsonConverter.convertToJSON(dtos)
         }
+    }
+
+    private func loadAndMapPumpEvents(_ pumpHistoryObjectIDs: [NSManagedObjectID]) -> [PumpEventDTO] {
+        // Load the pump events from the object IDs
+        let pumpHistory: [PumpEventStored] = pumpHistoryObjectIDs
+            .compactMap { self.context.object(with: $0) as? PumpEventStored }
+
+        // Create the DTOs
+        let dtos: [PumpEventDTO] = pumpHistory.flatMap { event -> [PumpEventDTO] in
+            var eventDTOs: [PumpEventDTO] = []
+            if let bolusDTO = event.toBolusDTOEnum() {
+                eventDTOs.append(bolusDTO)
+            }
+            if let tempBasalDTO = event.toTempBasalDTOEnum() {
+                eventDTOs.append(tempBasalDTO)
+            }
+            if let tempBasalDurationDTO = event.toTempBasalDurationDTOEnum() {
+                eventDTOs.append(tempBasalDurationDTO)
+            }
+            return eventDTOs
+        }
+        return dtos
+    }
+
+    private func createIOBDTO(iob: Decimal) -> PumpEventDTO {
+        let dateFormatted = PumpEventStored.dateFormatter.string(from: Date())
+        let bolusDTO = BolusDTO(
+            id: UUID().uuidString,
+            timestamp: dateFormatted,
+            amount: Double(iob),
+            isExternal: false,
+            isSMB: true,
+            duration: 0,
+            _type: "Bolus"
+        )
+        return .bolus(bolusDTO)
     }
 
     func simulateDetermineBasal(
@@ -328,7 +295,7 @@ final class OpenAPS {
             autosens: autosens.isEmpty ? .null : autosens
         )
         print("pumphistory : \(pumpHistoryJSON)")
-        print("iob: \(iob)")
+//        print("iob: \(iob)")
 
         // Determine basal
         let orefDetermination = try await determineBasal(
@@ -346,7 +313,7 @@ final class OpenAPS {
             oref2_variables: oref2_variables
         )
 
-        debug(.openAPS, "oref 2 scheiß: \(oref2_variables)")
+//        debug(.openAPS, "oref 2 scheiß: \(oref2_variables)")
         debug(.openAPS, "Determinated: \(orefDetermination)")
 
         if var determination = Determination(from: orefDetermination), let deliverAt = determination.deliverAt {
