@@ -90,7 +90,7 @@ extension GeneralSettings {
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
                     hintText: selectedVerboseHint ?? "",
-                    sheetTitle: "Hint"
+                    sheetTitle: "Help"
                 )
             }
             .scrollContentBackground(.hidden).background(color)

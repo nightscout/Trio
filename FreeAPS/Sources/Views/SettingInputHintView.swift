@@ -6,16 +6,15 @@ struct SettingInputHintView: View {
     var hintLabel: String
     var hintText: String
     var sheetTitle: String
-
     var body: some View {
         NavigationStack {
             List {
                 DefinitionRow(
                     term: hintLabel,
-                    definition: hintText
+                    definition: hintText,
+                    fontSize: .body
                 )
             }
-            .padding(.trailing, 10)
             .navigationBarTitle(sheetTitle, displayMode: .inline)
 
             Spacer()
