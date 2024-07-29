@@ -16,7 +16,30 @@ struct ForeCastChart: View {
     }
 
     var body: some View {
-        forecastChart
+        VStack {
+            forecastChart
+                .padding(.vertical, 3)
+            HStack {
+                Spacer()
+                Text("evBG").font(.footnote).foregroundStyle(.primary)
+                Image(systemName: "arrow.right").font(.footnote).foregroundStyle(.secondary)
+                
+                if let eventualBG = state.simulatedDetermination?.eventualBG {
+                    HStack {
+                        Text("\(eventualBG)")
+                            .font(.footnote)
+                            .foregroundStyle(.primary)
+                        Text("\(units.rawValue)")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                } else {
+                    Text("")
+                        .font(.footnote)
+                        .foregroundStyle(.primary)
+                }
+            }
+        }
     }
 
     private var forecastChart: some View {
@@ -29,6 +52,7 @@ struct ForeCastChart: View {
         .chartXAxis { forecastChartXAxis }
         .chartXScale(domain: startMarker ... endMarker)
         .chartYAxis { forecastChartYAxis }
+        .chartYScale(domain: 0 ... 300 * conversionFactor)
     }
 
     private func drawGlucose() -> some ChartContent {

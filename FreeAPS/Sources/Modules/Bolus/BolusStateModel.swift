@@ -98,6 +98,7 @@ extension Bolus {
         @Published var determination: [OrefDetermination] = []
         @Published var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
         @Published var predictionsForChart: Predictions?
+        @Published var simulatedDetermination: Determination?
 
         @Published var minForecast: [Int] = []
         @Published var maxForecast: [Int] = []
@@ -665,7 +666,7 @@ extension Bolus.StateModel {
 
 extension Bolus.StateModel {
     @MainActor func updateForecasts() async {
-        let simulatedDetermination = await apsManager.simulateDetermineBasal(carbs: carbs, iob: amount)
+        simulatedDetermination = await apsManager.simulateDetermineBasal(carbs: carbs, iob: amount)
         predictionsForChart = simulatedDetermination?.predictions
 
         let iob: [Int] = predictionsForChart?.iob ?? []
