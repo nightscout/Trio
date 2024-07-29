@@ -87,7 +87,7 @@ extension Settings {
                                     +
                                     Text(" closed loop mode ").bold()
                                     +
-                                    Text("requires an active CGM session sensor session and a connected pump.")
+                                    Text("requires an active CGM sensor session and a connected pump.")
                                     +
                                     Text("This enables automated insulin delivery.").bold()
                             )
