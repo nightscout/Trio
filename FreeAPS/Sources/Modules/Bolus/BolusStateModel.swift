@@ -97,8 +97,10 @@ extension Bolus {
         @Published var glucoseFromPersistence: [GlucoseStored] = []
         @Published var determination: [OrefDetermination] = []
         @Published var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
-        @Published var simulatedDetermination: Determination?
         @Published var predictionsForChart: Predictions?
+
+        @Published var minForecast: [Int] = []
+        @Published var maxForecast: [Int] = []
 
         let now = Date.now
 
@@ -113,6 +115,10 @@ extension Bolus {
             setupGlucoseNotification()
             coreDataObserver = CoreDataObserver()
             registerHandlers()
+
+            Task {
+                await updateForecasts()
+            }
 
             setupGlucoseArray()
             setupDeterminationsArray()
@@ -624,7 +630,7 @@ extension Bolus.StateModel {
                 predicate: NSPredicate.enactedDetermination
             )
             await updateDeterminationsArray(with: ids)
-            await updateForecastData()
+            await updateForecasts()
         }
     }
 
@@ -658,45 +664,31 @@ extension Bolus.StateModel {
 }
 
 extension Bolus.StateModel {
-    func preprocessForecastData() async
-        -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])]
-    {
-        guard let id = determination.first?.objectID else {
-            return []
-        }
-
-        // Get forecast and forecast values
-        let forecastIDs = await determinationStorage.getForecastIDs(for: id, in: context)
-        var result: [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] = []
-
-        for forecastID in forecastIDs {
-            // Get the forecast value IDs for the given forecast ID
-            let forecastValueIDs = await determinationStorage.getForecastValueIDs(for: forecastID, in: context)
-            let uuid = UUID()
-            result.append((id: uuid, forecastID: forecastID, forecastValueIDs: forecastValueIDs))
-        }
-
-        return result
-    }
-
-    @MainActor func updateForecastData() async {
-        let forecastData = await preprocessForecastData()
-
-        preprocessedData = forecastData.reduce(into: []) { result, data in
-            guard let forecast = try? context.existingObject(with: data.forecastID) as? Forecast else {
-                return
-            }
-
-            for forecastValueID in data.forecastValueIDs {
-                if let forecastValue = try? context.existingObject(with: forecastValueID) as? ForecastValue {
-                    result.append((id: data.id, forecast: forecast, forecastValue: forecastValue))
-                }
-            }
-        }
-    }
-
-    func updateForecasts() async {
-        simulatedDetermination = await apsManager.simulateDetermineBasal(carbs: carbs, iob: amount)
+    @MainActor func updateForecasts() async {
+        let simulatedDetermination = await apsManager.simulateDetermineBasal(carbs: carbs, iob: amount)
         predictionsForChart = simulatedDetermination?.predictions
+
+        let iob: [Int] = predictionsForChart?.iob ?? []
+        let zt: [Int] = predictionsForChart?.zt ?? []
+        let cob: [Int] = predictionsForChart?.cob ?? []
+        let uam: [Int] = predictionsForChart?.uam ?? []
+
+        // Filter out the empty arrays and find the maximum length of the remaining arrays
+        let nonEmptyArrays: [[Int]] = [iob, zt, cob, uam].filter { !$0.isEmpty }
+        guard !nonEmptyArrays.isEmpty, let maxCount = nonEmptyArrays.map(\.count).max(), maxCount > 0 else {
+            minForecast = []
+            maxForecast = []
+            return
+        }
+
+        minForecast = (0 ..< maxCount).map { index -> Int in
+            let valuesAtCurrentIndex = nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }
+            return valuesAtCurrentIndex.min() ?? 0
+        }
+
+        maxForecast = (0 ..< maxCount).map { index -> Int in
+            let valuesAtCurrentIndex = nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }
+            return valuesAtCurrentIndex.max() ?? 0
+        }
     }
 }

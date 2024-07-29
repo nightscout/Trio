@@ -426,7 +426,11 @@ extension Bolus {
                                     textColor: colorScheme == .dark ? .white : .blue,
                                     maxLength: 5,
                                     numberFormatter: formatter
-                                )
+                                ).onChange(of: state.amount) { _ in
+                                    Task {
+                                        await state.updateForecasts()
+                                    }
+                                }
                                 Text(" U").foregroundColor(.secondary)
                             }
 

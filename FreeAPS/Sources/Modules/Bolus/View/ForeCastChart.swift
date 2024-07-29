@@ -23,7 +23,8 @@ struct ForeCastChart: View {
         Chart {
             drawGlucose()
             drawCurrentTimeMarker()
-            drawForecasts()
+//            drawForecasts()
+            drawForecastArea()
         }
         .chartXAxis { forecastChartXAxis }
         .chartXScale(domain: startMarker ... endMarker)
@@ -63,41 +64,37 @@ struct ForeCastChart: View {
         return currentTime.addingTimeInterval(timeInterval)
     }
 
-    private func drawForecasts() -> some ChartContent {
-        let predictions = state.predictionsForChart
-
-        let predictionData = [
-            ("IOB", predictions?.iob),
-            ("ZT", predictions?.zt),
-            ("COB", predictions?.cob),
-            ("UAM", predictions?.uam)
-        ]
-
-        return ForEach(predictionData, id: \.0) { name, values in
-            if let values = values {
-                ForEach(values.indices, id: \.self) { index in
-                    LineMark(
-                        x: .value("Time", timeForIndex(Int32(index))),
-                        y: .value("Value", Decimal(values[index]) * conversionFactor)
-                    )
-                    .foregroundStyle(by: .value("Prediction Type", name))
-                }
-            }
+    private func drawForecastArea() -> some ChartContent {
+        ForEach(state.minForecast.indices, id: \.self) { index in
+            AreaMark(
+                x: .value("Time", timeForIndex(Int32(index))),
+                yStart: .value("Min Value", Decimal(state.minForecast[index]) * conversionFactor),
+                yEnd: .value("Max Value", Decimal(state.maxForecast[index]) * conversionFactor)
+            )
+            .foregroundStyle(Color.blue.opacity(0.3))
         }
     }
 
 //    private func drawForecasts() -> some ChartContent {
-//        ForEach(state.preprocessedData, id: \.id) { tuple in
-//            let forecastValue = tuple.forecastValue
-//            let forecast = tuple.forecast
-//            let valueAsDecimal = Decimal(forecastValue.value)
-//            let displayValue = units == .mmolL ? valueAsDecimal.asMmolL : valueAsDecimal
+//        let predictions = state.predictionsForChart
 //
-//            LineMark(
-//                x: .value("Time", timeForIndex(forecastValue.index)),
-//                y: .value("Value", displayValue)
-//            )
-//            .foregroundStyle(by: .value("Predictions", forecast.type ?? ""))
+//        let predictionData = [
+//            ("IOB", predictions?.iob),
+//            ("ZT", predictions?.zt),
+//            ("COB", predictions?.cob),
+//            ("UAM", predictions?.uam)
+//        ]
+//
+//        return ForEach(predictionData, id: \.0) { name, values in
+//            if let values = values {
+//                ForEach(values.indices, id: \.self) { index in
+//                    LineMark(
+//                        x: .value("Time", timeForIndex(Int32(index))),
+//                        y: .value("Value", Decimal(values[index]) * conversionFactor)
+//                    )
+//                    .foregroundStyle(by: .value("Prediction Type", name))
+//                }
+//            }
 //        }
 //    }
 

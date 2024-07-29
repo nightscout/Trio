@@ -359,8 +359,7 @@ extension MainChartView {
             .chartXAxis { basalChartXAxis }
             .chartXAxis(.hidden)
             .chartYAxis(.hidden)
-            .rotationEffect(.degrees(180))
-            .scaleEffect(x: -1, y: 1, anchor: .center)
+            .chartPlotStyle { basalChartPlotStyle($0) }
         }
     }
 
@@ -1036,7 +1035,6 @@ extension MainChartView {
         plotContent
             .rotationEffect(.degrees(180))
             .scaleEffect(x: -1, y: 1)
-            .chartXAxis(.hidden)
     }
 
     private var mainChartXAxis: some AxisContent {
