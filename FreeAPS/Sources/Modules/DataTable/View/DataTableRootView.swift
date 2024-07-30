@@ -130,7 +130,9 @@ extension DataTable {
                         .background(color)
                 }.blur(radius: state.waitForSuggestion ? 8 : 0)
 
-                if state.waitForSuggestion {
+                // Show custom progress view
+                /// don't show it if glucose is stale as it will block the UI
+                if state.waitForSuggestion && state.isGlucoseDataFresh(glucoseStored.first?.date) {
                     CustomProgressView(text: progressText.rawValue)
                 }
             })

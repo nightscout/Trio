@@ -34,9 +34,12 @@ struct ForeCastChart: View {
                             .foregroundStyle(.secondary)
                     }
                 } else {
-                    Text("")
+                    Text("---")
                         .font(.footnote)
                         .foregroundStyle(.primary)
+                    Text("\(units.rawValue)")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
             }
         }

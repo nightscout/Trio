@@ -12,6 +12,7 @@ extension Home {
         @Injected() var fetchGlucoseManager: FetchGlucoseManager!
         @Injected() var nightscoutManager: NightscoutManager!
         @Injected() var determinationStorage: DeterminationStorage!
+        @Injected() var glucoseStorage: GlucoseStorage!
         private let timer = DispatchTimer(timeInterval: 5)
         private(set) var filteredHours = 24
         @Published var manualGlucose: [BloodGlucose] = []
@@ -284,6 +285,11 @@ extension Home {
 
         func runLoop() {
             provider.heartbeatNow()
+        }
+
+        func showProgressView() {
+            glucoseStorage
+                .isGlucoseDataFresh(glucoseFromPersistence.first?.date) ? (waitForSuggestion = true) : (waitForSuggestion = false)
         }
 
         func cancelBolus() {

@@ -288,9 +288,10 @@ extension Bolus {
                 await saveMeal()
 
                 // if glucose data is stale end the custom loading animation by hiding the modal
-//                guard glucoseOfLast20Min.first?.date ?? now >= Date().addingTimeInterval(-12.minutes.timeInterval) else {
-//                    return hideModal()
-//                }
+                guard glucoseStorage.isGlucoseDataFresh(glucoseFromPersistence.first?.date) else {
+                    waitForSuggestion = false
+                    return hideModal()
+                }
             }
         }
 

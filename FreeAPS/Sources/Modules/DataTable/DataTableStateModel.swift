@@ -8,6 +8,7 @@ extension DataTable {
         @Injected() var unlockmanager: UnlockManager!
         @Injected() private var storage: FileStorage!
         @Injected() var pumpHistoryStorage: PumpHistoryStorage!
+        @Injected() var glucoseStorage: GlucoseStorage!
         @Injected() var healthKitManager: HealthKitManager!
 
         let coredataContext = CoreDataStack.shared.newTaskContext()
@@ -29,6 +30,10 @@ extension DataTable {
             units = settingsManager.settings.units
             maxBolus = provider.pumpSettings().maxBolus
             broadcaster.register(DeterminationObserver.self, observer: self)
+        }
+
+        func isGlucoseDataFresh(_ glucoseDate: Date?) -> Bool {
+            glucoseStorage.isGlucoseDataFresh(glucoseDate)
         }
 
         // Carb and FPU deletion from history

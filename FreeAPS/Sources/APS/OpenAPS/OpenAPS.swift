@@ -143,7 +143,7 @@ final class OpenAPS {
     }
 
     private func fetchAndProcessCarbs(additionalCarbs: Decimal? = nil) async -> String {
-        var results = await CoreDataStack.shared.fetchEntitiesAsync(
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: context,
             predicate: NSPredicate.predicateForOneDayAgo,
@@ -168,7 +168,7 @@ final class OpenAPS {
                 ] as [String: Any]
 
                 // Assuming jsonArray is a String, convert it to a list of dictionaries first
-                if var jsonData = jsonArray.data(using: .utf8) {
+                if let jsonData = jsonArray.data(using: .utf8) {
                     var jsonList = try? JSONSerialization.jsonObject(with: jsonData, options: []) as? [[String: Any]]
                     jsonList?.append(additionalEntry)
 
@@ -244,9 +244,14 @@ final class OpenAPS {
     }
 
     private func createIOBDTO(iob: Decimal) -> PumpEventDTO {
-        let oneMinuteAgo = Calendar.current.date(byAdding: .minute, value: -1, to: Date())! // this ensures that oref actually uses the mock entry to calculate iob
-        let dateFormatted = PumpEventStored.dateFormatter.string(from: oneMinuteAgo)
-        
+        let oneSecondAgo = Calendar.current
+            .date(
+                byAdding: .second,
+                value: -1,
+                to: Date()
+            )! // adding -1s to the current Date ensures that oref actually uses the mock entry to calculate iob and not guard it away
+        let dateFormatted = PumpEventStored.dateFormatter.string(from: oneSecondAgo)
+
         let bolusDTO = BolusDTO(
             id: UUID().uuidString,
             timestamp: dateFormatted,
