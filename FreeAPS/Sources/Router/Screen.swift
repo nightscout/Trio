@@ -40,6 +40,7 @@ enum Screen: Identifiable, Hashable {
     case algorithmSettings
     case featureSettings
     case notificationSettings
+    case calendarEventSettings
     case serviceSettings
     case autosensSettings
     case smbSettings
@@ -129,6 +130,8 @@ extension Screen {
             FeatureSettingsView(resolver: resolver, state: Settings.StateModel())
         case .notificationSettings:
             NotificationsView(resolver: resolver, state: Settings.StateModel())
+        case .calendarEventSettings:
+            CalendarEventSettings.RootView(resolver: resolver)
         case .serviceSettings:
             ServicesView(resolver: resolver, state: Settings.StateModel())
         case .autosensSettings:

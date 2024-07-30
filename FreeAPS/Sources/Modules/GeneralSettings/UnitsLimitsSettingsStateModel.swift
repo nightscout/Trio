@@ -6,7 +6,7 @@ extension UnitsLimitsSettings {
         @Injected() var storage: FileStorage!
 
         @Published var units: GlucoseUnits = .mgdL
-        @Published var unitsIndex = 1
+        @Published var unitsIndex = 0 // 0 = mg/dl
 
         @Published var maxIOB: Decimal = 0
         @Published var maxCOB: Decimal = 120

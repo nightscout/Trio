@@ -154,6 +154,17 @@ extension Settings {
                             Spacer()
                             Image(systemName: "chevron.right").foregroundColor(.secondary)
                         }
+
+                        HStack {
+                            Text("Trio Website")
+                                .onTapGesture {
+                                    if let url = URL(string: "https://diy-trio.org/") {
+                                        UIApplication.shared.open(url)
+                                    }
+                                }
+                            Spacer()
+                            Image(systemName: "chevron.right").foregroundColor(.secondary)
+                        }
                     }
                 ).listRowBackground(Color.chart)
 

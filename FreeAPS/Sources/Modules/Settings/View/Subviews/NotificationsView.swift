@@ -38,7 +38,7 @@ struct NotificationsView: BaseView {
                 content: {
                     Text("Alerts").navigationLink(to: .notificationsConfig, from: self)
                     Text("TODO: Live Activity Settings View")
-                    Text("TODO: Calendar Events Settings View")
+                    Text("Calendar Events").navigationLink(to: .calendarEventSettings, from: self)
                 }
             )
             .listRowBackground(Color.chart)

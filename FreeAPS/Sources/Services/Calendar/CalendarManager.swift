@@ -4,7 +4,7 @@ import EventKit
 import Swinject
 
 protocol CalendarManager {
-    func requestAccessIfNeeded() -> AnyPublisher<Bool, Never>
+    func requestAccessIfNeeded() async -> Bool
     func calendarIDs() -> [String]
     var currentCalendarID: String? { get set }
     func createEvent(for glucose: GlucoseStored, delta: Int)
@@ -27,61 +27,66 @@ final class BaseCalendarManager: CalendarManager, Injectable {
 
     let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
 
-    func requestAccessIfNeeded() -> AnyPublisher<Bool, Never> {
-        Future { promise in
-            let status = EKEventStore.authorizationStatus(for: .event)
-            switch status {
-            case .notDetermined:
+    func requestAccessIfNeeded() async -> Bool {
+        let status = EKEventStore.authorizationStatus(for: .event)
+        switch status {
+        case .notDetermined:
+            return await withCheckedContinuation { continuation in
                 #if swift(>=5.9)
                     if #available(iOS 17.0, *) {
-                        EKEventStore().requestFullAccessToEvents(completion: { (granted: Bool, error: Error?) -> Void in
+                        EKEventStore().requestFullAccessToEvents { granted, error in
                             if let error = error {
+                                print("Calendar access not granted: \(error)")
                                 warning(.service, "Calendar access not granted", error: error)
                             }
-                            promise(.success(granted))
-                        })
+                            continuation.resume(returning: granted)
+                        }
                     } else {
                         EKEventStore().requestAccess(to: .event) { granted, error in
                             if let error = error {
+                                print("Calendar access not granted: \(error)")
                                 warning(.service, "Calendar access not granted", error: error)
                             }
-                            promise(.success(granted))
+                            continuation.resume(returning: granted)
                         }
                     }
                 #else
                     EKEventStore().requestAccess(to: .event) { granted, error in
                         if let error = error {
+                            print("Calendar access not granted: \(error)")
                             warning(.service, "Calendar access not granted", error: error)
                         }
-                        promise(.success(granted))
+                        continuation.resume(returning: granted)
                     }
                 #endif
-            case .denied,
-                 .restricted:
-                promise(.success(false))
-            case .authorized:
-                promise(.success(true))
-
-            #if swift(>=5.9)
-                case .fullAccess:
-                    promise(.success(true))
-                case .writeOnly:
-                    if #available(iOS 17.0, *) {
-                        EKEventStore().requestFullAccessToEvents(completion: { (granted: Bool, error: Error?) -> Void in
+            }
+        case .denied,
+             .restricted:
+            return false
+        case .authorized:
+            return true
+        #if swift(>=5.9)
+            case .fullAccess:
+                return true
+            case .writeOnly:
+                if #available(iOS 17.0, *) {
+                    return await withCheckedContinuation { continuation in
+                        EKEventStore().requestFullAccessToEvents { granted, error in
                             if let error = error {
-                                print("Calendar access not upgraded")
+                                print("Calendar access not upgraded: \(error)")
                                 warning(.service, "Calendar access not upgraded", error: error)
                             }
-                            promise(.success(granted))
-                        })
+                            continuation.resume(returning: granted)
+                        }
                     }
-            #endif
-
-            @unknown default:
-                warning(.service, "Unknown calendar access status")
-                promise(.success(false))
-            }
-        }.eraseToAnyPublisher()
+                } else {
+                    return false
+                }
+        #endif
+        @unknown default:
+            warning(.service, "Unknown calendar access status")
+            return false
+        }
     }
 
     func calendarIDs() -> [String] {

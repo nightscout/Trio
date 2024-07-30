@@ -21,7 +21,6 @@ let cgmDefaultName = cgmName(
 extension CGM {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() var cgmManager: FetchGlucoseManager!
-        @Injected() var calendarManager: CalendarManager!
         @Injected() var pluginCGMManager: PluginManager!
         @Injected() private var broadcaster: Broadcaster!
         @Injected() var nightscoutManager: NightscoutManager!
@@ -29,12 +28,7 @@ extension CGM {
         @Published var setupCGM: Bool = false
         @Published var cgmCurrent = cgmDefaultName
         @Published var smoothGlucose = false
-        @Published var createCalendarEvents = false
-        @Published var displayCalendarIOBandCOB = false
-        @Published var displayCalendarEmojis = false
-        @Published var calendarIDs: [String] = []
-        @Published var currentCalendarID: String = ""
-        @Persisted(key: "CalendarManager.currentCalendarID") var storedCalendarID: String? = nil
+
         @Published var cgmTransmitterDeviceAddress: String? = nil
         @Published var listOfCGM: [cgmName] = []
         @Published var url: URL?
@@ -81,13 +75,8 @@ extension CGM {
             default: break
             }
 
-            currentCalendarID = storedCalendarID ?? ""
-            calendarIDs = calendarManager.calendarIDs()
             cgmTransmitterDeviceAddress = UserDefaults.standard.cgmTransmitterDeviceAddress
 
-            subscribeSetting(\.useCalendar, on: $createCalendarEvents) { createCalendarEvents = $0 }
-            subscribeSetting(\.displayCalendarIOBandCOB, on: $displayCalendarIOBandCOB) { displayCalendarIOBandCOB = $0 }
-            subscribeSetting(\.displayCalendarEmojis, on: $displayCalendarEmojis) { displayCalendarEmojis = $0 }
             subscribeSetting(\.smoothGlucose, on: $smoothGlucose, initial: { smoothGlucose = $0 })
 
             $cgmCurrent
@@ -109,31 +98,6 @@ extension CGM {
                         )
                         self.setupCGM = false
                     }
-                }
-                .store(in: &lifetime)
-
-            $createCalendarEvents
-                .removeDuplicates()
-                .flatMap { [weak self] ok -> AnyPublisher<Bool, Never> in
-                    guard ok, let self = self else { return Just(false).eraseToAnyPublisher() }
-                    return self.calendarManager.requestAccessIfNeeded()
-                }
-                .map { [weak self] ok -> [String] in
-                    guard ok, let self = self else { return [] }
-                    return self.calendarManager.calendarIDs()
-                }
-                .receive(on: DispatchQueue.main)
-                .weakAssign(to: \.calendarIDs, on: self)
-                .store(in: &lifetime)
-
-            $currentCalendarID
-                .removeDuplicates()
-                .sink { [weak self] id in
-                    guard id.isNotEmpty else {
-                        self?.calendarManager.currentCalendarID = nil
-                        return
-                    }
-                    self?.calendarManager.currentCalendarID = id
                 }
                 .store(in: &lifetime)
         }
@@ -167,7 +131,7 @@ extension CGM.StateModel: CompletionDelegate {
         setupCGM = false
 
         // if CGM was deleted
-        if cgmManager.cgmGlucoseSourceType == nil {
+        if cgmManager.cgmGlucoseSourceType != nil {
             cgmCurrent = cgmDefaultName
             settingsManager.settings.cgm = cgmDefaultName.type
             settingsManager.settings.cgmPluginIdentifier = cgmDefaultName.id
