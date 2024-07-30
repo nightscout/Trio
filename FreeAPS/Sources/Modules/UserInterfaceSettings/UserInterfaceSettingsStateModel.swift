@@ -1,10 +1,8 @@
 import SwiftUI
 
-extension StatConfig {
+extension UserInterfaceSettings {
     final class StateModel: BaseStateModel<Provider> {
         @Published var overrideHbA1cUnit = false
-
-        @Published var useFPUconversion: Bool = true
         @Published var tins: Bool = false
         @Published var lockScreenView: LockScreenView = .simple
         @Published var low: Decimal = 70
@@ -25,7 +23,6 @@ extension StatConfig {
             subscribeSetting(\.xGridLines, on: $xGridLines) { xGridLines = $0 }
             subscribeSetting(\.yGridLines, on: $yGridLines) { yGridLines = $0 }
             subscribeSetting(\.rulerMarks, on: $rulerMarks) { rulerMarks = $0 }
-            subscribeSetting(\.useFPUconversion, on: $useFPUconversion) { useFPUconversion = $0 }
             subscribeSetting(\.tins, on: $tins) { tins = $0 }
             subscribeSetting(\.oneDimensionalGraph, on: $oneDimensionalGraph) { oneDimensionalGraph = $0 }
             subscribeSetting(\.lockScreenView, on: $lockScreenView) { lockScreenView = $0 }

@@ -34,13 +34,19 @@ struct FeatureSettingsView: BaseView {
     var body: some View {
         Form {
             Section(
-                header: Text("Trio Personalization"),
+                header: Text("Trio Features"),
                 content: {
                     Text("Bolus Calculator").navigationLink(to: .bolusCalculatorConfig, from: self)
-                    Text("Meal Settings").navigationLink(to: .fpuConfig, from: self)
+                    Text("Meal Settings").navigationLink(to: .mealSettings, from: self)
                     Text("Shortcuts").navigationLink(to: .shortcutsConfig, from: self)
-                    Text("UI/UX").navigationLink(to: .statisticsConfig, from: self)
-                    Text("TODO: Move App Icons into UI/UX 👆")
+                }
+            )
+            .listRowBackground(Color.chart)
+
+            Section(
+                header: Text("Trio Personalization"),
+                content: {
+                    Text("User Interface").navigationLink(to: .userInterfaceSettings, from: self)
                     Text("App Icons").navigationLink(to: .iconConfig, from: self)
                 }
             )

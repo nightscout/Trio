@@ -1,7 +1,7 @@
 import SwiftUI
 import Swinject
 
-extension StatConfig {
+extension UserInterfaceSettings {
     struct RootView: BaseView {
         let resolver: Resolver
         @StateObject var state = StateModel()
@@ -74,25 +74,10 @@ extension StatConfig {
                     Toggle("Override HbA1c Unit", isOn: $state.overrideHbA1cUnit)
 
                 } header: { Text("Statistics settings ") }
-
-                Section {
-                    Toggle("Display and allow Fat and Protein entries", isOn: $state.useFPUconversion)
-                } header: { Text("Add Meal View settings ") }
-
-                Section {
-                    Picker(
-                        selection: $state.lockScreenView,
-                        label: Text("Lock screen widget")
-                    ) {
-                        ForEach(LockScreenView.allCases) { selection in
-                            Text(selection.displayName).tag(selection)
-                        }
-                    }
-                } header: { Text("Lock screen widget") }
             }
             .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)
-            .navigationBarTitle("UI/UX")
+            .navigationBarTitle("User Interface")
             .navigationBarTitleDisplayMode(.automatic)
         }
     }

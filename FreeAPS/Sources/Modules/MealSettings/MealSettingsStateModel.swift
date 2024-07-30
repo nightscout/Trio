@@ -1,7 +1,8 @@
 import SwiftUI
 
-extension FPUConfig {
+extension MealSettings {
     final class StateModel: BaseStateModel<Provider> {
+        @Published var useFPUconversion: Bool = true
         @Published var maxCarbs: Decimal = 250
         @Published var maxFat: Decimal = 250
         @Published var maxProtein: Decimal = 250
@@ -11,6 +12,7 @@ extension FPUConfig {
         @Published var delay: Decimal = 0
 
         override func subscribe() {
+            subscribeSetting(\.useFPUconversion, on: $useFPUconversion) { useFPUconversion = $0 }
             subscribeSetting(\.maxCarbs, on: $maxCarbs) { maxCarbs = $0 }
             subscribeSetting(\.maxFat, on: $maxFat) { maxFat = $0 }
             subscribeSetting(\.maxProtein, on: $maxProtein) { maxProtein = $0 }

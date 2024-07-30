@@ -24,13 +24,13 @@ enum Screen: Identifiable, Hashable {
     case cgmDirect
     case healthkit
     case notificationsConfig
-    case fpuConfig
+    case mealSettings
     case iconConfig
     case overrideConfig
     case snooze
     case statistics
     case watch
-    case statisticsConfig
+    case userInterfaceSettings
     case bolusCalculatorConfig
     case dynamicISF
     case calibrations
@@ -98,8 +98,8 @@ extension Screen {
             AppleHealthKit.RootView(resolver: resolver)
         case .notificationsConfig:
             NotificationsConfig.RootView(resolver: resolver)
-        case .fpuConfig:
-            FPUConfig.RootView(resolver: resolver)
+        case .mealSettings:
+            MealSettings.RootView(resolver: resolver)
         case .iconConfig:
             IconConfig.RootView(resolver: resolver)
         case .overrideConfig:
@@ -110,8 +110,8 @@ extension Screen {
             WatchConfig.RootView(resolver: resolver)
         case .statistics:
             Stat.RootView(resolver: resolver)
-        case .statisticsConfig:
-            StatConfig.RootView(resolver: resolver)
+        case .userInterfaceSettings:
+            UserInterfaceSettings.RootView(resolver: resolver)
         case .bolusCalculatorConfig:
             BolusCalculatorConfig.RootView(resolver: resolver)
         case .dynamicISF:
