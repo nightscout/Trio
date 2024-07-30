@@ -65,7 +65,7 @@ final class JavaScriptWorker {
         if logContext == "prepare/autosens.js" {
             outputLogs = outputLogs.split(separator: "\n").map { logLine in
                 logLine.replacingOccurrences(
-                    of: "^[-+=x]|u\\(|\\)|\\d{1,2}h$",
+                    of: "^[-+=x!]|u\\(|\\)|\\d{1,2}h$",
                     with: "",
                     options: .regularExpression
                 )
