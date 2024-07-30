@@ -639,7 +639,7 @@ final class OpenAPS {
         }
 
         if let url = Foundation.Bundle.main.url(forResource: "javascript/\(name)", withExtension: "") {
-            return Script(name: "Middleware", body: try! String(contentsOf: url))
+            return Script(name: name, body: try! String(contentsOf: url))
         }
 
         return nil
