@@ -1,7 +1,7 @@
 import Foundation
 
-extension GeneralSettings {
-    final class Provider: BaseProvider, GeneralSettingsProvider {
+extension UnitsLimitsSettings {
+    final class Provider: BaseProvider, UnitsLimitsSettingsProvider {
         @Injected() private var settingsManager: SettingsManager!
 
         func migrateUnits() {

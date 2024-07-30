@@ -36,7 +36,7 @@ struct TherapySettingsView: BaseView {
             Section(
                 header: Text("Basic Settings"),
                 content: {
-                    Text("General").navigationLink(to: .generalSettings, from: self)
+                    Text("Units and Limits").navigationLink(to: .unitsAndLimits, from: self)
                 }
             )
             .listRowBackground(Color.chart)

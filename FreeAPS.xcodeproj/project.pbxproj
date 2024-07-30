@@ -409,10 +409,10 @@
 		DD1745462C55C61500211FAC /* AutosensSettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745452C55C61500211FAC /* AutosensSettingsProvider.swift */; };
 		DD1745482C55C61D00211FAC /* AutosensSettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745472C55C61D00211FAC /* AutosensSettingsStateModel.swift */; };
 		DD17454B2C55C62800211FAC /* AutosensSettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD17454A2C55C62800211FAC /* AutosensSettingsRootView.swift */; };
-		DD17454E2C55CA4D00211FAC /* GeneralSettingsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD17454D2C55CA4D00211FAC /* GeneralSettingsDataFlow.swift */; };
-		DD1745502C55CA5500211FAC /* GeneralSettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD17454F2C55CA5500211FAC /* GeneralSettingsProvider.swift */; };
-		DD1745522C55CA5D00211FAC /* GeneralSettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745512C55CA5D00211FAC /* GeneralSettingsStateModel.swift */; };
-		DD1745552C55CA6C00211FAC /* GeneralSettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745542C55CA6C00211FAC /* GeneralSettingsRootView.swift */; };
+		DD17454E2C55CA4D00211FAC /* UnitsLimitsSettingsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD17454D2C55CA4D00211FAC /* UnitsLimitsSettingsDataFlow.swift */; };
+		DD1745502C55CA5500211FAC /* UnitsLimitsSettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD17454F2C55CA5500211FAC /* UnitsLimitsSettingsProvider.swift */; };
+		DD1745522C55CA5D00211FAC /* UnitsLimitsSettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745512C55CA5D00211FAC /* UnitsLimitsSettingsStateModel.swift */; };
+		DD1745552C55CA6C00211FAC /* UnitsLimitsSettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745542C55CA6C00211FAC /* UnitsLimitsSettingsRootView.swift */; };
 		DD1DB7CC2BECCA1F0048B367 /* BuildDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */; };
 		DD399FB31EACB9343C944C4C /* PreferencesEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CA3E609094E064C99A4752C /* PreferencesEditorStateModel.swift */; };
 		DD57C4B22C4C7103001A5B28 /* LoopStatRecord+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4902C4C7103001A5B28 /* LoopStatRecord+CoreDataClass.swift */; };
@@ -1039,10 +1039,10 @@
 		DD1745452C55C61500211FAC /* AutosensSettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutosensSettingsProvider.swift; sourceTree = "<group>"; };
 		DD1745472C55C61D00211FAC /* AutosensSettingsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutosensSettingsStateModel.swift; sourceTree = "<group>"; };
 		DD17454A2C55C62800211FAC /* AutosensSettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutosensSettingsRootView.swift; sourceTree = "<group>"; };
-		DD17454D2C55CA4D00211FAC /* GeneralSettingsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsDataFlow.swift; sourceTree = "<group>"; };
-		DD17454F2C55CA5500211FAC /* GeneralSettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsProvider.swift; sourceTree = "<group>"; };
-		DD1745512C55CA5D00211FAC /* GeneralSettingsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsStateModel.swift; sourceTree = "<group>"; };
-		DD1745542C55CA6C00211FAC /* GeneralSettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsRootView.swift; sourceTree = "<group>"; };
+		DD17454D2C55CA4D00211FAC /* UnitsLimitsSettingsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitsLimitsSettingsDataFlow.swift; sourceTree = "<group>"; };
+		DD17454F2C55CA5500211FAC /* UnitsLimitsSettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitsLimitsSettingsProvider.swift; sourceTree = "<group>"; };
+		DD1745512C55CA5D00211FAC /* UnitsLimitsSettingsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitsLimitsSettingsStateModel.swift; sourceTree = "<group>"; };
+		DD1745542C55CA6C00211FAC /* UnitsLimitsSettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitsLimitsSettingsRootView.swift; sourceTree = "<group>"; };
 		DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildDetails.swift; sourceTree = "<group>"; };
 		DD57C4902C4C7103001A5B28 /* LoopStatRecord+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoopStatRecord+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		DD57C4912C4C7103001A5B28 /* LoopStatRecord+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoopStatRecord+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
@@ -2551,9 +2551,9 @@
 			isa = PBXGroup;
 			children = (
 				DD1745532C55CA6100211FAC /* View */,
-				DD17454D2C55CA4D00211FAC /* GeneralSettingsDataFlow.swift */,
-				DD17454F2C55CA5500211FAC /* GeneralSettingsProvider.swift */,
-				DD1745512C55CA5D00211FAC /* GeneralSettingsStateModel.swift */,
+				DD17454D2C55CA4D00211FAC /* UnitsLimitsSettingsDataFlow.swift */,
+				DD17454F2C55CA5500211FAC /* UnitsLimitsSettingsProvider.swift */,
+				DD1745512C55CA5D00211FAC /* UnitsLimitsSettingsStateModel.swift */,
 			);
 			path = GeneralSettings;
 			sourceTree = "<group>";
@@ -2561,7 +2561,7 @@
 		DD1745532C55CA6100211FAC /* View */ = {
 			isa = PBXGroup;
 			children = (
-				DD1745542C55CA6C00211FAC /* GeneralSettingsRootView.swift */,
+				DD1745542C55CA6C00211FAC /* UnitsLimitsSettingsRootView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -3098,7 +3098,7 @@
 				CE94598029E9E3BD0047C9C6 /* WatchConfigDataFlow.swift in Sources */,
 				388E596C25AD95110019842D /* OpenAPS.swift in Sources */,
 				E00EEC0527368630002FF094 /* StorageAssembly.swift in Sources */,
-				DD1745552C55CA6C00211FAC /* GeneralSettingsRootView.swift in Sources */,
+				DD1745552C55CA6C00211FAC /* UnitsLimitsSettingsRootView.swift in Sources */,
 				384E803825C388640086DB71 /* Script.swift in Sources */,
 				CE94597E29E9E1EE0047C9C6 /* GarminManager.swift in Sources */,
 				3883583425EEB38000E024B2 /* PumpSettings.swift in Sources */,
@@ -3205,7 +3205,7 @@
 				DD57C4CE2C4C7103001A5B28 /* OverrideRunStored+CoreDataClass.swift in Sources */,
 				DD57C4CF2C4C7103001A5B28 /* OverrideRunStored+CoreDataProperties.swift in Sources */,
 				DD57C4D02C4C7103001A5B28 /* ImportError+CoreDataClass.swift in Sources */,
-				DD17454E2C55CA4D00211FAC /* GeneralSettingsDataFlow.swift in Sources */,
+				DD17454E2C55CA4D00211FAC /* UnitsLimitsSettingsDataFlow.swift in Sources */,
 				DD57C4D12C4C7103001A5B28 /* ImportError+CoreDataProperties.swift in Sources */,
 				DD57C4D22C4C7103001A5B28 /* StatsData+CoreDataClass.swift in Sources */,
 				DD57C4D32C4C7103001A5B28 /* StatsData+CoreDataProperties.swift in Sources */,
@@ -3269,7 +3269,7 @@
 				38E989DD25F5021400C0CED0 /* PumpStatus.swift in Sources */,
 				BDFD165A2AE40438007F0DDA /* BolusRootView.swift in Sources */,
 				38E98A2525F52C9300C0CED0 /* IssueReporter.swift in Sources */,
-				DD1745522C55CA5D00211FAC /* GeneralSettingsStateModel.swift in Sources */,
+				DD1745522C55CA5D00211FAC /* UnitsLimitsSettingsStateModel.swift in Sources */,
 				190EBCC429FF136900BA767D /* StatConfigDataFlow.swift in Sources */,
 				5A2325582BFCC168003518CA /* NightscoutConnectView.swift in Sources */,
 				3811DEB025C9D88300A708ED /* BaseKeychain.swift in Sources */,
@@ -3307,7 +3307,7 @@
 				5D16287A969E64D18CE40E44 /* PumpConfigStateModel.swift in Sources */,
 				19D466AA29AA3099004D5F33 /* FPUConfigRootView.swift in Sources */,
 				E974172296125A5AE99E634C /* PumpConfigRootView.swift in Sources */,
-				DD1745502C55CA5500211FAC /* GeneralSettingsProvider.swift in Sources */,
+				DD1745502C55CA5500211FAC /* UnitsLimitsSettingsProvider.swift in Sources */,
 				581AC4392BE22ED10038760C /* JSONConverter.swift in Sources */,
 				CE7CA3522A064973004BE681 /* ListTempPresetsIntent.swift in Sources */,
 				BD4064D12C4ED26900582F43 /* CoreDataObserver.swift in Sources */,

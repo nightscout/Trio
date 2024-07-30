@@ -1,7 +1,7 @@
 import SwiftUI
 import Swinject
 
-extension GeneralSettings {
+extension UnitsLimitsSettings {
     struct RootView: BaseView {
         let resolver: Resolver
         @StateObject var state = StateModel()

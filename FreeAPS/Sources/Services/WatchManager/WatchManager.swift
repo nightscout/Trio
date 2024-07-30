@@ -410,8 +410,8 @@ extension BaseWatchManager: WCSessionDelegate {
                     )]
                 )
 
-                    _ = await apsManager.determineBasal()
-                    replyHandler(["confirmation": true])
+                _ = await apsManager.determineBasal()
+                replyHandler(["confirmation": true])
             }
             return
         }

@@ -45,7 +45,7 @@ enum Screen: Identifiable, Hashable {
     case smbSettings
     case targetBehavior
     case algorithmVarious
-    case generalSettings
+    case unitsAndLimits
 
     var id: Int { String(reflecting: self).hashValue }
 }
@@ -139,8 +139,8 @@ extension Screen {
             TargetBehavoir.RootView(resolver: resolver)
         case .algorithmVarious:
             AlgorithmVarious.RootView(resolver: resolver)
-        case .generalSettings:
-            GeneralSettings.RootView(resolver: resolver)
+        case .unitsAndLimits:
+            UnitsLimitsSettings.RootView(resolver: resolver)
         }
     }
 

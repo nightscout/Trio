@@ -37,7 +37,7 @@ struct AlgorithmSettings: BaseView {
                 header: Text("Oref Algorithm"),
                 content: {
                     Text("Autosens").navigationLink(to: .autosensSettings, from: self)
-                    Text("Super Micro Bolus").navigationLink(to: .smbSettings, from: self)
+                    Text("Super Micro Bolus (SMB)").navigationLink(to: .smbSettings, from: self)
                     Text("Dynamic Sensitivity").navigationLink(to: .dynamicISF, from: self)
                     Text("Target Behavior").navigationLink(to: .targetBehavior, from: self)
                     Text("Various").navigationLink(to: .algorithmVarious, from: self)

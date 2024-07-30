@@ -1,6 +1,6 @@
 import SwiftUI
 
-extension GeneralSettings {
+extension UnitsLimitsSettings {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() var settings: SettingsManager!
         @Injected() var storage: FileStorage!
