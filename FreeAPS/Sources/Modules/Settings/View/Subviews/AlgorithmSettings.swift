@@ -40,7 +40,7 @@ struct AlgorithmSettings: BaseView {
                     Text("Super Micro Bolus (SMB)").navigationLink(to: .smbSettings, from: self)
                     Text("Dynamic Sensitivity").navigationLink(to: .dynamicISF, from: self)
                     Text("Target Behavior").navigationLink(to: .targetBehavior, from: self)
-                    Text("Various").navigationLink(to: .algorithmVarious, from: self)
+                    Text("Additionals").navigationLink(to: .algorithmAdvancedSettings, from: self)
                 }
             ).listRowBackground(Color.chart)
         }

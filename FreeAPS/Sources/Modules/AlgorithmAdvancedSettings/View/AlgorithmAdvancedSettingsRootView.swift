@@ -1,7 +1,7 @@
 import SwiftUI
 import Swinject
 
-extension AlgorithmVarious {
+extension AlgorithmAdvancedSettings {
     struct RootView: BaseView {
         let resolver: Resolver
         @StateObject var state = StateModel()
@@ -34,6 +34,18 @@ extension AlgorithmVarious {
 
         var body: some View {
             List {
+                Section(
+                    header: Text("DISCLAIMER"),
+                    content: {
+                        VStack(alignment: .leading) {
+                            Text(
+                                "The settings in this section are designed for advanced expert users and typically do not require ANY modifications."
+                            ).bold()
+                        }
+                    }
+
+                ).listRowBackground(Color.tabBar)
+
                 SettingInputSection(
                     decimalValue: $state.maxDailySafetyMultiplier,
                     booleanValue: $booleanPlaceholder,
@@ -51,8 +63,7 @@ extension AlgorithmVarious {
                     verboseHint: NSLocalizedString(
                         "This is an important OpenAPS safety limit. The default setting (which is unlikely to need adjusting) is 3. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 3x the highest hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune.",
                         comment: "Max Daily Safety Multiplier"
-                    ),
-                    headerText: "Miscellaneous"
+                    )
                 )
 
                 SettingInputSection(
@@ -275,7 +286,7 @@ extension AlgorithmVarious {
             }
             .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)
-            .navigationTitle("Various")
+            .navigationTitle("Additionals")
             .navigationBarTitleDisplayMode(.automatic)
             .onDisappear {
                 state.saveIfChanged()
