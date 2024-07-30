@@ -135,6 +135,26 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
                 textField.moveCursorToEnd()
             }
         }
+
+        // Helper method to calculate the number of decimal places in a string
+        fileprivate func calculateDecimalPlaces(in string: String) -> Int {
+            guard let decimalSeparator = decimalFormatter.decimalSeparator else { return 0 }
+            if let range = string.range(of: decimalSeparator) {
+                let decimalPart = string[range.upperBound...]
+                return decimalPart.count
+            }
+            return 0
+        }
+
+        // Helper method to check if the cursor is after the decimal separator
+        fileprivate func isCursorAfterDecimal(in textField: UITextField, range: NSRange) -> Bool {
+            guard let text = textField.text, let decimalSeparator = decimalFormatter.decimalSeparator else { return false }
+            if let decimalSeparatorRange = text.range(of: decimalSeparator) {
+                let decimalSeparatorPosition = text.distance(from: text.startIndex, to: decimalSeparatorRange.lowerBound)
+                return range.location > decimalSeparatorPosition
+            }
+            return false
+        }
     }
 }
 
@@ -153,14 +173,34 @@ extension TextFieldWithToolBar.Coordinator: UITextFieldDelegate {
            let currentText = textField.text as NSString?
         {
             // Get the proposed new text
-            let proposedText = currentText.replacingCharacters(in: range, with: string)
+            let proposedTextOriginal = currentText.replacingCharacters(in: range, with: string)
+
+            // Remove thousand separator
+            let proposedText = proposedTextOriginal.replacingOccurrences(of: decimalFormatter.groupingSeparator, with: "")
 
             // Try to convert proposed text to number
             let number = parent.numberFormatter.number(from: proposedText) ?? decimalFormatter.number(from: proposedText)
 
+            let decimalPlacesCurrent = calculateDecimalPlaces(in: currentText as String)
+            let maxDecimalPlaces = parent.numberFormatter.maximumFractionDigits
+            let isCursorAfterDecimal = isCursorAfterDecimal(in: textField, range: range)
+
+            if decimalPlacesCurrent >= maxDecimalPlaces,
+               range.length == 0,
+               isCursorAfterDecimal
+            {
+                return false
+            }
+
             // Update the binding value if conversion is successful
             if let number = number {
-                parent.text = number.decimalValue
+                let lastCharIndex = proposedText.index(before: proposedText.endIndex)
+                let hasDecimalSeparator = proposedText.contains(decimalFormatter.decimalSeparator)
+                let hasTrailingZeros = (hasDecimalSeparator && proposedText[lastCharIndex] == "0") || isDecimalSeparator
+                if !hasTrailingZeros
+                {
+                    parent.text = number.decimalValue
+                }
             } else {
                 parent.text = 0
             }
@@ -290,20 +330,24 @@ extension TextFieldWithToolBarString.Coordinator: UITextFieldDelegate {
         shouldChangeCharactersIn range: NSRange,
         replacementString string: String
     ) -> Bool {
-        if let maxLength = parent.maxLength {
-            // Get the current text, including the proposed change
-            let currentText = textField.text ?? ""
-            let newLength = currentText.count + string.count - range.length
-            if newLength > maxLength {
-                return false
-            }
+        guard let currentText = textField.text as NSString? else {
+            return false
         }
 
+        // Calculate the new text length
+        let newLength = currentText.length + string.count - range.length
+
+        // If there's a maxLength, ensure the new length is within the limit
+        if let maxLength = parent.maxLength, newLength > maxLength {
+            return false
+        }
+
+        // Attempt to replace characters in range with the replacement string
+        let newText = currentText.replacingCharacters(in: range, with: string)
+
+        // Update the binding text state
         DispatchQueue.main.async {
-            if let textFieldText = textField.text as NSString? {
-                let newText = textFieldText.replacingCharacters(in: range, with: string)
-                self.parent.text = newText
-            }
+            self.parent.text = newText
         }
 
         return true

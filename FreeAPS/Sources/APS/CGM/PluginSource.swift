@@ -1,5 +1,7 @@
+import CGMBLEKit
 import Combine
 import Foundation
+import G7SensorKit
 import LibreTransmitter
 import LoopKit
 import LoopKitUI
@@ -162,11 +164,29 @@ extension PluginSource: CGMManagerDelegate {
         case let .newData(values):
 
             var sensorActivatedAt: Date?
+            var sensorStartDate: Date?
             var sensorTransmitterID: String?
-            /// specific for Libre transmitter and send SAGE
+
+            /// SAGE
             if let cgmTransmitterManager = cgmManager as? LibreTransmitterManagerV3 {
-                sensorActivatedAt = cgmTransmitterManager.sensorInfoObservable.activatedAt
-                sensorTransmitterID = cgmTransmitterManager.sensorInfoObservable.sensorSerial
+                let sensorInfo = cgmTransmitterManager.sensorInfoObservable
+                sensorActivatedAt = sensorInfo.activatedAt
+                sensorStartDate = sensorInfo.activatedAt
+                sensorTransmitterID = sensorInfo.sensorSerial
+            } else if let cgmTransmitterManager = cgmManager as? G5CGMManager {
+                let latestReading = cgmTransmitterManager.latestReading
+                sensorActivatedAt = latestReading?.activationDate
+                sensorStartDate = latestReading?.sessionStartDate
+                sensorTransmitterID = latestReading?.transmitterID
+            } else if let cgmTransmitterManager = cgmManager as? G6CGMManager {
+                let latestReading = cgmTransmitterManager.latestReading
+                sensorActivatedAt = latestReading?.activationDate
+                sensorStartDate = latestReading?.sessionStartDate
+                sensorTransmitterID = latestReading?.transmitterID
+            } else if let cgmTransmitterManager = cgmManager as? G7CGMManager {
+                sensorActivatedAt = cgmTransmitterManager.sensorActivatedAt
+                sensorStartDate = cgmTransmitterManager.sensorActivatedAt
+                sensorTransmitterID = cgmTransmitterManager.sensorName
             }
 
             let bloodGlucose = values.compactMap { newGlucoseSample -> BloodGlucose? in
@@ -185,7 +205,7 @@ extension PluginSource: CGMManagerDelegate {
                     glucose: value,
                     type: "sgv",
                     activationDate: sensorActivatedAt,
-                    sessionStartDate: sensorActivatedAt,
+                    sessionStartDate: sensorStartDate,
                     transmitterID: sensorTransmitterID
                 )
             }
