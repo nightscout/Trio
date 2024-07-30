@@ -23,7 +23,7 @@ struct ForeCastChart: View {
                 Spacer()
                 Text("evBG").font(.footnote).foregroundStyle(.primary)
                 Image(systemName: "arrow.right").font(.footnote).foregroundStyle(.secondary)
-                
+
                 if let eventualBG = state.simulatedDetermination?.eventualBG {
                     HStack {
                         Text("\(eventualBG)")
@@ -98,29 +98,6 @@ struct ForeCastChart: View {
             .foregroundStyle(Color.blue.opacity(0.3))
         }
     }
-
-//    private func drawForecasts() -> some ChartContent {
-//        let predictions = state.predictionsForChart
-//
-//        let predictionData = [
-//            ("IOB", predictions?.iob),
-//            ("ZT", predictions?.zt),
-//            ("COB", predictions?.cob),
-//            ("UAM", predictions?.uam)
-//        ]
-//
-//        return ForEach(predictionData, id: \.0) { name, values in
-//            if let values = values {
-//                ForEach(values.indices, id: \.self) { index in
-//                    LineMark(
-//                        x: .value("Time", timeForIndex(Int32(index))),
-//                        y: .value("Value", Decimal(values[index]) * conversionFactor)
-//                    )
-//                    .foregroundStyle(by: .value("Prediction Type", name))
-//                }
-//            }
-//        }
-//    }
 
     private func drawCurrentTimeMarker() -> some ChartContent {
         RuleMark(

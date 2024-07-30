@@ -164,7 +164,7 @@ final class OpenAPS {
                     "created_at": ISO8601DateFormatter().string(from: Date()),
                     "isFPU": false,
                     "fat": 0,
-                    "enteredBy": "Open-iAPS"
+                    "enteredBy": "Trio"
                 ] as [String: Any]
 
                 // Assuming jsonArray is a String, convert it to a list of dictionaries first
@@ -244,7 +244,9 @@ final class OpenAPS {
     }
 
     private func createIOBDTO(iob: Decimal) -> PumpEventDTO {
-        let dateFormatted = PumpEventStored.dateFormatter.string(from: Date())
+        let oneMinuteAgo = Calendar.current.date(byAdding: .minute, value: -1, to: Date())! // this ensures that oref actually uses the mock entry to calculate iob
+        let dateFormatted = PumpEventStored.dateFormatter.string(from: oneMinuteAgo)
+        
         let bolusDTO = BolusDTO(
             id: UUID().uuidString,
             timestamp: dateFormatted,
@@ -305,7 +307,7 @@ final class OpenAPS {
             reservoirAsync,
             preferencesAsync
         )
-        print("carbs: \(carbsAsJSON)")
+//        print("carbs: \(carbsAsJSON)")
 
         // Meal
         let meal = try await self.meal(
@@ -325,7 +327,8 @@ final class OpenAPS {
             autosens: autosens.isEmpty ? .null : autosens
         )
 //        print("pumphistory : \(pumpHistoryJSON)")
-//        print("iob: \(iob)")
+        print("iob: \(iob)")
+//        print("profile: \(profile)")
 
         // Determine basal
         let orefDetermination = try await determineBasal(
