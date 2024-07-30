@@ -10,7 +10,6 @@
   "localGlucosePort" : 8080,
   "debugOptions" : false,
   "insulinReqPercentage" : 70,
-  "skipBolusScreenAfterCarbs" : false,
   "displayHR" : false,
   "cgm" : "none",
   "cgmManagerTypeByIdentifier":"",

@@ -26,7 +26,6 @@ struct FreeAPSSettings: JSON, Equatable {
     var localGlucosePort: Int = 8080
     var debugOptions: Bool = false
     var insulinReqPercentage: Decimal = 70
-    var skipBolusScreenAfterCarbs: Bool = false
     var displayHR: Bool = false
     var cgm: CGMType = .none
     var cgmPluginIdentifier: String = ""
@@ -120,10 +119,6 @@ extension FreeAPSSettings: Decodable {
 
         if let insulinReqPercentage = try? container.decode(Decimal.self, forKey: .insulinReqPercentage) {
             settings.insulinReqPercentage = insulinReqPercentage
-        }
-
-        if let skipBolusScreenAfterCarbs = try? container.decode(Bool.self, forKey: .skipBolusScreenAfterCarbs) {
-            settings.skipBolusScreenAfterCarbs = skipBolusScreenAfterCarbs
         }
 
         if let displayHR = try? container.decode(Bool.self, forKey: .displayHR) {

@@ -87,7 +87,6 @@ extension Bolus {
 
         @Published var id_: String = ""
         @Published var summary: String = ""
-        @Published var skipBolus: Bool = false
 
         @Published var externalInsulin: Bool = false
         @Published var showInfo: Bool = false
@@ -126,7 +125,6 @@ extension Bolus {
             displayPresets = settings.settings.displayPresets
 
             maxCarbs = settings.settings.maxCarbs
-            skipBolus = settingsManager.settings.skipBolusScreenAfterCarbs
             useFPUconversion = settingsManager.settings.useFPUconversion
 
             if waitForSuggestionInitial {

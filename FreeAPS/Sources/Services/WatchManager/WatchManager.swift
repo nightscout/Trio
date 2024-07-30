@@ -242,7 +242,6 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
                 state.bolusRecommended = apsManager
                     .roundBolus(amount: max(recommended, 0))
             }
-            state.bolusAfterCarbs = !settingsManager.settings.skipBolusScreenAfterCarbs
             state.displayOnWatch = settingsManager.settings.displayOnWatch
             state.displayFatAndProteinOnWatch = settingsManager.settings.displayFatAndProteinOnWatch
             state.confirmBolusFaster = settingsManager.settings.confirmBolusFaster
@@ -263,7 +262,6 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
                         until: untilDate
                     )
                 }
-            state.bolusAfterCarbs = !settingsManager.settings.skipBolusScreenAfterCarbs
             state.displayOnWatch = settingsManager.settings.displayOnWatch
             state.displayFatAndProteinOnWatch = settingsManager.settings.displayFatAndProteinOnWatch
             state.confirmBolusFaster = settingsManager.settings.confirmBolusFaster
@@ -412,13 +410,8 @@ extension BaseWatchManager: WCSessionDelegate {
                     )]
                 )
 
-                if settingsManager.settings.skipBolusScreenAfterCarbs {
-                    let success = await apsManager.determineBasal()
-                    replyHandler(["confirmation": success])
-                } else {
                     _ = await apsManager.determineBasal()
                     replyHandler(["confirmation": true])
-                }
             }
             return
         }

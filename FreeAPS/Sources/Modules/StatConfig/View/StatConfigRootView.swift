@@ -76,7 +76,6 @@ extension StatConfig {
                 } header: { Text("Statistics settings ") }
 
                 Section {
-                    Toggle("Skip Bolus screen after carbs", isOn: $state.skipBolusScreenAfterCarbs)
                     Toggle("Display and allow Fat and Protein entries", isOn: $state.useFPUconversion)
                 } header: { Text("Add Meal View settings ") }
 

@@ -28,7 +28,6 @@ class WatchStateModel: NSObject, ObservableObject {
     @Published var iob: Decimal?
     @Published var cob: Decimal?
     @Published var tempTargets: [TempTargetWatchPreset] = []
-    @Published var bolusAfterCarbs = true
     @Published var isCarbsViewActive = false
     @Published var isTempTargetViewActive = false
     @Published var isBolusViewActive = false
@@ -77,7 +76,7 @@ class WatchStateModel: NSObject, ObservableObject {
         isCarbsViewActive = false
         session.sendMessage(["carbs": carbs, "fat": fat, "protein": protein], replyHandler: { reply in
             self.completionHandler(reply)
-            if let ok = reply["confirmation"] as? Bool, ok, self.bolusAfterCarbs {
+            if let ok = reply["confirmation"] as? Bool, ok {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     self.isBolusViewActive = true
                 }
@@ -171,7 +170,6 @@ class WatchStateModel: NSObject, ObservableObject {
         iob = state.iob
         cob = state.cob
         tempTargets = state.tempTargets
-        bolusAfterCarbs = state.bolusAfterCarbs ?? true
         lastUpdate = Date()
         eventualBG = state.eventualBG ?? ""
         displayOnWatch = state.displayOnWatch ?? .BGTarget
