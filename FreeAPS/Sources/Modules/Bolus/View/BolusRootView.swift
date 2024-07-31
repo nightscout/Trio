@@ -303,7 +303,10 @@ extension Bolus {
                     Button(action: {
                         showPresetSheet = true
                     }, label: {
-                        Image(systemName: "plus")
+                        HStack {
+                            Text("Presets")
+                            Image(systemName: "plus")
+                        }
                     })
                 }
             })

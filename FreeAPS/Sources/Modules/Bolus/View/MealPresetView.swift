@@ -58,11 +58,10 @@ struct MealPresetView: View {
                     showNewPresetForm()
                 } else {
                     addNewPresetButton
+                    mealPresets
+                    dishInfos()
+                    addPresetToTreatmentsButton
                 }
-
-                mealPresets
-                dishInfos()
-                addPresetToTreatmentsButton
             }
             .scrollContentBackground(.hidden).background(color)
             .navigationTitle("Meal Presets")
@@ -70,9 +69,9 @@ struct MealPresetView: View {
             .toolbar(content: {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
-                        dismiss()
+                        addNewPreset ? (addNewPreset = false) : dismiss()
                     } label: {
-                        Text("Close")
+                        Text(addNewPreset ? "Cancel" : "Close")
                     }
                 }
             })
@@ -99,8 +98,6 @@ struct MealPresetView: View {
             TextField("Name Of Dish", text: $dish)
         } header: {
             Text("New Preset")
-        } footer: {
-            Text("Add a name for your Preset")
         }
 
         Section {
@@ -109,8 +106,6 @@ struct MealPresetView: View {
             if state.useFPUconversion {
                 proteinAndFat()
             }
-        } footer: {
-            Text("Add the macros for your new Preset")
         }
 
         savePresetButton
@@ -206,9 +201,6 @@ struct MealPresetView: View {
 
                 Spacer()
             }
-
-        } footer: {
-            Text("Here you can choose from an existing Preset to add it to your treatments")
         }
     }
 
@@ -224,7 +216,6 @@ struct MealPresetView: View {
                 if self.moc.hasChanges {
                     try? moc.save()
                 }
-//                state.addNewPresetToWaitersNotepad(dish)
                 resetValues()
                 saved = false
                 addNewPreset = false
@@ -280,44 +271,98 @@ struct MealPresetView: View {
                 presetSummary
                     .lineLimit(nil) // In case the text is too long, allow it to wrap to the next line
 
-                HStack {
-                    HStack {
+                LazyVGrid(columns: [
+                    GridItem(.flexible(), alignment: .leading),
+                    GridItem(.flexible(), alignment: .trailing)
+                ], spacing: 0) {
+                    Group {
                         Text("Carbs: ")
-                            .font(.subheadline)
+                            .font(.footnote)
                             .foregroundStyle(.secondary)
-                        Text("\(carbs as NSNumber, formatter: mealFormatter)")
-                        Text(" g")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                        HStack(spacing: 2) {
+                            Text("\(carbs as NSNumber, formatter: mealFormatter)")
+                                .font(.footnote)
+                            Text(" g")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
                     }
 
-                    Spacer()
-
-                    HStack {
+                    Group {
                         Text("Fat: ")
-                            .font(.subheadline)
+                            .font(.footnote)
                             .foregroundStyle(.secondary)
-                        Text("\(fat as NSNumber, formatter: mealFormatter)")
-                        Text(" g")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                        HStack(spacing: 2) {
+                            Text("\(fat as NSNumber, formatter: mealFormatter)")
+                                .font(.footnote)
+                            Text(" g")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
                     }
 
-                    Spacer()
-
-                    HStack {
+                    Group {
                         Text("Protein: ")
-                            .font(.subheadline)
+                            .font(.footnote)
                             .foregroundStyle(.secondary)
-                        Text("\(protein as NSNumber, formatter: mealFormatter)")
-                        Text(" g")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                        HStack(spacing: 2) {
+                            Text("\(protein as NSNumber, formatter: mealFormatter)")
+                                .font(.footnote)
+                            Text(" g")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
             }
         }
     }
+
+//    @ViewBuilder private func dishInfos() -> some View {
+//        if !state.summation.isEmpty {
+//            let presetSummary = generatePresetSummary()
+//
+//            Section(header: Text("Summary")) {
+//                presetSummary
+//                    .lineLimit(nil) // In case the text is too long, allow it to wrap to the next line
+//
+//                VStack(alignment: .leading) {
+//                    HStack {
+//                        Text("Carbs: ")
+//                            .font(.footnote)
+//                            .foregroundStyle(.secondary)
+//                        Text("\(carbs as NSNumber, formatter: mealFormatter)")
+//                            .font(.footnote)
+//                        Text(" g")
+//                            .font(.footnote)
+//                            .foregroundStyle(.secondary)
+//                    }
+//
+//                    HStack {
+//                        Text("Fat: ")
+//                            .font(.footnote)
+//                            .foregroundStyle(.secondary)
+//                        Text("\(fat as NSNumber, formatter: mealFormatter)")
+//                            .font(.footnote)
+//                        Text(" g")
+//                            .font(.footnote)
+//                            .foregroundStyle(.secondary)
+//                    }
+//
+//                    HStack {
+//                        Text("Protein: ")
+//                            .font(.footnote)
+//                            .foregroundStyle(.secondary)
+//                        Text("\(protein as NSNumber, formatter: mealFormatter)")
+//                            .font(.footnote)
+//                        Text(" g")
+//                            .font(.footnote)
+//                            .foregroundStyle(.secondary)
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     private func generatePresetSummary() -> some View {
         var counts = [String: Int]()
@@ -330,7 +375,7 @@ struct MealPresetView: View {
             ForEach(counts.sorted(by: { $0.key < $1.key }), id: \.key) { key, value in
                 if value > 0 {
                     HStack {
-                        Text("\(value)")
+                        Text("\(value) x")
                             .foregroundColor(.blue)
                         Text(key)
                     }
@@ -344,8 +389,6 @@ struct MealPresetView: View {
         presetCarbs = 0
         presetFat = 0
         presetProtein = 0
-//        saved = false
-//        addNewPreset = false
         state.selection = nil
         state.summation.removeAll()
     }
