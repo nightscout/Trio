@@ -429,13 +429,14 @@ extension MainChartView {
             if let glucose = timeToNearestGlucose(time: carbDate.timeIntervalSince1970)?.glucose {
                 let yPosition = (Decimal(glucose) * conversionFactor) - bolusOffset
                 let size = (Config.carbsSize + CGFloat(carbAmount) * Config.carbsScale)
+                let limitedSize = size > 30 ? 30 : size
 
                 PointMark(
                     x: .value("Time", carbDate, unit: .second),
                     y: .value("Value", yPosition)
                 )
                 .symbol {
-                    Image(systemName: "arrowtriangle.down.fill").font(.system(size: size)).foregroundStyle(Color.orange)
+                    Image(systemName: "arrowtriangle.down.fill").font(.system(size: limitedSize)).foregroundStyle(Color.orange)
                         .rotationEffect(.degrees(180))
                 }
                 .annotation(position: .bottom) {
