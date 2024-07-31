@@ -18,16 +18,17 @@ extension Bolus {
 
         @StateObject var state = StateModel()
 
-        @State private var showAlert = false
+//        @State private var showAlert = false
+        @State private var showPresetSheet = false
         @State private var autofocus: Bool = true
         @State private var calculatorDetent = PresentationDetent.medium
         @State private var pushed: Bool = false
-        @State private var isPromptPresented: Bool = false
-        @State private var dish: String = ""
-        @State private var saved: Bool = false
+//        @State private var isPromptPresented: Bool = false
+//        @State private var dish: String = ""
+//        @State private var saved: Bool = false
         @State private var debounce: DispatchWorkItem?
 
-        @Environment(\.managedObjectContext) var moc
+//        @Environment(\.managedObjectContext) var moc
 
         private enum Config {
             static let dividerHeight: CGFloat = 2
@@ -36,10 +37,10 @@ extension Bolus {
 
         @Environment(\.colorScheme) var colorScheme
 
-        @FetchRequest(
-            entity: MealPresetStored.entity(),
-            sortDescriptors: [NSSortDescriptor(key: "dish", ascending: true)]
-        ) var carbPresets: FetchedResults<MealPresetStored>
+//        @FetchRequest(
+//            entity: MealPresetStored.entity(),
+//            sortDescriptors: [NSSortDescriptor(key: "dish", ascending: true)]
+//        ) var carbPresets: FetchedResults<MealPresetStored>
 
         private var formatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -87,9 +88,9 @@ extension Bolus {
                 )
         }
 
-        private var empty: Bool {
-            state.useFPUconversion ? (state.carbs <= 0 && state.fat <= 0 && state.protein <= 0) : (state.carbs <= 0)
-        }
+//        private var empty: Bool {
+//            state.useFPUconversion ? (state.carbs <= 0 && state.fat <= 0 && state.protein <= 0) : (state.carbs <= 0)
+//        }
 
         /// Handles macro input (carb, fat, protein) in a debounced fashion.
         func handleDebouncedInput() {
@@ -102,159 +103,6 @@ extension Bolus {
             }
             if let debounce = debounce {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.35, execute: debounce)
-            }
-        }
-
-        private var presetPopover: some View {
-            Form {
-                Section {
-                    TextField("Name Of Dish", text: $dish)
-                    Button {
-                        saved = true
-                        if dish != "", saved {
-                            let preset = MealPresetStored(context: moc)
-                            preset.dish = dish
-                            preset.fat = state.fat as NSDecimalNumber
-                            preset.protein = state.protein as NSDecimalNumber
-                            preset.carbs = state.carbs as NSDecimalNumber
-                            if self.moc.hasChanges {
-                                try? moc.save()
-                            }
-                            state.addNewPresetToWaitersNotepad(dish)
-                            saved = false
-                            isPromptPresented = false
-                        }
-                    }
-                    label: { Text("Save") }
-                    Button {
-                        dish = ""
-                        saved = false
-                        isPromptPresented = false }
-                    label: { Text("Cancel") }
-                } header: { Text("Enter Meal Preset Name") }
-            }
-        }
-
-        private var minusButton: some View {
-            Button {
-                if state.carbs != 0,
-                   (state.carbs - (((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal) as Decimal) >= 0
-                {
-                    state.carbs -= (((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal)
-                } else { state.carbs = 0 }
-
-                if state.fat != 0,
-                   (state.fat - (((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal) as Decimal) >= 0
-                {
-                    state.fat -= (((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal)
-                } else { state.fat = 0 }
-
-                if state.protein != 0,
-                   (state.protein - (((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal) as Decimal) >= 0
-                {
-                    state.protein -= (((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal)
-                } else { state.protein = 0 }
-
-                state.removePresetFromNewMeal()
-                if state.carbs == 0, state.fat == 0, state.protein == 0 { state.summation = [] }
-            }
-            label: { Image(systemName: "minus.circle.fill")
-                .font(.system(size: 20))
-            }
-            .disabled(
-                state
-                    .selection == nil ||
-                    (
-                        !state.summation
-                            .contains(state.selection?.dish ?? "") && (state.selection?.dish ?? "") != ""
-                    )
-            )
-            .buttonStyle(.borderless)
-            .tint(.blue)
-        }
-
-        private var plusButton: some View {
-            Button {
-                state.carbs += ((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal
-                state.fat += ((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal
-                state.protein += ((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal
-
-                state.addPresetToNewMeal()
-            }
-            label: { Image(systemName: "plus.circle.fill")
-                .font(.system(size: 20))
-            }
-            .disabled(state.selection == nil)
-            .buttonStyle(.borderless)
-            .tint(.blue)
-        }
-
-        private var mealPresets: some View {
-            Section {
-                HStack {
-                    if state.selection != nil {
-                        minusButton
-                    }
-                    Picker("Preset", selection: $state.selection) {
-                        Text("Saved Food").tag(nil as MealPresetStored?)
-                        ForEach(carbPresets, id: \.self) { (preset: MealPresetStored) in
-                            Text(preset.dish ?? "").tag(preset as MealPresetStored?)
-                        }
-                    }
-                    .labelsHidden()
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    ._onBindingChange($state.selection) { _ in
-                        state.carbs += ((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal
-                        state.fat += ((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal
-                        state.protein += ((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal
-                        state.addToSummation()
-                    }
-                    if state.selection != nil {
-                        plusButton
-                    }
-                }
-
-                HStack {
-                    Button("Delete Preset") {
-                        showAlert.toggle()
-                    }
-                    .disabled(state.selection == nil)
-                    .tint(.orange)
-                    .buttonStyle(.borderless)
-                    .alert(
-                        "Delete preset '\(state.selection?.dish ?? "")'?",
-                        isPresented: $showAlert,
-                        actions: {
-                            Button("No", role: .cancel) {}
-                            Button("Yes", role: .destructive) {
-                                state.deletePreset()
-
-                                state.carbs += ((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal
-                                state.fat += ((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal
-                                state.protein += ((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal
-
-                                state.addPresetToNewMeal()
-                            }
-                        }
-                    )
-
-                    Spacer()
-
-                    Button {
-                        isPromptPresented = true
-                    }
-                    label: { Text("Save as Preset") }
-                        .buttonStyle(.borderless)
-                        .disabled(
-                            empty ||
-                                (
-                                    (((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal) == state
-                                        .carbs && (((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal) == state
-                                        .fat && (((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal) == state
-                                        .protein
-                                )
-                        )
-                }
             }
         }
 
@@ -308,20 +156,6 @@ extension Bolus {
                                 proteinAndFat()
                             }
 
-                            // Summary when combining presets
-                            if state.waitersNotepad() != "" {
-                                HStack {
-                                    Text("Total")
-                                    let test = state.waitersNotepad().components(separatedBy: ", ").removeDublicates()
-                                    HStack(spacing: 0) {
-                                        ForEach(test, id: \.self) {
-                                            Text($0).foregroundStyle(Color.blue).font(.footnote)
-                                            Text($0 == test[test.count - 1] ? "" : ", ")
-                                        }
-                                    }.frame(maxWidth: .infinity, alignment: .trailing)
-                                }
-                            }
-
                             // Time
                             HStack {
                                 Text("Time").foregroundStyle(Color.secondary)
@@ -346,17 +180,13 @@ extension Bolus {
                                     label: { Image(systemName: "plus.circle") }.tint(.blue).buttonStyle(.borderless)
                                 }
                             }
-
-                            .popover(isPresented: $isPromptPresented) {
-                                presetPopover
-                            }
                         }.listRowBackground(Color.chart)
 
-                        if state.displayPresets {
-                            Section {
-                                mealPresets
-                            }.listRowBackground(Color.chart)
-                        }
+//                        if state.displayPresets {
+//                            Section {
+//                                mealPresets
+//                            }.listRowBackground(Color.chart)
+//                        }
 
                         Section {
                             HStack {
@@ -469,6 +299,13 @@ extension Bolus {
                         Text("Close")
                     }
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: {
+                        showPresetSheet = true
+                    }, label: {
+                        Image(systemName: "plus")
+                    })
+                }
             })
             .onAppear {
                 configureView {
@@ -484,6 +321,11 @@ extension Bolus {
                         [.fraction(0.9), .large],
                         selection: $calculatorDetent
                     )
+            }
+            .sheet(isPresented: $showPresetSheet, onDismiss: {
+                showPresetSheet = false
+            }) {
+                MealPresetView(state: state)
             }
         }
 
