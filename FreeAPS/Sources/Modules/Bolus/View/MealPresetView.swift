@@ -10,7 +10,6 @@ struct MealPresetView: View {
 
     @State private var showAlert = false
     @State private var dish: String = ""
-    @State private var saved: Bool = false
 
     @State private var addNewPreset: Bool = false
 
@@ -84,6 +83,7 @@ struct MealPresetView: View {
     private var addNewPresetButton: some View {
         Button(action: {
             addNewPreset = true
+            resetValues()
         }, label: {
             HStack {
                 Spacer()
@@ -159,10 +159,11 @@ struct MealPresetView: View {
                 }
                 .labelsHidden()
                 .frame(maxWidth: .infinity, alignment: .center)
-                ._onBindingChange($state.selection) { _ in
-                    carbs += ((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal
-                    fat += ((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal
-                    protein += ((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal
+                .onChange(of: state.selection) { newSelection in
+                    guard let selected = newSelection else { return }
+                    carbs += ((selected.carbs ?? 0) as NSDecimalNumber) as Decimal
+                    fat += ((selected.fat ?? 0) as NSDecimalNumber) as Decimal
+                    protein += ((selected.protein ?? 0) as NSDecimalNumber) as Decimal
                     state.addToSummation()
                 }
                 if state.selection != nil {
@@ -206,19 +207,21 @@ struct MealPresetView: View {
 
     private var savePresetButton: some View {
         Button {
-            saved = true
-            if dish != "", saved {
+            if dish != "" {
                 let preset = MealPresetStored(context: moc)
                 preset.dish = dish
                 preset.fat = presetFat as NSDecimalNumber
                 preset.protein = presetProtein as NSDecimalNumber
                 preset.carbs = presetCarbs as NSDecimalNumber
-                if self.moc.hasChanges {
-                    try? moc.save()
+
+                do {
+                    guard self.moc.hasChanges else { return }
+                    try moc.save()
+                    resetValues()
+                    addNewPreset = false
+                } catch let error as NSError {
+                    debugPrint("\(DebuggingIdentifiers.failed) Failed to save Meal Preset with error: \(error.userInfo)")
                 }
-                resetValues()
-                saved = false
-                addNewPreset = false
             }
         }
         label: {
