@@ -59,7 +59,7 @@ extension CalendarEventSettings {
                                 ForEach(state.calendarIDs, id: \.self) {
                                     Text($0).tag($0)
                                 }
-                            }.padding(.vertical)
+                            }
                         }
                     }.listRowBackground(Color.chart)
 

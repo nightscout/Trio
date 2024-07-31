@@ -6,6 +6,13 @@ extension AppleHealthKit {
         let resolver: Resolver
         @StateObject var state = StateModel()
 
+        @State private var shouldDisplayHint: Bool = false
+        @State var hintDetent = PresentationDetent.large
+        @State var selectedVerboseHint: String?
+        @State var hintLabel: String?
+        @State private var decimalPlaceholder: Decimal = 0.0
+        @State private var booleanPlaceholder: Bool = false
+
         @Environment(\.colorScheme) var colorScheme
         var color: LinearGradient {
             colorScheme == .dark ? LinearGradient(
@@ -26,25 +33,55 @@ extension AppleHealthKit {
 
         var body: some View {
             Form {
-                Section {
-                    Toggle("Connect to Apple Health", isOn: $state.useAppleHealth)
-                    HStack {
-                        Image(systemName: "pencil.circle.fill")
-                        Text(
-                            "This allows Trio to read from and write to Apple Heath. You must also give permissions in Settings > Health > Data Access. If you enter a glucose value into Apple Health, open Trio to confirm it shows up."
-                        )
-                        .font(.caption)
-                    }
-                    .foregroundColor(Color.secondary)
-                    if state.needShowInformationTextForSetPermissions {
-                        HStack {
-                            Image(systemName: "exclamationmark.circle.fill")
-                            Text("For write data to Apple Health you must give permissions in Settings > Health > Data Access")
-                                .font(.caption)
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.useAppleHealth,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Connect to Apple Health"
                         }
+                    ),
+                    type: .boolean,
+                    label: "Connect to Apple Health",
+                    miniHint: "Allows Trio to read from and write to Apple Health.",
+                    verboseHint: NSLocalizedString(
+                        "This allows Trio to read from and write to Apple Health. You must also give permissions in iOS Settings > Health > Data Access. If you enter a glucose value into Apple Health, open Trio to confirm it shows up.",
+                        comment: "Suspend Zeros IOB"
+                    ),
+                    headerText: "Apple Health Integration"
+                )
+
+                if !state.needShowInformationTextForSetPermissions {
+                    Section {
+                        VStack {
+                            HStack {
+                                Image(systemName: "exclamationmark.circle.fill")
+                                Text("Give Apple Health Write Permissions")
+                            }.padding(.bottom)
+                            Text("""
+                            1. Open the Settings app on your iOS device.
+                            2. Scroll down and select "Health."
+                            3. Tap on "Data Access & Devices."
+                            4. Find and select "Trio" from the list of apps.
+                            5. Ensure that the "Write Data" option is enabled for the desired health metrics.
+                            """).font(.footnote)
+                        }
+                        .padding(.vertical)
                         .foregroundColor(Color.secondary)
-                    }
+                    }.listRowBackground(Color.chart)
                 }
+            }
+            .sheet(isPresented: $shouldDisplayHint) {
+                SettingInputHintView(
+                    hintDetent: $hintDetent,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    hintLabel: hintLabel ?? "",
+                    hintText: selectedVerboseHint ?? "",
+                    sheetTitle: "Help"
+                )
             }
             .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)

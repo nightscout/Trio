@@ -4,23 +4,63 @@ import SwiftUI
 struct TidepoolStartView: View {
     @ObservedObject var state: Settings.StateModel
 
+    @State private var shouldDisplayHint: Bool = false
+    @State var hintDetent = PresentationDetent.large
+    @State private var decimalPlaceholder: Decimal = 0.0
+    @State private var booleanPlaceholder: Bool = false
+
+    @Environment(\.colorScheme) var colorScheme
+    var color: LinearGradient {
+        colorScheme == .dark ? LinearGradient(
+            gradient: Gradient(colors: [
+                Color.bgDarkBlue,
+                Color.bgDarkerDarkBlue
+            ]),
+            startPoint: .top,
+            endPoint: .bottom
+        )
+            :
+            LinearGradient(
+                gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+    }
+
     var body: some View {
         Form {
             Section(
-                header: Text("Connect to Tidepool"),
-                footer: VStack(alignment: .leading, spacing: 2) {
-                    Text(
-                        "When connected, uploading of carbs, bolus, basal and glucose from Trio to your Tidepool account is enabled."
-                    )
-                    Text(
-                        "\nUse your Tidepool credentials to login. If you dont already have a Tidepool account, you can sign up for one on the login page."
-                    )
-                }
-            )
+                header: Text("Tidepool Integration"),
+                content:
                 {
-                    Button("Connect to Tidepool") { state.setupTidepool = true }
+                    VStack {
+                        Button {
+                            state.setupTidepool.toggle()
+                        }
+                        label: { Text("Connect to Tidepool").font(.title3) }
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .buttonStyle(.bordered)
+
+                        HStack(alignment: .top) {
+                            Text("You can connect Trio to seamlessly upload and manage your diabetes data on Tidepool.")
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+                                .lineLimit(nil)
+                            Spacer()
+                            Button(
+                                action: {
+                                    shouldDisplayHint.toggle()
+                                },
+                                label: {
+                                    HStack {
+                                        Image(systemName: "questionmark.circle")
+                                    }
+                                }
+                            ).buttonStyle(BorderlessButtonStyle())
+                        }.padding(.top)
+                    }.padding(.vertical)
                 }
-                .navigationTitle("Tidepool")
+            ).listRowBackground(Color.chart)
         }
         .sheet(isPresented: $state.setupTidepool) {
             if let serviceUIType = state.serviceUIType,
@@ -42,5 +82,17 @@ struct TidepoolStartView: View {
                 }
             }
         }
+        .sheet(isPresented: $shouldDisplayHint) {
+            SettingInputHintView(
+                hintDetent: $hintDetent,
+                shouldDisplayHint: $shouldDisplayHint,
+                hintLabel: "Connect to Tidepool",
+                hintText: "When connected, uploading of carbs, bolus, basal and glucose from Trio to your Tidepool account is enabled.\n\nUse your Tidepool credentials to login. If you dont already have a Tidepool account, you can sign up for one on the login page.",
+                sheetTitle: "Help"
+            )
+        }
+        .scrollContentBackground(.hidden).background(color)
+        .navigationTitle("Tidepool")
+        .navigationBarTitleDisplayMode(.automatic)
     }
 }
