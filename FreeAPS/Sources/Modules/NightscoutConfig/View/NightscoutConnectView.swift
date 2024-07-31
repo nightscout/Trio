@@ -31,57 +31,82 @@ struct NightscoutConnectView: View {
 
     var body: some View {
         Form {
-            Section {
-                TextField("URL", text: $state.url)
-                    .disableAutocorrection(true)
-                    .textContentType(.URL)
-                    .autocapitalization(.none)
-                    .keyboardType(.URL)
-                SecureField("API secret", text: $state.secret)
-                    .disableAutocorrection(true)
-                    .autocapitalization(.none)
-                    .textContentType(.password)
-                    .keyboardType(.asciiCapable)
-                if !state.message.isEmpty {
-                    Text(state.message)
-                }
-                if state.connecting {
-                    HStack {
-                        Text("Connecting...")
-                        Spacer()
-                        ProgressView()
+            Section(
+                header: Text("Connect to Nightscout"),
+                content: {
+                    TextField("URL", text: $state.url)
+                        .disableAutocorrection(true)
+                        .textContentType(.URL)
+                        .autocapitalization(.none)
+                        .keyboardType(.URL)
+                    SecureField("API secret", text: $state.secret)
+                        .disableAutocorrection(true)
+                        .autocapitalization(.none)
+                        .textContentType(.password)
+                        .keyboardType(.asciiCapable)
+                    if !state.message.isEmpty {
+                        Text(state.message)
+                    }
+                    if state.connecting {
+                        HStack {
+                            Text("Connecting...")
+                            Spacer()
+                            ProgressView()
+                        }
+                    }
+
+                    if !state.isConnectedToNS {
+                        Button {
+                            state.connect()
+                        } label: {
+                            Text("Connect to Nightscout")
+                                .font(.title3) }
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .buttonStyle(.bordered)
+                            .disabled(state.url.isEmpty && state.connecting)
+                    } else {
+                        Button(role: .destructive) {
+                            state.delete()
+                        } label: {
+                            Text("Disconnect and Remove")
+                                .font(.title3)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .buttonStyle(.bordered)
+                        .tint(Color.loopRed)
                     }
                 }
-            }.listRowBackground(Color.chart)
+            ).listRowBackground(Color.chart)
 
-            Section {
-                Button("Connect to Nightscout") { state.connect() }
-                    .disabled(state.url.isEmpty || state.connecting)
-                Button("Delete") { state.delete() }.foregroundColor(.red).disabled(state.connecting)
-            }.listRowBackground(Color.chart)
-
-            Section {
-                Button("Open Nightscout") {
-                    UIApplication.shared.open(URL(string: state.url)!, options: [:], completionHandler: nil)
+            if state.isConnectedToNS {
+                Section {
+                    Button {
+                        UIApplication.shared.open(URL(string: state.url)!, options: [:], completionHandler: nil)
+                    }
+                    label: { Label("Open Nightscout", systemImage: "waveform.path.ecg.rectangle").font(.title3).padding() }
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .buttonStyle(.bordered)
                 }
-                .disabled(state.url.isEmpty || state.connecting)
-            }.listRowBackground(Color.chart)
+                .listRowBackground(Color.clear)
+            }
 
-            Section {
-                Toggle("Use local glucose server", isOn: $state.useLocalSource)
-                HStack {
-                    Text("Port")
-                    TextFieldWithToolBar(
-                        text: $state.localPort,
-                        placeholder: "",
-                        keyboardType: .numberPad,
-                        numberFormatter: portFormatter,
-                        allowDecimalSeparator: false
-                    )
-                }
-            } header: { Text("Local glucose source") }.listRowBackground(Color.chart)
+            // TODO: Find out if this is still required or needed ?!
+//            Section {
+//                Toggle("Use local glucose server", isOn: $state.useLocalSource)
+//                HStack {
+//                    Text("Port")
+//                    TextFieldWithToolBar(
+//                        text: $state.localPort,
+//                        placeholder: "",
+//                        keyboardType: .numberPad,
+//                        numberFormatter: portFormatter,
+//                        allowDecimalSeparator: false
+//                    )
+//                }
+//            } header: { Text("Local glucose source") }.listRowBackground(Color.chart)
         }
         .navigationTitle("Connect")
+        .navigationBarTitleDisplayMode(.automatic)
         .scrollContentBackground(.hidden).background(color)
     }
 }

@@ -33,6 +33,7 @@ extension NightscoutConfig {
         @Published var maxBasal: Decimal = 2
         @Published var maxBolus: Decimal = 10
         @Published var allowAnnouncements: Bool = false
+        @Published var isConnectedToNS: Bool = false
 
         override func subscribe() {
             url = keychain.getValue(String.self, forKey: Config.urlKey) ?? ""
@@ -49,6 +50,8 @@ extension NightscoutConfig {
             subscribeSetting(\.useLocalGlucoseSource, on: $useLocalSource) { useLocalSource = $0 }
             subscribeSetting(\.localGlucosePort, on: $localPort.map(Int.init)) { localPort = Decimal($0) }
             subscribeSetting(\.uploadGlucose, on: $uploadGlucose, initial: { uploadGlucose = $0 })
+
+            isConnectedToNS = nightscoutAPI != nil
         }
 
         func connect() {
@@ -75,6 +78,8 @@ extension NightscoutConfig {
                     self.message = "Connected!"
                     self.keychain.setValue(self.url, forKey: Config.urlKey)
                     self.keychain.setValue(self.secret, forKey: Config.secretKey)
+                    self.connecting = true
+                    self.isConnectedToNS = self.nightscoutAPI != nil
                 }
                 .store(in: &lifetime)
         }
@@ -232,7 +237,7 @@ extension NightscoutConfig {
                         }
                         if sensitivities.filter({ $0.sensitivity <= 0 }).isNotEmpty {
                             error =
-                                "\nInvalid Nightcsout Sensitivities Settings. \n\nImport aborted. Please check your Nightscout Profile Sensitivities Settings!"
+                                "\nInvalid Nightscout Sensitivities Settings. \n\nImport aborted. Please check your Nightscout Profile Sensitivities Settings!"
                             group.leave()
                             return
                         }
@@ -364,6 +369,7 @@ extension NightscoutConfig {
             keychain.removeObject(forKey: Config.secretKey)
             url = ""
             secret = ""
+            isConnectedToNS = false
         }
     }
 }

@@ -4,6 +4,13 @@ import SwiftUI
 struct NightscoutFetchView: View {
     @ObservedObject var state: NightscoutConfig.StateModel
 
+    @State private var shouldDisplayHint: Bool = false
+    @State var hintDetent = PresentationDetent.large
+    @State var selectedVerboseHint: String?
+    @State var hintLabel: String?
+    @State private var decimalPlaceholder: Decimal = 0.0
+    @State private var booleanPlaceholder: Bool = false
+
     @Environment(\.colorScheme) var colorScheme
     var color: LinearGradient {
         colorScheme == .dark ? LinearGradient(
@@ -24,38 +31,58 @@ struct NightscoutFetchView: View {
 
     var body: some View {
         Form {
-            Section {
-                Toggle("Fetch Treatments", isOn: $state.isDownloadEnabled)
-                    .onChange(of: state.isDownloadEnabled) { newValue in
-                        if !newValue {
-                            state.allowAnnouncements = false
-                        }
+            SettingInputSection(
+                decimalValue: $decimalPlaceholder,
+                booleanValue: $state.isDownloadEnabled,
+                shouldDisplayHint: $shouldDisplayHint,
+                selectedVerboseHint: Binding(
+                    get: { selectedVerboseHint },
+                    set: {
+                        selectedVerboseHint = $0
+                        hintLabel = "Allow Fetching from Nightscout"
                     }
-            } header: {
-                Text("Allow Fetching from Nightscout")
-            } footer: {
-                Text(
-                    "The Fetch Treatments toggle enables fetching of carbs and temp targets entered in Careportal or by another uploading device than Trio."
-                )
-            }.listRowBackground(Color.chart)
-
-            Section(
-                header: Text("Allow Remote control of Trio"),
-                footer: VStack(alignment: .leading, spacing: 2) {
-                    Text("Fetch Treatments needs to be allowed to be able to toggle on Remote Control.")
-                    Text("\nWhen enabled you allow these remote functions through announcements from Nightscout:")
-                    Text(" • ") + Text("Suspend/Resume Pump")
-                    Text(" • ") + Text("Opening/Closing Loop")
-                    Text(" • ") + Text("Set Temp Basal")
-                    Text(" • ") + Text("Enact Bolus")
-                }
+                ),
+                type: .boolean,
+                label: "Allow Fetching from Nightscout",
+                miniHint: "Enable fetching of selected data sets from Nightscout. See hint for more details.",
+                verboseHint: "The Fetch Treatments toggle enables fetching of carbs and temp targets entered in Careportal or by another uploading device than Trio from Nightscout.",
+                headerText: "Remote & Fetch Capabilities"
             )
-                {
-                    Toggle("Remote Control", isOn: $state.allowAnnouncements)
-                        .disabled(!state.isDownloadEnabled)
-                }.listRowBackground(Color.chart)
+
+            if state.isDownloadEnabled {
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.allowAnnouncements,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Allow Remote Control of Trio"
+                        }
+                    ),
+                    type: .boolean,
+                    label: "Allow Remote Control of Trio",
+                    miniHint: "Enables selected remote control capabilities via Nightscout. See hint for more details.",
+                    verboseHint: "When enabled you allow these remote functions through announcements from Nightscout: \n • Suspend/Resume Pump \n • Opening/Closing Loop \n  • Set Temp Basal \n • Enact Bolus"
+                )
+            } else {
+                Section {
+                    Text("'Allow Fetching from Nightscout' must be enabled to allow for Trio Remote Control.")
+                }.listRowBackground(Color.tabBar)
+            }
+        }
+        .sheet(isPresented: $shouldDisplayHint) {
+            SettingInputHintView(
+                hintDetent: $hintDetent,
+                shouldDisplayHint: $shouldDisplayHint,
+                hintLabel: hintLabel ?? "",
+                hintText: selectedVerboseHint ?? "",
+                sheetTitle: "Help"
+            )
         }
         .navigationTitle("Fetch and Remote")
+        .navigationBarTitleDisplayMode(.automatic)
         .scrollContentBackground(.hidden).background(color)
     }
 }
