@@ -135,6 +135,26 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
                 textField.moveCursorToEnd()
             }
         }
+
+        // Helper method to calculate the number of decimal places in a string
+        fileprivate func calculateDecimalPlaces(in string: String) -> Int {
+            guard let decimalSeparator = decimalFormatter.decimalSeparator else { return 0 }
+            if let range = string.range(of: decimalSeparator) {
+                let decimalPart = string[range.upperBound...]
+                return decimalPart.count
+            }
+            return 0
+        }
+
+        // Helper method to check if the cursor is after the decimal separator
+        fileprivate func isCursorAfterDecimal(in textField: UITextField, range: NSRange) -> Bool {
+            guard let text = textField.text, let decimalSeparator = decimalFormatter.decimalSeparator else { return false }
+            if let decimalSeparatorRange = text.range(of: decimalSeparator) {
+                let decimalSeparatorPosition = text.distance(from: text.startIndex, to: decimalSeparatorRange.lowerBound)
+                return range.location > decimalSeparatorPosition
+            }
+            return false
+        }
     }
 }
 
@@ -160,6 +180,17 @@ extension TextFieldWithToolBar.Coordinator: UITextFieldDelegate {
 
             // Try to convert proposed text to number
             let number = parent.numberFormatter.number(from: proposedText) ?? decimalFormatter.number(from: proposedText)
+
+            let decimalPlacesCurrent = calculateDecimalPlaces(in: currentText as String)
+            let maxDecimalPlaces = parent.numberFormatter.maximumFractionDigits
+            let isCursorAfterDecimal = isCursorAfterDecimal(in: textField, range: range)
+
+            if decimalPlacesCurrent >= maxDecimalPlaces,
+               range.length == 0,
+               isCursorAfterDecimal
+            {
+                return false
+            }
 
             // Update the binding value if conversion is successful
             if let number = number {
