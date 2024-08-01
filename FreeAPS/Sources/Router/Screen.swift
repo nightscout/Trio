@@ -23,7 +23,7 @@ enum Screen: Identifiable, Hashable {
     case cgm
     case cgmDirect
     case healthkit
-    case notificationsConfig
+    case glucoseNotificationSettings
     case mealSettings
     case iconConfig
     case overrideConfig
@@ -40,6 +40,7 @@ enum Screen: Identifiable, Hashable {
     case algorithmSettings
     case featureSettings
     case notificationSettings
+    case liveActivitySettings
     case calendarEventSettings
     case serviceSettings
     case autosensSettings
@@ -96,8 +97,8 @@ extension Screen {
             CGM.RootView(resolver: resolver, displayClose: true)
         case .healthkit:
             AppleHealthKit.RootView(resolver: resolver)
-        case .notificationsConfig:
-            NotificationsConfig.RootView(resolver: resolver)
+        case .glucoseNotificationSettings:
+            GlucoseNotificationSettings.RootView(resolver: resolver)
         case .mealSettings:
             MealSettings.RootView(resolver: resolver)
         case .iconConfig:
@@ -130,6 +131,8 @@ extension Screen {
             FeatureSettingsView(resolver: resolver, state: Settings.StateModel())
         case .notificationSettings:
             NotificationsView(resolver: resolver, state: Settings.StateModel())
+        case .liveActivitySettings:
+            LiveActivitySettings.RootView(resolver: resolver)
         case .calendarEventSettings:
             CalendarEventSettings.RootView(resolver: resolver)
         case .serviceSettings:

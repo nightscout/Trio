@@ -6,6 +6,25 @@ struct SettingInputHintView: View {
     var hintLabel: String
     var hintText: String
     var sheetTitle: String
+
+    @Environment(\.colorScheme) private var colorScheme
+    private var color: LinearGradient {
+        colorScheme == .dark ? LinearGradient(
+            gradient: Gradient(colors: [
+                Color.bgDarkBlue,
+                Color.bgDarkerDarkBlue
+            ]),
+            startPoint: .top,
+            endPoint: .bottom
+        )
+            :
+            LinearGradient(
+                gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+    }
+
     var body: some View {
         NavigationStack {
             List {

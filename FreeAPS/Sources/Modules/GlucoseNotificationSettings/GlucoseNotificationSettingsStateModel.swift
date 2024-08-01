@@ -1,6 +1,6 @@
 import SwiftUI
 
-extension NotificationsConfig {
+extension GlucoseNotificationSettings {
     final class StateModel: BaseStateModel<Provider> {
         @Published var glucoseBadge = false
         @Published var glucoseNotificationsAlways = false
@@ -8,10 +8,8 @@ extension NotificationsConfig {
         @Published var addSourceInfoToGlucoseNotifications = false
         @Published var lowGlucose: Decimal = 0
         @Published var highGlucose: Decimal = 0
-        @Published var carbsRequiredThreshold: Decimal = 0
-        @Published var useLiveActivity = false
+
         var units: GlucoseUnits = .mgdL
-        @Published var lockScreenView: LockScreenView = .simple
 
         override func subscribe() {
             let units = settingsManager.settings.units
@@ -22,8 +20,6 @@ extension NotificationsConfig {
             subscribeSetting(\.useAlarmSound, on: $useAlarmSound) { useAlarmSound = $0 }
             subscribeSetting(\.addSourceInfoToGlucoseNotifications, on: $addSourceInfoToGlucoseNotifications) {
                 addSourceInfoToGlucoseNotifications = $0 }
-            subscribeSetting(\.useLiveActivity, on: $useLiveActivity) { useLiveActivity = $0 }
-            subscribeSetting(\.lockScreenView, on: $lockScreenView) { lockScreenView = $0 }
             subscribeSetting(\.lowGlucose, on: $lowGlucose, initial: {
                 let value = max(min($0, 400), 40)
                 lowGlucose = units == .mmolL ? value.asMmolL : value
@@ -39,11 +35,6 @@ extension NotificationsConfig {
                 guard units == .mmolL else { return $0 }
                 return $0.asMgdL
             })
-
-            subscribeSetting(
-                \.carbsRequiredThreshold,
-                on: $carbsRequiredThreshold
-            ) { carbsRequiredThreshold = $0 }
         }
     }
 }

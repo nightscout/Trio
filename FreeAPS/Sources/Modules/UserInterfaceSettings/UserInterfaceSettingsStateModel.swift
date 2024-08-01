@@ -12,6 +12,7 @@ extension UserInterfaceSettings {
         @Published var yGridLines: Bool = false
         @Published var oneDimensionalGraph = false
         @Published var rulerMarks: Bool = true
+        @Published var carbsRequiredThreshold: Decimal = 0
 
         var units: GlucoseUnits = .mgdL
 
@@ -42,6 +43,11 @@ extension UserInterfaceSettings {
                 guard units == .mmolL else { return $0 }
                 return $0.asMgdL
             })
+
+            subscribeSetting(
+                \.carbsRequiredThreshold,
+                on: $carbsRequiredThreshold
+            ) { carbsRequiredThreshold = $0 }
         }
     }
 }

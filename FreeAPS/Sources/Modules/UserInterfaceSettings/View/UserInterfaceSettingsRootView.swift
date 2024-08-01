@@ -74,6 +74,19 @@ extension UserInterfaceSettings {
                     Toggle("Override HbA1c Unit", isOn: $state.overrideHbA1cUnit)
 
                 } header: { Text("Statistics settings ") }
+
+                Section(header: Text("Other")) {
+                    HStack {
+                        Text("Carbs Required Threshold")
+                        Spacer()
+                        TextFieldWithToolBar(
+                            text: $state.carbsRequiredThreshold,
+                            placeholder: "0",
+                            numberFormatter: carbsFormatter
+                        )
+                        Text("g").foregroundColor(.secondary)
+                    }
+                }
             }
             .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)
