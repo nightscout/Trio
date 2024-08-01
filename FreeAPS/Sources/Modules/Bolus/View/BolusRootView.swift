@@ -574,7 +574,8 @@ extension Bolus {
         }
 
         private var disableTaskButton: Bool {
-            state.amount > 0 ? (state.externalInsulin ? externalBolusLimit : pumpBolusLimit) : false
+            state.addButtonPressed ||
+                (state.amount > 0 ? (state.externalInsulin ? externalBolusLimit : pumpBolusLimit) : false)
         }
     }
 
