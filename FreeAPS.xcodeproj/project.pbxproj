@@ -1550,7 +1550,7 @@
 				CEB434E128B8F9BC00B70274 /* Bluetooth */,
 				F90692A8274B7A980037068D /* HealthKit */,
 				38E8754D275556E100975559 /* WatchManager */,
-				38E87406274F9AA500975559 /* UserNotifiactions */,
+				38E87406274F9AA500975559 /* UserNotifications */,
 				3862CC2C2743F9DC00BF832C /* Calendar */,
 				38AEE75025F021F10013F05B /* SettingsManager */,
 				38B4F3C425E5016800E76A18 /* Notifications */,
@@ -1999,12 +1999,12 @@
 			path = Disk;
 			sourceTree = "<group>";
 		};
-		38E87406274F9AA500975559 /* UserNotifiactions */ = {
+		38E87406274F9AA500975559 /* UserNotifications */ = {
 			isa = PBXGroup;
 			children = (
 				38E87407274F9AD000975559 /* UserNotificationsManager.swift */,
 			);
-			path = UserNotifiactions;
+			path = UserNotifications;
 			sourceTree = "<group>";
 		};
 		38E8751D27554D5500975559 /* FreeAPSWatch */ = {
