@@ -332,6 +332,7 @@ final class OpenAPS {
             autosens: autosens.isEmpty ? .null : autosens
         )
 
+        // TODO: refactor this to core data
         if !simulation {
             storage.save(iob, as: Monitor.iob)
         }
@@ -355,9 +356,12 @@ final class OpenAPS {
         debug(.openAPS, "Determinated: \(orefDetermination)")
 
         if var determination = Determination(from: orefDetermination), let deliverAt = determination.deliverAt {
+            // set both timestamp and deliverAt to the SAME date; this will be updated for timestamp once it is enacted
+            // AAPS does it the same way! we'll follow their example!
             determination.timestamp = deliverAt
 
             if !simulation {
+                // save to core data asynchronously
                 await processDetermination(determination)
             }
 
