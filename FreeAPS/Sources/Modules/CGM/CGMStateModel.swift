@@ -131,7 +131,7 @@ extension CGM.StateModel: CompletionDelegate {
         setupCGM = false
 
         // if CGM was deleted
-        if cgmManager.cgmGlucoseSourceType != nil {
+        if cgmManager.cgmGlucoseSourceType == nil {
             cgmCurrent = cgmDefaultName
             settingsManager.settings.cgm = cgmDefaultName.type
             settingsManager.settings.cgmPluginIdentifier = cgmDefaultName.id
