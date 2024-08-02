@@ -1,4 +1,5 @@
 import AudioToolbox
+import CoreData
 import Foundation
 import LoopKit
 import SwiftUI
@@ -52,19 +53,24 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     private let center = UNUserNotificationCenter.current()
     private var lifetime = Lifetime()
 
-    private let context = CoreDataStack.shared.persistentContainer.viewContext
+    private let viewContext = CoreDataStack.shared.persistentContainer.viewContext
+    private let backgroundContext = CoreDataStack.shared.newTaskContext()
+
+    private var coreDataObserver: CoreDataObserver?
 
     init(resolver: Resolver) {
         super.init()
         center.delegate = self
         injectServices(resolver)
-        broadcaster.register(GlucoseObserver.self, observer: self)
         broadcaster.register(DeterminationObserver.self, observer: self)
         broadcaster.register(BolusFailureObserver.self, observer: self)
         broadcaster.register(pumpNotificationObserver.self, observer: self)
-
         requestNotificationPermissionsIfNeeded()
-        sendGlucoseNotification()
+        Task {
+            await sendGlucoseNotification()
+        }
+        registerHandlers()
+        setupGlucoseNotification()
         subscribeOnLoop()
     }
 
@@ -74,6 +80,32 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                 self?.scheduleMissingLoopNotifiactions(date: date)
             }
             .store(in: &lifetime)
+    }
+
+    private func registerHandlers() {
+        // Due to the Batch insert this only is used for observing Deletion of Glucose entries
+        coreDataObserver?.registerHandler(for: "GlucoseStored") { [weak self] in
+            guard let self = self else { return }
+            Task {
+                await self.sendGlucoseNotification()
+            }
+        }
+    }
+
+    private func setupGlucoseNotification() {
+        /// custom notification that is sent when a batch insert of glucose objects is done
+        Foundation.NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleBatchInsert),
+            name: .didPerformBatchInsert,
+            object: nil
+        )
+    }
+
+    @objc private func handleBatchInsert() {
+        Task {
+            await sendGlucoseNotification()
+        }
     }
 
     private func addAppBadge(glucose: Int?) {
@@ -184,32 +216,37 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         }
     }
 
-    private func fetchGlucose() -> [GlucoseStored]? {
-        CoreDataStack.shared.fetchEntities(
+    private func fetchGlucoseIDs() async -> [NSManagedObjectID] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
-            onContext: context,
+            onContext: backgroundContext,
             predicate: NSPredicate.predicateFor20MinAgo,
             key: "date",
-            ascending: true,
+            ascending: false,
             fetchLimit: 3
         )
+        return await backgroundContext.perform {
+            return results.map(\.objectID)
+        }
     }
 
-    private func sendGlucoseNotification() {
-        addAppBadge(glucose: nil)
-
-        context.perform {
-            guard let glucose = self.fetchGlucose(), let lastValue = glucose.first, let lastReading = glucose.first?.glucose,
-                  let lastDirection = lastValue.direction,
-                  let secondLastReading = glucose.dropFirst().first?.glucose else { return }
-
-            self.addAppBadge(glucose: (glucose.first?.glucose).map { Int($0) })
-
-            guard self.glucoseStorage.alarm != nil || self.settingsManager.settings.glucoseNotificationsAlways else {
-                return
+    @MainActor private func sendGlucoseNotification() async {
+        do {
+            addAppBadge(glucose: nil)
+            let glucoseIDs = await fetchGlucoseIDs()
+            let glucoseObjects = try glucoseIDs.compactMap { id in
+                try viewContext.existingObject(with: id) as? GlucoseStored
             }
 
-            self.ensureCanSendNotification {
+            guard let lastReading = glucoseObjects.first?.glucose,
+                  let secondLastReading = glucoseObjects.dropFirst().first?.glucose,
+                  let lastDirection = glucoseObjects.first?.direction else { return }
+
+            addAppBadge(glucose: (glucoseObjects.first?.glucose).map { Int($0) })
+
+            guard glucoseStorage.alarm != nil || settingsManager.settings.glucoseNotificationsAlways else { return }
+
+            ensureCanSendNotification {
                 var titles: [String] = []
                 var notificationAlarm = false
 
@@ -224,13 +261,12 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                     notificationAlarm = true
                 }
 
-                let delta = glucose.count >= 2 ? lastReading - secondLastReading : nil
+                let delta = glucoseObjects.count >= 2 ? lastReading - secondLastReading : nil
                 let body = self.glucoseText(
                     glucoseValue: Int(lastReading),
                     delta: Int(delta ?? 0),
                     direction: lastDirection
-                ) + self
-                    .infoBody()
+                ) + self.infoBody()
 
                 if self.snoozeUntilDate > Date() {
                     titles.append(NSLocalizedString("(Snoozed)", comment: "(Snoozed)"))
@@ -250,6 +286,10 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                     self.addRequest(identifier: .glucocoseNotification, content: content, deleteOld: true)
                 }
             }
+        } catch {
+            debugPrint(
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to send glucose notification with error: \(error.localizedDescription)"
+            )
         }
     }
 
@@ -411,12 +451,6 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         formatter.maximumFractionDigits = 1
         formatter.positivePrefix = "+"
         return formatter
-    }
-}
-
-extension BaseUserNotificationsManager: GlucoseObserver {
-    func glucoseDidUpdate(_: [BloodGlucose]) {
-        sendGlucoseNotification()
     }
 }
 
