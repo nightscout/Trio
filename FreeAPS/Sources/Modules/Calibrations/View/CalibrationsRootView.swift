@@ -53,7 +53,7 @@ extension Calibrations {
                         }
                         label: { Text("Add") }
                             .disabled(state.newCalibration <= 0)
-                    }
+                    }.listRowBackground(Color.chart)
 
                     Section(header: Text("Info")) {
                         HStack {
@@ -66,7 +66,7 @@ extension Calibrations {
                             Spacer()
                             Text(formatter.string(from: state.intercept as NSNumber)!)
                         }
-                    }
+                    }.listRowBackground(Color.chart)
 
                     Section(header: Text("Remove")) {
                         Button {
@@ -97,13 +97,13 @@ extension Calibrations {
 
                             }.onDelete(perform: delete)
                         }
-                    }
+                    }.listRowBackground(Color.chart)
 
                     if state.calibrations.isNotEmpty {
                         Section(header: Text("Chart")) {
                             CalibrationsChart().environmentObject(state)
                                 .frame(minHeight: geo.size.width)
-                        }
+                        }.listRowBackground(Color.chart)
                     }
                 }
             }

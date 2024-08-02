@@ -9,6 +9,13 @@ extension CGM {
         @StateObject var state = StateModel()
         @State private var setupCGM = false
 
+        @State private var shouldDisplayHint: Bool = false
+        @State var hintDetent = PresentationDetent.large
+        @State var selectedVerboseHint: String?
+        @State var hintLabel: String?
+        @State private var decimalPlaceholder: Decimal = 0.0
+        @State private var booleanPlaceholder: Bool = false
+
         @Environment(\.colorScheme) var colorScheme
         var color: LinearGradient {
             colorScheme == .dark ? LinearGradient(
@@ -27,29 +34,75 @@ extension CGM {
                 )
         }
 
-        // @AppStorage(UserDefaults.BTKey.cgmTransmitterDeviceAddress.rawValue) private var cgmTransmitterDeviceAddress: String? = nil
-
         var body: some View {
             NavigationView {
                 Form {
-                    Section(header: Text("CGM")) {
-                        Picker("Type", selection: $state.cgmCurrent) {
-                            ForEach(state.listOfCGM) { type in
-                                VStack(alignment: .leading) {
-                                    Text(type.displayName)
-                                    Text(type.subtitle).font(.caption).foregroundColor(.secondary)
-                                }.tag(type)
-                            }
-                        }
-                        if let link = state.cgmCurrent.type.externalLink {
-                            Button("About this source") {
-                                UIApplication.shared.open(link, options: [:], completionHandler: nil)
-                            }
-                        }
-                    }
+                    Section(
+                        header: Text("CGM Integration to Trio"),
+                        content: {
+                            VStack {
+                                Picker("Type", selection: $state.cgmCurrent) {
+                                    ForEach(state.listOfCGM) { type in
+                                        VStack(alignment: .leading) {
+                                            Text(type.displayName)
+                                            Text(type.subtitle).font(.caption).foregroundColor(.secondary)
+                                        }.tag(type)
+                                    }
+                                }.padding(.top)
 
-                    if let appURL = state.urlOfApp()
-                    {
+                                HStack(alignment: .top) {
+                                    Text(
+                                        "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                    )
+                                    .font(.footnote)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(nil)
+                                    Spacer()
+                                    Button(
+                                        action: {
+                                            hintLabel = "Available CGM Types for Trio"
+                                            selectedVerboseHint =
+                                                "CGM Types… bla bla \n\nLorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                            shouldDisplayHint.toggle()
+                                        },
+                                        label: {
+                                            HStack {
+                                                Image(systemName: "questionmark.circle")
+                                            }
+                                        }
+                                    ).buttonStyle(BorderlessButtonStyle())
+                                }.padding(.top)
+                            }.padding(.bottom)
+
+                            if let link = state.cgmCurrent.type.externalLink {
+                                Button {
+                                    UIApplication.shared.open(link, options: [:], completionHandler: nil)
+                                } label: {
+                                    HStack {
+                                        Text("About this source")
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                    }
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+
+                            if state.cgmCurrent.type == .plugin {
+                                Button {
+                                    setupCGM.toggle()
+                                } label: {
+                                    HStack {
+                                        Text("CGM Configuration")
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                    }
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                        }
+                    ).listRowBackground(Color.chart)
+
+                    if let appURL = state.urlOfApp() {
                         Section {
                             Button {
                                 UIApplication.shared.open(appURL, options: [:]) { success in
@@ -61,7 +114,8 @@ extension CGM {
                             }
 
                             label: {
-                                Label(state.displayNameOfApp() ?? "-", systemImage: "waveform.path.ecg.rectangle").font(.title3) }
+                                Label(state.displayNameOfApp() ?? "-", systemImage: "waveform.path.ecg.rectangle").font(.title3)
+                                    .padding() }
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .buttonStyle(.bordered)
                         }
@@ -77,7 +131,7 @@ extension CGM {
                                         }
                                     }
                                 }
-                                label: { Label("Open URL", systemImage: "waveform.path.ecg.rectangle").font(.title3) }
+                                label: { Label("Open URL", systemImage: "waveform.path.ecg.rectangle").font(.title3).padding() }
                                     .frame(maxWidth: .infinity, alignment: .center)
                                     .buttonStyle(.bordered)
                             }
@@ -86,9 +140,9 @@ extension CGM {
                             Section {
                                 Button {
                                     state.showModal(for: .nighscoutConfigDirect)
-                                    // router.mainSecondaryModalView.send(router.view(for: .nighscoutConfigDirect))
                                 }
-                                label: { Label("Config Nightscout", systemImage: "waveform.path.ecg.rectangle").font(.title3)
+                                label: {
+                                    Label("Config Nightscout", systemImage: "waveform.path.ecg.rectangle").font(.title3).padding()
                                 }
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .buttonStyle(.bordered)
@@ -97,40 +151,77 @@ extension CGM {
                         }
                     }
 
-                    if state.cgmCurrent.type == .plugin {
-                        Section {
-                            Button("CGM Configuration") {
-                                setupCGM.toggle()
-                            }
-                        }
-                    }
                     if state.cgmCurrent.type == .xdrip {
                         Section(header: Text("Heartbeat")) {
                             VStack(alignment: .leading) {
                                 if let cgmTransmitterDeviceAddress = state.cgmTransmitterDeviceAddress {
-                                    Text("CGM address :")
+                                    Text("CGM address :").padding(.top)
                                     Text(cgmTransmitterDeviceAddress)
                                 } else {
-                                    Text("CGM is not used as heartbeat.")
+                                    Text("CGM is not used as heartbeat.").padding(.top)
                                 }
+
+                                HStack(alignment: .top) {
+                                    Text(
+                                        "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                    )
+                                    .font(.footnote)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(nil)
+                                    Spacer()
+                                    Button(
+                                        action: {
+                                            hintLabel = "CGM Heartbeat"
+                                            selectedVerboseHint = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                            shouldDisplayHint.toggle()
+                                        },
+                                        label: {
+                                            HStack {
+                                                Image(systemName: "questionmark.circle")
+                                            }
+                                        }
+                                    ).buttonStyle(BorderlessButtonStyle())
+                                }.padding(.vertical)
                             }
-                        }
-                    }
-                    if state.cgmCurrent.type == .plugin && state.cgmCurrent.id.contains("Libre") {
-                        Section(header: Text("Calibrations")) {
-                            Text("Calibrations").navigationLink(to: .calibrations, from: self)
-                        }
+                        }.listRowBackground(Color.chart)
                     }
 
-                    Section(header: Text("Experimental")) {
-                        Toggle("Smooth Glucose Value", isOn: $state.smoothGlucose)
+                    if state.cgmCurrent.type == .plugin && state.cgmCurrent.id.contains("Libre") {
+                        Section {
+                            Text("Libre Calibrations").navigationLink(to: .calibrations, from: self)
+                        }.listRowBackground(Color.chart)
                     }
+
+                    SettingInputSection(
+                        decimalValue: $decimalPlaceholder,
+                        booleanValue: $state.smoothGlucose,
+                        shouldDisplayHint: $shouldDisplayHint,
+                        selectedVerboseHint: Binding(
+                            get: { selectedVerboseHint },
+                            set: {
+                                selectedVerboseHint = $0
+                                hintLabel = "Smooth Glucose Value"
+                            }
+                        ),
+                        type: .boolean,
+                        label: "Smooth Glucose Value",
+                        miniHint: "Smooth CGM readings using Savitzky–Golay filtering.",
+                        verboseHint: "Smooth Glucose Value… bla bla bla"
+                    )
                 }
                 .scrollContentBackground(.hidden).background(color)
                 .onAppear(perform: configureView)
                 .navigationTitle("CGM")
                 .navigationBarTitleDisplayMode(.automatic)
-                .navigationBarItems(leading: displayClose ? Button("Close", action: state.hideModal) : nil)
+                .sheet(isPresented: $shouldDisplayHint) {
+                    SettingInputHintView(
+                        hintDetent: $hintDetent,
+                        shouldDisplayHint: $shouldDisplayHint,
+                        hintLabel: hintLabel ?? "",
+                        hintText: selectedVerboseHint ?? "",
+                        sheetTitle: "Help"
+                    )
+                }
                 .sheet(isPresented: $setupCGM) {
                     if let cgmFetchManager = state.cgmManager,
                        let cgmManager = cgmFetchManager.cgmManager,

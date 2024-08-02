@@ -42,27 +42,34 @@ extension TargetsEditor {
             Form {
                 Section(header: Text("Schedule")) {
                     list
-                    addButton
-                }
+                }.listRowBackground(Color.chart)
+
                 Section {
                     Button {
                         let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
                         impactHeavy.impactOccurred()
                         state.save()
-                    }
-                    label: {
+                    } label: {
                         Text("Save")
                     }
                     .disabled(state.items.isEmpty)
-                }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .tint(.white)
+
+                }.listRowBackground(state.items.isEmpty ? Color(.systemGray4) : Color(.systemBlue))
             }
             .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)
             .navigationTitle("Target Glucose")
             .navigationBarTitleDisplayMode(.automatic)
-            .navigationBarItems(
-                trailing: EditButton()
-            )
+            .toolbar(content: {
+                ToolbarItem(placement: .topBarTrailing) {
+                    EditButton()
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    addButton
+                }
+            })
             .environment(\.editMode, $editMode)
             .onAppear {
                 state.validate()
@@ -70,39 +77,43 @@ extension TargetsEditor {
         }
 
         private func pickers(for index: Int) -> some View {
-            GeometryReader { geometry in
-                VStack {
-                    HStack {
-                        Text("Target").frame(width: geometry.size.width / 3)
-                        Text("Time").frame(width: geometry.size.width / 3)
-                    }
-                    HStack(spacing: 0) {
-                        Picker(selection: $state.items[index].lowIndex, label: EmptyView()) {
-                            ForEach(0 ..< state.rateValues.count, id: \.self) { i in
-                                Text(
+            Form {
+                Section {
+                    Picker(
+                        selection: $state.items[index].lowIndex,
+                        label: Text("Target ")
+                    ) {
+                        ForEach(0 ..< state.rateValues.count, id: \.self) { i in
+                            Text(
+                                (
                                     self.rateFormatter
                                         .string(from: state.rateValues[i] as NSNumber) ?? ""
-                                ).tag(i)
-                            }
+                                )
+                                    + " \(state.units.rawValue)"
+
+                            ).tag(i)
                         }
-                        .frame(maxWidth: geometry.size.width / 3)
-                        .clipped()
-                        Picker(selection: $state.items[index].timeIndex, label: EmptyView()) {
-                            ForEach(0 ..< state.timeValues.count, id: \.self) { i in
-                                Text(
-                                    self.dateFormatter
-                                        .string(from: Date(
-                                            timeIntervalSince1970: state
-                                                .timeValues[i]
-                                        ))
-                                ).tag(i)
-                            }
-                        }
-                        .frame(maxWidth: geometry.size.width / 3)
-                        .clipped()
                     }
-                }
+                }.listRowBackground(Color.chart)
+
+                Section {
+                    Picker(selection: $state.items[index].timeIndex, label: Text("Time")) {
+                        ForEach(0 ..< state.timeValues.count, id: \.self) { i in
+                            Text(
+                                self.dateFormatter
+                                    .string(from: Date(
+                                        timeIntervalSince1970: state
+                                            .timeValues[i]
+                                    ))
+                            ).tag(i)
+                        }
+                    }
+                }.listRowBackground(Color.chart)
             }
+            .padding(.top)
+            .scrollContentBackground(.hidden).background(color)
+            .navigationTitle("Set Target")
+            .navigationBarTitleDisplayMode(.automatic)
         }
 
         private var list: some View {
@@ -134,7 +145,7 @@ extension TargetsEditor {
 
             switch editMode {
             case .inactive:
-                return AnyView(Button(action: onAdd) { Text("Add") })
+                return AnyView(Button(action: onAdd) { Image(systemName: "plus") })
             default:
                 return AnyView(EmptyView())
             }

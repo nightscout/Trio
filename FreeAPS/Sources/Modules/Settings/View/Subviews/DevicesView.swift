@@ -36,11 +36,9 @@ struct DevicesView: BaseView {
             Section(
                 header: Text("Setup & Configuraton"),
                 content: {
-                    Text("Pump").navigationLink(to: .pumpConfig, from: self)
-                    Text("Pump Settings").navigationLink(to: .pumpSettingsEditor, from: self)
-                    Text("TODO: Migrate Settings into Pump 👆")
-                    Text("CGM").navigationLink(to: .cgm, from: self)
-                    Text("Watch").navigationLink(to: .watch, from: self)
+                    Text("Insulin Pump").navigationLink(to: .pumpConfig, from: self)
+                    Text("Continuous Glucose Monitor").navigationLink(to: .cgm, from: self)
+                    Text("Smart Watch").navigationLink(to: .watch, from: self)
                 }
             )
             .listRowBackground(Color.chart)

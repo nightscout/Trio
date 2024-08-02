@@ -35,12 +35,27 @@ extension CGM {
 
         override func subscribe() {
             // collect the list of CGM available with plugins and CGMType defined manually
-            listOfCGM = CGMType.allCases.filter { $0 != CGMType.plugin }.map {
-                cgmName(id: $0.id, type: $0, displayName: $0.displayName, subtitle: $0.subtitle)
-            } +
-                pluginCGMManager.availableCGMManagers.map {
-                    cgmName(id: $0.identifier, type: CGMType.plugin, displayName: $0.localizedTitle, subtitle: $0.localizedTitle)
+            listOfCGM = (
+                CGMType.allCases.filter { $0 != CGMType.plugin }.map {
+                    cgmName(id: $0.id, type: $0, displayName: $0.displayName, subtitle: $0.subtitle)
+                } +
+                    pluginCGMManager.availableCGMManagers.map {
+                        cgmName(
+                            id: $0.identifier,
+                            type: CGMType.plugin,
+                            displayName: $0.localizedTitle,
+                            subtitle: $0.localizedTitle
+                        )
+                    }
+            ).sorted(by: { lhs, rhs in
+                if lhs.displayName == "None" {
+                    return true
+                } else if rhs.displayName == "None" {
+                    return false
+                } else {
+                    return lhs.displayName < rhs.displayName
                 }
+            })
 
             switch settingsManager.settings.cgm {
             case .plugin:

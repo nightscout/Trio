@@ -78,7 +78,7 @@ extension Screen {
         case .isfEditor:
             ISFEditor.RootView(resolver: resolver)
         case .crEditor:
-            CREditor.RootView(resolver: resolver)
+            CarbRatioEditor.RootView(resolver: resolver)
         case .targetsEditor:
             TargetsEditor.RootView(resolver: resolver)
         case .preferencesEditor:
