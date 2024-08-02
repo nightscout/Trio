@@ -218,30 +218,13 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
             state.maxBolus = settingsManager.pumpSettings.maxBolus
             state.carbsRequired = lastDetermination?.carbsRequired as? Decimal
 
-            var insulinRequired = lastDetermination?.insulinReq as? Decimal ?? 0
+            let recommended = await newBolusCalc(
+                ids: glucoseValuesIDs,
+                determination: lastDetermination
+            )
+            state.bolusRecommended = apsManager
+                .roundBolus(amount: max(recommended, 0))
 
-            var double: Decimal = 2
-            if lastDetermination?.manualBolusErrorString == 0 {
-                insulinRequired = lastDetermination?.insulinForManualBolus as? Decimal ?? 0
-                double = 1
-            }
-
-            state.useNewCalc = settingsManager.settings.useCalc
-
-            if !(state.useNewCalc ?? false) {
-                state.bolusRecommended = apsManager
-                    .roundBolus(amount: max(
-                        insulinRequired * (settingsManager.settings.insulinReqPercentage / 100) * double,
-                        0
-                    ))
-            } else {
-                let recommended = await newBolusCalc(
-                    ids: glucoseValuesIDs,
-                    determination: lastDetermination
-                )
-                state.bolusRecommended = apsManager
-                    .roundBolus(amount: max(recommended, 0))
-            }
             state.displayOnWatch = settingsManager.settings.displayOnWatch
             state.displayFatAndProteinOnWatch = settingsManager.settings.displayFatAndProteinOnWatch
             state.confirmBolusFaster = settingsManager.settings.confirmBolusFaster

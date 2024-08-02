@@ -25,7 +25,6 @@ struct FreeAPSSettings: JSON, Equatable {
     var useLocalGlucoseSource: Bool = false
     var localGlucosePort: Int = 8080
     var debugOptions: Bool = false
-    var insulinReqPercentage: Decimal = 70
     var displayHR: Bool = false
     var cgm: CGMType = .none
     var cgmPluginIdentifier: String = ""
@@ -65,7 +64,6 @@ struct FreeAPSSettings: JSON, Equatable {
     var confirmBolusFaster: Bool = false
     var onlyAutotuneBasals: Bool = false
     var overrideFactor: Decimal = 0.8
-    var useCalc: Bool = true
     var fattyMeals: Bool = false
     var fattyMealFactor: Decimal = 0.7
     var sweetMeals: Bool = false
@@ -116,10 +114,6 @@ extension FreeAPSSettings: Decodable {
 
         if let debugOptions = try? container.decode(Bool.self, forKey: .debugOptions) {
             settings.debugOptions = debugOptions
-        }
-
-        if let insulinReqPercentage = try? container.decode(Decimal.self, forKey: .insulinReqPercentage) {
-            settings.insulinReqPercentage = insulinReqPercentage
         }
 
         if let displayHR = try? container.decode(Bool.self, forKey: .displayHR) {
@@ -174,10 +168,6 @@ extension FreeAPSSettings: Decodable {
 
         if let individualAdjustmentFactor = try? container.decode(Decimal.self, forKey: .individualAdjustmentFactor) {
             settings.individualAdjustmentFactor = individualAdjustmentFactor
-        }
-
-        if let useCalc = try? container.decode(Bool.self, forKey: .useCalc) {
-            settings.useCalc = useCalc
         }
 
         if let fattyMeals = try? container.decode(Bool.self, forKey: .fattyMeals) {

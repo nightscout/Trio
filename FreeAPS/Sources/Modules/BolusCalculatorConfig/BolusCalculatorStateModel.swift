@@ -3,12 +3,10 @@ import SwiftUI
 extension BolusCalculatorConfig {
     final class StateModel: BaseStateModel<Provider> {
         @Published var overrideFactor: Decimal = 0
-        @Published var useCalc: Bool = false
         @Published var fattyMeals: Bool = false
         @Published var fattyMealFactor: Decimal = 0
         @Published var sweetMeals: Bool = false
         @Published var sweetMealFactor: Decimal = 0
-        @Published var insulinReqPercentage: Decimal = 70
         @Published var displayPresets: Bool = true
 
         override func subscribe() {
@@ -18,7 +16,6 @@ extension BolusCalculatorConfig {
             }, map: {
                 $0
             })
-            subscribeSetting(\.useCalc, on: $useCalc) { useCalc = $0 }
             subscribeSetting(\.fattyMeals, on: $fattyMeals) { fattyMeals = $0 }
             subscribeSetting(\.displayPresets, on: $displayPresets) { displayPresets = $0 }
             subscribeSetting(\.fattyMealFactor, on: $fattyMealFactor, initial: {
@@ -34,7 +31,6 @@ extension BolusCalculatorConfig {
             }, map: {
                 $0
             })
-            subscribeSetting(\.insulinReqPercentage, on: $insulinReqPercentage) { insulinReqPercentage = $0 }
         }
     }
 }

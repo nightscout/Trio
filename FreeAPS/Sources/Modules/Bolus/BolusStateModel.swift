@@ -57,7 +57,6 @@ extension Bolus {
         @Published var wholeCalc: Decimal = 0
         @Published var insulinCalculated: Decimal = 0
         @Published var fraction: Decimal = 0
-        @Published var useCalc: Bool = false
         @Published var basal: Decimal = 0
         @Published var fattyMeals: Bool = false
         @Published var fattyMealFactor: Decimal = 0
@@ -113,11 +112,9 @@ extension Bolus {
             broadcaster.register(DeterminationObserver.self, observer: self)
             broadcaster.register(BolusFailureObserver.self, observer: self)
             units = settingsManager.settings.units
-            percentage = settingsManager.settings.insulinReqPercentage
             maxBolus = provider.pumpSettings().maxBolus
             // added
             fraction = settings.settings.overrideFactor
-            useCalc = settings.settings.useCalc
             fattyMeals = settings.settings.fattyMeals
             fattyMealFactor = settings.settings.fattyMealFactor
             sweetMeals = settings.settings.sweetMeals
