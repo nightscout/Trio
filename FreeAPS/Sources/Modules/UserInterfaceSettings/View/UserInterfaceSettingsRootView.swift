@@ -230,7 +230,7 @@ extension UserInterfaceSettings {
                 )
 
                 SettingInputSection(
-                    decimalValue: $decimalPlaceholder,
+                    decimalValue: $state.carbsRequiredThreshold,
                     booleanValue: $state.showCarbsRequiredBadge,
                     shouldDisplayHint: $shouldDisplayHint,
                     selectedVerboseHint: Binding(
@@ -240,31 +240,13 @@ extension UserInterfaceSettings {
                             hintLabel = "Show Carbs Required Badge"
                         }
                     ),
-                    type: .boolean,
+                    type: .conditionalDecimal,
                     label: "Show Carbs Required Badge",
+                    conditionalLabel: "Carbs Required Threshold",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                     verboseHint: "Show Carbs Required Badge… bla bla bla",
                     headerText: "Carbs Required Badge"
                 )
-
-                if state.showCarbsRequiredBadge {
-                    SettingInputSection(
-                        decimalValue: $state.carbsRequiredThreshold,
-                        booleanValue: $booleanPlaceholder,
-                        shouldDisplayHint: $shouldDisplayHint,
-                        selectedVerboseHint: Binding(
-                            get: { selectedVerboseHint },
-                            set: {
-                                selectedVerboseHint = $0
-                                hintLabel = "Carbs Required Threshold"
-                            }
-                        ),
-                        type: .decimal,
-                        label: "Carbs Required Threshold",
-                        miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                        verboseHint: "Carbs Required Threshold… bla bla bla"
-                    )
-                }
             }
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
