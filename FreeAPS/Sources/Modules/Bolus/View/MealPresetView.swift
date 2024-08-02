@@ -10,8 +10,7 @@ struct MealPresetView: View {
 
     @State private var showAlert = false
     @State private var dish: String = ""
-
-    @State private var addNewPreset: Bool = false
+    @State private var showAddNewPresetSheet = false
 
     @State private var presetCarbs: Decimal = 0
     @State private var presetFat: Decimal = 0
@@ -53,95 +52,50 @@ struct MealPresetView: View {
     var body: some View {
         NavigationStack {
             Form {
-                if addNewPreset {
-                    showNewPresetForm()
-                } else {
-                    addNewPresetButton
-                    mealPresets
-                    dishInfos()
-                    addPresetToTreatmentsButton
-                }
+                mealPresets
+                dishInfos()
+                addPresetToTreatmentsButton
             }
             .scrollContentBackground(.hidden).background(color)
             .navigationTitle("Meal Presets")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.automatic)
             .toolbar(content: {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
-                        addNewPreset ? (addNewPreset = false) : dismiss()
+                        dismiss()
+                        resetValues()
                     } label: {
-                        Text(addNewPreset ? "Cancel" : "Close")
+                        Text("Close")
                     }
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: {
+                        showAddNewPresetSheet.toggle()
+                        resetValues()
+                    }, label: {
+                        HStack {
+                            Text("New Preset")
+                            Image(systemName: "plus")
+                        }
+                    })
+                }
             })
+            .sheet(isPresented: $showAddNewPresetSheet) {
+                AddMealPresetView(
+                    dish: $dish,
+                    presetCarbs: $presetCarbs,
+                    presetFat: $presetFat,
+                    presetProtein: $presetProtein,
+                    onSave: savePreset,
+                    onCancel: {
+                        showAddNewPresetSheet.toggle()
+                        resetValues()
+                    }
+                )
+            }
             .onDisappear {
                 resetValues()
             }
-        }
-    }
-
-    private var addNewPresetButton: some View {
-        Button(action: {
-            addNewPreset = true
-            resetValues()
-        }, label: {
-            HStack {
-                Spacer()
-                Text("Add new meal Preset")
-                Spacer()
-            }
-        })
-    }
-
-    @ViewBuilder private func showNewPresetForm() -> some View {
-        Section {
-            TextField("Name Of Dish", text: $dish)
-        } header: {
-            Text("New Preset")
-        }
-
-        Section {
-            carbsTextField()
-
-            if state.useFPUconversion {
-                proteinAndFat()
-            }
-        }
-
-        savePresetButton
-    }
-
-    @ViewBuilder private func carbsTextField() -> some View {
-        HStack {
-            Text("Carbs").fontWeight(.semibold)
-            Spacer()
-            TextFieldWithToolBar(
-                text: $presetCarbs,
-                placeholder: "0",
-                keyboardType: .numberPad,
-                numberFormatter: mealFormatter
-            )
-            Text("g").foregroundColor(.secondary)
-        }
-    }
-
-    @ViewBuilder private func proteinAndFat() -> some View {
-        HStack {
-            Text("Fat").foregroundColor(.orange)
-            Spacer()
-            TextFieldWithToolBar(text: $presetFat, placeholder: "0", keyboardType: .numberPad, numberFormatter: mealFormatter)
-            Text("g").foregroundColor(.secondary)
-        }
-        HStack {
-            Text("Protein").foregroundColor(.red)
-            Spacer()
-            TextFieldWithToolBar(
-                text: $presetProtein,
-                placeholder: "0",
-                keyboardType: .numberPad,
-                numberFormatter: mealFormatter
-            )
-            Text("g").foregroundColor(.secondary)
         }
     }
 
@@ -202,38 +156,7 @@ struct MealPresetView: View {
 
                 Spacer()
             }
-        }
-    }
-
-    private var savePresetButton: some View {
-        Button {
-            if dish != "" {
-                let preset = MealPresetStored(context: moc)
-                preset.dish = dish
-                preset.fat = presetFat as NSDecimalNumber
-                preset.protein = presetProtein as NSDecimalNumber
-                preset.carbs = presetCarbs as NSDecimalNumber
-
-                do {
-                    guard self.moc.hasChanges else { return }
-                    try moc.save()
-                    resetValues()
-                    addNewPreset = false
-                } catch let error as NSError {
-                    debugPrint("\(DebuggingIdentifiers.failed) Failed to save Meal Preset with error: \(error.userInfo)")
-                }
-            }
-        }
-        label: {
-            Text("Save")
-                .font(.headline)
-                .foregroundStyle(Color.white)
-                .frame(maxWidth: .infinity, alignment: .center)
-        }
-        .disabled(notEnoughPresetInfosGiven)
-        .listRowBackground(notEnoughPresetInfosGiven ? Color(.systemGray3) : Color(.systemBlue))
-        .shadow(radius: 3)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        }.listRowBackground(Color.chart)
     }
 
     private var addPresetToTreatmentsButton: some View {
@@ -258,12 +181,6 @@ struct MealPresetView: View {
 
     private var noPresetChosen: Bool {
         state.selection == nil || carbs == 0 || fat == 0 || protein == 0
-    }
-
-    private var notEnoughPresetInfosGiven: Bool {
-        state
-            .useFPUconversion ? (presetCarbs <= 0 && presetFat <= 0 && presetProtein <= 0 || dish == "") :
-            (presetCarbs <= 0 || dish == "")
     }
 
     @ViewBuilder private func dishInfos() -> some View {
@@ -317,7 +234,7 @@ struct MealPresetView: View {
                         }
                     }
                 }
-            }
+            }.listRowBackground(Color.chart)
         }
     }
 
@@ -400,5 +317,24 @@ struct MealPresetView: View {
         .disabled(state.selection == nil)
         .buttonStyle(.borderless)
         .tint(.blue)
+    }
+
+    private func savePreset() {
+        if dish != "" {
+            let preset = MealPresetStored(context: moc)
+            preset.dish = dish
+            preset.fat = presetFat as NSDecimalNumber
+            preset.protein = presetProtein as NSDecimalNumber
+            preset.carbs = presetCarbs as NSDecimalNumber
+
+            do {
+                guard moc.hasChanges else { return }
+                try moc.save()
+                showAddNewPresetSheet.toggle()
+                resetValues()
+            } catch let error as NSError {
+                debugPrint("\(DebuggingIdentifiers.failed) Failed to save Meal Preset with error: \(error.userInfo)")
+            }
+        }
     }
 }
