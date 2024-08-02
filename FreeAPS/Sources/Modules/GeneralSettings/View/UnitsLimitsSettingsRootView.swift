@@ -65,7 +65,7 @@ extension UnitsLimitsSettings {
                 )
 
                 SettingInputSection(
-                    decimalValue: $state.maxIOB,
+                    decimalValue: $state.maxCOB,
                     booleanValue: $booleanPlaceholder,
                     shouldDisplayHint: $shouldDisplayHint,
                     selectedVerboseHint: Binding(

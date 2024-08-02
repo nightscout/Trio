@@ -1,6 +1,6 @@
 import Foundation
 
-enum CREditor {
+enum CarbRatioEditor {
     enum Config {}
 
     class Item: Identifiable, Hashable, Equatable {
@@ -23,7 +23,7 @@ enum CREditor {
     }
 }
 
-protocol CREditorProvider: Provider {
+protocol CarbRatioEditorProvider: Provider {
     var profile: CarbRatios { get }
     func saveProfile(_ profile: CarbRatios)
     var autotune: Autotune? { get }

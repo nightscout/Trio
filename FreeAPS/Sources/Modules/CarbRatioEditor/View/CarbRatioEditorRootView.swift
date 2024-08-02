@@ -1,7 +1,7 @@
 import SwiftUI
 import Swinject
 
-extension CREditor {
+extension CarbRatioEditor {
     struct RootView: BaseView {
         let resolver: Resolver
         @StateObject var state = StateModel()

@@ -1,7 +1,7 @@
 import Combine
 
-extension CREditor {
-    final class Provider: BaseProvider, CREditorProvider {
+extension CarbRatioEditor {
+    final class Provider: BaseProvider, CarbRatioEditorProvider {
         var profile: CarbRatios {
             storage.retrieve(OpenAPS.Settings.carbRatios, as: CarbRatios.self)
                 ?? CarbRatios(from: OpenAPS.defaults(for: OpenAPS.Settings.carbRatios))
