@@ -49,7 +49,6 @@ struct ForeCastChart: View {
         Chart {
             drawGlucose()
             drawCurrentTimeMarker()
-//            drawForecasts()
             drawForecastArea()
         }
         .chartXAxis { forecastChartXAxis }

@@ -402,7 +402,7 @@ final class BaseAPSManager: APSManager, Injectable {
     func simulateDetermineBasal(carbs: Decimal, iob: Decimal) async -> Determination? {
         do {
             let temp = await fetchCurrentTempBasal(date: Date.now)
-            return try await openAPS.simulateDetermineBasal(currentTemp: temp, clock: Date(), carbs: carbs, iob: iob)
+            return try await openAPS.determineBasal(currentTemp: temp, clock: Date(), carbs: carbs, iob: iob, simulation: true)
         } catch {
             debugPrint(
                 "\(DebuggingIdentifiers.failed) \(#file) \(#function) Error occurred in invokeDummyDetermineBasalSync: \(error)"

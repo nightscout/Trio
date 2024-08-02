@@ -18,17 +18,11 @@ extension Bolus {
 
         @StateObject var state = StateModel()
 
-//        @State private var showAlert = false
         @State private var showPresetSheet = false
         @State private var autofocus: Bool = true
         @State private var calculatorDetent = PresentationDetent.medium
         @State private var pushed: Bool = false
-//        @State private var isPromptPresented: Bool = false
-//        @State private var dish: String = ""
-//        @State private var saved: Bool = false
         @State private var debounce: DispatchWorkItem?
-
-//        @Environment(\.managedObjectContext) var moc
 
         private enum Config {
             static let dividerHeight: CGFloat = 2
@@ -36,11 +30,6 @@ extension Bolus {
         }
 
         @Environment(\.colorScheme) var colorScheme
-
-//        @FetchRequest(
-//            entity: MealPresetStored.entity(),
-//            sortDescriptors: [NSSortDescriptor(key: "dish", ascending: true)]
-//        ) var carbPresets: FetchedResults<MealPresetStored>
 
         private var formatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -87,10 +76,6 @@ extension Bolus {
                     endPoint: .bottom
                 )
         }
-
-//        private var empty: Bool {
-//            state.useFPUconversion ? (state.carbs <= 0 && state.fat <= 0 && state.protein <= 0) : (state.carbs <= 0)
-//        }
 
         /// Handles macro input (carb, fat, protein) in a debounced fashion.
         func handleDebouncedInput() {
@@ -181,12 +166,6 @@ extension Bolus {
                                 }
                             }
                         }.listRowBackground(Color.chart)
-
-//                        if state.displayPresets {
-//                            Section {
-//                                mealPresets
-//                            }.listRowBackground(Color.chart)
-//                        }
 
                         Section {
                             HStack {

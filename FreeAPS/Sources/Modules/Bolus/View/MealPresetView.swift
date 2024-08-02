@@ -321,52 +321,6 @@ struct MealPresetView: View {
         }
     }
 
-//    @ViewBuilder private func dishInfos() -> some View {
-//        if !state.summation.isEmpty {
-//            let presetSummary = generatePresetSummary()
-//
-//            Section(header: Text("Summary")) {
-//                presetSummary
-//                    .lineLimit(nil) // In case the text is too long, allow it to wrap to the next line
-//
-//                VStack(alignment: .leading) {
-//                    HStack {
-//                        Text("Carbs: ")
-//                            .font(.footnote)
-//                            .foregroundStyle(.secondary)
-//                        Text("\(carbs as NSNumber, formatter: mealFormatter)")
-//                            .font(.footnote)
-//                        Text(" g")
-//                            .font(.footnote)
-//                            .foregroundStyle(.secondary)
-//                    }
-//
-//                    HStack {
-//                        Text("Fat: ")
-//                            .font(.footnote)
-//                            .foregroundStyle(.secondary)
-//                        Text("\(fat as NSNumber, formatter: mealFormatter)")
-//                            .font(.footnote)
-//                        Text(" g")
-//                            .font(.footnote)
-//                            .foregroundStyle(.secondary)
-//                    }
-//
-//                    HStack {
-//                        Text("Protein: ")
-//                            .font(.footnote)
-//                            .foregroundStyle(.secondary)
-//                        Text("\(protein as NSNumber, formatter: mealFormatter)")
-//                            .font(.footnote)
-//                        Text(" g")
-//                            .font(.footnote)
-//                            .foregroundStyle(.secondary)
-//                    }
-//                }
-//            }
-//        }
-//    }
-
     private func generatePresetSummary() -> some View {
         var counts = [String: Int]()
 
