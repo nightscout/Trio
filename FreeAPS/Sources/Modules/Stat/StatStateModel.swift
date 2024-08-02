@@ -45,31 +45,35 @@ extension Stat {
         }
 
         private func fetchGlucose(for duration: Duration) async -> [NSManagedObjectID] {
-            await context.perform {
-                let predicate: NSPredicate
+            let predicate: NSPredicate
 
-                switch duration {
-                case .Day:
-                    predicate = NSPredicate.glucoseForStatsDay
-                case .Week:
-                    predicate = NSPredicate.glucoseForStatsWeek
-                case .Today:
-                    predicate = NSPredicate.glucoseForStatsToday
-                case .Month:
-                    predicate = NSPredicate.glucoseForStatsMonth
-                case .Total:
-                    predicate = NSPredicate.glucoseForStatsTotal
-                }
+            switch duration {
+            case .Day:
+                predicate = NSPredicate.glucoseForStatsDay
+            case .Week:
+                predicate = NSPredicate.glucoseForStatsWeek
+            case .Today:
+                predicate = NSPredicate.glucoseForStatsToday
+            case .Month:
+                predicate = NSPredicate.glucoseForStatsMonth
+            case .Total:
+                predicate = NSPredicate.glucoseForStatsTotal
+            }
 
-                return CoreDataStack.shared.fetchEntities(
-                    ofType: GlucoseStored.self,
-                    onContext: self.context,
-                    predicate: predicate,
-                    key: "date",
-                    ascending: false,
-                    batchSize: 100,
-                    propertiesToFetch: ["glucose", "date"]
-                ).map(\.objectID)
+            let results = await CoreDataStack.shared.fetchEntitiesAsync(
+                ofType: GlucoseStored.self,
+                onContext: context,
+                predicate: predicate,
+                key: "date",
+                ascending: false,
+                batchSize: 100,
+                propertiesToFetch: ["glucose", "date"]
+            )
+
+            guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+
+            return await context.perform {
+                return fetchedResults.map(\.objectID)
             }
         }
 

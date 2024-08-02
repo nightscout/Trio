@@ -624,7 +624,8 @@ final class BaseAPSManager: APSManager, Injectable {
         )
 
         let fetchedTempBasal = await privateContext.perform {
-            guard let tempBasalEvent = results.first,
+            guard let fetchedResults = results as? [PumpEventStored],
+                  let tempBasalEvent = fetchedResults.first,
                   let tempBasal = tempBasalEvent.tempBasal,
                   let eventTimestamp = tempBasalEvent.timestamp
             else {
@@ -896,7 +897,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
     // fetch glucose for time interval
     func fetchGlucose(predicate: NSPredicate, fetchLimit: Int? = nil, batchSize: Int? = nil) async -> [GlucoseStored] {
-        await CoreDataStack.shared.fetchEntitiesAsync(
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: privateContext,
             predicate: predicate,
@@ -905,6 +906,12 @@ final class BaseAPSManager: APSManager, Injectable {
             fetchLimit: fetchLimit,
             batchSize: batchSize
         )
+
+        guard let glucoseResults = results as? [GlucoseStored] else {
+            return []
+        }
+
+        return glucoseResults
     }
 
     // TODO: - Refactor this whole shit here...
@@ -1142,28 +1149,34 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     private func tddForStats() async -> (currentTDD: Decimal, tddTotalAverage: Decimal) {
-        let requestTDD = OrefDetermination.fetchRequest() as NSFetchRequest<OrefDetermination>
+        let requestTDD = OrefDetermination.fetchRequest() as NSFetchRequest<NSFetchRequestResult>
         let sort = NSSortDescriptor(key: "timestamp", ascending: false)
-        let daysOf14Ago = Date().addingTimeInterval(-14.days.timeInterval)
+        let daysOf14Ago = Date().addingTimeInterval(-14 * 24 * 60 * 60)
         requestTDD.predicate = NSPredicate(format: "timestamp > %@", daysOf14Ago as NSDate)
         requestTDD.sortDescriptors = [sort]
         requestTDD.propertiesToFetch = ["timestamp", "totalDailyDose"]
+        requestTDD.resultType = .dictionaryResultType
 
-        var tdds = [OrefDetermination]()
         var currentTDD: Decimal = 0
         var tddTotalAverage: Decimal = 0
 
-        await privateContext.perform {
+        let results = await privateContext.perform {
             do {
-                try tdds = self.privateContext.fetch(requestTDD)
-
-                if !tdds.isEmpty {
-                    currentTDD = tdds[0].totalDailyDose?.decimalValue ?? 0
-                    let tddArray = tdds.compactMap({ insulin in insulin.totalDailyDose as? Decimal ?? 0 })
-                    tddTotalAverage = tddArray.reduce(0, +) / Decimal(tddArray.count)
-                }
+                let fetchedResults = try self.privateContext.fetch(requestTDD) as? [[String: Any]]
+                return fetchedResults ?? []
             } catch {
                 debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to get TDD Data for Statistics Upload")
+                return []
+            }
+        }
+
+        if !results.isEmpty {
+            if let latestTDD = results.first?["totalDailyDose"] as? NSDecimalNumber {
+                currentTDD = latestTDD.decimalValue
+            }
+            let tddArray = results.compactMap { ($0["totalDailyDose"] as? NSDecimalNumber)?.decimalValue }
+            if !tddArray.isEmpty {
+                tddTotalAverage = tddArray.reduce(0, +) / Decimal(tddArray.count)
             }
         }
 

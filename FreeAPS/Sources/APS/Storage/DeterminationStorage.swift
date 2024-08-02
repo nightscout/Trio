@@ -26,8 +26,11 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
             ascending: false,
             fetchLimit: 1
         )
+
+        guard let fetchedResults = results as? [OrefDetermination] else { return [] }
+
         return await backgroundContext.perform {
-            results.map(\.objectID)
+            fetchedResults.map(\.objectID)
         }
     }
 

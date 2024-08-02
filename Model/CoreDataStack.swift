@@ -365,8 +365,8 @@ extension CoreDataStack {
         propertiesToFetch: [String]? = nil,
         callingFunction: String = #function,
         callingClass: String = #fileID
-    ) async -> [T] {
-        let request = NSFetchRequest<T>(entityName: String(describing: type))
+    ) async -> Any {
+        let request: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest(entityName: String(describing: type))
         request.sortDescriptors = [NSSortDescriptor(key: key, ascending: ascending)]
         request.predicate = predicate
         if let limit = fetchLimit {
@@ -375,9 +375,9 @@ extension CoreDataStack {
         if let batchSize = batchSize {
             request.fetchBatchSize = batchSize
         }
-        if let propertiesTofetch = propertiesToFetch {
-            request.propertiesToFetch = propertiesTofetch
-            request.resultType = .managedObjectResultType
+        if let propertiesToFetch = propertiesToFetch {
+            request.propertiesToFetch = propertiesToFetch
+            request.resultType = .dictionaryResultType
         } else {
             request.resultType = .managedObjectResultType
         }
@@ -390,7 +390,11 @@ extension CoreDataStack {
                 debugPrint(
                     "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.succeeded) on Thread: \(Thread.current)"
                 )
-                return try context.fetch(request)
+                if propertiesToFetch != nil {
+                    return try context.fetch(request) as? [[String: Any]] ?? []
+                } else {
+                    return try context.fetch(request) as? [T] ?? []
+                }
             } catch let error as NSError {
                 debugPrint(
                     "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.failed) \(error) on Thread: \(Thread.current)"

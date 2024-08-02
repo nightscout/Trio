@@ -253,7 +253,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     }
 
     func getPumpHistoryNotYetUploadedToNightscout() async -> [NightscoutTreatment] {
-        let fetchedPumpEvents = await CoreDataStack.shared.fetchEntitiesAsync(
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
             predicate: NSPredicate.pumpEventsNotYetUploadedToNightscout,
@@ -261,6 +261,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             ascending: false,
             fetchLimit: 288
         )
+
+        guard let fetchedPumpEvents = results as? [PumpEventStored] else { return [] }
 
         return await context.perform { [self] in
             fetchedPumpEvents.map { event in
