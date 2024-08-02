@@ -57,7 +57,7 @@ extension Home {
         @Published var isStatusPopupPresented: Bool = false
         @Published var isLegendPresented: Bool = false
         @Published var legendSheetDetent = PresentationDetent.large
-        @Published var tins: Bool = false
+        @Published var totalInsulinDisplayType: TotalInsulinDisplayType = .totalDailyDose
         @Published var isTempTargetActive: Bool = false
         @Published var roundedTotalBolus: String = ""
         @Published var selectedTab: Int = 0
@@ -79,6 +79,7 @@ extension Home {
         @Published var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
         @Published var pumpStatusHighlightMessage: String? = nil
         @Published var cgmAvailable: Bool = false
+        @Published var showCarbsRequiredBadge: Bool = true
 
         let context = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
@@ -125,8 +126,9 @@ extension Home {
             displayXgridLines = settingsManager.settings.xGridLines
             displayYgridLines = settingsManager.settings.yGridLines
             thresholdLines = settingsManager.settings.rulerMarks
-            tins = settingsManager.settings.tins
+            totalInsulinDisplayType = settingsManager.settings.totalInsulinDisplayType
             cgmAvailable = fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none
+            showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
 
             broadcaster.register(GlucoseObserver.self, observer: self)
             broadcaster.register(DeterminationObserver.self, observer: self)
@@ -455,7 +457,8 @@ extension Home.StateModel:
         displayXgridLines = settingsManager.settings.xGridLines
         displayYgridLines = settingsManager.settings.yGridLines
         thresholdLines = settingsManager.settings.rulerMarks
-        tins = settingsManager.settings.tins
+        totalInsulinDisplayType = settingsManager.settings.totalInsulinDisplayType
+        showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
         cgmAvailable = (fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none)
         displayPumpStatusHighlightMessage()
         setupBatteryArray()

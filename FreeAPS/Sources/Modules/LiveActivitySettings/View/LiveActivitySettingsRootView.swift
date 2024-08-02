@@ -89,7 +89,7 @@ extension LiveActivitySettings {
                                     ForEach(LockScreenView.allCases) { selection in
                                         Text(selection.displayName).tag(selection)
                                     }
-                                }
+                                }.padding(.top)
 
                                 HStack(alignment: .top) {
                                     Text(

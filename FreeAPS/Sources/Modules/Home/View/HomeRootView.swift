@@ -268,7 +268,7 @@ extension Home {
                         .foregroundColor(.insulin)
                         .padding(.leading, 8)
                 }
-                if state.tins {
+                if state.totalInsulinDisplayType == .totalInsulinInScope {
                     Text(
                         "TINS: \(state.calculateTINS())" +
                             NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
@@ -462,7 +462,7 @@ extension Home {
                             .font(.system(size: 16, weight: .bold, design: .rounded))
                     }
                 }
-                if !state.tins {
+                if state.totalInsulinDisplayType == .totalDailyDose {
                     Spacer()
                     Text(
                         "TDD: " +
@@ -806,7 +806,8 @@ extension Home {
             ZStack(alignment: .bottom) {
                 TabView(selection: $selectedTab) {
                     let carbsRequiredBadge: String? = {
-                        guard let carbsRequired = state.determinationsFromPersistence.first?.carbsRequired as? Decimal
+                        guard let carbsRequired = state.determinationsFromPersistence.first?.carbsRequired as? Decimal,
+                              state.showCarbsRequiredBadge
                         else { return nil }
                         if carbsRequired > state.settingsManager.settings.carbsRequiredThreshold {
                             let numberAsNSNumber = NSDecimalNumber(decimal: carbsRequired)

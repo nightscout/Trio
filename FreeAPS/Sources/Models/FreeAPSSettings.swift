@@ -40,8 +40,9 @@ struct FreeAPSSettings: JSON, Equatable {
     var lowGlucose: Decimal = 72
     var highGlucose: Decimal = 270
     var carbsRequiredThreshold: Decimal = 10
+    var showCarbsRequiredBadge: Bool = true
     var useFPUconversion: Bool = true
-    var tins: Bool = false
+    var totalInsulinDisplayType: TotalInsulinDisplayType = .totalDailyDose
     var individualAdjustmentFactor: Decimal = 0.5
     var timeCap: Int = 8
     var minuteInterval: Int = 30
@@ -167,8 +168,8 @@ extension FreeAPSSettings: Decodable {
             settings.useFPUconversion = useFPUconversion
         }
 
-        if let tins = try? container.decode(Bool.self, forKey: .tins) {
-            settings.tins = tins
+        if let totalInsulinDisplayType = try? container.decode(TotalInsulinDisplayType.self, forKey: .totalInsulinDisplayType) {
+            settings.totalInsulinDisplayType = totalInsulinDisplayType
         }
 
         if let individualAdjustmentFactor = try? container.decode(Decimal.self, forKey: .individualAdjustmentFactor) {
@@ -236,6 +237,10 @@ extension FreeAPSSettings: Decodable {
 
         if let carbsRequiredThreshold = try? container.decode(Decimal.self, forKey: .carbsRequiredThreshold) {
             settings.carbsRequiredThreshold = carbsRequiredThreshold
+        }
+
+        if let showCarbsRequiredBadge = try? container.decode(Bool.self, forKey: .showCarbsRequiredBadge) {
+            settings.showCarbsRequiredBadge = showCarbsRequiredBadge
         }
 
         if let smoothGlucose = try? container.decode(Bool.self, forKey: .smoothGlucose) {
