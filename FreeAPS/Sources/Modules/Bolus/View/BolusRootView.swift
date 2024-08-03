@@ -286,9 +286,7 @@ extension Bolus {
                     numberFormatter: mealFormatter
                 )
                 .onChange(of: state.carbs) { _ in
-                    if state.carbs > 0 {
-                        handleDebouncedInput()
-                    }
+                    handleDebouncedInput()
                 }
                 Text("g").foregroundColor(.secondary)
             }
@@ -574,7 +572,8 @@ extension Bolus {
         }
 
         private var disableTaskButton: Bool {
-            state.amount > 0 ? (state.externalInsulin ? externalBolusLimit : pumpBolusLimit) : false
+            state.addButtonPressed ||
+                (state.amount > 0 ? (state.externalInsulin ? externalBolusLimit : pumpBolusLimit) : false)
         }
     }
 
