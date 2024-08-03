@@ -82,6 +82,9 @@ extension Home {
         @Published var pumpStatusHighlightMessage: String? = nil
         @Published var cgmAvailable: Bool = false
 
+        @Published var minForecast: [Int] = []
+        @Published var maxForecast: [Int] = []
+
         let context = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
@@ -1010,16 +1013,52 @@ extension Home.StateModel {
     @MainActor func updateForecastData() async {
         let forecastData = await preprocessForecastData()
 
+        var allForecastValues: [[ForecastValue]] = []
+
         preprocessedData = forecastData.reduce(into: []) { result, data in
             guard let forecast = try? viewContext.existingObject(with: data.forecastID) as? Forecast else {
                 return
             }
 
-            for forecastValueID in data.forecastValueIDs {
+            var forecastValues: [ForecastValue] = []
+
+            for forecastValueID in data.forecastValueIDs.prefix(36) {
                 if let forecastValue = try? viewContext.existingObject(with: forecastValueID) as? ForecastValue {
-                    result.append((id: data.id, forecast: forecast, forecastValue: forecastValue))
+                    forecastValues.append(forecastValue)
                 }
             }
+
+            guard !forecastValues.isEmpty else { return }
+
+            allForecastValues.append(forecastValues)
+
+            // Append the forecast data
+            for forecastValue in forecastValues {
+                let processedData = (
+                    id: data.id,
+                    forecast: forecast,
+                    forecastValue: forecastValue
+                )
+                result.append(processedData)
+            }
+        }
+
+        guard !allForecastValues.isEmpty else {
+            minForecast = []
+            maxForecast = []
+            return
+        }
+
+        let maxCount = min(36, allForecastValues.map(\.count).max() ?? 0)
+
+        minForecast = (0 ..< maxCount).map { index -> Int in
+            let valuesAtCurrentIndex = allForecastValues.compactMap { $0.indices.contains(index) ? Int($0[index].value) : nil }
+            return valuesAtCurrentIndex.min() ?? 0
+        }
+
+        maxForecast = (0 ..< maxCount).map { index -> Int in
+            let valuesAtCurrentIndex = allForecastValues.compactMap { $0.indices.contains(index) ? Int($0[index].value) : nil }
+            return valuesAtCurrentIndex.max() ?? 0
         }
     }
 }

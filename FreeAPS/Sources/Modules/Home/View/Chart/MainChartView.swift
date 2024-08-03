@@ -58,8 +58,10 @@ struct MainChartView: View {
     @State private var basalProfiles: [BasalProfile] = []
     @State private var chartTempTargets: [ChartTempTarget] = []
     @State private var count: Decimal = 1
-    @State private var startMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 - 86400))
-    @State private var endMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 + 10800))
+    @State private var startMarker =
+        Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 - 60 * 60 * 24)) // 24 hours
+    @State private var endMarker =
+        Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 + 60 * 60 * 3)) // 3 hours
     @State private var minValue: Decimal = 45
     @State private var maxValue: Decimal = 270
     @State private var selection: Date? = nil
@@ -508,19 +510,81 @@ extension MainChartView {
     }
 
     private func drawForecasts() -> some ChartContent {
-        ForEach(state.preprocessedData, id: \.id) { tuple in
-            let forecastValue = tuple.forecastValue
-            let forecast = tuple.forecast
-            let valueAsDecimal = Decimal(forecastValue.value)
-            let displayValue = units == .mmolL ? valueAsDecimal.asMmolL : valueAsDecimal
-
-            LineMark(
-                x: .value("Time", timeForIndex(forecastValue.index)),
-                y: .value("Value", displayValue)
-            )
-            .foregroundStyle(by: .value("Predictions", forecast.type ?? ""))
+        // Draw AreaMark for the forecast bounds
+        ForEach(0 ..< max(state.minForecast.count, state.maxForecast.count), id: \.self) { index in
+            if index < state.minForecast.count && index < state.maxForecast.count {
+                AreaMark(
+                    x: .value("Time", timeForIndex(Int32(index))),
+                    yStart: .value(
+                        "Min Value",
+                        units == .mmolL ? Decimal(state.minForecast[index]).asMmolL : Decimal(state.minForecast[index])
+                    ),
+                    yEnd: .value(
+                        "Max Value",
+                        units == .mmolL ? Decimal(state.maxForecast[index]).asMmolL : Decimal(state.maxForecast[index])
+                    )
+                )
+                .foregroundStyle(Color.blue.opacity(0.2))
+            }
         }
     }
+
+//    private func drawForecasts() -> some ChartContent {
+//        ForEach(state.preprocessedData, id: \.id) { data in
+//            let forecastValue = data.forecastValue
+//            let forecast = data.forecast
+//            let valueAsDecimal = Decimal(forecastValue.value)
+//            let displayValue = units == .mmolL ? valueAsDecimal.asMmolL : valueAsDecimal
+//
+    ////               LineMark(
+    ////                   x: .value("Time", timeForIndex(forecastValue.index)),
+    ////                   y: .value("Value", displayValue)
+    ////               )
+    ////               .foregroundStyle(by: .value("Predictions", forecast.type ?? ""))
+//
+//            // Add AreaMark for the forecast bounds
+//            AreaMark(
+//                x: .value("Time", timeForIndex(forecastValue.index)),
+//                yStart: .value(
+//                    "Min Value",
+//                    units == .mmolL ? Decimal(data.minForecastValue).asMmolL : Decimal(data.minForecastValue)
+//                ),
+//                yEnd: .value(
+//                    "Max Value",
+//                    units == .mmolL ? Decimal(data.maxForecastValue).asMmolL : Decimal(data.maxForecastValue)
+//                )
+//            )
+//            .foregroundStyle(Color.blue.opacity(0.2))
+//        }
+//    }
+
+//    private func drawForecasts() -> some ChartContent {
+//        ForEach(state.preprocessedData, id: \.id) { tuple in
+//            let forecastValue = tuple.forecastValue
+//            let forecast = tuple.forecast
+//            let valueAsDecimal = Decimal(forecastValue.value)
+//            let displayValue = units == .mmolL ? valueAsDecimal.asMmolL : valueAsDecimal
+//
+    ////            LineMark(
+    ////                x: .value("Time", timeForIndex(forecastValue.index)),
+    ////                y: .value("Value", displayValue)
+    ////            )
+    ////            .foregroundStyle(by: .value("Predictions", forecast.type ?? ""))
+//
+//            AreaMark(
+//                x: .value("Time", timeForIndex(forecastValue.index)),
+//                yStart: .value(
+//                    "Min Value",
+//                    units == .mmolL ? Decimal(data.minForecastValue).asMmolL : Decimal(data.minForecastValue)
+//                ),
+//                yEnd: .value(
+//                    "Max Value",
+//                    units == .mmolL ? Decimal(data.maxForecastValue).asMmolL : Decimal(data.maxForecastValue)
+//                )
+//            )
+//            .foregroundStyle(Color.blue.opacity(0.2))
+//        }
+//    }
 
     private func drawCurrentTimeMarker() -> some ChartContent {
         RuleMark(
