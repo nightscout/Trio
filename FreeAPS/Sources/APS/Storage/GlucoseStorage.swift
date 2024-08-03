@@ -82,8 +82,6 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                         glucoseEntry.date = entry.dateString
                         glucoseEntry.direction = entry.direction?.rawValue
                         glucoseEntry.isUploadedToNS = false /// the value is not uploaded to NS (yet)
-                        debugPrint("\(DebuggingIdentifiers.failed)")
-                        debugPrint("\(String(describing: glucoseEntry.direction))")
                         return false // Continue processing
                     }
                 )
