@@ -286,9 +286,7 @@ extension Bolus {
                     numberFormatter: mealFormatter
                 )
                 .onChange(of: state.carbs) { _ in
-                    if state.carbs > 0 {
-                        handleDebouncedInput()
-                    }
+                    handleDebouncedInput()
                 }
                 Text("g").foregroundColor(.secondary)
             }
