@@ -168,14 +168,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
                 }
 
             healthKitStore.save(samplesToSave) { (success: Bool, error: Error?) -> Void in
-                if success {
-                    // for sample in samplesToSave {
-                    //     debug(
-                    //         .service,
-                    //         "Stored blood glucose \(sample.quantity) in HealthKit Store! Metadata: \(String(describing: sample.metadata?.values))"
-                    //     )
-                    // }
-                } else {
+                if !success {
                     debug(.service, "Failed to store blood glucose in HealthKit Store!")
                     debug(.service, error?.localizedDescription ?? "Unknown error")
                 }
@@ -220,14 +213,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
                 }
 
             healthKitStore.save(samplesToSave) { (success: Bool, error: Error?) -> Void in
-                if success {
-                    // for sample in samplesToSave {
-                    //    debug(
-                    //        .service,
-                    //        "Stored carb entry \(sample.quantity) in HealthKit Store! Metadata: \(String(describing: sample.metadata?.values))"
-                    //    )
-                    // }
-                } else {
+                if !success {
                     debug(.service, "Failed to store carb entry in HealthKit Store!")
                     debug(.service, error?.localizedDescription ?? "Unknown error")
                 }
@@ -296,14 +282,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
                 }
 
             healthKitStore.save(bolusSamples + basalSamples) { (success: Bool, error: Error?) -> Void in
-                if success {
-                    // for sample in bolusSamples + basalSamples {
-                    //    debug(
-                    //    .service,
-                    //        "Stored insulin entry in HealthKit Store! Metadata: \(String(describing: sample.metadata?.values))"
-                    //    )
-                    // }
-                } else {
+                if !success {
                     debug(.service, "Failed to store insulin entry in HealthKit Store!")
                     debug(.service, error?.localizedDescription ?? "Unknown error")
                 }
@@ -491,7 +470,6 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
 
     private func prepareBGSamplesToPublisherFetch(_ samples: [HKQuantitySample]) {
         dispatchPrecondition(condition: .onQueue(processQueue))
-        // debug(.service, "Start preparing samples: \(String(describing: samples))")
 
         newGlucose += samples
             .compactMap { sample -> HealthKitSample? in
@@ -520,11 +498,6 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
             .filter { $0.dateString >= Date().addingTimeInterval(-1.days.timeInterval) }
 
         newGlucose = newGlucose.removeDublicates()
-
-        // debug(
-        //    .service,
-        //    "Current BloodGlucose.Type objects will be send from Publisher during fetch: \(String(describing: newGlucose))"
-        // )
     }
 
     // MARK: - GlucoseSource
@@ -540,9 +513,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
             }
 
             self.processQueue.async {
-                //   debug(.service, "Start fetching HealthKitManager")
                 guard self.settingsManager.settings.useAppleHealth else {
-                    // debug(.service, "HealthKitManager can't return any data, because useAppleHealth option is disabled")
                     promise(.success([]))
                     return
                 }
