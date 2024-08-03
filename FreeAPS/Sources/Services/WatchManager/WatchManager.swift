@@ -160,7 +160,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
             key: "date",
             ascending: false,
             fetchLimit: 1,
-            propertiesToFetch: ["enabled", "percentage"]
+            propertiesToFetch: ["enabled", "percentage", "objectID"]
         )
 
         guard let fetchedResults = results as? [[String: Any]] else { return nil }

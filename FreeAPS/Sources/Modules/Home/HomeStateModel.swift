@@ -715,7 +715,7 @@ extension Home.StateModel {
             key: "deliverAt",
             ascending: false,
             batchSize: 50,
-            propertiesToFetch: ["cob", "iob", "deliverAt"]
+            propertiesToFetch: ["cob", "iob", "objectID"]
         )
 
         guard let fetchedResults = results as? [[String: Any]] else {

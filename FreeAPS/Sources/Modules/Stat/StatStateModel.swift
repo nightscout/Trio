@@ -67,7 +67,7 @@ extension Stat {
                 key: "date",
                 ascending: false,
                 batchSize: 100,
-                propertiesToFetch: ["glucose", "date"]
+                propertiesToFetch: ["glucose", "date", "objectID"]
             )
 
             guard let fetchedResults = results as? [GlucoseStored] else { return [] }

@@ -33,7 +33,7 @@ extension LiveActivityBridge {
             key: "deliverAt",
             ascending: false,
             fetchLimit: 1,
-            propertiesToFetch: ["iob", "cob", "deliverAt"]
+            propertiesToFetch: ["iob", "cob"]
         )
 
         guard let determinationResults = results as? [[String: Any]] else {
