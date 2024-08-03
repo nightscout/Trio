@@ -189,10 +189,10 @@ final class BaseCalendarManager: CalendarManager, Injectable {
             ascending: false
         )
         
-        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+        guard let fetchedResults = results as? [[String: Any]] else { return [] }
         
         return await backgroundContext.perform {
-            return fetchedResults.map(\.objectID)
+            return fetchedResults.compactMap { $0["objectID"] as? NSManagedObjectID }
         }
     }
 
