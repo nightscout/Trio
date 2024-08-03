@@ -70,9 +70,11 @@ final class BaseCalendarManager: CalendarManager, Injectable {
     let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
     private func setupCurrentCalendar() {
-        let calendars = eventStore.calendars(for: .event)
-        if let defaultCalendar = calendars.first {
-            currentCalendarID = defaultCalendar.title
+        if currentCalendarID == nil {
+            let calendars = eventStore.calendars(for: .event)
+            if let defaultCalendar = calendars.first {
+                currentCalendarID = defaultCalendar.title
+            }
         }
     }
 
