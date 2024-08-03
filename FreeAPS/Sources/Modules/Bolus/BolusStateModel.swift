@@ -390,8 +390,11 @@ extension Bolus {
 
         @MainActor func saveMeal() async {
             guard carbs > 0 || fat > 0 || protein > 0 else { return }
-            carbs = min(carbs, maxCarbs)
-            id_ = UUID().uuidString
+
+            await MainActor.run {
+                self.carbs = min(self.carbs, self.maxCarbs)
+                self.id_ = UUID().uuidString
+            }
 
             let carbsToStore = [CarbsEntry(
                 id: id_,

@@ -107,10 +107,6 @@ struct MainChartView: View {
         units == .mgdL ? 30 : 1.66
     }
 
-    private var interpolationFactor: Double {
-        Double(state.enactedAndNonEnactedDeterminations.first?.cob ?? 1) * 10
-    }
-
     private var selectedGlucose: GlucoseStored? {
         if let selection = selection {
             let lowerBound = selection.addingTimeInterval(-120)
@@ -659,7 +655,8 @@ extension MainChartView {
 
     private func drawIOB() -> some ChartContent {
         ForEach(state.enactedAndNonEnactedDeterminations) { iob in
-            let amount: Double = (iob.iob?.doubleValue ?? 0 / interpolationFactor)
+            let rawAmount = iob.iob?.doubleValue ?? 0
+            let amount: Double = rawAmount > 0 ? rawAmount : rawAmount * 2 // weigh negative iob with factor 2
             let date: Date = iob.deliverAt ?? Date()
 
             LineMark(x: .value("Time", date), y: .value("Amount", amount))
@@ -996,8 +993,11 @@ extension MainChartView {
             return
         }
 
+        // Ensure maxForecast is not more than 100 over maxGlucose
+        let adjustedMaxForecast = min(maxForecast, maxGlucose + 100)
+
         let minOverall = min(minGlucose, minForecast)
-        let maxOverall = max(maxGlucose, maxForecast)
+        let maxOverall = max(maxGlucose, adjustedMaxForecast)
 
         minValue = minOverall * conversionFactor - 50 * conversionFactor
         maxValue = maxOverall * conversionFactor + 80 * conversionFactor
