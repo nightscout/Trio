@@ -248,7 +248,7 @@ extension DataTable {
                             if glucose.isManual {
                                 Image(systemName: "drop.fill").symbolRenderingMode(.monochrome).foregroundStyle(.red)
                             } else {
-                                Text("\(glucose.direction ?? "--")")
+                                Text("\(glucose.directionEnum?.symbol ?? "--")")
                             }
 
                             Spacer()
