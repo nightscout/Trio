@@ -70,10 +70,10 @@ extension Stat {
                 propertiesToFetch: ["glucose", "objectID"]
             )
 
-            guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+            guard let fetchedResults = results as? [[String: Any]] else { return [] }
 
             return await context.perform {
-                return fetchedResults.map(\.objectID)
+                return fetchedResults.compactMap { $0["objectID"] as? NSManagedObjectID }
             }
         }
 
