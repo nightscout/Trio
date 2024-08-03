@@ -409,7 +409,7 @@ extension Home {
                 }
                 /// eventualBG string at bottomTrailing
 
-                if let eventualBG = state.determinationsFromPersistence.first?.eventualBG {
+                if let eventualBG = state.enactedAndNonEnactedDeterminations.first?.eventualBG {
                     let bg = eventualBG as Decimal
                     HStack {
                         Image(systemName: "arrow.right.circle")
@@ -831,15 +831,15 @@ extension Home {
             ZStack(alignment: .bottom) {
                 TabView(selection: $selectedTab) {
                     let carbsRequiredBadge: String? = {
-                        guard let carbsRequired = state.determinationsFromPersistence.first?.carbsRequired as? Decimal
-                        else { return nil }
-                        if carbsRequired > state.settingsManager.settings.carbsRequiredThreshold {
-                            let numberAsNSNumber = NSDecimalNumber(decimal: carbsRequired)
-                            let formattedNumber = numberFormatter.string(from: numberAsNSNumber) ?? ""
-                            return formattedNumber + " g"
-                        } else {
+                        guard let carbsRequired = state.enactedAndNonEnactedDeterminations.first?.carbsRequired else {
                             return nil
                         }
+                        let carbsRequiredDecimal = Decimal(carbsRequired)
+                        if carbsRequiredDecimal > state.settingsManager.settings.carbsRequiredThreshold {
+                            let numberAsNSNumber = NSDecimalNumber(decimal: carbsRequiredDecimal)
+                            return (numberFormatter.string(from: numberAsNSNumber) ?? "") + " g"
+                        }
+                        return nil
                     }()
 
                     NavigationStack { mainView() }

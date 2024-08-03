@@ -172,9 +172,9 @@ final class BaseCalendarManager: CalendarManager, Injectable {
             fetchLimit: 1,
             propertiesToFetch: ["timestamp", "cob", "iob", "objectID"]
         )
-        
+
         guard let fetchedResults = results as? [[String: Any]], !fetchedResults.isEmpty else { return nil }
-        
+
         return await backgroundContext.perform {
             return fetchedResults.first?["objectID"] as? NSManagedObjectID
         }
@@ -188,9 +188,9 @@ final class BaseCalendarManager: CalendarManager, Injectable {
             key: "date",
             ascending: false
         )
-        
+
         guard let fetchedResults = results as? [[String: Any]] else { return [] }
-        
+
         return await backgroundContext.perform {
             return fetchedResults.compactMap { $0["objectID"] as? NSManagedObjectID }
         }
