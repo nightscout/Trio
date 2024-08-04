@@ -207,6 +207,7 @@ extension MainChartView {
         Chart {
             /// high and low threshold lines
             if thresholdLines {
+                // Auggie - set the Color.loopYellow and Color.loopRed to use dynamic BG with low value passed in
                 RuleMark(y: .value("High", highGlucose * conversionFactor)).foregroundStyle(Color.loopYellow)
                     .lineStyle(.init(lineWidth: 1, dash: [5]))
                 RuleMark(y: .value("Low", lowGlucose * conversionFactor)).foregroundStyle(Color.loopRed)
@@ -306,6 +307,7 @@ extension MainChartView {
         }
     }
 
+    // Auggie TODO: dynamic BG color here in the pop-over text
     @ViewBuilder var selectionPopover: some View {
         if let sgv = selectedGlucose?.glucose {
             let glucoseToShow = Decimal(sgv) * conversionFactor
@@ -463,44 +465,34 @@ extension MainChartView {
         }
     }
 
+    // Auggie TODO: use dynamic BG color function
     private func drawGlucose(dummy _: Bool) -> some ChartContent {
-        /// glucose point mark
-        /// filtering for high and low bounds in settings
         ForEach(state.glucoseFromPersistence) { item in
+            let glucoseLevel = Int(item.glucose)
+            let lowColorThreshold = Int(lowGlucose)
+            let highColorThreshold = Int(highGlucose)
+            let color = setBGColor(
+                bgValue: glucoseLevel,
+                lowGlucose: lowColorThreshold,
+                highGlucose: highColorThreshold,
+                targetGlucose: 90 // Auggie TODO: get the target color from preferences
+            )
+
             if smooth {
-                if item.glucose > Int(highGlucose) {
-                    PointMark(
-                        x: .value("Time", item.date ?? Date(), unit: .second),
-                        y: .value("Value", Decimal(item.glucose) * conversionFactor)
-                    ).foregroundStyle(Color.orange.gradient).symbolSize(20).interpolationMethod(.cardinal)
-                } else if item.glucose < Int(lowGlucose) {
-                    PointMark(
-                        x: .value("Time", item.date ?? Date(), unit: .second),
-                        y: .value("Value", Decimal(item.glucose) * conversionFactor)
-                    ).foregroundStyle(Color.red.gradient).symbolSize(20).interpolationMethod(.cardinal)
-                } else {
-                    PointMark(
-                        x: .value("Time", item.date ?? Date(), unit: .second),
-                        y: .value("Value", Decimal(item.glucose) * conversionFactor)
-                    ).foregroundStyle(Color.green.gradient).symbolSize(20).interpolationMethod(.cardinal)
-                }
+                PointMark(
+                    x: .value("Time", item.date ?? Date(), unit: .second),
+                    y: .value("Value", Decimal(glucoseLevel) * conversionFactor)
+                )
+                .foregroundStyle(color)
+                .symbolSize(20)
+                .interpolationMethod(.cardinal)
             } else {
-                if item.glucose > Int(highGlucose) {
-                    PointMark(
-                        x: .value("Time", item.date ?? Date(), unit: .second),
-                        y: .value("Value", Decimal(item.glucose) * conversionFactor)
-                    ).foregroundStyle(Color.orange.gradient).symbolSize(20)
-                } else if item.glucose < Int(lowGlucose) {
-                    PointMark(
-                        x: .value("Time", item.date ?? Date(), unit: .second),
-                        y: .value("Value", Decimal(item.glucose) * conversionFactor)
-                    ).foregroundStyle(Color.red.gradient).symbolSize(20)
-                } else {
-                    PointMark(
-                        x: .value("Time", item.date ?? Date(), unit: .second),
-                        y: .value("Value", Decimal(item.glucose) * conversionFactor)
-                    ).foregroundStyle(Color.green.gradient).symbolSize(20)
-                }
+                PointMark(
+                    x: .value("Time", item.date ?? Date(), unit: .second),
+                    y: .value("Value", Decimal(glucoseLevel) * conversionFactor)
+                )
+                .foregroundStyle(color)
+                .symbolSize(20)
             }
         }
     }
