@@ -233,13 +233,14 @@ struct LiveActivity: Widget {
                         y: .value("Value", currentValue)
                     ).symbolSize(15)
 
-                    if currentValue > additionalState.highGlucose {
-                        pointMark.foregroundStyle(Color.orange.gradient)
-                    } else if currentValue < additionalState.lowGlucose {
-                        pointMark.foregroundStyle(Color.red.gradient)
-                    } else {
-                        pointMark.foregroundStyle(Color.green.gradient)
-                    }
+                    let color = setBGColor(
+                        bgValue: Int(currentValue),
+                        lowGlucose: Int(additionalState.lowGlucose),
+                        highGlucose: Int(additionalState.highGlucose),
+                        targetGlucose: 90 // Auggie TODO: get the target color from preferences
+                    )
+
+                    pointMark.foregroundStyle(color)
                 }
             }
             .chartYAxis {
