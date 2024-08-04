@@ -129,7 +129,7 @@ final class OpenAPS {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: context,
-            predicate: NSPredicate.predicateForSixHoursAgo,
+            predicate: NSPredicate.predicateForOneDayAgoInMinutes,
             key: "date",
             ascending: false,
             fetchLimit: 72,
@@ -161,7 +161,7 @@ final class OpenAPS {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
-            predicate: NSPredicate.pumpHistoryLast24h,
+            predicate: NSPredicate.pumpHistoryLast1440Minutes,
             key: "timestamp",
             ascending: false,
             batchSize: 50
@@ -187,12 +187,15 @@ final class OpenAPS {
                 if let bolusDTO = event.toBolusDTOEnum() {
                     eventDTOs.append(bolusDTO)
                 }
-                if let tempBasalDTO = event.toTempBasalDTOEnum() {
-                    eventDTOs.append(tempBasalDTO)
-                }
+
                 if let tempBasalDurationDTO = event.toTempBasalDurationDTOEnum() {
                     eventDTOs.append(tempBasalDurationDTO)
                 }
+
+                if let tempBasalDTO = event.toTempBasalDTOEnum() {
+                    eventDTOs.append(tempBasalDTO)
+                }
+
                 return eventDTOs
             }
 
@@ -205,8 +208,7 @@ final class OpenAPS {
         debug(.openAPS, "Start determineBasal")
 
         // clock
-        let dateFormatted = OpenAPS.dateFormatter.string(from: clock)
-        let dateFormattedAsString = "\"\(dateFormatted)\""
+        self.storage.save(clock, as: Monitor.clock)
 
         // temp_basal
         let tempBasal = currentTemp.rawJSON
@@ -246,13 +248,12 @@ final class OpenAPS {
         )
 
         // TODO: - Save and fetch profile/basalProfile in/from UserDefaults!
-
         // Meal
         let meal = try await self.meal(
             pumphistory: pumpHistoryJSON,
             profile: profile,
             basalProfile: basalProfile,
-            clock: dateFormattedAsString,
+            clock: clock,
             carbs: carbsAsJSON,
             glucose: glucoseAsJSON
         )
@@ -261,7 +262,7 @@ final class OpenAPS {
         let iob = try await self.iob(
             pumphistory: pumpHistoryJSON,
             profile: profile,
-            clock: dateFormattedAsString,
+            clock: clock,
             autosens: autosens.isEmpty ? .null : autosens
         )
 
