@@ -344,8 +344,8 @@ extension NightscoutAPI {
         do {
             let encodedBody = try JSONCoding.encoder.encode(treatments)
             request.httpBody = encodedBody
-            debugPrint("Payload treatments size: \(encodedBody.count) bytes")
-            debugPrint(String(data: encodedBody, encoding: .utf8) ?? "Invalid payload")
+//            debugPrint("Payload treatments size: \(encodedBody.count) bytes")
+//            debugPrint(String(data: encodedBody, encoding: .utf8) ?? "Invalid payload")
         } catch {
             debugPrint("Error encoding payload: \(error.localizedDescription)")
             throw error
@@ -359,7 +359,7 @@ extension NightscoutAPI {
             throw URLError(.badServerResponse)
         }
 
-        debugPrint("Upload successful, response data: \(String(data: data, encoding: .utf8) ?? "No data")")
+//        debugPrint("Upload successful, response data: \(String(data: data, encoding: .utf8) ?? "No data")")
     }
 
     func uploadGlucose(_ glucose: [BloodGlucose]) async throws {
@@ -380,8 +380,8 @@ extension NightscoutAPI {
         do {
             let encodedBody = try JSONCoding.encoder.encode(glucose)
             request.httpBody = encodedBody
-            debugPrint("Payload glucose size: \(encodedBody.count) bytes")
-            debugPrint(String(data: encodedBody, encoding: .utf8) ?? "Invalid payload")
+//            debugPrint("Payload glucose size: \(encodedBody.count) bytes")
+//            debugPrint(String(data: encodedBody, encoding: .utf8) ?? "Invalid payload")
         } catch {
             debugPrint("Error encoding payload: \(error.localizedDescription)")
             throw error
@@ -395,7 +395,7 @@ extension NightscoutAPI {
             throw URLError(.badServerResponse)
         }
 
-        debugPrint("Upload successful, response data: \(String(data: data, encoding: .utf8) ?? "No data")")
+//        debugPrint("Upload successful, response data: \(String(data: data, encoding: .utf8) ?? "No data")")
     }
 
     func uploadStats(_ stats: NightscoutStatistics) async throws {
@@ -442,8 +442,8 @@ extension NightscoutAPI {
         do {
             let encodedBody = try JSONCoding.encoder.encode(status)
             request.httpBody = encodedBody
-            debugPrint("Payload glucose size: \(encodedBody.count) bytes")
-            debugPrint(String(data: encodedBody, encoding: .utf8) ?? "Invalid payload")
+//            debugPrint("Payload glucose size: \(encodedBody.count) bytes")
+//            debugPrint(String(data: encodedBody, encoding: .utf8) ?? "Invalid payload")
         } catch {
             debugPrint("Error encoding payload: \(error.localizedDescription)")
             throw error
@@ -572,8 +572,8 @@ extension NightscoutAPI {
         do {
             let encodedBody = try JSONCoding.encoder.encode(overrides)
             request.httpBody = encodedBody
-            debugPrint("Payload glucose size: \(encodedBody.count) bytes")
-            debugPrint(String(data: encodedBody, encoding: .utf8) ?? "Invalid payload")
+//            debugPrint("Payload glucose size: \(encodedBody.count) bytes")
+//            debugPrint(String(data: encodedBody, encoding: .utf8) ?? "Invalid payload")
         } catch {
             debugPrint("Error encoding payload: \(error.localizedDescription)")
             throw error
@@ -587,7 +587,7 @@ extension NightscoutAPI {
             throw URLError(.badServerResponse)
         }
 
-        debugPrint("Upload successful, response data: \(String(data: data, encoding: .utf8) ?? "No data")")
+//        debugPrint("Upload successful, response data: \(String(data: data, encoding: .utf8) ?? "No data")")
     }
 }
 
