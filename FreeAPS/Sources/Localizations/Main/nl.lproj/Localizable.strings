@@ -233,7 +233,7 @@
 "Run now" = "Nu uitvoeren";
 
 /*  */
-"Last run" = "Laatste berekening";
+"Last run" = "Laatst uitgevoerd";
 
 /*  */
 "Sensitivity" = "Gevoeligheid";
@@ -1050,7 +1050,7 @@ Enact a temp Basal or a temp target */
 "Also add source info" = "Voeg ook bron info toe";
 
 /* */
-"Carbs Required Threshold" = "Koolhydraten vereist drempelwaarde";
+"Carbs Required Threshold" = "Koolhydraten vereist grenswaarde";
 
 /* */
 "Carbs required: %d g" = "Koolhydraten vereist: %d g";
@@ -1475,7 +1475,7 @@ Enact a temp Basal or a temp target */
 "Eventual Glucose > Target Glucose, but glucose is predicted to drop down to " = "Voospelde glucose > doelglucose, maar de glucose wordt voorspeld dat de glucose eerst omlaag zal gaan tot ";
 
 /* Bolus pop-up / Alert string. Make translations concise! */
-"which is below your Threshold (" = "die onder je drempelwaarde ligt (";
+"which is below your Threshold (" = "die onder je grenswaarde ligt (";
 
 /* Bolus pop-up / Alert string. Make translations concise! */
 "Eventual Glucose > Target Glucose, but glucose is climbing slower than expected. Expected: " = "Voorspelde glucose > doelglucose maar de glucose daalt sneller dan verwacht.. Verwacht: ";
@@ -1506,7 +1506,7 @@ Enact a temp Basal or a temp target */
 "Deactivate Pod" = "Deactiveer pod";
 
 /* */
-"Deactivating..." = "Uitschakelen...";
+"Deactivating..." = "Deactiveren...";
 
 "Pair Pod" = "Koppel Pod";
 
@@ -1613,7 +1613,7 @@ Enact a temp Basal or a temp target */
 "Add Omnipod Dash" = "Omnipod Dash toevoegen";
 
 /* */
-"Insert Cannula" = "Plaats canulle";
+"Insert Cannula" = "Plaats canule";
 
 /* */
 "Check Cannula" = "Check canule";
@@ -1743,7 +1743,7 @@ Enact a temp Basal or a temp target */
 "days" = "dagen";
 
 /* Nr of Loops in statPanel */
-"Loops" = "Lussen";
+"Loops" = "Loops";
 
 /* Loop Errors in statPanel */
 "Errors" = "Foutmeldingen";
@@ -2030,10 +2030,10 @@ Enact a temp Basal or a temp target */
 "Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with Trio, longer loop calculations and possible red loops." = "Tijd van maximale bloedglucose verlagend effect van insuline in hele minuten (insuline piek tijd). Let op: Oref gaat er van uit dat ultra-snelle (Lyumjev) & snelle werking (Fiasp) curves minimaal (35 & 50 min) en maximaal (100 en 120 min) hebben als insulinPeakTimes. Het gebruik van een aangepaste insulinPeakTime buiten deze grenzen leidt tot problemen met Trio, langere loopberekeningen en mogelijke een rode Loop.";
 
 /* Headline "Carbs Req Threshold" */
-"Carbs Req Threshold" = "Koolhydraten vereist drempel";
+"Carbs Req Threshold" = "Koolhydraten vereist grenswaarde";
 
 /* "Carbs Req Threshold" */
-"Grams of carbsReq to trigger a pushover. Defaults to 1 (for 1 gram of carbohydrate). Can be increased if you only want to get Pushover for carbsReq at X threshold." = "Aantal gram koolhydraten benodigd om een push bericht te versturen. Standaard ingesteld op 1 (voor 1 gram aan koolhydraten). Kan worden verhoogd als u alleen push berichten wilt krijgen boven de ingestelde drempelwaarde.";
+"Grams of carbsReq to trigger a pushover. Defaults to 1 (for 1 gram of carbohydrate). Can be increased if you only want to get Pushover for carbsReq at X threshold." = "Aantal gram koolhydraten benodigd om een push bericht te versturen. Standaard ingesteld op 1 (voor 1 gram aan koolhydraten). Kan worden verhoogd als u alleen push berichten wilt krijgen boven de ingestelde grenswaarde.";
 
 /* Headline "Noisy CGM Target Multiplier" */
 "Noisy CGM Target Multiplier" = "CGM doelvermenigvuldiger met ruis";
@@ -2103,10 +2103,10 @@ Eenvoudig gezegd, de Dynamische Carb Ratio past de koolhydraatverhouding aan op 
 "Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function." = "Gebruikt een Sigmoid functie voor ISF (en voor CR, indien ingeschakeld), in plaats van de standaard logaritmische formule. Vereist een geactiveerde dynamische ISF instelling.\n\nDe instelling aanpassing past de helling van de curve aan (Y: Dynamische verhouding, X: Bloedglucose). Een lagere waarde ==> minder steil = minder agressief.\n\nDe autosens.min/max instellingen bepalen zowel de max/min grenzen voor de dynamische ratio als hoeveel de dynamische ratio wordt aangepast. Als AF de helling van de curve is, is autosens.min/max de hoogte van de grafiek, het Y-interval, waarbij Y: dynamische verhouding. De curve zal altijd een sigmoïde vorm hebben, ongeacht de autosens.min/max instellingen, wat betekent dat deze instellingen grote gevolgen hebben voor het resultaat van de berekende dynamische ISF. Wees voorzichtig met het instellen van een te hoge autosens.max waarde. Met een goede profiel-ISF instelling zal het waarschijnlijk nooit nodig zijn deze hoger in te stellen dan 1,5.\n\nEen Autosens max grens > 1,5 is niet aan te raden bij gebruik van de Sigmoid functie.";
 
 /* Headline Threshold Setting */
-"Minimum Safety Threshold (mg/dL)" = "Minimale veiligheidsdrempel (mg/dL)";
+"Minimum Safety Threshold (mg/dL)" = "Minimale veiligheidsgrenswaarde (mg/dL)";
 
 /* Minimum Safety Threshold */
-"All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted." = "Alle insuline wordt geschorst als je glucose lager uitvalt dan de veiligheidsdrempel.\n\nmoet ingesteld worden tussen 60 en 120 mg/dL.\nOm te converteren vanaf mmol/L, vermenigvuldigen met 18.\n\nOpmerking: Basaal kan worden hervat als er een negatief IOB is en glucose sneller stijgt dan voorspeld.";
+"All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted." = "Alle insuline wordt geschorst als je glucose lager uitvalt dan de veiligheidsgrens.\n\nmoet ingesteld worden tussen 60 en 120 mg/dL.\nOm te converteren vanaf mmol/L, vermenigvuldigen met 18.\n\nOpmerking: Basaal kan worden hervat als er een negatief IOB is en glucose sneller stijgt dan voorspeld.";
 
 /* Header */
 "Calculator settings" = "Calculator instellingen";
@@ -2165,7 +2165,7 @@ Eenvoudig gezegd, de Dynamische Carb Ratio past de koolhydraatverhouding aan op 
 "Enable adjustment of basal based on the ratio of current TDD / 7 day average TDD" = "Aanpassing van basaal inschakelen op basis van de verhouding van huidige TDD / 7 dag gemiddelde TDD";
 
 /* Headline "Max Delta-BG Threshold SMB" */
-"Max Delta-BG Threshold SMB" = "Max Delta-BG drempelwaarde SMB";
+"Max Delta-BG Threshold SMB" = "Max Delta-BG grenswaarde SMB";
 
 /* Max Delta-BG Threshold SMB */
 "Defaults to 0.2 (20%). Maximum positive percentual change of BG level to use SMB, above that will disable SMB. Hardcoded cap of 40%. For UAM fully-closed-loop 30% is advisable. Observe in log and popup (maxDelta 27 > 20% of BG 100 - disabling SMB!)." = "Staat standaard op 0,2 (20%). Maximale positieve procentuele verandering van BG-niveau om SMB te gebruiken, daarboven wordt SMB uitgeschakeld. Hardcoded maximum van 40%. Voor volledig gesloten UAM-loop is 30% raadzaam. Zie in log en popup (maxDelta 27 > 20% van BG 100 - uitschakelen SMB!).";
