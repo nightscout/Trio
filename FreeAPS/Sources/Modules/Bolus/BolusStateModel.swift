@@ -105,7 +105,7 @@ extension Bolus {
 
         let now = Date.now
 
-        let context = CoreDataStack.shared.persistentContainer.viewContext
+        let viewContext = CoreDataStack.shared.persistentContainer.viewContext
         let backgroundContext = CoreDataStack.shared.newTaskContext()
 
         private var coreDataObserver: CoreDataObserver?
@@ -159,7 +159,7 @@ extension Bolus {
 
         // MARK: - Basal
 
-        func getCurrentBasal() {
+        func getCurrentBasal() async {
             let basalEntries = provider.getProfile()
             let now = Date()
             let calendar = Calendar.current
@@ -173,11 +173,11 @@ extension Bolus {
                     continue
                 }
 
-                // Combine the current date with the time from entry.start
+                let entryComponents = calendar.dateComponents([.hour, .minute, .second], from: entryTime)
                 let entryStartTime = calendar.date(
-                    bySettingHour: calendar.component(.hour, from: entryTime),
-                    minute: calendar.component(.minute, from: entryTime),
-                    second: calendar.component(.second, from: entryTime),
+                    bySettingHour: entryComponents.hour!,
+                    minute: entryComponents.minute!,
+                    second: entryComponents.second!,
                     of: now
                 )!
 
@@ -185,20 +185,21 @@ extension Bolus {
                 if index < basalEntries.count - 1,
                    let nextEntryTime = dateFormatter.date(from: basalEntries[index + 1].start)
                 {
-                    let nextEntryStartTime = calendar.date(
-                        bySettingHour: calendar.component(.hour, from: nextEntryTime),
-                        minute: calendar.component(.minute, from: nextEntryTime),
-                        second: calendar.component(.second, from: nextEntryTime),
+                    let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
+                    entryEndTime = calendar.date(
+                        bySettingHour: nextEntryComponents.hour!,
+                        minute: nextEntryComponents.minute!,
+                        second: nextEntryComponents.second!,
                         of: now
                     )!
-                    entryEndTime = nextEntryStartTime
                 } else {
-                    // If it's the last entry, use the same start time plus one day as the end time
                     entryEndTime = calendar.date(byAdding: .day, value: 1, to: entryStartTime)!
                 }
 
                 if now >= entryStartTime, now < entryEndTime {
-                    currentBasal = entry.rate
+                    await MainActor.run {
+                        currentBasal = entry.rate
+                    }
                     break
                 }
             }
@@ -333,24 +334,26 @@ extension Bolus {
         }
 
         private func savePumpInsulin(amount _: Decimal) {
-            context.perform {
+            backgroundContext.perform {
                 // create pump event
-                let newPumpEvent = PumpEventStored(context: self.context)
+                let newPumpEvent = PumpEventStored(context: self.backgroundContext)
                 newPumpEvent.timestamp = Date()
                 newPumpEvent.type = PumpEvent.bolus.rawValue
 
                 // create bolus entry and specify relationship to pump event
-                let newBolusEntry = BolusStored(context: self.context)
+                let newBolusEntry = BolusStored(context: self.backgroundContext)
                 newBolusEntry.pumpEvent = newPumpEvent
                 newBolusEntry.amount = self.amount as NSDecimalNumber
                 newBolusEntry.isExternal = false
                 newBolusEntry.isSMB = false
 
                 do {
-                    guard self.context.hasChanges else { return }
-                    try self.context.save()
-                } catch {
-                    print(error.localizedDescription)
+                    guard self.backgroundContext.hasChanges else { return }
+                    try self.backgroundContext.save()
+                } catch let error as NSError {
+                    debugPrint(
+                        "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save Bolus with error: \(error.userInfo)"
+                    )
                 }
             }
         }
@@ -421,11 +424,11 @@ extension Bolus {
 
         func deletePreset() {
             if selection != nil {
-                context.delete(selection!)
+                viewContext.delete(selection!)
 
                 do {
-                    guard context.hasChanges else { return }
-                    try context.save()
+                    guard viewContext.hasChanges else { return }
+                    try viewContext.save()
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -473,9 +476,10 @@ extension Bolus {
             var protein_: Decimal = 0.0
             var presetArray = [MealPresetStored]()
 
-            context.performAndWait {
+            // TODO: purge Jons code
+            viewContext.performAndWait {
                 let requestPresets = MealPresetStored.fetchRequest() as NSFetchRequest<MealPresetStored>
-                try? presetArray = context.fetch(requestPresets)
+                try? presetArray = viewContext.fetch(requestPresets)
             }
             var waitersNotepad = [String]()
             var stringValue = ""
@@ -589,7 +593,8 @@ extension Bolus.StateModel {
     private func setupGlucoseArray() {
         Task {
             let ids = await self.fetchGlucose()
-            await updateGlucoseArray(with: ids)
+            let glucoseObjects: [GlucoseStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
+            await updateGlucoseArray(with: glucoseObjects)
         }
     }
 
@@ -608,24 +613,15 @@ extension Bolus.StateModel {
         }
     }
 
-    @MainActor private func updateGlucoseArray(with IDs: [NSManagedObjectID]) {
-        do {
-            let glucoseObjects = try IDs.compactMap { id in
-                try context.existingObject(with: id) as? GlucoseStored
-            }
-            glucoseFromPersistence = glucoseObjects
+    @MainActor private func updateGlucoseArray(with objects: [GlucoseStored]) {
+        glucoseFromPersistence = objects
 
-            let lastGlucose = glucoseFromPersistence.first?.glucose ?? 0
-            let thirdLastGlucose = glucoseFromPersistence.dropFirst(2).first?.glucose ?? 0
-            let delta = Decimal(lastGlucose) - Decimal(thirdLastGlucose)
+        let lastGlucose = glucoseFromPersistence.first?.glucose ?? 0
+        let thirdLastGlucose = glucoseFromPersistence.dropFirst(2).first?.glucose ?? 0
+        let delta = Decimal(lastGlucose) - Decimal(thirdLastGlucose)
 
-            currentBG = Decimal(lastGlucose)
-            deltaBG = delta
-        } catch {
-            debugPrint(
-                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the glucose array: \(error.localizedDescription)"
-            )
-        }
+        currentBG = Decimal(lastGlucose)
+        deltaBG = delta
     }
 
     // Determinations
@@ -634,41 +630,63 @@ extension Bolus.StateModel {
             let ids = await determinationStorage.fetchLastDeterminationObjectID(
                 predicate: NSPredicate.predicateFor30MinAgoForDetermination
             )
-            await updateDeterminationsArray(with: ids)
-            await updateForecasts()
+            let determinationObjects: [OrefDetermination] = await CoreDataStack.shared
+                .getNSManagedObject(with: ids, context: viewContext)
+
+            async let updateDetermination: () = updateDeterminationsArray(with: determinationObjects)
+            async let getCurrentBasal: () = getCurrentBasal()
+            async let updateForecasts: () = updateForecasts()
+
+            await updateForecasts
+            await getCurrentBasal
+            await updateDetermination
         }
     }
 
-    @MainActor private func updateDeterminationsArray(with IDs: [NSManagedObjectID]) {
-        do {
-            let determinationObjects = try IDs.compactMap { id in
-                try context.existingObject(with: id) as? OrefDetermination
-            }
-            guard let mostRecentDetermination = determinationObjects.first else { return }
-            determination = determinationObjects
+    @MainActor private func updateDeterminationsArray(with objects: [OrefDetermination]) {
+        guard let mostRecentDetermination = objects.first else { return }
+        determination = objects
 
-            // setup vars for bolus calculation
-            insulinRequired = (mostRecentDetermination.insulinReq ?? 0) as Decimal
-            evBG = (mostRecentDetermination.eventualBG ?? 0) as Decimal
-            insulin = (mostRecentDetermination.insulinForManualBolus ?? 0) as Decimal
-            target = (mostRecentDetermination.currentTarget ?? 100) as Decimal
-            isf = (mostRecentDetermination.insulinSensitivity ?? 0) as Decimal
-            cob = mostRecentDetermination.cob as Int16
-            iob = (mostRecentDetermination.iob ?? 0) as Decimal
-            basal = (mostRecentDetermination.tempBasal ?? 0) as Decimal
-            carbRatio = (mostRecentDetermination.carbRatio ?? 0) as Decimal
-
-            getCurrentBasal()
-            insulinCalculated = calculateInsulin()
-        } catch {
-            debugPrint(
-                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the determinations array: \(error.localizedDescription)"
-            )
-        }
+        // setup vars for bolus calculation
+        insulinRequired = (mostRecentDetermination.insulinReq ?? 0) as Decimal
+        evBG = (mostRecentDetermination.eventualBG ?? 0) as Decimal
+        insulin = (mostRecentDetermination.insulinForManualBolus ?? 0) as Decimal
+        target = (mostRecentDetermination.currentTarget ?? 100) as Decimal
+        isf = (mostRecentDetermination.insulinSensitivity ?? 0) as Decimal
+        cob = mostRecentDetermination.cob as Int16
+        iob = (mostRecentDetermination.iob ?? 0) as Decimal
+        basal = (mostRecentDetermination.tempBasal ?? 0) as Decimal
+        carbRatio = (mostRecentDetermination.carbRatio ?? 0) as Decimal
+        insulinCalculated = calculateInsulin()
     }
 }
 
 extension Bolus.StateModel {
+    func calculateForecasts(predictions: Predictions?) -> ([Int], [Int]) {
+        let iob: [Int] = predictions?.iob ?? []
+        let zt: [Int] = predictions?.zt ?? []
+        let cob: [Int] = predictions?.cob ?? []
+        let uam: [Int] = predictions?.uam ?? []
+
+        // Filter out the empty arrays and find the maximum length of the remaining arrays
+        let nonEmptyArrays: [[Int]] = [iob, zt, cob, uam].filter { !$0.isEmpty }
+        guard !nonEmptyArrays.isEmpty, let maxCount = nonEmptyArrays.map(\.count).max(), maxCount > 0 else {
+            return ([], [])
+        }
+
+        let minForecast = (0 ..< maxCount).map { index -> Int in
+            let valuesAtCurrentIndex = nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }
+            return valuesAtCurrentIndex.min() ?? 0
+        }
+
+        let maxForecast = (0 ..< maxCount).map { index -> Int in
+            let valuesAtCurrentIndex = nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }
+            return valuesAtCurrentIndex.max() ?? 0
+        }
+
+        return (minForecast, maxForecast)
+    }
+
     @MainActor func updateForecasts() async {
         simulatedDetermination = await apsManager.simulateDetermineBasal(carbs: carbs, iob: amount)
         predictionsForChart = simulatedDetermination?.predictions

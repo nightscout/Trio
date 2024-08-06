@@ -566,7 +566,8 @@ extension Home.StateModel {
     private func setupGlucoseArray() {
         Task {
             let ids = await self.fetchGlucose()
-            await updateGlucoseArray(with: ids)
+            let glucoseObjects: [GlucoseStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
+            await updateGlucoseArray(with: glucoseObjects)
         }
     }
 
@@ -585,24 +586,17 @@ extension Home.StateModel {
         }
     }
 
-    @MainActor private func updateGlucoseArray(with IDs: [NSManagedObjectID]) {
-        do {
-            let glucoseObjects = try IDs.compactMap { id in
-                try viewContext.existingObject(with: id) as? GlucoseStored
-            }
-            glucoseFromPersistence = glucoseObjects
-        } catch {
-            debugPrint(
-                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the glucose array: \(error.localizedDescription)"
-            )
-        }
+    @MainActor private func updateGlucoseArray(with objects: [GlucoseStored]) {
+        glucoseFromPersistence = objects
     }
 
     // Setup Manual Glucose
     private func setupManualGlucoseArray() {
         Task {
             let ids = await self.fetchManualGlucose()
-            await updateManualGlucoseArray(with: ids)
+            let manualGlucoseObjects: [GlucoseStored] = await CoreDataStack.shared
+                .getNSManagedObject(with: ids, context: viewContext)
+            await updateManualGlucoseArray(with: manualGlucoseObjects)
         }
     }
 
@@ -621,24 +615,16 @@ extension Home.StateModel {
         }
     }
 
-    @MainActor private func updateManualGlucoseArray(with IDs: [NSManagedObjectID]) {
-        do {
-            let manualGlucoseObjects = try IDs.compactMap { id in
-                try viewContext.existingObject(with: id) as? GlucoseStored
-            }
-            manualGlucoseFromPersistence = manualGlucoseObjects
-        } catch {
-            debugPrint(
-                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the manual glucose array: \(error.localizedDescription)"
-            )
-        }
+    @MainActor private func updateManualGlucoseArray(with objects: [GlucoseStored]) {
+        manualGlucoseFromPersistence = objects
     }
 
     // Setup Carbs
     private func setupCarbsArray() {
         Task {
             let ids = await self.fetchCarbs()
-            await updateCarbsArray(with: ids)
+            let carbObjects: [CarbEntryStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
+            await updateCarbsArray(with: carbObjects)
         }
     }
 
@@ -656,24 +642,16 @@ extension Home.StateModel {
         }
     }
 
-    @MainActor private func updateCarbsArray(with IDs: [NSManagedObjectID]) {
-        do {
-            let carbObjects = try IDs.compactMap { id in
-                try viewContext.existingObject(with: id) as? CarbEntryStored
-            }
-            carbsFromPersistence = carbObjects
-        } catch {
-            debugPrint(
-                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the carbs array: \(error.localizedDescription)"
-            )
-        }
+    @MainActor private func updateCarbsArray(with objects: [CarbEntryStored]) {
+        carbsFromPersistence = objects
     }
 
     // Setup FPUs
     private func setupFPUsArray() {
         Task {
             let ids = await self.fetchFPUs()
-            await updateFPUsArray(with: ids)
+            let fpuObjects: [CarbEntryStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
+            await updateFPUsArray(with: fpuObjects)
         }
     }
 
@@ -691,17 +669,8 @@ extension Home.StateModel {
         }
     }
 
-    @MainActor private func updateFPUsArray(with IDs: [NSManagedObjectID]) {
-        do {
-            let fpuObjects = try IDs.compactMap { id in
-                try viewContext.existingObject(with: id) as? CarbEntryStored
-            }
-            fpusFromPersistence = fpuObjects
-        } catch {
-            debugPrint(
-                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the fpus array: \(error.localizedDescription)"
-            )
-        }
+    @MainActor private func updateFPUsArray(with objects: [CarbEntryStored]) {
+        fpusFromPersistence = objects
     }
 
     // Custom fetch to more efficiently filter only for cob and iob
@@ -724,6 +693,7 @@ extension Home.StateModel {
     // Setup Determinations
     private func setupDeterminationsArray() {
         Task {
+            // Get the NSManagedObjectIDs
             async let enactedObjectIDs = determinationStorage
                 .fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDetermination)
             async let enactedAndNonEnactedObjectIDs = fetchCobAndIob()
@@ -731,14 +701,10 @@ extension Home.StateModel {
             let enactedIDs = await enactedObjectIDs
             let enactedAndNonEnactedIDs = await enactedAndNonEnactedObjectIDs
 
-            async let updateEnacted: () = updateDeterminationsArray(with: enactedIDs, keyPath: \.determinationsFromPersistence)
-            async let updateEnactedAndNonEnacted: () = updateDeterminationsArray(
-                with: enactedAndNonEnactedIDs,
-                keyPath: \.enactedAndNonEnactedDeterminations
-            )
+            // Get the NSManagedObjects and return them on the Main Thread
+            await updateDeterminationsArray(with: enactedIDs, keyPath: \.determinationsFromPersistence)
+            await updateDeterminationsArray(with: enactedAndNonEnactedIDs, keyPath: \.enactedAndNonEnactedDeterminations)
 
-            await updateEnacted
-            await updateEnactedAndNonEnacted
             await updateForecastData()
         }
     }
@@ -746,24 +712,21 @@ extension Home.StateModel {
     @MainActor private func updateDeterminationsArray(
         with IDs: [NSManagedObjectID],
         keyPath: ReferenceWritableKeyPath<Home.StateModel, [OrefDetermination]>
-    ) {
-        do {
-            let determinationObjects = try IDs.compactMap { id in
-                try viewContext.existingObject(with: id) as? OrefDetermination
-            }
-            self[keyPath: keyPath] = determinationObjects
-        } catch {
-            debugPrint(
-                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the determinations array: \(error.localizedDescription)"
-            )
-        }
+    ) async {
+        // Fetch the objects off the main thread
+        let determinationObjects: [OrefDetermination] = await CoreDataStack.shared
+            .getNSManagedObject(with: IDs, context: viewContext)
+
+        // Update the array on the main thread
+        self[keyPath: keyPath] = determinationObjects
     }
 
     // Setup Insulin
     private func setupInsulinArray() {
         Task {
             let ids = await self.fetchInsulin()
-            await updateInsulinArray(with: ids)
+            let insulinObjects: [PumpEventStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
+            await updateInsulinArray(with: insulinObjects)
         }
     }
 
@@ -781,31 +744,21 @@ extension Home.StateModel {
         }
     }
 
-    @MainActor private func updateInsulinArray(with IDs: [NSManagedObjectID]) {
-        do {
-            let insulinObjects = try IDs.compactMap { id in
-                try viewContext.existingObject(with: id) as? PumpEventStored
-            }
-            insulinFromPersistence = insulinObjects
+    @MainActor private func updateInsulinArray(with insulinObjects: [PumpEventStored]) {
+        insulinFromPersistence = insulinObjects
 
-            // filter tempbasals
-            manualTempBasal = apsManager.isManualTempBasal
-            tempBasals = insulinFromPersistence.filter({ $0.tempBasal != nil })
+        // Filter tempbasals
+        manualTempBasal = apsManager.isManualTempBasal
+        tempBasals = insulinFromPersistence.filter({ $0.tempBasal != nil })
 
-            // suspension and resume events
-            suspensions = insulinFromPersistence
-                .filter({ $0.type == EventType.pumpSuspend.rawValue || $0.type == EventType.pumpResume.rawValue })
-            let lastSuspension = suspensions.last
-
-            pumpSuspended = tempBasals.last?.timestamp ?? Date() > lastSuspension?.timestamp ?? .distantPast && lastSuspension?
-                .type == EventType.pumpSuspend
-                .rawValue
-
-        } catch {
-            debugPrint(
-                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the insulin array: \(error.localizedDescription)"
-            )
+        // Suspension and resume events
+        suspensions = insulinFromPersistence.filter {
+            $0.type == EventType.pumpSuspend.rawValue || $0.type == EventType.pumpResume.rawValue
         }
+        let lastSuspension = suspensions.last
+
+        pumpSuspended = tempBasals.last?.timestamp ?? Date() > lastSuspension?.timestamp ?? .distantPast && lastSuspension?
+            .type == EventType.pumpSuspend.rawValue
     }
 
     // Setup Last Bolus to display the bolus progress bar
@@ -846,7 +799,8 @@ extension Home.StateModel {
     private func setupBatteryArray() {
         Task {
             let ids = await self.fetchBattery()
-            await updateBatteryArray(with: ids)
+            let batteryObjects: [OpenAPS_Battery] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
+            await updateBatteryArray(with: batteryObjects)
         }
     }
 
@@ -864,17 +818,8 @@ extension Home.StateModel {
         }
     }
 
-    @MainActor private func updateBatteryArray(with IDs: [NSManagedObjectID]) {
-        do {
-            let batteryObjects = try IDs.compactMap { id in
-                try viewContext.existingObject(with: id) as? OpenAPS_Battery
-            }
-            batteryFromPersistence = batteryObjects
-        } catch {
-            debugPrint(
-                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the battery array: \(error.localizedDescription)"
-            )
-        }
+    @MainActor private func updateBatteryArray(with objects: [OpenAPS_Battery]) {
+        batteryFromPersistence = objects
     }
 }
 
@@ -883,7 +828,8 @@ extension Home.StateModel {
     private func setupOverrides() {
         Task {
             let ids = await self.fetchOverrides()
-            await updateOverrideArray(with: ids)
+            let overrideObjects: [OverrideStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
+            await updateOverrideArray(with: overrideObjects)
         }
     }
 
@@ -901,18 +847,8 @@ extension Home.StateModel {
         }
     }
 
-    @MainActor private func updateOverrideArray(with IDs: [NSManagedObjectID]) {
-        do {
-            let overrideObjects = try IDs.compactMap { id in
-                try viewContext.existingObject(with: id) as? OverrideStored
-            }
-
-            overrides = overrideObjects
-        } catch {
-            debugPrint(
-                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the override array: \(error.localizedDescription)"
-            )
-        }
+    @MainActor private func updateOverrideArray(with objects: [OverrideStored]) {
+        overrides = objects
     }
 
     @MainActor func calculateDuration(override: OverrideStored) -> TimeInterval {
@@ -933,7 +869,9 @@ extension Home.StateModel {
     private func setupOverrideRunStored() {
         Task {
             let ids = await self.fetchOverrideRunStored()
-            await updateOverrideRunStoredArray(with: ids)
+            let overrideRunObjects: [OverrideRunStored] = await CoreDataStack.shared
+                .getNSManagedObject(with: ids, context: viewContext)
+            await updateOverrideRunStoredArray(with: overrideRunObjects)
         }
     }
 
@@ -952,19 +890,8 @@ extension Home.StateModel {
         }
     }
 
-    @MainActor private func updateOverrideRunStoredArray(with IDs: [NSManagedObjectID]) {
-        do {
-            let overrideObjects = try IDs.compactMap { id in
-                try viewContext.existingObject(with: id) as? OverrideRunStored
-            }
-
-            overrideRunStored = overrideObjects
-            debugPrint("expiredOverrides: \(DebuggingIdentifiers.inProgress) \(overrideRunStored)")
-        } catch {
-            debugPrint(
-                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the Override Run Stored array: \(error.localizedDescription)"
-            )
-        }
+    @MainActor private func updateOverrideRunStoredArray(with objects: [OverrideRunStored]) {
+        overrideRunStored = objects
     }
 
     @MainActor func saveToOverrideRunStored(withID id: NSManagedObjectID) async {
@@ -988,23 +915,26 @@ extension Home.StateModel {
     }
 }
 
-// MARK: Extension for Main Chart to draw Forecasts
-
 extension Home.StateModel {
     func preprocessForecastData() async -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] {
         guard let id = determinationsFromPersistence.first?.objectID else {
             return []
         }
 
-        // Get forecast and forecast values
         let forecastIDs = await determinationStorage.getForecastIDs(for: id, in: context)
         var result: [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] = []
 
-        for forecastID in forecastIDs {
-            // Get the forecast value IDs for the given forecast ID
-            let forecastValueIDs = await determinationStorage.getForecastValueIDs(for: forecastID, in: context)
-            let uuid = UUID()
-            result.append((id: uuid, forecastID: forecastID, forecastValueIDs: forecastValueIDs))
+        await withTaskGroup(of: (UUID, NSManagedObjectID, [NSManagedObjectID]).self) { group in
+            for forecastID in forecastIDs {
+                group.addTask {
+                    let forecastValueIDs = await self.determinationStorage.getForecastValueIDs(for: forecastID, in: self.context)
+                    return (UUID(), forecastID, forecastValueIDs)
+                }
+            }
+
+            for await (uuid, forecastID, forecastValueIDs) in group {
+                result.append((id: uuid, forecastID: forecastID, forecastValueIDs: forecastValueIDs))
+            }
         }
 
         return result
@@ -1052,12 +982,14 @@ extension Home.StateModel {
         let maxCount = min(36, allForecastValues.map(\.count).max() ?? 0)
 
         minForecast = (0 ..< maxCount).map { index -> Int in
-            let valuesAtCurrentIndex = allForecastValues.compactMap { $0.indices.contains(index) ? Int($0[index].value) : nil }
+            let valuesAtCurrentIndex = allForecastValues
+                .compactMap { $0.indices.contains(index) ? Int($0[index].value) : nil }
             return valuesAtCurrentIndex.min() ?? 0
         }
 
         maxForecast = (0 ..< maxCount).map { index -> Int in
-            let valuesAtCurrentIndex = allForecastValues.compactMap { $0.indices.contains(index) ? Int($0[index].value) : nil }
+            let valuesAtCurrentIndex = allForecastValues
+                .compactMap { $0.indices.contains(index) ? Int($0[index].value) : nil }
             return valuesAtCurrentIndex.max() ?? 0
         }
     }

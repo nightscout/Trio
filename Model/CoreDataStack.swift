@@ -399,6 +399,26 @@ extension CoreDataStack {
             }
         }
     }
+
+    // Get NSManagedObject
+    func getNSManagedObject<T: NSManagedObject>(
+        with ids: [NSManagedObjectID],
+        context: NSManagedObjectContext
+    ) async -> [T] {
+        await Task { () -> [T] in
+            var objects = [T]()
+            do {
+                for id in ids {
+                    if let object = try context.existingObject(with: id) as? T {
+                        objects.append(object)
+                    }
+                }
+            } catch {
+                debugPrint("Failed to fetch objects: \(error.localizedDescription)")
+            }
+            return objects
+        }.value
+    }
 }
 
 // MARK: - Save
