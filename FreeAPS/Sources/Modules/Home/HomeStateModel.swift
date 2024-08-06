@@ -951,31 +951,33 @@ extension Home.StateModel {
     }
 
     // Fetch forecast values for a given data set
-       func fetchForecastValues(
-           for data: (id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID]),
-           in context: NSManagedObjectContext
-       ) async -> (UUID, Forecast?, [ForecastValue]) {
-           // Initialize the variables for the forecast and forecast values
-           var forecast: Forecast?
-           var forecastValues: [ForecastValue] = []
-           
-           do {
-               // Try to fetch the forecast object
-               forecast = try context.existingObject(with: data.forecastID) as? Forecast
+    func fetchForecastValues(
+        for data: (id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID]),
+        in context: NSManagedObjectContext
+    ) async -> (UUID, Forecast?, [ForecastValue]) {
+        // Initialize the variables for the forecast and forecast values
+        var forecast: Forecast?
+        var forecastValues: [ForecastValue] = []
 
-               // Fetch the forecast values, limiting to the first 36 values, i.e. 3 hours from the current time
-               for forecastValueID in data.forecastValueIDs.prefix(36) {
-                   if let forecastValue = try context.existingObject(with: forecastValueID) as? ForecastValue {
-                       forecastValues.append(forecastValue)
-                   }
-               }
-           } catch {
-               debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch forecast Values with error: \(error.localizedDescription)")
-           }
+        do {
+            // Try to fetch the forecast object
+            forecast = try context.existingObject(with: data.forecastID) as? Forecast
 
-           return (data.id, forecast, forecastValues)
-       }
-    
+            // Fetch the forecast values, limiting to the first 36 values, i.e. 3 hours from the current time
+            for forecastValueID in data.forecastValueIDs.prefix(36) {
+                if let forecastValue = try context.existingObject(with: forecastValueID) as? ForecastValue {
+                    forecastValues.append(forecastValue)
+                }
+            }
+        } catch {
+            debugPrint(
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch forecast Values with error: \(error.localizedDescription)"
+            )
+        }
+
+        return (data.id, forecast, forecastValues)
+    }
+
     // Update forecast data and UI on the main thread
     @MainActor func updateForecastData() async {
         // Preprocess forecast data on a background thread

@@ -688,8 +688,13 @@ extension Bolus.StateModel {
     }
 
     @MainActor func updateForecasts() async {
-        simulatedDetermination = await apsManager.simulateDetermineBasal(carbs: carbs, iob: amount)
-        predictionsForChart = simulatedDetermination?.predictions
+        // Run simulateDetermineBasal on a background thread
+        let result = await Task.detached { [self] in
+            await apsManager.simulateDetermineBasal(carbs: carbs, iob: amount)
+        }.value
+
+        simulatedDetermination = result
+        predictionsForChart = result?.predictions
 
         let iob: [Int] = predictionsForChart?.iob ?? []
         let zt: [Int] = predictionsForChart?.zt ?? []
