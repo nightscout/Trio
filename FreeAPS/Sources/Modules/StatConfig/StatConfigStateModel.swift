@@ -12,6 +12,7 @@ extension StatConfig {
         @Published var low: Decimal = 70
         @Published var high: Decimal = 180
         @Published var hours: Decimal = 6
+        @Published var dynamicBGColor = false
         @Published var xGridLines = false
         @Published var yGridLines: Bool = false
         @Published var oneDimensionalGraph = false
@@ -24,6 +25,7 @@ extension StatConfig {
             self.units = units
 
             subscribeSetting(\.overrideHbA1cUnit, on: $overrideHbA1cUnit) { overrideHbA1cUnit = $0 }
+            subscribeSetting(\.dynamicBGColor, on: $dynamicBGColor) { dynamicBGColor = $0 }
             subscribeSetting(\.xGridLines, on: $xGridLines) { xGridLines = $0 }
             subscribeSetting(\.yGridLines, on: $yGridLines) { yGridLines = $0 }
             subscribeSetting(\.rulerMarks, on: $rulerMarks) { rulerMarks = $0 }

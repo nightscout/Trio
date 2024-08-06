@@ -39,6 +39,7 @@
   "high" : 180,
   "low" : 70,
   "hours" : 6,
+  "dynamicBGColor" : false,
   "xGridLines" : true,
   "yGridLines" : true,
   "oneDimensionalGraph" : false,

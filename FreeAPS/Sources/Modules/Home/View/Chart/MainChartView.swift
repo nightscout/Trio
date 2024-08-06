@@ -47,6 +47,7 @@ struct MainChartView: View {
     @Binding var highGlucose: Decimal
     @Binding var lowGlucose: Decimal
     @Binding var screenHours: Int16
+    @Binding var dynamicBGColor: Bool
     @Binding var displayXgridLines: Bool
     @Binding var displayYgridLines: Bool
     @Binding var thresholdLines: Bool
@@ -469,13 +470,11 @@ extension MainChartView {
     private func drawGlucose(dummy _: Bool) -> some ChartContent {
         ForEach(state.glucoseFromPersistence) { item in
             let glucoseLevel = Int(item.glucose)
-            let lowColorThreshold = Int(lowGlucose)
-            let highColorThreshold = Int(highGlucose)
             let color = setBGColor(
                 bgValue: glucoseLevel,
-                lowGlucose: lowColorThreshold,
-                highGlucose: highColorThreshold,
-                targetGlucose: 90 // Auggie TODO: get the target color from preferences
+                highBGColorValue: highGlucose,
+                lowBGColorValue: lowGlucose,
+                dynamicBGColor: dynamicBGColor
             )
 
             if smooth {

@@ -373,6 +373,7 @@ extension Home {
                     highGlucose: $state.highGlucose,
                     lowGlucose: $state.lowGlucose,
                     screenHours: $state.hours,
+                    dynamicBGColor: $state.dynamicBGColor,
                     displayXgridLines: $state.displayXgridLines,
                     displayYgridLines: $state.displayYgridLines,
                     thresholdLines: $state.thresholdLines,

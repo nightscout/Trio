@@ -49,6 +49,7 @@ extension Home {
         @Published var lowGlucose: Decimal = 4 / 0.0555
         @Published var highGlucose: Decimal = 10 / 0.0555
         @Published var overrideUnit: Bool = false
+        @Published var dynamicBGColor: Bool = false
         @Published var displayXgridLines: Bool = false
         @Published var displayYgridLines: Bool = false
         @Published var thresholdLines: Bool = false
@@ -123,6 +124,7 @@ extension Home {
             lowGlucose = settingsManager.settings.low
             highGlucose = settingsManager.settings.high
             overrideUnit = settingsManager.settings.overrideHbA1cUnit
+            dynamicBGColor = settingsManager.settings.dynamicBGColor
             displayXgridLines = settingsManager.settings.xGridLines
             displayYgridLines = settingsManager.settings.yGridLines
             thresholdLines = settingsManager.settings.rulerMarks
@@ -456,6 +458,7 @@ extension Home.StateModel:
         lowGlucose = settingsManager.settings.low
         highGlucose = settingsManager.settings.high
         overrideUnit = settingsManager.settings.overrideHbA1cUnit
+        dynamicBGColor = settingsManager.settings.dynamicBGColor
         displayXgridLines = settingsManager.settings.xGridLines
         displayYgridLines = settingsManager.settings.yGridLines
         thresholdLines = settingsManager.settings.rulerMarks
