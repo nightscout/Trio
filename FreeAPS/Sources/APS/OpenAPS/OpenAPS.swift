@@ -590,7 +590,7 @@ final class OpenAPS {
         debug(.openAPS, "AUTOSENS: \(autosenseResult)")
         if var autosens = Autosens(from: autosenseResult) {
             autosens.timestamp = Date()
-            storage.save(autosens, as: Settings.autosense)
+            await storage.saveAsync(autosens, as: Settings.autosense)
 
             return autosens
         } else {
