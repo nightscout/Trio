@@ -7,7 +7,7 @@ protocol CalendarManager {
     func requestAccessIfNeeded() -> AnyPublisher<Bool, Never>
     func calendarIDs() -> [String]
     var currentCalendarID: String? { get set }
-    func createEvent(for glucose: GlucoseStored, delta: Int)
+    func createEvent() async
 }
 
 final class BaseCalendarManager: CalendarManager, Injectable {
@@ -19,13 +19,89 @@ final class BaseCalendarManager: CalendarManager, Injectable {
     @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var storage: FileStorage!
 
-    init(resolver: Resolver) {
-        injectServices(resolver)
-        broadcaster.register(GlucoseObserver.self, observer: self)
-        setupGlucose()
+    private var coreDataObserver: CoreDataObserver?
+
+    private var glucoseFormatter: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 0
+        if settingsManager.settings.units == .mmolL {
+            formatter.minimumFractionDigits = 1
+            formatter.maximumFractionDigits = 1
+        }
+        formatter.roundingMode = .halfUp
+        return formatter
     }
 
-    let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
+    private var deltaFormatter: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 1
+        formatter.positivePrefix = "+"
+        return formatter
+    }
+
+    private var iobFormatter: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 1
+        return formatter
+    }
+
+    private var cobFormatter: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 0
+        return formatter
+    }
+
+    init(resolver: Resolver) {
+        injectServices(resolver)
+        setupCurrentCalendar()
+        Task {
+            await createEvent()
+        }
+        coreDataObserver = CoreDataObserver()
+        registerHandlers()
+        setupGlucoseNotification()
+    }
+
+    let backgroundContext = CoreDataStack.shared.newTaskContext()
+    let viewContext = CoreDataStack.shared.persistentContainer.viewContext
+
+    private func setupCurrentCalendar() {
+        if currentCalendarID == nil {
+            let calendars = eventStore.calendars(for: .event)
+            if let defaultCalendar = calendars.first {
+                currentCalendarID = defaultCalendar.title
+            }
+        }
+    }
+
+    private func registerHandlers() {
+        coreDataObserver?.registerHandler(for: "GlucoseStored") { [weak self] in
+            guard let self = self else { return }
+            Task {
+                await self.createEvent()
+            }
+        }
+    }
+
+    private func setupGlucoseNotification() {
+        /// custom notification that is sent when a batch insert of glucose objects is done
+        Foundation.NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleBatchInsert),
+            name: .didPerformBatchInsert,
+            object: nil
+        )
+    }
+
+    @objc private func handleBatchInsert() {
+        Task {
+            await createEvent()
+        }
+    }
 
     func requestAccessIfNeeded() -> AnyPublisher<Bool, Never> {
         Future { promise in
@@ -88,92 +164,123 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         EKEventStore().calendars(for: .event).map(\.title)
     }
 
-    private func getLastDetermination() -> [OrefDetermination] {
-        CoreDataStack.shared.fetchEntities(
+    private func getLastDetermination() async -> NSManagedObjectID? {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
-            onContext: coredataContext,
+            onContext: backgroundContext,
             predicate: NSPredicate.predicateFor30MinAgoForDetermination,
             key: "timestamp",
             ascending: false,
             fetchLimit: 1,
             propertiesToFetch: ["timestamp", "cob", "iob"]
         )
+        return await backgroundContext.perform {
+            results.first.map(\.objectID)
+        }
     }
 
-    func createEvent(for glucose: GlucoseStored, delta: Int) {
-        guard settingsManager.settings.useCalendar else { return }
+    private func fetchGlucose() async -> [NSManagedObjectID] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: GlucoseStored.self,
+            onContext: backgroundContext,
+            predicate: NSPredicate.predicateFor30MinAgo,
+            key: "date",
+            ascending: false
+        )
+        return await backgroundContext.perform {
+            return results.map(\.objectID)
+        }
+    }
 
-        guard let calendar = currentCalendar else { return }
+    @MainActor func createEvent() async {
+        guard settingsManager.settings.useCalendar, let calendar = currentCalendar,
+              let determinationId = await getLastDetermination() else { return }
+
+        let glucoseIds = await fetchGlucose()
 
         deleteAllEvents(in: calendar)
 
-        let glucoseValue = glucose.glucose
-
-        // create an event now
-        let event = EKEvent(eventStore: eventStore)
-
-        // Calendar settings
-        let displeyCOBandIOB = settingsManager.settings.displayCalendarIOBandCOB
-        let displayEmojis = settingsManager.settings.displayCalendarEmojis
-
-        // Latest Loop data
-        var freshLoop: Double = 20
-        var lastLoop: Date?
-        if displeyCOBandIOB || displayEmojis {
-            lastLoop = getLastDetermination().first?.timestamp
-            freshLoop = -1 * (lastLoop?.timeIntervalSinceNow.minutes ?? 0)
-        }
-
-        var glucoseIcon = "🟢"
-        if displayEmojis {
-            glucoseIcon = Double(glucoseValue) <= Double(settingsManager.settings.low) ? "🔴" : glucoseIcon
-            glucoseIcon = Double(glucoseValue) >= Double(settingsManager.settings.high) ? "🟠" : glucoseIcon
-            glucoseIcon = freshLoop > 15 ? "🚫" : glucoseIcon
-        }
-
-        let glucoseText = glucoseFormatter
-            .string(from: Double(
-                settingsManager.settings.units == .mmolL ? Int(glucoseValue)
-                    .asMmolL : Decimal(glucoseValue)
-            ) as NSNumber)!
-
-        let directionText = glucose.direction ?? "↔︎"
-
-        let deltaValue = settingsManager.settings.units == .mmolL ? Int(delta.asMmolL) : delta
-        let deltaText = deltaFormatter.string(from: NSNumber(value: deltaValue)) ?? "--"
-
-        let iobText = iobFormatter.string(from: (getLastDetermination().first?.iob ?? 0) as NSNumber) ?? ""
-        let cobText = cobFormatter.string(from: (getLastDetermination().first?.cob ?? 0) as NSNumber) ?? ""
-
-        var glucoseDisplayText = displayEmojis ? glucoseIcon + " " : ""
-        glucoseDisplayText += glucoseText + " " + directionText + " " + deltaText
-
-        var iobDisplayText = ""
-        var cobDisplayText = ""
-
-        if displeyCOBandIOB {
-            if displayEmojis {
-                iobDisplayText += "💉"
-                cobDisplayText += "🥨"
-            } else {
-                iobDisplayText += "IOB:"
-                cobDisplayText += "COB:"
-            }
-            iobDisplayText += " " + iobText
-            cobDisplayText += " " + cobText
-            event.location = iobDisplayText + " " + cobDisplayText
-        }
-
-        event.title = glucoseDisplayText
-        event.notes = "Trio"
-        event.startDate = Date()
-        event.endDate = Date(timeIntervalSinceNow: 60 * 10)
-        event.calendar = calendar
-
         do {
+            guard let determinationObject = try viewContext.existingObject(with: determinationId) as? OrefDetermination
+            else { return }
+
+            let glucoseObjects = try glucoseIds.compactMap { id in
+                try viewContext.existingObject(with: id) as? GlucoseStored
+            }
+
+            guard let lastGlucoseObject = glucoseObjects.first, let lastGlucoseValue = glucoseObjects.first?.glucose,
+                  let secondLastReading = glucoseObjects.dropFirst().first?.glucose else { return }
+
+            let delta = Decimal(lastGlucoseValue) - Decimal(secondLastReading)
+
+            // create an event now
+            let event = EKEvent(eventStore: eventStore)
+
+            // Calendar settings
+            let displayCOBandIOB = settingsManager.settings.displayCalendarIOBandCOB
+            let displayEmojis = settingsManager.settings.displayCalendarEmojis
+
+            // Latest Loop data
+            var freshLoop: Double = 20
+            var lastLoop: Date?
+            if displayCOBandIOB || displayEmojis {
+                lastLoop = determinationObject.timestamp
+                freshLoop = -1 * (lastLoop?.timeIntervalSinceNow.minutes ?? 0)
+            }
+
+            var glucoseIcon = "🟢"
+            if displayEmojis {
+                glucoseIcon = Double(lastGlucoseValue) <= Double(settingsManager.settings.low) ? "🔴" : glucoseIcon
+                glucoseIcon = Double(lastGlucoseValue) >= Double(settingsManager.settings.high) ? "🟠" : glucoseIcon
+                glucoseIcon = freshLoop > 15 ? "🚫" : glucoseIcon
+            }
+
+            let glucoseText = glucoseFormatter
+                .string(from: Double(
+                    settingsManager.settings.units == .mmolL ? Int(lastGlucoseValue)
+                        .asMmolL : Decimal(lastGlucoseValue)
+                ) as NSNumber)!
+            debugPrint("\(DebuggingIdentifiers.failed) glucose text: \(glucoseText)")
+
+            let directionText = lastGlucoseObject.directionEnum?.symbol ?? "↔︎"
+
+            let deltaValue = settingsManager.settings.units == .mmolL ? Int(delta.asMmolL) : Int(delta)
+            let deltaText = deltaFormatter.string(from: NSNumber(value: deltaValue)) ?? "--"
+
+            let iobText = iobFormatter.string(from: (determinationObject.iob ?? 0) as NSNumber) ?? ""
+            let cobText = cobFormatter.string(from: determinationObject.cob as NSNumber) ?? ""
+
+            var glucoseDisplayText = displayEmojis ? glucoseIcon + " " : ""
+            glucoseDisplayText += glucoseText + " " + directionText + " " + deltaText
+
+            var iobDisplayText = ""
+            var cobDisplayText = ""
+
+            if displayCOBandIOB {
+                if displayEmojis {
+                    iobDisplayText += "💉"
+                    cobDisplayText += "🥨"
+                } else {
+                    iobDisplayText += "IOB:"
+                    cobDisplayText += "COB:"
+                }
+                iobDisplayText += " " + iobText
+                cobDisplayText += " " + cobText
+                event.location = iobDisplayText + " " + cobDisplayText
+            }
+
+            event.title = glucoseDisplayText
+            event.notes = "Trio"
+            event.startDate = Date()
+            event.endDate = Date(timeIntervalSinceNow: 60 * 10)
+            event.calendar = calendar
+
             try eventStore.save(event, span: .thisEvent)
+
         } catch {
-            warning(.service, "Cannot create calendar event", error: error)
+            debugPrint(
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to create calendar event: \(error.localizedDescription)"
+            )
         }
     }
 
@@ -199,69 +306,6 @@ final class BaseCalendarManager: CalendarManager, Injectable {
                 warning(.service, "Cannot remove calendar events", error: error)
             }
         }
-    }
-
-    private var glucoseFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        if settingsManager.settings.units == .mmolL {
-            formatter.minimumFractionDigits = 1
-            formatter.maximumFractionDigits = 1
-        }
-        formatter.roundingMode = .halfUp
-        return formatter
-    }
-
-    private var deltaFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 1
-        formatter.positivePrefix = "+"
-        return formatter
-    }
-
-    private var iobFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 1
-        return formatter
-    }
-
-    private var cobFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        return formatter
-    }
-
-    private func setupGlucose() {
-        coredataContext.performAndWait {
-            let results = CoreDataStack.shared.fetchEntities(
-                ofType: GlucoseStored.self,
-                onContext: coredataContext,
-                predicate: NSPredicate.predicateFor30MinAgo,
-                key: "date",
-                ascending: false
-            )
-
-            guard results.count >= 2 else { return }
-
-            if let lastGlucose = results.first,
-               let secondLastReading = results.dropFirst().first?.glucose
-            {
-                let glucoseDelta = lastGlucose.glucose - secondLastReading
-                self.createEvent(for: lastGlucose, delta: Int(glucoseDelta))
-            } else {
-                debugPrint("Failed to unwrap necessary glucose readings")
-            }
-        }
-    }
-}
-
-extension BaseCalendarManager: GlucoseObserver {
-    func glucoseDidUpdate(_: [BloodGlucose]) {
-        setupGlucose()
     }
 }
 

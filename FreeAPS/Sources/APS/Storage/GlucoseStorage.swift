@@ -80,7 +80,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                         glucoseEntry.id = UUID()
                         glucoseEntry.glucose = Int16(entry.glucose ?? 0)
                         glucoseEntry.date = entry.dateString
-                        glucoseEntry.direction = entry.direction?.symbol
+                        glucoseEntry.direction = entry.direction?.rawValue
                         glucoseEntry.isUploadedToNS = false /// the value is not uploaded to NS (yet)
                         debugPrint("\(DebuggingIdentifiers.failed)")
                         debugPrint("\(String(describing: glucoseEntry.direction))")
