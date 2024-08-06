@@ -233,11 +233,13 @@ struct LiveActivity: Widget {
                         y: .value("Value", currentValue)
                     ).symbolSize(15)
 
+                    // let color = setBGColor(bgValue: Int(currentValue), highBGColorValue: additionalState.highGlucose, lowBGColorValue: additionalState.lowGlucose, dynamicBGColor: additionalState.dynamicBGColor)
+
                     let color = setBGColor(
                         bgValue: Int(currentValue),
-                        lowGlucose: Int(additionalState.lowGlucose),
-                        highGlucose: Int(additionalState.highGlucose),
-                        targetGlucose: 90 // Auggie TODO: get the target color from preferences
+                        highBGColorValue: Decimal(additionalState.highGlucose),
+                        lowBGColorValue: Decimal(additionalState.lowGlucose),
+                        dynamicBGColor: additionalState.dynamicBGColor
                     )
 
                     pointMark.foregroundStyle(color)
@@ -314,7 +316,12 @@ struct LiveActivity: Widget {
     }
 
     func dynamicIsland(context: ActivityViewContext<LiveActivityAttributes>) -> DynamicIsland {
-        DynamicIsland {
+        let bgValueForColor = Int(context.state.bg) ?? 100
+        let highGlucose = context.state.detailedViewState?.highGlucose ?? 180
+        let lowGlucose = context.state.detailedViewState?.lowGlucose ?? 70
+        let dynamicBGColor = context.state.detailedViewState?.dynamicBGColor ?? false
+
+        return DynamicIsland {
             DynamicIslandExpandedRegion(.leading) {
                 bgAndTrend(context: context, size: .expanded).0.font(.title2).padding(.leading, 5)
             }
@@ -342,9 +349,50 @@ struct LiveActivity: Widget {
                 }
             }
         } compactLeading: {
-            bgAndTrend(context: context, size: .compact).0.padding(.leading, 4)
+            // bgAndTrend(context: context, size: .compact).0.padding(.leading, 4)
+            HStack(spacing: 1) {
+                Image(systemName: "drop.fill")
+                    .renderingMode(.template)
+                    .foregroundStyle(setBGColor(
+                        bgValue: bgValueForColor,
+                        highBGColorValue: Decimal(highGlucose),
+                        lowBGColorValue: Decimal(lowGlucose),
+                        dynamicBGColor: dynamicBGColor
+                    ))
+                    .baselineOffset(-2)
+                Text("\(context.state.bg)")
+                    .foregroundStyle(setBGColor(
+                        bgValue: bgValueForColor,
+                        highBGColorValue: Decimal(highGlucose),
+                        lowBGColorValue: Decimal(lowGlucose),
+                        dynamicBGColor: dynamicBGColor
+                    ))
+                    .minimumScaleFactor(0.1)
+                    .fontWeight(.bold)
+            }
         } compactTrailing: {
-            changeLabel(context: context).padding(.trailing, 4)
+            // changeLabel(context: context).padding(.trailing, 4)
+            HStack(spacing: -5) {
+                Text("\(context.state.direction ?? "--")")
+                    .foregroundStyle(setBGColor(
+                        bgValue: bgValueForColor,
+                        highBGColorValue: Decimal(highGlucose),
+                        lowBGColorValue: Decimal(lowGlucose),
+                        dynamicBGColor: dynamicBGColor
+                    ))
+                    .minimumScaleFactor(0.1)
+                    .fontWeight(.bold)
+                    .baselineOffset(-2)
+                Text("\(context.state.change)")
+                    .foregroundStyle(setBGColor(
+                        bgValue: bgValueForColor,
+                        highBGColorValue: Decimal(highGlucose),
+                        lowBGColorValue: Decimal(lowGlucose),
+                        dynamicBGColor: dynamicBGColor
+                    ))
+                    .minimumScaleFactor(0.1)
+                    .fontWeight(.bold)
+            }
         } minimal: {
             let (_label, characterCount) = bgAndTrend(context: context, size: .minimal)
             let label = _label.padding(.leading, 7).padding(.trailing, 3)

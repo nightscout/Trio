@@ -20,6 +20,7 @@ struct LiveActivityAttributes: ActivityAttributes {
         let rotationDegrees: Double
         let highGlucose: Double
         let lowGlucose: Double
+        let dynamicBGColor: Bool
         let cob: Decimal
         let iob: Decimal
         let unit: String
