@@ -916,63 +916,97 @@ extension Home.StateModel {
 }
 
 extension Home.StateModel {
+    // Asynchronously preprocess forecast data in a background thread
     func preprocessForecastData() async -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] {
-        guard let id = determinationsFromPersistence.first?.objectID else {
-            return []
-        }
+        await Task.detached { [self] () -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] in
+            // Get the first determination ID from persistence
+            guard let id = determinationsFromPersistence.first?.objectID else {
+                return []
+            }
 
-        let forecastIDs = await determinationStorage.getForecastIDs(for: id, in: context)
-        var result: [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] = []
+            // Get the forecast IDs for the determination ID
+            let forecastIDs = await determinationStorage.getForecastIDs(for: id, in: context)
+            var result: [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] = []
 
-        await withTaskGroup(of: (UUID, NSManagedObjectID, [NSManagedObjectID]).self) { group in
-            for forecastID in forecastIDs {
-                group.addTask {
-                    let forecastValueIDs = await self.determinationStorage.getForecastValueIDs(for: forecastID, in: self.context)
-                    return (UUID(), forecastID, forecastValueIDs)
+            // Use a task group to fetch forecast value IDs concurrently
+            await withTaskGroup(of: (UUID, NSManagedObjectID, [NSManagedObjectID]).self) { group in
+                for forecastID in forecastIDs {
+                    group.addTask {
+                        let forecastValueIDs = await self.determinationStorage.getForecastValueIDs(
+                            for: forecastID,
+                            in: self.context
+                        )
+                        return (UUID(), forecastID, forecastValueIDs)
+                    }
+                }
+
+                // Collect the results from the task group
+                for await (uuid, forecastID, forecastValueIDs) in group {
+                    result.append((id: uuid, forecastID: forecastID, forecastValueIDs: forecastValueIDs))
                 }
             }
 
-            for await (uuid, forecastID, forecastValueIDs) in group {
-                result.append((id: uuid, forecastID: forecastID, forecastValueIDs: forecastValueIDs))
-            }
-        }
-
-        return result
+            return result
+        }.value
     }
 
+    // Fetch forecast values for a given data set
+       func fetchForecastValues(
+           for data: (id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID]),
+           in context: NSManagedObjectContext
+       ) async -> (UUID, Forecast?, [ForecastValue]) {
+           // Initialize the variables for the forecast and forecast values
+           var forecast: Forecast?
+           var forecastValues: [ForecastValue] = []
+           
+           do {
+               // Try to fetch the forecast object
+               forecast = try context.existingObject(with: data.forecastID) as? Forecast
+
+               // Fetch the forecast values, limiting to the first 36 values, i.e. 3 hours from the current time
+               for forecastValueID in data.forecastValueIDs.prefix(36) {
+                   if let forecastValue = try context.existingObject(with: forecastValueID) as? ForecastValue {
+                       forecastValues.append(forecastValue)
+                   }
+               }
+           } catch {
+               debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch forecast Values with error: \(error.localizedDescription)")
+           }
+
+           return (data.id, forecast, forecastValues)
+       }
+    
+    // Update forecast data and UI on the main thread
     @MainActor func updateForecastData() async {
+        // Preprocess forecast data on a background thread
         let forecastData = await preprocessForecastData()
 
         var allForecastValues: [[ForecastValue]] = []
+        var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
 
-        preprocessedData = forecastData.reduce(into: []) { result, data in
-            guard let forecast = try? viewContext.existingObject(with: data.forecastID) as? Forecast else {
-                return
-            }
-
-            var forecastValues: [ForecastValue] = []
-
-            for forecastValueID in data.forecastValueIDs.prefix(36) {
-                if let forecastValue = try? viewContext.existingObject(with: forecastValueID) as? ForecastValue {
-                    forecastValues.append(forecastValue)
+        // Use a task group to fetch forecast values concurrently
+        await withTaskGroup(of: (UUID, Forecast?, [ForecastValue]).self) { group in
+            for data in forecastData {
+                group.addTask {
+                    await self.fetchForecastValues(for: data, in: self.viewContext)
                 }
             }
 
-            guard !forecastValues.isEmpty else { return }
+            // Collect the results from the task group
+            for await (id, forecast, forecastValues) in group {
+                guard let forecast = forecast, !forecastValues.isEmpty else { continue }
 
-            allForecastValues.append(forecastValues)
+                allForecastValues.append(forecastValues)
 
-            // Append the forecast data
-            for forecastValue in forecastValues {
-                let processedData = (
-                    id: data.id,
-                    forecast: forecast,
-                    forecastValue: forecastValue
-                )
-                result.append(processedData)
+                for forecastValue in forecastValues {
+                    preprocessedData.append((id: id, forecast: forecast, forecastValue: forecastValue))
+                }
             }
         }
 
+        self.preprocessedData = preprocessedData
+
+        // Ensure there are forecast values to process
         guard !allForecastValues.isEmpty else {
             minForecast = []
             maxForecast = []
@@ -981,6 +1015,7 @@ extension Home.StateModel {
 
         let maxCount = min(36, allForecastValues.map(\.count).max() ?? 0)
 
+        // Calculate min and max forecast values
         minForecast = (0 ..< maxCount).map { index -> Int in
             let valuesAtCurrentIndex = allForecastValues
                 .compactMap { $0.indices.contains(index) ? Int($0[index].value) : nil }
