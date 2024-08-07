@@ -56,7 +56,7 @@ extension UserInterfaceSettings {
                     content: {
                         VStack {
                             Toggle("Show X-Axis Grid Lines", isOn: $state.xGridLines)
-                            Toggle("Show Y-Axis Grid Line", isOn: $state.yGridLines)
+                            Toggle("Show Y-Axis Grid Lines", isOn: $state.yGridLines)
 
                             HStack(alignment: .top) {
                                 Text(

@@ -9,7 +9,6 @@ extension Settings {
         let resolver: Resolver
         @StateObject var state = StateModel()
         @State private var showShareSheet = false
-
         @State private var searchText: String = ""
 
         @Environment(\.colorScheme) var colorScheme
@@ -32,141 +31,188 @@ extension Settings {
                 )
         }
 
+        private var filteredItems: [FilteredSettingItem] {
+            SettingItems.filteredItems(searchText: searchText)
+        }
+
         var body: some View {
             Form {
-                let buildDetails = BuildDetails.default
+                if searchText.isEmpty {
+                    let buildDetails = BuildDetails.default
 
-                Section(
-                    header: Text("BRANCH: \(buildDetails.branchAndSha)").textCase(nil),
-                    content: {
-                        let versionNumber = Bundle.main.releaseVersionNumber ?? "Unknown"
-                        let buildNumber = Bundle.main.buildVersionNumber ?? "Unknown"
+                    Section(
+                        header: Text("BRANCH: \(buildDetails.branchAndSha)").textCase(nil),
+                        content: {
+                            let versionNumber = Bundle.main.releaseVersionNumber ?? "Unknown"
+                            let buildNumber = Bundle.main.buildVersionNumber ?? "Unknown"
 
-                        Group {
-                            HStack {
-                                Image(uiImage: UIImage(named: appIcons.appIcon.rawValue) ?? UIImage())
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 50, height: 50)
-                                    .padding(.trailing, 10)
-                                VStack(alignment: .leading) {
-                                    Text("Trio v\(versionNumber) (\(buildNumber))")
-                                        .font(.headline)
-                                    if let expirationDate = buildDetails.calculateExpirationDate() {
-                                        let formattedDate = DateFormatter.localizedString(
-                                            from: expirationDate,
-                                            dateStyle: .medium,
-                                            timeStyle: .none
-                                        )
-                                        Text("\(buildDetails.expirationHeaderString): \(formattedDate)")
-                                            .font(.footnote)
-                                            .foregroundColor(.secondary)
-                                    } else {
-                                        Text("Simulator Build has no expiry")
-                                            .font(.footnote)
-                                            .foregroundColor(.secondary)
+                            Group {
+                                HStack {
+                                    Image(uiImage: UIImage(named: appIcons.appIcon.rawValue) ?? UIImage())
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(width: 50, height: 50)
+                                        .padding(.trailing, 10)
+                                    VStack(alignment: .leading) {
+                                        Text("Trio v\(versionNumber) (\(buildNumber))")
+                                            .font(.headline)
+                                        if let expirationDate = buildDetails.calculateExpirationDate() {
+                                            let formattedDate = DateFormatter.localizedString(
+                                                from: expirationDate,
+                                                dateStyle: .medium,
+                                                timeStyle: .none
+                                            )
+                                            Text("\(buildDetails.expirationHeaderString): \(formattedDate)")
+                                                .font(.footnote)
+                                                .foregroundColor(.secondary)
+                                        } else {
+                                            Text("Simulator Build has no expiry")
+                                                .font(.footnote)
+                                                .foregroundColor(.secondary)
+                                        }
                                     }
+                                }
+
+                                Text("Statistics").navigationLink(to: .statistics, from: self)
+                            }
+                        }
+                    ).listRowBackground(Color.chart)
+
+                    Section(
+                        header: Text("Automated Insulin Delivery"),
+                        content: {
+                            VStack {
+                                Toggle("Closed Loop", isOn: $state.closedLoop)
+
+                                Spacer()
+
+                                (
+                                    Text("Running Trio in")
+                                        +
+                                        Text(" closed loop mode ").bold()
+                                        +
+                                        Text("requires an active CGM sensor session and a connected pump.")
+                                        +
+                                        Text("This enables automated insulin delivery.").bold()
+                                )
+                                .foregroundColor(.secondary)
+                                .font(.footnote)
+
+                            }.padding(.vertical)
+                        }
+                    ).listRowBackground(Color.chart)
+
+                    Section(
+                        header: Text("Trio Configuration"),
+                        content: {
+                            ForEach(SettingItems.trioConfig) { item in
+                                Text(item.title).navigationLink(to: item.view, from: self)
+                            }
+                        }
+                    )
+                    .listRowBackground(Color.chart)
+
+                    Section(
+                        header: Text("Support & Community"),
+                        content: {
+                            Button {
+                                showShareSheet.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Share Logs")
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .foregroundColor(.secondary)
+                                        .font(.footnote)
                                 }
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
 
-                            Text("Statistics").navigationLink(to: .statistics, from: self)
-                        }
-                    }
-                ).listRowBackground(Color.chart)
-
-                Section(
-                    header: Text("Automated Insulin Delivery"),
-                    content: {
-                        VStack {
-                            Toggle("Closed Loop", isOn: $state.closedLoop)
-
-                            Spacer()
-
-                            (
-                                Text("Running Trio in")
-                                    +
-                                    Text(" closed loop mode ").bold()
-                                    +
-                                    Text("requires an active CGM sensor session and a connected pump.")
-                                    +
-                                    Text("This enables automated insulin delivery.").bold()
-                            )
-                            .foregroundColor(.secondary)
-                            .font(.footnote)
-
-                        }.padding(.vertical)
-                    }
-                ).listRowBackground(Color.chart)
-
-                Section(
-                    header: Text("Trio Configuration"),
-                    content: {
-                        Text("Devices").navigationLink(to: .devices, from: self)
-                        Text("Therapy").navigationLink(to: .therapySettings, from: self)
-                        Text("Algorithm").navigationLink(to: .algorithmSettings, from: self)
-                        Text("Features").navigationLink(to: .featureSettings, from: self)
-                        Text("Notifications").navigationLink(to: .notificationSettings, from: self)
-                        Text("Services").navigationLink(to: .serviceSettings, from: self)
-                    }
-                ).listRowBackground(Color.chart)
-
-                Section(
-                    header: Text("Support & Community"),
-                    content: {
-                        HStack {
-                            Text("Share Logs")
-                                .onTapGesture {
-                                    showShareSheet.toggle()
+                            Button {
+                                if let url = URL(string: "https://github.com/nightscout/Trio/issues/new/choose") {
+                                    UIApplication.shared.open(url)
                                 }
-                            Spacer()
-                            Image(systemName: "chevron.right").foregroundColor(.secondary)
-                        }
+                            } label: {
+                                HStack {
+                                    Text("Submit Ticket on GitHub")
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .foregroundColor(.secondary)
+                                        .font(.footnote)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
 
-                        HStack {
-                            Text("Submit Ticket on GitHub")
-                                .onTapGesture {
-                                    if let url = URL(string: "https://github.com/nightscout/Trio/issues/new/choose") {
-                                        UIApplication.shared.open(url)
+                            Button {
+                                if let url = URL(string: "https://discord.gg/FnwFEFUwXE") {
+                                    UIApplication.shared.open(url)
+                                }
+                            } label: {
+                                HStack {
+                                    Text("Trio Discord")
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .foregroundColor(.secondary)
+                                        .font(.footnote)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                            Button {
+                                if let url = URL(string: "https://m.facebook.com/groups/1351938092206709/") {
+                                    UIApplication.shared.open(url)
+                                }
+                            } label: {
+                                HStack {
+                                    Text("Trio Facebook")
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .foregroundColor(.secondary)
+                                        .font(.footnote)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                            Button {
+                                if let url = URL(string: "https://diy-trio.org/") {
+                                    UIApplication.shared.open(url)
+                                }
+                            } label: {
+                                HStack {
+                                    Text("Trio Website")
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .foregroundColor(.secondary)
+                                        .font(.footnote)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    ).listRowBackground(Color.chart)
+
+                } else {
+                    Section(
+                        header: Text("Search Results"),
+                        content: {
+                            ForEach(filteredItems) { filteredItem in
+                                VStack(alignment: .leading) {
+                                    Text(filteredItem.matchedContent).bold()
+//                                    Text(filteredItem.settingItem.title).font(.caption).foregroundColor(.secondary)
+                                    if let path = filteredItem.settingItem.path {
+                                        Text(path.map(\.stringValue).joined(separator: " > "))
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
                                     }
-                                }
-                            Spacer()
-                            Image(systemName: "chevron.right").foregroundColor(.secondary)
+                                }.navigationLink(to: filteredItem.settingItem.view, from: self)
+                            }
                         }
-
-                        HStack {
-                            Text("Trio Discord")
-                                .onTapGesture {
-                                    if let url = URL(string: "https://discord.gg/FnwFEFUwXE") {
-                                        UIApplication.shared.open(url)
-                                    }
-                                }
-                            Spacer()
-                            Image(systemName: "chevron.right").foregroundColor(.secondary)
-                        }
-
-                        HStack {
-                            Text("Trio Facebook")
-                                .onTapGesture {
-                                    if let url = URL(string: "https://m.facebook.com/groups/1351938092206709/") {
-                                        UIApplication.shared.open(url)
-                                    }
-                                }
-                            Spacer()
-                            Image(systemName: "chevron.right").foregroundColor(.secondary)
-                        }
-
-                        HStack {
-                            Text("Trio Website")
-                                .onTapGesture {
-                                    if let url = URL(string: "https://diy-trio.org/") {
-                                        UIApplication.shared.open(url)
-                                    }
-                                }
-                            Spacer()
-                            Image(systemName: "chevron.right").foregroundColor(.secondary)
-                        }
-                    }
-                ).listRowBackground(Color.chart)
+                    ).listRowBackground(Color.chart)
+                }
 
                 // TODO: remove this more or less entirely; add build-time flag to enable Middleware; add settings export feature
 //                Section {
@@ -262,7 +308,7 @@ extension Settings {
                     }
                 }
                 // TODO: check how to implement intuitive search
-//                .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .automatic))
+                .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .automatic))
                 .onDisappear(perform: { state.uploadProfileAndSettings(false) })
                 .screenNavigation(self)
         }

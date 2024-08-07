@@ -173,26 +173,6 @@ extension AlgorithmAdvancedSettings {
                 )
 
                 SettingInputSection(
-                    decimalValue: $state.min5mCarbimpact,
-                    booleanValue: $booleanPlaceholder,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    selectedVerboseHint: Binding(
-                        get: { selectedVerboseHint },
-                        set: {
-                            selectedVerboseHint = $0
-                            hintLabel = NSLocalizedString("Min 5m Carbimpact", comment: "Min 5m Carbimpact")
-                        }
-                    ),
-                    type: .decimal,
-                    label: NSLocalizedString("Min 5m Carbimpact", comment: "Min 5m Carbimpact"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "This is a setting for default carb absorption impact per 5 minutes. The default is an expected 8 mg/dL/5min. This affects how fast COB is decayed in situations when carb absorption is not visible in BG deviations. The default of 8 mg/dL/5min corresponds to a minimum carb absorption rate of 24g/hr at a CSF of 4 mg/dL/g.",
-                        comment: "Min 5m Carbimpact"
-                    )
-                )
-
-                SettingInputSection(
                     decimalValue: $state.autotuneISFAdjustmentFraction,
                     booleanValue: $booleanPlaceholder,
                     shouldDisplayHint: $shouldDisplayHint,
@@ -212,6 +192,26 @@ extension AlgorithmAdvancedSettings {
                     verboseHint: NSLocalizedString(
                         "The default of 0.5 for this value keeps autotune ISF closer to pump ISF via a weighted average of fullNewISF and pumpISF. 1.0 allows full adjustment, 0 is no adjustment from pump ISF.",
                         comment: "Autotune ISF Adjustment Fraction"
+                    )
+                )
+
+                SettingInputSection(
+                    decimalValue: $state.min5mCarbimpact,
+                    booleanValue: $booleanPlaceholder,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = NSLocalizedString("Min 5m Carbimpact", comment: "Min 5m Carbimpact")
+                        }
+                    ),
+                    type: .decimal,
+                    label: NSLocalizedString("Min 5m Carbimpact", comment: "Min 5m Carbimpact"),
+                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+                    verboseHint: NSLocalizedString(
+                        "This is a setting for default carb absorption impact per 5 minutes. The default is an expected 8 mg/dL/5min. This affects how fast COB is decayed in situations when carb absorption is not visible in BG deviations. The default of 8 mg/dL/5min corresponds to a minimum carb absorption rate of 24g/hr at a CSF of 4 mg/dL/g.",
+                        comment: "Min 5m Carbimpact"
                     )
                 )
 

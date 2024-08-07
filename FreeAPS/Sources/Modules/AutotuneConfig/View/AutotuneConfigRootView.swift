@@ -113,72 +113,72 @@ extension AutotuneConfig {
 
                 if let autotune = state.autotune {
                     if !state.onlyAutotuneBasals {
-                Section {
-                    HStack {
-                        Text("Carb ratio")
-                        Spacer()
-                        Text(isfFormatter.string(from: autotune.carbRatio as NSNumber) ?? "0")
-                        Text("g/U").foregroundColor(.secondary)
-                    }
-                    HStack {
-                        Text("Sensitivity")
-                        Spacer()
-                        if state.units == .mmolL {
-                            Text(isfFormatter.string(from: autotune.sensitivity.asMmolL as NSNumber) ?? "0")
-                        } else {
-                            Text(isfFormatter.string(from: autotune.sensitivity as NSNumber) ?? "0")
+                        Section {
+                            HStack {
+                                Text("Carb ratio")
+                                Spacer()
+                                Text(isfFormatter.string(from: autotune.carbRatio as NSNumber) ?? "0")
+                                Text("g/U").foregroundColor(.secondary)
+                            }
+                            HStack {
+                                Text("Sensitivity")
+                                Spacer()
+                                if state.units == .mmolL {
+                                    Text(isfFormatter.string(from: autotune.sensitivity.asMmolL as NSNumber) ?? "0")
+                                } else {
+                                    Text(isfFormatter.string(from: autotune.sensitivity as NSNumber) ?? "0")
+                                }
+                                Text(state.units.rawValue + "/U").foregroundColor(.secondary)
+                            }
                         }
-                        Text(state.units.rawValue + "/U").foregroundColor(.secondary)
-                    }
-                }
-                .listRowBackground(Color.chart)
+                        .listRowBackground(Color.chart)
                     }
 
-                Section(header: Text("Basal profile")) {
-                    ForEach(0 ..< autotune.basalProfile.count, id: \.self) { index in
+                    Section(header: Text("Basal profile")) {
+                        ForEach(0 ..< autotune.basalProfile.count, id: \.self) { index in
+                            HStack {
+                                Text(autotune.basalProfile[index].start).foregroundColor(.secondary)
+                                Spacer()
+                                Text(rateFormatter.string(from: autotune.basalProfile[index].rate as NSNumber) ?? "0")
+                                Text("U/hr").foregroundColor(.secondary)
+                            }
+                        }
                         HStack {
-                            Text(autotune.basalProfile[index].start).foregroundColor(.secondary)
+                            Text("Total")
+                                .bold()
+                                .foregroundColor(.primary)
                             Spacer()
-                            Text(rateFormatter.string(from: autotune.basalProfile[index].rate as NSNumber) ?? "0")
-                            Text("U/hr").foregroundColor(.secondary)
+                            Text(rateFormatter.string(from: autotune.basalProfile.reduce(0) { $0 + $1.rate } as NSNumber) ?? "0")
+                                .foregroundColor(.primary) +
+                                Text(" U/day")
+                                .foregroundColor(.secondary)
                         }
                     }
-                    HStack {
-                        Text("Total")
-                            .bold()
-                            .foregroundColor(.primary)
-                        Spacer()
-                        Text(rateFormatter.string(from: autotune.basalProfile.reduce(0) { $0 + $1.rate } as NSNumber) ?? "0")
-                            .foregroundColor(.primary) +
-                            Text(" U/day")
-                            .foregroundColor(.secondary)
-                    }
-                }
-                .listRowBackground(Color.chart)
+                    .listRowBackground(Color.chart)
 
-                Section {
-                    Button {
-                        Task {
-                            await state.delete()
+                    Section {
+                        Button {
+                            Task {
+                                await state.delete()
+                            }
+                        } label: {
+                            Text("Delete Autotune Data")
                         }
-                    } label: {
-                        Text("Delete Autotune Data")
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .listRowBackground(Color(.loopRed))
+                        .tint(.white)
                     }
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .listRowBackground(Color(.loopRed))
-                    .tint(.white)
-                }
 
-                Section {
-                    Button {
-                        replaceAlert = true
-                    } label: {
-                        Text("Save as Normal Basal Rates")
+                    Section {
+                        Button {
+                            replaceAlert = true
+                        } label: {
+                            Text("Save as Normal Basal Rates")
+                        }
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .listRowBackground(Color(.systemGray4))
+                        .tint(.white)
                     }
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .listRowBackground(Color(.systemGray4))
-                    .tint(.white)
-                }
                 }
             }
             .sheet(isPresented: $shouldDisplayHint) {

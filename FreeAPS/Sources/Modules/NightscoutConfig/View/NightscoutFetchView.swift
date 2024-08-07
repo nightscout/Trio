@@ -81,7 +81,7 @@ struct NightscoutFetchView: View {
                 sheetTitle: "Help"
             )
         }
-        .navigationTitle("Fetch and Remote")
+        .navigationTitle("Fetch & Remote")
         .navigationBarTitleDisplayMode(.automatic)
         .scrollContentBackground(.hidden).background(color)
     }

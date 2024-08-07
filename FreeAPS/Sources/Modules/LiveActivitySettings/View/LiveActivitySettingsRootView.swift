@@ -69,7 +69,7 @@ extension LiveActivitySettings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0
-                                hintLabel = "Show Live Activity"
+                                hintLabel = "Enable Live Activity"
                             }
                         ),
                         type: .boolean,

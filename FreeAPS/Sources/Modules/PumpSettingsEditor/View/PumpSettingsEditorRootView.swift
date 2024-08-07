@@ -126,7 +126,7 @@ extension PumpSettingsEditor {
             }
             .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)
-            .navigationTitle("Delivery Limits & DIA")
+            .navigationTitle("Delivery Limits")
             .navigationBarTitleDisplayMode(.automatic)
         }
     }
