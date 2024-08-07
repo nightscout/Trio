@@ -135,13 +135,24 @@ extension PluginSource: CGMManagerDelegate {
         return glucoseStorage.lastGlucoseDate()
     }
 
-    func cgmManagerDidUpdateState(_: CGMManager) {
+    func cgmManagerDidUpdateState(_ cgmManager: CGMManager) {
         dispatchPrecondition(condition: .onQueue(processQueue))
-//        guard let g6Manager = manager as? TransmitterManager else {
-//            return
-//        }
-//        glucoseManager?.settingsManager.settings.uploadGlucose = g6Manager.shouldSyncToRemoteService
-//        UserDefaults.standard.dexcomTransmitterID = g6Manager.rawState["transmitterID"] as? String
+
+        guard let trioFetchGlucoseManager = glucoseManager else {
+            debug(
+                .deviceManager,
+                "Could not gracefully unwrap Trio FetchGlucoseManager upon observing LoopKit's cgmManangerDidUpdateState"
+            )
+            return
+        }
+        // Adjust Trio-specific NS Upload setting to true, when CGM setting is changed
+        trioFetchGlucoseManager.settingsManager.settings.uploadGlucose = cgmManager.shouldSyncToRemoteService
+
+        // Update glucose source upon state change, e.g. when user switches G7 which is basically a transmitter change without removing and adding a transmitter.
+        trioFetchGlucoseManager.updateGlucoseSource(
+            cgmGlucoseSourceType: trioFetchGlucoseManager.settingsManager.settings.cgm,
+            cgmGlucosePluginId: trioFetchGlucoseManager.settingsManager.settings.cgmPluginIdentifier
+        )
     }
 
     func credentialStoragePrefix(for _: CGMManager) -> String {
