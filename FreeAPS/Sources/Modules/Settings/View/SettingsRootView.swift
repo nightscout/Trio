@@ -8,6 +8,7 @@ extension Settings {
     struct RootView: BaseView {
         let resolver: Resolver
         @StateObject var state = StateModel()
+
         @State private var showShareSheet = false
         @State private var searchText: String = ""
 
@@ -202,7 +203,6 @@ extension Settings {
                             ForEach(filteredItems) { filteredItem in
                                 VStack(alignment: .leading) {
                                     Text(filteredItem.matchedContent).bold()
-//                                    Text(filteredItem.settingItem.title).font(.caption).foregroundColor(.secondary)
                                     if let path = filteredItem.settingItem.path {
                                         Text(path.map(\.stringValue).joined(separator: " > "))
                                             .font(.caption)
@@ -307,8 +307,7 @@ extension Settings {
                         )
                     }
                 }
-                // TODO: check how to implement intuitive search
-                .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .automatic))
+                .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
                 .onDisappear(perform: { state.uploadProfileAndSettings(false) })
                 .screenNavigation(self)
         }

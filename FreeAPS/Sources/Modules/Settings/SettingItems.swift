@@ -28,8 +28,6 @@ struct FilteredSettingItem: Identifiable {
     let matchedContent: LocalizedStringKey
 }
 
-// TODO: fill this shit here with content...
-
 enum SettingItems {
     static let trioConfig = [
         SettingItem(title: "Devices", view: .devices),
@@ -41,7 +39,7 @@ enum SettingItems {
     ]
 
     static let devicesItems = [
-        SettingItem(title: "Insulin Pump", view: .pumpConfig),
+        SettingItem(title: "Insulin Pump", view: .pumpConfig, path: ["Devices"]),
         SettingItem(
             title: "Delivery Limits & DIA",
             view: .cgm,
@@ -54,7 +52,7 @@ enum SettingItems {
             searchContents: ["Smooth Glucose Value"],
             path: ["Devices", "Continuous Glucose Monitor"]
         ),
-        SettingItem(title: "Smart Watch", view: .watch),
+        SettingItem(title: "Smart Watch", view: .watch, path: ["Devices"]),
         SettingItem(
             title: "Apple Watch",
             view: .watch,
@@ -70,12 +68,12 @@ enum SettingItems {
             searchContents: ["Glucose Units", "Max IOB", "Max COB"],
             path: ["Therapy Settings", "Units and Limits"]
         ),
-        SettingItem(title: "Basal Rates", view: .basalProfileEditor),
-        SettingItem(title: "Insulin Sensitivities", view: .isfEditor),
-        SettingItem(title: "ISF", view: .isfEditor),
-        SettingItem(title: "Carb Ratios", view: .crEditor),
-        SettingItem(title: "CR", view: .crEditor),
-        SettingItem(title: "Target Glucose", view: .targetsEditor)
+        SettingItem(title: "Basal Rates", view: .basalProfileEditor, path: ["Therapy Settings"]),
+        SettingItem(title: "Insulin Sensitivities", view: .isfEditor, path: ["Therapy Settings"]),
+        SettingItem(title: "ISF", view: .isfEditor, path: ["Therapy Settings"]),
+        SettingItem(title: "Carb Ratios", view: .crEditor, path: ["Therapy Settings"]),
+        SettingItem(title: "CR", view: .crEditor, path: ["Therapy Settings"]),
+        SettingItem(title: "Target Glucose", view: .targetsEditor, path: ["Therapy Settings"])
     ]
 
     static let algorithmItems = [
@@ -268,8 +266,8 @@ enum SettingItems {
             ],
             path: ["Services", "Nightscout", "Fetch and Remote Control"]
         ),
-        SettingItem(title: "Tidepool", view: .serviceSettings),
-        SettingItem(title: "Apple Health", view: .healthkit)
+        SettingItem(title: "Tidepool", view: .serviceSettings, path: ["Services"]),
+        SettingItem(title: "Apple Health", view: .healthkit, path: ["Services"])
     ]
 
     static var allItems: [SettingItem] {
@@ -277,16 +275,17 @@ enum SettingItems {
     }
 
     static func filteredItems(searchText: String) -> [FilteredSettingItem] {
-        allItems.compactMap { item in
+        allItems.flatMap { item in
+            var results = [FilteredSettingItem]()
             if item.title.stringValue.localizedCaseInsensitiveContains(searchText) {
-                return FilteredSettingItem(settingItem: item, matchedContent: item.title)
+                results.append(FilteredSettingItem(settingItem: item, matchedContent: item.title))
             }
-            if let matchedContent = item.searchContents?
-                .first(where: { $0.stringValue.localizedCaseInsensitiveContains(searchText) })
+            if let matchedContents = item.searchContents?
+                .filter({ $0.stringValue.localizedCaseInsensitiveContains(searchText) })
             {
-                return FilteredSettingItem(settingItem: item, matchedContent: matchedContent)
+                results.append(contentsOf: matchedContents.map { FilteredSettingItem(settingItem: item, matchedContent: $0) })
             }
-            return nil
+            return results
         }
     }
 }
