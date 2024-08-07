@@ -12,6 +12,13 @@ extension Settings {
         @State private var showShareSheet = false
         @State private var searchText: String = ""
 
+        @State private var shouldDisplayHint: Bool = false
+        @State var hintDetent = PresentationDetent.large
+        @State var selectedVerboseHint: String?
+        @State var hintLabel: String?
+        @State private var decimalPlaceholder: Decimal = 0.0
+        @State private var booleanPlaceholder: Bool = false
+
         @Environment(\.colorScheme) var colorScheme
         @EnvironmentObject var appIcons: Icons
 
@@ -79,29 +86,23 @@ extension Settings {
                         }
                     ).listRowBackground(Color.chart)
 
-                    Section(
-                        header: Text("Automated Insulin Delivery"),
-                        content: {
-                            VStack {
-                                Toggle("Closed Loop", isOn: $state.closedLoop)
-
-                                Spacer()
-
-                                (
-                                    Text("Running Trio in")
-                                        +
-                                        Text(" closed loop mode ").bold()
-                                        +
-                                        Text("requires an active CGM sensor session and a connected pump.")
-                                        +
-                                        Text("This enables automated insulin delivery.").bold()
-                                )
-                                .foregroundColor(.secondary)
-                                .font(.footnote)
-
-                            }.padding(.vertical)
-                        }
-                    ).listRowBackground(Color.chart)
+                    SettingInputSection(
+                        decimalValue: $decimalPlaceholder,
+                        booleanValue: $state.closedLoop,
+                        shouldDisplayHint: $shouldDisplayHint,
+                        selectedVerboseHint: Binding(
+                            get: { selectedVerboseHint },
+                            set: {
+                                selectedVerboseHint = $0
+                                hintLabel = "Closed Loop"
+                            }
+                        ),
+                        type: .boolean,
+                        label: "Closed Loop",
+                        miniHint: "Enables automated insulin delivery. Requires active CGM sensor session and connected pump.",
+                        verboseHint: "Running Trio in closed loop mode requires an active CGM sensor session and a connected pump. This enables automated insulin delivery.\n\nBefore enabling, dial in your settings (basal / insulin sensitivity / carb ratio), and familiarize yourself with the app.",
+                        headerText: "Automated Insulin Delivery"
+                    )
 
                     Section(
                         header: Text("Trio Configuration"),
@@ -284,6 +285,15 @@ extension Settings {
 //                }.listRowBackground(Color.chart)
 
             }.scrollContentBackground(.hidden).background(color)
+                .sheet(isPresented: $shouldDisplayHint) {
+                    SettingInputHintView(
+                        hintDetent: $hintDetent,
+                        shouldDisplayHint: $shouldDisplayHint,
+                        hintLabel: hintLabel ?? "",
+                        hintText: selectedVerboseHint ?? "",
+                        sheetTitle: "Help"
+                    )
+                }
                 .sheet(isPresented: $showShareSheet) {
                     ShareSheet(activityItems: state.logItems())
                 }
