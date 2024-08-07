@@ -145,13 +145,14 @@ extension PluginSource: CGMManagerDelegate {
             )
             return
         }
-        // Adjust Trio-specific NS Upload setting to true, when CGM setting is changed
+        // Adjust Trio-specific NS Upload setting value when CGM setting is changed
         trioFetchGlucoseManager.settingsManager.settings.uploadGlucose = cgmManager.shouldSyncToRemoteService
 
         // Update glucose source upon state change, e.g. when user switches G7 which is basically a transmitter change without removing and adding a transmitter.
         trioFetchGlucoseManager.updateGlucoseSource(
             cgmGlucoseSourceType: trioFetchGlucoseManager.settingsManager.settings.cgm,
-            cgmGlucosePluginId: trioFetchGlucoseManager.settingsManager.settings.cgmPluginIdentifier
+            cgmGlucosePluginId: trioFetchGlucoseManager.settingsManager.settings.cgmPluginIdentifier,
+            newManager: cgmManager as? CGMManagerUI
         )
     }
 
