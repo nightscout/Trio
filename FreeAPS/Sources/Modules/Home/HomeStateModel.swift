@@ -80,6 +80,7 @@ extension Home {
         @Published var pumpStatusHighlightMessage: String? = nil
         @Published var cgmAvailable: Bool = false
         @Published var showCarbsRequiredBadge: Bool = true
+        private(set) var setupPumpType: PumpConfig.PumpType = .minimed
 
         let context = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
@@ -202,27 +203,6 @@ extension Home {
                     }
                 }
                 .store(in: &lifetime)
-
-            $setupPump
-                .sink { [weak self] show in
-                    guard let self = self else { return }
-                    if show, let pumpManager = self.provider.apsManager.pumpManager,
-                       let bluetoothProvider = self.provider.apsManager.bluetoothManager
-                    {
-                        let view = PumpConfig.PumpSettingsView(
-                            pumpManager: pumpManager,
-                            bluetoothManager: bluetoothProvider,
-                            completionDelegate: self,
-                            setupDelegate: self
-                        ).asAny()
-                        self.router.mainSecondaryModalView.send(view)
-                    } else if show {
-                        self.router.mainSecondaryModalView.send(self.router.view(for: .pumpConfigDirect))
-                    } else {
-                        self.router.mainSecondaryModalView.send(nil)
-                    }
-                }
-                .store(in: &lifetime)
         }
 
         private func registerHandlers() {
@@ -266,6 +246,11 @@ extension Home {
                 guard let self = self else { return }
                 self.setupOverrideRunStored()
             }
+        }
+
+        func addPump(_ type: PumpConfig.PumpType) {
+            setupPumpType = type
+            setupPump = true
         }
 
         /// Display the eventual status message provided by the manager of the pump

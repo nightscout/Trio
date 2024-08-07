@@ -39,8 +39,8 @@ extension PumpConfig {
         }
 
         func addPump(_ type: PumpType) {
-            setupPump = true
             setupPumpType = type
+            setupPump = true
         }
 
         func ack() {
@@ -70,9 +70,4 @@ extension PumpConfig.StateModel: PumpManagerOnboardingDelegate {
     func pumpManagerOnboarding(didPauseOnboarding _: PumpManagerUI) {
         // TODO:
     }
-
-//    func pumpManagerSetupViewController(_: PumpManagerSetupViewController, didSetUpPumpManager pumpManager: PumpManagerUI) {
-//        provider.setPumpManager(pumpManager)
-//        setupPump = false
-//    }
 }

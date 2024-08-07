@@ -15,6 +15,7 @@ extension Home {
         @State var showTreatments = false
         @State var selectedTab: Int = 0
         @State private var statusTitle: String = ""
+        @State var showPumpSelection: Bool = false
 
         struct Buttons: Identifiable {
             let label: String
@@ -165,7 +166,13 @@ extension Home {
                 pumpStatusHighlightMessage: $state.pumpStatusHighlightMessage,
                 battery: $state.batteryFromPersistence
             ).onTapGesture {
-                state.setupPump = true
+                if state.pumpDisplayState == nil {
+                    // shows user confirmation dialog with pump model choices, then proceeds to setup
+                    showPumpSelection.toggle()
+                } else {
+                    // sends user to pump settings
+                    state.setupPump.toggle()
+                }
             }
         }
 
@@ -753,6 +760,30 @@ extension Home {
                                 }
                             }
                     )
+            }
+            .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {
+                Button("Medtronic") { state.addPump(.minimed) }
+                Button("Omnipod Eros") { state.addPump(.omnipod) }
+                Button("Omnipod Dash") { state.addPump(.omnipodBLE) }
+                Button("Pump Simulator") { state.addPump(.simulator) }
+            } message: { Text("Select Pump Model") }
+            .sheet(isPresented: $state.setupPump) {
+                if let pumpManager = state.provider.apsManager.pumpManager {
+                    PumpConfig.PumpSettingsView(
+                        pumpManager: pumpManager,
+                        bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                        completionDelegate: state,
+                        setupDelegate: state
+                    )
+                } else {
+                    PumpConfig.PumpSetupView(
+                        pumpType: state.setupPumpType,
+                        pumpInitialSettings: PumpConfig.PumpInitialSettings.default,
+                        bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                        completionDelegate: state,
+                        setupDelegate: state
+                    )
+                }
             }
             .sheet(isPresented: $state.isLegendPresented) {
                 NavigationStack {

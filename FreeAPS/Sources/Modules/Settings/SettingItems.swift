@@ -277,14 +277,21 @@ enum SettingItems {
     static func filteredItems(searchText: String) -> [FilteredSettingItem] {
         allItems.flatMap { item in
             var results = [FilteredSettingItem]()
-            if item.title.stringValue.localizedCaseInsensitiveContains(searchText) {
+            let searchTextToLower = searchText.lowercased()
+
+            if item.title.stringValue.localizedCaseInsensitiveContains(searchTextToLower) ||
+                item.title.englishValue.localizedCaseInsensitiveContains(searchTextToLower)
+            {
                 results.append(FilteredSettingItem(settingItem: item, matchedContent: item.title))
             }
-            if let matchedContents = item.searchContents?
-                .filter({ $0.stringValue.localizedCaseInsensitiveContains(searchText) })
-            {
+
+            if let matchedContents = item.searchContents?.filter({
+                $0.stringValue.localizedCaseInsensitiveContains(searchTextToLower) ||
+                    $0.englishValue.localizedCaseInsensitiveContains(searchTextToLower)
+            }) {
                 results.append(contentsOf: matchedContents.map { FilteredSettingItem(settingItem: item, matchedContent: $0) })
             }
+
             return results
         }
     }
@@ -296,6 +303,16 @@ extension LocalizedStringKey {
         let children = mirror.children
         if let label = children.first(where: { $0.label == "key" })?.value as? String {
             return NSLocalizedString(label, comment: "")
+        } else {
+            return ""
+        }
+    }
+
+    var englishValue: String {
+        let mirror = Mirror(reflecting: self)
+        let children = mirror.children
+        if let label = children.first(where: { $0.label == "key" })?.value as? String {
+            return Bundle.main.localizedString(forKey: label, value: nil, table: nil)
         } else {
             return ""
         }

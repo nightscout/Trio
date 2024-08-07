@@ -107,7 +107,7 @@ extension PumpSettingsEditor {
                             impactHeavy.impactOccurred()
                             state.save()
                         } label: {
-                            Text(state.syncInProgress ? "Saving..." : "Save on Pump")
+                            Text(state.syncInProgress ? "Saving..." : "Save")
                         }
                         .disabled(state.syncInProgress || !state.hasChanged)
                         .frame(maxWidth: .infinity, alignment: .center)
