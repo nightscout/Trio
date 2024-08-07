@@ -141,7 +141,7 @@ extension PluginSource: CGMManagerDelegate {
         guard let trioFetchGlucoseManager = glucoseManager else {
             debug(
                 .deviceManager,
-                "Could not gracefully unwrap Trio FetchGlucoseManager upon observing LoopKit's cgmManangerDidUpdateState"
+                "Could not gracefully unwrap Trio FetchGlucoseManager upon observing LoopKit's cgmManagerDidUpdateState"
             )
             return
         }
