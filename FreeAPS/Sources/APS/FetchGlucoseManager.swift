@@ -103,11 +103,13 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         if self.cgmGlucoseSourceType != cgmGlucoseSourceType || self.cgmGlucosePluginId != cgmGlucosePluginId {
             removeCalibrations()
             cgmManager = nil
+            glucoseSource = nil
         }
 
         self.cgmGlucoseSourceType = cgmGlucoseSourceType
         self.cgmGlucosePluginId = cgmGlucosePluginId
 
+        
         // if not plugin, manager is not changed and stay with the "old" value if the user come back to previous cgmtype
         // if plugin, if the same pluginID, no change required because the manager is available
         // if plugin, if not the same pluginID, need to reset the cgmManager
@@ -122,24 +124,26 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         } else {
             saveConfigManager()
         }
-
-        switch self.cgmGlucoseSourceType {
-        case .none:
-            glucoseSource = nil
-        case .xdrip:
-            glucoseSource = AppGroupSource(from: "xDrip", cgmType: .xdrip)
-        case .nightscout:
-            glucoseSource = nightscoutManager
-        case .simulator:
-            glucoseSource = simulatorSource
-        case .glucoseDirect:
-            glucoseSource = AppGroupSource(from: "GlucoseDirect", cgmType: .glucoseDirect)
-        case .enlite:
-            glucoseSource = deviceDataManager
-        case .plugin:
-            glucoseSource = PluginSource(glucoseStorage: glucoseStorage, glucoseManager: self)
+            
+        if glucoseSource == nil {
+            switch self.cgmGlucoseSourceType {
+            case .none:
+                glucoseSource = nil
+            case .xdrip:
+                glucoseSource = AppGroupSource(from: "xDrip", cgmType: .xdrip)
+            case .nightscout:
+                glucoseSource = nightscoutManager
+            case .simulator:
+                glucoseSource = simulatorSource
+            case .glucoseDirect:
+                glucoseSource = AppGroupSource(from: "GlucoseDirect", cgmType: .glucoseDirect)
+            case .enlite:
+                glucoseSource = deviceDataManager
+            case .plugin:
+                glucoseSource = PluginSource(glucoseStorage: glucoseStorage, glucoseManager: self)
+            }
+            // update the config
         }
-        // update the config
     }
 
     /// Upload cgmManager from raw value
