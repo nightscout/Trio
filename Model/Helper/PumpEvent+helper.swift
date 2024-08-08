@@ -53,6 +53,11 @@ public extension PumpEventStored {
 }
 
 extension NSPredicate {
+    static var pumpHistoryLast1440Minutes: NSPredicate {
+        let date = Date.oneDayAgoInMinutes
+        return NSPredicate(format: "timestamp >= %@", date as NSDate)
+    }
+
     static var pumpHistoryLast24h: NSPredicate {
         let date = Date.oneDayAgo
         return NSPredicate(format: "timestamp >= %@", date as NSDate)
@@ -155,7 +160,7 @@ extension PumpEventStored {
     }
 
     func toTempBasalDTOEnum() -> PumpEventDTO? {
-        guard let timestamp = timestamp, let tempBasal = tempBasal, let rate = tempBasal.rate else {
+        guard let id = id, let timestamp = timestamp, let tempBasal = tempBasal, let rate = tempBasal.rate else {
             return nil
         }
 
@@ -169,12 +174,12 @@ extension PumpEventStored {
     }
 
     func toTempBasalDurationDTOEnum() -> PumpEventDTO? {
-        guard let timestamp = timestamp, let tempBasal = tempBasal else {
+        guard let id = id, let timestamp = timestamp, let tempBasal = tempBasal else {
             return nil
         }
 
         let tempBasalDurationDTO = TempBasalDurationDTO(
-            id: id ?? UUID().uuidString,
+            id: id,
             timestamp: PumpEventStored.dateFormatter.string(from: timestamp),
             duration: Int(tempBasal.duration)
         )
