@@ -125,27 +125,22 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         }
 
         if glucoseSource == nil {
-            debug(
-                .deviceManager,
-                "Updating glucose source."
-            )
-        }
-
-        switch self.cgmGlucoseSourceType {
-        case .none:
-            glucoseSource = nil
-        case .xdrip:
-            glucoseSource = AppGroupSource(from: "xDrip", cgmType: .xdrip)
-        case .nightscout:
-            glucoseSource = nightscoutManager
-        case .simulator:
-            glucoseSource = simulatorSource
-        case .glucoseDirect:
-            glucoseSource = AppGroupSource(from: "GlucoseDirect", cgmType: .glucoseDirect)
-        case .enlite:
-            glucoseSource = deviceDataManager
-        case .plugin:
-            glucoseSource = PluginSource(glucoseStorage: glucoseStorage, glucoseManager: self)
+            switch self.cgmGlucoseSourceType {
+            case .none:
+                glucoseSource = nil
+            case .xdrip:
+                glucoseSource = AppGroupSource(from: "xDrip", cgmType: .xdrip)
+            case .nightscout:
+                glucoseSource = nightscoutManager
+            case .simulator:
+                glucoseSource = simulatorSource
+            case .glucoseDirect:
+                glucoseSource = AppGroupSource(from: "GlucoseDirect", cgmType: .glucoseDirect)
+            case .enlite:
+                glucoseSource = deviceDataManager
+            case .plugin:
+                glucoseSource = PluginSource(glucoseStorage: glucoseStorage, glucoseManager: self)
+            }
         }
     }
 
