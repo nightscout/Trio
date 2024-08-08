@@ -138,20 +138,19 @@ extension PluginSource: CGMManagerDelegate {
     func cgmManagerDidUpdateState(_ cgmManager: CGMManager) {
         dispatchPrecondition(condition: .onQueue(processQueue))
 
-        guard let trioFetchGlucoseManager = glucoseManager else {
+        guard let fetchGlucoseManager = glucoseManager else {
             debug(
                 .deviceManager,
-                "Could not gracefully unwrap Trio FetchGlucoseManager upon observing LoopKit's cgmManagerDidUpdateState"
+                "Could not gracefully unwrap FetchGlucoseManager upon observing LoopKit's cgmManagerDidUpdateState"
             )
             return
         }
-        // Adjust Trio-specific NS Upload setting value when CGM setting is changed
-        trioFetchGlucoseManager.settingsManager.settings.uploadGlucose = cgmManager.shouldSyncToRemoteService
+        // Adjust app-specific NS Upload setting value when CGM setting is changed
+        fetchGlucoseManager.settingsManager.settings.uploadGlucose = cgmManager.shouldSyncToRemoteService
 
-        // Update glucose source upon state change, e.g. when user switches G7 which is basically a transmitter change without removing and adding a transmitter.
-        trioFetchGlucoseManager.updateGlucoseSource(
-            cgmGlucoseSourceType: trioFetchGlucoseManager.settingsManager.settings.cgm,
-            cgmGlucosePluginId: trioFetchGlucoseManager.settingsManager.settings.cgmPluginIdentifier,
+        fetchGlucoseManager.updateGlucoseSource(
+            cgmGlucoseSourceType: fetchGlucoseManager.settingsManager.settings.cgm,
+            cgmGlucosePluginId: fetchGlucoseManager.settingsManager.settings.cgmPluginIdentifier,
             newManager: cgmManager as? CGMManagerUI
         )
     }
@@ -172,6 +171,15 @@ extension PluginSource: CGMManagerDelegate {
 
     private func readCGMResult(readingResult: CGMReadingResult) -> Result<[BloodGlucose], Error> {
         debug(.deviceManager, "PLUGIN CGM - Process CGM Reading Result launched with \(readingResult)")
+
+        if glucoseManager?.glucoseSource == nil {
+            debug(
+                .deviceManager,
+                "No glucose source available."
+            )
+            return .failure(GlucoseDataError.noGlucoseSource)
+        }
+
         switch readingResult {
         case let .newData(values):
 
