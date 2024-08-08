@@ -482,13 +482,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     private func updateOrefDeterminationAsUploaded(_ determination: [Determination]) async {
         await backgroundContext.perform {
             let ids = determination.map(\.id) as NSArray
-//            print("\(DebuggingIdentifiers.inProgress) ids: \(ids)")
             let fetchRequest: NSFetchRequest<OrefDetermination> = OrefDetermination.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
                 let results = try self.backgroundContext.fetch(fetchRequest)
-//                print("\(DebuggingIdentifiers.inProgress) results: \(results)")
                 for result in results {
                     result.isUploadedToNS = true
                 }
@@ -737,13 +735,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     private func updateGlucoseAsUploaded(_ glucose: [BloodGlucose]) async {
         await backgroundContext.perform {
             let ids = glucose.map(\.id) as NSArray
-//            print("\(DebuggingIdentifiers.inProgress) ids: \(ids)")
             let fetchRequest: NSFetchRequest<GlucoseStored> = GlucoseStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
                 let results = try self.backgroundContext.fetch(fetchRequest)
-//                print("\(DebuggingIdentifiers.inProgress) results: \(results)")
                 for result in results {
                     result.isUploadedToNS = true
                 }
@@ -780,13 +776,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     private func updateTreatmentsAsUploaded(_ treatments: [NightscoutTreatment]) async {
         await backgroundContext.perform {
             let ids = treatments.map(\.id) as NSArray
-//            print("\(DebuggingIdentifiers.inProgress) ids: \(ids)")
             let fetchRequest: NSFetchRequest<PumpEventStored> = PumpEventStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
                 let results = try self.backgroundContext.fetch(fetchRequest)
-//                print("\(DebuggingIdentifiers.inProgress) results: \(results)")
                 for result in results {
                     result.isUploadedToNS = true
                 }
@@ -823,13 +817,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     private func updateManualGlucoseAsUploaded(_ treatments: [NightscoutTreatment]) async {
         await backgroundContext.perform {
             let ids = treatments.map(\.id) as NSArray
-//            print("\(DebuggingIdentifiers.inProgress) ids: \(ids)")
             let fetchRequest: NSFetchRequest<GlucoseStored> = GlucoseStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
                 let results = try self.backgroundContext.fetch(fetchRequest)
-//                print("\(DebuggingIdentifiers.inProgress) results: \(results)")
                 for result in results {
                     result.isUploadedToNS = true
                 }
@@ -866,13 +858,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     private func updateCarbsAsUploaded(_ treatments: [NightscoutTreatment]) async {
         await backgroundContext.perform {
             let ids = treatments.map(\.id) as NSArray
-//            print("\(DebuggingIdentifiers.inProgress) ids: \(ids)")
             let fetchRequest: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
                 let results = try self.backgroundContext.fetch(fetchRequest)
-//                print("\(DebuggingIdentifiers.inProgress) results: \(results)")
                 for result in results {
                     result.isUploadedToNS = true
                 }
@@ -909,13 +899,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     private func updateOverridesAsUploaded(_ overrides: [NightscoutExercise]) async {
         await backgroundContext.perform {
             let ids = overrides.map(\.id) as NSArray
-//            print("\(DebuggingIdentifiers.inProgress) ids: \(ids)")
             let fetchRequest: NSFetchRequest<OverrideStored> = OverrideStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
                 let results = try self.backgroundContext.fetch(fetchRequest)
-//                print("\(DebuggingIdentifiers.inProgress) results: \(results)")
                 for result in results {
                     result.isUploadedToNS = true
                 }
@@ -952,13 +940,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     private func updateOverrideRunsAsUploaded(_ overrideRuns: [NightscoutExercise]) async {
         await backgroundContext.perform {
             let ids = overrideRuns.map(\.id) as NSArray
-//            print("\(DebuggingIdentifiers.inProgress) ids: \(ids)")
             let fetchRequest: NSFetchRequest<OverrideRunStored> = OverrideRunStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
                 let results = try self.backgroundContext.fetch(fetchRequest)
-//                print("\(DebuggingIdentifiers.inProgress) results: \(results)")
                 for result in results {
                     result.isUploadedToNS = true
                 }
