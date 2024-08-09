@@ -108,5 +108,4 @@ enum CGMType: String, JSON, CaseIterable, Identifiable {
 enum GlucoseDataError: Error {
     case noData
     case unreliableData
-    case noGlucoseSource
 }

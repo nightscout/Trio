@@ -177,7 +177,6 @@ extension PluginSource: CGMManagerDelegate {
                 .deviceManager,
                 "No glucose source available."
             )
-            return .failure(GlucoseDataError.noGlucoseSource)
         }
 
         switch readingResult {
