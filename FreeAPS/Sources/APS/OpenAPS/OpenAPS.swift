@@ -273,10 +273,6 @@ final class OpenAPS {
     ) async throws -> Determination? {
         debug(.openAPS, "Start determineBasal")
 
-        // clock
-        let dateFormatted = OpenAPS.dateFormatter.string(from: clock)
-        let dateFormattedAsString = "\"\(dateFormatted)\""
-
         // temp_basal
         let tempBasal = currentTemp.rawJSON
 
@@ -314,23 +310,25 @@ final class OpenAPS {
             preferencesAsync
         )
 
-        // Meal
-        let meal = try await self.meal(
+        // Parallelize Meal and IOB calculations
+        async let calculateMeal = self.meal(
             pumphistory: pumpHistoryJSON,
             profile: profile,
             basalProfile: basalProfile,
-            clock: dateFormattedAsString,
+            clock: clock,
             carbs: carbsAsJSON,
             glucose: glucoseAsJSON
         )
 
-        // IOB
-        let iob = try await self.iob(
+        async let calculateIOB = self.iob(
             pumphistory: pumpHistoryJSON,
             profile: profile,
-            clock: dateFormattedAsString,
+            clock: clock,
             autosens: autosens.isEmpty ? .null : autosens
         )
+
+        // Await the meal and IOB results
+        let (meal, iob) = try await (calculateMeal, calculateIOB)
 
         // TODO: refactor this to core data
         if !simulation {
