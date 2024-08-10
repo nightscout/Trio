@@ -1008,9 +1008,6 @@ extension MainChartView {
 
         minValue = minOverall * conversionFactor - 50 * conversionFactor
         maxValue = maxOverall * conversionFactor + 80 * conversionFactor
-
-        debug(.default, "min \(minValue)")
-        debug(.default, "max \(maxValue)")
     }
 
     private func yAxisChartDataCobChart() {
