@@ -58,27 +58,27 @@ enum GlucoseUnits: String, JSON, Equatable {
 
 extension Int {
     var asMmolL: Decimal {
-        Decimal(self) * GlucoseUnits.exchangeRate
+        FreeAPS.rounded(Decimal(self) * GlucoseUnits.exchangeRate, scale: 1, roundingMode: .plain)
     }
 }
 
 extension Decimal {
     var asMmolL: Decimal {
-        self * GlucoseUnits.exchangeRate
+        FreeAPS.rounded(self * GlucoseUnits.exchangeRate, scale: 1, roundingMode: .plain)
     }
 
     var asMgdL: Decimal {
-        self / GlucoseUnits.exchangeRate
+        FreeAPS.rounded(self / GlucoseUnits.exchangeRate, scale: 0, roundingMode: .plain)
     }
 }
 
 extension Double {
     var asMmolL: Decimal {
-        Decimal(self) * GlucoseUnits.exchangeRate
+        FreeAPS.rounded(Decimal(self) * GlucoseUnits.exchangeRate, scale: 1, roundingMode: .plain)
     }
 
     var asMgdL: Decimal {
-        Decimal(self) / GlucoseUnits.exchangeRate
+        FreeAPS.rounded(Decimal(self) / GlucoseUnits.exchangeRate, scale: 0, roundingMode: .plain)
     }
 }
 
