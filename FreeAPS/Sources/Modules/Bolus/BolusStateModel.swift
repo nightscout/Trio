@@ -335,31 +335,6 @@ extension Bolus {
             }
         }
 
-        private func savePumpInsulin(amount _: Decimal) {
-            backgroundContext.perform {
-                // create pump event
-                let newPumpEvent = PumpEventStored(context: self.backgroundContext)
-                newPumpEvent.timestamp = Date()
-                newPumpEvent.type = PumpEvent.bolus.rawValue
-
-                // create bolus entry and specify relationship to pump event
-                let newBolusEntry = BolusStored(context: self.backgroundContext)
-                newBolusEntry.pumpEvent = newPumpEvent
-                newBolusEntry.amount = self.amount as NSDecimalNumber
-                newBolusEntry.isExternal = false
-                newBolusEntry.isSMB = false
-
-                do {
-                    guard self.backgroundContext.hasChanges else { return }
-                    try self.backgroundContext.save()
-                } catch let error as NSError {
-                    debugPrint(
-                        "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save Bolus with error: \(error.userInfo)"
-                    )
-                }
-            }
-        }
-
         // MARK: - EXTERNAL INSULIN
 
         @MainActor func addExternalInsulin() async {
@@ -747,41 +722,41 @@ extension Bolus.StateModel {
         return (minForecast, maxForecast)
     }
 
-    @MainActor func updateForecasts(with forecastData: Determination? = nil) async {
+    @MainActor  func updateForecasts(with forecastData: Determination? = nil) async {
         if let forecastData = forecastData {
             simulatedDetermination = forecastData
-            predictionsForChart = simulatedDetermination?.predictions
         } else {
-            // Run simulateDetermineBasal on a background thread
-            let result = await Task.detached { [self] in
+            simulatedDetermination = await Task.detached { [self] in
                 await apsManager.simulateDetermineBasal(carbs: carbs, iob: amount)
             }.value
-
-            simulatedDetermination = result
-            predictionsForChart = result?.predictions
         }
 
-        let iob: [Int] = predictionsForChart?.iob ?? []
-        let zt: [Int] = predictionsForChart?.zt ?? []
-        let cob: [Int] = predictionsForChart?.cob ?? []
-        let uam: [Int] = predictionsForChart?.uam ?? []
+        predictionsForChart = simulatedDetermination?.predictions
 
-        // Filter out the empty arrays and find the maximum length of the remaining arrays
-        let nonEmptyArrays: [[Int]] = [iob, zt, cob, uam].filter { !$0.isEmpty }
-        guard !nonEmptyArrays.isEmpty, let maxCount = nonEmptyArrays.map(\.count).max(), maxCount > 0 else {
+        let nonEmptyArrays = [
+            predictionsForChart?.iob,
+            predictionsForChart?.zt,
+            predictionsForChart?.cob,
+            predictionsForChart?.uam
+        ]
+        .compactMap { $0 }
+        .filter { !$0.isEmpty }
+
+        guard !nonEmptyArrays.isEmpty else {
             minForecast = []
             maxForecast = []
             return
         }
 
-        minForecast = (0 ..< maxCount).map { index -> Int in
-            let valuesAtCurrentIndex = nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }
-            return valuesAtCurrentIndex.min() ?? 0
+        let maxCount = min(36, nonEmptyArrays.map(\.count).max() ?? 0)
+        guard maxCount > 0 else { return }
+
+        minForecast = (0 ..< maxCount).map { index in
+            nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }.min() ?? 0
         }
 
-        maxForecast = (0 ..< maxCount).map { index -> Int in
-            let valuesAtCurrentIndex = nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }
-            return valuesAtCurrentIndex.max() ?? 0
+        maxForecast = (0 ..< maxCount).map { index in
+            nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }.max() ?? 0
         }
     }
 }

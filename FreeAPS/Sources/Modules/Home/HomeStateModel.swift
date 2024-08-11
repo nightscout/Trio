@@ -979,12 +979,12 @@ extension Home.StateModel {
     }
 
     // Update forecast data and UI on the main thread
-    @MainActor func updateForecastData() async {
+    @MainActor  func updateForecastData() async {
         // Preprocess forecast data on a background thread
         let forecastData = await preprocessForecastData()
 
-        var allForecastValues: [[ForecastValue]] = []
-        var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
+        var allForecastValues = [[ForecastValue]]()
+        var preprocessedData = [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)]()
 
         // Use a task group to fetch forecast values concurrently
         await withTaskGroup(of: (UUID, Forecast?, [ForecastValue]).self) { group in
@@ -999,10 +999,7 @@ extension Home.StateModel {
                 guard let forecast = forecast, !forecastValues.isEmpty else { continue }
 
                 allForecastValues.append(forecastValues)
-
-                for forecastValue in forecastValues {
-                    preprocessedData.append((id: id, forecast: forecast, forecastValue: forecastValue))
-                }
+                preprocessedData.append(contentsOf: forecastValues.map { (id: id, forecast: forecast, forecastValue: $0) })
             }
         }
 
@@ -1016,18 +1013,15 @@ extension Home.StateModel {
         }
 
         let maxCount = min(36, allForecastValues.map(\.count).max() ?? 0)
+        guard maxCount > 0 else { return }
 
         // Calculate min and max forecast values
-        minForecast = (0 ..< maxCount).map { index -> Int in
-            let valuesAtCurrentIndex = allForecastValues
-                .compactMap { $0.indices.contains(index) ? Int($0[index].value) : nil }
-            return valuesAtCurrentIndex.min() ?? 0
+        minForecast = (0 ..< maxCount).map { index in
+            allForecastValues.compactMap { $0.indices.contains(index) ? Int($0[index].value) : nil }.min() ?? 0
         }
 
-        maxForecast = (0 ..< maxCount).map { index -> Int in
-            let valuesAtCurrentIndex = allForecastValues
-                .compactMap { $0.indices.contains(index) ? Int($0[index].value) : nil }
-            return valuesAtCurrentIndex.max() ?? 0
+        maxForecast = (0 ..< maxCount).map { index in
+            allForecastValues.compactMap { $0.indices.contains(index) ? Int($0[index].value) : nil }.max() ?? 0
         }
     }
 }

@@ -21,8 +21,9 @@ struct ForeCastChart: View {
                 .padding(.vertical, 3)
             HStack {
                 Spacer()
-                Text("evBG").font(.footnote).foregroundStyle(.primary)
-                Image(systemName: "arrow.right").font(.footnote).foregroundStyle(.secondary)
+                Image(systemName: "arrow.right.circle")
+                    .font(.system(size: 16, weight: .bold))
+//                Image(systemName: "arrow.right").font(.footnote).foregroundStyle(.secondary)
 
                 if let eventualBG = state.simulatedDetermination?.eventualBG {
                     HStack {

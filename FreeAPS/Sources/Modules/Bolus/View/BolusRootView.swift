@@ -10,6 +10,7 @@ extension Bolus {
             case carbs
             case fat
             case protein
+            case bolus
         }
 
         @FocusState private var focusedField: FocusedField?
@@ -95,7 +96,14 @@ extension Bolus {
             HStack {
                 Text("Fat").foregroundColor(.orange)
                 Spacer()
-                TextFieldWithToolBar(text: $state.fat, placeholder: "0", keyboardType: .numberPad, numberFormatter: mealFormatter)
+                TextFieldWithToolBar(
+                    text: $state.fat,
+                    placeholder: "0",
+                    keyboardType: .numberPad,
+                    numberFormatter: mealFormatter,
+                    previousTextField: { focusOnPreviousTextField(index: 2) },
+                    nextTextField: { focusOnNextTextField(index: 2) }
+                ).focused($focusedField, equals: .fat)
                 Text("g").foregroundColor(.secondary)
             }
             HStack {
@@ -105,8 +113,10 @@ extension Bolus {
                     text: $state.protein,
                     placeholder: "0",
                     keyboardType: .numberPad,
-                    numberFormatter: mealFormatter
-                )
+                    numberFormatter: mealFormatter,
+                    previousTextField: { focusOnPreviousTextField(index: 3) },
+                    nextTextField: { focusOnNextTextField(index: 3) }
+                ).focused($focusedField, equals: .protein)
                 Text("g").foregroundColor(.secondary)
             }
         }
@@ -119,12 +129,40 @@ extension Bolus {
                     text: $state.carbs,
                     placeholder: "0",
                     keyboardType: .numberPad,
-                    numberFormatter: mealFormatter
-                )
-                .onChange(of: state.carbs) { _ in
-                    handleDebouncedInput()
-                }
+                    numberFormatter: mealFormatter,
+                    previousTextField: { focusOnPreviousTextField(index: 1) },
+                    nextTextField: { focusOnNextTextField(index: 1) }
+                ).focused($focusedField, equals: .carbs)
+                    .onChange(of: state.carbs) { _ in
+                        handleDebouncedInput()
+                    }
                 Text("g").foregroundColor(.secondary)
+            }
+        }
+
+        func focusOnPreviousTextField(index: Int) {
+            switch index {
+            case 2:
+                focusedField = .carbs
+            case 3:
+                focusedField = .fat
+            case 4:
+                focusedField = .protein
+            default:
+                break
+            }
+        }
+
+        func focusOnNextTextField(index: Int) {
+            switch index {
+            case 1:
+                focusedField = .fat
+            case 2:
+                focusedField = .protein
+            case 3:
+                focusedField = .bolus
+            default:
+                break
             }
         }
 
@@ -232,21 +270,22 @@ extension Bolus {
                                     placeholder: "0",
                                     textColor: colorScheme == .dark ? .white : .blue,
                                     maxLength: 5,
-                                    numberFormatter: formatter
-                                ).onChange(of: state.amount) { _ in
-                                    Task {
-                                        await state.updateForecasts()
+                                    numberFormatter: formatter,
+                                    previousTextField: { focusOnPreviousTextField(index: 4) },
+                                    nextTextField: { focusOnNextTextField(index: 4) }
+                                ).focused($focusedField, equals: .bolus)
+                                    .onChange(of: state.amount) { _ in
+                                        Task {
+                                            await state.updateForecasts()
+                                        }
                                     }
-                                }
                                 Text(" U").foregroundColor(.secondary)
                             }
 
-                            if state.amount > 0 {
-                                HStack {
-                                    Text("External insulin")
-                                    Spacer()
-                                    Toggle("", isOn: $state.externalInsulin).toggleStyle(Checkbox())
-                                }
+                            HStack {
+                                Text("External insulin")
+                                Spacer()
+                                Toggle("", isOn: $state.externalInsulin).toggleStyle(Checkbox())
                             }
                         }.listRowBackground(Color.chart)
 

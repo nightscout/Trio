@@ -15,6 +15,8 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
     var textFieldDidBeginEditing: (() -> Void)?
     var numberFormatter: NumberFormatter
     var allowDecimalSeparator: Bool
+    var previousTextField: (() -> Void)?
+    var nextTextField: (() -> Void)?
 
     public init(
         text: Binding<Decimal>,
@@ -29,7 +31,9 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
         isDismissible: Bool = true,
         textFieldDidBeginEditing: (() -> Void)? = nil,
         numberFormatter: NumberFormatter,
-        allowDecimalSeparator: Bool = true
+        allowDecimalSeparator: Bool = true,
+        previousTextField: (() -> Void)? = nil,
+        nextTextField: (() -> Void)? = nil
     ) {
         _text = text
         self.placeholder = placeholder
@@ -45,6 +49,8 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
         self.numberFormatter = numberFormatter
         self.numberFormatter.numberStyle = .decimal
         self.allowDecimalSeparator = allowDecimalSeparator
+        self.previousTextField = previousTextField
+        self.nextTextField = nextTextField
     }
 
     public func makeUIView(context: Context) -> UITextField {
@@ -77,8 +83,20 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
             target: context.coordinator,
             action: #selector(Coordinator.clearText)
         )
+        let previousButton = UIBarButtonItem(
+            image: UIImage(systemName: "chevron.up"),
+            style: .plain,
+            target: context.coordinator,
+            action: #selector(Coordinator.previousTextField)
+        )
+        let nextButton = UIBarButtonItem(
+            image: UIImage(systemName: "chevron.down"),
+            style: .plain,
+            target: context.coordinator,
+            action: #selector(Coordinator.nextTextField)
+        )
 
-        toolbar.items = [clearButton, flexibleSpace, doneButton]
+        toolbar.items = [clearButton, previousButton, nextButton, flexibleSpace, doneButton]
         toolbar.sizeToFit()
         return toolbar
     }
@@ -134,6 +152,14 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
             DispatchQueue.main.async {
                 textField.moveCursorToEnd()
             }
+        }
+
+        @objc fileprivate func previousTextField() {
+            parent.previousTextField?()
+        }
+
+        @objc fileprivate func nextTextField() {
+            parent.nextTextField?()
         }
 
         // Helper method to calculate the number of decimal places in a string
