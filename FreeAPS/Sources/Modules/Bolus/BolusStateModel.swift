@@ -99,6 +99,7 @@ extension Bolus {
         @Published var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
         @Published var predictionsForChart: Predictions?
         @Published var simulatedDetermination: Determination?
+        @Published var determinationObjectIDs: [NSManagedObjectID] = []
 
         @Published var minForecast: [Int] = []
         @Published var maxForecast: [Int] = []
@@ -116,13 +117,14 @@ extension Bolus {
             setupGlucoseNotification()
             coreDataObserver = CoreDataObserver()
             registerHandlers()
+            setupGlucoseArray()
 
             Task {
-                await updateForecasts()
+                await setupDeterminationsArray()
+                // Determination has updated, so we can use this to draw the initial Forecast Chart
+                let forecastData = await mapForecastsForChart()
+                await updateForecasts(with: forecastData)
             }
-
-            setupGlucoseArray()
-            setupDeterminationsArray()
 
             broadcaster.register(DeterminationObserver.self, observer: self)
             broadcaster.register(BolusFailureObserver.self, observer: self)
@@ -561,7 +563,10 @@ extension Bolus.StateModel {
     private func registerHandlers() {
         coreDataObserver?.registerHandler(for: "OrefDetermination") { [weak self] in
             guard let self = self else { return }
-            self.setupDeterminationsArray()
+            Task {
+                await self.setupDeterminationsArray()
+                await self.updateForecasts()
+            }
         }
 
         // Due to the Batch insert this only is used for observing Deletion of Glucose entries
@@ -625,21 +630,76 @@ extension Bolus.StateModel {
     }
 
     // Determinations
-    private func setupDeterminationsArray() {
-        Task {
-            let ids = await determinationStorage.fetchLastDeterminationObjectID(
-                predicate: NSPredicate.predicateFor30MinAgoForDetermination
+    private func setupDeterminationsArray() async {
+        // Fetch object IDs on a background thread
+        let fetchedObjectIDs = await determinationStorage.fetchLastDeterminationObjectID(
+            predicate: NSPredicate.predicateFor30MinAgoForDetermination
+        )
+
+        // Update determinationObjectIDs on the main thread
+        await MainActor.run {
+            determinationObjectIDs = fetchedObjectIDs
+        }
+
+        let determinationObjects: [OrefDetermination] = await CoreDataStack.shared
+            .getNSManagedObject(with: determinationObjectIDs, context: viewContext)
+
+        async let updateDetermination: () = updateDeterminationsArray(with: determinationObjects)
+        async let getCurrentBasal: () = getCurrentBasal()
+
+        await getCurrentBasal
+        await updateDetermination
+    }
+
+    private func mapForecastsForChart() async -> Determination? {
+        let determinationObjects: [OrefDetermination] = await CoreDataStack.shared
+            .getNSManagedObject(with: determinationObjectIDs, context: backgroundContext)
+
+        return await backgroundContext.perform {
+            guard let determinationObject = determinationObjects.first else {
+                return nil
+            }
+
+            let eventualBG = determinationObject.eventualBG?.intValue
+
+            let forecastsSet = determinationObject.forecasts as? Set<Forecast> ?? []
+            let predictions = Predictions(
+                iob: forecastsSet.extractValues(for: "iob"),
+                zt: forecastsSet.extractValues(for: "zt"),
+                cob: forecastsSet.extractValues(for: "cob"),
+                uam: forecastsSet.extractValues(for: "uam")
             )
-            let determinationObjects: [OrefDetermination] = await CoreDataStack.shared
-                .getNSManagedObject(with: ids, context: viewContext)
 
-            async let updateDetermination: () = updateDeterminationsArray(with: determinationObjects)
-            async let getCurrentBasal: () = getCurrentBasal()
-            async let updateForecasts: () = updateForecasts()
-
-            await updateForecasts
-            await getCurrentBasal
-            await updateDetermination
+            return Determination(
+                id: UUID(),
+                reason: "",
+                units: 0,
+                insulinReq: 0,
+                eventualBG: eventualBG,
+                sensitivityRatio: 0,
+                rate: 0,
+                duration: 0,
+                iob: 0,
+                cob: 0,
+                predictions: predictions.isEmpty ? nil : predictions,
+                carbsReq: 0,
+                temp: nil,
+                bg: 0,
+                reservoir: 0,
+                isf: 0,
+                tdd: 0,
+                insulin: nil,
+                current_target: 0,
+                insulinForManualBolus: 0,
+                manualBolusErrorString: 0,
+                minDelta: 0,
+                expectedDelta: 0,
+                minGuardBG: 0,
+                minPredBG: 0,
+                threshold: 0,
+                carbRatio: 0,
+                received: false
+            )
         }
     }
 
@@ -687,14 +747,19 @@ extension Bolus.StateModel {
         return (minForecast, maxForecast)
     }
 
-    @MainActor func updateForecasts() async {
-        // Run simulateDetermineBasal on a background thread
-        let result = await Task.detached { [self] in
-            await apsManager.simulateDetermineBasal(carbs: carbs, iob: amount)
-        }.value
+    @MainActor func updateForecasts(with forecastData: Determination? = nil) async {
+        if let forecastData = forecastData {
+            simulatedDetermination = forecastData
+            predictionsForChart = simulatedDetermination?.predictions
+        } else {
+            // Run simulateDetermineBasal on a background thread
+            let result = await Task.detached { [self] in
+                await apsManager.simulateDetermineBasal(carbs: carbs, iob: amount)
+            }.value
 
-        simulatedDetermination = result
-        predictionsForChart = result?.predictions
+            simulatedDetermination = result
+            predictionsForChart = result?.predictions
+        }
 
         let iob: [Int] = predictionsForChart?.iob ?? []
         let zt: [Int] = predictionsForChart?.zt ?? []
@@ -718,5 +783,21 @@ extension Bolus.StateModel {
             let valuesAtCurrentIndex = nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }
             return valuesAtCurrentIndex.max() ?? 0
         }
+    }
+}
+
+private extension Set where Element == Forecast {
+    func extractValues(for type: String) -> [Int]? {
+        let values = first { $0.type == type }?
+            .forecastValues?
+            .sorted { $0.index < $1.index }
+            .compactMap { Int($0.value) }
+        return values?.isEmpty ?? true ? nil : values
+    }
+}
+
+private extension Predictions {
+    var isEmpty: Bool {
+        iob == nil && zt == nil && cob == nil && uam == nil
     }
 }

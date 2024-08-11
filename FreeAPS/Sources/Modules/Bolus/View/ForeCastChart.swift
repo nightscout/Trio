@@ -97,7 +97,8 @@ struct ForeCastChart: View {
                 yStart: .value("Min Value", Decimal(state.minForecast[index]) * conversionFactor),
                 yEnd: .value("Max Value", Decimal(state.maxForecast[index]) * conversionFactor)
             )
-            .foregroundStyle(Color.blue.opacity(0.3))
+            .foregroundStyle(Color.blue.opacity(0.5))
+            .interpolationMethod(.catmullRom)
         }
     }
 

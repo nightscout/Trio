@@ -310,8 +310,8 @@ final class OpenAPS {
             preferencesAsync
         )
 
-        // Parallelize Meal and IOB calculations
-        async let calculateMeal = self.meal(
+        // Meal calculation
+        let meal = try await self.meal(
             pumphistory: pumpHistoryJSON,
             profile: profile,
             basalProfile: basalProfile,
@@ -320,15 +320,13 @@ final class OpenAPS {
             glucose: glucoseAsJSON
         )
 
-        async let calculateIOB = self.iob(
+        // IOB calculation
+        let iob = try await self.iob(
             pumphistory: pumpHistoryJSON,
             profile: profile,
             clock: clock,
             autosens: autosens.isEmpty ? .null : autosens
         )
-
-        // Await the meal and IOB results
-        let (meal, iob) = try await (calculateMeal, calculateIOB)
 
         // TODO: refactor this to core data
         if !simulation {

@@ -524,7 +524,8 @@ extension MainChartView {
                         units == .mmolL ? Decimal(state.maxForecast[index]).asMmolL : Decimal(state.maxForecast[index])
                     )
                 )
-                .foregroundStyle(Color.blue.opacity(0.2))
+                .foregroundStyle(Color.blue.opacity(0.5))
+                .interpolationMethod(.catmullRom)
             }
         }
     }
