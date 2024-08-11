@@ -55,7 +55,7 @@ extension UnitsLimitsSettings {
                             hintLabel = NSLocalizedString("Max IOB", comment: "Max IOB")
                         }
                     ),
-                    type: .decimal,
+                    type: .decimal("maxIOB"),
                     label: NSLocalizedString("Max IOB", comment: "Max IOB"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                     verboseHint: NSLocalizedString(
@@ -75,7 +75,7 @@ extension UnitsLimitsSettings {
                             hintLabel = NSLocalizedString("Max COB", comment: "Max COB")
                         }
                     ),
-                    type: .decimal,
+                    type: .decimal("maxCOB"),
                     label: NSLocalizedString("Max COB", comment: "Max COB"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                     verboseHint: NSLocalizedString(

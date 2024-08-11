@@ -138,7 +138,7 @@ extension TargetBehavoir {
                             hintLabel = NSLocalizedString("Half Basal Exercise Target", comment: "Half Basal Exercise Target")
                         }
                     ),
-                    type: .decimal,
+                    type: .decimal("halfBasalExerciseTarget"),
                     label: NSLocalizedString("Half Basal Exercise Target", comment: "Half Basal Exercise Target"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                     verboseHint: NSLocalizedString(

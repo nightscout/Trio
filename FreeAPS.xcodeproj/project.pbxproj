@@ -419,6 +419,7 @@
 		DD1745522C55CA5D00211FAC /* UnitsLimitsSettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745512C55CA5D00211FAC /* UnitsLimitsSettingsStateModel.swift */; };
 		DD1745552C55CA6C00211FAC /* UnitsLimitsSettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745542C55CA6C00211FAC /* UnitsLimitsSettingsRootView.swift */; };
 		DD1DB7CC2BECCA1F0048B367 /* BuildDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */; };
+		DD21FCB52C6952AD00AF2C25 /* DecimalPickerSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD21FCB42C6952AD00AF2C25 /* DecimalPickerSettings.swift */; };
 		DD399FB31EACB9343C944C4C /* PreferencesEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CA3E609094E064C99A4752C /* PreferencesEditorStateModel.swift */; };
 		DD57C4B22C4C7103001A5B28 /* LoopStatRecord+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4902C4C7103001A5B28 /* LoopStatRecord+CoreDataClass.swift */; };
 		DD57C4B32C4C7103001A5B28 /* LoopStatRecord+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4912C4C7103001A5B28 /* LoopStatRecord+CoreDataProperties.swift */; };
@@ -1060,6 +1061,7 @@
 		DD1745512C55CA5D00211FAC /* UnitsLimitsSettingsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitsLimitsSettingsStateModel.swift; sourceTree = "<group>"; };
 		DD1745542C55CA6C00211FAC /* UnitsLimitsSettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitsLimitsSettingsRootView.swift; sourceTree = "<group>"; };
 		DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildDetails.swift; sourceTree = "<group>"; };
+		DD21FCB42C6952AD00AF2C25 /* DecimalPickerSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecimalPickerSettings.swift; sourceTree = "<group>"; };
 		DD57C4902C4C7103001A5B28 /* LoopStatRecord+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoopStatRecord+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		DD57C4912C4C7103001A5B28 /* LoopStatRecord+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoopStatRecord+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		DD57C4922C4C7103001A5B28 /* MealPresetStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MealPresetStored+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
@@ -1884,6 +1886,7 @@
 				BDF530D72B40F8AC002CAF43 /* LockScreenView.swift */,
 				583684072BD195A700070A60 /* Determination.swift */,
 				BDC2EA462C3045AD00E5BBD0 /* Override.swift */,
+				DD21FCB42C6952AD00AF2C25 /* DecimalPickerSettings.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -3285,6 +3288,7 @@
 				3811DE2225C9D48300A708ED /* MainProvider.swift in Sources */,
 				3811DE0C25C9D32F00A708ED /* BaseProvider.swift in Sources */,
 				CE95BF5A2BA62E4A00DC3DE3 /* PluginSource.swift in Sources */,
+				DD21FCB52C6952AD00AF2C25 /* DecimalPickerSettings.swift in Sources */,
 				3811DE5C25C9D4D500A708ED /* Formatters.swift in Sources */,
 				3871F39F25ED895A0013ECB5 /* Decimal+Extensions.swift in Sources */,
 				CEE9A6592BBB418300EB5194 /* CalibrationsDataFlow.swift in Sources */,

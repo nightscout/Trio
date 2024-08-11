@@ -12,6 +12,8 @@ extension UserInterfaceSettings {
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
+        @State private var displayPickerLowThreshold: Bool = false
+        @State private var displayPickerHighThreshold: Bool = false
 
         @Environment(\.colorScheme) var colorScheme
         var color: LinearGradient {
@@ -102,17 +104,71 @@ extension UserInterfaceSettings {
 
                 Section {
                     VStack {
-                        HStack {
-                            Text("Low Threshold")
-                            Spacer()
-                            TextFieldWithToolBar(text: $state.low, placeholder: "0", numberFormatter: glucoseFormatter)
-                            Text(state.units.rawValue).foregroundColor(.secondary)
-                        }.padding(.top)
-                        HStack {
-                            Text("High Threshold")
-                            Spacer()
-                            TextFieldWithToolBar(text: $state.high, placeholder: "0", numberFormatter: glucoseFormatter)
-                            Text(state.units.rawValue).foregroundColor(.secondary)
+                        VStack {
+                            HStack {
+                                Text("Low Threshold")
+
+                                Spacer()
+
+                                Group {
+                                    Text(state.low.description)
+                                        .foregroundColor(!displayPickerLowThreshold ? .primary : .accentColor)
+
+                                    Text(state.units == .mgdL ? " mg/dL" : " mmol/L").foregroundColor(.secondary)
+                                }
+                            }
+                            .onTapGesture {
+                                displayPickerLowThreshold.toggle()
+                            }
+                        }
+                        .padding(.top)
+
+                        if displayPickerLowThreshold {
+                            let setting = PickerSettingsProvider.shared.settings.low
+
+                            Picker(selection: $state.low, label: Text("")) {
+                                ForEach(
+                                    PickerSettingsProvider.shared.generatePickerValues(from: setting),
+                                    id: \.self
+                                ) { value in
+                                    Text("\(value.description)").tag(value)
+                                }
+                            }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: .infinity)
+                        }
+
+                        VStack {
+                            HStack {
+                                Text("High Threshold")
+
+                                Spacer()
+
+                                Group {
+                                    Text(state.high.description)
+                                        .foregroundColor(!displayPickerHighThreshold ? .primary : .accentColor)
+
+                                    Text(state.units == .mgdL ? " mg/dL" : " mmol/L").foregroundColor(.secondary)
+                                }
+                            }
+                            .onTapGesture {
+                                displayPickerHighThreshold.toggle()
+                            }
+                        }
+                        .padding(.top)
+
+                        if displayPickerHighThreshold {
+                            let setting = PickerSettingsProvider.shared.settings.high
+                            Picker(selection: $state.high, label: Text("")) {
+                                ForEach(
+                                    PickerSettingsProvider.shared.generatePickerValues(from: setting),
+                                    id: \.self
+                                ) { value in
+                                    Text("\(value.description)").tag(value)
+                                }
+                            }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: .infinity)
                         }
 
                         HStack(alignment: .top) {
@@ -136,7 +192,7 @@ extension UserInterfaceSettings {
                                     }
                                 }
                             ).buttonStyle(BorderlessButtonStyle())
-                        }
+                        }.padding(.top)
                     }.padding(.bottom)
                 }.listRowBackground(Color.chart)
 
@@ -151,7 +207,7 @@ extension UserInterfaceSettings {
                             hintLabel = "X-Axis Interval Step"
                         }
                     ),
-                    type: .decimal,
+                    type: .decimal("hours"),
                     label: "X-Axis Interval Step",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                     verboseHint: "X-Axis Interval Step… bla bla bla"
@@ -240,7 +296,7 @@ extension UserInterfaceSettings {
                             hintLabel = "Show Carbs Required Badge"
                         }
                     ),
-                    type: .conditionalDecimal,
+                    type: .conditionalDecimal("carbsRequiredThreshold"),
                     label: "Show Carbs Required Badge",
                     conditionalLabel: "Carbs Required Threshold",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",

@@ -45,7 +45,7 @@ extension AutosensSettings {
                             hintLabel = NSLocalizedString("Autosens Max", comment: "Autosens Max")
                         }
                     ),
-                    type: .decimal,
+                    type: .decimal("autosensMax"),
                     label: NSLocalizedString("Autosens Max", comment: "Autosens Max"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                     verboseHint: NSLocalizedString(
@@ -63,10 +63,10 @@ extension AutosensSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0
-                            hintLabel = NSLocalizedString("Autosens Max", comment: "Autosens Max")
+                            hintLabel = NSLocalizedString("Autosens Min", comment: "Autosens Min")
                         }
                     ),
-                    type: .decimal,
+                    type: .decimal("autosensMin"),
                     label: NSLocalizedString("Autosens Min", comment: "Autosens Min"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                     verboseHint: NSLocalizedString(

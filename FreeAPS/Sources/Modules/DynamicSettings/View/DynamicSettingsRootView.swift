@@ -121,7 +121,7 @@ extension DynamicSettings {
                                     hintLabel = "Adjustment Factor"
                                 }
                             ),
-                            type: .decimal,
+                            type: .decimal("adjustmentFactor"),
                             label: "Adjustment Factor",
                             miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                             verboseHint: "Adjustment Factor for logarithmic dynamic sensitvity... bla bla bla"
@@ -138,7 +138,7 @@ extension DynamicSettings {
                                     hintLabel = "Sigmoid Adjustment Factor"
                                 }
                             ),
-                            type: .decimal,
+                            type: .decimal("adjustmentFactorSigmoid"),
                             label: "Sigmoid Adjustment Factor",
                             miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                             verboseHint: "Sigmoid Adjustment Factor… should be 0.5… bla bla ba"
@@ -156,7 +156,7 @@ extension DynamicSettings {
                                 hintLabel = "Weighted Average of TDD"
                             }
                         ),
-                        type: .decimal,
+                        type: .decimal("weightPercentage"),
                         label: "Weighted Average of TDD",
                         miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                         verboseHint: "Weight of past 24 hours"
@@ -190,7 +190,7 @@ extension DynamicSettings {
                                 hintLabel = "Threshold Setting"
                             }
                         ),
-                        type: .decimal,
+                        type: .decimal("threshold_setting"),
                         label: "Threshold Setting",
                         miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                         verboseHint: "BG threshold"

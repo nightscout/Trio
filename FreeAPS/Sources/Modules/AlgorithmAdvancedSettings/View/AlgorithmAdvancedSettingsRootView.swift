@@ -57,7 +57,7 @@ extension AlgorithmAdvancedSettings {
                             hintLabel = NSLocalizedString("Max Daily Safety Multiplier", comment: "Max Daily Safety Multiplier")
                         }
                     ),
-                    type: .decimal,
+                    type: .decimal("maxDailySafetyMultiplier"),
                     label: NSLocalizedString("Max Daily Safety Multiplier", comment: "Max Daily Safety Multiplier"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                     verboseHint: NSLocalizedString(
@@ -80,7 +80,7 @@ extension AlgorithmAdvancedSettings {
                             )
                         }
                     ),
-                    type: .decimal,
+                    type: .decimal("currentBasalSafetyMultiplier"),
                     label: NSLocalizedString("Current Basal Safety Multiplier", comment: "Current Basal Safety Multiplier"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                     verboseHint: NSLocalizedString(
@@ -100,7 +100,7 @@ extension AlgorithmAdvancedSettings {
                             hintLabel = NSLocalizedString("Use Custom Peak Time", comment: "Use Custom Peak Time")
                         }
                     ),
-                    type: .conditionalDecimal,
+                    type: .conditionalDecimal("insulinPeakTime"),
                     label: NSLocalizedString("Use Custom Peak Time", comment: "Use Custom Peak Time"),
                     conditionalLabel: NSLocalizedString("Insulin Peak Time", comment: "Insulin Peak Time"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -186,7 +186,7 @@ extension AlgorithmAdvancedSettings {
                             )
                         }
                     ),
-                    type: .decimal,
+                    type: .decimal("autotuneISFAdjustmentFraction"),
                     label: NSLocalizedString("Autotune ISF Adjustment Fraction", comment: "Autotune ISF Adjustment Fraction"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                     verboseHint: NSLocalizedString(
@@ -206,7 +206,7 @@ extension AlgorithmAdvancedSettings {
                             hintLabel = NSLocalizedString("Min 5m Carbimpact", comment: "Min 5m Carbimpact")
                         }
                     ),
-                    type: .decimal,
+                    type: .decimal("min5mCarbimpact"),
                     label: NSLocalizedString("Min 5m Carbimpact", comment: "Min 5m Carbimpact"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                     verboseHint: NSLocalizedString(
@@ -226,7 +226,7 @@ extension AlgorithmAdvancedSettings {
                             hintLabel = NSLocalizedString("Remaining Carbs Fraction", comment: "Remaining Carbs Fraction")
                         }
                     ),
-                    type: .decimal,
+                    type: .decimal("remainingCarbsFraction"),
                     label: NSLocalizedString("Remaining Carbs Fraction", comment: "Remaining Carbs Fraction"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                     verboseHint: NSLocalizedString(
@@ -246,7 +246,7 @@ extension AlgorithmAdvancedSettings {
                             hintLabel = NSLocalizedString("Remaining Carbs Cap", comment: "Remaining Carbs Cap")
                         }
                     ),
-                    type: .decimal,
+                    type: .decimal("remainingCarbsCap"),
                     label: NSLocalizedString("Remaining Carbs Cap", comment: "Remaining Carbs Cap"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                     verboseHint: NSLocalizedString(
@@ -266,7 +266,7 @@ extension AlgorithmAdvancedSettings {
                             hintLabel = NSLocalizedString("Noisy CGM Target Multiplier", comment: "Noisy CGM Target Multiplier")
                         }
                     ),
-                    type: .decimal,
+                    type: .decimal("noisyCGMTargetMultiplier"),
                     label: NSLocalizedString("Noisy CGM Target Multiplier", comment: "Noisy CGM Target Multiplier"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                     verboseHint: NSLocalizedString(

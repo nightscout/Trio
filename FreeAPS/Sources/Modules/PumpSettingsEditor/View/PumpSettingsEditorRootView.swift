@@ -91,7 +91,7 @@ extension PumpSettingsEditor {
                             hintLabel = "Duration of Insulin Action"
                         }
                     ),
-                    type: .decimal,
+                    type: .decimal("dia"),
                     label: "Duration of Insulin Action",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                     verboseHint: "Duration of Insulin Action… bla bla bla"

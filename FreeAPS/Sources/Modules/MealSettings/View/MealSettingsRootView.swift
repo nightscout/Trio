@@ -13,6 +13,9 @@ extension MealSettings {
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
+        @State private var displayPickerMaxCarbs: Bool = false
+        @State private var displayPickerMaxFat: Bool = false
+        @State private var displayPickerMaxProtein: Bool = false
 
         @Environment(\.colorScheme) var colorScheme
         var color: LinearGradient {
@@ -58,20 +61,104 @@ extension MealSettings {
                     header: Text("Limits per Entry"),
                     content: {
                         VStack {
-                            HStack {
-                                Text("Max Carbs")
-                                TextFieldWithToolBar(text: $state.maxCarbs, placeholder: "g", numberFormatter: formatter)
-                            }.padding(state.useFPUconversion ? .top : .vertical)
+                            VStack {
+                                HStack {
+                                    Text("Max Carbs")
+
+                                    Spacer()
+
+                                    Group {
+                                        Text(state.maxCarbs.description)
+                                            .foregroundColor(!displayPickerMaxCarbs ? .primary : .accentColor)
+
+                                        Text(" g").foregroundColor(.secondary)
+                                    }
+                                }
+                                .onTapGesture {
+                                    displayPickerMaxCarbs.toggle()
+                                }
+                            }.padding(.top)
+
+                            if displayPickerMaxCarbs {
+                                let setting = PickerSettingsProvider.shared.settings.maxCarbs
+                                Picker(selection: $state.maxCarbs, label: Text("")) {
+                                    ForEach(
+                                        PickerSettingsProvider.shared.generatePickerValues(from: setting),
+                                        id: \.self
+                                    ) { value in
+                                        Text("\(value.description)").tag(value)
+                                    }
+                                }
+                                .pickerStyle(WheelPickerStyle())
+                                .frame(maxWidth: .infinity)
+                            }
 
                             if state.useFPUconversion {
-                                HStack {
-                                    Text("Max Fat")
-                                    TextFieldWithToolBar(text: $state.maxFat, placeholder: "g", numberFormatter: formatter)
+                                VStack {
+                                    HStack {
+                                        Text("Max Fat")
+
+                                        Spacer()
+
+                                        Group {
+                                            Text(state.maxFat.description)
+                                                .foregroundColor(!displayPickerMaxFat ? .primary : .accentColor)
+
+                                            Text(" g").foregroundColor(.secondary)
+                                        }
+                                    }
+                                    .onTapGesture {
+                                        displayPickerMaxFat.toggle()
+                                    }
                                 }
-                                HStack {
-                                    Text("Max Protein")
-                                    TextFieldWithToolBar(text: $state.maxProtein, placeholder: "g", numberFormatter: formatter)
-                                }.padding(.bottom)
+                                .padding(.top)
+
+                                if displayPickerMaxFat {
+                                    let setting = PickerSettingsProvider.shared.settings.maxFat
+                                    Picker(selection: $state.maxCarbs, label: Text("")) {
+                                        ForEach(
+                                            PickerSettingsProvider.shared.generatePickerValues(from: setting),
+                                            id: \.self
+                                        ) { value in
+                                            Text("\(value.description)").tag(value)
+                                        }
+                                    }
+                                    .pickerStyle(WheelPickerStyle())
+                                    .frame(maxWidth: .infinity)
+                                }
+
+                                VStack {
+                                    HStack {
+                                        Text("Max Protein")
+
+                                        Spacer()
+
+                                        Group {
+                                            Text(state.maxProtein.description)
+                                                .foregroundColor(!displayPickerMaxProtein ? .primary : .accentColor)
+
+                                            Text(" g").foregroundColor(.secondary)
+                                        }
+                                    }
+                                    .onTapGesture {
+                                        displayPickerMaxProtein.toggle()
+                                    }
+                                }
+                                .padding(.top)
+
+                                if displayPickerMaxProtein {
+                                    let setting = PickerSettingsProvider.shared.settings.maxProtein
+                                    Picker(selection: $state.maxProtein, label: Text("")) {
+                                        ForEach(
+                                            PickerSettingsProvider.shared.generatePickerValues(from: setting),
+                                            id: \.self
+                                        ) { value in
+                                            Text("\(value.description)").tag(value)
+                                        }
+                                    }
+                                    .pickerStyle(WheelPickerStyle())
+                                    .frame(maxWidth: .infinity)
+                                }
                             }
 
                             HStack(alignment: .top) {
@@ -95,7 +182,7 @@ extension MealSettings {
                                         }
                                     }
                                 ).buttonStyle(BorderlessButtonStyle())
-                            }
+                            }.padding(.top)
                         }.padding(.bottom)
                     }
                 ).listRowBackground(Color.chart)
@@ -130,7 +217,7 @@ extension MealSettings {
                                 hintLabel = "Fat and Protein Delay"
                             }
                         ),
-                        type: .decimal,
+                        type: .decimal("delay"),
                         label: "Fat and Protein Delay",
                         miniHint: "Delay is time from now until the first future carb entry.",
                         verboseHint: "X-Axis Interval Step… bla bla bla"
@@ -147,7 +234,7 @@ extension MealSettings {
                                 hintLabel = "Maximum Duration (hours)"
                             }
                         ),
-                        type: .decimal,
+                        type: .decimal("timeCap"),
                         label: "Maximum Duration (hours)",
                         miniHint: "Carb spread over a maximum number of hours (5-12).",
                         verboseHint: "This spreads the carb equivilants over a maximum duration setting that can be configured from 5-12 hours."
@@ -164,14 +251,14 @@ extension MealSettings {
                                 hintLabel = "Spread Interval (minutes)"
                             }
                         ),
-                        type: .decimal,
+                        type: .decimal("minuteInterval"),
                         label: "Spread Interval (minutes)",
                         miniHint: "Interval in minutes is how many minutes are between entries.",
                         verboseHint: "Interval in minutes is how many minutes are between entries. The shorter the interval, the smoother the result. 10, 15, 20, 30, or 60 are reasonable choices."
                     )
 
                     SettingInputSection(
-                        decimalValue: $state.minuteInterval,
+                        decimalValue: $state.individualAdjustmentFactor,
                         booleanValue: $booleanPlaceholder,
                         shouldDisplayHint: $shouldDisplayHint,
                         selectedVerboseHint: Binding(
@@ -181,7 +268,7 @@ extension MealSettings {
                                 hintLabel = "Fat and Protein Factor"
                             }
                         ),
-                        type: .decimal,
+                        type: .decimal("individualAdjustmentFactor"),
                         label: "Fat and Protein Factor",
                         miniHint: "Influences how many carb equivalents are recorded for fat and protein.",
                         verboseHint: "The Fat and Protein Factor influences how much effect the fat and protein has on the entries. 1.0 is full effect (original Warsaw Method) and 0.5 is half effect. Note that you may find that your normal carb ratio needs to increase to a larger number if you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 0.5 to ease into it."

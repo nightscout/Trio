@@ -153,7 +153,7 @@ extension SMBSettings {
                                 hintLabel = NSLocalizedString("Enable SMB With High BG", comment: "Enable SMB With High BG")
                             }
                         ),
-                        type: .conditionalDecimal,
+                        type: .conditionalDecimal("enableSMB_high_bg_target"),
                         label: NSLocalizedString("Enable SMB With High BG", comment: "Enable SMB With High BG"),
                         conditionalLabel: "High BG Target",
                         miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -195,7 +195,7 @@ extension SMBSettings {
                             hintLabel = NSLocalizedString("Max SMB Basal Minutes", comment: "Max SMB Basal Minutes")
                         }
                     ),
-                    type: .decimal,
+                    type: .decimal("maxSMBBasalMinutes"),
                     label: NSLocalizedString("Max SMB Basal Minutes", comment: "Max SMB Basal Minutes"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                     verboseHint: NSLocalizedString(
@@ -215,7 +215,7 @@ extension SMBSettings {
                             hintLabel = NSLocalizedString("Max UAM SMB Basal Minutes", comment: "Max UAM SMB Basal Minutes")
                         }
                     ),
-                    type: .decimal,
+                    type: .decimal("maxUAMSMBBasalMinutes"),
                     label: NSLocalizedString("Max UAM SMB Basal Minutes", comment: "Max UAM SMB Basal Minutes"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                     verboseHint: NSLocalizedString(
@@ -235,7 +235,7 @@ extension SMBSettings {
                             hintLabel = NSLocalizedString("Max Delta-BG Threshold SMB", comment: "Max Delta-BG Threshold")
                         }
                     ),
-                    type: .decimal,
+                    type: .decimal("maxDeltaBGthreshold"),
                     label: NSLocalizedString("Max Delta-BG Threshold SMB", comment: "Max Delta-BG Threshold"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                     verboseHint: NSLocalizedString(
@@ -255,7 +255,7 @@ extension SMBSettings {
                             hintLabel = NSLocalizedString("SMB DeliveryRatio", comment: "SMB DeliveryRatio")
                         }
                     ),
-                    type: .decimal,
+                    type: .decimal("smbDeliveryRatio"),
                     label: NSLocalizedString("SMB DeliveryRatio", comment: "SMB DeliveryRatio"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                     verboseHint: NSLocalizedString(
@@ -275,7 +275,7 @@ extension SMBSettings {
                             hintLabel = NSLocalizedString("SMB Interval", comment: "SMB Interval")
                         }
                     ),
-                    type: .decimal,
+                    type: .decimal("smbInterval"),
                     label: NSLocalizedString("SMB Interval", comment: "SMB Interval"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                     verboseHint: NSLocalizedString(
