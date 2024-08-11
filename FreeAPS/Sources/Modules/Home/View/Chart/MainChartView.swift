@@ -266,14 +266,34 @@ extension MainChartView {
                 drawCarbs()
 
                 /// show glucose value when hovering over it
-                if let selectedGlucose {
-                    RuleMark(x: .value("Selection", selectedGlucose.date ?? now, unit: .minute))
-                        .foregroundStyle(Color.tabBar)
-                        .offset(yStart: 70)
-                        .lineStyle(.init(lineWidth: 2, dash: [5]))
-                        .annotation(position: .top) {
-                            selectionPopover
-                        }
+                if #available(iOS 17, *) {
+                    if let selectedGlucose {
+                        RuleMark(x: .value("Selection", selectedGlucose.date ?? now, unit: .minute))
+                            .foregroundStyle(Color.tabBar)
+                            .offset(yStart: 70)
+                            .lineStyle(.init(lineWidth: 2, dash: [5]))
+                            .annotation(
+                                position: .top,
+                                alignment: .center,
+                                overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))
+                            ) {
+                                selectionPopover
+                            }
+
+                        PointMark(
+                            x: .value("Time", selectedGlucose.date ?? now, unit: .minute),
+                            y: .value("Value", selectedGlucose.glucose)
+                        )
+                        .symbolSize(CGSize(width: 16, height: 16))
+                        .foregroundStyle(Color.secondary)
+
+                        PointMark(
+                            x: .value("Time", selectedGlucose.date ?? now, unit: .minute),
+                            y: .value("Value", selectedGlucose.glucose)
+                        )
+                        .symbolSize(CGSize(width: 6, height: 6))
+                        .foregroundStyle(Color.primary)
+                    }
                 }
             }
             .id("MainChart")
@@ -324,6 +344,10 @@ extension MainChartView {
                 RoundedRectangle(cornerRadius: 4)
                     .fill(Color.gray.opacity(0.1))
                     .shadow(color: .blue, radius: 2)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4)
+                            .stroke(Color.blue, lineWidth: 2)
+                    )
             }
         }
     }
