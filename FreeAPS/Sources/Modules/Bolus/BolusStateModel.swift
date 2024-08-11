@@ -722,7 +722,7 @@ extension Bolus.StateModel {
         return (minForecast, maxForecast)
     }
 
-    @MainActor  func updateForecasts(with forecastData: Determination? = nil) async {
+    @MainActor func updateForecasts(with forecastData: Determination? = nil) async {
         if let forecastData = forecastData {
             simulatedDetermination = forecastData
         } else {

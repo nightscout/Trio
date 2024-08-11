@@ -979,7 +979,7 @@ extension Home.StateModel {
     }
 
     // Update forecast data and UI on the main thread
-    @MainActor  func updateForecastData() async {
+    @MainActor func updateForecastData() async {
         // Preprocess forecast data on a background thread
         let forecastData = await preprocessForecastData()
 

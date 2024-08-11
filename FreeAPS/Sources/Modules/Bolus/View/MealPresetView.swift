@@ -113,13 +113,6 @@ struct MealPresetView: View {
                 }
                 .labelsHidden()
                 .frame(maxWidth: .infinity, alignment: .center)
-                .onChange(of: state.selection) { newSelection in
-                    guard let selected = newSelection else { return }
-                    carbs += ((selected.carbs ?? 0) as NSDecimalNumber) as Decimal
-                    fat += ((selected.fat ?? 0) as NSDecimalNumber) as Decimal
-                    protein += ((selected.protein ?? 0) as NSDecimalNumber) as Decimal
-                    state.addToSummation()
-                }
                 if state.selection != nil {
                     plusButton
                 }
