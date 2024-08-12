@@ -135,13 +135,24 @@ extension PluginSource: CGMManagerDelegate {
         return glucoseStorage.lastGlucoseDate()
     }
 
-    func cgmManagerDidUpdateState(_: CGMManager) {
+    func cgmManagerDidUpdateState(_ cgmManager: CGMManager) {
         dispatchPrecondition(condition: .onQueue(processQueue))
-//        guard let g6Manager = manager as? TransmitterManager else {
-//            return
-//        }
-//        glucoseManager?.settingsManager.settings.uploadGlucose = g6Manager.shouldSyncToRemoteService
-//        UserDefaults.standard.dexcomTransmitterID = g6Manager.rawState["transmitterID"] as? String
+
+        guard let fetchGlucoseManager = glucoseManager else {
+            debug(
+                .deviceManager,
+                "Could not gracefully unwrap FetchGlucoseManager upon observing LoopKit's cgmManagerDidUpdateState"
+            )
+            return
+        }
+        // Adjust app-specific NS Upload setting value when CGM setting is changed
+        fetchGlucoseManager.settingsManager.settings.uploadGlucose = cgmManager.shouldSyncToRemoteService
+
+        fetchGlucoseManager.updateGlucoseSource(
+            cgmGlucoseSourceType: fetchGlucoseManager.settingsManager.settings.cgm,
+            cgmGlucosePluginId: fetchGlucoseManager.settingsManager.settings.cgmPluginIdentifier,
+            newManager: cgmManager as? CGMManagerUI
+        )
     }
 
     func credentialStoragePrefix(for _: CGMManager) -> String {
@@ -160,6 +171,14 @@ extension PluginSource: CGMManagerDelegate {
 
     private func readCGMResult(readingResult: CGMReadingResult) -> Result<[BloodGlucose], Error> {
         debug(.deviceManager, "PLUGIN CGM - Process CGM Reading Result launched with \(readingResult)")
+
+        if glucoseManager?.glucoseSource == nil {
+            debug(
+                .deviceManager,
+                "No glucose source available."
+            )
+        }
+
         switch readingResult {
         case let .newData(values):
 

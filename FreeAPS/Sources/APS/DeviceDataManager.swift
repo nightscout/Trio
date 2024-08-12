@@ -349,7 +349,7 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
 
         if case .inProgress = status.bolusState {
             bolusTrigger.send(true)
-        } else if status.bolusState != .canceling {
+        } else {
             bolusTrigger.send(false)
         }
 
@@ -459,7 +459,6 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
         completion: @escaping (_ error: Error?) -> Void
     ) {
         dispatchPrecondition(condition: .onQueue(processQueue))
-        debug(.deviceManager, "New pump events:\n\(events.map(\.title).joined(separator: "\n"))")
 
         // filter buggy TBRs > maxBasal from MDT
         let events = events.filter {
