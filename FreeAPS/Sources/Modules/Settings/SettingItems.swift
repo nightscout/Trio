@@ -311,10 +311,15 @@ extension LocalizedStringKey {
     var englishValue: String {
         let mirror = Mirror(reflecting: self)
         let children = mirror.children
-        if let label = children.first(where: { $0.label == "key" })?.value as? String {
-            return Bundle.main.localizedString(forKey: label, value: nil, table: nil)
-        } else {
-            return ""
+
+        if let key = children.first(where: { $0.label == "key" })?.value as? String {
+            if let path = Bundle.main.path(forResource: "en", ofType: "lproj"),
+               let bundle = Bundle(path: path)
+            {
+                return bundle.localizedString(forKey: key, value: nil, table: nil)
+            }
         }
+
+        return ""
     }
 }
