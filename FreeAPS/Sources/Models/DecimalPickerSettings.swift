@@ -60,7 +60,7 @@ struct DecimalPickerSettings {
     var smbDeliveryRatio = PickerSetting(value: 0.5, step: 0.1, min: 0.1, max: 1, type: PickerSetting.PickerSettingType.factor)
     var halfBasalExerciseTarget = PickerSetting(
         value: 160,
-        step: 5,
+        step: 1,
         min: 100,
         max: 200,
         type: PickerSetting.PickerSettingType.glucose
