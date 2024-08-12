@@ -27,6 +27,14 @@ extension AppleHealthKit {
         var body: some View {
             Form {
                 Section {
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle")
+                        Text(
+                            "Connecting to Apple Health will use an excessive amount of storage and may cause Apple Health to lag. This will be improved in a future release."
+                        )
+                        .font(.caption)
+                    }
+                    .foregroundColor(Color.secondary)
                     Toggle("Connect to Apple Health", isOn: $state.useAppleHealth)
                     HStack {
                         Image(systemName: "pencil.circle.fill")

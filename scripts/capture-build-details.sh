@@ -1,22 +1,17 @@
 #!/bin/sh -e
-
 #  capture-build-details.sh
 #  Trio
 #
 #  Created by Jonas Björkert on 2024-05-08.
-
 # Enable debugging if needed
 #set -x
-
 info_plist_path="${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/BuildDetails.plist"
-
 # Ensure the path to BuildDetails.plist is valid.
 if [ "${info_plist_path}" == "/" -o ! -e "${info_plist_path}" ]; then
     echo "BuildDetails.plist file does not exist at path: ${info_plist_path}" >&2
     exit 1
 else
     echo "Gathering build details..."
-
     # Capture the current date and write it to BuildDetails.plist
     plutil -replace com-trio-build-date -string "$(date)" "${info_plist_path}"
 
