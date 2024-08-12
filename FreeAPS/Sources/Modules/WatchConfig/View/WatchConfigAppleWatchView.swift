@@ -84,6 +84,7 @@ struct WatchConfigAppleWatchView: View {
                         hintLabel = "Show Protein and Fat"
                     }
                 ),
+                units: state.units,
                 type: .boolean,
                 label: "Show Protein and Fat",
                 miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -101,6 +102,7 @@ struct WatchConfigAppleWatchView: View {
                         hintLabel = "Confirm Bolus Faster"
                     }
                 ),
+                units: state.units,
                 type: .boolean,
                 label: "Confirm Bolus Faster",
                 miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",

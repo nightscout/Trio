@@ -57,6 +57,7 @@ extension AlgorithmAdvancedSettings {
                             hintLabel = NSLocalizedString("Max Daily Safety Multiplier", comment: "Max Daily Safety Multiplier")
                         }
                     ),
+                    units: state.units,
                     type: .decimal("maxDailySafetyMultiplier"),
                     label: NSLocalizedString("Max Daily Safety Multiplier", comment: "Max Daily Safety Multiplier"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -80,6 +81,7 @@ extension AlgorithmAdvancedSettings {
                             )
                         }
                     ),
+                    units: state.units,
                     type: .decimal("currentBasalSafetyMultiplier"),
                     label: NSLocalizedString("Current Basal Safety Multiplier", comment: "Current Basal Safety Multiplier"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -100,6 +102,7 @@ extension AlgorithmAdvancedSettings {
                             hintLabel = NSLocalizedString("Use Custom Peak Time", comment: "Use Custom Peak Time")
                         }
                     ),
+                    units: state.units,
                     type: .conditionalDecimal("insulinPeakTime"),
                     label: NSLocalizedString("Use Custom Peak Time", comment: "Use Custom Peak Time"),
                     conditionalLabel: NSLocalizedString("Insulin Peak Time", comment: "Insulin Peak Time"),
@@ -123,6 +126,7 @@ extension AlgorithmAdvancedSettings {
                             hintLabel = NSLocalizedString("Skip Neutral Temps", comment: "Skip Neutral Temps")
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Skip Neutral Temps", comment: "Skip Neutral Temps"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -143,6 +147,7 @@ extension AlgorithmAdvancedSettings {
                             hintLabel = NSLocalizedString("Unsuspend If No Temp", comment: "Unsuspend If No Temp")
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Unsuspend If No Temp", comment: "Unsuspend If No Temp"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -163,6 +168,7 @@ extension AlgorithmAdvancedSettings {
                             hintLabel = NSLocalizedString("Suspend Zeros IOB", comment: "Suspend Zeros IOB")
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Suspend Zeros IOB", comment: "Suspend Zeros IOB"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -186,6 +192,7 @@ extension AlgorithmAdvancedSettings {
                             )
                         }
                     ),
+                    units: state.units,
                     type: .decimal("autotuneISFAdjustmentFraction"),
                     label: NSLocalizedString("Autotune ISF Adjustment Fraction", comment: "Autotune ISF Adjustment Fraction"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -206,6 +213,7 @@ extension AlgorithmAdvancedSettings {
                             hintLabel = NSLocalizedString("Min 5m Carbimpact", comment: "Min 5m Carbimpact")
                         }
                     ),
+                    units: state.units,
                     type: .decimal("min5mCarbimpact"),
                     label: NSLocalizedString("Min 5m Carbimpact", comment: "Min 5m Carbimpact"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -226,6 +234,7 @@ extension AlgorithmAdvancedSettings {
                             hintLabel = NSLocalizedString("Remaining Carbs Fraction", comment: "Remaining Carbs Fraction")
                         }
                     ),
+                    units: state.units,
                     type: .decimal("remainingCarbsFraction"),
                     label: NSLocalizedString("Remaining Carbs Fraction", comment: "Remaining Carbs Fraction"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -246,6 +255,7 @@ extension AlgorithmAdvancedSettings {
                             hintLabel = NSLocalizedString("Remaining Carbs Cap", comment: "Remaining Carbs Cap")
                         }
                     ),
+                    units: state.units,
                     type: .decimal("remainingCarbsCap"),
                     label: NSLocalizedString("Remaining Carbs Cap", comment: "Remaining Carbs Cap"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -266,6 +276,7 @@ extension AlgorithmAdvancedSettings {
                             hintLabel = NSLocalizedString("Noisy CGM Target Multiplier", comment: "Noisy CGM Target Multiplier")
                         }
                     ),
+                    units: state.units,
                     type: .decimal("noisyCGMTargetMultiplier"),
                     label: NSLocalizedString("Noisy CGM Target Multiplier", comment: "Noisy CGM Target Multiplier"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",

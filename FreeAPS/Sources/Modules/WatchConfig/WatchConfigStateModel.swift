@@ -28,6 +28,8 @@ enum AwConfig: String, JSON, CaseIterable, Identifiable, Codable {
 extension WatchConfig {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() private var garmin: GarminManager!
+
+        @Published var units: GlucoseUnits = .mgdL
         @Published var devices: [IQDevice] = []
         @Published var selectedAwConfig: AwConfig = .HR
         @Published var displayFatAndProteinOnWatch = false
@@ -37,6 +39,8 @@ extension WatchConfig {
 
         override func subscribe() {
             preferences = provider.preferences
+
+            units = settingsManager.settings.units
 
             subscribeSetting(\.displayFatAndProteinOnWatch, on: $displayFatAndProteinOnWatch) { displayFatAndProteinOnWatch = $0 }
             subscribeSetting(\.confirmBolusFaster, on: $confirmBolusFaster) { confirmBolusFaster = $0 }

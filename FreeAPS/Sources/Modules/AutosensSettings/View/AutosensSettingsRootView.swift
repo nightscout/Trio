@@ -45,6 +45,7 @@ extension AutosensSettings {
                             hintLabel = NSLocalizedString("Autosens Max", comment: "Autosens Max")
                         }
                     ),
+                    units: state.units,
                     type: .decimal("autosensMax"),
                     label: NSLocalizedString("Autosens Max", comment: "Autosens Max"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -66,6 +67,7 @@ extension AutosensSettings {
                             hintLabel = NSLocalizedString("Autosens Min", comment: "Autosens Min")
                         }
                     ),
+                    units: state.units,
                     type: .decimal("autosensMin"),
                     label: NSLocalizedString("Autosens Min", comment: "Autosens Min"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -86,6 +88,7 @@ extension AutosensSettings {
                             hintLabel = NSLocalizedString("Rewind Resets Autosens", comment: "Rewind Resets Autosens")
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Rewind Resets Autosens", comment: "Rewind Resets Autosens"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",

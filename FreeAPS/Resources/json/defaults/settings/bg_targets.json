@@ -1,10 +1,10 @@
 {
-    "units": "mmol/L",
-    "user_preferred_units": "mmol/L",
+    "units": "mg/dL",
+    "user_preferred_units": "mg/dL",
     "targets": [
         {
-            "low": 5.5,
-            "high": 5.5,
+            "low": 100,
+            "high": 100,
             "start": "00:00:00",
             "offset": 0
         }

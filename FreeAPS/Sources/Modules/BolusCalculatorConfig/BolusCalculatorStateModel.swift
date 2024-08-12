@@ -2,6 +2,7 @@ import SwiftUI
 
 extension BolusCalculatorConfig {
     final class StateModel: BaseStateModel<Provider> {
+        @Published var units: GlucoseUnits = .mgdL
         @Published var overrideFactor: Decimal = 0
         @Published var fattyMeals: Bool = false
         @Published var fattyMealFactor: Decimal = 0
@@ -10,6 +11,8 @@ extension BolusCalculatorConfig {
         @Published var displayPresets: Bool = true
 
         override func subscribe() {
+            units = settingsManager.settings.units
+
             subscribeSetting(\.overrideFactor, on: $overrideFactor, initial: {
                 let value = max(min($0, 1.2), 0.1)
                 overrideFactor = value

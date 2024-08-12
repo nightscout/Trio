@@ -44,6 +44,7 @@ extension AppleHealthKit {
                             hintLabel = "Connect to Apple Health"
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: "Connect to Apple Health",
                     miniHint: "Allows Trio to read from and write to Apple Health.",

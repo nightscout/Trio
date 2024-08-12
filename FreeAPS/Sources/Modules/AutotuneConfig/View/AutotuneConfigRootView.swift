@@ -67,6 +67,7 @@ extension AutotuneConfig {
                             hintLabel = "Use Autotune"
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: "Use Autotune",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -86,6 +87,7 @@ extension AutotuneConfig {
                                 hintLabel = "Only Autotune Basal Insulin"
                             }
                         ),
+                        units: state.units,
                         type: .boolean,
                         label: "Only Autotune Basal Insulin",
                         miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",

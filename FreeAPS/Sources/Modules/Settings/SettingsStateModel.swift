@@ -10,6 +10,7 @@ extension Settings {
         @Injected() var pluginManager: PluginManager!
         @Injected() var fetchCgmManager: FetchGlucoseManager!
 
+        @Published var units: GlucoseUnits = .mgdL
         @Published var closedLoop = false
         @Published var debugOptions = false
         @Published var serviceUIType: ServiceUI.Type?
@@ -21,6 +22,8 @@ extension Settings {
         private(set) var copyrightNotice = ""
 
         override func subscribe() {
+            units = settingsManager.settings.units
+
             subscribeSetting(\.debugOptions, on: $debugOptions) { debugOptions = $0 }
             subscribeSetting(\.closedLoop, on: $closedLoop) { closedLoop = $0 }
 

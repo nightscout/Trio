@@ -91,6 +91,7 @@ extension PumpSettingsEditor {
                             hintLabel = "Duration of Insulin Action"
                         }
                     ),
+                    units: state.units,
                     type: .decimal("dia"),
                     label: "Duration of Insulin Action",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",

@@ -25,15 +25,17 @@ extension CGM {
         @Injected() private var broadcaster: Broadcaster!
         @Injected() var nightscoutManager: NightscoutManager!
 
+        @Published var units: GlucoseUnits = .mgdL
         @Published var setupCGM: Bool = false
         @Published var cgmCurrent = cgmDefaultName
         @Published var smoothGlucose = false
-
         @Published var cgmTransmitterDeviceAddress: String? = nil
         @Published var listOfCGM: [cgmName] = []
         @Published var url: URL?
 
         override func subscribe() {
+            units = settingsManager.settings.units
+
             // collect the list of CGM available with plugins and CGMType defined manually
             listOfCGM = (
                 CGMType.allCases.filter { $0 != CGMType.plugin }.map {

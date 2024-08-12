@@ -198,6 +198,7 @@ extension MealSettings {
                             hintLabel = "Display and Allow Fat and Protein Entries"
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: "Display and Allow Fat and Protein Entries",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -217,6 +218,7 @@ extension MealSettings {
                                 hintLabel = "Fat and Protein Delay"
                             }
                         ),
+                        units: state.units,
                         type: .decimal("delay"),
                         label: "Fat and Protein Delay",
                         miniHint: "Delay is time from now until the first future carb entry.",
@@ -234,6 +236,7 @@ extension MealSettings {
                                 hintLabel = "Maximum Duration (hours)"
                             }
                         ),
+                        units: state.units,
                         type: .decimal("timeCap"),
                         label: "Maximum Duration (hours)",
                         miniHint: "Carb spread over a maximum number of hours (5-12).",
@@ -251,6 +254,7 @@ extension MealSettings {
                                 hintLabel = "Spread Interval (minutes)"
                             }
                         ),
+                        units: state.units,
                         type: .decimal("minuteInterval"),
                         label: "Spread Interval (minutes)",
                         miniHint: "Interval in minutes is how many minutes are between entries.",
@@ -268,6 +272,7 @@ extension MealSettings {
                                 hintLabel = "Fat and Protein Factor"
                             }
                         ),
+                        units: state.units,
                         type: .decimal("individualAdjustmentFactor"),
                         label: "Fat and Protein Factor",
                         miniHint: "Influences how many carb equivalents are recorded for fat and protein.",

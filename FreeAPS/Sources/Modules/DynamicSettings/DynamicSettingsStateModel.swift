@@ -13,14 +13,14 @@ extension DynamicSettings {
         @Published var weightPercentage: Decimal = 0.65
         @Published var tddAdjBasal: Bool = false
         @Published var threshold_setting: Decimal = 65
-        @Published var unit: GlucoseUnits = .mgdL
+        @Published var units: GlucoseUnits = .mgdL
 
         var preferences: Preferences {
             settingsManager.preferences
         }
 
         override func subscribe() {
-            unit = settingsManager.settings.units
+            units = settingsManager.settings.units
             useNewFormula = settings.preferences.useNewFormula
             enableDynamicCR = settings.preferences.enableDynamicCR
             sigmoid = settings.preferences.sigmoid
@@ -29,7 +29,7 @@ extension DynamicSettings {
             weightPercentage = settings.preferences.weightPercentage
             tddAdjBasal = settings.preferences.tddAdjBasal
 
-            if unit == .mmolL {
+            if units == .mmolL {
                 threshold_setting = settings.preferences.threshold_setting.asMmolL
             } else {
                 threshold_setting = settings.preferences.threshold_setting
@@ -48,7 +48,7 @@ extension DynamicSettings {
         }
 
         func convertBack(_ glucose: Decimal) -> Decimal {
-            if unit == .mmolL {
+            if units == .mmolL {
                 return glucose.asMgdL
             }
             return glucose

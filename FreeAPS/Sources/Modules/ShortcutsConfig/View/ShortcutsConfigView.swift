@@ -67,6 +67,7 @@ extension ShortcutsConfig {
                             hintLabel = "Allow Bolusing with Shortcuts"
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: "Allow Bolusing with Shortcuts",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",

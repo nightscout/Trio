@@ -47,7 +47,7 @@ extension DynamicSettings {
         private var glucoseFormatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
-            if state.unit == .mmolL {
+            if state.units == .mmolL {
                 formatter.maximumFractionDigits = 1
             } else { formatter.maximumFractionDigits = 0 }
             formatter.roundingMode = .halfUp
@@ -67,6 +67,7 @@ extension DynamicSettings {
                             hintLabel = "Activate Dynamic Sensitivity (ISF)"
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: "Activate Dynamic Sensitivity (ISF)",
                     miniHint: "Trio calculates insulin sensitivity (ISF) each loop cycle based on current blood sugar, daily insulin use, and an adjustment factor, within set limits.",
@@ -86,6 +87,7 @@ extension DynamicSettings {
                                 hintLabel = "Activate Dynamic Carb Ratio (CR)"
                             }
                         ),
+                        units: state.units,
                         type: .boolean,
                         label: "Activate Dynamic Carb Ratio (CR)",
                         miniHint: "Similar to Dynamic Sensitivity, Trio calculates a dynamic carb ratio every loop cycle.",
@@ -103,6 +105,7 @@ extension DynamicSettings {
                                 hintLabel = "Use Sigmoid Formula"
                             }
                         ),
+                        units: state.units,
                         type: .boolean,
                         label: "Use Sigmoid Formula",
                         miniHint: "Alternative formula for dynamic ISF, that alters ISF based on distance from target BG",
@@ -121,6 +124,7 @@ extension DynamicSettings {
                                     hintLabel = "Adjustment Factor"
                                 }
                             ),
+                            units: state.units,
                             type: .decimal("adjustmentFactor"),
                             label: "Adjustment Factor",
                             miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -138,6 +142,7 @@ extension DynamicSettings {
                                     hintLabel = "Sigmoid Adjustment Factor"
                                 }
                             ),
+                            units: state.units,
                             type: .decimal("adjustmentFactorSigmoid"),
                             label: "Sigmoid Adjustment Factor",
                             miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -156,6 +161,7 @@ extension DynamicSettings {
                                 hintLabel = "Weighted Average of TDD"
                             }
                         ),
+                        units: state.units,
                         type: .decimal("weightPercentage"),
                         label: "Weighted Average of TDD",
                         miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -173,6 +179,7 @@ extension DynamicSettings {
                                 hintLabel = "Adjust Basal"
                             }
                         ),
+                        units: state.units,
                         type: .boolean,
                         label: "Adjust Basal",
                         miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -190,6 +197,7 @@ extension DynamicSettings {
                                 hintLabel = "Threshold Setting"
                             }
                         ),
+                        units: state.units,
                         type: .decimal("threshold_setting"),
                         label: "Threshold Setting",
                         miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",

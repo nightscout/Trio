@@ -48,6 +48,7 @@ extension TargetBehavoir {
                             )
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: NSLocalizedString(
                         "High Temptarget Raises Sensitivity",
@@ -75,6 +76,7 @@ extension TargetBehavoir {
                             )
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: NSLocalizedString(
                         "Low Temptarget Lowers Sensitivity",
@@ -98,6 +100,7 @@ extension TargetBehavoir {
                             hintLabel = NSLocalizedString("Sensitivity Raises Target", comment: "Sensitivity Raises Target")
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Sensitivity Raises Target", comment: "Sensitivity Raises Target"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -118,6 +121,7 @@ extension TargetBehavoir {
                             hintLabel = NSLocalizedString("Resistance Lowers Target", comment: "Resistance Lowers Target")
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Resistance Lowers Target", comment: "Resistance Lowers Target"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -138,6 +142,7 @@ extension TargetBehavoir {
                             hintLabel = NSLocalizedString("Half Basal Exercise Target", comment: "Half Basal Exercise Target")
                         }
                     ),
+                    units: state.units,
                     type: .decimal("halfBasalExerciseTarget"),
                     label: NSLocalizedString("Half Basal Exercise Target", comment: "Half Basal Exercise Target"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",

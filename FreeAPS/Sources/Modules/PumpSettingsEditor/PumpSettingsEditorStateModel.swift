@@ -3,6 +3,8 @@ import SwiftUI
 
 extension PumpSettingsEditor {
     final class StateModel: BaseStateModel<Provider> {
+        @Published var units: GlucoseUnits = .mgdL
+
         @Published var maxBasal: Decimal = 0.0 {
             didSet {
                 checkForChanges()
@@ -29,6 +31,8 @@ extension PumpSettingsEditor {
         private var initialDia: Decimal = 0.0
 
         override func subscribe() {
+            units = settingsManager.settings.units
+
             let settings = provider.settings()
             maxBasal = settings.maxBasal
             maxBolus = settings.maxBolus
