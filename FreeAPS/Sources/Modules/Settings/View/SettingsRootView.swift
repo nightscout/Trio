@@ -97,6 +97,7 @@ extension Settings {
                                 hintLabel = "Closed Loop"
                             }
                         ),
+                        units: state.units,
                         type: .boolean,
                         label: "Closed Loop",
                         miniHint: "Enables automated insulin delivery. Requires active CGM sensor session and connected pump.",

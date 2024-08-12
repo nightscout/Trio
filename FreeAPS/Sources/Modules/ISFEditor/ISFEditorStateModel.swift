@@ -32,13 +32,16 @@ extension ISFEditor {
         private(set) var units: GlucoseUnits = .mgdL
 
         override func subscribe() {
+            units = settingsManager.settings.units
+
             let profile = provider.profile
-            units = profile.units
+
             items = profile.sensitivities.map { value in
                 let timeIndex = timeValues.firstIndex(of: Double(value.offset * 60)) ?? 0
                 let rateIndex = rateValues.firstIndex(of: value.sensitivity) ?? 0
                 return Item(rateIndex: rateIndex, timeIndex: timeIndex)
             }
+
             autotune = provider.autotune
 
             if let newISF = provider.autosense.newisf {
@@ -120,5 +123,11 @@ extension ISFEditor {
                 )
             }
         }
+    }
+}
+
+extension ISFEditor.StateModel: SettingsObserver {
+    func settingsDidChange(_: FreeAPSSettings) {
+        units = settingsManager.settings.units
     }
 }

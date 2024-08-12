@@ -28,20 +28,9 @@ extension UserInterfaceSettings {
 
             subscribeSetting(\.totalInsulinDisplayType, on: $totalInsulinDisplayType) { totalInsulinDisplayType = $0 }
 
-            subscribeSetting(\.low, on: $low, initial: {
-                let value = max(min($0, 90), 40)
-                low = units == .mmolL ? value.asMmolL : value
-            }, map: {
-                guard units == .mmolL else { return $0 }
-                return $0.asMgdL
-            })
-            subscribeSetting(\.high, on: $high, initial: {
-                let value = max(min($0, 270), 110)
-                high = units == .mmolL ? value.asMmolL : value
-            }, map: {
-                guard units == .mmolL else { return $0 }
-                return $0.asMgdL
-            })
+            subscribeSetting(\.low, on: $low) { low = $0 }
+
+            subscribeSetting(\.high, on: $high) { high = $0 }
 
             subscribeSetting(\.showCarbsRequiredBadge, on: $showCarbsRequiredBadge) { showCarbsRequiredBadge = $0 }
 
@@ -50,6 +39,12 @@ extension UserInterfaceSettings {
                 on: $carbsRequiredThreshold
             ) { carbsRequiredThreshold = $0 }
         }
+    }
+}
+
+extension UserInterfaceSettings.StateModel: SettingsObserver {
+    func settingsDidChange(_: FreeAPSSettings) {
+        units = settingsManager.settings.units
     }
 }
 

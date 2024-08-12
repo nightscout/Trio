@@ -79,3 +79,9 @@ extension AlgorithmAdvancedSettings {
         }
     }
 }
+
+extension AlgorithmAdvancedSettings.StateModel: SettingsObserver {
+    func settingsDidChange(_: FreeAPSSettings) {
+        units = settingsManager.settings.units
+    }
+}

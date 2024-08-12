@@ -45,6 +45,7 @@ extension CalendarEventSettings {
                             hintLabel = "Create Events in Calendar"
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: "Create Events in Calendar",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -74,6 +75,7 @@ extension CalendarEventSettings {
                                 hintLabel = "Display Emojis as Labels"
                             }
                         ),
+                        units: state.units,
                         type: .boolean,
                         label: "Display Emojis as Labels",
                         miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -91,6 +93,7 @@ extension CalendarEventSettings {
                                 hintLabel = "Display IOB and COB"
                             }
                         ),
+                        units: state.units,
                         type: .boolean,
                         label: "Display IOB and COB",
                         miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",

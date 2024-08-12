@@ -45,6 +45,7 @@ extension SMBSettings {
                             hintLabel = NSLocalizedString("Enable SMB Always", comment: "Enable SMB Always")
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Enable SMB Always", comment: "Enable SMB Always"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -67,6 +68,7 @@ extension SMBSettings {
                                 hintLabel = NSLocalizedString("Enable SMB With COB", comment: "Enable SMB With COB")
                             }
                         ),
+                        units: state.units,
                         type: .boolean,
                         label: NSLocalizedString("Enable SMB With COB", comment: "Enable SMB With COB"),
                         miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -87,6 +89,7 @@ extension SMBSettings {
                                 hintLabel = NSLocalizedString("Enable SMB With Temptarget", comment: "Enable SMB With Temptarget")
                             }
                         ),
+                        units: state.units,
                         type: .boolean,
                         label: NSLocalizedString("Enable SMB With Temptarget", comment: "Enable SMB With Temptarget"),
                         miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -107,6 +110,7 @@ extension SMBSettings {
                                 hintLabel = NSLocalizedString("Enable SMB After Carbs", comment: "Enable SMB After Carbs")
                             }
                         ),
+                        units: state.units,
                         type: .boolean,
                         label: NSLocalizedString("Enable SMB After Carbs", comment: "Enable SMB After Carbs"),
                         miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -130,6 +134,7 @@ extension SMBSettings {
                                 )
                             }
                         ),
+                        units: state.units,
                         type: .boolean,
                         label: NSLocalizedString(
                             "Allow SMB With High Temptarget",
@@ -153,6 +158,7 @@ extension SMBSettings {
                                 hintLabel = NSLocalizedString("Enable SMB With High BG", comment: "Enable SMB With High BG")
                             }
                         ),
+                        units: state.units,
                         type: .conditionalDecimal("enableSMB_high_bg_target"),
                         label: NSLocalizedString("Enable SMB With High BG", comment: "Enable SMB With High BG"),
                         conditionalLabel: "High BG Target",
@@ -174,6 +180,7 @@ extension SMBSettings {
                                 hintLabel = NSLocalizedString("Enable UAM", comment: "Enable UAM")
                             }
                         ),
+                        units: state.units,
                         type: .boolean,
                         label: NSLocalizedString("Enable UAM", comment: "Enable UAM"),
                         miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -195,6 +202,7 @@ extension SMBSettings {
                             hintLabel = NSLocalizedString("Max SMB Basal Minutes", comment: "Max SMB Basal Minutes")
                         }
                     ),
+                    units: state.units,
                     type: .decimal("maxSMBBasalMinutes"),
                     label: NSLocalizedString("Max SMB Basal Minutes", comment: "Max SMB Basal Minutes"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -215,6 +223,7 @@ extension SMBSettings {
                             hintLabel = NSLocalizedString("Max UAM SMB Basal Minutes", comment: "Max UAM SMB Basal Minutes")
                         }
                     ),
+                    units: state.units,
                     type: .decimal("maxUAMSMBBasalMinutes"),
                     label: NSLocalizedString("Max UAM SMB Basal Minutes", comment: "Max UAM SMB Basal Minutes"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -235,6 +244,7 @@ extension SMBSettings {
                             hintLabel = NSLocalizedString("Max Delta-BG Threshold SMB", comment: "Max Delta-BG Threshold")
                         }
                     ),
+                    units: state.units,
                     type: .decimal("maxDeltaBGthreshold"),
                     label: NSLocalizedString("Max Delta-BG Threshold SMB", comment: "Max Delta-BG Threshold"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -255,6 +265,7 @@ extension SMBSettings {
                             hintLabel = NSLocalizedString("SMB DeliveryRatio", comment: "SMB DeliveryRatio")
                         }
                     ),
+                    units: state.units,
                     type: .decimal("smbDeliveryRatio"),
                     label: NSLocalizedString("SMB DeliveryRatio", comment: "SMB DeliveryRatio"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -275,6 +286,7 @@ extension SMBSettings {
                             hintLabel = NSLocalizedString("SMB Interval", comment: "SMB Interval")
                         }
                     ),
+                    units: state.units,
                     type: .decimal("smbInterval"),
                     label: NSLocalizedString("SMB Interval", comment: "SMB Interval"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",

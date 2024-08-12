@@ -208,7 +208,7 @@ final class OpenAPS {
         debug(.openAPS, "Start determineBasal")
 
         // clock
-        self.storage.save(clock, as: Monitor.clock)
+        storage.save(clock, as: Monitor.clock)
 
         // temp_basal
         let tempBasal = currentTemp.rawJSON

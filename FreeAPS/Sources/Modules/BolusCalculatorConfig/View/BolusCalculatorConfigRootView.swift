@@ -59,6 +59,7 @@ extension BolusCalculatorConfig {
                             hintLabel = "Display Meal Presets"
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: "Display Meal Presets",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -76,6 +77,7 @@ extension BolusCalculatorConfig {
                             hintLabel = "Recommended Bolus Percentage"
                         }
                     ),
+                    units: state.units,
                     type: .decimal("overrideFactor"),
                     label: "Recommended Bolus Percentage",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -94,6 +96,7 @@ extension BolusCalculatorConfig {
                             hintLabel = "Fatty Meal Factor"
                         }
                     ),
+                    units: state.units,
                     type: .conditionalDecimal("fattyMealFactor"),
                     label: "Enable Fatty Meal Factor",
                     conditionalLabel: "Fatty Meal Factor",
@@ -112,6 +115,7 @@ extension BolusCalculatorConfig {
                             hintLabel = "Super Bolus & Sweet Meal Factor"
                         }
                     ),
+                    units: state.units,
                     type: .conditionalDecimal("sweetMealFactor"),
                     label: "Enable Super Bolus",
                     conditionalLabel: "Super Bolus Factor",

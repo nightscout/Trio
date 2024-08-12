@@ -19,8 +19,6 @@ extension UnitsLimitsSettings {
             units = settingsManager.settings.units
             subscribeSetting(\.units, on: $unitsIndex.map { $0 == 0 ? GlucoseUnits.mgdL : .mmolL }) {
                 unitsIndex = $0 == .mgdL ? 0 : 1
-            } didSet: { [weak self] _ in
-                self?.provider.migrateUnits()
             }
 
             maxIOB = settings.preferences.maxIOB
@@ -43,5 +41,11 @@ extension UnitsLimitsSettings {
                 storage.save(newSettings, as: OpenAPS.Settings.preferences)
             }
         }
+    }
+}
+
+extension UnitsLimitsSettings.StateModel: SettingsObserver {
+    func settingsDidChange(_: FreeAPSSettings) {
+        units = settingsManager.settings.units
     }
 }

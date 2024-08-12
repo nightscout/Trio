@@ -25,6 +25,7 @@ struct SettingInputSection: View {
     @Binding var shouldDisplayHint: Bool
     @Binding var selectedVerboseHint: String?
 
+    var units: GlucoseUnits
     var type: SettingInputSectionType
     var label: String
     var conditionalLabel: String?
@@ -36,13 +37,7 @@ struct SettingInputSection: View {
     // Access the shared PickerSettingsProvider instance
     @ObservedObject private var pickerSettingsProvider = PickerSettingsProvider.shared
     @State private var displayPicker: Bool = false
-    @State private var units: GlucoseUnits = .mgdL
-
-    @Injected() var settingsManager: SettingsManager!
-
-    mutating func subscribe() {
-        units = settingsManager.settings.units
-    }
+    @State private var displayConditionalPicker: Bool = false
 
     var body: some View {
         Section(
@@ -58,8 +53,11 @@ struct SettingInputSection: View {
                                     Spacer()
 
                                     Group {
-                                        Text(decimalValue.description)
-                                            .foregroundColor(!displayPicker ? .primary : .accentColor)
+                                        Text(
+                                            units == .mmolL ? decimalValue.asMmolL.description : decimalValue
+                                                .description
+                                        )
+                                        .foregroundColor(!displayPicker ? .primary : .accentColor)
 
                                         if setting.type == PickerSetting.PickerSettingType.glucose {
                                             Text(units == .mgdL ? " mg/dL" : " mmol/L").foregroundColor(.secondary)
@@ -76,7 +74,12 @@ struct SettingInputSection: View {
                                 if displayPicker {
                                     Picker(selection: $decimalValue, label: Text("")) {
                                         ForEach(pickerSettingsProvider.generatePickerValues(from: setting), id: \.self) { value in
-                                            Text("\(value.description)").tag(value)
+                                            if setting.type == PickerSetting.PickerSettingType.glucose {
+                                                let displayValue = units == .mgdL ? value : value.asMmolL
+                                                Text("\(displayValue.description)").tag(value)
+                                            } else {
+                                                Text("\(value.description)").tag(value)
+                                            }
                                         }
                                     }
                                     .pickerStyle(WheelPickerStyle())
@@ -108,8 +111,11 @@ struct SettingInputSection: View {
                                         Spacer()
 
                                         Group {
-                                            Text(decimalValue.description)
-                                                .foregroundColor(!displayPicker ? .primary : .accentColor)
+                                            Text(
+                                                units == .mmolL ? decimalValue.asMmolL
+                                                    .description : decimalValue.description
+                                            )
+                                            .foregroundColor(!displayPicker ? .primary : .accentColor)
 
                                             if setting.type == PickerSetting.PickerSettingType.glucose {
                                                 Text(units == .mgdL ? " mg/dL" : " mmol/L").foregroundColor(.secondary)
@@ -119,17 +125,22 @@ struct SettingInputSection: View {
                                                 Text(" g").foregroundColor(.secondary)
                                             }
                                         }.onTapGesture {
-                                            displayPicker.toggle()
+                                            displayConditionalPicker.toggle()
                                         }
                                     }.padding(.top)
 
-                                    if displayPicker {
+                                    if displayConditionalPicker {
                                         Picker(selection: $decimalValue, label: Text("")) {
                                             ForEach(
                                                 pickerSettingsProvider.generatePickerValues(from: setting),
                                                 id: \.self
                                             ) { value in
-                                                Text("\(value.description)").tag(value)
+                                                if setting.type == PickerSetting.PickerSettingType.glucose {
+                                                    let displayValue = units == .mgdL ? value : value.asMmolL
+                                                    Text("\(displayValue.description)").tag(value)
+                                                } else {
+                                                    Text("\(value.description)").tag(value)
+                                                }
                                             }
                                         }
                                         .pickerStyle(WheelPickerStyle())

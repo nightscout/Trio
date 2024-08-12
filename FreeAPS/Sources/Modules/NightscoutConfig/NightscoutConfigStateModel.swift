@@ -373,3 +373,9 @@ extension NightscoutConfig {
         }
     }
 }
+
+extension NightscoutConfig.StateModel: SettingsObserver {
+    func settingsDidChange(_: FreeAPSSettings) {
+        units = settingsManager.settings.units
+    }
+}

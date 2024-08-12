@@ -5,10 +5,13 @@ extension AppleHealthKit {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() var healthKitManager: HealthKitManager!
 
+        @Published var units: GlucoseUnits = .mgdL
         @Published var useAppleHealth = false
         @Published var needShowInformationTextForSetPermissions = false
 
         override func subscribe() {
+            units = settingsManager.settings.units
+
             useAppleHealth = settingsManager.settings.useAppleHealth
 
             needShowInformationTextForSetPermissions = healthKitManager.areAllowAllPermissions
@@ -40,5 +43,11 @@ extension AppleHealthKit {
                 }
             }
         }
+    }
+}
+
+extension AppleHealthKit.StateModel: SettingsObserver {
+    func settingsDidChange(_: FreeAPSSettings) {
+        units = settingsManager.settings.units
     }
 }

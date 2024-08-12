@@ -23,8 +23,10 @@ extension TargetsEditor {
         private(set) var units: GlucoseUnits = .mgdL
 
         override func subscribe() {
+            units = settingsManager.settings.units
+
             let profile = provider.profile
-            units = profile.units
+
             items = profile.targets.map { value in
                 let timeIndex = timeValues.firstIndex(of: Double(value.offset * 60)) ?? 0
                 let lowIndex = rateValues.firstIndex(of: value.low) ?? 0

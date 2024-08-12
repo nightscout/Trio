@@ -57,3 +57,9 @@ extension CalendarEventSettings {
         }
     }
 }
+
+extension CalendarEventSettings.StateModel: SettingsObserver {
+    func settingsDidChange(_: FreeAPSSettings) {
+        units = settingsManager.settings.units
+    }
+}

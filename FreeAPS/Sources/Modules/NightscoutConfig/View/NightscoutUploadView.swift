@@ -42,6 +42,7 @@ struct NightscoutUploadView: View {
                         shouldDisplayHint = true
                     }
                 ),
+                units: state.units,
                 type: .boolean,
                 label: "Allow Uploading to Nightscout",
                 miniHint: "Enables upload of selected data sets to Nightscout. See hint for more details.",
@@ -61,6 +62,7 @@ struct NightscoutUploadView: View {
                             shouldDisplayHint = true
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: "Upload Glucose",
                     miniHint: "Enables uploading of CGM readings to Nightscout.",

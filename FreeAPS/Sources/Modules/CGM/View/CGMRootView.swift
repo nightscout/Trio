@@ -203,6 +203,7 @@ extension CGM {
                                 hintLabel = "Smooth Glucose Value"
                             }
                         ),
+                        units: state.units,
                         type: .boolean,
                         label: "Smooth Glucose Value",
                         miniHint: "Smooth CGM readings using Savitzky–Golay filtering.",

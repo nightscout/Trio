@@ -26,7 +26,7 @@ extension TargetBehavoir {
             resistanceLowersTarget = settings.preferences.resistanceLowersTarget
             halfBasalExerciseTarget = settings.preferences.halfBasalExerciseTarget
 
-            halfBasalExerciseTarget = units == .mmolL ? settings.preferences.halfBasalExerciseTarget.asMmolL : settings
+            halfBasalExerciseTarget = settings
                 .preferences.halfBasalExerciseTarget
         }
 
@@ -52,5 +52,11 @@ extension TargetBehavoir {
                 storage.save(newSettings, as: OpenAPS.Settings.preferences)
             }
         }
+    }
+}
+
+extension TargetBehavoir.StateModel: SettingsObserver {
+    func settingsDidChange(_: FreeAPSSettings) {
+        units = settingsManager.settings.units
     }
 }

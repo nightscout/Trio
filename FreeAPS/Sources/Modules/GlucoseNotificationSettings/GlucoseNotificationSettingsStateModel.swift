@@ -38,3 +38,9 @@ extension GlucoseNotificationSettings {
         }
     }
 }
+
+extension GlucoseNotificationSettings.StateModel: SettingsObserver {
+    func settingsDidChange(_: FreeAPSSettings) {
+        units = settingsManager.settings.units
+    }
+}

@@ -43,3 +43,9 @@ extension AutosensSettings {
         }
     }
 }
+
+extension AutosensSettings.StateModel: SettingsObserver {
+    func settingsDidChange(_: FreeAPSSettings) {
+        units = settingsManager.settings.units
+    }
+}

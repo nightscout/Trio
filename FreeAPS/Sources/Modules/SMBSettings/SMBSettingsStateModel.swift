@@ -35,7 +35,7 @@ extension SMBSettings {
             enableSMBAfterCarbs = settings.preferences.enableSMBAfterCarbs
             allowSMBWithHighTemptarget = settings.preferences.allowSMBWithHighTemptarget
             enableSMB_high_bg = settings.preferences.enableSMB_high_bg
-            enableSMB_high_bg_target = units == .mmolL ? settings.preferences.enableSMB_high_bg_target.asMmolL : settings
+            enableSMB_high_bg_target = settings
                 .preferences.enableSMB_high_bg_target
             maxSMBBasalMinutes = settings.preferences.maxSMBBasalMinutes
             smbDeliveryRatio = settings.preferences.smbDeliveryRatio
@@ -83,5 +83,11 @@ extension SMBSettings {
                 storage.save(newSettings, as: OpenAPS.Settings.preferences)
             }
         }
+    }
+}
+
+extension SMBSettings.StateModel: SettingsObserver {
+    func settingsDidChange(_: FreeAPSSettings) {
+        units = settingsManager.settings.units
     }
 }

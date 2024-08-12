@@ -42,6 +42,7 @@ struct NightscoutFetchView: View {
                         hintLabel = "Allow Fetching from Nightscout"
                     }
                 ),
+                units: state.units,
                 type: .boolean,
                 label: "Allow Fetching from Nightscout",
                 miniHint: "Enable fetching of selected data sets from Nightscout. See hint for more details.",
@@ -61,6 +62,7 @@ struct NightscoutFetchView: View {
                             hintLabel = "Allow Remote Control of Trio"
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: "Allow Remote Control of Trio",
                     miniHint: "Enables selected remote control capabilities via Nightscout. See hint for more details.",

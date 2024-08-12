@@ -65,6 +65,7 @@ extension GlucoseNotificationSettings {
                             hintLabel = "Show Glucose App Badge"
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: "Show Glucose App Badge",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -83,6 +84,7 @@ extension GlucoseNotificationSettings {
                             hintLabel = "Always Notify Glucose"
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: "Always Notify Glucose",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -100,6 +102,7 @@ extension GlucoseNotificationSettings {
                             hintLabel = "Play Alarm Sound"
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: "Play Alarm Sound",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -117,6 +120,7 @@ extension GlucoseNotificationSettings {
                             hintLabel = "Add Glucose Source to Alarm"
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: "Add Glucose Source to Alarm",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",

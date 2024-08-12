@@ -2,6 +2,7 @@ import SwiftUI
 
 extension MealSettings {
     final class StateModel: BaseStateModel<Provider> {
+        @Published var units: GlucoseUnits = .mgdL
         @Published var useFPUconversion: Bool = true
         @Published var maxCarbs: Decimal = 250
         @Published var maxFat: Decimal = 250
@@ -12,6 +13,8 @@ extension MealSettings {
         @Published var delay: Decimal = 0
 
         override func subscribe() {
+            units = settingsManager.settings.units
+
             subscribeSetting(\.useFPUconversion, on: $useFPUconversion) { useFPUconversion = $0 }
             subscribeSetting(\.maxCarbs, on: $maxCarbs) { maxCarbs = $0 }
             subscribeSetting(\.maxFat, on: $maxFat) { maxFat = $0 }
@@ -44,5 +47,11 @@ extension MealSettings {
                 $0
             })
         }
+    }
+}
+
+extension MealSettings.StateModel: SettingsObserver {
+    func settingsDidChange(_: FreeAPSSettings) {
+        units = settingsManager.settings.units
     }
 }

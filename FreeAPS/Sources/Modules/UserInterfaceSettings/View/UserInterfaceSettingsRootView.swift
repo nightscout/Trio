@@ -96,6 +96,7 @@ extension UserInterfaceSettings {
                             hintLabel = "Show Low and High Thresholds"
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: "Show Low and High Thresholds",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -111,7 +112,7 @@ extension UserInterfaceSettings {
                                 Spacer()
 
                                 Group {
-                                    Text(state.low.description)
+                                    Text(state.units == .mgdL ? state.low.description : state.low.asMmolL.description)
                                         .foregroundColor(!displayPickerLowThreshold ? .primary : .accentColor)
 
                                     Text(state.units == .mgdL ? " mg/dL" : " mmol/L").foregroundColor(.secondary)
@@ -131,7 +132,8 @@ extension UserInterfaceSettings {
                                     PickerSettingsProvider.shared.generatePickerValues(from: setting),
                                     id: \.self
                                 ) { value in
-                                    Text("\(value.description)").tag(value)
+                                    let displayValue = state.units == .mgdL ? value : value.asMmolL
+                                    Text("\(displayValue.description)").tag(value)
                                 }
                             }
                             .pickerStyle(WheelPickerStyle())
@@ -145,7 +147,7 @@ extension UserInterfaceSettings {
                                 Spacer()
 
                                 Group {
-                                    Text(state.high.description)
+                                    Text(state.units == .mgdL ? state.high.description : state.high.asMmolL.description)
                                         .foregroundColor(!displayPickerHighThreshold ? .primary : .accentColor)
 
                                     Text(state.units == .mgdL ? " mg/dL" : " mmol/L").foregroundColor(.secondary)
@@ -164,7 +166,8 @@ extension UserInterfaceSettings {
                                     PickerSettingsProvider.shared.generatePickerValues(from: setting),
                                     id: \.self
                                 ) { value in
-                                    Text("\(value.description)").tag(value)
+                                    let displayValue = state.units == .mgdL ? value : value.asMmolL
+                                    Text("\(displayValue.description)").tag(value)
                                 }
                             }
                             .pickerStyle(WheelPickerStyle())
@@ -207,6 +210,7 @@ extension UserInterfaceSettings {
                             hintLabel = "X-Axis Interval Step"
                         }
                     ),
+                    units: state.units,
                     type: .decimal("hours"),
                     label: "X-Axis Interval Step",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -260,6 +264,7 @@ extension UserInterfaceSettings {
                             hintLabel = "Override HbA1c Unit"
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: "Override HbA1c Unit",
                     miniHint: "Display HbA1c in mmol/L or %. Default is percent.",
@@ -279,6 +284,7 @@ extension UserInterfaceSettings {
                             hintLabel = "Standing / Laying TIR Chart"
                         }
                     ),
+                    units: state.units,
                     type: .boolean,
                     label: "Standing / Laying TIR Chart",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
@@ -296,6 +302,7 @@ extension UserInterfaceSettings {
                             hintLabel = "Show Carbs Required Badge"
                         }
                     ),
+                    units: state.units,
                     type: .conditionalDecimal("carbsRequiredThreshold"),
                     label: "Show Carbs Required Badge",
                     conditionalLabel: "Carbs Required Threshold",

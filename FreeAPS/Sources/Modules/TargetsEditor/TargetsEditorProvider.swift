@@ -3,7 +3,7 @@ extension TargetsEditor {
         var profile: BGTargets {
             storage.retrieve(OpenAPS.Settings.bgTargets, as: BGTargets.self)
                 ?? BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
-                ?? BGTargets(units: .mmolL, userPrefferedUnits: .mmolL, targets: [])
+                ?? BGTargets(units: .mgdL, userPrefferedUnits: .mgdL, targets: [])
         }
 
         func saveProfile(_ profile: BGTargets) {

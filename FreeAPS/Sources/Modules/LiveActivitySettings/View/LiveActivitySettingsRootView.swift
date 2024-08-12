@@ -72,6 +72,7 @@ extension LiveActivitySettings {
                                 hintLabel = "Enable Live Activity"
                             }
                         ),
+                        units: state.units,
                         type: .boolean,
                         label: "Enable Live Activity",
                         miniHint: "Live Activities display Trio's glucose readings, and other current data on the iPhone Lock Screen and in the Dynamic Island",
