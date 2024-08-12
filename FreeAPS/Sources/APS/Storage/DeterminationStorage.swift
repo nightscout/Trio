@@ -100,12 +100,8 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
         var result: Determination?
 
         guard let determinationId = determinationIds.first else {
-            print("No determination ID found.")
             return nil
         }
-
-        print("Using context: \(backgroundContext)")
-        print("Determination ID: \(determinationId)")
 
         let predictions = Predictions(
             iob: await parseForecastValues(ofType: "iob", from: determinationId),
@@ -118,15 +114,9 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
             do {
                 let orefDetermination = try self.backgroundContext.existingObject(with: determinationId) as? OrefDetermination
 
-                // Log the type of the fetched object
-                print("Fetched object type: \(type(of: orefDetermination))")
-                print("Fetched object description: \(orefDetermination)")
-
                 // Check if the fetched object is of the expected type
                 if let orefDetermination = orefDetermination {
-                    print("Successfully cast to OrefDetermination")
                     let forecastSet = orefDetermination.forecasts
-                    print("Fetched forecast set: \(forecastSet)")
 
                     result = Determination(
                         id: orefDetermination.id ?? UUID(),
@@ -160,12 +150,10 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
                         carbRatio: self.decimal(from: orefDetermination.carbRatio),
                         received: orefDetermination.enacted // this is actually part of NS...
                     )
-                } else {
-                    print("Fetched object is not of type OrefDetermination")
                 }
             } catch {
-                print("Failed to fetch managed object: \(error)")
-            }
+                debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch managed object with error: \(error.localizedDescription)")
+             }
 
             return result
         }

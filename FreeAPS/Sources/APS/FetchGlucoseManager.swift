@@ -105,6 +105,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         if self.cgmGlucoseSourceType != cgmGlucoseSourceType || self.cgmGlucosePluginId != cgmGlucosePluginId {
             removeCalibrations()
             cgmManager = nil
+            glucoseSource = nil
         }
 
         self.cgmGlucoseSourceType = cgmGlucoseSourceType
@@ -125,21 +126,22 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             saveConfigManager()
         }
 
-        switch self.cgmGlucoseSourceType {
-        case .none:
-            glucoseSource = nil
-        case .xdrip:
-            glucoseSource = AppGroupSource(from: "xDrip", cgmType: .xdrip)
-        case .nightscout:
-            glucoseSource = nightscoutManager
-        case .simulator:
-            glucoseSource = simulatorSource
-        case .enlite:
-            glucoseSource = deviceDataManager
-        case .plugin:
-            glucoseSource = PluginSource(glucoseStorage: glucoseStorage, glucoseManager: self)
+        if glucoseSource == nil {
+            switch self.cgmGlucoseSourceType {
+            case .none:
+                glucoseSource = nil
+            case .xdrip:
+                glucoseSource = AppGroupSource(from: "xDrip", cgmType: .xdrip)
+            case .nightscout:
+                glucoseSource = nightscoutManager
+            case .simulator:
+                glucoseSource = simulatorSource
+            case .enlite:
+                glucoseSource = deviceDataManager
+            case .plugin:
+                glucoseSource = PluginSource(glucoseStorage: glucoseStorage, glucoseManager: self)
+            }
         }
-        // update the config
     }
 
     /// Upload cgmManager from raw value
