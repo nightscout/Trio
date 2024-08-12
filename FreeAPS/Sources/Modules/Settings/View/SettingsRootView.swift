@@ -122,7 +122,7 @@ extension Settings {
                             } label: {
                                 HStack {
                                     Text("Share Logs")
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.primary)
                                     Spacer()
                                     Image(systemName: "chevron.right")
                                         .foregroundColor(.secondary)
@@ -138,7 +138,7 @@ extension Settings {
                             } label: {
                                 HStack {
                                     Text("Submit Ticket on GitHub")
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.primary)
                                     Spacer()
                                     Image(systemName: "chevron.right")
                                         .foregroundColor(.secondary)
@@ -154,7 +154,7 @@ extension Settings {
                             } label: {
                                 HStack {
                                     Text("Trio Discord")
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.primary)
                                     Spacer()
                                     Image(systemName: "chevron.right")
                                         .foregroundColor(.secondary)
@@ -170,7 +170,7 @@ extension Settings {
                             } label: {
                                 HStack {
                                     Text("Trio Facebook")
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.primary)
                                     Spacer()
                                     Image(systemName: "chevron.right")
                                         .foregroundColor(.secondary)
@@ -186,7 +186,7 @@ extension Settings {
                             } label: {
                                 HStack {
                                     Text("Trio Website")
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.primary)
                                     Spacer()
                                     Image(systemName: "chevron.right")
                                         .foregroundColor(.secondary)
