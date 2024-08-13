@@ -42,7 +42,7 @@ enum SettingItems {
         SettingItem(title: "Insulin Pump", view: .pumpConfig, path: ["Devices"]),
         SettingItem(
             title: "Delivery Limits & DIA",
-            view: .cgm,
+            view: .pumpSettingsEditor,
             searchContents: ["Max Basal", "Max Bolus", "Duration of Insulin Action", "DIA"],
             path: ["Devices", "Insulin Pump", "Delivery Limits & DIA"]
         ),
@@ -107,7 +107,7 @@ enum SettingItems {
                 "Sigmoid Adjustment Factor",
                 "Weighted Average of TDD",
                 "Adjust Basal",
-                "Threshold Setting"
+                "Minimum Safety Threshold"
             ],
             path: ["Algorithm", "Dynamic Sensitivity"]
         ),

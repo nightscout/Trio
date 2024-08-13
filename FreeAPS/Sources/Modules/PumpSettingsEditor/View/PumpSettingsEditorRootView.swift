@@ -39,46 +39,41 @@ extension PumpSettingsEditor {
 
         var body: some View {
             Form {
-                Section(
-                    header: Text("Insulin Pump Configuration"),
-                    content: {
-                        VStack {
-                            HStack {
-                                Text("Max Basal")
-                                Spacer()
-                                TextFieldWithToolBar(text: $state.maxBasal, placeholder: "0", numberFormatter: formatter)
-                            }.padding(.top)
-                            HStack {
-                                Text("Max Bolus")
-                                Spacer()
-                                TextFieldWithToolBar(text: $state.maxBolus, placeholder: "0", numberFormatter: formatter)
-                            }
+                SettingInputSection(
+                    decimalValue: $state.maxBolus,
+                    booleanValue: $booleanPlaceholder,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Max Bolus"
+                        }
+                    ),
+                    units: state.units,
+                    type: .decimal("maxBolus"),
+                    label: "Max Bolus",
+                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+                    verboseHint: "Max Bolus… bla bla bla"
+                )
 
-                            HStack(alignment: .top) {
-                                Text(
-                                    "Sets delivery limits for basal and bolus insulin on pump."
-                                )
-                                .lineLimit(nil)
-                                .font(.footnote)
-                                .foregroundColor(.secondary)
-
-                                Spacer()
-                                Button(
-                                    action: {
-                                        hintLabel = "Insulin Delivery limits"
-                                        selectedVerboseHint = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
-                                        shouldDisplayHint.toggle()
-                                    },
-                                    label: {
-                                        HStack {
-                                            Image(systemName: "questionmark.circle")
-                                        }
-                                    }
-                                ).buttonStyle(BorderlessButtonStyle())
-                            }
-                        }.padding(.bottom)
-                    }
-                ).listRowBackground(Color.chart)
+                SettingInputSection(
+                    decimalValue: $state.maxBasal,
+                    booleanValue: $booleanPlaceholder,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Max Basal"
+                        }
+                    ),
+                    units: state.units,
+                    type: .decimal("maxBasal"),
+                    label: "Max Basal",
+                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+                    verboseHint: "Max Basal… bla bla bla"
+                )
 
                 SettingInputSection(
                     decimalValue: $state.dia,

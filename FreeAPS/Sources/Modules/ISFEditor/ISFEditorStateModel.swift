@@ -16,12 +16,7 @@ extension ISFEditor {
         let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
 
         var rateValues: [Decimal] {
-            switch units {
-            case .mgdL:
-                return stride(from: 9, to: 540.01, by: 1.0).map { Decimal($0) }
-            case .mmolL:
-                return stride(from: 1.0, to: 301.0, by: 1.0).map { ($0.decimal ?? .zero) / 10 }
-            }
+            stride(from: 9, to: 540.01, by: 1.0).map { Decimal($0) }
         }
 
         var canAdd: Bool {

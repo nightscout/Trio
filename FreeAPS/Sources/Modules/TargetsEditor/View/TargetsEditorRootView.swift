@@ -87,7 +87,10 @@ extension TargetsEditor {
                             Text(
                                 (
                                     self.rateFormatter
-                                        .string(from: state.rateValues[i] as NSNumber) ?? ""
+                                        .string(
+                                            from: state.units == .mgdL ? state.rateValues[i] as NSNumber : state.rateValues[i]
+                                                .asMmolL as NSNumber
+                                        ) ?? ""
                                 )
                                     + " \(state.units.rawValue)"
 
@@ -122,7 +125,7 @@ extension TargetsEditor {
                     NavigationLink(destination: pickers(for: index)) {
                         HStack {
                             Text(
-                                "\(rateFormatter.string(from: state.rateValues[item.lowIndex] as NSNumber) ?? "0")"
+                                "\(rateFormatter.string(from: state.units == .mgdL ? state.rateValues[item.lowIndex] as NSNumber : state.rateValues[item.lowIndex].asMmolL as NSNumber) ?? "0")"
                             )
                             Text("\(state.units.rawValue)").foregroundColor(.secondary)
                             Spacer()

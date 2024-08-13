@@ -53,18 +53,38 @@ struct SettingInputSection: View {
                                     Spacer()
 
                                     Group {
-                                        Text(
-                                            units == .mmolL ? decimalValue.asMmolL.description : decimalValue
-                                                .description
-                                        )
-                                        .foregroundColor(!displayPicker ? .primary : .accentColor)
-
                                         if setting.type == PickerSetting.PickerSettingType.glucose {
+                                            Text(
+                                                units == .mmolL ? decimalValue.asMmolL.description : decimalValue
+                                                    .description
+                                            )
+                                            .foregroundColor(!displayPicker ? .primary : .accentColor)
                                             Text(units == .mgdL ? " mg/dL" : " mmol/L").foregroundColor(.secondary)
+                                        } else if setting.type == PickerSetting.PickerSettingType.factor {
+                                            Text("\(decimalValue * 100)")
+                                                .foregroundColor(!displayPicker ? .primary : .accentColor)
+
+                                            Text(" %").foregroundColor(.secondary)
                                         } else if setting.type == PickerSetting.PickerSettingType.insulinUnit {
-                                            Text(" U").foregroundColor(.secondary)
+                                            Text("\(decimalValue)")
+                                                .foregroundColor(!displayPicker ? .primary : .accentColor)
+
+                                            Text(NSLocalizedString(" U", comment: "Insulin unit")).foregroundColor(.secondary)
                                         } else if setting.type == PickerSetting.PickerSettingType.gramms {
-                                            Text(" g").foregroundColor(.secondary)
+                                            Text("\(decimalValue)")
+                                                .foregroundColor(!displayPicker ? .primary : .accentColor)
+
+                                            Text(NSLocalizedString(" g", comment: "gram of carbs")).foregroundColor(.secondary)
+                                        } else if setting.type == PickerSetting.PickerSettingType.minute {
+                                            Text("\(decimalValue)")
+                                                .foregroundColor(!displayPicker ? .primary : .accentColor)
+
+                                            Text(" min").foregroundColor(.secondary)
+                                        } else if setting.type == PickerSetting.PickerSettingType.hour {
+                                            Text("\(decimalValue)")
+                                                .foregroundColor(!displayPicker ? .primary : .accentColor)
+
+                                            Text(" hr").foregroundColor(.secondary)
                                         }
                                     }.onTapGesture {
                                         displayPicker.toggle()
@@ -73,10 +93,16 @@ struct SettingInputSection: View {
 
                                 if displayPicker {
                                     Picker(selection: $decimalValue, label: Text("")) {
-                                        ForEach(pickerSettingsProvider.generatePickerValues(from: setting), id: \.self) { value in
+                                        ForEach(
+                                            pickerSettingsProvider.generatePickerValues(from: setting),
+                                            id: \.self
+                                        ) { value in
                                             if setting.type == PickerSetting.PickerSettingType.glucose {
                                                 let displayValue = units == .mgdL ? value : value.asMmolL
                                                 Text("\(displayValue.description)").tag(value)
+                                            } else if setting.type == PickerSetting.PickerSettingType.factor {
+                                                let factorValue = value * 100
+                                                Text("\(factorValue.description)").tag(value)
                                             } else {
                                                 Text("\(value.description)").tag(value)
                                             }
@@ -111,18 +137,39 @@ struct SettingInputSection: View {
                                         Spacer()
 
                                         Group {
-                                            Text(
-                                                units == .mmolL ? decimalValue.asMmolL
-                                                    .description : decimalValue.description
-                                            )
-                                            .foregroundColor(!displayPicker ? .primary : .accentColor)
-
                                             if setting.type == PickerSetting.PickerSettingType.glucose {
+                                                Text(
+                                                    units == .mmolL ? decimalValue.asMmolL.description : decimalValue
+                                                        .description
+                                                )
+                                                .foregroundColor(!displayPicker ? .primary : .accentColor)
                                                 Text(units == .mgdL ? " mg/dL" : " mmol/L").foregroundColor(.secondary)
+                                            } else if setting.type == PickerSetting.PickerSettingType.factor {
+                                                Text("\(decimalValue * 100)")
+                                                    .foregroundColor(!displayPicker ? .primary : .accentColor)
+
+                                                Text(" %").foregroundColor(.secondary)
                                             } else if setting.type == PickerSetting.PickerSettingType.insulinUnit {
-                                                Text(" U").foregroundColor(.secondary)
+                                                Text("\(decimalValue)")
+                                                    .foregroundColor(!displayPicker ? .primary : .accentColor)
+
+                                                Text(NSLocalizedString(" U", comment: "Insulin unit")).foregroundColor(.secondary)
                                             } else if setting.type == PickerSetting.PickerSettingType.gramms {
-                                                Text(" g").foregroundColor(.secondary)
+                                                Text("\(decimalValue)")
+                                                    .foregroundColor(!displayPicker ? .primary : .accentColor)
+
+                                                Text(NSLocalizedString(" g", comment: "gram of carbs"))
+                                                    .foregroundColor(.secondary)
+                                            } else if setting.type == PickerSetting.PickerSettingType.minute {
+                                                Text("\(decimalValue)")
+                                                    .foregroundColor(!displayPicker ? .primary : .accentColor)
+
+                                                Text(" min").foregroundColor(.secondary)
+                                            } else if setting.type == PickerSetting.PickerSettingType.hour {
+                                                Text("\(decimalValue)")
+                                                    .foregroundColor(!displayPicker ? .primary : .accentColor)
+
+                                                Text(" hr").foregroundColor(.secondary)
                                             }
                                         }.onTapGesture {
                                             displayConditionalPicker.toggle()
@@ -137,7 +184,10 @@ struct SettingInputSection: View {
                                             ) { value in
                                                 if setting.type == PickerSetting.PickerSettingType.glucose {
                                                     let displayValue = units == .mgdL ? value : value.asMmolL
-                                                    Text("\(displayValue.description)").tag(value)
+                                                    Text("\(displayValue.description) \(units.rawValue)").tag(value)
+                                                } else if setting.type == PickerSetting.PickerSettingType.factor {
+                                                    let factorValue = value * 100
+                                                    Text("\(factorValue.description) %").tag(value)
                                                 } else {
                                                     Text("\(value.description)").tag(value)
                                                 }
@@ -271,6 +321,12 @@ struct SettingInputSection: View {
             return pickerSettingsProvider.settings.threshold_setting
         case "updateInterval":
             return pickerSettingsProvider.settings.updateInterval
+        case "dia":
+            return pickerSettingsProvider.settings.dia
+        case "maxBolus":
+            return pickerSettingsProvider.settings.maxBolus
+        case "maxBasal":
+            return pickerSettingsProvider.settings.maxBasal
         default:
             return nil
         }

@@ -194,14 +194,14 @@ extension DynamicSettings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0
-                                hintLabel = "Threshold Setting"
+                                hintLabel = "Minimum Safety Threshold"
                             }
                         ),
                         units: state.units,
                         type: .decimal("threshold_setting"),
-                        label: "Threshold Setting",
+                        label: "Minimum Safety Threshold",
                         miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                        verboseHint: "BG threshold"
+                        verboseHint: "Minimum Safety Threshold… bla bla bla"
                     )
                 }
             }

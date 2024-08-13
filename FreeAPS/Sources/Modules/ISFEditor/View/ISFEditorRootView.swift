@@ -136,7 +136,10 @@ extension ISFEditor {
                             Text(
                                 (
                                     self.rateFormatter
-                                        .string(from: state.rateValues[i] as NSNumber) ?? ""
+                                        .string(
+                                            from: state.units == .mgdL ? state.rateValues[i] as NSNumber : state.rateValues[i]
+                                                .asMmolL as NSNumber
+                                        ) ?? ""
                                 ) + " \(state.units.rawValue)/U"
                             ).tag(i)
                         }
@@ -166,11 +169,18 @@ extension ISFEditor {
         private var list: some View {
             List {
                 ForEach(state.items.indexed(), id: \.1.id) { index, item in
+                    let displayValue = rateFormatter
+                        .string(
+                            from: state.units == .mgdL ? state.rateValues[item.rateIndex] as NSNumber : state
+                                .rateValues[item.rateIndex].asMmolL as NSNumber
+                        )
+
                     NavigationLink(destination: pickers(for: index)) {
                         HStack {
                             Text("Rate").foregroundColor(.secondary)
+
                             Text(
-                                "\(rateFormatter.string(from: state.rateValues[item.rateIndex] as NSNumber) ?? "0") \(state.units.rawValue)/U"
+                                "\(displayValue ?? "0") \(state.units.rawValue)/U"
                             )
                             Spacer()
                             Text("starts at").foregroundColor(.secondary)

@@ -7,12 +7,7 @@ extension TargetsEditor {
         let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
 
         var rateValues: [Decimal] {
-            switch units {
-            case .mgdL:
-                return stride(from: 72, to: 180.01, by: 1.0).map { $0 }
-            case .mmolL:
-                return stride(from: 4.0, to: 10.01, by: 0.1).map { $0 }
-            }
+            stride(from: 72, to: 180.01, by: 1.0).map { $0 }
         }
 
         var canAdd: Bool {
