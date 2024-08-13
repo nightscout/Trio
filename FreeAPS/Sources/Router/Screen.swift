@@ -15,7 +15,6 @@ enum Screen: Identifiable, Hashable {
     case isfEditor
     case crEditor
     case targetsEditor
-    case preferencesEditor
     case bolus
     case manualTempBasal
     case autotuneConfig
@@ -81,8 +80,6 @@ extension Screen {
             CarbRatioEditor.RootView(resolver: resolver)
         case .targetsEditor:
             TargetsEditor.RootView(resolver: resolver)
-        case .preferencesEditor:
-            PreferencesEditor.RootView(resolver: resolver)
         case .bolus:
             Bolus.RootView(resolver: resolver)
         case .manualTempBasal:

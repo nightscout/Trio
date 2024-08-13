@@ -235,7 +235,6 @@
 		38FEF3FC2737E53800574A46 /* MainStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FEF3FB2737E53800574A46 /* MainStateModel.swift */; };
 		38FEF3FE2738083E00574A46 /* CGMProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FEF3FD2738083E00574A46 /* CGMProvider.swift */; };
 		38FEF413273B317A00574A46 /* HKUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FEF412273B317A00574A46 /* HKUnit.swift */; };
-		44190F0BBA464D74B857D1FB /* PreferencesEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A965332F237348B119FB858 /* PreferencesEditorRootView.swift */; };
 		448B6FCB252BD4796E2960C0 /* PumpSettingsEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0274EE6439B1C3ED70730D41 /* PumpSettingsEditorDataFlow.swift */; };
 		45252C95D220E796FDB3B022 /* ConfigEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F8A87AA037BD079BA3528BA /* ConfigEditorDataFlow.swift */; };
 		45717281F743594AA9D87191 /* ConfigEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 920DDB21E5D0EB813197500D /* ConfigEditorRootView.swift */; };
@@ -290,7 +289,6 @@
 		98641AF4F92123DA668AB931 /* CarbRatioEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0BDC6993C1087310EDFC428 /* CarbRatioEditorRootView.swift */; };
 		A05235B9112E677ED03B6E8E /* AutotuneConfigRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CF5ACEE1F0859670E71B2C0 /* AutotuneConfigRootView.swift */; };
 		A0B8EC8CC5CD1DD237D1BCD2 /* PumpSettingsEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8C7F882606FF83A21BE00D8 /* PumpSettingsEditorRootView.swift */; };
-		A228DF96647338139F152B15 /* PreferencesEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12204445D7632AF09264A979 /* PreferencesEditorDataFlow.swift */; };
 		A33352ED40476125EBAC6EE0 /* CarbRatioEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E22146D3DF4853786C78132 /* CarbRatioEditorDataFlow.swift */; };
 		AD3D2CD42CD01B9EB8F26522 /* PumpConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF65DA88F972B56090AD6AC3 /* PumpConfigDataFlow.swift */; };
 		B7C465E9472624D8A2BE2A6A /* (null) in Sources */ = {isa = PBXBuildFile; };
@@ -421,7 +419,6 @@
 		DD1DB7CC2BECCA1F0048B367 /* BuildDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */; };
 		DD21FCB52C6952AD00AF2C25 /* DecimalPickerSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD21FCB42C6952AD00AF2C25 /* DecimalPickerSettings.swift */; };
 		DD21FCB72C6AA2F000AF2C25 /* Rounding.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD21FCB62C6AA2F000AF2C25 /* Rounding.swift */; };
-		DD399FB31EACB9343C944C4C /* PreferencesEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CA3E609094E064C99A4752C /* PreferencesEditorStateModel.swift */; };
 		DD57C4B22C4C7103001A5B28 /* LoopStatRecord+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4902C4C7103001A5B28 /* LoopStatRecord+CoreDataClass.swift */; };
 		DD57C4B32C4C7103001A5B28 /* LoopStatRecord+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4912C4C7103001A5B28 /* LoopStatRecord+CoreDataProperties.swift */; };
 		DD57C4B42C4C7103001A5B28 /* MealPresetStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4922C4C7103001A5B28 /* MealPresetStored+CoreDataClass.swift */; };
@@ -484,7 +481,6 @@
 		E13B7DAB2A435F57066AF02E /* TargetsEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36F58DDD71F0E795464FA3F0 /* TargetsEditorStateModel.swift */; };
 		E39E418C56A5A46B61D960EE /* ConfigEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D5B4F8B4194BB7E260EF251 /* ConfigEditorStateModel.swift */; };
 		E3A08AAE59538BC8A8ABE477 /* GlucoseNotificationSettingsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3260468377DA9DB4DEE9AF6D /* GlucoseNotificationSettingsDataFlow.swift */; };
-		E4984C5262A90469788754BB /* PreferencesEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F8BA8533F56BC55748CA877 /* PreferencesEditorProvider.swift */; };
 		E974172296125A5AE99E634C /* PumpConfigRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AD22C985B79A2F0D2EA3D9D /* PumpConfigRootView.swift */; };
 		F5CA3DB1F9DC8B05792BBFAA /* CGMDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9B5C0607505A38F256BF99A /* CGMDataFlow.swift */; };
 		F5F7E6C1B7F098F59EB67EC5 /* TargetsEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA49538D56989D8DA6FCF538 /* TargetsEditorDataFlow.swift */; };
@@ -588,14 +584,12 @@
 
 /* Begin PBXFileReference section */
 		0274EE6439B1C3ED70730D41 /* PumpSettingsEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpSettingsEditorDataFlow.swift; sourceTree = "<group>"; };
-		0CA3E609094E064C99A4752C /* PreferencesEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PreferencesEditorStateModel.swift; sourceTree = "<group>"; };
 		110AEDE02C5193D100615CC9 /* BolusIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntent.swift; sourceTree = "<group>"; };
 		110AEDE12C5193D100615CC9 /* BolusIntentRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntentRequest.swift; sourceTree = "<group>"; };
 		110AEDE52C51A0AE00615CC9 /* ShortcutsConfigView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortcutsConfigView.swift; sourceTree = "<group>"; };
 		110AEDE72C51A0AE00615CC9 /* ShortcutsConfigDataFlow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortcutsConfigDataFlow.swift; sourceTree = "<group>"; };
 		110AEDE82C51A0AE00615CC9 /* ShortcutsConfigProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortcutsConfigProvider.swift; sourceTree = "<group>"; };
 		110AEDE92C51A0AE00615CC9 /* ShortcutsConfigStateModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortcutsConfigStateModel.swift; sourceTree = "<group>"; };
-		12204445D7632AF09264A979 /* PreferencesEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PreferencesEditorDataFlow.swift; sourceTree = "<group>"; };
 		19012CDB291D2CB900FB8210 /* LoopStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopStats.swift; sourceTree = "<group>"; };
 		190EBCC329FF136900BA767D /* UserInterfaceSettingsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInterfaceSettingsDataFlow.swift; sourceTree = "<group>"; };
 		190EBCC529FF138000BA767D /* UserInterfaceSettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInterfaceSettingsProvider.swift; sourceTree = "<group>"; };
@@ -912,13 +906,11 @@
 		6B1A8D252B14D91700E76752 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6B1A8D2D2B156EEF00E76752 /* LiveActivityBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityBridge.swift; sourceTree = "<group>"; };
 		6BCF84DC2B16843A003AD46E /* LiveActitiyAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActitiyAttributes.swift; sourceTree = "<group>"; };
-		6F8BA8533F56BC55748CA877 /* PreferencesEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PreferencesEditorProvider.swift; sourceTree = "<group>"; };
 		72778B68C3004F71F6E79BDC /* PumpSettingsEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpSettingsEditorStateModel.swift; sourceTree = "<group>"; };
 		79BDA519C9B890FD9A5DFCF3 /* ISFEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ISFEditorDataFlow.swift; sourceTree = "<group>"; };
 		7E22146D3DF4853786C78132 /* CarbRatioEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarbRatioEditorDataFlow.swift; sourceTree = "<group>"; };
 		8782B44544F38F2B2D82C38E /* NightscoutConfigRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NightscoutConfigRootView.swift; sourceTree = "<group>"; };
 		881E04BA5E0A003DE8E0A9C6 /* DataTableRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DataTableRootView.swift; sourceTree = "<group>"; };
-		8A965332F237348B119FB858 /* PreferencesEditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PreferencesEditorRootView.swift; sourceTree = "<group>"; };
 		8CF5ACEE1F0859670E71B2C0 /* AutotuneConfigRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AutotuneConfigRootView.swift; sourceTree = "<group>"; };
 		8DCCCCE633F5E98E41B0CD3C /* AutotuneConfigDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AutotuneConfigDataFlow.swift; sourceTree = "<group>"; };
 		920DDB21E5D0EB813197500D /* ConfigEditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConfigEditorRootView.swift; sourceTree = "<group>"; };
@@ -1435,7 +1427,6 @@
 				19D466A129AA2B0A004D5F33 /* MealSettings */,
 				D533BF261CDC1C3F871E7BFD /* NightscoutConfig */,
 				DDD163032C4C67B400CD525A /* OverrideConfig */,
-				3E1C41D9301B7058AA7BF5EA /* PreferencesEditor */,
 				99C01B871ACAB3F32CE755C7 /* PumpConfig */,
 				E493126EA71765130F64CCE5 /* PumpSettingsEditor */,
 				3811DE3825C9D4A100A708ED /* Settings */,
@@ -2119,17 +2110,6 @@
 			path = FreeAPSTests;
 			sourceTree = "<group>";
 		};
-		3E1C41D9301B7058AA7BF5EA /* PreferencesEditor */ = {
-			isa = PBXGroup;
-			children = (
-				12204445D7632AF09264A979 /* PreferencesEditorDataFlow.swift */,
-				6F8BA8533F56BC55748CA877 /* PreferencesEditorProvider.swift */,
-				0CA3E609094E064C99A4752C /* PreferencesEditorStateModel.swift */,
-				833DA2F9E47E64E305F92F9D /* View */,
-			);
-			path = PreferencesEditor;
-			sourceTree = "<group>";
-		};
 		4E8C7B59F8065047ECE20965 /* View */ = {
 			isa = PBXGroup;
 			children = (
@@ -2267,14 +2247,6 @@
 				BDF34F882C10C65E00D51995 /* Data */,
 			);
 			path = LiveActivity;
-			sourceTree = "<group>";
-		};
-		833DA2F9E47E64E305F92F9D /* View */ = {
-			isa = PBXGroup;
-			children = (
-				8A965332F237348B119FB858 /* PreferencesEditorRootView.swift */,
-			);
-			path = View;
 			sourceTree = "<group>";
 		};
 		84BDC840A57C65A1E6F9F780 /* View */ = {
@@ -3458,16 +3430,12 @@
 				9702FF92A09C53942F20D7EA /* TargetsEditorRootView.swift in Sources */,
 				1967DFBE29D052C200759F30 /* Icons.swift in Sources */,
 				38E8754F275556FA00975559 /* WatchManager.swift in Sources */,
-				A228DF96647338139F152B15 /* PreferencesEditorDataFlow.swift in Sources */,
 				DDD163182C4C694000CD525A /* OverrideRootView.swift in Sources */,
 				389ECE052601144100D86C4F /* ConcurrentMap.swift in Sources */,
 				110AEDEC2C51A0AE00615CC9 /* ShortcutsConfigDataFlow.swift in Sources */,
 				CE7CA3562A064973004BE681 /* StateIntentRequest.swift in Sources */,
-				E4984C5262A90469788754BB /* PreferencesEditorProvider.swift in Sources */,
-				DD399FB31EACB9343C944C4C /* PreferencesEditorStateModel.swift in Sources */,
 				19E1F7EA29D082ED005C8D20 /* IconConfigProvider.swift in Sources */,
 				DD09D4822C5986F6003FEA5D /* CalendarEventSettingsRootView.swift in Sources */,
-				44190F0BBA464D74B857D1FB /* PreferencesEditorRootView.swift in Sources */,
 				CE48C86428CA69D5007C0598 /* OmniBLEPumpManagerExtensions.swift in Sources */,
 				38E8755427561E9800975559 /* DataFlow.swift in Sources */,
 				38E44522274E3DDC00EC9A94 /* NetworkReachabilityManager.swift in Sources */,
