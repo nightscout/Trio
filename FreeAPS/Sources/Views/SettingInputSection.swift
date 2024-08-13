@@ -34,7 +34,6 @@ struct SettingInputSection: View {
     var headerText: String?
     var footerText: String?
 
-    // Access the shared PickerSettingsProvider instance
     @ObservedObject private var pickerSettingsProvider = PickerSettingsProvider.shared
     @State private var displayPicker: Bool = false
     @State private var displayConditionalPicker: Bool = false
@@ -46,191 +45,40 @@ struct SettingInputSection: View {
                     switch type {
                     case let .decimal(key):
                         if let setting = getPickerSetting(for: key) {
-                            VStack {
-                                HStack {
-                                    Text(label)
-
-                                    Spacer()
-
-                                    Group {
-                                        if setting.type == PickerSetting.PickerSettingType.glucose {
-                                            Text(
-                                                units == .mmolL ? decimalValue.asMmolL.description : decimalValue
-                                                    .description
-                                            )
-                                            .foregroundColor(!displayPicker ? .primary : .accentColor)
-                                            Text(units == .mgdL ? " mg/dL" : " mmol/L").foregroundColor(.secondary)
-                                        } else if setting.type == PickerSetting.PickerSettingType.factor {
-                                            Text("\(decimalValue * 100)")
-                                                .foregroundColor(!displayPicker ? .primary : .accentColor)
-
-                                            Text(" %").foregroundColor(.secondary)
-                                        } else if setting.type == PickerSetting.PickerSettingType.insulinUnit {
-                                            Text("\(decimalValue)")
-                                                .foregroundColor(!displayPicker ? .primary : .accentColor)
-
-                                            Text(NSLocalizedString(" U", comment: "Insulin unit")).foregroundColor(.secondary)
-                                        } else if setting.type == PickerSetting.PickerSettingType.gramms {
-                                            Text("\(decimalValue)")
-                                                .foregroundColor(!displayPicker ? .primary : .accentColor)
-
-                                            Text(NSLocalizedString(" g", comment: "gram of carbs")).foregroundColor(.secondary)
-                                        } else if setting.type == PickerSetting.PickerSettingType.minute {
-                                            Text("\(decimalValue)")
-                                                .foregroundColor(!displayPicker ? .primary : .accentColor)
-
-                                            Text(" min").foregroundColor(.secondary)
-                                        } else if setting.type == PickerSetting.PickerSettingType.hour {
-                                            Text("\(decimalValue)")
-                                                .foregroundColor(!displayPicker ? .primary : .accentColor)
-
-                                            Text(" hr").foregroundColor(.secondary)
-                                        }
-                                    }.onTapGesture {
-                                        displayPicker.toggle()
-                                    }
-                                }.padding(.top)
-
-                                if displayPicker {
-                                    Picker(selection: $decimalValue, label: Text("")) {
-                                        ForEach(
-                                            pickerSettingsProvider.generatePickerValues(from: setting),
-                                            id: \.self
-                                        ) { value in
-                                            if setting.type == PickerSetting.PickerSettingType.glucose {
-                                                let displayValue = units == .mgdL ? value : value.asMmolL
-                                                Text("\(displayValue.description)").tag(value)
-                                            } else if setting.type == PickerSetting.PickerSettingType.factor {
-                                                let factorValue = value * 100
-                                                Text("\(factorValue.description)").tag(value)
-                                            } else {
-                                                Text("\(value.description)").tag(value)
-                                            }
-                                        }
-                                    }
-                                    .pickerStyle(WheelPickerStyle())
-                                    .frame(maxWidth: .infinity)
-                                }
-                            }
+                            pickerView(
+                                label: label,
+                                displayPicker: $displayPicker,
+                                setting: setting,
+                                decimalValue: $decimalValue
+                            )
                         }
 
                     case .boolean:
-                        HStack {
-                            Toggle(isOn: $booleanValue) {
-                                Text(label)
-                            }
-                        }.padding(.top)
+                        toggleView(label: label, isOn: $booleanValue)
 
                     case let .conditionalDecimal(key):
-                        HStack {
-                            Toggle(isOn: $booleanValue) {
-                                Text(label)
-                            }
-                        }.padding(.vertical)
-
-                        if $booleanValue.wrappedValue {
-                            if let setting = getPickerSetting(for: key) {
-                                VStack {
-                                    HStack {
-                                        Text(conditionalLabel ?? label)
-
-                                        Spacer()
-
-                                        Group {
-                                            if setting.type == PickerSetting.PickerSettingType.glucose {
-                                                Text(
-                                                    units == .mmolL ? decimalValue.asMmolL.description : decimalValue
-                                                        .description
-                                                )
-                                                .foregroundColor(!displayPicker ? .primary : .accentColor)
-                                                Text(units == .mgdL ? " mg/dL" : " mmol/L").foregroundColor(.secondary)
-                                            } else if setting.type == PickerSetting.PickerSettingType.factor {
-                                                Text("\(decimalValue * 100)")
-                                                    .foregroundColor(!displayPicker ? .primary : .accentColor)
-
-                                                Text(" %").foregroundColor(.secondary)
-                                            } else if setting.type == PickerSetting.PickerSettingType.insulinUnit {
-                                                Text("\(decimalValue)")
-                                                    .foregroundColor(!displayPicker ? .primary : .accentColor)
-
-                                                Text(NSLocalizedString(" U", comment: "Insulin unit")).foregroundColor(.secondary)
-                                            } else if setting.type == PickerSetting.PickerSettingType.gramms {
-                                                Text("\(decimalValue)")
-                                                    .foregroundColor(!displayPicker ? .primary : .accentColor)
-
-                                                Text(NSLocalizedString(" g", comment: "gram of carbs"))
-                                                    .foregroundColor(.secondary)
-                                            } else if setting.type == PickerSetting.PickerSettingType.minute {
-                                                Text("\(decimalValue)")
-                                                    .foregroundColor(!displayPicker ? .primary : .accentColor)
-
-                                                Text(" min").foregroundColor(.secondary)
-                                            } else if setting.type == PickerSetting.PickerSettingType.hour {
-                                                Text("\(decimalValue)")
-                                                    .foregroundColor(!displayPicker ? .primary : .accentColor)
-
-                                                Text(" hr").foregroundColor(.secondary)
-                                            }
-                                        }.onTapGesture {
-                                            displayConditionalPicker.toggle()
-                                        }
-                                    }.padding(.top)
-
-                                    if displayConditionalPicker {
-                                        Picker(selection: $decimalValue, label: Text("")) {
-                                            ForEach(
-                                                pickerSettingsProvider.generatePickerValues(from: setting),
-                                                id: \.self
-                                            ) { value in
-                                                if setting.type == PickerSetting.PickerSettingType.glucose {
-                                                    let displayValue = units == .mgdL ? value : value.asMmolL
-                                                    Text("\(displayValue.description) \(units.rawValue)").tag(value)
-                                                } else if setting.type == PickerSetting.PickerSettingType.factor {
-                                                    let factorValue = value * 100
-                                                    Text("\(factorValue.description) %").tag(value)
-                                                } else {
-                                                    Text("\(value.description)").tag(value)
-                                                }
-                                            }
-                                        }
-                                        .pickerStyle(WheelPickerStyle())
-                                        .frame(maxWidth: .infinity)
-                                    }
-                                }
+                        VStack {
+                            toggleView(label: label, isOn: $booleanValue)
+                            if booleanValue, let setting = getPickerSetting(for: key) {
+                                pickerView(
+                                    label: conditionalLabel ?? label,
+                                    displayPicker: $displayConditionalPicker,
+                                    setting: setting,
+                                    decimalValue: $decimalValue
+                                )
                             }
                         }
                     }
 
-                    HStack(alignment: .top) {
-                        Text(miniHint)
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
-                            .lineLimit(nil)
-                        Spacer()
-                        Button(
-                            action: {
-                                shouldDisplayHint.toggle()
-                                selectedVerboseHint = shouldDisplayHint ? verboseHint : nil
-                            },
-                            label: {
-                                HStack {
-                                    Image(systemName: "questionmark.circle")
-                                }
-                            }
-                        ).buttonStyle(BorderlessButtonStyle())
-                    }.padding(.vertical)
+                    hintSection(
+                        miniHint: miniHint,
+                        shouldDisplayHint: $shouldDisplayHint,
+                        verboseHint: verboseHint
+                    )
                 }
             },
-            header: {
-                if let headerText = headerText {
-                    Text(headerText)
-                }
-            },
-            footer: {
-                if let footerText = footerText {
-                    Text(footerText)
-                }
-            }
+            header: { headerText.map(Text.init) },
+            footer: { footerText.map(Text.init) }
         ).listRowBackground(Color.chart)
     }
 
@@ -330,5 +178,79 @@ struct SettingInputSection: View {
         default:
             return nil
         }
+    }
+
+    private func pickerView(
+        label: String,
+        displayPicker: Binding<Bool>,
+        setting: PickerSetting,
+        decimalValue: Binding<Decimal>
+    ) -> some View {
+        VStack {
+            HStack {
+                Text(label)
+                Spacer()
+                displayText(for: setting, decimalValue: decimalValue.wrappedValue)
+                    .foregroundColor(!displayPicker.wrappedValue ? .primary : .accentColor)
+                    .onTapGesture {
+                        displayPicker.wrappedValue.toggle()
+                    }
+            }.padding(.top)
+
+            if displayPicker.wrappedValue {
+                Picker(selection: decimalValue, label: Text("")) {
+                    ForEach(pickerSettingsProvider.generatePickerValues(from: setting), id: \.self) { value in
+                        displayText(for: setting, decimalValue: value).tag(value)
+                    }
+                }
+                .pickerStyle(WheelPickerStyle())
+                .frame(maxWidth: .infinity)
+            }
+        }
+    }
+
+    private func displayText(for setting: PickerSetting, decimalValue: Decimal) -> Text {
+        switch setting.type {
+        case .glucose:
+            let displayValue = units == .mmolL ? decimalValue.asMmolL : decimalValue
+            return Text("\(displayValue.description) \(units.rawValue)")
+        case .factor:
+            return Text("\(decimalValue * 100) %")
+        case .insulinUnit:
+            return Text("\(decimalValue) U")
+        case .gramms:
+            return Text("\(decimalValue) g")
+        case .minute:
+            return Text("\(decimalValue) min")
+        case .hour:
+            return Text("\(decimalValue) hr")
+        }
+    }
+
+    private func toggleView(label: String, isOn: Binding<Bool>) -> some View {
+        HStack {
+            Toggle(isOn: isOn) {
+                Text(label)
+            }
+        }.padding(.top)
+    }
+
+    private func hintSection(miniHint: String, shouldDisplayHint: Binding<Bool>, verboseHint: String) -> some View {
+        HStack(alignment: .top) {
+            Text(miniHint)
+                .font(.footnote)
+                .foregroundColor(.secondary)
+                .lineLimit(nil)
+            Spacer()
+            Button(action: {
+                shouldDisplayHint.wrappedValue.toggle()
+                selectedVerboseHint = shouldDisplayHint.wrappedValue ? verboseHint : nil
+            }) {
+                HStack {
+                    Image(systemName: "questionmark.circle")
+                }
+            }
+            .buttonStyle(BorderlessButtonStyle())
+        }.padding(.vertical)
     }
 }

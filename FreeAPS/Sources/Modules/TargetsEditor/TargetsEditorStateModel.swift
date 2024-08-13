@@ -56,7 +56,7 @@ extension TargetsEditor {
                 let high = low
                 return BGTargetEntry(low: low, high: high, start: formatter.string(from: date), offset: minutes)
             }
-            let profile = BGTargets(units: units, userPrefferedUnits: settingsManager.settings.units, targets: targets)
+            let profile = BGTargets(units: .mgdL, userPrefferedUnits: .mgdL, targets: targets)
             provider.saveProfile(profile)
         }
 

@@ -76,8 +76,8 @@ extension ISFEditor {
                 return InsulinSensitivityEntry(sensitivity: rate, offset: minutes, start: fotmatter.string(from: date))
             }
             let profile = InsulinSensitivities(
-                units: units,
-                userPrefferedUnits: settingsManager.settings.units,
+                units: .mgdL,
+                userPrefferedUnits: .mgdL,
                 sensitivities: sensitivities
             )
             provider.saveProfile(profile)
