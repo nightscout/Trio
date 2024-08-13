@@ -84,6 +84,8 @@ extension Bolus {
         @Published var selection: MealPresetStored?
         @Published var summation: [String] = []
         @Published var maxCarbs: Decimal = 0
+        @Published var maxFat: Decimal = 0
+        @Published var maxProtein: Decimal = 0
 
         @Published var id_: String = ""
         @Published var summary: String = ""
@@ -126,6 +128,8 @@ extension Bolus {
             displayPresets = settings.settings.displayPresets
 
             maxCarbs = settings.settings.maxCarbs
+            maxFat = settings.settings.maxFat
+            maxProtein = settings.settings.maxProtein
             skipBolus = settingsManager.settings.skipBolusScreenAfterCarbs
             useFPUconversion = settingsManager.settings.useFPUconversion
 
@@ -374,6 +378,8 @@ extension Bolus {
         @MainActor func saveMeal() async {
             guard carbs > 0 || fat > 0 || protein > 0 else { return }
             carbs = min(carbs, maxCarbs)
+            fat = min(fat, maxFat)
+            protein = min(protein, maxProtein)
             id_ = UUID().uuidString
 
             let carbsToStore = [CarbsEntry(
