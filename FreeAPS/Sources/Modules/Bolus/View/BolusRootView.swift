@@ -519,7 +519,7 @@ extension Bolus {
             if pumpBolusLimitExceeded {
                 return Text("Max Bolus of \(state.maxBolus) U Exceeded")
             } else if externalBolusLimitExceeded {
-                return Text("Max External Bolus of \(maxExternal) U Exceeded")
+                return Text("Max External Bolus of \(state.maxExternal) U Exceeded")
             } else if carbLimitExceeded {
                 return Text("Max Carbs of \(state.maxCarbs) g Exceeded")
             } else if fatLimitExceeded {
@@ -557,12 +557,8 @@ extension Bolus {
             !state.externalInsulin && state.amount > state.maxBolus
         }
 
-        private var maxExternal: Decimal {
-            state.maxBolus * 3
-        }
-
         private var externalBolusLimitExceeded: Bool {
-            state.externalInsulin && state.amount > maxExternal
+            state.externalInsulin && state.amount > state.maxExternal
         }
 
         private var carbLimitExceeded: Bool {

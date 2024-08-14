@@ -25,6 +25,7 @@ extension Bolus {
         @Published var percentage: Decimal = 0
         @Published var threshold: Decimal = 0
         @Published var maxBolus: Decimal = 0
+        var maxExternal: Decimal { maxBolus * 3 }
         @Published var errorString: Decimal = 0
         @Published var evBG: Decimal = 0
         @Published var insulin: Decimal = 0
@@ -350,7 +351,7 @@ extension Bolus {
                 return
             }
 
-            amount = min(amount, maxBolus * 3)
+            amount = min(amount, maxExternal)
 
             do {
                 let authenticated = try await unlockmanager.unlock()
