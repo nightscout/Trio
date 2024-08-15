@@ -2,7 +2,8 @@ import SwiftUI
 
 extension BasalProfileEditor {
     final class StateModel: BaseStateModel<Provider> {
-        @Published var syncInProgress = false
+        @Published var syncInProgress: Bool = false
+        @Published var initialItems: [Item] = []
         @Published var items: [Item] = []
         @Published var total: Decimal = 0.0
 
@@ -15,6 +16,10 @@ extension BasalProfileEditor {
             return lastItem.timeIndex < timeValues.count - 1
         }
 
+        var hasChanges: Bool {
+            initialItems != items
+        }
+
         override func subscribe() {
             rateValues = provider.supportedBasalRates ?? stride(from: 5.0, to: 1001.0, by: 5.0)
                 .map { ($0.decimal ?? .zero) / 100 }
@@ -23,6 +28,9 @@ extension BasalProfileEditor {
                 let rateIndex = rateValues.firstIndex(of: value.rate) ?? 0
                 return Item(rateIndex: rateIndex, timeIndex: timeIndex)
             }
+
+            initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
+
             calcTotal()
         }
 
@@ -58,6 +66,8 @@ extension BasalProfileEditor {
         }
 
         func save() {
+            guard hasChanges else { return }
+
             syncInProgress = true
             let profile = items.map { item -> BasalProfileEntry in
                 let fotmatter = DateFormatter()
@@ -72,6 +82,7 @@ extension BasalProfileEditor {
                 .receive(on: DispatchQueue.main)
                 .sink { _ in
                     self.syncInProgress = false
+                    self.initialItems = self.items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
                 } receiveValue: {}
                 .store(in: &lifetime)
         }
@@ -81,7 +92,9 @@ extension BasalProfileEditor {
                 let uniq = Array(Set(self.items))
                 let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
                 sorted.first?.timeIndex = 0
-                self.items = sorted
+                if self.items != sorted {
+                    self.items = sorted
+                }
             }
         }
     }

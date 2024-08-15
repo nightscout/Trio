@@ -3,7 +3,9 @@ import SwiftUI
 extension CarbRatioEditor {
     final class StateModel: BaseStateModel<Provider> {
         @Published var items: [Item] = []
+        @Published var initialItems: [Item] = []
         @Published var autotune: Autotune?
+        @Published var shouldDisplaySaving: Bool = false
 
         let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
 
@@ -14,12 +16,28 @@ extension CarbRatioEditor {
             return lastItem.timeIndex < timeValues.count - 1
         }
 
+        var hasChanges: Bool {
+            if initialItems.count != items.count {
+                return true
+            }
+
+            for (initialItem, currentItem) in zip(initialItems, items) {
+                if initialItem.rateIndex != currentItem.rateIndex || initialItem.timeIndex != currentItem.timeIndex {
+                    return true
+                }
+            }
+
+            return false
+        }
+
         override func subscribe() {
             items = provider.profile.schedule.map { value in
                 let timeIndex = timeValues.firstIndex(of: Double(value.offset * 60)) ?? 0
                 let rateIndex = rateValues.firstIndex(of: value.ratio) ?? 0
                 return Item(rateIndex: rateIndex, timeIndex: timeIndex)
             }
+
+            initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
 
             autotune = provider.autotune
         }
@@ -38,6 +56,9 @@ extension CarbRatioEditor {
         }
 
         func save() {
+            guard hasChanges else { return }
+            shouldDisplaySaving = true
+
             let schedule = items.enumerated().map { _, item -> CarbRatioEntry in
                 let fotmatter = DateFormatter()
                 fotmatter.timeZone = TimeZone(secondsFromGMT: 0)
@@ -49,6 +70,7 @@ extension CarbRatioEditor {
             }
             let profile = CarbRatios(units: .grams, schedule: schedule)
             provider.saveProfile(profile)
+            initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
         }
 
         func validate() {
@@ -56,7 +78,9 @@ extension CarbRatioEditor {
                 let uniq = Array(Set(self.items))
                 let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
                 sorted.first?.timeIndex = 0
-                self.items = sorted
+                if self.items != sorted {
+                    self.items = sorted
+                }
             }
         }
     }

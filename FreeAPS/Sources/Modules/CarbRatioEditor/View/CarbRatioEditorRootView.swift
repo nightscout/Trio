@@ -40,6 +40,8 @@ extension CarbRatioEditor {
 
         var body: some View {
             Form {
+                let shouldDisableButton = state.shouldDisplaySaving || state.items.isEmpty || !state.hasChanges
+
                 if let autotune = state.autotune, !state.settingsManager.settings.onlyAutotuneBasals {
                     Section(header: Text("Autotune")) {
                         HStack {
@@ -56,18 +58,28 @@ extension CarbRatioEditor {
                 }.listRowBackground(Color.chart)
 
                 Section {
-                    Button {
-                        let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
-                        impactHeavy.impactOccurred()
-                        state.save()
-                    } label: {
-                        Text("Save")
-                    }
-                    .disabled(state.items.isEmpty)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .tint(.white)
+                    HStack {
+                        if state.shouldDisplaySaving {
+                            ProgressView().padding(.trailing, 10)
+                        }
 
-                }.listRowBackground(state.items.isEmpty ? Color(.systemGray4) : Color(.systemBlue))
+                        Button {
+                            let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+                            impactHeavy.impactOccurred()
+                            state.save()
+
+                            // deactivate saving display after 1.25 seconds
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.25) {
+                                state.shouldDisplaySaving = false
+                            }
+                        } label: {
+                            Text(state.shouldDisplaySaving ? "Saving..." : "Save")
+                        }
+                        .disabled(shouldDisableButton)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .tint(.white)
+                    }
+                }.listRowBackground(shouldDisableButton ? Color(.systemGray4) : Color(.systemBlue))
             }
             .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)

@@ -40,6 +40,8 @@ extension BasalProfileEditor {
 
         var body: some View {
             Form {
+                let shouldDisableButton = state.syncInProgress || state.items.isEmpty || !state.hasChanges
+
                 Section(header: Text("Schedule")) {
                     list
                 }.listRowBackground(Color.chart)
@@ -69,11 +71,14 @@ extension BasalProfileEditor {
                         } label: {
                             Text(state.syncInProgress ? "Saving..." : "Save")
                         }
-                        .disabled(state.syncInProgress || state.items.isEmpty)
+                        .disabled(shouldDisableButton)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .tint(.white)
                     }
-                }.listRowBackground(state.syncInProgress || state.items.isEmpty ? Color(.systemGray4) : Color(.systemBlue))
+                }.listRowBackground(shouldDisableButton ? Color(.systemGray4) : Color(.systemBlue))
+            }
+            .onChange(of: state.items) { _ in
+                state.calcTotal()
             }
             .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)

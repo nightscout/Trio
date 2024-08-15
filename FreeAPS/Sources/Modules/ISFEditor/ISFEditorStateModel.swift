@@ -5,6 +5,8 @@ extension ISFEditor {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() var determinationStorage: DeterminationStorage!
         @Published var items: [Item] = []
+        @Published var initialItems: [Item] = []
+        @Published var shouldDisplaySaving: Bool = false
         private(set) var autosensISF: Decimal?
         private(set) var autosensRatio: Decimal = 0
         @Published var autotune: Autotune?
@@ -24,6 +26,10 @@ extension ISFEditor {
             return lastItem.timeIndex < timeValues.count - 1
         }
 
+        var hasChanges: Bool {
+            initialItems != items
+        }
+
         private(set) var units: GlucoseUnits = .mgdL
 
         override func subscribe() {
@@ -36,6 +42,8 @@ extension ISFEditor {
                 let rateIndex = rateValues.firstIndex(of: value.sensitivity) ?? 0
                 return Item(rateIndex: rateIndex, timeIndex: timeIndex)
             }
+
+            initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
 
             autotune = provider.autotune
 
@@ -66,6 +74,9 @@ extension ISFEditor {
         }
 
         func save() {
+            guard hasChanges else { return }
+            shouldDisplaySaving.toggle()
+
             let sensitivities = items.map { item -> InsulinSensitivityEntry in
                 let fotmatter = DateFormatter()
                 fotmatter.timeZone = TimeZone(secondsFromGMT: 0)
@@ -81,17 +92,21 @@ extension ISFEditor {
                 sensitivities: sensitivities
             )
             provider.saveProfile(profile)
+            initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
         }
 
         func validate() {
             DispatchQueue.main.async {
-                let uniq = Array(Set(self.items))
-                let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
-                sorted.first?.timeIndex = 0
-                self.items = sorted
-
-                if self.items.isEmpty {
-                    self.units = self.settingsManager.settings.units
+                DispatchQueue.main.async {
+                    let uniq = Array(Set(self.items))
+                    let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
+                    sorted.first?.timeIndex = 0
+                    if self.items != sorted {
+                        self.items = sorted
+                    }
+                    if self.items.isEmpty {
+                        self.units = self.settingsManager.settings.units
+                    }
                 }
             }
         }

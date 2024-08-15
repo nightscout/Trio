@@ -3,6 +3,8 @@ import SwiftUI
 extension TargetsEditor {
     final class StateModel: BaseStateModel<Provider> {
         @Published var items: [Item] = []
+        @Published var initialItems: [Item] = []
+        @Published var shouldDisplaySaving: Bool = false
 
         let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
 
@@ -13,6 +15,10 @@ extension TargetsEditor {
         var canAdd: Bool {
             guard let lastItem = items.last else { return true }
             return lastItem.timeIndex < timeValues.count - 1
+        }
+
+        var hasChanges: Bool {
+            initialItems != items
         }
 
         private(set) var units: GlucoseUnits = .mgdL
@@ -28,6 +34,8 @@ extension TargetsEditor {
                 let highIndex = rateValues.firstIndex(of: value.high) ?? 0
                 return Item(lowIndex: lowIndex, highIndex: highIndex, timeIndex: timeIndex)
             }
+
+            initialItems = items.map { Item(lowIndex: $0.lowIndex, highIndex: $0.highIndex, timeIndex: $0.timeIndex) }
         }
 
         func add() {
@@ -46,6 +54,9 @@ extension TargetsEditor {
         }
 
         func save() {
+            guard hasChanges else { return }
+            shouldDisplaySaving.toggle()
+
             let targets = items.map { item -> BGTargetEntry in
                 let formatter = DateFormatter()
                 formatter.timeZone = TimeZone(secondsFromGMT: 0)
@@ -58,6 +69,7 @@ extension TargetsEditor {
             }
             let profile = BGTargets(units: .mgdL, userPrefferedUnits: .mgdL, targets: targets)
             provider.saveProfile(profile)
+            initialItems = items.map { Item(lowIndex: $0.lowIndex, highIndex: $0.highIndex, timeIndex: $0.timeIndex) }
         }
 
         func validate() {

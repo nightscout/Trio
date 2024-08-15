@@ -16,11 +16,13 @@ enum TargetsEditor {
         }
 
         static func == (lhs: Item, rhs: Item) -> Bool {
-            lhs.timeIndex == rhs.timeIndex
+            lhs.timeIndex == rhs.timeIndex && lhs.lowIndex == rhs.lowIndex && lhs.highIndex == rhs.highIndex
         }
 
         func hash(into hasher: inout Hasher) {
             hasher.combine(timeIndex)
+            hasher.combine(lowIndex)
+            hasher.combine(highIndex)
         }
     }
 }
