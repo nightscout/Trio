@@ -18,7 +18,13 @@ extension ISFEditor {
         let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
 
         var rateValues: [Decimal] {
-            stride(from: 9, to: 540.01, by: 1.0).map { Decimal($0) }
+            var values = stride(from: 9, to: 540.01, by: 1.0).map { Decimal($0) }
+
+            if units == .mmolL {
+                values = values.filter { Int(truncating: $0 as NSNumber) % 2 == 0 }
+            }
+
+            return values
         }
 
         var canAdd: Bool {
@@ -48,12 +54,7 @@ extension ISFEditor {
             autotune = provider.autotune
 
             if let newISF = provider.autosense.newisf {
-                switch units {
-                case .mgdL:
-                    autosensISF = newISF
-                case .mmolL:
-                    autosensISF = newISF * GlucoseUnits.exchangeRate
-                }
+                autosensISF = newISF
             }
 
             autosensRatio = provider.autosense.ratio

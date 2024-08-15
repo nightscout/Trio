@@ -80,15 +80,28 @@ extension ISFEditor {
                         HStack {
                             Text("Calculated Sensitivity")
                             Spacer()
-                            Text(
-                                rateFormatter
-                                    .string(from: (
-                                        (
-                                            !state.settingsManager.preferences
-                                                .useNewFormula ? newISF as NSDecimalNumber : dynamicISF
-                                        ) ?? 0
-                                    ) as NSNumber) ?? "0"
-                            )
+                            if state.units == .mgdL {
+                                Text(
+                                    rateFormatter
+                                        .string(from: (
+                                            (
+                                                !state.settingsManager.preferences
+                                                    .useNewFormula ? newISF as NSDecimalNumber : dynamicISF
+                                            ) ?? 0
+                                        ) as NSNumber) ?? "0"
+                                )
+                            } else {
+                                Text(
+                                    rateFormatter
+                                        .string(from: (
+                                            (
+                                                !state.settingsManager.preferences
+                                                    .useNewFormula ? newISF.asMmolL as NSDecimalNumber as Decimal : dynamicISF?
+                                                    .decimalValue.asMmolL
+                                            ) ?? 0
+                                        ) as NSNumber) ?? "0"
+                                )
+                            }
                             Text(state.units.rawValue + "/U").foregroundColor(.secondary)
                         }
                     }.listRowBackground(Color.chart)
