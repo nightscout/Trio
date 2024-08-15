@@ -23,7 +23,6 @@ struct ForeCastChart: View {
                 Spacer()
                 Image(systemName: "arrow.right.circle")
                     .font(.system(size: 16, weight: .bold))
-//                Image(systemName: "arrow.right").font(.footnote).foregroundStyle(.secondary)
 
                 if let eventualBG = state.simulatedDetermination?.eventualBG {
                     HStack {

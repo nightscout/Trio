@@ -17,8 +17,8 @@ extension Bolus {
         @Injected() var glucoseStorage: GlucoseStorage!
         @Injected() var determinationStorage: DeterminationStorage!
 
-        @Published var lowGlucose: Decimal = 4 / 0.0555
-        @Published var highGlucose: Decimal = 10 / 0.0555
+        @Published var lowGlucose: Decimal = 4.asMgdL
+        @Published var highGlucose: Decimal = 10.asMgdL
 
         @Published var predictions: Predictions?
         @Published var amount: Decimal = 0
@@ -68,6 +68,10 @@ extension Bolus {
         @Published var displayPresets: Bool = true
 
         @Published var currentBasal: Decimal = 0
+        @Published var currentCarbRatio: Decimal = 0
+        @Published var currentBGTarget: Decimal = 0
+        @Published var currentISF: Decimal = 0
+
         @Published var sweetMeals: Bool = false
         @Published var sweetMealFactor: Decimal = 0
         @Published var useSuperBolus: Bool = false
@@ -120,6 +124,14 @@ extension Bolus {
             setupGlucoseArray()
 
             Task {
+                let getMaxBolus = await self.provider.getPumpSettings().maxBolus
+                await MainActor.run {
+                    maxBolus = getMaxBolus
+                }
+                await getCurrentCarbRatio()
+                await getCurrentBGTarget()
+                await getCurrentISF()
+
                 await setupDeterminationsArray()
                 // Determination has updated, so we can use this to draw the initial Forecast Chart
                 let forecastData = await mapForecastsForChart()
@@ -130,8 +142,6 @@ extension Bolus {
             broadcaster.register(BolusFailureObserver.self, observer: self)
             units = settingsManager.settings.units
             percentage = settingsManager.settings.insulinReqPercentage
-            maxBolus = provider.pumpSettings().maxBolus
-            // added
             fraction = settings.settings.overrideFactor
             useCalc = settings.settings.useCalc
             fattyMeals = settings.settings.fattyMeals
@@ -140,8 +150,8 @@ extension Bolus {
             sweetMealFactor = settings.settings.sweetMealFactor
             displayPresets = settings.settings.displayPresets
 
-            lowGlucose = settingsManager.settings.low
-            highGlucose = settingsManager.settings.high
+            lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
+            highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL
 
             maxCarbs = settings.settings.maxCarbs
             skipBolus = settingsManager.settings.skipBolusScreenAfterCarbs
@@ -162,7 +172,7 @@ extension Bolus {
         // MARK: - Basal
 
         func getCurrentBasal() async {
-            let basalEntries = provider.getProfile()
+            let basalEntries = await provider.getBasalProfile()
             let now = Date()
             let calendar = Calendar.current
             let dateFormatter = DateFormatter()
@@ -203,6 +213,153 @@ extension Bolus {
                         currentBasal = entry.rate
                     }
                     break
+                }
+            }
+        }
+
+        func getCurrentCarbRatio() async {
+            let carbRatios = await provider.getCarbRatios()
+            print("carbRatios \(carbRatios)")
+
+            let now = Date()
+            let calendar = Calendar.current
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "HH:mm:ss"
+            dateFormatter.timeZone = TimeZone.current
+
+            for (index, entry) in carbRatios.schedule.enumerated() {
+                guard let entryTime = dateFormatter.date(from: entry.start) else {
+                    print("Invalid entry start time: \(entry.start)")
+                    continue
+                }
+
+                let entryComponents = calendar.dateComponents([.hour, .minute, .second], from: entryTime)
+                let entryStartTime = calendar.date(
+                    bySettingHour: entryComponents.hour!,
+                    minute: entryComponents.minute!,
+                    second: entryComponents.second!,
+                    of: now
+                )!
+
+                let entryEndTime: Date
+                if index < carbRatios.schedule.count - 1,
+                   let nextEntryTime = dateFormatter.date(from: carbRatios.schedule[index + 1].start)
+                {
+                    let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
+                    entryEndTime = calendar.date(
+                        bySettingHour: nextEntryComponents.hour!,
+                        minute: nextEntryComponents.minute!,
+                        second: nextEntryComponents.second!,
+                        of: now
+                    )!
+                } else {
+                    entryEndTime = calendar.date(byAdding: .day, value: 1, to: entryStartTime)!
+                }
+
+                if now >= entryStartTime, now < entryEndTime {
+                    await MainActor.run {
+                        currentCarbRatio = entry.ratio
+                        debugPrint("currentCarbRatio: \(currentCarbRatio)")
+                    }
+                    return
+                }
+            }
+        }
+
+        func getCurrentBGTarget() async {
+            let bgTargets = await provider.getBGTarget()
+            print("bgTargets \(bgTargets)")
+
+            let now = Date()
+            let calendar = Calendar.current
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "HH:mm:ss"
+            dateFormatter.timeZone = TimeZone.current
+
+            for (index, entry) in bgTargets.targets.enumerated() {
+                guard let entryTime = dateFormatter.date(from: entry.start) else {
+                    print("Invalid entry start time: \(entry.start)")
+                    continue
+                }
+
+                let entryComponents = calendar.dateComponents([.hour, .minute, .second], from: entryTime)
+                let entryStartTime = calendar.date(
+                    bySettingHour: entryComponents.hour!,
+                    minute: entryComponents.minute!,
+                    second: entryComponents.second!,
+                    of: now
+                )!
+
+                let entryEndTime: Date
+                if index < bgTargets.targets.count - 1,
+                   let nextEntryTime = dateFormatter.date(from: bgTargets.targets[index + 1].start)
+                {
+                    let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
+                    entryEndTime = calendar.date(
+                        bySettingHour: nextEntryComponents.hour!,
+                        minute: nextEntryComponents.minute!,
+                        second: nextEntryComponents.second!,
+                        of: now
+                    )!
+                } else {
+                    entryEndTime = calendar.date(byAdding: .day, value: 1, to: entryStartTime)!
+                }
+
+                if now >= entryStartTime, now < entryEndTime {
+                    await MainActor.run {
+                        currentBGTarget = entry.low // doesn't matter if we use entry.low or entry.high here
+                        debugPrint("currentBGTarget: \(currentBGTarget)")
+                    }
+                    return
+                }
+            }
+        }
+
+        func getCurrentISF() async {
+            let insulinSensitivities = await provider.getISFValues()
+            print("insulinSensitivities \(insulinSensitivities)")
+
+            let now = Date()
+            let calendar = Calendar.current
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "HH:mm:ss"
+            dateFormatter.timeZone = TimeZone.current
+
+            for (index, entry) in insulinSensitivities.sensitivities.enumerated() {
+                guard let entryTime = dateFormatter.date(from: entry.start) else {
+                    print("Invalid entry start time: \(entry.start)")
+                    continue
+                }
+
+                let entryComponents = calendar.dateComponents([.hour, .minute, .second], from: entryTime)
+                let entryStartTime = calendar.date(
+                    bySettingHour: entryComponents.hour!,
+                    minute: entryComponents.minute!,
+                    second: entryComponents.second!,
+                    of: now
+                )!
+
+                let entryEndTime: Date
+                if index < insulinSensitivities.sensitivities.count - 1,
+                   let nextEntryTime = dateFormatter.date(from: insulinSensitivities.sensitivities[index + 1].start)
+                {
+                    let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
+                    entryEndTime = calendar.date(
+                        bySettingHour: nextEntryComponents.hour!,
+                        minute: nextEntryComponents.minute!,
+                        second: nextEntryComponents.second!,
+                        of: now
+                    )!
+                } else {
+                    entryEndTime = calendar.date(byAdding: .day, value: 1, to: entryStartTime)!
+                }
+
+                if now >= entryStartTime, now < entryEndTime {
+                    await MainActor.run {
+                        currentISF = entry.sensitivity
+                        debugPrint("currentISFValue: \(currentISF)")
+                    }
+                    return
                 }
             }
         }
@@ -437,80 +594,6 @@ extension Bolus {
         func addToSummation() {
             summation.append(selection?.dish ?? "")
         }
-
-        func waitersNotepad() -> String {
-            var filteredArray = summation.filter { !$0.isEmpty }
-
-            if carbs == 0, protein == 0, fat == 0 {
-                filteredArray = []
-            }
-
-            guard filteredArray != [] else {
-                return ""
-            }
-            var carbs_: Decimal = 0.0
-            var fat_: Decimal = 0.0
-            var protein_: Decimal = 0.0
-            var presetArray = [MealPresetStored]()
-
-            // TODO: purge Jons code
-            viewContext.performAndWait {
-                let requestPresets = MealPresetStored.fetchRequest() as NSFetchRequest<MealPresetStored>
-                try? presetArray = viewContext.fetch(requestPresets)
-            }
-            var waitersNotepad = [String]()
-            var stringValue = ""
-
-            for each in filteredArray {
-                let countedSet = NSCountedSet(array: filteredArray)
-                let count = countedSet.count(for: each)
-                if each != stringValue {
-                    waitersNotepad.append("\(count) \(each)")
-                }
-                stringValue = each
-
-                for sel in presetArray {
-                    if sel.dish == each {
-                        carbs_ += (sel.carbs)! as Decimal
-                        fat_ += (sel.fat)! as Decimal
-                        protein_ += (sel.protein)! as Decimal
-                        break
-                    }
-                }
-            }
-            let extracarbs = carbs - carbs_
-            let extraFat = fat - fat_
-            let extraProtein = protein - protein_
-            var addedString = ""
-
-            if extracarbs > 0, filteredArray.isNotEmpty {
-                addedString += "Additional carbs: \(extracarbs) ,"
-            } else if extracarbs < 0 { addedString += "Removed carbs: \(extracarbs) " }
-
-            if extraFat > 0, filteredArray.isNotEmpty {
-                addedString += "Additional fat: \(extraFat) ,"
-            } else if extraFat < 0 { addedString += "Removed fat: \(extraFat) ," }
-
-            if extraProtein > 0, filteredArray.isNotEmpty {
-                addedString += "Additional protein: \(extraProtein) ,"
-            } else if extraProtein < 0 { addedString += "Removed protein: \(extraProtein) ," }
-
-            if addedString != "" {
-                waitersNotepad.append(addedString)
-            }
-            var waitersNotepadString = ""
-
-            if waitersNotepad.count == 1 {
-                waitersNotepadString = waitersNotepad[0]
-            } else if waitersNotepad.count > 1 {
-                for each in waitersNotepad {
-                    if each != waitersNotepad.last {
-                        waitersNotepadString += " " + each + ","
-                    } else { waitersNotepadString += " " + each }
-                }
-            }
-            return waitersNotepadString
-        }
     }
 }
 
@@ -686,12 +769,12 @@ extension Bolus.StateModel {
         insulinRequired = (mostRecentDetermination.insulinReq ?? 0) as Decimal
         evBG = (mostRecentDetermination.eventualBG ?? 0) as Decimal
         insulin = (mostRecentDetermination.insulinForManualBolus ?? 0) as Decimal
-        target = (mostRecentDetermination.currentTarget ?? 100) as Decimal
-        isf = (mostRecentDetermination.insulinSensitivity ?? 0) as Decimal
+        target = (mostRecentDetermination.currentTarget ?? currentBGTarget as NSDecimalNumber) as Decimal
+        isf = (mostRecentDetermination.insulinSensitivity ?? currentISF as NSDecimalNumber) as Decimal
         cob = mostRecentDetermination.cob as Int16
         iob = (mostRecentDetermination.iob ?? 0) as Decimal
         basal = (mostRecentDetermination.tempBasal ?? 0) as Decimal
-        carbRatio = (mostRecentDetermination.carbRatio ?? 0) as Decimal
+        carbRatio = (mostRecentDetermination.carbRatio ?? currentCarbRatio as NSDecimalNumber) as Decimal
         insulinCalculated = calculateInsulin()
     }
 }
