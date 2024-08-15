@@ -28,12 +28,7 @@ extension DynamicSettings {
             adjustmentFactorSigmoid = settings.preferences.adjustmentFactorSigmoid
             weightPercentage = settings.preferences.weightPercentage
             tddAdjBasal = settings.preferences.tddAdjBasal
-
-            if units == .mmolL {
-                threshold_setting = settings.preferences.threshold_setting.asMmolL
-            } else {
-                threshold_setting = settings.preferences.threshold_setting
-            }
+            threshold_setting = settings.preferences.threshold_setting
         }
 
         var unChanged: Bool {

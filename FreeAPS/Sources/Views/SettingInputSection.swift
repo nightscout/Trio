@@ -198,7 +198,7 @@ struct SettingInputSection: View {
             }.padding(.top)
 
             if displayPicker.wrappedValue {
-                Picker(selection: decimalValue, label: Text("")) {
+                Picker(selection: decimalValue, label: Text(label)) {
                     ForEach(pickerSettingsProvider.generatePickerValues(from: setting, units: self.units), id: \.self) { value in
                         displayText(for: setting, decimalValue: value).tag(value)
                     }
