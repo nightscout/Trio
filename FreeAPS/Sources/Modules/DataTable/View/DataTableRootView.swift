@@ -37,6 +37,18 @@ extension DataTable {
             return formatter
         }
 
+        private var glucoseEntryFormatter: NumberFormatter {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            formatter.maximumFractionDigits = 0
+            if state.units == .mmolL {
+                formatter.minimumFractionDigits = 0
+                formatter.maximumFractionDigits = 1
+            }
+            formatter.roundingMode = .down
+            return formatter
+        }
+
         private var dateFormatter: DateFormatter {
             let formatter = DateFormatter()
             formatter.timeStyle = .short
@@ -144,7 +156,7 @@ extension DataTable {
                                     text: $state.manualGlucose,
                                     placeholder: " ... ",
                                     shouldBecomeFirstResponder: true,
-                                    numberFormatter: glucoseFormatter
+                                    numberFormatter: glucoseEntryFormatter
                                 )
                                 Text(state.units.rawValue).foregroundStyle(.secondary)
                             }
@@ -152,8 +164,8 @@ extension DataTable {
 
                         Section {
                             HStack {
-                                let limitLow: Decimal = state.units == .mmolL ? 0.8 : 40
-                                let limitHigh: Decimal = state.units == .mmolL ? 14 : 720
+                                let limitLow: Decimal = state.units == .mmolL ? 0.8 : 14
+                                let limitHigh: Decimal = state.units == .mmolL ? 40 : 720
 
                                 Button {
                                     state.logManualGlucose()
