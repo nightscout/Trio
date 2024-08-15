@@ -83,7 +83,7 @@ extension MealSettings {
                                 let setting = PickerSettingsProvider.shared.settings.maxCarbs
                                 Picker(selection: $state.maxCarbs, label: Text("")) {
                                     ForEach(
-                                        PickerSettingsProvider.shared.generatePickerValues(from: setting),
+                                        PickerSettingsProvider.shared.generatePickerValues(from: setting, units: state.units),
                                         id: \.self
                                     ) { value in
                                         Text("\(value.description)").tag(value)
@@ -117,7 +117,7 @@ extension MealSettings {
                                     let setting = PickerSettingsProvider.shared.settings.maxFat
                                     Picker(selection: $state.maxCarbs, label: Text("")) {
                                         ForEach(
-                                            PickerSettingsProvider.shared.generatePickerValues(from: setting),
+                                            PickerSettingsProvider.shared.generatePickerValues(from: setting, units: state.units),
                                             id: \.self
                                         ) { value in
                                             Text("\(value.description)").tag(value)
@@ -150,7 +150,7 @@ extension MealSettings {
                                     let setting = PickerSettingsProvider.shared.settings.maxProtein
                                     Picker(selection: $state.maxProtein, label: Text("")) {
                                         ForEach(
-                                            PickerSettingsProvider.shared.generatePickerValues(from: setting),
+                                            PickerSettingsProvider.shared.generatePickerValues(from: setting, units: state.units),
                                             id: \.self
                                         ) { value in
                                             Text("\(value.description)").tag(value)

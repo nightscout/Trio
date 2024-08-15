@@ -129,7 +129,7 @@ extension UserInterfaceSettings {
 
                             Picker(selection: $state.low, label: Text("")) {
                                 ForEach(
-                                    PickerSettingsProvider.shared.generatePickerValues(from: setting),
+                                    PickerSettingsProvider.shared.generatePickerValues(from: setting, units: state.units),
                                     id: \.self
                                 ) { value in
                                     let displayValue = state.units == .mgdL ? value : value.asMmolL
@@ -163,7 +163,7 @@ extension UserInterfaceSettings {
                             let setting = PickerSettingsProvider.shared.settings.high
                             Picker(selection: $state.high, label: Text("")) {
                                 ForEach(
-                                    PickerSettingsProvider.shared.generatePickerValues(from: setting),
+                                    PickerSettingsProvider.shared.generatePickerValues(from: setting, units: state.units),
                                     id: \.self
                                 ) { value in
                                     let displayValue = state.units == .mgdL ? value : value.asMmolL

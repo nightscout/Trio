@@ -8,7 +8,7 @@ class PickerSettingsProvider: ObservableObject {
     private init() {} // Private init to enforce singleton pattern
 
     // Helper function to generate values for the picker
-    func generatePickerValues(from setting: PickerSetting) -> [Decimal] {
+    func generatePickerValues(from setting: PickerSetting, units: GlucoseUnits) -> [Decimal] {
         var values: [Decimal] = []
         var currentValue = setting.min
 
@@ -17,6 +17,11 @@ class PickerSettingsProvider: ObservableObject {
             currentValue += setting.step
         }
 
+        // Glucose values are stored as mg/dl values, so Integers.
+        // Filter out odd numbers to avoid duplicate mmol/L values due to rounding.
+        if units == .mmolL, setting.type == PickerSetting.PickerSettingType.glucose {
+            values = values.filter { Int($0) % 2 == 0 }
+        }
         return values
     }
 }
