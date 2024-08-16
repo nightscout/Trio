@@ -8,11 +8,11 @@ var _ = require('lodash');
 
 function defaults ( ) {
   return /* profile */ {
-    max_iob: 9 // if max_iob is not provided, will default to zero
-    , max_daily_safety_multiplier: 5
-    , current_basal_safety_multiplier: 6
-    , autosens_max: 2.5
-    , autosens_min: 0.5
+    max_iob: 0 // if max_iob is not provided, will default to zero
+    , max_daily_safety_multiplier: 3
+    , current_basal_safety_multiplier: 4
+    , autosens_max: 1.2
+    , autosens_min: 0.7
     , rewind_resets_autosens: true // reset autosensitivity to neutral for awhile after each pump rewind
     // , autosens_adjust_targets: false // when autosens detects sensitivity/resistance, also adjust BG target accordingly
     , high_temptarget_raises_sensitivity: false // raise sensitivity for temptargets >= 101.  synonym for exercise_mode
@@ -32,10 +32,10 @@ function defaults ( ) {
     , remainingCarbsFraction: 1.0 // fraction of carbs we'll assume will absorb over 4h if we don't yet see carb absorption
     , remainingCarbsCap: 90 // max carbs we'll assume will absorb over 4h if we don't yet see carb absorption
     // WARNING: use SMB with caution: it can and will automatically bolus up to max_iob worth of extra insulin
-    , enableUAM: true // enable detection of unannounced meal carb absorption
+    , enableUAM: false // enable detection of unannounced meal carb absorption
     , A52_risk_enable: false
-    , enableSMB_with_COB: true // enable supermicrobolus while COB is positive
-    , enableSMB_with_temptarget: true // enable supermicrobolus for eating soon temp targets
+    , enableSMB_with_COB: false // enable supermicrobolus while COB is positive
+    , enableSMB_with_temptarget: false // enable supermicrobolus for eating soon temp targets
     // *** WARNING *** DO NOT USE enableSMB_always or enableSMB_after_carbs with Libre or similar
     // LimiTTer, etc. do not properly filter out high-noise SGVs.  xDrip+ builds greater than or equal to
     // version number d8e-7097-2018-01-22 provide proper noise values, so that oref0 can ignore high noise
@@ -45,16 +45,18 @@ function defaults ( ) {
     // if the CGM sensor reads falsely high and doesn't come down as actual BG does
     , enableSMB_always: false // always enable supermicrobolus (unless disabled by high temptarget)
     , enableSMB_after_carbs: false // enable supermicrobolus for 6h after carbs, even with 0 COB
+    , enableSMB_high_bg: false // enable SMBs when a high BG is detected, based on the high BG target (adjusted or profile)
+    , enableSMB_high_bg_target: 110 // set the value enableSMB_high_bg will compare against to enable SMB. If BG > than this value, SMBs should enable.
     // *** WARNING *** DO NOT USE enableSMB_always or enableSMB_after_carbs with Libre or similar.
-    , allowSMB_with_high_temptarget: true // allow supermicrobolus (if otherwise enabled) even with high temp targets
-    , maxSMBBasalMinutes: 90 // maximum minutes of basal that can be delivered as a single SMB with uncovered COB
-    , maxUAMSMBBasalMinutes: 90 // maximum minutes of basal that can be delivered as a single SMB when IOB exceeds COB
+    , allowSMB_with_high_temptarget: false // allow supermicrobolus (if otherwise enabled) even with high temp targets
+    , maxSMBBasalMinutes: 30 // maximum minutes of basal that can be delivered as a single SMB with uncovered COB
+    , maxUAMSMBBasalMinutes: 30 // maximum minutes of basal that can be delivered as a single SMB when IOB exceeds COB
     , SMBInterval: 3 // minimum interval between SMBs, in minutes.
-    , bolus_increment: 0.05 // minimum bolus that can be delivered as an SMB
+    , bolus_increment: 0.1 // minimum bolus that can be delivered as an SMB
     , maxDelta_bg_threshold: 0.2 // maximum change in bg to use SMB, above that will disable SMB
     , curve: "rapid-acting" // change this to "ultra-rapid" for Fiasp, or "bilinear" for old curve
     , useCustomPeakTime: false // allows changing insulinPeakTime
-    , insulinPeakTime: 45 // number of minutes after a bolus activity peaks.  defaults to 55m for Fiasp if useCustomPeakTime: false
+    , insulinPeakTime: 75 // number of minutes after a bolus activity peaks.  defaults to 55m for Fiasp if useCustomPeakTime: false
     , carbsReqThreshold: 1 // grams of carbsReq to trigger a pushover
     , offline_hotspot: false // enabled an offline-only local wifi hotspot if no Internet available
     , noisyCGMTargetMultiplier: 1.3 // increase target by this amount when looping off raw/noisy CGM data
@@ -66,7 +68,6 @@ function defaults ( ) {
     //, maxRaw: 200 // highest raw/noisy CGM value considered safe to use for looping
     , calc_glucose_noise: false
     , target_bg: false // set to an integer value in mg/dL to override pump min_bg
-    // autoISF variables
     , smb_delivery_ratio: 0.5 //Default value: 0.5 Used if flexible delivery ratio is not used. This is another key OpenAPS safety cap, and specifies what share of the total insulin required can be delivered as SMB. This is to prevent people from getting into dangerous territory by setting SMB requests from the caregivers phone at the same time. Increase this experimental value slowly and with caution.
     , adjustmentFactor: 0.8
     , adjustmentFactorSigmoid: 0.5
@@ -75,8 +76,6 @@ function defaults ( ) {
     , sigmoid: false
     , weightPercentage: 0.65 
     , tddAdjBasal: false // Enable adjustment of basal based on the ratio of 24 h : 10 day average TDD
-    , enableSMB_high_bg: false // enable SMBs when a high BG is detected, based on the high BG target (adjusted or profile)
-    , enableSMB_high_bg_target: 110 // set the value enableSMB_high_bg will compare against to enable SMB. If BG > than this value, SMBs should enable.
     , threshold_setting: 60 // Use a configurable threshold setting
   }
 }
