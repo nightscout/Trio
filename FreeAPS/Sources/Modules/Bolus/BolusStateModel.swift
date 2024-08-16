@@ -368,11 +368,7 @@ extension Bolus {
 
         /// Calculate insulin recommendation
         func calculateInsulin() -> Decimal {
-            // ensure that isf is in mg/dL
-            var conversion: Decimal {
-                units == .mmolL ? 0.0555 : 1
-            }
-            let isfForCalculation = isf / conversion
+            let isfForCalculation = units == .mmolL ? isf.asMgdL : isf
 
             // insulin needed for the current blood glucose
             targetDifference = currentBG - target
@@ -780,31 +776,6 @@ extension Bolus.StateModel {
 }
 
 extension Bolus.StateModel {
-    func calculateForecasts(predictions: Predictions?) -> ([Int], [Int]) {
-        let iob: [Int] = predictions?.iob ?? []
-        let zt: [Int] = predictions?.zt ?? []
-        let cob: [Int] = predictions?.cob ?? []
-        let uam: [Int] = predictions?.uam ?? []
-
-        // Filter out the empty arrays and find the maximum length of the remaining arrays
-        let nonEmptyArrays: [[Int]] = [iob, zt, cob, uam].filter { !$0.isEmpty }
-        guard !nonEmptyArrays.isEmpty, let maxCount = nonEmptyArrays.map(\.count).max(), maxCount > 0 else {
-            return ([], [])
-        }
-
-        let minForecast = (0 ..< maxCount).map { index -> Int in
-            let valuesAtCurrentIndex = nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }
-            return valuesAtCurrentIndex.min() ?? 0
-        }
-
-        let maxForecast = (0 ..< maxCount).map { index -> Int in
-            let valuesAtCurrentIndex = nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }
-            return valuesAtCurrentIndex.max() ?? 0
-        }
-
-        return (minForecast, maxForecast)
-    }
-
     @MainActor func updateForecasts(with forecastData: Determination? = nil) async {
         if let forecastData = forecastData {
             simulatedDetermination = forecastData
@@ -831,14 +802,14 @@ extension Bolus.StateModel {
             return
         }
 
-        let maxCount = min(36, nonEmptyArrays.map(\.count).max() ?? 0)
-        guard maxCount > 0 else { return }
+        let minCount = min(36, nonEmptyArrays.map(\.count).min() ?? 0)
+        guard minCount > 0 else { return }
 
-        minForecast = (0 ..< maxCount).map { index in
+        minForecast = (0 ..< minCount).map { index in
             nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }.min() ?? 0
         }
 
-        maxForecast = (0 ..< maxCount).map { index in
+        maxForecast = (0 ..< minCount).map { index in
             nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }.max() ?? 0
         }
     }

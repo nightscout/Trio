@@ -11,10 +11,6 @@ struct ForeCastChart: View {
     @State private var startMarker = Date(timeIntervalSinceNow: -4 * 60 * 60)
     @State private var endMarker = Date(timeIntervalSinceNow: 3 * 60 * 60)
 
-    private var conversionFactor: Decimal {
-        units == .mmolL ? 0.0555 : 1
-    }
-
     var body: some View {
         VStack {
             forecastChart
@@ -54,7 +50,7 @@ struct ForeCastChart: View {
         .chartXAxis { forecastChartXAxis }
         .chartXScale(domain: startMarker ... endMarker)
         .chartYAxis { forecastChartYAxis }
-        .chartYScale(domain: 0 ... 300 * conversionFactor)
+        .chartYScale(domain: units == .mgdL ? 0 ... 300 : 0.asMmolL ... 300.asMmolL)
     }
 
     private func drawGlucose() -> some ChartContent {
@@ -62,21 +58,21 @@ struct ForeCastChart: View {
             if item.glucose > Int(state.highGlucose) {
                 PointMark(
                     x: .value("Time", item.date ?? Date(), unit: .second),
-                    y: .value("Value", Decimal(item.glucose) * conversionFactor)
+                    y: .value("Value", units == .mgdL ? Decimal(item.glucose) : Decimal(item.glucose).asMmolL)
                 )
                 .foregroundStyle(Color.orange.gradient)
                 .symbolSize(20)
             } else if item.glucose < Int(state.lowGlucose) {
                 PointMark(
                     x: .value("Time", item.date ?? Date(), unit: .second),
-                    y: .value("Value", Decimal(item.glucose) * conversionFactor)
+                    y: .value("Value", units == .mgdL ? Decimal(item.glucose) : Decimal(item.glucose).asMmolL)
                 )
                 .foregroundStyle(Color.red.gradient)
                 .symbolSize(20)
             } else {
                 PointMark(
                     x: .value("Time", item.date ?? Date(), unit: .second),
-                    y: .value("Value", Decimal(item.glucose) * conversionFactor)
+                    y: .value("Value", units == .mgdL ? Decimal(item.glucose) : Decimal(item.glucose).asMmolL)
                 )
                 .foregroundStyle(Color.green.gradient)
                 .symbolSize(20)
@@ -94,8 +90,14 @@ struct ForeCastChart: View {
         ForEach(state.minForecast.indices, id: \.self) { index in
             AreaMark(
                 x: .value("Time", timeForIndex(Int32(index))),
-                yStart: .value("Min Value", Decimal(state.minForecast[index]) * conversionFactor),
-                yEnd: .value("Max Value", Decimal(state.maxForecast[index]) * conversionFactor)
+                yStart: .value(
+                    "Min Value",
+                    units == .mgdL ? Decimal(state.minForecast[index]) : Decimal(state.minForecast[index]).asMmolL
+                ),
+                yEnd: .value(
+                    "Max Value",
+                    units == .mgdL ? Decimal(state.maxForecast[index]) : Decimal(state.maxForecast[index]).asMmolL
+                )
             )
             .foregroundStyle(Color.blue.opacity(0.5))
             .interpolationMethod(.catmullRom)
