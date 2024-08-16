@@ -201,6 +201,10 @@ extension Bolus {
                                     label: { Image(systemName: "plus.circle") }.tint(.blue).buttonStyle(.borderless)
                                 }
                             }
+                            HStack {
+                                Text("Note").foregroundColor(.secondary)
+                                TextFieldWithToolBarString(text: $state.note, placeholder: "", maxLength: 25)
+                            }
                         }.listRowBackground(Color.chart)
 
                         Section {

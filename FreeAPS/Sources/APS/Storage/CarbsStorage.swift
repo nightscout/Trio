@@ -156,6 +156,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             newItem.carbs = Double(truncating: NSDecimalNumber(decimal: entry.carbs))
             newItem.fat = Double(truncating: NSDecimalNumber(decimal: entry.fat ?? 0))
             newItem.protein = Double(truncating: NSDecimalNumber(decimal: entry.protein ?? 0))
+            newItem.note = entry.note
             newItem.id = UUID()
             newItem.isFPU = false
             newItem.isUploadedToNS = false
@@ -260,6 +261,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     enteredBy: CarbsEntry.manual,
                     bolus: nil,
                     insulin: nil,
+                    notes: result.note,
                     carbs: Decimal(result.carbs),
                     fat: Decimal(result.fat),
                     protein: Decimal(result.protein),
