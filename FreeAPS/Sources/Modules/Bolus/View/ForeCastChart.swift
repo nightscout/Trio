@@ -9,7 +9,10 @@ struct ForeCastChart: View {
     @Binding var units: GlucoseUnits
 
     @State private var startMarker = Date(timeIntervalSinceNow: -4 * 60 * 60)
-    @State private var endMarker = Date(timeIntervalSinceNow: 3 * 60 * 60)
+
+    private var endMarker: Date {
+        Date(timeIntervalSinceNow: TimeInterval(2 * 5 * state.minCount * 60)) // min is 2h -> (2*1h = 2*(5*12*60))
+    }
 
     var body: some View {
         VStack {

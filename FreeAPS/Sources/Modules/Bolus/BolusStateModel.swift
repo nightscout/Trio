@@ -107,6 +107,7 @@ extension Bolus {
 
         @Published var minForecast: [Int] = []
         @Published var maxForecast: [Int] = []
+        @Published var minCount: Int = 12 // count of Forecasts drawn in 5 min distances, i.e. 12 means a min of 1 hour
 
         let now = Date.now
 
@@ -802,14 +803,14 @@ extension Bolus.StateModel {
             return
         }
 
-        let maxCount = min(36, nonEmptyArrays.map(\.count).max() ?? 0)
-        guard maxCount > 0 else { return }
+        minCount = min(12, nonEmptyArrays.map(\.count).min() ?? 0)
+        guard minCount > 0 else { return }
 
-        minForecast = (0 ..< maxCount).map { index in
+        minForecast = (0 ..< minCount).map { index in
             nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }.min() ?? 0
         }
 
-        maxForecast = (0 ..< maxCount).map { index in
+        maxForecast = (0 ..< minCount).map { index in
             nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }.max() ?? 0
         }
     }

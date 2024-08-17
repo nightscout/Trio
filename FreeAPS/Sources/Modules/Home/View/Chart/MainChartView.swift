@@ -60,8 +60,6 @@ struct MainChartView: View {
     @State private var count: Decimal = 1
     @State private var startMarker =
         Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 - 60 * 60 * 24)) // 24 hours
-    @State private var endMarker =
-        Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 + 60 * 60 * 3)) // 3 hours
     @State private var minValue: Decimal = 45
     @State private var maxValue: Decimal = 270
     @State private var selection: Date? = nil
@@ -76,6 +74,10 @@ struct MainChartView: View {
 
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.calendar) var calendar
+
+    private var endMarker: Date {
+        Date(timeIntervalSinceNow: TimeInterval(2 * 5 * state.minCount * 60)) // min is 2h -> (2*1h = 2*(5*12*60))
+    }
 
     private var bolusFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -977,7 +979,7 @@ extension MainChartView {
     /// update start and  end marker to fix scroll update problem with x axis
     private func updateStartEndMarkers() {
         startMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 - 86400))
-        endMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 + 10800))
+//        endMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 + 10800))
     }
 
     private func calculateBasals() {

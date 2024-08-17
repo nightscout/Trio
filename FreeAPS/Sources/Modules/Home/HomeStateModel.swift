@@ -84,6 +84,7 @@ extension Home {
 
         @Published var minForecast: [Int] = []
         @Published var maxForecast: [Int] = []
+        @Published var minCount: Int = 12 // count of Forecasts drawn in 5 min distances, i.e. 12 means a min of 1 hour
 
         let context = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
@@ -955,18 +956,19 @@ extension Home.StateModel {
         for data: (id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID]),
         in context: NSManagedObjectContext
     ) async -> (UUID, Forecast?, [ForecastValue]) {
-        // Initialize the variables for the forecast and forecast values
         var forecast: Forecast?
         var forecastValues: [ForecastValue] = []
 
         do {
-            // Try to fetch the forecast object
-            forecast = try context.existingObject(with: data.forecastID) as? Forecast
+            try await context.perform {
+                // Fetch the forecast object
+                forecast = try context.existingObject(with: data.forecastID) as? Forecast
 
-            // Fetch the forecast values, limiting to the first 36 values, i.e. 3 hours from the current time
-            for forecastValueID in data.forecastValueIDs.prefix(36) {
-                if let forecastValue = try context.existingObject(with: forecastValueID) as? ForecastValue {
-                    forecastValues.append(forecastValue)
+                // Fetch the forecast values
+                for forecastValueID in data.forecastValueIDs.prefix(36) {
+                    if let forecastValue = try context.existingObject(with: forecastValueID) as? ForecastValue {
+                        forecastValues.append(forecastValue)
+                    }
                 }
             }
         } catch {
@@ -1012,15 +1014,15 @@ extension Home.StateModel {
             return
         }
 
-        let maxCount = min(36, allForecastValues.map(\.count).max() ?? 0)
-        guard maxCount > 0 else { return }
+        minCount = min(12, allForecastValues.map(\.count).min() ?? 0)
+        guard minCount > 0 else { return }
 
         // Calculate min and max forecast values
-        minForecast = (0 ..< maxCount).map { index in
+        minForecast = (0 ..< minCount).map { index in
             allForecastValues.compactMap { $0.indices.contains(index) ? Int($0[index].value) : nil }.min() ?? 0
         }
 
-        maxForecast = (0 ..< maxCount).map { index in
+        maxForecast = (0 ..< minCount).map { index in
             allForecastValues.compactMap { $0.indices.contains(index) ? Int($0[index].value) : nil }.max() ?? 0
         }
     }
