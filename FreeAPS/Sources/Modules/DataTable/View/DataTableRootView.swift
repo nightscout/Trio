@@ -473,7 +473,7 @@ extension DataTable {
                     Text(dateFormatter.string(from: meal.date ?? Date()))
                         .moveDisabled(true)
                 }
-                if let note = meal.note {
+                if let note = meal.note, note != "" {
                     HStack {
                         Image(systemName: "square.and.pencil")
                         Text(note)
