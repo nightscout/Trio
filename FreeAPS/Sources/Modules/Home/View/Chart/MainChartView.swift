@@ -76,12 +76,17 @@ struct MainChartView: View {
     @Environment(\.calendar) var calendar
 
     private var endMarker: Date {
-        state
-            .displayForecastsAsLines ? Date(timeIntervalSinceNow: TimeInterval(hours: 3)) :
-            Date(timeIntervalSinceNow: TimeInterval(
-                Int(1.5) * 5 * state
-                    .minCount * 60
-            )) // min is 1.5h -> (1.5*1h = 1.5*(5*12*60))
+        let threeHourSinceNow = Date(timeIntervalSinceNow: TimeInterval(hours: 3))
+
+        // min is 1.5h -> (1.5*1h = 1.5*(5*12*60))
+        let dynamicFutureDateForCone = Date(timeIntervalSinceNow: TimeInterval(
+            Int(1.5) * 5 * state
+                .minCount * 60
+        ))
+
+        return state
+            .displayForecastsAsLines ? threeHourSinceNow : dynamicFutureDateForCone <= threeHourSinceNow ?
+            dynamicFutureDateForCone.addingTimeInterval(TimeInterval(minutes: 30)) : threeHourSinceNow
     }
 
     private var bolusFormatter: NumberFormatter {
@@ -568,16 +573,18 @@ extension MainChartView {
             if index < state.minForecast.count, index < state.maxForecast.count {
                 let yMinValue = units == .mgdL ? Decimal(state.minForecast[index]) : Decimal(state.minForecast[index]).asMmolL
                 let yMaxValue = units == .mgdL ? Decimal(state.maxForecast[index]) : Decimal(state.maxForecast[index]).asMmolL
+                let xValue = timeForIndex(Int32(index))
 
-                AreaMark(
-                    x: .value("Time", timeForIndex(Int32(index)) <= endMarker ? timeForIndex(Int32(index)) : endMarker),
-
-                    // maxValue is already parsed to user units, no need to parse
-                    yStart: .value("Min Value", yMinValue <= maxValue ? yMinValue : maxValue),
-                    yEnd: .value("Max Value", yMaxValue <= maxValue ? yMaxValue : maxValue)
-                )
-                .foregroundStyle(Color.blue.opacity(0.5))
-                .interpolationMethod(.catmullRom)
+                if xValue <= Date(timeIntervalSinceNow: TimeInterval(hours: 2.5)) {
+                    AreaMark(
+                        x: .value("Time", xValue),
+                        // maxValue is already parsed to user units, no need to parse
+                        yStart: .value("Min Value", yMinValue <= maxValue ? yMinValue : maxValue),
+                        yEnd: .value("Max Value", yMaxValue <= maxValue ? yMaxValue : maxValue)
+                    )
+                    .foregroundStyle(Color.blue.opacity(0.5))
+                    .interpolationMethod(.catmullRom)
+                }
             }
         }
     }
@@ -588,12 +595,15 @@ extension MainChartView {
             let forecast = tuple.forecast
             let valueAsDecimal = Decimal(forecastValue.value)
             let displayValue = units == .mmolL ? valueAsDecimal.asMmolL : valueAsDecimal
+            let xValue = timeForIndex(forecastValue.index)
 
-            LineMark(
-                x: .value("Time", timeForIndex(forecastValue.index)),
-                y: .value("Value", displayValue)
-            )
-            .foregroundStyle(by: .value("Predictions", forecast.type ?? ""))
+            if xValue <= Date(timeIntervalSinceNow: TimeInterval(hours: 2.5)) {
+                LineMark(
+                    x: .value("Time", xValue),
+                    y: .value("Value", displayValue)
+                )
+                .foregroundStyle(by: .value("Predictions", forecast.type ?? ""))
+            }
         }
     }
 
