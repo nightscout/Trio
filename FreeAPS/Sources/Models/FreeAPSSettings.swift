@@ -59,6 +59,7 @@ struct FreeAPSSettings: JSON, Equatable {
     var yGridLines: Bool = true
     var oneDimensionalGraph: Bool = false
     var rulerMarks: Bool = true
+    var displayForecastsAsLines: Bool = false
     var maxCarbs: Decimal = 250
     var maxFat: Decimal = 250
     var maxProtein: Decimal = 250
@@ -279,6 +280,10 @@ extension FreeAPSSettings: Decodable {
 
         if let rulerMarks = try? container.decode(Bool.self, forKey: .rulerMarks) {
             settings.rulerMarks = rulerMarks
+        }
+
+        if let displayForecastsAsLines = try? container.decode(Bool.self, forKey: .displayForecastsAsLines) {
+            settings.displayForecastsAsLines = displayForecastsAsLines
         }
 
         if let overrideHbA1cUnit = try? container.decode(Bool.self, forKey: .overrideHbA1cUnit) {

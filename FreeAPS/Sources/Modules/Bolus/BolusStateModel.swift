@@ -108,6 +108,7 @@ extension Bolus {
         @Published var minForecast: [Int] = []
         @Published var maxForecast: [Int] = []
         @Published var minCount: Int = 12 // count of Forecasts drawn in 5 min distances, i.e. 12 means a min of 1 hour
+        @Published var displayForecastsAsLines: Bool = false
 
         let now = Date.now
 
@@ -150,6 +151,8 @@ extension Bolus {
             sweetMeals = settings.settings.sweetMeals
             sweetMealFactor = settings.settings.sweetMealFactor
             displayPresets = settings.settings.displayPresets
+
+            displayForecastsAsLines = settings.settings.displayForecastsAsLines
 
             lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
             highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL

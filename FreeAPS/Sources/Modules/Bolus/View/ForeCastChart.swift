@@ -11,7 +11,9 @@ struct ForeCastChart: View {
     @State private var startMarker = Date(timeIntervalSinceNow: -4 * 60 * 60)
 
     private var endMarker: Date {
-        Date(timeIntervalSinceNow: TimeInterval(2 * 5 * state.minCount * 60)) // min is 2h -> (2*1h = 2*(5*12*60))
+        state
+            .displayForecastsAsLines ? Date(timeIntervalSinceNow: TimeInterval(hours: 3)) :
+            Date(timeIntervalSinceNow: TimeInterval(2 * 5 * state.minCount * 60)) // min is 2h -> (2*1h = 2*(5*12*60))
     }
 
     var body: some View {
@@ -48,12 +50,18 @@ struct ForeCastChart: View {
         Chart {
             drawGlucose()
             drawCurrentTimeMarker()
-            drawForecastArea()
+
+            if state.displayForecastsAsLines {
+                drawForecastLines()
+            } else {
+                drawForecastCone()
+            }
         }
         .chartXAxis { forecastChartXAxis }
         .chartXScale(domain: startMarker ... endMarker)
         .chartYAxis { forecastChartYAxis }
         .chartYScale(domain: units == .mgdL ? 0 ... 300 : 0.asMmolL ... 300.asMmolL)
+        .backport.chartForegroundStyleScale(state: state)
     }
 
     private func drawGlucose() -> some ChartContent {
@@ -89,7 +97,7 @@ struct ForeCastChart: View {
         return currentTime.addingTimeInterval(timeInterval)
     }
 
-    private func drawForecastArea() -> some ChartContent {
+    private func drawForecastCone() -> some ChartContent {
         ForEach(0 ..< max(state.minForecast.count, state.maxForecast.count), id: \.self) { index in
             if index < state.minForecast.count, index < state.maxForecast.count {
                 let yMinValue = Decimal(state.minForecast[index]) <= 300 ? Decimal(state.minForecast[index]) : Decimal(300)
@@ -102,6 +110,30 @@ struct ForeCastChart: View {
                 )
                 .foregroundStyle(Color.blue.opacity(0.5))
                 .interpolationMethod(.catmullRom)
+            }
+        }
+    }
+
+    private func drawForecastLines() -> some ChartContent {
+        let predictions = state.predictionsForChart
+
+        // Prepare the prediction data with only the first 36 values, i.e. 3 hours in the future
+        let predictionData = [
+            ("IOB", predictions?.iob?.prefix(36)),
+            ("ZT", predictions?.zt?.prefix(36)),
+            ("COB", predictions?.cob?.prefix(36)),
+            ("UAM", predictions?.uam?.prefix(36))
+        ]
+
+        return ForEach(predictionData, id: \.0) { name, values in
+            if let values = values {
+                ForEach(values.indices, id: \.self) { index in
+                    LineMark(
+                        x: .value("Time", timeForIndex(Int32(index))),
+                        y: .value("Value", units == .mgdL ? Decimal(values[index]) : Decimal(values[index]).asMmolL)
+                    )
+                    .foregroundStyle(by: .value("Prediction Type", name))
+                }
             }
         }
     }
@@ -130,6 +162,21 @@ struct ForeCastChart: View {
             AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
             AxisTick(length: 3, stroke: .init(lineWidth: 3)).foregroundStyle(Color.secondary)
             AxisValueLabel().font(.footnote).foregroundStyle(Color.primary)
+        }
+    }
+}
+
+extension Backport {
+    @ViewBuilder func chartForegroundStyleScale(state: Bolus.StateModel) -> some View {
+        if state.displayForecastsAsLines {
+            content.chartForegroundStyleScale([
+                "IOB": .blue,
+                "UAM": Color.uam,
+                "ZT": Color.zt,
+                "COB": .orange
+            ])
+        } else {
+            content
         }
     }
 }
