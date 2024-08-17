@@ -20,28 +20,53 @@ extension FPUConfig {
             return formatter
         }
 
+        private var formatter: NumberFormatter {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            return formatter
+        }
+
         var body: some View {
             Form {
-                Section(header: Text("Conversion settings")) {
+                Section(header: Text("Limit Per Entry")) {
+                    HStack {
+                        Text("Max Carbs")
+                        TextFieldWithToolBar(text: $state.maxCarbs, placeholder: "g", numberFormatter: formatter)
+                    }
+                    HStack {
+                        Text("Max Fat")
+                        TextFieldWithToolBar(text: $state.maxFat, placeholder: "g", numberFormatter: formatter)
+                    }
+                    HStack {
+                        Text("Max Protein")
+                        TextFieldWithToolBar(text: $state.maxProtein, placeholder: "g", numberFormatter: formatter)
+                    }
+                }
+
+                Section(header: Text("Fat and Protein Conversion Settings")) {
                     HStack {
                         Text("Delay In Minutes")
                         Spacer()
-                        DecimalTextField("60", value: $state.delay, formatter: intFormater)
+                        TextFieldWithToolBar(text: $state.delay, placeholder: "60", numberFormatter: intFormater)
                     }
                     HStack {
                         Text("Maximum Duration In Hours")
                         Spacer()
-                        DecimalTextField("8", value: $state.timeCap, formatter: intFormater)
+                        TextFieldWithToolBar(text: $state.timeCap, placeholder: "8", numberFormatter: intFormater)
                     }
                     HStack {
                         Text("Interval In Minutes")
                         Spacer()
-                        DecimalTextField("30", value: $state.minuteInterval, formatter: intFormater)
+                        TextFieldWithToolBar(text: $state.minuteInterval, placeholder: "30", numberFormatter: intFormater)
                     }
                     HStack {
                         Text("Override With A Factor Of ")
                         Spacer()
-                        DecimalTextField("0.5", value: $state.individualAdjustmentFactor, formatter: conversionFormatter)
+                        TextFieldWithToolBar(
+                            text: $state.individualAdjustmentFactor,
+                            placeholder: "0.5",
+                            numberFormatter: conversionFormatter
+                        )
                     }
                 }
 
@@ -53,7 +78,7 @@ extension FPUConfig {
                     {}
             }
             .onAppear(perform: configureView)
-            .navigationBarTitle("Fat and Protein")
+            .navigationBarTitle("Meal Settings")
             .navigationBarTitleDisplayMode(.automatic)
         }
     }

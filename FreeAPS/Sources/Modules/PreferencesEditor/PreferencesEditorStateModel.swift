@@ -4,14 +4,12 @@ import SwiftUI
 extension PreferencesEditor {
     final class StateModel: BaseStateModel<Provider>, PreferencesSettable { private(set) var preferences = Preferences()
         @Published var unitsIndex = 1
-        @Published var allowAnnouncements = false
         @Published var insulinReqPercentage: Decimal = 70
         @Published var skipBolusScreenAfterCarbs = false
         @Published var sections: [FieldSection] = []
 
         override func subscribe() {
             preferences = provider.preferences
-            subscribeSetting(\.allowAnnouncements, on: $allowAnnouncements) { allowAnnouncements = $0 }
             subscribeSetting(\.insulinReqPercentage, on: $insulinReqPercentage) { insulinReqPercentage = $0 }
             subscribeSetting(\.skipBolusScreenAfterCarbs, on: $skipBolusScreenAfterCarbs) { skipBolusScreenAfterCarbs = $0 }
 
@@ -41,7 +39,7 @@ extension PreferencesEditor {
                     displayName: NSLocalizedString("Max COB", comment: "Max COB"),
                     type: .decimal(keypath: \.maxCOB),
                     infoText: NSLocalizedString(
-                        "The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, iAPS will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)",
+                        "The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, Trio will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)",
                         comment: "Max COB"
                     ),
                     settable: self
@@ -108,7 +106,7 @@ extension PreferencesEditor {
                     displayName: NSLocalizedString("Adjustment Factor", comment: "Adjust Dynamic ISF constant"),
                     type: .decimal(keypath: \.adjustmentFactor),
                     infoText: NSLocalizedString(
-                        "Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula threre is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users",
+                        "Adjust Dynamic ratios by a constant. Default is 0.8. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings.",
                         comment: "Adjust Dynamic ISF constant"
                     ),
                     settable: self
@@ -119,6 +117,18 @@ extension PreferencesEditor {
                     infoText: NSLocalizedString(
                         "Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function.",
                         comment: "Use Sigmoid Function"
+                    ),
+                    settable: self
+                ),
+                Field(
+                    displayName: NSLocalizedString(
+                        "Sigmoid Adjustment Factor",
+                        comment: "Adjust Dynamic ISF constant for Sigmoid"
+                    ),
+                    type: .decimal(keypath: \.adjustmentFactorSigmoid),
+                    infoText: NSLocalizedString(
+                        "Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings.",
+                        comment: "Adjust Dynamic ISF constant for Sigmoid"
                     ),
                     settable: self
                 ),
@@ -138,17 +148,17 @@ extension PreferencesEditor {
                     displayName: NSLocalizedString("Adjust basal", comment: "Enable adjustment of basal profile"),
                     type: .boolean(keypath: \.tddAdjBasal),
                     infoText: NSLocalizedString(
-                        "Enable adjustment of basal based on the ratio of current TDD / 7 day average TDD",
+                        "Enable adjustment of basal based on the ratio of current TDD / 10 day average TDD",
                         comment: "Enable adjustment of basal profile"
                     ),
                     settable: self
                 ),
                 Field(
-                    displayName: NSLocalizedString("Threshold Setting (mg/dl)", comment: "Threshold Setting"),
+                    displayName: NSLocalizedString("Minimum Safety Threshold (mg/dL)", comment: "Minimum Safety Threshold"),
                     type: .decimal(keypath: \.threshold_setting),
                     infoText: NSLocalizedString(
-                        "The default threshold in FAX depends on your current minimum BG target, as follows:\n\nIf your minimum BG target = 90 mg/dl -> threshold = 65 mg/dl,\n\nif minimum BG target = 100 mg/dl -> threshold = 70 mg/dl,\n\nminimum BG target = 110 mg/dl -> threshold = 75 mg/dl,\n\nand if minimum BG target = 130 mg/dl  -> threshold = 85 mg/dl.\n\nThis setting allows you to change the default to a higher threshold for looping with dynISF. Valid values are 65 mg/dl<= Threshold Setting <= 120 mg/dl.",
-                        comment: "Threshold Setting"
+                        "All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted.",
+                        comment: "Minimum Safety Threshold"
                     ),
                     settable: self
                 )
@@ -237,7 +247,7 @@ extension PreferencesEditor {
                     displayName: NSLocalizedString("Enable UAM", comment: "Enable UAM"),
                     type: .boolean(keypath: \.enableUAM),
                     infoText: NSLocalizedString(
-                        "With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell iAPS about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier.",
+                        "With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell Trio about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier.",
                         comment: "Enable UAM"
                     ),
                     settable: self
@@ -369,7 +379,7 @@ extension PreferencesEditor {
                     displayName: NSLocalizedString("Insulin Peak Time", comment: "Insulin Peak Time"),
                     type: .decimal(keypath: \.insulinPeakTime),
                     infoText: NSLocalizedString(
-                        "Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with iAPS, longer loop calculations and possible red loops.",
+                        "Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with Trio, longer loop calculations and possible red loops.",
                         comment: "Insulin Peak Time"
                     ),
                     settable: self
@@ -378,7 +388,7 @@ extension PreferencesEditor {
                     displayName: NSLocalizedString("Skip Neutral Temps", comment: "Skip Neutral Temps"),
                     type: .boolean(keypath: \.skipNeutralTemps),
                     infoText: NSLocalizedString(
-                        "Defaults to false, so that iAPS will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means iAPS will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night.",
+                        "Defaults to false, so that Trio will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means Trio will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night.",
                         comment: "Skip Neutral Temps"
                     ),
                     settable: self

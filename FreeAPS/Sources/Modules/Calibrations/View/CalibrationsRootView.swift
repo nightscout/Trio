@@ -27,13 +27,7 @@ extension Calibrations {
                         HStack {
                             Text("Meter glucose")
                             Spacer()
-                            DecimalTextField(
-                                "0",
-                                value: $state.newCalibration,
-                                formatter: formatter,
-                                autofocus: false,
-                                cleanInput: true
-                            )
+                            TextFieldWithToolBar(text: $state.newCalibration, placeholder: "0", numberFormatter: formatter)
                             Text(state.units.rawValue).foregroundColor(.secondary)
                         }
                         Button {
@@ -95,6 +89,7 @@ extension Calibrations {
                     }
                 }
             }
+            .dynamicTypeSize(...DynamicTypeSize.xxLarge)
             .onAppear(perform: configureView)
             .navigationTitle("Calibrations")
             .navigationBarItems(trailing: EditButton().disabled(state.calibrations.isEmpty))

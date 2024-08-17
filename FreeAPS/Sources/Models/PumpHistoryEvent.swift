@@ -1,4 +1,5 @@
 import Foundation
+import LoopKit
 
 struct PumpHistoryEvent: JSON, Equatable {
     let id: String
@@ -10,7 +11,11 @@ struct PumpHistoryEvent: JSON, Equatable {
     let rate: Decimal?
     let temp: TempType?
     let carbInput: Int?
+    let fatInput: Int?
+    let proteinInput: Int?
     let note: String?
+    let isSMB: Bool?
+    let isExternalInsulin: Bool?
 
     init(
         id: String,
@@ -22,7 +27,11 @@ struct PumpHistoryEvent: JSON, Equatable {
         rate: Decimal? = nil,
         temp: TempType? = nil,
         carbInput: Int? = nil,
-        note: String? = nil
+        fatInput: Int? = nil,
+        proteinInput: Int? = nil,
+        note: String? = nil,
+        isSMB: Bool? = nil,
+        isExternalInsulin: Bool? = nil
     ) {
         self.id = id
         self.type = type
@@ -33,13 +42,18 @@ struct PumpHistoryEvent: JSON, Equatable {
         self.rate = rate
         self.temp = temp
         self.carbInput = carbInput
+        self.fatInput = fatInput
+        self.proteinInput = proteinInput
         self.note = note
+        self.isSMB = isSMB
+        self.isExternalInsulin = isExternalInsulin
     }
 }
 
 enum EventType: String, JSON {
     case bolus = "Bolus"
-    case mealBulus = "Meal Bolus"
+    case smb = "SMB"
+    case mealBolus = "Meal Bolus"
     case correctionBolus = "Correction Bolus"
     case snackBolus = "Snack Bolus"
     case bolusWizard = "BolusWizard"
@@ -61,6 +75,7 @@ enum EventType: String, JSON {
     case nsBatteryChange = "Pump Battery Change"
     case nsAnnouncement = "Announcement"
     case nsSensorChange = "Sensor Start"
+    case nsExternalInsulin = "External Insulin"
 }
 
 enum TempType: String, JSON {
@@ -79,6 +94,36 @@ extension PumpHistoryEvent {
         case rate
         case temp
         case carbInput = "carb_input"
+        case fatInput
+        case proteinInput
         case note
+        case isSMB
+        case isExternalInsulin
+    }
+}
+
+extension EventType {
+    func mapEventTypeToPumpEventType() -> PumpEventType? {
+        switch self {
+        case .prime:
+            return PumpEventType.prime
+        case .pumpResume:
+            return PumpEventType.resume
+        case .rewind:
+            return PumpEventType.rewind
+        case .pumpSuspend:
+            return PumpEventType.suspend
+        case .nsBatteryChange,
+             .pumpBattery:
+            return PumpEventType.replaceComponent(componentType: .pump)
+        case .nsInsulinChange:
+            return PumpEventType.replaceComponent(componentType: .reservoir)
+        case .nsSiteChange:
+            return PumpEventType.replaceComponent(componentType: .infusionSet)
+        case .pumpAlarm:
+            return PumpEventType.alarm
+        default:
+            return nil
+        }
     }
 }

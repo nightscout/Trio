@@ -17,9 +17,9 @@ extension WatchConfig {
                             Text(v.displayName).tag(v)
                         }
                     }
+                    Toggle("Display Protein & Fat", isOn: $state.displayFatAndProteinOnWatch)
+                    Toggle("Confirm Bolus Faster", isOn: $state.confirmBolusFaster)
                 }
-
-                Toggle("Display Protein & Fat", isOn: $state.displayFatAndProteinOnWatch)
 
                 Section(header: Text("Garmin Watch")) {
                     List {

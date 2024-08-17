@@ -3,7 +3,7 @@ import Foundation
 import SwiftUI
 
 struct ListStateView: View {
-    var state: StateiAPSResults
+    var state: StateResults
 
     private var numberFormatter: NumberFormatter {
         let formatter = NumberFormatter()

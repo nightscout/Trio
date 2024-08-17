@@ -17,22 +17,18 @@ extension PumpSettingsEditor {
                 Section(header: Text("Delivery limits")) {
                     HStack {
                         Text("Max Basal")
-                        DecimalTextField("U/hr", value: $state.maxBasal, formatter: formatter)
+                        TextFieldWithToolBar(text: $state.maxBasal, placeholder: "U/hr", numberFormatter: formatter)
                     }
                     HStack {
                         Text("Max Bolus")
-                        DecimalTextField("U", value: $state.maxBolus, formatter: formatter)
-                    }
-                    HStack {
-                        Text("Max Carbs")
-                        DecimalTextField("g", value: $state.maxCarbs, formatter: formatter)
+                        TextFieldWithToolBar(text: $state.maxBolus, placeholder: "U", numberFormatter: formatter)
                     }
                 }
 
                 Section(header: Text("Duration of Insulin Action")) {
                     HStack {
                         Text("DIA")
-                        DecimalTextField("hours", value: $state.dia, formatter: formatter)
+                        TextFieldWithToolBar(text: $state.dia, placeholder: "hours", numberFormatter: formatter)
                     }
                 }
 

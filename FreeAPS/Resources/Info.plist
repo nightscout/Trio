@@ -6,7 +6,7 @@
 	<string>$(APP_GROUP_ID)</string>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
-		<string>com.freeapsx.background-task.critical-event-log</string>
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER).background-task.critical-event-log</string>
 	</array>
 	<key>CBBundleDisplayName</key>
 	<string>$(APP_DISPLAY_NAME)</string>
@@ -32,11 +32,10 @@
 			<key>CFBundleTypeRole</key>
 			<string>None</string>
 			<key>CFBundleURLName</key>
-			<string>com.artificial-pancreas-iaps</string>
+			<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>$(APP_URL_SCHEME)</string>
-				<string>freeaps-x</string>
 			</array>
 		</dict>
 	</array>
@@ -114,10 +113,6 @@
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
-	<key>NSCalendarsFullAccessUsageDescription</key>
-	<string>To create events with BG reading values, so that they can be viewed on Apple Watch and CarPlay</string>
-	<key>LSApplicationCategoryType</key>
-	<string></string>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

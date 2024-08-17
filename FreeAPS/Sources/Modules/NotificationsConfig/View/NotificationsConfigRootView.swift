@@ -1,3 +1,5 @@
+import ActivityKit
+import Combine
 import SwiftUI
 import Swinject
 
@@ -5,6 +7,14 @@ extension NotificationsConfig {
     struct RootView: BaseView {
         let resolver: Resolver
         @StateObject var state = StateModel()
+
+        @State private var systemLiveActivitySetting: Bool = {
+            if #available(iOS 16.1, *) {
+                ActivityAuthorizationInfo().areActivitiesEnabled
+            } else {
+                false
+            }
+        }()
 
         private var glucoseFormatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -24,6 +34,50 @@ extension NotificationsConfig {
             return formatter
         }
 
+        @ViewBuilder private func liveActivitySection() -> some View {
+            if #available(iOS 16.2, *) {
+                Section(
+                    header: Text("Live Activity"),
+                    footer: Text(
+                        liveActivityFooterText()
+                    ),
+                    content: {
+                        if !systemLiveActivitySetting {
+                            Button("Open Settings App") {
+                                UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
+                            }
+                        } else {
+                            Toggle("Show Live Activity", isOn: $state.useLiveActivity)
+                        }
+                        Picker(
+                            selection: $state.lockScreenView,
+                            label: Text("Lock screen widget")
+                        ) {
+                            ForEach(LockScreenView.allCases) { selection in
+                                Text(selection.displayName).tag(selection)
+                            }
+                        }
+                    }
+                )
+                .onReceive(resolver.resolve(LiveActivityBridge.self)!.$systemEnabled, perform: {
+                    self.systemLiveActivitySetting = $0
+                })
+            }
+        }
+
+        private func liveActivityFooterText() -> String {
+            var footer =
+                "Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)"
+
+            if !systemLiveActivitySetting {
+                footer =
+                    "Live activities are turned OFF in system settings. To enable live activities, go to Settings app -> Trio -> Turn live Activities ON.\n\n" +
+                    footer
+            }
+
+            return footer
+        }
+
         var body: some View {
             Form {
                 Section(header: Text("Glucose")) {
@@ -35,14 +89,14 @@ extension NotificationsConfig {
                     HStack {
                         Text("Low")
                         Spacer()
-                        DecimalTextField("0", value: $state.lowGlucose, formatter: glucoseFormatter)
+                        TextFieldWithToolBar(text: $state.lowGlucose, placeholder: "0", numberFormatter: glucoseFormatter)
                         Text(state.units.rawValue).foregroundColor(.secondary)
                     }
 
                     HStack {
                         Text("High")
                         Spacer()
-                        DecimalTextField("0", value: $state.highGlucose, formatter: glucoseFormatter)
+                        TextFieldWithToolBar(text: $state.highGlucose, placeholder: "0", numberFormatter: glucoseFormatter)
                         Text(state.units.rawValue).foregroundColor(.secondary)
                     }
                 }
@@ -51,14 +105,20 @@ extension NotificationsConfig {
                     HStack {
                         Text("Carbs Required Threshold")
                         Spacer()
-                        DecimalTextField("0", value: $state.carbsRequiredThreshold, formatter: carbsFormatter)
+                        TextFieldWithToolBar(
+                            text: $state.carbsRequiredThreshold,
+                            placeholder: "0",
+                            numberFormatter: carbsFormatter
+                        )
                         Text("g").foregroundColor(.secondary)
                     }
                 }
-            }
-            .onAppear(perform: configureView)
-            .navigationBarTitle("Notifications")
-            .navigationBarTitleDisplayMode(.automatic)
+
+                liveActivitySection()
+            }.scrollContentBackground(.hidden)
+                .onAppear(perform: configureView)
+                .navigationBarTitle("Notifications")
+                .navigationBarTitleDisplayMode(.automatic)
         }
     }
 }

@@ -127,23 +127,16 @@ extension Home {
                 units: $state.units,
                 alarm: $state.alarm,
                 lowGlucose: $state.lowGlucose,
-                highGlucose: $state.highGlucose
+                highGlucose: $state.highGlucose,
+                cgmAvailable: $state.cgmAvailable
             )
             .onTapGesture {
-                if state.alarm == nil {
-                    state.openCGM()
-                } else {
-                    state.showModal(for: .snooze)
-                }
+                state.openCGM()
             }
             .onLongPressGesture {
                 let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
                 impactHeavy.impactOccurred()
-                if state.alarm == nil {
-                    state.showModal(for: .snooze)
-                } else {
-                    state.openCGM()
-                }
+                state.showModal(for: .snooze)
             }
         }
 
@@ -153,12 +146,11 @@ extension Home {
                 battery: $state.battery,
                 name: $state.pumpName,
                 expiresAtDate: $state.pumpExpiresAtDate,
-                timerDate: $state.timerDate
+                timerDate: $state.timerDate,
+                pumpStatusHighlightMessage: $state.pumpStatusHighlightMessage
             )
             .onTapGesture {
-                if state.pumpDisplayState != nil {
-                    state.setupPump = true
-                }
+                state.setupPump = true
             }
         }
 
@@ -250,35 +242,25 @@ extension Home {
                         ""
                 )
 
-            let smbToggleString = (fetchedPercent.first?.smbIsOff ?? false) ? " \u{20e0}" : ""
-            var comma1 = ", "
-            var comma2 = comma1
-            var comma3 = comma1
-            if targetString == "" || percentString == "" { comma1 = "" }
-            if durationString == "" { comma2 = "" }
-            if smbToggleString == "" { comma3 = "" }
-
-            if percentString == "", targetString == "" {
-                comma1 = ""
-                comma2 = ""
-            }
-            if percentString == "", targetString == "", smbToggleString == "" {
-                durationString = ""
-                comma1 = ""
-                comma2 = ""
-                comma3 = ""
-            }
-            if durationString == "" {
-                comma2 = ""
-            }
-            if smbToggleString == "" {
-                comma3 = ""
-            }
-
             if durationString == "", !indefinite {
                 return nil
             }
-            return percentString + comma1 + targetString + comma2 + durationString + comma3 + smbToggleString
+
+            let smbToggleString = (
+                (fetchedPercent.first?.smbIsOff ?? false) || fetchedPercent.first?.smbIsScheduledOff ?? false
+            ) ?
+                " \u{20e0}" : ""
+            let smbScheduleString = (fetchedPercent.first?.smbIsScheduledOff ?? false) &&
+                !(fetchedPercent.first?.smbIsOff ?? false) ?
+                " \(fetchedPercent.first?.start ?? 0)-\(fetchedPercent.first?.end ?? 0)" : ""
+            let comma1 = (percentString == "" || (targetString == "" && durationString == "" && smbToggleString == ""))
+                ? "" : " , "
+            let comma2 = (targetString == "" || (durationString == "" && smbToggleString == ""))
+                ? "" : " , "
+            let comma3 = (durationString == "" || smbToggleString == "")
+                ? "" : " , "
+
+            return percentString + comma1 + targetString + comma2 + durationString + comma3 + smbToggleString + smbScheduleString
         }
 
         var infoPanel: some View {
@@ -362,7 +344,7 @@ extension Home {
 
                     if let eventualBG = state.eventualBG {
                         Text(
-                            "⇢ " + numberFormatter.string(
+                            "⇢ " + targetFormatter.string(
                                 from: (state.units == .mmolL ? eventualBG.asMmolL : Decimal(eventualBG)) as NSNumber
                             )!
                         )

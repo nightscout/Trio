@@ -1,4 +1,6 @@
 import HealthKit
+import LoopKit
+import LoopKitUI
 import SwiftUI
 import Swinject
 
@@ -7,6 +9,7 @@ extension Settings {
         let resolver: Resolver
         @StateObject var state = StateModel()
         @State private var showShareSheet = false
+        @StateObject private var viewModel = SettingsRootViewModel()
 
         var body: some View {
             Form {
@@ -14,16 +17,7 @@ extension Settings {
                     Toggle("Closed loop", isOn: $state.closedLoop)
                 }
                 header: {
-                    if let expirationDate = Bundle.main.profileExpiration {
-                        Text(
-                            "iAPS v\(state.versionNumber) (\(state.buildNumber))\nBranch: \(state.branch) \(state.copyrightNotice)" +
-                                "\nBuild Expires: " + expirationDate
-                        ).textCase(nil)
-                    } else {
-                        Text(
-                            "iAPS v\(state.versionNumber) (\(state.buildNumber))\nBranch: \(state.branch) \(state.copyrightNotice)"
-                        )
-                    }
+                    Text(viewModel.headerText).textCase(nil)
                 }
 
                 Section {
@@ -34,11 +28,14 @@ extension Settings {
 
                 Section {
                     Text("Nightscout").navigationLink(to: .nighscoutConfig, from: self)
+
+                    NavigationLink(destination: TidepoolStartView(state: state)) {
+                        Text("Tidepool")
+                    }
                     if HKHealthStore.isHealthDataAvailable() {
                         Text("Apple Health").navigationLink(to: .healthkit, from: self)
                     }
                     Text("Notifications").navigationLink(to: .notificationsConfig, from: self)
-                    Text("Fat And Protein Conversion").navigationLink(to: .fpuConfig, from: self)
                     Text("App Icons").navigationLink(to: .iconConfig, from: self)
                     Text("Statistics and Home View").navigationLink(to: .statisticsConfig, from: self)
                 } header: { Text("Services") }
@@ -46,6 +43,7 @@ extension Settings {
                 Section {
                     Text("Preferences").navigationLink(to: .preferencesEditor, from: self)
                     Text("Pump Settings").navigationLink(to: .pumpSettingsEditor, from: self)
+                    Text("Meal Settings").navigationLink(to: .fpuConfig, from: self)
                     Text("Basal Profile").navigationLink(to: .basalProfileEditor, from: self)
                     Text("Insulin Sensitivities").navigationLink(to: .isfEditor, from: self)
                     Text("Carb Ratios").navigationLink(to: .crEditor, from: self)
@@ -63,6 +61,16 @@ extension Settings {
                                     .frame(maxWidth: .infinity, alignment: .trailing)
                                     .buttonStyle(.borderedProminent)
                             }
+                            // Commenting this out for now, as not needed and possibly dangerous for users to be able to nuke their pump pairing informations via the debug menu
+                            // Leaving it in here, as it may be a handy functionality for further testing or developers.
+                            // See https://github.com/nightscout/Trio/pull/277 for more information
+//
+//                            HStack {
+//                                Text("Delete Stored Pump State Binary Files")
+//                                Button("Delete") { state.resetLoopDocuments() }
+//                                    .frame(maxWidth: .infinity, alignment: .trailing)
+//                                    .buttonStyle(.borderedProminent)
+//                            }
                         }
                         Group {
                             Text("Preferences")

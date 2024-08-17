@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "group:FreeAPS.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:MinimedKit/MinimedKit.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:LibreTransmitter/LibreTransmitter.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:OmniBLE/OmniBLE.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:RileyLinkKit/RileyLinkKit.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:CGMBLEKit/CGMBLEKit.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:dexcom-share-client-swift/ShareClient.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:LoopKit/LoopKit.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:OmniKit/OmniKit.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:G7SensorKit/G7SensorKit.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:TidepoolService/TidepoolService.xcodeproj">
+   </FileRef>
+</Workspace>

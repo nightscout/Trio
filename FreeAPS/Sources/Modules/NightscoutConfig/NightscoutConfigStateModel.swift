@@ -1,7 +1,5 @@
-import CGMBLEKit
 import Combine
 import CoreData
-import G7SensorKit
 import LoopKit
 import SwiftDate
 import SwiftUI
@@ -24,8 +22,9 @@ extension NightscoutConfig {
         @Published var connecting = false
         @Published var backfilling = false
         @Published var isUploadEnabled = false // Allow uploads
-        @Published var uploadStats = false // Upload Statistics
+        @Published var isDownloadEnabled = false // Allow downloads
         @Published var uploadGlucose = true // Upload Glucose
+        @Published var changeUploadGlucose = true // if plugin, need to be change in CGM configuration
         @Published var useLocalSource = false
         @Published var localPort: Decimal = 0
         @Published var units: GlucoseUnits = .mmolL
@@ -41,26 +40,21 @@ extension NightscoutConfig {
             dia = settingsManager.pumpSettings.insulinActionCurve
             maxBasal = settingsManager.pumpSettings.maxBasal
             maxBolus = settingsManager.pumpSettings.maxBolus
+            changeUploadGlucose = (cgmManager.cgmGlucoseSourceType != CGMType.plugin)
 
             subscribeSetting(\.allowAnnouncements, on: $allowAnnouncements) { allowAnnouncements = $0 }
             subscribeSetting(\.isUploadEnabled, on: $isUploadEnabled) { isUploadEnabled = $0 }
+            subscribeSetting(\.isDownloadEnabled, on: $isDownloadEnabled) { isDownloadEnabled = $0 }
             subscribeSetting(\.useLocalGlucoseSource, on: $useLocalSource) { useLocalSource = $0 }
             subscribeSetting(\.localGlucosePort, on: $localPort.map(Int.init)) { localPort = Decimal($0) }
-            subscribeSetting(\.uploadStats, on: $uploadStats) { uploadStats = $0 }
-            subscribeSetting(\.uploadGlucose, on: $uploadGlucose, initial: { uploadGlucose = $0 }, didSet: { val in
-                if let cgmManagerG5 = self.cgmManager.glucoseSource.cgmManager as? G5CGMManager {
-                    cgmManagerG5.shouldSyncToRemoteService = val
-                }
-                if let cgmManagerG6 = self.cgmManager.glucoseSource.cgmManager as? G6CGMManager {
-                    cgmManagerG6.shouldSyncToRemoteService = val
-                }
-                if let cgmManagerG7 = self.cgmManager.glucoseSource.cgmManager as? G7CGMManager {
-                    cgmManagerG7.uploadReadings = val
-                }
-            })
+            subscribeSetting(\.uploadGlucose, on: $uploadGlucose, initial: { uploadGlucose = $0 })
         }
 
         func connect() {
+            if let CheckURL = url.last, CheckURL == "/" {
+                let fixedURL = url.dropLast()
+                url = String(fixedURL)
+            }
             guard let url = URL(string: url) else {
                 message = "Invalid URL"
                 return
@@ -92,6 +86,24 @@ extension NightscoutConfig {
                 return nil
             }
             return NightscoutAPI(url: url, secret: secret)
+        }
+
+        private func getMedianTarget(
+            lowTargetValue: Decimal,
+            lowTargetTime: String,
+            highTarget: [NightscoutTimevalue],
+            units: GlucoseUnits
+        ) -> Decimal {
+            if let idx = highTarget.firstIndex(where: { $0.time == lowTargetTime }) {
+                let median = (lowTargetValue + highTarget[idx].value) / 2
+                switch units {
+                case .mgdL:
+                    return Decimal(round(Double(median)))
+                case .mmolL:
+                    return Decimal(round(Double(median) * 10) / 10)
+                }
+            }
+            return lowTargetValue
         }
 
         func importSettings() {
@@ -143,7 +155,11 @@ extension NightscoutConfig {
                 {
                     do {
                         let fetchedProfileStore = try jsonDecoder.decode([FetchedNightscoutProfileStore].self, from: data)
-                        guard let fetchedProfile: ScheduledNightscoutProfile = fetchedProfileStore.first?.store["default"]
+                        let loop = fetchedProfileStore.first?.enteredBy.contains("Loop")
+                        guard let fetchedProfile: FetchedNightscoutProfile =
+                            (fetchedProfileStore.first?.store["default"] != nil) ?
+                            fetchedProfileStore.first?.store["default"] :
+                            fetchedProfileStore.first?.store["Default"]
                         else {
                             error = "\nCan't find the default Nightscout Profile."
                             group.leave()
@@ -208,7 +224,7 @@ extension NightscoutConfig {
 
                         let sensitivities = fetchedProfile.sens.map { sensitivity -> InsulinSensitivityEntry in
                             InsulinSensitivityEntry(
-                                sensitivity: self.units == .mmolL ? sensitivity.value : sensitivity.value.asMgdL,
+                                sensitivity: sensitivity.value,
                                 offset: self.offset(sensitivity.time) / 60,
                                 start: sensitivity.time
                             )
@@ -228,9 +244,15 @@ extension NightscoutConfig {
 
                         let targets = fetchedProfile.target_low
                             .map { target -> BGTargetEntry in
-                                BGTargetEntry(
-                                    low: self.units == .mmolL ? target.value : target.value.asMgdL,
-                                    high: self.units == .mmolL ? target.value : target.value.asMgdL,
+                                let median = loop! ? self.getMedianTarget(
+                                    lowTargetValue: target.value,
+                                    lowTargetTime: target.time,
+                                    highTarget: fetchedProfile.target_high,
+                                    units: self.units
+                                ) : target.value
+                                return BGTargetEntry(
+                                    low: median,
+                                    high: median,
                                     start: target.time,
                                     offset: self.offset(target.time) / 60
                                 ) }

@@ -19,7 +19,7 @@ extension OverrideProfilesConfig {
         @Published var isfAndCr: Bool = true
         @Published var isf: Bool = true
         @Published var cr: Bool = true
-        @Published var smbIsAlwaysOff: Bool = false
+        @Published var smbIsScheduledOff: Bool = false
         @Published var start: Decimal = 0
         @Published var end: Decimal = 23
         @Published var smbMinutes: Decimal = 0
@@ -29,6 +29,24 @@ extension OverrideProfilesConfig {
 
         var units: GlucoseUnits = .mmolL
 
+        private var formatter: NumberFormatter {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            formatter.maximumFractionDigits = 0
+            return formatter
+        }
+
+        private var glucoseFormatter: NumberFormatter {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            formatter.maximumFractionDigits = 0
+            if units == .mmolL {
+                formatter.maximumFractionDigits = 1
+            }
+            formatter.roundingMode = .halfUp
+            return formatter
+        }
+
         override func subscribe() {
             units = settingsManager.settings.units
             defaultSmbMinutes = settingsManager.preferences.maxSMBBasalMinutes
@@ -37,6 +55,59 @@ extension OverrideProfilesConfig {
         }
 
         let coredataContext = CoreDataStack.shared.persistentContainer.viewContext
+
+        struct ProfileViewData {
+            let target: Decimal
+            let duration: Decimal
+            let name: String
+            let percent: Double
+            let perpetual: Bool
+            let durationString: String
+            let scheduledSMBString: String
+            let smbString: String
+            let targetString: String
+            let maxMinutesSMB: Decimal
+            let maxMinutesUAM: Decimal
+            let isfString: String
+            let crString: String
+            let isfAndCRString: String
+        }
+
+        func profileViewData(for preset: OverridePresets) -> ProfileViewData {
+            let target = units == .mmolL ? (((preset.target ?? 0) as NSDecimalNumber) as Decimal)
+                .asMmolL : (preset.target ?? 0) as Decimal
+            let duration = (preset.duration ?? 0) as Decimal
+            let name = ((preset.name ?? "") == "") || (preset.name?.isEmpty ?? true) ? "" : preset.name!
+            let percent = preset.percentage / 100
+            let perpetual = preset.indefinite
+            let durationString = perpetual ? "" : "\(formatter.string(from: duration as NSNumber)!)"
+            let scheduledSMBString = (preset.smbIsOff && preset.smbIsScheduledOff) ? "Scheduled SMBs" : ""
+            let smbString = (preset.smbIsOff && scheduledSMBString == "") ? "SMBs are off" : ""
+            let targetString = target != 0 ? "\(glucoseFormatter.string(from: target as NSNumber)!)" : ""
+            let maxMinutesSMB = (preset.smbMinutes as Decimal?) != nil ? (preset.smbMinutes ?? 0) as Decimal : 0
+            let maxMinutesUAM = (preset.uamMinutes as Decimal?) != nil ? (preset.uamMinutes ?? 0) as Decimal : 0
+            let isfString = preset.isf ? "ISF" : ""
+            let crString = preset.cr ? "CR" : ""
+            let dash = crString != "" ? "/" : ""
+            let isfAndCRString = isfString + dash + crString
+
+            return ProfileViewData(
+                target: target,
+                duration: duration,
+                name: name,
+                percent: percent,
+                perpetual: perpetual,
+                durationString: durationString,
+                scheduledSMBString: scheduledSMBString,
+                smbString: smbString,
+                targetString: targetString,
+                maxMinutesSMB: maxMinutesSMB,
+                maxMinutesUAM: maxMinutesUAM,
+                isfString: isfString,
+                crString: crString,
+                isfAndCRString: isfAndCRString
+            )
+        }
 
         func saveSettings() {
             coredataContext.perform { [self] in
@@ -66,11 +137,11 @@ extension OverrideProfilesConfig {
                         saveOverride.isf = isf
                         saveOverride.cr = cr
                     } else { saveOverride.isfAndCr = true }
-                    if smbIsAlwaysOff {
-                        saveOverride.smbIsAlwaysOff = true
+                    if smbIsScheduledOff {
+                        saveOverride.smbIsScheduledOff = true
                         saveOverride.start = start as NSDecimalNumber
                         saveOverride.end = end as NSDecimalNumber
-                    } else { saveOverride.smbIsAlwaysOff = false }
+                    } else { saveOverride.smbIsScheduledOff = false }
 
                     saveOverride.smbMinutes = smbMinutes as NSDecimalNumber
                     saveOverride.uamMinutes = uamMinutes as NSDecimalNumber
@@ -87,6 +158,7 @@ extension OverrideProfilesConfig {
                 saveOverride.percentage = self.percentage
                 saveOverride.smbIsOff = self.smbIsOff
                 saveOverride.name = self.profileName
+                self.profileName = ""
                 id = UUID().uuidString
                 self.isPreset.toggle()
                 saveOverride.id = id
@@ -107,11 +179,11 @@ extension OverrideProfilesConfig {
                         saveOverride.isf = isf
                         saveOverride.cr = cr
                     } else { saveOverride.isfAndCr = true }
-                    if smbIsAlwaysOff {
-                        saveOverride.smbIsAlwaysOff = true
+                    if smbIsScheduledOff {
+                        saveOverride.smbIsScheduledOff = true
                         saveOverride.start = start as NSDecimalNumber
                         saveOverride.end = end as NSDecimalNumber
-                    } else { smbIsAlwaysOff = false }
+                    } else { smbIsScheduledOff = false }
 
                     saveOverride.smbMinutes = smbMinutes as NSDecimalNumber
                     saveOverride.uamMinutes = uamMinutes as NSDecimalNumber
@@ -147,11 +219,11 @@ extension OverrideProfilesConfig {
                         saveOverride.isf = profile.isf
                         saveOverride.cr = profile.cr
                     } else { saveOverride.isfAndCr = true }
-                    if profile.smbIsAlwaysOff {
-                        saveOverride.smbIsAlwaysOff = true
+                    if profile.smbIsScheduledOff {
+                        saveOverride.smbIsScheduledOff = true
                         saveOverride.start = profile.start
                         saveOverride.end = profile.end
-                    } else { saveOverride.smbIsAlwaysOff = false }
+                    } else { saveOverride.smbIsScheduledOff = false }
 
                     saveOverride.smbMinutes = (profile.smbMinutes ?? 0) as NSDecimalNumber
                     saveOverride.uamMinutes = (profile.uamMinutes ?? 0) as NSDecimalNumber
@@ -166,7 +238,6 @@ extension OverrideProfilesConfig {
                 let requestEnabled = Override.fetchRequest() as NSFetchRequest<Override>
                 let sortIsEnabled = NSSortDescriptor(key: "date", ascending: false)
                 requestEnabled.sortDescriptors = [sortIsEnabled]
-                // requestEnabled.fetchLimit = 1
                 try? overrideArray = coredataContext.fetch(requestEnabled)
                 isEnabled = overrideArray.first?.enabled ?? false
                 percentage = overrideArray.first?.percentage ?? 100
@@ -175,14 +246,14 @@ extension OverrideProfilesConfig {
                 smbIsOff = overrideArray.first?.smbIsOff ?? false
                 advancedSettings = overrideArray.first?.advancedSettings ?? false
                 isfAndCr = overrideArray.first?.isfAndCr ?? true
-                smbIsAlwaysOff = overrideArray.first?.smbIsAlwaysOff ?? false
+                smbIsScheduledOff = overrideArray.first?.smbIsScheduledOff ?? false
 
                 if advancedSettings {
                     if !isfAndCr {
                         isf = overrideArray.first?.isf ?? false
                         cr = overrideArray.first?.cr ?? false
                     }
-                    if smbIsAlwaysOff {
+                    if smbIsScheduledOff {
                         start = (overrideArray.first?.start ?? 0) as Decimal
                         end = (overrideArray.first?.end ?? 0) as Decimal
                     }
@@ -229,6 +300,29 @@ extension OverrideProfilesConfig {
             }
         }
 
+        func populateSettings(from preset: OverridePresets) {
+            profileName = preset.name ?? ""
+            percentage = preset.percentage
+            duration = (preset.duration ?? 0) as Decimal
+            _indefinite = preset.indefinite
+            override_target = preset.target != nil
+            if let targetValue = preset.target as NSDecimalNumber? {
+                target = units == .mmolL ? (targetValue as Decimal).asMmolL : targetValue as Decimal
+            } else {
+                target = 0
+            }
+            advancedSettings = preset.advancedSettings
+            smbIsOff = preset.smbIsOff
+            smbIsScheduledOff = preset.smbIsScheduledOff
+            isf = preset.isf
+            cr = preset.cr
+            smbMinutes = (preset.smbMinutes ?? 0) as Decimal
+            uamMinutes = (preset.uamMinutes ?? 0) as Decimal
+            isfAndCr = preset.isfAndCr
+            start = (preset.start ?? 0) as Decimal
+            end = (preset.end ?? 0) as Decimal
+        }
+
         func cancelProfile() {
             _indefinite = true
             isEnabled = false
@@ -246,6 +340,27 @@ extension OverrideProfilesConfig {
             }
             smbMinutes = defaultSmbMinutes
             uamMinutes = defaultUamMinutes
+        }
+
+        func updatePreset(_ preset: OverridePresets) {
+            let context = CoreDataStack.shared.persistentContainer.viewContext
+            context.performAndWait {
+                preset.name = profileName
+                preset.percentage = percentage
+                preset.duration = NSDecimalNumber(decimal: duration)
+                let targetValue = override_target ? (units == .mmolL ? target.asMgdL : target) : nil
+                preset.target = targetValue != nil ? NSDecimalNumber(decimal: targetValue!) : nil
+                preset.indefinite = _indefinite
+                preset.advancedSettings = advancedSettings
+                preset.smbIsOff = smbIsOff
+                preset.smbIsScheduledOff = smbIsScheduledOff
+                preset.isf = isf
+                preset.cr = cr
+                preset.smbMinutes = NSDecimalNumber(decimal: smbMinutes)
+                preset.uamMinutes = NSDecimalNumber(decimal: uamMinutes)
+                preset.isfAndCr = isfAndCr
+                try? context.save()
+            }
         }
     }
 }

@@ -1,4 +1,6 @@
 import Foundation
+import HealthKit
+import LoopKit
 
 struct BloodGlucose: JSON, Identifiable, Hashable {
     enum Direction: String, JSON {
@@ -56,27 +58,27 @@ enum GlucoseUnits: String, JSON, Equatable {
 
 extension Int {
     var asMmolL: Decimal {
-        Decimal(self) * GlucoseUnits.exchangeRate
+        FreeAPS.rounded(Decimal(self) * GlucoseUnits.exchangeRate, scale: 1, roundingMode: .plain)
     }
 }
 
 extension Decimal {
     var asMmolL: Decimal {
-        self * GlucoseUnits.exchangeRate
+        FreeAPS.rounded(self * GlucoseUnits.exchangeRate, scale: 1, roundingMode: .plain)
     }
 
     var asMgdL: Decimal {
-        self / GlucoseUnits.exchangeRate
+        FreeAPS.rounded(self / GlucoseUnits.exchangeRate, scale: 0, roundingMode: .plain)
     }
 }
 
 extension Double {
     var asMmolL: Decimal {
-        Decimal(self) * GlucoseUnits.exchangeRate
+        FreeAPS.rounded(Decimal(self) * GlucoseUnits.exchangeRate, scale: 1, roundingMode: .plain)
     }
 
     var asMgdL: Decimal {
-        Decimal(self) / GlucoseUnits.exchangeRate
+        FreeAPS.rounded(Decimal(self) / GlucoseUnits.exchangeRate, scale: 0, roundingMode: .plain)
     }
 }
 
@@ -89,5 +91,16 @@ extension BloodGlucose: SavitzkyGolaySmoothable {
             glucose = Int(newValue)
             sgv = Int(newValue)
         }
+    }
+}
+
+extension BloodGlucose {
+    func convertStoredGlucoseSample(device: HKDevice?) -> StoredGlucoseSample {
+        StoredGlucoseSample(
+            syncIdentifier: id,
+            startDate: dateString.date,
+            quantity: HKQuantity(unit: .milligramsPerDeciliter, doubleValue: Double(glucose!)),
+            device: device
+        )
     }
 }

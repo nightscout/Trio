@@ -37,8 +37,8 @@ extension NightscoutAPI {
     func checkConnection() -> AnyPublisher<Void, Swift.Error> {
         struct Check: Codable, Equatable {
             var eventType = "Note"
-            var enteredBy = "freeaps-x"
-            var notes = "iAPS connected"
+            var enteredBy = "Trio"
+            var notes = "Trio connected"
         }
         let check = Check()
         var request = URLRequest(url: url.appendingPathComponent(Config.treatmentsPath))
@@ -112,7 +112,7 @@ extension NightscoutAPI {
             ),
             URLQueryItem(
                 name: "find[enteredBy][$ne]",
-                value: NigtscoutTreatment.local.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
+                value: NightscoutTreatment.local.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
             )
         ]
         if let date = sinceDate {
@@ -213,7 +213,7 @@ extension NightscoutAPI {
             ),
             URLQueryItem(
                 name: "find[enteredBy][$ne]",
-                value: NigtscoutTreatment.local.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
+                value: NightscoutTreatment.local.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
             ),
             URLQueryItem(name: "find[duration][$exists]", value: "true")
         ]
@@ -278,7 +278,7 @@ extension NightscoutAPI {
             .eraseToAnyPublisher()
     }
 
-    func uploadTreatments(_ treatments: [NigtscoutTreatment]) -> AnyPublisher<Void, Swift.Error> {
+    func uploadTreatments(_ treatments: [NightscoutTreatment]) -> AnyPublisher<Void, Swift.Error> {
         var components = URLComponents()
         components.scheme = url.scheme
         components.host = url.host
@@ -318,30 +318,6 @@ extension NightscoutAPI {
             request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
         }
         request.httpBody = try! JSONCoding.encoder.encode(glucose)
-        request.httpMethod = "POST"
-
-        return service.run(request)
-            .retry(Config.retryCount)
-            .map { _ in () }
-            .eraseToAnyPublisher()
-    }
-
-    func uploadStats(_ stats: NightscoutStatistics) -> AnyPublisher<Void, Swift.Error> {
-        var components = URLComponents()
-        components.scheme = url.scheme
-        components.host = url.host
-        components.port = url.port
-        components.path = Config.statusPath
-
-        var request = URLRequest(url: components.url!)
-        request.allowsConstrainedNetworkAccess = false
-        request.timeoutInterval = Config.timeout
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if let secret = secret {
-            request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
-        }
-        request.httpBody = try! JSONCoding.encoder.encode(stats)
         request.httpMethod = "POST"
 
         return service.run(request)
