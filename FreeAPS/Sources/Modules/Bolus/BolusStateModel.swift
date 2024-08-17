@@ -126,15 +126,12 @@ extension Bolus {
             setupGlucoseArray()
 
             Task {
-                let getMaxBolus = await self.provider.getPumpSettings().maxBolus
-                await MainActor.run {
-                    maxBolus = getMaxBolus
-                }
-                await getCurrentCarbRatio()
-                await getCurrentBGTarget()
-                await getCurrentISF()
+                async let getAllSettingsDefaults: () = getAllSettingsValues()
+                async let setupDeterminations: () = setupDeterminationsArray()
 
-                await setupDeterminationsArray()
+                await getAllSettingsDefaults
+                await setupDeterminations
+
                 // Determination has updated, so we can use this to draw the initial Forecast Chart
                 let forecastData = await mapForecastsForChart()
                 await updateForecasts(with: forecastData)
@@ -175,112 +172,61 @@ extension Bolus {
 
         // MARK: - Basal
 
-        func getCurrentBasal() async {
-            let basalEntries = await provider.getBasalProfile()
-            let now = Date()
-            let calendar = Calendar.current
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "HH:mm:ss"
-            dateFormatter.timeZone = TimeZone.current
+        private enum SettingType {
+            case basal
+            case carbRatio
+            case bgTarget
+            case isf
+        }
 
-            for (index, entry) in basalEntries.enumerated() {
-                guard let entryTime = dateFormatter.date(from: entry.start) else {
-                    print("Invalid entry start time: \(entry.start)")
-                    continue
+        func getAllSettingsValues() async {
+            await withTaskGroup(of: Void.self) { group in
+                group.addTask {
+                    await self.getCurrentSettingValue(for: .basal)
                 }
-
-                let entryComponents = calendar.dateComponents([.hour, .minute, .second], from: entryTime)
-                let entryStartTime = calendar.date(
-                    bySettingHour: entryComponents.hour!,
-                    minute: entryComponents.minute!,
-                    second: entryComponents.second!,
-                    of: now
-                )!
-
-                let entryEndTime: Date
-                if index < basalEntries.count - 1,
-                   let nextEntryTime = dateFormatter.date(from: basalEntries[index + 1].start)
-                {
-                    let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
-                    entryEndTime = calendar.date(
-                        bySettingHour: nextEntryComponents.hour!,
-                        minute: nextEntryComponents.minute!,
-                        second: nextEntryComponents.second!,
-                        of: now
-                    )!
-                } else {
-                    entryEndTime = calendar.date(byAdding: .day, value: 1, to: entryStartTime)!
+                group.addTask {
+                    await self.getCurrentSettingValue(for: .carbRatio)
                 }
-
-                if now >= entryStartTime, now < entryEndTime {
+                group.addTask {
+                    await self.getCurrentSettingValue(for: .bgTarget)
+                }
+                group.addTask {
+                    await self.getCurrentSettingValue(for: .isf)
+                }
+                group.addTask {
+                    let getMaxBolus = await self.provider.getPumpSettings().maxBolus
                     await MainActor.run {
-                        currentBasal = entry.rate
+                        self.maxBolus = getMaxBolus
                     }
-                    break
                 }
             }
         }
 
-        func getCurrentCarbRatio() async {
-            let carbRatios = await provider.getCarbRatios()
-            print("carbRatios \(carbRatios)")
-
+        private func getCurrentSettingValue(for type: SettingType) async {
             let now = Date()
             let calendar = Calendar.current
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "HH:mm:ss"
             dateFormatter.timeZone = TimeZone.current
 
-            for (index, entry) in carbRatios.schedule.enumerated() {
-                guard let entryTime = dateFormatter.date(from: entry.start) else {
-                    print("Invalid entry start time: \(entry.start)")
-                    continue
-                }
+            let entries: [(start: String, value: Decimal)]
 
-                let entryComponents = calendar.dateComponents([.hour, .minute, .second], from: entryTime)
-                let entryStartTime = calendar.date(
-                    bySettingHour: entryComponents.hour!,
-                    minute: entryComponents.minute!,
-                    second: entryComponents.second!,
-                    of: now
-                )!
-
-                let entryEndTime: Date
-                if index < carbRatios.schedule.count - 1,
-                   let nextEntryTime = dateFormatter.date(from: carbRatios.schedule[index + 1].start)
-                {
-                    let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
-                    entryEndTime = calendar.date(
-                        bySettingHour: nextEntryComponents.hour!,
-                        minute: nextEntryComponents.minute!,
-                        second: nextEntryComponents.second!,
-                        of: now
-                    )!
-                } else {
-                    entryEndTime = calendar.date(byAdding: .day, value: 1, to: entryStartTime)!
-                }
-
-                if now >= entryStartTime, now < entryEndTime {
-                    await MainActor.run {
-                        currentCarbRatio = entry.ratio
-                        debugPrint("currentCarbRatio: \(currentCarbRatio)")
-                    }
-                    return
-                }
+            switch type {
+            case .basal:
+                let basalEntries = await provider.getBasalProfile()
+                entries = basalEntries.map { ($0.start, $0.rate) }
+            case .carbRatio:
+                let carbRatios = await provider.getCarbRatios()
+                entries = carbRatios.schedule.map { ($0.start, $0.ratio) }
+            case .bgTarget:
+                let bgTargets = await provider.getBGTarget()
+                entries = bgTargets.targets.map { ($0.start, $0.low) }
+            case .isf:
+                let isfValues = await provider.getISFValues()
+                entries = isfValues.sensitivities.map { ($0.start, $0.sensitivity) }
             }
-        }
 
-        func getCurrentBGTarget() async {
-            let bgTargets = await provider.getBGTarget()
-            print("bgTargets \(bgTargets)")
-
-            let now = Date()
-            let calendar = Calendar.current
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "HH:mm:ss"
-            dateFormatter.timeZone = TimeZone.current
-
-            for (index, entry) in bgTargets.targets.enumerated() {
+            for (index, entry) in entries.enumerated() {
                 guard let entryTime = dateFormatter.date(from: entry.start) else {
                     print("Invalid entry start time: \(entry.start)")
                     continue
@@ -295,8 +241,8 @@ extension Bolus {
                 )!
 
                 let entryEndTime: Date
-                if index < bgTargets.targets.count - 1,
-                   let nextEntryTime = dateFormatter.date(from: bgTargets.targets[index + 1].start)
+                if index < entries.count - 1,
+                   let nextEntryTime = dateFormatter.date(from: entries[index + 1].start)
                 {
                     let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
                     entryEndTime = calendar.date(
@@ -311,57 +257,16 @@ extension Bolus {
 
                 if now >= entryStartTime, now < entryEndTime {
                     await MainActor.run {
-                        currentBGTarget = entry.low // doesn't matter if we use entry.low or entry.high here
-                        debugPrint("currentBGTarget: \(currentBGTarget)")
-                    }
-                    return
-                }
-            }
-        }
-
-        func getCurrentISF() async {
-            let insulinSensitivities = await provider.getISFValues()
-            print("insulinSensitivities \(insulinSensitivities)")
-
-            let now = Date()
-            let calendar = Calendar.current
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "HH:mm:ss"
-            dateFormatter.timeZone = TimeZone.current
-
-            for (index, entry) in insulinSensitivities.sensitivities.enumerated() {
-                guard let entryTime = dateFormatter.date(from: entry.start) else {
-                    print("Invalid entry start time: \(entry.start)")
-                    continue
-                }
-
-                let entryComponents = calendar.dateComponents([.hour, .minute, .second], from: entryTime)
-                let entryStartTime = calendar.date(
-                    bySettingHour: entryComponents.hour!,
-                    minute: entryComponents.minute!,
-                    second: entryComponents.second!,
-                    of: now
-                )!
-
-                let entryEndTime: Date
-                if index < insulinSensitivities.sensitivities.count - 1,
-                   let nextEntryTime = dateFormatter.date(from: insulinSensitivities.sensitivities[index + 1].start)
-                {
-                    let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
-                    entryEndTime = calendar.date(
-                        bySettingHour: nextEntryComponents.hour!,
-                        minute: nextEntryComponents.minute!,
-                        second: nextEntryComponents.second!,
-                        of: now
-                    )!
-                } else {
-                    entryEndTime = calendar.date(byAdding: .day, value: 1, to: entryStartTime)!
-                }
-
-                if now >= entryStartTime, now < entryEndTime {
-                    await MainActor.run {
-                        currentISF = entry.sensitivity
-                        debugPrint("currentISFValue: \(currentISF)")
+                        switch type {
+                        case .basal:
+                            currentBasal = entry.value
+                        case .carbRatio:
+                            currentCarbRatio = entry.value
+                        case .bgTarget:
+                            currentBGTarget = entry.value
+                        case .isf:
+                            currentISF = entry.value
+                        }
                     }
                     return
                 }
@@ -702,11 +607,7 @@ extension Bolus.StateModel {
         let determinationObjects: [OrefDetermination] = await CoreDataStack.shared
             .getNSManagedObject(with: determinationObjectIDs, context: viewContext)
 
-        async let updateDetermination: () = updateDeterminationsArray(with: determinationObjects)
-        async let getCurrentBasal: () = getCurrentBasal()
-
-        await getCurrentBasal
-        await updateDetermination
+        await updateDeterminationsArray(with: determinationObjects)
     }
 
     private func mapForecastsForChart() async -> Determination? {
