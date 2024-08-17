@@ -243,7 +243,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
 
             guard let lastReading = glucoseObjects.first?.glucose,
                   let secondLastReading = glucoseObjects.dropFirst().first?.glucose,
-                  let lastDirection = glucoseObjects.first?.direction else { return }
+                  let lastDirection = glucoseObjects.first?.directionEnum?.symbol else { return }
 
             addAppBadge(glucose: (glucoseObjects.first?.glucose).map { Int($0) })
 

@@ -46,8 +46,6 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
     func storeGlucose(_ glucose: [BloodGlucose]) {
         processQueue.sync {
-            debug(.deviceManager, "Start storage of glucose data")
-
             self.coredataContext.perform {
                 let datesToCheck: Set<Date?> = Set(glucose.compactMap { $0.dateString as Date? })
                 let fetchRequest: NSFetchRequest<NSFetchRequestResult> = GlucoseStored.fetchRequest()
@@ -81,8 +79,6 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                         glucoseEntry.date = entry.dateString
                         glucoseEntry.direction = entry.direction?.rawValue
                         glucoseEntry.isUploadedToNS = false /// the value is not uploaded to NS (yet)
-                        debugPrint("\(DebuggingIdentifiers.failed)")
-                        debugPrint("\(String(describing: glucoseEntry.direction))")
                         return false // Continue processing
                     }
                 )
@@ -90,7 +86,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                 // process batch insert
                 do {
                     try self.coredataContext.execute(batchInsert)
-                    debugPrint("Glucose Storage: \(#function) \(DebuggingIdentifiers.succeeded) saved glucose to Core Data")
+//                    debugPrint("Glucose Storage: \(#function) \(DebuggingIdentifiers.succeeded) saved glucose to Core Data")
 
                     // Send notification for triggering a fetch in Home State Model to update the Glucose Array
                     /// This is necessary because changes only get merged automatically into the viewContext because of the Persistent History Tracking

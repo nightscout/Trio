@@ -207,7 +207,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
                 let value = settingsManager.settings
                     .units == .mgdL ? Decimal(firstGlucoseValue.glucose) : Decimal(firstGlucoseValue.glucose).asMmolL
                 state.glucose = glucoseFormatter.string(from: value as NSNumber)
-                state.trend = firstGlucoseValue.direction
+                state.trend = firstGlucoseValue.directionEnum?.symbol
                 let delta = glucoseValues
                     .count >= 2 ? Decimal(firstGlucoseValue.glucose) - Decimal(glucoseValues.dropFirst().first?.glucose ?? 0) : 0
                 let deltaConverted = settingsManager.settings.units == .mgdL ? delta : delta.asMmolL

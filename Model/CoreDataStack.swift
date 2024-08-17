@@ -106,7 +106,7 @@ class CoreDataStack: ObservableObject {
     private func fetchPersistentHistoryTransactionsAndChanges() async throws {
         let taskContext = newTaskContext()
         taskContext.name = "persistentHistoryContext"
-        debugPrint("Start fetching persistent history changes from the store ... \(DebuggingIdentifiers.inProgress)")
+//        debugPrint("Start fetching persistent history changes from the store ... \(DebuggingIdentifiers.inProgress)")
 
         try await taskContext.perform {
             // Execute the persistent history change since the last transaction
@@ -121,7 +121,7 @@ class CoreDataStack: ObservableObject {
     }
 
     private func mergePersistentHistoryChanges(from history: [NSPersistentHistoryTransaction]) {
-        debugPrint("Received \(history.count) persistent history transactions")
+//        debugPrint("Received \(history.count) persistent history transactions")
         // Update view context with objectIDs from history change request
         /// - Tag: mergeChanges
         let viewContext = persistentContainer.viewContext
@@ -210,7 +210,7 @@ extension CoreDataStack {
 
             // Guard check if there are NSManagedObjects older than the specified days
             guard !objectIDs.isEmpty else {
-                debugPrint("No objects found older than \(days) days.")
+//                debugPrint("No objects found older than \(days) days.")
                 return
             }
 
@@ -258,7 +258,7 @@ extension CoreDataStack {
             }
 
             guard !parentObjectIDs.isEmpty else {
-                debugPrint("No \(parentType) objects found older than \(days) days.")
+//                debugPrint("No \(parentType) objects found older than \(days) days.")
                 return
             }
 
@@ -272,7 +272,7 @@ extension CoreDataStack {
             }
 
             guard !childObjectIDs.isEmpty else {
-                debugPrint("No \(childType) objects found related to \(parentType) objects older than \(days) days.")
+//                debugPrint("No \(childType) objects found related to \(parentType) objects older than \(days) days.")
                 return
             }
 
@@ -339,9 +339,9 @@ extension CoreDataStack {
         /// we need to ensure that the fetch immediately returns a value as long as the whole app does not use the async await pattern, otherwise we could perform this asynchronously with backgroundContext.perform and not block the thread
         context.performAndWait {
             do {
-                debugPrint(
-                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.succeeded) on Thread: \(Thread.current)"
-                )
+//                debugPrint(
+//                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.succeeded) on Thread: \(Thread.current)"
+//                )
                 result = try context.fetch(request)
             } catch let error as NSError {
                 debugPrint(
@@ -387,9 +387,9 @@ extension CoreDataStack {
 
         return await context.perform {
             do {
-                debugPrint(
-                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.succeeded) on Thread: \(Thread.current)"
-                )
+//                debugPrint(
+//                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.succeeded) on Thread: \(Thread.current)"
+//                )
                 if propertiesToFetch != nil {
                     return try context.fetch(request) as? [[String: Any]] ?? []
                 } else {
@@ -433,9 +433,9 @@ extension NSManagedObjectContext {
         do {
             guard onContext.hasChanges else { return }
             try onContext.save()
-            debugPrint(
-                "Saving to Core Data successful in \(callingFunction) in \(callingClass): \(DebuggingIdentifiers.succeeded)"
-            )
+//            debugPrint(
+//                "Saving to Core Data successful in \(callingFunction) in \(callingClass): \(DebuggingIdentifiers.succeeded)"
+//            )
         } catch let error as NSError {
             debugPrint(
                 "Saving to Core Data failed in \(callingFunction) in \(callingClass): \(DebuggingIdentifiers.failed) with error \(error), \(error.userInfo)"
