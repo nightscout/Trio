@@ -87,20 +87,19 @@ struct ForeCastChart: View {
     }
 
     private func drawForecastArea() -> some ChartContent {
-        ForEach(state.minForecast.indices, id: \.self) { index in
-            AreaMark(
-                x: .value("Time", timeForIndex(Int32(index))),
-                yStart: .value(
-                    "Min Value",
-                    units == .mgdL ? Decimal(state.minForecast[index]) : Decimal(state.minForecast[index]).asMmolL
-                ),
-                yEnd: .value(
-                    "Max Value",
-                    units == .mgdL ? Decimal(state.maxForecast[index]) : Decimal(state.maxForecast[index]).asMmolL
+        ForEach(0 ..< max(state.minForecast.count, state.maxForecast.count), id: \.self) { index in
+            if index < state.minForecast.count, index < state.maxForecast.count {
+                let yMinValue = Decimal(state.minForecast[index]) <= 300 ? Decimal(state.minForecast[index]) : Decimal(300)
+                let yMaxValue = Decimal(state.maxForecast[index]) <= 300 ? Decimal(state.maxForecast[index]) : Decimal(300)
+
+                AreaMark(
+                    x: .value("Time", timeForIndex(Int32(index)) <= endMarker ? timeForIndex(Int32(index)) : endMarker),
+                    yStart: .value("Min Value", units == .mgdL ? yMinValue : yMinValue.asMmolL),
+                    yEnd: .value("Max Value", units == .mgdL ? yMaxValue : yMaxValue.asMmolL)
                 )
-            )
-            .foregroundStyle(Color.blue.opacity(0.5))
-            .interpolationMethod(.catmullRom)
+                .foregroundStyle(Color.blue.opacity(0.5))
+                .interpolationMethod(.catmullRom)
+            }
         }
     }
 

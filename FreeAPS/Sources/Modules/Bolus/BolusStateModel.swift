@@ -802,14 +802,14 @@ extension Bolus.StateModel {
             return
         }
 
-        let minCount = min(36, nonEmptyArrays.map(\.count).min() ?? 0)
-        guard minCount > 0 else { return }
+        let maxCount = min(36, nonEmptyArrays.map(\.count).max() ?? 0)
+        guard maxCount > 0 else { return }
 
-        minForecast = (0 ..< minCount).map { index in
+        minForecast = (0 ..< maxCount).map { index in
             nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }.min() ?? 0
         }
 
-        maxForecast = (0 ..< minCount).map { index in
+        maxForecast = (0 ..< maxCount).map { index in
             nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }.max() ?? 0
         }
     }

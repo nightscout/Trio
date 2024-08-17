@@ -536,17 +536,16 @@ extension MainChartView {
     private func drawForecasts() -> some ChartContent {
         // Draw AreaMark for the forecast bounds
         ForEach(0 ..< max(state.minForecast.count, state.maxForecast.count), id: \.self) { index in
-            if index < state.minForecast.count && index < state.maxForecast.count {
+            if index < state.minForecast.count, index < state.maxForecast.count {
+                let yMinValue = units == .mgdL ? Decimal(state.minForecast[index]) : Decimal(state.minForecast[index]).asMmolL
+                let yMaxValue = units == .mgdL ? Decimal(state.maxForecast[index]) : Decimal(state.maxForecast[index]).asMmolL
+
                 AreaMark(
-                    x: .value("Time", timeForIndex(Int32(index))),
-                    yStart: .value(
-                        "Min Value",
-                        units == .mmolL ? Decimal(state.minForecast[index]).asMmolL : Decimal(state.minForecast[index])
-                    ),
-                    yEnd: .value(
-                        "Max Value",
-                        units == .mmolL ? Decimal(state.maxForecast[index]).asMmolL : Decimal(state.maxForecast[index])
-                    )
+                    x: .value("Time", timeForIndex(Int32(index)) <= endMarker ? timeForIndex(Int32(index)) : endMarker),
+
+                    // maxValue is already parsed to user units, no need to parse
+                    yStart: .value("Min Value", yMinValue <= maxValue ? yMinValue : maxValue),
+                    yEnd: .value("Max Value", yMaxValue <= maxValue ? yMaxValue : maxValue)
                 )
                 .foregroundStyle(Color.blue.opacity(0.5))
                 .interpolationMethod(.catmullRom)
