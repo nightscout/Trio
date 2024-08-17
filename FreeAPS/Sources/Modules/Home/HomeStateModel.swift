@@ -925,7 +925,7 @@ extension Home.StateModel {
     func preprocessForecastData() async -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] {
         await Task.detached { [self] () -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] in
             // Get the first determination ID from persistence
-            guard let id = determinationsFromPersistence.first?.objectID else {
+            guard let id = enactedAndNonEnactedDeterminations.first?.objectID else {
                 return []
             }
 
