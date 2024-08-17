@@ -13,7 +13,10 @@ struct ForeCastChart: View {
     private var endMarker: Date {
         state
             .displayForecastsAsLines ? Date(timeIntervalSinceNow: TimeInterval(hours: 3)) :
-            Date(timeIntervalSinceNow: TimeInterval(2 * 5 * state.minCount * 60)) // min is 2h -> (2*1h = 2*(5*12*60))
+            Date(timeIntervalSinceNow: TimeInterval(
+                Int(1.5) * 5 * state
+                    .minCount * 60
+            )) // min is 1.5h -> (1.5*1h = 1.5*(5*12*60))
     }
 
     var body: some View {
@@ -119,10 +122,10 @@ struct ForeCastChart: View {
 
         // Prepare the prediction data with only the first 36 values, i.e. 3 hours in the future
         let predictionData = [
-            ("IOB", predictions?.iob?.prefix(36)),
-            ("ZT", predictions?.zt?.prefix(36)),
-            ("COB", predictions?.cob?.prefix(36)),
-            ("UAM", predictions?.uam?.prefix(36))
+            ("iob", predictions?.iob?.prefix(36)),
+            ("zt", predictions?.zt?.prefix(36)),
+            ("cob", predictions?.cob?.prefix(36)),
+            ("uam", predictions?.uam?.prefix(36))
         ]
 
         return ForEach(predictionData, id: \.0) { name, values in
@@ -162,21 +165,6 @@ struct ForeCastChart: View {
             AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
             AxisTick(length: 3, stroke: .init(lineWidth: 3)).foregroundStyle(Color.secondary)
             AxisValueLabel().font(.footnote).foregroundStyle(Color.primary)
-        }
-    }
-}
-
-extension Backport {
-    @ViewBuilder func chartForegroundStyleScale(state: Bolus.StateModel) -> some View {
-        if state.displayForecastsAsLines {
-            content.chartForegroundStyleScale([
-                "IOB": .blue,
-                "UAM": Color.uam,
-                "ZT": Color.zt,
-                "COB": .orange
-            ])
-        } else {
-            content
         }
     }
 }

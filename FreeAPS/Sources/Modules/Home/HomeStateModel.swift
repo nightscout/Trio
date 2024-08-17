@@ -85,6 +85,7 @@ extension Home {
         @Published var minForecast: [Int] = []
         @Published var maxForecast: [Int] = []
         @Published var minCount: Int = 12 // count of Forecasts drawn in 5 min distances, i.e. 12 means a min of 1 hour
+        @Published var displayForecastsAsLines: Bool = false
 
         let context = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
@@ -133,6 +134,8 @@ extension Home {
             thresholdLines = settingsManager.settings.rulerMarks
             tins = settingsManager.settings.tins
             cgmAvailable = fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none
+
+            displayForecastsAsLines = settingsManager.settings.displayForecastsAsLines
 
             broadcaster.register(GlucoseObserver.self, observer: self)
             broadcaster.register(DeterminationObserver.self, observer: self)
@@ -466,6 +469,7 @@ extension Home.StateModel:
         displayXgridLines = settingsManager.settings.xGridLines
         displayYgridLines = settingsManager.settings.yGridLines
         thresholdLines = settingsManager.settings.rulerMarks
+        displayForecastsAsLines = settingsManager.settings.displayForecastsAsLines
         tins = settingsManager.settings.tins
         cgmAvailable = (fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none)
         displayPumpStatusHighlightMessage()
@@ -964,7 +968,7 @@ extension Home.StateModel {
                 // Fetch the forecast object
                 forecast = try context.existingObject(with: data.forecastID) as? Forecast
 
-                // Fetch the forecast values
+                // Fetch the first 3h of forecast values
                 for forecastValueID in data.forecastValueIDs.prefix(36) {
                     if let forecastValue = try context.existingObject(with: forecastValueID) as? ForecastValue {
                         forecastValues.append(forecastValue)
@@ -1014,16 +1018,27 @@ extension Home.StateModel {
             return
         }
 
-        minCount = min(12, allForecastValues.map(\.count).min() ?? 0)
+        minCount = max(12, allForecastValues.map(\.count).min() ?? 0)
         guard minCount > 0 else { return }
 
-        // Calculate min and max forecast values
-        minForecast = (0 ..< minCount).map { index in
-            allForecastValues.compactMap { $0.indices.contains(index) ? Int($0[index].value) : nil }.min() ?? 0
-        }
+        // Copy allForecastValues to a local constant for thread safety
+        let localAllForecastValues = allForecastValues
 
-        maxForecast = (0 ..< minCount).map { index in
-            allForecastValues.compactMap { $0.indices.contains(index) ? Int($0[index].value) : nil }.max() ?? 0
-        }
+        // Calculate min and max forecast values in a background task
+        let (minResult, maxResult) = await Task.detached {
+            let minForecast = (0 ..< self.minCount).map { index in
+                localAllForecastValues.compactMap { $0.indices.contains(index) ? Int($0[index].value) : nil }.min() ?? 0
+            }
+
+            let maxForecast = (0 ..< self.minCount).map { index in
+                localAllForecastValues.compactMap { $0.indices.contains(index) ? Int($0[index].value) : nil }.max() ?? 0
+            }
+
+            return (minForecast, maxForecast)
+        }.value
+
+        // Update the properties on the main thread
+        minForecast = minResult
+        maxForecast = maxResult
     }
 }

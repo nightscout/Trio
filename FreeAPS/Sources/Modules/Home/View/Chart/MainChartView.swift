@@ -59,7 +59,7 @@ struct MainChartView: View {
     @State private var chartTempTargets: [ChartTempTarget] = []
     @State private var count: Decimal = 1
     @State private var startMarker =
-        Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 - 60 * 60 * 24)) // 24 hours
+        Date(timeIntervalSinceNow: TimeInterval(hours: -24))
     @State private var minValue: Decimal = 45
     @State private var maxValue: Decimal = 270
     @State private var selection: Date? = nil
@@ -76,7 +76,12 @@ struct MainChartView: View {
     @Environment(\.calendar) var calendar
 
     private var endMarker: Date {
-        Date(timeIntervalSinceNow: TimeInterval(2 * 5 * state.minCount * 60)) // min is 2h -> (2*1h = 2*(5*12*60))
+        state
+            .displayForecastsAsLines ? Date(timeIntervalSinceNow: TimeInterval(hours: 3)) :
+            Date(timeIntervalSinceNow: TimeInterval(
+                Int(1.5) * 5 * state
+                    .minCount * 60
+            )) // min is 1.5h -> (1.5*1h = 1.5*(5*12*60))
     }
 
     private var bolusFormatter: NumberFormatter {
@@ -199,6 +204,29 @@ extension Backport {
             content
         }
     }
+
+    @ViewBuilder func chartForegroundStyleScale(state: any StateModel) -> some View {
+        if (state as? Bolus.StateModel)?.displayForecastsAsLines == true ||
+            (state as? Home.StateModel)?.displayForecastsAsLines == true
+        {
+            let modifiedContent = content
+                .chartForegroundStyleScale([
+                    "iob": .blue,
+                    "uam": Color.uam,
+                    "zt": Color.zt,
+                    "cob": .orange
+                ])
+
+            if state is Home.StateModel {
+                modifiedContent
+                    .chartLegend(.hidden)
+            } else {
+                modifiedContent
+            }
+        } else {
+            content
+        }
+    }
 }
 
 extension MainChartView {
@@ -262,10 +290,15 @@ extension MainChartView {
                 drawTempTargets()
                 drawActiveOverrides()
                 drawOverrideRunStored()
-                drawForecasts()
                 drawGlucose(dummy: false)
                 drawManualGlucose()
                 drawCarbs()
+
+                if state.displayForecastsAsLines {
+                    drawForecastsLines()
+                } else {
+                    drawForecastsCone()
+                }
 
                 /// show glucose value when hovering over it
                 if #available(iOS 17, *) {
@@ -316,13 +349,7 @@ extension MainChartView {
             .chartYAxis(.hidden)
             .backport.chartXSelection(value: $selection)
             .chartYScale(domain: minValue ... maxValue)
-            .chartForegroundStyleScale([
-                "zt": Color.zt,
-                "uam": Color.uam,
-                "cob": .orange,
-                "iob": .blue
-            ])
-            .chartLegend(.hidden)
+            .backport.chartForegroundStyleScale(state: state)
         }
     }
 
@@ -535,7 +562,7 @@ extension MainChartView {
         return currentTime.addingTimeInterval(timeInterval)
     }
 
-    private func drawForecasts() -> some ChartContent {
+    private func drawForecastsCone() -> some ChartContent {
         // Draw AreaMark for the forecast bounds
         ForEach(0 ..< max(state.minForecast.count, state.maxForecast.count), id: \.self) { index in
             if index < state.minForecast.count, index < state.maxForecast.count {
@@ -552,6 +579,21 @@ extension MainChartView {
                 .foregroundStyle(Color.blue.opacity(0.5))
                 .interpolationMethod(.catmullRom)
             }
+        }
+    }
+
+    private func drawForecastsLines() -> some ChartContent {
+        ForEach(state.preprocessedData, id: \.id) { tuple in
+            let forecastValue = tuple.forecastValue
+            let forecast = tuple.forecast
+            let valueAsDecimal = Decimal(forecastValue.value)
+            let displayValue = units == .mmolL ? valueAsDecimal.asMmolL : valueAsDecimal
+
+            LineMark(
+                x: .value("Time", timeForIndex(forecastValue.index)),
+                y: .value("Value", displayValue)
+            )
+            .foregroundStyle(by: .value("Predictions", forecast.type ?? ""))
         }
     }
 
