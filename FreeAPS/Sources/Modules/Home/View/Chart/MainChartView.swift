@@ -395,51 +395,47 @@ extension MainChartView {
         if let sgv = selectedGlucose?.glucose {
             let glucoseToShow = Decimal(sgv) * conversionFactor
             VStack(alignment: .leading) {
-                Text(selectedGlucose?.date?.formatted(.dateTime.hour().minute(.twoDigits)) ?? "")
-                    .font(.body)
+                HStack {
+                    Image(systemName: "clock")
+                    Text(selectedGlucose?.date?.formatted(.dateTime.hour().minute(.twoDigits)) ?? "")
+                        .font(.body).bold()
+                }.font(.body).padding(.bottom, 5)
+
                 HStack {
                     Text(glucoseToShow.formatted(.number.precision(units == .mmolL ? .fractionLength(1) : .fractionLength(0))))
-                        .font(.body)
-                        .fontWeight(.bold)
-                        .foregroundStyle(
-                            Decimal(sgv) < lowGlucose ? Color
-                                .red : (Decimal(sgv) > highGlucose ? Color.orange : Color.primary)
-                        )
-                    Text(units.rawValue)
-                        .foregroundColor(.secondary)
-                        .font(.footnote)
-                }
-                if let selectedCOBValue {
-                    HStack {
-                        Text(carbsFormatter.string(from: selectedCOBValue.cob as NSNumber) ?? "")
-                            .font(.body)
-                            .fontWeight(.bold)
-                            .foregroundStyle(Color.orange)
-                        Text(NSLocalizedString(" g", comment: "gram of carbs"))
-                            .foregroundStyle(Color.secondary)
-                            .font(.footnote)
-                    }
-                }
+                        .bold()
+                        + Text(" \(units.rawValue)")
+                }.foregroundStyle(
+                    Decimal(sgv) < lowGlucose ? Color
+                        .red : (Decimal(sgv) > highGlucose ? Color.orange : Color.primary)
+                ).font(.body)
+
                 if let selectedIOBValue, let iob = selectedIOBValue.iob {
                     HStack {
+                        Image(systemName: "syringe.fill").frame(width: 15)
                         Text(bolusFormatter.string(from: iob) ?? "")
-                            .font(.body)
-                            .fontWeight(.bold)
-                            .foregroundStyle(Color.darkerBlue)
-                        Text(NSLocalizedString(" U", comment: "Insulin unit"))
-                            .foregroundStyle(Color.secondary)
-                            .font(.footnote)
-                    }
+                            .bold()
+                            + Text(NSLocalizedString(" U", comment: "Insulin unit"))
+                    }.foregroundStyle(Color.insulin).font(.body)
+                }
+
+                if let selectedCOBValue {
+                    HStack {
+                        Image(systemName: "fork.knife").frame(width: 15)
+                        Text(carbsFormatter.string(from: selectedCOBValue.cob as NSNumber) ?? "")
+                            .bold()
+                            + Text(NSLocalizedString(" g", comment: "gram of carbs"))
+                    }.foregroundStyle(Color.orange).font(.body)
                 }
             }
-            .padding(6)
+            .padding()
             .background {
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.gray.opacity(0.7))
-                    .shadow(color: Color.darkerBlue, radius: 2)
+                    .fill(Color.chart.opacity(0.85))
+                    .shadow(color: Color.secondary, radius: 2)
                     .overlay(
                         RoundedRectangle(cornerRadius: 4)
-                            .stroke(Color.darkerBlue, lineWidth: 2)
+                            .stroke(Color.secondary, lineWidth: 2)
                     )
             }
         }
