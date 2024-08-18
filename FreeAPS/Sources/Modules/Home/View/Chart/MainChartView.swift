@@ -60,6 +60,7 @@ struct MainChartView: View {
     @State private var count: Decimal = 1
     @State private var startMarker =
         Date(timeIntervalSinceNow: TimeInterval(hours: -24))
+    @State private var endMarker = Date(timeIntervalSinceNow: TimeInterval(hours: 3))
     @State private var minValue: Decimal = 45
     @State private var maxValue: Decimal = 270
     @State private var selection: Date? = nil
@@ -74,20 +75,6 @@ struct MainChartView: View {
 
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.calendar) var calendar
-
-    private var endMarker: Date {
-        let threeHourSinceNow = Date(timeIntervalSinceNow: TimeInterval(hours: 3))
-
-        // min is 1.5h -> (1.5*1h = 1.5*(5*12*60))
-        let dynamicFutureDateForCone = Date(timeIntervalSinceNow: TimeInterval(
-            Int(1.5) * 5 * state
-                .minCount * 60
-        ))
-
-        return state
-            .displayForecastsAsLines ? threeHourSinceNow : dynamicFutureDateForCone <= threeHourSinceNow ?
-            dynamicFutureDateForCone.addingTimeInterval(TimeInterval(minutes: 30)) : threeHourSinceNow
-    }
 
     private var bolusFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -1124,7 +1111,18 @@ extension MainChartView {
     /// update start and  end marker to fix scroll update problem with x axis
     private func updateStartEndMarkers() {
         startMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 - 86400))
-//        endMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 + 10800))
+
+        let threeHourSinceNow = Date(timeIntervalSinceNow: TimeInterval(hours: 3))
+
+        // min is 1.5h -> (1.5*1h = 1.5*(5*12*60))
+        let dynamicFutureDateForCone = Date(timeIntervalSinceNow: TimeInterval(
+            Int(1.5) * 5 * state
+                .minCount * 60
+        ))
+
+        endMarker = state
+            .displayForecastsAsLines ? threeHourSinceNow : dynamicFutureDateForCone <= threeHourSinceNow ?
+            dynamicFutureDateForCone.addingTimeInterval(TimeInterval(minutes: 30)) : threeHourSinceNow
     }
 
     private func calculateBasals() {
