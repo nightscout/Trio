@@ -67,7 +67,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         setupNotification()
         coreDataObserver = CoreDataObserver()
         registerHandlers()
-        
+
         Task {
             await configureState()
         }
@@ -185,7 +185,11 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         async let latestOverrideID = fetchLatestOverride()
 
         guard let lastDeterminationID = await lastDeterminationIDs.first,
-              let latestOverrideID = await latestOverrideID else { return }
+              let latestOverrideID = await latestOverrideID
+        else {
+            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to get last Determination/ last Override")
+            return
+        }
 
         do {
             let glucoseValues: [GlucoseStored] = await CoreDataStack.shared
