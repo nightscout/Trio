@@ -67,6 +67,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         setupNotification()
         coreDataObserver = CoreDataObserver()
         registerHandlers()
+        
         Task {
             await configureState()
         }
@@ -90,10 +91,6 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
                 return Data()
             }
             return data
-        }
-
-        Task {
-            await configureState()
         }
     }
 
