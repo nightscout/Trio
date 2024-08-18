@@ -131,6 +131,30 @@ struct MainChartView: View {
         }
     }
 
+    private var selectedCOBValue: OrefDetermination? {
+        if let selection = selection {
+            let lowerBound = selection.addingTimeInterval(-120)
+            let upperBound = selection.addingTimeInterval(120)
+            return state.enactedAndNonEnactedDeterminations.first {
+                $0.deliverAt ?? now >= lowerBound && $0.deliverAt ?? now <= upperBound
+            }
+        } else {
+            return nil
+        }
+    }
+
+    private var selectedIOBValue: OrefDetermination? {
+        if let selection = selection {
+            let lowerBound = selection.addingTimeInterval(-120)
+            let upperBound = selection.addingTimeInterval(120)
+            return state.enactedAndNonEnactedDeterminations.first {
+                $0.deliverAt ?? now >= lowerBound && $0.deliverAt ?? now <= upperBound
+            }
+        } else {
+            return nil
+        }
+    }
+
     var body: some View {
         VStack {
             ZStack {
@@ -311,7 +335,7 @@ extension MainChartView {
                         RuleMark(x: .value("Selection", selectedGlucose.date ?? now, unit: .minute))
                             .foregroundStyle(Color.tabBar)
                             .offset(yStart: 70)
-                            .lineStyle(.init(lineWidth: 2, dash: [5]))
+                            .lineStyle(.init(lineWidth: 2))
                             .annotation(
                                 position: .top,
                                 alignment: .center,
@@ -324,13 +348,22 @@ extension MainChartView {
                             x: .value("Time", selectedGlucose.date ?? now, unit: .minute),
                             y: .value("Value", selectedGlucose.glucose)
                         )
-                        .symbolSize(CGSize(width: 16, height: 16))
-                        .foregroundStyle(Color.secondary)
+                        .zIndex(-1)
+                        .symbolSize(CGSize(width: 15, height: 15))
+                        .foregroundStyle(
+                            Decimal(selectedGlucose.glucose) > highGlucose ? Color.orange
+                                .opacity(0.8) :
+                                (
+                                    Decimal(selectedGlucose.glucose) < lowGlucose ? Color.red.opacity(0.8) : Color.green
+                                        .opacity(0.8)
+                                )
+                        )
 
                         PointMark(
                             x: .value("Time", selectedGlucose.date ?? now, unit: .minute),
                             y: .value("Value", selectedGlucose.glucose)
                         )
+                        .zIndex(-1)
                         .symbolSize(CGSize(width: 6, height: 6))
                         .foregroundStyle(Color.primary)
                     }
@@ -361,26 +394,52 @@ extension MainChartView {
     @ViewBuilder var selectionPopover: some View {
         if let sgv = selectedGlucose?.glucose {
             let glucoseToShow = Decimal(sgv) * conversionFactor
-            VStack {
+            VStack(alignment: .leading) {
                 Text(selectedGlucose?.date?.formatted(.dateTime.hour().minute(.twoDigits)) ?? "")
+                    .font(.body)
                 HStack {
                     Text(glucoseToShow.formatted(.number.precision(units == .mmolL ? .fractionLength(1) : .fractionLength(0))))
+                        .font(.body)
                         .fontWeight(.bold)
                         .foregroundStyle(
                             Decimal(sgv) < lowGlucose ? Color
                                 .red : (Decimal(sgv) > highGlucose ? Color.orange : Color.primary)
                         )
-                    Text(units.rawValue).foregroundColor(.secondary)
+                    Text(units.rawValue)
+                        .foregroundColor(.secondary)
+                        .font(.footnote)
+                }
+                if let selectedCOBValue {
+                    HStack {
+                        Text(carbsFormatter.string(from: selectedCOBValue.cob as NSNumber) ?? "")
+                            .font(.body)
+                            .fontWeight(.bold)
+                            .foregroundStyle(Color.orange)
+                        Text(NSLocalizedString(" g", comment: "gram of carbs"))
+                            .foregroundStyle(Color.secondary)
+                            .font(.footnote)
+                    }
+                }
+                if let selectedIOBValue, let iob = selectedIOBValue.iob {
+                    HStack {
+                        Text(bolusFormatter.string(from: iob) ?? "")
+                            .font(.body)
+                            .fontWeight(.bold)
+                            .foregroundStyle(Color.darkerBlue)
+                        Text(NSLocalizedString(" U", comment: "Insulin unit"))
+                            .foregroundStyle(Color.secondary)
+                            .font(.footnote)
+                    }
                 }
             }
             .padding(6)
             .background {
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.gray.opacity(0.1))
-                    .shadow(color: .blue, radius: 2)
+                    .fill(Color.gray.opacity(0.7))
+                    .shadow(color: Color.darkerBlue, radius: 2)
                     .overlay(
                         RoundedRectangle(cornerRadius: 4)
-                            .stroke(Color.blue, lineWidth: 2)
+                            .stroke(Color.darkerBlue, lineWidth: 2)
                     )
             }
         }
@@ -423,10 +482,29 @@ extension MainChartView {
         VStack {
             Chart {
                 drawIOB()
+
+                if #available(iOS 17, *) {
+                    if let selectedIOBValue {
+                        PointMark(
+                            x: .value("Time", selectedIOBValue.deliverAt ?? now, unit: .minute),
+                            y: .value("Value", Int(truncating: selectedIOBValue.iob ?? 0))
+                        )
+                        .symbolSize(CGSize(width: 15, height: 15))
+                        .foregroundStyle(Color.darkerBlue.opacity(0.8))
+
+                        PointMark(
+                            x: .value("Time", selectedIOBValue.deliverAt ?? now, unit: .minute),
+                            y: .value("Value", Int(truncating: selectedIOBValue.iob ?? 0))
+                        )
+                        .symbolSize(CGSize(width: 6, height: 6))
+                        .foregroundStyle(Color.primary)
+                    }
+                }
             }
             .frame(minHeight: geo.size.height * 0.12)
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .chartXScale(domain: startMarker ... endMarker)
+            .backport.chartXSelection(value: $selection)
             .chartXAxis { basalChartXAxis }
             .chartYAxis { cobChartYAxis }
             .chartYScale(domain: minValueIobChart ... maxValueIobChart)
@@ -438,10 +516,29 @@ extension MainChartView {
         Chart {
             drawCurrentTimeMarker()
             drawCOB(dummy: false)
+
+            if #available(iOS 17, *) {
+                if let selectedCOBValue {
+                    PointMark(
+                        x: .value("Time", selectedCOBValue.deliverAt ?? now, unit: .minute),
+                        y: .value("Value", selectedCOBValue.cob)
+                    )
+                    .symbolSize(CGSize(width: 15, height: 15))
+                    .foregroundStyle(Color.orange.opacity(0.8))
+
+                    PointMark(
+                        x: .value("Time", selectedCOBValue.deliverAt ?? now, unit: .minute),
+                        y: .value("Value", selectedCOBValue.cob)
+                    )
+                    .symbolSize(CGSize(width: 6, height: 6))
+                    .foregroundStyle(Color.primary)
+                }
+            }
         }
         .frame(minHeight: geo.size.height * 0.12)
         .frame(width: fullWidth(viewWidth: screenSize.width))
         .chartXScale(domain: startMarker ... endMarker)
+        .backport.chartXSelection(value: $selection)
         .chartXAxis { basalChartXAxis }
         .chartYAxis { cobChartYAxis }
         .chartYScale(domain: minValueCobChart ... maxValueCobChart)
