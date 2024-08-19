@@ -550,7 +550,7 @@ extension MainChartView {
                 .annotation(position: .top) {
                     Text(bolusFormatter.string(from: amount) ?? "")
                         .font(.caption2)
-                        .foregroundStyle(Color.insulin)
+                        .foregroundStyle(Color.primary)
                 }
             }
         }
@@ -577,7 +577,7 @@ extension MainChartView {
                 }
                 .annotation(position: .bottom) {
                     Text(carbsFormatter.string(from: carbAmount as NSNumber)!).font(.caption2)
-                        .foregroundStyle(Color.orange)
+                        .foregroundStyle(Color.primary)
                 }
             }
         }
