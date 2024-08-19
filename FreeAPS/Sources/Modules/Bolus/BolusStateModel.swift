@@ -28,6 +28,7 @@ extension Bolus {
         @Published var percentage: Decimal = 0
         @Published var threshold: Decimal = 0
         @Published var maxBolus: Decimal = 0
+        var maxExternal: Decimal { maxBolus * 3 }
         @Published var errorString: Decimal = 0
         @Published var evBG: Decimal = 0
         @Published var insulin: Decimal = 0
@@ -91,6 +92,8 @@ extension Bolus {
         @Published var selection: MealPresetStored?
         @Published var summation: [String] = []
         @Published var maxCarbs: Decimal = 0
+        @Published var maxFat: Decimal = 0
+        @Published var maxProtein: Decimal = 0
 
         @Published var id_: String = ""
         @Published var summary: String = ""
@@ -155,6 +158,8 @@ extension Bolus {
             highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL
 
             maxCarbs = settings.settings.maxCarbs
+            maxFat = settings.settings.maxFat
+            maxProtein = settings.settings.maxProtein
             skipBolus = settingsManager.settings.skipBolusScreenAfterCarbs
             useFPUconversion = settingsManager.settings.useFPUconversion
 
@@ -405,7 +410,7 @@ extension Bolus {
                 return
             }
 
-            amount = min(amount, maxBolus * 3)
+            amount = min(amount, maxExternal)
 
             do {
                 let authenticated = try await unlockmanager.unlock()
@@ -433,10 +438,10 @@ extension Bolus {
         @MainActor func saveMeal() async {
             guard carbs > 0 || fat > 0 || protein > 0 else { return }
 
-            await MainActor.run {
-                self.carbs = min(self.carbs, self.maxCarbs)
-                self.id_ = UUID().uuidString
-            }
+            carbs = min(carbs, maxCarbs)
+            fat = min(fat, maxFat)
+            protein = min(protein, maxProtein)
+            id_ = UUID().uuidString
 
             let carbsToStore = [CarbsEntry(
                 id: id_,

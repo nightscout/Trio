@@ -1250,7 +1250,7 @@ extension MainChartView {
     private var mainChartYAxis: some AxisContent {
         AxisMarks(position: .trailing) { value in
 
-            if displayXgridLines {
+            if displayYgridLines {
                 AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
             } else {
                 AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
@@ -1268,7 +1268,7 @@ extension MainChartView {
 
     private var cobChartYAxis: some AxisContent {
         AxisMarks(position: .trailing) { _ in
-            if displayXgridLines {
+            if displayYgridLines {
                 AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
             } else {
                 AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))

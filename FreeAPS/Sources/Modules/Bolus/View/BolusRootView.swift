@@ -386,10 +386,7 @@ extension Bolus {
                         .frame(minHeight: 50)
                 }
                 .disabled(disableTaskButton)
-                .background(
-                    (state.externalInsulin ? externalBolusLimit : pumpBolusLimit) ? Color(.systemRed) :
-                        Color(.systemBlue)
-                )
+                .background(limitExceeded ? Color(.systemRed) : Color(.systemBlue))
                 .shadow(radius: 3)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
                 .padding()
@@ -398,61 +395,69 @@ extension Bolus {
         }
 
         private var taskButtonLabel: some View {
+            if pumpBolusLimitExceeded {
+                return Text("Max Bolus of \(state.maxBolus) U Exceeded")
+            } else if externalBolusLimitExceeded {
+                return Text("Max External Bolus of \(state.maxExternal) U Exceeded")
+            } else if carbLimitExceeded {
+                return Text("Max Carbs of \(state.maxCarbs) g Exceeded")
+            } else if fatLimitExceeded {
+                return Text("Max Fat of \(state.maxFat) g Exceeded")
+            } else if proteinLimitExceeded {
+                return Text("Max Protein of \(state.maxProtein) g Exceeded")
+            }
+
             let hasInsulin = state.amount > 0
             let hasCarbs = state.carbs > 0
             let hasFatOrProtein = state.fat > 0 || state.protein > 0
+            let bolusString = state.externalInsulin ? "External Insulin" : "Enact Bolus"
 
             switch (hasInsulin, hasCarbs, hasFatOrProtein) {
             case (true, true, true):
-                return Text(
-                    state
-                        .externalInsulin ? (
-                            externalBolusLimit ? "Manual bolus exceeds max bolus!" : "Log meal and external insulin"
-                        ) :
-                        (pumpBolusLimit ? "Pump bolus exceeds max bolus!" : "Log meal and enact bolus")
-                )
+                return Text("Log Meal and \(bolusString)")
             case (true, true, false):
-                return Text(
-                    state
-                        .externalInsulin ?
-                        (externalBolusLimit ? "Manual bolus exceeds max bolus!" : "Log carbs and external insulin") :
-                        (pumpBolusLimit ? "Pump bolus exceeds max bolus!" : "Log carbs and enact bolus")
-                )
+                return Text("Log Carbs and \(bolusString)")
             case (true, false, true):
-                return Text(
-                    state
-                        .externalInsulin ?
-                        (externalBolusLimit ? "Manual bolus exceeds max bolus!" : "Log FPUs and external insulin") :
-                        (pumpBolusLimit ? "Pump bolus exceeds max bolus!" : "Log FPUs and enact bolus")
-                )
+                return Text("Log FPU and \(bolusString)")
             case (true, false, false):
-                return Text(
-                    state
-                        .externalInsulin ? (externalBolusLimit ? "Manual bolus exceeds max bolus!" : "Log external insulin") :
-                        (pumpBolusLimit ? "Pump bolus exceeds max bolus!" : "Enact bolus")
-                )
+                return Text(state.externalInsulin ? "Log External Insulin" : "Enact Bolus")
             case (false, true, true):
-                return Text("Log meal")
+                return Text("Log Meal")
             case (false, true, false):
-                return Text("Log carbs")
+                return Text("Log Carbs")
             case (false, false, true):
-                return Text("Log FPUs")
+                return Text("Log FPU")
             default:
-                return Text("Continue without treatment")
+                return Text("Continue Without Treatment")
             }
         }
 
-        private var pumpBolusLimit: Bool {
-            state.amount > state.maxBolus
+        private var pumpBolusLimitExceeded: Bool {
+            !state.externalInsulin && state.amount > state.maxBolus
         }
 
-        private var externalBolusLimit: Bool {
-            state.amount > state.maxBolus * 3
+        private var externalBolusLimitExceeded: Bool {
+            state.externalInsulin && state.amount > state.maxExternal
+        }
+
+        private var carbLimitExceeded: Bool {
+            state.carbs > state.maxCarbs
+        }
+
+        private var fatLimitExceeded: Bool {
+            state.fat > state.maxFat
+        }
+
+        private var proteinLimitExceeded: Bool {
+            state.protein > state.maxProtein
+        }
+
+        private var limitExceeded: Bool {
+            pumpBolusLimitExceeded || externalBolusLimitExceeded || carbLimitExceeded || fatLimitExceeded || proteinLimitExceeded
         }
 
         private var disableTaskButton: Bool {
-            state.addButtonPressed ||
-                (state.amount > 0 ? (state.externalInsulin ? externalBolusLimit : pumpBolusLimit) : false)
+            state.addButtonPressed || limitExceeded
         }
     }
 
