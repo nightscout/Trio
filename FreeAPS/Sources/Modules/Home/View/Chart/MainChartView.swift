@@ -603,27 +603,41 @@ extension MainChartView {
         }
     }
 
+    private var stops: [Gradient.Stop] {
+        let low = Double(lowGlucose)
+        let high = Double(highGlucose)
+
+        let glucoseValues = state.glucoseFromPersistence.map { Decimal($0.glucose) * conversionFactor }
+
+        let minimum = glucoseValues.min() ?? 0.0
+        let maximum = glucoseValues.max() ?? 0.0
+
+        // Calculate positions for gradient
+        let lowPosition = (low - Double(truncating: minimum as NSNumber)) /
+            (Double(truncating: maximum as NSNumber) - Double(truncating: minimum as NSNumber))
+        let highPosition = (high - Double(truncating: minimum as NSNumber)) /
+            (Double(truncating: maximum as NSNumber) - Double(truncating: minimum as NSNumber))
+
+        return [
+            Gradient.Stop(color: .red, location: 0.0),
+            Gradient.Stop(color: .red, location: lowPosition), // draw red gradient til lowGlucose
+            Gradient.Stop(color: .green, location: lowPosition + 0.0001), // draw green above lowGlucose til highGlucose
+            Gradient.Stop(color: .green, location: highPosition),
+            Gradient.Stop(color: .orange, location: highPosition + 0.0001), // draw orange above highGlucose
+            Gradient.Stop(color: .orange, location: 1.0)
+        ]
+    }
+
     private func drawGlucose(dummy _: Bool) -> some ChartContent {
         /// glucose point mark
         /// filtering for high and low bounds in settings
         ForEach(state.glucoseFromPersistence) { item in
             if smooth {
-                if item.glucose > Int(highGlucose) {
-                    PointMark(
-                        x: .value("Time", item.date ?? Date(), unit: .second),
-                        y: .value("Value", Decimal(item.glucose) * conversionFactor)
-                    ).foregroundStyle(Color.orange.gradient).symbolSize(20).interpolationMethod(.cardinal)
-                } else if item.glucose < Int(lowGlucose) {
-                    PointMark(
-                        x: .value("Time", item.date ?? Date(), unit: .second),
-                        y: .value("Value", Decimal(item.glucose) * conversionFactor)
-                    ).foregroundStyle(Color.red.gradient).symbolSize(20).interpolationMethod(.cardinal)
-                } else {
-                    PointMark(
-                        x: .value("Time", item.date ?? Date(), unit: .second),
-                        y: .value("Value", Decimal(item.glucose) * conversionFactor)
-                    ).foregroundStyle(Color.green.gradient).symbolSize(20).interpolationMethod(.cardinal)
-                }
+                LineMark(x: .value("Time", item.date ?? Date()), y: .value("Value", Decimal(item.glucose) * conversionFactor))
+                    .foregroundStyle(
+                        .linearGradient(stops: stops, startPoint: .bottom, endPoint: .top)
+                    )
+                    .symbol(.circle)
             } else {
                 if item.glucose > Int(highGlucose) {
                     PointMark(
