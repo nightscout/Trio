@@ -25,7 +25,7 @@ final class BaseUnlockManager: UnlockManager {
 
             let reason = "We need to make sure you are the owner of the device."
 
-            if context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) {
+            if false, context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) {
                 context.evaluatePolicy(
                     .deviceOwnerAuthentication,
                     localizedReason: reason,
