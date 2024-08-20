@@ -1,6 +1,9 @@
-oref0 branch: dev - git version: d1dfb70
+oref0 branch: dev - git version: 363fd11
 
 Last commits:
+363fd11 Merge pull request #28 from bjornoleh/harmonise_defaults
+2d695e1 index.js: set enableUAM to false, and remove whitespace in L11
+8f5f820 Harmonise profile defaults with openaps/oref0
 d1dfb70 Merge pull request #26 from MikePlante1/typo
 d9f1662 fix `threshold_setting` typo
 b454837 Merge pull request #24 from nightscout/Trio_renames

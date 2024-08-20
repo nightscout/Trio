@@ -94,6 +94,29 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                     }
                     pumpExpiresAtDate.send(endTime)
                 }
+                if let simulatorPump = pumpManager as? MockPumpManager {
+                    pumpDisplayState.value = PumpDisplayState(name: simulatorPump.localizedTitle, image: simulatorPump.smallImage)
+                    pumpName.send(simulatorPump.localizedTitle)
+                    storage.save(Decimal(simulatorPump.pumpReservoirCapacity), as: OpenAPS.Monitor.reservoir)
+                    DispatchQueue.main.async {
+                        self.broadcaster.notify(PumpReservoirObserver.self, on: .main) {
+                            $0.pumpReservoirDidChange(Decimal(simulatorPump.state.reservoirUnitsRemaining))
+                        }
+                    }
+                    let batteryPercent = Int((simulatorPump.state.pumpBatteryChargeRemaining ?? 1) * 100)
+                    let battery = Battery(
+                        percent: batteryPercent,
+                        voltage: nil,
+                        string: batteryPercent >= 10 ? .normal : .low,
+                        display: simulatorPump.state.pumpBatteryChargeRemaining != nil
+                    )
+                    storage.save(battery, as: OpenAPS.Monitor.battery)
+                    DispatchQueue.main.async {
+                        self.broadcaster.notify(PumpBatteryObserver.self, on: .main) {
+                            $0.pumpBatteryDidChange(battery)
+                        }
+                    }
+                }
             } else {
                 pumpDisplayState.value = nil
                 pumpExpiresAtDate.send(nil)
@@ -415,6 +438,9 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
     func pumpManagerWillDeactivate(_: PumpManager) {
         dispatchPrecondition(condition: .onQueue(processQueue))
         pumpManager = nil
+        broadcaster.notify(PumpDeactivatedObserver.self, on: processQueue) {
+            $0.pumpDeactivatedDidChange()
+        }
     }
 
     func pumpManager(_: PumpManager, didUpdatePumpRecordsBasalProfileStartEvents _: Bool) {}
@@ -433,7 +459,6 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
         completion: @escaping (_ error: Error?) -> Void
     ) {
         dispatchPrecondition(condition: .onQueue(processQueue))
-        debug(.deviceManager, "New pump events:\n\(events.map(\.title).joined(separator: "\n"))")
 
         // filter buggy TBRs > maxBasal from MDT
         let events = events.filter {
@@ -627,4 +652,8 @@ protocol PumpReservoirObserver {
 
 protocol PumpBatteryObserver {
     func pumpBatteryDidChange(_ battery: Battery)
+}
+
+protocol PumpDeactivatedObserver {
+    func pumpDeactivatedDidChange()
 }
