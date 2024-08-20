@@ -1,5 +1,7 @@
+import CGMBLEKit
 import Combine
 import Foundation
+import G7SensorKit
 import LibreTransmitter
 import LoopKit
 import LoopKitUI
@@ -24,7 +26,26 @@ final class PluginSource: GlucoseSource {
         cgmManager?.cgmManagerDelegate = self
     }
 
+    /// Function that fetches blood glucose data
+    /// This function combines two data fetching mechanisms (`callBLEFetch` and `fetchIfNeeded`) into a single publisher.
+    /// It returns the first non-empty result from either of the sources within a 5-minute timeout period.
+    /// If no valid data is fetched within the timeout, it returns an empty array.
+    ///
+    /// - Parameter timer: An optional `DispatchTimer` (not used in the function but can be used to trigger fetch logic).
+    /// - Returns: An `AnyPublisher` that emits an array of `BloodGlucose` values or an empty array if an error occurs or the timeout is reached.
     func fetch(_: DispatchTimer?) -> AnyPublisher<[BloodGlucose], Never> {
+        Publishers.Merge(
+            callBLEFetch(),
+            fetchIfNeeded()
+        )
+        .filter { !$0.isEmpty }
+        .first()
+        .timeout(60 * 5, scheduler: processQueue, options: nil, customError: nil)
+        .replaceError(with: [])
+        .eraseToAnyPublisher()
+    }
+
+    func callBLEFetch() -> AnyPublisher<[BloodGlucose], Never> {
         Future<[BloodGlucose], Error> { [weak self] promise in
             self?.promise = promise
         }
@@ -35,17 +56,15 @@ final class PluginSource: GlucoseSource {
     }
 
     func fetchIfNeeded() -> AnyPublisher<[BloodGlucose], Never> {
-        Future<[BloodGlucose], Error> { _ in
+        Future<[BloodGlucose], Error> { [weak self] promise in
+            guard let self = self else { return }
             self.processQueue.async {
                 guard let cgmManager = self.cgmManager else { return }
                 cgmManager.fetchNewDataIfNeeded { result in
-                    self.processCGMReadingResult(cgmManager, readingResult: result) {
-                        // nothing to do
-                    }
+                    promise(self.readCGMResult(readingResult: result))
                 }
             }
         }
-        .timeout(60, scheduler: processQueue, options: nil, customError: nil)
         .replaceError(with: [])
         .replaceEmpty(with: [])
         .eraseToAnyPublisher()
@@ -92,11 +111,10 @@ extension PluginSource: CGMManagerDelegate {
         glucoseManager?.cgmGlucoseSourceType = .none
     }
 
-    func cgmManager(_ manager: CGMManager, hasNew readingResult: CGMReadingResult) {
+    func cgmManager(_: CGMManager, hasNew readingResult: CGMReadingResult) {
         dispatchPrecondition(condition: .onQueue(processQueue))
-        processCGMReadingResult(manager, readingResult: readingResult) {
-            debug(.deviceManager, "CGM PLUGIN - Direct return done")
-        }
+        promise?(readCGMResult(readingResult: readingResult))
+        debug(.deviceManager, "CGM PLUGIN - Direct return done")
     }
 
     func cgmManager(_: LoopKit.CGMManager, hasNew events: [LoopKit.PersistedCgmEvent]) {
@@ -117,13 +135,24 @@ extension PluginSource: CGMManagerDelegate {
         return glucoseStorage.lastGlucoseDate()
     }
 
-    func cgmManagerDidUpdateState(_: CGMManager) {
+    func cgmManagerDidUpdateState(_ cgmManager: CGMManager) {
         dispatchPrecondition(condition: .onQueue(processQueue))
-//        guard let g6Manager = manager as? TransmitterManager else {
-//            return
-//        }
-//        glucoseManager?.settingsManager.settings.uploadGlucose = g6Manager.shouldSyncToRemoteService
-//        UserDefaults.standard.dexcomTransmitterID = g6Manager.rawState["transmitterID"] as? String
+
+        guard let fetchGlucoseManager = glucoseManager else {
+            debug(
+                .deviceManager,
+                "Could not gracefully unwrap FetchGlucoseManager upon observing LoopKit's cgmManagerDidUpdateState"
+            )
+            return
+        }
+        // Adjust app-specific NS Upload setting value when CGM setting is changed
+        fetchGlucoseManager.settingsManager.settings.uploadGlucose = cgmManager.shouldSyncToRemoteService
+
+        fetchGlucoseManager.updateGlucoseSource(
+            cgmGlucoseSourceType: fetchGlucoseManager.settingsManager.settings.cgm,
+            cgmGlucosePluginId: fetchGlucoseManager.settingsManager.settings.cgmPluginIdentifier,
+            newManager: cgmManager as? CGMManagerUI
+        )
     }
 
     func credentialStoragePrefix(for _: CGMManager) -> String {
@@ -140,21 +169,43 @@ extension PluginSource: CGMManagerDelegate {
         }
     }
 
-    private func processCGMReadingResult(
-        _: CGMManager,
-        readingResult: CGMReadingResult,
-        completion: @escaping () -> Void
-    ) {
+    private func readCGMResult(readingResult: CGMReadingResult) -> Result<[BloodGlucose], Error> {
         debug(.deviceManager, "PLUGIN CGM - Process CGM Reading Result launched with \(readingResult)")
+
+        if glucoseManager?.glucoseSource == nil {
+            debug(
+                .deviceManager,
+                "No glucose source available."
+            )
+        }
+
         switch readingResult {
         case let .newData(values):
 
             var sensorActivatedAt: Date?
+            var sensorStartDate: Date?
             var sensorTransmitterID: String?
-            /// specific for Libre transmitter and send SAGE
+
+            /// SAGE
             if let cgmTransmitterManager = cgmManager as? LibreTransmitterManagerV3 {
-                sensorActivatedAt = cgmTransmitterManager.sensorInfoObservable.activatedAt
-                sensorTransmitterID = cgmTransmitterManager.sensorInfoObservable.sensorSerial
+                let sensorInfo = cgmTransmitterManager.sensorInfoObservable
+                sensorActivatedAt = sensorInfo.activatedAt
+                sensorStartDate = sensorInfo.activatedAt
+                sensorTransmitterID = sensorInfo.sensorSerial
+            } else if let cgmTransmitterManager = cgmManager as? G5CGMManager {
+                let latestReading = cgmTransmitterManager.latestReading
+                sensorActivatedAt = latestReading?.activationDate
+                sensorStartDate = latestReading?.sessionStartDate
+                sensorTransmitterID = latestReading?.transmitterID
+            } else if let cgmTransmitterManager = cgmManager as? G6CGMManager {
+                let latestReading = cgmTransmitterManager.latestReading
+                sensorActivatedAt = latestReading?.activationDate
+                sensorStartDate = latestReading?.sessionStartDate
+                sensorTransmitterID = latestReading?.transmitterID
+            } else if let cgmTransmitterManager = cgmManager as? G7CGMManager {
+                sensorActivatedAt = cgmTransmitterManager.sensorActivatedAt
+                sensorStartDate = cgmTransmitterManager.sensorActivatedAt
+                sensorTransmitterID = cgmTransmitterManager.sensorName
             }
 
             let bloodGlucose = values.compactMap { newGlucoseSample -> BloodGlucose? in
@@ -173,22 +224,18 @@ extension PluginSource: CGMManagerDelegate {
                     glucose: value,
                     type: "sgv",
                     activationDate: sensorActivatedAt,
-                    sessionStartDate: sensorActivatedAt,
+                    sessionStartDate: sensorStartDate,
                     transmitterID: sensorTransmitterID
                 )
             }
-            promise?(.success(bloodGlucose))
-            completion()
+            return .success(bloodGlucose)
         case .unreliableData:
             // loopManager.receivedUnreliableCGMReading()
-            promise?(.failure(GlucoseDataError.unreliableData))
-            completion()
+            return .failure(GlucoseDataError.unreliableData)
         case .noData:
-            promise?(.failure(GlucoseDataError.noData))
-            completion()
+            return .failure(GlucoseDataError.noData)
         case let .error(error):
-            promise?(.failure(error))
-            completion()
+            return .failure(error)
         }
     }
 }
