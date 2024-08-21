@@ -84,9 +84,10 @@ struct CurrentGlucoseView: View {
                 VStack(alignment: .center) {
                     HStack {
                         if let glucoseValue = combinedGlucoseValues.first?.glucose {
-                            let displayGlucose = units == .mgdL ? Decimal(glucoseValue) : Decimal(glucoseValue).asMmolL
+                            let displayGlucose = units == .mgdL ? Decimal(glucoseValue).description : Decimal(glucoseValue)
+                                .asMmolL.formattedAsMmolL
                             Text(
-                                glucoseValue == 400 ? "HIGH" : displayGlucose.description
+                                glucoseValue == 400 ? "HIGH" : displayGlucose
                             )
                             .font(.system(size: 40, weight: .bold, design: .rounded))
                             .foregroundColor(alarm == nil ? colourGlucoseText : .loopRed)

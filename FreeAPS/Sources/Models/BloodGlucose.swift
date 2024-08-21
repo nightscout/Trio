@@ -109,6 +109,10 @@ extension Int {
     var asMmolL: Decimal {
         FreeAPS.rounded(Decimal(self) * GlucoseUnits.exchangeRate, scale: 1, roundingMode: .plain)
     }
+
+    var formattedAsMmolL: String {
+        NumberFormatter.glucoseFormatter.string(from: asMmolL as NSDecimalNumber) ?? "\(asMmolL)"
+    }
 }
 
 extension Decimal {
@@ -118,6 +122,10 @@ extension Decimal {
 
     var asMgdL: Decimal {
         FreeAPS.rounded(self / GlucoseUnits.exchangeRate, scale: 0, roundingMode: .plain)
+    }
+
+    var formattedAsMmolL: String {
+        NumberFormatter.glucoseFormatter.string(from: asMmolL as NSDecimalNumber) ?? "\(asMmolL)"
     }
 }
 
@@ -129,6 +137,21 @@ extension Double {
     var asMgdL: Decimal {
         FreeAPS.rounded(Decimal(self) / GlucoseUnits.exchangeRate, scale: 0, roundingMode: .plain)
     }
+
+    var formattedAsMmolL: String {
+        NumberFormatter.glucoseFormatter.string(from: asMmolL as NSDecimalNumber) ?? "\(asMmolL)"
+    }
+}
+
+extension NumberFormatter {
+    static let glucoseFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.locale = Locale.current
+        formatter.numberStyle = .decimal
+        formatter.minimumFractionDigits = 1
+        formatter.maximumFractionDigits = 1
+        return formatter
+    }()
 }
 
 extension BloodGlucose: SavitzkyGolaySmoothable {

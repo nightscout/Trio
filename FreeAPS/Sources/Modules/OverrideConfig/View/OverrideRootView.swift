@@ -50,7 +50,7 @@ extension OverrideConfig {
             formatter.maximumFractionDigits = 0
             return formatter
         }
-        
+
         var body: some View {
             VStack {
                 Picker("Tab", selection: $state.selectedTab) {
@@ -439,7 +439,7 @@ extension OverrideConfig {
 
         @ViewBuilder private func overridesView(for preset: OverrideStored) -> some View {
             let target = (state.units == .mgdL ? preset.target : preset.target?.decimalValue.asMmolL as NSDecimalNumber?) ?? 0
-            
+
             let duration = (preset.duration ?? 0) as Decimal
             let name = ((preset.name ?? "") == "") || (preset.name?.isEmpty ?? true) ? "" : preset.name!
             let percent = preset.percentage / 100
