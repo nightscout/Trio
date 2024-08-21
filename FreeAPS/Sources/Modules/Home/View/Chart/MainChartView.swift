@@ -611,12 +611,19 @@ extension MainChartView {
         let highPosition = (high - Double(truncating: minimum as NSNumber)) /
             (Double(truncating: maximum as NSNumber) - Double(truncating: minimum as NSNumber))
 
+        // Ensure positions are in bounds [0, 1]
+        let clampedLowPosition = max(0.0, min(lowPosition, 1.0))
+        let clampedHighPosition = max(0.0, min(highPosition, 1.0))
+
+        // Ensure lowPosition is less than highPosition
+        let sortedPositions = [clampedLowPosition, clampedHighPosition].sorted()
+
         return [
             Gradient.Stop(color: .red, location: 0.0),
-            Gradient.Stop(color: .red, location: lowPosition), // draw red gradient til lowGlucose
-            Gradient.Stop(color: .green, location: lowPosition + 0.0001), // draw green above lowGlucose til highGlucose
-            Gradient.Stop(color: .green, location: highPosition),
-            Gradient.Stop(color: .orange, location: highPosition + 0.0001), // draw orange above highGlucose
+            Gradient.Stop(color: .red, location: sortedPositions[0]), // draw red gradient till lowGlucose
+            Gradient.Stop(color: .green, location: sortedPositions[0] + 0.0001), // draw green above lowGlucose till highGlucose
+            Gradient.Stop(color: .green, location: sortedPositions[1]),
+            Gradient.Stop(color: .orange, location: sortedPositions[1] + 0.0001), // draw orange above highGlucose
             Gradient.Stop(color: .orange, location: 1.0)
         ]
     }
@@ -631,7 +638,7 @@ extension MainChartView {
                     .foregroundStyle(
                         .linearGradient(stops: stops, startPoint: .bottom, endPoint: .top)
                     )
-                    .symbol(.circle)
+                    .symbol(.circle).symbolSize(34)
             } else {
                 if glucoseToDisplay > highGlucose {
                     PointMark(
