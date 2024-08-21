@@ -75,25 +75,32 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
     }
 
     // Convert NSSet to array of Ints for Predictions
-    func parseForecastValues(ofType _: String, from determinationID: NSManagedObjectID) async -> [Int]? {
+    func parseForecastValues(ofType type: String, from determinationID: NSManagedObjectID) async -> [Int]? {
         let forecastIDs = await getForecastIDs(for: determinationID, in: backgroundContext)
 
         var forecastValuesList: [Int] = []
 
         for forecastID in forecastIDs {
-            let forecastValueIDs = await getForecastValueIDs(for: forecastID, in: backgroundContext)
-
             await backgroundContext.perform {
-                for forecastValueID in forecastValueIDs {
-                    if let forecastValue = try? self.backgroundContext.existingObject(with: forecastValueID) as? ForecastValue {
-                        let forecastValueInt = Int(forecastValue.value)
-                        forecastValuesList.append(forecastValueInt)
+                if let forecast = try? self.backgroundContext.existingObject(with: forecastID) as? Forecast {
+                    // Filter the forecast based on the type
+                    if forecast.type == type {
+                        let forecastValueIDs = forecast.forecastValues?.sorted(by: { $0.index < $1.index }).map(\.objectID) ?? []
+
+                        for forecastValueID in forecastValueIDs {
+                            if let forecastValue = try? self.backgroundContext
+                                .existingObject(with: forecastValueID) as? ForecastValue
+                            {
+                                let forecastValueInt = Int(forecastValue.value)
+                                forecastValuesList.append(forecastValueInt)
+                            }
+                        }
                     }
                 }
             }
         }
 
-        return forecastValuesList
+        return forecastValuesList.isEmpty ? nil : forecastValuesList
     }
 
     func getOrefDeterminationNotYetUploadedToNightscout(_ determinationIds: [NSManagedObjectID]) async -> Determination? {
