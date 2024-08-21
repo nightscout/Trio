@@ -45,7 +45,7 @@ struct ForeCastChart: View {
                 if let eventualBG = state.simulatedDetermination?.eventualBG {
                     HStack {
                         Text(
-                            units == .mgdL ? Decimal(eventualBG).description : eventualBG.asMmolL.formattedAsMmolL
+                            units == .mgdL ? Decimal(eventualBG).description : eventualBG.formattedAsMmolL
                         )
                         .font(.footnote)
                         .foregroundStyle(.primary)

@@ -385,7 +385,7 @@ extension MainChartView {
                 }.font(.body).padding(.bottom, 5)
 
                 HStack {
-                    Text(units == .mgdL ? glucoseToShow.description : glucoseToShow.formattedAsMmolL)
+                    Text(units == .mgdL ? glucoseToShow.description : Decimal(sgv).formattedAsMmolL)
                         .bold()
                         + Text(" \(units.rawValue)")
                 }.foregroundStyle(
