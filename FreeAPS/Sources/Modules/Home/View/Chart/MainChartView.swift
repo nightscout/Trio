@@ -260,7 +260,7 @@ extension MainChartView {
         .chartXScale(domain: startMarker ... endMarker)
         .chartXAxis(.hidden)
         .chartYAxis { mainChartYAxis }
-        .chartYScale(domain: minValue ... maxValue)
+        .chartYScale(domain: units == .mgdL ? minValue ... maxValue : minValue.asMmolL ... maxValue.asMmolL)
         .chartLegend(.hidden)
     }
 
