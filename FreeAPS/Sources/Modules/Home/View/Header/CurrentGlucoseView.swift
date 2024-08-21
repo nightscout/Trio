@@ -86,8 +86,7 @@ struct CurrentGlucoseView: View {
                         if let glucoseValue = combinedGlucoseValues.first?.glucose {
                             let displayGlucose = units == .mgdL ? Decimal(glucoseValue) : Decimal(glucoseValue).asMmolL
                             Text(
-                                glucoseValue == 400 ? "HIGH" :
-                                    glucoseFormatter.string(from: displayGlucose as NSNumber) ?? "--"
+                                glucoseValue == 400 ? "HIGH" : displayGlucose.description
                             )
                             .font(.system(size: 40, weight: .bold, design: .rounded))
                             .foregroundColor(alarm == nil ? colourGlucoseText : .loopRed)

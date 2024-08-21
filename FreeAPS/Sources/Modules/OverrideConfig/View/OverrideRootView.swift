@@ -50,18 +50,7 @@ extension OverrideConfig {
             formatter.maximumFractionDigits = 0
             return formatter
         }
-
-        private var glucoseFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 0
-            if state.units == .mmolL {
-                formatter.maximumFractionDigits = 1
-            }
-            formatter.roundingMode = .halfUp
-            return formatter
-        }
-
+        
         var body: some View {
             VStack {
                 Picker("Tab", selection: $state.selectedTab) {
@@ -449,8 +438,8 @@ extension OverrideConfig {
         }
 
         @ViewBuilder private func overridesView(for preset: OverrideStored) -> some View {
-            let target = state.units == .mmolL ? (((preset.target ?? 0) as NSDecimalNumber) as Decimal)
-                .asMmolL : (preset.target ?? 0) as Decimal
+            let target = (state.units == .mgdL ? preset.target : preset.target?.decimalValue.asMmolL as NSDecimalNumber?) ?? 0
+            
             let duration = (preset.duration ?? 0) as Decimal
             let name = ((preset.name ?? "") == "") || (preset.name?.isEmpty ?? true) ? "" : preset.name!
             let percent = preset.percentage / 100
@@ -458,7 +447,7 @@ extension OverrideConfig {
             let durationString = perpetual ? "" : "\(formatter.string(from: duration as NSNumber)!)"
             let scheduledSMBstring = (preset.smbIsOff && preset.smbIsAlwaysOff) ? "Scheduled SMBs" : ""
             let smbString = (preset.smbIsOff && scheduledSMBstring == "") ? "SMBs are off" : ""
-            let targetString = target != 0 ? "\(glucoseFormatter.string(from: target as NSNumber)!)" : ""
+            let targetString = target != 0 ? target.description : ""
             let maxMinutesSMB = (preset.smbMinutes as Decimal?) != nil ? (preset.smbMinutes ?? 0) as Decimal : 0
             let maxMinutesUAM = (preset.uamMinutes as Decimal?) != nil ? (preset.uamMinutes ?? 0) as Decimal : 0
             let isfString = preset.isf ? "ISF" : ""
