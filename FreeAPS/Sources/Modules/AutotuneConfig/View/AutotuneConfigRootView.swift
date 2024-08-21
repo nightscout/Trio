@@ -118,14 +118,14 @@ extension AutotuneConfig {
                             .foregroundColor(.red)
                     }
 
-                    Section {
-                        Button {
-                            replaceAlert = true
-                        }
-                        label: { Text("Save as your Normal Basal Rates") }
-                    } header: {
-                        Text("Replace Normal Basal")
-                    }
+                    /* Section {
+                         Button {
+                             replaceAlert = true
+                         }
+                         label: { Text("Save as your Normal Basal Rates") }
+                     } header: {
+                         Text("Replace Normal Basal")
+                     } */
                 }
             }
             .scrollContentBackground(.hidden).background(color)
