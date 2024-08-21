@@ -47,8 +47,8 @@ extension Home {
         @Published var manualTempBasal = false
         @Published var smooth = false
         @Published var maxValue: Decimal = 1.2
-        @Published var lowGlucose: Decimal = 4 / 0.0555
-        @Published var highGlucose: Decimal = 10 / 0.0555
+        @Published var lowGlucose: Decimal = 72
+        @Published var highGlucose: Decimal = 180
         @Published var overrideUnit: Bool = false
         @Published var displayXgridLines: Bool = false
         @Published var displayYgridLines: Bool = false
@@ -126,8 +126,8 @@ extension Home {
             setupCurrentTempTarget()
             smooth = settingsManager.settings.smoothGlucose
             maxValue = settingsManager.preferences.autosensMax
-            lowGlucose = settingsManager.settings.low
-            highGlucose = settingsManager.settings.high
+            lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
+            highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL
             overrideUnit = settingsManager.settings.overrideHbA1cUnit
             displayXgridLines = settingsManager.settings.xGridLines
             displayYgridLines = settingsManager.settings.yGridLines
@@ -463,8 +463,8 @@ extension Home.StateModel:
         animatedBackground = settingsManager.settings.animatedBackground
         manualTempBasal = apsManager.isManualTempBasal
         smooth = settingsManager.settings.smoothGlucose
-        lowGlucose = settingsManager.settings.low
-        highGlucose = settingsManager.settings.high
+        lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
+        highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL
         overrideUnit = settingsManager.settings.overrideHbA1cUnit
         displayXgridLines = settingsManager.settings.xGridLines
         displayYgridLines = settingsManager.settings.yGridLines

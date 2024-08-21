@@ -84,10 +84,10 @@ struct CurrentGlucoseView: View {
                 VStack(alignment: .center) {
                     HStack {
                         if let glucoseValue = combinedGlucoseValues.first?.glucose {
-                            let displayGlucose = convertGlucose(glucoseValue, to: units)
+                            let displayGlucose = units == .mgdL ? Decimal(glucoseValue) : Decimal(glucoseValue).asMmolL
                             Text(
                                 glucoseValue == 400 ? "HIGH" :
-                                    glucoseFormatter.string(from: NSNumber(value: displayGlucose)) ?? "--"
+                                    glucoseFormatter.string(from: displayGlucose as NSNumber) ?? "--"
                             )
                             .font(.system(size: 40, weight: .bold, design: .rounded))
                             .foregroundColor(alarm == nil ? colourGlucoseText : .loopRed)
@@ -152,15 +152,6 @@ struct CurrentGlucoseView: View {
                     Text("Add CGM").font(.caption).bold()
                 }
             }.frame(alignment: .top)
-        }
-    }
-
-    private func convertGlucose(_ value: Int16, to units: GlucoseUnits) -> Double {
-        switch units {
-        case .mmolL:
-            return Double(value) / 18.0
-        case .mgdL:
-            return Double(value)
         }
     }
 

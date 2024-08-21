@@ -19,6 +19,20 @@ struct ForeCastChart: View {
             )) // min is 1.5h -> (1.5*1h = 1.5*(5*12*60))
     }
 
+    private var glucoseFormatter: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+
+        if units == .mmolL {
+            formatter.maximumFractionDigits = 1
+            formatter.minimumFractionDigits = 1
+            formatter.roundingMode = .halfUp
+        } else {
+            formatter.maximumFractionDigits = 0
+        }
+        return formatter
+    }
+
     var body: some View {
         VStack {
             forecastChart
@@ -30,9 +44,12 @@ struct ForeCastChart: View {
 
                 if let eventualBG = state.simulatedDetermination?.eventualBG {
                     HStack {
-                        Text("\(eventualBG)")
-                            .font(.footnote)
-                            .foregroundStyle(.primary)
+                        Text(
+                            glucoseFormatter
+                                .string(from: (units == .mgdL ? Decimal(eventualBG) : eventualBG.asMmolL) as NSNumber) ?? "--"
+                        )
+                        .font(.footnote)
+                        .foregroundStyle(.primary)
                         Text("\(units.rawValue)")
                             .font(.footnote)
                             .foregroundStyle(.secondary)

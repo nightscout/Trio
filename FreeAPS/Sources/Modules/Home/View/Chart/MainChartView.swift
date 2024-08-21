@@ -92,10 +92,6 @@ struct MainChartView: View {
         return formatter
     }
 
-    private var conversionFactor: Decimal {
-        units == .mmolL ? 0.0555 : 1
-    }
-
     private var upperLimit: Decimal {
         units == .mgdL ? 400 : 22.2
     }
@@ -251,9 +247,9 @@ extension MainChartView {
         Chart {
             /// high and low threshold lines
             if thresholdLines {
-                RuleMark(y: .value("High", highGlucose * conversionFactor)).foregroundStyle(Color.loopYellow)
+                RuleMark(y: .value("High", highGlucose)).foregroundStyle(Color.loopYellow)
                     .lineStyle(.init(lineWidth: 1, dash: [5]))
-                RuleMark(y: .value("Low", lowGlucose * conversionFactor)).foregroundStyle(Color.loopRed)
+                RuleMark(y: .value("Low", lowGlucose)).foregroundStyle(Color.loopRed)
                     .lineStyle(.init(lineWidth: 1, dash: [5]))
             }
         }
@@ -373,14 +369,14 @@ extension MainChartView {
             .chartYAxis { mainChartYAxis }
             .chartYAxis(.hidden)
             .backport.chartXSelection(value: $selection)
-            .chartYScale(domain: minValue ... maxValue)
+            .chartYScale(domain: units == .mgdL ? minValue ... maxValue : minValue.asMmolL ... maxValue.asMmolL)
             .backport.chartForegroundStyleScale(state: state)
         }
     }
 
     @ViewBuilder var selectionPopover: some View {
         if let sgv = selectedGlucose?.glucose {
-            let glucoseToShow = Decimal(sgv) * conversionFactor
+            let glucoseToShow = units == .mgdL ? Decimal(sgv) : Decimal(sgv).asMmolL
             VStack(alignment: .leading) {
                 HStack {
                     Image(systemName: "clock")
@@ -389,12 +385,12 @@ extension MainChartView {
                 }.font(.body).padding(.bottom, 5)
 
                 HStack {
-                    Text(glucoseToShow.formatted(.number.precision(units == .mmolL ? .fractionLength(1) : .fractionLength(0))))
+                    Text(glucoseToShow.description)
                         .bold()
                         + Text(" \(units.rawValue)")
                 }.foregroundStyle(
-                    Decimal(sgv) < lowGlucose ? Color
-                        .red : (Decimal(sgv) > highGlucose ? Color.orange : Color.primary)
+                    glucoseToShow < lowGlucose ? Color
+                        .red : (glucoseToShow > highGlucose ? Color.orange : Color.primary)
                 ).font(.body)
 
                 if let selectedIOBValue, let iob = selectedIOBValue.iob {
@@ -537,7 +533,7 @@ extension MainChartView {
             let bolusDate = insulin.timestamp ?? Date()
 
             if amount != 0, let glucose = timeToNearestGlucose(time: bolusDate.timeIntervalSince1970)?.glucose {
-                let yPosition = (Decimal(glucose) * conversionFactor) + bolusOffset
+                let yPosition = (units == .mgdL ? Decimal(glucose) : Decimal(glucose).asMmolL) + bolusOffset
                 let size = (Config.bolusSize + CGFloat(truncating: amount) * Config.bolusScale) * 1.8
 
                 PointMark(
@@ -563,7 +559,7 @@ extension MainChartView {
             let carbDate = carb.date ?? Date()
 
             if let glucose = timeToNearestGlucose(time: carbDate.timeIntervalSince1970)?.glucose {
-                let yPosition = (Decimal(glucose) * conversionFactor) - bolusOffset
+                let yPosition = (units == .mgdL ? Decimal(glucose) : Decimal(glucose).asMmolL) - bolusOffset
                 let size = (Config.carbsSize + CGFloat(carbAmount) * Config.carbsScale)
                 let limitedSize = size > 30 ? 30 : size
 
@@ -603,7 +599,8 @@ extension MainChartView {
         let low = Double(lowGlucose)
         let high = Double(highGlucose)
 
-        let glucoseValues = state.glucoseFromPersistence.map { Decimal($0.glucose) * conversionFactor }
+        let glucoseValues = state.glucoseFromPersistence
+            .map { units == .mgdL ? Decimal($0.glucose) : Decimal($0.glucose).asMmolL }
 
         let minimum = glucoseValues.min() ?? 0.0
         let maximum = glucoseValues.max() ?? 0.0
@@ -628,27 +625,28 @@ extension MainChartView {
         /// glucose point mark
         /// filtering for high and low bounds in settings
         ForEach(state.glucoseFromPersistence) { item in
+            let glucoseToDisplay = units == .mgdL ? Decimal(item.glucose) : Decimal(item.glucose).asMmolL
             if smooth {
-                LineMark(x: .value("Time", item.date ?? Date()), y: .value("Value", Decimal(item.glucose) * conversionFactor))
+                LineMark(x: .value("Time", item.date ?? Date()), y: .value("Value", glucoseToDisplay))
                     .foregroundStyle(
                         .linearGradient(stops: stops, startPoint: .bottom, endPoint: .top)
                     )
                     .symbol(.circle)
             } else {
-                if item.glucose > Int(highGlucose) {
+                if glucoseToDisplay > highGlucose {
                     PointMark(
                         x: .value("Time", item.date ?? Date(), unit: .second),
-                        y: .value("Value", Decimal(item.glucose) * conversionFactor)
+                        y: .value("Value", glucoseToDisplay)
                     ).foregroundStyle(Color.orange.gradient).symbolSize(20)
-                } else if item.glucose < Int(lowGlucose) {
+                } else if glucoseToDisplay < lowGlucose {
                     PointMark(
                         x: .value("Time", item.date ?? Date(), unit: .second),
-                        y: .value("Value", Decimal(item.glucose) * conversionFactor)
+                        y: .value("Value", glucoseToDisplay)
                     ).foregroundStyle(Color.red.gradient).symbolSize(20)
                 } else {
                     PointMark(
                         x: .value("Time", item.date ?? Date(), unit: .second),
-                        y: .value("Value", Decimal(item.glucose) * conversionFactor)
+                        y: .value("Value", glucoseToDisplay)
                     ).foregroundStyle(Color.green.gradient).symbolSize(20)
                 }
             }
@@ -790,10 +788,10 @@ extension MainChartView {
     private func drawManualGlucose() -> some ChartContent {
         /// manual glucose mark
         ForEach(state.manualGlucoseFromPersistence) { item in
-            let manualGlucose = item.glucose
+            let manualGlucose = units == .mgdL ? Decimal(item.glucose) : Decimal(item.glucose).asMmolL
             PointMark(
                 x: .value("Time", item.date ?? Date(), unit: .second),
-                y: .value("Value", Decimal(manualGlucose) * conversionFactor)
+                y: .value("Value", manualGlucose)
             )
             .symbol {
                 Image(systemName: "drop.fill").font(.system(size: 10)).symbolRenderingMode(.monochrome)
@@ -1052,9 +1050,10 @@ extension MainChartView {
             isTempTargetActive = firstNonZeroTarget.createdAt <= now && now <= end
 
             if firstNonZeroTarget.targetTop != nil {
+                let targetTop = firstNonZeroTarget.targetTop ?? 0
                 calculatedTTs
                     .append(ChartTempTarget(
-                        amount: (firstNonZeroTarget.targetTop ?? 0) * conversionFactor,
+                        amount: units == .mgdL ? targetTop : targetTop.asMmolL,
                         start: firstNonZeroTarget.createdAt,
                         end: end
                     ))
@@ -1178,19 +1177,19 @@ extension MainChartView {
               let minForecast = forecastValues.min(), let maxForecast = forecastValues.max()
         else {
             // default values
-            minValue = 45 * conversionFactor - 20 * conversionFactor
-            maxValue = 270 * conversionFactor + 50 * conversionFactor
+            minValue = 45 - 20
+            maxValue = 270 + 50
             return
         }
 
         // Ensure maxForecast is not more than 100 over maxGlucose
         let adjustedMaxForecast = min(maxForecast, maxGlucose + 100)
 
-        let minOverall = min(minGlucose, minForecast)
-        let maxOverall = max(maxGlucose, adjustedMaxForecast)
+        var minOverall = min(minGlucose, minForecast)
+        var maxOverall = max(maxGlucose, adjustedMaxForecast)
 
-        minValue = minOverall * conversionFactor - 50 * conversionFactor
-        maxValue = maxOverall * conversionFactor + 80 * conversionFactor
+        minValue = minOverall - 50
+        maxValue = maxOverall + 80
     }
 
     private func yAxisChartDataCobChart() {
