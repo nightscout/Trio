@@ -670,19 +670,42 @@ extension MainChartView {
         // Draw AreaMark for the forecast bounds
         ForEach(0 ..< max(state.minForecast.count, state.maxForecast.count), id: \.self) { index in
             if index < state.minForecast.count, index < state.maxForecast.count {
-                let yMinValue = units == .mgdL ? Decimal(state.minForecast[index]) : Decimal(state.minForecast[index]).asMmolL
-                let yMaxValue = units == .mgdL ? Decimal(state.maxForecast[index]) : Decimal(state.maxForecast[index]).asMmolL
+                let yMinMaxDelta = Decimal(state.minForecast[index] - state.maxForecast[index])
                 let xValue = timeForIndex(Int32(index))
 
-                if xValue <= Date(timeIntervalSinceNow: TimeInterval(hours: 2.5)) {
-                    AreaMark(
-                        x: .value("Time", xValue),
-                        // maxValue is already parsed to user units, no need to parse
-                        yStart: .value("Min Value", yMinValue <= maxValue ? yMinValue : maxValue),
-                        yEnd: .value("Max Value", yMaxValue <= maxValue ? yMaxValue : maxValue)
-                    )
-                    .foregroundStyle(Color.blue.opacity(0.5))
-                    .interpolationMethod(.catmullRom)
+                // if distance between respective min and max is 0, provide a default range
+                if yMinMaxDelta == 0 {
+                    let yMinValue = units == .mgdL ? Decimal(state.minForecast[index] - 1) :
+                        Decimal(state.minForecast[index] - 1)
+                        .asMmolL
+                    let yMaxValue = units == .mgdL ? Decimal(state.minForecast[index] + 1) :
+                        Decimal(state.minForecast[index] + 1)
+                        .asMmolL
+
+                    if xValue <= Date(timeIntervalSinceNow: TimeInterval(hours: 2.5)) {
+                        AreaMark(
+                            x: .value("Time", xValue),
+                            // maxValue is already parsed to user units, no need to parse
+                            yStart: .value("Min Value", yMinValue <= maxValue ? yMinValue : maxValue),
+                            yEnd: .value("Max Value", yMaxValue <= maxValue ? yMaxValue : maxValue)
+                        )
+                        .foregroundStyle(Color.blue.opacity(0.5))
+                        .interpolationMethod(.catmullRom)
+                    }
+                } else {
+                    let yMinValue = units == .mgdL ? Decimal(state.minForecast[index]) : Decimal(state.minForecast[index]).asMmolL
+                    let yMaxValue = units == .mgdL ? Decimal(state.maxForecast[index]) : Decimal(state.maxForecast[index]).asMmolL
+
+                    if xValue <= Date(timeIntervalSinceNow: TimeInterval(hours: 2.5)) {
+                        AreaMark(
+                            x: .value("Time", xValue),
+                            // maxValue is already parsed to user units, no need to parse
+                            yStart: .value("Min Value", yMinValue <= maxValue ? yMinValue : maxValue),
+                            yEnd: .value("Max Value", yMaxValue <= maxValue ? yMaxValue : maxValue)
+                        )
+                        .foregroundStyle(Color.blue.opacity(0.5))
+                        .interpolationMethod(.catmullRom)
+                    }
                 }
             }
         }

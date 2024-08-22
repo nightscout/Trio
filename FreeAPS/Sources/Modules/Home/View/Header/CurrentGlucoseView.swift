@@ -90,7 +90,7 @@ struct CurrentGlucoseView: View {
                                 glucoseValue == 400 ? "HIGH" : displayGlucose
                             )
                             .font(.system(size: 40, weight: .bold, design: .rounded))
-                            .foregroundColor(alarm == nil ? colourGlucoseText : .loopRed)
+                            .foregroundColor(alarm == nil ? glucoseDisplayColor : .loopRed)
                         } else {
                             Text("--")
                                 .font(.system(size: 40, weight: .bold, design: .rounded))
@@ -167,12 +167,16 @@ struct CurrentGlucoseView: View {
         return deltaFormatter.string(from: deltaAsDecimal as NSNumber) ?? "--"
     }
 
-    var colourGlucoseText: Color {
+    var glucoseDisplayColor: Color {
         // Fetch the first glucose reading and convert it to Int for comparison
         let whichGlucose = Int(combinedGlucoseValues.first?.glucose ?? 0)
 
         // Define default color based on the color scheme
         let defaultColor: Color = colorScheme == .dark ? .white : .black
+
+        // low and high glucose is parsed in state to mmol/L; parse it back to mg/dl here for comparison
+        let lowGlucose = units == .mgdL ? lowGlucose : lowGlucose.asMgdL
+        let highGlucose = units == .mgdL ? highGlucose : highGlucose.asMgdL
 
         // Ensure the thresholds are logical
         guard lowGlucose < highGlucose else { return .primary }
