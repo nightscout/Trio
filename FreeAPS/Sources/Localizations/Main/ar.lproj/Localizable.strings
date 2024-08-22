@@ -4,50 +4,51 @@
 */
 /* -------------------------------- */
 /* Bolus screen when adding insulin */
-"Add insulin without actually bolusing" = "Add insulin without actually bolusing";
+"Add insulin without actually bolusing" = "إضافة الأنسولين دون تنفيذ الجرعة";
 
 /* Add insulin from source outside of pump */
-"Add %@ without bolusing" = "Add %@ without bolusing";
+"Add %@ without bolusing" = "إضافة %@ دون تنفيذ الجرعة";
 
-"Bolus" = "Bolus";
+"Bolus" = "الجرعة";
 
-"Close" = "Close";
+"Close" = "أغلق";
 
 /* Continue after added carbs without bolus */
-"Continue without bolus" = "Continue without bolus";
+"Continue without bolus" = "المتابعة بدون الجرعة";
 
 /* Alert when adding large amount without bolusing */
-"\nAmount is more than your Max Bolus setting! \nAre you sure you want to add " = "\nAmount is more than your Max Bolus setting! \nAre you sure you want to add ";
+"\nAmount is more than your Max Bolus setting! \nAre you sure you want to add " = "\nالكمية أكثر من الحد الأقصى المحدد للجرعة! 
+\nهل أنت متيقِّن أنك تريد إضافة ";
 
 /* Header */
-"Enact Bolus" = "Enact Bolus";
+"Enact Bolus" = "ضخ الجرعة";
 
 /* Button */
-"Enact bolus" = "Enact bolus";
+"Enact bolus" = "ضخ الجرعة";
 
 /*  */
-"Insulin recommended" = "Insulin recommended";
+"Insulin recommended" = "الإنسولين الموصى به";
 
 /*  */
-"Insulin required" = "Insulin required";
+"Insulin required" = "الإنسولين المتطلب";
 
 /* Bolus screen */
-"Recommendation" = "Recommendation";
+"Recommendation" = "التوصية";
 
 /* Button */
-"Clear" = "Clear";
+"Clear" = "إزالة";
 
 /* Button */
-"Done" = "Done";
+"Done" = "تمّ";
 
 /*  */
-"Wait please" = "Wait please";
+"Wait please" = "انتظر من فضلك";
 
 /*  */
-"Agree and continue" = "Agree and Continue";
+"Agree and continue" = "الموافقة والمتابعة";
 
 /* Bolus progress view */
-"of" = "of";
+"of" = "مِن";
 
 /* Headline in enacted pop up (at: at what time) */
 "Enacted at" = "Enacted at";
@@ -239,7 +240,7 @@
 "Sensitivity" = "Sensitivity";
 
 /*  */
-"Use Autotune" = "use Autotune";
+"Use Autotune" = "Use Autotune";
 
 /* Add profile basal */
 "Add" = "Add";
@@ -1359,7 +1360,7 @@ Enact a temp Basal or a temp target */
 "Save as Profile" = "Save as Profile";
 
 /* Alert */
-"Cancel Profile Override" = "Cancel Profile Override";
+"Cancel Profile Override" = "Cancel Profile Override?";
 
 /* Alert */
 "Cancel Temp Target" = "Cancel Temp Target";
