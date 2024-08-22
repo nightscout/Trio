@@ -1023,16 +1023,16 @@ Enact a temp Basal or a temp target */
 "Found devices: %d" = "Tìm thấy thiết bị: %d";
 
 /* */
-"Backfill options" = "Tùy chọn chèn lấp";
+"Backfill options" = "Tùy chọn bổ sung";
 
 /* */
-"Backfilling from trend is currently not well supported by Loop" = "Việc chèn lấp theo xu hướng hiện không được Loop hỗ trợ tốt";
+"Backfilling from trend is currently not well supported by Loop" = "Việc bổ sung theo xu hướng hiện không được Loop hỗ trợ tốt";
 
 /* */
-"Backfill from history" = "Chèn lấp từ lịch sử";
+"Backfill from history" = "Bổ sung từ lịch sử";
 
 /* */
-"Backfill from trend" = "Chèn lấp từ xu hướng";
+"Backfill from trend" = "Bổ sung từ xu hướng";
 
 /* */
 "Debug options" = "Tùy chọn gỡ lỗi";
@@ -1235,7 +1235,7 @@ Enact a temp Basal or a temp target */
 "Error" = "Lỗi";
 
 /* Manual temp basal mode */
-"Manual" = "Thủ công";
+"Manual" = "Manual";
 
 /* An Automatic delivered bolus (SMB) */
 "SMB" = "Liều tiêm tự động (SMB)";
