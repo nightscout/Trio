@@ -588,7 +588,7 @@ Enact a temp Basal or a temp target */
 "Type" = "Type:";
 
 /* CGM */
-"CGM" = "GM";
+"CGM" = "Sensor (CGM)";
 
 /* CGM Transmitter ID */
 "Transmitter ID" = "Sender-ID";
