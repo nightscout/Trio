@@ -633,6 +633,7 @@ extension MainChartView {
         /// filtering for high and low bounds in settings
         ForEach(state.glucoseFromPersistence) { item in
             let glucoseToDisplay = units == .mgdL ? Decimal(item.glucose) : Decimal(item.glucose).asMmolL
+
             if smooth {
                 LineMark(x: .value("Time", item.date ?? Date()), y: .value("Value", glucoseToDisplay))
                     .foregroundStyle(

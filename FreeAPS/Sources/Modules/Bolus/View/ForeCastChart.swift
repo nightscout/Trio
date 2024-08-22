@@ -73,7 +73,7 @@ struct ForeCastChart: View {
             if state.displayForecastsAsLines {
                 drawForecastLines()
             } else {
-                drawForecastCone()
+                drawForecastsCone()
             }
         }
         .chartXAxis { forecastChartXAxis }
@@ -83,29 +83,75 @@ struct ForeCastChart: View {
         .backport.chartForegroundStyleScale(state: state)
     }
 
+    private var stops: [Gradient.Stop] {
+        let low = Double(state.lowGlucose)
+        let high = Double(state.highGlucose)
+
+        let glucoseValues = state.glucoseFromPersistence
+            .map { units == .mgdL ? Decimal($0.glucose) : Decimal($0.glucose).asMmolL }
+
+        let minimum = glucoseValues.min() ?? 0.0
+        let maximum = glucoseValues.max() ?? 0.0
+
+        // Calculate positions for gradient
+        let lowPosition = (low - Double(truncating: minimum as NSNumber)) /
+            (Double(truncating: maximum as NSNumber) - Double(truncating: minimum as NSNumber))
+        let highPosition = (high - Double(truncating: minimum as NSNumber)) /
+            (Double(truncating: maximum as NSNumber) - Double(truncating: minimum as NSNumber))
+
+        // Ensure positions are in bounds [0, 1]
+        let clampedLowPosition = max(0.0, min(lowPosition, 1.0))
+        let clampedHighPosition = max(0.0, min(highPosition, 1.0))
+
+        // Ensure lowPosition is less than highPosition
+        let sortedPositions = [clampedLowPosition, clampedHighPosition].sorted()
+
+        return [
+            Gradient.Stop(color: .red, location: 0.0),
+            Gradient.Stop(color: .red, location: sortedPositions[0]), // draw red gradient till lowGlucose
+            Gradient.Stop(color: .green, location: sortedPositions[0] + 0.0001), // draw green above lowGlucose till highGlucose
+            Gradient.Stop(color: .green, location: sortedPositions[1]),
+            Gradient.Stop(color: .orange, location: sortedPositions[1] + 0.0001), // draw orange above highGlucose
+            Gradient.Stop(color: .orange, location: 1.0)
+        ]
+    }
+
     private func drawGlucose() -> some ChartContent {
         ForEach(state.glucoseFromPersistence) { item in
-            if item.glucose > Int(state.highGlucose) {
-                PointMark(
-                    x: .value("Time", item.date ?? Date(), unit: .second),
-                    y: .value("Value", units == .mgdL ? Decimal(item.glucose) : Decimal(item.glucose).asMmolL)
+            let glucoseToDisplay = units == .mgdL ? Decimal(item.glucose) : Decimal(item.glucose).asMmolL
+
+            if state.smooth {
+                LineMark(
+                    x: .value("Time", item.date ?? Date()),
+                    y: .value("Value", glucoseToDisplay)
                 )
-                .foregroundStyle(Color.orange.gradient)
-                .symbolSize(20)
-            } else if item.glucose < Int(state.lowGlucose) {
-                PointMark(
-                    x: .value("Time", item.date ?? Date(), unit: .second),
-                    y: .value("Value", units == .mgdL ? Decimal(item.glucose) : Decimal(item.glucose).asMmolL)
+                .foregroundStyle(
+                    .linearGradient(stops: stops, startPoint: .bottom, endPoint: .top)
                 )
-                .foregroundStyle(Color.red.gradient)
-                .symbolSize(20)
+                .symbol(.circle).symbolSize(34)
             } else {
-                PointMark(
-                    x: .value("Time", item.date ?? Date(), unit: .second),
-                    y: .value("Value", units == .mgdL ? Decimal(item.glucose) : Decimal(item.glucose).asMmolL)
-                )
-                .foregroundStyle(Color.green.gradient)
-                .symbolSize(20)
+                if item.glucose > Int(state.highGlucose) {
+                    PointMark(
+                        x: .value("Time", item.date ?? Date(), unit: .second),
+                        y: .value("Value", glucoseToDisplay)
+                    )
+                    .foregroundStyle(Color.orange.gradient)
+                    .symbolSize(20)
+                } else if item.glucose < Int(state.lowGlucose) {
+                    PointMark(
+                        x: .value("Time", item.date ?? Date(), unit: .second),
+                        y: .value("Value", glucoseToDisplay)
+                    )
+                    .foregroundStyle(Color.red.gradient)
+                    .symbolSize(20)
+                } else {
+                    PointMark(
+                        x: .value("Time", item.date ?? Date(), unit: .second),
+                        y: .value("Value", glucoseToDisplay)
+                    )
+                    .foregroundStyle(Color.green.gradient)
+                    .symbolSize(20)
+                }
             }
         }
     }
@@ -116,19 +162,42 @@ struct ForeCastChart: View {
         return currentTime.addingTimeInterval(timeInterval)
     }
 
-    private func drawForecastCone() -> some ChartContent {
+    private func drawForecastsCone() -> some ChartContent {
+        // Draw AreaMark for the forecast bounds
         ForEach(0 ..< max(state.minForecast.count, state.maxForecast.count), id: \.self) { index in
             if index < state.minForecast.count, index < state.maxForecast.count {
-                let yMinValue = Decimal(state.minForecast[index]) <= 300 ? Decimal(state.minForecast[index]) : Decimal(300)
-                let yMaxValue = Decimal(state.maxForecast[index]) <= 300 ? Decimal(state.maxForecast[index]) : Decimal(300)
+                let yMinMaxDelta = Decimal(state.minForecast[index] - state.maxForecast[index])
+                let xValue = timeForIndex(Int32(index))
 
-                AreaMark(
-                    x: .value("Time", timeForIndex(Int32(index)) <= endMarker ? timeForIndex(Int32(index)) : endMarker),
-                    yStart: .value("Min Value", units == .mgdL ? yMinValue : yMinValue.asMmolL),
-                    yEnd: .value("Max Value", units == .mgdL ? yMaxValue : yMaxValue.asMmolL)
-                )
-                .foregroundStyle(Color.blue.opacity(0.5))
-                .interpolationMethod(.catmullRom)
+                // if distance between respective min and max is 0, provide a default range
+                if yMinMaxDelta == 0 {
+                    let yMinValue = units == .mgdL ? Decimal(state.minForecast[index] - 1) :
+                        Decimal(state.minForecast[index] - 1)
+                        .asMmolL
+                    let yMaxValue = units == .mgdL ? Decimal(state.minForecast[index] + 1) :
+                        Decimal(state.minForecast[index] + 1)
+                        .asMmolL
+
+                    AreaMark(
+                        x: .value("Time", xValue <= endMarker ? xValue : endMarker),
+                        yStart: .value("Min Value", units == .mgdL ? yMinValue : yMinValue.asMmolL),
+                        yEnd: .value("Max Value", units == .mgdL ? yMaxValue : yMaxValue.asMmolL)
+                    )
+                    .foregroundStyle(Color.blue.opacity(0.5))
+                    .interpolationMethod(.catmullRom)
+
+                } else {
+                    let yMinValue = Decimal(state.minForecast[index]) <= 300 ? Decimal(state.minForecast[index]) : Decimal(300)
+                    let yMaxValue = Decimal(state.maxForecast[index]) <= 300 ? Decimal(state.maxForecast[index]) : Decimal(300)
+
+                    AreaMark(
+                        x: .value("Time", timeForIndex(Int32(index)) <= endMarker ? timeForIndex(Int32(index)) : endMarker),
+                        yStart: .value("Min Value", units == .mgdL ? yMinValue : yMinValue.asMmolL),
+                        yEnd: .value("Max Value", units == .mgdL ? yMaxValue : yMaxValue.asMmolL)
+                    )
+                    .foregroundStyle(Color.blue.opacity(0.5))
+                    .interpolationMethod(.catmullRom)
+                }
             }
         }
     }

@@ -112,6 +112,7 @@ extension Bolus {
         @Published var maxForecast: [Int] = []
         @Published var minCount: Int = 12 // count of Forecasts drawn in 5 min distances, i.e. 12 means a min of 1 hour
         @Published var displayForecastsAsLines: Bool = false
+        @Published var smooth: Bool = false
 
         let now = Date.now
 
@@ -162,6 +163,7 @@ extension Bolus {
             maxProtein = settings.settings.maxProtein
             skipBolus = settingsManager.settings.skipBolusScreenAfterCarbs
             useFPUconversion = settingsManager.settings.useFPUconversion
+            smooth = settingsManager.settings.smoothGlucose
 
             if waitForSuggestionInitial {
                 Task {
