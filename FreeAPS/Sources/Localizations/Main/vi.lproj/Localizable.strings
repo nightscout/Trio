@@ -1238,7 +1238,7 @@ Enact a temp Basal or a temp target */
 "Manual" = "Manual";
 
 /* An Automatic delivered bolus (SMB) */
-"SMB" = "Liều tiêm tự động (SMB)";
+"SMB" = "SMB";
 
 /* A manually entered dose of external insulin */
 "External Insulin" = "Liều insulin tiêm ngoài";
