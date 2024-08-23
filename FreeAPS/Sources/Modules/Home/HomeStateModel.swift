@@ -47,7 +47,7 @@ extension Home {
         @Published var manualTempBasal = false
         @Published var smooth = false
         @Published var maxValue: Decimal = 1.2
-        @Published var lowGlucose: Decimal = 72
+        @Published var lowGlucose: Decimal = 70
         @Published var highGlucose: Decimal = 180
         @Published var overrideUnit: Bool = false
         @Published var displayXgridLines: Bool = false

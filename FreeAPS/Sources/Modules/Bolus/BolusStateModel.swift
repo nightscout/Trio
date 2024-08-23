@@ -17,8 +17,8 @@ extension Bolus {
         @Injected() var glucoseStorage: GlucoseStorage!
         @Injected() var determinationStorage: DeterminationStorage!
 
-        @Published var lowGlucose: Decimal = 4.asMgdL
-        @Published var highGlucose: Decimal = 10.asMgdL
+        @Published var lowGlucose: Decimal = 70
+        @Published var highGlucose: Decimal = 180
 
         @Published var predictions: Predictions?
         @Published var amount: Decimal = 0
