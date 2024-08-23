@@ -202,7 +202,7 @@ extension Bolus {
                                 }
                             }
                             HStack {
-                                Text("Note").foregroundColor(.secondary)
+                                Image(systemName: "square.and.pencil").foregroundColor(.secondary)
                                 TextFieldWithToolBarString(text: $state.note, placeholder: "", maxLength: 25)
                             }
                         }.listRowBackground(Color.chart)
