@@ -161,26 +161,14 @@ extension NightscoutConfig {
                 {
                     do {
                         let fetchedProfileStore = try jsonDecoder.decode([FetchedNightscoutProfileStore].self, from: data)
-                        let loop = fetchedProfileStore.first?.enteredBy.contains("Loop")
-                        guard let fetchedProfile: FetchedNightscoutProfile =
-                            (fetchedProfileStore.first?.store["default"] != nil) ?
-                            fetchedProfileStore.first?.store["default"] :
-                            fetchedProfileStore.first?.store["Default"]
+                        guard let fetchedProfile: ScheduledNightscoutProfile = fetchedProfileStore.first?.store["default"]
                         else {
                             error = "\nCan't find the default Nightscout Profile."
                             group.leave()
                             return
                         }
 
-                        guard fetchedProfile.units.contains(self.units.rawValue.prefix(4)) else {
-                            debug(
-                                .nightscout,
-                                "Mismatching glucose units in Nightscout and Pump Settings. Import settings aborted."
-                            )
-                            error = "\nMismatching glucose units in Nightscout and Pump Settings. Import settings aborted."
-                            group.leave()
-                            return
-                        }
+                        let shouldConvertToMgdL = fetchedProfile.units.contains("mmol")
 
                         var areCRsOK = true
                         let carbratios = fetchedProfile.carbratio
@@ -230,41 +218,35 @@ extension NightscoutConfig {
 
                         let sensitivities = fetchedProfile.sens.map { sensitivity -> InsulinSensitivityEntry in
                             InsulinSensitivityEntry(
-                                sensitivity: sensitivity.value,
+                                sensitivity: shouldConvertToMgdL ? sensitivity.value.asMgdL : sensitivity.value,
                                 offset: self.offset(sensitivity.time) / 60,
                                 start: sensitivity.time
                             )
                         }
                         if sensitivities.filter({ $0.sensitivity <= 0 }).isNotEmpty {
                             error =
-                                "\nInvalid Nightscout Sensitivities Settings. \n\nImport aborted. Please check your Nightscout Profile Sensitivities Settings!"
+                                "\nInvalid Nightcsout Sensitivities Settings. \n\nImport aborted. Please check your Nightscout Profile Sensitivities Settings!"
                             group.leave()
                             return
                         }
 
                         let sensitivitiesProfile = InsulinSensitivities(
-                            units: self.units,
-                            userPreferredUnits: self.units,
+                            units: .mgdL,
+                            userPreferredUnits: .mgdL,
                             sensitivities: sensitivities
                         )
 
                         let targets = fetchedProfile.target_low
                             .map { target -> BGTargetEntry in
-                                let median = loop! ? self.getMedianTarget(
-                                    lowTargetValue: target.value,
-                                    lowTargetTime: target.time,
-                                    highTarget: fetchedProfile.target_high,
-                                    units: self.units
-                                ) : target.value
-                                return BGTargetEntry(
-                                    low: median,
-                                    high: median,
+                                BGTargetEntry(
+                                    low: shouldConvertToMgdL ? target.value.asMgdL : target.value,
+                                    high: shouldConvertToMgdL ? target.value.asMgdL : target.value,
                                     start: target.time,
                                     offset: self.offset(target.time) / 60
                                 ) }
                         let targetsProfile = BGTargets(
-                            units: self.units,
-                            userPreferredUnits: self.units,
+                            units: .mgdL,
+                            userPreferredUnits: .mgdL,
                             targets: targets
                         )
                         // IS THERE A PUMP?
@@ -305,7 +287,10 @@ extension NightscoutConfig {
                                         maxBasal: self.maxBasal
                                     )
                                     self.storage.save(file, as: OpenAPS.Settings.settings)
-                                    debug(.nightscout, "DIA setting updated to " + dia.description + " after a NS import.")
+                                    debug(
+                                        .nightscout,
+                                        "DIA setting updated to " + dia.description + " after a NS import."
+                                    )
                                 }
                                 group.leave()
                             case .failure:

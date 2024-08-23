@@ -4,15 +4,10 @@ struct FetchedNightscoutProfileStore: JSON {
     let _id: String
     let defaultProfile: String
     let startDate: String
-    // TODO: what is this shit used for?
-    // <<<<<<< HEAD
     let mills: Decimal
     let enteredBy: String
-//    let store: [String: ScheduledNightscoutProfile]
+    let store: [String: ScheduledNightscoutProfile]
     let created_at: String
-    //=======
-    let store: [String: FetchedNightscoutProfile]
-    // >>>>>>> 9672da256c317a314acc76d6e4f6e82cc174d133
 }
 
 struct FetchedNightscoutProfile: JSON {

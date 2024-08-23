@@ -17,8 +17,8 @@ protocol NightscoutManager: GlucoseSource {
     func uploadGlucose() async
     func uploadManualGlucose() async
     func uploadStatistics(dailystat: Statistics) async
-    func uploadPreferences(_ preferences: Preferences)
-    func uploadProfileAndSettings(_: Bool)
+    func uploadPreferences(_ preferences: Preferences) async
+    func uploadProfileAndSettings(_: Bool) async
     var cgmURL: URL? { get }
 }
 
@@ -299,51 +299,35 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-    func uploadPreferences(_ preferences: Preferences) {
-        let prefs = NightscoutPreferences(
-            preferences: settingsManager.preferences
-        )
+    func uploadPreferences(_ preferences: Preferences) async {
+        let prefs = NightscoutPreferences(preferences: settingsManager.preferences)
 
         guard let nightscout = nightscoutAPI, isUploadEnabled else {
             return
         }
 
-        processQueue.async {
-            nightscout.uploadPrefs(prefs)
-                .sink { completion in
-                    switch completion {
-                    case .finished:
-                        debug(.nightscout, "Preferences uploaded")
-                        self.storage.save(preferences, as: OpenAPS.Nightscout.uploadedPreferences)
-                    case let .failure(error):
-                        debug(.nightscout, error.localizedDescription)
-                    }
-                } receiveValue: {}
-                .store(in: &self.lifetime)
+        do {
+            try await nightscout.uploadPrefs(prefs)
+            debug(.nightscout, "Preferences uploaded")
+            storage.save(preferences, as: OpenAPS.Nightscout.uploadedPreferences)
+        } catch {
+            debug(.nightscout, error.localizedDescription)
         }
     }
 
-    func uploadSettings(_ settings: FreeAPSSettings) {
-        let sets = NightscoutSettings(
-            settings: settingsManager.settings
-        )
+    func uploadSettings(_ settings: FreeAPSSettings) async {
+        let sets = NightscoutSettings(settings: settingsManager.settings)
 
         guard let nightscout = nightscoutAPI, isUploadEnabled else {
             return
         }
 
-        processQueue.async {
-            nightscout.uploadSettings(sets)
-                .sink { completion in
-                    switch completion {
-                    case .finished:
-                        debug(.nightscout, "Settings uploaded")
-                        self.storage.save(settings, as: OpenAPS.Nightscout.uploadedSettings)
-                    case let .failure(error):
-                        debug(.nightscout, error.localizedDescription)
-                    }
-                } receiveValue: {}
-                .store(in: &self.lifetime)
+        do {
+            try await nightscout.uploadSettings(sets)
+            debug(.nightscout, "Settings uploaded")
+            storage.save(settings, as: OpenAPS.Nightscout.uploadedSettings)
+        } catch {
+            debug(.nightscout, error.localizedDescription)
         }
     }
 
@@ -528,150 +512,159 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-    func uploadProfileAndSettings(_ force: Bool) {
-        guard let sensitivities = storage.retrieve(OpenAPS.Settings.insulinSensitivities, as: InsulinSensitivities.self) else {
-            debug(.nightscout, "NightscoutManager uploadProfile: error loading insulinSensitivities")
-            return
-        }
-        guard let settings = storage.retrieve(OpenAPS.FreeAPS.settings, as: FreeAPSSettings.self) else {
-            debug(.nightscout, "NightscoutManager uploadProfile: error loading settings")
-            return
-        }
-        guard let preferences = storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self) else {
-            debug(.nightscout, "NightscoutManager uploadProfile: error loading preferences")
-            return
-        }
-        guard let targets = storage.retrieve(OpenAPS.Settings.bgTargets, as: BGTargets.self) else {
-            debug(.nightscout, "NightscoutManager uploadProfile: error loading bgTargets")
-            return
-        }
-        guard let carbRatios = storage.retrieve(OpenAPS.Settings.carbRatios, as: CarbRatios.self) else {
-            debug(.nightscout, "NightscoutManager uploadProfile: error loading carbRatios")
-            return
-        }
-        guard let basalProfile = storage.retrieve(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self) else {
-            debug(.nightscout, "NightscoutManager uploadProfile: error loading basalProfile")
-            return
-        }
-
-        let sens = sensitivities.sensitivities.map { item -> NightscoutTimevalue in
-            NightscoutTimevalue(
-                time: String(item.start.prefix(5)),
-                value: item.sensitivity,
-                timeAsSeconds: item.offset * 60
-            )
-        }
-        let target_low = targets.targets.map { item -> NightscoutTimevalue in
-            NightscoutTimevalue(
-                time: String(item.start.prefix(5)),
-                value: item.low,
-                timeAsSeconds: item.offset * 60
-            )
-        }
-        let target_high = targets.targets.map { item -> NightscoutTimevalue in
-            NightscoutTimevalue(
-                time: String(item.start.prefix(5)),
-                value: item.high,
-                timeAsSeconds: item.offset * 60
-            )
-        }
-        let cr = carbRatios.schedule.map { item -> NightscoutTimevalue in
-            NightscoutTimevalue(
-                time: String(item.start.prefix(5)),
-                value: item.ratio,
-                timeAsSeconds: item.offset * 60
-            )
-        }
-        let basal = basalProfile.map { item -> NightscoutTimevalue in
-            NightscoutTimevalue(
-                time: String(item.start.prefix(5)),
-                value: item.rate,
-                timeAsSeconds: item.minutes * 60
-            )
-        }
-
-        var nsUnits = ""
-        switch settingsManager.settings.units {
-        case .mgdL:
-            nsUnits = "mg/dl"
-        case .mmolL:
-            nsUnits = "mmol"
-        }
-
-        var carbs_hr: Decimal = 0
-        if let isf = sensitivities.sensitivities.map(\.sensitivity).first,
-           let cr = carbRatios.schedule.map(\.ratio).first,
-           isf > 0, cr > 0
-        {
-            // CarbImpact -> Carbs/hr = CI [mg/dl/5min] * 12 / ISF [mg/dl/U] * CR [g/U]
-            carbs_hr = settingsManager.preferences.min5mCarbimpact * 12 / isf * cr
-            if settingsManager.settings.units == .mmolL {
-                carbs_hr = carbs_hr * GlucoseUnits.exchangeRate
+    func uploadProfileAndSettings(_ force: Bool) async {
+        do {
+            guard let sensitivities = await storage.retrieveAsync(
+                OpenAPS.Settings.insulinSensitivities,
+                as: InsulinSensitivities.self
+            ) else {
+                debug(.nightscout, "NightscoutManager uploadProfile: error loading insulinSensitivities")
+                return
             }
-            // No, Decimal has no rounding function.
-            carbs_hr = Decimal(round(Double(carbs_hr) * 10.0)) / 10
-        }
+            guard let settings = await storage.retrieveAsync(OpenAPS.FreeAPS.settings, as: FreeAPSSettings.self) else {
+                debug(.nightscout, "NightscoutManager uploadProfile: error loading settings")
+                return
+            }
+            guard let preferences = await storage.retrieveAsync(OpenAPS.Settings.preferences, as: Preferences.self) else {
+                debug(.nightscout, "NightscoutManager uploadProfile: error loading preferences")
+                return
+            }
+            guard let targets = await storage.retrieveAsync(OpenAPS.Settings.bgTargets, as: BGTargets.self) else {
+                debug(.nightscout, "NightscoutManager uploadProfile: error loading bgTargets")
+                return
+            }
+            guard let carbRatios = await storage.retrieveAsync(OpenAPS.Settings.carbRatios, as: CarbRatios.self) else {
+                debug(.nightscout, "NightscoutManager uploadProfile: error loading carbRatios")
+                return
+            }
+            guard let basalProfile = await storage.retrieveAsync(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self)
+            else {
+                debug(.nightscout, "NightscoutManager uploadProfile: error loading basalProfile")
+                return
+            }
 
-        let ps = ScheduledNightscoutProfile(
-            dia: settingsManager.pumpSettings.insulinActionCurve,
-            carbs_hr: Int(carbs_hr),
-            delay: 0,
-            timezone: TimeZone.current.identifier,
-            target_low: target_low,
-            target_high: target_high,
-            sens: sens,
-            basal: basal,
-            carbratio: cr,
-            units: nsUnits
-        )
-        let defaultProfile = "default"
+            let sens = sensitivities.sensitivities.map { item in
+                NightscoutTimevalue(
+                    time: String(item.start.prefix(5)),
+                    value: item.sensitivity,
+                    timeAsSeconds: item.offset * 60
+                )
+            }
+            let targetLow = targets.targets.map { item in
+                NightscoutTimevalue(
+                    time: String(item.start.prefix(5)),
+                    value: item.low,
+                    timeAsSeconds: item.offset * 60
+                )
+            }
+            let targetHigh = targets.targets.map { item in
+                NightscoutTimevalue(
+                    time: String(item.start.prefix(5)),
+                    value: item.high,
+                    timeAsSeconds: item.offset * 60
+                )
+            }
+            let cr = carbRatios.schedule.map { item in
+                NightscoutTimevalue(
+                    time: String(item.start.prefix(5)),
+                    value: item.ratio,
+                    timeAsSeconds: item.offset * 60
+                )
+            }
+            let basal = basalProfile.map { item in
+                NightscoutTimevalue(
+                    time: String(item.start.prefix(5)),
+                    value: item.rate,
+                    timeAsSeconds: item.minutes * 60
+                )
+            }
 
-        let now = Date()
-        let p = NightscoutProfileStore(
-            defaultProfile: defaultProfile,
-            startDate: now,
-            mills: Int(now.timeIntervalSince1970) * 1000,
-            units: nsUnits,
-            enteredBy: NightscoutTreatment.local,
-            store: [defaultProfile: ps]
-        )
+            let nsUnits: String = {
+                switch settingsManager.settings.units {
+                case .mgdL:
+                    return "mg/dl"
+                case .mmolL:
+                    return "mmol"
+                }
+            }()
 
-        guard let nightscout = nightscoutAPI, isNetworkReachable, isUploadEnabled else {
-            return
-        }
+            var carbsHr: Decimal = 0
+            if let isf = sensitivities.sensitivities.map(\.sensitivity).first,
+               let cr = carbRatios.schedule.map(\.ratio).first,
+               isf > 0, cr > 0
+            {
+                carbsHr = settingsManager.preferences.min5mCarbimpact * 12 / isf * cr
+                if settingsManager.settings.units == .mmolL {
+                    carbsHr *= GlucoseUnits.exchangeRate
+                }
+                carbsHr = Decimal(round(Double(carbsHr) * 10.0)) / 10
+            }
 
-        // UPLOAD PREFERNCES WHEN CHANGED
-        if let uploadedPreferences = storage.retrieve(OpenAPS.Nightscout.uploadedPreferences, as: Preferences.self),
-           uploadedPreferences.rawJSON.sorted() == preferences.rawJSON.sorted(), !force
-        {
-            NSLog("NightscoutManager Preferences, preferences unchanged")
-        } else { uploadPreferences(preferences) }
+            let scheduledProfile = ScheduledNightscoutProfile(
+                dia: settingsManager.pumpSettings.insulinActionCurve,
+                carbs_hr: Int(carbsHr),
+                delay: 0,
+                timezone: TimeZone.current.identifier,
+                target_low: targetLow,
+                target_high: targetHigh,
+                sens: sens,
+                basal: basal,
+                carbratio: cr,
+                units: nsUnits
+            )
+            let defaultProfile = "default"
 
-        // UPLOAD FreeAPS Settings WHEN CHANGED
-        if let uploadedSettings = storage.retrieve(OpenAPS.Nightscout.uploadedSettings, as: FreeAPSSettings.self),
-           uploadedSettings.rawJSON.sorted() == settings.rawJSON.sorted(), !force
-        {
-            NSLog("NightscoutManager Settings, settings unchanged")
-        } else { uploadSettings(settings) }
+            let now = Date()
+            let profileStore = NightscoutProfileStore(
+                defaultProfile: defaultProfile,
+                startDate: now,
+                mills: Int(now.timeIntervalSince1970) * 1000,
+                units: nsUnits,
+                enteredBy: NightscoutTreatment.local,
+                store: [defaultProfile: scheduledProfile]
+            )
 
-        // UPLOAD Profiles WHEN CHANGED
-        if let uploadedProfile = storage.retrieve(OpenAPS.Nightscout.uploadedProfile, as: NightscoutProfileStore.self),
-           (uploadedProfile.store["default"]?.rawJSON ?? "").sorted() == ps.rawJSON.sorted(), !force
-        {
-            NSLog("NightscoutManager uploadProfile, no profile change")
-        } else {
-            processQueue.async {
-                nightscout.uploadProfile(p)
-                    .sink { completion in
-                        switch completion {
-                        case .finished:
-                            self.storage.save(p, as: OpenAPS.Nightscout.uploadedProfile)
-                            debug(.nightscout, "Profile uploaded")
-                        case let .failure(error):
-                            debug(.nightscout, error.localizedDescription)
-                        }
-                    } receiveValue: {}
-                    .store(in: &self.lifetime)
+            guard let nightscout = nightscoutAPI, isNetworkReachable, isUploadEnabled else {
+                return
+            }
+
+            // Upload Preferences when changed
+            if let uploadedPreferences = await storage.retrieveAsync(
+                OpenAPS.Nightscout.uploadedPreferences,
+                as: Preferences.self
+            ),
+                uploadedPreferences.rawJSON.sorted() == preferences.rawJSON.sorted(), !force
+            {
+                NSLog("NightscoutManager Preferences, preferences unchanged")
+            } else {
+                await uploadPreferences(preferences)
+            }
+
+            // Upload FreeAPS Settings when changed
+            if let uploadedSettings = await storage.retrieveAsync(OpenAPS.Nightscout.uploadedSettings, as: FreeAPSSettings.self),
+               uploadedSettings.rawJSON.sorted() == settings.rawJSON.sorted(), !force
+            {
+                NSLog("NightscoutManager Settings, settings unchanged")
+            } else {
+                await uploadSettings(settings)
+            }
+
+            // Upload Profiles when changed
+            if let uploadedProfile = await storage.retrieveAsync(
+                OpenAPS.Nightscout.uploadedProfile,
+                as: NightscoutProfileStore.self
+            ),
+                (uploadedProfile.store["default"]?.rawJSON ?? "").sorted() == scheduledProfile.rawJSON.sorted(), !force
+            {
+                NSLog("NightscoutManager uploadProfile, no profile change")
+            } else {
+                do {
+                    try await nightscout.uploadProfile(profileStore)
+                    storage.save(profileStore, as: OpenAPS.Nightscout.uploadedProfile)
+                    debug(.nightscout, "Profile uploaded")
+                } catch {
+                    debug(.nightscout, "NightscoutManager uploadProfile: \(error.localizedDescription)")
+                }
             }
         }
     }
