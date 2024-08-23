@@ -76,8 +76,10 @@ extension NightscoutConfig {
                                 primaryButton: .destructive(
                                     Text("Yes, Import"),
                                     action: {
-                                        state.importSettings()
-                                        importedHasRun = true
+                                        Task {
+                                            await state.importSettings()
+                                            importedHasRun = true
+                                        }
                                     }
                                 ),
                                 secondaryButton: .cancel()

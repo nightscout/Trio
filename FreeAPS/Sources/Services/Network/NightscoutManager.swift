@@ -19,6 +19,7 @@ protocol NightscoutManager: GlucoseSource {
     func uploadStatistics(dailystat: Statistics) async
     func uploadPreferences(_ preferences: Preferences) async
     func uploadProfileAndSettings(_: Bool) async
+    func importSettings() async -> ScheduledNightscoutProfile?
     var cgmURL: URL? { get }
 }
 
@@ -666,6 +667,20 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     debug(.nightscout, "NightscoutManager uploadProfile: \(error.localizedDescription)")
                 }
             }
+        }
+    }
+
+    func importSettings() async -> ScheduledNightscoutProfile? {
+        guard let nightscout = nightscoutAPI, isUploadEnabled else {
+            debug(.nightscout, "NS API not available or upload disabled. Aborting NS Status upload.")
+            return nil
+        }
+
+        do {
+            return try await nightscout.importSettings()
+        } catch {
+            debug(.nightscout, error.localizedDescription)
+            return nil
         }
     }
 

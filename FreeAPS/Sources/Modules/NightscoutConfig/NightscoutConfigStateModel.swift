@@ -112,206 +112,167 @@ extension NightscoutConfig {
             return lowTargetValue
         }
 
-        func importSettings() {
-            guard let nightscout = nightscoutAPI else {
-                saveError("Can't access nightscoutAPI")
-                return
-            }
-            let group = DispatchGroup()
-            group.enter()
-            var error = ""
-            let path = "/api/v1/profile.json"
-            let timeout: TimeInterval = 60
-
-            var components = URLComponents()
-            components.scheme = nightscout.url.scheme
-            components.host = nightscout.url.host
-            components.port = nightscout.url.port
-            components.path = path
-            components.queryItems = [
-                URLQueryItem(name: "count", value: "1")
-            ]
-            var url = URLRequest(url: components.url!)
-            url.allowsConstrainedNetworkAccess = false
-            url.timeoutInterval = timeout
-
-            if let secret = nightscout.secret {
-                url.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
-            }
-            let task = URLSession.shared.dataTask(with: url) { data, response, error_ in
-                if let error_ = error_ {
-                    print("Error occured: " + error_.localizedDescription)
-                    // handle error
-                    self.saveError("Error occured: " + error_.localizedDescription)
-                    error = error_.localizedDescription
-                    return
+        func importSettings() async {
+            do {
+                guard let fetchedProfile = await nightscoutManager.importSettings() else {
+                    throw NSError(
+                        domain: "ImportError",
+                        code: 1,
+                        userInfo: [NSLocalizedDescriptionKey: "Can't find the default Nightscout Profile."]
+                    )
                 }
-                guard let httpResponse = response as? HTTPURLResponse,
-                      (200 ... 299).contains(httpResponse.statusCode)
-                else {
-                    print("Error occured! " + error_.debugDescription)
-                    // handle error
-                    self.saveError(error_.debugDescription)
-                    return
+
+                let shouldConvertToMgdL = fetchedProfile.units.contains("mmol")
+
+                // Carb Ratios
+                let carbratios = fetchedProfile.carbratio.map { carbratio in
+                    CarbRatioEntry(
+                        start: carbratio.time,
+                        offset: offset(carbratio.time) / 60,
+                        ratio: carbratio.value
+                    )
                 }
-                let jsonDecoder = JSONCoding.decoder
 
-                if let mimeType = httpResponse.mimeType, mimeType == "application/json",
-                   let data = data
-                {
-                    do {
-                        let fetchedProfileStore = try jsonDecoder.decode([FetchedNightscoutProfileStore].self, from: data)
-                        guard let fetchedProfile: ScheduledNightscoutProfile = fetchedProfileStore.first?.store["default"]
-                        else {
-                            error = "\nCan't find the default Nightscout Profile."
-                            group.leave()
-                            return
-                        }
+                if carbratios.contains(where: { $0.ratio <= 0 }) {
+                    throw NSError(
+                        domain: "ImportError",
+                        code: 2,
+                        userInfo: [NSLocalizedDescriptionKey: "Invalid Carb Ratio settings in Nightscout. Import aborted."]
+                    )
+                }
 
-                        let shouldConvertToMgdL = fetchedProfile.units.contains("mmol")
+                let carbratiosProfile = CarbRatios(units: .grams, schedule: carbratios)
 
-                        var areCRsOK = true
-                        let carbratios = fetchedProfile.carbratio
-                            .map { carbratio -> CarbRatioEntry in
-                                if carbratio.value <= 0 {
-                                    error =
-                                        "\nInvalid Carb Ratio settings in Nightscout.\n\nImport aborted. Please check your Nightscout Profile Carb Ratios Settings!"
-                                    areCRsOK = false
-                                }
-                                return CarbRatioEntry(
-                                    start: carbratio.time,
-                                    offset: self.offset(carbratio.time) / 60,
-                                    ratio: carbratio.value
-                                ) }
-                        let carbratiosProfile = CarbRatios(units: CarbUnit.grams, schedule: carbratios)
-                        guard areCRsOK else {
-                            group.leave()
-                            return
-                        }
+                // Basal Profile
+                let pumpName = apsManager.pumpName.value
+                let basals = fetchedProfile.basal.map { basal in
+                    BasalProfileEntry(
+                        start: basal.time,
+                        minutes: offset(basal.time) / 60,
+                        rate: basal.value
+                    )
+                }
 
-                        var areBasalsOK = true
-                        let pumpName = self.apsManager.pumpName.value
-                        let basals = fetchedProfile.basal
-                            .map { basal -> BasalProfileEntry in
-                                if pumpName != "Omnipod DASH", basal.value <= 0
-                                {
-                                    error =
-                                        "\nInvalid Nightcsout Basal Settings. Some or all of your basal settings are 0 U/h.\n\nImport aborted. Please check your Nightscout Profile Basal Settings before trying to import again. Import has been aborted.)"
-                                    areBasalsOK = false
-                                }
-                                return BasalProfileEntry(
-                                    start: basal.time,
-                                    minutes: self.offset(basal.time) / 60,
-                                    rate: basal.value
-                                ) }
-                        // DASH pumps can have 0U/h basal rates but don't import if total basals (24 hours) amount to 0 U.
-                        if pumpName == "Omnipod DASH", basals.map({ each in each.rate }).reduce(0, +) <= 0
-                        {
-                            error =
-                                "\nYour total Basal insulin amount to 0 U or lower in Nightscout Profile settings.\n\n Please check your Nightscout Profile Basal Settings before trying to import again. Import has been aborted.)"
-                            areBasalsOK = false
-                        }
-                        guard areBasalsOK else {
-                            group.leave()
-                            return
-                        }
+                if pumpName != "Omnipod DASH", basals.contains(where: { $0.rate <= 0 }) {
+                    throw NSError(
+                        domain: "ImportError",
+                        code: 3,
+                        userInfo: [NSLocalizedDescriptionKey: "Invalid Nightscout Basal Settings. Import aborted."]
+                    )
+                }
 
-                        let sensitivities = fetchedProfile.sens.map { sensitivity -> InsulinSensitivityEntry in
-                            InsulinSensitivityEntry(
-                                sensitivity: shouldConvertToMgdL ? sensitivity.value.asMgdL : sensitivity.value,
-                                offset: self.offset(sensitivity.time) / 60,
-                                start: sensitivity.time
-                            )
-                        }
-                        if sensitivities.filter({ $0.sensitivity <= 0 }).isNotEmpty {
-                            error =
-                                "\nInvalid Nightcsout Sensitivities Settings. \n\nImport aborted. Please check your Nightscout Profile Sensitivities Settings!"
-                            group.leave()
-                            return
-                        }
+                if pumpName == "Omnipod DASH", basals.reduce(0, { $0 + $1.rate }) <= 0 {
+                    throw NSError(
+                        domain: "ImportError",
+                        code: 4,
+                        userInfo: [
+                            NSLocalizedDescriptionKey: "Total Basal insulin amount is 0 or lower in Nightscout Profile settings. Import aborted."
+                        ]
+                    )
+                }
 
-                        let sensitivitiesProfile = InsulinSensitivities(
-                            units: .mgdL,
-                            userPreferredUnits: .mgdL,
-                            sensitivities: sensitivities
-                        )
+                // Sensitivities
+                let sensitivities = fetchedProfile.sens.map { sensitivity in
+                    InsulinSensitivityEntry(
+                        sensitivity: shouldConvertToMgdL ? sensitivity.value.asMgdL : sensitivity.value,
+                        offset: offset(sensitivity.time) / 60,
+                        start: sensitivity.time
+                    )
+                }
 
-                        let targets = fetchedProfile.target_low
-                            .map { target -> BGTargetEntry in
-                                BGTargetEntry(
-                                    low: shouldConvertToMgdL ? target.value.asMgdL : target.value,
-                                    high: shouldConvertToMgdL ? target.value.asMgdL : target.value,
-                                    start: target.time,
-                                    offset: self.offset(target.time) / 60
-                                ) }
-                        let targetsProfile = BGTargets(
-                            units: .mgdL,
-                            userPreferredUnits: .mgdL,
-                            targets: targets
-                        )
-                        // IS THERE A PUMP?
-                        guard let pump = self.apsManager.pumpManager else {
-                            self.storage.save(carbratiosProfile, as: OpenAPS.Settings.carbRatios)
-                            self.storage.save(basals, as: OpenAPS.Settings.basalProfile)
-                            self.storage.save(sensitivitiesProfile, as: OpenAPS.Settings.insulinSensitivities)
-                            self.storage.save(targetsProfile, as: OpenAPS.Settings.bgTargets)
-                            debug(
-                                .service,
-                                "Settings were imported but the Basals couldn't be saved to pump (No pump). Check your basal settings and tap ´Save on Pump´ to sync the new basal settings"
-                            )
-                            error =
-                                "\nSettings were imported but the Basals couldn't be saved to pump (No pump). Check your basal settings and tap ´Save on Pump´ to sync the new basal settings"
-                            group.leave()
-                            return
-                        }
-                        let syncValues = basals.map {
-                            RepeatingScheduleValue(startTime: TimeInterval($0.minutes * 60), value: Double($0.rate))
-                        }
-                        // SSAVE TO STORAGE. SAVE TO PUMP (LoopKit)
-                        pump.syncBasalRateSchedule(items: syncValues) { result in
-                            switch result {
-                            case .success:
-                                self.storage.save(basals, as: OpenAPS.Settings.basalProfile)
-                                self.storage.save(carbratiosProfile, as: OpenAPS.Settings.carbRatios)
-                                self.storage.save(sensitivitiesProfile, as: OpenAPS.Settings.insulinSensitivities)
-                                self.storage.save(targetsProfile, as: OpenAPS.Settings.bgTargets)
-                                debug(.service, "Settings have been imported and the Basals saved to pump!")
-                                // DIA. Save if changed.
-                                let dia = fetchedProfile.dia
-                                print("dia: " + dia.description)
-                                print("pump dia: " + self.dia.description)
-                                if dia != self.dia, dia >= 0 {
-                                    let file = PumpSettings(
-                                        insulinActionCurve: dia,
-                                        maxBolus: self.maxBolus,
-                                        maxBasal: self.maxBasal
-                                    )
-                                    self.storage.save(file, as: OpenAPS.Settings.settings)
-                                    debug(
-                                        .nightscout,
-                                        "DIA setting updated to " + dia.description + " after a NS import."
-                                    )
-                                }
-                                group.leave()
-                            case .failure:
-                                error =
-                                    "\nSettings were imported but the Basals couldn't be saved to pump (communication error). Check your basal settings and tap ´Save on Pump´ to sync the new basal settings"
-                                debug(.service, "Basals couldn't be save to pump")
-                                group.leave()
-                            }
-                        }
-                    } catch let parsingError {
-                        print(parsingError)
-                        error = parsingError.localizedDescription
-                        group.leave()
+                if sensitivities.contains(where: { $0.sensitivity <= 0 }) {
+                    throw NSError(
+                        domain: "ImportError",
+                        code: 5,
+                        userInfo: [NSLocalizedDescriptionKey: "Invalid Nightscout Sensitivities Settings. Import aborted."]
+                    )
+                }
+
+                let sensitivitiesProfile = InsulinSensitivities(
+                    units: .mgdL,
+                    userPreferredUnits: .mgdL,
+                    sensitivities: sensitivities
+                )
+
+                // Targets
+                let targets = fetchedProfile.target_low.map { target in
+                    BGTargetEntry(
+                        low: shouldConvertToMgdL ? target.value.asMgdL : target.value,
+                        high: shouldConvertToMgdL ? target.value.asMgdL : target.value,
+                        start: target.time,
+                        offset: offset(target.time) / 60
+                    )
+                }
+
+                let targetsProfile = BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: targets)
+
+                // Save to storage and pump
+                if let pump = apsManager.pumpManager {
+                    let syncValues = basals.map {
+                        RepeatingScheduleValue(startTime: TimeInterval($0.minutes * 60), value: Double($0.rate))
                     }
+
+                    pump.syncBasalRateSchedule(items: syncValues) { result in
+                        switch result {
+                        case .success:
+                            self.storage.save(basals, as: OpenAPS.Settings.basalProfile)
+                            self.finalizeImport(
+                                carbratiosProfile: carbratiosProfile,
+                                sensitivitiesProfile: sensitivitiesProfile,
+                                targetsProfile: targetsProfile,
+                                dia: fetchedProfile.dia
+                            )
+                        case .failure:
+                            self.saveError(
+                                "Settings were imported but the Basals couldn't be saved to pump (communication error)."
+                            )
+                        }
+                    }
+                } else {
+                    storage.save(basals, as: OpenAPS.Settings.basalProfile)
+                    finalizeImport(
+                        carbratiosProfile: carbratiosProfile,
+                        sensitivitiesProfile: sensitivitiesProfile,
+                        targetsProfile: targetsProfile,
+                        dia: fetchedProfile.dia
+                    )
+                    saveError("Settings were imported but the Basals couldn't be saved to pump (No pump).")
                 }
+
+                // Save DIA if different
+                let dia = fetchedProfile.dia
+                if dia != self.dia, dia >= 0 {
+                    let file = PumpSettings(insulinActionCurve: dia, maxBolus: maxBolus, maxBasal: maxBasal)
+                    storage.save(file, as: OpenAPS.Settings.settings)
+                    debug(.nightscout, "DIA setting updated to \(dia) after a NS import.")
+                }
+
+                debug(.service, "Settings imported successfully.")
+
+            } catch {
+                saveError(error.localizedDescription)
+                debug(.service, "Settings import failed with error: \(error.localizedDescription)")
             }
-            task.resume()
-            group.wait(wallTimeout: .now() + 5)
-            group.notify(queue: .global(qos: .background)) {
-                self.saveError(error)
+        }
+
+        private func finalizeImport(
+            carbratiosProfile: CarbRatios,
+            sensitivitiesProfile: InsulinSensitivities,
+            targetsProfile: BGTargets,
+            dia: Decimal
+        ) {
+            storage.save(carbratiosProfile, as: OpenAPS.Settings.carbRatios)
+            storage.save(sensitivitiesProfile, as: OpenAPS.Settings.insulinSensitivities)
+            storage.save(targetsProfile, as: OpenAPS.Settings.bgTargets)
+
+            // Save DIA if different
+            if dia != self.dia, dia >= 0 {
+                let file = PumpSettings(insulinActionCurve: dia, maxBolus: maxBolus, maxBasal: maxBasal)
+                storage.save(file, as: OpenAPS.Settings.settings)
+                debug(.nightscout, "DIA setting updated to \(dia) after a NS import.")
             }
+
+            debug(.service, "Settings imported successfully.")
         }
 
         func offset(_ string: String) -> Int {
