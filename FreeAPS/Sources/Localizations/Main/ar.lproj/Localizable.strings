@@ -51,64 +51,64 @@
 "of" = "مِن";
 
 /* Headline in enacted pop up (at: at what time) */
-"Enacted at" = "Enacted at";
+"Enacted at" = "تم تفيعله في";
 
 /* Headline in suggested pop up (at: at what time) */
-"Suggested at" = "Suggested at";
+"Suggested at" = "تم اقتراحه في";
 
 /* Headline in enacted pop up (at: at what time) */
-"Error at" = "Error at";
+"Error at" = "حدث خطأ في";
 
 /* Bolus View Meal Summary Header */
-"Meal Summary" = "Meal Summary";
+"Meal Summary" = "موجز الوجبة الغذائية";
 
 /* Bolus View Meal Edit Meal Button */
-"Edit Meal" = "Edit Meal";
+"Edit Meal" = "تعديل الوجبة";
 
 /* Bolus View Meal Add Meal Button */
-"Add Meal" = "Add Meal";
+"Add Meal" = "إضافة الوجبة";
 
 /* Bolus View Bolus Summary Header */
-"Bolus Summary" = "Bolus Summary";
+"Bolus Summary" = "موجز الجرعات";
 
 /* For the  Bolus View pop-up */
-"Calculations" = "Calculations";
+"Calculations" = "الحسابات";
 
 /* For the  Bolus View pop-up */
-"Fatty Meal" = "Fatty Meal";
+"Fatty Meal" = "وجبة دهنية";
 
 /* For the  Bolus View pop-up */
-"Full Bolus" = "Full Bolus";
+"Full Bolus" = "جرعة كاملة";
 
 /* For the  Bolus View pop-up */
-"Fraction" = "Fraction";
+"Fraction" = "كسر";
 
 /* For the  Bolus View pop-up */
-"Fatty Meal Factor" = "Fatty Meal Factor";
+"Fatty Meal Factor" = "معامل الوجبة الدهنية";
 
 /* For the  Bolus View pop-up */
-"Result" = "Result";
+"Result" = "النتيجة";
 
 /* For the  Bolus View pop-up */
-"Your entered amount was limited by your max Bolus setting of %d%@" = "Your entered amount was limited by your max Bolus setting of %d%@";
+"Your entered amount was limited by your max Bolus setting of %d%@" = "تم تقييد الكمية المدخلة عن طريق إعداد الجرعة القصوى %d%@";
 
 /* Bolus View Continue Button */
-"Continue" = "Continue";
+"Continue" = "الاستمرار";
 
 /* Home title */
-"Home" = "Home";
+"Home" = "الصفحة الرئيسية";
 
 /* Looping in progress */
 "looping" = "looping";
 
 /* min ago since last loop */
-"min ago" = "min ago";
+"min ago" = "منذ دقائق";
 
 /* Status Title */
-"No suggestion" = "No suggestion";
+"No suggestion" = "لا توجد اقتراحات";
 
 /* Replace pod text in Header */
-"Replace pod" = "Replace pod";
+"Replace pod" = "استبدال المضخة";
 
 /* Add carbs screen */
 "Add Carbs" = "Add Carbs";
@@ -117,40 +117,40 @@
 "Add Carbs " = "Add Carbs ";
 
 /*  */
-"Amount Carbs" = "Amount Carbs";
+"Amount Carbs" = "كمية النشويات";
 
 /* Grams unit */
-"grams" = "grams";
+"grams" = "جرامات";
 
 /*  */
-"Carbs required" = "Carbs required";
+"Carbs required" = "النشويات المتطلبة";
 
 /* Saved Food Presets */
-"Saved Food" = "Saved Food";
+"Saved Food" = "الوجبات المحفوظة";
 
 /* */
-"Are you sure?" = "Are you sure?";
+"Are you sure?" = "هل أنت واثق؟";
 
 /* Bottom target temp */
-"Bottom target" = "Bottom target";
+"Bottom target" = "الهدف الأسفل";
 
 /* Cancel preset name */
-"Cancel" = "Cancel";
+"Cancel" = "إلغاء";
 
 /*  */
-"Cancel Temp Target" = "Cancel Temp Target";
+"Cancel Temp Target" = "إلغاء الهدف المؤقت";
 
 /* Custom temp target */
-"Custom" = "Custom";
+"Custom" = "مُخصّص";
 
 /*  */
-"Date" = "Date";
+"Date" = "التاريخ";
 
 /*  */
-"Delete" = "Delete";
+"Delete" = "حذف";
 
 /* Delete preset temp target */
-"Delete preset \"%@\"" = "Delete preset \"%@\"";
+"Delete preset \"%@\"" = "حذف الإعداد المسبق \"%@\"";
 
 /* Duration of target temp or temp basal */
 "Duration" = "Duration";
@@ -240,7 +240,7 @@
 "Sensitivity" = "Sensitivity";
 
 /*  */
-"Use Autotune" = "Use Autotune";
+"Use Autotune" = "use Autotune";
 
 /* Add profile basal */
 "Add" = "Add";
@@ -297,68 +297,68 @@
 "Amount" = "Amount";
 
 /* */
-"Cancel Temp Basal" = "Cancel Temp Basal";
+"Cancel Temp Basal" = "إلغاء الإنسولين القاعدي المؤقت";
 
 /* Enact
 Enact a temp Basal or a temp target */
-"Enact" = "Enact";
+"Enact" = "فعِّل";
 
 /* */
-"Manual Temp Basal" = "Manual Temp Basal";
+"Manual Temp Basal" = "إنسولين قاعدي يدوي مؤقت";
 
 /* Allow uploads to different services */
-"Allow uploads" = "Allow uploads";
+"Allow uploads" = "السماح بالرفع";
 
 /* API secret in NS */
-"API secret" = "API secret";
+"API secret" = "كلمة سر ال API";
 
 /* Connect to NS */
-"Connect" = "Connect";
+"Connect" = "ربط";
 
 /* Connected to NS */
-"Connected!" = "Connected!";
+"Connected!" = "مُربط!";
 
 /* Connecting to NS */
-"Connecting..." = "Connecting...";
+"Connecting..." = "جاري الربط...";
 
 /*  */
-"Invalid URL" = "Invalid URL";
+"Invalid URL" = "الرابط غير صالح";
 
 /*  */
-"Local glucose source" = "Local glucose source";
+"Local glucose source" = "مصدر الجلوكوز المحلي";
 
 /* Header */
-"Nightscout Config" = "Nightscout Config";
+"Nightscout Config" = "إعدادات موقع نايت سكاوت";
 
 /*  */
-"Port" = "Port";
+"Port" = "المنفذ";
 
 /*  */
-"URL" = "URL";
+"URL" = "الرابط";
 
 /**/
-"Use local glucose server" = "Use local glucose server";
+"Use local glucose server" = "استخدم خادم جلوكوز محلي";
 
 /* Enable Statistics */
-"This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n" = "This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n";
+"This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n" = "وهذا يمكّن من رفع ملف الإحصاءات.json إلى موقع نايت سكاوت، مما يمكن أن يستخدمه مشروع الإحصاءات والشرائح الاجتماعية.\n\nالمشاركة في إحصاءات المجتمع اختيارية، وتتطلب التسجيل المنفصل في:\n";
 
 /*  */
-"Edit settings json" = "Edit settings json";
+"Edit settings json" = "تعديل الإعدادات json";
 
 /* */
-"Glucose units" = "Glucose units";
+"Glucose units" = "وحدات الجلوكوز";
 
 /*  */
-"Preferences" = "Preferences";
+"Preferences" = "التفضيلات";
 
 /* Recommended Insulin Fraction in preferences */
-"Recommended Insulin Fraction" = "Recommended Insulin Fraction";
+"Recommended Insulin Fraction" = "نسبة الإنسولين الموصى به";
 
 /* Do you want to show bolus screen after added carbs? */
-"Skip Bolus screen after carbs" = "Skip Bolus screen after carbs";
+"Skip Bolus screen after carbs" = "تخطي شاشة الجرعة بعد إدخال الوجبة";
 
 /* Allow remote control from NS */
-"Remote Control" = "Remote Control";
+"Remote Control" = "التحكم والاوامر عن بعد";
 
 /* Imported Profiles Alert */
 "\nNow please verify all of your new settings thoroughly: \n\n • DIA (Pump settings)\n • Basal Profile\n • Insulin Sensitivities\n • Carb Ratios\n • Target Glucose\n\n in Trio Settings -> Configuration.\n\nBad or invalid profile settings could have disastrous effects." = "\nNow please verify all of your new settings thoroughly: \n\n • DIA (Pump settings)\n • Basal Profile\n • Insulin Sensitivities\n • Carb Ratios\n • Target Glucose\n\n in Trio Settings -> Configuration.\n\nBad or invalid profile settings could have disastrous effects.";
@@ -1360,7 +1360,7 @@ Enact a temp Basal or a temp target */
 "Save as Profile" = "Save as Profile";
 
 /* Alert */
-"Cancel Profile Override" = "Cancel Profile Override?";
+"Cancel Profile Override" = "Cancel Profile Override";
 
 /* Alert */
 "Cancel Temp Target" = "Cancel Temp Target";
