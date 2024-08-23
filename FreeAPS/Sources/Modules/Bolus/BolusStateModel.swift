@@ -382,7 +382,7 @@ extension Bolus {
                 enteredBy: CarbsEntry.manual,
                 isFPU: false, fpuID: UUID().uuidString
             )]
-            await carbsStorage.storeCarbs(carbsToStore)
+            await carbsStorage.storeCarbs(carbsToStore, areFetchedFromRemote: false)
 
             if carbs > 0 || fat > 0 || protein > 0 {
                 // only perform determine basal sync if the user doesn't use the pump bolus, otherwise the enact bolus func in the APSManger does a sync

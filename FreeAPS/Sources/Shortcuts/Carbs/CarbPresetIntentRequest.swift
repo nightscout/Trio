@@ -25,7 +25,8 @@ import Foundation
                 note: "add with shortcuts",
                 enteredBy: CarbsEntry.manual,
                 isFPU: false, fpuID: nil
-            )]
+            )],
+            areFetchedFromRemote: false
         )
         var resultDisplay: String
         resultDisplay = "\(carbs) g carbs"

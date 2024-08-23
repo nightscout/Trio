@@ -390,7 +390,8 @@ extension BaseWatchManager: WCSessionDelegate {
                         enteredBy: CarbsEntry.manual,
                         isFPU: false,
                         fpuID: nil
-                    )]
+                    )],
+                    areFetchedFromRemote: false
                 )
 
                 _ = await apsManager.determineBasal()

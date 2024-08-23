@@ -33,7 +33,7 @@ final class BaseFetchTreatmentsManager: FetchTreatmentsManager, Injectable {
 
                     let filteredCarbs = await carbs.filter { !($0.enteredBy?.contains(CarbsEntry.manual) ?? false) }
                     if filteredCarbs.isNotEmpty {
-                        await self.carbsStorage.storeCarbs(filteredCarbs)
+                        await self.carbsStorage.storeCarbs(filteredCarbs, areFetchedFromRemote: true)
                     }
 
                     let filteredTargets = await tempTargets.filter { !($0.enteredBy?.contains(TempTarget.manual) ?? false) }
