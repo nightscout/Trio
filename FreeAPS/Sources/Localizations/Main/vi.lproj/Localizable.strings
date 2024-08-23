@@ -89,7 +89,7 @@
 "Result" = "Kết quả";
 
 /* For the  Bolus View pop-up */
-"Your entered amount was limited by your max Bolus setting of %d%@" = "Liều thêm vào bị giới hạn bởi liều \"Liều bolus tối đa\" %d%@";
+"Your entered amount was limited by your max Bolus setting of %d%@" = "Liều thêm vào bị giới hạn bởi \"Liều bolus tối đa\" %d%@";
 
 /* Bolus View Continue Button */
 "Continue" = "Tiếp tục";
@@ -164,13 +164,13 @@
 "Basal Insulin and Sensitivity ratio" = "Tỷ lệ cơ bản và độ nhạy Insulin";
 
 /* */
-"A lower 'Half Basal Target' setting will reduce the basal and raise the ISF earlier, at a lower target glucose." = "Cài đặt '1/2 mục tiêu cơ bản' thấp hơn sẽ giảm mức cơ bản và tăng ISF sớm hơn, ở mức glucose mục tiêu thấp hơn.";
+"A lower 'Half Basal Target' setting will reduce the basal and raise the ISF earlier, at a lower target glucose." = "Cài đặt 'một nửa mục tiêu cơ bản' thấp hơn sẽ giảm mức cơ bản và tăng ISF sớm hơn, ở mức glucose mục tiêu thấp hơn.";
 
 /* */
 " Your setting: " = " Cài đặt của bạn: ";
 
 /* */
-"mg/dl. Autosens.max limits the max endpoint" = "autosens.max Giới hạn điểm hiện tại tối đa mg/dl";
+"mg/dl. Autosens.max limits the max endpoint" = "mg/dl. Autosens.max Giới hạn điểm hiện tại tối đa";
 
 /*  */
 "Enter preset name" = "Nhập tên";
@@ -351,7 +351,7 @@ Enact a temp Basal or a temp target */
 "Preferences" = "Tùy chỉnh";
 
 /* Recommended Insulin Fraction in preferences */
-"Recommended Insulin Fraction" = "Phần Insulin được đề xuất";
+"Recommended Insulin Fraction" = "Insulin được đề xuất";
 
 /* Do you want to show bolus screen after added carbs? */
 "Skip Bolus screen after carbs" = "Bỏ qua màn hình bolus sau carbs";
@@ -378,7 +378,7 @@ Enact a temp Basal or a temp target */
 "Yes, Import" = "Đồng ý, hãy nhập";
 
 /* */
-"Import settings from Nightscout" = "Cập nhật cấu hình từ Nightscout";
+"Import settings from Nightscout" = "Nhập cấu hình từ Nightscout";
 
 /* */
 "Import settings?" = "Nhập các Cài đặt không?";
@@ -390,13 +390,13 @@ Enact a temp Basal or a temp target */
 "Settings imported" = "Các cấu hình đã được nhập";
 
 /* Import Error */
-"\nMismatching glucose units in Nightscout and Pump Settings. Import settings aborted." = "\n Sai khác đơn vị Glucose giữa Nightscout và Bơm. Nhập cấu hình bị bỏ.";
+"\nMismatching glucose units in Nightscout and Pump Settings. Import settings aborted." = "\n Sai đơn vị Glucose giữa Nightscout và Bơm. Nhập cấu hình bị bỏ.";
 
 /* Import Error */
 "Can't find the default Nightscout Profile." = "Không thể tìm thấy Profile Nightscout mặc định.";
 
 /* Add Blood Glucose Test, header */
-"Blood Glucose Test" = "Xét nghiệm đường huyết";
+"Blood Glucose Test" = "Kiểm tra đường huyết";
 
 /* Add Medtronic pump */
 "Add Medtronic" = "Thêm Medtronic";
@@ -501,7 +501,7 @@ Enact a temp Basal or a temp target */
 "m" = "m";
 
 /*  */
-"Closed loop" = "Vòng lặp kín";
+"Closed loop" = "Đóng vòng lặp";
 
 /* */
 "Configuration" = "Cấu hình";
@@ -612,7 +612,7 @@ Enact a temp Basal or a temp target */
 "Delete Insulin?" = "Xóa Insulin?";
 
 /* Treatments list */
-"Treatments" = "Phương pháp điều trị";
+"Treatments" = "Đã xử lý";
 
 /* " min" in Treatments list */
 " min" = " phút";
@@ -876,10 +876,10 @@ Enact a temp Basal or a temp target */
 "Valid for footer" = "Hợp lệ";
 
 /* */
-"Edit calibrations" = "Thêm kết quả hiệu chuẩn";
+"Edit calibrations" = "Chỉnh sửa hiệu chuẩn";
 
 /* */
-"edit calibration clicked" = "Nhấp vào để hiệu chuẩn";
+"edit calibration clicked" = "nhấp vào để chỉnh sửa hiệu chuẩn";
 
 /* */
 "Delete CGM" = "Xóa CGM";
@@ -990,7 +990,7 @@ Enact a temp Basal or a temp target */
 "snoozing until %@" = "tạm yên cho đến khi %@";
 
 /* */
-"not snoozing" = "không ẩn";
+"not snoozing" = "không báo lại";
 
 /* */
 "nothing to see here" = "không có gì xem ở đây";
@@ -1241,7 +1241,7 @@ Enact a temp Basal or a temp target */
 "SMB" = "SMB";
 
 /* A manually entered dose of external insulin */
-"External Insulin" = "Liều insulin tiêm ngoài";
+"External Insulin" = "Insulin tiêm ngoài";
 
 /* Status highlight when manual temp basal is running. */
 "Manual Basal" = "Liều Basal thủ công";
@@ -1392,7 +1392,7 @@ Enact a temp Basal or a temp target */
 "App Icons" = "Biểu tượng ứng dụng";
 
 /* */
-"Trio Icon" = "biểu tượng Trio";
+"Trio Icon" = "Biểu tượng Trio";
 
 /* Service Section */
 "Statistics and Home View" = "Thống kê và xem";
@@ -1413,7 +1413,7 @@ Enact a temp Basal or a temp target */
 "Empty" = "Trống rỗng";
 
 /* */
-"Delete Selected Preset" = "Xóa mẫu cài đặt trước đã chọn";
+"Delete Selected Preset" = "Xóa mẫu cài đặt đã chọn";
 
 /* */
 "Enter Meal Preset Name" = "Nhập tên trước bữa ăn";
@@ -1425,7 +1425,7 @@ Enact a temp Basal or a temp target */
 "Save and continue" = "Lưu và tiếp tục";
 
 /* */
-"Save as Preset" = "Lưu cài đặt sẵn";
+"Save as Preset" = "Lưu cài đặt";
 
 /* */
 "Predictions" = "Dự đoán";
@@ -1671,10 +1671,10 @@ Enact a temp Basal or a temp target */
 "In Range" = "Trong phạm vi";
 
 /* Display % */
-"Change HbA1c Unit" = "Thay đổi đơn vị của HbA1c";
+"Change HbA1c Unit" = "Thay đổi đơn vị HbA1c";
 
 /* */
-"Display Chart X - Grid lines" = "Hiển thị biểu đồ dạng trục X - đường lưới";
+"Display Chart X - Grid lines" = "Hiển thị biểu đồ dạng X-Grid";
 
 /* */
 "Display Chart Y - Grid lines" = "Hiển thị biểu đồ dạng Y-Grid";
@@ -1791,7 +1791,7 @@ Enact a temp Basal or a temp target */
 "Change default HbA1c unit in statPanlel. The unit in statPanel will be updateded with next statistics.json update" = "Thay đổi đơn vị HbA1c mặc định trong statPanlel. Đơn vị trong statPanel sẽ được cập nhật với bản cập nhật stats.json tiếp theo";
 
 /* HbA1c for all glucose storage days */
-"all" = "tất cả";
+"all" = "all";
 
 /* --------------------------------------------------------  Dexcom G7 --------------------------------------*/
 
@@ -1808,7 +1808,7 @@ Enact a temp Basal or a temp target */
 /* New Experimental feature */
 "Experimental" = "Thực hiện";
 /* Smoothing of CGM readings */
-"Smooth Glucose Value" = "Làm mịn Glucose";
+"Smooth Glucose Value" = "Giá trị Glucose mịn";
 
 /* -----------------------------------------------------------------------------------------------------------
 
@@ -1865,16 +1865,16 @@ Enact a temp Basal or a temp target */
 "Defaults to false, which means by default only the low end of the pump’s BG target range is used as OpenAPS target. This is a safety feature to prevent too-wide targets and less-optimal outcomes. Therefore the higher end of the target range is used only for avoiding bolus wizard overcorrections. Use wide_bg_target_range: true to force neutral temps over a wider range of eventualBGs." = "Giá trị mặc định là False, có nghĩa là theo mặc định chỉ phần thấp nhất trong phạm vi mục tiêu BG của máy bơm được sử dụng làm mục tiêu OpenAPS. Đây là tính năng an toàn nhằm ngăn chặn các mục tiêu quá rộng và kết quả kém tối ưu. Do đó, mức cao hơn của phạm vi mục tiêu chỉ được sử dụng để tránh việc điều chỉnh quá mức của thuật sĩ truyền nhanh. Sử dụng Phạm vi mục tiêu BG rộng: true để buộc nhiệt độ trung tính trên phạm vi BG cuối cùng rộng hơn.";
 
 /* Headline "Skip Neutral Temps" */
-"Skip Neutral Temps" = "Bỏ qua liều trung lập tạm thời";
+"Skip Neutral Temps" = "Bỏ qua liều tạm thời trung tính";
 
 /* "Skip Neutral Temps" */
-"Defaults to false, so that Trio will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means Trio will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night." = "Mặc định là False, do đó Trio sẽ đặt nhiệt độ bất cứ khi nào có thể, do đó, sẽ dễ dàng hơn để xem hệ thống có hoạt động hay không, ngay cả khi bạn ngoại tuyến. Điều này có nghĩa là OpenAPS sẽ đặt Temp “trung tính” (giống như Temp cơ bản mặc định của bạn) nếu không cần điều chỉnh. Đây là cài đặt cũ để OpenAPS có các tùy chọn giảm thiểu âm thanh và thông báo từ 'giàn khoan' có thể đánh thức bạn vào ban đêm. ";
+"Defaults to false, so that Trio will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means Trio will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night." = "Mặc định là False, do đó Trio sẽ đặt liều tạm thời bất cứ khi nào có thể, do đó sẽ dễ dàng hơn để xem hệ thống có hoạt động hay không, ngay cả khi bạn ngoại tuyến. Điều này có nghĩa là OpenAPS sẽ đặt Temp “trung tính” (giống như Temp cơ bản mặc định của bạn) nếu không cần điều chỉnh. Đây là cài đặt cũ để OpenAPS có các tùy chọn giảm thiểu âm thanh và thông báo từ 'rig' có thể đánh thức bạn vào ban đêm. ";
 
 /* Headline "Unsuspend If No Temp” */
 "Unsuspend If No Temp" = "Bỏ tạm dừng nếu không có liều tạm thời";
 
 /* "Unsuspend If No Temp” */
-"Many people occasionally forget to resume / unsuspend their pump after reconnecting it. If you’re one of them, and you are willing to reliably set a zero temp basal whenever suspending and disconnecting your pump, this feature has your back. If enabled, it will automatically resume / unsuspend the pump if you forget to do so before your zero temp expires. As long as the zero temp is still running, it will leave the pump suspended." = "Nhiều người thỉnh thoảng quên tiếp tục/hủy tạm dừng máy bơm sau khi kết nối lại. Nếu bạn là một trong số họ và sẵn sàng đặt nhiệt độ cơ bản bằng 0 một cách đáng tin cậy bất cứ khi nào tạm dừng và ngắt kết nối máy bơm của mình, thì tính năng này sẽ hỗ trợ bạn. Nếu được bật, nó sẽ tự động tiếp tục/hủy tạm dừng máy bơm nếu bạn quên làm như vậy trước khi hết tạm thời 0. Miễn là liều tạm thời bằng 0 vẫn đang chạy, nó sẽ khiến máy bơm bị treo.";
+"Many people occasionally forget to resume / unsuspend their pump after reconnecting it. If you’re one of them, and you are willing to reliably set a zero temp basal whenever suspending and disconnecting your pump, this feature has your back. If enabled, it will automatically resume / unsuspend the pump if you forget to do so before your zero temp expires. As long as the zero temp is still running, it will leave the pump suspended." = "Nhiều người thỉnh thoảng quên tiếp tục/hủy tạm dừng máy bơm sau khi kết nối lại. Nếu bạn là một trong số họ và sẵn sàng đặt liều tạm thời cơ bản bằng 0 một cách đáng tin cậy bất cứ khi nào tạm dừng và ngắt kết nối máy bơm của mình, thì tính năng này sẽ hỗ trợ bạn. Nếu được bật, nó sẽ tự động tiếp tục/hủy tạm dừng máy bơm nếu bạn quên làm như vậy trước khi hết tạm thời 0. Miễn là liều tạm thời bằng 0 vẫn đang chạy, nó sẽ khiến máy bơm bị treo.";
 
 /* Headline "Enable UAM" */
 "Enable UAM" = "Kích hoạt UAM";
@@ -1889,7 +1889,7 @@ Enact a temp Basal or a temp target */
 "This enables supermicrobolus (SMB) while carbs on board (COB) are positive." = "Điều này cho phép supermicrobolus (SMB) trong khi lượng carb đang hoạt động (COB) ở mức dương.";
 
 /* Headline "Enable SMB With Temptarget” */
-"Enable SMB With Temptarget" = "Kích hoạt SMB với mục tiêu tạm thời";
+"Enable SMB With Temptarget" = "Kích hoạt SMB với liều mục tiêu tạm thời";
 
 /* "Enable SMB With Temptarget” */
 "This enables supermicrobolus (SMB) with eating soon / low temp targets. With this feature enabled, any temporary target below 100mg/dL, such as a temp target of 99 (or 80, the typical eating soon target) will enable SMB." = "Điều này cho phép supermicrobolus (SMB) đạt được mục tiêu ăn sớm / liều tạm thời thấp. Khi tính năng này được bật, mọi mục tiêu tạm thời dưới 100mg/dL, chẳng hạn như mục tiêu tạm thời là 99 (hoặc 80, mục tiêu ăn sớm thông thường) sẽ kích hoạt SMB.";
@@ -1940,7 +1940,7 @@ Enact a temp Basal or a temp target */
 "This is an important OpenAPS safety limit. The default setting (which is unlikely to need adjusting) is 3. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 3x the highest hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "Đây là giới hạn an toàn quan trọng của OpenAPS. Cài đặt mặc định (có thể không cần điều chỉnh) là 3. Điều này có nghĩa là OpenAPS sẽ không bao giờ được phép đặt tốc độ cơ bản tạm thời cao hơn 3 lần tốc độ cơ bản hàng giờ cao nhất được lập trình trong máy bơm của người dùng hoặc, nếu được bật, sẽ được xác định bằng autotune.";
 
 /* Headline "Current Basal Safety Multiplier" */
-"Current Basal Safety Multiplier" = "Hệ số an toàn cơ bản hiện tại";
+"Current Basal Safety Multiplier" = "Hệ số an toàn liều cơ bản hiện tại";
 
 /* "Current Basal Safety Multiplier" */
 "This is another important OpenAPS safety limit. The default setting (which is also unlikely to need adjusting) is 4. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 4x the current hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "Đây là một giới hạn an toàn quan trọng khác của OpenAPS. Cài đặt mặc định (cũng khó có thể cần điều chỉnh) là 4. Điều này có nghĩa là OpenAPS sẽ không bao giờ được phép đặt tốc độ cơ bản tạm thời cao hơn 4 lần tốc độ cơ bản hàng giờ hiện tại được lập trình trong máy bơm của người dùng hoặc, nếu được bật, được xác định bằng autotune.";
@@ -1974,7 +1974,7 @@ Enact a temp Basal or a temp target */
 "Bolus Snooze DIA Divisor" = "Chế độ báo lại bolus";
 
 /* "Bolus Snooze DIA Divisor" */
-"Bolus snooze is enacted after you do a meal bolus, so the loop won’t counteract with low temps when you’ve just eaten. The example here and default is 2; so a 3 hour DIA means that bolus snooze will be gradually phased out over 1.5 hours (3DIA/2)." = "Chế độ báo lại bolus được kích hoạt sau khi bạn thực hiện một bữa ăn nhanh, vì vậy vòng lặp sẽ không phản tác dụng với nhiệt độ thấp khi bạn vừa ăn. Ví dụ ở đây và mặc định là 2; vì vậy DIA 3 giờ có nghĩa là thời gian báo lại bolus sẽ giảm dần trong 1,5 giờ (3DIA/2).";
+"Bolus snooze is enacted after you do a meal bolus, so the loop won’t counteract with low temps when you’ve just eaten. The example here and default is 2; so a 3 hour DIA means that bolus snooze will be gradually phased out over 1.5 hours (3DIA/2)." = "Chế độ báo lại bolus được kích hoạt sau khi bạn thực hiện một bữa ăn nhanh, vì vậy vòng lặp sẽ không phản tác dụng với liều tạm thời thấp khi bạn vừa ăn. Ví dụ ở đây và mặc định là 2; vì vậy DIA 3 giờ có nghĩa là thời gian báo lại bolus sẽ giảm dần trong 1,5 giờ (3DIA/2).";
 
 /* Headline "Min 5m Carbimpact" */
 "Min 5m Carbimpact" = "Tác động tối thiểu 5 phút";
@@ -1983,7 +1983,7 @@ Enact a temp Basal or a temp target */
 "This is a setting for default carb absorption impact per 5 minutes. The default is an expected 8 mg/dL/5min. This affects how fast COB is decayed in situations when carb absorption is not visible in BG deviations. The default of 8 mg/dL/5min corresponds to a minimum carb absorption rate of 24g/hr at a CSF of 4 mg/dL/g." = "Đây là cài đặt cho tác động hấp thụ carb mặc định trong 5 phút. Giá trị mặc định là 8 mg/dL/5 phút dự kiến. Điều này ảnh hưởng đến tốc độ phân hủy của COB trong các tình huống khi không thể nhìn thấy sự hấp thụ carb ở độ lệch BG. Giá trị mặc định là 8 mg/dL/5 phút tương ứng với tốc độ hấp thụ carb tối thiểu là 24g/giờ ở CSF là 4 mg/dL/g.";
 
 /* Headline "Autotune ISF Adjustment Fraction" */
-"Autotune ISF Adjustment Fraction" = "Phân số điều chỉnh ISF tự động điều chỉnh";
+"Autotune ISF Adjustment Fraction" = "Phân số (AF) điều chỉnh ISF tự động điều chỉnh";
 
 /* "Autotune ISF Adjustment Fraction" */
 "The default of 0.5 for this value keeps autotune ISF closer to pump ISF via a weighted average of fullNewISF and pumpISF. 1.0 allows full adjustment, 0 is no adjustment from pump ISF." = "Giá trị mặc định là 0,5 cho giá trị này giữ cho ISF tự động điều chỉnh gần hơn với ISF bơm thông qua mức trung bình có trọng số của fullNewISF và PumpISF. 1.0 cho phép điều chỉnh hoàn toàn, 0 là không điều chỉnh từ bơm ISF.";
@@ -1995,7 +1995,7 @@ Enact a temp Basal or a temp target */
 "This is the fraction of carbs we’ll assume will absorb over 4h if we don’t yet see carb absorption." = "Đây là tỷ lệ carbs mà chúng tôi cho rằng sẽ hấp thụ trong 4 giờ nếu chúng tôi chưa thấy sự hấp thụ carb.";
 
 /* Headline "Remaining Carbs Cap" */
-"Remaining Carbs Cap" = "Phần carb còn lại";
+"Remaining Carbs Cap" = "Giới hạn lượng carb còn lại";
 
 /* "Remaining Carbs Cap" */
 "This is the amount of the maximum number of carbs we’ll assume will absorb over 4h if we don’t yet see carb absorption." = "Đây là lượng carb tối đa mà chúng tôi cho rằng sẽ hấp thụ trong 4 giờ nếu chúng tôi chưa thấy khả năng hấp thụ carb.";
@@ -2019,7 +2019,7 @@ Enact a temp Basal or a temp target */
 "Minimum duration in minutes for new SMB since last SMB or manual bolus" = "Thời lượng tối thiểu tính bằng phút cho SMB mới kể từ SMB cuối cùng hoặc liều truyền thủ công";
 
 /* Headline "Bolus Increment" */
-"Bolus Increment" = "Tăng liều Bolus nhanh";
+"Bolus Increment" = "Tốc độ Bolus nhanh";
 
 /* "Bolus Increment" */
 "Smallest enacted SMB amount. Minimum amount for Omnipod pumps is 0.05 U, whereas for Medtronic pumps it differs for various models, from 0.025 U to 0.10 U. Please check the minimum bolus amount which can be delivered by your pump. The default value is 0.1." = "Số SMB được ban hành nhỏ nhất. Lượng tối thiểu đối với máy bơm Omnipod là 0,05 U, trong khi đối với máy bơm Medtronic, lượng này khác nhau đối với nhiều kiểu máy khác nhau, từ 0,025 U đến 0,10 U. Vui lòng kiểm tra lượng truyền nhanh tối thiểu mà máy bơm của bạn có thể cung cấp. Giá trị mặc định là 0,1.";
@@ -2084,7 +2084,7 @@ Enact a temp Basal or a temp target */
 "Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula there is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users" = "Điều chỉnh tỷ lệ động theo một hằng số. Mặc định là 0,5. Giá trị càng cao thì mức điều chỉnh ISF của bạn sẽ càng lớn đối với BG cao hay thấp. Hiệu chỉnh tối đa được xác định bởi cài đặt tối thiểu/tối đa của Autosens. Đối với hàm Sigmoid, hệ số điều chỉnh được khuyến nghị là 0,4 - 0,5 để bắt đầu. Đối với công thức logarit, thre có ít sự đồng thuận hơn, nhưng bắt đầu bằng 0,5 - 0,8 thì phù hợp hơn với hầu hết người dùng";
 
 /* Headline Use Sigmoid Function */
-"Use Sigmoid Function" = "Sử dụng hàm Sigmoid";
+"Use Sigmoid Function" = "Sử dụng hàm Sigmoid (SF)";
 
 /* Which dyn ISF function to use */
 "Formula" = "Công thức";
@@ -2108,7 +2108,7 @@ Enact a temp Basal or a temp target */
 "Display Predictions" = "Hiển thị dự đoán";
 
 /* UI/UX option */
-"Smaller iPhone Screens" = "Màn hình iPhone nhỏ hơn";
+"Smaller iPhone Screens" = "Màn hình iPhone thu nhỏ";
 
 /* UI/UX option */
 "Display and allow Fat and Protein entries" = "Hiển thị và cho phép nhập các mục Chất béo và chất đạm";
@@ -2117,7 +2117,7 @@ Enact a temp Basal or a temp target */
 "Add Meal View settings " = "Thêm cài đặt Chế độ xem bữa ăn ";
 
 /* UI/UX option */
-"Display Temp Targets Button" = "Hiển thị nút tiêu tạm thời";
+"Display Temp Targets Button" = "Hiển thị nút mục tiêu tạm thời";
 
 /* UI/UX option */
 "Home View Button Panel " = "Bảng nút xem trang chủ ";
@@ -2140,7 +2140,7 @@ Enact a temp Basal or a temp target */
 "Live Activity" = "Hoạt động trực tiếp";
 
 /* Notification option */
-"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "Hoạt động trực tiếp hiển thị đường huyết trực tiếp trên màn hình khóa và năng động (nếu có)";
+"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "Hoạt động trực tiếp hiển thị đường huyết trực tiếp trên màn hình khóa và động (nếu có)";
 
 /* Notification option */
 "Show live activity" = "Hiển thị hoạt động trực tiếp";
