@@ -81,7 +81,7 @@ extension UserInterfaceSettings {
                                     }
                                 ).buttonStyle(BorderlessButtonStyle())
                             }.padding(.top)
-                        }.padding(.bottom)
+                        }.padding(.vertical)
                     }
                 ).listRowBackground(Color.chart)
 

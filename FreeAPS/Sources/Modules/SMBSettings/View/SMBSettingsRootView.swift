@@ -295,8 +295,6 @@ extension SMBSettings {
                         comment: "SMB Interval"
                     )
                 )
-
-                Text("Bolus Increment removed – should be pump derived!")
             }
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(

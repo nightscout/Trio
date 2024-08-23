@@ -216,6 +216,13 @@ extension Settings {
                     ).listRowBackground(Color.chart)
                 }
 
+//                Section {
+//                    Text("Targets")
+//                        .navigationLink(to: .configEditor(file: OpenAPS.Settings.bgTargets), from: self)
+//                    Text("Sensitivities")
+//                        .navigationLink(to: .configEditor(file: OpenAPS.Settings.insulinSensitivities), from: self)
+//                }.listRowBackground(Color.chart)
+
                 // TODO: remove this more or less entirely; add build-time flag to enable Middleware; add settings export feature
 //                Section {
 //                    Toggle("Developer Options", isOn: $state.debugOptions)
@@ -249,8 +256,8 @@ extension Settings {
 //                            //                                .navigationLink(to: .configEditor(file: OpenAPS.Monitor.pumpHistory), from: self)
 //                            Text("Basal profile")
 //                                .navigationLink(to: .configEditor(file: OpenAPS.Settings.basalProfile), from: self)
-//                            Text("Targets ranges")
-//                                .navigationLink(to: .configEditor(file: OpenAPS.Settings.bgTargets), from: self)
+//                    Text("Targets ranges")
+//                        .navigationLink(to: .configEditor(file: OpenAPS.Settings.bgTargets), from: self)
 //                            Text("Temp targets")
 //                                .navigationLink(to: .configEditor(file: OpenAPS.Settings.tempTargets), from: self)
 //                        }

@@ -244,7 +244,7 @@ extension NightscoutConfig {
 
                         let sensitivitiesProfile = InsulinSensitivities(
                             units: self.units,
-                            userPrefferedUnits: self.units,
+                            userPreferredUnits: self.units,
                             sensitivities: sensitivities
                         )
 
@@ -264,7 +264,7 @@ extension NightscoutConfig {
                                 ) }
                         let targetsProfile = BGTargets(
                             units: self.units,
-                            userPrefferedUnits: self.units,
+                            userPreferredUnits: self.units,
                             targets: targets
                         )
                         // IS THERE A PUMP?

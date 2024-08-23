@@ -73,7 +73,7 @@ extension TargetsEditor {
                 let high = low
                 return BGTargetEntry(low: low, high: high, start: formatter.string(from: date), offset: minutes)
             }
-            let profile = BGTargets(units: .mgdL, userPrefferedUnits: .mgdL, targets: targets)
+            let profile = BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: targets)
             provider.saveProfile(profile)
             initialItems = items.map { Item(lowIndex: $0.lowIndex, highIndex: $0.highIndex, timeIndex: $0.timeIndex) }
         }

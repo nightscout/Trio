@@ -89,7 +89,7 @@ extension ISFEditor {
             }
             let profile = InsulinSensitivities(
                 units: .mgdL,
-                userPrefferedUnits: .mgdL,
+                userPreferredUnits: .mgdL,
                 sensitivities: sensitivities
             )
             provider.saveProfile(profile)
