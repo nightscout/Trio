@@ -14,7 +14,7 @@
 "NSCalendarsUsageDescription" = "Calendar is used to create a new glucose events.";
 
 /* Privacy - Health Update Usage Description */
-"NSHealthUpdateUsageDescription" = "Health App is used to store blood glucose, insulin and carbohydrates";
+"NSHealthUpdateUsageDescription" = "Health App is used to store blood glucose, carbs and insulin";
 
 /* Privacy - Health Share Usage Description */
-"NSHealthShareUsageDescription" = "Health App is used to store blood glucose, insulin and carbohydrates";
+"NSHealthShareUsageDescription" = "Health App is used to store blood glucose, carbs and insulin";
