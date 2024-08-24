@@ -577,10 +577,10 @@ extension Bolus.StateModel {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: backgroundContext,
-            predicate: NSPredicate.predicateForFourHoursAgo,
+            predicate: NSPredicate.glucose,
             key: "date",
             ascending: false,
-            fetchLimit: 48
+            fetchLimit: 288
         )
 
         return await backgroundContext.perform {
