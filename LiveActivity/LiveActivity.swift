@@ -265,8 +265,8 @@ struct LiveActivity: Widget {
             Text("No data available")
         } else {
             // Determine scale
-            let min = (additionalState.chart.min() ?? 45) - 20
-            let max = (additionalState.chart.max() ?? 270) + 50
+            let min = min(additionalState.chart.min() ?? 45, 40) - 20
+            let max = max(additionalState.chart.max() ?? 270, 300) + 50
 
             let yAxisRuleMarkMin = additionalState.unit == "mg/dL" ? additionalState.lowGlucose : additionalState.lowGlucose
                 .asMmolL
