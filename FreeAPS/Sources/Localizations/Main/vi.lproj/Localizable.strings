@@ -489,7 +489,7 @@ Enact a temp Basal or a temp target */
 "g" = "g";
 
 /* when 0 U/hr */
-"0 U/hr" = "U/hr";
+"0 U/hr" = "0 U/hr";
 
 /* abbreviation for days */
 "d" = "d";
@@ -501,7 +501,7 @@ Enact a temp Basal or a temp target */
 "m" = "m";
 
 /*  */
-"Closed loop" = "Đóng vòng lặp";
+"Closed loop" = "Vòng lặp kín";
 
 /* */
 "Configuration" = "Cấu hình";
@@ -702,7 +702,7 @@ Enact a temp Basal or a temp target */
 "About the Process" = "Về quá trình xử lý";
 
 /* */
-"Please make sure that your Libre 2 sensor is already activated and finished warming up. If you have other apps connecting to the sensor via bluetooth, these need to be shut down or uninstalled. \n\n You can only have one app communicating with the sensor via bluetooth. Then press the \"pariring and connection\" button below to start the process. Please note that the bluetooth connection might take up to a couple of minutes before it starts working." = "Xin chắc chắn rằng Libre 2 của bạn đã được kích hoạt and hoàn thành khởi động. Nếu bạn đang có app nào kết nối với cảm biến qua bluetooth thì nên đóng các app này lại hoặc gỡ các app khỏi máy.\n\n Bạn chỉ được dùng 01 app để kết nối với cảm biến qua bluetooth. Sau đó nhấn \"pairing and connection\" để tiếp tục. Bluetooth có thể mất vài phút để kết nối trước khi bắt đầu hoạt động.";
+"Please make sure that your Libre 2 sensor is already activated and finished warming up. If you have other apps connecting to the sensor via bluetooth, these need to be shut down or uninstalled. \n\n You can only have one app communicating with the sensor via bluetooth. Then press the \"pariring and connection\" button below to start the process. Please note that the bluetooth connection might take up to a couple of minutes before it starts working." = "Xin chắc chắn rằng Libre 2 của bạn đã được kích hoạt and hoàn thành khởi động. Nếu bạn đang có app nào kết nối với cảm biến qua bluetooth thì nên đóng các app này lại hoặc gỡ các app khỏi máy.\n\n Bạn chỉ được dùng 01 app để kết nối với cảm biến qua bluetooth. Sau đó nhấn \"ghép và kết nối\" để tiếp tục. Bluetooth có thể mất vài phút để kết nối trước khi bắt đầu hoạt động.";
 
 /* */
 "Pairinginfo" = "Thông tin ghép nối";
@@ -1683,10 +1683,10 @@ Enact a temp Basal or a temp target */
 "Display Chart Threshold lines for Low and High" = "Hiển thị các đường hiển thị Thấp và Cao";
 
 /* */
-"Standing / Laying TIR Chart" = "Đứng/nằm biểu đồ trong phạm vi (TIR)";
+"Standing / Laying TIR Chart" = "Đứng/Nằm biểu đồ trong phạm vi TIR";
 
 /* */
-"Hours X-Axis (6 default)" = "Giờ trục X (mặc định 6)";
+"Hours X-Axis (6 default)" = "Giờ trục X-Axis (mặc định 6)";
 
 /* */
 "2 hours" = "2 giờ";
@@ -1808,7 +1808,7 @@ Enact a temp Basal or a temp target */
 /* New Experimental feature */
 "Experimental" = "Thực hiện";
 /* Smoothing of CGM readings */
-"Smooth Glucose Value" = "Giá trị Glucose mịn";
+"Smooth Glucose Value" = "Làm mịn giá trị Glucose";
 
 /* -----------------------------------------------------------------------------------------------------------
 
