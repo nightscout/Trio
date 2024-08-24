@@ -93,7 +93,7 @@ final class OpenAPS {
     }
 
     func checkForCobIobUpdate(_ determination: Determination) async {
-        let previousDeterminations = await CoreDataStack.shared.fetchEntitiesAsync(
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
             onContext: context,
             predicate: NSPredicate.predicateFor30MinAgoForDetermination,
@@ -101,6 +101,10 @@ final class OpenAPS {
             ascending: false,
             fetchLimit: 2
         )
+
+        guard let previousDeterminations = results as? [OrefDetermination] else {
+            return
+        }
 
         // We need to get the second last Determination for this comparison because we have saved the current Determination already to Core Data
         if let previousDetermination = previousDeterminations.dropFirst().first {
@@ -136,9 +140,13 @@ final class OpenAPS {
             batchSize: 24
         )
 
+        guard let glucoseResults = results as? [GlucoseStored] else {
+            return ""
+        }
+
         return await context.perform {
-            // convert to json
-            return self.jsonConverter.convertToJSON(results)
+            // convert to JSON
+            return self.jsonConverter.convertToJSON(glucoseResults)
         }
     }
 
@@ -151,9 +159,13 @@ final class OpenAPS {
             ascending: false
         )
 
-        // convert to json
+        guard let carbResults = results as? [CarbEntryStored] else {
+            return ""
+        }
+
+        // convert to JSON
         return await context.perform {
-            return self.jsonConverter.convertToJSON(results)
+            return self.jsonConverter.convertToJSON(carbResults)
         }
     }
 
@@ -166,8 +178,13 @@ final class OpenAPS {
             ascending: false,
             batchSize: 50
         )
+
+        guard let pumpEventResults = results as? [PumpEventStored] else {
+            return nil
+        }
+
         return await context.perform {
-            return results.map(\.objectID)
+            return pumpEventResults.map(\.objectID)
         }
     }
 
@@ -312,13 +329,21 @@ final class OpenAPS {
             let tenDaysAgo = Date().addingTimeInterval(-10.days.timeInterval)
             let twoHoursAgo = Date().addingTimeInterval(-2.hours.timeInterval)
 
-            var uniqueEvents = [OrefDetermination]()
-            let requestTDD = OrefDetermination.fetchRequest() as NSFetchRequest<OrefDetermination>
+            var uniqueEvents = [[String: Any]]()
+            let requestTDD = OrefDetermination.fetchRequest() as NSFetchRequest<NSFetchRequestResult>
             requestTDD.predicate = NSPredicate(format: "timestamp > %@ AND totalDailyDose > 0", tenDaysAgo as NSDate)
             requestTDD.propertiesToFetch = ["timestamp", "totalDailyDose"]
             let sortTDD = NSSortDescriptor(key: "timestamp", ascending: true)
             requestTDD.sortDescriptors = [sortTDD]
-            try? uniqueEvents = self.context.fetch(requestTDD)
+            requestTDD.resultType = .dictionaryResultType
+
+            do {
+                if let fetchedResults = try self.context.fetch(requestTDD) as? [[String: Any]] {
+                    uniqueEvents = fetchedResults
+                }
+            } catch {
+                debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch TDD Data")
+            }
 
             var sliderArray = [TempTargetsSlider]()
             let requestIsEnbled = TempTargetsSlider.fetchRequest() as NSFetchRequest<TempTargetsSlider>
@@ -343,12 +368,13 @@ final class OpenAPS {
             requestTempTargets.fetchLimit = 1
             try? tempTargetsArray = self.context.fetch(requestTempTargets)
 
-            let total = uniqueEvents.compactMap({ each in each.totalDailyDose as? Decimal ?? 0 }).reduce(0, +)
+            let total = uniqueEvents.compactMap({ ($0["totalDailyDose"] as? NSDecimalNumber)?.decimalValue ?? 0 }).reduce(0, +)
             var indeces = uniqueEvents.count
             // Only fetch once. Use same (previous) fetch
-            let twoHoursArray = uniqueEvents.filter({ ($0.timestamp ?? Date()) >= twoHoursAgo })
+            let twoHoursArray = uniqueEvents.filter({ ($0["timestamp"] as? Date ?? Date()) >= twoHoursAgo })
             var nrOfIndeces = twoHoursArray.count
-            let totalAmount = twoHoursArray.compactMap({ each in each.totalDailyDose as? Decimal ?? 0 }).reduce(0, +)
+            let totalAmount = twoHoursArray.compactMap({ ($0["totalDailyDose"] as? NSDecimalNumber)?.decimalValue ?? 0 })
+                .reduce(0, +)
 
             var temptargetActive = tempTargetsArray.first?.active ?? false
             let isPercentageEnabled = sliderArray.first?.enabled ?? false
@@ -358,7 +384,7 @@ final class OpenAPS {
             var unlimited = overrideArray.first?.indefinite ?? true
             var disableSMBs = overrideArray.first?.smbIsOff ?? false
 
-            let currentTDD = (uniqueEvents.last?.totalDailyDose ?? 0) as Decimal
+            let currentTDD = (uniqueEvents.last?["totalDailyDose"] as? NSDecimalNumber)?.decimalValue ?? 0
 
             if indeces == 0 {
                 indeces = 1

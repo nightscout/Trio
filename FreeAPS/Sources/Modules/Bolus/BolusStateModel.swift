@@ -257,9 +257,11 @@ extension Bolus {
 
         // MARK: - Button tasks
 
-        @MainActor func invokeTreatmentsTask() {
+        func invokeTreatmentsTask() {
             Task {
-                addButtonPressed = true
+                await MainActor.run {
+                    self.addButtonPressed = true
+                }
                 let isInsulinGiven = amount > 0
                 let isCarbsPresent = carbs > 0
                 let isFatPresent = fat > 0
@@ -268,7 +270,9 @@ extension Bolus {
                 if isInsulinGiven {
                     try await handleInsulin(isExternal: externalInsulin)
                 } else if isCarbsPresent || isFatPresent || isProteinPresent {
-                    waitForSuggestion = true
+                    await MainActor.run {
+                        self.waitForSuggestion = true
+                    }
                 } else {
                     hideModal()
                     return
@@ -285,16 +289,19 @@ extension Bolus {
 
         // MARK: - Insulin
 
-        @MainActor private func handleInsulin(isExternal: Bool) async throws {
+        private func handleInsulin(isExternal: Bool) async throws {
             if !isExternal {
                 await addPumpInsulin()
             } else {
                 await addExternalInsulin()
             }
-            waitForSuggestion = true
+
+            await MainActor.run {
+                self.waitForSuggestion = true
+            }
         }
 
-        @MainActor func addPumpInsulin() async {
+        func addPumpInsulin() async {
             guard amount > 0 else {
                 showModal(for: nil)
                 return
@@ -311,7 +318,7 @@ extension Bolus {
                 }
             } catch {
                 print("authentication error for pump bolus: \(error.localizedDescription)")
-                DispatchQueue.main.async {
+                await MainActor.run {
                     self.waitForSuggestion = false
                     if self.addButtonPressed {
                         self.hideModal()
@@ -345,13 +352,15 @@ extension Bolus {
 
         // MARK: - EXTERNAL INSULIN
 
-        @MainActor func addExternalInsulin() async {
+        func addExternalInsulin() async {
             guard amount > 0 else {
                 showModal(for: nil)
                 return
             }
 
-            amount = min(amount, maxExternal)
+            await MainActor.run {
+                self.amount = min(self.amount, self.maxBolus * 3)
+            }
 
             do {
                 let authenticated = try await unlockmanager.unlock()
@@ -365,7 +374,7 @@ extension Bolus {
                 }
             } catch {
                 print("authentication error for external insulin: \(error.localizedDescription)")
-                DispatchQueue.main.async {
+                await MainActor.run {
                     self.waitForSuggestion = false
                     if self.addButtonPressed {
                         self.hideModal()
@@ -376,12 +385,15 @@ extension Bolus {
 
         // MARK: - Carbs
 
-        @MainActor func saveMeal() async {
+        func saveMeal() async {
             guard carbs > 0 || fat > 0 || protein > 0 else { return }
-            carbs = min(carbs, maxCarbs)
-            fat = min(fat, maxFat)
-            protein = min(protein, maxProtein)
-            id_ = UUID().uuidString
+
+            await MainActor.run {
+                   self.carbs = min(self.carbs, self.maxCarbs)
+                    self.fat = min(self.fat, self.maxFat)
+                    self.protein = min(self.protein, self.maxProtein)
+                   self.id_ = UUID().uuidString
+               }
 
             let carbsToStore = [CarbsEntry(
                 id: id_,
@@ -590,8 +602,10 @@ extension Bolus.StateModel {
             fetchLimit: 3
         )
 
+        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+
         return await backgroundContext.perform {
-            return results.map(\.objectID)
+            return fetchedResults.map(\.objectID)
         }
     }
 

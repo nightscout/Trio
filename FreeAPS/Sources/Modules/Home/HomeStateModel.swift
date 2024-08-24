@@ -574,8 +574,10 @@ extension Home.StateModel {
             fetchLimit: 288
         )
 
+        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+
         return await context.perform {
-            return results.map(\.objectID)
+            return fetchedResults.map(\.objectID)
         }
     }
 
@@ -610,8 +612,10 @@ extension Home.StateModel {
             fetchLimit: 288
         )
 
+        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+
         return await context.perform {
-            return results.map(\.objectID)
+            return fetchedResults.map(\.objectID)
         }
     }
 
@@ -645,8 +649,10 @@ extension Home.StateModel {
             ascending: false
         )
 
+        guard let fetchedResults = results as? [CarbEntryStored] else { return [] }
+
         return await context.perform {
-            return results.map(\.objectID)
+            return fetchedResults.map(\.objectID)
         }
     }
 
@@ -680,8 +686,10 @@ extension Home.StateModel {
             ascending: false
         )
 
+        guard let fetchedResults = results as? [CarbEntryStored] else { return [] }
+
         return await context.perform {
-            return results.map(\.objectID)
+            return fetchedResults.map(\.objectID)
         }
     }
 
@@ -707,11 +715,15 @@ extension Home.StateModel {
             key: "deliverAt",
             ascending: false,
             batchSize: 50,
-            propertiesToFetch: ["cob", "iob", "deliverAt"]
+            propertiesToFetch: ["cob", "iob", "objectID"]
         )
 
+        guard let fetchedResults = results as? [[String: Any]] else {
+            return []
+        }
+
         return await context.perform {
-            return results.map(\.objectID)
+            return fetchedResults.compactMap { $0["objectID"] as? NSManagedObjectID }
         }
     }
 
@@ -770,8 +782,12 @@ extension Home.StateModel {
             ascending: true
         )
 
+        guard let pumpEvents = results as? [PumpEventStored] else {
+            return []
+        }
+
         return await context.perform {
-            return results.map(\.objectID)
+            return pumpEvents.map(\.objectID)
         }
     }
 
@@ -821,8 +837,10 @@ extension Home.StateModel {
             fetchLimit: 1
         )
 
+        guard let fetchedResults = results as? [PumpEventStored] else { return [].first }
+
         return await context.perform {
-            return results.map(\.objectID).first
+            return fetchedResults.map(\.objectID).first
         }
     }
 
@@ -853,8 +871,10 @@ extension Home.StateModel {
             ascending: false
         )
 
+        guard let fetchedResults = results as? [OpenAPS_Battery] else { return [] }
+
         return await context.perform {
-            return results.map(\.objectID)
+            return fetchedResults.map(\.objectID)
         }
     }
 
@@ -890,8 +910,10 @@ extension Home.StateModel {
             ascending: false
         )
 
+        guard let fetchedResults = results as? [OverrideStored] else { return [] }
+
         return await context.perform {
-            return results.map(\.objectID)
+            return fetchedResults.map(\.objectID)
         }
     }
 
@@ -941,8 +963,10 @@ extension Home.StateModel {
             ascending: false
         )
 
+        guard let fetchedResults = results as? [OverrideRunStored] else { return [] }
+
         return await context.perform {
-            return results.map(\.objectID)
+            return fetchedResults.map(\.objectID)
         }
     }
 

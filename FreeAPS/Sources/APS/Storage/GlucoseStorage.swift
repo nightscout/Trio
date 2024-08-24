@@ -239,8 +239,11 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             ascending: false,
             fetchLimit: 288
         )
+
+        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+
         return await coredataContext.perform {
-            return results.map { result in
+            return fetchedResults.map { result in
                 BloodGlucose(
                     _id: result.id?.uuidString ?? UUID().uuidString,
                     sgv: Int(result.glucose),
@@ -267,8 +270,11 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             ascending: false,
             fetchLimit: 288
         )
+
+        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+
         return await coredataContext.perform {
-            return results.map { result in
+            return fetchedResults.map { result in
                 NightscoutTreatment(
                     duration: nil,
                     rawDuration: nil,
