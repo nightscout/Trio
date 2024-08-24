@@ -225,8 +225,11 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             ascending: false,
             fetchLimit: 3
         )
+
+        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+
         return await backgroundContext.perform {
-            return results.map(\.objectID)
+            return fetchedResults.map(\.objectID)
         }
     }
 

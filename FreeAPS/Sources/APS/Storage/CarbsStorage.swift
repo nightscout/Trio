@@ -248,8 +248,12 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             ascending: false
         )
 
+        guard let carbEntries = results as? [CarbEntryStored] else {
+            return []
+        }
+
         return await coredataContext.perform {
-            return results.map { result in
+            return carbEntries.map { result in
                 NightscoutTreatment(
                     duration: nil,
                     rawDuration: nil,
@@ -283,8 +287,10 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             ascending: false
         )
 
+        guard let fpuEntries = results as? [CarbEntryStored] else { return [] }
+
         return await coredataContext.perform {
-            return results.map { result in
+            return fpuEntries.map { result in
                 NightscoutTreatment(
                     duration: nil,
                     rawDuration: nil,

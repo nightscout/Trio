@@ -139,12 +139,13 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
             predicate: NSPredicate.enactedDetermination,
             key: "timestamp",
             ascending: false,
-            fetchLimit: 1,
-            propertiesToFetch: ["timestamp"]
+            fetchLimit: 1
         )
 
+        guard let fetchedResults = results as? [OrefDetermination] else { return [] }
+
         return await context.perform {
-            results.map(\.objectID)
+            fetchedResults.map(\.objectID)
         }
     }
 
@@ -155,11 +156,14 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
             predicate: NSPredicate.predicateForOneDayAgo,
             key: "date",
             ascending: false,
-            fetchLimit: 1
+            fetchLimit: 1,
+            propertiesToFetch: ["enabled", "percentage", "objectID"]
         )
 
+        guard let fetchedResults = results as? [[String: Any]] else { return nil }
+
         return await context.perform {
-            results.map(\.objectID).first
+            fetchedResults.compactMap { $0["objectID"] as? NSManagedObjectID }.first
         }
     }
 
@@ -174,8 +178,12 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
             batchSize: 12
         )
 
+        guard let glucoseResults = results as? [GlucoseStored] else {
+            return []
+        }
+
         return await context.perform {
-            results.map(\.objectID)
+            glucoseResults.map(\.objectID)
         }
     }
 

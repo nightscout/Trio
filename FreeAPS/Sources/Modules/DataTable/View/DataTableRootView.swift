@@ -12,12 +12,10 @@ extension DataTable {
         @State private var alertTreatmentToDelete: PumpEventStored?
         @State private var alertCarbEntryToDelete: CarbEntryStored?
         @State private var alertGlucoseToDelete: GlucoseStored?
-
+        @State private var showAlert = false
         @State private var showFutureEntries: Bool = false // default to hide future entries
         @State private var showManualGlucose: Bool = false
         @State private var isAmountUnconfirmed: Bool = true
-
-        @State private var showAlert = false
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(\.managedObjectContext) var context
@@ -345,6 +343,7 @@ extension DataTable {
                                     state.addManualGlucose()
                                     isAmountUnconfirmed = false
                                     showManualGlucose = false
+                                    state.mode = .glucose
                                 }
                                 label: { Text("Save") }
                                     .frame(maxWidth: .infinity, alignment: .center)
