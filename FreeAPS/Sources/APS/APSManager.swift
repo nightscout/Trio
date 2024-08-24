@@ -1027,7 +1027,6 @@ final class BaseAPSManager: APSManager, Injectable {
                 )
             )
             storage.save(dailystat, as: file)
-            await nightscout.uploadStatistics(dailystat: dailystat)
 
             await saveStatsToCoreData()
         }

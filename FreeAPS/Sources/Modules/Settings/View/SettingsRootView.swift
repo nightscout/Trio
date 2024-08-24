@@ -326,11 +326,6 @@ extension Settings {
                     }
                 }
                 .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
-                .onDisappear(perform: {
-                    Task.detached(priority: .low) {
-                        await state.uploadProfileAndSettings(false)
-                    }
-                })
                 .screenNavigation(self)
         }
     }

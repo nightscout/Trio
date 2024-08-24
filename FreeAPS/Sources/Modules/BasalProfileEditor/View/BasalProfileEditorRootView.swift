@@ -115,7 +115,7 @@ extension BasalProfileEditor {
                 }.listRowBackground(Color.chart)
 
                 Section {
-                    Picker(selection: $state.items[index].timeIndex, label: Text("Text")) {
+                    Picker(selection: $state.items[index].timeIndex, label: Text("Time")) {
                         ForEach(0 ..< state.timeValues.count, id: \.self) { i in
                             Text(
                                 self.dateFormatter

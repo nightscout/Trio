@@ -2,6 +2,7 @@ import SwiftUI
 
 extension CarbRatioEditor {
     final class StateModel: BaseStateModel<Provider> {
+        @Injected() private var nightscout: NightscoutManager!
         @Published var items: [Item] = []
         @Published var initialItems: [Item] = []
         @Published var autotune: Autotune?
@@ -71,6 +72,10 @@ extension CarbRatioEditor {
             let profile = CarbRatios(units: .grams, schedule: schedule)
             provider.saveProfile(profile)
             initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
+            Task.detached(priority: .low) {
+                debug(.nightscout, "Attempting to upload CRs to Nightscout")
+                await self.nightscout.uploadProfiles()
+            }
         }
 
         func validate() {

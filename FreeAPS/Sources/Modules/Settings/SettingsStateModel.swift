@@ -54,11 +54,6 @@ extension Settings {
             return items
         }
 
-        func uploadProfileAndSettings(_ force: Bool) async {
-            NSLog("SettingsState Upload Profile and Settings")
-            await nightscoutManager.uploadProfileAndSettings(force)
-        }
-
         func hideSettingsModal() {
             hideModal()
         }

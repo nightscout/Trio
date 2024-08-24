@@ -4,6 +4,8 @@ import SwiftUI
 extension ISFEditor {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() var determinationStorage: DeterminationStorage!
+        @Injected() private var nightscout: NightscoutManager!
+
         @Published var items: [Item] = []
         @Published var initialItems: [Item] = []
         @Published var shouldDisplaySaving: Bool = false
@@ -94,6 +96,11 @@ extension ISFEditor {
             )
             provider.saveProfile(profile)
             initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
+
+            Task.detached(priority: .low) {
+                debug(.nightscout, "Attempting to upload ISF to Nightscout")
+                await self.nightscout.uploadProfiles()
+            }
         }
 
         func validate() {

@@ -3,8 +3,9 @@ import SwiftUI
 
 extension PumpSettingsEditor {
     final class StateModel: BaseStateModel<Provider> {
-        @Published var units: GlucoseUnits = .mgdL
+        @Injected() private var nightscout: NightscoutManager!
 
+        @Published var units: GlucoseUnits = .mgdL
         @Published var maxBasal: Decimal = 0.0 {
             didSet {
                 checkForChanges()
@@ -76,6 +77,11 @@ extension PumpSettingsEditor {
                     self.initialDia = settings.insulinActionCurve
 
                     self.checkForChanges()
+
+                    Task.detached(priority: .low) {
+                        debug(.nightscout, "Attempting to upload DIA to Nightscout")
+                        await self.nightscout.uploadProfiles()
+                    }
                 } receiveValue: {}
                 .store(in: &lifetime)
         }

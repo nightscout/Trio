@@ -2,6 +2,8 @@ import SwiftUI
 
 extension BasalProfileEditor {
     final class StateModel: BaseStateModel<Provider> {
+        @Injected() private var nightscout: NightscoutManager!
+
         @Published var syncInProgress: Bool = false
         @Published var initialItems: [Item] = []
         @Published var items: [Item] = []
@@ -83,6 +85,11 @@ extension BasalProfileEditor {
                 .sink { _ in
                     self.syncInProgress = false
                     self.initialItems = self.items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
+
+                    Task.detached(priority: .low) {
+                        debug(.nightscout, "Attempting to upload basal rates to Nightscout")
+                        await self.nightscout.uploadProfiles()
+                    }
                 } receiveValue: {}
                 .store(in: &lifetime)
         }

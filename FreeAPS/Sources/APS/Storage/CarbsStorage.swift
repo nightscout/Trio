@@ -30,25 +30,28 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
 
     func storeCarbs(_ entries: [CarbsEntry], areFetchedFromRemote: Bool) async {
         var entriesToStore = entries
-        
+
         if areFetchedFromRemote {
             let existing24hCarbEntries: [CarbEntryStored] = await CoreDataStack.shared.fetchEntitiesAsync(
                 ofType: CarbEntryStored.self,
-                onContext: self.coredataContext,
+                onContext: coredataContext,
                 predicate: NSPredicate.predicateForOneDayAgo,
                 key: "date",
                 ascending: false,
                 batchSize: 50
             )
-            
+
             if !existing24hCarbEntries.isEmpty {
                 // compare entries createdAt and existing24hCarbEntries date and remove duplicates in entries
                 // TODO: refactor this when properties-to-fetch has landed to only fetch dates
-                let existingTimestamps = Set(existing24hCarbEntries.map { $0.date })
-                entriesToStore = entriesToStore.filter { !existingTimestamps.contains($0.actualDate ?? $0.createdAt) || !existingTimestamps.contains($0.createdAt) }
+                let existingTimestamps = Set(existing24hCarbEntries.map(\.date))
+                entriesToStore = entriesToStore
+                    .filter {
+                        !existingTimestamps.contains($0.actualDate ?? $0.createdAt) || !existingTimestamps.contains($0.createdAt)
+                    }
             }
         }
-        
+
         await saveCarbEquivalents(entries: entriesToStore, areFetchedFromRemote: areFetchedFromRemote)
         await saveCarbsToCoreData(entries: entriesToStore, areFetchedFromRemote: areFetchedFromRemote)
     }
