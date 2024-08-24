@@ -1151,7 +1151,7 @@ final class BaseAPSManager: APSManager, Injectable {
     private func tddForStats() async -> (currentTDD: Decimal, tddTotalAverage: Decimal) {
         let requestTDD = OrefDetermination.fetchRequest() as NSFetchRequest<NSFetchRequestResult>
         let sort = NSSortDescriptor(key: "timestamp", ascending: false)
-        let daysOf14Ago = Date().addingTimeInterval(-14 * 24 * 60 * 60)
+        let daysOf14Ago = Date().addingTimeInterval(-14.days.timeInterval)
         requestTDD.predicate = NSPredicate(format: "timestamp > %@", daysOf14Ago as NSDate)
         requestTDD.sortDescriptors = [sort]
         requestTDD.propertiesToFetch = ["timestamp", "totalDailyDose"]
