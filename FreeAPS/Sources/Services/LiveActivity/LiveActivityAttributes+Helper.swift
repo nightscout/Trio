@@ -79,32 +79,20 @@ extension LiveActivityAttributes.ContentState {
 
         switch settings.lockScreenView {
         case .detailed:
-            let chartBG = chart.map(\.glucose)
-
-            let conversionFactor: Double = settings.units == .mmolL ? 18.0 : 1.0
-            let convertedChartBG = chartBG.map { Double($0) / conversionFactor }
-
+            let chartBG = chart.map { Decimal($0.glucose) }
             let chartDate = chart.map(\.date)
 
             /// glucose limits from UI settings, not from notifications settings
-            let highGlucose = settings.high / Decimal(conversionFactor)
-            let lowGlucose = settings.low / Decimal(conversionFactor)
-
-            let cob = determination?.cob ?? 0
-            let iob = determination?.iob ?? 0
-            let unit = settings.units == .mmolL ? " mmol/L" : " mg/dL"
-            let isOverrideActive = override?.isActive ?? false
-
             detailedState = LiveActivityAttributes.ContentAdditionalState(
-                chart: convertedChartBG,
+                chart: chartBG,
                 chartDate: chartDate,
                 rotationDegrees: rotationDegrees,
-                highGlucose: Double(highGlucose),
-                lowGlucose: Double(lowGlucose),
-                cob: Decimal(cob),
-                iob: iob as Decimal,
-                unit: unit,
-                isOverrideActive: isOverrideActive
+                highGlucose: settings.high,
+                lowGlucose: settings.low,
+                cob: Decimal(determination?.cob ?? 0),
+                iob: determination?.iob ?? 0 as Decimal,
+                unit: settings.units.rawValue,
+                isOverrideActive: override?.isActive ?? false
             )
 
         case .simple:

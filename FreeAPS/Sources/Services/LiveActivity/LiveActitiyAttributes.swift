@@ -15,11 +15,11 @@ struct LiveActivityAttributes: ActivityAttributes {
     }
 
     public struct ContentAdditionalState: Codable, Hashable {
-        let chart: [Double]
+        let chart: [Decimal]
         let chartDate: [Date?]
         let rotationDegrees: Double
-        let highGlucose: Double
-        let lowGlucose: Double
+        let highGlucose: Decimal
+        let lowGlucose: Decimal
         let cob: Decimal
         let iob: Decimal
         let unit: String
