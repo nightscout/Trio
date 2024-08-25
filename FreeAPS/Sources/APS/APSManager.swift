@@ -24,6 +24,7 @@ protocol APSManager {
     func makeProfiles() async throws -> Bool
     func determineBasal() async -> Bool
     func determineBasalSync() async
+    func simulateDetermineBasal(carbs: Decimal, iob: Decimal) async -> Determination?
     func roundBolus(amount: Decimal) -> Decimal
     var lastError: CurrentValueSubject<Error?, Never> { get }
     func cancelBolus() async
@@ -323,9 +324,9 @@ final class BaseAPSManager: APSManager, Injectable {
         return nil
     }
 
-    func autosens() async throws -> Bool {
-        guard let autosens = await storage.retrieveAsync(OpenAPS.Settings.autosense, as: Autosens.self),
-              (autosens.timestamp ?? .distantPast).addingTimeInterval(30.minutes.timeInterval) > Date()
+    func autosense() async throws -> Bool {
+        guard let autosense = await storage.retrieveAsync(OpenAPS.Settings.autosense, as: Autosens.self),
+              (autosense.timestamp ?? .distantPast).addingTimeInterval(30.minutes.timeInterval) > Date()
         else {
             let result = try await openAPS.autosense()
             return result != nil
@@ -372,11 +373,17 @@ final class BaseAPSManager: APSManager, Injectable {
 
         do {
             let now = Date()
-            let temp = await fetchCurrentTempBasal(date: now)
-            _ = try await makeProfiles()
-            _ = try await autosens()
-            _ = try await dailyAutotune()
-            let determination = try await openAPS.determineBasal(currentTemp: temp, clock: now)
+
+            // Start fetching asynchronously
+            let (currentTemp, profiles, autosense, dailyAutotune) = try await (
+                fetchCurrentTempBasal(date: now),
+                makeProfiles(),
+                autosense(),
+                dailyAutotune()
+            )
+
+            // Determine basal using the fetched temp and current time
+            let determination = try await openAPS.determineBasal(currentTemp: currentTemp, clock: now)
 
             if let determination = determination {
                 DispatchQueue.main.async {
@@ -396,6 +403,18 @@ final class BaseAPSManager: APSManager, Injectable {
 
     func determineBasalSync() async {
         _ = await determineBasal()
+    }
+
+    func simulateDetermineBasal(carbs: Decimal, iob: Decimal) async -> Determination? {
+        do {
+            let temp = await fetchCurrentTempBasal(date: Date.now)
+            return try await openAPS.determineBasal(currentTemp: temp, clock: Date(), carbs: carbs, iob: iob, simulation: true)
+        } catch {
+            debugPrint(
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Error occurred in invokeDummyDetermineBasalSync: \(error)"
+            )
+            return nil
+        }
     }
 
     func makeProfiles() async throws -> Bool {
@@ -420,6 +439,10 @@ final class BaseAPSManager: APSManager, Injectable {
     private var bolusReporter: DoseProgressReporter?
 
     func enactBolus(amount: Double, isSMB: Bool) async {
+        if amount <= 0 {
+            return
+        }
+
         if let error = verifyStatus() {
             processError(error)
             processQueue.async {

@@ -43,6 +43,7 @@
   "yGridLines" : true,
   "oneDimensionalGraph" : false,
   "rulerMarks" : true,
+  "displayForecastsAsLines": false,
   "maxCarbs": 250,
   "maxFat": 250,
   "maxProtein": 250,

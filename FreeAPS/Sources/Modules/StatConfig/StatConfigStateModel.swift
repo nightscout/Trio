@@ -16,6 +16,7 @@ extension StatConfig {
         @Published var yGridLines: Bool = false
         @Published var oneDimensionalGraph = false
         @Published var rulerMarks: Bool = true
+        @Published var displayForecastsAsLines: Bool = false
 
         var units: GlucoseUnits = .mgdL
 
@@ -27,6 +28,7 @@ extension StatConfig {
             subscribeSetting(\.xGridLines, on: $xGridLines) { xGridLines = $0 }
             subscribeSetting(\.yGridLines, on: $yGridLines) { yGridLines = $0 }
             subscribeSetting(\.rulerMarks, on: $rulerMarks) { rulerMarks = $0 }
+            subscribeSetting(\.displayForecastsAsLines, on: $displayForecastsAsLines) { displayForecastsAsLines = $0 }
             subscribeSetting(\.useFPUconversion, on: $useFPUconversion) { useFPUconversion = $0 }
             subscribeSetting(\.tins, on: $tins) { tins = $0 }
             subscribeSetting(\.skipBolusScreenAfterCarbs, on: $skipBolusScreenAfterCarbs) { skipBolusScreenAfterCarbs = $0 }

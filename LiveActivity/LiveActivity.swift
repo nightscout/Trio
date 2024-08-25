@@ -1,5 +1,6 @@
 import ActivityKit
 import Charts
+import Foundation
 import SwiftUI
 import WidgetKit
 
@@ -7,6 +8,55 @@ private enum Size {
     case minimal
     case compact
     case expanded
+}
+
+enum GlucoseUnits: String, Equatable {
+    case mgdL = "mg/dL"
+    case mmolL = "mmol/L"
+
+    static let exchangeRate: Decimal = 0.0555
+}
+
+func rounded(_ value: Decimal, scale: Int, roundingMode: NSDecimalNumber.RoundingMode) -> Decimal {
+    var result = Decimal()
+    var toRound = value
+    NSDecimalRound(&result, &toRound, scale, roundingMode)
+    return result
+}
+
+extension Int {
+    var asMmolL: Decimal {
+        rounded(Decimal(self) * GlucoseUnits.exchangeRate, scale: 1, roundingMode: .plain)
+    }
+
+    var formattedAsMmolL: String {
+        NumberFormatter.glucoseFormatter.string(from: asMmolL as NSDecimalNumber) ?? "\(asMmolL)"
+    }
+}
+
+extension Decimal {
+    var asMmolL: Decimal {
+        rounded(self * GlucoseUnits.exchangeRate, scale: 1, roundingMode: .plain)
+    }
+
+    var asMgdL: Decimal {
+        rounded(self / GlucoseUnits.exchangeRate, scale: 0, roundingMode: .plain)
+    }
+
+    var formattedAsMmolL: String {
+        NumberFormatter.glucoseFormatter.string(from: asMmolL as NSDecimalNumber) ?? "\(asMmolL)"
+    }
+}
+
+extension NumberFormatter {
+    static let glucoseFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.locale = Locale.current
+        formatter.numberStyle = .decimal
+        formatter.minimumFractionDigits = 1
+        formatter.maximumFractionDigits = 1
+        return formatter
+    }()
 }
 
 struct LiveActivity: Widget {
@@ -215,27 +265,32 @@ struct LiveActivity: Widget {
             Text("No data available")
         } else {
             // Determine scale
-            let conversionFactor = additionalState.unit == "mmol/L" ? 0.0555 : 1
-            let min = (additionalState.chart.min() ?? 40 * conversionFactor) - 20 * conversionFactor
-            let max = (additionalState.chart.max() ?? 270 * conversionFactor) + 50 * conversionFactor
+            let min = min(additionalState.chart.min() ?? 45, 40) - 20
+            let max = max(additionalState.chart.max() ?? 270, 300) + 50
+
+            let yAxisRuleMarkMin = additionalState.unit == "mg/dL" ? additionalState.lowGlucose : additionalState.lowGlucose
+                .asMmolL
+            let yAxisRuleMarkMax = additionalState.unit == "mg/dL" ? additionalState.highGlucose : additionalState.highGlucose
+                .asMmolL
 
             Chart {
-                RuleMark(y: .value("High", additionalState.highGlucose))
+                RuleMark(y: .value("Low", yAxisRuleMarkMin))
                     .lineStyle(.init(lineWidth: 0.5, dash: [5]))
-                RuleMark(y: .value("Low", additionalState.lowGlucose))
+                RuleMark(y: .value("High", yAxisRuleMarkMax))
                     .lineStyle(.init(lineWidth: 0.5, dash: [5]))
 
                 ForEach(additionalState.chart.indices, id: \.self) { index in
                     let currentValue = additionalState.chart[index]
+                    let displayValue = additionalState.unit == "mg/dL" ? currentValue : currentValue.asMmolL
                     let chartDate = additionalState.chartDate[index] ?? Date()
                     let pointMark = PointMark(
                         x: .value("Time", chartDate),
-                        y: .value("Value", currentValue)
+                        y: .value("Value", displayValue)
                     ).symbolSize(15)
 
-                    if currentValue > additionalState.highGlucose {
+                    if displayValue > yAxisRuleMarkMax {
                         pointMark.foregroundStyle(Color.orange.gradient)
-                    } else if currentValue < additionalState.lowGlucose {
+                    } else if displayValue < yAxisRuleMarkMin {
                         pointMark.foregroundStyle(Color.red.gradient)
                     } else {
                         pointMark.foregroundStyle(Color.green.gradient)
@@ -248,7 +303,7 @@ struct LiveActivity: Widget {
                     AxisValueLabel().foregroundStyle(.secondary).font(.footnote)
                 }
             }
-            .chartYScale(domain: min ... max)
+            .chartYScale(domain: additionalState.unit == "mg/dL" ? min ... max : min.asMmolL ... max.asMmolL)
             .chartXAxis {
                 AxisMarks(position: .automatic) { _ in
                     AxisGridLine(stroke: .init(lineWidth: 0.2, dash: [2, 3])).foregroundStyle(Color.white)
