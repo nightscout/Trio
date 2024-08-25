@@ -125,7 +125,9 @@ extension OverrideConfig {
 
         private var defaultText: some View {
             Section {} header: {
-                Text("Add Preset or Override by tapping the '+'").foregroundStyle(.secondary)
+                Text("Add Preset or Override by tapping 'Add Override +' in the top right-hand corner of the screen.")
+                    .textCase(nil)
+                    .foregroundStyle(.secondary)
             }
         }
 
