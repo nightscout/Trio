@@ -1,20 +1,20 @@
 /* Privacy - NFC Scan Usage Description */
-"NFCReaderUsageDescription" = "NFC is used to scan Libre sensors.";
+"NFCReaderUsageDescription" = "يستخدم NFC لمسح أجهزة استشعار ليبري.";
 
 /* Privacy - Bluetooth Always Usage Description */
-"NSBluetoothAlwaysUsageDescription" = "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices";
+"NSBluetoothAlwaysUsageDescription" = "يستخدم البلوتوث للتواصل مع مضخة الأنسولين وأجهزة متابعة سكر الدم المستمرة";
 
 /* Privacy - Bluetooth Peripheral Usage Description */
-"NSBluetoothPeripheralUsageDescription" = "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices";
+"NSBluetoothPeripheralUsageDescription" = "يستخدم البلوتوث للتواصل مع مضخة الأنسولين وأجهزة متابعة سكر الدم المستمرة";
 
 /* Privacy - Face ID Usage Description */
-"NSFaceIDUsageDescription" = "For authorized acces to bolus";
+"NSFaceIDUsageDescription" = "للحصول على اذن السماح بالبولوس";
 
 /* Privacy - Calendars Usage Description */
-"NSCalendarsUsageDescription" = "Calendar is used to create a new glucose events.";
+"NSCalendarsUsageDescription" = "يتم استخدام التقويم لإنشاء أحداث جلوكوز جديدة.";
 
 /* Privacy - Health Update Usage Description */
-"NSHealthUpdateUsageDescription" = "Health App is used to store blood glucose, carbs and insulin";
+"NSHealthUpdateUsageDescription" = "يستخدم التطبيق الصحي لتخزين الجلوكوس في الدم والأنسولين والكربوهيدرات";
 
 /* Privacy - Health Share Usage Description */
-"NSHealthShareUsageDescription" = "Health App is used to store blood glucose, carbs and insulin";
+"NSHealthShareUsageDescription" = "يستخدم التطبيق الصحي لتخزين الجلوكوس في الدم والأنسولين والكربوهيدرات";
