@@ -129,7 +129,7 @@ struct DecimalPickerSettings {
         max: 200,
         type: PickerSetting.PickerSettingType.glucose
     )
-    var threshold_setting = PickerSetting(value: 65, step: 1, min: 50, max: 100, type: PickerSetting.PickerSettingType.glucose)
+    var threshold_setting = PickerSetting(value: 65, step: 1, min: 65, max: 100, type: PickerSetting.PickerSettingType.glucose)
     var updateInterval = PickerSetting(value: 20, step: 5, min: 1, max: 60, type: PickerSetting.PickerSettingType.minute)
     var delay = PickerSetting(value: 20, step: 5, min: 5, max: 60, type: PickerSetting.PickerSettingType.minute)
     var minuteInterval = PickerSetting(value: 20, step: 5, min: 5, max: 60, type: PickerSetting.PickerSettingType.minute)
