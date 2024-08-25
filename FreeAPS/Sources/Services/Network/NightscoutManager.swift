@@ -488,24 +488,26 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     return
                 }
 
+                let shouldParseToMmolL = settingsManager.settings.units == .mmolL
+
                 let sens = sensitivities.sensitivities.map { item in
                     NightscoutTimevalue(
                         time: String(item.start.prefix(5)),
-                        value: item.sensitivity,
+                        value: !shouldParseToMmolL ? item.sensitivity : item.sensitivity.asMmolL,
                         timeAsSeconds: item.offset * 60
                     )
                 }
                 let targetLow = targets.targets.map { item in
                     NightscoutTimevalue(
                         time: String(item.start.prefix(5)),
-                        value: item.low,
+                        value: !shouldParseToMmolL ? item.low : item.low.asMmolL,
                         timeAsSeconds: item.offset * 60
                     )
                 }
                 let targetHigh = targets.targets.map { item in
                     NightscoutTimevalue(
                         time: String(item.start.prefix(5)),
-                        value: item.high,
+                        value: !shouldParseToMmolL ? item.high : item.high.asMmolL,
                         timeAsSeconds: item.offset * 60
                     )
                 }
