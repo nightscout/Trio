@@ -121,7 +121,7 @@ struct NightscoutImportResultView: BaseView {
                 Section {
                     HStack {
                         Button {
-                            state.isProfileImportPresented = false
+                            state.isImportResultReviewPresented = false
                         } label: {
                             Text("Finish").font(.title3)
                         }
@@ -133,7 +133,7 @@ struct NightscoutImportResultView: BaseView {
             }
             .toolbar(content: {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button(action: { state.isProfileImportPresented = false }, label: {
+                    Button(action: { state.isImportResultReviewPresented = false }, label: {
                         Text("Cancel")
                     })
                 }

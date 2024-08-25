@@ -184,7 +184,7 @@ extension NightscoutConfig {
                 //                )
                 //            }
             }
-            .fullScreenCover(isPresented: $state.isProfileImportPresented, content: {
+            .fullScreenCover(isPresented: $state.isImportResultReviewPresented, content: {
                 NightscoutImportResultView(resolver: resolver, state: state)
             })
             .sheet(isPresented: $shouldDisplayHint) {

@@ -35,7 +35,7 @@ extension NightscoutConfig {
         @Published var allowAnnouncements: Bool = false
         @Published var isConnectedToNS: Bool = false
 
-        @Published var isProfileImportPresented: Bool = false
+        @Published var isImportResultReviewPresented: Bool = false
         @Published var importErrors: [String] = []
         @Published var importStatus: ImportStatus = .finished
 
@@ -133,7 +133,7 @@ extension NightscoutConfig {
                     )
                 }
 
-                // determine whether fetches values are mmol/L or mg/dL values
+                // determine, i.e. guesstimate, whether fetched values are mmol/L or mg/dL values
                 let shouldConvertToMgdL = fetchedProfile.units.contains("mmol") || fetchedProfile.target_low
                     .contains(where: { $0.value <= 39 }) || fetchedProfile.target_high.contains(where: { $0.value <= 39 })
 
@@ -292,8 +292,8 @@ extension NightscoutConfig {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 // stop blur
                 self.importStatus = .finished
-                // display next step
-                self.isProfileImportPresented = true
+                // display next import rewview step
+                self.isImportResultReviewPresented = true
             }
         }
 
