@@ -112,6 +112,10 @@ extension NightscoutConfig {
             return lowTargetValue
         }
 
+        func correctUnitParsingOffsets(_ parsedValue: Decimal) -> Decimal {
+            Int(parsedValue) % 2 == 0 ? parsedValue : parsedValue + 1
+        }
+
         func importSettings() async {
             do {
                 guard let fetchedProfile = await nightscoutManager.importSettings() else {
@@ -122,7 +126,9 @@ extension NightscoutConfig {
                     )
                 }
 
-                let shouldConvertToMgdL = fetchedProfile.units.contains("mmol")
+                // determine whether fetches values are mmol/L or mg/dL values
+                let shouldConvertToMgdL = fetchedProfile.units.contains("mmol") || fetchedProfile.target_low
+                    .contains(where: { $0.value <= 39 }) || fetchedProfile.target_high.contains(where: { $0.value <= 39 })
 
                 // Carb Ratios
                 let carbratios = fetchedProfile.carbratio.map { carbratio in
@@ -174,7 +180,8 @@ extension NightscoutConfig {
                 // Sensitivities
                 let sensitivities = fetchedProfile.sens.map { sensitivity in
                     InsulinSensitivityEntry(
-                        sensitivity: shouldConvertToMgdL ? sensitivity.value.asMgdL : sensitivity.value,
+                        sensitivity: shouldConvertToMgdL ? correctUnitParsingOffsets(sensitivity.value.asMgdL) : sensitivity
+                            .value,
                         offset: offset(sensitivity.time) / 60,
                         start: sensitivity.time
                     )
@@ -194,17 +201,21 @@ extension NightscoutConfig {
                     sensitivities: sensitivities
                 )
 
+                debug(.nightscout, "FETCHED SENSITIVITIES: \(sensitivitiesProfile)")
+
                 // Targets
                 let targets = fetchedProfile.target_low.map { target in
                     BGTargetEntry(
-                        low: shouldConvertToMgdL ? target.value.asMgdL : target.value,
-                        high: shouldConvertToMgdL ? target.value.asMgdL : target.value,
+                        low: shouldConvertToMgdL ? correctUnitParsingOffsets(target.value.asMgdL) : target.value,
+                        high: shouldConvertToMgdL ? correctUnitParsingOffsets(target.value.asMgdL) : target.value,
                         start: target.time,
                         offset: offset(target.time) / 60
                     )
                 }
 
                 let targetsProfile = BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: targets)
+
+                debug(.nightscout, "FETCHED TARGETS: \(targetsProfile)")
 
                 // Save to storage and pump
                 if let pump = apsManager.pumpManager {

@@ -129,7 +129,8 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     }
 
     private func notifyCarbsRequired(_ carbs: Int) {
-        guard Decimal(carbs) >= settingsManager.settings.carbsRequiredThreshold, settingsManager.settings.showCarbsRequiredBadge else { return }
+        guard Decimal(carbs) >= settingsManager.settings.carbsRequiredThreshold,
+              settingsManager.settings.showCarbsRequiredBadge else { return }
 
         ensureCanSendNotification {
             var titles: [String] = []

@@ -190,15 +190,6 @@ extension NightscoutConfig {
                     sheetTitle: "Help"
                 )
             }
-            .sheet(isPresented: $shouldDisplayHint) {
-                SettingInputHintView(
-                    hintDetent: $hintDetent,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
-                    sheetTitle: "Help"
-                )
-            }
             .navigationBarTitle("Nightscout")
             .navigationBarTitleDisplayMode(.automatic)
             .alert(isPresented: $isImportAlertPresented) {

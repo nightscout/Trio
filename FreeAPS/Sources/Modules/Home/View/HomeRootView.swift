@@ -849,7 +849,9 @@ extension Home {
             ZStack(alignment: .bottom) {
                 TabView(selection: $selectedTab) {
                     let carbsRequiredBadge: String? = {
-                        guard let carbsRequired = state.enactedAndNonEnactedDeterminations.first?.carbsRequired, state.showCarbsRequiredBadge else {
+                        guard let carbsRequired = state.enactedAndNonEnactedDeterminations.first?.carbsRequired,
+                              state.showCarbsRequiredBadge
+                        else {
                             return nil
                         }
                         let carbsRequiredDecimal = Decimal(carbsRequired)

@@ -32,12 +32,6 @@ extension TargetsEditor {
             return formatter
         }
 
-        private var rateFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            return formatter
-        }
-
         var body: some View {
             Form {
                 let shouldDisableButton = state.shouldDisplaySaving || state.items.isEmpty || !state.hasChanges
@@ -96,17 +90,8 @@ extension TargetsEditor {
                         label: Text("Target ")
                     ) {
                         ForEach(0 ..< state.rateValues.count, id: \.self) { i in
-                            Text(
-                                (
-                                    self.rateFormatter
-                                        .string(
-                                            from: state.units == .mgdL ? state.rateValues[i] as NSNumber : state.rateValues[i]
-                                                .asMmolL as NSNumber
-                                        ) ?? ""
-                                )
-                                    + " \(state.units.rawValue)"
-
-                            ).tag(i)
+                            Text(state.units == .mgdL ? state.rateValues[i].description : state.rateValues[i].formattedAsMmolL)
+                                .tag(i)
                         }
                     }
                 }.listRowBackground(Color.chart)
@@ -137,7 +122,8 @@ extension TargetsEditor {
                     NavigationLink(destination: pickers(for: index)) {
                         HStack {
                             Text(
-                                "\(rateFormatter.string(from: state.units == .mgdL ? state.rateValues[item.lowIndex] as NSNumber : state.rateValues[item.lowIndex].asMmolL as NSNumber) ?? "0")"
+                                state.units == .mgdL ? state.rateValues[item.lowIndex].description : state
+                                    .rateValues[item.lowIndex].formattedAsMmolL
                             )
                             Text("\(state.units.rawValue)").foregroundColor(.secondary)
                             Spacer()

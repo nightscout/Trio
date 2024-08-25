@@ -48,10 +48,10 @@ extension ISFEditor {
                         HStack {
                             Text("Calculated Sensitivity")
                             Spacer()
-                            if state.units == .mmolL {
-                                Text(rateFormatter.string(from: autotune.sensitivity.asMmolL as NSNumber) ?? "0")
+                            if state.units == .mgdL {
+                                Text(autotune.sensitivity.description)
                             } else {
-                                Text(rateFormatter.string(from: autotune.sensitivity as NSNumber) ?? "0")
+                                Text(autotune.sensitivity.formattedAsMmolL)
                             }
                             Text(state.units.rawValue + "/U").foregroundColor(.secondary)
                         }
@@ -82,25 +82,14 @@ extension ISFEditor {
                             Spacer()
                             if state.units == .mgdL {
                                 Text(
-                                    rateFormatter
-                                        .string(from: (
-                                            (
-                                                !state.settingsManager.preferences
-                                                    .useNewFormula ? newISF as NSDecimalNumber : dynamicISF
-                                            ) ?? 0
-                                        ) as NSNumber) ?? "0"
+                                    !state.settingsManager.preferences
+                                        .useNewFormula ? newISF.description : (dynamicISF ?? 0).description
                                 )
                             } else {
-                                Text(
-                                    rateFormatter
-                                        .string(from: (
-                                            (
-                                                !state.settingsManager.preferences
-                                                    .useNewFormula ? newISF.asMmolL as NSDecimalNumber as Decimal : dynamicISF?
-                                                    .decimalValue.asMmolL
-                                            ) ?? 0
-                                        ) as NSNumber) ?? "0"
-                                )
+                                Text((
+                                    !state.settingsManager.preferences
+                                        .useNewFormula ? newISF.formattedAsMmolL : dynamicISF?.decimalValue.formattedAsMmolL
+                                ) ?? "0")
                             }
                             Text(state.units.rawValue + "/U").foregroundColor(.secondary)
                         }
@@ -159,13 +148,8 @@ extension ISFEditor {
                     Picker(selection: $state.items[index].rateIndex, label: Text("Rate")) {
                         ForEach(0 ..< state.rateValues.count, id: \.self) { i in
                             Text(
-                                (
-                                    self.rateFormatter
-                                        .string(
-                                            from: state.units == .mgdL ? state.rateValues[i] as NSNumber : state.rateValues[i]
-                                                .asMmolL as NSNumber
-                                        ) ?? ""
-                                ) + " \(state.units.rawValue)/U"
+                                state.units == .mgdL ? state.rateValues[i].description : state.rateValues[i]
+                                    .formattedAsMmolL + " \(state.units.rawValue)/U"
                             ).tag(i)
                         }
                     }
@@ -194,18 +178,15 @@ extension ISFEditor {
         private var list: some View {
             List {
                 ForEach(state.items.indexed(), id: \.1.id) { index, item in
-                    let displayValue = rateFormatter
-                        .string(
-                            from: state.units == .mgdL ? state.rateValues[item.rateIndex] as NSNumber : state
-                                .rateValues[item.rateIndex].asMmolL as NSNumber
-                        )
+                    let displayValue = state.units == .mgdL ? state.rateValues[item.rateIndex].description : state
+                        .rateValues[item.rateIndex].formattedAsMmolL
 
                     NavigationLink(destination: pickers(for: index)) {
                         HStack {
                             Text("Rate").foregroundColor(.secondary)
 
                             Text(
-                                "\(displayValue ?? "0") \(state.units.rawValue)/U"
+                                displayValue + " \(state.units.rawValue)/U"
                             )
                             Spacer()
                             Text("starts at").foregroundColor(.secondary)
