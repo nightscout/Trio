@@ -35,6 +35,10 @@ extension NightscoutConfig {
         @Published var allowAnnouncements: Bool = false
         @Published var isConnectedToNS: Bool = false
 
+        @Published var isProfileImportPresented: Bool = false
+        @Published var importErrors: [String] = []
+        @Published var importStatus: ImportStatus = .finished
+
         override func subscribe() {
             url = keychain.getValue(String.self, forKey: Config.urlKey) ?? ""
             secret = keychain.getValue(String.self, forKey: Config.secretKey) ?? ""
@@ -117,8 +121,11 @@ extension NightscoutConfig {
         }
 
         func importSettings() async {
+            importStatus = .running
+
             do {
                 guard let fetchedProfile = await nightscoutManager.importSettings() else {
+                    importStatus = .failed
                     throw NSError(
                         domain: "ImportError",
                         code: 1,
@@ -140,6 +147,8 @@ extension NightscoutConfig {
                 }
 
                 if carbratios.contains(where: { $0.ratio <= 0 }) {
+                    importStatus = .failed
+
                     throw NSError(
                         domain: "ImportError",
                         code: 2,
@@ -160,6 +169,8 @@ extension NightscoutConfig {
                 }
 
                 if pumpName != "Omnipod DASH", basals.contains(where: { $0.rate <= 0 }) {
+                    importStatus = .failed
+
                     throw NSError(
                         domain: "ImportError",
                         code: 3,
@@ -168,6 +179,8 @@ extension NightscoutConfig {
                 }
 
                 if pumpName == "Omnipod DASH", basals.reduce(0, { $0 + $1.rate }) <= 0 {
+                    importStatus = .failed
+
                     throw NSError(
                         domain: "ImportError",
                         code: 4,
@@ -188,6 +201,8 @@ extension NightscoutConfig {
                 }
 
                 if sensitivities.contains(where: { $0.sensitivity <= 0 }) {
+                    importStatus = .failed
+
                     throw NSError(
                         domain: "ImportError",
                         code: 5,
@@ -234,9 +249,10 @@ extension NightscoutConfig {
                                 dia: fetchedProfile.dia
                             )
                         case .failure:
-                            self.saveError(
+                            self.importErrors.append(
                                 "Settings were imported but the Basals couldn't be saved to pump (communication error)."
                             )
+                            self.importStatus = .failed
                         }
                     }
                 } else {
@@ -247,21 +263,9 @@ extension NightscoutConfig {
                         targetsProfile: targetsProfile,
                         dia: fetchedProfile.dia
                     )
-                    saveError("Settings were imported but the Basals couldn't be saved to pump (No pump).")
                 }
-
-                // Save DIA if different
-                let dia = fetchedProfile.dia
-                if dia != self.dia, dia >= 0 {
-                    let file = PumpSettings(insulinActionCurve: dia, maxBolus: maxBolus, maxBasal: maxBasal)
-                    storage.save(file, as: OpenAPS.Settings.settings)
-                    debug(.nightscout, "DIA setting updated to \(dia) after a NS import.")
-                }
-
-                debug(.service, "Settings imported successfully.")
-
             } catch {
-                saveError(error.localizedDescription)
+                importErrors.append(error.localizedDescription)
                 debug(.service, "Settings import failed with error: \(error.localizedDescription)")
             }
         }
@@ -284,23 +288,19 @@ extension NightscoutConfig {
             }
 
             debug(.service, "Settings imported successfully.")
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                // stop blur
+                self.importStatus = .finished
+                // display next step
+                self.isProfileImportPresented = true
+            }
         }
 
         func offset(_ string: String) -> Int {
             let hours = Int(string.prefix(2)) ?? 0
             let minutes = Int(string.suffix(2)) ?? 0
             return ((hours * 60) + minutes) * 60
-        }
-
-        func saveError(_ string: String) {
-            coredataContext.performAndWait {
-                let saveToCoreData = ImportError(context: self.coredataContext)
-                saveToCoreData.date = Date()
-                saveToCoreData.error = string
-                if coredataContext.hasChanges {
-                    try? coredataContext.save()
-                }
-            }
         }
 
         func backfillGlucose() async {
@@ -334,5 +334,13 @@ extension NightscoutConfig {
 extension NightscoutConfig.StateModel: SettingsObserver {
     func settingsDidChange(_: FreeAPSSettings) {
         units = settingsManager.settings.units
+    }
+}
+
+extension NightscoutConfig.StateModel {
+    enum ImportStatus {
+        case running
+        case finished
+        case failed
     }
 }

@@ -1,14 +1,22 @@
 import SwiftUI
+import Swinject
 
-struct NightscoutImportResultView: View {
+struct NightscoutImportResultView: BaseView {
+    var resolver: any Swinject.Resolver
+
     @ObservedObject var state: NightscoutConfig.StateModel
 
     @State private var shouldDisplayHint: Bool = false
-    @State var hintDetent = PresentationDetent.large
-    @State var selectedVerboseHint: String?
-    @State var hintLabel: String?
+    @State private var hintDetent = PresentationDetent.large
+    @State private var selectedVerboseHint: String?
+    @State private var hintLabel: String?
     @State private var decimalPlaceholder: Decimal = 0.0
     @State private var booleanPlaceholder: Bool = false
+
+    @State private var hasVisitedBasalProfileEditor = false
+    @State private var hasVisitedISFEditor = false
+    @State private var hasVisitedCREditor = false
+    @State private var hasVisitedPumpSettingsEditor = false
 
     @Environment(\.colorScheme) var colorScheme
     var color: LinearGradient {
@@ -28,49 +36,113 @@ struct NightscoutImportResultView: View {
             )
     }
 
+    private var allViewsVisited: Bool {
+        hasVisitedBasalProfileEditor &&
+            hasVisitedISFEditor &&
+            hasVisitedCREditor &&
+            hasVisitedPumpSettingsEditor
+    }
+
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading, spacing: 10) {
-                Text(
-                    "Trio has successfully imported your default Nightscout profile and applied it as therapy settings. This has replaced your previous therapy settings."
-                )
-
-                Text("Please review the following settings")
-                
-                Navigation
-
-//                Text("• Basal Rates")
-//                Text("• Insulin Sensitivities")
-//                Text("• Carb Ratios")
-//                Text("• Glucose Targets")
-//                Text("• Duration of Insulin Action (DIA)")
-
-                Spacer()
-
-                Button {
-                    Task {
-                        await state.importSettings()
+            Form {
+                Section(
+                    header: Text("Imported Nightscout Data"),
+                    content: {
+                        Text(
+                            "Trio has successfully imported your default Nightscout profile and applied it as therapy settings. This has replaced your previous therapy settings."
+                        )
+                        Text("Please review the following settings:").bold()
                     }
-                } label: {
-                    Text("Start Import")
-                        .font(.title3)
+                ).listRowBackground(Color.chart)
+
+                Section {
+                    NavigationLink(
+                        destination: BasalProfileEditor.RootView(resolver: resolver)
+                            .onDisappear { hasVisitedBasalProfileEditor = true }
+                    ) {
+                        HStack {
+                            Text("Basal Rates")
+                            if hasVisitedBasalProfileEditor {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .imageScale(.large)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(Color.green)
+                            }
+                        }
+                    }.disabled(hasVisitedBasalProfileEditor)
+
+                    NavigationLink(
+                        destination: ISFEditor.RootView(resolver: resolver)
+                            .onDisappear { hasVisitedISFEditor = true }
+                    ) {
+                        HStack {
+                            Text("Insulin Sensitivities")
+                            if hasVisitedISFEditor {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .imageScale(.large)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(Color.green)
+                            }
+                        }
+                    }.disabled(hasVisitedISFEditor)
+
+                    NavigationLink(
+                        destination: CarbRatioEditor.RootView(resolver: resolver)
+                            .onDisappear { hasVisitedCREditor = true }
+                    ) {
+                        HStack {
+                            Text("Carb Ratios")
+                            if hasVisitedCREditor {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .imageScale(.large)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(Color.green)
+                            }
+                        }
+                    }.disabled(hasVisitedCREditor)
+
+                    NavigationLink(
+                        destination: PumpSettingsEditor.RootView(resolver: resolver)
+                            .onDisappear { hasVisitedPumpSettingsEditor = true }
+                    ) {
+                        HStack {
+                            Text("Duration of Insulin Action (DIA)")
+                            if hasVisitedPumpSettingsEditor {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .imageScale(.large)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(Color.green)
+                            }
+                        }
+                    }.disabled(hasVisitedPumpSettingsEditor)
+                }.listRowBackground(Color.chart)
+
+                Section {
+                    HStack {
+                        Button {
+                            state.isProfileImportPresented = false
+                        } label: {
+                            Text("Finish").font(.title3)
+                        }
+                        .disabled(!allViewsVisited)
                         .frame(maxWidth: .infinity, alignment: .center)
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(state.url.isEmpty || state.connecting || state.backfilling)
-
-                Spacer()
-            }.padding()
-                .toolbar(content: {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button(action: { state.isProfileImportPresented = false }, label: {
-                            Text("Cancel")
-                        })
+                        .tint(.white)
                     }
-                })
-                .navigationTitle("Nightscout Import")
-                .navigationBarTitleDisplayMode(.automatic)
-                .scrollContentBackground(.hidden).background(color)
+                }.listRowBackground(allViewsVisited ? Color(.systemBlue) : Color(.systemGray4))
+            }
+            .toolbar(content: {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(action: { state.isProfileImportPresented = false }, label: {
+                        Text("Cancel")
+                    })
+                }
+            })
+            .navigationTitle("Review Import")
+            .navigationBarTitleDisplayMode(.large)
+            .scrollContentBackground(.hidden).background(color)
+            .interactiveDismissDisabled(true)
+            .screenNavigation(self)
         }
     }
 }

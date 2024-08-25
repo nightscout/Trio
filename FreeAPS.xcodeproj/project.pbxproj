@@ -459,6 +459,7 @@
 		DD6B7CB22C7B6F0800B75029 /* Rounding.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6B7CB12C7B6F0800B75029 /* Rounding.swift */; };
 		DD6B7CB42C7B71F700B75029 /* ForecastDisplayType.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6B7CB32C7B71F700B75029 /* ForecastDisplayType.swift */; };
 		DD6B7CB62C7B748B00B75029 /* TotalInsulinDisplayType.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6B7CB52C7B748B00B75029 /* TotalInsulinDisplayType.swift */; };
+		DD6B7CB92C7BAC6900B75029 /* NightscoutImportResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6B7CB82C7BAC6900B75029 /* NightscoutImportResultView.swift */; };
 		DD88C8E22C50420800F2D558 /* DefinitionRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD88C8E12C50420800F2D558 /* DefinitionRow.swift */; };
 		DDD163122C4C689900CD525A /* OverrideStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163112C4C689900CD525A /* OverrideStateModel.swift */; };
 		DDD163142C4C68D300CD525A /* OverrideProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163132C4C68D300CD525A /* OverrideProvider.swift */; };
@@ -1102,6 +1103,7 @@
 		DD6B7CB12C7B6F0800B75029 /* Rounding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rounding.swift; sourceTree = "<group>"; };
 		DD6B7CB32C7B71F700B75029 /* ForecastDisplayType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastDisplayType.swift; sourceTree = "<group>"; };
 		DD6B7CB52C7B748B00B75029 /* TotalInsulinDisplayType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TotalInsulinDisplayType.swift; sourceTree = "<group>"; };
+		DD6B7CB82C7BAC6900B75029 /* NightscoutImportResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutImportResultView.swift; sourceTree = "<group>"; };
 		DD88C8E12C50420800F2D558 /* DefinitionRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefinitionRow.swift; sourceTree = "<group>"; };
 		DDD163112C4C689900CD525A /* OverrideStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideStateModel.swift; sourceTree = "<group>"; };
 		DDD163132C4C68D300CD525A /* OverrideProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideProvider.swift; sourceTree = "<group>"; };
@@ -2135,6 +2137,7 @@
 		4F4AE4D901E8BA872B207D7F /* View */ = {
 			isa = PBXGroup;
 			children = (
+				DD6B7CB72C7BAC1B00B75029 /* ProfileImport */,
 				8782B44544F38F2B2D82C38E /* NightscoutConfigRootView.swift */,
 				5A2325512BFCBF55003518CA /* NightscoutUploadView.swift */,
 				5A2325532BFCBF65003518CA /* NightscoutFetchView.swift */,
@@ -2649,6 +2652,14 @@
 			path = "Classes+Properties";
 			sourceTree = "<group>";
 		};
+		DD6B7CB72C7BAC1B00B75029 /* ProfileImport */ = {
+			isa = PBXGroup;
+			children = (
+				DD6B7CB82C7BAC6900B75029 /* NightscoutImportResultView.swift */,
+			);
+			path = ProfileImport;
+			sourceTree = "<group>";
+		};
 		DDD163032C4C67B400CD525A /* OverrideConfig */ = {
 			isa = PBXGroup;
 			children = (
@@ -3138,6 +3149,7 @@
 				3894873A2614928B004DF424 /* DispatchTimer.swift in Sources */,
 				3895E4C625B9E00D00214B37 /* Preferences.swift in Sources */,
 				CE94598429E9E3E60047C9C6 /* WatchConfigStateModel.swift in Sources */,
+				DD6B7CB92C7BAC6900B75029 /* NightscoutImportResultView.swift in Sources */,
 				38DF1786276A73D400B3528F /* TagCloudView.swift in Sources */,
 				38B4F3CD25E5031100E76A18 /* Broadcaster.swift in Sources */,
 				383420D925FFEB3F002D46C1 /* Popup.swift in Sources */,

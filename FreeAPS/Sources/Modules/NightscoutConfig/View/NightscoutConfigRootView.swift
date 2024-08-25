@@ -50,114 +50,49 @@ extension NightscoutConfig {
         }
 
         var body: some View {
-            Form {
-                Section(
-                    header: Text("Nightscout Integration"),
-                    content: {
-                        NavigationLink("Connect", destination: NightscoutConnectView(state: state))
-                        NavigationLink("Upload", destination: NightscoutUploadView(state: state))
-                        NavigationLink("Fetch & Remote Control", destination: NightscoutFetchView(state: state))
-                    }
-                ).listRowBackground(Color.chart)
+            ZStack {
+                Form {
+                    Section(
+                        header: Text("Nightscout Integration"),
+                        content: {
+                            NavigationLink("Connect", destination: NightscoutConnectView(state: state))
+                            NavigationLink("Upload", destination: NightscoutUploadView(state: state))
+                            NavigationLink("Fetch & Remote Control", destination: NightscoutFetchView(state: state))
+                        }
+                    ).listRowBackground(Color.chart)
 
-                Section {
-                    VStack {
-                        Button {
-                            importAlert = Alert(
-                                title: Text("Import settings?"),
-                                message: Text(
-                                    "\n" +
-                                        NSLocalizedString(
-                                            "This will replace some or all of your current pump settings. Are you sure you want to import profile settings from Nightscout?",
-                                            comment: "Profile Import Alert"
-                                        ) +
-                                        "\n"
-                                ),
-                                primaryButton: .destructive(
-                                    Text("Yes, Import"),
-                                    action: {
-                                        Task {
-                                            await state.importSettings()
-                                            importedHasRun = true
-                                        }
-                                    }
-                                ),
-                                secondaryButton: .cancel()
-                            )
-                            isImportAlertPresented.toggle()
-                        } label: {
-                            Text("Import Settings")
-                                .font(.title3) }
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .buttonStyle(.bordered)
-                            .disabled(state.url.isEmpty || state.connecting)
-                            .alert(isPresented: $importedHasRun) {
-                                Alert(
-                                    title: Text(
-                                        (fetchedErrors.first?.error ?? "")
-                                            .count < 4 ? "Settings imported" : "Import Error"
-                                    ),
+                    Section {
+                        VStack {
+                            Button {
+                                importAlert = Alert(
+                                    title: Text("Import Therapy Settings?"),
                                     message: Text(
-                                        (fetchedErrors.first?.error ?? "").count < 4 ?
-                                            NSLocalizedString(
-                                                "\nNow please verify all of your new settings thoroughly: \n\n • DIA (Pump settings)\n • Basal Rates\n • Insulin Sensitivities\n • Carb Ratios\n • Target Glucose\n\n in Trio Settings -> Configuration.\n\nBad or invalid profile settings could have disastrous effects.",
-                                                comment: "Imported Profiles Alert"
-                                            ) :
-                                            NSLocalizedString(
-                                                fetchedErrors.first?.error ?? "",
-                                                comment: "Import Error"
-                                            )
+                                        NSLocalizedString(
+                                            "This will replace some or all of your current therapy settings. Are you sure you want to import profile settings from Nightscout?",
+                                            comment: "Nightscout Settings Import Alert"
+                                        )
                                     ),
                                     primaryButton: .destructive(
-                                        Text("OK")
+                                        Text("Yes, Import"),
+                                        action: {
+                                            Task {
+                                                await state.importSettings()
+                                            }
+                                        }
                                     ),
                                     secondaryButton: .cancel()
                                 )
-                            }
-
-                        HStack(alignment: .top) {
-                            Text(
-                                "You can import therapy settings from Nightscout. See hint for more information which settings will be overwritten."
-                            )
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
-                            .lineLimit(nil)
-                            Spacer()
-                            Button(
-                                action: {
-                                    hintLabel = "Import Settings from Nightscout"
-                                    selectedVerboseHint =
-                                        "Importing settings from Nightscout will overwrite the following Trio therapy settings: \n • DIA (Pump settings) \n • Basal Profile \n • Insulin Sensitivities \n • Carb Ratios \n • Target Glucose"
-                                    shouldDisplayHint.toggle()
-                                },
-                                label: {
-                                    HStack {
-                                        Image(systemName: "questionmark.circle")
-                                    }
-                                }
-                            ).buttonStyle(BorderlessButtonStyle())
-                        }.padding(.top)
-                    }.padding(.vertical)
-                }.listRowBackground(Color.chart)
-
-                Section(
-                    content:
-                    {
-                        VStack {
-                            Button {
-                                Task {
-                                    await state.backfillGlucose()
-                                }
+                                isImportAlertPresented = true
                             } label: {
-                                Text("Backfill Glucose")
+                                Text("Import Settings")
                                     .font(.title3) }
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .buttonStyle(.bordered)
-                                .disabled(state.url.isEmpty || state.connecting || state.backfilling)
+                                .disabled(state.url.isEmpty || state.connecting)
 
                             HStack(alignment: .top) {
                                 Text(
-                                    "You can backfill missing glucose data from Nightscout."
+                                    "You can import therapy settings from Nightscout. See hint for more information which settings will be overwritten."
                                 )
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
@@ -165,9 +100,9 @@ extension NightscoutConfig {
                                 Spacer()
                                 Button(
                                     action: {
-                                        hintLabel = "Backfill Glucose from Nightscout"
+                                        hintLabel = "Import Settings from Nightscout"
                                         selectedVerboseHint =
-                                            "Explanation… limitation… etc."
+                                            "Importing settings from Nightscout will overwrite the following Trio therapy settings: \n • DIA (Pump settings) \n • Basal Profile \n • Insulin Sensitivities \n • Carb Ratios \n • Target Glucose"
                                         shouldDisplayHint.toggle()
                                     },
                                     label: {
@@ -178,9 +113,80 @@ extension NightscoutConfig {
                                 ).buttonStyle(BorderlessButtonStyle())
                             }.padding(.top)
                         }.padding(.vertical)
-                    }
-                ).listRowBackground(Color.chart)
+                    }.listRowBackground(Color.chart)
+
+                    Section(
+                        content:
+                        {
+                            VStack {
+                                Button {
+                                    Task {
+                                        await state.backfillGlucose()
+                                    }
+                                } label: {
+                                    Text("Backfill Glucose")
+                                        .font(.title3) }
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                    .buttonStyle(.bordered)
+                                    .disabled(state.url.isEmpty || state.connecting || state.backfilling)
+
+                                HStack(alignment: .top) {
+                                    Text(
+                                        "You can backfill missing glucose data from Nightscout."
+                                    )
+                                    .font(.footnote)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(nil)
+                                    Spacer()
+                                    Button(
+                                        action: {
+                                            hintLabel = "Backfill Glucose from Nightscout"
+                                            selectedVerboseHint =
+                                                "Explanation… limitation… etc."
+                                            shouldDisplayHint.toggle()
+                                        },
+                                        label: {
+                                            HStack {
+                                                Image(systemName: "questionmark.circle")
+                                            }
+                                        }
+                                    ).buttonStyle(BorderlessButtonStyle())
+                                }.padding(.top)
+                            }.padding(.vertical)
+                        }
+                    ).listRowBackground(Color.chart)
+                }.blur(radius: state.importStatus == .running ? 5 : 0)
+
+                if state.importStatus == .running {
+                    CustomProgressView(text: "Importing Profile...")
+                }
+                //            .alert(isPresented: $importedHasRun) {
+                //                Alert(
+                //                    title: Text(
+                //                        (fetchedErrors.first?.error ?? "")
+                //                            .count < 4 ? "Settings imported" : "Import Error"
+                //                    ),
+                //                    message: Text(
+                //                        (fetchedErrors.first?.error ?? "").count < 4 ?
+                //                            NSLocalizedString(
+                //                                "\nNow please verify all of your new settings thoroughly: \n\n • DIA (Pump settings)\n • Basal Rates\n • Insulin Sensitivities\n • Carb Ratios\n • Target Glucose\n\n in Trio Settings -> Configuration.\n\nBad or invalid profile settings could have disastrous effects.",
+                //                                comment: "Imported Profiles Alert"
+                //                            ) :
+                //                            NSLocalizedString(
+                //                                fetchedErrors.first?.error ?? "",
+                //                                comment: "Import Error"
+                //                            )
+                //                    ),
+                //                    primaryButton: .destructive(
+                //                        Text("OK")
+                //                    ),
+                //                    secondaryButton: .cancel()
+                //                )
+                //            }
             }
+            .fullScreenCover(isPresented: $state.isProfileImportPresented, content: {
+                NightscoutImportResultView(resolver: resolver, state: state)
+            })
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
                     hintDetent: $hintDetent,
