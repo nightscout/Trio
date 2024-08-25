@@ -77,6 +77,13 @@ extension BasalProfileEditor {
                     }
                 }.listRowBackground(shouldDisableButton ? Color(.systemGray4) : Color(.systemBlue))
             }
+            .alert(isPresented: $state.showAlert) {
+                Alert(
+                    title: Text("Unable to Save"),
+                    message: Text("Trio could not communicate with your pump. Changes to your basal profile were not saved."),
+                    dismissButton: .default(Text("Close"))
+                )
+            }
             .onChange(of: state.items) { _ in
                 state.calcTotal()
             }

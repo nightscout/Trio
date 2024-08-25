@@ -8,6 +8,7 @@ extension BasalProfileEditor {
         @Published var initialItems: [Item] = []
         @Published var items: [Item] = []
         @Published var total: Decimal = 0.0
+        @Published var showAlert: Bool = false
 
         let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
 
@@ -72,25 +73,35 @@ extension BasalProfileEditor {
 
             syncInProgress = true
             let profile = items.map { item -> BasalProfileEntry in
-                let fotmatter = DateFormatter()
-                fotmatter.timeZone = TimeZone(secondsFromGMT: 0)
-                fotmatter.dateFormat = "HH:mm:ss"
+                let formatter = DateFormatter()
+                formatter.timeZone = TimeZone(secondsFromGMT: 0)
+                formatter.dateFormat = "HH:mm:ss"
                 let date = Date(timeIntervalSince1970: self.timeValues[item.timeIndex])
                 let minutes = Int(date.timeIntervalSince1970 / 60)
                 let rate = self.rateValues[item.rateIndex]
-                return BasalProfileEntry(start: fotmatter.string(from: date), minutes: minutes, rate: rate)
+                return BasalProfileEntry(start: formatter.string(from: date), minutes: minutes, rate: rate)
             }
             provider.saveProfile(profile)
                 .receive(on: DispatchQueue.main)
-                .sink { _ in
+                .sink { completion in
                     self.syncInProgress = false
-                    self.initialItems = self.items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
+                    switch completion {
+                    case .finished:
+                        // Successfully saved and synced
+                        self.initialItems = self.items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
 
-                    Task.detached(priority: .low) {
-                        debug(.nightscout, "Attempting to upload basal rates to Nightscout")
-                        await self.nightscout.uploadProfiles()
+                        Task.detached(priority: .low) {
+                            debug(.nightscout, "Attempting to upload basal rates to Nightscout")
+                            await self.nightscout.uploadProfiles()
+                        }
+                    case .failure:
+                        // Handle the error, show error message
+                        self.showAlert = true
                     }
-                } receiveValue: {}
+                } receiveValue: {
+                    // Handle any successful value if needed
+                    print("We were successful")
+                }
                 .store(in: &lifetime)
         }
 
