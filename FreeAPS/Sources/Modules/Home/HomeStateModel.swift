@@ -86,7 +86,7 @@ extension Home {
         @Published var minForecast: [Int] = []
         @Published var maxForecast: [Int] = []
         @Published var minCount: Int = 12 // count of Forecasts drawn in 5 min distances, i.e. 12 means a min of 1 hour
-        @Published var displayForecastsAsLines: Bool = false
+        @Published var forecastDisplayType: ForecastDisplayType = .cone
 
         let context = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
@@ -137,7 +137,7 @@ extension Home {
             cgmAvailable = fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none
             showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
 
-            displayForecastsAsLines = settingsManager.settings.displayForecastsAsLines
+            forecastDisplayType = settingsManager.settings.forecastDisplayType
 
             broadcaster.register(GlucoseObserver.self, observer: self)
             broadcaster.register(DeterminationObserver.self, observer: self)
@@ -454,7 +454,7 @@ extension Home.StateModel:
         thresholdLines = settingsManager.settings.rulerMarks
         totalInsulinDisplayType = settingsManager.settings.totalInsulinDisplayType
         showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
-        displayForecastsAsLines = settingsManager.settings.displayForecastsAsLines
+        forecastDisplayType = settingsManager.settings.forecastDisplayType
         cgmAvailable = (fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none)
         displayPumpStatusHighlightMessage()
         setupBatteryArray()

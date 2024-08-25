@@ -793,7 +793,7 @@ extension Home {
                     .font(.subheadline)
                     .foregroundColor(.secondary)
 
-                    if state.settingsManager.settings.displayForecastsAsLines {
+                    if state.forecastDisplayType == .lines {
                         List {
                             DefinitionRow(
                                 term: "IOB (Insulin on Board)",
@@ -849,7 +849,7 @@ extension Home {
             ZStack(alignment: .bottom) {
                 TabView(selection: $selectedTab) {
                     let carbsRequiredBadge: String? = {
-                        guard let carbsRequired = state.enactedAndNonEnactedDeterminations.first?.carbsRequired else {
+                        guard let carbsRequired = state.enactedAndNonEnactedDeterminations.first?.carbsRequired, state.showCarbsRequiredBadge else {
                             return nil
                         }
                         let carbsRequiredDecimal = Decimal(carbsRequired)

@@ -12,7 +12,7 @@ struct ForeCastChart: View {
 
     private var endMarker: Date {
         state
-            .displayForecastsAsLines ? Date(timeIntervalSinceNow: TimeInterval(hours: 3)) :
+            .forecastDisplayType == .lines ? Date(timeIntervalSinceNow: TimeInterval(hours: 3)) :
             Date(timeIntervalSinceNow: TimeInterval(
                 Int(1.5) * 5 * state
                     .minCount * 60
@@ -70,7 +70,7 @@ struct ForeCastChart: View {
             drawGlucose()
             drawCurrentTimeMarker()
 
-            if state.displayForecastsAsLines {
+            if state.forecastDisplayType == .lines {
                 drawForecastLines()
             } else {
                 drawForecastsCone()

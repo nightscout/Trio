@@ -218,8 +218,8 @@ extension Backport {
     }
 
     @ViewBuilder func chartForegroundStyleScale(state: any StateModel) -> some View {
-        if (state as? Bolus.StateModel)?.displayForecastsAsLines == true ||
-            (state as? Home.StateModel)?.displayForecastsAsLines == true
+        if (state as? Bolus.StateModel)?.forecastDisplayType == ForecastDisplayType.lines ||
+            (state as? Home.StateModel)?.forecastDisplayType == ForecastDisplayType.lines
         {
             let modifiedContent = content
                 .chartForegroundStyleScale([
@@ -306,7 +306,7 @@ extension MainChartView {
                 drawManualGlucose()
                 drawCarbs()
 
-                if state.displayForecastsAsLines {
+                if state.forecastDisplayType == .lines {
                     drawForecastsLines()
                 } else {
                     drawForecastsCone()
@@ -1165,7 +1165,7 @@ extension MainChartView {
         ))
 
         endMarker = state
-            .displayForecastsAsLines ? threeHourSinceNow : dynamicFutureDateForCone <= threeHourSinceNow ?
+            .forecastDisplayType == .lines ? threeHourSinceNow : dynamicFutureDateForCone <= threeHourSinceNow ?
             dynamicFutureDateForCone.addingTimeInterval(TimeInterval(minutes: 30)) : threeHourSinceNow
     }
 

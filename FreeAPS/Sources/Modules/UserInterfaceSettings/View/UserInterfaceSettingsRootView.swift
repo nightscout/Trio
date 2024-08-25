@@ -103,89 +103,126 @@ extension UserInterfaceSettings {
                     verboseHint: "Display Low and High Thresholds… bla bla bla"
                 )
 
+                if state.rulerMarks {
+                    Section {
+                        VStack {
+                            VStack {
+                                HStack {
+                                    Text("Low Threshold")
+
+                                    Spacer()
+
+                                    Group {
+                                        Text(state.units == .mgdL ? state.low.description : state.low.asMmolL.description)
+                                            .foregroundColor(!displayPickerLowThreshold ? .primary : .accentColor)
+
+                                        Text(state.units == .mgdL ? " mg/dL" : " mmol/L").foregroundColor(.secondary)
+                                    }
+                                }
+                                .onTapGesture {
+                                    displayPickerLowThreshold.toggle()
+                                }
+                            }
+                            .padding(.top)
+
+                            if displayPickerLowThreshold {
+                                let setting = PickerSettingsProvider.shared.settings.low
+
+                                Picker(selection: $state.low, label: Text("")) {
+                                    ForEach(
+                                        PickerSettingsProvider.shared.generatePickerValues(from: setting, units: state.units),
+                                        id: \.self
+                                    ) { value in
+                                        let displayValue = state.units == .mgdL ? value : value.asMmolL
+                                        Text("\(displayValue.description)").tag(value)
+                                    }
+                                }
+                                .pickerStyle(WheelPickerStyle())
+                                .frame(maxWidth: .infinity)
+                            }
+
+                            VStack {
+                                HStack {
+                                    Text("High Threshold")
+
+                                    Spacer()
+
+                                    Group {
+                                        Text(state.units == .mgdL ? state.high.description : state.high.asMmolL.description)
+                                            .foregroundColor(!displayPickerHighThreshold ? .primary : .accentColor)
+
+                                        Text(state.units == .mgdL ? " mg/dL" : " mmol/L").foregroundColor(.secondary)
+                                    }
+                                }
+                                .onTapGesture {
+                                    displayPickerHighThreshold.toggle()
+                                }
+                            }
+                            .padding(.top)
+
+                            if displayPickerHighThreshold {
+                                let setting = PickerSettingsProvider.shared.settings.high
+                                Picker(selection: $state.high, label: Text("")) {
+                                    ForEach(
+                                        PickerSettingsProvider.shared.generatePickerValues(from: setting, units: state.units),
+                                        id: \.self
+                                    ) { value in
+                                        let displayValue = state.units == .mgdL ? value : value.asMmolL
+                                        Text("\(displayValue.description)").tag(value)
+                                    }
+                                }
+                                .pickerStyle(WheelPickerStyle())
+                                .frame(maxWidth: .infinity)
+                            }
+
+                            HStack(alignment: .top) {
+                                Text(
+                                    "Sets thresholds for low and high glucose in home view main chart and statistics view."
+                                )
+                                .lineLimit(nil)
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+
+                                Spacer()
+                                Button(
+                                    action: {
+                                        hintLabel = "Low and High Thresholds"
+                                        selectedVerboseHint = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                        shouldDisplayHint.toggle()
+                                    },
+                                    label: {
+                                        HStack {
+                                            Image(systemName: "questionmark.circle")
+                                        }
+                                    }
+                                ).buttonStyle(BorderlessButtonStyle())
+                            }.padding(.top)
+                        }.padding(.bottom)
+                    }.listRowBackground(Color.chart)
+                }
+
                 Section {
                     VStack {
-                        VStack {
-                            HStack {
-                                Text("Low Threshold")
-
-                                Spacer()
-
-                                Group {
-                                    Text(state.units == .mgdL ? state.low.description : state.low.asMmolL.description)
-                                        .foregroundColor(!displayPickerLowThreshold ? .primary : .accentColor)
-
-                                    Text(state.units == .mgdL ? " mg/dL" : " mmol/L").foregroundColor(.secondary)
-                                }
+                        Picker(
+                            selection: $state.forecastDisplayType,
+                            label: Text("Forecast Display Type")
+                        ) {
+                            ForEach(ForecastDisplayType.allCases) { selection in
+                                Text(selection.displayName).tag(selection)
                             }
-                            .onTapGesture {
-                                displayPickerLowThreshold.toggle()
-                            }
-                        }
-                        .padding(.top)
-
-                        if displayPickerLowThreshold {
-                            let setting = PickerSettingsProvider.shared.settings.low
-
-                            Picker(selection: $state.low, label: Text("")) {
-                                ForEach(
-                                    PickerSettingsProvider.shared.generatePickerValues(from: setting, units: state.units),
-                                    id: \.self
-                                ) { value in
-                                    let displayValue = state.units == .mgdL ? value : value.asMmolL
-                                    Text("\(displayValue.description)").tag(value)
-                                }
-                            }
-                            .pickerStyle(WheelPickerStyle())
-                            .frame(maxWidth: .infinity)
-                        }
-
-                        VStack {
-                            HStack {
-                                Text("High Threshold")
-
-                                Spacer()
-
-                                Group {
-                                    Text(state.units == .mgdL ? state.high.description : state.high.asMmolL.description)
-                                        .foregroundColor(!displayPickerHighThreshold ? .primary : .accentColor)
-
-                                    Text(state.units == .mgdL ? " mg/dL" : " mmol/L").foregroundColor(.secondary)
-                                }
-                            }
-                            .onTapGesture {
-                                displayPickerHighThreshold.toggle()
-                            }
-                        }
-                        .padding(.top)
-
-                        if displayPickerHighThreshold {
-                            let setting = PickerSettingsProvider.shared.settings.high
-                            Picker(selection: $state.high, label: Text("")) {
-                                ForEach(
-                                    PickerSettingsProvider.shared.generatePickerValues(from: setting, units: state.units),
-                                    id: \.self
-                                ) { value in
-                                    let displayValue = state.units == .mgdL ? value : value.asMmolL
-                                    Text("\(displayValue.description)").tag(value)
-                                }
-                            }
-                            .pickerStyle(WheelPickerStyle())
-                            .frame(maxWidth: .infinity)
-                        }
+                        }.padding(.top)
 
                         HStack(alignment: .top) {
                             Text(
-                                "Sets thresholds for low and high glucose in home view main chart and statistics view."
+                                "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
                             )
-                            .lineLimit(nil)
                             .font(.footnote)
                             .foregroundColor(.secondary)
-
+                            .lineLimit(nil)
                             Spacer()
                             Button(
                                 action: {
-                                    hintLabel = "Low and High Thresholds"
+                                    hintLabel = "Forecast Display Type"
                                     selectedVerboseHint = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
                                     shouldDisplayHint.toggle()
                                 },
