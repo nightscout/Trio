@@ -111,10 +111,10 @@
 "Replace pod" = "استبدال المضخة";
 
 /* Add carbs screen */
-"Add Carbs" = "Add Carbs";
+"Add Carbs" = "إضافة كارب";
 
 /* Add carbs header and button in Watch app. You can skip the last " " space. It's just for differentiation */
-"Add Carbs " = "Add Carbs ";
+"Add Carbs " = "إضافة كارب ";
 
 /*  */
 "Amount Carbs" = "كمية النشويات";
@@ -153,55 +153,55 @@
 "Delete preset \"%@\"" = "حذف الإعداد المسبق \"%@\"";
 
 /* Duration of target temp or temp basal */
-"Duration" = "Duration";
+"Duration" = "المدة الزمنية";
 
 /*  */
-"Enact Temp Target" = "Enact Temp Target";
+"Enact Temp Target" = "تفعيل الهدف المؤقت";
 
 /* */
-"Target" = "Target";
+"Target" = "الهدف";
 
 /* */
-"Basal Insulin and Sensitivity ratio" = "Basal Insulin and Sensitivity ratio";
+"Basal Insulin and Sensitivity ratio" = "نسبة الإنسولين القاعدي والحساسية";
 
 /* */
-"A lower 'Half Basal Target' setting will reduce the basal and raise the ISF earlier, at a lower target glucose." = "A lower 'Half Basal Target' setting will reduce the basal and raise the ISF earlier, at a lower target glucose.";
+"A lower 'Half Basal Target' setting will reduce the basal and raise the ISF earlier, at a lower target glucose." = "إعداد 'نصف الهدف الأساسي' سوف يقلل من القاعدي و يرفع من (حساسية الانسولين) في وقت أسبق، عند مستوى جلكوز مستهدف أقل.";
 
 /* */
-" Your setting: " = " Your setting: ";
+" Your setting: " = " الإعدادات الخاصة بك: ";
 
 /* */
 "mg/dl. Autosens.max limits the max endpoint" = "mg/dl. Autosens.max limits the max endpoint";
 
 /*  */
-"Enter preset name" = "Enter preset name";
+"Enter preset name" = "أدخل اسم التعيين المسبق";
 
 /* Preset name */
-"Name" = "Name";
+"Name" = "الإسم";
 
 /* minutes of target temp */
-"minutes" = "minutes";
+"minutes" = "دقائق";
 
 /*  */
-"Presets" = "Presets";
+"Presets" = "التعيينات المسبقة";
 
 /* Save preset name */
-"Save" = "Save";
+"Save" = "حفـظ";
 
 /*  */
-"Save as Preset" = "Save as Preset";
+"Save as Preset" = "حفظ كتعيين مسبق";
 
 /* Delete Meal Preset */
-"Delete Preset" = "Delete Preset";
+"Delete Preset" = "حذف التعيين المسبق";
 
 /* Confirm Deletion */
-"Delete preset '%@'?" = "Delete preset '%@'?";
+"Delete preset '%@'?" = "حذف التعيين المسبق '%@'؟";
 
 /* Button */
-"No" = "No";
+"No" = "لا";
 
 /* Button */
-"Yes" = "Yes";
+"Yes" = "نعم";
 
 /* + Button */
 "[ +1 ]" = "[ +1 ]";
@@ -210,91 +210,91 @@
 "[ -1 ]" = "[ -1 ]";
 
 /* Upper temp target limit */
-"Top target" = "Top target";
+"Top target" = "الحد الاعلى من الهدف";
 
 /*  Temp target set for ... minutes */
-"for" = "for";
+"for" = "لمدة";
 
 /*  Temp target set for ... minutes */
-"min" = "min";
+"min" = "د";
 
 /*  */
-"Autotune" = "Autotune";
+"Autotune" = "خاصية ضبط الإنسولين التلقائي";
 
 /*  */
-"Basal profile" = "Basal profile";
+"Basal profile" = "ملف الانسولين القاعدي";
 
 /*  */
-"Carb ratio" = "Carb ratio";
+"Carb ratio" = "معامل الكارب";
 
 /*  */
-"Delete autotune data" = "Delete autotune data";
+"Delete autotune data" = "حذف بيانات ضبط الإنسولين التلقائي";
 
 /*  */
-"Run now" = "Run now";
+"Run now" = "قم بتشغيل المهمة الآن";
 
 /*  */
-"Last run" = "Last run";
+"Last run" = "آخر عملية تشغيل";
 
 /*  */
-"Sensitivity" = "Sensitivity";
+"Sensitivity" = "الحساسية";
 
 /*  */
 "Use Autotune" = "use Autotune";
 
 /* Add profile basal */
-"Add" = "Add";
+"Add" = "أضِف";
 
 /*  */
-"Basal Profile" = "Basal Profile";
+"Basal Profile" = "ملف الإنسولين القاعدي";
 
 /* Rate basal profile */
-"Rate" = "Rate";
+"Rate" = "معدل";
 
 /*  */
-"Save on Pump" = "Save on Pump";
+"Save on Pump" = "الحفظ في المضخة";
 
 /*  */
-"Saving..." = "Saving...";
+"Saving..." = "جارٍ الحفظ...";
 
 /*  */
-"Schedule" = "Schedule";
+"Schedule" = "الجدول";
 
 /*  */
-"starts at" = "starts at";
+"starts at" = "يبدأ في";
 
 /* Time basal profile */
-"Time" = "Time";
+"Time" = "الوقت";
 
 /* */
-"Calculated Ratio" = "Calculated Ratio";
+"Calculated Ratio" = "المعدل المحسوب";
 
 /* Carb Ratios header */
-"Carb Ratios" = "Carb Ratios";
+"Carb Ratios" = "معامل الكارب";
 
 /*  */
-"Ratio" = "Ratio";
+"Ratio" = "المعدل";
 
 /*  */
-"Autosens" = "Autosens";
+"Autosens" = "حساسية الانسولين التلقائية";
 
 /*  */
-"Calculated Sensitivity" = "Calculated Sensitivity";
+"Calculated Sensitivity" = "الحساسية المحسوبة";
 
 /*  */
-"Insulin Sensitivities" = "Insulin Sensitivities";
+"Insulin Sensitivities" = "حساسيات الإنسولين";
 
 /* */
-"Sensitivity Ratio" = "Sensitivity Ratio";
+"Sensitivity Ratio" = "معدل الحساسية";
 
 /*  */
-"Dismiss" = "Dismiss";
+"Dismiss" = "صرف النظر";
 
 /*  */
-"Important message" = "Important message";
+"Important message" = "رسالة مهمة";
 
 /*  */
-"Amount" = "Amount";
+"Amount" = "الكمية";
 
 /* */
 "Cancel Temp Basal" = "إلغاء الإنسولين القاعدي المؤقت";
@@ -364,85 +364,85 @@ Enact a temp Basal or a temp target */
 "\nNow please verify all of your new settings thoroughly: \n\n • DIA (Pump settings)\n • Basal Profile\n • Insulin Sensitivities\n • Carb Ratios\n • Target Glucose\n\n in Trio Settings -> Configuration.\n\nBad or invalid profile settings could have disastrous effects." = "\nNow please verify all of your new settings thoroughly: \n\n • DIA (Pump settings)\n • Basal Profile\n • Insulin Sensitivities\n • Carb Ratios\n • Target Glucose\n\n in Trio Settings -> Configuration.\n\nBad or invalid profile settings could have disastrous effects.";
 
 /* Profile Import Alert */
-"This will replace some or all of your current pump settings. Are you sure you want to import profile settings from Nightscout?" = "This will replace some or all of your current pump settings. Are you sure you want to import profile settings from Nightscout?";
+"This will replace some or all of your current pump settings. Are you sure you want to import profile settings from Nightscout?" = "سيؤدي هذا إلى استبدال بعض أو كل إعدادات المضخة الحالية. هل أنت متأكد من أنك تريد استيراد إعدادات الملف الشخصي من نايت سكاوت؟";
 
 /* Import Error */
-"\nInvalid Nightcsout Basal Settings. \n\nImport aborted. Please check your Nightscout Profile Basal Settings!" = "\nInvalid Nightcsout Basal Settings. \n\nImport aborted. Please check your Nightscout Profile Basal Settings!";
+"\nInvalid Nightcsout Basal Settings. \n\nImport aborted. Please check your Nightscout Profile Basal Settings!" = "\nإعدادات الإنسولين القاعدي غير صالحة. \n\nتم إلغاء الاستيراد. الرجاء التحقق من إعدادات النايت سكاوت!";
 
 /* Import Error */
 "\nSettings were imported but the Basals couldn't be saved to pump (No pump). Check your basal settings and tap ´Save on Pump´ to sync the new basal settings" = "\nSettings were imported but the Basals couldn't be saved to pump (No pump). Check your basal settings and tap ´Save on Pump´ to sync the new basal settings";
 
 /* Import Error Headline */
-"Import Error" = "Import Error";
+"Import Error" = "خطأ في الاستيراد";
 
 /* */
-"Yes, Import" = "Yes, Import";
+"Yes, Import" = "نعم، استورد";
 
 /* */
-"Import settings from Nightscout" = "Import settings from Nightscout";
+"Import settings from Nightscout" = "استيراد الإعدادات من النايت سكاوت";
 
 /* */
-"Import settings?" = "Import settings?";
+"Import settings?" = "استيراد الإعدادات؟";
 
 /* */
-"Import from Nightscout" = "Import from Nightscout";
+"Import from Nightscout" = "استيراد الإعدادات من النايت سكاوت";
 
 /* */
-"Settings imported" = "Settings imported";
+"Settings imported" = "تم استيراد الإعدادات";
 
 /* Import Error */
 "\nMismatching glucose units in Nightscout and Pump Settings. Import settings aborted." = "\nMismatching glucose units in Nightscout and Pump Settings. Import settings aborted.";
 
 /* Import Error */
-"Can't find the default Nightscout Profile." = "Can't find the default Nightscout Profile.";
+"Can't find the default Nightscout Profile." = "لا يمكن العثور على ملف نايت سكاوت الافتراضي.";
 
 /* Add Blood Glucose Test, header */
-"Blood Glucose Test" = "Blood Glucose Test";
+"Blood Glucose Test" = "فحص مستوى الجلوكوز في الدم";
 
 /* Add Medtronic pump */
-"Add Medtronic" = "Add Medtronic";
+"Add Medtronic" = "إضافة ميدترونك";
 
 /* Add Omnipod pump */
-"Add Omnipod" = "Add Omnipod";
+"Add Omnipod" = "إضافة اومنيبود";
 
 /* Add Simulator pump */
-"Add Simulator" = "Add Simulator";
+"Add Simulator" = "إضافة محاكي";
 
 /* Insulin model */
-"Model" = "Model";
+"Model" = "النـوع";
 
 /*  */
-"Pump config" = "Pump config";
+"Pump config" = "ضبط المضخة";
 
 /*  */
-"Delivery limits" = "Delivery limits";
+"Delivery limits" = "حدود الضخ";
 
 /*  */
-"Duration of Insulin Action" = "Duration of Insulin Action";
+"Duration of Insulin Action" = "مدة عمل الإنسولين";
 
 /* hours of duration of insulin activity */
-"hours" = "hours";
+"hours" = "ساعات";
 
 /* Max setting */
-"Max Basal" = "Max Basal";
+"Max Basal" = "الحد الأقصى للإنسولين القاعدي";
 
 /* Max setting */
-"Max Bolus" = "Max Bolus";
+"Max Bolus" = "الحد الاقصى للبولوس";
 
 /* Max setting */
-"Max Carbs" = "Max Carbs";
+"Max Carbs" = "الحد الاقصى للكارب";
 
 /* Max setting */
-"Max Fat" = "Max Fat";
+"Max Fat" = "الحد الاقصى للدهون";
 
 /* Max setting */
-"Max Protein" = "Max Protein";
+"Max Protein" = "الحد الأقصى للبروتين";
 
 /* Max setting */
-"Limit Per Entry" = "Limit Per Entry";
+"Limit Per Entry" = "الحد الأقصى لكل إدخال";
 
 /* Max Carbs limit exceeded */
-"Max Carbs of" = "Max Carbs of";
+"Max Carbs of" = "الحد الاقصى للكارب";
 
 /* Max Fat limit exceeded */
 "Max Fat of" = "Max Fat of";
@@ -454,13 +454,13 @@ Enact a temp Basal or a temp target */
 "Max Bolus of" = "Max Bolus of";
 
 /* Limit Exceeded label */
-"exceeded" = "exceeded";
+"exceeded" = "تم تجاوزه";
 
 /* */
-"Pump Settings" = "Pump Settings";
+"Pump Settings" = "إعدادات المضخة";
 
 /* Insulin unit per hour */
-"U/hr" = "U/hr";
+"U/hr" = "وحدة لكل ساعة";
 
 /* Unit in number of units delivered (keep the space character!) */
 " U" = " U";
@@ -1651,82 +1651,82 @@ Enact a temp Basal or a temp target */
 "Week" = "Week";
 
 /* */
-"Month" = "Month";
+"Month" = "شهر";
 
 /* */
-"Total" = "Total";
+"Total" = "إجمالي";
 
 /* Headline Statistics */
-"Statistics" = "Statistics";
+"Statistics" = "الإحصائيات";
 
 /* Option in preferences */
-"Allow Upload of Statistics to NS" = "Allow Upload of Statistics to NS";
+"Allow Upload of Statistics to NS" = "السماح برفع الإحصائيات إلى نظام نايت سكاوت";
 
 /* Low Glucose Threshold in Statistics settings */
-"Low" = "Low";
+"Low" = "منخفض";
 
 /* High Glucose Threshold in Statistics settings */
-"High" = "High";
+"High" = "مرتفع";
 
 /* In Range */
-"In Range" = "In Range";
+"In Range" = "في النطاق";
 
 /* Display % */
-"Change HbA1c Unit" = "Change HbA1c Unit";
+"Change HbA1c Unit" = "تغيير وحدة HbA1c";
 
 /* */
-"Display Chart X - Grid lines" = "Display Chart X - Grid lines";
+"Display Chart X - Grid lines" = "عرض الرسم البياني X - خطوط الشبكة";
 
 /* */
-"Display Chart Y - Grid lines" = "Display Chart Y - Grid lines";
+"Display Chart Y - Grid lines" = "عرض الرسم البياني Y - خطوط الشبكة";
 
 /* */
-"Display Chart Threshold lines for Low and High" = "Display Chart Threshold lines for Low and High";
+"Display Chart Threshold lines for Low and High" = "عرض خطوط حد الرسم البياني للمنخفض والعالي";
 
 /* */
-"Standing / Laying TIR Chart" = "Standing / Laying TIR Chart";
+"Standing / Laying TIR Chart" = "وضع الرسم البياني ل(الوقت في النطاق)";
 
 /* */
-"Hours X-Axis (6 default)" = "Hours X-Axis (6 default)";
+"Hours X-Axis (6 default)" = "محور X-ساعات (6 افتراضي)";
 
 /* */
-"2 hours" = "2 hours";
+"2 hours" = "ساعتان";
 
 /* */
-"4 hours" = "4 hours";
+"4 hours" = "٤ ساعات";
 
 /* */
-"6 hours" = "6 hours";
+"6 hours" = "6 ساعات";
 
 /* */
-"12 hours" = "12 hours";
+"12 hours" = "12 ساعة";
 
 /* */
-"24 hours" = "24 hours";
+"24 hours" = "24 ساعة";
 
 /* Average BG = */
-"Average" = "Average";
+"Average" = "المتوسط";
 
 /* Median BG */
 "Median" = "Median";
 
 /* CGM readings in statView */
-"Readings" = "Readings";
+"Readings" = "القراءات";
 
 /* CGM readings in statView */
-"Readings / 24h" = "Readings / 24h";
+"Readings / 24h" = "القراءات / 24 ساعة";
 
 /* Days of saved readings*/
-"Days" = "Days";
+"Days" = "أيام";
 
 /* Normal BG (within TIR) */
-"Normal" = "Normal";
+"Normal" = "معتدل";
 
 /* Title High BG in statPanel */
-"High (>" = "High (>";
+"High (>" = "مرتفع (>";
 
 /* Title Low BG in statPanel */
-"Low (<" = "Low (<";
+"Low (<" = "منخفض (<";
 
 /* SD */
 "SD" = "SD";
@@ -1738,22 +1738,22 @@ Enact a temp Basal or a temp target */
 "HbA1c" = "HbA1c";
 
 /* Total number of days of data for HbA1c estimation, part 1/2*/
-"All" = "All";
+"All" = "الكل";
 
 /* Total number of days of data for HbA1c estimation, part 2/2*/
-"days" = "days";
+"days" = "أيام";
 
 /* Nr of Loops in statPanel */
-"Loops" = "Loops";
+"Loops" = "الحلقات";
 
 /* Loop Errors in statPanel */
-"Errors" = "Errors";
+"Errors" = "الأخطاء";
 
 /* Average loop interval */
-"Interval" = "Interval";
+"Interval" = "الفترة الزمنية";
 
 /* Median loop interval */
-"Duration" = "Duration";
+"Duration" = "المدة الزمنية";
 
 /* "Display SD */
 "Display SD instead of CV" = "Display SD instead of CV";
@@ -1762,43 +1762,43 @@ Enact a temp Basal or a temp target */
 "Display Standard Deviation (SD) instead of Coefficient of Variation (CV) in statPanel" = "Display Standard Deviation (SD) instead of Coefficient of Variation (CV) in statPanel";
 
 /* How often to update the statistics */
-"Update every number of minutes:" = "Update every number of minutes:";
+"Update every number of minutes:" = "قم بتحديث كل عدد من الدقائق:";
 
 /* Description for update interval for statistics */
-"Default is 20 minutes. How often to update and save the statistics.json and to upload last array, when enabled, to Nightscout." = "Default is 20 minutes. How often to update and save the statistics.json and to upload last array, when enabled, to Nightscout.";
+"Default is 20 minutes. How often to update and save the statistics.json and to upload last array, when enabled, to Nightscout." = "الافتراضي هو 20 دقيقة. عدد المرات التي يتم فيها تحديث وحفظ الإحصائيات.json وتحميل آخر مصفوفة، عند التمكين، إلى Nightscout.";
 
 /* Duration displayed in statPanel */
-"Past 24 Hours " = "Past 24 Hours ";
+"Past 24 Hours " = "٢٤ ساعة الماضية ";
 
 /* Duration displayed in statPanel */
-"Past Week " = "Past Week ";
+"Past Week " = "الأسبوع الماضي ";
 
 /* Duration displayed in statPanel */
-"Past Month " = "Past Month ";
+"Past Month " = "الشهر الماضي ";
 
 /* Duration displayed in statPanel */
-"Past 90 Days " = "Past 90 Days ";
+"Past 90 Days " = "الـ90 يومًا الماضية ";
 
 /* Duration displayed in statPanel */
-"All Past Days of Data " = "All Past Days of Data ";
+"All Past Days of Data " = "جميع الأيام السابقة للبيانات ";
 
 /* "Display Loop statistics in statPanel */
 "Display Loop Cycle statistics" = "Display Loop Cycle statistics";
 
 /* Description for Display Loop statistics */
-"Displays Loop statistics in the statPanel in Home View" = "Displays Loop statistics in the statPanel in Home View";
+"Displays Loop statistics in the statPanel in Home View" = "يعرض إحصائيات الحلقة في لوحة الحالة في الصفحة الرئيسية";
 
 /* Description for Override HbA1c unit */
-"Change default HbA1c unit in statPanlel. The unit in statPanel will be updateded with next statistics.json update" = "Change default HbA1c unit in statPanlel. The unit in statPanel will be updateded with next statistics.json update";
+"Change default HbA1c unit in statPanlel. The unit in statPanel will be updateded with next statistics.json update" = "تغيير وحدة HbA1c الافتراضية في لوحة الإحصائيات. سيتم تحديث الوحدة في لوحة الإحصائيات مع تحديث الإحصائيات القادم";
 
 /* HbA1c for all glucose storage days */
-"all" = "all";
+"all" = "الجميع";
 
 /* --------------------------------------------------------  Dexcom G7 --------------------------------------*/
 
-"CGM Configuration" = "CGM Configuration";
+"CGM Configuration" = "إعدادات المستشعر";
 
-"Heartbeat" = "Heartbeat";
+"Heartbeat" = "(محاكات نبض القلب)";
 
 "CGM address :" = "CGM address :";
 
@@ -2105,45 +2105,45 @@ Enact a temp Basal or a temp target */
 "Calculator settings" = "Calculator settings";
 
 /* UI/UX option */
-"Display Predictions" = "Display Predictions";
+"Display Predictions" = "عرض التنبؤات";
 
 /* UI/UX option */
-"Smaller iPhone Screens" = "Smaller iPhone Screens";
+"Smaller iPhone Screens" = "شاشات أيفون أصغر";
 
 /* UI/UX option */
-"Display and allow Fat and Protein entries" = "Display and allow Fat and Protein entries";
+"Display and allow Fat and Protein entries" = "عرض و السماح بإدخالات الدهون و البروتين";
 
 /* UI/UX option */
-"Add Meal View settings " = "Add Meal View settings ";
+"Add Meal View settings " = "إعدادات صفحة إضافة الوجبة ";
 
 /* UI/UX option */
-"Display Temp Targets Button" = "Display Temp Targets Button";
+"Display Temp Targets Button" = "عرض زر الأهداف المؤقتة";
 
 /* UI/UX option */
-"Home View Button Panel " = "Home View Button Panel ";
+"Home View Button Panel " = "لوحة أزرار عرض الصفحة الرئيسية ";
 
 /* UI/UX option */
-"In case you're using both profiles and temp targets" = "In case you're using both profiles and temp targets";
+"In case you're using both profiles and temp targets" = "في حال كنت تستخدم كلا من ملفات التعريف و الأهداف المؤقتة";
 
 /* UI/UX option */
-"Always Color Glucose Value (green, yellow etc)" = "Always Color Glucose Value (green, yellow etc)";
+"Always Color Glucose Value (green, yellow etc)" = "دائما لون قيمة الجلوكوز (الأخضر، الأصفر الخ)";
 
 /* UI/UX option */
-"Header settings" = "Header settings";
+"Header settings" = "إعدادات رأس الصفحة";
 /* UI/UX option */
-"Normally glucose is colored red only when over or under your notification limits for high/low" = "Normally glucose is colored red only when over or under your notification limits for high/low";
+"Normally glucose is colored red only when over or under your notification limits for high/low" = "عادة يكون الجلوكوز أحمر فقط عند تجاوز أو تحت حدود الإشعارات الخاصة بك مرتفع/منخفض";
 
 /* UI/UX option */
-"Horizontal Scroll View Visible hours" = "Horizontal Scroll View Visible hours";
+"Horizontal Scroll View Visible hours" = "عدد الساعات المرئية في الشاشة الرئيسية";
 
 /* Notification option */
-"Live Activity" = "Live Activity";
+"Live Activity" = "النشاط المباشر";
 
 /* Notification option */
-"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)";
+"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "يعرض النشاط المباشر جلوكوز الدم مباشرة على شاشة القفل وعلى الجزيرة الديناميكية (إذا كان متاحا)";
 
 /* Notification option */
-"Show live activity" = "Show live activity";
+"Show live activity" = "إظهار النشاط المباشر";
 
 /* Headline "Weighted Average of TDD. Weight of past 24 hours:" */
 "Weighted Average of TDD. Weight of past 24 hours:" = "Weighted Average of TDD. Weight of past 24 hours:";
@@ -2152,7 +2152,7 @@ Enact a temp Basal or a temp target */
 "Has to be > 0 and <= 1.\nDefault is 0.65 (65 %) * TDD. The rest will be from average of total data (up to 14 days) of all TDD calculations (35 %). To only use past 24 hours, set this to 1.\n\nTo avoid sudden fluctuations, for instance after a big meal, an average of the past 2 hours of TDD calculations is used instead of just the current TDD (past 24 hours at this moment)." = "Has to be > 0 and <= 1.\nDefault is 0.65 (65 %) * TDD. The rest will be from average of total data (up to 14 days) of all TDD calculations (35 %). To only use past 24 hours, set this to 1.\n\nTo avoid sudden fluctuations, for instance after a big meal, an average of the past 2 hours of TDD calculations is used instead of just the current TDD (past 24 hours at this moment).";
 
 /* Headline "Adjust basal" */
-"Adjust basal" = "Adjust basal";
+"Adjust basal" = "ضبط الإنسولين القاعدي";
 
 /* Enable adjustment of basal profile */
 "Enable adjustment of basal based on the ratio of current TDD / 7 day average TDD" = "Enable adjustment of basal based on the ratio of current TDD / 7 day average TDD";
@@ -2164,22 +2164,22 @@ Enact a temp Basal or a temp target */
 "Defaults to 0.2 (20%). Maximum positive percentual change of BG level to use SMB, above that will disable SMB. Hardcoded cap of 40%. For UAM fully-closed-loop 30% is advisable. Observe in log and popup (maxDelta 27 > 20% of BG 100 - disabling SMB!)." = "Defaults to 0.2 (20%). Maximum positive percentual change of BG level to use SMB, above that will disable SMB. Hardcoded cap of 40%. For UAM fully-closed-loop 30% is advisable. Observe in log and popup (maxDelta 27 > 20% of BG 100 - disabling SMB!).";
 
 /* Headline "... When Blood Glucose Is Over (mg/dl):" */
-"... When Blood Glucose Is Over (mg/dl):" = "... When Blood Glucose Is Over (mg/dl):";
+"... When Blood Glucose Is Over (mg/dl):" = "... عندما يتجاوز جلوكوز الدم (ملليغرام/دل):";
 
 /* ... When Blood Glucose Is Over (mg/dl): */
 "Set the value enableSMB_high_bg will compare against to enable SMB. If BG > than this value, SMBs should enable." = "Set the value enableSMB_high_bg will compare against to enable SMB. If BG > than this value, SMBs should enable.";
 
 /* Headline "Enable SMB With High BG" */
-"Enable SMB With High BG" = "Enable SMB With High BG";
+"Enable SMB With High BG" = "تمكين الجرعات الصغيرة مع جلوكوز عالي";
 
 /* "Enable SMB With High BG" */
-"Enable SMBs when a high BG is detected, based on the high BG target (adjusted or profile)" = "Enable SMBs when a high BG is detected, based on the high BG target (adjusted or profile)";
+"Enable SMBs when a high BG is detected, based on the high BG target (adjusted or profile)" = "تمكين الجرعات الصغيرة عند اكتشاف درجة جلوكوز عالية، استنادًا إلى هدف جلوكوز العالي (معدّل أو ملفّ)";
 
 /* Headline "Dynamic settings" */
-"Dynamic settings" = "Dynamic settings";
+"Dynamic settings" = "الإعدادات الديناميكية";
 
 /* Insulin curve */
-"Insulin curve" = "Insulin curve";
+"Insulin curve" = "منحنى الإنسولين";
 
 /* Headline "Adjustment Factor" */
-"Adjustment Factor" = "Adjustment Factor";
+"Adjustment Factor" = "عامل التعديل";
