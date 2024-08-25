@@ -7,6 +7,7 @@ import Swinject
 
 protocol GlucoseStorage {
     func storeGlucose(_ glucose: [BloodGlucose])
+    func isGlucoseDataFresh(_ glucoseDate: Date?) -> Bool
     func syncDate() -> Date
     func filterTooFrequentGlucose(_ glucose: [BloodGlucose], at: Date) -> [BloodGlucose]
     func lastGlucoseDate() -> Date
@@ -158,6 +159,11 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
         }
     }
 
+    func isGlucoseDataFresh(_ glucoseDate: Date?) -> Bool {
+        guard let glucoseDate = glucoseDate else { return false }
+        return glucoseDate > Date().addingTimeInterval(-6 * 60)
+    }
+
     func syncDate() -> Date {
         let fr = GlucoseStored.fetchRequest()
         fr.predicate = NSPredicate.predicateForOneDayAgo
@@ -239,8 +245,11 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             ascending: false,
             fetchLimit: 288
         )
+
+        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+
         return await coredataContext.perform {
-            return results.map { result in
+            return fetchedResults.map { result in
                 BloodGlucose(
                     _id: result.id?.uuidString ?? UUID().uuidString,
                     sgv: Int(result.glucose),
@@ -267,8 +276,11 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             ascending: false,
             fetchLimit: 288
         )
+
+        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+
         return await coredataContext.perform {
-            return results.map { result in
+            return fetchedResults.map { result in
                 NightscoutTreatment(
                     duration: nil,
                     rawDuration: nil,

@@ -32,28 +32,38 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         var entriesToStore = entries
 
         if areFetchedFromRemote {
-            let existing24hCarbEntries: [CarbEntryStored] = await CoreDataStack.shared.fetchEntitiesAsync(
-                ofType: CarbEntryStored.self,
-                onContext: coredataContext,
-                predicate: NSPredicate.predicateForOneDayAgo,
-                key: "date",
-                ascending: false,
-                batchSize: 50
-            )
-
-            if !existing24hCarbEntries.isEmpty {
-                // compare entries createdAt and existing24hCarbEntries date and remove duplicates in entries
-                // TODO: refactor this when properties-to-fetch has landed to only fetch dates
-                let existingTimestamps = Set(existing24hCarbEntries.map(\.date))
-                entriesToStore = entriesToStore
-                    .filter {
-                        !existingTimestamps.contains($0.actualDate ?? $0.createdAt) || !existingTimestamps.contains($0.createdAt)
-                    }
-            }
+            entriesToStore = await filterRemoteEntries(entries: entriesToStore)
         }
 
         await saveCarbEquivalents(entries: entriesToStore, areFetchedFromRemote: areFetchedFromRemote)
         await saveCarbsToCoreData(entries: entriesToStore, areFetchedFromRemote: areFetchedFromRemote)
+    }
+
+    private func filterRemoteEntries(entries: [CarbsEntry]) async -> [CarbsEntry] {
+        // Fetch only the date property from Core Data
+        guard let existing24hCarbEntries = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: CarbEntryStored.self,
+            onContext: coredataContext,
+            predicate: NSPredicate.predicateForOneDayAgo,
+            key: "date",
+            ascending: false,
+            batchSize: 50,
+            propertiesToFetch: ["date", "objectID"]
+        ) as? [[String: Any]] else {
+            return entries
+        }
+
+        // Extract dates into a set for efficient lookup
+        let existingTimestamps = Set(existing24hCarbEntries.compactMap { $0["date"] as? Date })
+
+        // Remove all entries that have a matching date in existingTimestamps
+        var filteredEntries = entries
+        filteredEntries.removeAll { entry in
+            let entryDate = entry.actualDate ?? entry.createdAt
+            return existingTimestamps.contains(entryDate)
+        }
+
+        return filteredEntries
     }
 
     /**
@@ -179,6 +189,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             newItem.carbs = Double(truncating: NSDecimalNumber(decimal: entry.carbs))
             newItem.fat = Double(truncating: NSDecimalNumber(decimal: entry.fat ?? 0))
             newItem.protein = Double(truncating: NSDecimalNumber(decimal: entry.protein ?? 0))
+            newItem.note = entry.note
             newItem.id = UUID()
             newItem.isFPU = false
             newItem.isUploadedToNS = areFetchedFromRemote ? true : false
@@ -270,8 +281,12 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             ascending: false
         )
 
+        guard let carbEntries = results as? [CarbEntryStored] else {
+            return []
+        }
+
         return await coredataContext.perform {
-            return results.map { result in
+            return carbEntries.map { result in
                 NightscoutTreatment(
                     duration: nil,
                     rawDuration: nil,
@@ -283,6 +298,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     enteredBy: CarbsEntry.manual,
                     bolus: nil,
                     insulin: nil,
+                    notes: result.note,
                     carbs: Decimal(result.carbs),
                     fat: Decimal(result.fat),
                     protein: Decimal(result.protein),
@@ -304,8 +320,10 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             ascending: false
         )
 
+        guard let fpuEntries = results as? [CarbEntryStored] else { return [] }
+
         return await coredataContext.perform {
-            return results.map { result in
+            return fpuEntries.map { result in
                 NightscoutTreatment(
                     duration: nil,
                     rawDuration: nil,

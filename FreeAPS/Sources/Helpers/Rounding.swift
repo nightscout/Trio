@@ -1,4 +1,3 @@
-
 import Foundation
 
 func rounded(_ value: Decimal, scale: Int, roundingMode: NSDecimalNumber.RoundingMode) -> Decimal {

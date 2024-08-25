@@ -171,16 +171,16 @@ extension AutotuneConfig {
                         .tint(.white)
                     }
 
-                    Section {
-                        Button {
-                            replaceAlert = true
-                        } label: {
-                            Text("Save as Normal Basal Rates")
-                        }
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .listRowBackground(Color(.systemGray4))
-                        .tint(.white)
-                    }
+                    // Section {
+                    //     Button {
+                    //         replaceAlert = true
+                    //     } label: {
+                    //         Text("Save as Normal Basal Rates")
+                    //     }
+                    //     .frame(maxWidth: .infinity, alignment: .center)
+                    //     .listRowBackground(Color(.systemGray4))
+                    //     .tint(.white)
+                    // }
                 }
             }
             .sheet(isPresented: $shouldDisplayHint) {
