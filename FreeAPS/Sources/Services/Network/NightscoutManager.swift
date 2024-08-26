@@ -592,8 +592,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     func importSettings() async -> ScheduledNightscoutProfile? {
-        guard let nightscout = nightscoutAPI, isUploadEnabled else {
-            debug(.nightscout, "NS API not available or upload disabled. Aborting NS Status upload.")
+        guard let nightscout = nightscoutAPI else {
+            debug(.nightscout, "NS API not available. Aborting NS Status upload.")
             return nil
         }
 
