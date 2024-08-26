@@ -915,6 +915,44 @@ extension Home {
             }
         }
 
+        private func parseReasonConclusion(_ reasonConclusion: String, isMmolL: Bool) -> String {
+            var updatedConclusion = reasonConclusion
+
+            // Handle "minGuardBG x<y" pattern
+            if let range = updatedConclusion.range(of: "minGuardBG\\s*-?\\d+<\\d+", options: .regularExpression) {
+                let matchedString = updatedConclusion[range]
+                let parts = matchedString.components(separatedBy: "<")
+
+                if let firstValue = Double(parts[0].components(separatedBy: CharacterSet.decimalDigits.inverted).joined()),
+                   let secondValue = Double(parts[1])
+                {
+                    let formattedFirstValue = isMmolL ? Double(firstValue.asMmolL) : firstValue
+                    let formattedSecondValue = isMmolL ? Double(secondValue.asMmolL) : secondValue
+
+                    let formattedString = "minGuardBG \(formattedFirstValue)<\(formattedSecondValue)"
+                    updatedConclusion = updatedConclusion.replacingOccurrences(of: matchedString, with: formattedString)
+                }
+            }
+
+            // Handle "Eventual BG x >= target" pattern
+            if let range = updatedConclusion.range(of: "Eventual BG\\s*\\d+\\s*>?=\\s*\\d+", options: .regularExpression) {
+                let matchedString = updatedConclusion[range]
+                let parts = matchedString.components(separatedBy: " >= ")
+
+                if let firstValue = Double(parts[0].components(separatedBy: CharacterSet.decimalDigits.inverted).joined()),
+                   let secondValue = Double(parts[1])
+                {
+                    let formattedFirstValue = isMmolL ? Double(firstValue.asMmolL) : firstValue
+                    let formattedSecondValue = isMmolL ? Double(secondValue.asMmolL) : secondValue
+
+                    let formattedString = "Eventual BG \(formattedFirstValue) >= \(formattedSecondValue)"
+                    updatedConclusion = updatedConclusion.replacingOccurrences(of: matchedString, with: formattedString)
+                }
+            }
+
+            return updatedConclusion.capitalizingFirstLetter()
+        }
+
         private var popup: some View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(statusTitle).font(.headline).foregroundColor(.white)
@@ -924,9 +962,16 @@ extension Home {
                         Text("Invalid CGM reading (HIGH).").font(.callout).bold().foregroundColor(.loopRed).padding(.top, 8)
                         Text("SMBs and High Temps Disabled.").font(.caption).foregroundColor(.white).padding(.bottom, 4)
                     } else {
-                        TagCloudView(tags: determination.reasonParts).animation(.none, value: false)
+                        TagCloudView(tags: determination.reasonParts, shouldParseToMmolL: state.units == .mmolL)
+                            .animation(.none, value: false)
 
-                        Text(determination.reasonConclusion.capitalizingFirstLetter()).font(.caption).foregroundColor(.white)
+                        Text(
+                            self
+                                .parseReasonConclusion(
+                                    determination.reasonConclusion,
+                                    isMmolL: state.units == .mmolL
+                                )
+                        ).font(.caption).foregroundColor(.white)
                     }
                 } else {
                     Text("No determination found").font(.body).foregroundColor(.white)
