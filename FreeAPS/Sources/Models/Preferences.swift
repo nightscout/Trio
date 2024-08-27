@@ -52,7 +52,7 @@ struct Preferences: JSON {
     var tddAdjBasal: Bool = false
     var enableSMB_high_bg: Bool = false
     var enableSMB_high_bg_target: Decimal = 110
-    var threshold_setting: Decimal = 65
+    var threshold_setting: Decimal = 60
     var updateInterval: Decimal = 20
 }
 
