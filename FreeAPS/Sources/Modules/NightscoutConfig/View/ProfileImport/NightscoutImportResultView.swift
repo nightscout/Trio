@@ -103,7 +103,7 @@ struct NightscoutImportResultView: BaseView {
                     }.disabled(hasVisitedCREditor)
 
                     NavigationLink(
-                        destination: PumpSettingsEditor.RootView(resolver: resolver)
+                        destination: AlgorithmAdvancedSettings.RootView(resolver: resolver)
                             .onDisappear { hasVisitedPumpSettingsEditor = true }
                     ) {
                         HStack {

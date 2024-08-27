@@ -10,7 +10,6 @@ enum Screen: Identifiable, Hashable {
     case nighscoutConfigDirect
     case pumpConfig
     case pumpConfigDirect
-    case pumpSettingsEditor
     case basalProfileEditor
     case isfEditor
     case crEditor
@@ -70,8 +69,6 @@ extension Screen {
             PumpConfig.RootView(resolver: resolver, displayClose: false)
         case .pumpConfigDirect:
             PumpConfig.RootView(resolver: resolver, displayClose: true)
-        case .pumpSettingsEditor:
-            PumpSettingsEditor.RootView(resolver: resolver)
         case .basalProfileEditor:
             BasalProfileEditor.RootView(resolver: resolver)
         case .isfEditor:

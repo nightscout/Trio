@@ -92,6 +92,24 @@ extension AlgorithmAdvancedSettings {
                 )
 
                 SettingInputSection(
+                    decimalValue: $state.insulinActionCurve,
+                    booleanValue: $booleanPlaceholder,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Duration of Insulin Action"
+                        }
+                    ),
+                    units: state.units,
+                    type: .decimal("dia"),
+                    label: "Duration of Insulin Action",
+                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+                    verboseHint: "Duration of Insulin Action… bla bla bla"
+                )
+
+                SettingInputSection(
                     decimalValue: $state.insulinPeakTime,
                     booleanValue: $state.useCustomPeakTime,
                     shouldDisplayHint: $shouldDisplayHint,

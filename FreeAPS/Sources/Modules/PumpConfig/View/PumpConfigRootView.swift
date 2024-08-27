@@ -90,13 +90,6 @@ extension PumpConfig {
                     )
                     .padding(.top)
                     .listRowBackground(Color.chart)
-
-                    if state.pumpState != nil {
-                        Section {
-                            Text("Delivery Limits & DIA")
-                                .navigationLink(to: .pumpSettingsEditor, from: self)
-                        }.listRowBackground(Color.chart)
-                    }
                 }
                 .scrollContentBackground(.hidden).background(color)
                 .onAppear(perform: configureView)

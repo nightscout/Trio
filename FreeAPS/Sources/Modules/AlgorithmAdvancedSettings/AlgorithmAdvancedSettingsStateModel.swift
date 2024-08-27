@@ -1,9 +1,11 @@
+import Combine
 import SwiftUI
 
 extension AlgorithmAdvancedSettings {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() var settings: SettingsManager!
         @Injected() var storage: FileStorage!
+        @Injected() var nightscout: NightscoutManager!
 
         @Published var units: GlucoseUnits = .mgdL
 
@@ -20,8 +22,14 @@ extension AlgorithmAdvancedSettings {
         @Published var remainingCarbsCap: Decimal = 90
         @Published var noisyCGMTargetMultiplier: Decimal = 1.3
 
+        @Published var insulinActionCurve: Decimal = 6
+
         var preferences: Preferences {
             settingsManager.preferences
+        }
+
+        var pumpSettings: PumpSettings {
+            provider.settings()
         }
 
         override func subscribe() {
@@ -39,6 +47,12 @@ extension AlgorithmAdvancedSettings {
             remainingCarbsFraction = settings.preferences.remainingCarbsFraction
             remainingCarbsCap = settings.preferences.remainingCarbsCap
             noisyCGMTargetMultiplier = settings.preferences.noisyCGMTargetMultiplier
+
+            insulinActionCurve = pumpSettings.insulinActionCurve
+        }
+
+        var isPumpSettingUnchanged: Bool {
+            pumpSettings.insulinActionCurve == insulinActionCurve
         }
 
         var isSettingUnchanged: Bool {
@@ -75,6 +89,26 @@ extension AlgorithmAdvancedSettings {
 
                 newSettings.timestamp = Date()
                 storage.save(newSettings, as: OpenAPS.Settings.preferences)
+            }
+
+            if !isPumpSettingUnchanged {
+                let settings = PumpSettings(
+                    insulinActionCurve: insulinActionCurve,
+                    maxBolus: pumpSettings.maxBolus,
+                    maxBasal: pumpSettings.maxBasal
+                )
+                provider.save(settings: settings)
+                    .receive(on: DispatchQueue.main)
+                    .sink { _ in
+                        let settings = self.provider.settings()
+                        self.insulinActionCurve = settings.insulinActionCurve
+
+                        Task.detached(priority: .low) {
+                            debug(.nightscout, "Attempting to upload DIA to Nightscout")
+                            await self.nightscout.uploadProfiles()
+                        }
+                    } receiveValue: {}
+                    .store(in: &lifetime)
             }
         }
     }

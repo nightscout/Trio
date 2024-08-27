@@ -45,6 +45,42 @@ extension UnitsLimitsSettings {
                 ).listRowBackground(Color.chart)
 
                 SettingInputSection(
+                    decimalValue: $state.maxBolus,
+                    booleanValue: $booleanPlaceholder,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Max Bolus"
+                        }
+                    ),
+                    units: state.units,
+                    type: .decimal("maxBolus"),
+                    label: "Max Bolus",
+                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+                    verboseHint: "Max Bolus… bla bla bla"
+                )
+
+                SettingInputSection(
+                    decimalValue: $state.maxBasal,
+                    booleanValue: $booleanPlaceholder,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Max Basal"
+                        }
+                    ),
+                    units: state.units,
+                    type: .decimal("maxBasal"),
+                    label: "Max Basal",
+                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+                    verboseHint: "Max Basal… bla bla bla"
+                )
+
+                SettingInputSection(
                     decimalValue: $state.maxIOB,
                     booleanValue: $booleanPlaceholder,
                     shouldDisplayHint: $shouldDisplayHint,

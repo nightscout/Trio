@@ -41,12 +41,6 @@ enum SettingItems {
     static let devicesItems = [
         SettingItem(title: "Insulin Pump", view: .pumpConfig, path: ["Devices"]),
         SettingItem(
-            title: "Delivery Limits & DIA",
-            view: .pumpSettingsEditor,
-            searchContents: ["Max Basal", "Max Bolus", "Duration of Insulin Action", "DIA"],
-            path: ["Devices", "Insulin Pump", "Delivery Limits & DIA"]
-        ),
-        SettingItem(
             title: "CGM",
             view: .cgm,
             searchContents: ["Smooth Glucose Value"],
@@ -65,7 +59,7 @@ enum SettingItems {
         SettingItem(
             title: "Units and Limits",
             view: .unitsAndLimits,
-            searchContents: ["Glucose Units", "Max IOB", "Max COB"],
+            searchContents: ["Glucose Units", "Max Basal", "Max Bolus", "Max IOB", "Max COB"],
             path: ["Therapy Settings", "Units and Limits"]
         ),
         SettingItem(title: "Basal Rates", view: .basalProfileEditor, path: ["Therapy Settings"]),
@@ -130,6 +124,7 @@ enum SettingItems {
                 "Max Daily Safety Multiplier",
                 "Current Basal Safety Multiplier",
                 "Use Custom Peak Time",
+                "Duration of Insulin Action", "DIA",
                 "Insulin Peak Time",
                 "Skip Neutral Temps",
                 "Unsuspend If No Temp",
