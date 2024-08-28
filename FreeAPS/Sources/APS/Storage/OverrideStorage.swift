@@ -45,8 +45,10 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             fetchLimit: 1
         )
 
+        guard let fetchedResults = results as? [OverrideStored] else { return [] }
+
         return await backgroundContext.perform {
-            return results.map(\.objectID)
+            return fetchedResults.map(\.objectID)
         }
     }
 
@@ -60,14 +62,16 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             fetchLimit: fetchLimit
         )
 
+        guard let fetchedResults = results as? [OverrideStored] else { return [] }
+
         return await backgroundContext.perform {
-            return results.map(\.objectID)
+            return fetchedResults.map(\.objectID)
         }
     }
 
     /// Returns the NSManagedObjectID of the Override Presets
     func fetchForOverridePresets() async -> [NSManagedObjectID] {
-        let result = await CoreDataStack.shared.fetchEntitiesAsync(
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OverrideStored.self,
             onContext: backgroundContext,
             predicate: NSPredicate.allOverridePresets,
@@ -75,8 +79,10 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             ascending: true
         )
 
+        guard let fetchedResults = results as? [OverrideStored] else { return [] }
+
         return await backgroundContext.perform {
-            return result.map(\.objectID)
+            return fetchedResults.map(\.objectID)
         }
     }
 
@@ -206,13 +212,15 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
     }
 
     func getOverridesNotYetUploadedToNightscout() async -> [NightscoutExercise] {
-        let fetchedOverrides = await CoreDataStack.shared.fetchEntitiesAsync(
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OverrideStored.self,
             onContext: backgroundContext,
             predicate: NSPredicate.lastActiveOverrideNotYetUploadedToNightscout,
             key: "date",
             ascending: false
         )
+
+        guard let fetchedOverrides = results as? [OverrideStored] else { return [] }
 
         return await backgroundContext.perform {
             return fetchedOverrides.map { override in
@@ -230,7 +238,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
     }
 
     func getOverrideRunsNotYetUploadedToNightscout() async -> [NightscoutExercise] {
-        let fetchedOverrideRuns = await CoreDataStack.shared.fetchEntitiesAsync(
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OverrideRunStored.self,
             onContext: backgroundContext,
             predicate: NSPredicate(
@@ -241,6 +249,8 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             key: "startDate",
             ascending: false
         )
+
+        guard let fetchedOverrideRuns = results as? [OverrideRunStored] else { return [] }
 
         return await backgroundContext.perform {
             return fetchedOverrideRuns.map { overrideRun in

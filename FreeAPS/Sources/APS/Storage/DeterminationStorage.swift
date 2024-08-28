@@ -26,8 +26,11 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
             ascending: false,
             fetchLimit: 1
         )
+
+        guard let fetchedResults = results as? [OrefDetermination] else { return [] }
+
         return await backgroundContext.perform {
-            results.map(\.objectID)
+            fetchedResults.map(\.objectID)
         }
     }
 
@@ -75,37 +78,40 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
     }
 
     // Convert NSSet to array of Ints for Predictions
-    func parseForecastValues(ofType _: String, from determinationID: NSManagedObjectID) async -> [Int]? {
+    func parseForecastValues(ofType type: String, from determinationID: NSManagedObjectID) async -> [Int]? {
         let forecastIDs = await getForecastIDs(for: determinationID, in: backgroundContext)
 
         var forecastValuesList: [Int] = []
 
         for forecastID in forecastIDs {
-            let forecastValueIDs = await getForecastValueIDs(for: forecastID, in: backgroundContext)
-
             await backgroundContext.perform {
-                for forecastValueID in forecastValueIDs {
-                    if let forecastValue = try? self.backgroundContext.existingObject(with: forecastValueID) as? ForecastValue {
-                        let forecastValueInt = Int(forecastValue.value)
-                        forecastValuesList.append(forecastValueInt)
+                if let forecast = try? self.backgroundContext.existingObject(with: forecastID) as? Forecast {
+                    // Filter the forecast based on the type
+                    if forecast.type == type {
+                        let forecastValueIDs = forecast.forecastValues?.sorted(by: { $0.index < $1.index }).map(\.objectID) ?? []
+
+                        for forecastValueID in forecastValueIDs {
+                            if let forecastValue = try? self.backgroundContext
+                                .existingObject(with: forecastValueID) as? ForecastValue
+                            {
+                                let forecastValueInt = Int(forecastValue.value)
+                                forecastValuesList.append(forecastValueInt)
+                            }
+                        }
                     }
                 }
             }
         }
 
-        return forecastValuesList
+        return forecastValuesList.isEmpty ? nil : forecastValuesList
     }
 
     func getOrefDeterminationNotYetUploadedToNightscout(_ determinationIds: [NSManagedObjectID]) async -> Determination? {
         var result: Determination?
 
         guard let determinationId = determinationIds.first else {
-            print("No determination ID found.")
             return nil
         }
-
-        print("Using context: \(backgroundContext)")
-        print("Determination ID: \(determinationId)")
 
         let predictions = Predictions(
             iob: await parseForecastValues(ofType: "iob", from: determinationId),
@@ -118,15 +124,9 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
             do {
                 let orefDetermination = try self.backgroundContext.existingObject(with: determinationId) as? OrefDetermination
 
-                // Log the type of the fetched object
-                print("Fetched object type: \(type(of: orefDetermination))")
-                print("Fetched object description: \(orefDetermination)")
-
                 // Check if the fetched object is of the expected type
                 if let orefDetermination = orefDetermination {
-                    print("Successfully cast to OrefDetermination")
                     let forecastSet = orefDetermination.forecasts
-                    print("Fetched forecast set: \(forecastSet)")
 
                     result = Determination(
                         id: orefDetermination.id ?? UUID(),
@@ -160,11 +160,11 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
                         carbRatio: self.decimal(from: orefDetermination.carbRatio),
                         received: orefDetermination.enacted // this is actually part of NS...
                     )
-                } else {
-                    print("Fetched object is not of type OrefDetermination")
                 }
             } catch {
-                print("Failed to fetch managed object: \(error)")
+                debugPrint(
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch managed object with error: \(error.localizedDescription)"
+                )
             }
 
             return result

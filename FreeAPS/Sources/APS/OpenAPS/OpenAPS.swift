@@ -93,7 +93,7 @@ final class OpenAPS {
     }
 
     func checkForCobIobUpdate(_ determination: Determination) async {
-        let previousDeterminations = await CoreDataStack.shared.fetchEntitiesAsync(
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
             onContext: context,
             predicate: NSPredicate.predicateFor30MinAgoForDetermination,
@@ -101,6 +101,10 @@ final class OpenAPS {
             ascending: false,
             fetchLimit: 2
         )
+
+        guard let previousDeterminations = results as? [OrefDetermination] else {
+            return
+        }
 
         // We need to get the second last Determination for this comparison because we have saved the current Determination already to Core Data
         if let previousDetermination = previousDeterminations.dropFirst().first {
@@ -129,20 +133,24 @@ final class OpenAPS {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: context,
-            predicate: NSPredicate.predicateForSixHoursAgo,
+            predicate: NSPredicate.predicateForOneDayAgoInMinutes,
             key: "date",
             ascending: false,
             fetchLimit: 72,
             batchSize: 24
         )
 
+        guard let glucoseResults = results as? [GlucoseStored] else {
+            return ""
+        }
+
         return await context.perform {
-            // convert to json
-            return self.jsonConverter.convertToJSON(results)
+            // convert to JSON
+            return self.jsonConverter.convertToJSON(glucoseResults)
         }
     }
 
-    private func fetchAndProcessCarbs() async -> String {
+    private func fetchAndProcessCarbs(additionalCarbs: Decimal? = nil) async -> String {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: context,
@@ -151,49 +159,78 @@ final class OpenAPS {
             ascending: false
         )
 
-        // convert to json
-        return await context.perform {
-            return self.jsonConverter.convertToJSON(results)
+        guard let carbResults = results as? [CarbEntryStored] else {
+            return ""
         }
+
+        let json = await context.perform {
+            var jsonArray = self.jsonConverter.convertToJSON(carbResults)
+
+            if let additionalCarbs = additionalCarbs {
+                let additionalEntry = [
+                    "carbs": Double(additionalCarbs),
+                    "actualDate": ISO8601DateFormatter().string(from: Date()),
+                    "id": UUID().uuidString,
+                    "note": NSNull(),
+                    "protein": 0,
+                    "created_at": ISO8601DateFormatter().string(from: Date()),
+                    "isFPU": false,
+                    "fat": 0,
+                    "enteredBy": "Trio"
+                ] as [String: Any]
+
+                // Assuming jsonArray is a String, convert it to a list of dictionaries first
+                if let jsonData = jsonArray.data(using: .utf8) {
+                    var jsonList = try? JSONSerialization.jsonObject(with: jsonData, options: []) as? [[String: Any]]
+                    jsonList?.append(additionalEntry)
+
+                    // Convert back to JSON string
+                    if let updatedJsonData = try? JSONSerialization
+                        .data(withJSONObject: jsonList ?? [], options: .prettyPrinted)
+                    {
+                        jsonArray = String(data: updatedJsonData, encoding: .utf8) ?? jsonArray
+                    }
+                }
+            }
+
+            return jsonArray
+        }
+
+        return json
     }
 
     private func fetchPumpHistoryObjectIDs() async -> [NSManagedObjectID]? {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
-            predicate: NSPredicate.pumpHistoryLast24h,
+            predicate: NSPredicate.pumpHistoryLast1440Minutes,
             key: "timestamp",
             ascending: false,
             batchSize: 50
         )
+
+        guard let pumpEventResults = results as? [PumpEventStored] else {
+            return nil
+        }
+
         return await context.perform {
-            return results.map(\.objectID)
+            return pumpEventResults.map(\.objectID)
         }
     }
 
-    private func parsePumpHistory(_ pumpHistoryObjectIDs: [NSManagedObjectID]) async -> String {
+    private func parsePumpHistory(_ pumpHistoryObjectIDs: [NSManagedObjectID], iob: Decimal? = nil) async -> String {
         // Return an empty JSON object if the list of object IDs is empty
         guard !pumpHistoryObjectIDs.isEmpty else { return "{}" }
 
         // Execute all operations on the background context
         return await context.perform {
-            // Load the pump events from the object IDs
-            let pumpHistory: [PumpEventStored] = pumpHistoryObjectIDs
-                .compactMap { self.context.object(with: $0) as? PumpEventStored }
+            // Load and map pump events to DTOs
+            var dtos = self.loadAndMapPumpEvents(pumpHistoryObjectIDs)
 
-            // Create the DTOs
-            let dtos: [PumpEventDTO] = pumpHistory.flatMap { event -> [PumpEventDTO] in
-                var eventDTOs: [PumpEventDTO] = []
-                if let bolusDTO = event.toBolusDTOEnum() {
-                    eventDTOs.append(bolusDTO)
-                }
-                if let tempBasalDTO = event.toTempBasalDTOEnum() {
-                    eventDTOs.append(tempBasalDTO)
-                }
-                if let tempBasalDurationDTO = event.toTempBasalDurationDTOEnum() {
-                    eventDTOs.append(tempBasalDurationDTO)
-                }
-                return eventDTOs
+            // Optionally add the IOB as a DTO
+            if let iob = iob {
+                let iobDTO = self.createIOBDTO(iob: iob)
+                dtos.insert(iobDTO, at: 0)
             }
 
             // Convert the DTOs to JSON
@@ -201,19 +238,64 @@ final class OpenAPS {
         }
     }
 
-    func determineBasal(currentTemp: TempBasal, clock: Date = Date()) async throws -> Determination? {
-        debug(.openAPS, "Start determineBasal")
+    private func loadAndMapPumpEvents(_ pumpHistoryObjectIDs: [NSManagedObjectID]) -> [PumpEventDTO] {
+        // Load the pump events from the object IDs
+        let pumpHistory: [PumpEventStored] = pumpHistoryObjectIDs
+            .compactMap { self.context.object(with: $0) as? PumpEventStored }
 
-        // clock
-        let dateFormatted = OpenAPS.dateFormatter.string(from: clock)
-        let dateFormattedAsString = "\"\(dateFormatted)\""
+        // Create the DTOs
+        let dtos: [PumpEventDTO] = pumpHistory.flatMap { event -> [PumpEventDTO] in
+            var eventDTOs: [PumpEventDTO] = []
+            if let bolusDTO = event.toBolusDTOEnum() {
+                eventDTOs.append(bolusDTO)
+            }
+            if let tempBasalDTO = event.toTempBasalDTOEnum() {
+                eventDTOs.append(tempBasalDTO)
+            }
+            if let tempBasalDurationDTO = event.toTempBasalDurationDTOEnum() {
+                eventDTOs.append(tempBasalDurationDTO)
+            }
+            return eventDTOs
+        }
+        return dtos
+    }
+
+    private func createIOBDTO(iob: Decimal) -> PumpEventDTO {
+        let oneSecondAgo = Calendar.current
+            .date(
+                byAdding: .second,
+                value: -1,
+                to: Date()
+            )! // adding -1s to the current Date ensures that oref actually uses the mock entry to calculate iob and not guard it away
+        let dateFormatted = PumpEventStored.dateFormatter.string(from: oneSecondAgo)
+
+        let bolusDTO = BolusDTO(
+            id: UUID().uuidString,
+            timestamp: dateFormatted,
+            amount: Double(iob),
+            isExternal: false,
+            isSMB: true,
+            duration: 0,
+            _type: "Bolus"
+        )
+        return .bolus(bolusDTO)
+    }
+
+    func determineBasal(
+        currentTemp: TempBasal,
+        clock: Date = Date(),
+        carbs: Decimal? = nil,
+        iob: Decimal? = nil,
+        simulation: Bool = false
+    ) async throws -> Determination? {
+        debug(.openAPS, "Start determineBasal")
 
         // temp_basal
         let tempBasal = currentTemp.rawJSON
 
         // Perform asynchronous calls in parallel
         async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
-        async let carbs = fetchAndProcessCarbs()
+        async let carbs = fetchAndProcessCarbs(additionalCarbs: carbs ?? 0)
         async let glucose = fetchAndProcessGlucose()
         async let oref2 = oref2()
         async let profileAsync = loadFileFromStorageAsync(name: Settings.profile)
@@ -234,7 +316,7 @@ final class OpenAPS {
             reservoir,
             preferences
         ) = await (
-            parsePumpHistory(await pumpHistoryObjectIDs),
+            parsePumpHistory(await pumpHistoryObjectIDs, iob: iob),
             carbs,
             glucose,
             oref2,
@@ -245,28 +327,28 @@ final class OpenAPS {
             preferencesAsync
         )
 
-        // TODO: - Save and fetch profile/basalProfile in/from UserDefaults!
-
-        // Meal
+        // Meal calculation
         let meal = try await self.meal(
             pumphistory: pumpHistoryJSON,
             profile: profile,
             basalProfile: basalProfile,
-            clock: dateFormattedAsString,
+            clock: clock,
             carbs: carbsAsJSON,
             glucose: glucoseAsJSON
         )
 
-        // IOB
+        // IOB calculation
         let iob = try await self.iob(
             pumphistory: pumpHistoryJSON,
             profile: profile,
-            clock: dateFormattedAsString,
+            clock: clock,
             autosens: autosens.isEmpty ? .null : autosens
         )
 
         // TODO: refactor this to core data
-        storage.save(iob, as: Monitor.iob)
+        if !simulation {
+            storage.save(iob, as: Monitor.iob)
+        }
 
         // Determine basal
         let orefDetermination = try await determineBasal(
@@ -291,8 +373,10 @@ final class OpenAPS {
             // AAPS does it the same way! we'll follow their example!
             determination.timestamp = deliverAt
 
-            // save to core data asynchronously
-            await processDetermination(determination)
+            if !simulation {
+                // save to core data asynchronously
+                await processDetermination(determination)
+            }
 
             return determination
         } else {
@@ -311,13 +395,21 @@ final class OpenAPS {
             let tenDaysAgo = Date().addingTimeInterval(-10.days.timeInterval)
             let twoHoursAgo = Date().addingTimeInterval(-2.hours.timeInterval)
 
-            var uniqueEvents = [OrefDetermination]()
-            let requestTDD = OrefDetermination.fetchRequest() as NSFetchRequest<OrefDetermination>
+            var uniqueEvents = [[String: Any]]()
+            let requestTDD = OrefDetermination.fetchRequest() as NSFetchRequest<NSFetchRequestResult>
             requestTDD.predicate = NSPredicate(format: "timestamp > %@ AND totalDailyDose > 0", tenDaysAgo as NSDate)
             requestTDD.propertiesToFetch = ["timestamp", "totalDailyDose"]
             let sortTDD = NSSortDescriptor(key: "timestamp", ascending: true)
             requestTDD.sortDescriptors = [sortTDD]
-            try? uniqueEvents = self.context.fetch(requestTDD)
+            requestTDD.resultType = .dictionaryResultType
+
+            do {
+                if let fetchedResults = try self.context.fetch(requestTDD) as? [[String: Any]] {
+                    uniqueEvents = fetchedResults
+                }
+            } catch {
+                debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch TDD Data")
+            }
 
             var sliderArray = [TempTargetsSlider]()
             let requestIsEnbled = TempTargetsSlider.fetchRequest() as NSFetchRequest<TempTargetsSlider>
@@ -342,12 +434,13 @@ final class OpenAPS {
             requestTempTargets.fetchLimit = 1
             try? tempTargetsArray = self.context.fetch(requestTempTargets)
 
-            let total = uniqueEvents.compactMap({ each in each.totalDailyDose as? Decimal ?? 0 }).reduce(0, +)
+            let total = uniqueEvents.compactMap({ ($0["totalDailyDose"] as? NSDecimalNumber)?.decimalValue ?? 0 }).reduce(0, +)
             var indeces = uniqueEvents.count
             // Only fetch once. Use same (previous) fetch
-            let twoHoursArray = uniqueEvents.filter({ ($0.timestamp ?? Date()) >= twoHoursAgo })
+            let twoHoursArray = uniqueEvents.filter({ ($0["timestamp"] as? Date ?? Date()) >= twoHoursAgo })
             var nrOfIndeces = twoHoursArray.count
-            let totalAmount = twoHoursArray.compactMap({ each in each.totalDailyDose as? Decimal ?? 0 }).reduce(0, +)
+            let totalAmount = twoHoursArray.compactMap({ ($0["totalDailyDose"] as? NSDecimalNumber)?.decimalValue ?? 0 })
+                .reduce(0, +)
 
             var temptargetActive = tempTargetsArray.first?.active ?? false
             let isPercentageEnabled = sliderArray.first?.enabled ?? false
@@ -357,7 +450,7 @@ final class OpenAPS {
             var unlimited = overrideArray.first?.indefinite ?? true
             var disableSMBs = overrideArray.first?.smbIsOff ?? false
 
-            let currentTDD = (uniqueEvents.last?.totalDailyDose ?? 0) as Decimal
+            let currentTDD = (uniqueEvents.last?["totalDailyDose"] as? NSDecimalNumber)?.decimalValue ?? 0
 
             if indeces == 0 {
                 indeces = 1
@@ -519,7 +612,7 @@ final class OpenAPS {
         debug(.openAPS, "AUTOSENS: \(autosenseResult)")
         if var autosens = Autosens(from: autosenseResult) {
             autosens.timestamp = Date()
-            storage.save(autosens, as: Settings.autosense)
+            await storage.saveAsync(autosens, as: Settings.autosense)
 
             return autosens
         } else {

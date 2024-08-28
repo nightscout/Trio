@@ -57,6 +57,7 @@ extension StatConfig {
                         TextFieldWithToolBar(text: $state.hours, placeholder: "6", numberFormatter: carbsFormatter)
                         Text("hours").foregroundColor(.secondary)
                     }
+                    Toggle("Show Forecasts as Lines", isOn: $state.displayForecastsAsLines)
                 } header: { Text("Home Chart settings ") }
 
                 Section {

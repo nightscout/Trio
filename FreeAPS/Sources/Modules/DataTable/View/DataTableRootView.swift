@@ -12,12 +12,10 @@ extension DataTable {
         @State private var alertTreatmentToDelete: PumpEventStored?
         @State private var alertCarbEntryToDelete: CarbEntryStored?
         @State private var alertGlucoseToDelete: GlucoseStored?
-
+        @State private var showAlert = false
         @State private var showFutureEntries: Bool = false // default to hide future entries
         @State private var showManualGlucose: Bool = false
         @State private var isAmountUnconfirmed: Bool = true
-
-        @State private var showAlert = false
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(\.managedObjectContext) var context
@@ -130,7 +128,9 @@ extension DataTable {
                         .background(color)
                 }.blur(radius: state.waitForSuggestion ? 8 : 0)
 
-                if state.waitForSuggestion {
+                // Show custom progress view
+                /// don't show it if glucose is stale as it will block the UI
+                if state.waitForSuggestion && state.isGlucoseDataFresh(glucoseStored.first?.date) {
                     CustomProgressView(text: progressText.rawValue)
                 }
             })
@@ -343,6 +343,7 @@ extension DataTable {
                                     state.addManualGlucose()
                                     isAmountUnconfirmed = false
                                     showManualGlucose = false
+                                    state.mode = .glucose
                                 }
                                 label: { Text("Save") }
                                     .frame(maxWidth: .infinity, alignment: .center)
@@ -451,24 +452,33 @@ extension DataTable {
         }
 
         @ViewBuilder private func mealView(_ meal: CarbEntryStored) -> some View {
-            HStack {
-                if meal.isFPU {
-                    Image(systemName: "circle.fill").foregroundColor(Color.orange.opacity(0.5))
-                    Text("Fat / Protein")
-                    Text((numberFormatter.string(for: meal.carbs) ?? "0") + NSLocalizedString(" g", comment: "gram of carbs"))
-                } else {
-                    Image(systemName: "circle.fill").foregroundColor(Color.loopYellow)
-                    Text("Carbs")
-                    Text(
-                        (numberFormatter.string(for: meal.carbs) ?? "0") +
-                            NSLocalizedString(" g", comment: "gram of carb equilvalents")
-                    )
+            VStack {
+                HStack {
+                    if meal.isFPU {
+                        Image(systemName: "circle.fill").foregroundColor(Color.orange.opacity(0.5))
+                        Text("Fat / Protein")
+                        Text((numberFormatter.string(for: meal.carbs) ?? "0") + NSLocalizedString(" g", comment: "gram of carbs"))
+                    } else {
+                        Image(systemName: "circle.fill").foregroundColor(Color.loopYellow)
+                        Text("Carbs")
+                        Text(
+                            (numberFormatter.string(for: meal.carbs) ?? "0") +
+                                NSLocalizedString(" g", comment: "gram of carb equilvalents")
+                        )
+                    }
+
+                    Spacer()
+
+                    Text(dateFormatter.string(from: meal.date ?? Date()))
+                        .moveDisabled(true)
                 }
-
-                Spacer()
-
-                Text(dateFormatter.string(from: meal.date ?? Date()))
-                    .moveDisabled(true)
+                if let note = meal.note, note != "" {
+                    HStack {
+                        Image(systemName: "square.and.pencil")
+                        Text(note)
+                        Spacer()
+                    }.padding(.top, 5).foregroundColor(.secondary)
+                }
             }
             .swipeActions {
                 Button(

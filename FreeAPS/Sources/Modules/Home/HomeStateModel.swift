@@ -12,6 +12,7 @@ extension Home {
         @Injected() var fetchGlucoseManager: FetchGlucoseManager!
         @Injected() var nightscoutManager: NightscoutManager!
         @Injected() var determinationStorage: DeterminationStorage!
+        @Injected() var glucoseStorage: GlucoseStorage!
         private let timer = DispatchTimer(timeInterval: 5)
         private(set) var filteredHours = 24
         @Published var manualGlucose: [BloodGlucose] = []
@@ -46,8 +47,8 @@ extension Home {
         @Published var manualTempBasal = false
         @Published var smooth = false
         @Published var maxValue: Decimal = 1.2
-        @Published var lowGlucose: Decimal = 4 / 0.0555
-        @Published var highGlucose: Decimal = 10 / 0.0555
+        @Published var lowGlucose: Decimal = 70
+        @Published var highGlucose: Decimal = 180
         @Published var overrideUnit: Bool = false
         @Published var dynamicBGColor: Bool = false
         @Published var displayXgridLines: Bool = false
@@ -81,6 +82,11 @@ extension Home {
         @Published var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
         @Published var pumpStatusHighlightMessage: String? = nil
         @Published var cgmAvailable: Bool = false
+
+        @Published var minForecast: [Int] = []
+        @Published var maxForecast: [Int] = []
+        @Published var minCount: Int = 12 // count of Forecasts drawn in 5 min distances, i.e. 12 means a min of 1 hour
+        @Published var displayForecastsAsLines: Bool = false
 
         let context = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
@@ -121,8 +127,8 @@ extension Home {
             setupCurrentTempTarget()
             smooth = settingsManager.settings.smoothGlucose
             maxValue = settingsManager.preferences.autosensMax
-            lowGlucose = settingsManager.settings.low
-            highGlucose = settingsManager.settings.high
+            lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
+            highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL
             overrideUnit = settingsManager.settings.overrideHbA1cUnit
             dynamicBGColor = settingsManager.settings.dynamicBGColor
             displayXgridLines = settingsManager.settings.xGridLines
@@ -130,6 +136,8 @@ extension Home {
             thresholdLines = settingsManager.settings.rulerMarks
             tins = settingsManager.settings.tins
             cgmAvailable = fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none
+
+            displayForecastsAsLines = settingsManager.settings.displayForecastsAsLines
 
             broadcaster.register(GlucoseObserver.self, observer: self)
             broadcaster.register(DeterminationObserver.self, observer: self)
@@ -231,10 +239,7 @@ extension Home {
         private func registerHandlers() {
             coreDataObserver?.registerHandler(for: "OrefDetermination") { [weak self] in
                 guard let self = self else { return }
-                Task {
-                    self.setupDeterminationsArray()
-                    await self.updateForecastData()
-                }
+                self.setupDeterminationsArray()
             }
 
             coreDataObserver?.registerHandler(for: "GlucoseStored") { [weak self] in
@@ -289,6 +294,11 @@ extension Home {
 
         func runLoop() {
             provider.heartbeatNow()
+        }
+
+        func showProgressView() {
+            glucoseStorage
+                .isGlucoseDataFresh(glucoseFromPersistence.first?.date) ? (waitForSuggestion = true) : (waitForSuggestion = false)
         }
 
         func cancelBolus() {
@@ -455,13 +465,14 @@ extension Home.StateModel:
         animatedBackground = settingsManager.settings.animatedBackground
         manualTempBasal = apsManager.isManualTempBasal
         smooth = settingsManager.settings.smoothGlucose
-        lowGlucose = settingsManager.settings.low
-        highGlucose = settingsManager.settings.high
+        lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
+        highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL
         overrideUnit = settingsManager.settings.overrideHbA1cUnit
         dynamicBGColor = settingsManager.settings.dynamicBGColor
         displayXgridLines = settingsManager.settings.xGridLines
         displayYgridLines = settingsManager.settings.yGridLines
         thresholdLines = settingsManager.settings.rulerMarks
+        displayForecastsAsLines = settingsManager.settings.displayForecastsAsLines
         tins = settingsManager.settings.tins
         cgmAvailable = (fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none)
         displayPumpStatusHighlightMessage()
@@ -563,7 +574,8 @@ extension Home.StateModel {
     private func setupGlucoseArray() {
         Task {
             let ids = await self.fetchGlucose()
-            await updateGlucoseArray(with: ids)
+            let glucoseObjects: [GlucoseStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
+            await updateGlucoseArray(with: glucoseObjects)
         }
     }
 
@@ -577,29 +589,24 @@ extension Home.StateModel {
             fetchLimit: 288
         )
 
+        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+
         return await context.perform {
-            return results.map(\.objectID)
+            return fetchedResults.map(\.objectID)
         }
     }
 
-    @MainActor private func updateGlucoseArray(with IDs: [NSManagedObjectID]) {
-        do {
-            let glucoseObjects = try IDs.compactMap { id in
-                try viewContext.existingObject(with: id) as? GlucoseStored
-            }
-            glucoseFromPersistence = glucoseObjects
-        } catch {
-            debugPrint(
-                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the glucose array: \(error.localizedDescription)"
-            )
-        }
+    @MainActor private func updateGlucoseArray(with objects: [GlucoseStored]) {
+        glucoseFromPersistence = objects
     }
 
     // Setup Manual Glucose
     private func setupManualGlucoseArray() {
         Task {
             let ids = await self.fetchManualGlucose()
-            await updateManualGlucoseArray(with: ids)
+            let manualGlucoseObjects: [GlucoseStored] = await CoreDataStack.shared
+                .getNSManagedObject(with: ids, context: viewContext)
+            await updateManualGlucoseArray(with: manualGlucoseObjects)
         }
     }
 
@@ -613,29 +620,23 @@ extension Home.StateModel {
             fetchLimit: 288
         )
 
+        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+
         return await context.perform {
-            return results.map(\.objectID)
+            return fetchedResults.map(\.objectID)
         }
     }
 
-    @MainActor private func updateManualGlucoseArray(with IDs: [NSManagedObjectID]) {
-        do {
-            let manualGlucoseObjects = try IDs.compactMap { id in
-                try viewContext.existingObject(with: id) as? GlucoseStored
-            }
-            manualGlucoseFromPersistence = manualGlucoseObjects
-        } catch {
-            debugPrint(
-                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the manual glucose array: \(error.localizedDescription)"
-            )
-        }
+    @MainActor private func updateManualGlucoseArray(with objects: [GlucoseStored]) {
+        manualGlucoseFromPersistence = objects
     }
 
     // Setup Carbs
     private func setupCarbsArray() {
         Task {
             let ids = await self.fetchCarbs()
-            await updateCarbsArray(with: ids)
+            let carbObjects: [CarbEntryStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
+            await updateCarbsArray(with: carbObjects)
         }
     }
 
@@ -648,29 +649,23 @@ extension Home.StateModel {
             ascending: false
         )
 
+        guard let fetchedResults = results as? [CarbEntryStored] else { return [] }
+
         return await context.perform {
-            return results.map(\.objectID)
+            return fetchedResults.map(\.objectID)
         }
     }
 
-    @MainActor private func updateCarbsArray(with IDs: [NSManagedObjectID]) {
-        do {
-            let carbObjects = try IDs.compactMap { id in
-                try viewContext.existingObject(with: id) as? CarbEntryStored
-            }
-            carbsFromPersistence = carbObjects
-        } catch {
-            debugPrint(
-                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the carbs array: \(error.localizedDescription)"
-            )
-        }
+    @MainActor private func updateCarbsArray(with objects: [CarbEntryStored]) {
+        carbsFromPersistence = objects
     }
 
     // Setup FPUs
     private func setupFPUsArray() {
         Task {
             let ids = await self.fetchFPUs()
-            await updateFPUsArray(with: ids)
+            let fpuObjects: [CarbEntryStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
+            await updateFPUsArray(with: fpuObjects)
         }
     }
 
@@ -683,22 +678,15 @@ extension Home.StateModel {
             ascending: false
         )
 
+        guard let fetchedResults = results as? [CarbEntryStored] else { return [] }
+
         return await context.perform {
-            return results.map(\.objectID)
+            return fetchedResults.map(\.objectID)
         }
     }
 
-    @MainActor private func updateFPUsArray(with IDs: [NSManagedObjectID]) {
-        do {
-            let fpuObjects = try IDs.compactMap { id in
-                try viewContext.existingObject(with: id) as? CarbEntryStored
-            }
-            fpusFromPersistence = fpuObjects
-        } catch {
-            debugPrint(
-                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the fpus array: \(error.localizedDescription)"
-            )
-        }
+    @MainActor private func updateFPUsArray(with objects: [CarbEntryStored]) {
+        fpusFromPersistence = objects
     }
 
     // Custom fetch to more efficiently filter only for cob and iob
@@ -710,17 +698,22 @@ extension Home.StateModel {
             key: "deliverAt",
             ascending: false,
             batchSize: 50,
-            propertiesToFetch: ["cob", "iob", "deliverAt"]
+            propertiesToFetch: ["cob", "iob", "objectID"]
         )
 
+        guard let fetchedResults = results as? [[String: Any]] else {
+            return []
+        }
+
         return await context.perform {
-            return results.map(\.objectID)
+            return fetchedResults.compactMap { $0["objectID"] as? NSManagedObjectID }
         }
     }
 
     // Setup Determinations
     private func setupDeterminationsArray() {
         Task {
+            // Get the NSManagedObjectIDs
             async let enactedObjectIDs = determinationStorage
                 .fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDetermination)
             async let enactedAndNonEnactedObjectIDs = fetchCobAndIob()
@@ -728,14 +721,10 @@ extension Home.StateModel {
             let enactedIDs = await enactedObjectIDs
             let enactedAndNonEnactedIDs = await enactedAndNonEnactedObjectIDs
 
-            async let updateEnacted: () = updateDeterminationsArray(with: enactedIDs, keyPath: \.determinationsFromPersistence)
-            async let updateEnactedAndNonEnacted: () = updateDeterminationsArray(
-                with: enactedAndNonEnactedIDs,
-                keyPath: \.enactedAndNonEnactedDeterminations
-            )
+            // Get the NSManagedObjects and return them on the Main Thread
+            await updateDeterminationsArray(with: enactedIDs, keyPath: \.determinationsFromPersistence)
+            await updateDeterminationsArray(with: enactedAndNonEnactedIDs, keyPath: \.enactedAndNonEnactedDeterminations)
 
-            await updateEnacted
-            await updateEnactedAndNonEnacted
             await updateForecastData()
         }
     }
@@ -743,24 +732,21 @@ extension Home.StateModel {
     @MainActor private func updateDeterminationsArray(
         with IDs: [NSManagedObjectID],
         keyPath: ReferenceWritableKeyPath<Home.StateModel, [OrefDetermination]>
-    ) {
-        do {
-            let determinationObjects = try IDs.compactMap { id in
-                try viewContext.existingObject(with: id) as? OrefDetermination
-            }
-            self[keyPath: keyPath] = determinationObjects
-        } catch {
-            debugPrint(
-                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the determinations array: \(error.localizedDescription)"
-            )
-        }
+    ) async {
+        // Fetch the objects off the main thread
+        let determinationObjects: [OrefDetermination] = await CoreDataStack.shared
+            .getNSManagedObject(with: IDs, context: viewContext)
+
+        // Update the array on the main thread
+        self[keyPath: keyPath] = determinationObjects
     }
 
     // Setup Insulin
     private func setupInsulinArray() {
         Task {
             let ids = await self.fetchInsulin()
-            await updateInsulinArray(with: ids)
+            let insulinObjects: [PumpEventStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
+            await updateInsulinArray(with: insulinObjects)
         }
     }
 
@@ -773,36 +759,30 @@ extension Home.StateModel {
             ascending: true
         )
 
+        guard let pumpEvents = results as? [PumpEventStored] else {
+            return []
+        }
+
         return await context.perform {
-            return results.map(\.objectID)
+            return pumpEvents.map(\.objectID)
         }
     }
 
-    @MainActor private func updateInsulinArray(with IDs: [NSManagedObjectID]) {
-        do {
-            let insulinObjects = try IDs.compactMap { id in
-                try viewContext.existingObject(with: id) as? PumpEventStored
-            }
-            insulinFromPersistence = insulinObjects
+    @MainActor private func updateInsulinArray(with insulinObjects: [PumpEventStored]) {
+        insulinFromPersistence = insulinObjects
 
-            // filter tempbasals
-            manualTempBasal = apsManager.isManualTempBasal
-            tempBasals = insulinFromPersistence.filter({ $0.tempBasal != nil })
+        // Filter tempbasals
+        manualTempBasal = apsManager.isManualTempBasal
+        tempBasals = insulinFromPersistence.filter({ $0.tempBasal != nil })
 
-            // suspension and resume events
-            suspensions = insulinFromPersistence
-                .filter({ $0.type == EventType.pumpSuspend.rawValue || $0.type == EventType.pumpResume.rawValue })
-            let lastSuspension = suspensions.last
-
-            pumpSuspended = tempBasals.last?.timestamp ?? Date() > lastSuspension?.timestamp ?? .distantPast && lastSuspension?
-                .type == EventType.pumpSuspend
-                .rawValue
-
-        } catch {
-            debugPrint(
-                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the insulin array: \(error.localizedDescription)"
-            )
+        // Suspension and resume events
+        suspensions = insulinFromPersistence.filter {
+            $0.type == EventType.pumpSuspend.rawValue || $0.type == EventType.pumpResume.rawValue
         }
+        let lastSuspension = suspensions.last
+
+        pumpSuspended = tempBasals.last?.timestamp ?? Date() > lastSuspension?.timestamp ?? .distantPast && lastSuspension?
+            .type == EventType.pumpSuspend.rawValue
     }
 
     // Setup Last Bolus to display the bolus progress bar
@@ -824,8 +804,10 @@ extension Home.StateModel {
             fetchLimit: 1
         )
 
+        guard let fetchedResults = results as? [PumpEventStored] else { return [].first }
+
         return await context.perform {
-            return results.map(\.objectID).first
+            return fetchedResults.map(\.objectID).first
         }
     }
 
@@ -843,7 +825,8 @@ extension Home.StateModel {
     private func setupBatteryArray() {
         Task {
             let ids = await self.fetchBattery()
-            await updateBatteryArray(with: ids)
+            let batteryObjects: [OpenAPS_Battery] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
+            await updateBatteryArray(with: batteryObjects)
         }
     }
 
@@ -856,22 +839,15 @@ extension Home.StateModel {
             ascending: false
         )
 
+        guard let fetchedResults = results as? [OpenAPS_Battery] else { return [] }
+
         return await context.perform {
-            return results.map(\.objectID)
+            return fetchedResults.map(\.objectID)
         }
     }
 
-    @MainActor private func updateBatteryArray(with IDs: [NSManagedObjectID]) {
-        do {
-            let batteryObjects = try IDs.compactMap { id in
-                try viewContext.existingObject(with: id) as? OpenAPS_Battery
-            }
-            batteryFromPersistence = batteryObjects
-        } catch {
-            debugPrint(
-                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the battery array: \(error.localizedDescription)"
-            )
-        }
+    @MainActor private func updateBatteryArray(with objects: [OpenAPS_Battery]) {
+        batteryFromPersistence = objects
     }
 }
 
@@ -880,7 +856,8 @@ extension Home.StateModel {
     private func setupOverrides() {
         Task {
             let ids = await self.fetchOverrides()
-            await updateOverrideArray(with: ids)
+            let overrideObjects: [OverrideStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
+            await updateOverrideArray(with: overrideObjects)
         }
     }
 
@@ -893,23 +870,15 @@ extension Home.StateModel {
             ascending: false
         )
 
+        guard let fetchedResults = results as? [OverrideStored] else { return [] }
+
         return await context.perform {
-            return results.map(\.objectID)
+            return fetchedResults.map(\.objectID)
         }
     }
 
-    @MainActor private func updateOverrideArray(with IDs: [NSManagedObjectID]) {
-        do {
-            let overrideObjects = try IDs.compactMap { id in
-                try viewContext.existingObject(with: id) as? OverrideStored
-            }
-
-            overrides = overrideObjects
-        } catch {
-            debugPrint(
-                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the override array: \(error.localizedDescription)"
-            )
-        }
+    @MainActor private func updateOverrideArray(with objects: [OverrideStored]) {
+        overrides = objects
     }
 
     @MainActor func calculateDuration(override: OverrideStored) -> TimeInterval {
@@ -930,7 +899,9 @@ extension Home.StateModel {
     private func setupOverrideRunStored() {
         Task {
             let ids = await self.fetchOverrideRunStored()
-            await updateOverrideRunStoredArray(with: ids)
+            let overrideRunObjects: [OverrideRunStored] = await CoreDataStack.shared
+                .getNSManagedObject(with: ids, context: viewContext)
+            await updateOverrideRunStoredArray(with: overrideRunObjects)
         }
     }
 
@@ -944,24 +915,15 @@ extension Home.StateModel {
             ascending: false
         )
 
+        guard let fetchedResults = results as? [OverrideRunStored] else { return [] }
+
         return await context.perform {
-            return results.map(\.objectID)
+            return fetchedResults.map(\.objectID)
         }
     }
 
-    @MainActor private func updateOverrideRunStoredArray(with IDs: [NSManagedObjectID]) {
-        do {
-            let overrideObjects = try IDs.compactMap { id in
-                try viewContext.existingObject(with: id) as? OverrideRunStored
-            }
-
-            overrideRunStored = overrideObjects
-            debugPrint("expiredOverrides: \(DebuggingIdentifiers.inProgress) \(overrideRunStored)")
-        } catch {
-            debugPrint(
-                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the Override Run Stored array: \(error.localizedDescription)"
-            )
-        }
+    @MainActor private func updateOverrideRunStoredArray(with objects: [OverrideRunStored]) {
+        overrideRunStored = objects
     }
 
     @MainActor func saveToOverrideRunStored(withID id: NSManagedObjectID) async {
@@ -985,41 +947,125 @@ extension Home.StateModel {
     }
 }
 
-// MARK: Extension for Main Chart to draw Forecasts
-
 extension Home.StateModel {
+    // Asynchronously preprocess forecast data in a background thread
     func preprocessForecastData() async -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] {
-        guard let id = determinationsFromPersistence.first?.objectID else {
-            return []
-        }
-
-        // Get forecast and forecast values
-        let forecastIDs = await determinationStorage.getForecastIDs(for: id, in: context)
-        var result: [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] = []
-
-        for forecastID in forecastIDs {
-            // Get the forecast value IDs for the given forecast ID
-            let forecastValueIDs = await determinationStorage.getForecastValueIDs(for: forecastID, in: context)
-            let uuid = UUID()
-            result.append((id: uuid, forecastID: forecastID, forecastValueIDs: forecastValueIDs))
-        }
-
-        return result
-    }
-
-    @MainActor func updateForecastData() async {
-        let forecastData = await preprocessForecastData()
-
-        preprocessedData = forecastData.reduce(into: []) { result, data in
-            guard let forecast = try? viewContext.existingObject(with: data.forecastID) as? Forecast else {
-                return
+        await Task.detached { [self] () -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] in
+            // Get the first determination ID from persistence
+            guard let id = enactedAndNonEnactedDeterminations.first?.objectID else {
+                return []
             }
 
-            for forecastValueID in data.forecastValueIDs {
-                if let forecastValue = try? viewContext.existingObject(with: forecastValueID) as? ForecastValue {
-                    result.append((id: data.id, forecast: forecast, forecastValue: forecastValue))
+            // Get the forecast IDs for the determination ID
+            let forecastIDs = await determinationStorage.getForecastIDs(for: id, in: context)
+            var result: [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] = []
+
+            // Use a task group to fetch forecast value IDs concurrently
+            await withTaskGroup(of: (UUID, NSManagedObjectID, [NSManagedObjectID]).self) { group in
+                for forecastID in forecastIDs {
+                    group.addTask {
+                        let forecastValueIDs = await self.determinationStorage.getForecastValueIDs(
+                            for: forecastID,
+                            in: self.context
+                        )
+                        return (UUID(), forecastID, forecastValueIDs)
+                    }
+                }
+
+                // Collect the results from the task group
+                for await (uuid, forecastID, forecastValueIDs) in group {
+                    result.append((id: uuid, forecastID: forecastID, forecastValueIDs: forecastValueIDs))
                 }
             }
+
+            return result
+        }.value
+    }
+
+    // Fetch forecast values for a given data set
+    func fetchForecastValues(
+        for data: (id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID]),
+        in context: NSManagedObjectContext
+    ) async -> (UUID, Forecast?, [ForecastValue]) {
+        var forecast: Forecast?
+        var forecastValues: [ForecastValue] = []
+
+        do {
+            try await context.perform {
+                // Fetch the forecast object
+                forecast = try context.existingObject(with: data.forecastID) as? Forecast
+
+                // Fetch the first 3h of forecast values
+                for forecastValueID in data.forecastValueIDs.prefix(36) {
+                    if let forecastValue = try context.existingObject(with: forecastValueID) as? ForecastValue {
+                        forecastValues.append(forecastValue)
+                    }
+                }
+            }
+        } catch {
+            debugPrint(
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch forecast Values with error: \(error.localizedDescription)"
+            )
         }
+
+        return (data.id, forecast, forecastValues)
+    }
+
+    // Update forecast data and UI on the main thread
+    @MainActor func updateForecastData() async {
+        // Preprocess forecast data on a background thread
+        let forecastData = await preprocessForecastData()
+
+        var allForecastValues = [[ForecastValue]]()
+        var preprocessedData = [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)]()
+
+        // Use a task group to fetch forecast values concurrently
+        await withTaskGroup(of: (UUID, Forecast?, [ForecastValue]).self) { group in
+            for data in forecastData {
+                group.addTask {
+                    await self.fetchForecastValues(for: data, in: self.viewContext)
+                }
+            }
+
+            // Collect the results from the task group
+            for await (id, forecast, forecastValues) in group {
+                guard let forecast = forecast, !forecastValues.isEmpty else { continue }
+
+                allForecastValues.append(forecastValues)
+                preprocessedData.append(contentsOf: forecastValues.map { (id: id, forecast: forecast, forecastValue: $0) })
+            }
+        }
+
+        self.preprocessedData = preprocessedData
+
+        // Ensure there are forecast values to process
+        guard !allForecastValues.isEmpty else {
+            minForecast = []
+            maxForecast = []
+            return
+        }
+
+        minCount = max(12, allForecastValues.map(\.count).min() ?? 0)
+        guard minCount > 0 else { return }
+
+        // Copy allForecastValues to a local constant for thread safety
+        let localAllForecastValues = allForecastValues
+
+        // Calculate min and max forecast values in a background task
+        let (minResult, maxResult) = await Task.detached {
+            let minForecast = (0 ..< self.minCount).map { index in
+                localAllForecastValues.compactMap { $0.indices.contains(index) ? Int($0[index].value) : nil }.min() ?? 0
+            }
+
+            let maxForecast = (0 ..< self.minCount).map { index in
+                localAllForecastValues.compactMap { $0.indices.contains(index) ? Int($0[index].value) : nil }.max() ?? 0
+            }
+
+            return (minForecast, maxForecast)
+        }.value
+
+        // Update the properties on the main thread
+        minForecast = minResult
+        maxForecast = maxResult
     }
 }

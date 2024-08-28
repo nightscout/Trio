@@ -7,6 +7,7 @@ import Swinject
 
 protocol GlucoseStorage {
     func storeGlucose(_ glucose: [BloodGlucose])
+    func isGlucoseDataFresh(_ glucoseDate: Date?) -> Bool
     func syncDate() -> Date
     func filterTooFrequentGlucose(_ glucose: [BloodGlucose], at: Date) -> [BloodGlucose]
     func lastGlucoseDate() -> Date
@@ -46,8 +47,6 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
     func storeGlucose(_ glucose: [BloodGlucose]) {
         processQueue.sync {
-            debug(.deviceManager, "Start storage of glucose data")
-
             self.coredataContext.perform {
                 let datesToCheck: Set<Date?> = Set(glucose.compactMap { $0.dateString as Date? })
                 let fetchRequest: NSFetchRequest<NSFetchRequestResult> = GlucoseStored.fetchRequest()
@@ -81,8 +80,6 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                         glucoseEntry.date = entry.dateString
                         glucoseEntry.direction = entry.direction?.rawValue
                         glucoseEntry.isUploadedToNS = false /// the value is not uploaded to NS (yet)
-                        debugPrint("\(DebuggingIdentifiers.failed)")
-                        debugPrint("\(String(describing: glucoseEntry.direction))")
                         return false // Continue processing
                     }
                 )
@@ -90,7 +87,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                 // process batch insert
                 do {
                     try self.coredataContext.execute(batchInsert)
-                    debugPrint("Glucose Storage: \(#function) \(DebuggingIdentifiers.succeeded) saved glucose to Core Data")
+//                    debugPrint("Glucose Storage: \(#function) \(DebuggingIdentifiers.succeeded) saved glucose to Core Data")
 
                     // Send notification for triggering a fetch in Home State Model to update the Glucose Array
                     /// This is necessary because changes only get merged automatically into the viewContext because of the Persistent History Tracking
@@ -160,6 +157,11 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                 }
             }
         }
+    }
+
+    func isGlucoseDataFresh(_ glucoseDate: Date?) -> Bool {
+        guard let glucoseDate = glucoseDate else { return false }
+        return glucoseDate > Date().addingTimeInterval(-6 * 60)
     }
 
     func syncDate() -> Date {
@@ -243,8 +245,11 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             ascending: false,
             fetchLimit: 288
         )
+
+        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+
         return await coredataContext.perform {
-            return results.map { result in
+            return fetchedResults.map { result in
                 BloodGlucose(
                     _id: result.id?.uuidString ?? UUID().uuidString,
                     sgv: Int(result.glucose),
@@ -271,8 +276,11 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             ascending: false,
             fetchLimit: 288
         )
+
+        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+
         return await coredataContext.perform {
-            return results.map { result in
+            return fetchedResults.map { result in
                 NightscoutTreatment(
                     duration: nil,
                     rawDuration: nil,

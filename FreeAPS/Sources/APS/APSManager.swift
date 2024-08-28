@@ -24,6 +24,7 @@ protocol APSManager {
     func makeProfiles() async throws -> Bool
     func determineBasal() async -> Bool
     func determineBasalSync() async
+    func simulateDetermineBasal(carbs: Decimal, iob: Decimal) async -> Determination?
     func roundBolus(amount: Decimal) -> Decimal
     var lastError: CurrentValueSubject<Error?, Never> { get }
     func cancelBolus() async
@@ -323,9 +324,9 @@ final class BaseAPSManager: APSManager, Injectable {
         return nil
     }
 
-    func autosens() async throws -> Bool {
-        guard let autosens = await storage.retrieveAsync(OpenAPS.Settings.autosense, as: Autosens.self),
-              (autosens.timestamp ?? .distantPast).addingTimeInterval(30.minutes.timeInterval) > Date()
+    func autosense() async throws -> Bool {
+        guard let autosense = await storage.retrieveAsync(OpenAPS.Settings.autosense, as: Autosens.self),
+              (autosense.timestamp ?? .distantPast).addingTimeInterval(30.minutes.timeInterval) > Date()
         else {
             let result = try await openAPS.autosense()
             return result != nil
@@ -372,11 +373,17 @@ final class BaseAPSManager: APSManager, Injectable {
 
         do {
             let now = Date()
-            let temp = await fetchCurrentTempBasal(date: now)
-            _ = try await makeProfiles()
-            _ = try await autosens()
-            _ = try await dailyAutotune()
-            let determination = try await openAPS.determineBasal(currentTemp: temp, clock: now)
+
+            // Start fetching asynchronously
+            let (currentTemp, profiles, autosense, dailyAutotune) = try await (
+                fetchCurrentTempBasal(date: now),
+                makeProfiles(),
+                autosense(),
+                dailyAutotune()
+            )
+
+            // Determine basal using the fetched temp and current time
+            let determination = try await openAPS.determineBasal(currentTemp: currentTemp, clock: now)
 
             if let determination = determination {
                 DispatchQueue.main.async {
@@ -396,6 +403,18 @@ final class BaseAPSManager: APSManager, Injectable {
 
     func determineBasalSync() async {
         _ = await determineBasal()
+    }
+
+    func simulateDetermineBasal(carbs: Decimal, iob: Decimal) async -> Determination? {
+        do {
+            let temp = await fetchCurrentTempBasal(date: Date.now)
+            return try await openAPS.determineBasal(currentTemp: temp, clock: Date(), carbs: carbs, iob: iob, simulation: true)
+        } catch {
+            debugPrint(
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Error occurred in invokeDummyDetermineBasalSync: \(error)"
+            )
+            return nil
+        }
     }
 
     func makeProfiles() async throws -> Bool {
@@ -420,6 +439,10 @@ final class BaseAPSManager: APSManager, Injectable {
     private var bolusReporter: DoseProgressReporter?
 
     func enactBolus(amount: Double, isSMB: Bool) async {
+        if amount <= 0 {
+            return
+        }
+
         if let error = verifyStatus() {
             processError(error)
             processQueue.async {
@@ -624,7 +647,8 @@ final class BaseAPSManager: APSManager, Injectable {
         )
 
         let fetchedTempBasal = await privateContext.perform {
-            guard let tempBasalEvent = results.first,
+            guard let fetchedResults = results as? [PumpEventStored],
+                  let tempBasalEvent = fetchedResults.first,
                   let tempBasal = tempBasalEvent.tempBasal,
                   let eventTimestamp = tempBasalEvent.timestamp
             else {
@@ -896,7 +920,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
     // fetch glucose for time interval
     func fetchGlucose(predicate: NSPredicate, fetchLimit: Int? = nil, batchSize: Int? = nil) async -> [GlucoseStored] {
-        await CoreDataStack.shared.fetchEntitiesAsync(
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: privateContext,
             predicate: predicate,
@@ -905,6 +929,12 @@ final class BaseAPSManager: APSManager, Injectable {
             fetchLimit: fetchLimit,
             batchSize: batchSize
         )
+
+        guard let glucoseResults = results as? [GlucoseStored] else {
+            return []
+        }
+
+        return glucoseResults
     }
 
     // TODO: - Refactor this whole shit here...
@@ -1142,28 +1172,34 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     private func tddForStats() async -> (currentTDD: Decimal, tddTotalAverage: Decimal) {
-        let requestTDD = OrefDetermination.fetchRequest() as NSFetchRequest<OrefDetermination>
+        let requestTDD = OrefDetermination.fetchRequest() as NSFetchRequest<NSFetchRequestResult>
         let sort = NSSortDescriptor(key: "timestamp", ascending: false)
         let daysOf14Ago = Date().addingTimeInterval(-14.days.timeInterval)
         requestTDD.predicate = NSPredicate(format: "timestamp > %@", daysOf14Ago as NSDate)
         requestTDD.sortDescriptors = [sort]
         requestTDD.propertiesToFetch = ["timestamp", "totalDailyDose"]
+        requestTDD.resultType = .dictionaryResultType
 
-        var tdds = [OrefDetermination]()
         var currentTDD: Decimal = 0
         var tddTotalAverage: Decimal = 0
 
-        await privateContext.perform {
+        let results = await privateContext.perform {
             do {
-                try tdds = self.privateContext.fetch(requestTDD)
-
-                if !tdds.isEmpty {
-                    currentTDD = tdds[0].totalDailyDose?.decimalValue ?? 0
-                    let tddArray = tdds.compactMap({ insulin in insulin.totalDailyDose as? Decimal ?? 0 })
-                    tddTotalAverage = tddArray.reduce(0, +) / Decimal(tddArray.count)
-                }
+                let fetchedResults = try self.privateContext.fetch(requestTDD) as? [[String: Any]]
+                return fetchedResults ?? []
             } catch {
                 debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to get TDD Data for Statistics Upload")
+                return []
+            }
+        }
+
+        if !results.isEmpty {
+            if let latestTDD = results.first?["totalDailyDose"] as? NSDecimalNumber {
+                currentTDD = latestTDD.decimalValue
+            }
+            let tddArray = results.compactMap { ($0["totalDailyDose"] as? NSDecimalNumber)?.decimalValue }
+            if !tddArray.isEmpty {
+                tddTotalAverage = tddArray.reduce(0, +) / Decimal(tddArray.count)
             }
         }
 
