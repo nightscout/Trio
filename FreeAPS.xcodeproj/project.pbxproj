@@ -456,6 +456,7 @@
 		DD6B7CB42C7B71F700B75029 /* ForecastDisplayType.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6B7CB32C7B71F700B75029 /* ForecastDisplayType.swift */; };
 		DD6B7CB62C7B748B00B75029 /* TotalInsulinDisplayType.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6B7CB52C7B748B00B75029 /* TotalInsulinDisplayType.swift */; };
 		DD6B7CB92C7BAC6900B75029 /* NightscoutImportResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6B7CB82C7BAC6900B75029 /* NightscoutImportResultView.swift */; };
+		DD6B7CBB2C7FBBFA00B75029 /* ReviewInsulinActionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6B7CBA2C7FBBFA00B75029 /* ReviewInsulinActionView.swift */; };
 		DD88C8E22C50420800F2D558 /* DefinitionRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD88C8E12C50420800F2D558 /* DefinitionRow.swift */; };
 		DDD163122C4C689900CD525A /* OverrideStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163112C4C689900CD525A /* OverrideStateModel.swift */; };
 		DDD163142C4C68D300CD525A /* OverrideProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163132C4C68D300CD525A /* OverrideProvider.swift */; };
@@ -1096,6 +1097,7 @@
 		DD6B7CB32C7B71F700B75029 /* ForecastDisplayType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastDisplayType.swift; sourceTree = "<group>"; };
 		DD6B7CB52C7B748B00B75029 /* TotalInsulinDisplayType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TotalInsulinDisplayType.swift; sourceTree = "<group>"; };
 		DD6B7CB82C7BAC6900B75029 /* NightscoutImportResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutImportResultView.swift; sourceTree = "<group>"; };
+		DD6B7CBA2C7FBBFA00B75029 /* ReviewInsulinActionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewInsulinActionView.swift; sourceTree = "<group>"; };
 		DD88C8E12C50420800F2D558 /* DefinitionRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefinitionRow.swift; sourceTree = "<group>"; };
 		DDD163112C4C689900CD525A /* OverrideStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideStateModel.swift; sourceTree = "<group>"; };
 		DDD163132C4C68D300CD525A /* OverrideProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideProvider.swift; sourceTree = "<group>"; };
@@ -2639,6 +2641,7 @@
 			isa = PBXGroup;
 			children = (
 				DD6B7CB82C7BAC6900B75029 /* NightscoutImportResultView.swift */,
+				DD6B7CBA2C7FBBFA00B75029 /* ReviewInsulinActionView.swift */,
 			);
 			path = ProfileImport;
 			sourceTree = "<group>";
@@ -3344,6 +3347,7 @@
 				45717281F743594AA9D87191 /* ConfigEditorRootView.swift in Sources */,
 				CE7CA3532A064973004BE681 /* tempPresetIntent.swift in Sources */,
 				D6DEC113821A7F1056C4AA1E /* NightscoutConfigDataFlow.swift in Sources */,
+				DD6B7CBB2C7FBBFA00B75029 /* ReviewInsulinActionView.swift in Sources */,
 				38E98A3025F52FF700C0CED0 /* Config.swift in Sources */,
 				BDB899882C564509006F3298 /* ForeCastChart.swift in Sources */,
 				110AEDE32C5193D200615CC9 /* BolusIntent.swift in Sources */,

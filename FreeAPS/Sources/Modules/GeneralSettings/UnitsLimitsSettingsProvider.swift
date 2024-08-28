@@ -10,7 +10,7 @@ protocol PumpSettingsObserver {
 
 extension UnitsLimitsSettings {
     final class Provider: BaseProvider, UnitsLimitsSettingsProvider {
-        private let processQueue = DispatchQueue(label: "PumpSettingsEditorProvider.processQueue")
+        private let processQueue = DispatchQueue(label: "UnitsLimitsSettingsProvider.processQueue")
         @Injected() private var broadcaster: Broadcaster!
 
         func settings() -> PumpSettings {

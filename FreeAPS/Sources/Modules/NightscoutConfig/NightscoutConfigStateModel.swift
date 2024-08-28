@@ -38,6 +38,15 @@ extension NightscoutConfig {
         @Published var isImportResultReviewPresented: Bool = false
         @Published var importErrors: [String] = []
         @Published var importStatus: ImportStatus = .finished
+        @Published var importedInsulinActionCurve: Decimal = 6
+
+        var pumpSettings: PumpSettings {
+            provider.getPumpSettings()
+        }
+
+        var isPumpSettingUnchanged: Bool {
+            pumpSettings.insulinActionCurve == importedInsulinActionCurve
+        }
 
         override func subscribe() {
             url = keychain.getValue(String.self, forKey: Config.urlKey) ?? ""
@@ -54,6 +63,8 @@ extension NightscoutConfig {
             subscribeSetting(\.useLocalGlucoseSource, on: $useLocalSource) { useLocalSource = $0 }
             subscribeSetting(\.localGlucosePort, on: $localPort.map(Int.init)) { localPort = Decimal($0) }
             subscribeSetting(\.uploadGlucose, on: $uploadGlucose, initial: { uploadGlucose = $0 })
+
+            importedInsulinActionCurve = pumpSettings.insulinActionCurve
 
             isConnectedToNS = nightscoutAPI != nil
         }
@@ -327,6 +338,28 @@ extension NightscoutConfig {
             url = ""
             secret = ""
             isConnectedToNS = false
+        }
+
+        func saveReviewedInsulinAction() {
+            if !isPumpSettingUnchanged {
+                let settings = PumpSettings(
+                    insulinActionCurve: importedInsulinActionCurve,
+                    maxBolus: pumpSettings.maxBolus,
+                    maxBasal: pumpSettings.maxBasal
+                )
+                provider.savePumpSettings(settings: settings)
+                    .receive(on: DispatchQueue.main)
+                    .sink { _ in
+                        let settings = self.provider.getPumpSettings()
+                        self.importedInsulinActionCurve = settings.insulinActionCurve
+
+                        Task.detached(priority: .low) {
+                            debug(.nightscout, "Attempting to upload DIA to Nightscout after import review")
+                            await self.nightscoutManager.uploadProfiles()
+                        }
+                    } receiveValue: {}
+                    .store(in: &lifetime)
+            }
         }
     }
 }

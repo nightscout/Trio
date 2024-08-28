@@ -69,8 +69,8 @@ struct NightscoutImportResultView: BaseView {
                                     .fontWeight(.bold)
                                     .foregroundStyle(Color.green)
                             }
-                        }
-                    }.disabled(hasVisitedBasalProfileEditor)
+                        }.foregroundColor(hasVisitedBasalProfileEditor ? .secondary : .primary)
+                    }
 
                     NavigationLink(
                         destination: ISFEditor.RootView(resolver: resolver)
@@ -84,8 +84,8 @@ struct NightscoutImportResultView: BaseView {
                                     .fontWeight(.bold)
                                     .foregroundStyle(Color.green)
                             }
-                        }
-                    }.disabled(hasVisitedISFEditor)
+                        }.foregroundColor(hasVisitedISFEditor ? .secondary : .primary)
+                    }
 
                     NavigationLink(
                         destination: CarbRatioEditor.RootView(resolver: resolver)
@@ -99,11 +99,11 @@ struct NightscoutImportResultView: BaseView {
                                     .fontWeight(.bold)
                                     .foregroundStyle(Color.green)
                             }
-                        }
-                    }.disabled(hasVisitedCREditor)
+                        }.foregroundColor(hasVisitedCREditor ? .secondary : .primary)
+                    }
 
                     NavigationLink(
-                        destination: AlgorithmAdvancedSettings.RootView(resolver: resolver)
+                        destination: ReviewInsulinActionView(resolver: resolver, state: state)
                             .onDisappear { hasVisitedPumpSettingsEditor = true }
                     ) {
                         HStack {
@@ -114,8 +114,8 @@ struct NightscoutImportResultView: BaseView {
                                     .fontWeight(.bold)
                                     .foregroundStyle(Color.green)
                             }
-                        }
-                    }.disabled(hasVisitedPumpSettingsEditor)
+                        }.foregroundColor(hasVisitedPumpSettingsEditor ? .secondary : .primary)
+                    }
                 }.listRowBackground(Color.chart)
 
                 Section {
@@ -131,13 +131,13 @@ struct NightscoutImportResultView: BaseView {
                     }
                 }.listRowBackground(allViewsVisited ? Color(.systemBlue) : Color(.systemGray4))
             }
-            .toolbar(content: {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button(action: { state.isImportResultReviewPresented = false }, label: {
-                        Text("Cancel")
-                    })
-                }
-            })
+//            .toolbar(content: {
+//                ToolbarItem(placement: .topBarLeading) {
+//                    Button(action: { state.isImportResultReviewPresented = false }, label: {
+//                        Text("Cancel")
+//                    })
+//                }
+//            })
             .navigationTitle("Review Import")
             .navigationBarTitleDisplayMode(.large)
             .scrollContentBackground(.hidden).background(color)

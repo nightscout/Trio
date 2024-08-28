@@ -72,8 +72,8 @@ extension NightscoutConfig {
                                             comment: "Nightscout Settings Import Alert"
                                         )
                                     ),
-                                    primaryButton: .destructive(
-                                        Text("Yes, Import"),
+                                    primaryButton: .default(
+                                        Text("Yes, Import!"),
                                         action: {
                                             Task {
                                                 await state.importSettings()

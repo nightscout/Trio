@@ -6,7 +6,7 @@ import LoopKitUI
 
 extension AlgorithmAdvancedSettings {
     final class Provider: BaseProvider, AlgorithmAdvancedSettingsProvider {
-        private let processQueue = DispatchQueue(label: "PumpSettingsEditorProvider.processQueue")
+        private let processQueue = DispatchQueue(label: "AlgorithmAdvancedSettingsProvider.processQueue")
         @Injected() private var broadcaster: Broadcaster!
 
         func settings() -> PumpSettings {
