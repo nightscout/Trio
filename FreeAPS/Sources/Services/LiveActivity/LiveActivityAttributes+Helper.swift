@@ -89,7 +89,7 @@ extension LiveActivityAttributes.ContentState {
                 rotationDegrees: rotationDegrees,
                 highGlucose: settings.high,
                 lowGlucose: settings.low,
-                dynamicBGColor: settings.dynamicBGColor,
+                dynamicGlucoseColor: settings.dynamicGlucoseColor,
                 cob: Decimal(determination?.cob ?? 0),
                 iob: determination?.iob ?? 0 as Decimal,
                 unit: settings.units.rawValue,

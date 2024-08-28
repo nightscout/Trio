@@ -46,8 +46,9 @@ struct MainChartView: View {
     @Binding var smooth: Bool
     @Binding var highGlucose: Decimal
     @Binding var lowGlucose: Decimal
+    @Binding var currentGlucoseTarget: Decimal
     @Binding var screenHours: Int16
-    @Binding var dynamicBGColor: Bool
+    @Binding var dynamicGlucoseColor: Bool
     @Binding var displayXgridLines: Bool
     @Binding var displayYgridLines: Bool
     @Binding var thresholdLines: Bool
@@ -248,22 +249,26 @@ extension MainChartView {
         Chart {
             /// high and low threshold lines
             if thresholdLines {
-              let lowColor = setBGColor(
-                bgValue: lowGlucose,
-                highBGColorValue: highGlucose,
-                lowBGColorValue: lowGlucose,
-                dynamicBGColor: dynamicBGColor
-              )
-              let highColor = setBGColor(
-                bgValue: highGlucose,
-                highBGColorValue: highGlucose,
-                lowBGColorValue: lowGlucose,
-                dynamicBGColor: dynamicBGColor
-              )
-              RuleMark(y: .value("High", highGlucose)).foregroundStyle(highColor)
-                  .lineStyle(.init(lineWidth: 1, dash: [5]))
-              RuleMark(y: .value("Low", lowGlucose)).foregroundStyle(lowColor)
-                  .lineStyle(.init(lineWidth: 1, dash: [5]))
+                let lowColor = FreeAPS.getDynamicGlucoseColor(
+                    glucoseValue: lowGlucose,
+                    highGlucoseColorValue: highGlucose,
+                    lowGlucoseColorValue: lowGlucose,
+                    targetGlucose: lowGlucose,
+                    dynamicGlucoseColor: dynamicGlucoseColor,
+                    offset: units == .mgdL ? 20 : 20.asMmolL
+                )
+                let highColor = FreeAPS.getDynamicGlucoseColor(
+                    glucoseValue: highGlucose,
+                    highGlucoseColorValue: highGlucose,
+                    lowGlucoseColorValue: highGlucose,
+                    targetGlucose: highGlucose,
+                    dynamicGlucoseColor: dynamicGlucoseColor,
+                    offset: units == .mgdL ? 20 : 20.asMmolL
+                )
+                RuleMark(y: .value("High", highGlucose)).foregroundStyle(highColor)
+                    .lineStyle(.init(lineWidth: 1, dash: [5]))
+                RuleMark(y: .value("Low", lowGlucose)).foregroundStyle(lowColor)
+                    .lineStyle(.init(lineWidth: 1, dash: [5]))
             }
         }
         .id("DummyMainChart")
@@ -608,7 +613,7 @@ extension MainChartView {
             .foregroundStyle(Color.brown)
         }
     }
-  
+
     private var stops: [Gradient.Stop] {
         let low = Double(lowGlucose)
         let high = Double(highGlucose)
@@ -641,17 +646,19 @@ extension MainChartView {
             Gradient.Stop(color: .orange, location: 1.0)
         ]
     }
-  
+
     private func drawGlucose(dummy _: Bool) -> some ChartContent {
         ForEach(state.glucoseFromPersistence) { item in
             let glucoseToDisplay = units == .mgdL ? Decimal(item.glucose) : Decimal(item.glucose).asMmolL
-            let color = setBGColor(
-                bgValue: glucoseLevel,
-                highBGColorValue: highGlucose,
-                lowBGColorValue: lowGlucose,
-                dynamicBGColor: dynamicBGColor
+            let dynamicColor = FreeAPS.getDynamicGlucoseColor(
+                glucoseValue: glucoseToDisplay,
+                highGlucoseColorValue: highGlucose,
+                lowGlucoseColorValue: lowGlucose,
+                targetGlucose: currentGlucoseTarget,
+                dynamicGlucoseColor: dynamicGlucoseColor,
+                offset: units == .mgdL ? 20 : 20.asMmolL
             )
-                                               
+
             if smooth {
                 LineMark(x: .value("Time", item.date ?? Date()), y: .value("Value", glucoseToDisplay))
                     .foregroundStyle(
@@ -662,7 +669,7 @@ extension MainChartView {
                 PointMark(
                     x: .value("Time", item.date ?? Date(), unit: .second),
                     y: .value("Value", glucoseToDisplay)
-                ).foregroundStyle(color).symbolSize(20)
+                ).foregroundStyle(dynamicColor).symbolSize(20)
             }
         }
     }

@@ -179,7 +179,11 @@ struct LiveActivity: Widget {
         }
     }
 
-    private func bgAndTrend(context: ActivityViewContext<LiveActivityAttributes>, size: Size) -> (some View, Int) {
+    private func bgAndTrend(
+        context: ActivityViewContext<LiveActivityAttributes>,
+        size: Size,
+        dynamicColor _: Color
+    ) -> (some View, Int) {
         var characters = 0
 
         let bgText = context.state.bg
@@ -288,11 +292,13 @@ struct LiveActivity: Widget {
                         y: .value("Value", displayValue)
                     ).symbolSize(15)
 
-                    let color = setBGColor(
-                        bgValue: Int(currentValue),
-                        highBGColorValue: Decimal(additionalState.highGlucose),
-                        lowBGColorValue: Decimal(additionalState.lowGlucose),
-                        dynamicBGColor: additionalState.dynamicBGColor
+                    let color = getDynamicGlucoseColor(
+                        glucoseValue: currentValue,
+                        highGlucoseColorValue: additionalState.highGlucose,
+                        lowGlucoseColorValue: additionalState.lowGlucose,
+                        targetGlucose: 90,
+                        dynamicGlucoseColor: additionalState.dynamicGlucoseColor,
+                        offset: additionalState.unit == "mg/dL" ? 20 : 20.asMmolL
                     )
 
                     pointMark.foregroundStyle(color)
@@ -335,6 +341,15 @@ struct LiveActivity: Widget {
             .activityBackgroundTint(Color.black.opacity(0.8))
         } else {
             Group {
+                let glucoseColor = getDynamicGlucoseColor(
+                    glucoseValue: Decimal(string: context.state.bg) ?? 100,
+                    highGlucoseColorValue: context.state.detailedViewState?.highGlucose ?? 180,
+                    lowGlucoseColorValue: context.state.detailedViewState?.lowGlucose ?? 70,
+                    targetGlucose: 90,
+                    dynamicGlucoseColor: context.state.detailedViewState?.dynamicGlucoseColor ?? false,
+                    offset: context.state.detailedViewState?.unit == "mg/dL" ? 20 : 20.asMmolL
+                )
+
                 if context.state.isInitialState {
                     // add vertical and horizontal spacers around the label to ensure that the live activity view gets filled completely
                     HStack {
@@ -348,7 +363,7 @@ struct LiveActivity: Widget {
                     }
                 } else {
                     HStack(spacing: 3) {
-                        bgAndTrend(context: context, size: .expanded).0.font(.title)
+                        bgAndTrend(context: context, size: .expanded, dynamicColor: glucoseColor).0.font(.title)
                         Spacer()
                         VStack(alignment: .trailing, spacing: 5) {
                             changeLabel(context: context).font(.title3)
@@ -369,14 +384,22 @@ struct LiveActivity: Widget {
     }
 
     func dynamicIsland(context: ActivityViewContext<LiveActivityAttributes>) -> DynamicIsland {
-        let bgValueForColor = Int(context.state.bg) ?? 100
+        let glucoseValueForColor = context.state.bg
         let highGlucose = context.state.detailedViewState?.highGlucose ?? 180
         let lowGlucose = context.state.detailedViewState?.lowGlucose ?? 70
-        let dynamicBGColor = context.state.detailedViewState?.dynamicBGColor ?? false
+        let dynamicGlucoseColor = context.state.detailedViewState?.dynamicGlucoseColor ?? false
+        let glucoseColor = getDynamicGlucoseColor(
+            glucoseValue: Decimal(string: glucoseValueForColor) ?? 100,
+            highGlucoseColorValue: highGlucose,
+            lowGlucoseColorValue: lowGlucose,
+            targetGlucose: 90,
+            dynamicGlucoseColor: dynamicGlucoseColor,
+            offset: context.state.detailedViewState?.unit == "mg/dL" ? 20 : 20.asMmolL
+        )
 
         return DynamicIsland {
             DynamicIslandExpandedRegion(.leading) {
-                bgAndTrend(context: context, size: .expanded).0.font(.title2).padding(.leading, 5)
+                bgAndTrend(context: context, size: .expanded, dynamicColor: glucoseColor).0.font(.title2).padding(.leading, 5)
             }
             DynamicIslandExpandedRegion(.trailing) {
                 changeLabel(context: context).font(.title2).padding(.trailing, 5)
@@ -402,52 +425,11 @@ struct LiveActivity: Widget {
                 }
             }
         } compactLeading: {
-            // bgAndTrend(context: context, size: .compact).0.padding(.leading, 4)
-            HStack(spacing: 1) {
-                Image(systemName: "drop.fill")
-                    .renderingMode(.template)
-                    .foregroundStyle(setBGColor(
-                        bgValue: bgValueForColor,
-                        highBGColorValue: Decimal(highGlucose),
-                        lowBGColorValue: Decimal(lowGlucose),
-                        dynamicBGColor: dynamicBGColor
-                    ))
-                    .baselineOffset(-2)
-                Text("\(context.state.bg)")
-                    .foregroundStyle(setBGColor(
-                        bgValue: bgValueForColor,
-                        highBGColorValue: Decimal(highGlucose),
-                        lowBGColorValue: Decimal(lowGlucose),
-                        dynamicBGColor: dynamicBGColor
-                    ))
-                    .minimumScaleFactor(0.1)
-                    .fontWeight(.bold)
-            }
+            bgAndTrend(context: context, size: .compact, dynamicColor: glucoseColor).0.padding(.leading, 4)
         } compactTrailing: {
-            // changeLabel(context: context).padding(.trailing, 4)
-            HStack(spacing: -5) {
-                Text("\(context.state.direction ?? "--")")
-                    .foregroundStyle(setBGColor(
-                        bgValue: bgValueForColor,
-                        highBGColorValue: Decimal(highGlucose),
-                        lowBGColorValue: Decimal(lowGlucose),
-                        dynamicBGColor: dynamicBGColor
-                    ))
-                    .minimumScaleFactor(0.1)
-                    .fontWeight(.bold)
-                    .baselineOffset(-2)
-                Text("\(context.state.change)")
-                    .foregroundStyle(setBGColor(
-                        bgValue: bgValueForColor,
-                        highBGColorValue: Decimal(highGlucose),
-                        lowBGColorValue: Decimal(lowGlucose),
-                        dynamicBGColor: dynamicBGColor
-                    ))
-                    .minimumScaleFactor(0.1)
-                    .fontWeight(.bold)
-            }
+            changeLabel(context: context).padding(.trailing, 4)
         } minimal: {
-            let (_label, characterCount) = bgAndTrend(context: context, size: .minimal)
+            let (_label, characterCount) = bgAndTrend(context: context, size: .minimal, dynamicColor: glucoseColor)
             let label = _label.padding(.leading, 7).padding(.trailing, 3)
 
             if characterCount < 4 {
@@ -482,7 +464,7 @@ private extension LiveActivityAttributes.ContentState {
     // Use mmol/l notation with decimal point as well for the same reason, it uses up to 4 characters, while mg/dl uses up to 3
     static var testWide: LiveActivityAttributes.ContentState {
         LiveActivityAttributes.ContentState(
-            bg: "00.0",
+            bg: 00.0.description,
             direction: "→",
             change: "+0.0",
             date: Date(),

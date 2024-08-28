@@ -49,8 +49,9 @@ extension Home {
         @Published var maxValue: Decimal = 1.2
         @Published var lowGlucose: Decimal = 70
         @Published var highGlucose: Decimal = 180
+        @Published var currentGlucoseTarget: Decimal = 100
         @Published var overrideUnit: Bool = false
-        @Published var dynamicBGColor: Bool = false
+        @Published var dynamicGlucoseColor: Bool = false
         @Published var displayXgridLines: Bool = false
         @Published var displayYgridLines: Bool = false
         @Published var thresholdLines: Bool = false
@@ -129,8 +130,11 @@ extension Home {
             maxValue = settingsManager.preferences.autosensMax
             lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
             highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL
+            Task {
+                await self.getCurrentGlucoseTarget()
+            }
             overrideUnit = settingsManager.settings.overrideHbA1cUnit
-            dynamicBGColor = settingsManager.settings.dynamicBGColor
+            dynamicGlucoseColor = settingsManager.settings.dynamicGlucoseColor
             displayXgridLines = settingsManager.settings.xGridLines
             displayYgridLines = settingsManager.settings.yGridLines
             thresholdLines = settingsManager.settings.rulerMarks
@@ -423,6 +427,54 @@ extension Home {
             }
         }
 
+        private func getCurrentGlucoseTarget() async {
+            let now = Date()
+            let calendar = Calendar.current
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "HH:mm:ss"
+            dateFormatter.timeZone = TimeZone.current
+
+            let bgTargets = await provider.getBGTarget()
+            let entries: [(start: String, value: Decimal)] = bgTargets.targets.map { ($0.start, $0.low) }
+
+            for (index, entry) in entries.enumerated() {
+                guard let entryTime = dateFormatter.date(from: entry.start) else {
+                    print("Invalid entry start time: \(entry.start)")
+                    continue
+                }
+
+                let entryComponents = calendar.dateComponents([.hour, .minute, .second], from: entryTime)
+                let entryStartTime = calendar.date(
+                    bySettingHour: entryComponents.hour!,
+                    minute: entryComponents.minute!,
+                    second: entryComponents.second!,
+                    of: now
+                )!
+
+                let entryEndTime: Date
+                if index < entries.count - 1,
+                   let nextEntryTime = dateFormatter.date(from: entries[index + 1].start)
+                {
+                    let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
+                    entryEndTime = calendar.date(
+                        bySettingHour: nextEntryComponents.hour!,
+                        minute: nextEntryComponents.minute!,
+                        second: nextEntryComponents.second!,
+                        of: now
+                    )!
+                } else {
+                    entryEndTime = calendar.date(byAdding: .day, value: 1, to: entryStartTime)!
+                }
+
+                if now >= entryStartTime, now < entryEndTime {
+                    await MainActor.run {
+                        currentGlucoseTarget = units == .mgdL ? entry.value : entry.value.asMmolL
+                    }
+                    return
+                }
+            }
+        }
+
         func openCGM() {
             router.mainSecondaryModalView.send(router.view(for: .cgmDirect))
         }
@@ -467,8 +519,11 @@ extension Home.StateModel:
         smooth = settingsManager.settings.smoothGlucose
         lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
         highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL
+        Task {
+            await getCurrentGlucoseTarget()
+        }
         overrideUnit = settingsManager.settings.overrideHbA1cUnit
-        dynamicBGColor = settingsManager.settings.dynamicBGColor
+        dynamicGlucoseColor = settingsManager.settings.dynamicGlucoseColor
         displayXgridLines = settingsManager.settings.xGridLines
         displayYgridLines = settingsManager.settings.yGridLines
         thresholdLines = settingsManager.settings.rulerMarks

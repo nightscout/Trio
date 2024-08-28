@@ -55,7 +55,7 @@ struct FreeAPSSettings: JSON, Equatable {
     var high: Decimal = 180
     var low: Decimal = 70
     var hours: Int = 6
-    var dynamicBGColor: Bool = false
+    var dynamicGlucoseColor: Bool = false
     var xGridLines: Bool = true
     var yGridLines: Bool = true
     var oneDimensionalGraph: Bool = false
@@ -267,8 +267,8 @@ extension FreeAPSSettings: Decodable {
             settings.hours = hours
         }
 
-        if let dynamicBGColor = try? container.decode(Bool.self, forKey: .dynamicBGColor) {
-            settings.dynamicBGColor = dynamicBGColor
+        if let dynamicGlucoseColor = try? container.decode(Bool.self, forKey: .dynamicGlucoseColor) {
+            settings.dynamicGlucoseColor = dynamicGlucoseColor
         }
 
         if let xGridLines = try? container.decode(Bool.self, forKey: .xGridLines) {
