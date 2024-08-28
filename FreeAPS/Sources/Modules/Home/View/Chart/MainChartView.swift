@@ -253,7 +253,7 @@ extension MainChartView {
                     glucoseValue: lowGlucose,
                     highGlucoseColorValue: highGlucose,
                     lowGlucoseColorValue: lowGlucose,
-                    targetGlucose: lowGlucose,
+                    targetGlucose: currentGlucoseTarget,
                     dynamicGlucoseColor: dynamicGlucoseColor,
                     offset: units == .mgdL ? 20 : 20.asMmolL
                 )
@@ -261,7 +261,7 @@ extension MainChartView {
                     glucoseValue: highGlucose,
                     highGlucoseColorValue: highGlucose,
                     lowGlucoseColorValue: highGlucose,
-                    targetGlucose: highGlucose,
+                    targetGlucose: currentGlucoseTarget,
                     dynamicGlucoseColor: dynamicGlucoseColor,
                     offset: units == .mgdL ? 20 : 20.asMmolL
                 )
