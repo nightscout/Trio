@@ -13,7 +13,7 @@ public func getDynamicGlucoseColor(
 ) -> Color {
     // Convert Decimal to Int for high and low glucose values
     let lowGlucose = lowGlucoseColorValue - offset
-    let highGlucose = highGlucoseColorValue + offset
+    let highGlucose = highGlucoseColorValue + (offset * 1.75)
     let targetGlucose = targetGlucose
 
     // Only use calculateHueBasedGlucoseColor if the setting is enabled in preferences
