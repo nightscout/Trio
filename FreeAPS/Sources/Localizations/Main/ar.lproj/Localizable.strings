@@ -445,13 +445,13 @@ Enact a temp Basal or a temp target */
 "Max Carbs of" = "الحد الاقصى للكارب";
 
 /* Max Fat limit exceeded */
-"Max Fat of" = "Max Fat of";
+"Max Fat of" = "الحد الأقصى للدهون";
 
 /* Max Protein limit exceeded */
-"Max Protein of" = "Max Protein of";
+"Max Protein of" = "الحد الأقصى للبروتين";
 
 /* Max Bolus limit exceeded */
-"Max Bolus of" = "Max Bolus of";
+"Max Bolus of" = "الحد الاقصى للبولوس";
 
 /* Limit Exceeded label */
 "exceeded" = "تم تجاوزه";
@@ -463,61 +463,61 @@ Enact a temp Basal or a temp target */
 "U/hr" = "وحدة لكل ساعة";
 
 /* Unit in number of units delivered (keep the space character!) */
-" U" = " U";
+" U" = "وحدة/ات";
 
 /* /Insulin unit */
-"/U" = "/U";
+"/U" = "/وحدة";
 
 /* Insulin unit */
-"U" = "U";
+"U" = "وحدة";
 
 /* Unit per hour with space */
-" U/hr" = " U/hr";
+" U/hr" = " وحدة لكل ساعة";
 
 /* Number of units per hour*/
-"%@ U/hr" = "%@ U/hr";
+"%@ U/hr" = "%@ وحدة لكل ساعة";
 
 /* Number of units insulin delivered */
-"%@ U" = "%@ U";
+"%@ U" = "%@ وحدة";
 
 /*Carb ratio unit */
-"g/U" = "g/U";
+"g/U" = "غرام لكل وحدة";
 
 /* grams */
-" g" = " g";
+" g" = " غرام";
 
 /* The short unit display string for grams */
-"g" = "g";
+"g" = "غرام";
 
 /* when 0 U/hr */
-"0 U/hr" = "0 U/hr";
+"0 U/hr" = "0 وحدة لكل ساعة";
 
 /* abbreviation for days */
-"d" = "d";
+"d" = "ي";
 
 /* abbreviation for hours */
-"h" = "h";
+"h" = "س";
 
 /* abbreviation for minutes */
-"m" = "m";
+"m" = "د";
 
 /*  */
-"Closed loop" = "Closed loop";
+"Closed loop" = "حلقة مغلقة";
 
 /* */
-"Configuration" = "Configuration";
+"Configuration" = "الضبط";
 
 /* */
-"Devices" = "Devices";
+"Devices" = "الأجهزة";
 
 /*  */
-"Pump" = "Pump";
+"Pump" = "المضخة";
 
 /* */
-"Watch" = "Watch";
+"Watch" = "الساعة اليد";
 
 /* */
-"Watch Configuration" = "Watch Configuration";
+"Watch Configuration" = "ضبط ساعة اليد";
 
 /* */
 "Apple Watch" = "Apple Watch";
