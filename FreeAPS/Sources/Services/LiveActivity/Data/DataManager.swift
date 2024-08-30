@@ -33,7 +33,7 @@ extension LiveActivityBridge {
             key: "deliverAt",
             ascending: false,
             fetchLimit: 1,
-            propertiesToFetch: ["iob", "cob"]
+            propertiesToFetch: ["iob", "cob", "currentTarget"]
         )
 
         guard let determinationResults = results as? [[String: Any]] else {
@@ -44,7 +44,8 @@ extension LiveActivityBridge {
             self.determination = determinationResults.first.map {
                 DeterminationData(
                     cob: ($0["cob"] as? Int) ?? 0,
-                    iob: ($0["iob"] as? NSDecimalNumber)?.decimalValue ?? 0
+                    iob: ($0["iob"] as? NSDecimalNumber)?.decimalValue ?? 0,
+                    target: ($0["currentTarget"] as? NSDecimalNumber)?.decimalValue ?? 0
                 )
             }
         }

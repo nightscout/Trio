@@ -70,7 +70,7 @@ struct LiveActivity: Widget {
     private var bolusFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 2
+        formatter.maximumFractionDigits = 1
         formatter.decimalSeparator = "."
         return formatter
     }
@@ -83,11 +83,55 @@ struct LiveActivity: Widget {
     }
 
     @ViewBuilder private func changeLabel(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
-        if !context.state.change.isEmpty {
-            Text(context.state.change).foregroundStyle(.primary.opacity(0.5)).font(.headline)
-                .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
-        } else {
-            Text("--")
+        HStack(spacing: -5) {
+            if !context.state.change.isEmpty {
+                Text(context.state.change).foregroundStyle(.primary).font(.subheadline)
+                    .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
+            } else {
+                Text("--")
+            }
+        }
+    }
+
+    @ViewBuilder func cobLabel(
+        context: ActivityViewContext<LiveActivityAttributes>,
+        additionalState: LiveActivityAttributes.ContentAdditionalState
+    ) -> some View {
+        VStack(spacing: 2) {
+//            Image(systemName: "fork.knife")
+//                .font(.title3)
+//                .foregroundColor(.yellow)
+
+            HStack {
+                Text(
+                    carbsFormatter.string(from: additionalState.cob as NSNumber) ?? "--"
+                ).fontWeight(.bold).font(.title3).strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
+                Text(NSLocalizedString("g", comment: "grams of carbs")).foregroundStyle(.primary).font(.headline)
+                    .fontWeight(.bold)
+            }
+
+            Text("COB").font(.subheadline).foregroundStyle(.primary)
+        }
+    }
+
+    @ViewBuilder func iobLabel(
+        context: ActivityViewContext<LiveActivityAttributes>,
+        additionalState: LiveActivityAttributes.ContentAdditionalState
+    ) -> some View {
+        VStack(spacing: 2) {
+//            Image(systemName: "syringe.fill")
+//                .font(.title3)
+//                .foregroundColor(.blue)
+
+            HStack {
+                Text(
+                    bolusFormatter.string(from: additionalState.iob as NSNumber) ?? "--"
+                ).font(.title3).fontWeight(.bold).strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
+                Text(NSLocalizedString("U", comment: "Unit in number of units delivered (keep the space character!)"))
+                    .foregroundStyle(.primary).font(.headline).fontWeight(.bold)
+            }
+
+            Text("IOB").font(.subheadline).foregroundStyle(.primary)
         }
     }
 
@@ -96,7 +140,7 @@ struct LiveActivity: Widget {
         additionalState: LiveActivityAttributes.ContentAdditionalState
     ) -> some View {
         HStack {
-            VStack(alignment: .leading, spacing: 1, content: {
+            VStack(alignment: .leading, spacing: 0, content: {
                 HStack {
                     Image(systemName: "fork.knife")
                         .font(.title3)
@@ -108,19 +152,19 @@ struct LiveActivity: Widget {
                         .foregroundColor(.blue)
                 }
             })
-            VStack(alignment: .trailing, spacing: 1, content: {
+            VStack(alignment: .trailing, spacing: 0, content: {
                 HStack {
                     Text(
                         carbsFormatter.string(from: additionalState.cob as NSNumber) ?? "--"
-                    ).fontWeight(.bold).font(.headline).strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
-                    Text(NSLocalizedString(" g", comment: "grams of carbs")).foregroundStyle(.secondary).font(.footnote)
+                    ).fontWeight(.bold).font(.title3).strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
+                    Text(NSLocalizedString(" g", comment: "grams of carbs")).foregroundStyle(.primary).font(.headline)
                 }
                 HStack {
                     Text(
                         bolusFormatter.string(from: additionalState.iob as NSNumber) ?? "--"
-                    ).font(.headline).fontWeight(.bold).strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
+                    ).font(.title3).fontWeight(.bold).strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
                     Text(NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)"))
-                        .foregroundStyle(.secondary).font(.footnote)
+                        .foregroundStyle(.primary).font(.headline)
                 }
             })
             VStack(alignment: .trailing, spacing: 1, content: {
@@ -147,35 +191,38 @@ struct LiveActivity: Widget {
             .minimumScaleFactor(0.01)
     }
 
-    private func updatedLabel(context: ActivityViewContext<LiveActivityAttributes>) -> Text {
-        let text = Text("Updated: \(dateFormatter.string(from: context.state.date))")
-            .font(.caption2)
-        if context.isStale {
-            // foregroundStyle is not available in <iOS 17 hence the check here
-            if #available(iOSApplicationExtension 17.0, *) {
-                return text.bold().foregroundStyle(.red)
+    @ViewBuilder private func updatedLabel(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
+        VStack {
+            let dateText = Text("\(dateFormatter.string(from: context.state.date))").font(.title3).foregroundStyle(.primary)
+
+            if context.isStale {
+                if #available(iOSApplicationExtension 17.0, *) {
+                    dateText.bold().foregroundStyle(.red)
+                } else {
+                    dateText.bold().foregroundColor(.red)
+                }
             } else {
-                return text.bold().foregroundColor(.red)
+                if #available(iOSApplicationExtension 17.0, *) {
+                    dateText.bold().foregroundStyle(.primary)
+                } else {
+                    dateText.bold().foregroundColor(.primary)
+                }
             }
-        } else {
-            if #available(iOSApplicationExtension 17.0, *) {
-                return text.bold().foregroundStyle(.secondary)
-            } else {
-                return text.bold().foregroundColor(.red)
-            }
+
+            Text("Updated").font(.subheadline).foregroundStyle(.primary)
         }
     }
 
     @ViewBuilder private func bgLabel(
         context: ActivityViewContext<LiveActivityAttributes>,
-        additionalState: LiveActivityAttributes.ContentAdditionalState
+        additionalState _: LiveActivityAttributes.ContentAdditionalState
     ) -> some View {
         HStack(alignment: .center) {
             Text(context.state.bg)
                 .fontWeight(.bold)
-                .font(.largeTitle)
+                .font(.title3)
                 .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
-            Text(additionalState.unit).foregroundStyle(.secondary).font(.subheadline).offset(x: -5, y: 5)
+//            Text(additionalState.unit).foregroundStyle(.primary).font(.footnote)
         }
     }
 
@@ -250,10 +297,10 @@ struct LiveActivity: Widget {
         ], startPoint: .leading, endPoint: .trailing)
 
         if !context.isStale {
-            Image(systemName: "arrow.right")
-                .font(.title)
+            Image(systemName: "arrowshape.right.circle")
+                .font(.headline)
                 .rotationEffect(.degrees(additionalState.rotationDegrees))
-                .foregroundStyle(gradient)
+//                .foregroundStyle(gradient)
         }
     }
 
@@ -272,12 +319,14 @@ struct LiveActivity: Widget {
                 .asMmolL
             let yAxisRuleMarkMax = additionalState.unit == "mg/dL" ? additionalState.highGlucose : additionalState.highGlucose
                 .asMmolL
+            let target = additionalState.unit == "mg/dL" ? additionalState.target : additionalState.target.asMmolL
 
             Chart {
                 RuleMark(y: .value("Low", yAxisRuleMarkMin))
                     .lineStyle(.init(lineWidth: 0.5, dash: [5]))
                 RuleMark(y: .value("High", yAxisRuleMarkMax))
                     .lineStyle(.init(lineWidth: 0.5, dash: [5]))
+                RuleMark(y: .value("Target", target)).foregroundStyle(.green.gradient).lineStyle(.init(lineWidth: 1))
 
                 ForEach(additionalState.chart.indices, id: \.self) { index in
                     let currentValue = additionalState.chart[index]
@@ -300,10 +349,19 @@ struct LiveActivity: Widget {
             .chartYAxis {
                 AxisMarks(position: .trailing) { _ in
                     AxisGridLine(stroke: .init(lineWidth: 0.2, dash: [2, 3])).foregroundStyle(Color.white)
-                    AxisValueLabel().foregroundStyle(.secondary).font(.footnote)
+                    AxisValueLabel().foregroundStyle(.primary).font(.footnote)
                 }
             }
-            .chartYScale(domain: additionalState.unit == "mg/dL" ? min ... max : min.asMmolL ... max.asMmolL)
+//            .chartYScale(domain: additionalState.unit == "mg/dL" ? min ... max : min.asMmolL ... max.asMmolL)
+            .chartYAxis(.hidden)
+            .chartPlotStyle { plotContent in
+                plotContent
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.cyan.opacity(0.15))
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
             .chartXAxis {
                 AxisMarks(position: .automatic) { _ in
                     AxisGridLine(stroke: .init(lineWidth: 0.2, dash: [2, 3])).foregroundStyle(Color.white)
@@ -314,24 +372,42 @@ struct LiveActivity: Widget {
 
     @ViewBuilder func content(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
         if let detailedViewState = context.state.detailedViewState {
-            HStack(spacing: 12) {
-                chart(context: context, additionalState: detailedViewState).frame(maxWidth: UIScreen.main.bounds.width / 1.8)
-                VStack(alignment: .leading) {
-                    Spacer()
-                    bgLabel(context: context, additionalState: detailedViewState)
-                    HStack {
-                        changeLabel(context: context)
-                        trendArrow(context: context, additionalState: detailedViewState)
+            VStack(content: {
+                chart(context: context, additionalState: detailedViewState)
+                    .frame(maxWidth: UIScreen.main.bounds.width * 0.9)
+                    .frame(height: 80)
+
+                HStack {
+                    if context.state.showCurrentGlucose {
+                        VStack {
+                            bgLabel(context: context, additionalState: detailedViewState)
+                            HStack {
+                                changeLabel(context: context)
+                            }
+                        }
+                        Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
                     }
-                    mealLabel(context: context, additionalState: detailedViewState).padding(.bottom, 8)
-                    updatedLabel(context: context).padding(.bottom, 10)
+
+                    if context.state.showIOB {
+                        iobLabel(context: context, additionalState: detailedViewState)
+                        Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
+                    }
+
+                    if context.state.showCOB {
+                        cobLabel(context: context, additionalState: detailedViewState)
+                        Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
+                    }
+
+                    if context.state.showUpdatedLabel {
+                        updatedLabel(context: context)
+                    }
                 }
-            }
-            .privacySensitive()
-            .padding(.all, 14)
-            .imageScale(.small)
-            .foregroundColor(Color.white)
-            .activityBackgroundTint(Color.black.opacity(0.8))
+            })
+                .privacySensitive()
+                .padding(.all, 14)
+                .imageScale(.small)
+                .foregroundStyle(Color.primary)
+                .activityBackgroundTint(Color.clear)
         } else {
             Group {
                 if context.state.isInitialState {
@@ -440,6 +516,10 @@ private extension LiveActivityAttributes.ContentState {
             change: "+0.0",
             date: Date(),
             detailedViewState: nil,
+            showCOB: true,
+            showIOB: true,
+            showCurrentGlucose: true,
+            showUpdatedLabel: true,
             isInitialState: false
         )
     }
@@ -451,6 +531,10 @@ private extension LiveActivityAttributes.ContentState {
             change: "+0.0",
             date: Date(),
             detailedViewState: nil,
+            showCOB: true,
+            showIOB: true,
+            showCurrentGlucose: true,
+            showUpdatedLabel: true,
             isInitialState: false
         )
     }
@@ -462,6 +546,10 @@ private extension LiveActivityAttributes.ContentState {
             change: "+0.0",
             date: Date(),
             detailedViewState: nil,
+            showCOB: true,
+            showIOB: true,
+            showCurrentGlucose: true,
+            showUpdatedLabel: true,
             isInitialState: false
         )
     }
@@ -474,6 +562,10 @@ private extension LiveActivityAttributes.ContentState {
             change: "+0",
             date: Date(),
             detailedViewState: nil,
+            showCOB: true,
+            showIOB: true,
+            showCurrentGlucose: true,
+            showUpdatedLabel: true,
             isInitialState: false
         )
     }
@@ -485,6 +577,10 @@ private extension LiveActivityAttributes.ContentState {
             change: "+00",
             date: Date(),
             detailedViewState: nil,
+            showCOB: true,
+            showIOB: true,
+            showCurrentGlucose: true,
+            showUpdatedLabel: true,
             isInitialState: false
         )
     }
@@ -496,6 +592,10 @@ private extension LiveActivityAttributes.ContentState {
             change: "--",
             date: Date().addingTimeInterval(-60 * 60),
             detailedViewState: nil,
+            showCOB: true,
+            showIOB: true,
+            showCurrentGlucose: true,
+            showUpdatedLabel: true,
             isInitialState: true
         )
     }

@@ -116,6 +116,17 @@ extension LiveActivitySettings {
                                 }.padding(.top)
                             }.padding(.bottom)
                         }.listRowBackground(Color.chart)
+
+                        if state.lockScreenView == .detailed {
+                            Section(
+                                content: {
+                                    NavigationLink(
+                                        "Widget Configuration",
+                                        destination: LiveActivityBottomRowConfiguration(resolver: resolver, state: state)
+                                    )
+                                }
+                            ).listRowBackground(Color.chart)
+                        }
                     }
                 }
             }
