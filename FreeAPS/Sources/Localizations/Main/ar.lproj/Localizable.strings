@@ -520,73 +520,73 @@ Enact a temp Basal or a temp target */
 "Watch Configuration" = "ضبط ساعة اليد";
 
 /* */
-"Apple Watch" = "Apple Watch";
+"Apple Watch" = "ساعة آپل";
 
 /* */
-"Display on Watch" = "Display on Watch";
+"Display on Watch" = "أعرض على الساعة";
 
 /* */
-"Garmin Watch" = "Garmin Watch";
+"Garmin Watch" = "ساعة جارمين";
 
 /* */
-"Add devices" = "Add devices";
+"Add devices" = "إضافة أجهزة";
 
 /* */
-"Glucose Target" = "Glucose Target";
+"Glucose Target" = "هدف الجلوكوز";
 
 /* */
-"Heart Rate" = "Heart Rate";
+"Heart Rate" = "معدل ضربات القلب";
 
 /* */
-"Steps" = "Steps";
+"Steps" = "الخطوات";
 
 /* */
-"ISF" = "ISF";
+"ISF" = "عامل حساسية الأنسولين";
 
 /* */
 "The app Garmin Connect must be installed to use for Trio.\n Go to App Store to download it" = "The app Garmin Connect must be installed to use for Trio.\n Go to App Store to download it";
 
 /* */
-"Garmin is not available" = "Garmin is not available";
+"Garmin is not available" = "جارمين غير متاح";
 
 /*  */
-"Services" = "Services";
+"Services" = "الخدمات";
 
 /*  */
-"Settings" = "Settings";
+"Settings" = "الإعدادات";
 
 /* Recommendation for a Manual Bolus */
-"Recommended Bolus Percentage" = "Recommended Bolus Percentage";
+"Recommended Bolus Percentage" = "النسبة المئوية للبولوس الموصى بها";
 
 /* 2 log files to share */
-"Share logs" = "Share logs";
+"Share logs" = "مشاركة السجلات";
 
 /* Upper target */
-"High target" = "High target";
+"High target" = "هدف مرتفع";
 
 /* Lower target */
-"Low target" = "Low target";
+"Low target" = "هدف منخفض";
 
 /* When bolusing */
-"Bolusing" = "Bolusing";
+"Bolusing" = "يضخ";
 
 /* */
-"Pump suspended" = "Pump suspended";
+"Pump suspended" = "المضخة معلقة";
 
 /* */
-"Middleware" = "Middleware";
+"Middleware" = "البرامج الوسيطة";
 
 /* Header */
-"History" = "History";
+"History" = "السّجل";
 
 /* Nightscout option */
-"Upload" = "Upload";
+"Upload" = "رفع";
 
 /* Nightscout option */
-"Allow Uploads" = "Allow Uploads";
+"Allow Uploads" = "السماح بالرفع";
 
 /* Type of CGM or glucose source */
-"Type" = "Type";
+"Type" = "نوع";
 
 /* CGM */
 "CGM" = "CGM";
@@ -724,16 +724,16 @@ Enact a temp Basal or a temp target */
 "Pair Sensor & connect" = "Pair Sensor & connect";
 
 /* */
-"Phone NFC required!" = "Phone NFC required!";
+"Phone NFC required!" = "NFC الهاتف مطلوب!";
 
 /* */
 "Your phone or app is not enabled for NFC communications, which is needed to pair to libre2 sensors" = "Your phone or app is not enabled for NFC communications, which is needed to pair to libre2 sensors";
 
 /* Bluetooth Power Off */
-"Bluetooth Power Off" = "Bluetooth Power Off";
+"Bluetooth Power Off" = "البلوتوث مغلق";
 
 /* Please turn on Bluetooth */
-"Please turn on Bluetooth" = "Please turn on Bluetooth";
+"Please turn on Bluetooth" = "الرجاء تفعيل البلوتوث";
 
 /* No Libre Transmitter Selected */
 "No Libre Transmitter Selected" = "No Libre Transmitter Selected";
@@ -748,130 +748,130 @@ Enact a temp Basal or a temp target */
 "Libre sensor was incorrectly read, CRCs were not valid" = "Libre sensor was incorrectly read, CRCs were not valid";
 
 /* Glucose */
-"Glucose" = "Glucose";
+"Glucose" = "جلوكوز";
 
 /* LOWALERT! */
-"LOWALERT!" = "LOWALERT!";
+"LOWALERT!" = "تحذير إنخفاض!";
 
 /* HIGHALERT! */
-"HIGHALERT!" = "HIGHALERT!";
+"HIGHALERT!" = "تحذير إرتفاع!";
 
 /* (Snoozed)*/
-"(Snoozed)" = "(Snoozed)";
+"(Snoozed)" = "(غفو)";
 
 /* Glucose: %@ */
-"Glucose: %@" = "Glucose: %@";
+"Glucose: %@" = "جلوكوز: %@";
 
 /* Transmitter: %@%% */
-"Transmitter: %@%%" = "Transmitter: %@%%";
+"Transmitter: %@%%" = "المُرسِل: %@%%";
 
 /* No Sensor Detected */
-"No Sensor Detected" = "No Sensor Detected";
+"No Sensor Detected" = "لم يتم اكتشاف جهاز استشعار";
 
 /* This might be an intermittent problem, but please check that your transmitter is tightly secured over your sensor */
 "This might be an intermittent problem, but please check that your transmitter is tightly secured over your sensor" = "This might be an intermittent problem, but please check that your transmitter is tightly secured over your sensor";
 
 /* New Sensor Detected */
-"New Sensor Detected" = "New Sensor Detected";
+"New Sensor Detected" = "تم اكتشاف مستشعر جديد";
 
 /* Please wait up to 30 minutes before glucose readings are available! */
-"Please wait up to 30 minutes before glucose readings are available!" = "Please wait up to 30 minutes before glucose readings are available!";
+"Please wait up to 30 minutes before glucose readings are available!" = "يرجى الانتظار الى 30 دقيقة قبل أن تتوفر قراءات الجلوكوز!";
 
 /* Invalid Glucose sample detected, try again later */
-"Invalid Glucose sample detected, try again later" = "Invalid Glucose sample detected, try again later";
+"Invalid Glucose sample detected, try again later" = "تم اكتشاف عينة جلوكوز غير صالحة، حاول مرة أخرى لاحقاً";
 
 /* ensor might have temporarily stopped, fallen off or is too cold or too warm */
-"Sensor might have temporarily stopped, fallen off or is too cold or too warm" = "Sensor might have temporarily stopped, fallen off or is too cold or too warm";
+"Sensor might have temporarily stopped, fallen off or is too cold or too warm" = "قد يكون المستشعر قد توقف مؤقتا، أو سقط أو كان بارد جدا أو دافئا جدا";
 
 /* Invalid Sensor Detected */
-"Invalid Sensor Detected" = "Invalid Sensor Detected";
+"Invalid Sensor Detected" = "تم اكتشاف مستشعر غير صالح";
 
 /* Detected sensor seems not to be a libre 1 sensor! */
-"Detected sensor seems not to be a libre 1 sensor!" = "Detected sensor seems not to be a libre 1 sensor!";
+"Detected sensor seems not to be a libre 1 sensor!" = "يبدو أن المستشعر المكتشف ليس مستشعر ليبري 1!";
 
 /* Detected sensor is invalid: %@ */
-"Detected sensor is invalid: %@" = "Detected sensor is invalid: %@";
+"Detected sensor is invalid: %@" = "المستشعر المكتشف غير صالح: %@";
 
 /* Low Battery */
-"Low battery" = "Low battery";
+"Low battery" = "البطـارية منخفضة";
 
 /* */
-"Invalid sensor" = "Invalid sensor";
+"Invalid sensor" = "مستشعر غير صحيح";
 
 /* */
-"Sensor change" = "Sensor change";
+"Sensor change" = "تغيير الإستشعار";
 
 /* */
-"Sensor expires soon" = "Sensor expires soon";
+"Sensor expires soon" = "ستنتهي صلاحية المستشعر قريبا";
 
 /* Battery is running low %@, consider charging your %@ device as soon as possible */
-"Battery is running low %@, consider charging your %@ device as soon as possible" = "Battery is running low %@, consider charging your %@ device as soon as possible";
+"Battery is running low %@, consider charging your %@ device as soon as possible" = "البطارية منخفضه %@، إشحن جهازك %@ في أقرب وقت ممكن";
 
 /* Extracting calibrationdata from sensor */
-"Extracting calibrationdata from sensor" = "Extracting calibrationdata from sensor";
+"Extracting calibrationdata from sensor" = "جاري إستخراج بيانات المعايرة من المستشعر";
 
 /* Sensor Ending Soon */
-"Sensor Ending Soon" = "Sensor Ending Soon";
+"Sensor Ending Soon" = "المستشعر سينتهي قريباً";
 
 /* Current Sensor is Ending soon! Sensor Life left in %@ */
-"Current Sensor is Ending soon! Sensor Life left in %@" = "Current Sensor is Ending soon! Sensor Life left in %@";
+"Current Sensor is Ending soon! Sensor Life left in %@" = "المستشعر الحالي سينتهي قريباً! عمر المستشعر المتبقي %@";
 
 /* */
-"Libre Bluetooth" = "Libre Bluetooth";
+"Libre Bluetooth" = "بلوتوث ليبري";
 
 /* */
-"Snooze Alerts" = "Snooze Alerts";
+"Snooze Alerts" = "إغفاء التنبيهات";
 
 /* */
-"Last measurement" = "Last measurement";
+"Last measurement" = "القياس الأخير";
 
 /* */
 "Sensor Footer checksum" = "Sensor Footer checksum";
 
 /* */
-"Last Blood Sugar prediction" = "Last Blood Sugar prediction";
+"Last Blood Sugar prediction" = "آخر تنبؤ بمستوى الجلوكوز في الدم";
 
 /* */
-"CurrentBG" = "CurrentBG";
+"CurrentBG" = "معدل الجلوكوز في الدم الحالي";
 
 /* */
-"Sensor Info" = "Sensor Info";
+"Sensor Info" = "معلومات المستشعر";
 
 /* */
-"Sensor Age" = "Sensor Age";
+"Sensor Age" = "عمر المستشعر";
 
 /* */
-"Sensor Age Left" = "Sensor Age Left";
+"Sensor Age Left" = "عمر المستشعر المتبقي";
 
 /* */
-"Sensor Endtime" = "Sensor Endtime";
+"Sensor Endtime" = "وقت انتهاء المستشعر";
 
 /* */
-"Sensor State" = "Sensor State";
+"Sensor State" = "حالة المستشعر";
 
 /* */
-"Sensor Serial" = "Sensor Serial";
+"Sensor Serial" = "الرقم التسلسلي للمستشعر";
 
 /* */
-"Transmitter Info" = "Transmitter Info";
+"Transmitter Info" = "معلومات المُرسِل";
 
 /* */
-"Hardware" = "Hardware";
+"Hardware" = "العتاد الصلب";
 
 /* */
-"Firmware" = "Firmware";
+"Firmware" = "البرنامج الدائم";
 
 /* */
-"Connection State" = "Connection State";
+"Connection State" = "حالة الإتصال";
 
 /* */
-"Transmitter Type" = "Transmitter Type";
+"Transmitter Type" = "نوع المُرسِل";
 
 /* */
-"Sensor Type" = "Sensor Type";
+"Sensor Type" = "نوع المستشعر";
 
 /* */
-"Factory Calibration Parameters" = "Factory Calibration Parameters";
+"Factory Calibration Parameters" = "ضوابط معايرة المصنع";
 
 /* */
 "Valid for footer" = "Valid for footer";
