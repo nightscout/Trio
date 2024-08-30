@@ -249,11 +249,11 @@ final class OpenAPS {
             if let bolusDTO = event.toBolusDTOEnum() {
                 eventDTOs.append(bolusDTO)
             }
-            if let tempBasalDTO = event.toTempBasalDTOEnum() {
-                eventDTOs.append(tempBasalDTO)
-            }
             if let tempBasalDurationDTO = event.toTempBasalDurationDTOEnum() {
                 eventDTOs.append(tempBasalDurationDTO)
+            }
+            if let tempBasalDTO = event.toTempBasalDTOEnum() {
+                eventDTOs.append(tempBasalDTO)
             }
             return eventDTOs
         }
