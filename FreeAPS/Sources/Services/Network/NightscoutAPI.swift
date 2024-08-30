@@ -496,7 +496,7 @@ extension NightscoutAPI {
         }
         request.httpMethod = "POST"
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (_, response) = try await URLSession.shared.data(for: request)
 
         // Check the response status code
         guard let httpResponse = response as? HTTPURLResponse, 200 ..< 300 ~= httpResponse.statusCode else {

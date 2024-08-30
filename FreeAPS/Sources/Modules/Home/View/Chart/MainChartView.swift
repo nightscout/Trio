@@ -1216,8 +1216,8 @@ extension MainChartView {
         // Ensure maxForecast is not more than 100 over maxGlucose
         let adjustedMaxForecast = min(maxForecast, maxGlucose + 100)
 
-        var minOverall = min(minGlucose, minForecast)
-        var maxOverall = max(maxGlucose, adjustedMaxForecast)
+        let minOverall = min(minGlucose, minForecast)
+        let maxOverall = max(maxGlucose, adjustedMaxForecast)
 
         minValue = minOverall - 50
         maxValue = maxOverall + 80

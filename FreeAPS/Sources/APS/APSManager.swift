@@ -1018,7 +1018,7 @@ final class BaseAPSManager: APSManager, Injectable {
             }
 
             // Insulin placeholder
-            var insulin = Ins(
+            let insulin = Ins(
                 TDD: 0,
                 bolus: 0,
                 temp_basal: 0,
