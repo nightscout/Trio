@@ -152,7 +152,7 @@
 "Delete preset \"%@\"" = "Xóa mẫu cài đặt \"%@\"";
 
 /* Duration of target temp or temp basal */
-"Duration" = "Khoảng thời gian";
+"Duration" = "Duration";
 
 /*  */
 "Enact Temp Target" = "Chấp nhận mục tiêu tạm thời";
@@ -1683,7 +1683,7 @@ Enact a temp Basal or a temp target */
 "Display Chart Threshold lines for Low and High" = "Hiển thị các đường hiển thị Thấp và Cao";
 
 /* */
-"Standing / Laying TIR Chart" = "Đứng/Nằm biểu đồ trong phạm vi TIR";
+"Standing / Laying TIR Chart" = "Biểu đồ TIR Đứng / Nằm";
 
 /* */
 "Hours X-Axis (6 default)" = "Giờ trục X-Axis (mặc định 6)";
@@ -1910,7 +1910,7 @@ Enact a temp Basal or a temp target */
 "Allow SMB With High Temptarget" = "Cho phép SMB có Temptarget cao";
 
 /* Headline "Allow SMB With High Temptarget" */
-"Allow SMB With High Temptarget" = "Cho phép SMB với mục tiêu tạm thời cao";
+"Allow SMB With High Temptarget" = "Cho phép SMB có Temptarget cao";
 
 /* "Allow SMB With High Temptarget" */
 "Defaults to false. When true, allows supermicrobolus (if otherwise enabled) even with high temp targets (> 100 mg/dl)." = "Mặc định là False. Khi True, cho phép supermicrobolus (nếu được bật khác) ngay cả với mục tiêu nhiệt độ cao (> 100 mg/dl).";
@@ -1922,7 +1922,7 @@ Enact a temp Basal or a temp target */
 "Defaults to false. Setting to true allows changing insulinPeakTime" = "Mặc định là False. Đặt thành True cho phép thay đổi đỉnh của insulin";
 
 /* Headline "Suspend Zeros IOB” */
-"Suspend Zeros IOB" = "Đình chỉ IOB bằng 0";
+"Suspend Zeros IOB" = "Tạm ngưng IOB bằng 0";
 
 /* "Suspend Zeros IOB” */
 "Default is false. Any existing temp basals during times the pump was suspended will be deleted and 0 temp basals to negate the profile basal rates during times pump is suspended will be added." = "Mặc định là False. Mọi mức Temp Basals hiện có trong thời gian máy bơm bị tạm dừng sẽ bị xóa và mức Temp Basals 0 để phủ nhận tốc độ cơ bản của hồ sơ trong thời gian máy bơm bị tạm dừng sẽ được thêm vào.";
@@ -1931,7 +1931,7 @@ Enact a temp Basal or a temp target */
 "Max IOB" = "IOB tối đa";
 
 /* "Max IOB" */
-"Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two OpenAPS safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings\n\n(Tip from https://www.loopandlearn.org/freeaps-x/#open-loop)." = "IOB Max là lượng insulin tối đa được cung cấp từ tất cả các nguồn – cả insulin cơ bản (hoặc hiệu chỉnh SMB) và insulin bolus – mà vòng lặp của bạn được phép tích lũy để điều trị BG cao hơn mục tiêu. Không giống như hai cài đặt an toàn OpenAPS khác (Hệ số tối đa an toàn hàng ngày và Hệ số an toàn cơ bản hiện tại), Tối đa IOB được đặt thành số lượng đơn vị insulin cố định. Tính đến thời điểm hiện tại, việc tiêm liều thủ công KHÔNG bị giới hạn bởi cài đặt này. \n\n Để kiểm tra lãi suất cơ bản của bạn vào ban đêm, bạn có thể sửa đổi cài đặt IOB tối đa thành 0 khi ở Vòng kín. Điều này sẽ kích hoạt chế độ tạm ngưng lượng glucose thấp trong khi kiểm tra cài đặt tốc độ cơ bản của bạn\n\n(Mẹo từ https://www.loopandlearn.org/freeaps-x/#open-loop).";
+"Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two OpenAPS safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings\n\n(Tip from https://www.loopandlearn.org/freeaps-x/#open-loop)." = "IOB Max là lượng insulin tối đa được cung cấp từ tất cả các nguồn – cả insulin cơ bản (hoặc hiệu chỉnh SMB) và insulin bolus – mà vòng lặp của bạn được phép tích lũy để điều trị BG cao hơn mục tiêu. Không giống như hai cài đặt an toàn OpenAPS khác (Hệ số tối đa an toàn hàng ngày và Hệ số an toàn cơ bản hiện tại), Tối đa IOB được đặt thành số lượng đơn vị insulin cố định. Tính đến thời điểm hiện tại, việc tiêm liều thủ công KHÔNG bị giới hạn bởi cài đặt này. \n\n Để kiểm tra liều nền của bạn vào ban đêm, bạn có thể sửa đổi cài đặt IOB tối đa thành 0 khi ở Vòng kín. Điều này sẽ kích hoạt chế độ tạm ngưng lượng glucose thấp trong khi kiểm tra cài đặt liều nền của bạn\n\n(Mẹo từ https://www.loopandlearn.org/freeaps-x/#open-loop).";
 
 /* Headline "Max Daily Safety Multiplier" */
 "Max Daily Safety Multiplier" = "Hệ số tối đa an toàn hàng ngày";
