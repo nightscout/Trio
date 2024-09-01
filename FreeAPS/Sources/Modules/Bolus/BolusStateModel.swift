@@ -781,20 +781,20 @@ extension Bolus.StateModel {
         minCount = max(12, nonEmptyArrays.map(\.count).min() ?? 0)
         guard minCount > 0 else { return }
 
-        let (minResult, maxResult) = await Task.detached {
-            let minForecast = (0 ..< self.minCount).map { index in
+        async let minForecastResult = Task.detached {
+            (0 ..< self.minCount).map { index in
                 nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }.min() ?? 0
             }
-
-            let maxForecast = (0 ..< self.minCount).map { index in
-                nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }.max() ?? 0
-            }
-
-            return (minForecast, maxForecast)
         }.value
 
-        minForecast = minResult
-        maxForecast = maxResult
+        async let maxForecastResult = Task.detached {
+            (0 ..< self.minCount).map { index in
+                nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }.max() ?? 0
+            }
+        }.value
+
+        minForecast = await minForecastResult
+        maxForecast = await maxForecastResult
     }
 }
 
