@@ -200,47 +200,6 @@ struct MainChartView: View {
 
 // MARK: - Components
 
-struct Backport<Content: View> {
-    let content: Content
-}
-
-extension View {
-    var backport: Backport<Self> { Backport(content: self) }
-}
-
-extension Backport {
-    @ViewBuilder func chartXSelection(value: Binding<Date?>) -> some View {
-        if #available(iOS 17, *) {
-            content.chartXSelection(value: value)
-        } else {
-            content
-        }
-    }
-
-    @ViewBuilder func chartForegroundStyleScale(state: any StateModel) -> some View {
-        if (state as? Bolus.StateModel)?.forecastDisplayType == ForecastDisplayType.lines ||
-            (state as? Home.StateModel)?.forecastDisplayType == ForecastDisplayType.lines
-        {
-            let modifiedContent = content
-                .chartForegroundStyleScale([
-                    "iob": .blue,
-                    "uam": Color.uam,
-                    "zt": Color.zt,
-                    "cob": .orange
-                ])
-
-            if state is Home.StateModel {
-                modifiedContent
-                    .chartLegend(.hidden)
-            } else {
-                modifiedContent
-            }
-        } else {
-            content
-        }
-    }
-}
-
 extension MainChartView {
     /// empty chart that just shows the Y axis and Y grid lines. Created separately from `mainChart` to allow main chart to scroll horizontally while having a fixed Y axis
     private var staticYAxisChart: some View {
