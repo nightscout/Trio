@@ -378,30 +378,61 @@ struct LiveActivity: Widget {
                     .frame(height: 80)
 
                 HStack {
-                    if context.state.showCurrentGlucose {
-                        VStack {
-                            bgLabel(context: context, additionalState: detailedViewState)
-                            HStack {
-                                changeLabel(context: context)
+                    ForEach(context.state.itemOrder, id: \.self) { item in
+                        switch item {
+                        case "currentGlucose":
+                            if context.state.showCurrentGlucose {
+                                VStack {
+                                    bgLabel(context: context, additionalState: detailedViewState)
+                                    HStack {
+                                        changeLabel(context: context)
+                                    }
+                                }
                             }
+                        case "iob":
+                            if context.state.showIOB {
+                                iobLabel(context: context, additionalState: detailedViewState)
+                            }
+                        case "cob":
+                            if context.state.showCOB {
+                                cobLabel(context: context, additionalState: detailedViewState)
+                            }
+                        case "updatedLabel":
+                            if context.state.showUpdatedLabel {
+                                updatedLabel(context: context)
+                            }
+                        default:
+                            EmptyView()
                         }
                         Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
                     }
-
-                    if context.state.showIOB {
-                        iobLabel(context: context, additionalState: detailedViewState)
-                        Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
-                    }
-
-                    if context.state.showCOB {
-                        cobLabel(context: context, additionalState: detailedViewState)
-                        Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
-                    }
-
-                    if context.state.showUpdatedLabel {
-                        updatedLabel(context: context)
-                    }
                 }
+
+//                HStack {
+//                    if context.state.showCurrentGlucose {
+//                        VStack {
+//                            bgLabel(context: context, additionalState: detailedViewState)
+//                            HStack {
+//                                changeLabel(context: context)
+//                            }
+//                        }
+//                        Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
+//                    }
+//
+//                    if context.state.showIOB {
+//                        iobLabel(context: context, additionalState: detailedViewState)
+//                        Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
+//                    }
+//
+//                    if context.state.showCOB {
+//                        cobLabel(context: context, additionalState: detailedViewState)
+//                        Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
+//                    }
+//
+//                    if context.state.showUpdatedLabel {
+//                        updatedLabel(context: context)
+//                    }
+//                }
             })
                 .privacySensitive()
                 .padding(.all, 14)
@@ -520,6 +551,7 @@ private extension LiveActivityAttributes.ContentState {
             showIOB: true,
             showCurrentGlucose: true,
             showUpdatedLabel: true,
+            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
             isInitialState: false
         )
     }
@@ -535,6 +567,7 @@ private extension LiveActivityAttributes.ContentState {
             showIOB: true,
             showCurrentGlucose: true,
             showUpdatedLabel: true,
+            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
             isInitialState: false
         )
     }
@@ -550,6 +583,7 @@ private extension LiveActivityAttributes.ContentState {
             showIOB: true,
             showCurrentGlucose: true,
             showUpdatedLabel: true,
+            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
             isInitialState: false
         )
     }
@@ -566,6 +600,7 @@ private extension LiveActivityAttributes.ContentState {
             showIOB: true,
             showCurrentGlucose: true,
             showUpdatedLabel: true,
+            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
             isInitialState: false
         )
     }
@@ -581,6 +616,7 @@ private extension LiveActivityAttributes.ContentState {
             showIOB: true,
             showCurrentGlucose: true,
             showUpdatedLabel: true,
+            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
             isInitialState: false
         )
     }
@@ -596,6 +632,7 @@ private extension LiveActivityAttributes.ContentState {
             showIOB: true,
             showCurrentGlucose: true,
             showUpdatedLabel: true,
+            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
             isInitialState: true
         )
     }

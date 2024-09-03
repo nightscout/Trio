@@ -1,5 +1,15 @@
 import Foundation
 
+extension UserDefaults {
+    private enum Keys {
+        static let liveActivityOrder = "liveActivityOrder"
+    }
+
+    func loadLiveActivityOrderFromUserDefaults() -> [String]? {
+        array(forKey: Keys.liveActivityOrder) as? [String]
+    }
+}
+
 extension LiveActivityAttributes.ContentState {
     static func formatGlucose(_ value: Int, units: GlucoseUnits, forceSign: Bool) -> String {
         let formatter = NumberFormatter()
@@ -100,6 +110,9 @@ extension LiveActivityAttributes.ContentState {
             detailedState = nil
         }
 
+        let itemOrder = UserDefaults.standard
+            .loadLiveActivityOrderFromUserDefaults() ?? ["currentGlucose", "iob", "cob", "updatedLabel"]
+
         self.init(
             bg: formattedBG,
             direction: trendString,
@@ -110,6 +123,7 @@ extension LiveActivityAttributes.ContentState {
             showIOB: settings.showIOB,
             showCurrentGlucose: settings.showCurrentGlucose,
             showUpdatedLabel: settings.showUpdatedLabel,
+            itemOrder: itemOrder,
             isInitialState: false
         )
     }

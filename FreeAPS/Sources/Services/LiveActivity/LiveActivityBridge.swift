@@ -70,6 +70,12 @@ import UIKit
             .addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: nil) { [weak self] _ in
                 self?.forceActivityUpdate()
             }
+        notificationCenter.addObserver(
+            self,
+            selector: #selector(handleLiveActivityOrderChange),
+            name: .liveActivityOrderDidChange,
+            object: nil
+        )
     }
 
     // TODO: - use a delegate or a custom notification here instead
@@ -121,6 +127,30 @@ import UIKit
             if let determination = determination {
                 await self.pushDeterminationUpdate(determination)
             }
+        }
+    }
+
+    @objc private func handleLiveActivityOrderChange() {
+        Task {
+            await self.updateLiveActivityOrder()
+        }
+    }
+
+    @MainActor private func updateLiveActivityOrder() async {
+        guard let latestGlucose = latestGlucose else { return }
+
+        let content = LiveActivityAttributes.ContentState(
+            new: latestGlucose,
+            prev: latestGlucose,
+            units: settings.units,
+            chart: glucoseFromPersistence ?? [],
+            settings: settings,
+            determination: determination,
+            override: isOverridesActive
+        )
+
+        if let content = content {
+            await pushUpdate(content)
         }
     }
 
@@ -206,6 +236,7 @@ import UIKit
                         showIOB: true,
                         showCurrentGlucose: true,
                         showUpdatedLabel: true,
+                        itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
                         isInitialState: true
                     ),
                     staleDate: Date.now.addingTimeInterval(60)
