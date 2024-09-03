@@ -74,6 +74,10 @@ extension Home {
 
         // TODO: end todo
 
+        private func adjustPadding(geo: GeometryProxy) -> Bool {
+            geo.size.height > 667 ? false : true
+        }
+
         var bolusProgressFormatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
@@ -380,7 +384,7 @@ extension Home {
                     state: state
                 )
             }
-            .padding(.bottom)
+            .padding(.bottom, adjustPadding(geo: geo) ? 0 : nil)
         }
 
         func highlightButtons() {
@@ -592,7 +596,7 @@ extension Home {
                             showCancelAlert = true
                         }
                     }
-            }.padding(.horizontal, 10).padding(.bottom, 10)
+            }.padding(.horizontal, 10).padding(.bottom, adjustPadding(geo: geo) ? nil : 10)
                 .overlay {
                     /// just show temp target if no profile is already active
                     if overrideString == nil, let tempTargetString = tempTargetString {
@@ -624,7 +628,7 @@ extension Home {
                                     .font(.subheadline)
                                 Spacer()
                             }.padding(.horizontal, 10)
-                        }.padding(.horizontal, 10).padding(.bottom, 10)
+                        }.padding(.horizontal, 10).padding(.bottom, adjustPadding(geo: geo) ? nil : 10)
                     }
                 }
         }
@@ -706,7 +710,7 @@ extension Home {
                     }.padding(.horizontal, 10)
                         .padding(.trailing, 8)
 
-                }.padding(.horizontal, 10).padding(.bottom, 10)
+                }.padding(.horizontal, 10).padding(.bottom, adjustPadding(geo: geo) ? nil : 10)
                     .overlay(alignment: .bottom) {
                         bolusProgressBar(progress).padding(.horizontal, 18).offset(y: 48)
                     }.clipShape(RoundedRectangle(cornerRadius: 15))
@@ -733,16 +737,17 @@ extension Home {
                         }.padding(.leading, 20)
                     }.padding(.top, 10)
 
-                    mealPanel(geo).padding(.top, 30).padding(.bottom, 20)
+                    mealPanel(geo).padding(.top, 30).padding(.bottom, adjustPadding(geo: geo) ? 0 : 20)
 
                     mainChart(geo: geo)
 
-                    timeInterval.padding(.top, 12).padding(.bottom, 12)
+                    timeInterval.padding(.top, adjustPadding(geo: geo) ? 0 : 12)
+                        .padding(.bottom, adjustPadding(geo: geo) ? 0 : 12)
 
                     if let progress = state.bolusProgress {
-                        bolusView(geo: geo, progress).padding(.bottom, 40)
+                        bolusView(geo: geo, progress).padding(.bottom, adjustPadding(geo: geo) ? 0 : 40)
                     } else {
-                        profileView(geo: geo).padding(.bottom, 40)
+                        profileView(geo: geo).padding(.bottom, adjustPadding(geo: geo) ? 0 : 40)
                     }
                 }
                 .background(color)
