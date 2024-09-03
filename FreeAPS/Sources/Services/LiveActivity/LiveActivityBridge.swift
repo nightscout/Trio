@@ -24,7 +24,7 @@ import UIKit
     }
 }
 
-@available(iOS 16.2, *) final class LiveActivityBridge: Injectable, ObservableObject
+@available(iOS 16.2, *) final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver
 {
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var broadcaster: Broadcaster!
@@ -55,6 +55,7 @@ import UIKit
         registerHandler()
         monitorForLiveActivityAuthorizationChanges()
         setupGlucoseArray()
+        broadcaster.register(SettingsObserver.self, observer: self)
     }
 
     private func setupNotifications() {
@@ -69,6 +70,28 @@ import UIKit
             .addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: nil) { [weak self] _ in
                 self?.forceActivityUpdate()
             }
+    }
+
+    // TODO: - use a delegate or a custom notification here instead
+
+    func settingsDidChange(_: FreeAPSSettings) {
+        guard let latestGlucose = latestGlucose else { return }
+
+        let content = LiveActivityAttributes.ContentState(
+            new: latestGlucose,
+            prev: latestGlucose,
+            units: settings.units,
+            chart: glucoseFromPersistence ?? [],
+            settings: settings,
+            determination: determination,
+            override: isOverridesActive
+        )
+
+        if let content = content {
+            Task {
+                await pushUpdate(content)
+            }
+        }
     }
 
     private func registerHandler() {
@@ -179,6 +202,10 @@ import UIKit
                         change: "--",
                         date: Date.now,
                         detailedViewState: nil,
+                        showCOB: true,
+                        showIOB: true,
+                        showCurrentGlucose: true,
+                        showUpdatedLabel: true,
                         isInitialState: true
                     ),
                     staleDate: Date.now.addingTimeInterval(60)

@@ -39,6 +39,7 @@ enum Screen: Identifiable, Hashable {
     case featureSettings
     case notificationSettings
     case liveActivitySettings
+    case liveActivityBottomRowSettings
     case calendarEventSettings
     case serviceSettings
     case autosensSettings
@@ -127,6 +128,8 @@ extension Screen {
             NotificationsView(resolver: resolver, state: Settings.StateModel())
         case .liveActivitySettings:
             LiveActivitySettings.RootView(resolver: resolver)
+        case .liveActivityBottomRowSettings:
+            LiveActivityBottomRowConfiguration(resolver: resolver, state: LiveActivitySettings.StateModel())
         case .calendarEventSettings:
             CalendarEventSettings.RootView(resolver: resolver)
         case .serviceSettings:

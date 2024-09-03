@@ -213,7 +213,7 @@ extension MainChartView {
             }
         }
         .id("DummyMainChart")
-        .frame(minHeight: geo.size.height * 0.28)
+        .frame(minHeight: geo.size.height * 0.28, maxHeight: geo.size.height * 0.45)
         .frame(width: screenSize.width - 10)
         .chartXAxis { mainChartXAxis }
         .chartXScale(domain: startMarker ... endMarker)

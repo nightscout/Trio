@@ -10,6 +10,11 @@ struct LiveActivityAttributes: ActivityAttributes {
 
         let detailedViewState: ContentAdditionalState?
 
+        let showCOB: Bool
+        let showIOB: Bool
+        let showCurrentGlucose: Bool
+        let showUpdatedLabel: Bool
+
         /// true for the first state that is set on the activity
         let isInitialState: Bool
     }
@@ -20,6 +25,7 @@ struct LiveActivityAttributes: ActivityAttributes {
         let rotationDegrees: Double
         let highGlucose: Decimal
         let lowGlucose: Decimal
+        let target: Decimal
         let cob: Decimal
         let iob: Decimal
         let unit: String

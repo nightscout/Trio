@@ -89,6 +89,7 @@ extension LiveActivityAttributes.ContentState {
                 rotationDegrees: rotationDegrees,
                 highGlucose: settings.high,
                 lowGlucose: settings.low,
+                target: determination?.target ?? 0 as Decimal,
                 cob: Decimal(determination?.cob ?? 0),
                 iob: determination?.iob ?? 0 as Decimal,
                 unit: settings.units.rawValue,
@@ -105,6 +106,10 @@ extension LiveActivityAttributes.ContentState {
             change: change,
             date: bg.date,
             detailedViewState: detailedState,
+            showCOB: settings.showCOB,
+            showIOB: settings.showIOB,
+            showCurrentGlucose: settings.showCurrentGlucose,
+            showUpdatedLabel: settings.showUpdatedLabel,
             isInitialState: false
         )
     }
