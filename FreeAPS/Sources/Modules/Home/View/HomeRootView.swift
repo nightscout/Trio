@@ -74,8 +74,10 @@ extension Home {
 
         // TODO: end todo
 
-        private func adjustPadding(geo: GeometryProxy) -> Bool {
-            geo.size.height > 667 ? false : true
+        // Height for small devices iPhone 5, SE whose physical size is 4"
+        let smallDeviceSize: CGFloat = 667
+        private func adjustPadding(geo: GeometryProxy, min: CGFloat? = nil, max: CGFloat? = nil) -> CGFloat? {
+            geo.size.height > smallDeviceSize ? max : min
         }
 
         var bolusProgressFormatter: NumberFormatter {
@@ -384,7 +386,7 @@ extension Home {
                     state: state
                 )
             }
-            .padding(.bottom, adjustPadding(geo: geo) ? 0 : nil)
+            .padding(.bottom, adjustPadding(geo: geo, min: 0, max: nil))
         }
 
         func highlightButtons() {
@@ -596,7 +598,7 @@ extension Home {
                             showCancelAlert = true
                         }
                     }
-            }.padding(.horizontal, 10).padding(.bottom, adjustPadding(geo: geo) ? nil : 10)
+            }.padding(.horizontal, 10).padding(.bottom, adjustPadding(geo: geo, min: nil, max: 10))
                 .overlay {
                     /// just show temp target if no profile is already active
                     if overrideString == nil, let tempTargetString = tempTargetString {
@@ -628,7 +630,7 @@ extension Home {
                                     .font(.subheadline)
                                 Spacer()
                             }.padding(.horizontal, 10)
-                        }.padding(.horizontal, 10).padding(.bottom, adjustPadding(geo: geo) ? nil : 10)
+                        }.padding(.horizontal, 10).padding(.bottom, adjustPadding(geo: geo, min: nil, max: 10))
                     }
                 }
         }
@@ -710,7 +712,7 @@ extension Home {
                     }.padding(.horizontal, 10)
                         .padding(.trailing, 8)
 
-                }.padding(.horizontal, 10).padding(.bottom, adjustPadding(geo: geo) ? nil : 10)
+                }.padding(.horizontal, 10).padding(.bottom, adjustPadding(geo: geo, min: nil, max: 10))
                     .overlay(alignment: .bottom) {
                         bolusProgressBar(progress).padding(.horizontal, 18).offset(y: 48)
                     }.clipShape(RoundedRectangle(cornerRadius: 15))
@@ -737,17 +739,18 @@ extension Home {
                         }.padding(.leading, 20)
                     }.padding(.top, 10)
 
-                    mealPanel(geo).padding(.top, 30).padding(.bottom, adjustPadding(geo: geo) ? 0 : 20)
+                    mealPanel(geo).padding(.top, adjustPadding(geo: geo, min: nil, max: 30))
+                        .padding(.bottom, adjustPadding(geo: geo, min: nil, max: 20))
 
                     mainChart(geo: geo)
 
-                    timeInterval.padding(.top, adjustPadding(geo: geo) ? 0 : 12)
-                        .padding(.bottom, adjustPadding(geo: geo) ? 0 : 12)
+                    timeInterval.padding(.top, adjustPadding(geo: geo, min: 0, max: 12))
+                        .padding(.bottom, adjustPadding(geo: geo, min: 0, max: 12))
 
                     if let progress = state.bolusProgress {
-                        bolusView(geo: geo, progress).padding(.bottom, adjustPadding(geo: geo) ? 0 : 40)
+                        bolusView(geo: geo, progress).padding(.bottom, adjustPadding(geo: geo, min: nil, max: 40))
                     } else {
-                        profileView(geo: geo).padding(.bottom, adjustPadding(geo: geo) ? 0 : 40)
+                        profileView(geo: geo).padding(.bottom, adjustPadding(geo: geo, min: nil, max: 40))
                     }
                 }
                 .background(color)
