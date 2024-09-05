@@ -770,7 +770,7 @@ extension MainChartView {
                 xEnd: .value("End", target.end),
                 y: .value("Value", targetLimited)
             )
-            .foregroundStyle(Color.purple.opacity(0.5)).lineStyle(.init(lineWidth: 8))
+            .foregroundStyle(Color.green.opacity(0.5)).lineStyle(.init(lineWidth: 8).dash(2))
         }
     }
 
