@@ -323,7 +323,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             return
         }
 
-        // Suggested/ Enacted
+        // Suggested / Enacted
         async let enactedDeterminationID = determinationStorage
             .fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDeterminationsNotYetUploadedToNightscout)
         async let suggestedDeterminationID = determinationStorage
@@ -335,7 +335,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         async let fetchedIOBEntry = storage.retrieveAsync(OpenAPS.Monitor.iob, as: [IOBEntry].self)
         async let fetchedPumpStatus = storage.retrieveAsync(OpenAPS.Monitor.status, as: PumpStatus.self)
 
-        let (fetchedEnactedDetermination, fetchedSuggestedDetermination) = await (
+        var (fetchedEnactedDetermination, fetchedSuggestedDetermination) = await (
             determinationStorage.getOrefDeterminationNotYetUploadedToNightscout(enactedDeterminationID),
             determinationStorage.getOrefDeterminationNotYetUploadedToNightscout(suggestedDeterminationID)
         )
@@ -353,6 +353,10 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         var modifiedSuggestedDetermination = fetchedSuggestedDetermination
         if var suggestion = fetchedSuggestedDetermination {
             suggestion.timestamp = suggestion.deliverAt
+
+            if settingsManager.settings.units == .mmolL {
+                suggestion.reason = parseReasonGlucoseValuesToMmolL(suggestion.reason)
+            }
             // Check whether the last suggestion that was uploaded is the same that is fetched again when we are attempting to upload the enacted determination
             // Apparently we are too fast; so the flag update is not fast enough to have the predicate filter last suggestion out
             // If this check is truthy, set suggestion to nil so it's not uploaded again
@@ -361,6 +365,20 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             } else {
                 modifiedSuggestedDetermination = suggestion
             }
+        }
+
+        if var fetchedEnacted = fetchedEnactedDetermination, settingsManager.settings.units == .mmolL {
+            var modifiedFetchedEnactedDetermination = fetchedEnactedDetermination
+            modifiedFetchedEnactedDetermination?
+                .reason = parseReasonGlucoseValuesToMmolL(fetchedEnacted.reason)
+
+            modifiedFetchedEnactedDetermination?.bg = fetchedEnacted.bg?.asMmolL
+            modifiedFetchedEnactedDetermination?.current_target = fetchedEnacted.current_target?.asMmolL
+            modifiedFetchedEnactedDetermination?.minGuardBG = fetchedEnacted.minGuardBG?.asMmolL
+            modifiedFetchedEnactedDetermination?.minPredBG = fetchedEnacted.minPredBG?.asMmolL
+            modifiedFetchedEnactedDetermination?.threshold = fetchedEnacted.threshold?.asMmolL
+
+            fetchedEnactedDetermination = modifiedFetchedEnactedDetermination
         }
 
         // Gather all relevant data for OpenAPS Status
@@ -904,5 +922,84 @@ extension BaseNightscoutManager: TempTargetsObserver {
         Task.detached {
             await self.uploadTempTargets()
         }
+    }
+}
+
+extension BaseNightscoutManager {
+    /**
+     Converts glucose-related values in the given `reason` string to mmol/L, including ranges (e.g., `ISF: 54→54`), comparisons (e.g., `maxDelta 37 > 20% of BG 95`), and both positive and negative values (e.g., `Dev: -36`).
+
+     - Parameters:
+       - reason: The string containing glucose-related values to be converted.
+
+     - Returns:
+       A string with glucose values converted to mmol/L.
+
+     - Glucose tags handled: `ISF:`, `Target:`, `minPredBG`, `minGuardBG`, `IOBpredBG`, `COBpredBG`, `UAMpredBG`, `Dev:`, `maxDelta`, `BG`.
+     */
+    func parseReasonGlucoseValuesToMmolL(_ reason: String) -> String {
+        // Updated pattern to handle cases like minGuardBG 34, minGuardBG 34<70, and "maxDelta 37 > 20% of BG 95", and ensure "Target:" is handled correctly
+        let pattern =
+            "(ISF:\\s*-?\\d+→-?\\d+|Dev:\\s*-?\\d+|Target:\\s*-?\\d+|(?:minPredBG|minGuardBG|IOBpredBG|COBpredBG|UAMpredBG|maxDelta|BG)\\s*-?\\d+(?:<\\d+)?(?:>\\s*\\d+%\\s*of\\s*BG\\s*\\d+)?)"
+
+        let regex = try! NSRegularExpression(pattern: pattern)
+
+        func convertToMmolL(_ value: String) -> String {
+            if let glucoseValue = Double(value.replacingOccurrences(of: "[^\\d.-]", with: "", options: .regularExpression)) {
+                return glucoseValue.asMmolL.description
+            }
+            return value
+        }
+
+        let matches = regex.matches(in: reason, range: NSRange(reason.startIndex..., in: reason))
+        var updatedReason = reason
+
+        for match in matches.reversed() {
+            if let range = Range(match.range, in: reason) {
+                let glucoseValueString = String(reason[range])
+
+                if glucoseValueString.contains("→") {
+                    // Handle ISF case with an arrow (e.g., ISF: 54→54)
+                    let values = glucoseValueString.components(separatedBy: "→")
+                    let firstValue = convertToMmolL(values[0])
+                    let secondValue = convertToMmolL(values[1])
+                    let formattedGlucoseValueString = "\(values[0].components(separatedBy: ":")[0]): \(firstValue)→\(secondValue)"
+                    updatedReason.replaceSubrange(range, with: formattedGlucoseValueString)
+                } else if glucoseValueString.contains("<") {
+                    // Handle range case for minGuardBG like "minGuardBG 34<70"
+                    let values = glucoseValueString.components(separatedBy: "<")
+                    let firstValue = convertToMmolL(values[0])
+                    let secondValue = convertToMmolL(values[1])
+                    let formattedGlucoseValueString = "\(values[0].components(separatedBy: ":")[0]) \(firstValue)<\(secondValue)"
+                    updatedReason.replaceSubrange(range, with: formattedGlucoseValueString)
+                } else if glucoseValueString.contains(">"), glucoseValueString.contains("BG") {
+                    // Handle cases like "maxDelta 37 > 20% of BG 95"
+                    let pattern = "(\\d+) > \\d+% of BG (\\d+)"
+                    let matches = try! NSRegularExpression(pattern: pattern)
+                        .matches(in: glucoseValueString, range: NSRange(glucoseValueString.startIndex..., in: glucoseValueString))
+
+                    if let match = matches.first, match.numberOfRanges == 3 {
+                        let firstValueRange = Range(match.range(at: 1), in: glucoseValueString)!
+                        let secondValueRange = Range(match.range(at: 2), in: glucoseValueString)!
+
+                        let firstValue = convertToMmolL(String(glucoseValueString[firstValueRange]))
+                        let secondValue = convertToMmolL(String(glucoseValueString[secondValueRange]))
+
+                        let formattedGlucoseValueString = glucoseValueString.replacingOccurrences(
+                            of: "\(glucoseValueString[firstValueRange]) > 20% of BG \(glucoseValueString[secondValueRange])",
+                            with: "\(firstValue) > 20% of BG \(secondValue)"
+                        )
+                        updatedReason.replaceSubrange(range, with: formattedGlucoseValueString)
+                    }
+                } else {
+                    // General case for single glucose values like "Target: 100" or "minGuardBG 34"
+                    let parts = glucoseValueString.components(separatedBy: CharacterSet(charactersIn: ": "))
+                    let formattedValue = convertToMmolL(parts.last!.trimmingCharacters(in: .whitespaces))
+                    updatedReason.replaceSubrange(range, with: "\(parts[0]): \(formattedValue)")
+                }
+            }
+        }
+
+        return updatedReason
     }
 }
