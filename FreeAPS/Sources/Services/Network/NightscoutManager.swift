@@ -82,6 +82,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func subscribe() {
+        broadcaster.register(TempTargetsObserver.self, observer: self)
+
         _ = reachabilityManager.startListening(onQueue: processQueue) { status in
             debug(.nightscout, "Network status: \(status)")
         }
@@ -893,6 +895,14 @@ extension Array {
     func chunks(ofCount count: Int) -> [[Element]] {
         stride(from: 0, to: self.count, by: count).map {
             Array(self[$0 ..< Swift.min($0 + count, self.count)])
+        }
+    }
+}
+
+extension BaseNightscoutManager: TempTargetsObserver {
+    func tempTargetsDidUpdate(_: [TempTarget]) {
+        Task.detached {
+            await self.uploadTempTargets()
         }
     }
 }
