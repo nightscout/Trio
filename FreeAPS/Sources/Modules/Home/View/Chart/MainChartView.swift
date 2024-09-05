@@ -784,7 +784,7 @@ extension MainChartView {
             RuleMark(
                 xStart: .value("Start", start, unit: .second),
                 xEnd: .value("End", end, unit: .second),
-                y: .value("Value", target)
+                y: .value("Value", units == .mgdL ? target : target.asMmolL)
             )
             .foregroundStyle(Color.purple.opacity(0.6))
             .lineStyle(.init(lineWidth: 8))
@@ -804,7 +804,7 @@ extension MainChartView {
             RuleMark(
                 xStart: .value("Start", start, unit: .second),
                 xEnd: .value("End", end, unit: .second),
-                y: .value("Value", target)
+                y: .value("Value", units == .mgdL ? target : target.asMmolL)
             )
             .foregroundStyle(Color.purple.opacity(0.4))
             .lineStyle(.init(lineWidth: 8))
