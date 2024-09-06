@@ -103,13 +103,6 @@ extension Home {
             return dateFormatter
         }
 
-        private var spriteScene: SKScene {
-            let scene = SnowScene()
-            scene.scaleMode = .resizeFill
-            scene.backgroundColor = .clear
-            return scene
-        }
-
         private var color: LinearGradient {
             colorScheme == .dark ? LinearGradient(
                 gradient: Gradient(colors: [
