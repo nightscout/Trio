@@ -31,5 +31,19 @@ import Foundation
                 "\(.applicationName) allows to add carbs"
             ]
         )
+        AppShortcut(
+            intent: ApplyOverridePresetIntent(),
+            phrases: [
+                "Activate \(.applicationName) override",
+                "Activates an available \(.applicationName) override"
+            ]
+        )
+        AppShortcut(
+            intent: CancelOverrideIntent(),
+            phrases: [
+                "Cancel \(.applicationName) override",
+                "Cancels an active \(.applicationName) override"
+            ]
+        )
     }
 }

@@ -80,6 +80,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         subscribe()
         coreDataObserver = CoreDataObserver()
         registerHandlers()
+        setupNotification()
     }
 
     private func subscribe() {
@@ -124,6 +125,21 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             Task.detached {
                 await self.uploadManualGlucose()
             }
+        }
+    }
+
+    func setupNotification() {
+        Foundation.NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleOverrideConfigurationUpdate),
+            name: .didUpdateOverrideConfiguration,
+            object: nil
+        )
+    }
+
+    @objc private func handleOverrideConfigurationUpdate() {
+        Task.detached {
+            await self.uploadOverrides()
         }
     }
 
