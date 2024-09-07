@@ -67,6 +67,7 @@ struct MainChartView: View {
     @State private var maxValueCobChart: Decimal = 20
     @State private var minValueIobChart: Decimal = 0
     @State private var maxValueIobChart: Decimal = 5
+    @State private var mainChartHasInitialized = false
 
     private let now = Date.now
 
@@ -159,10 +160,6 @@ struct MainChartView: View {
                             }
 
                         }.onChange(of: screenHours) { _ in
-                            updateStartEndMarkers()
-                            yAxisChartData()
-                            yAxisChartDataCobChart()
-                            yAxisChartDataIobChart()
                             scroller.scrollTo("MainChart", anchor: .trailing)
                         }
                         .onChange(of: state.glucoseFromPersistence.last?.glucose) { _ in
@@ -171,24 +168,24 @@ struct MainChartView: View {
                             scroller.scrollTo("MainChart", anchor: .trailing)
                         }
                         .onChange(of: state.enactedAndNonEnactedDeterminations.first?.deliverAt) { _ in
-                            updateStartEndMarkers()
                             yAxisChartDataCobChart()
                             yAxisChartDataIobChart()
-                            scroller.scrollTo("MainChart", anchor: .trailing)
-                        }
-                        .onChange(of: state.tempBasals) { _ in
-                            updateStartEndMarkers()
                             scroller.scrollTo("MainChart", anchor: .trailing)
                         }
                         .onChange(of: units) { _ in
                             yAxisChartData()
-                        }
-                        .onAppear {
-                            updateStartEndMarkers()
-                            yAxisChartData()
                             yAxisChartDataCobChart()
                             yAxisChartDataIobChart()
-                            scroller.scrollTo("MainChart", anchor: .trailing)
+                        }
+                        .onAppear {
+                            if !mainChartHasInitialized {
+                                updateStartEndMarkers()
+                                yAxisChartData()
+                                yAxisChartDataCobChart()
+                                yAxisChartDataIobChart()
+                                mainChartHasInitialized = true
+                                scroller.scrollTo("MainChart", anchor: .trailing)
+                            }
                         }
                     }
                 }
@@ -1110,52 +1107,81 @@ extension MainChartView {
     // MARK: - Chart formatting
 
     private func yAxisChartData() {
-        let glucoseMapped = state.glucoseFromPersistence.map { Decimal($0.glucose) }
-        let forecastValues = state.preprocessedData.map { Decimal($0.forecastValue.value) }
+        Task {
+            let (minGlucose, maxGlucose, minForecast, maxForecast) = await Task
+                .detached { () -> (Decimal?, Decimal?, Decimal?, Decimal?) in
+                    let glucoseMapped = await state.glucoseFromPersistence.map { Decimal($0.glucose) }
+                    let forecastValues = await state.preprocessedData.map { Decimal($0.forecastValue.value) }
 
-        guard let minGlucose = glucoseMapped.min(), let maxGlucose = glucoseMapped.max(),
-              let minForecast = forecastValues.min(), let maxForecast = forecastValues.max()
-        else {
-            // default values
-            minValue = 45 - 20
-            maxValue = 270 + 50
-            return
+                    // Calculate min and max values for glucose and forecast
+                    return (glucoseMapped.min(), glucoseMapped.max(), forecastValues.min(), forecastValues.max())
+                }.value
+
+            // Ensure all values exist, otherwise set default values
+            guard let minGlucose = minGlucose, let maxGlucose = maxGlucose,
+                  let minForecast = minForecast, let maxForecast = maxForecast
+            else {
+                await updateChartBounds(minValue: 45 - 20, maxValue: 270 + 50)
+                return
+            }
+
+            // Adjust max forecast to be no more than 100 over max glucose
+            let adjustedMaxForecast = min(maxForecast, maxGlucose + 100)
+            let minOverall = min(minGlucose, minForecast)
+            let maxOverall = max(maxGlucose, adjustedMaxForecast)
+
+            // Update the chart bounds on the main thread
+            await updateChartBounds(minValue: minOverall - 50, maxValue: maxOverall + 80)
         }
+    }
 
-        // Ensure maxForecast is not more than 100 over maxGlucose
-        let adjustedMaxForecast = min(maxForecast, maxGlucose + 100)
-
-        let minOverall = min(minGlucose, minForecast)
-        let maxOverall = max(maxGlucose, adjustedMaxForecast)
-
-        minValue = minOverall - 50
-        maxValue = maxOverall + 80
+    @MainActor private func updateChartBounds(minValue: Decimal, maxValue: Decimal) async {
+        self.minValue = minValue
+        self.maxValue = maxValue
     }
 
     private func yAxisChartDataCobChart() {
-        let cobMapped = state.enactedAndNonEnactedDeterminations.map { Decimal($0.cob) }
-        guard let maxCob = cobMapped.max() else {
-            // default values
-            minValueCobChart = 0
-            maxValueCobChart = 20
-            return
+        Task {
+            let maxCob = await Task.detached { () -> Decimal? in
+                let cobMapped = await state.enactedAndNonEnactedDeterminations.map { Decimal($0.cob) }
+                return cobMapped.max()
+            }.value
+
+            // Ensure the result exists or set default values
+            if let maxCob = maxCob {
+                let calculatedMax = maxCob == 0 ? 20 : maxCob + 20
+                await updateCobChartBounds(minValue: 0, maxValue: calculatedMax)
+            } else {
+                await updateCobChartBounds(minValue: 0, maxValue: 20)
+            }
         }
-        maxValueCobChart = maxCob == 0 ? 20 : maxCob +
-            20 // 2 is added to the max of iob and to keep the 1:10 ratio we add 20 here
+    }
+
+    @MainActor private func updateCobChartBounds(minValue: Decimal, maxValue: Decimal) async {
+        minValueCobChart = minValue
+        maxValueCobChart = maxValue
     }
 
     private func yAxisChartDataIobChart() {
-        let iobMapped = state.enactedAndNonEnactedDeterminations.compactMap { $0.iob?.decimalValue }
-        guard let minIob = iobMapped.min(), let maxIob = iobMapped.max() else {
-            // default values
-            minValueIobChart = 0
-            maxValueIobChart = 5
-            return
+        Task {
+            let (minIob, maxIob) = await Task.detached { () -> (Decimal?, Decimal?) in
+                let iobMapped = await state.enactedAndNonEnactedDeterminations.compactMap { $0.iob?.decimalValue }
+                return (iobMapped.min(), iobMapped.max())
+            }.value
+
+            // Ensure min and max IOB values exist, or set defaults
+            if let minIob = minIob, let maxIob = maxIob {
+                let adjustedMin = minIob < 0 ? minIob - 2 : 0
+                await updateIobChartBounds(minValue: adjustedMin, maxValue: maxIob + 2)
+            } else {
+                await updateIobChartBounds(minValue: 0, maxValue: 5)
+            }
         }
-        minValueIobChart = minIob // we need to set this here because IOB can also be negative
-        minValueCobChart = minIob < 0 ? minIob - 2 :
-            0 // if there is negative IOB the COB-X-Axis should still align with the IOB-X-Axis; 2 is only subtracted to make the charts align
-        maxValueIobChart = maxIob + 2
+    }
+
+    @MainActor private func updateIobChartBounds(minValue: Decimal, maxValue: Decimal) async {
+        minValueIobChart = minValue
+        maxValueIobChart = maxValue
     }
 
     private func basalChartPlotStyle(_ plotContent: ChartPlotContent) -> some View {
