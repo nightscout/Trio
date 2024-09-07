@@ -926,21 +926,17 @@ extension MainChartView {
             return nil
         }
 
-        // sort by date
-        let sortedGlucose = state.glucoseFromPersistence
-            .sorted { $0.date?.timeIntervalSince1970 ?? 0 < $1.date?.timeIntervalSince1970 ?? 0 }
-
         var low = 0
-        var high = sortedGlucose.count - 1
+        var high = state.glucoseFromPersistence.count - 1
         var closestGlucose: GlucoseStored?
 
         // binary search to find next glucose
         while low <= high {
             let mid = low + (high - low) / 2
-            let midTime = sortedGlucose[mid].date?.timeIntervalSince1970 ?? 0
+            let midTime = state.glucoseFromPersistence[mid].date?.timeIntervalSince1970 ?? 0
 
             if midTime == time {
-                return sortedGlucose[mid]
+                return state.glucoseFromPersistence[mid]
             } else if midTime < time {
                 low = mid + 1
             } else {
@@ -949,7 +945,7 @@ extension MainChartView {
 
             // update if necessary
             if closestGlucose == nil || abs(midTime - time) < abs(closestGlucose!.date?.timeIntervalSince1970 ?? 0 - time) {
-                closestGlucose = sortedGlucose[mid]
+                closestGlucose = state.glucoseFromPersistence[mid]
             }
         }
 
@@ -1052,7 +1048,7 @@ extension MainChartView {
 
         return basalPoints
     }
-    
+
     /// update start and  end marker to fix scroll update problem with x axis
     private func updateStartEndMarkers() {
         startMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 - 86400))

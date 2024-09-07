@@ -24,10 +24,10 @@ struct CurrentGlucoseView: View {
 
     @Environment(\.colorScheme) var colorScheme
 
+    // Combine and sort the glucose values via computed property
+    /// -Returns: the latest GlucoseStored object as the last element in the Array
     private var combinedGlucoseValues: [GlucoseStored] {
-        // Combine and sort the glucose values
-        let combined = (glucose + manualGlucose).sorted { $0.date ?? Date() > $1.date ?? Date() }
-        return combined
+        (glucose + manualGlucose).sorted { $0.date ?? Date() < $1.date ?? Date() }
     }
 
     private var glucoseFormatter: NumberFormatter {
@@ -83,7 +83,7 @@ struct CurrentGlucoseView: View {
 
                 VStack(alignment: .center) {
                     HStack {
-                        if let glucoseValue = combinedGlucoseValues.first?.glucose {
+                        if let glucoseValue = combinedGlucoseValues.last?.glucose {
                             let displayGlucose = units == .mgdL ? Decimal(glucoseValue).description : Decimal(glucoseValue)
                                 .formattedAsMmolL
                             Text(
@@ -98,7 +98,7 @@ struct CurrentGlucoseView: View {
                         }
                     }
                     HStack {
-                        let minutesAgo = -1 * (combinedGlucoseValues.first?.date?.timeIntervalSinceNow ?? 0) / 60
+                        let minutesAgo = -1 * (combinedGlucoseValues.last?.date?.timeIntervalSinceNow ?? 0) / 60
                         let text = timaAgoFormatter.string(for: Double(minutesAgo)) ?? ""
                         Text(
                             minutesAgo <= 1 ? "< 1 " + NSLocalizedString("min", comment: "Short form for minutes") : (
@@ -115,7 +115,7 @@ struct CurrentGlucoseView: View {
                     }.frame(alignment: .top)
                 }
             }
-            .onChange(of: combinedGlucoseValues.first?.directionEnum) { newDirection in
+            .onChange(of: combinedGlucoseValues.last?.directionEnum) { newDirection in
                 withAnimation {
                     switch newDirection {
                     case .doubleUp,
@@ -160,8 +160,8 @@ struct CurrentGlucoseView: View {
             return "--"
         }
 
-        let lastGlucose = combinedGlucoseValues.first?.glucose ?? 0
-        let secondLastGlucose = combinedGlucoseValues.dropFirst().first?.glucose ?? 0
+        let lastGlucose = combinedGlucoseValues.last?.glucose ?? 0
+        let secondLastGlucose = combinedGlucoseValues.dropLast().last?.glucose ?? 0
         let delta = lastGlucose - secondLastGlucose
         let deltaAsDecimal = units == .mmolL ? Decimal(delta).asMmolL : Decimal(delta)
         return deltaFormatter.string(from: deltaAsDecimal as NSNumber) ?? "--"

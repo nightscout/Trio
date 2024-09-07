@@ -65,6 +65,8 @@ extension Home {
         @Published var waitForSuggestion: Bool = false
         @Published var glucoseFromPersistence: [GlucoseStored] = []
         @Published var manualGlucoseFromPersistence: [GlucoseStored] = []
+        @Published var latestTwoGlucoseValues: [GlucoseStored] = []
+        @Published var latestTwoManualGlucoseValues: [GlucoseStored] = []
         @Published var carbsFromPersistence: [CarbEntryStored] = []
         @Published var fpusFromPersistence: [CarbEntryStored] = []
         @Published var determinationsFromPersistence: [OrefDetermination] = []
@@ -641,7 +643,7 @@ extension Home.StateModel {
             onContext: context,
             predicate: NSPredicate.glucose,
             key: "date",
-            ascending: false,
+            ascending: true,
             fetchLimit: 288
         )
 
@@ -654,6 +656,15 @@ extension Home.StateModel {
 
     @MainActor private func updateGlucoseArray(with objects: [GlucoseStored]) {
         glucoseFromPersistence = objects
+
+        // Check if there are enough elements to get the last two
+        if let last = objects.last, let secondLast = objects.dropLast().last {
+            latestTwoGlucoseValues = [last, secondLast]
+        } else if let last = objects.last {
+            latestTwoGlucoseValues = [last]
+        } else {
+            latestTwoGlucoseValues = []
+        }
     }
 
     // Setup Manual Glucose
@@ -676,7 +687,7 @@ extension Home.StateModel {
             onContext: context,
             predicate: NSPredicate.manualGlucose,
             key: "date",
-            ascending: false,
+            ascending: true,
             fetchLimit: 288
         )
 
@@ -689,6 +700,15 @@ extension Home.StateModel {
 
     @MainActor private func updateManualGlucoseArray(with objects: [GlucoseStored]) {
         manualGlucoseFromPersistence = objects
+
+        // Check if there are enough elements to get the last two
+        if let last = objects.last, let secondLast = objects.dropLast().last {
+            latestTwoManualGlucoseValues = [last, secondLast]
+        } else if let last = objects.last {
+            latestTwoManualGlucoseValues = [last]
+        } else {
+            latestTwoManualGlucoseValues = []
+        }
     }
 
     // Setup Carbs
