@@ -1024,60 +1024,35 @@ extension MainChartView {
         timeBegin: TimeInterval,
         timeEnd: TimeInterval,
         autotuned: Bool
-    ) -> [BasalProfile] {
-        guard timeBegin < timeEnd else {
-            return []
-        }
+    ) async -> [BasalProfile] {
+        guard timeBegin < timeEnd else { return [] }
+
         let beginDate = Date(timeIntervalSince1970: timeBegin)
-        let calendar = Calendar.current
-        let startOfDay = calendar.startOfDay(for: beginDate)
-
+        let startOfDay = Calendar.current.startOfDay(for: beginDate)
         let profile = autotuned ? autotunedBasalProfile : basalProfile
+        var basalPoints: [BasalProfile] = []
 
-        let basalNormalized = profile.map {
-            (
-                time: startOfDay.addingTimeInterval($0.minutes.minutes.timeInterval).timeIntervalSince1970,
-                rate: $0.rate
-            )
-        } + profile.map {
-            (
-                time: startOfDay.addingTimeInterval($0.minutes.minutes.timeInterval + 1.days.timeInterval)
-                    .timeIntervalSince1970,
-                rate: $0.rate
-            )
-        } + profile.map {
-            (
-                time: startOfDay.addingTimeInterval($0.minutes.minutes.timeInterval + 2.days.timeInterval)
-                    .timeIntervalSince1970,
-                rate: $0.rate
-            )
+        // Iterate over the next three days, multiplying the time intervals
+        for dayOffset in 0 ..< 3 {
+            let dayTimeOffset = TimeInterval(dayOffset * 24 * 60 * 60) // One Day in seconds
+            for entry in profile {
+                let basalTime = startOfDay.addingTimeInterval(entry.minutes.minutes.timeInterval + dayTimeOffset)
+                let basalTimeInterval = basalTime.timeIntervalSince1970
+
+                // Only append points within the timeBegin and timeEnd range
+                if basalTimeInterval >= timeBegin, basalTimeInterval < timeEnd {
+                    basalPoints.append(BasalProfile(
+                        amount: Double(entry.rate),
+                        isOverwritten: false,
+                        startDate: basalTime
+                    ))
+                }
+            }
         }
 
-        let basalTruncatedPoints = basalNormalized.windows(ofCount: 2)
-            .compactMap { window -> BasalProfile? in
-                let window = Array(window)
-                if window[0].time < timeBegin, window[1].time < timeBegin {
-                    return nil
-                }
-
-                if window[0].time < timeBegin, window[1].time >= timeBegin {
-                    let startDate = Date(timeIntervalSince1970: timeBegin)
-                    let rate = window[0].rate
-                    return BasalProfile(amount: Double(rate), isOverwritten: false, startDate: startDate)
-                }
-
-                if window[0].time >= timeBegin, window[0].time < timeEnd {
-                    let startDate = Date(timeIntervalSince1970: window[0].time)
-                    let rate = window[0].rate
-                    return BasalProfile(amount: Double(rate), isOverwritten: false, startDate: startDate)
-                }
-
-                return nil
-            }
-
-        return basalTruncatedPoints
+        return basalPoints
     }
-
+    
     /// update start and  end marker to fix scroll update problem with x axis
     private func updateStartEndMarkers() {
         startMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 - 86400))
@@ -1096,32 +1071,43 @@ extension MainChartView {
     }
 
     private func calculateBasals() {
-        let dayAgoTime = Date().addingTimeInterval(-1.days.timeInterval).timeIntervalSince1970
-        let regularPoints = findRegularBasalPoints(
-            timeBegin: dayAgoTime,
-            timeEnd: endMarker.timeIntervalSince1970,
-            autotuned: false
-        )
+        Task {
+            let dayAgoTime = Date().addingTimeInterval(-1.days.timeInterval).timeIntervalSince1970
 
-        let autotunedBasalPoints = findRegularBasalPoints(
-            timeBegin: dayAgoTime,
-            timeEnd: endMarker.timeIntervalSince1970,
-            autotuned: true
-        )
-        var totalBasal = regularPoints + autotunedBasalPoints
-        totalBasal.sort {
-            $0.startDate.timeIntervalSince1970 < $1.startDate.timeIntervalSince1970
+            // Get Regular and Autotuned Basal parallel
+            async let getRegularBasalPoints = findRegularBasalPoints(
+                timeBegin: dayAgoTime,
+                timeEnd: endMarker.timeIntervalSince1970,
+                autotuned: false
+            )
+
+            async let getAutotunedBasalPoints = findRegularBasalPoints(
+                timeBegin: dayAgoTime,
+                timeEnd: endMarker.timeIntervalSince1970,
+                autotuned: true
+            )
+
+            let (regularPoints, autotunedBasalPoints) = await (getRegularBasalPoints, getAutotunedBasalPoints)
+
+            var totalBasal = regularPoints + autotunedBasalPoints
+            totalBasal.sort {
+                $0.startDate.timeIntervalSince1970 < $1.startDate.timeIntervalSince1970
+            }
+
+            var basals: [BasalProfile] = []
+            totalBasal.indices.forEach { index in
+                basals.append(BasalProfile(
+                    amount: totalBasal[index].amount,
+                    isOverwritten: totalBasal[index].isOverwritten,
+                    startDate: totalBasal[index].startDate,
+                    endDate: totalBasal.count > index + 1 ? totalBasal[index + 1].startDate : endMarker
+                ))
+            }
+
+            await MainActor.run {
+                basalProfiles = basals
+            }
         }
-        var basals: [BasalProfile] = []
-        totalBasal.indices.forEach { index in
-            basals.append(BasalProfile(
-                amount: totalBasal[index].amount,
-                isOverwritten: totalBasal[index].isOverwritten,
-                startDate: totalBasal[index].startDate,
-                endDate: totalBasal.count > index + 1 ? totalBasal[index + 1].startDate : endMarker
-            ))
-        }
-        basalProfiles = basals
     }
 
     // MARK: - Chart formatting
