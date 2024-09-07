@@ -122,20 +122,35 @@ extension Bolus {
         typealias PumpEvent = PumpEventStored.EventType
 
         override func subscribe() {
-            setupGlucoseNotification()
-            coreDataObserver = CoreDataObserver()
-            registerHandlers()
-            setupGlucoseArray()
-            setupDeterminationsAndForecasts()
-            setupSettings()
+            Task {
+                await withTaskGroup(of: Void.self) { group in
+                    group.addTask {
+                        self.setupGlucoseNotification()
+                    }
+                    group.addTask {
+                        self.registerHandlers()
+                    }
+                    group.addTask {
+                        self.setupGlucoseArray()
+                    }
+                    group.addTask {
+                        self.setupDeterminationsAndForecasts()
+                    }
+                    group.addTask {
+                        await self.setupSettings()
+                    }
 
-            if waitForSuggestionInitial {
-                Task {
-                    let ok = await apsManager.determineBasal()
-                    if !ok {
-                        self.waitForSuggestion = false
-                        self.insulinRequired = 0
-                        self.insulinRecommended = 0
+                    if self.waitForSuggestionInitial {
+                        group.addTask {
+                            let ok = await self.apsManager.determineBasal()
+                            if !ok {
+                                await MainActor.run {
+                                    self.waitForSuggestion = false
+                                    self.insulinRequired = 0
+                                    self.insulinRecommended = 0
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -192,7 +207,7 @@ extension Bolus {
             broadcaster.register(BolusFailureObserver.self, observer: self)
         }
 
-        private func setupSettings() {
+        @MainActor private func setupSettings() async {
             units = settingsManager.settings.units
             fraction = settings.settings.overrideFactor
             fattyMeals = settings.settings.fattyMeals

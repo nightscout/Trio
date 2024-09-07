@@ -97,27 +97,77 @@ extension Home {
         typealias PumpEvent = PumpEventStored.EventType
 
         override func subscribe() {
-            setupNotification()
             coreDataObserver = CoreDataObserver()
-            registerHandlers()
-            setupGlucoseArray()
-            setupManualGlucoseArray()
-            setupCarbsArray()
-            setupFPUsArray()
-            setupDeterminationsArray()
-            setupInsulinArray()
-            setupLastBolus()
-            setupBatteryArray()
-            setupPumpSettings()
-            setupBasalProfile()
-            setupTempTargets()
-            setupReservoir()
-            setupAnnouncements()
-            setupCurrentPumpTimezone()
-            setupOverrides()
-            setupOverrideRunStored()
-            setupSettings()
-            registerObservers()
+
+            // Parallelize Setup functions
+            setupHomeViewConcurrently()
+        }
+
+        private func setupHomeViewConcurrently() {
+            Task {
+                await withTaskGroup(of: Void.self) { group in
+                    group.addTask {
+                        self.setupNotification()
+                    }
+                    group.addTask {
+                        self.registerHandlers()
+                    }
+                    group.addTask {
+                        self.setupGlucoseArray()
+                    }
+                    group.addTask {
+                        self.setupManualGlucoseArray()
+                    }
+                    group.addTask {
+                        self.setupCarbsArray()
+                    }
+                    group.addTask {
+                        self.setupFPUsArray()
+                    }
+                    group.addTask {
+                        self.setupDeterminationsArray()
+                    }
+                    group.addTask {
+                        self.setupInsulinArray()
+                    }
+                    group.addTask {
+                        self.setupLastBolus()
+                    }
+                    group.addTask {
+                        self.setupBatteryArray()
+                    }
+                    group.addTask {
+                        self.setupPumpSettings()
+                    }
+                    group.addTask {
+                        self.setupBasalProfile()
+                    }
+                    group.addTask {
+                        self.setupTempTargets()
+                    }
+                    group.addTask {
+                        self.setupReservoir()
+                    }
+                    group.addTask {
+                        self.setupAnnouncements()
+                    }
+                    group.addTask {
+                        self.setupCurrentPumpTimezone()
+                    }
+                    group.addTask {
+                        self.setupOverrides()
+                    }
+                    group.addTask {
+                        self.setupOverrideRunStored()
+                    }
+                    group.addTask {
+                        await self.setupSettings()
+                    }
+                    group.addTask {
+                        self.registerObservers()
+                    }
+                }
+            }
         }
 
         private func registerHandlers() {
@@ -235,7 +285,7 @@ extension Home {
                 .store(in: &lifetime)
         }
 
-        private func setupSettings() {
+        @MainActor private func setupSettings() async {
             // TODO: isUploadEnabled the right var here??
             uploadStats = settingsManager.settings.isUploadEnabled
             units = settingsManager.settings.units
