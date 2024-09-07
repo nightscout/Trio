@@ -25,16 +25,6 @@ private struct ChartTempTarget: Hashable {
 }
 
 struct MainChartView: View {
-    private enum Config {
-        static let bolusSize: CGFloat = 5
-        static let bolusScale: CGFloat = 1
-        static let carbsSize: CGFloat = 5
-        static let carbsScale: CGFloat = 0.3
-        static let fpuSize: CGFloat = 10
-        static let maxGlucose = 270
-        static let minGlucose = 45
-    }
-
     var geo: GeometryProxy
     @Binding var units: GlucoseUnits
     @Binding var announcement: [Announcement]
@@ -76,32 +66,8 @@ struct MainChartView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.calendar) var calendar
 
-    private var bolusFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.minimumIntegerDigits = 0
-        formatter.maximumFractionDigits = 2
-        formatter.decimalSeparator = "."
-        return formatter
-    }
-
-    private var carbsFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        return formatter
-    }
-
     private var upperLimit: Decimal {
         units == .mgdL ? 400 : 22.2
-    }
-
-    private var defaultBolusPosition: Int {
-        units == .mgdL ? 120 : 7
-    }
-
-    private var bolusOffset: Decimal {
-        units == .mgdL ? 30 : 1.66
     }
 
     private var selectedGlucose: GlucoseStored? {
@@ -252,14 +218,35 @@ extension MainChartView {
                 drawStartRuleMark()
                 drawEndRuleMark()
                 drawCurrentTimeMarker()
-                drawFpus()
-                drawBoluses()
                 drawTempTargets()
                 drawActiveOverrides()
                 drawOverrideRunStored()
-                drawGlucose(dummy: false)
+
+                GlucoseChartView(
+                    glucoseData: state.glucoseFromPersistence,
+                    manualGlucoseData: state.manualGlucoseFromPersistence,
+                    units: state.units,
+                    highGlucose: state.highGlucose,
+                    lowGlucose: state.lowGlucose,
+                    smooth: state.smooth,
+                    gradientStops: state.gradientStops
+                )
+
+                InsulinView(
+                    glucoseData: state.glucoseFromPersistence,
+                    insulinData: state.insulinFromPersistence,
+                    units: state.units
+                )
+
+                CarbView(
+                    glucoseData: state.glucoseFromPersistence,
+                    units: state.units,
+                    carbData: state.carbsFromPersistence,
+                    fpuData: state.fpusFromPersistence,
+                    minValue: minValue
+                )
+
                 drawManualGlucose()
-                drawCarbs()
 
                 if state.forecastDisplayType == .lines {
                     drawForecastsLines()
@@ -355,7 +342,7 @@ extension MainChartView {
                 if let selectedIOBValue, let iob = selectedIOBValue.iob {
                     HStack {
                         Image(systemName: "syringe.fill").frame(width: 15)
-                        Text(bolusFormatter.string(from: iob) ?? "")
+                        Text(MainChartHelper.bolusFormatter.string(from: iob) ?? "")
                             .bold()
                             + Text(NSLocalizedString(" U", comment: "Insulin unit"))
                     }.foregroundStyle(Color.insulin).font(.body)
@@ -364,7 +351,7 @@ extension MainChartView {
                 if let selectedCOBValue {
                     HStack {
                         Image(systemName: "fork.knife").frame(width: 15)
-                        Text(carbsFormatter.string(from: selectedCOBValue.cob as NSNumber) ?? "")
+                        Text(MainChartHelper.carbsFormatter.string(from: selectedCOBValue.cob as NSNumber) ?? "")
                             .bold()
                             + Text(NSLocalizedString(" g", comment: "gram of carbs"))
                     }.foregroundStyle(Color.orange).font(.body)
@@ -486,107 +473,6 @@ extension MainChartView {
 // MARK: - Calculations
 
 extension MainChartView {
-    private func drawBoluses() -> some ChartContent {
-        ForEach(state.insulinFromPersistence) { insulin in
-            let amount = insulin.bolus?.amount ?? 0 as NSDecimalNumber
-            let bolusDate = insulin.timestamp ?? Date()
-
-            if amount != 0, let glucose = timeToNearestGlucose(time: bolusDate.timeIntervalSince1970)?.glucose {
-                let yPosition = (units == .mgdL ? Decimal(glucose) : Decimal(glucose).asMmolL) + bolusOffset
-                let size = (Config.bolusSize + CGFloat(truncating: amount) * Config.bolusScale) * 1.8
-
-                PointMark(
-                    x: .value("Time", bolusDate, unit: .second),
-                    y: .value("Value", yPosition)
-                )
-                .symbol {
-                    Image(systemName: "arrowtriangle.down.fill").font(.system(size: size)).foregroundStyle(Color.insulin)
-                }
-                .annotation(position: .top) {
-                    Text(bolusFormatter.string(from: amount) ?? "")
-                        .font(.caption2)
-                        .foregroundStyle(Color.primary)
-                }
-            }
-        }
-    }
-
-    private func drawCarbs() -> some ChartContent {
-        /// carbs
-        ForEach(state.carbsFromPersistence) { carb in
-            let carbAmount = carb.carbs
-            let carbDate = carb.date ?? Date()
-
-            if let glucose = timeToNearestGlucose(time: carbDate.timeIntervalSince1970)?.glucose {
-                let yPosition = (units == .mgdL ? Decimal(glucose) : Decimal(glucose).asMmolL) - bolusOffset
-                let size = (Config.carbsSize + CGFloat(carbAmount) * Config.carbsScale)
-                let limitedSize = size > 30 ? 30 : size
-
-                PointMark(
-                    x: .value("Time", carbDate, unit: .second),
-                    y: .value("Value", yPosition)
-                )
-                .symbol {
-                    Image(systemName: "arrowtriangle.down.fill").font(.system(size: limitedSize)).foregroundStyle(Color.orange)
-                        .rotationEffect(.degrees(180))
-                }
-                .annotation(position: .bottom) {
-                    Text(carbsFormatter.string(from: carbAmount as NSNumber)!).font(.caption2)
-                        .foregroundStyle(Color.primary)
-                }
-            }
-        }
-    }
-
-    private func drawFpus() -> some ChartContent {
-        /// fpus
-        ForEach(state.fpusFromPersistence, id: \.id) { fpu in
-            let fpuAmount = fpu.carbs
-            let size = (Config.fpuSize + CGFloat(fpuAmount) * Config.carbsScale) * 1.8
-            let yPosition = minValue
-
-            PointMark(
-                x: .value("Time", fpu.date ?? Date(), unit: .second),
-                y: .value("Value", yPosition)
-            )
-            .symbolSize(size)
-            .foregroundStyle(Color.brown)
-        }
-    }
-
-    private func drawGlucose(dummy _: Bool) -> some ChartContent {
-        /// glucose point mark
-        /// filtering for high and low bounds in settings
-        ForEach(state.glucoseFromPersistence) { item in
-            let glucoseToDisplay = units == .mgdL ? Decimal(item.glucose) : Decimal(item.glucose).asMmolL
-
-            if smooth {
-                LineMark(x: .value("Time", item.date ?? Date()), y: .value("Value", glucoseToDisplay))
-                    .foregroundStyle(
-                        .linearGradient(stops: state.gradientStops, startPoint: .bottom, endPoint: .top)
-                    )
-                    .symbol(.circle).symbolSize(34)
-            } else {
-                if glucoseToDisplay > highGlucose {
-                    PointMark(
-                        x: .value("Time", item.date ?? Date(), unit: .second),
-                        y: .value("Value", glucoseToDisplay)
-                    ).foregroundStyle(Color.orange.gradient).symbolSize(20)
-                } else if glucoseToDisplay < lowGlucose {
-                    PointMark(
-                        x: .value("Time", item.date ?? Date(), unit: .second),
-                        y: .value("Value", glucoseToDisplay)
-                    ).foregroundStyle(Color.red.gradient).symbolSize(20)
-                } else {
-                    PointMark(
-                        x: .value("Time", item.date ?? Date(), unit: .second),
-                        y: .value("Value", glucoseToDisplay)
-                    ).foregroundStyle(Color.green.gradient).symbolSize(20)
-                }
-            }
-        }
-    }
-
     private func timeForIndex(_ index: Int32) -> Date {
         let currentTime = Date()
         let timeInterval = TimeInterval(index * 300)
@@ -918,38 +804,6 @@ extension MainChartView {
                 series: .value("profile", "profile")
             ).lineStyle(.init(lineWidth: 2.5, dash: [2, 4])).foregroundStyle(Color.insulin)
         }
-    }
-
-    /// calculates the glucose value thats the nearest to parameter 'time'
-    private func timeToNearestGlucose(time: TimeInterval) -> GlucoseStored? {
-        guard !state.glucoseFromPersistence.isEmpty else {
-            return nil
-        }
-
-        var low = 0
-        var high = state.glucoseFromPersistence.count - 1
-        var closestGlucose: GlucoseStored?
-
-        // binary search to find next glucose
-        while low <= high {
-            let mid = low + (high - low) / 2
-            let midTime = state.glucoseFromPersistence[mid].date?.timeIntervalSince1970 ?? 0
-
-            if midTime == time {
-                return state.glucoseFromPersistence[mid]
-            } else if midTime < time {
-                low = mid + 1
-            } else {
-                high = mid - 1
-            }
-
-            // update if necessary
-            if closestGlucose == nil || abs(midTime - time) < abs(closestGlucose!.date?.timeIntervalSince1970 ?? 0 - time) {
-                closestGlucose = state.glucoseFromPersistence[mid]
-            }
-        }
-
-        return closestGlucose
     }
 
     private func fullWidth(viewWidth: CGFloat) -> CGFloat {

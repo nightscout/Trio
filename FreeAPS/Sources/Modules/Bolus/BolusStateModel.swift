@@ -139,6 +139,9 @@ extension Bolus {
                     group.addTask {
                         await self.setupSettings()
                     }
+                    group.addTask {
+                        self.registerObservers()
+                    }
 
                     if self.waitForSuggestionInitial {
                         group.addTask {
@@ -202,7 +205,7 @@ extension Bolus {
             }
         }
 
-        private func setupObservers() {
+        private func registerObservers() {
             broadcaster.register(DeterminationObserver.self, observer: self)
             broadcaster.register(BolusFailureObserver.self, observer: self)
         }

@@ -247,6 +247,10 @@
 		581516A92BCEEDF800BF67D7 /* NSPredicates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 581516A82BCEEDF800BF67D7 /* NSPredicates.swift */; };
 		581AC4392BE22ED10038760C /* JSONConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 581AC4382BE22ED10038760C /* JSONConverter.swift */; };
 		58237D9E2BCF0A6B00A47A79 /* PopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58237D9D2BCF0A6B00A47A79 /* PopupView.swift */; };
+		582DF9752C8CDB92001F516D /* GlucoseChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 582DF9742C8CDB92001F516D /* GlucoseChartView.swift */; };
+		582DF9772C8CDBE7001F516D /* InsulinView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 582DF9762C8CDBE7001F516D /* InsulinView.swift */; };
+		582DF9792C8CE1E5001F516D /* MainChartHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 582DF9782C8CE1E5001F516D /* MainChartHelper.swift */; };
+		582DF97B2C8CE209001F516D /* CarbView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 582DF97A2C8CE209001F516D /* CarbView.swift */; };
 		582FAE432C05102C00D1C13F /* CoreDataError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 582FAE422C05102C00D1C13F /* CoreDataError.swift */; };
 		583684062BD178DB00070A60 /* GlucoseStored+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 583684052BD178DB00070A60 /* GlucoseStored+helper.swift */; };
 		583684082BD195A700070A60 /* Determination.swift in Sources */ = {isa = PBXBuildFile; fileRef = 583684072BD195A700070A60 /* Determination.swift */; };
@@ -890,6 +894,10 @@
 		581516A82BCEEDF800BF67D7 /* NSPredicates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSPredicates.swift; sourceTree = "<group>"; };
 		581AC4382BE22ED10038760C /* JSONConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONConverter.swift; sourceTree = "<group>"; };
 		58237D9D2BCF0A6B00A47A79 /* PopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopupView.swift; sourceTree = "<group>"; };
+		582DF9742C8CDB92001F516D /* GlucoseChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseChartView.swift; sourceTree = "<group>"; };
+		582DF9762C8CDBE7001F516D /* InsulinView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsulinView.swift; sourceTree = "<group>"; };
+		582DF9782C8CE1E5001F516D /* MainChartHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainChartHelper.swift; sourceTree = "<group>"; };
+		582DF97A2C8CE209001F516D /* CarbView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbView.swift; sourceTree = "<group>"; };
 		582FAE422C05102C00D1C13F /* CoreDataError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataError.swift; sourceTree = "<group>"; };
 		583684052BD178DB00070A60 /* GlucoseStored+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GlucoseStored+helper.swift"; sourceTree = "<group>"; };
 		583684072BD195A700070A60 /* Determination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Determination.swift; sourceTree = "<group>"; };
@@ -1760,6 +1768,9 @@
 			isa = PBXGroup;
 			children = (
 				BD3CC0712B0B89D50013189E /* MainChartView.swift */,
+				582DF9742C8CDB92001F516D /* GlucoseChartView.swift */,
+				582DF9762C8CDBE7001F516D /* InsulinView.swift */,
+				582DF97A2C8CE209001F516D /* CarbView.swift */,
 			);
 			path = Chart;
 			sourceTree = "<group>";
@@ -1948,6 +1959,7 @@
 				DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */,
 				DD6B7CB12C7B6F0800B75029 /* Rounding.swift */,
 				58CE8B882C8C6B62007A6A10 /* GradientStops.swift */,
+				582DF9782C8CE1E5001F516D /* MainChartHelper.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -3265,6 +3277,7 @@
 				DD57C4C02C4C7103001A5B28 /* TempTargetsSlider+CoreDataClass.swift in Sources */,
 				DD57C4C12C4C7103001A5B28 /* TempTargetsSlider+CoreDataProperties.swift in Sources */,
 				DD57C4C22C4C7103001A5B28 /* Forecast+CoreDataClass.swift in Sources */,
+				582DF9752C8CDB92001F516D /* GlucoseChartView.swift in Sources */,
 				DD57C4C32C4C7103001A5B28 /* Forecast+CoreDataProperties.swift in Sources */,
 				DD57C4C42C4C7103001A5B28 /* BolusStored+CoreDataClass.swift in Sources */,
 				DD1745302C55AE5300211FAC /* TargetBehaviorProvider.swift in Sources */,
@@ -3293,6 +3306,7 @@
 				CE48C86628CA6B48007C0598 /* OmniPodManagerExtensions.swift in Sources */,
 				CEB434E728B9053300B70274 /* LoopUIColorPalette+Default.swift in Sources */,
 				19F95FF329F10FBC00314DDC /* StatDataFlow.swift in Sources */,
+				582DF97B2C8CE209001F516D /* CarbView.swift in Sources */,
 				3811DE2225C9D48300A708ED /* MainProvider.swift in Sources */,
 				3811DE0C25C9D32F00A708ED /* BaseProvider.swift in Sources */,
 				CE95BF5A2BA62E4A00DC3DE3 /* PluginSource.swift in Sources */,
@@ -3399,6 +3413,7 @@
 				BD4064D12C4ED26900582F43 /* CoreDataObserver.swift in Sources */,
 				38E44536274E411700EC9A94 /* Disk.swift in Sources */,
 				19A910362A24D6D700C8951B /* DateFilter.swift in Sources */,
+				582DF9792C8CE1E5001F516D /* MainChartHelper.swift in Sources */,
 				E06B911A275B5EEA003C04B6 /* Array+Extension.swift in Sources */,
 				38EA0600262091870064E39B /* BolusProgressViewStyle.swift in Sources */,
 				389ECDFE2601061500D86C4F /* View+Snapshot.swift in Sources */,
@@ -3436,6 +3451,7 @@
 				BDF34EBE2C0A31D100D51995 /* CustomNotification.swift in Sources */,
 				BDC2EA472C3045AD00E5BBD0 /* Override.swift in Sources */,
 				1BBB001DAD60F3B8CEA4B1C7 /* ISFEditorStateModel.swift in Sources */,
+				582DF9772C8CDBE7001F516D /* InsulinView.swift in Sources */,
 				F816826028DB441800054060 /* BluetoothTransmitter.swift in Sources */,
 				DD68889D2C386E17006E3C44 /* NightscoutExercise.swift in Sources */,
 				5864E8592C42CFAE00294306 /* DeterminationStorage.swift in Sources */,
