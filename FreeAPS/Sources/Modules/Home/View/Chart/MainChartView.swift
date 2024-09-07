@@ -106,8 +106,8 @@ struct MainChartView: View {
 
     private var selectedGlucose: GlucoseStored? {
         if let selection = selection {
-            let lowerBound = selection.addingTimeInterval(-120)
-            let upperBound = selection.addingTimeInterval(120)
+            let lowerBound = selection.addingTimeInterval(-150)
+            let upperBound = selection.addingTimeInterval(150)
             return state.glucoseFromPersistence.first { $0.date ?? now >= lowerBound && $0.date ?? now <= upperBound }
         } else {
             return nil
