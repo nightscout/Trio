@@ -358,7 +358,6 @@ extension Home {
                     displayXgridLines: $state.displayXgridLines,
                     displayYgridLines: $state.displayYgridLines,
                     thresholdLines: $state.thresholdLines,
-                    isTempTargetActive: $state.isTempTargetActive,
                     state: state
                 )
             }

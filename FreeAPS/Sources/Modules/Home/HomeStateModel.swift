@@ -59,7 +59,6 @@ extension Home {
         @Published var isLegendPresented: Bool = false
         @Published var legendSheetDetent = PresentationDetent.large
         @Published var totalInsulinDisplayType: TotalInsulinDisplayType = .totalDailyDose
-        @Published var isTempTargetActive: Bool = false
         @Published var roundedTotalBolus: String = ""
         @Published var selectedTab: Int = 0
         @Published var waitForSuggestion: Bool = false

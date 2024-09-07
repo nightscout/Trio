@@ -50,7 +50,6 @@ struct MainChartView: View {
     @Binding var displayXgridLines: Bool
     @Binding var displayYgridLines: Bool
     @Binding var thresholdLines: Bool
-    @Binding var isTempTargetActive: Bool
 
     @StateObject var state: Home.StateModel
 
@@ -316,10 +315,14 @@ extension MainChartView {
                 state.roundedTotalBolus = state.calculateTINS()
             }
             .onChange(of: tempTargets) { _ in
-                calculateTTs()
+                Task {
+                    await calculateTTs()
+                }
             }
             .onChange(of: didAppearTrigger) { _ in
-                calculateTTs()
+                Task {
+                    await calculateTTs()
+                }
             }
             .frame(minHeight: geo.size.height * 0.28)
             .frame(width: fullWidth(viewWidth: screenSize.width))
@@ -957,20 +960,22 @@ extension MainChartView {
     }
 
     /// calculations for temp target bar mark
-    private func calculateTTs() {
-        var groupedPackages: [[TempTarget]] = []
-        var currentPackage: [TempTarget] = []
-        var calculatedTTs: [ChartTempTarget] = []
+    private func calculateTTs() async {
+        // Perform calculations off the main thread
+        let calculatedTTs = await Task.detached { () -> [ChartTempTarget] in
+            var groupedPackages: [[TempTarget]] = []
+            var currentPackage: [TempTarget] = []
+            var calculatedTTs: [ChartTempTarget] = []
 
-        for target in tempTargets {
-            if target.duration > 0 {
-                if !currentPackage.isEmpty {
-                    groupedPackages.append(currentPackage)
-                    currentPackage = []
-                }
-                currentPackage.append(target)
-            } else {
-                if let lastNonZeroTempTarget = currentPackage.last(where: { $0.duration > 0 }) {
+            for target in await tempTargets {
+                if target.duration > 0 {
+                    if !currentPackage.isEmpty {
+                        groupedPackages.append(currentPackage)
+                        currentPackage = []
+                    }
+                    currentPackage.append(target)
+                } else if let lastNonZeroTempTarget = currentPackage.last(where: { $0.duration > 0 }) {
+                    // Ensure this cancel target is within the valid time range
                     if target.createdAt >= lastNonZeroTempTarget.createdAt,
                        target.createdAt <= lastNonZeroTempTarget.createdAt
                        .addingTimeInterval(TimeInterval(lastNonZeroTempTarget.duration * 60))
@@ -979,41 +984,37 @@ extension MainChartView {
                     }
                 }
             }
-        }
 
-        // appends last package, if exists
-        if !currentPackage.isEmpty {
-            groupedPackages.append(currentPackage)
-        }
-
-        for package in groupedPackages {
-            guard let firstNonZeroTarget = package.first(where: { $0.duration > 0 }) else {
-                continue
+            // Append the last group, if any
+            if !currentPackage.isEmpty {
+                groupedPackages.append(currentPackage)
             }
 
-            var end = firstNonZeroTarget.createdAt.addingTimeInterval(TimeInterval(firstNonZeroTarget.duration * 60))
+            for package in groupedPackages {
+                guard let firstNonZeroTarget = package.first(where: { $0.duration > 0 }) else { continue }
 
-            let earliestCancelTarget = package.filter({ $0.duration == 0 }).min(by: { $0.createdAt < $1.createdAt })
+                var end = firstNonZeroTarget.createdAt.addingTimeInterval(TimeInterval(firstNonZeroTarget.duration * 60))
 
-            if let earliestCancelTarget = earliestCancelTarget {
-                end = min(earliestCancelTarget.createdAt, end)
+                let earliestCancelTarget = package.filter({ $0.duration == 0 }).min(by: { $0.createdAt < $1.createdAt })
+
+                if let earliestCancelTarget = earliestCancelTarget {
+                    end = min(earliestCancelTarget.createdAt, end)
+                }
+
+                if let targetTop = firstNonZeroTarget.targetTop {
+                    let adjustedTarget = await units == .mgdL ? targetTop : targetTop.asMmolL
+                    calculatedTTs
+                        .append(ChartTempTarget(amount: adjustedTarget, start: firstNonZeroTarget.createdAt, end: end))
+                }
             }
 
-            let now = Date()
-            isTempTargetActive = firstNonZeroTarget.createdAt <= now && now <= end
+            return calculatedTTs
+        }.value
 
-            if firstNonZeroTarget.targetTop != nil {
-                let targetTop = firstNonZeroTarget.targetTop ?? 0
-                calculatedTTs
-                    .append(ChartTempTarget(
-                        amount: units == .mgdL ? targetTop : targetTop.asMmolL,
-                        start: firstNonZeroTarget.createdAt,
-                        end: end
-                    ))
-            }
+        // Update chartTempTargets on the main thread
+        await MainActor.run {
+            self.chartTempTargets = calculatedTTs
         }
-
-        chartTempTargets = calculatedTTs
     }
 
     private func findRegularBasalPoints(
