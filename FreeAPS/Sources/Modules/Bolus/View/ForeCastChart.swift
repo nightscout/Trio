@@ -7,7 +7,6 @@ struct ForeCastChart: View {
     @StateObject var state: Bolus.StateModel
     @Environment(\.colorScheme) var colorScheme
     @Binding var units: GlucoseUnits
-    var stops: [Gradient.Stop]
 
     @State private var startMarker = Date(timeIntervalSinceNow: -4 * 60 * 60)
 
@@ -130,7 +129,7 @@ struct ForeCastChart: View {
                     y: .value("Value", glucoseToDisplay)
                 )
                 .foregroundStyle(
-                    .linearGradient(stops: stops, startPoint: .bottom, endPoint: .top)
+                    .linearGradient(stops: state.stops, startPoint: .bottom, endPoint: .top)
                 )
                 .symbol(.circle).symbolSize(34)
             } else {

@@ -171,7 +171,7 @@ extension Bolus {
                 VStack {
                     Form {
                         Section {
-                            ForeCastChart(state: state, units: $state.units, stops: state.stops)
+                            ForeCastChart(state: state, units: $state.units)
                                 .padding(.vertical)
                         }.listRowBackground(Color.chart)
 

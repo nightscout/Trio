@@ -554,39 +554,6 @@ extension MainChartView {
         }
     }
 
-    private var stops: [Gradient.Stop] {
-        let low = Double(lowGlucose)
-        let high = Double(highGlucose)
-
-        let glucoseValues = state.glucoseFromPersistence
-            .map { units == .mgdL ? Decimal($0.glucose) : Decimal($0.glucose).asMmolL }
-
-        let minimum = glucoseValues.min() ?? 0.0
-        let maximum = glucoseValues.max() ?? 0.0
-
-        // Calculate positions for gradient
-        let lowPosition = (low - Double(truncating: minimum as NSNumber)) /
-            (Double(truncating: maximum as NSNumber) - Double(truncating: minimum as NSNumber))
-        let highPosition = (high - Double(truncating: minimum as NSNumber)) /
-            (Double(truncating: maximum as NSNumber) - Double(truncating: minimum as NSNumber))
-
-        // Ensure positions are in bounds [0, 1]
-        let clampedLowPosition = max(0.0, min(lowPosition, 1.0))
-        let clampedHighPosition = max(0.0, min(highPosition, 1.0))
-
-        // Ensure lowPosition is less than highPosition
-        let sortedPositions = [clampedLowPosition, clampedHighPosition].sorted()
-
-        return [
-            Gradient.Stop(color: .red, location: 0.0),
-            Gradient.Stop(color: .red, location: sortedPositions[0]), // draw red gradient till lowGlucose
-            Gradient.Stop(color: .green, location: sortedPositions[0] + 0.0001), // draw green above lowGlucose till highGlucose
-            Gradient.Stop(color: .green, location: sortedPositions[1]),
-            Gradient.Stop(color: .orange, location: sortedPositions[1] + 0.0001), // draw orange above highGlucose
-            Gradient.Stop(color: .orange, location: 1.0)
-        ]
-    }
-
     private func drawGlucose(dummy _: Bool) -> some ChartContent {
         /// glucose point mark
         /// filtering for high and low bounds in settings
@@ -596,7 +563,7 @@ extension MainChartView {
             if smooth {
                 LineMark(x: .value("Time", item.date ?? Date()), y: .value("Value", glucoseToDisplay))
                     .foregroundStyle(
-                        .linearGradient(stops: stops, startPoint: .bottom, endPoint: .top)
+                        .linearGradient(stops: state.gradientStops, startPoint: .bottom, endPoint: .top)
                     )
                     .symbol(.circle).symbolSize(34)
             } else {

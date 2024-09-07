@@ -87,6 +87,7 @@ extension Home {
         @Published var maxForecast: [Int] = []
         @Published var minCount: Int = 12 // count of Forecasts drawn in 5 min distances, i.e. 12 means a min of 1 hour
         @Published var forecastDisplayType: ForecastDisplayType = .cone
+        @Published var gradientStops: [Gradient.Stop] = []
 
         let context = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
@@ -115,30 +116,51 @@ extension Home {
             setupCurrentPumpTimezone()
             setupOverrides()
             setupOverrideRunStored()
+            setupSettings()
+            registerObservers()
+        }
 
-            // TODO: isUploadEnabled the right var here??
-            uploadStats = settingsManager.settings.isUploadEnabled
-            units = settingsManager.settings.units
-            allowManualTemp = !settingsManager.settings.closedLoop
-            closedLoop = settingsManager.settings.closedLoop
-            lastLoopDate = apsManager.lastLoopDate
-            alarm = provider.glucoseStorage.alarm
-            manualTempBasal = apsManager.isManualTempBasal
-            setupCurrentTempTarget()
-            smooth = settingsManager.settings.smoothGlucose
-            maxValue = settingsManager.preferences.autosensMax
-            lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
-            highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL
-            overrideUnit = settingsManager.settings.overrideHbA1cUnit
-            displayXgridLines = settingsManager.settings.xGridLines
-            displayYgridLines = settingsManager.settings.yGridLines
-            thresholdLines = settingsManager.settings.rulerMarks
-            totalInsulinDisplayType = settingsManager.settings.totalInsulinDisplayType
-            cgmAvailable = fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none
-            showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
+        private func registerHandlers() {
+            coreDataObserver?.registerHandler(for: "OrefDetermination") { [weak self] in
+                guard let self = self else { return }
+                self.setupDeterminationsArray()
+            }
 
-            forecastDisplayType = settingsManager.settings.forecastDisplayType
+            coreDataObserver?.registerHandler(for: "GlucoseStored") { [weak self] in
+                guard let self = self else { return }
+                self.setupGlucoseArray()
+                self.setupManualGlucoseArray()
+            }
 
+            coreDataObserver?.registerHandler(for: "CarbEntryStored") { [weak self] in
+                guard let self = self else { return }
+                self.setupCarbsArray()
+            }
+
+            coreDataObserver?.registerHandler(for: "PumpEventStored") { [weak self] in
+                guard let self = self else { return }
+                self.setupInsulinArray()
+                self.setupLastBolus()
+                self.displayPumpStatusHighlightMessage()
+            }
+
+            coreDataObserver?.registerHandler(for: "OpenAPS_Battery") { [weak self] in
+                guard let self = self else { return }
+                self.setupBatteryArray()
+            }
+
+            coreDataObserver?.registerHandler(for: "OverrideStored") { [weak self] in
+                guard let self = self else { return }
+                self.setupOverrides()
+            }
+
+            coreDataObserver?.registerHandler(for: "OverrideRunStored") { [weak self] in
+                guard let self = self else { return }
+                self.setupOverrideRunStored()
+            }
+        }
+
+        private func registerObservers() {
             broadcaster.register(GlucoseObserver.self, observer: self)
             broadcaster.register(DeterminationObserver.self, observer: self)
             broadcaster.register(SettingsObserver.self, observer: self)
@@ -213,44 +235,28 @@ extension Home {
                 .store(in: &lifetime)
         }
 
-        private func registerHandlers() {
-            coreDataObserver?.registerHandler(for: "OrefDetermination") { [weak self] in
-                guard let self = self else { return }
-                self.setupDeterminationsArray()
-            }
-
-            coreDataObserver?.registerHandler(for: "GlucoseStored") { [weak self] in
-                guard let self = self else { return }
-                self.setupGlucoseArray()
-                self.setupManualGlucoseArray()
-            }
-
-            coreDataObserver?.registerHandler(for: "CarbEntryStored") { [weak self] in
-                guard let self = self else { return }
-                self.setupCarbsArray()
-            }
-
-            coreDataObserver?.registerHandler(for: "PumpEventStored") { [weak self] in
-                guard let self = self else { return }
-                self.setupInsulinArray()
-                self.setupLastBolus()
-                self.displayPumpStatusHighlightMessage()
-            }
-
-            coreDataObserver?.registerHandler(for: "OpenAPS_Battery") { [weak self] in
-                guard let self = self else { return }
-                self.setupBatteryArray()
-            }
-
-            coreDataObserver?.registerHandler(for: "OverrideStored") { [weak self] in
-                guard let self = self else { return }
-                self.setupOverrides()
-            }
-
-            coreDataObserver?.registerHandler(for: "OverrideRunStored") { [weak self] in
-                guard let self = self else { return }
-                self.setupOverrideRunStored()
-            }
+        private func setupSettings() {
+            // TODO: isUploadEnabled the right var here??
+            uploadStats = settingsManager.settings.isUploadEnabled
+            units = settingsManager.settings.units
+            allowManualTemp = !settingsManager.settings.closedLoop
+            closedLoop = settingsManager.settings.closedLoop
+            lastLoopDate = apsManager.lastLoopDate
+            alarm = provider.glucoseStorage.alarm
+            manualTempBasal = apsManager.isManualTempBasal
+            setupCurrentTempTarget()
+            smooth = settingsManager.settings.smoothGlucose
+            maxValue = settingsManager.preferences.autosensMax
+            lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
+            highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL
+            overrideUnit = settingsManager.settings.overrideHbA1cUnit
+            displayXgridLines = settingsManager.settings.xGridLines
+            displayYgridLines = settingsManager.settings.yGridLines
+            thresholdLines = settingsManager.settings.rulerMarks
+            totalInsulinDisplayType = settingsManager.settings.totalInsulinDisplayType
+            cgmAvailable = fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none
+            showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
+            forecastDisplayType = settingsManager.settings.forecastDisplayType
         }
 
         func addPump(_ type: PumpConfig.PumpType) {
@@ -271,6 +277,21 @@ extension Home {
                 } else {
                     pumpStatusHighlightMessage = nil
                 }
+            }
+        }
+
+        private func calculateGradientStops() async {
+            let glucoseValues = glucoseFromPersistence
+                .map { units == .mgdL ? Decimal($0.glucose) : Decimal($0.glucose).asMmolL }
+
+            let calculatedStops = await GradientStops.calculateGradientStops(
+                lowGlucose: lowGlucose,
+                highGlucose: highGlucose,
+                glucoseValues: glucoseValues
+            )
+
+            await MainActor.run {
+                self.gradientStops = calculatedStops
             }
         }
 
@@ -557,6 +578,10 @@ extension Home.StateModel {
             let ids = await self.fetchGlucose()
             let glucoseObjects: [GlucoseStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
             await updateGlucoseArray(with: glucoseObjects)
+
+            if smooth {
+                await calculateGradientStops()
+            }
         }
     }
 
@@ -588,6 +613,10 @@ extension Home.StateModel {
             let manualGlucoseObjects: [GlucoseStored] = await CoreDataStack.shared
                 .getNSManagedObject(with: ids, context: viewContext)
             await updateManualGlucoseArray(with: manualGlucoseObjects)
+
+            if smooth {
+                await calculateGradientStops()
+            }
         }
     }
 

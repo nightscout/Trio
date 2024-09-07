@@ -362,7 +362,7 @@ extension Home {
                     state: state
                 )
             }
-            .padding(.bottom)
+            .padding(.bottom, UIDevice.adjustPadding(min: 0, max: nil))
         }
 
         func highlightButtons() {
@@ -574,7 +574,7 @@ extension Home {
                             showCancelAlert = true
                         }
                     }
-            }.padding(.horizontal, 10).padding(.bottom, 10)
+            }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
                 .overlay {
                     /// just show temp target if no profile is already active
                     if overrideString == nil, let tempTargetString = tempTargetString {
@@ -606,7 +606,7 @@ extension Home {
                                     .font(.subheadline)
                                 Spacer()
                             }.padding(.horizontal, 10)
-                        }.padding(.horizontal, 10).padding(.bottom, 10)
+                        }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
                     }
                 }
         }
@@ -688,7 +688,7 @@ extension Home {
                     }.padding(.horizontal, 10)
                         .padding(.trailing, 8)
 
-                }.padding(.horizontal, 10).padding(.bottom, 10)
+                }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
                     .overlay(alignment: .bottom) {
                         bolusProgressBar(progress).padding(.horizontal, 18).offset(y: 48)
                     }.clipShape(RoundedRectangle(cornerRadius: 15))
@@ -715,16 +715,18 @@ extension Home {
                         }.padding(.leading, 20)
                     }.padding(.top, 10)
 
-                    mealPanel(geo).padding(.top, 30).padding(.bottom, 20)
+                    mealPanel(geo).padding(.top, UIDevice.adjustPadding(min: nil, max: 30))
+                        .padding(.bottom, UIDevice.adjustPadding(min: nil, max: 20))
 
                     mainChart(geo: geo)
 
-                    timeInterval.padding(.top, 12).padding(.bottom, 12)
+                    timeInterval.padding(.top, UIDevice.adjustPadding(min: 0, max: 12))
+                        .padding(.bottom, UIDevice.adjustPadding(min: 0, max: 12))
 
                     if let progress = state.bolusProgress {
-                        bolusView(geo: geo, progress).padding(.bottom, 40)
+                        bolusView(geo: geo, progress).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
                     } else {
-                        profileView(geo: geo).padding(.bottom, 40)
+                        profileView(geo: geo).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
                     }
                 }
                 .background(color)
@@ -1001,5 +1003,35 @@ extension Home {
                 return
             }
         }
+    }
+}
+
+extension UIDevice {
+    public enum DeviceSize: CGFloat {
+        case smallDevice = 667 // Height for 4" iPhone SE
+        case largeDevice = 852 // Height for 6.1" iPhone 15 Pro
+    }
+
+    @usableFromInline static func adjustPadding(min: CGFloat? = nil, max: CGFloat? = nil) -> CGFloat? {
+        if UIScreen.screenHeight > UIDevice.DeviceSize.smallDevice.rawValue {
+            if UIScreen.screenHeight >= UIDevice.DeviceSize.largeDevice.rawValue {
+                return max
+            } else {
+                return min != nil ?
+                    (max != nil ? max! * (UIScreen.screenHeight / UIDevice.DeviceSize.largeDevice.rawValue) : nil) : nil
+            }
+        } else {
+            return min
+        }
+    }
+}
+
+extension UIScreen {
+    static var screenHeight: CGFloat {
+        UIScreen.main.bounds.height
+    }
+
+    static var screenWidth: CGFloat {
+        UIScreen.main.bounds.width
     }
 }
