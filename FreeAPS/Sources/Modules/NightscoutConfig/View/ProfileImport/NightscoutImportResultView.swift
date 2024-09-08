@@ -50,8 +50,9 @@ struct NightscoutImportResultView: BaseView {
                     header: Text("Imported Nightscout Data"),
                     content: {
                         Text(
-                            "Trio has successfully imported your default Nightscout profile and applied it as therapy settings. This has replaced your previous therapy settings."
-                        )
+                            "Trio has successfully imported your default Nightscout profile and stored it as therapy settings. "
+                        ) +
+                            Text("This has replaced your previous therapy settings.").bold().foregroundColor(.accentColor)
                         Text("Please review the following settings:").bold()
                     }
                 ).listRowBackground(Color.chart)
@@ -131,13 +132,6 @@ struct NightscoutImportResultView: BaseView {
                     }
                 }.listRowBackground(allViewsVisited ? Color(.systemBlue) : Color(.systemGray4))
             }
-//            .toolbar(content: {
-//                ToolbarItem(placement: .topBarLeading) {
-//                    Button(action: { state.isImportResultReviewPresented = false }, label: {
-//                        Text("Cancel")
-//                    })
-//                }
-//            })
             .navigationTitle("Review Import")
             .navigationBarTitleDisplayMode(.large)
             .scrollContentBackground(.hidden).background(color)

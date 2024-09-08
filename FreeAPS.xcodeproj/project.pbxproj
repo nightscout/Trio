@@ -464,8 +464,6 @@
 		DD57C4CD2C4C7103001A5B28 /* OverrideStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4AB2C4C7103001A5B28 /* OverrideStored+CoreDataProperties.swift */; };
 		DD57C4CE2C4C7103001A5B28 /* OverrideRunStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4AC2C4C7103001A5B28 /* OverrideRunStored+CoreDataClass.swift */; };
 		DD57C4CF2C4C7103001A5B28 /* OverrideRunStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4AD2C4C7103001A5B28 /* OverrideRunStored+CoreDataProperties.swift */; };
-		DD57C4D02C4C7103001A5B28 /* ImportError+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4AE2C4C7103001A5B28 /* ImportError+CoreDataClass.swift */; };
-		DD57C4D12C4C7103001A5B28 /* ImportError+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4AF2C4C7103001A5B28 /* ImportError+CoreDataProperties.swift */; };
 		DD57C4D22C4C7103001A5B28 /* StatsData+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4B02C4C7103001A5B28 /* StatsData+CoreDataClass.swift */; };
 		DD57C4D32C4C7103001A5B28 /* StatsData+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4B12C4C7103001A5B28 /* StatsData+CoreDataProperties.swift */; };
 		DD68889D2C386E17006E3C44 /* NightscoutExercise.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD68889C2C386E17006E3C44 /* NightscoutExercise.swift */; };
@@ -1121,8 +1119,6 @@
 		DD57C4AB2C4C7103001A5B28 /* OverrideStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		DD57C4AC2C4C7103001A5B28 /* OverrideRunStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideRunStored+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		DD57C4AD2C4C7103001A5B28 /* OverrideRunStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideRunStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4AE2C4C7103001A5B28 /* ImportError+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ImportError+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4AF2C4C7103001A5B28 /* ImportError+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ImportError+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		DD57C4B02C4C7103001A5B28 /* StatsData+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StatsData+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		DD57C4B12C4C7103001A5B28 /* StatsData+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StatsData+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		DD68889C2C386E17006E3C44 /* NightscoutExercise.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutExercise.swift; sourceTree = "<group>"; };
@@ -2685,8 +2681,6 @@
 				DD57C4AB2C4C7103001A5B28 /* OverrideStored+CoreDataProperties.swift */,
 				DD57C4AC2C4C7103001A5B28 /* OverrideRunStored+CoreDataClass.swift */,
 				DD57C4AD2C4C7103001A5B28 /* OverrideRunStored+CoreDataProperties.swift */,
-				DD57C4AE2C4C7103001A5B28 /* ImportError+CoreDataClass.swift */,
-				DD57C4AF2C4C7103001A5B28 /* ImportError+CoreDataProperties.swift */,
 				DD57C4B02C4C7103001A5B28 /* StatsData+CoreDataClass.swift */,
 				DD57C4B12C4C7103001A5B28 /* StatsData+CoreDataProperties.swift */,
 			);
@@ -3317,9 +3311,7 @@
 				DD57C4CD2C4C7103001A5B28 /* OverrideStored+CoreDataProperties.swift in Sources */,
 				DD57C4CE2C4C7103001A5B28 /* OverrideRunStored+CoreDataClass.swift in Sources */,
 				DD57C4CF2C4C7103001A5B28 /* OverrideRunStored+CoreDataProperties.swift in Sources */,
-				DD57C4D02C4C7103001A5B28 /* ImportError+CoreDataClass.swift in Sources */,
 				DD17454E2C55CA4D00211FAC /* UnitsLimitsSettingsDataFlow.swift in Sources */,
-				DD57C4D12C4C7103001A5B28 /* ImportError+CoreDataProperties.swift in Sources */,
 				DD57C4D22C4C7103001A5B28 /* StatsData+CoreDataClass.swift in Sources */,
 				DD57C4D32C4C7103001A5B28 /* StatsData+CoreDataProperties.swift in Sources */,
 				DDF847E62C5D66490049BB3B /* AddMealPresetView.swift in Sources */,

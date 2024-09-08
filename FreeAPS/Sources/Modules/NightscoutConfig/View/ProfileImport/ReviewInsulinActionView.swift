@@ -65,7 +65,7 @@ struct ReviewInsulinActionView: BaseView {
         }
         .scrollContentBackground(.hidden).background(color)
         .onAppear(perform: configureView)
-        .navigationTitle("DIA")
+        .navigationTitle("Duration of Insulin Action")
         .navigationBarTitleDisplayMode(.automatic)
         .onDisappear {
             state.saveReviewedInsulinAction()

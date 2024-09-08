@@ -80,8 +80,6 @@ extension Settings {
                                         }
                                     }
                                 }
-
-                                Text("Statistics").navigationLink(to: .statistics, from: self)
                             }
                         }
                     ).listRowBackground(Color.chart)
