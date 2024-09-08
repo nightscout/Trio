@@ -251,11 +251,14 @@ extension MainChartView {
                     viewContext: context
                 )
 
-                if state.forecastDisplayType == .lines {
-                    drawForecastsLines()
-                } else {
-                    drawForecastsCone()
-                }
+                ForecastView(
+                    preprocessedData: state.preprocessedData,
+                    minForecast: state.minForecast,
+                    maxForecast: state.maxForecast,
+                    units: state.units,
+                    maxValue: maxValue,
+                    forecastDisplayType: state.forecastDisplayType
+                )
 
                 /// show glucose value when hovering over it
                 if #available(iOS 17, *) {
@@ -476,75 +479,6 @@ extension MainChartView {
 // MARK: - Calculations
 
 extension MainChartView {
-    private func timeForIndex(_ index: Int32) -> Date {
-        let currentTime = Date()
-        let timeInterval = TimeInterval(index * 300)
-        return currentTime.addingTimeInterval(timeInterval)
-    }
-
-    private func drawForecastsCone() -> some ChartContent {
-        // Draw AreaMark for the forecast bounds
-        ForEach(0 ..< max(state.minForecast.count, state.maxForecast.count), id: \.self) { index in
-            if index < state.minForecast.count, index < state.maxForecast.count {
-                let yMinMaxDelta = Decimal(state.minForecast[index] - state.maxForecast[index])
-                let xValue = timeForIndex(Int32(index))
-
-                // if distance between respective min and max is 0, provide a default range
-                if yMinMaxDelta == 0 {
-                    let yMinValue = units == .mgdL ? Decimal(state.minForecast[index] - 1) :
-                        Decimal(state.minForecast[index] - 1)
-                        .asMmolL
-                    let yMaxValue = units == .mgdL ? Decimal(state.minForecast[index] + 1) :
-                        Decimal(state.minForecast[index] + 1)
-                        .asMmolL
-
-                    if xValue <= Date(timeIntervalSinceNow: TimeInterval(hours: 2.5)) {
-                        AreaMark(
-                            x: .value("Time", xValue),
-                            // maxValue is already parsed to user units, no need to parse
-                            yStart: .value("Min Value", yMinValue <= maxValue ? yMinValue : maxValue),
-                            yEnd: .value("Max Value", yMaxValue <= maxValue ? yMaxValue : maxValue)
-                        )
-                        .foregroundStyle(Color.blue.opacity(0.5))
-                        .interpolationMethod(.catmullRom)
-                    }
-                } else {
-                    let yMinValue = units == .mgdL ? Decimal(state.minForecast[index]) : Decimal(state.minForecast[index]).asMmolL
-                    let yMaxValue = units == .mgdL ? Decimal(state.maxForecast[index]) : Decimal(state.maxForecast[index]).asMmolL
-
-                    if xValue <= Date(timeIntervalSinceNow: TimeInterval(hours: 2.5)) {
-                        AreaMark(
-                            x: .value("Time", xValue),
-                            // maxValue is already parsed to user units, no need to parse
-                            yStart: .value("Min Value", yMinValue <= maxValue ? yMinValue : maxValue),
-                            yEnd: .value("Max Value", yMaxValue <= maxValue ? yMaxValue : maxValue)
-                        )
-                        .foregroundStyle(Color.blue.opacity(0.5))
-                        .interpolationMethod(.catmullRom)
-                    }
-                }
-            }
-        }
-    }
-
-    private func drawForecastsLines() -> some ChartContent {
-        ForEach(state.preprocessedData, id: \.id) { tuple in
-            let forecastValue = tuple.forecastValue
-            let forecast = tuple.forecast
-            let valueAsDecimal = Decimal(forecastValue.value)
-            let displayValue = units == .mmolL ? valueAsDecimal.asMmolL : valueAsDecimal
-            let xValue = timeForIndex(forecastValue.index)
-
-            if xValue <= Date(timeIntervalSinceNow: TimeInterval(hours: 2.5)) {
-                LineMark(
-                    x: .value("Time", xValue),
-                    y: .value("Value", displayValue)
-                )
-                .foregroundStyle(by: .value("Predictions", forecast.type ?? ""))
-            }
-        }
-    }
-
     private func drawCurrentTimeMarker() -> some ChartContent {
         RuleMark(
             x: .value(
