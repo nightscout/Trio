@@ -34,4 +34,34 @@ extension MainChartView {
         .chartYAxis { cobChartYAxis }
         .chartYScale(domain: minValueCobChart ... maxValueCobChart)
     }
+
+    func drawCOB(dummy: Bool) -> some ChartContent {
+        ForEach(state.enactedAndNonEnactedDeterminations) { cob in
+            let amount = Int(cob.cob)
+            let date: Date = cob.deliverAt ?? Date()
+
+            if dummy {
+                LineMark(x: .value("Time", date), y: .value("Value", amount))
+                    .foregroundStyle(Color.clear)
+                AreaMark(x: .value("Time", date), y: .value("Value", amount)).foregroundStyle(
+                    Color.clear
+                )
+            } else {
+                LineMark(x: .value("Time", date), y: .value("Value", amount))
+                    .foregroundStyle(Color.orange.gradient)
+                AreaMark(x: .value("Time", date), y: .value("Value", amount)).foregroundStyle(
+                    LinearGradient(
+                        gradient: Gradient(
+                            colors: [
+                                Color.orange.opacity(0.8),
+                                Color.orange.opacity(0.01)
+                            ]
+                        ),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+            }
+        }
+    }
 }

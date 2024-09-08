@@ -265,6 +265,8 @@
 		58D08B322C8DF88900AA37D3 /* DummyCharts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D08B312C8DF88900AA37D3 /* DummyCharts.swift */; };
 		58D08B342C8DF9A700AA37D3 /* CobChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D08B332C8DF9A700AA37D3 /* CobChart.swift */; };
 		58D08B362C8DFAC600AA37D3 /* IobChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D08B352C8DFAC600AA37D3 /* IobChart.swift */; };
+		58D08B382C8DFB6000AA37D3 /* BasalChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D08B372C8DFB6000AA37D3 /* BasalChart.swift */; };
+		58D08B3A2C8DFECD00AA37D3 /* TempTargets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D08B392C8DFECD00AA37D3 /* TempTargets.swift */; };
 		58F107742BD1A4D000B1A680 /* Determination+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58F107732BD1A4D000B1A680 /* Determination+helper.swift */; };
 		5A2325522BFCBF55003518CA /* NightscoutUploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A2325512BFCBF55003518CA /* NightscoutUploadView.swift */; };
 		5A2325542BFCBF66003518CA /* NightscoutFetchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A2325532BFCBF65003518CA /* NightscoutFetchView.swift */; };
@@ -917,6 +919,8 @@
 		58D08B312C8DF88900AA37D3 /* DummyCharts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DummyCharts.swift; sourceTree = "<group>"; };
 		58D08B332C8DF9A700AA37D3 /* CobChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CobChart.swift; sourceTree = "<group>"; };
 		58D08B352C8DFAC600AA37D3 /* IobChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobChart.swift; sourceTree = "<group>"; };
+		58D08B372C8DFB6000AA37D3 /* BasalChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BasalChart.swift; sourceTree = "<group>"; };
+		58D08B392C8DFECD00AA37D3 /* TempTargets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargets.swift; sourceTree = "<group>"; };
 		58F107732BD1A4D000B1A680 /* Determination+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Determination+helper.swift"; sourceTree = "<group>"; };
 		5A2325512BFCBF55003518CA /* NightscoutUploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutUploadView.swift; sourceTree = "<group>"; };
 		5A2325532BFCBF65003518CA /* NightscoutFetchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutFetchView.swift; sourceTree = "<group>"; };
@@ -1786,6 +1790,8 @@
 				58D08B312C8DF88900AA37D3 /* DummyCharts.swift */,
 				58D08B332C8DF9A700AA37D3 /* CobChart.swift */,
 				58D08B352C8DFAC600AA37D3 /* IobChart.swift */,
+				58D08B372C8DFB6000AA37D3 /* BasalChart.swift */,
+				58D08B392C8DFECD00AA37D3 /* TempTargets.swift */,
 			);
 			path = Chart;
 			sourceTree = "<group>";
@@ -3302,6 +3308,7 @@
 				DD57C4C62C4C7103001A5B28 /* CarbEntryStored+CoreDataClass.swift in Sources */,
 				DD57C4C72C4C7103001A5B28 /* CarbEntryStored+CoreDataProperties.swift in Sources */,
 				DD57C4C82C4C7103001A5B28 /* OpenAPS_Battery+CoreDataClass.swift in Sources */,
+				58D08B382C8DFB6000AA37D3 /* BasalChart.swift in Sources */,
 				DD57C4C92C4C7103001A5B28 /* OpenAPS_Battery+CoreDataProperties.swift in Sources */,
 				118DF76D2C5ECBC60067FEB7 /* OverridePresetEntity.swift in Sources */,
 				DD57C4CA2C4C7103001A5B28 /* GlucoseStored+CoreDataClass.swift in Sources */,
@@ -3491,6 +3498,7 @@
 				CEE9A65C2BBB41C800EB5194 /* CalibrationService.swift in Sources */,
 				110AEDED2C51A0AE00615CC9 /* ShortcutsConfigProvider.swift in Sources */,
 				38E4453D274E411700EC9A94 /* Disk+Errors.swift in Sources */,
+				58D08B3A2C8DFECD00AA37D3 /* TempTargets.swift in Sources */,
 				38E98A2325F52C9300C0CED0 /* Signpost.swift in Sources */,
 				CE7CA3542A064973004BE681 /* TempPresetsIntentRequest.swift in Sources */,
 				DD6B7CB42C7B71F700B75029 /* ForecastDisplayType.swift in Sources */,

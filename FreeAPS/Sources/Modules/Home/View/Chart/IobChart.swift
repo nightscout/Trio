@@ -36,4 +36,28 @@ extension MainChartView {
             .chartYAxis(.hidden)
         }
     }
+
+    func drawIOB() -> some ChartContent {
+        ForEach(state.enactedAndNonEnactedDeterminations) { iob in
+            let rawAmount = iob.iob?.doubleValue ?? 0
+            let amount: Double = rawAmount > 0 ? rawAmount : rawAmount * 2 // weigh negative iob with factor 2
+            let date: Date = iob.deliverAt ?? Date()
+
+            LineMark(x: .value("Time", date), y: .value("Amount", amount))
+                .foregroundStyle(Color.darkerBlue)
+            AreaMark(x: .value("Time", date), y: .value("Amount", amount))
+                .foregroundStyle(
+                    LinearGradient(
+                        gradient: Gradient(
+                            colors: [
+                                Color.darkerBlue.opacity(0.8),
+                                Color.darkerBlue.opacity(0.01)
+                            ]
+                        ),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+        }
+    }
 }

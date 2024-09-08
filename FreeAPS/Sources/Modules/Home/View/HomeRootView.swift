@@ -338,13 +338,8 @@ extension Home {
                 MainChartView(
                     geo: geo,
                     units: $state.units,
-                    announcement: $state.announcement,
                     hours: .constant(state.filteredHours),
-                    maxBasal: $state.maxBasal,
-                    autotunedBasalProfile: $state.autotunedBasalProfile,
-                    basalProfile: $state.basalProfile,
                     tempTargets: $state.tempTargets,
-                    smooth: $state.smooth,
                     highGlucose: $state.highGlucose,
                     lowGlucose: $state.lowGlucose,
                     screenHours: $state.hours,
