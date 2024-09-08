@@ -59,7 +59,7 @@ struct MainChartView: View {
     @State var maxValueIobChart: Decimal = 5
     @State var mainChartHasInitialized = false
 
-    private let now = Date.now
+    let now = Date.now
 
     private let context = CoreDataStack.shared.persistentContainer.viewContext
 
@@ -80,7 +80,7 @@ struct MainChartView: View {
         }
     }
 
-    private var selectedCOBValue: OrefDetermination? {
+    var selectedCOBValue: OrefDetermination? {
         if let selection = selection {
             let lowerBound = selection.addingTimeInterval(-120)
             let upperBound = selection.addingTimeInterval(120)
@@ -393,44 +393,12 @@ extension MainChartView {
             .chartYAxis(.hidden)
         }
     }
-
-    private var cobChart: some View {
-        Chart {
-            drawCurrentTimeMarker()
-            drawCOB(dummy: false)
-
-            if #available(iOS 17, *) {
-                if let selectedCOBValue {
-                    PointMark(
-                        x: .value("Time", selectedCOBValue.deliverAt ?? now, unit: .minute),
-                        y: .value("Value", selectedCOBValue.cob)
-                    )
-                    .symbolSize(CGSize(width: 15, height: 15))
-                    .foregroundStyle(Color.orange.opacity(0.8))
-
-                    PointMark(
-                        x: .value("Time", selectedCOBValue.deliverAt ?? now, unit: .minute),
-                        y: .value("Value", selectedCOBValue.cob)
-                    )
-                    .symbolSize(CGSize(width: 6, height: 6))
-                    .foregroundStyle(Color.primary)
-                }
-            }
-        }
-        .frame(minHeight: geo.size.height * 0.12)
-        .frame(width: fullWidth(viewWidth: screenSize.width))
-        .chartXScale(domain: startMarker ... endMarker)
-        .backport.chartXSelection(value: $selection)
-        .chartXAxis { basalChartXAxis }
-        .chartYAxis { cobChartYAxis }
-        .chartYScale(domain: minValueCobChart ... maxValueCobChart)
-    }
 }
 
 // MARK: - Calculations
 
 extension MainChartView {
-    private func drawCurrentTimeMarker() -> some ChartContent {
+    func drawCurrentTimeMarker() -> some ChartContent {
         RuleMark(
             x: .value(
                 "",
@@ -637,7 +605,7 @@ extension MainChartView {
         }
     }
 
-    private func fullWidth(viewWidth: CGFloat) -> CGFloat {
+    func fullWidth(viewWidth: CGFloat) -> CGFloat {
         viewWidth * CGFloat(hours) / CGFloat(min(max(screenHours, 2), 24))
     }
 
