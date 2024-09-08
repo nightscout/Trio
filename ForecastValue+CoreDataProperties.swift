@@ -1,14 +1,27 @@
-import CoreData
-import Foundation
+//
+//  ForecastValue+CoreDataProperties.swift
+//  FreeAPS
+//
+//  Created by Cengiz Deniz on 08.09.24.
+//
+//
 
-public extension ForecastValue {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<ForecastValue> {
-        NSFetchRequest<ForecastValue>(entityName: "ForecastValue")
+import Foundation
+import CoreData
+
+
+extension ForecastValue {
+
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<ForecastValue> {
+        return NSFetchRequest<ForecastValue>(entityName: "ForecastValue")
     }
 
-    @NSManaged var index: Int32
-    @NSManaged var value: Int32
-    @NSManaged var forecast: Forecast?
+    @NSManaged public var index: Int32
+    @NSManaged public var value: Int32
+    @NSManaged public var forecast: Forecast?
+
 }
 
-extension ForecastValue: Identifiable {}
+extension ForecastValue : Identifiable {
+
+}

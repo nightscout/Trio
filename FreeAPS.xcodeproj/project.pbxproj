@@ -17,12 +17,12 @@
 		110AEDEC2C51A0AE00615CC9 /* ShortcutsConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AEDE72C51A0AE00615CC9 /* ShortcutsConfigDataFlow.swift */; };
 		110AEDED2C51A0AE00615CC9 /* ShortcutsConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AEDE82C51A0AE00615CC9 /* ShortcutsConfigProvider.swift */; };
 		110AEDEE2C51A0AE00615CC9 /* ShortcutsConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AEDE92C51A0AE00615CC9 /* ShortcutsConfigStateModel.swift */; };
-		17A9D0899046B45E87834820 /* CarbRatioEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C8D5F457B5AFF763F8CF3DF /* CarbRatioEditorProvider.swift */; };
 		118DF76A2C5ECBC60067FEB7 /* ApplyOverridePresetIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118DF7642C5ECBC60067FEB7 /* ApplyOverridePresetIntent.swift */; };
 		118DF76B2C5ECBC60067FEB7 /* CancelOverrideIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118DF7652C5ECBC60067FEB7 /* CancelOverrideIntent.swift */; };
 		118DF76C2C5ECBC60067FEB7 /* ListOverridePresetIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118DF7662C5ECBC60067FEB7 /* ListOverridePresetIntent.swift */; };
 		118DF76D2C5ECBC60067FEB7 /* OverridePresetEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118DF7672C5ECBC60067FEB7 /* OverridePresetEntity.swift */; };
 		118DF76E2C5ECBC60067FEB7 /* OverridePresetsIntentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118DF7682C5ECBC60067FEB7 /* OverridePresetsIntentRequest.swift */; };
+		17A9D0899046B45E87834820 /* CarbRatioEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C8D5F457B5AFF763F8CF3DF /* CarbRatioEditorProvider.swift */; };
 		19012CDC291D2CB900FB8210 /* LoopStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19012CDB291D2CB900FB8210 /* LoopStats.swift */; };
 		190EBCC429FF136900BA767D /* UserInterfaceSettingsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 190EBCC329FF136900BA767D /* UserInterfaceSettingsDataFlow.swift */; };
 		190EBCC629FF138000BA767D /* UserInterfaceSettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 190EBCC529FF138000BA767D /* UserInterfaceSettingsProvider.swift */; };
@@ -452,8 +452,6 @@
 		DD57C4CD2C4C7103001A5B28 /* OverrideStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4AB2C4C7103001A5B28 /* OverrideStored+CoreDataProperties.swift */; };
 		DD57C4CE2C4C7103001A5B28 /* OverrideRunStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4AC2C4C7103001A5B28 /* OverrideRunStored+CoreDataClass.swift */; };
 		DD57C4CF2C4C7103001A5B28 /* OverrideRunStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4AD2C4C7103001A5B28 /* OverrideRunStored+CoreDataProperties.swift */; };
-		DD57C4D02C4C7103001A5B28 /* ImportError+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4AE2C4C7103001A5B28 /* ImportError+CoreDataClass.swift */; };
-		DD57C4D12C4C7103001A5B28 /* ImportError+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4AF2C4C7103001A5B28 /* ImportError+CoreDataProperties.swift */; };
 		DD57C4D22C4C7103001A5B28 /* StatsData+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4B02C4C7103001A5B28 /* StatsData+CoreDataClass.swift */; };
 		DD57C4D32C4C7103001A5B28 /* StatsData+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4B12C4C7103001A5B28 /* StatsData+CoreDataProperties.swift */; };
 		DD68889D2C386E17006E3C44 /* NightscoutExercise.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD68889C2C386E17006E3C44 /* NightscoutExercise.swift */; };
@@ -602,7 +600,6 @@
 		118DF7662C5ECBC60067FEB7 /* ListOverridePresetIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ListOverridePresetIntent.swift; sourceTree = "<group>"; };
 		118DF7672C5ECBC60067FEB7 /* OverridePresetEntity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OverridePresetEntity.swift; sourceTree = "<group>"; };
 		118DF7682C5ECBC60067FEB7 /* OverridePresetsIntentRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OverridePresetsIntentRequest.swift; sourceTree = "<group>"; };
-		12204445D7632AF09264A979 /* PreferencesEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PreferencesEditorDataFlow.swift; sourceTree = "<group>"; };
 		19012CDB291D2CB900FB8210 /* LoopStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopStats.swift; sourceTree = "<group>"; };
 		190EBCC329FF136900BA767D /* UserInterfaceSettingsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInterfaceSettingsDataFlow.swift; sourceTree = "<group>"; };
 		190EBCC529FF138000BA767D /* UserInterfaceSettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInterfaceSettingsProvider.swift; sourceTree = "<group>"; };
@@ -1098,8 +1095,6 @@
 		DD57C4AB2C4C7103001A5B28 /* OverrideStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		DD57C4AC2C4C7103001A5B28 /* OverrideRunStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideRunStored+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		DD57C4AD2C4C7103001A5B28 /* OverrideRunStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideRunStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4AE2C4C7103001A5B28 /* ImportError+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ImportError+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4AF2C4C7103001A5B28 /* ImportError+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ImportError+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		DD57C4B02C4C7103001A5B28 /* StatsData+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StatsData+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		DD57C4B12C4C7103001A5B28 /* StatsData+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StatsData+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		DD68889C2C386E17006E3C44 /* NightscoutExercise.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutExercise.swift; sourceTree = "<group>"; };
@@ -2650,8 +2645,6 @@
 				DD57C4AB2C4C7103001A5B28 /* OverrideStored+CoreDataProperties.swift */,
 				DD57C4AC2C4C7103001A5B28 /* OverrideRunStored+CoreDataClass.swift */,
 				DD57C4AD2C4C7103001A5B28 /* OverrideRunStored+CoreDataProperties.swift */,
-				DD57C4AE2C4C7103001A5B28 /* ImportError+CoreDataClass.swift */,
-				DD57C4AF2C4C7103001A5B28 /* ImportError+CoreDataProperties.swift */,
 				DD57C4B02C4C7103001A5B28 /* StatsData+CoreDataClass.swift */,
 				DD57C4B12C4C7103001A5B28 /* StatsData+CoreDataProperties.swift */,
 			);
@@ -3278,9 +3271,7 @@
 				DD57C4CD2C4C7103001A5B28 /* OverrideStored+CoreDataProperties.swift in Sources */,
 				DD57C4CE2C4C7103001A5B28 /* OverrideRunStored+CoreDataClass.swift in Sources */,
 				DD57C4CF2C4C7103001A5B28 /* OverrideRunStored+CoreDataProperties.swift in Sources */,
-				DD57C4D02C4C7103001A5B28 /* ImportError+CoreDataClass.swift in Sources */,
 				DD17454E2C55CA4D00211FAC /* UnitsLimitsSettingsDataFlow.swift in Sources */,
-				DD57C4D12C4C7103001A5B28 /* ImportError+CoreDataProperties.swift in Sources */,
 				DD57C4D22C4C7103001A5B28 /* StatsData+CoreDataClass.swift in Sources */,
 				DD57C4D32C4C7103001A5B28 /* StatsData+CoreDataProperties.swift in Sources */,
 				DDF847E62C5D66490049BB3B /* AddMealPresetView.swift in Sources */,
