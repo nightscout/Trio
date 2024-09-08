@@ -75,8 +75,8 @@ struct DecimalPickerSettings {
     var autotuneISFAdjustmentFraction = PickerSetting(
         value: 1.0,
         step: 0.05,
-        min: 0.5,
-        max: 2,
+        min: 0,
+        max: 1,
         type: PickerSetting.PickerSettingType.factor
     )
     var remainingCarbsFraction = PickerSetting(
