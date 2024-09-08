@@ -2,10 +2,10 @@ import Foundation
 
 struct Determination: JSON, Equatable {
     let id: UUID?
-    let reason: String
+    var reason: String
     let units: Decimal?
     let insulinReq: Decimal?
-    let eventualBG: Int?
+    var eventualBG: Int?
     let sensitivityRatio: Decimal?
     let rate: Decimal?
     let duration: Decimal?
@@ -15,20 +15,20 @@ struct Determination: JSON, Equatable {
     var deliverAt: Date?
     let carbsReq: Decimal?
     let temp: TempType?
-    let bg: Decimal?
+    var bg: Decimal?
     let reservoir: Decimal?
-    let isf: Decimal?
+    var isf: Decimal?
     var timestamp: Date?
     let tdd: Decimal?
     let insulin: Insulin?
-    let current_target: Decimal?
+    var current_target: Decimal?
     let insulinForManualBolus: Decimal?
     let manualBolusErrorString: Decimal?
-    let minDelta: Decimal?
-    let expectedDelta: Decimal?
-    let minGuardBG: Decimal?
-    let minPredBG: Decimal?
-    let threshold: Decimal?
+    var minDelta: Decimal?
+    var expectedDelta: Decimal?
+    var minGuardBG: Decimal?
+    var minPredBG: Decimal?
+    var threshold: Decimal?
     let carbRatio: Decimal?
     let received: Bool?
 }

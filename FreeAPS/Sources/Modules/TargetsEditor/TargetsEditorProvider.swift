@@ -1,3 +1,5 @@
+import Foundation
+
 extension TargetsEditor {
     final class Provider: BaseProvider, TargetsEditorProvider {
         var profile: BGTargets {
@@ -8,7 +10,12 @@ extension TargetsEditor {
             // migrate existing mmol/L Trio users from mmol/L settings to pure mg/dl settings
             if retrievedTargets.units == .mmolL || retrievedTargets.userPreferredUnits == .mmolL {
                 let convertedTargets = retrievedTargets.targets.map { target in
-                    BGTargetEntry(low: target.low.asMgdL, high: target.high.asMgdL, start: target.start, offset: target.offset)
+                    BGTargetEntry(
+                        low: storage.parseSettingIfMmolL(value: target.low),
+                        high: storage.parseSettingIfMmolL(value: target.high),
+                        start: target.start,
+                        offset: target.offset
+                    )
                 }
                 retrievedTargets = BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: convertedTargets)
                 saveProfile(retrievedTargets)

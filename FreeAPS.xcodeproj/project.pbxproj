@@ -17,12 +17,12 @@
 		110AEDEC2C51A0AE00615CC9 /* ShortcutsConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AEDE72C51A0AE00615CC9 /* ShortcutsConfigDataFlow.swift */; };
 		110AEDED2C51A0AE00615CC9 /* ShortcutsConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AEDE82C51A0AE00615CC9 /* ShortcutsConfigProvider.swift */; };
 		110AEDEE2C51A0AE00615CC9 /* ShortcutsConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AEDE92C51A0AE00615CC9 /* ShortcutsConfigStateModel.swift */; };
+		17A9D0899046B45E87834820 /* CarbRatioEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C8D5F457B5AFF763F8CF3DF /* CarbRatioEditorProvider.swift */; };
 		118DF76A2C5ECBC60067FEB7 /* ApplyOverridePresetIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118DF7642C5ECBC60067FEB7 /* ApplyOverridePresetIntent.swift */; };
 		118DF76B2C5ECBC60067FEB7 /* CancelOverrideIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118DF7652C5ECBC60067FEB7 /* CancelOverrideIntent.swift */; };
 		118DF76C2C5ECBC60067FEB7 /* ListOverridePresetIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118DF7662C5ECBC60067FEB7 /* ListOverridePresetIntent.swift */; };
 		118DF76D2C5ECBC60067FEB7 /* OverridePresetEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118DF7672C5ECBC60067FEB7 /* OverridePresetEntity.swift */; };
 		118DF76E2C5ECBC60067FEB7 /* OverridePresetsIntentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118DF7682C5ECBC60067FEB7 /* OverridePresetsIntentRequest.swift */; };
-		17A9D0899046B45E87834820 /* CarbRatioEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C8D5F457B5AFF763F8CF3DF /* CarbRatioEditorProvider.swift */; };
 		19012CDC291D2CB900FB8210 /* LoopStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19012CDB291D2CB900FB8210 /* LoopStats.swift */; };
 		190EBCC429FF136900BA767D /* UserInterfaceSettingsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 190EBCC329FF136900BA767D /* UserInterfaceSettingsDataFlow.swift */; };
 		190EBCC629FF138000BA767D /* UserInterfaceSettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 190EBCC529FF138000BA767D /* UserInterfaceSettingsProvider.swift */; };
@@ -607,6 +607,7 @@
 		118DF7662C5ECBC60067FEB7 /* ListOverridePresetIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ListOverridePresetIntent.swift; sourceTree = "<group>"; };
 		118DF7672C5ECBC60067FEB7 /* OverridePresetEntity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OverridePresetEntity.swift; sourceTree = "<group>"; };
 		118DF7682C5ECBC60067FEB7 /* OverridePresetsIntentRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OverridePresetsIntentRequest.swift; sourceTree = "<group>"; };
+		12204445D7632AF09264A979 /* PreferencesEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PreferencesEditorDataFlow.swift; sourceTree = "<group>"; };
 		19012CDB291D2CB900FB8210 /* LoopStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopStats.swift; sourceTree = "<group>"; };
 		190EBCC329FF136900BA767D /* UserInterfaceSettingsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInterfaceSettingsDataFlow.swift; sourceTree = "<group>"; };
 		190EBCC529FF138000BA767D /* UserInterfaceSettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInterfaceSettingsProvider.swift; sourceTree = "<group>"; };
@@ -3463,8 +3464,8 @@
 				38FEF413273B317A00574A46 /* HKUnit.swift in Sources */,
 				A33352ED40476125EBAC6EE0 /* CarbRatioEditorDataFlow.swift in Sources */,
 				17A9D0899046B45E87834820 /* CarbRatioEditorProvider.swift in Sources */,
-				118DF76B2C5ECBC60067FEB7 /* CancelOverrideIntent.swift in Sources */,
 				69B9A368029F7EB39F525422 /* CarbRatioEditorStateModel.swift in Sources */,
+				118DF76B2C5ECBC60067FEB7 /* CancelOverrideIntent.swift in Sources */,
 				38E44538274E411700EC9A94 /* Disk+[Data].swift in Sources */,
 				98641AF4F92123DA668AB931 /* CarbRatioEditorRootView.swift in Sources */,
 				BDF34F902C10CF8C00D51995 /* CoreDataStack.swift in Sources */,

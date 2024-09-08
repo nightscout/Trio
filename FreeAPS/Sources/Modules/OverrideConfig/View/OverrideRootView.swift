@@ -51,6 +51,17 @@ extension OverrideConfig {
             return formatter
         }
 
+        private var glucoseFormatter: NumberFormatter {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            formatter.maximumFractionDigits = 0
+            if state.units == .mmolL {
+                formatter.maximumFractionDigits = 1
+            }
+            formatter.roundingMode = .halfUp
+            return formatter
+        }
+
         var body: some View {
             VStack {
                 Picker("Tab", selection: $state.selectedTab) {
@@ -271,7 +282,7 @@ extension OverrideConfig {
                     HStack {
                         Text("Target")
                         Spacer()
-                        TextFieldWithToolBar(text: $state.low, placeholder: "0", numberFormatter: formatter)
+                        TextFieldWithToolBar(text: $state.low, placeholder: "0", numberFormatter: glucoseFormatter)
                         Text(state.units.rawValue).foregroundColor(.secondary)
                     }
                     HStack {

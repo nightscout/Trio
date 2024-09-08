@@ -582,7 +582,7 @@ extension MainChartView {
                 xEnd: .value("End", target.end),
                 y: .value("Value", targetLimited)
             )
-            .foregroundStyle(Color.purple.opacity(0.5)).lineStyle(.init(lineWidth: 8))
+            .foregroundStyle(Color.purple.opacity(0.75)).lineStyle(.init(lineWidth: 8))
         }
     }
 
@@ -596,9 +596,9 @@ extension MainChartView {
             RuleMark(
                 xStart: .value("Start", start, unit: .second),
                 xEnd: .value("End", end, unit: .second),
-                y: .value("Value", target)
+                y: .value("Value", units == .mgdL ? target : target.asMmolL)
             )
-            .foregroundStyle(Color.purple.opacity(0.6))
+            .foregroundStyle(Color.purple.opacity(0.4))
             .lineStyle(.init(lineWidth: 8))
 //            .annotation(position: .overlay, spacing: 0) {
 //                if let name = override.name {
@@ -616,9 +616,9 @@ extension MainChartView {
             RuleMark(
                 xStart: .value("Start", start, unit: .second),
                 xEnd: .value("End", end, unit: .second),
-                y: .value("Value", target)
+                y: .value("Value", units == .mgdL ? target : target.asMmolL)
             )
-            .foregroundStyle(Color.purple.opacity(0.4))
+            .foregroundStyle(Color.purple.opacity(0.25))
             .lineStyle(.init(lineWidth: 8))
 //            .annotation(position: .bottom, spacing: 0) {
 //                if let name = overrideRunStored.override?.name {

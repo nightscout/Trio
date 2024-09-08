@@ -1,9 +1,9 @@
 import Foundation
 
 struct InsulinSensitivities: JSON {
-    let units: GlucoseUnits
-    let userPreferredUnits: GlucoseUnits
-    let sensitivities: [InsulinSensitivityEntry]
+    var units: GlucoseUnits
+    var userPreferredUnits: GlucoseUnits
+    var sensitivities: [InsulinSensitivityEntry]
 }
 
 extension InsulinSensitivities {

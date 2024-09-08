@@ -1,8 +1,8 @@
 import Foundation
 
 struct BGTargets: JSON {
-    let units: GlucoseUnits
-    let userPreferredUnits: GlucoseUnits
+    var units: GlucoseUnits
+    var userPreferredUnits: GlucoseUnits
     var targets: [BGTargetEntry]
 }
 
