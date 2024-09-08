@@ -330,7 +330,7 @@ struct LiveActivity: Widget {
                 plotContent
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.cyan.opacity(0.15))
+                            .fill(Color.clear)
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             }
@@ -419,7 +419,7 @@ struct LiveActivity: Widget {
             // The colorScheme environment varaible that is usually used to detect dark mode does NOT work here (it reports false values)
             .foregroundStyle(Color.primary)
             .background(BackgroundStyle.background.opacity(0.4))
-            .activityBackgroundTint(Color.clear)
+            .activityBackgroundTint(Color.black.opacity(0.4))
         }
     }
 
