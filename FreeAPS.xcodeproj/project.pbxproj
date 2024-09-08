@@ -17,12 +17,12 @@
 		110AEDEC2C51A0AE00615CC9 /* ShortcutsConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AEDE72C51A0AE00615CC9 /* ShortcutsConfigDataFlow.swift */; };
 		110AEDED2C51A0AE00615CC9 /* ShortcutsConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AEDE82C51A0AE00615CC9 /* ShortcutsConfigProvider.swift */; };
 		110AEDEE2C51A0AE00615CC9 /* ShortcutsConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AEDE92C51A0AE00615CC9 /* ShortcutsConfigStateModel.swift */; };
-		17A9D0899046B45E87834820 /* CarbRatioEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C8D5F457B5AFF763F8CF3DF /* CarbRatioEditorProvider.swift */; };
 		118DF76A2C5ECBC60067FEB7 /* ApplyOverridePresetIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118DF7642C5ECBC60067FEB7 /* ApplyOverridePresetIntent.swift */; };
 		118DF76B2C5ECBC60067FEB7 /* CancelOverrideIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118DF7652C5ECBC60067FEB7 /* CancelOverrideIntent.swift */; };
 		118DF76C2C5ECBC60067FEB7 /* ListOverridePresetIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118DF7662C5ECBC60067FEB7 /* ListOverridePresetIntent.swift */; };
 		118DF76D2C5ECBC60067FEB7 /* OverridePresetEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118DF7672C5ECBC60067FEB7 /* OverridePresetEntity.swift */; };
 		118DF76E2C5ECBC60067FEB7 /* OverridePresetsIntentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118DF7682C5ECBC60067FEB7 /* OverridePresetsIntentRequest.swift */; };
+		17A9D0899046B45E87834820 /* CarbRatioEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C8D5F457B5AFF763F8CF3DF /* CarbRatioEditorProvider.swift */; };
 		19012CDC291D2CB900FB8210 /* LoopStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19012CDB291D2CB900FB8210 /* LoopStats.swift */; };
 		190EBCC429FF136900BA767D /* UserInterfaceSettingsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 190EBCC329FF136900BA767D /* UserInterfaceSettingsDataFlow.swift */; };
 		190EBCC629FF138000BA767D /* UserInterfaceSettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 190EBCC529FF138000BA767D /* UserInterfaceSettingsProvider.swift */; };
@@ -260,6 +260,7 @@
 		587DA1F62B77F3DD00B28F8A /* SettingsRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 587DA1F52B77F3DD00B28F8A /* SettingsRowView.swift */; };
 		5887527C2BD986E1008B081D /* OpenAPSBattery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5887527B2BD986E1008B081D /* OpenAPSBattery.swift */; };
 		58CE8B892C8C6B62007A6A10 /* GradientStops.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58CE8B882C8C6B62007A6A10 /* GradientStops.swift */; };
+		58D08B222C8DAA8E00AA37D3 /* OverrideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D08B212C8DAA8E00AA37D3 /* OverrideView.swift */; };
 		58F107742BD1A4D000B1A680 /* Determination+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58F107732BD1A4D000B1A680 /* Determination+helper.swift */; };
 		5A2325522BFCBF55003518CA /* NightscoutUploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A2325512BFCBF55003518CA /* NightscoutUploadView.swift */; };
 		5A2325542BFCBF66003518CA /* NightscoutFetchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A2325532BFCBF65003518CA /* NightscoutFetchView.swift */; };
@@ -607,7 +608,6 @@
 		118DF7662C5ECBC60067FEB7 /* ListOverridePresetIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ListOverridePresetIntent.swift; sourceTree = "<group>"; };
 		118DF7672C5ECBC60067FEB7 /* OverridePresetEntity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OverridePresetEntity.swift; sourceTree = "<group>"; };
 		118DF7682C5ECBC60067FEB7 /* OverridePresetsIntentRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OverridePresetsIntentRequest.swift; sourceTree = "<group>"; };
-		12204445D7632AF09264A979 /* PreferencesEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PreferencesEditorDataFlow.swift; sourceTree = "<group>"; };
 		19012CDB291D2CB900FB8210 /* LoopStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopStats.swift; sourceTree = "<group>"; };
 		190EBCC329FF136900BA767D /* UserInterfaceSettingsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInterfaceSettingsDataFlow.swift; sourceTree = "<group>"; };
 		190EBCC529FF138000BA767D /* UserInterfaceSettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInterfaceSettingsProvider.swift; sourceTree = "<group>"; };
@@ -908,6 +908,7 @@
 		587DA1F52B77F3DD00B28F8A /* SettingsRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRowView.swift; sourceTree = "<group>"; };
 		5887527B2BD986E1008B081D /* OpenAPSBattery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAPSBattery.swift; sourceTree = "<group>"; };
 		58CE8B882C8C6B62007A6A10 /* GradientStops.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientStops.swift; sourceTree = "<group>"; };
+		58D08B212C8DAA8E00AA37D3 /* OverrideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideView.swift; sourceTree = "<group>"; };
 		58F107732BD1A4D000B1A680 /* Determination+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Determination+helper.swift"; sourceTree = "<group>"; };
 		5A2325512BFCBF55003518CA /* NightscoutUploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutUploadView.swift; sourceTree = "<group>"; };
 		5A2325532BFCBF65003518CA /* NightscoutFetchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutFetchView.swift; sourceTree = "<group>"; };
@@ -1772,6 +1773,7 @@
 				582DF9742C8CDB92001F516D /* GlucoseChartView.swift */,
 				582DF9762C8CDBE7001F516D /* InsulinView.swift */,
 				582DF97A2C8CE209001F516D /* CarbView.swift */,
+				58D08B212C8DAA8E00AA37D3 /* OverrideView.swift */,
 			);
 			path = Chart;
 			sourceTree = "<group>";
@@ -3274,6 +3276,7 @@
 				DD57C4BD2C4C7103001A5B28 /* PumpEventStored+CoreDataProperties.swift in Sources */,
 				DD57C4BE2C4C7103001A5B28 /* TempBasalStored+CoreDataClass.swift in Sources */,
 				DD57C4BF2C4C7103001A5B28 /* TempBasalStored+CoreDataProperties.swift in Sources */,
+				58D08B222C8DAA8E00AA37D3 /* OverrideView.swift in Sources */,
 				BD0B2EF32C5998E600B3298F /* MealPresetView.swift in Sources */,
 				DD57C4C02C4C7103001A5B28 /* TempTargetsSlider+CoreDataClass.swift in Sources */,
 				DD57C4C12C4C7103001A5B28 /* TempTargetsSlider+CoreDataProperties.swift in Sources */,

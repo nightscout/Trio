@@ -219,8 +219,6 @@ extension MainChartView {
                 drawEndRuleMark()
                 drawCurrentTimeMarker()
                 drawTempTargets()
-                drawActiveOverrides()
-                drawOverrideRunStored()
 
                 GlucoseChartView(
                     glucoseData: state.glucoseFromPersistence,
@@ -246,7 +244,12 @@ extension MainChartView {
                     minValue: minValue
                 )
 
-                drawManualGlucose()
+                OverrideView(
+                    overrides: state.overrides,
+                    overrideRunStored: state.overrideRunStored,
+                    units: state.units,
+                    viewContext: context
+                )
 
                 if state.forecastDisplayType == .lines {
                     drawForecastsLines()
@@ -583,63 +586,6 @@ extension MainChartView {
                 y: .value("Value", targetLimited)
             )
             .foregroundStyle(Color.purple.opacity(0.75)).lineStyle(.init(lineWidth: 8))
-        }
-    }
-
-    private func drawActiveOverrides() -> some ChartContent {
-        ForEach(state.overrides) { override in
-            let start: Date = override.date ?? .distantPast
-            let duration = state.calculateDuration(override: override)
-            let end: Date = start.addingTimeInterval(duration)
-            let target = state.calculateTarget(override: override)
-
-            RuleMark(
-                xStart: .value("Start", start, unit: .second),
-                xEnd: .value("End", end, unit: .second),
-                y: .value("Value", units == .mgdL ? target : target.asMmolL)
-            )
-            .foregroundStyle(Color.purple.opacity(0.4))
-            .lineStyle(.init(lineWidth: 8))
-//            .annotation(position: .overlay, spacing: 0) {
-//                if let name = override.name {
-//                    Text("\(name)").foregroundStyle(.secondary).font(.footnote)
-//                }
-//            }
-        }
-    }
-
-    private func drawOverrideRunStored() -> some ChartContent {
-        ForEach(state.overrideRunStored) { overrideRunStored in
-            let start: Date = overrideRunStored.startDate ?? .distantPast
-            let end: Date = overrideRunStored.endDate ?? Date()
-            let target = overrideRunStored.target?.decimalValue ?? 100
-            RuleMark(
-                xStart: .value("Start", start, unit: .second),
-                xEnd: .value("End", end, unit: .second),
-                y: .value("Value", units == .mgdL ? target : target.asMmolL)
-            )
-            .foregroundStyle(Color.purple.opacity(0.25))
-            .lineStyle(.init(lineWidth: 8))
-//            .annotation(position: .bottom, spacing: 0) {
-//                if let name = overrideRunStored.override?.name {
-//                    Text("\(name)").foregroundStyle(.secondary).font(.footnote)
-//                }
-//            }
-        }
-    }
-
-    private func drawManualGlucose() -> some ChartContent {
-        /// manual glucose mark
-        ForEach(state.manualGlucoseFromPersistence) { item in
-            let manualGlucose = units == .mgdL ? Decimal(item.glucose) : Decimal(item.glucose).asMmolL
-            PointMark(
-                x: .value("Time", item.date ?? Date(), unit: .second),
-                y: .value("Value", manualGlucose)
-            )
-            .symbol {
-                Image(systemName: "drop.fill").font(.system(size: 10)).symbolRenderingMode(.monochrome)
-                    .foregroundStyle(.red)
-            }
         }
     }
 

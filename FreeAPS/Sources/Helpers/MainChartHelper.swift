@@ -1,7 +1,10 @@
+import CoreData
 import Foundation
 
 enum MainChartHelper {
-    /// calculates the glucose value thats the nearest to parameter 'time'
+    // Calculates the glucose value thats the nearest to parameter 'time'
+    /// -Returns: A NSManagedObject of GlucoseStored
+    /// it is thread safe as everything is executed on the main thread
     static func timeToNearestGlucose(glucoseValues: [GlucoseStored], time: TimeInterval) -> GlucoseStored? {
         guard !glucoseValues.isEmpty else {
             return nil
@@ -61,5 +64,35 @@ enum MainChartHelper {
 
     static func bolusOffset(units: GlucoseUnits) -> Decimal {
         units == .mgdL ? 30 : 1.66
+    }
+
+    static func calculateDuration(objectID: NSManagedObjectID, context: NSManagedObjectContext) -> TimeInterval? {
+        do {
+            if let override = try context.existingObject(with: objectID) as? OverrideStored,
+               let overrideDuration = override.duration as? Double, overrideDuration != 0
+            {
+                return TimeInterval(overrideDuration * 60) // return seconds
+            }
+        } catch {
+            debugPrint(
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to calculate Override Target with error: \(error.localizedDescription)"
+            )
+        }
+        return nil
+    }
+
+    static func calculateTarget(objectID: NSManagedObjectID, context: NSManagedObjectContext) -> Decimal? {
+        do {
+            if let override = try context.existingObject(with: objectID) as? OverrideStored,
+               let overrideTarget = override.target, overrideTarget != 0
+            {
+                return overrideTarget.decimalValue
+            }
+        } catch {
+            debugPrint(
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to calculate Override Target with error: \(error.localizedDescription)"
+            )
+        }
+        return nil
     }
 }
