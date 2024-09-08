@@ -47,17 +47,17 @@ struct MainChartView: View {
     @State private var basalProfiles: [BasalProfile] = []
     @State private var chartTempTargets: [ChartTempTarget] = []
     @State private var count: Decimal = 1
-    @State private var startMarker =
+    @State var startMarker =
         Date(timeIntervalSinceNow: TimeInterval(hours: -24))
-    @State private var endMarker = Date(timeIntervalSinceNow: TimeInterval(hours: 3))
-    @State private var minValue: Decimal = 45
-    @State private var maxValue: Decimal = 270
-    @State private var selection: Date? = nil
-    @State private var minValueCobChart: Decimal = 0
-    @State private var maxValueCobChart: Decimal = 20
-    @State private var minValueIobChart: Decimal = 0
-    @State private var maxValueIobChart: Decimal = 5
-    @State private var mainChartHasInitialized = false
+    @State var endMarker = Date(timeIntervalSinceNow: TimeInterval(hours: 3))
+    @State var minValue: Decimal = 45
+    @State var maxValue: Decimal = 270
+    @State var selection: Date? = nil
+    @State var minValueCobChart: Decimal = 0
+    @State var maxValueCobChart: Decimal = 20
+    @State var minValueIobChart: Decimal = 0
+    @State var maxValueIobChart: Decimal = 5
+    @State var mainChartHasInitialized = false
 
     private let now = Date.now
 
@@ -163,55 +163,6 @@ struct MainChartView: View {
 // MARK: - Components
 
 extension MainChartView {
-    /// empty chart that just shows the Y axis and Y grid lines. Created separately from `mainChart` to allow main chart to scroll horizontally while having a fixed Y axis
-    private var staticYAxisChart: some View {
-        Chart {
-            /// high and low threshold lines
-            if thresholdLines {
-                RuleMark(y: .value("High", highGlucose)).foregroundStyle(Color.loopYellow)
-                    .lineStyle(.init(lineWidth: 1, dash: [5]))
-                RuleMark(y: .value("Low", lowGlucose)).foregroundStyle(Color.loopRed)
-                    .lineStyle(.init(lineWidth: 1, dash: [5]))
-            }
-        }
-        .id("DummyMainChart")
-        .frame(minHeight: geo.size.height * 0.28)
-        .frame(width: screenSize.width - 10)
-        .chartXAxis { mainChartXAxis }
-        .chartXScale(domain: startMarker ... endMarker)
-        .chartXAxis(.hidden)
-        .chartYAxis { mainChartYAxis }
-        .chartYScale(domain: units == .mgdL ? minValue ... maxValue : minValue.asMmolL ... maxValue.asMmolL)
-        .chartLegend(.hidden)
-    }
-
-    private var dummyBasalChart: some View {
-        Chart {}
-            .id("DummyBasalChart")
-            .frame(minHeight: geo.size.height * 0.05)
-            .frame(width: screenSize.width - 10)
-            .chartXAxis { basalChartXAxis }
-            .chartXAxis(.hidden)
-            .chartYAxis(.hidden)
-            .chartLegend(.hidden)
-    }
-
-    private var dummyCobChart: some View {
-        Chart {
-            drawCOB(dummy: true)
-        }
-        .id("DummyCobChart")
-        .frame(minHeight: geo.size.height * 0.12)
-        .frame(width: screenSize.width - 10)
-        .chartXScale(domain: startMarker ... endMarker)
-        .chartXAxis { basalChartXAxis }
-        .chartXAxis(.hidden)
-        .chartYAxis { cobChartYAxis }
-        .chartYAxis(.hidden)
-        .chartYScale(domain: minValueCobChart ... maxValueCobChart)
-        .chartLegend(.hidden)
-    }
-
     private var mainChart: some View {
         VStack {
             Chart {
@@ -577,7 +528,7 @@ extension MainChartView {
         }
     }
 
-    private func drawCOB(dummy: Bool) -> some ChartContent {
+    func drawCOB(dummy: Bool) -> some ChartContent {
         ForEach(state.enactedAndNonEnactedDeterminations) { cob in
             let amount = Int(cob.cob)
             let date: Date = cob.deliverAt ?? Date()
@@ -918,13 +869,13 @@ extension MainChartView {
         maxValueIobChart = maxValue
     }
 
-    private func basalChartPlotStyle(_ plotContent: ChartPlotContent) -> some View {
+    func basalChartPlotStyle(_ plotContent: ChartPlotContent) -> some View {
         plotContent
             .rotationEffect(.degrees(180))
             .scaleEffect(x: -1, y: 1)
     }
 
-    private var mainChartXAxis: some AxisContent {
+    var mainChartXAxis: some AxisContent {
         AxisMarks(values: .stride(by: .hour, count: screenHours > 6 ? (screenHours > 12 ? 4 : 2) : 1)) { _ in
             if displayXgridLines {
                 AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
@@ -934,7 +885,7 @@ extension MainChartView {
         }
     }
 
-    private var basalChartXAxis: some AxisContent {
+    var basalChartXAxis: some AxisContent {
         AxisMarks(values: .stride(by: .hour, count: screenHours > 6 ? (screenHours > 12 ? 4 : 2) : 1)) { _ in
             if displayXgridLines {
                 AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
@@ -946,7 +897,7 @@ extension MainChartView {
         }
     }
 
-    private var mainChartYAxis: some AxisContent {
+    var mainChartYAxis: some AxisContent {
         AxisMarks(position: .trailing) { value in
 
             if displayYgridLines {
@@ -965,7 +916,7 @@ extension MainChartView {
         }
     }
 
-    private var cobChartYAxis: some AxisContent {
+    var cobChartYAxis: some AxisContent {
         AxisMarks(position: .trailing) { _ in
             if displayYgridLines {
                 AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))

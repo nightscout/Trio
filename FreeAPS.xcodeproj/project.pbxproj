@@ -262,6 +262,7 @@
 		58CE8B892C8C6B62007A6A10 /* GradientStops.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58CE8B882C8C6B62007A6A10 /* GradientStops.swift */; };
 		58D08B222C8DAA8E00AA37D3 /* OverrideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D08B212C8DAA8E00AA37D3 /* OverrideView.swift */; };
 		58D08B302C8DEA7500AA37D3 /* ForecastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D08B2F2C8DEA7500AA37D3 /* ForecastView.swift */; };
+		58D08B322C8DF88900AA37D3 /* DummyCharts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D08B312C8DF88900AA37D3 /* DummyCharts.swift */; };
 		58F107742BD1A4D000B1A680 /* Determination+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58F107732BD1A4D000B1A680 /* Determination+helper.swift */; };
 		5A2325522BFCBF55003518CA /* NightscoutUploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A2325512BFCBF55003518CA /* NightscoutUploadView.swift */; };
 		5A2325542BFCBF66003518CA /* NightscoutFetchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A2325532BFCBF65003518CA /* NightscoutFetchView.swift */; };
@@ -911,6 +912,7 @@
 		58CE8B882C8C6B62007A6A10 /* GradientStops.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientStops.swift; sourceTree = "<group>"; };
 		58D08B212C8DAA8E00AA37D3 /* OverrideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideView.swift; sourceTree = "<group>"; };
 		58D08B2F2C8DEA7500AA37D3 /* ForecastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastView.swift; sourceTree = "<group>"; };
+		58D08B312C8DF88900AA37D3 /* DummyCharts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DummyCharts.swift; sourceTree = "<group>"; };
 		58F107732BD1A4D000B1A680 /* Determination+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Determination+helper.swift"; sourceTree = "<group>"; };
 		5A2325512BFCBF55003518CA /* NightscoutUploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutUploadView.swift; sourceTree = "<group>"; };
 		5A2325532BFCBF65003518CA /* NightscoutFetchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutFetchView.swift; sourceTree = "<group>"; };
@@ -1777,6 +1779,7 @@
 				582DF97A2C8CE209001F516D /* CarbView.swift */,
 				58D08B212C8DAA8E00AA37D3 /* OverrideView.swift */,
 				58D08B2F2C8DEA7500AA37D3 /* ForecastView.swift */,
+				58D08B312C8DF88900AA37D3 /* DummyCharts.swift */,
 			);
 			path = Chart;
 			sourceTree = "<group>";
@@ -3156,6 +3159,7 @@
 				CEA4F62329BE10F70011ADF7 /* SavitzkyGolayFilter.swift in Sources */,
 				38B4F3C325E2A20B00E76A18 /* PumpSetupView.swift in Sources */,
 				38E4453C274E411700EC9A94 /* Disk+Codable.swift in Sources */,
+				58D08B322C8DF88900AA37D3 /* DummyCharts.swift in Sources */,
 				19E1F7EF29D08EBA005C8D20 /* IconConfigRootWiew.swift in Sources */,
 				1967DFC229D053D300759F30 /* IconImage.swift in Sources */,
 				382C134B25F14E3700715CE1 /* BGTargets.swift in Sources */,
