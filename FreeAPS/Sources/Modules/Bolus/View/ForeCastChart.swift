@@ -7,6 +7,7 @@ struct ForeCastChart: View {
     @StateObject var state: Bolus.StateModel
     @Environment(\.colorScheme) var colorScheme
     @Binding var units: GlucoseUnits
+    var stops: [Gradient.Stop]
 
     @State private var startMarker = Date(timeIntervalSinceNow: -4 * 60 * 60)
 
@@ -35,6 +36,42 @@ struct ForeCastChart: View {
 
     var body: some View {
         VStack {
+            HStack {
+                HStack {
+                    Text("Added carbs: ")
+                        .font(.footnote)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.orange)
+
+                    Text("\(state.carbs.description) g")
+                        .font(.footnote)
+                        .foregroundStyle(.orange)
+                }
+                .padding(8)
+                .background {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.orange.opacity(0.2))
+                }
+
+                Spacer()
+
+                HStack {
+                    Text("Added insulin: ")
+                        .font(.footnote)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.blue)
+
+                    Text("\(state.amount.description) U")
+                        .font(.footnote)
+                        .foregroundStyle(.blue)
+                }
+                .padding(8)
+                .background {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.blue.opacity(0.2))
+                }
+            }
+
             forecastChart
                 .padding(.vertical, 3)
             HStack {
@@ -81,39 +118,6 @@ struct ForeCastChart: View {
         .chartYAxis { forecastChartYAxis }
         .chartYScale(domain: units == .mgdL ? 0 ... 300 : 0.asMmolL ... 300.asMmolL)
         .backport.chartForegroundStyleScale(state: state)
-    }
-
-    private var stops: [Gradient.Stop] {
-        let low = Double(state.lowGlucose)
-        let high = Double(state.highGlucose)
-
-        let glucoseValues = state.glucoseFromPersistence
-            .map { units == .mgdL ? Decimal($0.glucose) : Decimal($0.glucose).asMmolL }
-
-        let minimum = glucoseValues.min() ?? 0.0
-        let maximum = glucoseValues.max() ?? 0.0
-
-        // Calculate positions for gradient
-        let lowPosition = (low - Double(truncating: minimum as NSNumber)) /
-            (Double(truncating: maximum as NSNumber) - Double(truncating: minimum as NSNumber))
-        let highPosition = (high - Double(truncating: minimum as NSNumber)) /
-            (Double(truncating: maximum as NSNumber) - Double(truncating: minimum as NSNumber))
-
-        // Ensure positions are in bounds [0, 1]
-        let clampedLowPosition = max(0.0, min(lowPosition, 1.0))
-        let clampedHighPosition = max(0.0, min(highPosition, 1.0))
-
-        // Ensure lowPosition is less than highPosition
-        let sortedPositions = [clampedLowPosition, clampedHighPosition].sorted()
-
-        return [
-            Gradient.Stop(color: .red, location: 0.0),
-            Gradient.Stop(color: .red, location: sortedPositions[0]), // draw red gradient till lowGlucose
-            Gradient.Stop(color: .green, location: sortedPositions[0] + 0.0001), // draw green above lowGlucose till highGlucose
-            Gradient.Stop(color: .green, location: sortedPositions[1]),
-            Gradient.Stop(color: .orange, location: sortedPositions[1] + 0.0001), // draw orange above highGlucose
-            Gradient.Stop(color: .orange, location: 1.0)
-        ]
     }
 
     private func drawGlucose() -> some ChartContent {

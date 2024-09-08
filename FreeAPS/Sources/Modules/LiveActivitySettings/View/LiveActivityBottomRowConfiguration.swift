@@ -13,6 +13,7 @@ struct LiveActivityBottomRowConfiguration: BaseView {
     @State private var showAddItemDialog: Bool = false
     @State private var isEditMode: Bool = false
     @State private var draggingItem: LiveActivityItem?
+    @State private var showDeleteAlert: Bool = false
 
     @Environment(\.colorScheme) var colorScheme
 
@@ -130,11 +131,16 @@ struct LiveActivityBottomRowConfiguration: BaseView {
                                             )
                                         )
                                         .disabled(!isEditMode)
-                                    // TODO: fix the jiggle modifier to make use of animation
-//                                        .jiggle(amount: 2, isEnabled: showItemDeleteButtons)
+                                        .rotationEffect(.degrees(isEditMode ? 2.5 : 0))
+                                        .rotation3DEffect(.degrees(isEditMode ? 2.5 : 0), axis: (x: 0, y: -5, z: 0))
+                                        .animation(
+                                            isEditMode ? Animation.easeInOut(duration: 0.15)
+                                                .repeatForever(autoreverses: true) : .default,
+                                            value: isEditMode
+                                        )
                                     if isEditMode {
                                         Button(action: {
-                                            removeItem(item)
+                                            showDeleteAlert = true
                                         }) {
                                             Image(systemName: "minus.circle.fill")
                                                 .foregroundColor(Color(UIColor.systemGray2)) // Opaque foreground color
@@ -143,6 +149,16 @@ struct LiveActivityBottomRowConfiguration: BaseView {
                                                 .font(.system(size: 20))
                                         }
                                         .offset(x: -45, y: -10)
+                                        .alert(isPresented: $showDeleteAlert) {
+                                            Alert(
+                                                title: Text("Delete Widget"),
+                                                message: Text("Are you sure you want to delete this widget?"),
+                                                primaryButton: .destructive(Text("Delete")) {
+                                                    removeItem(item)
+                                                },
+                                                secondaryButton: .cancel()
+                                            )
+                                        }
                                     }
                                 }
                                 .animation(.easeInOut, value: draggingItem)
@@ -304,10 +320,12 @@ struct LiveActivityBottomRowConfiguration: BaseView {
             selectedItems = LiveActivityItem.defaultItems
             saveOrder()
         }
+        print("Loaded order: \(selectedItems.map(\.rawValue))")
         updateVisibilityForSelectedItems()
     }
 
     private func saveOrder() {
+        print("Saving order: \(selectedItems.map(\.rawValue))")
         UserDefaults.standard.saveLiveActivityOrder(selectedItems)
     }
 
@@ -346,14 +364,6 @@ struct LiveActivityBottomRowConfiguration: BaseView {
             setItemVisibility(item: item, isVisible: false)
         }
     }
-
-    @ViewBuilder func jiggle(amount: Double = 2, isEnabled: Bool = true) -> some View {
-        if isEnabled {
-            modifier(JiggleViewModifier(amount: amount))
-        } else {
-            self
-        }
-    }
 }
 
 struct DropViewDelegate: DropDelegate {
@@ -371,12 +381,22 @@ struct DropViewDelegate: DropDelegate {
             withAnimation {
                 items.move(fromOffsets: IndexSet(integer: fromIndex), toOffset: toIndex > fromIndex ? toIndex + 1 : toIndex)
             }
+
+            // Save to User Defaults
+            saveOrder()
+
+            // Trigger Live Activity Update
+            Foundation.NotificationCenter.default.post(name: .liveActivityOrderDidChange, object: nil)
         }
     }
 
     func performDrop(info _: DropInfo) -> Bool {
         draggingItem = nil
         return true
+    }
+
+    private func saveOrder() {
+        UserDefaults.standard.saveLiveActivityOrder(items)
     }
 }
 
@@ -446,32 +466,4 @@ struct DummyChartGroupBoxStyle: GroupBoxStyle {
 
 extension GroupBoxStyle where Self == DummyChartGroupBoxStyle {
     static var dummyChart: DummyChartGroupBoxStyle { .init() }
-}
-
-struct JiggleViewModifier: ViewModifier {
-    let amount: Double
-
-    @State private var isJiggling = false
-
-    func body(content: Content) -> some View {
-        content
-            .rotationEffect(.degrees(isJiggling ? amount : 0))
-            .animation(
-                .easeInOut(duration: randomize(interval: 0.14, withVariance: 0.025))
-                    .repeatForever(autoreverses: true),
-                value: isJiggling
-            )
-            .animation(
-                .easeInOut(duration: randomize(interval: 0.18, withVariance: 0.025))
-                    .repeatForever(autoreverses: true),
-                value: isJiggling
-            )
-            .onAppear {
-                isJiggling.toggle()
-            }
-    }
-
-    private func randomize(interval: TimeInterval, withVariance variance: Double) -> TimeInterval {
-        interval + variance * (Double.random(in: 500 ... 1000) / 500)
-    }
 }

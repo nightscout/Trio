@@ -497,7 +497,6 @@
 		F90692D3274B9A130037068D /* AppleHealthKitRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90692D2274B9A130037068D /* AppleHealthKitRootView.swift */; };
 		F90692D6274B9A450037068D /* HealthKitStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90692D5274B9A450037068D /* HealthKitStateModel.swift */; };
 		FA630397F76B582C8D8681A7 /* BasalProfileEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42369F66CF91F30624C0B3A6 /* BasalProfileEditorProvider.swift */; };
-		FE41E4D429463C660047FD55 /* NightscoutStatistics.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE41E4D329463C660047FD55 /* NightscoutStatistics.swift */; };
 		FE41E4D629463EE20047FD55 /* NightscoutPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE41E4D529463EE20047FD55 /* NightscoutPreferences.swift */; };
 		FE66D16B291F74F8005D6F77 /* Bundle+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE66D16A291F74F8005D6F77 /* Bundle+Extensions.swift */; };
 		FEFFA7A22929FE49007B8193 /* UIDevice+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEFFA7A12929FE49007B8193 /* UIDevice+Extensions.swift */; };
@@ -1135,7 +1134,6 @@
 		F90692D2274B9A130037068D /* AppleHealthKitRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleHealthKitRootView.swift; sourceTree = "<group>"; };
 		F90692D5274B9A450037068D /* HealthKitStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitStateModel.swift; sourceTree = "<group>"; };
 		FBB3BAE7494CB771ABAC7B8B /* ISFEditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ISFEditorRootView.swift; sourceTree = "<group>"; };
-		FE41E4D329463C660047FD55 /* NightscoutStatistics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutStatistics.swift; sourceTree = "<group>"; };
 		FE41E4D529463EE20047FD55 /* NightscoutPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutPreferences.swift; sourceTree = "<group>"; };
 		FE66D16A291F74F8005D6F77 /* Bundle+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bundle+Extensions.swift"; sourceTree = "<group>"; };
 		FEFFA7A12929FE49007B8193 /* UIDevice+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIDevice+Extensions.swift"; sourceTree = "<group>"; };
@@ -1877,7 +1875,6 @@
 				CE82E02628E869DF00473A9C /* AlertEntry.swift */,
 				19B0EF2028F6D66200069496 /* Statistics.swift */,
 				19012CDB291D2CB900FB8210 /* LoopStats.swift */,
-				FE41E4D329463C660047FD55 /* NightscoutStatistics.swift */,
 				FE41E4D529463EE20047FD55 /* NightscoutPreferences.swift */,
 				191F62672AD6B05A004D7911 /* NightscoutSettings.swift */,
 				1967DFBD29D052C200759F30 /* Icons.swift */,
@@ -3479,7 +3476,6 @@
 				F90692D6274B9A450037068D /* HealthKitStateModel.swift in Sources */,
 				BD1661312B82ADAB00256551 /* CustomProgressView.swift in Sources */,
 				C967DACD3B1E638F8B43BE06 /* ManualTempBasalStateModel.swift in Sources */,
-				FE41E4D429463C660047FD55 /* NightscoutStatistics.swift in Sources */,
 				38E4453B274E411700EC9A94 /* Disk+VolumeInformation.swift in Sources */,
 				7BCFACB97C821041BA43A114 /* ManualTempBasalRootView.swift in Sources */,
 				38E44534274E411700EC9A94 /* Disk+InternalHelpers.swift in Sources */,

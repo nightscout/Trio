@@ -110,6 +110,7 @@ extension Bolus {
         @Published var minCount: Int = 12 // count of Forecasts drawn in 5 min distances, i.e. 12 means a min of 1 hour
         @Published var forecastDisplayType: ForecastDisplayType = .cone
         @Published var smooth: Bool = false
+        @Published var stops: [Gradient.Stop] = []
 
         let now = Date.now
 
@@ -438,6 +439,54 @@ extension Bolus {
             }
         }
 
+        private func calculateGradientStops() async -> [Gradient.Stop] {
+            let low = Double(lowGlucose)
+            let high = Double(highGlucose)
+
+            let glucoseValues = glucoseFromPersistence
+                .map { units == .mgdL ? Decimal($0.glucose) : Decimal($0.glucose).asMmolL }
+
+            let minimum = glucoseValues.min() ?? 0.0
+            let maximum = glucoseValues.max() ?? 0.0
+
+            // Handle edge case where minimum and maximum are equal
+            guard minimum != maximum else {
+                return [
+                    Gradient.Stop(color: .green, location: 0.0),
+                    Gradient.Stop(color: .green, location: 1.0)
+                ]
+            }
+
+            // Calculate positions for gradient
+            let lowPosition = (low - Double(truncating: minimum as NSNumber)) /
+                (Double(truncating: maximum as NSNumber) - Double(truncating: minimum as NSNumber))
+            let highPosition = (high - Double(truncating: minimum as NSNumber)) /
+                (Double(truncating: maximum as NSNumber) - Double(truncating: minimum as NSNumber))
+
+            // Ensure positions are in bounds [0, 1]
+            let clampedLowPosition = max(0.0, min(lowPosition, 1.0))
+            let clampedHighPosition = max(0.0, min(highPosition, 1.0))
+
+            // Ensure lowPosition is less than highPosition
+            let epsilon: CGFloat = 0.0001
+            let sortedPositions = [clampedLowPosition, clampedHighPosition].sorted()
+            var adjustedHighPosition = sortedPositions[1]
+
+            if adjustedHighPosition - sortedPositions[0] < epsilon {
+                adjustedHighPosition = min(1.0, sortedPositions[0] + epsilon)
+            }
+
+            return [
+                Gradient.Stop(color: .red, location: 0.0),
+                Gradient.Stop(color: .red, location: sortedPositions[0]), // draw red gradient till lowGlucose
+                Gradient.Stop(color: .green, location: sortedPositions[0] + epsilon),
+                // draw green above lowGlucose till highGlucose
+                Gradient.Stop(color: .green, location: adjustedHighPosition),
+                Gradient.Stop(color: .orange, location: adjustedHighPosition + epsilon), // draw orange above highGlucose
+                Gradient.Stop(color: .orange, location: 1.0)
+            ]
+        }
+
         // MARK: - Carbs
 
         func saveMeal() async {
@@ -575,6 +624,14 @@ extension Bolus.StateModel {
             let ids = await self.fetchGlucose()
             let glucoseObjects: [GlucoseStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
             await updateGlucoseArray(with: glucoseObjects)
+
+            if smooth {
+                let newStops = await self.calculateGradientStops()
+
+                await MainActor.run {
+                    self.stops = newStops
+                }
+            }
         }
     }
 
@@ -724,20 +781,20 @@ extension Bolus.StateModel {
         minCount = max(12, nonEmptyArrays.map(\.count).min() ?? 0)
         guard minCount > 0 else { return }
 
-        let (minResult, maxResult) = await Task.detached {
-            let minForecast = (0 ..< self.minCount).map { index in
+        async let minForecastResult = Task.detached {
+            (0 ..< self.minCount).map { index in
                 nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }.min() ?? 0
             }
-
-            let maxForecast = (0 ..< self.minCount).map { index in
-                nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }.max() ?? 0
-            }
-
-            return (minForecast, maxForecast)
         }.value
 
-        minForecast = minResult
-        maxForecast = maxResult
+        async let maxForecastResult = Task.detached {
+            (0 ..< self.minCount).map { index in
+                nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }.max() ?? 0
+            }
+        }.value
+
+        minForecast = await minForecastResult
+        maxForecast = await maxForecastResult
     }
 }
 

@@ -171,39 +171,48 @@ extension Bolus {
                 VStack {
                     Form {
                         Section {
+                            ForeCastChart(state: state, units: $state.units, stops: state.stops)
+                                .padding(.vertical)
+                        }.listRowBackground(Color.chart)
+
+                        Section {
                             carbsTextField()
 
-                            if state.useFPUconversion {
-                                proteinAndFat()
-                            }
-
-                            // Time
-                            HStack {
-                                Text("Time").foregroundStyle(Color.secondary)
-                                Spacer()
-                                if !pushed {
-                                    Button {
-                                        pushed = true
-                                    } label: { Text("Now") }.buttonStyle(.borderless).foregroundColor(.secondary)
-                                        .padding(.trailing, 5)
-                                } else {
-                                    Button { state.date = state.date.addingTimeInterval(-15.minutes.timeInterval) }
-                                    label: { Image(systemName: "minus.circle") }.tint(.blue).buttonStyle(.borderless)
-                                    DatePicker(
-                                        "Time",
-                                        selection: $state.date,
-                                        displayedComponents: [.hourAndMinute]
-                                    ).controlSize(.mini)
-                                        .labelsHidden()
-                                    Button {
-                                        state.date = state.date.addingTimeInterval(15.minutes.timeInterval)
-                                    }
-                                    label: { Image(systemName: "plus.circle") }.tint(.blue).buttonStyle(.borderless)
+                            DisclosureGroup("Extras") {
+                                if state.useFPUconversion {
+                                    proteinAndFat()
                                 }
-                            }
-                            HStack {
-                                Image(systemName: "square.and.pencil").foregroundColor(.secondary)
-                                TextFieldWithToolBarString(text: $state.note, placeholder: "", maxLength: 25)
+
+                                // Time
+                                HStack {
+                                    Text("Time").foregroundStyle(Color.secondary)
+                                    Spacer()
+                                    if !pushed {
+                                        Button {
+                                            pushed = true
+                                        } label: { Text("Now") }.buttonStyle(.borderless).foregroundColor(.secondary)
+                                            .padding(.trailing, 5)
+                                    } else {
+                                        Button { state.date = state.date.addingTimeInterval(-15.minutes.timeInterval) }
+                                        label: { Image(systemName: "minus.circle") }.tint(.blue).buttonStyle(.borderless)
+                                        DatePicker(
+                                            "Time",
+                                            selection: $state.date,
+                                            displayedComponents: [.hourAndMinute]
+                                        ).controlSize(.mini)
+                                            .labelsHidden()
+                                        Button {
+                                            state.date = state.date.addingTimeInterval(15.minutes.timeInterval)
+                                        }
+                                        label: { Image(systemName: "plus.circle") }.tint(.blue).buttonStyle(.borderless)
+                                    }
+                                }
+
+                                // Notes
+                                HStack {
+                                    Image(systemName: "square.and.pencil").foregroundColor(.secondary)
+                                    TextFieldWithToolBarString(text: $state.note, placeholder: "", maxLength: 25)
+                                }
                             }
                         }.listRowBackground(Color.chart)
 
@@ -293,15 +302,10 @@ extension Bolus {
                             }
                         }.listRowBackground(Color.chart)
 
-                        Section {
-                            ForeCastChart(state: state, units: $state.units)
-                                .padding(.vertical)
-                        }.listRowBackground(Color.chart)
+                        treatmentButton
                     }
                 }
-                .safeAreaInset(edge: .bottom, spacing: 0) {
-                    stickyButton
-                }.blur(radius: state.waitForSuggestion ? 5 : 0)
+                .blur(radius: state.waitForSuggestion ? 5 : 0)
 
                 if state.waitForSuggestion {
                     CustomProgressView(text: progressText.rawValue)
@@ -365,46 +369,33 @@ extension Bolus {
             }
         }
 
-        var stickyButton: some View {
-            ZStack {
-                Rectangle()
-                    .frame(width: UIScreen.main.bounds.width, height: 120).offset(y: 40)
-                    .shadow(
-                        color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
-                            Color.black.opacity(0.33),
-                        radius: 3
-                    )
-                    .foregroundStyle(Color.chart)
-
-                Button {
-                    state.invokeTreatmentsTask()
-                } label: {
-                    taskButtonLabel
-                        .font(.headline)
-                        .foregroundStyle(Color.white)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .frame(minHeight: 50)
-                }
-                .disabled(disableTaskButton)
-                .background(limitExceeded ? Color(.systemRed) : Color(.systemBlue))
-                .shadow(radius: 3)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .padding()
-                .offset(y: 20)
+        var treatmentButton: some View {
+            Button {
+                state.invokeTreatmentsTask()
+            } label: {
+                taskButtonLabel
+                    .font(.headline)
+                    .foregroundStyle(Color.white)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .frame(height: 35)
             }
+            .disabled(disableTaskButton)
+            .listRowBackground(limitExceeded ? Color(.systemRed) : Color(.systemBlue))
+            .shadow(radius: 3)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
         }
 
         private var taskButtonLabel: some View {
             if pumpBolusLimitExceeded {
-                return Text("Max Bolus of \(state.maxBolus) U Exceeded")
+                return Text("Max Bolus of \(state.maxBolus.description) U Exceeded")
             } else if externalBolusLimitExceeded {
-                return Text("Max External Bolus of \(state.maxExternal) U Exceeded")
+                return Text("Max External Bolus of \(state.maxExternal.description) U Exceeded")
             } else if carbLimitExceeded {
-                return Text("Max Carbs of \(state.maxCarbs) g Exceeded")
+                return Text("Max Carbs of \(state.maxCarbs.description) g Exceeded")
             } else if fatLimitExceeded {
-                return Text("Max Fat of \(state.maxFat) g Exceeded")
+                return Text("Max Fat of \(state.maxFat.description) g Exceeded")
             } else if proteinLimitExceeded {
-                return Text("Max Protein of \(state.maxProtein) g Exceeded")
+                return Text("Max Protein of \(state.maxProtein.description) g Exceeded")
             }
 
             let hasInsulin = state.amount > 0

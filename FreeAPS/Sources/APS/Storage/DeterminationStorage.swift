@@ -126,8 +126,6 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
 
                 // Check if the fetched object is of the expected type
                 if let orefDetermination = orefDetermination {
-                    let forecastSet = orefDetermination.forecasts
-
                     result = Determination(
                         id: orefDetermination.id ?? UUID(),
                         reason: orefDetermination.reason ?? "",

@@ -15,6 +15,8 @@ struct LiveActivityAttributes: ActivityAttributes {
         let showCurrentGlucose: Bool
         let showUpdatedLabel: Bool
 
+        let itemOrder: [String]
+
         /// true for the first state that is set on the activity
         let isInitialState: Bool
     }

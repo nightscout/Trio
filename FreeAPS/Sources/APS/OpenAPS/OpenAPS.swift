@@ -249,11 +249,11 @@ final class OpenAPS {
             if let bolusDTO = event.toBolusDTOEnum() {
                 eventDTOs.append(bolusDTO)
             }
-            if let tempBasalDTO = event.toTempBasalDTOEnum() {
-                eventDTOs.append(tempBasalDTO)
-            }
             if let tempBasalDurationDTO = event.toTempBasalDurationDTOEnum() {
                 eventDTOs.append(tempBasalDurationDTO)
+            }
+            if let tempBasalDTO = event.toTempBasalDTOEnum() {
+                eventDTOs.append(tempBasalDTO)
             }
             return eventDTOs
         }
@@ -466,7 +466,6 @@ final class OpenAPS {
             let weighted_average = weight * average2hours + (1 - weight) * average14
 
             var duration: Decimal = 0
-            var newDuration: Decimal = 0
             var overrideTarget: Decimal = 0
 
             if useOverride {

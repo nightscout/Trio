@@ -98,10 +98,6 @@ struct LiveActivity: Widget {
         additionalState: LiveActivityAttributes.ContentAdditionalState
     ) -> some View {
         VStack(spacing: 2) {
-//            Image(systemName: "fork.knife")
-//                .font(.title3)
-//                .foregroundColor(.yellow)
-
             HStack {
                 Text(
                     carbsFormatter.string(from: additionalState.cob as NSNumber) ?? "--"
@@ -119,10 +115,6 @@ struct LiveActivity: Widget {
         additionalState: LiveActivityAttributes.ContentAdditionalState
     ) -> some View {
         VStack(spacing: 2) {
-//            Image(systemName: "syringe.fill")
-//                .font(.title3)
-//                .foregroundColor(.blue)
-
             HStack {
                 Text(
                     bolusFormatter.string(from: additionalState.iob as NSNumber) ?? "--"
@@ -222,7 +214,6 @@ struct LiveActivity: Widget {
                 .fontWeight(.bold)
                 .font(.title3)
                 .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
-//            Text(additionalState.unit).foregroundStyle(.primary).font(.footnote)
         }
     }
 
@@ -285,25 +276,6 @@ struct LiveActivity: Widget {
         return (stack, characters)
     }
 
-    @ViewBuilder func trendArrow(
-        context: ActivityViewContext<LiveActivityAttributes>,
-        additionalState: LiveActivityAttributes.ContentAdditionalState
-    ) -> some View {
-        let gradient = LinearGradient(colors: [
-            Color(red: 0.6235294118, green: 0.4235294118, blue: 0.9803921569),
-            Color(red: 0.4862745098, green: 0.5450980392, blue: 0.9529411765),
-            Color(red: 0.3411764706, green: 0.6666666667, blue: 0.9254901961),
-            Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902)
-        ], startPoint: .leading, endPoint: .trailing)
-
-        if !context.isStale {
-            Image(systemName: "arrowshape.right.circle")
-                .font(.headline)
-                .rotationEffect(.degrees(additionalState.rotationDegrees))
-//                .foregroundStyle(gradient)
-        }
-    }
-
     @ViewBuilder func chart(
         context: ActivityViewContext<LiveActivityAttributes>,
         additionalState: LiveActivityAttributes.ContentAdditionalState
@@ -312,8 +284,8 @@ struct LiveActivity: Widget {
             Text("No data available")
         } else {
             // Determine scale
-            let min = min(additionalState.chart.min() ?? 45, 40) - 20
-            let max = max(additionalState.chart.max() ?? 270, 300) + 50
+            let minValue = min(additionalState.chart.min() ?? 45, 40) - 20
+            let maxValue = max(additionalState.chart.max() ?? 270, 300) + 50
 
             let yAxisRuleMarkMin = additionalState.unit == "mg/dL" ? additionalState.lowGlucose : additionalState.lowGlucose
                 .asMmolL
@@ -352,7 +324,7 @@ struct LiveActivity: Widget {
                     AxisValueLabel().foregroundStyle(.primary).font(.footnote)
                 }
             }
-//            .chartYScale(domain: additionalState.unit == "mg/dL" ? min ... max : min.asMmolL ... max.asMmolL)
+            .chartYScale(domain: additionalState.unit == "mg/dL" ? minValue ... maxValue : minValue.asMmolL ... maxValue.asMmolL)
             .chartYAxis(.hidden)
             .chartPlotStyle { plotContent in
                 plotContent
@@ -378,28 +350,36 @@ struct LiveActivity: Widget {
                     .frame(height: 80)
 
                 HStack {
-                    if context.state.showCurrentGlucose {
-                        VStack {
-                            bgLabel(context: context, additionalState: detailedViewState)
-                            HStack {
-                                changeLabel(context: context)
+                    ForEach(context.state.itemOrder, id: \.self) { item in
+                        switch item {
+                        case "currentGlucose":
+                            if context.state.showCurrentGlucose {
+                                VStack {
+                                    bgLabel(context: context, additionalState: detailedViewState)
+                                    HStack {
+                                        changeLabel(context: context)
+                                        if !context.isStale, let direction = context.state.direction {
+                                            Text(direction).font(.headline)
+                                        }
+                                    }
+                                }
                             }
+                        case "iob":
+                            if context.state.showIOB {
+                                iobLabel(context: context, additionalState: detailedViewState)
+                            }
+                        case "cob":
+                            if context.state.showCOB {
+                                cobLabel(context: context, additionalState: detailedViewState)
+                            }
+                        case "updatedLabel":
+                            if context.state.showUpdatedLabel {
+                                updatedLabel(context: context)
+                            }
+                        default:
+                            EmptyView()
                         }
                         Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
-                    }
-
-                    if context.state.showIOB {
-                        iobLabel(context: context, additionalState: detailedViewState)
-                        Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
-                    }
-
-                    if context.state.showCOB {
-                        cobLabel(context: context, additionalState: detailedViewState)
-                        Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
-                    }
-
-                    if context.state.showUpdatedLabel {
-                        updatedLabel(context: context)
                     }
                 }
             })
@@ -520,6 +500,7 @@ private extension LiveActivityAttributes.ContentState {
             showIOB: true,
             showCurrentGlucose: true,
             showUpdatedLabel: true,
+            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
             isInitialState: false
         )
     }
@@ -535,6 +516,7 @@ private extension LiveActivityAttributes.ContentState {
             showIOB: true,
             showCurrentGlucose: true,
             showUpdatedLabel: true,
+            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
             isInitialState: false
         )
     }
@@ -550,6 +532,7 @@ private extension LiveActivityAttributes.ContentState {
             showIOB: true,
             showCurrentGlucose: true,
             showUpdatedLabel: true,
+            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
             isInitialState: false
         )
     }
@@ -566,6 +549,7 @@ private extension LiveActivityAttributes.ContentState {
             showIOB: true,
             showCurrentGlucose: true,
             showUpdatedLabel: true,
+            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
             isInitialState: false
         )
     }
@@ -581,6 +565,7 @@ private extension LiveActivityAttributes.ContentState {
             showIOB: true,
             showCurrentGlucose: true,
             showUpdatedLabel: true,
+            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
             isInitialState: false
         )
     }
@@ -596,6 +581,7 @@ private extension LiveActivityAttributes.ContentState {
             showIOB: true,
             showCurrentGlucose: true,
             showUpdatedLabel: true,
+            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
             isInitialState: true
         )
     }
