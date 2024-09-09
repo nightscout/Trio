@@ -348,6 +348,21 @@ struct LiveActivity: Widget {
                 chart(context: context, additionalState: detailedViewState)
                     .frame(maxWidth: UIScreen.main.bounds.width * 0.9)
                     .frame(height: 80)
+                    .overlay(alignment: .topTrailing) {
+                        if detailedViewState.isOverrideActive {
+                            HStack {
+                                Text("\(detailedViewState.overrideName)")
+                                    .font(.footnote)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(.primary)
+                            }
+                            .padding(6)
+                            .background {
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color.purple.opacity(0.6))
+                            }
+                        }
+                    }
 
                 HStack {
                     ForEach(context.state.itemOrder, id: \.self) { item in
