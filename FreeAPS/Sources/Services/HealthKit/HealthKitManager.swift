@@ -148,36 +148,51 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
               bloodGlucose.isNotEmpty
         else { return }
 
-        func save(samples: [HKSample]) {
-            let sampleIDs = samples.compactMap(\.syncIdentifier)
-            let samplesToSave = bloodGlucose
-                .filter { !sampleIDs.contains($0.id) }
-                .map {
-                    HKQuantitySample(
+        let bloodGlucoseToSave = filterSamplesToSave(bloodGlucose: bloodGlucose, sampleType: sampleType)
+
+        guard bloodGlucoseToSave.isNotEmpty else {
+            debug(.service, "No new blood glucose samples to save.")
+            return
+        }
+
+        save(samples: bloodGlucoseToSave, sampleType: sampleType)
+    }
+
+    private func filterSamplesToSave(bloodGlucose: [BloodGlucose], sampleType: HKQuantityType) -> [HKQuantitySample] {
+        var samplesToSave: [HKQuantitySample] = []
+
+        loadSamplesFromHealth(sampleType: sampleType, withIDs: bloodGlucose.map(\.id)) { existingSamples in
+            let existingSampleIDs = existingSamples.compactMap(\.syncIdentifier)
+            samplesToSave = bloodGlucose
+                .filter { !existingSampleIDs.contains($0.id) }
+                .compactMap { glucoseSample in
+                    guard let glucoseValue = glucoseSample.glucose else { return nil } 
+                    return HKQuantitySample(
                         type: sampleType,
-                        quantity: HKQuantity(unit: .milligramsPerDeciliter, doubleValue: Double($0.glucose!)),
-                        start: $0.dateString,
-                        end: $0.dateString,
+                        quantity: HKQuantity(unit: .milligramsPerDeciliter, doubleValue: Double(glucoseValue)),
+                        start: glucoseSample.dateString,
+                        end: glucoseSample.dateString,
                         metadata: [
-                            HKMetadataKeyExternalUUID: $0.id,
-                            HKMetadataKeySyncIdentifier: $0.id,
+                            HKMetadataKeyExternalUUID: glucoseSample.id,
+                            HKMetadataKeySyncIdentifier: glucoseSample.id,
                             HKMetadataKeySyncVersion: 1,
                             Config.freeAPSMetaKey: true
                         ]
                     )
                 }
-
-            healthKitStore.save(samplesToSave) { (success: Bool, error: Error?) -> Void in
-                if !success {
-                    debug(.service, "Failed to store blood glucose in HealthKit Store!")
-                    debug(.service, error?.localizedDescription ?? "Unknown error")
-                }
-            }
         }
 
-        loadSamplesFromHealth(sampleType: sampleType, withIDs: bloodGlucose.map(\.id), completion: { samples in
-            save(samples: samples)
-        })
+        return samplesToSave
+    }
+
+    private func save(samples: [HKQuantitySample], sampleType: HKQuantityType) {
+        healthKitStore.save(samples) { success, error in
+            if let error = error {
+                debug(.service, "Failed to store blood glucose in HealthKit Store: \(error.localizedDescription)")
+            } else if success {
+                debug(.service, "Successfully stored \(samples.count) blood glucose samples.")
+            }
+        }
     }
 
     func saveIfNeeded(carbs: [CarbsEntry]) {
