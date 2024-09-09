@@ -140,7 +140,7 @@ extension NightscoutConfig {
                     throw NSError(
                         domain: "ImportError",
                         code: 1,
-                        userInfo: [NSLocalizedDescriptionKey: "Can't find the default Nightscout Profile."]
+                        userInfo: [NSLocalizedDescriptionKey: "Cannot find the default Nightscout Profile."]
                     )
                 }
 
@@ -159,7 +159,6 @@ extension NightscoutConfig {
 
                 if carbratios.contains(where: { $0.ratio <= 0 }) {
                     importStatus = .failed
-
                     throw NSError(
                         domain: "ImportError",
                         code: 2,
@@ -181,22 +180,20 @@ extension NightscoutConfig {
 
                 if pumpName != "Omnipod DASH", basals.contains(where: { $0.rate <= 0 }) {
                     importStatus = .failed
-
                     throw NSError(
                         domain: "ImportError",
                         code: 3,
-                        userInfo: [NSLocalizedDescriptionKey: "Invalid Nightscout Basal Settings. Import aborted."]
+                        userInfo: [NSLocalizedDescriptionKey: "Invalid Nightscout basal rates found. Import aborted."]
                     )
                 }
 
                 if pumpName == "Omnipod DASH", basals.reduce(0, { $0 + $1.rate }) <= 0 {
                     importStatus = .failed
-
                     throw NSError(
                         domain: "ImportError",
                         code: 4,
                         userInfo: [
-                            NSLocalizedDescriptionKey: "Total Basal insulin amount is 0 or lower in Nightscout Profile settings. Import aborted."
+                            NSLocalizedDescriptionKey: "Invalid Nightscout basal rates found. Basal rate total cannot be 0 U/hr. Import aborted."
                         ]
                     )
                 }
@@ -213,11 +210,10 @@ extension NightscoutConfig {
 
                 if sensitivities.contains(where: { $0.sensitivity <= 0 }) {
                     importStatus = .failed
-
                     throw NSError(
                         domain: "ImportError",
                         code: 5,
-                        userInfo: [NSLocalizedDescriptionKey: "Invalid Nightscout Sensitivities Settings. Import aborted."]
+                        userInfo: [NSLocalizedDescriptionKey: "Invalid Nightscout insulin sensitivity profile. Import aborted."]
                     )
                 }
 
@@ -226,8 +222,6 @@ extension NightscoutConfig {
                     userPreferredUnits: .mgdL,
                     sensitivities: sensitivities
                 )
-
-                debug(.nightscout, "FETCHED SENSITIVITIES: \(sensitivitiesProfile)")
 
                 // Targets
                 let targets = fetchedProfile.target_low.map { target in
@@ -240,8 +234,6 @@ extension NightscoutConfig {
                 }
 
                 let targetsProfile = BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: targets)
-
-                debug(.nightscout, "FETCHED TARGETS: \(targetsProfile)")
 
                 // Save to storage and pump
                 if let pump = apsManager.pumpManager {
@@ -261,10 +253,20 @@ extension NightscoutConfig {
                             )
                         case .failure:
                             self.importErrors.append(
-                                "Settings were imported but the Basals couldn't be saved to pump (communication error)."
+                                "Settings were imported but the basal rates could not be saved to pump (communication error)."
                             )
                             self.importStatus = .failed
                         }
+                    }
+
+                    if importErrors.isNotEmpty, importStatus == .failed {
+                        throw NSError(
+                            domain: "ImportError",
+                            code: 6,
+                            userInfo: [
+                                NSLocalizedDescriptionKey: "Settings were imported but the basal rates could not be saved to pump (communication error)."
+                            ]
+                        )
                     }
                 } else {
                     storage.save(basals, as: OpenAPS.Settings.basalProfile)
@@ -276,8 +278,10 @@ extension NightscoutConfig {
                     )
                 }
             } catch {
-                importErrors.append(error.localizedDescription)
-                debug(.service, "Settings import failed with error: \(error.localizedDescription)")
+                DispatchQueue.main.async {
+                    self.importErrors.append(error.localizedDescription)
+                    debug(.service, "Settings import failed with error: \(error.localizedDescription)")
+                }
             }
         }
 
@@ -375,5 +379,6 @@ extension NightscoutConfig.StateModel {
         case running
         case finished
         case failed
+        case noPumpConnected
     }
 }

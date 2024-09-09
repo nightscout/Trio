@@ -1,17 +1,30 @@
-import CoreData
-import Foundation
+//
+//  GlucoseStored+CoreDataProperties.swift
+//  FreeAPS
+//
+//  Created by Cengiz Deniz on 08.09.24.
+//
+//
 
-public extension GlucoseStored {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<GlucoseStored> {
-        NSFetchRequest<GlucoseStored>(entityName: "GlucoseStored")
+import Foundation
+import CoreData
+
+
+extension GlucoseStored {
+
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<GlucoseStored> {
+        return NSFetchRequest<GlucoseStored>(entityName: "GlucoseStored")
     }
 
-    @NSManaged var date: Date?
-    @NSManaged var direction: String?
-    @NSManaged var glucose: Int16
-    @NSManaged var id: UUID?
-    @NSManaged var isManual: Bool
-    @NSManaged var isUploadedToNS: Bool
+    @NSManaged public var date: Date?
+    @NSManaged public var direction: String?
+    @NSManaged public var glucose: Int16
+    @NSManaged public var id: UUID?
+    @NSManaged public var isManual: Bool
+    @NSManaged public var isUploadedToNS: Bool
+
 }
 
-extension GlucoseStored: Identifiable {}
+extension GlucoseStored : Identifiable {
+
+}

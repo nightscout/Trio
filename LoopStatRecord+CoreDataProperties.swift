@@ -1,16 +1,29 @@
-import CoreData
-import Foundation
+//
+//  LoopStatRecord+CoreDataProperties.swift
+//  FreeAPS
+//
+//  Created by Cengiz Deniz on 08.09.24.
+//
+//
 
-public extension LoopStatRecord {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<LoopStatRecord> {
-        NSFetchRequest<LoopStatRecord>(entityName: "LoopStatRecord")
+import Foundation
+import CoreData
+
+
+extension LoopStatRecord {
+
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<LoopStatRecord> {
+        return NSFetchRequest<LoopStatRecord>(entityName: "LoopStatRecord")
     }
 
-    @NSManaged var duration: Double
-    @NSManaged var end: Date?
-    @NSManaged var interval: Double
-    @NSManaged var loopStatus: String?
-    @NSManaged var start: Date?
+    @NSManaged public var duration: Double
+    @NSManaged public var end: Date?
+    @NSManaged public var interval: Double
+    @NSManaged public var loopStatus: String?
+    @NSManaged public var start: Date?
+
 }
 
-extension LoopStatRecord: Identifiable {}
+extension LoopStatRecord : Identifiable {
+
+}

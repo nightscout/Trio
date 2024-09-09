@@ -1,7 +1,9 @@
 
 import SwiftUI
+import Swinject
 
-struct TidepoolStartView: View {
+struct TidepoolStartView: BaseView {
+    let resolver: Resolver
     @ObservedObject var state: Settings.StateModel
 
     @State private var shouldDisplayHint: Bool = false
@@ -94,5 +96,6 @@ struct TidepoolStartView: View {
         .scrollContentBackground(.hidden).background(color)
         .navigationTitle("Tidepool")
         .navigationBarTitleDisplayMode(.automatic)
+        .onAppear(perform: configureView)
     }
 }

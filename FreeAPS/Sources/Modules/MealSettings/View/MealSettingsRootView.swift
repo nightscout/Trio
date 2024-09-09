@@ -115,7 +115,7 @@ extension MealSettings {
 
                                 if displayPickerMaxFat {
                                     let setting = PickerSettingsProvider.shared.settings.maxFat
-                                    Picker(selection: $state.maxCarbs, label: Text("")) {
+                                    Picker(selection: $state.maxFat, label: Text("")) {
                                         ForEach(
                                             PickerSettingsProvider.shared.generatePickerValues(from: setting, units: state.units),
                                             id: \.self
