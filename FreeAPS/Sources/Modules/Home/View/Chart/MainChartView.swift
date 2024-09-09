@@ -20,6 +20,7 @@ struct MainChartView: View {
     @StateObject var state: Home.StateModel
 
     @State var basalProfiles: [BasalProfile] = []
+    @State var preparedTempBasals: [(start: Date, end: Date, rate: Double)] = []
     @State var chartTempTargets: [ChartTempTarget] = []
     @State var startMarker =
         Date(timeIntervalSinceNow: TimeInterval(hours: -24))
@@ -123,6 +124,7 @@ struct MainChartView: View {
                                 yAxisChartData()
                                 yAxisChartDataCobChart()
                                 yAxisChartDataIobChart()
+                                calculateTempBasalsInBackground()
                                 mainChartHasInitialized = true
                                 scroller.scrollTo("MainChart", anchor: .trailing)
                             }

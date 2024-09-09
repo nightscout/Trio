@@ -27,6 +27,7 @@ extension MainChartView {
                 drawSuspensions()
             }.onChange(of: state.tempBasals) { _ in
                 calculateBasals()
+                calculateTempBasalsInBackground()
             }
             .onChange(of: state.maxBasal) { _ in
                 calculateBasals()
@@ -52,7 +53,7 @@ extension MainChartView {
 
 extension MainChartView {
     func drawTempBasals(dummy: Bool) -> some ChartContent {
-        ForEach(prepareTempBasals(), id: \.rate) { basal in
+        ForEach(preparedTempBasals, id: \.rate) { basal in
             if dummy {
                 RectangleMark(
                     xStart: .value("start", basal.start),
@@ -144,7 +145,16 @@ extension MainChartView {
 // MARK: - Calculation
 
 extension MainChartView {
-    func prepareTempBasals() -> [(start: Date, end: Date, rate: Double)] {
+    func calculateTempBasalsInBackground() {
+        Task {
+            let basals = await prepareTempBasals()
+            await MainActor.run {
+                preparedTempBasals = basals
+            }
+        }
+    }
+
+    func prepareTempBasals() async -> [(start: Date, end: Date, rate: Double)] {
         let now = Date()
         let tempBasals = state.tempBasals
 
@@ -160,7 +170,7 @@ extension MainChartView {
             guard let nextTemp = state.tempBasals.first(where: { $0.timestamp ?? .distantPast > timestamp }) else {
                 return (timestamp, end, rate)
             }
-            return (timestamp, nextTemp.timestamp ?? Date(), rate) // end defaults to current time
+            return (timestamp, nextTemp.timestamp ?? Date(), rate)
         }
     }
 
