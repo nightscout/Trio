@@ -324,10 +324,15 @@ extension NightscoutConfig {
             let glucose = await nightscoutManager.fetchGlucose(since: Date().addingTimeInterval(-1.days.timeInterval))
 
             if glucose.isNotEmpty {
+                
                 await MainActor.run {
                     self.backfilling = false
-                    self.healthKitManager.saveIfNeeded(bloodGlucose: glucose)
-                    self.glucoseStorage.storeGlucose(glucose)
+                }
+                
+                self.glucoseStorage.storeGlucose(glucose)
+
+                Task.detached {
+                    await self.healthKitManager.uploadGlucose()
                 }
             } else {
                 await MainActor.run {

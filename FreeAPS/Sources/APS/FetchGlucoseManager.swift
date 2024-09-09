@@ -238,7 +238,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         filtered = glucoseStorage.filterTooFrequentGlucose(filteredByDate, at: syncDate)
 
         guard filtered.isNotEmpty else {
-            // end of the BG tasks
+            // end of the Background tasks
             if let backgroundTask = backGroundFetchBGTaskID {
                 UIApplication.shared.endBackgroundTask(backgroundTask)
                 backGroundFetchBGTaskID = .invalid
@@ -265,24 +265,18 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
 
         deviceDataManager.heartbeat(date: Date())
 
+        // Upload to NS/Health/Tidepool
         Task.detached {
-            await self.nightscoutManager.uploadGlucose()
-            await self.tidepoolService.uploadGlucose(device: self.cgmManager?.cgmManagerStatus.device)
+            async let uploadToNS: () = self.nightscoutManager.uploadGlucose()
+            async let uploadToHealth: () = self.healthKitManager.uploadGlucose()
+            async let uploadToTidepool: () = self.tidepoolService.uploadGlucose(device: self.cgmManager?.cgmManagerStatus.device)
+
+            await uploadToNS
+            await uploadToHealth
+            await uploadToTidepool
         }
 
-        let glucoseForHealth = filteredByDate.filter { !glucoseFromHealth.contains($0) }
-
-        guard glucoseForHealth.isNotEmpty else {
-            // end of the BG tasks
-            if let backgroundTask = backGroundFetchBGTaskID {
-                UIApplication.shared.endBackgroundTask(backgroundTask)
-                backGroundFetchBGTaskID = .invalid
-            }
-            return
-        }
-        healthKitManager.saveIfNeeded(bloodGlucose: glucoseForHealth)
-
-        // end of the BG tasks
+        // End of the Background tasks
         if let backgroundTask = backGroundFetchBGTaskID {
             UIApplication.shared.endBackgroundTask(backgroundTask)
             backGroundFetchBGTaskID = .invalid

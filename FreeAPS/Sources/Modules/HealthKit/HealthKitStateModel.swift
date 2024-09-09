@@ -26,20 +26,26 @@ extension AppleHealthKit {
                     return
                 }
 
-                self.healthKitManager.requestPermission { ok, error in
-                    DispatchQueue.main.async {
-                        self.needShowInformationTextForSetPermissions = !self.healthKitManager.checkAvailabilitySaveBG()
+                Task {
+                    do {
+                        let permissionGranted = try await self.healthKitManager.requestPermission()
+
+                        await MainActor.run {
+                            self.needShowInformationTextForSetPermissions = !self.healthKitManager.checkAvailabilitySaveBG()
+                        }
+
+                        if permissionGranted {
+                            debug(.service, "Permission granted for HealthKitManager")
+
+                            self.healthKitManager.createBGObserver()
+                            self.healthKitManager.enableBackgroundDelivery()
+
+                        } else {
+                            warning(.service, "Permission not granted for HealthKitManager")
+                        }
+                    } catch {
+                        warning(.service, "Error requesting permission for HealthKitManager", error: error)
                     }
-
-                    guard ok, error == nil else {
-                        warning(.service, "Permission not granted for HealthKitManager", error: error)
-                        return
-                    }
-
-                    debug(.service, "Permission  granted HealthKitManager")
-
-                    self.healthKitManager.createBGObserver()
-                    self.healthKitManager.enableBackgroundDelivery()
                 }
             }
         }

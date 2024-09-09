@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22757" systemVersion="23G93" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23222.3" systemVersion="23G93" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
     <entity name="BolusStored" representedClassName="BolusStored" syncable="YES">
         <attribute name="amount" optional="YES" attributeType="Decimal" defaultValueString="0"/>
         <attribute name="isExternal" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
@@ -44,15 +44,19 @@
         <attribute name="glucose" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="isManual" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="isUploadedToHealth" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="isUploadedToNS" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <fetchIndex name="byDate">
-            <fetchIndexElement property="date" type="Binary" order="descending"/>
+            <fetchIndexElement property="date" type="Binary" order="ascending"/>
         </fetchIndex>
         <fetchIndex name="byIsManual">
             <fetchIndexElement property="isManual" type="Binary" order="ascending"/>
         </fetchIndex>
         <fetchIndex name="byIsUploadedToNS">
             <fetchIndexElement property="isUploadedToNS" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byIsUploadedToHealth">
+            <fetchIndexElement property="isUploadedToHealth" type="Binary" order="ascending"/>
         </fetchIndex>
     </entity>
     <entity name="LoopStatRecord" representedClassName="LoopStatRecord" syncable="YES">

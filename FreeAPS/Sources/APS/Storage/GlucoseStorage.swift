@@ -15,6 +15,8 @@ protocol GlucoseStorage {
     func getGlucoseNotYetUploadedToNightscout() async -> [BloodGlucose]
     func getCGMStateNotYetUploadedToNightscout() async -> [NightscoutTreatment]
     func getManualGlucoseNotYetUploadedToNightscout() async -> [NightscoutTreatment]
+    func getGlucoseNotYetUploadedToHealth() async -> [BloodGlucose]
+    func getManualGlucoseNotYetUploadedToHealth() async -> [NightscoutTreatment]
     var alarm: GlucoseAlarm? { get }
 }
 
@@ -80,6 +82,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                         glucoseEntry.date = entry.dateString
                         glucoseEntry.direction = entry.direction?.rawValue
                         glucoseEntry.isUploadedToNS = false /// the value is not uploaded to NS (yet)
+                        glucoseEntry.isUploadedToHealth = false /// the value is not uploaded to Health (yet)
                         return false // Continue processing
                     }
                 )
@@ -235,7 +238,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     }
 
     // Fetch glucose that is not uploaded to Nightscout yet
-    /// Returns: Array of BloodGlucose to ensure the correct format for the NS Upload
+    /// - Returns: Array of BloodGlucose to ensure the correct format for the NS Upload
     func getGlucoseNotYetUploadedToNightscout() async -> [BloodGlucose] {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
@@ -266,7 +269,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     }
 
     // Fetch manual glucose that is not uploaded to Nightscout yet
-    /// Returns: Array of NightscoutTreatment to ensure the correct format for the NS Upload
+    /// - Returns: Array of NightscoutTreatment to ensure the correct format for the NS Upload
     func getManualGlucoseNotYetUploadedToNightscout() async -> [NightscoutTreatment] {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
@@ -318,6 +321,82 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
         let (alreadyUploadedValues, allValuesSet) = await (alreadyUploaded, allValues)
         return Array(Set(allValuesSet).subtracting(Set(alreadyUploadedValues)))
+    }
+
+    // Fetch glucose that is not uploaded to Nightscout yet
+    /// - Returns: Array of BloodGlucose to ensure the correct format for the NS Upload
+    func getGlucoseNotYetUploadedToHealth() async -> [BloodGlucose] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: GlucoseStored.self,
+            onContext: coredataContext,
+            predicate: NSPredicate.glucoseNotYetUploadedToHealth,
+            key: "date",
+            ascending: false,
+            fetchLimit: 288
+        )
+
+        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+
+        return await coredataContext.perform {
+            return fetchedResults.map { result in
+                BloodGlucose(
+                    _id: result.id?.uuidString ?? UUID().uuidString,
+                    sgv: Int(result.glucose),
+                    direction: BloodGlucose.Direction(from: result.direction ?? ""),
+                    date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
+                    dateString: result.date ?? Date(),
+                    unfiltered: Decimal(result.glucose),
+                    filtered: Decimal(result.glucose),
+                    noise: nil,
+                    glucose: Int(result.glucose)
+                )
+            }
+        }
+    }
+
+    // Fetch manual glucose that is not uploaded to Nightscout yet
+    /// - Returns: Array of NightscoutTreatment to ensure the correct format for the NS Upload
+    func getManualGlucoseNotYetUploadedToHealth() async -> [NightscoutTreatment] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: GlucoseStored.self,
+            onContext: coredataContext,
+            predicate: NSPredicate.manualGlucoseNotYetUploadedToHealth,
+            key: "date",
+            ascending: false,
+            fetchLimit: 288
+        )
+
+        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+
+        return await coredataContext.perform {
+            return fetchedResults.map { result in
+                NightscoutTreatment(
+                    duration: nil,
+                    rawDuration: nil,
+                    rawRate: nil,
+                    absolute: nil,
+                    rate: nil,
+                    eventType: .capillaryGlucose,
+                    createdAt: result.date,
+                    enteredBy: "Trio",
+                    bolus: nil,
+                    insulin: nil,
+                    notes: "Trio User",
+                    carbs: nil,
+                    fat: nil,
+                    protein: nil,
+                    foodType: nil,
+                    targetTop: nil,
+                    targetBottom: nil,
+                    glucoseType: "Manual",
+                    glucose: self.settingsManager.settings
+                        .units == .mgdL ? (self.glucoseFormatter.string(from: Int(result.glucose) as NSNumber) ?? "")
+                        : (self.glucoseFormatter.string(from: Decimal(result.glucose).asMmolL as NSNumber) ?? ""),
+                    units: self.settingsManager.settings.units == .mmolL ? "mmol" : "mg/dl",
+                    id: result.id?.uuidString
+                )
+            }
+        }
     }
 
     var alarm: GlucoseAlarm? {

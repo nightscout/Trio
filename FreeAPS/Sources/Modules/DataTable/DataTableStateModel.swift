@@ -195,6 +195,7 @@ extension DataTable {
                 newItem.glucose = Int16(glucoseAsInt)
                 newItem.isManual = true
                 newItem.isUploadedToNS = false
+                newItem.isUploadedToHealth = false
 
                 do {
                     guard self.coredataContext.hasChanges else { return }
