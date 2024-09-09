@@ -4,7 +4,6 @@ import SwiftUI
 
 struct GlucoseChartView: ChartContent {
     let glucoseData: [GlucoseStored]
-    let manualGlucoseData: [GlucoseStored]
     let units: GlucoseUnits
     let highGlucose: Decimal
     let lowGlucose: Decimal
@@ -28,16 +27,38 @@ struct GlucoseChartView: ChartContent {
                 )
                 .foregroundStyle(pointMarkColor)
                 .symbolSize(20)
+                .symbol {
+                    if item.isManual {
+                        Image(systemName: "drop.fill")
+                            .font(.system(size: 10))
+                            .symbolRenderingMode(.monochrome)
+                            .bold()
+                            .foregroundStyle(.red)
+                    } else {
+                        Image(systemName: "circle.fill")
+                            .font(.system(size: 5))
+                            .bold()
+                            .foregroundStyle(pointMarkColor)
+                    }
+                }
             } else {
                 PointMark(
                     x: .value("Time", item.date ?? Date(), unit: .second),
                     y: .value("Value", glucoseToDisplay)
                 )
                 .symbol {
-                    Image(systemName: "record.circle.fill")
-                        .font(.system(size: 8))
-                        .bold()
-                        .foregroundStyle(pointMarkColor)
+                    if item.isManual {
+                        Image(systemName: "drop.fill")
+                            .font(.system(size: 10))
+                            .symbolRenderingMode(.monochrome)
+                            .bold()
+                            .foregroundStyle(.red)
+                    } else {
+                        Image(systemName: "record.circle.fill")
+                            .font(.system(size: 8))
+                            .bold()
+                            .foregroundStyle(pointMarkColor)
+                    }
                 }
             }
         }

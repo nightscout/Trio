@@ -23,7 +23,7 @@ extension MainChartView {
     }
 
     // Calculations for temp target bar mark
-    func calculateTTs() async {
+    func calculateTempTargets() async {
         // Perform calculations off the main thread
         let calculatedTTs = await Task.detached { () -> [ChartTempTarget] in
             var groupedPackages: [[TempTarget]] = []

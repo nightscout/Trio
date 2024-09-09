@@ -145,8 +145,8 @@ extension Bolus {
 
                     if self.waitForSuggestionInitial {
                         group.addTask {
-                            let ok = await self.apsManager.determineBasal()
-                            if !ok {
+                            let isDetermineBasalSuccessful = await self.apsManager.determineBasal()
+                            if !isDetermineBasalSuccessful {
                                 await MainActor.run {
                                     self.waitForSuggestion = false
                                     self.insulinRequired = 0

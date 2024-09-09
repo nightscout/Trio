@@ -63,9 +63,7 @@ extension Home {
         @Published var selectedTab: Int = 0
         @Published var waitForSuggestion: Bool = false
         @Published var glucoseFromPersistence: [GlucoseStored] = []
-        @Published var manualGlucoseFromPersistence: [GlucoseStored] = []
         @Published var latestTwoGlucoseValues: [GlucoseStored] = []
-        @Published var latestTwoManualGlucoseValues: [GlucoseStored] = []
         @Published var carbsFromPersistence: [CarbEntryStored] = []
         @Published var fpusFromPersistence: [CarbEntryStored] = []
         @Published var determinationsFromPersistence: [OrefDetermination] = []
@@ -114,9 +112,6 @@ extension Home {
                     }
                     group.addTask {
                         self.setupGlucoseArray()
-                    }
-                    group.addTask {
-                        self.setupManualGlucoseArray()
                     }
                     group.addTask {
                         self.setupCarbsArray()
@@ -179,7 +174,6 @@ extension Home {
             coreDataObserver?.registerHandler(for: "GlucoseStored") { [weak self] in
                 guard let self = self else { return }
                 self.setupGlucoseArray()
-                self.setupManualGlucoseArray()
             }
 
             coreDataObserver?.registerHandler(for: "CarbEntryStored") { [weak self] in
@@ -286,8 +280,6 @@ extension Home {
         }
 
         @MainActor private func setupSettings() async {
-            // TODO: isUploadEnabled the right var here??
-            uploadStats = settingsManager.settings.isUploadEnabled
             units = settingsManager.settings.units
             allowManualTemp = !settingsManager.settings.closedLoop
             closedLoop = settingsManager.settings.closedLoop
@@ -635,55 +627,7 @@ extension Home.StateModel {
 
     @MainActor private func updateGlucoseArray(with objects: [GlucoseStored]) {
         glucoseFromPersistence = objects
-
-        // Check if there are enough elements to get the last two
-        if let last = objects.last, let secondLast = objects.dropLast().last {
-            latestTwoGlucoseValues = [last, secondLast]
-        } else if let last = objects.last {
-            latestTwoGlucoseValues = [last]
-        } else {
-            latestTwoGlucoseValues = []
-        }
-    }
-
-    // Setup Manual Glucose
-    private func setupManualGlucoseArray() {
-        Task {
-            let ids = await self.fetchManualGlucose()
-            let manualGlucoseObjects: [GlucoseStored] = await CoreDataStack.shared
-                .getNSManagedObject(with: ids, context: viewContext)
-            await updateManualGlucoseArray(with: manualGlucoseObjects)
-        }
-    }
-
-    private func fetchManualGlucose() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: GlucoseStored.self,
-            onContext: context,
-            predicate: NSPredicate.manualGlucose,
-            key: "date",
-            ascending: true,
-            fetchLimit: 288
-        )
-
-        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
-
-        return await context.perform {
-            return fetchedResults.map(\.objectID)
-        }
-    }
-
-    @MainActor private func updateManualGlucoseArray(with objects: [GlucoseStored]) {
-        manualGlucoseFromPersistence = objects
-
-        // Check if there are enough elements to get the last two
-        if let last = objects.last, let secondLast = objects.dropLast().last {
-            latestTwoManualGlucoseValues = [last, secondLast]
-        } else if let last = objects.last {
-            latestTwoManualGlucoseValues = [last]
-        } else {
-            latestTwoManualGlucoseValues = []
-        }
+        latestTwoGlucoseValues = Array(objects.suffix(2))
     }
 
     // Setup Carbs

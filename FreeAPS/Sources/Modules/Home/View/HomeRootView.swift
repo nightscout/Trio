@@ -136,8 +136,7 @@ extension Home {
                 lowGlucose: $state.lowGlucose,
                 highGlucose: $state.highGlucose,
                 cgmAvailable: $state.cgmAvailable,
-                glucose: state.latestTwoGlucoseValues,
-                manualGlucose: state.latestTwoManualGlucoseValues
+                glucose: state.latestTwoGlucoseValues
             ).scaleEffect(0.9)
                 .onTapGesture {
                     state.openCGM()

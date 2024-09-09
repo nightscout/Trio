@@ -9,8 +9,7 @@ struct CurrentGlucoseView: View {
     @Binding var highGlucose: Decimal
     @Binding var cgmAvailable: Bool
 
-    var glucose: [GlucoseStored]
-    var manualGlucose: [GlucoseStored]
+    var glucose: [GlucoseStored] // This contains the last two glucose values, no matter if its manual or a cgm reading
 
     @State private var rotationDegrees: Double = 0.0
     @State private var angularGradient = AngularGradient(colors: [
@@ -23,12 +22,6 @@ struct CurrentGlucoseView: View {
     ], center: .center, startAngle: .degrees(270), endAngle: .degrees(-90))
 
     @Environment(\.colorScheme) var colorScheme
-
-    // Combine and sort the glucose values via computed property
-    /// -Returns: the latest GlucoseStored object as the last element in the Array
-    private var combinedGlucoseValues: [GlucoseStored] {
-        (glucose + manualGlucose).sorted { $0.date ?? Date() < $1.date ?? Date() }
-    }
 
     private var glucoseFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -83,7 +76,7 @@ struct CurrentGlucoseView: View {
 
                 VStack(alignment: .center) {
                     HStack {
-                        if let glucoseValue = combinedGlucoseValues.last?.glucose {
+                        if let glucoseValue = glucose.last?.glucose {
                             let displayGlucose = units == .mgdL ? Decimal(glucoseValue).description : Decimal(glucoseValue)
                                 .formattedAsMmolL
                             Text(
@@ -98,7 +91,7 @@ struct CurrentGlucoseView: View {
                         }
                     }
                     HStack {
-                        let minutesAgo = -1 * (combinedGlucoseValues.last?.date?.timeIntervalSinceNow ?? 0) / 60
+                        let minutesAgo = -1 * (glucose.last?.date?.timeIntervalSinceNow ?? 0) / 60
                         let text = timaAgoFormatter.string(for: Double(minutesAgo)) ?? ""
                         Text(
                             minutesAgo <= 1 ? "< 1 " + NSLocalizedString("min", comment: "Short form for minutes") : (
@@ -115,7 +108,7 @@ struct CurrentGlucoseView: View {
                     }.frame(alignment: .top)
                 }
             }
-            .onChange(of: combinedGlucoseValues.last?.directionEnum) { newDirection in
+            .onChange(of: glucose.last?.directionEnum) { newDirection in
                 withAnimation {
                     switch newDirection {
                     case .doubleUp,
@@ -156,20 +149,22 @@ struct CurrentGlucoseView: View {
     }
 
     private var delta: String {
-        guard combinedGlucoseValues.count >= 2 else {
+        guard glucose.count >= 2 else {
             return "--"
         }
 
-        let lastGlucose = combinedGlucoseValues.last?.glucose ?? 0
-        let secondLastGlucose = combinedGlucoseValues.dropLast().last?.glucose ?? 0
+        let lastGlucose = glucose.last?.glucose ?? 0
+        let secondLastGlucose = glucose.first?.glucose ?? 0
         let delta = lastGlucose - secondLastGlucose
         let deltaAsDecimal = units == .mmolL ? Decimal(delta).asMmolL : Decimal(delta)
         return deltaFormatter.string(from: deltaAsDecimal as NSNumber) ?? "--"
     }
 
     var glucoseDisplayColor: Color {
-        // Fetch the first glucose reading and convert it to Int for comparison
-        let whichGlucose = Int(combinedGlucoseValues.first?.glucose ?? 0)
+        guard let lastGlucose = glucose.last?.glucose else { return .primary }
+
+        // Convert the lastest glucose value to Int for comparison
+        let whichGlucose = Int(lastGlucose)
 
         // Define default color based on the color scheme
         let defaultColor: Color = colorScheme == .dark ? .white : .black

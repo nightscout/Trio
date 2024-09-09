@@ -24,8 +24,8 @@ struct MainChartView: View {
     @State var startMarker =
         Date(timeIntervalSinceNow: TimeInterval(hours: -24))
     @State var endMarker = Date(timeIntervalSinceNow: TimeInterval(hours: 3))
-    @State var minValue: Decimal = 45
-    @State var maxValue: Decimal = 270
+    @State var minValue: Decimal = 39
+    @State var maxValue: Decimal = 300
     @State var selection: Date? = nil
     @State var minValueCobChart: Decimal = 0
     @State var maxValueCobChart: Decimal = 20
@@ -147,7 +147,6 @@ extension MainChartView {
 
                 GlucoseChartView(
                     glucoseData: state.glucoseFromPersistence,
-                    manualGlucoseData: state.manualGlucoseFromPersistence,
                     units: state.units,
                     highGlucose: state.highGlucose,
                     lowGlucose: state.lowGlucose,
@@ -230,7 +229,7 @@ extension MainChartView {
             }
             .onChange(of: tempTargets) { _ in
                 Task {
-                    await calculateTTs()
+                    await calculateTempTargets()
                 }
             }
             .frame(minHeight: geo.size.height * 0.28)
@@ -426,7 +425,7 @@ extension MainChartView {
             guard let minGlucose = minGlucose, let maxGlucose = maxGlucose,
                   let minForecast = minForecast, let maxForecast = maxForecast
             else {
-                await updateChartBounds(minValue: 45 - 20, maxValue: 270 + 50)
+                await updateChartBounds(minValue: 39, maxValue: 300)
                 return
             }
 
