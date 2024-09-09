@@ -109,7 +109,7 @@ extension Bolus {
         @Published var maxForecast: [Int] = []
         @Published var minCount: Int = 12 // count of Forecasts drawn in 5 min distances, i.e. 12 means a min of 1 hour
         @Published var forecastDisplayType: ForecastDisplayType = .cone
-        @Published var smooth: Bool = false
+        @Published var isSmoothingEnabled: Bool = false
         @Published var stops: [Gradient.Stop] = []
 
         let now = Date.now
@@ -225,7 +225,7 @@ extension Bolus {
             maxFat = settings.settings.maxFat
             maxProtein = settings.settings.maxProtein
             useFPUconversion = settingsManager.settings.useFPUconversion
-            smooth = settingsManager.settings.smoothGlucose
+            isSmoothingEnabled = settingsManager.settings.smoothGlucose
         }
 
         private func getCurrentSettingValue(for type: SettingType) async {
@@ -463,21 +463,6 @@ extension Bolus {
             }
         }
 
-        private func calculateGradientStops() async {
-            let glucoseValues = glucoseFromPersistence
-                .map { units == .mgdL ? Decimal($0.glucose) : Decimal($0.glucose).asMmolL }
-
-            let calculatedStops = await GradientStops.calculateGradientStops(
-                lowGlucose: lowGlucose,
-                highGlucose: highGlucose,
-                glucoseValues: glucoseValues
-            )
-
-            await MainActor.run {
-                stops = calculatedStops
-            }
-        }
-
         // MARK: - Carbs
 
         func saveMeal() async {
@@ -615,10 +600,6 @@ extension Bolus.StateModel {
             let ids = await self.fetchGlucose()
             let glucoseObjects: [GlucoseStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
             await updateGlucoseArray(with: glucoseObjects)
-
-            if smooth {
-                await self.calculateGradientStops()
-            }
         }
     }
 

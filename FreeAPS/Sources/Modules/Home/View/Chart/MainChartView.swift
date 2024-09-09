@@ -151,8 +151,7 @@ extension MainChartView {
                     units: state.units,
                     highGlucose: state.highGlucose,
                     lowGlucose: state.lowGlucose,
-                    smooth: state.smooth,
-                    gradientStops: state.gradientStops
+                    isSmoothingEnabled: state.isSmoothingEnabled
                 )
 
                 InsulinView(

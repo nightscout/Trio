@@ -44,7 +44,7 @@ extension Home {
         @Published var pumpDisplayState: PumpDisplayState?
         @Published var alarm: GlucoseAlarm?
         @Published var manualTempBasal = false
-        @Published var smooth = false
+        @Published var isSmoothingEnabled = false
         @Published var maxValue: Decimal = 1.2
         @Published var lowGlucose: Decimal = 70
         @Published var highGlucose: Decimal = 180
@@ -88,7 +88,6 @@ extension Home {
         @Published var maxForecast: [Int] = []
         @Published var minCount: Int = 12 // count of Forecasts drawn in 5 min distances, i.e. 12 means a min of 1 hour
         @Published var forecastDisplayType: ForecastDisplayType = .cone
-        @Published var gradientStops: [Gradient.Stop] = []
 
         let context = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
@@ -296,7 +295,7 @@ extension Home {
             alarm = provider.glucoseStorage.alarm
             manualTempBasal = apsManager.isManualTempBasal
             setupCurrentTempTarget()
-            smooth = settingsManager.settings.smoothGlucose
+            isSmoothingEnabled = settingsManager.settings.smoothGlucose
             maxValue = settingsManager.preferences.autosensMax
             lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
             highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL
@@ -328,21 +327,6 @@ extension Home {
                 } else {
                     pumpStatusHighlightMessage = nil
                 }
-            }
-        }
-
-        private func calculateGradientStops() async {
-            let glucoseValues = glucoseFromPersistence
-                .map { units == .mgdL ? Decimal($0.glucose) : Decimal($0.glucose).asMmolL }
-
-            let calculatedStops = await GradientStops.calculateGradientStops(
-                lowGlucose: lowGlucose,
-                highGlucose: highGlucose,
-                glucoseValues: glucoseValues
-            )
-
-            await MainActor.run {
-                self.gradientStops = calculatedStops
             }
         }
 
@@ -517,7 +501,7 @@ extension Home.StateModel:
         closedLoop = settingsManager.settings.closedLoop
         units = settingsManager.settings.units
         manualTempBasal = apsManager.isManualTempBasal
-        smooth = settingsManager.settings.smoothGlucose
+        isSmoothingEnabled = settingsManager.settings.smoothGlucose
         lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
         highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL
         overrideUnit = settingsManager.settings.overrideHbA1cUnit
@@ -629,10 +613,6 @@ extension Home.StateModel {
             let ids = await self.fetchGlucose()
             let glucoseObjects: [GlucoseStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
             await updateGlucoseArray(with: glucoseObjects)
-
-            if smooth {
-                await calculateGradientStops()
-            }
         }
     }
 
@@ -673,10 +653,6 @@ extension Home.StateModel {
             let manualGlucoseObjects: [GlucoseStored] = await CoreDataStack.shared
                 .getNSManagedObject(with: ids, context: viewContext)
             await updateManualGlucoseArray(with: manualGlucoseObjects)
-
-            if smooth {
-                await calculateGradientStops()
-            }
         }
     }
 

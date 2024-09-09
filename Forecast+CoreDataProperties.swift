@@ -1,46 +1,32 @@
-//
-//  Forecast+CoreDataProperties.swift
-//  FreeAPS
-//
-//  Created by Cengiz Deniz on 08.09.24.
-//
-//
-
-import Foundation
 import CoreData
+import Foundation
 
-
-extension Forecast {
-
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<Forecast> {
-        return NSFetchRequest<Forecast>(entityName: "Forecast")
+public extension Forecast {
+    @nonobjc class func fetchRequest() -> NSFetchRequest<Forecast> {
+        NSFetchRequest<Forecast>(entityName: "Forecast")
     }
 
-    @NSManaged public var date: Date?
-    @NSManaged public var id: UUID?
-    @NSManaged public var type: String?
-    @NSManaged public var forecastValues: Set<ForecastValue>?
-    @NSManaged public var orefDetermination: OrefDetermination?
-
+    @NSManaged var date: Date?
+    @NSManaged var id: UUID?
+    @NSManaged var type: String?
+    @NSManaged var forecastValues: Set<ForecastValue>?
+    @NSManaged var orefDetermination: OrefDetermination?
 }
 
 // MARK: Generated accessors for forecastValues
-extension Forecast {
 
+public extension Forecast {
     @objc(addForecastValuesObject:)
-    @NSManaged public func addToForecastValues(_ value: ForecastValue)
+    @NSManaged func addToForecastValues(_ value: ForecastValue)
 
     @objc(removeForecastValuesObject:)
-    @NSManaged public func removeFromForecastValues(_ value: ForecastValue)
+    @NSManaged func removeFromForecastValues(_ value: ForecastValue)
 
     @objc(addForecastValues:)
-    @NSManaged public func addToForecastValues(_ values: NSSet)
+    @NSManaged func addToForecastValues(_ values: NSSet)
 
     @objc(removeForecastValues:)
-    @NSManaged public func removeFromForecastValues(_ values: NSSet)
-
+    @NSManaged func removeFromForecastValues(_ values: NSSet)
 }
 
-extension Forecast : Identifiable {
-
-}
+extension Forecast: Identifiable {}
