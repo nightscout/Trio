@@ -33,6 +33,9 @@ struct LiveActivityAttributes: ActivityAttributes {
         let unit: String
         let isOverrideActive: Bool
         let overrideName: String
+        let overrideDate: Date
+        let overrideDuration: Decimal
+        let overrideTarget: Decimal
     }
 
     let startDate: Date

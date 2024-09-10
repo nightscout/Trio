@@ -314,64 +314,93 @@ struct LiveActivityChartView: View {
     var additionalState: LiveActivityAttributes.ContentAdditionalState
 
     var body: some View {
-        if context.isStale {
-            Text("No data available")
-        } else {
-            // Determine scale
-            let minValue = min(additionalState.chart.min() ?? 45, 40) - 20
-            let maxValue = max(additionalState.chart.max() ?? 270, 300) + 50
+        // Determine scale
+        let minValue = min(additionalState.chart.min() ?? 39, 39) as Decimal
+        let maxValue = max(additionalState.chart.max() ?? 300, 300) as Decimal
 
-            let yAxisRuleMarkMin = additionalState.unit == "mg/dL" ? additionalState.lowGlucose : additionalState.lowGlucose
-                .asMmolL
-            let yAxisRuleMarkMax = additionalState.unit == "mg/dL" ? additionalState.highGlucose : additionalState.highGlucose
-                .asMmolL
-            let target = additionalState.unit == "mg/dL" ? additionalState.target : additionalState.target.asMmolL
+        let yAxisRuleMarkMin = additionalState.unit == "mg/dL" ? additionalState.lowGlucose : additionalState.lowGlucose
+            .asMmolL
+        let yAxisRuleMarkMax = additionalState.unit == "mg/dL" ? additionalState.highGlucose : additionalState.highGlucose
+            .asMmolL
+        let target = additionalState.unit == "mg/dL" ? additionalState.target : additionalState.target.asMmolL
 
-            Chart {
-                RuleMark(y: .value("Low", yAxisRuleMarkMin))
-                    .lineStyle(.init(lineWidth: 0.5, dash: [5]))
-                RuleMark(y: .value("High", yAxisRuleMarkMax))
-                    .lineStyle(.init(lineWidth: 0.5, dash: [5]))
-                RuleMark(y: .value("Target", target)).foregroundStyle(.green.gradient).lineStyle(.init(lineWidth: 1))
+        let calendar = Calendar.current
+        let now = Date()
 
-                ForEach(additionalState.chart.indices, id: \.self) { index in
-                    let currentValue = additionalState.chart[index]
-                    let displayValue = additionalState.unit == "mg/dL" ? currentValue : currentValue.asMmolL
-                    let chartDate = additionalState.chartDate[index] ?? Date()
-                    let pointMark = PointMark(
-                        x: .value("Time", chartDate),
-                        y: .value("Value", displayValue)
-                    ).symbolSize(15)
+        let startDate = calendar.date(byAdding: .hour, value: -6, to: now) ?? now
+        let endDate = calendar.date(byAdding: .hour, value: 2, to: now) ?? now
 
-                    if displayValue > yAxisRuleMarkMax {
-                        pointMark.foregroundStyle(Color.orange.gradient)
-                    } else if displayValue < yAxisRuleMarkMin {
-                        pointMark.foregroundStyle(Color.red.gradient)
-                    } else {
-                        pointMark.foregroundStyle(Color.green.gradient)
-                    }
-                }
+        Chart {
+            RuleMark(y: .value("Low", yAxisRuleMarkMin))
+                .lineStyle(.init(lineWidth: 0.5, dash: [5]))
+            RuleMark(y: .value("High", yAxisRuleMarkMax))
+                .lineStyle(.init(lineWidth: 0.5, dash: [5]))
+            RuleMark(y: .value("Target", target)).foregroundStyle(.green.gradient).lineStyle(.init(lineWidth: 1))
+
+            if context.state.detailedViewState?.isOverrideActive == true {
+                drawActiveOverrides()
             }
-            .chartYAxis {
-                AxisMarks(position: .trailing) { _ in
-                    AxisGridLine(stroke: .init(lineWidth: 0.2, dash: [2, 3])).foregroundStyle(Color.white)
-                    AxisValueLabel().foregroundStyle(.primary).font(.footnote)
-                }
+
+            drawChart(yAxisRuleMarkMin: yAxisRuleMarkMin, yAxisRuleMarkMax: yAxisRuleMarkMax)
+        }
+        .chartYAxis {
+            AxisMarks(position: .trailing) { _ in
+                AxisGridLine(stroke: .init(lineWidth: 0.2, dash: [2, 3])).foregroundStyle(Color.white)
+                AxisValueLabel().foregroundStyle(.primary).font(.footnote)
             }
-            .chartYScale(domain: additionalState.unit == "mg/dL" ? minValue ... maxValue : minValue.asMmolL ... maxValue.asMmolL)
-            .chartYAxis(.hidden)
-            .chartPlotStyle { plotContent in
-                plotContent
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.clear)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .chartYScale(domain: additionalState.unit == "mg/dL" ? minValue ... maxValue : minValue.asMmolL ... maxValue.asMmolL)
+        .chartYAxis(.hidden)
+        .chartPlotStyle { plotContent in
+            plotContent
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.clear)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .chartXScale(domain: startDate ... endDate)
+        .chartXAxis {
+            AxisMarks(position: .automatic) { _ in
+                AxisGridLine(stroke: .init(lineWidth: 0.2, dash: [2, 3])).foregroundStyle(Color.white)
             }
-            .chartXAxis {
-                AxisMarks(position: .automatic) { _ in
-                    AxisGridLine(stroke: .init(lineWidth: 0.2, dash: [2, 3])).foregroundStyle(Color.white)
-                }
+        }
+    }
+
+    private func drawActiveOverrides() -> some ChartContent {
+        let start: Date = context.state.detailedViewState?.overrideDate ?? .distantPast
+
+        let duration = context.state.detailedViewState?.overrideDuration ?? 0
+        let durationAsTimeInterval = TimeInterval((duration as NSDecimalNumber).doubleValue * 60) // return seconds
+
+        let end: Date = start.addingTimeInterval(durationAsTimeInterval)
+        let target = context.state.detailedViewState?.overrideTarget ?? 0
+
+        return RuleMark(
+            xStart: .value("Start", start, unit: .second),
+            xEnd: .value("End", end, unit: .second),
+            y: .value("Value", target)
+        )
+        .foregroundStyle(Color.purple.opacity(0.6))
+        .lineStyle(.init(lineWidth: 8))
+    }
+
+    private func drawChart(yAxisRuleMarkMin: Decimal, yAxisRuleMarkMax: Decimal) -> some ChartContent {
+        ForEach(additionalState.chart.indices, id: \.self) { index in
+            let currentValue = additionalState.chart[index]
+            let displayValue = additionalState.unit == "mg/dL" ? currentValue : currentValue.asMmolL
+            let chartDate = additionalState.chartDate[index] ?? Date()
+            let pointMark = PointMark(
+                x: .value("Time", chartDate),
+                y: .value("Value", displayValue)
+            ).symbolSize(15)
+
+            if displayValue > yAxisRuleMarkMax {
+                pointMark.foregroundStyle(Color.orange.gradient)
+            } else if displayValue < yAxisRuleMarkMin {
+                pointMark.foregroundStyle(Color.red.gradient)
+            } else {
+                pointMark.foregroundStyle(Color.green.gradient)
             }
         }
     }
