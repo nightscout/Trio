@@ -136,8 +136,7 @@ extension Home {
                 lowGlucose: $state.lowGlucose,
                 highGlucose: $state.highGlucose,
                 cgmAvailable: $state.cgmAvailable,
-                glucose: state.glucoseFromPersistence,
-                manualGlucose: state.manualGlucoseFromPersistence
+                glucose: state.latestTwoGlucoseValues
             ).scaleEffect(0.9)
                 .onTapGesture {
                     state.openCGM()
@@ -338,20 +337,14 @@ extension Home {
                 MainChartView(
                     geo: geo,
                     units: $state.units,
-                    announcement: $state.announcement,
                     hours: .constant(state.filteredHours),
-                    maxBasal: $state.maxBasal,
-                    autotunedBasalProfile: $state.autotunedBasalProfile,
-                    basalProfile: $state.basalProfile,
                     tempTargets: $state.tempTargets,
-                    smooth: $state.smooth,
                     highGlucose: $state.highGlucose,
                     lowGlucose: $state.lowGlucose,
                     screenHours: $state.hours,
                     displayXgridLines: $state.displayXgridLines,
                     displayYgridLines: $state.displayYgridLines,
                     thresholdLines: $state.thresholdLines,
-                    isTempTargetActive: $state.isTempTargetActive,
                     state: state
                 )
             }
@@ -957,7 +950,8 @@ extension Home {
                         Text("Invalid CGM reading (HIGH).").font(.callout).bold().foregroundColor(.loopRed).padding(.top, 8)
                         Text("SMBs and High Temps Disabled.").font(.caption).foregroundColor(.white).padding(.bottom, 4)
                     } else {
-                        var tags = !state.smooth ? determination.reasonParts : determination.reasonParts + ["Smoothing: On"]
+                        let tags = !state.isSmoothingEnabled ? determination.reasonParts : determination
+                            .reasonParts + ["Smoothing: On"]
                         TagCloudView(
                             tags: tags,
                             shouldParseToMmolL: state.units == .mmolL

@@ -409,7 +409,7 @@ extension CoreDataStack {
         with ids: [NSManagedObjectID],
         context: NSManagedObjectContext
     ) async -> [T] {
-        await Task { () -> [T] in
+        await context.perform {
             var objects = [T]()
             do {
                 for id in ids {
@@ -421,7 +421,7 @@ extension CoreDataStack {
                 debugPrint("Failed to fetch objects: \(error.localizedDescription)")
             }
             return objects
-        }.value
+        }
     }
 }
 
