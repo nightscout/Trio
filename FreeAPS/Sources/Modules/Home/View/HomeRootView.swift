@@ -957,8 +957,12 @@ extension Home {
                         Text("Invalid CGM reading (HIGH).").font(.callout).bold().foregroundColor(.loopRed).padding(.top, 8)
                         Text("SMBs and High Temps Disabled.").font(.caption).foregroundColor(.white).padding(.bottom, 4)
                     } else {
-                        TagCloudView(tags: determination.reasonParts, shouldParseToMmolL: state.units == .mmolL)
-                            .animation(.none, value: false)
+                        var tags = !state.smooth ? determination.reasonParts : determination.reasonParts + ["Smoothing: On"]
+                        TagCloudView(
+                            tags: tags,
+                            shouldParseToMmolL: state.units == .mmolL
+                        )
+                        .animation(.none, value: false)
 
                         Text(
                             self
