@@ -1,6 +1,5 @@
 import ActivityKit
 import Charts
-import Foundation
 import SwiftUI
 import WidgetKit
 
@@ -59,13 +58,145 @@ extension NumberFormatter {
     }()
 }
 
+extension Color {
+    static let systemBackground = Color(UIColor.systemBackground)
+}
+
 struct LiveActivity: Widget {
-    private let dateFormatter: DateFormatter = {
-        var f = DateFormatter()
-        f.dateStyle = .none
-        f.timeStyle = .short
-        return f
-    }()
+    var body: some WidgetConfiguration {
+        ActivityConfiguration(for: LiveActivityAttributes.self) { context in
+            LiveActivityView(context: context)
+        } dynamicIsland: { context in
+            DynamicIsland {
+                DynamicIslandExpandedRegion(.leading) {
+                    LiveActivityExpandedLeadingView(context: context)
+                }
+                DynamicIslandExpandedRegion(.trailing) {
+                    LiveActivityExpandedTrailingView(context: context)
+                }
+                DynamicIslandExpandedRegion(.bottom) {
+                    LiveActivityExpandedBottomView(context: context)
+                }
+                DynamicIslandExpandedRegion(.center) {
+                    LiveActivityExpandedCenterView(context: context)
+                }
+            } compactLeading: {
+                LiveActivityCompactLeadingView(context: context)
+            } compactTrailing: {
+                LiveActivityCompactTrailingView(context: context)
+            } minimal: {
+                LiveActivityMinimalView(context: context)
+            }
+        }
+    }
+}
+
+struct LiveActivityView: View {
+    @Environment(\.colorScheme) var colorScheme
+    var context: ActivityViewContext<LiveActivityAttributes>
+
+    var body: some View {
+        if let detailedViewState = context.state.detailedViewState {
+            VStack {
+                LiveActivityChartView(context: context, additionalState: detailedViewState)
+                    .frame(maxWidth: UIScreen.main.bounds.width * 0.9)
+                    .frame(height: 80)
+
+                HStack {
+                    ForEach(context.state.itemOrder, id: \.self) { item in
+                        switch item {
+                        case "currentGlucose":
+                            if context.state.showCurrentGlucose {
+                                VStack {
+                                    LiveActivityBGLabelView(context: context, additionalState: detailedViewState)
+                                    HStack {
+                                        LiveActivityGlucoseDeltaLabelView(context: context)
+                                        if !context.isStale, let direction = context.state.direction {
+                                            Text(direction).font(.headline)
+                                        }
+                                    }
+                                }
+                            }
+                        case "iob":
+                            if context.state.showIOB {
+                                LiveActivityIOBLabelView(context: context, additionalState: detailedViewState)
+                            }
+                        case "cob":
+                            if context.state.showCOB {
+                                LiveActivityCOBLabelView(context: context, additionalState: detailedViewState)
+                            }
+                        case "updatedLabel":
+                            if context.state.showUpdatedLabel {
+                                LiveActivityUpdatedLabelView(context: context, isDetailedLayout: true)
+                            }
+                        default:
+                            EmptyView()
+                        }
+                        Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
+                    }
+                }
+            }
+            .privacySensitive()
+            .padding(.all, 14)
+            .foregroundStyle(Color.primary)
+            .activityBackgroundTint(colorScheme == .light ? Color.white.opacity(0.43) : Color.black.opacity(0.43))
+        } else {
+            HStack(spacing: 3) {
+                LiveActivityBGAndTrendView(context: context, size: .expanded).font(.title)
+                Spacer()
+                VStack(alignment: .trailing, spacing: 5) {
+                    LiveActivityGlucoseDeltaLabelView(context: context).font(.title3)
+                    LiveActivityUpdatedLabelView(context: context, isDetailedLayout: false).font(.caption)
+                        .foregroundStyle(.primary.opacity(0.7))
+                }
+            }
+            .privacySensitive()
+            .padding(.all, 15)
+            .foregroundStyle(Color.primary)
+            .activityBackgroundTint(colorScheme == .light ? Color.white.opacity(0.43) : Color.black.opacity(0.43))
+        }
+    }
+}
+
+// Separate the smaller sections into reusable views
+struct LiveActivityBGAndTrendView: View {
+    var context: ActivityViewContext<LiveActivityAttributes>
+    fileprivate var size: Size
+
+    var body: some View {
+        let (view, _) = bgAndTrend(context: context, size: size)
+        return view
+    }
+}
+
+struct LiveActivityBGLabelView: View {
+    var context: ActivityViewContext<LiveActivityAttributes>
+    var additionalState: LiveActivityAttributes.ContentAdditionalState
+
+    var body: some View {
+        Text(context.state.bg)
+            .fontWeight(.bold)
+            .font(.title3)
+            .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
+    }
+}
+
+struct LiveActivityGlucoseDeltaLabelView: View {
+    var context: ActivityViewContext<LiveActivityAttributes>
+
+    var body: some View {
+        if !context.state.change.isEmpty {
+            Text(context.state.change).foregroundStyle(.primary).font(.subheadline)
+                .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
+        } else {
+            Text("--")
+        }
+    }
+}
+
+struct LiveActivityIOBLabelView: View {
+    var context: ActivityViewContext<LiveActivityAttributes>
+    var additionalState: LiveActivityAttributes.ContentAdditionalState
 
     private var bolusFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -75,211 +206,99 @@ struct LiveActivity: Widget {
         return formatter
     }
 
-    private var carbsFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        return formatter
-    }
-
-    @ViewBuilder private func changeLabel(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
-        HStack(spacing: -5) {
-            if !context.state.change.isEmpty {
-                Text(context.state.change).foregroundStyle(.primary).font(.subheadline)
-                    .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
-            } else {
-                Text("--")
-            }
-        }
-    }
-
-    @ViewBuilder func cobLabel(
-        context: ActivityViewContext<LiveActivityAttributes>,
-        additionalState: LiveActivityAttributes.ContentAdditionalState
-    ) -> some View {
-        VStack(spacing: 2) {
-            HStack {
-                Text(
-                    carbsFormatter.string(from: additionalState.cob as NSNumber) ?? "--"
-                ).fontWeight(.bold).font(.title3).strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
-                Text(NSLocalizedString("g", comment: "grams of carbs")).foregroundStyle(.primary).font(.headline)
-                    .fontWeight(.bold)
-            }
-
-            Text("COB").font(.subheadline).foregroundStyle(.primary)
-        }
-    }
-
-    @ViewBuilder func iobLabel(
-        context: ActivityViewContext<LiveActivityAttributes>,
-        additionalState: LiveActivityAttributes.ContentAdditionalState
-    ) -> some View {
+    var body: some View {
         VStack(spacing: 2) {
             HStack {
                 Text(
                     bolusFormatter.string(from: additionalState.iob as NSNumber) ?? "--"
-                ).font(.title3).fontWeight(.bold).strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
-                Text(NSLocalizedString("U", comment: "Unit in number of units delivered (keep the space character!)"))
-                    .foregroundStyle(.primary).font(.headline).fontWeight(.bold)
+                ).fontWeight(.bold).font(.title3).strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
+                Text("U").foregroundStyle(.primary).font(.headline).fontWeight(.bold)
             }
-
             Text("IOB").font(.subheadline).foregroundStyle(.primary)
         }
     }
+}
 
-    @ViewBuilder func mealLabel(
-        context: ActivityViewContext<LiveActivityAttributes>,
-        additionalState: LiveActivityAttributes.ContentAdditionalState
-    ) -> some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 0, content: {
-                HStack {
-                    Image(systemName: "fork.knife")
-                        .font(.title3)
-                        .foregroundColor(.yellow)
-                }
-                HStack {
-                    Image(systemName: "syringe.fill")
-                        .font(.title3)
-                        .foregroundColor(.blue)
-                }
-            })
-            VStack(alignment: .trailing, spacing: 0, content: {
-                HStack {
-                    Text(
-                        carbsFormatter.string(from: additionalState.cob as NSNumber) ?? "--"
-                    ).fontWeight(.bold).font(.title3).strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
-                    Text(NSLocalizedString(" g", comment: "grams of carbs")).foregroundStyle(.primary).font(.headline)
-                }
-                HStack {
-                    Text(
-                        bolusFormatter.string(from: additionalState.iob as NSNumber) ?? "--"
-                    ).font(.title3).fontWeight(.bold).strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
-                    Text(NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)"))
-                        .foregroundStyle(.primary).font(.headline)
-                }
-            })
-            VStack(alignment: .trailing, spacing: 1, content: {
-                if additionalState.isOverrideActive {
-                    Image(systemName: "person.crop.circle.fill.badge.checkmark")
-                        .font(.title3)
-                }
-            })
-        }
-    }
+struct LiveActivityCOBLabelView: View {
+    var context: ActivityViewContext<LiveActivityAttributes>
+    var additionalState: LiveActivityAttributes.ContentAdditionalState
 
-    @ViewBuilder func trend(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
-        if context.isStale {
-            Text("--")
-        } else {
-            if let trendSystemImage = context.state.direction {
-                Image(systemName: trendSystemImage)
+    var body: some View {
+        VStack(spacing: 2) {
+            HStack {
+                Text(
+                    "\(additionalState.cob)"
+                ).fontWeight(.bold).font(.title3).strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
+                Text("g").foregroundStyle(.primary).font(.headline).fontWeight(.bold)
             }
+            Text("COB").font(.subheadline).foregroundStyle(.primary)
         }
     }
+}
 
-    private func expiredLabel() -> some View {
-        Text("Live Activity Expired. Open Trio to Refresh")
-            .minimumScaleFactor(0.01)
+struct LiveActivityUpdatedLabelView: View {
+    var context: ActivityViewContext<LiveActivityAttributes>
+    var isDetailedLayout: Bool
+
+    private var dateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .none
+        formatter.timeStyle = .short
+        return formatter
     }
 
-    @ViewBuilder private func updatedLabel(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
-        VStack {
-            let dateText = Text("\(dateFormatter.string(from: context.state.date))").font(.title3).foregroundStyle(.primary)
+    var body: some View {
+        if isDetailedLayout {
+            let dateText = Text("\(dateFormatter.string(from: context.state.date))").font(.title3)
+                .foregroundStyle(.primary)
 
-            if context.isStale {
-                if #available(iOSApplicationExtension 17.0, *) {
-                    dateText.bold().foregroundStyle(.red)
-                } else {
-                    dateText.bold().foregroundColor(.red)
-                }
-            } else {
-                if #available(iOSApplicationExtension 17.0, *) {
-                    dateText.bold().foregroundStyle(.primary)
-                } else {
-                    dateText.bold().foregroundColor(.primary)
-                }
-            }
-
-            Text("Updated").font(.subheadline).foregroundStyle(.primary)
-        }
-    }
-
-    @ViewBuilder private func bgLabel(
-        context: ActivityViewContext<LiveActivityAttributes>,
-        additionalState _: LiveActivityAttributes.ContentAdditionalState
-    ) -> some View {
-        HStack(alignment: .center) {
-            Text(context.state.bg)
-                .fontWeight(.bold)
-                .font(.title3)
-                .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
-        }
-    }
-
-    private func bgAndTrend(context: ActivityViewContext<LiveActivityAttributes>, size: Size) -> (some View, Int) {
-        var characters = 0
-
-        let bgText = context.state.bg
-        characters += bgText.count
-
-        // narrow mode is for the minimal dynamic island view
-        // there is not enough space to show all three arrow there
-        // and everything has to be squeezed together to some degree
-        // only display the first arrow character and make it red in case there were more characters
-        var directionText: String?
-        var warnColor: Color?
-        if let direction = context.state.direction {
-            if size == .compact {
-                directionText = String(direction[direction.startIndex ... direction.startIndex])
-
-                if direction.count > 1 {
-                    warnColor = Color.red
-                }
-            } else {
-                directionText = direction
-            }
-
-            characters += directionText!.count
-        }
-
-        let spacing: CGFloat
-        switch size {
-        case .minimal: spacing = -1
-        case .compact: spacing = 0
-        case .expanded: spacing = 3
-        }
-
-        let stack = HStack(spacing: spacing) {
-            Text(bgText)
-                .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
-            if let direction = directionText {
-                let text = Text(direction)
-                switch size {
-                case .minimal:
-                    let scaledText = text.scaleEffect(x: 0.7, y: 0.7, anchor: .leading)
-                    if let warnColor {
-                        scaledText.foregroundStyle(warnColor)
+            VStack {
+                if context.isStale {
+                    if #available(iOSApplicationExtension 17.0, *) {
+                        dateText.bold().foregroundStyle(.red)
                     } else {
-                        scaledText
+                        dateText.bold().foregroundColor(.red)
                     }
-                case .compact:
-                    text.scaleEffect(x: 0.8, y: 0.8, anchor: .leading).padding(.trailing, -3)
+                } else {
+                    if #available(iOSApplicationExtension 17.0, *) {
+                        dateText.bold().foregroundStyle(.primary)
+                    } else {
+                        dateText.bold().foregroundColor(.primary)
+                    }
+                }
 
-                case .expanded:
-                    text.scaleEffect(x: 0.7, y: 0.7, anchor: .leading).padding(.trailing, -5)
+                Text("Updated").font(.subheadline).foregroundStyle(.primary)
+            }
+        } else {
+            let dateText = Text("\(dateFormatter.string(from: context.state.date))").font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            HStack {
+                Text("Updated:").font(.subheadline).foregroundStyle(.secondary)
+
+                if context.isStale {
+                    if #available(iOSApplicationExtension 17.0, *) {
+                        dateText.bold().foregroundStyle(.red)
+                    } else {
+                        dateText.bold().foregroundColor(.red)
+                    }
+                } else {
+                    if #available(iOSApplicationExtension 17.0, *) {
+                        dateText.bold().foregroundStyle(.primary)
+                    } else {
+                        dateText.bold().foregroundColor(.primary)
+                    }
                 }
             }
         }
-        .foregroundStyle(context.isStale ? Color.primary.opacity(0.5) : Color.primary)
-
-        return (stack, characters)
     }
+}
 
-    @ViewBuilder func chart(
-        context: ActivityViewContext<LiveActivityAttributes>,
-        additionalState: LiveActivityAttributes.ContentAdditionalState
-    ) -> some View {
+struct LiveActivityChartView: View {
+    var context: ActivityViewContext<LiveActivityAttributes>
+    var additionalState: LiveActivityAttributes.ContentAdditionalState
+
+    var body: some View {
         if context.isStale {
             Text("No data available")
         } else {
@@ -341,260 +360,96 @@ struct LiveActivity: Widget {
             }
         }
     }
+}
 
-    @ViewBuilder func content(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
-        if let detailedViewState = context.state.detailedViewState {
-            VStack(content: {
-                chart(context: context, additionalState: detailedViewState)
-                    .frame(maxWidth: UIScreen.main.bounds.width * 0.9)
-                    .frame(height: 80)
+// Expanded, minimal, compact view components
+struct LiveActivityExpandedLeadingView: View {
+    var context: ActivityViewContext<LiveActivityAttributes>
 
-                HStack {
-                    ForEach(context.state.itemOrder, id: \.self) { item in
-                        switch item {
-                        case "currentGlucose":
-                            if context.state.showCurrentGlucose {
-                                VStack {
-                                    bgLabel(context: context, additionalState: detailedViewState)
-                                    HStack {
-                                        changeLabel(context: context)
-                                        if !context.isStale, let direction = context.state.direction {
-                                            Text(direction).font(.headline)
-                                        }
-                                    }
-                                }
-                            }
-                        case "iob":
-                            if context.state.showIOB {
-                                iobLabel(context: context, additionalState: detailedViewState)
-                            }
-                        case "cob":
-                            if context.state.showCOB {
-                                cobLabel(context: context, additionalState: detailedViewState)
-                            }
-                        case "updatedLabel":
-                            if context.state.showUpdatedLabel {
-                                updatedLabel(context: context)
-                            }
-                        default:
-                            EmptyView()
-                        }
-                        Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
-                    }
-                }
-            })
-                .privacySensitive()
-                .padding(.all, 14)
-                .imageScale(.small)
-                .foregroundStyle(Color.primary)
-                .activityBackgroundTint(Color.clear)
+    var body: some View {
+        LiveActivityBGAndTrendView(context: context, size: .expanded).font(.title2).padding(.leading, 5)
+    }
+}
+
+struct LiveActivityExpandedTrailingView: View {
+    var context: ActivityViewContext<LiveActivityAttributes>
+
+    var body: some View {
+        LiveActivityGlucoseDeltaLabelView(context: context).font(.title2).padding(.trailing, 5)
+    }
+}
+
+struct LiveActivityExpandedBottomView: View {
+    var context: ActivityViewContext<LiveActivityAttributes>
+
+    var body: some View {
+        if context.state.isInitialState {
+            Text("Live Activity Expired. Open Trio to Refresh")
+        } else if let detailedViewState = context.state.detailedViewState {
+            LiveActivityChartView(context: context, additionalState: detailedViewState)
+        }
+    }
+}
+
+struct LiveActivityExpandedCenterView: View {
+    var context: ActivityViewContext<LiveActivityAttributes>
+
+    var body: some View {
+        LiveActivityUpdatedLabelView(context: context, isDetailedLayout: false).font(.caption).foregroundStyle(Color.secondary)
+    }
+}
+
+struct LiveActivityCompactLeadingView: View {
+    var context: ActivityViewContext<LiveActivityAttributes>
+
+    var body: some View {
+        LiveActivityBGAndTrendView(context: context, size: .compact).padding(.leading, 4)
+    }
+}
+
+struct LiveActivityCompactTrailingView: View {
+    var context: ActivityViewContext<LiveActivityAttributes>
+
+    var body: some View {
+        LiveActivityGlucoseDeltaLabelView(context: context).padding(.trailing, 4)
+    }
+}
+
+struct LiveActivityMinimalView: View {
+    var context: ActivityViewContext<LiveActivityAttributes>
+
+    var body: some View {
+        let (label, characterCount) = bgAndTrend(context: context, size: .minimal)
+        let adjustedLabel = label.padding(.leading, 7).padding(.trailing, 3)
+
+        if characterCount < 4 {
+            adjustedLabel
+        } else if characterCount < 5 {
+            adjustedLabel.fontWidth(.condensed)
         } else {
-            Group {
-                if context.state.isInitialState {
-                    // add vertical and horizontal spacers around the label to ensure that the live activity view gets filled completely
-                    HStack {
-                        Spacer()
-                        VStack {
-                            Spacer()
-                            expiredLabel()
-                            Spacer()
-                        }
-                        Spacer()
-                    }
-                } else {
-                    HStack(spacing: 3) {
-                        bgAndTrend(context: context, size: .expanded).0.font(.title)
-                        Spacer()
-                        VStack(alignment: .trailing, spacing: 5) {
-                            changeLabel(context: context).font(.title3)
-                            updatedLabel(context: context).font(.caption).foregroundStyle(.primary.opacity(0.7))
-                        }
-                    }
-                }
-            }
-            .privacySensitive()
-            .padding(.all, 15)
-            // Semantic BackgroundStyle and Color values work here. They adapt to the given interface style (light mode, dark mode)
-            // Semantic UIColors do NOT (as of iOS 17.1.1). Like UIColor.systemBackgroundColor (it does not adapt to changes of the interface style)
-            // The colorScheme environment varaible that is usually used to detect dark mode does NOT work here (it reports false values)
-            .foregroundStyle(Color.primary)
-            .background(BackgroundStyle.background.opacity(0.4))
-            .activityBackgroundTint(Color.black.opacity(0.4))
+            adjustedLabel.fontWidth(.compressed)
+        }
+    }
+}
+
+// Helper function for bgAndTrend logic
+private func bgAndTrend(context: ActivityViewContext<LiveActivityAttributes>, size _: Size) -> (some View, Int) {
+    var characters = 0
+    let bgText = context.state.bg
+    characters += bgText.count
+
+    var directionText: String?
+    if let direction = context.state.direction {
+        directionText = direction
+        characters += directionText!.count
+    }
+
+    let stack = HStack {
+        Text(bgText)
+        if let direction = directionText {
+            Text(direction)
         }
     }
 
-    func dynamicIsland(context: ActivityViewContext<LiveActivityAttributes>) -> DynamicIsland {
-        DynamicIsland {
-            DynamicIslandExpandedRegion(.leading) {
-                bgAndTrend(context: context, size: .expanded).0.font(.title2).padding(.leading, 5)
-            }
-            DynamicIslandExpandedRegion(.trailing) {
-                changeLabel(context: context).font(.title2).padding(.trailing, 5)
-            }
-            DynamicIslandExpandedRegion(.bottom) {
-                if context.state.isInitialState {
-                    expiredLabel()
-                } else if let detailedViewState = context.state.detailedViewState {
-                    chart(context: context, additionalState: detailedViewState)
-                } else {
-                    Group {
-                        updatedLabel(context: context).font(.caption).foregroundStyle(Color.secondary)
-                    }
-                    .frame(
-                        maxHeight: .infinity,
-                        alignment: .bottom
-                    )
-                }
-            }
-            DynamicIslandExpandedRegion(.center) {
-                if context.state.detailedViewState != nil {
-                    updatedLabel(context: context).font(.caption).foregroundStyle(Color.secondary)
-                }
-            }
-        } compactLeading: {
-            bgAndTrend(context: context, size: .compact).0.padding(.leading, 4)
-        } compactTrailing: {
-            changeLabel(context: context).padding(.trailing, 4)
-        } minimal: {
-            let (_label, characterCount) = bgAndTrend(context: context, size: .minimal)
-            let label = _label.padding(.leading, 7).padding(.trailing, 3)
-
-            if characterCount < 4 {
-                label
-            } else if characterCount < 5 {
-                label.fontWidth(.condensed)
-            } else {
-                label.fontWidth(.compressed)
-            }
-        }
-        .widgetURL(URL(string: "Trio://"))
-        .keylineTint(Color.purple)
-        .contentMargins(.horizontal, 0, for: .minimal)
-        .contentMargins(.trailing, 0, for: .compactLeading)
-        .contentMargins(.leading, 0, for: .compactTrailing)
-    }
-
-    var body: some WidgetConfiguration {
-        ActivityConfiguration(for: LiveActivityAttributes.self, content: self.content, dynamicIsland: self.dynamicIsland)
-    }
-}
-
-private extension LiveActivityAttributes {
-    static var preview: LiveActivityAttributes {
-        LiveActivityAttributes(startDate: Date())
-    }
-}
-
-private extension LiveActivityAttributes.ContentState {
-    // 0 is the widest digit. Use this to get an upper bound on text width.
-
-    // Use mmol/l notation with decimal point as well for the same reason, it uses up to 4 characters, while mg/dl uses up to 3
-    static var testWide: LiveActivityAttributes.ContentState {
-        LiveActivityAttributes.ContentState(
-            bg: "00.0",
-            direction: "→",
-            change: "+0.0",
-            date: Date(),
-            detailedViewState: nil,
-            showCOB: true,
-            showIOB: true,
-            showCurrentGlucose: true,
-            showUpdatedLabel: true,
-            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
-            isInitialState: false
-        )
-    }
-
-    static var testVeryWide: LiveActivityAttributes.ContentState {
-        LiveActivityAttributes.ContentState(
-            bg: "00.0",
-            direction: "↑↑",
-            change: "+0.0",
-            date: Date(),
-            detailedViewState: nil,
-            showCOB: true,
-            showIOB: true,
-            showCurrentGlucose: true,
-            showUpdatedLabel: true,
-            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
-            isInitialState: false
-        )
-    }
-
-    static var testSuperWide: LiveActivityAttributes.ContentState {
-        LiveActivityAttributes.ContentState(
-            bg: "00.0",
-            direction: "↑↑↑",
-            change: "+0.0",
-            date: Date(),
-            detailedViewState: nil,
-            showCOB: true,
-            showIOB: true,
-            showCurrentGlucose: true,
-            showUpdatedLabel: true,
-            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
-            isInitialState: false
-        )
-    }
-
-    // 2 characters for BG, 1 character for change is the minimum that will be shown
-    static var testNarrow: LiveActivityAttributes.ContentState {
-        LiveActivityAttributes.ContentState(
-            bg: "00",
-            direction: "↑",
-            change: "+0",
-            date: Date(),
-            detailedViewState: nil,
-            showCOB: true,
-            showIOB: true,
-            showCurrentGlucose: true,
-            showUpdatedLabel: true,
-            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
-            isInitialState: false
-        )
-    }
-
-    static var testMedium: LiveActivityAttributes.ContentState {
-        LiveActivityAttributes.ContentState(
-            bg: "000",
-            direction: "↗︎",
-            change: "+00",
-            date: Date(),
-            detailedViewState: nil,
-            showCOB: true,
-            showIOB: true,
-            showCurrentGlucose: true,
-            showUpdatedLabel: true,
-            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
-            isInitialState: false
-        )
-    }
-
-    static var testExpired: LiveActivityAttributes.ContentState {
-        LiveActivityAttributes.ContentState(
-            bg: "--",
-            direction: nil,
-            change: "--",
-            date: Date().addingTimeInterval(-60 * 60),
-            detailedViewState: nil,
-            showCOB: true,
-            showIOB: true,
-            showCurrentGlucose: true,
-            showUpdatedLabel: true,
-            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
-            isInitialState: true
-        )
-    }
-}
-
-@available(iOS 17.0, iOSApplicationExtension 17.0, *)
-#Preview("Notification", as: .content, using: LiveActivityAttributes.preview) {
-    LiveActivity()
-} contentStates: {
-    LiveActivityAttributes.ContentState.testSuperWide
-    LiveActivityAttributes.ContentState.testVeryWide
-    LiveActivityAttributes.ContentState.testWide
-    LiveActivityAttributes.ContentState.testMedium
-    LiveActivityAttributes.ContentState.testNarrow
-    LiveActivityAttributes.ContentState.testExpired
+    return (stack, characters)
 }
