@@ -25,15 +25,17 @@ struct CarbView: ChartContent {
             )?.glucose {
                 let yPosition = (units == .mgdL ? Decimal(glucose) : Decimal(glucose).asMmolL) - MainChartHelper
                     .bolusOffset(units: units)
-                let size = (MainChartHelper.Config.carbsSize + CGFloat(carbAmount) * MainChartHelper.Config.carbsScale)
-                let limitedSize = size > 30 ? 30 : size
+                let size = min(
+                    MainChartHelper.Config.carbsSize + CGFloat(carbAmount) * MainChartHelper.Config.carbsScale,
+                    MainChartHelper.Config.maxCarbSize
+                )
 
                 PointMark(
                     x: .value("Time", carbDate, unit: .second),
                     y: .value("Value", yPosition)
                 )
                 .symbol {
-                    Image(systemName: "arrowtriangle.down.fill").font(.system(size: limitedSize)).foregroundStyle(Color.orange)
+                    Image(systemName: "arrowtriangle.down.fill").font(.system(size: size)).foregroundStyle(Color.orange)
                         .rotationEffect(.degrees(180))
                 }
                 .annotation(position: .bottom) {
