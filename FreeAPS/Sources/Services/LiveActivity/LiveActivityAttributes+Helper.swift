@@ -103,7 +103,8 @@ extension LiveActivityAttributes.ContentState {
                 cob: Decimal(determination?.cob ?? 0),
                 iob: determination?.iob ?? 0 as Decimal,
                 unit: settings.units.rawValue,
-                isOverrideActive: override?.isActive ?? false
+                isOverrideActive: override?.isActive ?? false,
+                overrideName: override?.overrideName ?? "Override"
             )
 
         case .simple:

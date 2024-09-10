@@ -59,7 +59,7 @@ extension LiveActivityBridge {
             key: "date",
             ascending: false,
             fetchLimit: 1,
-            propertiesToFetch: ["enabled"]
+            propertiesToFetch: ["enabled", "name"]
         )
 
         guard let overrideResults = results as? [[String: Any]] else {
@@ -68,7 +68,7 @@ extension LiveActivityBridge {
 
         await context.perform {
             self.isOverridesActive = overrideResults.first.map {
-                OverrideData(isActive: $0["enabled"] as? Bool ?? false)
+                OverrideData(isActive: $0["enabled"] as? Bool ?? false, overrideName: $0["name"] as? String ?? "Override")
             }
         }
     }

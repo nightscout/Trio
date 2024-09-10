@@ -101,6 +101,21 @@ struct LiveActivityView: View {
                 LiveActivityChartView(context: context, additionalState: detailedViewState)
                     .frame(maxWidth: UIScreen.main.bounds.width * 0.9)
                     .frame(height: 80)
+                    .overlay(alignment: .topTrailing) {
+                        if detailedViewState.isOverrideActive {
+                            HStack {
+                                Text("\(detailedViewState.overrideName)")
+                                    .font(.footnote)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(.white)
+                            }
+                            .padding(6)
+                            .background {
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color.purple.opacity(colorScheme == .dark ? 0.6 : 0.8))
+                            }
+                        }
+                    }
 
                 HStack {
                     ForEach(context.state.itemOrder, id: \.self) { item in
