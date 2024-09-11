@@ -537,3 +537,153 @@ private func bgAndTrend(context: ActivityViewContext<LiveActivityAttributes>, si
     }
     return (stack, characters)
 }
+
+// Mock structure to replace GlucoseData
+struct MockGlucoseData {
+    var glucose: Int
+    var date: Date
+    var direction: String? // You can refine this based on your expected data
+}
+
+private extension LiveActivityAttributes {
+    static var preview: LiveActivityAttributes {
+        LiveActivityAttributes(startDate: Date())
+    }
+}
+
+private extension LiveActivityAttributes.ContentState {
+    static var chartData: [MockGlucoseData] = [
+        MockGlucoseData(glucose: 120, date: Date().addingTimeInterval(-600), direction: "flat"),
+        MockGlucoseData(glucose: 125, date: Date().addingTimeInterval(-300), direction: "flat"),
+        MockGlucoseData(glucose: 130, date: Date(), direction: "flat")
+    ]
+
+    static var detailedViewState = LiveActivityAttributes.ContentAdditionalState(
+        chart: chartData.map { Decimal($0.glucose) },
+        chartDate: chartData.map(\.date),
+        rotationDegrees: 0,
+        highGlucose: 180,
+        lowGlucose: 70,
+        target: 100,
+        cob: 20,
+        iob: 1.5,
+        unit: GlucoseUnits.mgdL.rawValue,
+        isOverrideActive: false,
+        overrideName: "Exercise",
+        overrideDate: Date().addingTimeInterval(-3600),
+        overrideDuration: 120,
+        overrideTarget: 150
+    )
+
+    // 0 is the widest digit. Use this to get an upper bound on text width.
+
+    // Use mmol/l notation with decimal point as well for the same reason, it uses up to 4 characters, while mg/dl uses up to 3
+    static var testWide: LiveActivityAttributes.ContentState {
+        LiveActivityAttributes.ContentState(
+            bg: "00.0",
+            direction: "→",
+            change: "+0.0",
+            date: Date(),
+            detailedViewState: detailedViewState,
+            showCOB: true,
+            showIOB: true,
+            showCurrentGlucose: true,
+            showUpdatedLabel: true,
+            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
+            isInitialState: false
+        )
+    }
+
+    static var testVeryWide: LiveActivityAttributes.ContentState {
+        LiveActivityAttributes.ContentState(
+            bg: "00.0",
+            direction: "↑↑",
+            change: "+0.0",
+            date: Date(),
+            detailedViewState: detailedViewState,
+            showCOB: true,
+            showIOB: true,
+            showCurrentGlucose: true,
+            showUpdatedLabel: true,
+            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
+            isInitialState: false
+        )
+    }
+
+    static var testSuperWide: LiveActivityAttributes.ContentState {
+        LiveActivityAttributes.ContentState(
+            bg: "00.0",
+            direction: "↑↑↑",
+            change: "+0.0",
+            date: Date(),
+            detailedViewState: detailedViewState,
+            showCOB: true,
+            showIOB: true,
+            showCurrentGlucose: true,
+            showUpdatedLabel: true,
+            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
+            isInitialState: false
+        )
+    }
+
+    // 2 characters for BG, 1 character for change is the minimum that will be shown
+    static var testNarrow: LiveActivityAttributes.ContentState {
+        LiveActivityAttributes.ContentState(
+            bg: "00",
+            direction: "↑",
+            change: "+0",
+            date: Date(),
+            detailedViewState: detailedViewState,
+            showCOB: true,
+            showIOB: true,
+            showCurrentGlucose: true,
+            showUpdatedLabel: true,
+            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
+            isInitialState: false
+        )
+    }
+
+    static var testMedium: LiveActivityAttributes.ContentState {
+        LiveActivityAttributes.ContentState(
+            bg: "000",
+            direction: "↗︎",
+            change: "+00",
+            date: Date(),
+            detailedViewState: detailedViewState,
+            showCOB: true,
+            showIOB: true,
+            showCurrentGlucose: true,
+            showUpdatedLabel: true,
+            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
+            isInitialState: false
+        )
+    }
+
+    static var testExpired: LiveActivityAttributes.ContentState {
+        LiveActivityAttributes.ContentState(
+            bg: "--",
+            direction: nil,
+            change: "--",
+            date: Date().addingTimeInterval(-60 * 60),
+            detailedViewState: detailedViewState,
+            showCOB: true,
+            showIOB: true,
+            showCurrentGlucose: true,
+            showUpdatedLabel: true,
+            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
+            isInitialState: false
+        )
+    }
+}
+
+@available(iOS 17.0, iOSApplicationExtension 17.0, *)
+#Preview("Notification", as: .content, using: LiveActivityAttributes.preview) {
+    LiveActivity()
+} contentStates: {
+    LiveActivityAttributes.ContentState.testSuperWide
+    LiveActivityAttributes.ContentState.testVeryWide
+    LiveActivityAttributes.ContentState.testWide
+    LiveActivityAttributes.ContentState.testMedium
+    LiveActivityAttributes.ContentState.testNarrow
+    LiveActivityAttributes.ContentState.testExpired
+}
