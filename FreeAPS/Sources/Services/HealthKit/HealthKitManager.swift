@@ -150,7 +150,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
 
     func uploadGlucose() async {
         await uploadGlucose(glucoseStorage.getGlucoseNotYetUploadedToHealth())
-        await uploadManualGlucose(glucoseStorage.getManualGlucoseNotYetUploadedToHealth())
+        await uploadGlucose(glucoseStorage.getManualGlucoseNotYetUploadedToHealth())
     }
 
     func uploadGlucose(_ glucose: [BloodGlucose]) async {
@@ -190,51 +190,6 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
 
             // After successful upload, update the isUploadedToHealth flag in Core Data
             await updateGlucoseAsUploaded(glucose)
-
-        } catch {
-            debug(.service, "Failed to upload glucose samples to HealthKit: \(error.localizedDescription)")
-        }
-    }
-
-    func uploadManualGlucose(_ glucose: [NightscoutTreatment]) async {
-        guard settingsManager.settings.useAppleHealth,
-              let sampleType = Config.healthBGObject,
-              checkAvailabilitySave(objectTypeToHealthStore: sampleType),
-              glucose.isNotEmpty
-        else { return }
-
-        do {
-            // Create HealthKit samples from all the passed glucose values
-            let glucoseSamples = glucose.compactMap { glucoseSample -> HKQuantitySample? in
-                guard let glucoseValue = glucoseSample.glucose else { return nil }
-                guard let glucoseValueAsDouble = Double(glucoseValue) else { return nil }
-                guard let date = glucoseSample.dateString as? Date else { return nil }
-
-                return HKQuantitySample(
-                    type: sampleType,
-                    quantity: HKQuantity(unit: .milligramsPerDeciliter, doubleValue: glucoseValueAsDouble),
-                    start: date,
-                    end: date,
-                    metadata: [
-                        HKMetadataKeyExternalUUID: glucoseSample.id ?? UUID(),
-                        HKMetadataKeySyncIdentifier: glucoseSample.id ?? UUID(),
-                        HKMetadataKeySyncVersion: 1,
-                        Config.freeAPSMetaKey: true
-                    ]
-                )
-            }
-
-            guard glucoseSamples.isNotEmpty else {
-                debug(.service, "No glucose samples available for upload.")
-                return
-            }
-
-            // Attempt to save the blood glucose samples to Apple Health
-            try await healthKitStore.save(glucoseSamples)
-            debug(.service, "Successfully stored \(glucoseSamples.count) blood glucose samples in HealthKit.")
-
-            // After successful upload, update the isUploadedToHealth flag in Core Data
-            await updateManualGlucoseAsUploaded(glucose)
 
         } catch {
             debug(.service, "Failed to upload glucose samples to HealthKit: \(error.localizedDescription)")

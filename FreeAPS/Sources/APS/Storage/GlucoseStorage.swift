@@ -16,7 +16,7 @@ protocol GlucoseStorage {
     func getCGMStateNotYetUploadedToNightscout() async -> [NightscoutTreatment]
     func getManualGlucoseNotYetUploadedToNightscout() async -> [NightscoutTreatment]
     func getGlucoseNotYetUploadedToHealth() async -> [BloodGlucose]
-    func getManualGlucoseNotYetUploadedToHealth() async -> [NightscoutTreatment]
+    func getManualGlucoseNotYetUploadedToHealth() async -> [BloodGlucose]
     var alarm: GlucoseAlarm? { get }
 }
 
@@ -356,7 +356,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
     // Fetch manual glucose that is not uploaded to Nightscout yet
     /// - Returns: Array of NightscoutTreatment to ensure the correct format for the NS Upload
-    func getManualGlucoseNotYetUploadedToHealth() async -> [NightscoutTreatment] {
+    func getManualGlucoseNotYetUploadedToHealth() async -> [BloodGlucose] {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: coredataContext,
@@ -370,31 +370,44 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
         return await coredataContext.perform {
             return fetchedResults.map { result in
-                NightscoutTreatment(
-                    duration: nil,
-                    rawDuration: nil,
-                    rawRate: nil,
-                    absolute: nil,
-                    rate: nil,
-                    eventType: .capillaryGlucose,
-                    createdAt: result.date,
-                    enteredBy: "Trio",
-                    bolus: nil,
-                    insulin: nil,
-                    notes: "Trio User",
-                    carbs: nil,
-                    fat: nil,
-                    protein: nil,
-                    foodType: nil,
-                    targetTop: nil,
-                    targetBottom: nil,
-                    glucoseType: "Manual",
-                    glucose: self.settingsManager.settings
-                        .units == .mgdL ? (self.glucoseFormatter.string(from: Int(result.glucose) as NSNumber) ?? "")
-                        : (self.glucoseFormatter.string(from: Decimal(result.glucose).asMmolL as NSNumber) ?? ""),
-                    units: self.settingsManager.settings.units == .mmolL ? "mmol" : "mg/dl",
-                    id: result.id?.uuidString
+                BloodGlucose(
+                    _id: result.id?.uuidString ?? UUID().uuidString,
+                    sgv: Int(result.glucose),
+                    direction: BloodGlucose.Direction(from: result.direction ?? ""),
+                    date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
+                    dateString: result.date ?? Date(),
+                    unfiltered: Decimal(result.glucose),
+                    filtered: Decimal(result.glucose),
+                    noise: nil,
+                    glucose: Int(result.glucose)
                 )
+                
+                
+//                NightscoutTreatment(
+//                    duration: nil,
+//                    rawDuration: nil,
+//                    rawRate: nil,
+//                    absolute: nil,
+//                    rate: nil,
+//                    eventType: .capillaryGlucose,
+//                    createdAt: result.date,
+//                    enteredBy: "Trio",
+//                    bolus: nil,
+//                    insulin: nil,
+//                    notes: "Trio User",
+//                    carbs: nil,
+//                    fat: nil,
+//                    protein: nil,
+//                    foodType: nil,
+//                    targetTop: nil,
+//                    targetBottom: nil,
+//                    glucoseType: "Manual",
+//                    glucose: self.settingsManager.settings
+//                        .units == .mgdL ? (self.glucoseFormatter.string(from: Int(result.glucose) as NSNumber) ?? "")
+//                        : (self.glucoseFormatter.string(from: Decimal(result.glucose).asMmolL as NSNumber) ?? ""),
+//                    units: self.settingsManager.settings.units == .mmolL ? "mmol" : "mg/dl",
+//                    id: result.id?.uuidString
+//                )
             }
         }
     }
