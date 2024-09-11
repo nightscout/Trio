@@ -39,11 +39,13 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
             Set([healthBGObject].compactMap { $0 }) }
 
         static var writePermissions: Set<HKSampleType> {
-            Set([healthBGObject, healthCarbObject, healthInsulinObject].compactMap { $0 }) }
+            Set([healthBGObject, healthCarbObject, healthFatObject, healthProteinObject, healthInsulinObject].compactMap { $0 }) }
 
         // link to object in HealthKit
         static let healthBGObject = HKObjectType.quantityType(forIdentifier: .bloodGlucose)
         static let healthCarbObject = HKObjectType.quantityType(forIdentifier: .dietaryCarbohydrates)
+        static let healthFatObject = HKObjectType.quantityType(forIdentifier: .dietaryFatTotal)
+        static let healthProteinObject = HKObjectType.quantityType(forIdentifier: .dietaryProtein)
         static let healthInsulinObject = HKObjectType.quantityType(forIdentifier: .insulinDelivery)
 
         // Meta-data key of FreeASPX data in HealthStore
@@ -237,22 +239,29 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
 
     func uploadCarbs(_ carbs: [CarbsEntry]) async {
         guard settingsManager.settings.useAppleHealth,
-              let sampleType = Config.healthCarbObject,
-              checkAvailabilitySave(objectTypeToHealthStore: sampleType),
+              let carbSampleType = Config.healthCarbObject,
+              let fatSampleType = Config.healthFatObject,
+              let proteinSampleType = Config.healthProteinObject,
+              checkAvailabilitySave(objectTypeToHealthStore: carbSampleType),
               carbs.isNotEmpty
         else { return }
 
         do {
-            // Create HealthKit samples from all the passed carb values
-            let carbSamples = carbs.compactMap { carbSample -> HKQuantitySample? in
-                guard let id = carbSample.id else { return nil }
-                let carbValue = carbSample.carbs
+            var samples: [HKQuantitySample] = []
 
-                return HKQuantitySample(
-                    type: sampleType,
+            // Create HealthKit samples for carbs, fat, and protein
+            for allSamples in carbs {
+                guard let id = allSamples.id else { continue }
+
+                let startDate = allSamples.actualDate ?? Date()
+
+                // Carbs Sample
+                let carbValue = allSamples.carbs
+                let carbSample = HKQuantitySample(
+                    type: carbSampleType,
                     quantity: HKQuantity(unit: .gram(), doubleValue: Double(carbValue)),
-                    start: carbSample.actualDate ?? Date(),
-                    end: carbSample.actualDate ?? Date(),
+                    start: startDate,
+                    end: startDate,
                     metadata: [
                         HKMetadataKeyExternalUUID: id,
                         HKMetadataKeySyncIdentifier: id,
@@ -260,22 +269,57 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
                         Config.freeAPSMetaKey: true
                     ]
                 )
+                samples.append(carbSample)
+
+                // Fat Sample (if available)
+                if let fatValue = allSamples.fat {
+                    let fatSample = HKQuantitySample(
+                        type: fatSampleType,
+                        quantity: HKQuantity(unit: .gram(), doubleValue: Double(fatValue)),
+                        start: startDate,
+                        end: startDate,
+                        metadata: [
+                            HKMetadataKeyExternalUUID: id,
+                            HKMetadataKeySyncIdentifier: id,
+                            HKMetadataKeySyncVersion: 1,
+                            Config.freeAPSMetaKey: true
+                        ]
+                    )
+                    samples.append(fatSample)
+                }
+
+                // Protein Sample (if available)
+                if let proteinValue = allSamples.protein {
+                    let proteinSample = HKQuantitySample(
+                        type: proteinSampleType,
+                        quantity: HKQuantity(unit: .gram(), doubleValue: Double(proteinValue)),
+                        start: startDate,
+                        end: startDate,
+                        metadata: [
+                            HKMetadataKeyExternalUUID: id,
+                            HKMetadataKeySyncIdentifier: id,
+                            HKMetadataKeySyncVersion: 1,
+                            Config.freeAPSMetaKey: true
+                        ]
+                    )
+                    samples.append(proteinSample)
+                }
             }
 
-            guard carbSamples.isNotEmpty else {
-                debug(.service, "No glucose samples available for upload.")
+            // Attempt to save the samples to Apple Health
+            guard samples.isNotEmpty else {
+                debug(.service, "No samples available for upload.")
                 return
             }
 
-            // Attempt to save the blood glucose samples to Apple Health
-            try await healthKitStore.save(carbSamples)
-            debug(.service, "Successfully stored \(carbSamples.count) carb samples in HealthKit.")
+            try await healthKitStore.save(samples)
+            debug(.service, "Successfully stored \(samples.count) samples in HealthKit.")
 
             // After successful upload, update the isUploadedToHealth flag in Core Data
             await updateCarbsAsUploaded(carbs)
 
         } catch {
-            debug(.service, "Failed to upload carb samples to HealthKit: \(error.localizedDescription)")
+            debug(.service, "Failed to upload samples to HealthKit: \(error.localizedDescription)")
         }
     }
 
