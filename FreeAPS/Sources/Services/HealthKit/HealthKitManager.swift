@@ -14,10 +14,10 @@ protocol HealthKitManager: GlucoseSource {
     func checkAvailabilitySaveBG() -> Bool
     /// Requests user to give permissions on using HealthKit
     func requestPermission() async throws -> Bool
-    /// Save blood glucose to Health store (dublicate of bg will ignore)
+    /// Save blood glucose to Health store
     func uploadGlucose() async
-    /// Save carbs to Health store (dublicate of bg will ignore)
-    func saveIfNeeded(carbs: [CarbsEntry])
+    /// Save carbs to Health store
+    func uploadCarbs() async
     /// Save Insulin to Health store
     func saveIfNeeded(pumpEvents events: [PumpHistoryEvent])
     /// Create observer for data passing beetwen Health Store and Trio
@@ -147,6 +147,8 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
             }
         }
     }
+    
+    // Glucose Upload
 
     func uploadGlucose() async {
         await uploadGlucose(glucoseStorage.getGlucoseNotYetUploadedToHealth())
@@ -205,7 +207,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
             do {
                 let results = try self.backgroundContext.fetch(fetchRequest)
                 for result in results {
-                    result.isUploadedToNS = true
+                    result.isUploadedToHealth = true
                 }
 
                 guard self.backgroundContext.hasChanges else { return }
@@ -217,17 +219,68 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
             }
         }
     }
+    
+    // Carbs Upload
+    
+    func uploadCarbs() async {
+        await uploadGlucose(glucoseStorage.getGlucoseNotYetUploadedToHealth())
+        await uploadGlucose(glucoseStorage.getManualGlucoseNotYetUploadedToHealth())
+    }
+    
+    func uploadCarbs(_ carbs: [CarbsEntry]) async {
+        guard settingsManager.settings.useAppleHealth,
+              let sampleType = Config.healthCarbObject,
+              checkAvailabilitySave(objectTypeToHealthStore: sampleType),
+              carbs.isNotEmpty
+        else { return }
 
-    private func updateManualGlucoseAsUploaded(_ glucose: [NightscoutTreatment]) async {
+        do {
+            // Create HealthKit samples from all the passed carb values
+            let carbSamples = carbs.compactMap { carbSample -> HKQuantitySample? in
+                guard let id = carbSample.id else { return nil }
+                let carbValue = carbSample.carbs
+
+                return HKQuantitySample(
+                    type: sampleType,
+                    quantity: HKQuantity(unit: .gram(), doubleValue: Double(carbValue)),
+                    start: carbSample.actualDate ?? Date(),
+                    end: carbSample.actualDate ?? Date(),
+                    metadata: [
+                        HKMetadataKeyExternalUUID: id,
+                        HKMetadataKeySyncIdentifier: id,
+                        HKMetadataKeySyncVersion: 1,
+                        Config.freeAPSMetaKey: true
+                    ]
+                )
+            }
+
+            guard carbSamples.isNotEmpty else {
+                debug(.service, "No glucose samples available for upload.")
+                return
+            }
+
+            // Attempt to save the blood glucose samples to Apple Health
+            try await healthKitStore.save(carbSamples)
+            debug(.service, "Successfully stored \(carbSamples.count) carb samples in HealthKit.")
+
+            // After successful upload, update the isUploadedToHealth flag in Core Data
+            await updateCarbsAsUploaded(carbs)
+
+        } catch {
+            debug(.service, "Failed to upload carb samples to HealthKit: \(error.localizedDescription)")
+        }
+    }
+    
+    private func updateCarbsAsUploaded(_ carbs: [CarbsEntry]) async {
         await backgroundContext.perform {
-            let ids = glucose.map(\.id) as NSArray
-            let fetchRequest: NSFetchRequest<GlucoseStored> = GlucoseStored.fetchRequest()
+            let ids = carbs.map(\.id) as NSArray
+            let fetchRequest: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
                 let results = try self.backgroundContext.fetch(fetchRequest)
                 for result in results {
-                    result.isUploadedToNS = true
+                    result.isUploadedToHealth = true
                 }
 
                 guard self.backgroundContext.hasChanges else { return }
@@ -240,61 +293,6 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
         }
     }
 
-//    func saveIfNeeded(bloodGlucose: [BloodGlucose]) {
-//        guard settingsManager.settings.useAppleHealth,
-//              let sampleType = Config.healthBGObject,
-//              checkAvailabilitySave(objectTypeToHealthStore: sampleType),
-//              bloodGlucose.isNotEmpty
-//        else { return }
-//
-//        Task {
-//            let bloodGlucoseToSave = await filterSamplesToSave(bloodGlucose: bloodGlucose, sampleType: sampleType)
-//
-//            guard bloodGlucoseToSave.isNotEmpty else {
-//                debug(.service, "No new blood glucose samples to save.")
-//                return
-//            }
-//
-//            await save(samples: bloodGlucoseToSave, sampleType: sampleType)
-//        }
-//    }
-//
-//    private func filterSamplesToSave(bloodGlucose: [BloodGlucose], sampleType: HKQuantityType) async -> [HKQuantitySample] {
-//        var samplesToSave: [HKQuantitySample] = []
-//
-//        loadSamplesFromHealth(sampleType: sampleType, withIDs: bloodGlucose.map(\.id)) { existingSamples in
-//            let existingSampleIDs = Set(existingSamples.compactMap(\.syncIdentifier))
-//            samplesToSave = bloodGlucose
-//                .filter { !existingSampleIDs.contains($0.id) }
-//                .compactMap { glucoseSample in
-//                    guard let glucoseValue = glucoseSample.glucose else { return nil }
-//
-//                    return HKQuantitySample(
-//                        type: sampleType,
-//                        quantity: HKQuantity(unit: .milligramsPerDeciliter, doubleValue: Double(glucoseValue)),
-//                        start: glucoseSample.dateString,
-//                        end: glucoseSample.dateString,
-//                        metadata: [
-//                            HKMetadataKeyExternalUUID: glucoseSample.id,
-//                            HKMetadataKeySyncIdentifier: glucoseSample.id,
-//                            HKMetadataKeySyncVersion: 1,
-//                            Config.freeAPSMetaKey: true
-//                        ]
-//                    )
-//                }
-//        }
-//
-//        return samplesToSave
-//    }
-//
-//    private func save(samples: [HKQuantitySample], sampleType _: HKQuantityType) async {
-//        do {
-//            try await healthKitStore.save(samples)
-//            debug(.service, "Successfully stored \(samples.count) blood glucose samples.")
-//        } catch {
-//            debug(.service, "Failed to store blood glucose in HealthKit Store: \(error.localizedDescription)")
-//        }
-//    }
 
     func saveIfNeeded(carbs: [CarbsEntry]) {
         guard settingsManager.settings.useAppleHealth,
