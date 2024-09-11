@@ -85,7 +85,7 @@ struct LiveActivity: Widget {
             } compactTrailing: {
                 LiveActivityCompactTrailingView(context: context)
             } minimal: {
-                LiveActivityMinimalView(context: context)
+                LiveActivityMinimalView(context: context).font(.caption2)
             }
         }
     }
@@ -201,7 +201,7 @@ struct LiveActivityGlucoseDeltaLabelView: View {
 
     var body: some View {
         if !context.state.change.isEmpty {
-            Text(context.state.change).foregroundStyle(.primary).font(.subheadline)
+            Text(context.state.change).foregroundStyle(.primary)
                 .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
         } else {
             Text("--")
@@ -464,36 +464,71 @@ struct LiveActivityMinimalView: View {
 
     var body: some View {
         let (label, characterCount) = bgAndTrend(context: context, size: .minimal)
-        let adjustedLabel = label.padding(.leading, 7).padding(.trailing, 3)
+        let adjustedLabel = label.padding(.leading, 5).padding(.trailing, 2)
 
         if characterCount < 4 {
-            adjustedLabel
-        } else if characterCount < 5 {
             adjustedLabel.fontWidth(.condensed)
+        } else if characterCount < 5 {
+            adjustedLabel.fontWidth(.compressed)
         } else {
             adjustedLabel.fontWidth(.compressed)
         }
     }
 }
 
-// Helper function for bgAndTrend logic
-private func bgAndTrend(context: ActivityViewContext<LiveActivityAttributes>, size _: Size) -> (some View, Int) {
+private func bgAndTrend(context: ActivityViewContext<LiveActivityAttributes>, size: Size) -> (some View, Int) {
     var characters = 0
+
     let bgText = context.state.bg
     characters += bgText.count
 
+    // narrow mode is for the minimal dynamic island view
+    // there is not enough space to show all three arrow there
+    // and everything has to be squeezed together to some degree
+    // only display the first arrow character and make it red in case there were more characters
     var directionText: String?
+    var warnColor: Color?
     if let direction = context.state.direction {
-        directionText = direction
+        if size == .compact || size == .minimal {
+            directionText = String(direction[direction.startIndex ... direction.startIndex])
+
+            if direction.count > 1 {
+                warnColor = Color.red
+            }
+        } else {
+            directionText = direction
+        }
+
         characters += directionText!.count
     }
 
-    let stack = HStack {
-        Text(bgText)
-        if let direction = directionText {
-            Text(direction)
-        }
+    let spacing: CGFloat
+    switch size {
+    case .minimal: spacing = -1
+    case .compact: spacing = 0
+    case .expanded: spacing = 3
     }
 
+    let stack = HStack(spacing: spacing) {
+        Text(bgText)
+            .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
+        if let direction = directionText {
+            let text = Text(direction)
+            switch size {
+            case .minimal:
+                let scaledText = text.scaleEffect(x: 0.7, y: 0.7, anchor: .leading)
+                if let warnColor {
+                    scaledText.foregroundStyle(warnColor)
+                } else {
+                    scaledText
+                }
+            case .compact:
+                text.scaleEffect(x: 0.8, y: 0.8, anchor: .leading).padding(.trailing, -3)
+
+            case .expanded:
+                text.scaleEffect(x: 0.7, y: 0.7, anchor: .leading).padding(.trailing, -5)
+            }
+        }
+    }
     return (stack, characters)
 }
