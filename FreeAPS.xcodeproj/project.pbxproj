@@ -433,38 +433,6 @@
 		DD1745552C55CA6C00211FAC /* UnitsLimitsSettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745542C55CA6C00211FAC /* UnitsLimitsSettingsRootView.swift */; };
 		DD1DB7CC2BECCA1F0048B367 /* BuildDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */; };
 		DD21FCB52C6952AD00AF2C25 /* DecimalPickerSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD21FCB42C6952AD00AF2C25 /* DecimalPickerSettings.swift */; };
-		DD57C4B22C4C7103001A5B28 /* LoopStatRecord+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4902C4C7103001A5B28 /* LoopStatRecord+CoreDataClass.swift */; };
-		DD57C4B32C4C7103001A5B28 /* LoopStatRecord+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4912C4C7103001A5B28 /* LoopStatRecord+CoreDataProperties.swift */; };
-		DD57C4B42C4C7103001A5B28 /* MealPresetStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4922C4C7103001A5B28 /* MealPresetStored+CoreDataClass.swift */; };
-		DD57C4B52C4C7103001A5B28 /* MealPresetStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4932C4C7103001A5B28 /* MealPresetStored+CoreDataProperties.swift */; };
-		DD57C4B62C4C7103001A5B28 /* TempTargets+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4942C4C7103001A5B28 /* TempTargets+CoreDataClass.swift */; };
-		DD57C4B72C4C7103001A5B28 /* TempTargets+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4952C4C7103001A5B28 /* TempTargets+CoreDataProperties.swift */; };
-		DD57C4B82C4C7103001A5B28 /* ForecastValue+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4962C4C7103001A5B28 /* ForecastValue+CoreDataClass.swift */; };
-		DD57C4B92C4C7103001A5B28 /* ForecastValue+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4972C4C7103001A5B28 /* ForecastValue+CoreDataProperties.swift */; };
-		DD57C4BA2C4C7103001A5B28 /* OrefDetermination+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4982C4C7103001A5B28 /* OrefDetermination+CoreDataClass.swift */; };
-		DD57C4BB2C4C7103001A5B28 /* OrefDetermination+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4992C4C7103001A5B28 /* OrefDetermination+CoreDataProperties.swift */; };
-		DD57C4BC2C4C7103001A5B28 /* PumpEventStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C49A2C4C7103001A5B28 /* PumpEventStored+CoreDataClass.swift */; };
-		DD57C4BD2C4C7103001A5B28 /* PumpEventStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C49B2C4C7103001A5B28 /* PumpEventStored+CoreDataProperties.swift */; };
-		DD57C4BE2C4C7103001A5B28 /* TempBasalStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C49C2C4C7103001A5B28 /* TempBasalStored+CoreDataClass.swift */; };
-		DD57C4BF2C4C7103001A5B28 /* TempBasalStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C49D2C4C7103001A5B28 /* TempBasalStored+CoreDataProperties.swift */; };
-		DD57C4C02C4C7103001A5B28 /* TempTargetsSlider+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C49E2C4C7103001A5B28 /* TempTargetsSlider+CoreDataClass.swift */; };
-		DD57C4C12C4C7103001A5B28 /* TempTargetsSlider+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C49F2C4C7103001A5B28 /* TempTargetsSlider+CoreDataProperties.swift */; };
-		DD57C4C22C4C7103001A5B28 /* Forecast+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4A02C4C7103001A5B28 /* Forecast+CoreDataClass.swift */; };
-		DD57C4C32C4C7103001A5B28 /* Forecast+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4A12C4C7103001A5B28 /* Forecast+CoreDataProperties.swift */; };
-		DD57C4C42C4C7103001A5B28 /* BolusStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4A22C4C7103001A5B28 /* BolusStored+CoreDataClass.swift */; };
-		DD57C4C52C4C7103001A5B28 /* BolusStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4A32C4C7103001A5B28 /* BolusStored+CoreDataProperties.swift */; };
-		DD57C4C62C4C7103001A5B28 /* CarbEntryStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4A42C4C7103001A5B28 /* CarbEntryStored+CoreDataClass.swift */; };
-		DD57C4C72C4C7103001A5B28 /* CarbEntryStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4A52C4C7103001A5B28 /* CarbEntryStored+CoreDataProperties.swift */; };
-		DD57C4C82C4C7103001A5B28 /* OpenAPS_Battery+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4A62C4C7103001A5B28 /* OpenAPS_Battery+CoreDataClass.swift */; };
-		DD57C4C92C4C7103001A5B28 /* OpenAPS_Battery+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4A72C4C7103001A5B28 /* OpenAPS_Battery+CoreDataProperties.swift */; };
-		DD57C4CA2C4C7103001A5B28 /* GlucoseStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4A82C4C7103001A5B28 /* GlucoseStored+CoreDataClass.swift */; };
-		DD57C4CB2C4C7103001A5B28 /* GlucoseStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4A92C4C7103001A5B28 /* GlucoseStored+CoreDataProperties.swift */; };
-		DD57C4CC2C4C7103001A5B28 /* OverrideStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4AA2C4C7103001A5B28 /* OverrideStored+CoreDataClass.swift */; };
-		DD57C4CD2C4C7103001A5B28 /* OverrideStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4AB2C4C7103001A5B28 /* OverrideStored+CoreDataProperties.swift */; };
-		DD57C4CE2C4C7103001A5B28 /* OverrideRunStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4AC2C4C7103001A5B28 /* OverrideRunStored+CoreDataClass.swift */; };
-		DD57C4CF2C4C7103001A5B28 /* OverrideRunStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4AD2C4C7103001A5B28 /* OverrideRunStored+CoreDataProperties.swift */; };
-		DD57C4D22C4C7103001A5B28 /* StatsData+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4B02C4C7103001A5B28 /* StatsData+CoreDataClass.swift */; };
-		DD57C4D32C4C7103001A5B28 /* StatsData+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD57C4B12C4C7103001A5B28 /* StatsData+CoreDataProperties.swift */; };
 		DD68889D2C386E17006E3C44 /* NightscoutExercise.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD68889C2C386E17006E3C44 /* NightscoutExercise.swift */; };
 		DD6B7CB22C7B6F0800B75029 /* Rounding.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6B7CB12C7B6F0800B75029 /* Rounding.swift */; };
 		DD6B7CB42C7B71F700B75029 /* ForecastDisplayType.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6B7CB32C7B71F700B75029 /* ForecastDisplayType.swift */; };
@@ -479,6 +447,38 @@
 		DDD1631A2C4C695E00CD525A /* EditOverrideForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163192C4C695E00CD525A /* EditOverrideForm.swift */; };
 		DDD1631C2C4C697400CD525A /* AddOverrideForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD1631B2C4C697400CD525A /* AddOverrideForm.swift */; };
 		DDD1631F2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = DDD1631D2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodeld */; };
+		DDE179522C910127003CDDB7 /* MealPresetStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179322C910127003CDDB7 /* MealPresetStored+CoreDataClass.swift */; };
+		DDE179532C910127003CDDB7 /* MealPresetStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179332C910127003CDDB7 /* MealPresetStored+CoreDataProperties.swift */; };
+		DDE179542C910127003CDDB7 /* LoopStatRecord+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179342C910127003CDDB7 /* LoopStatRecord+CoreDataClass.swift */; };
+		DDE179552C910127003CDDB7 /* LoopStatRecord+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179352C910127003CDDB7 /* LoopStatRecord+CoreDataProperties.swift */; };
+		DDE179562C910127003CDDB7 /* BolusStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179362C910127003CDDB7 /* BolusStored+CoreDataClass.swift */; };
+		DDE179572C910127003CDDB7 /* BolusStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179372C910127003CDDB7 /* BolusStored+CoreDataProperties.swift */; };
+		DDE179582C910127003CDDB7 /* ForecastValue+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179382C910127003CDDB7 /* ForecastValue+CoreDataClass.swift */; };
+		DDE179592C910127003CDDB7 /* ForecastValue+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179392C910127003CDDB7 /* ForecastValue+CoreDataProperties.swift */; };
+		DDE1795A2C910127003CDDB7 /* CarbEntryStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1793A2C910127003CDDB7 /* CarbEntryStored+CoreDataClass.swift */; };
+		DDE1795B2C910127003CDDB7 /* CarbEntryStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1793B2C910127003CDDB7 /* CarbEntryStored+CoreDataProperties.swift */; };
+		DDE1795C2C910127003CDDB7 /* TempTargets+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1793C2C910127003CDDB7 /* TempTargets+CoreDataClass.swift */; };
+		DDE1795D2C910127003CDDB7 /* TempTargets+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1793D2C910127003CDDB7 /* TempTargets+CoreDataProperties.swift */; };
+		DDE1795E2C910127003CDDB7 /* PumpEventStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1793E2C910127003CDDB7 /* PumpEventStored+CoreDataClass.swift */; };
+		DDE1795F2C910127003CDDB7 /* PumpEventStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1793F2C910127003CDDB7 /* PumpEventStored+CoreDataProperties.swift */; };
+		DDE179602C910127003CDDB7 /* StatsData+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179402C910127003CDDB7 /* StatsData+CoreDataClass.swift */; };
+		DDE179612C910127003CDDB7 /* StatsData+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179412C910127003CDDB7 /* StatsData+CoreDataProperties.swift */; };
+		DDE179622C910127003CDDB7 /* Forecast+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179422C910127003CDDB7 /* Forecast+CoreDataClass.swift */; };
+		DDE179632C910127003CDDB7 /* Forecast+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179432C910127003CDDB7 /* Forecast+CoreDataProperties.swift */; };
+		DDE179642C910127003CDDB7 /* GlucoseStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179442C910127003CDDB7 /* GlucoseStored+CoreDataClass.swift */; };
+		DDE179652C910127003CDDB7 /* GlucoseStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179452C910127003CDDB7 /* GlucoseStored+CoreDataProperties.swift */; };
+		DDE179662C910127003CDDB7 /* OpenAPS_Battery+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179462C910127003CDDB7 /* OpenAPS_Battery+CoreDataClass.swift */; };
+		DDE179672C910127003CDDB7 /* OpenAPS_Battery+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179472C910127003CDDB7 /* OpenAPS_Battery+CoreDataProperties.swift */; };
+		DDE179682C910127003CDDB7 /* TempBasalStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179482C910127003CDDB7 /* TempBasalStored+CoreDataClass.swift */; };
+		DDE179692C910127003CDDB7 /* TempBasalStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179492C910127003CDDB7 /* TempBasalStored+CoreDataProperties.swift */; };
+		DDE1796A2C910127003CDDB7 /* TempTargetsSlider+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1794A2C910127003CDDB7 /* TempTargetsSlider+CoreDataClass.swift */; };
+		DDE1796B2C910127003CDDB7 /* TempTargetsSlider+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1794B2C910127003CDDB7 /* TempTargetsSlider+CoreDataProperties.swift */; };
+		DDE1796C2C910127003CDDB7 /* OverrideRunStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1794C2C910127003CDDB7 /* OverrideRunStored+CoreDataClass.swift */; };
+		DDE1796D2C910127003CDDB7 /* OverrideRunStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1794D2C910127003CDDB7 /* OverrideRunStored+CoreDataProperties.swift */; };
+		DDE1796E2C910127003CDDB7 /* OrefDetermination+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1794E2C910127003CDDB7 /* OrefDetermination+CoreDataClass.swift */; };
+		DDE1796F2C910127003CDDB7 /* OrefDetermination+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1794F2C910127003CDDB7 /* OrefDetermination+CoreDataProperties.swift */; };
+		DDE179702C910127003CDDB7 /* OverrideStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179502C910127003CDDB7 /* OverrideStored+CoreDataClass.swift */; };
+		DDE179712C910127003CDDB7 /* OverrideStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179512C910127003CDDB7 /* OverrideStored+CoreDataProperties.swift */; };
 		DDF847DD2C5C28720049BB3B /* LiveActivitySettingsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF847DC2C5C28720049BB3B /* LiveActivitySettingsDataFlow.swift */; };
 		DDF847DF2C5C28780049BB3B /* LiveActivitySettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF847DE2C5C28780049BB3B /* LiveActivitySettingsProvider.swift */; };
 		DDF847E12C5C287F0049BB3B /* LiveActivitySettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF847E02C5C287F0049BB3B /* LiveActivitySettingsStateModel.swift */; };
@@ -1087,38 +1087,6 @@
 		DD1745542C55CA6C00211FAC /* UnitsLimitsSettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitsLimitsSettingsRootView.swift; sourceTree = "<group>"; };
 		DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildDetails.swift; sourceTree = "<group>"; };
 		DD21FCB42C6952AD00AF2C25 /* DecimalPickerSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecimalPickerSettings.swift; sourceTree = "<group>"; };
-		DD57C4902C4C7103001A5B28 /* LoopStatRecord+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoopStatRecord+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4912C4C7103001A5B28 /* LoopStatRecord+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoopStatRecord+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4922C4C7103001A5B28 /* MealPresetStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MealPresetStored+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4932C4C7103001A5B28 /* MealPresetStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MealPresetStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4942C4C7103001A5B28 /* TempTargets+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargets+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4952C4C7103001A5B28 /* TempTargets+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargets+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4962C4C7103001A5B28 /* ForecastValue+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ForecastValue+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4972C4C7103001A5B28 /* ForecastValue+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ForecastValue+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4982C4C7103001A5B28 /* OrefDetermination+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OrefDetermination+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4992C4C7103001A5B28 /* OrefDetermination+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OrefDetermination+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C49A2C4C7103001A5B28 /* PumpEventStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PumpEventStored+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C49B2C4C7103001A5B28 /* PumpEventStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PumpEventStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C49C2C4C7103001A5B28 /* TempBasalStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempBasalStored+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C49D2C4C7103001A5B28 /* TempBasalStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempBasalStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C49E2C4C7103001A5B28 /* TempTargetsSlider+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetsSlider+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C49F2C4C7103001A5B28 /* TempTargetsSlider+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetsSlider+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4A02C4C7103001A5B28 /* Forecast+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Forecast+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4A12C4C7103001A5B28 /* Forecast+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Forecast+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4A22C4C7103001A5B28 /* BolusStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BolusStored+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4A32C4C7103001A5B28 /* BolusStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BolusStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4A42C4C7103001A5B28 /* CarbEntryStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CarbEntryStored+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4A52C4C7103001A5B28 /* CarbEntryStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CarbEntryStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4A62C4C7103001A5B28 /* OpenAPS_Battery+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OpenAPS_Battery+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4A72C4C7103001A5B28 /* OpenAPS_Battery+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OpenAPS_Battery+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4A82C4C7103001A5B28 /* GlucoseStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GlucoseStored+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4A92C4C7103001A5B28 /* GlucoseStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GlucoseStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4AA2C4C7103001A5B28 /* OverrideStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideStored+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4AB2C4C7103001A5B28 /* OverrideStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4AC2C4C7103001A5B28 /* OverrideRunStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideRunStored+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4AD2C4C7103001A5B28 /* OverrideRunStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideRunStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4B02C4C7103001A5B28 /* StatsData+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StatsData+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
-		DD57C4B12C4C7103001A5B28 /* StatsData+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StatsData+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		DD68889C2C386E17006E3C44 /* NightscoutExercise.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutExercise.swift; sourceTree = "<group>"; };
 		DD6B7CB12C7B6F0800B75029 /* Rounding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rounding.swift; sourceTree = "<group>"; };
 		DD6B7CB32C7B71F700B75029 /* ForecastDisplayType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastDisplayType.swift; sourceTree = "<group>"; };
@@ -1133,6 +1101,38 @@
 		DDD163192C4C695E00CD525A /* EditOverrideForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditOverrideForm.swift; sourceTree = "<group>"; };
 		DDD1631B2C4C697400CD525A /* AddOverrideForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddOverrideForm.swift; sourceTree = "<group>"; };
 		DDD1631E2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = TrioCoreDataPersistentContainer.xcdatamodel; sourceTree = "<group>"; };
+		DDE179322C910127003CDDB7 /* MealPresetStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MealPresetStored+CoreDataClass.swift"; sourceTree = "<group>"; };
+		DDE179332C910127003CDDB7 /* MealPresetStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MealPresetStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		DDE179342C910127003CDDB7 /* LoopStatRecord+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoopStatRecord+CoreDataClass.swift"; sourceTree = "<group>"; };
+		DDE179352C910127003CDDB7 /* LoopStatRecord+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoopStatRecord+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		DDE179362C910127003CDDB7 /* BolusStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BolusStored+CoreDataClass.swift"; sourceTree = "<group>"; };
+		DDE179372C910127003CDDB7 /* BolusStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BolusStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		DDE179382C910127003CDDB7 /* ForecastValue+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ForecastValue+CoreDataClass.swift"; sourceTree = "<group>"; };
+		DDE179392C910127003CDDB7 /* ForecastValue+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ForecastValue+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		DDE1793A2C910127003CDDB7 /* CarbEntryStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CarbEntryStored+CoreDataClass.swift"; sourceTree = "<group>"; };
+		DDE1793B2C910127003CDDB7 /* CarbEntryStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CarbEntryStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		DDE1793C2C910127003CDDB7 /* TempTargets+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargets+CoreDataClass.swift"; sourceTree = "<group>"; };
+		DDE1793D2C910127003CDDB7 /* TempTargets+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargets+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		DDE1793E2C910127003CDDB7 /* PumpEventStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PumpEventStored+CoreDataClass.swift"; sourceTree = "<group>"; };
+		DDE1793F2C910127003CDDB7 /* PumpEventStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PumpEventStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		DDE179402C910127003CDDB7 /* StatsData+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StatsData+CoreDataClass.swift"; sourceTree = "<group>"; };
+		DDE179412C910127003CDDB7 /* StatsData+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StatsData+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		DDE179422C910127003CDDB7 /* Forecast+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Forecast+CoreDataClass.swift"; sourceTree = "<group>"; };
+		DDE179432C910127003CDDB7 /* Forecast+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Forecast+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		DDE179442C910127003CDDB7 /* GlucoseStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GlucoseStored+CoreDataClass.swift"; sourceTree = "<group>"; };
+		DDE179452C910127003CDDB7 /* GlucoseStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GlucoseStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		DDE179462C910127003CDDB7 /* OpenAPS_Battery+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OpenAPS_Battery+CoreDataClass.swift"; sourceTree = "<group>"; };
+		DDE179472C910127003CDDB7 /* OpenAPS_Battery+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OpenAPS_Battery+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		DDE179482C910127003CDDB7 /* TempBasalStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempBasalStored+CoreDataClass.swift"; sourceTree = "<group>"; };
+		DDE179492C910127003CDDB7 /* TempBasalStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempBasalStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		DDE1794A2C910127003CDDB7 /* TempTargetsSlider+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetsSlider+CoreDataClass.swift"; sourceTree = "<group>"; };
+		DDE1794B2C910127003CDDB7 /* TempTargetsSlider+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetsSlider+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		DDE1794C2C910127003CDDB7 /* OverrideRunStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideRunStored+CoreDataClass.swift"; sourceTree = "<group>"; };
+		DDE1794D2C910127003CDDB7 /* OverrideRunStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideRunStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		DDE1794E2C910127003CDDB7 /* OrefDetermination+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OrefDetermination+CoreDataClass.swift"; sourceTree = "<group>"; };
+		DDE1794F2C910127003CDDB7 /* OrefDetermination+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OrefDetermination+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		DDE179502C910127003CDDB7 /* OverrideStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideStored+CoreDataClass.swift"; sourceTree = "<group>"; };
+		DDE179512C910127003CDDB7 /* OverrideStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		DDF847DC2C5C28720049BB3B /* LiveActivitySettingsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivitySettingsDataFlow.swift; sourceTree = "<group>"; };
 		DDF847DE2C5C28780049BB3B /* LiveActivitySettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivitySettingsProvider.swift; sourceTree = "<group>"; };
 		DDF847E02C5C287F0049BB3B /* LiveActivitySettingsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivitySettingsStateModel.swift; sourceTree = "<group>"; };
@@ -2247,7 +2247,7 @@
 		587A54C82BCDCE0F009D38E2 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				DD57C46C2C4C7003001A5B28 /* Classes+Properties */,
+				DDE179112C9100FA003CDDB7 /* Classes+Properties */,
 				BDF34F8F2C10CF8C00D51995 /* CoreDataStack.swift */,
 				5825D1622BD405AE00F36E9B /* Helper */,
 				DDD1631D2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodeld */,
@@ -2645,45 +2645,6 @@
 			path = View;
 			sourceTree = "<group>";
 		};
-		DD57C46C2C4C7003001A5B28 /* Classes+Properties */ = {
-			isa = PBXGroup;
-			children = (
-				DD57C4902C4C7103001A5B28 /* LoopStatRecord+CoreDataClass.swift */,
-				DD57C4912C4C7103001A5B28 /* LoopStatRecord+CoreDataProperties.swift */,
-				DD57C4922C4C7103001A5B28 /* MealPresetStored+CoreDataClass.swift */,
-				DD57C4932C4C7103001A5B28 /* MealPresetStored+CoreDataProperties.swift */,
-				DD57C4942C4C7103001A5B28 /* TempTargets+CoreDataClass.swift */,
-				DD57C4952C4C7103001A5B28 /* TempTargets+CoreDataProperties.swift */,
-				DD57C4962C4C7103001A5B28 /* ForecastValue+CoreDataClass.swift */,
-				DD57C4972C4C7103001A5B28 /* ForecastValue+CoreDataProperties.swift */,
-				DD57C4982C4C7103001A5B28 /* OrefDetermination+CoreDataClass.swift */,
-				DD57C4992C4C7103001A5B28 /* OrefDetermination+CoreDataProperties.swift */,
-				DD57C49A2C4C7103001A5B28 /* PumpEventStored+CoreDataClass.swift */,
-				DD57C49B2C4C7103001A5B28 /* PumpEventStored+CoreDataProperties.swift */,
-				DD57C49C2C4C7103001A5B28 /* TempBasalStored+CoreDataClass.swift */,
-				DD57C49D2C4C7103001A5B28 /* TempBasalStored+CoreDataProperties.swift */,
-				DD57C49E2C4C7103001A5B28 /* TempTargetsSlider+CoreDataClass.swift */,
-				DD57C49F2C4C7103001A5B28 /* TempTargetsSlider+CoreDataProperties.swift */,
-				DD57C4A02C4C7103001A5B28 /* Forecast+CoreDataClass.swift */,
-				DD57C4A12C4C7103001A5B28 /* Forecast+CoreDataProperties.swift */,
-				DD57C4A22C4C7103001A5B28 /* BolusStored+CoreDataClass.swift */,
-				DD57C4A32C4C7103001A5B28 /* BolusStored+CoreDataProperties.swift */,
-				DD57C4A42C4C7103001A5B28 /* CarbEntryStored+CoreDataClass.swift */,
-				DD57C4A52C4C7103001A5B28 /* CarbEntryStored+CoreDataProperties.swift */,
-				DD57C4A62C4C7103001A5B28 /* OpenAPS_Battery+CoreDataClass.swift */,
-				DD57C4A72C4C7103001A5B28 /* OpenAPS_Battery+CoreDataProperties.swift */,
-				DD57C4A82C4C7103001A5B28 /* GlucoseStored+CoreDataClass.swift */,
-				DD57C4A92C4C7103001A5B28 /* GlucoseStored+CoreDataProperties.swift */,
-				DD57C4AA2C4C7103001A5B28 /* OverrideStored+CoreDataClass.swift */,
-				DD57C4AB2C4C7103001A5B28 /* OverrideStored+CoreDataProperties.swift */,
-				DD57C4AC2C4C7103001A5B28 /* OverrideRunStored+CoreDataClass.swift */,
-				DD57C4AD2C4C7103001A5B28 /* OverrideRunStored+CoreDataProperties.swift */,
-				DD57C4B02C4C7103001A5B28 /* StatsData+CoreDataClass.swift */,
-				DD57C4B12C4C7103001A5B28 /* StatsData+CoreDataProperties.swift */,
-			);
-			path = "Classes+Properties";
-			sourceTree = "<group>";
-		};
 		DD6B7CB72C7BAC1B00B75029 /* ProfileImport */ = {
 			isa = PBXGroup;
 			children = (
@@ -2712,6 +2673,45 @@
 				DDD1631B2C4C697400CD525A /* AddOverrideForm.swift */,
 			);
 			path = View;
+			sourceTree = "<group>";
+		};
+		DDE179112C9100FA003CDDB7 /* Classes+Properties */ = {
+			isa = PBXGroup;
+			children = (
+				DDE179322C910127003CDDB7 /* MealPresetStored+CoreDataClass.swift */,
+				DDE179332C910127003CDDB7 /* MealPresetStored+CoreDataProperties.swift */,
+				DDE179342C910127003CDDB7 /* LoopStatRecord+CoreDataClass.swift */,
+				DDE179352C910127003CDDB7 /* LoopStatRecord+CoreDataProperties.swift */,
+				DDE179362C910127003CDDB7 /* BolusStored+CoreDataClass.swift */,
+				DDE179372C910127003CDDB7 /* BolusStored+CoreDataProperties.swift */,
+				DDE179382C910127003CDDB7 /* ForecastValue+CoreDataClass.swift */,
+				DDE179392C910127003CDDB7 /* ForecastValue+CoreDataProperties.swift */,
+				DDE1793A2C910127003CDDB7 /* CarbEntryStored+CoreDataClass.swift */,
+				DDE1793B2C910127003CDDB7 /* CarbEntryStored+CoreDataProperties.swift */,
+				DDE1793C2C910127003CDDB7 /* TempTargets+CoreDataClass.swift */,
+				DDE1793D2C910127003CDDB7 /* TempTargets+CoreDataProperties.swift */,
+				DDE1793E2C910127003CDDB7 /* PumpEventStored+CoreDataClass.swift */,
+				DDE1793F2C910127003CDDB7 /* PumpEventStored+CoreDataProperties.swift */,
+				DDE179402C910127003CDDB7 /* StatsData+CoreDataClass.swift */,
+				DDE179412C910127003CDDB7 /* StatsData+CoreDataProperties.swift */,
+				DDE179422C910127003CDDB7 /* Forecast+CoreDataClass.swift */,
+				DDE179432C910127003CDDB7 /* Forecast+CoreDataProperties.swift */,
+				DDE179442C910127003CDDB7 /* GlucoseStored+CoreDataClass.swift */,
+				DDE179452C910127003CDDB7 /* GlucoseStored+CoreDataProperties.swift */,
+				DDE179462C910127003CDDB7 /* OpenAPS_Battery+CoreDataClass.swift */,
+				DDE179472C910127003CDDB7 /* OpenAPS_Battery+CoreDataProperties.swift */,
+				DDE179482C910127003CDDB7 /* TempBasalStored+CoreDataClass.swift */,
+				DDE179492C910127003CDDB7 /* TempBasalStored+CoreDataProperties.swift */,
+				DDE1794A2C910127003CDDB7 /* TempTargetsSlider+CoreDataClass.swift */,
+				DDE1794B2C910127003CDDB7 /* TempTargetsSlider+CoreDataProperties.swift */,
+				DDE1794C2C910127003CDDB7 /* OverrideRunStored+CoreDataClass.swift */,
+				DDE1794D2C910127003CDDB7 /* OverrideRunStored+CoreDataProperties.swift */,
+				DDE1794E2C910127003CDDB7 /* OrefDetermination+CoreDataClass.swift */,
+				DDE1794F2C910127003CDDB7 /* OrefDetermination+CoreDataProperties.swift */,
+				DDE179502C910127003CDDB7 /* OverrideStored+CoreDataClass.swift */,
+				DDE179512C910127003CDDB7 /* OverrideStored+CoreDataProperties.swift */,
+			);
+			path = "Classes+Properties";
 			sourceTree = "<group>";
 		};
 		DDF847DB2C5C28550049BB3B /* LiveActivitySettings */ = {
@@ -3272,45 +3272,13 @@
 				3811DE5D25C9D4D500A708ED /* Publisher.swift in Sources */,
 				E00EEC0727368630002FF094 /* APSAssembly.swift in Sources */,
 				38B4F3AF25E2979F00E76A18 /* IndexedCollection.swift in Sources */,
-				DD57C4B22C4C7103001A5B28 /* LoopStatRecord+CoreDataClass.swift in Sources */,
-				DD57C4B32C4C7103001A5B28 /* LoopStatRecord+CoreDataProperties.swift in Sources */,
-				DD57C4B42C4C7103001A5B28 /* MealPresetStored+CoreDataClass.swift in Sources */,
-				DD57C4B52C4C7103001A5B28 /* MealPresetStored+CoreDataProperties.swift in Sources */,
-				DD57C4B62C4C7103001A5B28 /* TempTargets+CoreDataClass.swift in Sources */,
-				DD57C4B72C4C7103001A5B28 /* TempTargets+CoreDataProperties.swift in Sources */,
-				DD57C4B82C4C7103001A5B28 /* ForecastValue+CoreDataClass.swift in Sources */,
-				DD57C4B92C4C7103001A5B28 /* ForecastValue+CoreDataProperties.swift in Sources */,
-				DD57C4BA2C4C7103001A5B28 /* OrefDetermination+CoreDataClass.swift in Sources */,
-				DD57C4BB2C4C7103001A5B28 /* OrefDetermination+CoreDataProperties.swift in Sources */,
-				DD57C4BC2C4C7103001A5B28 /* PumpEventStored+CoreDataClass.swift in Sources */,
-				DD57C4BD2C4C7103001A5B28 /* PumpEventStored+CoreDataProperties.swift in Sources */,
-				DD57C4BE2C4C7103001A5B28 /* TempBasalStored+CoreDataClass.swift in Sources */,
-				DD57C4BF2C4C7103001A5B28 /* TempBasalStored+CoreDataProperties.swift in Sources */,
 				58D08B222C8DAA8E00AA37D3 /* OverrideView.swift in Sources */,
 				BD0B2EF32C5998E600B3298F /* MealPresetView.swift in Sources */,
-				DD57C4C02C4C7103001A5B28 /* TempTargetsSlider+CoreDataClass.swift in Sources */,
-				DD57C4C12C4C7103001A5B28 /* TempTargetsSlider+CoreDataProperties.swift in Sources */,
-				DD57C4C22C4C7103001A5B28 /* Forecast+CoreDataClass.swift in Sources */,
 				582DF9752C8CDB92001F516D /* GlucoseChartView.swift in Sources */,
-				DD57C4C32C4C7103001A5B28 /* Forecast+CoreDataProperties.swift in Sources */,
-				DD57C4C42C4C7103001A5B28 /* BolusStored+CoreDataClass.swift in Sources */,
 				DD1745302C55AE5300211FAC /* TargetBehaviorProvider.swift in Sources */,
-				DD57C4C52C4C7103001A5B28 /* BolusStored+CoreDataProperties.swift in Sources */,
-				DD57C4C62C4C7103001A5B28 /* CarbEntryStored+CoreDataClass.swift in Sources */,
-				DD57C4C72C4C7103001A5B28 /* CarbEntryStored+CoreDataProperties.swift in Sources */,
-				DD57C4C82C4C7103001A5B28 /* OpenAPS_Battery+CoreDataClass.swift in Sources */,
 				58D08B382C8DFB6000AA37D3 /* BasalChart.swift in Sources */,
-				DD57C4C92C4C7103001A5B28 /* OpenAPS_Battery+CoreDataProperties.swift in Sources */,
 				118DF76D2C5ECBC60067FEB7 /* OverridePresetEntity.swift in Sources */,
-				DD57C4CA2C4C7103001A5B28 /* GlucoseStored+CoreDataClass.swift in Sources */,
-				DD57C4CB2C4C7103001A5B28 /* GlucoseStored+CoreDataProperties.swift in Sources */,
-				DD57C4CC2C4C7103001A5B28 /* OverrideStored+CoreDataClass.swift in Sources */,
-				DD57C4CD2C4C7103001A5B28 /* OverrideStored+CoreDataProperties.swift in Sources */,
-				DD57C4CE2C4C7103001A5B28 /* OverrideRunStored+CoreDataClass.swift in Sources */,
-				DD57C4CF2C4C7103001A5B28 /* OverrideRunStored+CoreDataProperties.swift in Sources */,
 				DD17454E2C55CA4D00211FAC /* UnitsLimitsSettingsDataFlow.swift in Sources */,
-				DD57C4D22C4C7103001A5B28 /* StatsData+CoreDataClass.swift in Sources */,
-				DD57C4D32C4C7103001A5B28 /* StatsData+CoreDataProperties.swift in Sources */,
 				DDF847E62C5D66490049BB3B /* AddMealPresetView.swift in Sources */,
 				3811DEAE25C9D88300A708ED /* Cache.swift in Sources */,
 				383420D625FFE38C002D46C1 /* LoopView.swift in Sources */,
@@ -3575,6 +3543,38 @@
 				E3A08AAE59538BC8A8ABE477 /* GlucoseNotificationSettingsDataFlow.swift in Sources */,
 				0F7A65FBD2CD8D6477ED4539 /* GlucoseNotificationSettingsProvider.swift in Sources */,
 				3171D2818C7C72CD1584BB5E /* GlucoseNotificationSettingsStateModel.swift in Sources */,
+				DDE179522C910127003CDDB7 /* MealPresetStored+CoreDataClass.swift in Sources */,
+				DDE179532C910127003CDDB7 /* MealPresetStored+CoreDataProperties.swift in Sources */,
+				DDE179542C910127003CDDB7 /* LoopStatRecord+CoreDataClass.swift in Sources */,
+				DDE179552C910127003CDDB7 /* LoopStatRecord+CoreDataProperties.swift in Sources */,
+				DDE179562C910127003CDDB7 /* BolusStored+CoreDataClass.swift in Sources */,
+				DDE179572C910127003CDDB7 /* BolusStored+CoreDataProperties.swift in Sources */,
+				DDE179582C910127003CDDB7 /* ForecastValue+CoreDataClass.swift in Sources */,
+				DDE179592C910127003CDDB7 /* ForecastValue+CoreDataProperties.swift in Sources */,
+				DDE1795A2C910127003CDDB7 /* CarbEntryStored+CoreDataClass.swift in Sources */,
+				DDE1795B2C910127003CDDB7 /* CarbEntryStored+CoreDataProperties.swift in Sources */,
+				DDE1795C2C910127003CDDB7 /* TempTargets+CoreDataClass.swift in Sources */,
+				DDE1795D2C910127003CDDB7 /* TempTargets+CoreDataProperties.swift in Sources */,
+				DDE1795E2C910127003CDDB7 /* PumpEventStored+CoreDataClass.swift in Sources */,
+				DDE1795F2C910127003CDDB7 /* PumpEventStored+CoreDataProperties.swift in Sources */,
+				DDE179602C910127003CDDB7 /* StatsData+CoreDataClass.swift in Sources */,
+				DDE179612C910127003CDDB7 /* StatsData+CoreDataProperties.swift in Sources */,
+				DDE179622C910127003CDDB7 /* Forecast+CoreDataClass.swift in Sources */,
+				DDE179632C910127003CDDB7 /* Forecast+CoreDataProperties.swift in Sources */,
+				DDE179642C910127003CDDB7 /* GlucoseStored+CoreDataClass.swift in Sources */,
+				DDE179652C910127003CDDB7 /* GlucoseStored+CoreDataProperties.swift in Sources */,
+				DDE179662C910127003CDDB7 /* OpenAPS_Battery+CoreDataClass.swift in Sources */,
+				DDE179672C910127003CDDB7 /* OpenAPS_Battery+CoreDataProperties.swift in Sources */,
+				DDE179682C910127003CDDB7 /* TempBasalStored+CoreDataClass.swift in Sources */,
+				DDE179692C910127003CDDB7 /* TempBasalStored+CoreDataProperties.swift in Sources */,
+				DDE1796A2C910127003CDDB7 /* TempTargetsSlider+CoreDataClass.swift in Sources */,
+				DDE1796B2C910127003CDDB7 /* TempTargetsSlider+CoreDataProperties.swift in Sources */,
+				DDE1796C2C910127003CDDB7 /* OverrideRunStored+CoreDataClass.swift in Sources */,
+				DDE1796D2C910127003CDDB7 /* OverrideRunStored+CoreDataProperties.swift in Sources */,
+				DDE1796E2C910127003CDDB7 /* OrefDetermination+CoreDataClass.swift in Sources */,
+				DDE1796F2C910127003CDDB7 /* OrefDetermination+CoreDataProperties.swift in Sources */,
+				DDE179702C910127003CDDB7 /* OverrideStored+CoreDataClass.swift in Sources */,
+				DDE179712C910127003CDDB7 /* OverrideStored+CoreDataProperties.swift in Sources */,
 				CD78BB94E43B249D60CC1A1B /* GlucoseNotificationSettingsRootView.swift in Sources */,
 				CE7CA3502A064973004BE681 /* CancelTempPresetIntent.swift in Sources */,
 				6B1F539F9FF75646D1606066 /* SnoozeDataFlow.swift in Sources */,

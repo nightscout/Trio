@@ -22,8 +22,7 @@ struct InsulinView: ChartContent {
             )?.glucose {
                 let yPosition = (units == .mgdL ? Decimal(glucose) : Decimal(glucose).asMmolL) + MainChartHelper
                     .bolusOffset(units: units)
-                let size = (MainChartHelper.Config.bolusSize + CGFloat(truncating: amount) * MainChartHelper.Config.bolusScale) *
-                    1.8
+                let size = (MainChartHelper.Config.bolusSize + CGFloat(truncating: amount) * MainChartHelper.Config.bolusScale)
 
                 PointMark(
                     x: .value("Time", bolusDate, unit: .second),

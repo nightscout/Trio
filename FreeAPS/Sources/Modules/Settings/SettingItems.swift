@@ -190,7 +190,8 @@ enum SettingItems {
                 "Override HbA1c Unit",
                 "Standing / Laying TIR Chart",
                 "Show Carbs Required Badge",
-                "Carbs Required Threshold"
+                "Carbs Required Threshold",
+                "Forecast Display Type"
             ],
             path: ["Features", "User Interface"]
         ),

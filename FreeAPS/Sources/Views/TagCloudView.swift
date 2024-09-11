@@ -71,6 +71,8 @@ struct TagCloudView: View {
                 return .red
             case textTag where textTag.contains("SMB Ratio"):
                 return .orange
+            case textTag where textTag.contains("Smoothing: On"):
+                return .white
             default:
                 return .insulin
             }
@@ -84,7 +86,7 @@ struct TagCloudView: View {
                 .padding(.horizontal, 4)
                 .font(.subheadline)
                 .background(colorOfTag.opacity(0.8))
-                .foregroundColor(Color.white)
+                .foregroundColor(textTag.contains("Smoothing: On") ? Color.black : Color.white)
                 .cornerRadius(2)
         }
     }
@@ -189,7 +191,10 @@ struct TestTagCloudView: View {
             Text("Some other text")
             Divider()
             Text("Some other cloud")
-            TagCloudView(tags: ["Apple", "Google", "Amazon", "Microsoft", "Oracle", "Facebook"], shouldParseToMmolL: false)
+            TagCloudView(
+                tags: ["Apple", "Google", "Amazon", "Microsoft", "Oracle", "Facebook"],
+                shouldParseToMmolL: false
+            )
         }
     }
 }
