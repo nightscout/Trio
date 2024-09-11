@@ -85,7 +85,7 @@ struct LiveActivity: Widget {
             } compactTrailing: {
                 LiveActivityCompactTrailingView(context: context)
             } minimal: {
-                LiveActivityMinimalView(context: context).font(.caption2)
+                LiveActivityMinimalView(context: context).font(.system(size: 11))
             }
         }
     }
@@ -118,7 +118,7 @@ struct LiveActivityView: View {
                     }
 
                 HStack {
-                    ForEach(context.state.itemOrder, id: \.self) { item in
+                    ForEach(Array(context.state.itemOrder.enumerated()), id: \.element) { index, item in
                         switch item {
                         case "currentGlucose":
                             if context.state.showCurrentGlucose {
@@ -147,7 +147,10 @@ struct LiveActivityView: View {
                         default:
                             EmptyView()
                         }
-                        Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
+
+                        if index < context.state.itemOrder.count - 1 {
+                            Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
+                        }
                     }
                 }
             }
@@ -324,11 +327,13 @@ struct LiveActivityChartView: View {
             .asMmolL
         let target = additionalState.unit == "mg/dL" ? additionalState.target : additionalState.target.asMmolL
 
+        let isOverrideActive = additionalState.isOverrideActive == true
+
         let calendar = Calendar.current
         let now = Date()
 
         let startDate = calendar.date(byAdding: .hour, value: -6, to: now) ?? now
-        let endDate = calendar.date(byAdding: .hour, value: 2, to: now) ?? now
+        let endDate = isOverrideActive ? (calendar.date(byAdding: .hour, value: 2, to: now) ?? now) : now
 
         Chart {
             RuleMark(y: .value("Low", yAxisRuleMarkMin))
@@ -337,7 +342,7 @@ struct LiveActivityChartView: View {
                 .lineStyle(.init(lineWidth: 0.5, dash: [5]))
             RuleMark(y: .value("Target", target)).foregroundStyle(.green.gradient).lineStyle(.init(lineWidth: 1))
 
-            if context.state.detailedViewState?.isOverrideActive == true {
+            if isOverrideActive {
                 drawActiveOverrides()
             }
 
