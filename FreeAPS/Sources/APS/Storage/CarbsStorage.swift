@@ -3,17 +3,26 @@ import Foundation
 import SwiftDate
 import Swinject
 
+protocol CarbsStoredDelegate: AnyObject {
+    /*
+     Informs the delegate that the Carbs Storage has updated Carbs
+     */
+    func carbsStorageHasUpdatedCarbs(_ carbsStorage: BaseCarbsStorage)
+}
+
 protocol CarbsObserver {
     func carbsDidUpdate(_ carbs: [CarbsEntry])
 }
 
 protocol CarbsStorage {
+    var delegate: CarbsStoredDelegate? { get set }
     func storeCarbs(_ carbs: [CarbsEntry], areFetchedFromRemote: Bool) async
     func syncDate() -> Date
     func recent() -> [CarbsEntry]
     func getCarbsNotYetUploadedToNightscout() async -> [NightscoutTreatment]
     func getFPUsNotYetUploadedToNightscout() async -> [NightscoutTreatment]
     func deleteCarbs(at uniqueID: String, fpuID: String, complex: Bool)
+    func getCarbsNotYetUploadedToHealth() async -> [CarbsEntry]
 }
 
 final class BaseCarbsStorage: CarbsStorage, Injectable {
@@ -23,6 +32,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     @Injected() private var settings: SettingsManager!
 
     let coredataContext = CoreDataStack.shared.newTaskContext()
+
+    public weak var delegate: CarbsStoredDelegate?
 
     init(resolver: Resolver) {
         injectServices(resolver)
@@ -37,6 +48,10 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
 
         await saveCarbEquivalents(entries: entriesToStore, areFetchedFromRemote: areFetchedFromRemote)
         await saveCarbsToCoreData(entries: entriesToStore, areFetchedFromRemote: areFetchedFromRemote)
+
+        // TODO: - Should we really use a delegate here? If yes, should we also use this for NS/TP?
+
+        delegate?.carbsStorageHasUpdatedCarbs(self)
     }
 
     private func filterRemoteEntries(entries: [CarbsEntry]) async -> [CarbsEntry] {
@@ -193,6 +208,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             newItem.id = UUID()
             newItem.isFPU = false
             newItem.isUploadedToNS = areFetchedFromRemote ? true : false
+            newItem.isUploadedToHealth = false
 
             do {
                 guard self.coredataContext.hasChanges else { return }
@@ -342,6 +358,37 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     targetTop: nil,
                     targetBottom: nil,
                     id: result.fpuID?.uuidString
+                )
+            }
+        }
+    }
+
+    func getCarbsNotYetUploadedToHealth() async -> [CarbsEntry] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: CarbEntryStored.self,
+            onContext: coredataContext,
+            predicate: NSPredicate.carbsNotYetUploadedToNightscout,
+            key: "date",
+            ascending: false
+        )
+
+        guard let carbEntries = results as? [CarbEntryStored] else {
+            return []
+        }
+
+        return await coredataContext.perform {
+            return carbEntries.map { result in
+                CarbsEntry(
+                    id: result.id?.uuidString,
+                    createdAt: result.date ?? Date(),
+                    actualDate: result.date,
+                    carbs: Decimal(result.carbs),
+                    fat: Decimal(result.fat),
+                    protein: Decimal(result.protein),
+                    note: result.note,
+                    enteredBy: "Trio",
+                    isFPU: result.isFPU,
+                    fpuID: result.fpuID?.uuidString
                 )
             }
         }

@@ -381,8 +381,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                     noise: nil,
                     glucose: Int(result.glucose)
                 )
-                
-                
+
 //                NightscoutTreatment(
 //                    duration: nil,
 //                    rawDuration: nil,

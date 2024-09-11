@@ -32,7 +32,7 @@ protocol HealthKitManager: GlucoseSource {
     func deleteInsulin(syncID: String)
 }
 
-final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, PumpHistoryObserver {
+final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, PumpHistoryObserver, CarbsStoredDelegate {
     private enum Config {
         // unwraped HKObjects
         static var readPermissions: Set<HKSampleType> {
@@ -57,6 +57,13 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
     @Injected() var carbsStorage: CarbsStorage!
 
     private var backgroundContext = CoreDataStack.shared.newTaskContext()
+
+    func carbsStorageHasUpdatedCarbs(_: BaseCarbsStorage) {
+        Task.detached { [weak self] in
+            guard let self = self else { return }
+            await self.uploadCarbs()
+        }
+    }
 
     private let processQueue = DispatchQueue(label: "BaseHealthKitManager.processQueue")
     private var lifetime = Lifetime()
@@ -118,6 +125,8 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
         broadcaster.register(CarbsObserver.self, observer: self)
         broadcaster.register(PumpHistoryObserver.self, observer: self)
 
+        carbsStorage.delegate = self
+
         debug(.service, "HealthKitManager did create")
     }
 
@@ -147,7 +156,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
             }
         }
     }
-    
+
     // Glucose Upload
 
     func uploadGlucose() async {
@@ -219,14 +228,13 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
             }
         }
     }
-    
+
     // Carbs Upload
-    
+
     func uploadCarbs() async {
-        await uploadGlucose(glucoseStorage.getGlucoseNotYetUploadedToHealth())
-        await uploadGlucose(glucoseStorage.getManualGlucoseNotYetUploadedToHealth())
+        await uploadCarbs(carbsStorage.getCarbsNotYetUploadedToHealth())
     }
-    
+
     func uploadCarbs(_ carbs: [CarbsEntry]) async {
         guard settingsManager.settings.useAppleHealth,
               let sampleType = Config.healthCarbObject,
@@ -270,7 +278,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
             debug(.service, "Failed to upload carb samples to HealthKit: \(error.localizedDescription)")
         }
     }
-    
+
     private func updateCarbsAsUploaded(_ carbs: [CarbsEntry]) async {
         await backgroundContext.perform {
             let ids = carbs.map(\.id) as NSArray
@@ -292,7 +300,6 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsObserver, P
             }
         }
     }
-
 
     func saveIfNeeded(carbs: [CarbsEntry]) {
         guard settingsManager.settings.useAppleHealth,
