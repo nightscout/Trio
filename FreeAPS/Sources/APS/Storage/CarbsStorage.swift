@@ -367,7 +367,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: coredataContext,
-            predicate: NSPredicate.carbsNotYetUploadedToNightscout,
+            predicate: NSPredicate.carbsNotYetUploadedToHealth,
             key: "date",
             ascending: false
         )

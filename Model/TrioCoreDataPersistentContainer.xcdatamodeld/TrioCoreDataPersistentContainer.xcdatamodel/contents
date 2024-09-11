@@ -166,6 +166,7 @@
     </entity>
     <entity name="PumpEventStored" representedClassName="PumpEventStored" syncable="YES">
         <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="isUploadedToHealth" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="isUploadedToNS" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="note" optional="YES" attributeType="String"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
