@@ -434,6 +434,8 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
             }
         }
     }
+    
+    // Observer that notifies when new Glucose values arrive in Apple Health
 
     func createBGObserver() {
         guard settingsManager.settings.useAppleHealth else { return }
@@ -480,46 +482,6 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
             }
             debug(.service, "Background delivery status is \(status)")
         }
-    }
-
-    /// Try to load samples from Health store
-    private func loadSamplesFromHealth(
-        sampleType: HKQuantityType,
-        limit: Int = 100,
-        completion: @escaping (_ samples: [HKSample]) -> Void
-    ) {
-        let query = HKSampleQuery(
-            sampleType: sampleType,
-            predicate: nil,
-            limit: limit,
-            sortDescriptors: nil
-        ) { _, results, _ in
-            completion(results as? [HKQuantitySample] ?? [])
-        }
-        healthKitStore.execute(query)
-    }
-
-    /// Try to load samples from Health store with id and do some work
-    private func loadSamplesFromHealth(
-        sampleType: HKQuantityType,
-        withIDs ids: [String],
-        limit: Int = 100,
-        completion: @escaping (_ samples: [HKSample]) -> Void
-    ) {
-        let predicate = HKQuery.predicateForObjects(
-            withMetadataKey: HKMetadataKeySyncIdentifier,
-            allowedValues: ids
-        )
-
-        let query = HKSampleQuery(
-            sampleType: sampleType,
-            predicate: predicate,
-            limit: limit,
-            sortDescriptors: nil
-        ) { _, results, _ in
-            completion(results as? [HKQuantitySample] ?? [])
-        }
-        healthKitStore.execute(query)
     }
 
     private func getBloodGlucoseHKQuery(predicate: NSPredicate) -> HKQuery? {
