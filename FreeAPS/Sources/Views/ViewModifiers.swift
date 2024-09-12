@@ -162,4 +162,43 @@ extension View {
     }
 
     func asAny() -> AnyView { .init(self) }
+
+    var backport: Backport<Self> { Backport(content: self) }
+}
+
+struct Backport<Content: View> {
+    let content: Content
+}
+
+extension Backport {
+    @ViewBuilder func chartXSelection(value: Binding<Date?>) -> some View {
+        if #available(iOS 17, *) {
+            content.chartXSelection(value: value)
+        } else {
+            content
+        }
+    }
+
+    @ViewBuilder func chartForegroundStyleScale(state: any StateModel) -> some View {
+        if (state as? Bolus.StateModel)?.forecastDisplayType == ForecastDisplayType.lines ||
+            (state as? Home.StateModel)?.forecastDisplayType == ForecastDisplayType.lines
+        {
+            let modifiedContent = content
+                .chartForegroundStyleScale([
+                    "iob": .blue,
+                    "uam": Color.uam,
+                    "zt": Color.zt,
+                    "cob": .orange
+                ])
+
+            if state is Home.StateModel {
+                modifiedContent
+                    .chartLegend(.hidden)
+            } else {
+                modifiedContent
+            }
+        } else {
+            content
+        }
+    }
 }

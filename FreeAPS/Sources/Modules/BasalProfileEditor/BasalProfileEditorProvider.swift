@@ -18,8 +18,8 @@ extension BasalProfileEditor {
 
         func saveProfile(_ profile: [BasalProfileEntry]) -> AnyPublisher<Void, Error> {
             guard let pump = deviceManager?.pumpManager else {
-                storage.save(profile, as: OpenAPS.Settings.basalProfile)
-                return Just(()).setFailureType(to: Error.self).eraseToAnyPublisher()
+                debugPrint("\(DebuggingIdentifiers.failed) No pump found; cannot save basal profile!")
+                return Fail(error: NSError()).eraseToAnyPublisher()
             }
 
             let syncValues = profile.map {

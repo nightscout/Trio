@@ -10,9 +10,9 @@ extension Settings {
         @Injected() var pluginManager: PluginManager!
         @Injected() var fetchCgmManager: FetchGlucoseManager!
 
+        @Published var units: GlucoseUnits = .mgdL
         @Published var closedLoop = false
         @Published var debugOptions = false
-        @Published var animatedBackground = false
         @Published var serviceUIType: ServiceUI.Type?
         @Published var setupTidepool = false
 
@@ -22,6 +22,8 @@ extension Settings {
         private(set) var copyrightNotice = ""
 
         override func subscribe() {
+            units = settingsManager.settings.units
+
             subscribeSetting(\.debugOptions, on: $debugOptions) { debugOptions = $0 }
             subscribeSetting(\.closedLoop, on: $closedLoop) { closedLoop = $0 }
 
@@ -34,8 +36,6 @@ extension Settings {
             branch = BuildDetails.default.branchAndSha
 
             copyrightNotice = Bundle.main.infoDictionary?["NSHumanReadableCopyright"] as? String ?? ""
-
-            subscribeSetting(\.animatedBackground, on: $animatedBackground) { animatedBackground = $0 }
 
             serviceUIType = pluginManager.getServiceTypeByIdentifier("TidepoolService")
         }
@@ -52,11 +52,6 @@ extension Settings {
             }
 
             return items
-        }
-
-        func uploadProfileAndSettings(_ force: Bool) {
-            NSLog("SettingsState Upload Profile and Settings")
-            nightscoutManager.uploadProfileAndSettings(force)
         }
 
         func hideSettingsModal() {

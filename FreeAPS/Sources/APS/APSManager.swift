@@ -131,6 +131,15 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     private func subscribe() {
+        if settingsManager.settings.units == .mmolL {
+            let wasParsed = storage.parseOnFileSettingsToMgdL()
+            if wasParsed {
+                Task {
+                    try await makeProfiles()
+                }
+            }
+        }
+
         deviceDataManager.recommendsLoop
             .receive(on: processQueue)
             .sink { [weak self] in
@@ -1018,7 +1027,7 @@ final class BaseAPSManager: APSManager, Injectable {
             }
 
             // Insulin placeholder
-            var insulin = Ins(
+            let insulin = Ins(
                 TDD: 0,
                 bolus: 0,
                 temp_basal: 0,
@@ -1057,7 +1066,6 @@ final class BaseAPSManager: APSManager, Injectable {
                 )
             )
             storage.save(dailystat, as: file)
-            await nightscout.uploadStatistics(dailystat: dailystat)
 
             await saveStatsToCoreData()
         }

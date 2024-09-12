@@ -14,11 +14,12 @@ enum ISFEditor {
         }
 
         static func == (lhs: Item, rhs: Item) -> Bool {
-            lhs.timeIndex == rhs.timeIndex
+            lhs.timeIndex == rhs.timeIndex && lhs.rateIndex == rhs.rateIndex
         }
 
         func hash(into hasher: inout Hasher) {
             hasher.combine(timeIndex)
+            hasher.combine(rateIndex)
         }
     }
 }

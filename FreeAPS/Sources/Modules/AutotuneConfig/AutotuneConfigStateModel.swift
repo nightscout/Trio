@@ -105,3 +105,9 @@ extension AutotuneConfig {
         }
     }
 }
+
+extension AutotuneConfig.StateModel: SettingsObserver {
+    func settingsDidChange(_: FreeAPSSettings) {
+        units = settingsManager.settings.units
+    }
+}

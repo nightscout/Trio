@@ -25,7 +25,6 @@ extension Bolus {
         @Published var insulinRecommended: Decimal = 0
         @Published var insulinRequired: Decimal = 0
         @Published var units: GlucoseUnits = .mgdL
-        @Published var percentage: Decimal = 0
         @Published var threshold: Decimal = 0
         @Published var maxBolus: Decimal = 0
         var maxExternal: Decimal { maxBolus * 3 }
@@ -61,7 +60,6 @@ extension Bolus {
         @Published var wholeCalc: Decimal = 0
         @Published var insulinCalculated: Decimal = 0
         @Published var fraction: Decimal = 0
-        @Published var useCalc: Bool = false
         @Published var basal: Decimal = 0
         @Published var fattyMeals: Bool = false
         @Published var fattyMealFactor: Decimal = 0
@@ -97,7 +95,6 @@ extension Bolus {
 
         @Published var id_: String = ""
         @Published var summary: String = ""
-        @Published var skipBolus: Bool = false
 
         @Published var externalInsulin: Bool = false
         @Published var showInfo: Bool = false
@@ -111,8 +108,9 @@ extension Bolus {
         @Published var minForecast: [Int] = []
         @Published var maxForecast: [Int] = []
         @Published var minCount: Int = 12 // count of Forecasts drawn in 5 min distances, i.e. 12 means a min of 1 hour
-        @Published var displayForecastsAsLines: Bool = false
-        @Published var smooth: Bool = false
+        @Published var forecastDisplayType: ForecastDisplayType = .cone
+        @Published var isSmoothingEnabled: Bool = false
+        @Published var stops: [Gradient.Stop] = []
 
         let now = Date.now
 
@@ -124,54 +122,38 @@ extension Bolus {
         typealias PumpEvent = PumpEventStored.EventType
 
         override func subscribe() {
-            setupGlucoseNotification()
-            coreDataObserver = CoreDataObserver()
-            registerHandlers()
-            setupGlucoseArray()
-
             Task {
-                async let getAllSettingsDefaults: () = getAllSettingsValues()
-                async let setupDeterminations: () = setupDeterminationsArray()
+                await withTaskGroup(of: Void.self) { group in
+                    group.addTask {
+                        self.setupGlucoseNotification()
+                    }
+                    group.addTask {
+                        self.registerHandlers()
+                    }
+                    group.addTask {
+                        self.setupGlucoseArray()
+                    }
+                    group.addTask {
+                        self.setupDeterminationsAndForecasts()
+                    }
+                    group.addTask {
+                        await self.setupSettings()
+                    }
+                    group.addTask {
+                        self.registerObservers()
+                    }
 
-                await getAllSettingsDefaults
-                await setupDeterminations
-
-                // Determination has updated, so we can use this to draw the initial Forecast Chart
-                let forecastData = await mapForecastsForChart()
-                await updateForecasts(with: forecastData)
-            }
-
-            broadcaster.register(DeterminationObserver.self, observer: self)
-            broadcaster.register(BolusFailureObserver.self, observer: self)
-            units = settingsManager.settings.units
-            percentage = settingsManager.settings.insulinReqPercentage
-            fraction = settings.settings.overrideFactor
-            useCalc = settings.settings.useCalc
-            fattyMeals = settings.settings.fattyMeals
-            fattyMealFactor = settings.settings.fattyMealFactor
-            sweetMeals = settings.settings.sweetMeals
-            sweetMealFactor = settings.settings.sweetMealFactor
-            displayPresets = settings.settings.displayPresets
-
-            displayForecastsAsLines = settings.settings.displayForecastsAsLines
-
-            lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
-            highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL
-
-            maxCarbs = settings.settings.maxCarbs
-            maxFat = settings.settings.maxFat
-            maxProtein = settings.settings.maxProtein
-            skipBolus = settingsManager.settings.skipBolusScreenAfterCarbs
-            useFPUconversion = settingsManager.settings.useFPUconversion
-            smooth = settingsManager.settings.smoothGlucose
-
-            if waitForSuggestionInitial {
-                Task {
-                    let ok = await apsManager.determineBasal()
-                    if !ok {
-                        self.waitForSuggestion = false
-                        self.insulinRequired = 0
-                        self.insulinRecommended = 0
+                    if self.waitForSuggestionInitial {
+                        group.addTask {
+                            let isDetermineBasalSuccessful = await self.apsManager.determineBasal()
+                            if !isDetermineBasalSuccessful {
+                                await MainActor.run {
+                                    self.waitForSuggestion = false
+                                    self.insulinRequired = 0
+                                    self.insulinRecommended = 0
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -207,6 +189,43 @@ extension Bolus {
                     }
                 }
             }
+        }
+
+        private func setupDeterminationsAndForecasts() {
+            Task {
+                async let getAllSettingsDefaults: () = getAllSettingsValues()
+                async let setupDeterminations: () = setupDeterminationsArray()
+
+                await getAllSettingsDefaults
+                await setupDeterminations
+
+                // Determination has updated, so we can use this to draw the initial Forecast Chart
+                let forecastData = await mapForecastsForChart()
+                await updateForecasts(with: forecastData)
+            }
+        }
+
+        private func registerObservers() {
+            broadcaster.register(DeterminationObserver.self, observer: self)
+            broadcaster.register(BolusFailureObserver.self, observer: self)
+        }
+
+        @MainActor private func setupSettings() async {
+            units = settingsManager.settings.units
+            fraction = settings.settings.overrideFactor
+            fattyMeals = settings.settings.fattyMeals
+            fattyMealFactor = settings.settings.fattyMealFactor
+            sweetMeals = settings.settings.sweetMeals
+            sweetMealFactor = settings.settings.sweetMealFactor
+            displayPresets = settings.settings.displayPresets
+            forecastDisplayType = settings.settings.forecastDisplayType
+            lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
+            highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL
+            maxCarbs = settings.settings.maxCarbs
+            maxFat = settings.settings.maxFat
+            maxProtein = settings.settings.maxProtein
+            useFPUconversion = settingsManager.settings.useFPUconversion
+            isSmoothingEnabled = settingsManager.settings.smoothGlucose
         }
 
         private func getCurrentSettingValue(for type: SettingType) async {
@@ -467,7 +486,7 @@ extension Bolus {
                 enteredBy: CarbsEntry.manual,
                 isFPU: false, fpuID: UUID().uuidString
             )]
-            await carbsStorage.storeCarbs(carbsToStore)
+            await carbsStorage.storeCarbs(carbsToStore, areFetchedFromRemote: false)
 
             if carbs > 0 || fat > 0 || protein > 0 {
                 // only perform determine basal sync if the user doesn't use the pump bolus, otherwise the enact bolus func in the APSManger does a sync
@@ -730,20 +749,20 @@ extension Bolus.StateModel {
         minCount = max(12, nonEmptyArrays.map(\.count).min() ?? 0)
         guard minCount > 0 else { return }
 
-        let (minResult, maxResult) = await Task.detached {
-            let minForecast = (0 ..< self.minCount).map { index in
+        async let minForecastResult = Task.detached {
+            (0 ..< self.minCount).map { index in
                 nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }.min() ?? 0
             }
-
-            let maxForecast = (0 ..< self.minCount).map { index in
-                nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }.max() ?? 0
-            }
-
-            return (minForecast, maxForecast)
         }.value
 
-        minForecast = minResult
-        maxForecast = maxResult
+        async let maxForecastResult = Task.detached {
+            (0 ..< self.minCount).map { index in
+                nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }.max() ?? 0
+            }
+        }.value
+
+        minForecast = await minForecastResult
+        maxForecast = await maxForecastResult
     }
 }
 

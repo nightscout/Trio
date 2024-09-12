@@ -21,32 +21,43 @@ let cgmDefaultName = cgmName(
 extension CGM {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() var cgmManager: FetchGlucoseManager!
-        @Injected() var calendarManager: CalendarManager!
         @Injected() var pluginCGMManager: PluginManager!
         @Injected() private var broadcaster: Broadcaster!
         @Injected() var nightscoutManager: NightscoutManager!
 
+        @Published var units: GlucoseUnits = .mgdL
         @Published var setupCGM: Bool = false
         @Published var cgmCurrent = cgmDefaultName
         @Published var smoothGlucose = false
-        @Published var createCalendarEvents = false
-        @Published var displayCalendarIOBandCOB = false
-        @Published var displayCalendarEmojis = false
-        @Published var calendarIDs: [String] = []
-        @Published var currentCalendarID: String = ""
-        @Persisted(key: "CalendarManager.currentCalendarID") var storedCalendarID: String? = nil
         @Published var cgmTransmitterDeviceAddress: String? = nil
         @Published var listOfCGM: [cgmName] = []
         @Published var url: URL?
 
         override func subscribe() {
+            units = settingsManager.settings.units
+
             // collect the list of CGM available with plugins and CGMType defined manually
-            listOfCGM = CGMType.allCases.filter { $0 != CGMType.plugin }.map {
-                cgmName(id: $0.id, type: $0, displayName: $0.displayName, subtitle: $0.subtitle)
-            } +
-                pluginCGMManager.availableCGMManagers.map {
-                    cgmName(id: $0.identifier, type: CGMType.plugin, displayName: $0.localizedTitle, subtitle: $0.localizedTitle)
+            listOfCGM = (
+                CGMType.allCases.filter { $0 != CGMType.plugin }.map {
+                    cgmName(id: $0.id, type: $0, displayName: $0.displayName, subtitle: $0.subtitle)
+                } +
+                    pluginCGMManager.availableCGMManagers.map {
+                        cgmName(
+                            id: $0.identifier,
+                            type: CGMType.plugin,
+                            displayName: $0.localizedTitle,
+                            subtitle: $0.localizedTitle
+                        )
+                    }
+            ).sorted(by: { lhs, rhs in
+                if lhs.displayName == "None" {
+                    return true
+                } else if rhs.displayName == "None" {
+                    return false
+                } else {
+                    return lhs.displayName < rhs.displayName
                 }
+            })
 
             switch settingsManager.settings.cgm {
             case .plugin:
@@ -81,13 +92,8 @@ extension CGM {
             default: break
             }
 
-            currentCalendarID = storedCalendarID ?? ""
-            calendarIDs = calendarManager.calendarIDs()
             cgmTransmitterDeviceAddress = UserDefaults.standard.cgmTransmitterDeviceAddress
 
-            subscribeSetting(\.useCalendar, on: $createCalendarEvents) { createCalendarEvents = $0 }
-            subscribeSetting(\.displayCalendarIOBandCOB, on: $displayCalendarIOBandCOB) { displayCalendarIOBandCOB = $0 }
-            subscribeSetting(\.displayCalendarEmojis, on: $displayCalendarEmojis) { displayCalendarEmojis = $0 }
             subscribeSetting(\.smoothGlucose, on: $smoothGlucose, initial: { smoothGlucose = $0 })
 
             $cgmCurrent
@@ -109,31 +115,6 @@ extension CGM {
                         )
                         self.setupCGM = false
                     }
-                }
-                .store(in: &lifetime)
-
-            $createCalendarEvents
-                .removeDuplicates()
-                .flatMap { [weak self] ok -> AnyPublisher<Bool, Never> in
-                    guard ok, let self = self else { return Just(false).eraseToAnyPublisher() }
-                    return self.calendarManager.requestAccessIfNeeded()
-                }
-                .map { [weak self] ok -> [String] in
-                    guard ok, let self = self else { return [] }
-                    return self.calendarManager.calendarIDs()
-                }
-                .receive(on: DispatchQueue.main)
-                .weakAssign(to: \.calendarIDs, on: self)
-                .store(in: &lifetime)
-
-            $currentCalendarID
-                .removeDuplicates()
-                .sink { [weak self] id in
-                    guard id.isNotEmpty else {
-                        self?.calendarManager.currentCalendarID = nil
-                        return
-                    }
-                    self?.calendarManager.currentCalendarID = id
                 }
                 .store(in: &lifetime)
         }
@@ -197,5 +178,11 @@ extension CGM.StateModel: CGMManagerOnboardingDelegate {
 
     func cgmManagerOnboarding(didOnboardCGMManager _: LoopKitUI.CGMManagerUI) {
         // nothing to do ?
+    }
+}
+
+extension CGM.StateModel {
+    func settingsDidChange(_: FreeAPSSettings) {
+        units = settingsManager.settings.units
     }
 }

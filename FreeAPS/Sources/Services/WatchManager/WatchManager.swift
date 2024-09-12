@@ -249,10 +249,8 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
 //                    double = 1
 //                }
 
-                self.state.useNewCalc = self.settingsManager.settings.useCalc
                 self.state.bolusRecommended = self.apsManager
                     .roundBolus(amount: max(recommendedInsulin, 0))
-                self.state.bolusAfterCarbs = !self.settingsManager.settings.skipBolusScreenAfterCarbs
                 self.state.displayOnWatch = self.settingsManager.settings.displayOnWatch
                 self.state.displayFatAndProteinOnWatch = self.settingsManager.settings.displayFatAndProteinOnWatch
                 self.state.confirmBolusFaster = self.settingsManager.settings.confirmBolusFaster
@@ -277,7 +275,6 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
                             until: untilDate
                         )
                     }
-                self.state.bolusAfterCarbs = !self.settingsManager.settings.skipBolusScreenAfterCarbs
                 self.state.displayOnWatch = self.settingsManager.settings.displayOnWatch
                 self.state.displayFatAndProteinOnWatch = self.settingsManager.settings.displayFatAndProteinOnWatch
                 self.state.confirmBolusFaster = self.settingsManager.settings.confirmBolusFaster
@@ -425,16 +422,12 @@ extension BaseWatchManager: WCSessionDelegate {
                         enteredBy: CarbsEntry.manual,
                         isFPU: false,
                         fpuID: nil
-                    )]
+                    )],
+                    areFetchedFromRemote: false
                 )
 
-                if settingsManager.settings.skipBolusScreenAfterCarbs {
-                    let success = await apsManager.determineBasal()
-                    replyHandler(["confirmation": success])
-                } else {
-                    _ = await apsManager.determineBasal()
-                    replyHandler(["confirmation": true])
-                }
+                _ = await apsManager.determineBasal()
+                replyHandler(["confirmation": true])
             }
             return
         }

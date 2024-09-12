@@ -8,7 +8,7 @@ protocol CarbsObserver {
 }
 
 protocol CarbsStorage {
-    func storeCarbs(_ carbs: [CarbsEntry]) async
+    func storeCarbs(_ carbs: [CarbsEntry], areFetchedFromRemote: Bool) async
     func syncDate() -> Date
     func recent() -> [CarbsEntry]
     func getCarbsNotYetUploadedToNightscout() async -> [NightscoutTreatment]
@@ -28,9 +28,42 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         injectServices(resolver)
     }
 
-    func storeCarbs(_ entries: [CarbsEntry]) async {
-        await saveCarbEquivalents(entries: entries)
-        await saveCarbsToCoreData(entries: entries)
+    func storeCarbs(_ entries: [CarbsEntry], areFetchedFromRemote: Bool) async {
+        var entriesToStore = entries
+
+        if areFetchedFromRemote {
+            entriesToStore = await filterRemoteEntries(entries: entriesToStore)
+        }
+
+        await saveCarbEquivalents(entries: entriesToStore, areFetchedFromRemote: areFetchedFromRemote)
+        await saveCarbsToCoreData(entries: entriesToStore, areFetchedFromRemote: areFetchedFromRemote)
+    }
+
+    private func filterRemoteEntries(entries: [CarbsEntry]) async -> [CarbsEntry] {
+        // Fetch only the date property from Core Data
+        guard let existing24hCarbEntries = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: CarbEntryStored.self,
+            onContext: coredataContext,
+            predicate: NSPredicate.predicateForOneDayAgo,
+            key: "date",
+            ascending: false,
+            batchSize: 50,
+            propertiesToFetch: ["date", "objectID"]
+        ) as? [[String: Any]] else {
+            return entries
+        }
+
+        // Extract dates into a set for efficient lookup
+        let existingTimestamps = Set(existing24hCarbEntries.compactMap { $0["date"] as? Date })
+
+        // Remove all entries that have a matching date in existingTimestamps
+        var filteredEntries = entries
+        filteredEntries.removeAll { entry in
+            let entryDate = entry.actualDate ?? entry.createdAt
+            return existingTimestamps.contains(entryDate)
+        }
+
+        return filteredEntries
     }
 
     /**
@@ -129,7 +162,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         return (futureCarbArray, carbEquivalents)
     }
 
-    private func saveCarbEquivalents(entries: [CarbsEntry]) async {
+    private func saveCarbEquivalents(entries: [CarbsEntry], areFetchedFromRemote: Bool) async {
         guard let lastEntry = entries.last else { return }
 
         if let fat = lastEntry.fat, let protein = lastEntry.protein, fat > 0 || protein > 0 {
@@ -142,12 +175,12 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             )
 
             if carbEquivalentCount > 0 {
-                await saveFPUToCoreDataAsBatchInsert(entries: futureCarbEquivalents)
+                await saveFPUToCoreDataAsBatchInsert(entries: futureCarbEquivalents, areFetchedFromRemote: areFetchedFromRemote)
             }
         }
     }
 
-    private func saveCarbsToCoreData(entries: [CarbsEntry]) async {
+    private func saveCarbsToCoreData(entries: [CarbsEntry], areFetchedFromRemote: Bool) async {
         guard let entry = entries.last, entry.carbs != 0 else { return }
 
         await coredataContext.perform {
@@ -159,7 +192,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             newItem.note = entry.note
             newItem.id = UUID()
             newItem.isFPU = false
-            newItem.isUploadedToNS = false
+            newItem.isUploadedToNS = areFetchedFromRemote ? true : false
 
             do {
                 guard self.coredataContext.hasChanges else { return }
@@ -170,7 +203,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         }
     }
 
-    private func saveFPUToCoreDataAsBatchInsert(entries: [CarbsEntry]) async {
+    private func saveFPUToCoreDataAsBatchInsert(entries: [CarbsEntry], areFetchedFromRemote: Bool) async {
         let commonFPUID =
             UUID() // all fpus should only get ONE id per batch insert to be able to delete them referencing the fpuID
         var entrySlice = ArraySlice(entries) // convert to ArraySlice
@@ -185,7 +218,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             carbEntry.id = UUID.init(uuidString: entryId)
             carbEntry.fpuID = commonFPUID
             carbEntry.isFPU = true
-            carbEntry.isUploadedToNS = false
+            carbEntry.isUploadedToNS = areFetchedFromRemote ? true : false
             return false // return false to continue
         }
         await coredataContext.perform {

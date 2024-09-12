@@ -8,10 +8,13 @@ import SwiftUI
 
 extension ShortcutsConfig {
     final class StateModel: BaseStateModel<Provider> {
+        @Published var units: GlucoseUnits = .mgdL
         @Published var allowBolusByShortcuts: Bool = false
         @Published var maxBolusByShortcuts: BolusShortcutLimit = .notAllowed
 
         override func subscribe() {
+            units = settingsManager.settings.units
+
             subscribeSetting(\.bolusShortcut, on: $maxBolusByShortcuts) {
                 maxBolusByShortcuts = ($0 == .notAllowed) ? .limitBolusMax : $0
                 allowBolusByShortcuts = ($0 != .notAllowed)
@@ -32,5 +35,11 @@ extension ShortcutsConfig {
                 }
                 .store(in: &lifetime)
         }
+    }
+}
+
+extension ShortcutsConfig.StateModel: SettingsObserver {
+    func settingsDidChange(_: FreeAPSSettings) {
+        units = settingsManager.settings.units
     }
 }

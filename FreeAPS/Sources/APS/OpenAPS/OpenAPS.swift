@@ -466,7 +466,6 @@ final class OpenAPS {
             let weighted_average = weight * average2hours + (1 - weight) * average14
 
             var duration: Decimal = 0
-            var newDuration: Decimal = 0
             var overrideTarget: Decimal = 0
 
             if useOverride {

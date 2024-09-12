@@ -195,7 +195,7 @@ struct PopupView: View {
                         .precision(.fractionLength(fractionDigits))
                 )
                 + " / " +
-                state.isf.formatted()
+                (state.units == .mgdL ? state.isf : state.isf.asMmolL).formatted()
                 + " ≈ " +
                 self.insulinRounder(state.targetDifferenceInsulin).formatted()
 

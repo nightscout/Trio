@@ -4,7 +4,15 @@ import Swinject
 extension BolusCalculatorConfig {
     struct RootView: BaseView {
         let resolver: Resolver
+
         @StateObject var state = StateModel()
+
+        @State private var shouldDisplayHint: Bool = false
+        @State var hintDetent = PresentationDetent.large
+        @State var selectedVerboseHint: String?
+        @State var hintLabel: String?
+        @State private var decimalPlaceholder: Decimal = 0.0
+        @State private var booleanPlaceholder: Bool = false
 
         @Environment(\.colorScheme) var colorScheme
         var color: LinearGradient {
@@ -40,73 +48,89 @@ extension BolusCalculatorConfig {
 
         var body: some View {
             Form {
-                Section {
-                    HStack {
-                        Toggle("Use alternate Bolus Calculator", isOn: $state.useCalc)
-                    }
-
-                    if state.useCalc {
-                        HStack {
-                            Text("Override With A Factor Of ")
-                            Spacer()
-                            TextFieldWithToolBar(
-                                text: $state.overrideFactor,
-                                placeholder: "0.8",
-                                numberFormatter: conversionFormatter
-                            )
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.displayPresets,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Display Meal Presets"
                         }
-                    }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: "Display Meal Presets",
+                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+                    verboseHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                )
 
-                    if !state.useCalc {
-                        HStack {
-                            Text("Recommended Bolus Percentage")
-                            TextFieldWithToolBar(text: $state.insulinReqPercentage, placeholder: "", numberFormatter: formatter)
+                SettingInputSection(
+                    decimalValue: $state.overrideFactor,
+                    booleanValue: $booleanPlaceholder,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Recommended Bolus Percentage"
                         }
-                    }
-                } header: { Text("Calculator settings") }
+                    ),
+                    units: state.units,
+                    type: .decimal("overrideFactor"),
+                    label: "Recommended Bolus Percentage",
+                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+                    verboseHint: "Recommended Bolus Percentage… bla bla bla",
+                    headerText: "Calculator Configuration"
+                )
 
-                Section {
-                    Toggle("Display Presets", isOn: $state.displayPresets)
-
-                } header: { Text("Smaller iPhone Screens") }
-
-                if state.useCalc {
-                    Section {
-                        HStack {
-                            Toggle("Apply factor for fatty meals", isOn: $state.fattyMeals)
+                SettingInputSection(
+                    decimalValue: $state.fattyMealFactor,
+                    booleanValue: $state.fattyMeals,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Fatty Meal Factor"
                         }
-                        HStack {
-                            Text("Override With A Factor Of ")
-                            Spacer()
-                            TextFieldWithToolBar(
-                                text: $state.fattyMealFactor,
-                                placeholder: "0.7",
-                                numberFormatter: conversionFormatter
-                            )
-                        }
-                    } header: { Text("Fatty Meals") }
+                    ),
+                    units: state.units,
+                    type: .conditionalDecimal("fattyMealFactor"),
+                    label: "Enable Fatty Meal Factor",
+                    conditionalLabel: "Fatty Meal Factor",
+                    miniHint: "Lower your bolus recommendation by factor x for fatty meals.",
+                    verboseHint: "You can add the option in your bolus calculator to apply another (!) customizable factor at the end of the calculation which could be useful for fatty meals, e.g Pizza (default 0.7)."
+                )
 
-                    Section {
-                        HStack {
-                            Toggle("Enable super bolus", isOn: $state.sweetMeals)
+                SettingInputSection(
+                    decimalValue: $state.sweetMealFactor,
+                    booleanValue: $state.sweetMeals,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Super Bolus & Sweet Meal Factor"
                         }
-                        HStack {
-                            Text("Factor how often current basalrate is added")
-                            Spacer()
-                            TextFieldWithToolBar(
-                                text: $state.sweetMealFactor,
-                                placeholder: "2",
-                                numberFormatter: conversionFormatter
-                            )
-                        }
-                    } header: { Text("Sweet Meals") }
-
-                    Section {}
-                    footer: { Text(
-                        "The new alternate bolus calculator is another approach to the default bolus calculator in iAPS. If the toggle is on you use this bolus calculator and not the original iAPS calculator. At the end of the calculation a custom factor is applied as it is supposed to be when using smbs (default 0.8).\n\nYou can also add the option in your bolus calculator to apply another (!) customizable factor at the end of the calculation which could be useful for fatty meals, e.g Pizza (default 0.7).\n\nMoreover you can enable the super bolus functionality which could be useful when eating sweets/cake etc. Therefore your current basal rate will be added x-times to you your bolus recommendation. You can adjust x here, the default is 2 times your current basal rate."
-                    )
-                    }
-                }
+                    ),
+                    units: state.units,
+                    type: .conditionalDecimal("sweetMealFactor"),
+                    label: "Enable Super Bolus",
+                    conditionalLabel: "Super Bolus Factor",
+                    miniHint: "Add x times current scheduled basal rate to your bolus recommendation.",
+                    verboseHint: "You can enable the super bolus functionality which could be useful when eating sweets/cake etc. Therefore your current basal rate will be added x-times to your bolus recommendation. You can adjust the factor X here, the default is 2 times your current scheduled basal rate."
+                )
+            }
+            .sheet(isPresented: $shouldDisplayHint) {
+                SettingInputHintView(
+                    hintDetent: $hintDetent,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    hintLabel: hintLabel ?? "",
+                    hintText: selectedVerboseHint ?? "",
+                    sheetTitle: "Help"
+                )
             }
             .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)

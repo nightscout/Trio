@@ -41,19 +41,21 @@ extension ISFEditor {
 
         var body: some View {
             Form {
+                let shouldDisableButton = state.items.isEmpty || !state.hasChanges
+
                 if let autotune = state.autotune, !state.settingsManager.settings.onlyAutotuneBasals {
                     Section(header: Text("Autotune")) {
                         HStack {
                             Text("Calculated Sensitivity")
                             Spacer()
-                            if state.units == .mmolL {
-                                Text(rateFormatter.string(from: autotune.sensitivity.asMmolL as NSNumber) ?? "0")
+                            if state.units == .mgdL {
+                                Text(autotune.sensitivity.description)
                             } else {
-                                Text(rateFormatter.string(from: autotune.sensitivity as NSNumber) ?? "0")
+                                Text(autotune.sensitivity.formattedAsMmolL)
                             }
                             Text(state.units.rawValue + "/U").foregroundColor(.secondary)
                         }
-                    }
+                    }.listRowBackground(Color.chart)
                 }
                 if let newISF = state.autosensISF {
                     Section(
@@ -78,42 +80,62 @@ extension ISFEditor {
                         HStack {
                             Text("Calculated Sensitivity")
                             Spacer()
-                            Text(
-                                rateFormatter
-                                    .string(from: (
-                                        (
-                                            !state.settingsManager.preferences
-                                                .useNewFormula ? newISF as NSDecimalNumber : dynamicISF
-                                        ) ?? 0
-                                    ) as NSNumber) ?? "0"
-                            )
+                            if state.units == .mgdL {
+                                Text(
+                                    !state.settingsManager.preferences
+                                        .useNewFormula ? newISF.description : (dynamicISF ?? 0).description
+                                )
+                            } else {
+                                Text((
+                                    !state.settingsManager.preferences
+                                        .useNewFormula ? newISF.formattedAsMmolL : dynamicISF?.decimalValue.formattedAsMmolL
+                                ) ?? "0")
+                            }
                             Text(state.units.rawValue + "/U").foregroundColor(.secondary)
                         }
-                    }
+                    }.listRowBackground(Color.chart)
                 }
+
                 Section(header: Text("Schedule")) {
                     list
-                    addButton
-                }
+                }.listRowBackground(Color.chart)
+
                 Section {
-                    Button {
-                        let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
-                        impactHeavy.impactOccurred()
-                        state.save()
+                    HStack {
+                        if state.shouldDisplaySaving {
+                            ProgressView().padding(.trailing, 10)
+                        }
+
+                        Button {
+                            let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+                            impactHeavy.impactOccurred()
+                            state.save()
+
+                            // deactivate saving display after 1.25 seconds
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.25) {
+                                state.shouldDisplaySaving = false
+                            }
+                        } label: {
+                            Text(state.shouldDisplaySaving ? "Saving..." : "Save")
+                        }
+                        .disabled(shouldDisableButton)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .tint(.white)
                     }
-                    label: {
-                        Text("Save")
-                    }
-                    .disabled(state.items.isEmpty)
-                }
+                }.listRowBackground(shouldDisableButton ? Color(.systemGray4) : Color(.systemBlue))
             }
             .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)
             .navigationTitle("Insulin Sensitivities")
             .navigationBarTitleDisplayMode(.automatic)
-            .navigationBarItems(
-                trailing: EditButton()
-            )
+            .toolbar(content: {
+                ToolbarItem(placement: .topBarTrailing) {
+                    EditButton()
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    addButton
+                }
+            })
             .environment(\.editMode, $editMode)
             .onAppear {
                 state.validate()
@@ -121,52 +143,50 @@ extension ISFEditor {
         }
 
         private func pickers(for index: Int) -> some View {
-            GeometryReader { geometry in
-                VStack {
-                    HStack {
-                        Text("Rate").frame(width: geometry.size.width / 2)
-                        Text("Time").frame(width: geometry.size.width / 2)
-                    }
-                    HStack(spacing: 0) {
-                        Picker(selection: $state.items[index].rateIndex, label: EmptyView()) {
-                            ForEach(0 ..< state.rateValues.count, id: \.self) { i in
-                                Text(
-                                    (
-                                        self.rateFormatter
-                                            .string(from: state.rateValues[i] as NSNumber) ?? ""
-                                    ) + " \(state.units.rawValue)/U"
-                                ).tag(i)
-                            }
+            Form {
+                Section {
+                    Picker(selection: $state.items[index].rateIndex, label: Text("Rate")) {
+                        ForEach(0 ..< state.rateValues.count, id: \.self) { i in
+                            Text(
+                                state.units == .mgdL ? state.rateValues[i].description : state.rateValues[i]
+                                    .formattedAsMmolL + " \(state.units.rawValue)/U"
+                            ).tag(i)
                         }
-                        .frame(maxWidth: geometry.size.width / 2)
-                        .clipped()
+                    }
+                }.listRowBackground(Color.chart)
 
-                        Picker(selection: $state.items[index].timeIndex, label: EmptyView()) {
-                            ForEach(0 ..< state.timeValues.count, id: \.self) { i in
-                                Text(
-                                    self.dateFormatter
-                                        .string(from: Date(
-                                            timeIntervalSince1970: state
-                                                .timeValues[i]
-                                        ))
-                                ).tag(i)
-                            }
+                Section {
+                    Picker(selection: $state.items[index].timeIndex, label: Text("Time")) {
+                        ForEach(0 ..< state.timeValues.count, id: \.self) { i in
+                            Text(
+                                self.dateFormatter
+                                    .string(from: Date(
+                                        timeIntervalSince1970: state
+                                            .timeValues[i]
+                                    ))
+                            ).tag(i)
                         }
-                        .frame(maxWidth: geometry.size.width / 2)
-                        .clipped()
                     }
-                }
+                }.listRowBackground(Color.chart)
             }
+            .padding(.top)
+            .scrollContentBackground(.hidden).background(color)
+            .navigationTitle("Set Rate")
+            .navigationBarTitleDisplayMode(.automatic)
         }
 
         private var list: some View {
             List {
                 ForEach(state.items.indexed(), id: \.1.id) { index, item in
+                    let displayValue = state.units == .mgdL ? state.rateValues[item.rateIndex].description : state
+                        .rateValues[item.rateIndex].formattedAsMmolL
+
                     NavigationLink(destination: pickers(for: index)) {
                         HStack {
                             Text("Rate").foregroundColor(.secondary)
+
                             Text(
-                                "\(rateFormatter.string(from: state.rateValues[item.rateIndex] as NSNumber) ?? "0") \(state.units.rawValue)/U"
+                                displayValue + " \(state.units.rawValue)/U"
                             )
                             Spacer()
                             Text("starts at").foregroundColor(.secondary)
@@ -188,7 +208,7 @@ extension ISFEditor {
 
             switch editMode {
             case .inactive:
-                return AnyView(Button(action: onAdd) { Text("Add") })
+                return AnyView(Button(action: onAdd) { Image(systemName: "plus") })
             default:
                 return AnyView(EmptyView())
             }

@@ -2,9 +2,13 @@ import SwiftUI
 
 extension BasalProfileEditor {
     final class StateModel: BaseStateModel<Provider> {
-        @Published var syncInProgress = false
+        @Injected() private var nightscout: NightscoutManager!
+
+        @Published var syncInProgress: Bool = false
+        @Published var initialItems: [Item] = []
         @Published var items: [Item] = []
         @Published var total: Decimal = 0.0
+        @Published var showAlert: Bool = false
 
         let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
 
@@ -15,6 +19,10 @@ extension BasalProfileEditor {
             return lastItem.timeIndex < timeValues.count - 1
         }
 
+        var hasChanges: Bool {
+            initialItems != items
+        }
+
         override func subscribe() {
             rateValues = provider.supportedBasalRates ?? stride(from: 5.0, to: 1001.0, by: 5.0)
                 .map { ($0.decimal ?? .zero) / 100 }
@@ -23,6 +31,9 @@ extension BasalProfileEditor {
                 let rateIndex = rateValues.firstIndex(of: value.rate) ?? 0
                 return Item(rateIndex: rateIndex, timeIndex: timeIndex)
             }
+
+            initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
+
             calcTotal()
         }
 
@@ -58,21 +69,39 @@ extension BasalProfileEditor {
         }
 
         func save() {
+            guard hasChanges else { return }
+
             syncInProgress = true
             let profile = items.map { item -> BasalProfileEntry in
-                let fotmatter = DateFormatter()
-                fotmatter.timeZone = TimeZone(secondsFromGMT: 0)
-                fotmatter.dateFormat = "HH:mm:ss"
+                let formatter = DateFormatter()
+                formatter.timeZone = TimeZone(secondsFromGMT: 0)
+                formatter.dateFormat = "HH:mm:ss"
                 let date = Date(timeIntervalSince1970: self.timeValues[item.timeIndex])
                 let minutes = Int(date.timeIntervalSince1970 / 60)
                 let rate = self.rateValues[item.rateIndex]
-                return BasalProfileEntry(start: fotmatter.string(from: date), minutes: minutes, rate: rate)
+                return BasalProfileEntry(start: formatter.string(from: date), minutes: minutes, rate: rate)
             }
             provider.saveProfile(profile)
                 .receive(on: DispatchQueue.main)
-                .sink { _ in
+                .sink { completion in
                     self.syncInProgress = false
-                } receiveValue: {}
+                    switch completion {
+                    case .finished:
+                        // Successfully saved and synced
+                        self.initialItems = self.items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
+
+                        Task.detached(priority: .low) {
+                            debug(.nightscout, "Attempting to upload basal rates to Nightscout")
+                            await self.nightscout.uploadProfiles()
+                        }
+                    case .failure:
+                        // Handle the error, show error message
+                        self.showAlert = true
+                    }
+                } receiveValue: {
+                    // Handle any successful value if needed
+                    print("We were successful")
+                }
                 .store(in: &lifetime)
         }
 
@@ -81,7 +110,9 @@ extension BasalProfileEditor {
                 let uniq = Array(Set(self.items))
                 let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
                 sorted.first?.timeIndex = 0
-                self.items = sorted
+                if self.items != sorted {
+                    self.items = sorted
+                }
             }
         }
     }

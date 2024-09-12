@@ -4,7 +4,11 @@ import SwiftUI
 extension ISFEditor {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() var determinationStorage: DeterminationStorage!
+        @Injected() private var nightscout: NightscoutManager!
+
         @Published var items: [Item] = []
+        @Published var initialItems: [Item] = []
+        @Published var shouldDisplaySaving: Bool = false
         private(set) var autosensISF: Decimal?
         private(set) var autosensRatio: Decimal = 0
         @Published var autotune: Autotune?
@@ -16,12 +20,13 @@ extension ISFEditor {
         let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
 
         var rateValues: [Decimal] {
-            switch units {
-            case .mgdL:
-                return stride(from: 9, to: 540.01, by: 1.0).map { Decimal($0) }
-            case .mmolL:
-                return stride(from: 1.0, to: 301.0, by: 1.0).map { ($0.decimal ?? .zero) / 10 }
+            var values = stride(from: 9, to: 540.01, by: 1.0).map { Decimal($0) }
+
+            if units == .mmolL {
+                values = values.filter { Int(truncating: $0 as NSNumber) % 2 == 0 }
             }
+
+            return values
         }
 
         var canAdd: Bool {
@@ -29,25 +34,29 @@ extension ISFEditor {
             return lastItem.timeIndex < timeValues.count - 1
         }
 
+        var hasChanges: Bool {
+            initialItems != items
+        }
+
         private(set) var units: GlucoseUnits = .mgdL
 
         override func subscribe() {
+            units = settingsManager.settings.units
+
             let profile = provider.profile
-            units = profile.units
+
             items = profile.sensitivities.map { value in
                 let timeIndex = timeValues.firstIndex(of: Double(value.offset * 60)) ?? 0
                 let rateIndex = rateValues.firstIndex(of: value.sensitivity) ?? 0
                 return Item(rateIndex: rateIndex, timeIndex: timeIndex)
             }
+
+            initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
+
             autotune = provider.autotune
 
             if let newISF = provider.autosense.newisf {
-                switch units {
-                case .mgdL:
-                    autosensISF = newISF
-                case .mmolL:
-                    autosensISF = newISF * GlucoseUnits.exchangeRate
-                }
+                autosensISF = newISF
             }
 
             autosensRatio = provider.autosense.ratio
@@ -68,6 +77,9 @@ extension ISFEditor {
         }
 
         func save() {
+            guard hasChanges else { return }
+            shouldDisplaySaving.toggle()
+
             let sensitivities = items.map { item -> InsulinSensitivityEntry in
                 let fotmatter = DateFormatter()
                 fotmatter.timeZone = TimeZone(secondsFromGMT: 0)
@@ -78,22 +90,31 @@ extension ISFEditor {
                 return InsulinSensitivityEntry(sensitivity: rate, offset: minutes, start: fotmatter.string(from: date))
             }
             let profile = InsulinSensitivities(
-                units: units,
-                userPrefferedUnits: settingsManager.settings.units,
+                units: .mgdL,
+                userPreferredUnits: .mgdL,
                 sensitivities: sensitivities
             )
             provider.saveProfile(profile)
+            initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
+
+            Task.detached(priority: .low) {
+                debug(.nightscout, "Attempting to upload ISF to Nightscout")
+                await self.nightscout.uploadProfiles()
+            }
         }
 
         func validate() {
             DispatchQueue.main.async {
-                let uniq = Array(Set(self.items))
-                let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
-                sorted.first?.timeIndex = 0
-                self.items = sorted
-
-                if self.items.isEmpty {
-                    self.units = self.settingsManager.settings.units
+                DispatchQueue.main.async {
+                    let uniq = Array(Set(self.items))
+                    let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
+                    sorted.first?.timeIndex = 0
+                    if self.items != sorted {
+                        self.items = sorted
+                    }
+                    if self.items.isEmpty {
+                        self.units = self.settingsManager.settings.units
+                    }
                 }
             }
         }
@@ -120,5 +141,11 @@ extension ISFEditor {
                 )
             }
         }
+    }
+}
+
+extension ISFEditor.StateModel: SettingsObserver {
+    func settingsDidChange(_: FreeAPSSettings) {
+        units = settingsManager.settings.units
     }
 }
