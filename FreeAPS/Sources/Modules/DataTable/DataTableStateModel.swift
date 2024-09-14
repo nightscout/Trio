@@ -47,9 +47,17 @@ extension DataTable {
         }
 
         func deleteGlucose(_ treatmentObjectID: NSManagedObjectID) async {
+            // Delete from Apple Health/Tidepool
+            await deleteGlucoseFromServices(treatmentObjectID)
+
+            // Delete from Core Data
+            await glucoseStorage.deleteGlucose(treatmentObjectID)
+        }
+
+        func deleteGlucoseFromServices(_ treatmentObjectID: NSManagedObjectID) async {
             let taskContext = CoreDataStack.shared.newTaskContext()
             taskContext.name = "deleteContext"
-            taskContext.transactionAuthor = "deleteGlucose"
+            taskContext.transactionAuthor = "deleteGlucoseFromServices"
 
             await taskContext.perform {
                 do {
@@ -60,26 +68,22 @@ extension DataTable {
                         return
                     }
 
-                    // Delete Manual Glucose from Nightscout
-                    if glucoseToDelete.isManual == true {
-                        if let id = glucoseToDelete.id?.uuidString {
-                            self.provider.deleteManualGlucoseFromNightscout(withID: id)
-                        }
+                    // Delete from Nightscout
+                    if let id = glucoseToDelete.id?.uuidString {
+                        self.provider.deleteManualGlucoseFromNightscout(withID: id)
                     }
 
-                    // Delete Glucose from Apple Health
+                    // Delete from Apple Health
                     if let id = glucoseToDelete.id?.uuidString {
                         self.provider.deleteGlucoseFromHealth(withSyncID: id)
                     }
 
-                    taskContext.delete(glucoseToDelete)
-
-                    guard taskContext.hasChanges else { return }
-                    try taskContext.save()
-                    debugPrint("Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted glucose from core data")
+                    debugPrint(
+                        "\(#file) \(#function) \(DebuggingIdentifiers.succeeded) deleted glucose from Apple Health/Nightscout"
+                    )
                 } catch {
                     debugPrint(
-                        "Data Table State: \(#function) \(DebuggingIdentifiers.failed) error while deleting glucose from core data: \(error.localizedDescription)"
+                        "\(#file) \(#function) \(DebuggingIdentifiers.failed) error while deleting glucose from Apple Health/Nightscout with error: \(error.localizedDescription)"
                     )
                 }
             }
@@ -125,7 +129,7 @@ extension DataTable {
                     }
 
                     if carbEntry.isFPU, let fpuID = carbEntry.fpuID {
-                        // Delete FPUs from Nightscout
+                        // Delete Fat and Protein entries from Nightscout
                         self.provider.deleteCarbsFromNightscout(withID: fpuID.uuidString)
 
                         // Delete Fat and Protein entries from Apple Health
@@ -152,7 +156,9 @@ extension DataTable {
                     }
 
                 } catch {
-                    debugPrint("\(DebuggingIdentifiers.failed) Error deleting carb entry from Apple Health/Nightscout with error: \(error.localizedDescription)")
+                    debugPrint(
+                        "\(DebuggingIdentifiers.failed) Error deleting carb entry from Apple Health/Nightscout with error: \(error.localizedDescription)"
+                    )
                 }
             }
         }
@@ -178,10 +184,10 @@ extension DataTable {
                     debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Authentication Error")
                     return
                 }
-                
+
                 // Delete from Apple Health/Nightscout
                 await deleteInsulinFromServices(with: treatmentObjectID)
-                
+
                 // Delete from Core Data
                 await CoreDataStack.shared.deleteObject(identifiedBy: treatmentObjectID)
 
@@ -196,6 +202,8 @@ extension DataTable {
 
         func deleteInsulinFromServices(with treatmentObjectID: NSManagedObjectID) async {
             let taskContext = CoreDataStack.shared.newTaskContext()
+            taskContext.name = "deleteContext"
+            taskContext.transactionAuthor = "deleteInsulinFromServices"
 
             await taskContext.perform {
                 do {
