@@ -224,4 +224,5 @@ protocol DataTableProvider: Provider {
     func deleteManualGlucoseFromNightscout(withID id: String)
     func deleteGlucoseFromHealth(withSyncID id: String)
     func deleteMealDataFromHealth(byID id: String, sampleType: HKSampleType)
+    func deleteInsulinFromHealth(withSyncID id: String)
 }

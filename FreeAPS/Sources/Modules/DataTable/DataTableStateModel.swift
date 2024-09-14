@@ -89,8 +89,11 @@ extension DataTable {
         func invokeCarbDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
             Task {
                 await deleteCarbs(treatmentObjectID)
-                carbEntryDeleted = true
-                waitForSuggestion = true
+
+                await MainActor.run {
+                    carbEntryDeleted = true
+                    waitForSuggestion = true
+                }
             }
         }
 
@@ -174,8 +177,11 @@ extension DataTable {
         func invokeInsulinDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
             Task {
                 await invokeInsulinDeletion(treatmentObjectID)
-                insulinEntryDeleted = true
-                waitForSuggestion = true
+
+                await MainActor.run {
+                    insulinEntryDeleted = true
+                    waitForSuggestion = true
+                }
             }
         }
 
@@ -217,12 +223,8 @@ extension DataTable {
                     // Delete Insulin from Nightscout
                     if let id = treatmentToDelete.id {
                         self.provider.deleteInsulinFromNightscout(withID: id)
+                        self.provider.deleteInsulinFromHealth(withSyncID: id)
                     }
-
-                    // TODO: - Rewrite healthkit implementation
-
-//                    let id = treatmentToDelete.id
-//                    self.healthkitManager.deleteInsulin(syncID: id)
 
                     taskContext.delete(treatmentToDelete)
                     try taskContext.save()
