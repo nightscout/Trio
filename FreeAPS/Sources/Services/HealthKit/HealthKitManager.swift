@@ -27,31 +27,31 @@ protocol HealthKitManager: GlucoseSource {
     /// Delete glucose with syncID
     func deleteGlucose(syncID: String) async
     /// delete carbs with syncID
-    func deleteCarbs(syncID: String, fpuID: String)
+    func deleteMealData(byID id: String, sampleType: HKSampleType) async
     /// delete insulin with syncID
     func deleteInsulin(syncID: String)
 }
 
+public enum AppleHealthConfig {
+    // unwraped HKObjects
+    static var readPermissions: Set<HKSampleType> {
+        Set([healthBGObject].compactMap { $0 }) }
+
+    static var writePermissions: Set<HKSampleType> {
+        Set([healthBGObject, healthCarbObject, healthFatObject, healthProteinObject, healthInsulinObject].compactMap { $0 }) }
+
+    // link to object in HealthKit
+    static let healthBGObject = HKObjectType.quantityType(forIdentifier: .bloodGlucose)
+    static let healthCarbObject = HKObjectType.quantityType(forIdentifier: .dietaryCarbohydrates)
+    static let healthFatObject = HKObjectType.quantityType(forIdentifier: .dietaryFatTotal)
+    static let healthProteinObject = HKObjectType.quantityType(forIdentifier: .dietaryProtein)
+    static let healthInsulinObject = HKObjectType.quantityType(forIdentifier: .insulinDelivery)
+
+    // Meta-data key of FreeASPX data in HealthStore
+    static let freeAPSMetaKey = "From Trio"
+}
+
 final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDelegate, PumpHistoryDelegate {
-    private enum Config {
-        // unwraped HKObjects
-        static var readPermissions: Set<HKSampleType> {
-            Set([healthBGObject].compactMap { $0 }) }
-
-        static var writePermissions: Set<HKSampleType> {
-            Set([healthBGObject, healthCarbObject, healthFatObject, healthProteinObject, healthInsulinObject].compactMap { $0 }) }
-
-        // link to object in HealthKit
-        static let healthBGObject = HKObjectType.quantityType(forIdentifier: .bloodGlucose)
-        static let healthCarbObject = HKObjectType.quantityType(forIdentifier: .dietaryCarbohydrates)
-        static let healthFatObject = HKObjectType.quantityType(forIdentifier: .dietaryFatTotal)
-        static let healthProteinObject = HKObjectType.quantityType(forIdentifier: .dietaryProtein)
-        static let healthInsulinObject = HKObjectType.quantityType(forIdentifier: .insulinDelivery)
-
-        // Meta-data key of FreeASPX data in HealthStore
-        static let freeAPSMetaKey = "From Trio"
-    }
-
     @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var healthKitStore: HKHealthStore!
     @Injected() private var settingsManager: SettingsManager!
@@ -99,10 +99,10 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
     }
 
     var areAllowAllPermissions: Bool {
-        Set(Config.readPermissions.map { healthKitStore.authorizationStatus(for: $0) })
+        Set(AppleHealthConfig.readPermissions.map { healthKitStore.authorizationStatus(for: $0) })
             .intersection([.notDetermined])
             .isEmpty &&
-            Set(Config.writePermissions.map { healthKitStore.authorizationStatus(for: $0) })
+            Set(AppleHealthConfig.writePermissions.map { healthKitStore.authorizationStatus(for: $0) })
             .intersection([.sharingDenied, .notDetermined])
             .isEmpty
     }
@@ -119,7 +119,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
         // loading only not FreeAPS bg
         // this predicate dont influence on Deleted Objects, only on added
         let predicateByMeta = HKQuery.predicateForObjects(
-            withMetadataKey: Config.freeAPSMetaKey,
+            withMetadataKey: AppleHealthConfig.freeAPSMetaKey,
             operatorType: .notEqualTo,
             value: 1
         )
@@ -130,7 +130,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
     init(resolver: Resolver) {
         injectServices(resolver)
         guard isAvailableOnCurrentDevice,
-              Config.healthBGObject != nil else { return }
+              AppleHealthConfig.healthBGObject != nil else { return }
 
         carbsStorage.delegate = self
         pumpHistoryStorage.delegate = self
@@ -143,19 +143,22 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
     }
 
     func checkAvailabilitySaveBG() -> Bool {
-        Config.healthBGObject.map { checkAvailabilitySave(objectTypeToHealthStore: $0) } ?? false
+        AppleHealthConfig.healthBGObject.map { checkAvailabilitySave(objectTypeToHealthStore: $0) } ?? false
     }
 
     func requestPermission() async throws -> Bool {
         guard isAvailableOnCurrentDevice else {
             throw HKError.notAvailableOnCurrentDevice
         }
-        guard Config.readPermissions.isNotEmpty, Config.writePermissions.isNotEmpty else {
+        guard AppleHealthConfig.readPermissions.isNotEmpty, AppleHealthConfig.writePermissions.isNotEmpty else {
             throw HKError.dataNotAvailable
         }
 
         return try await withCheckedThrowingContinuation { continuation in
-            healthKitStore.requestAuthorization(toShare: Config.writePermissions, read: Config.readPermissions) { status, error in
+            healthKitStore.requestAuthorization(
+                toShare: AppleHealthConfig.writePermissions,
+                read: AppleHealthConfig.readPermissions
+            ) { status, error in
                 if let error = error {
                     continuation.resume(throwing: error)
                 } else {
@@ -174,7 +177,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
 
     func uploadGlucose(_ glucose: [BloodGlucose]) async {
         guard settingsManager.settings.useAppleHealth,
-              let sampleType = Config.healthBGObject,
+              let sampleType = AppleHealthConfig.healthBGObject,
               checkAvailabilitySave(objectTypeToHealthStore: sampleType),
               glucose.isNotEmpty
         else { return }
@@ -193,7 +196,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
                         HKMetadataKeyExternalUUID: glucoseSample.id,
                         HKMetadataKeySyncIdentifier: glucoseSample.id,
                         HKMetadataKeySyncVersion: 1,
-                        Config.freeAPSMetaKey: true
+                        AppleHealthConfig.freeAPSMetaKey: true
                     ]
                 )
             }
@@ -245,9 +248,9 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
 
     func uploadCarbs(_ carbs: [CarbsEntry]) async {
         guard settingsManager.settings.useAppleHealth,
-              let carbSampleType = Config.healthCarbObject,
-              let fatSampleType = Config.healthFatObject,
-              let proteinSampleType = Config.healthProteinObject,
+              let carbSampleType = AppleHealthConfig.healthCarbObject,
+              let fatSampleType = AppleHealthConfig.healthFatObject,
+              let proteinSampleType = AppleHealthConfig.healthProteinObject,
               checkAvailabilitySave(objectTypeToHealthStore: carbSampleType),
               carbs.isNotEmpty
         else { return }
@@ -272,7 +275,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
                         HKMetadataKeyExternalUUID: id,
                         HKMetadataKeySyncIdentifier: id,
                         HKMetadataKeySyncVersion: 1,
-                        Config.freeAPSMetaKey: true
+                        AppleHealthConfig.freeAPSMetaKey: true
                     ]
                 )
                 samples.append(carbSample)
@@ -288,7 +291,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
                             HKMetadataKeyExternalUUID: id,
                             HKMetadataKeySyncIdentifier: id,
                             HKMetadataKeySyncVersion: 1,
-                            Config.freeAPSMetaKey: true
+                            AppleHealthConfig.freeAPSMetaKey: true
                         ]
                     )
                     samples.append(fatSample)
@@ -305,7 +308,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
                             HKMetadataKeyExternalUUID: id,
                             HKMetadataKeySyncIdentifier: id,
                             HKMetadataKeySyncVersion: 1,
-                            Config.freeAPSMetaKey: true
+                            AppleHealthConfig.freeAPSMetaKey: true
                         ]
                     )
                     samples.append(proteinSample)
@@ -359,7 +362,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
 
     func uploadInsulin(_ insulin: [PumpHistoryEvent]) async {
         guard settingsManager.settings.useAppleHealth,
-              let sampleType = Config.healthInsulinObject,
+              let sampleType = AppleHealthConfig.healthInsulinObject,
               checkAvailabilitySave(objectTypeToHealthStore: sampleType),
               insulin.isNotEmpty
         else { return }
@@ -391,7 +394,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
                         HKMetadataKeySyncIdentifier: insulinSample.id,
                         HKMetadataKeySyncVersion: 1,
                         HKMetadataKeyInsulinDeliveryReason: deliveryReason.rawValue,
-                        Config.freeAPSMetaKey: true
+                        AppleHealthConfig.freeAPSMetaKey: true
                     ]
                 )
             }
@@ -439,7 +442,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
 
     func deleteGlucose(syncID: String) async {
         guard settingsManager.settings.useAppleHealth,
-              let sampleType = Config.healthBGObject,
+              let sampleType = AppleHealthConfig.healthBGObject,
               checkAvailabilitySave(objectTypeToHealthStore: sampleType)
         else { return }
 
@@ -454,6 +457,21 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
             debug(.service, "Successfully deleted glucose sample with syncID: \(syncID)")
         } catch {
             warning(.service, "Failed to delete glucose sample with syncID: \(syncID)", error: error)
+        }
+    }
+
+    func deleteMealData(byID id: String, sampleType: HKSampleType) async {
+        let predicate = HKQuery.predicateForObjects(
+            withMetadataKey: HKMetadataKeySyncIdentifier,
+            operatorType: .equalTo,
+            value: id
+        )
+
+        do {
+            try await deleteObjects(of: sampleType, predicate: predicate)
+            debug(.service, "Successfully deleted \(sampleType) with syncID: \(id)")
+        } catch {
+            warning(.service, "Failed to delete carbs sample with syncID: \(id)", error: error)
         }
     }
 
@@ -474,7 +492,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
     func createBGObserver() {
         guard settingsManager.settings.useAppleHealth else { return }
 
-        guard let bgType = Config.healthBGObject else {
+        guard let bgType = AppleHealthConfig.healthBGObject else {
             warning(.service, "Can not create HealthKit Observer, because unable to get the Blood Glucose type")
             return
         }
@@ -501,7 +519,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
             healthKitStore.disableAllBackgroundDelivery { _, _ in }
             return }
 
-        guard let bgType = Config.healthBGObject else {
+        guard let bgType = AppleHealthConfig.healthBGObject else {
             warning(
                 .service,
                 "Can not create background delivery, because unable to get the Blood Glucose type"
@@ -519,7 +537,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
     }
 
     private func getBloodGlucoseHKQuery(predicate: NSPredicate) -> HKQuery? {
-        guard let sampleType = Config.healthBGObject else { return nil }
+        guard let sampleType = AppleHealthConfig.healthBGObject else { return nil }
 
         let query = HKAnchoredObjectQuery(
             type: sampleType,
@@ -549,7 +567,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
 
         newGlucose += samples
             .compactMap { sample -> HealthKitSample? in
-                let fromTrio = sample.metadata?[Config.freeAPSMetaKey] as? Bool ?? false
+                let fromTrio = sample.metadata?[AppleHealthConfig.freeAPSMetaKey] as? Bool ?? false
                 guard !fromTrio else { return nil }
                 return HealthKitSample(
                     healthKitId: sample.uuid.uuidString,
@@ -622,7 +640,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
 
     func deleteCarbs(syncID: String, fpuID: String) {
         guard settingsManager.settings.useAppleHealth,
-              let sampleType = Config.healthCarbObject,
+              let sampleType = AppleHealthConfig.healthCarbObject,
               checkAvailabilitySave(objectTypeToHealthStore: sampleType)
         else { return }
 
@@ -662,7 +680,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
 
     func deleteInsulin(syncID: String) {
         guard settingsManager.settings.useAppleHealth,
-              let sampleType = Config.healthInsulinObject,
+              let sampleType = AppleHealthConfig.healthInsulinObject,
               checkAvailabilitySave(objectTypeToHealthStore: sampleType)
         else { return }
 

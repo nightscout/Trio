@@ -1,5 +1,6 @@
 import CoreData
 import Foundation
+import HealthKit
 import SwiftUI
 
 enum DataTable {
@@ -222,4 +223,5 @@ protocol DataTableProvider: Provider {
     func deleteInsulinFromNightscout(withID id: String)
     func deleteManualGlucoseFromNightscout(withID id: String)
     func deleteGlucoseFromHealth(withSyncID id: String)
+    func deleteMealDataFromHealth(byID id: String, sampleType: HKSampleType)
 }

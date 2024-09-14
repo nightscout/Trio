@@ -1,4 +1,5 @@
 import CoreData
+import HealthKit
 import SwiftUI
 
 extension DataTable {
@@ -112,6 +113,18 @@ extension DataTable {
                         // Delete FPUs from Nightscout
                         self.provider.deleteCarbsFromNightscout(withID: fpuID.uuidString)
 
+                        // Delete Fat and Protein entries from Apple Health
+                        let healthObjectsToDelete: [HKSampleType?] = [
+                            AppleHealthConfig.healthFatObject,
+                            AppleHealthConfig.healthProteinObject
+                        ]
+
+                        for sampleType in healthObjectsToDelete {
+                            if let validSampleType = sampleType {
+                                self.provider.deleteMealDataFromHealth(byID: fpuID.uuidString, sampleType: validSampleType)
+                            }
+                        }
+
                         // fetch request for all carb entries with the same id
                         let fetchRequest: NSFetchRequest<NSFetchRequestResult> = CarbEntryStored.fetchRequest()
                         fetchRequest.predicate = NSPredicate(format: "fpuID == %@", fpuID as CVarArg)
@@ -129,9 +142,14 @@ extension DataTable {
                         // Delete carbs from Nightscout
                         if let id = carbEntry.id?.uuidString {
                             self.provider.deleteCarbsFromNightscout(withID: id)
+
+                            // Delete carbs from Apple Health
+                            if let sampleType = AppleHealthConfig.healthCarbObject {
+                                self.provider.deleteMealDataFromHealth(byID: id, sampleType: sampleType)
+                            }
                         }
 
-                        // Now delete carbs also from the Database
+                        // Now also delete carbs from the Database
                         taskContext.delete(carbEntry)
 
                         guard taskContext.hasChanges else { return }
