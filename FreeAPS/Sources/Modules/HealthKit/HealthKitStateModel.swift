@@ -36,10 +36,6 @@ extension AppleHealthKit {
 
                         if permissionGranted {
                             debug(.service, "Permission granted for HealthKitManager")
-
-                            self.healthKitManager.createBGObserver()
-                            self.healthKitManager.enableBackgroundDelivery()
-
                         } else {
                             warning(.service, "Permission not granted for HealthKitManager")
                         }

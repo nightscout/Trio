@@ -130,7 +130,7 @@ extension DataTable {
 
                         // fetch request for all carb entries with the same id
                         let fetchRequest: NSFetchRequest<NSFetchRequestResult> = CarbEntryStored.fetchRequest()
-                        fetchRequest.predicate = NSPredicate(format: "fpuID == %@", fpuID as CVarArg)
+                        fetchRequest.predicate = NSPredicate(format: "isFPU == true AND fpuID == %@", fpuID as CVarArg)
 
                         // NSBatchDeleteRequest
                         let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)

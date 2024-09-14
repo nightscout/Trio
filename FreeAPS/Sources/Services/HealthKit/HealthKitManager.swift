@@ -6,7 +6,7 @@ import LoopKit
 import LoopKitUI
 import Swinject
 
-protocol HealthKitManager: GlucoseSource {
+protocol HealthKitManager {
     /// Check all needed permissions
     /// Return false if one or more permissions are deny or not choosen
     var areAllowAllPermissions: Bool { get }
@@ -20,10 +20,6 @@ protocol HealthKitManager: GlucoseSource {
     func uploadCarbs() async
     /// Save Insulin to Health store
     func uploadInsulin() async
-    /// Create observer for data passing beetwen Health Store and Trio
-    func createBGObserver()
-    /// Enable background delivering objects from Apple Health to Trio
-    func enableBackgroundDelivery()
     /// Delete glucose with syncID
     func deleteGlucose(syncID: String) async
     /// delete carbs with syncID
@@ -34,9 +30,6 @@ protocol HealthKitManager: GlucoseSource {
 
 public enum AppleHealthConfig {
     // unwraped HKObjects
-    static var readPermissions: Set<HKSampleType> {
-        Set([healthBGObject].compactMap { $0 }) }
-
     static var writePermissions: Set<HKSampleType> {
         Set([healthBGObject, healthCarbObject, healthFatObject, healthProteinObject, healthInsulinObject].compactMap { $0 }) }
 
@@ -47,8 +40,8 @@ public enum AppleHealthConfig {
     static let healthProteinObject = HKObjectType.quantityType(forIdentifier: .dietaryProtein)
     static let healthInsulinObject = HKObjectType.quantityType(forIdentifier: .insulinDelivery)
 
-    // Meta-data key of FreeASPX data in HealthStore
-    static let freeAPSMetaKey = "From Trio"
+    // MetaDataKey of Trio data in HealthStore
+    static let TrioMetaDataKey = "TrioMetaDataKey"
 }
 
 final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDelegate, PumpHistoryDelegate {
@@ -78,7 +71,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
     private let processQueue = DispatchQueue(label: "BaseHealthKitManager.processQueue")
     private var lifetime = Lifetime()
 
-    // BG that will be return Publisher
+    // BG that will be returned by publisher
     @SyncAccess @Persisted(key: "BaseHealthKitManager.newGlucose") private var newGlucose: [BloodGlucose] = []
 
     // last anchor for HKAnchoredQuery
@@ -99,10 +92,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
     }
 
     var areAllowAllPermissions: Bool {
-        Set(AppleHealthConfig.readPermissions.map { healthKitStore.authorizationStatus(for: $0) })
-            .intersection([.notDetermined])
-            .isEmpty &&
-            Set(AppleHealthConfig.writePermissions.map { healthKitStore.authorizationStatus(for: $0) })
+        Set(AppleHealthConfig.writePermissions.map { healthKitStore.authorizationStatus(for: $0) })
             .intersection([.sharingDenied, .notDetermined])
             .isEmpty
     }
@@ -119,7 +109,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
         // loading only not FreeAPS bg
         // this predicate dont influence on Deleted Objects, only on added
         let predicateByMeta = HKQuery.predicateForObjects(
-            withMetadataKey: AppleHealthConfig.freeAPSMetaKey,
+            withMetadataKey: AppleHealthConfig.TrioMetaDataKey,
             operatorType: .notEqualTo,
             value: 1
         )
@@ -150,14 +140,11 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
         guard isAvailableOnCurrentDevice else {
             throw HKError.notAvailableOnCurrentDevice
         }
-        guard AppleHealthConfig.readPermissions.isNotEmpty, AppleHealthConfig.writePermissions.isNotEmpty else {
-            throw HKError.dataNotAvailable
-        }
 
         return try await withCheckedThrowingContinuation { continuation in
             healthKitStore.requestAuthorization(
                 toShare: AppleHealthConfig.writePermissions,
-                read: AppleHealthConfig.readPermissions
+                read: nil
             ) { status, error in
                 if let error = error {
                     continuation.resume(throwing: error)
@@ -196,7 +183,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
                         HKMetadataKeyExternalUUID: glucoseSample.id,
                         HKMetadataKeySyncIdentifier: glucoseSample.id,
                         HKMetadataKeySyncVersion: 1,
-                        AppleHealthConfig.freeAPSMetaKey: true
+                        AppleHealthConfig.TrioMetaDataKey: UUID().uuidString
                     ]
                 )
             }
@@ -261,6 +248,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
             // Create HealthKit samples for carbs, fat, and protein
             for allSamples in carbs {
                 guard let id = allSamples.id else { continue }
+                let fpuID = allSamples.fpuID ?? id
 
                 let startDate = allSamples.actualDate ?? Date()
 
@@ -275,7 +263,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
                         HKMetadataKeyExternalUUID: id,
                         HKMetadataKeySyncIdentifier: id,
                         HKMetadataKeySyncVersion: 1,
-                        AppleHealthConfig.freeAPSMetaKey: true
+                        AppleHealthConfig.TrioMetaDataKey: UUID().uuidString
                     ]
                 )
                 samples.append(carbSample)
@@ -288,10 +276,10 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
                         start: startDate,
                         end: startDate,
                         metadata: [
-                            HKMetadataKeyExternalUUID: id,
-                            HKMetadataKeySyncIdentifier: id,
+                            HKMetadataKeyExternalUUID: fpuID,
+                            HKMetadataKeySyncIdentifier: fpuID,
                             HKMetadataKeySyncVersion: 1,
-                            AppleHealthConfig.freeAPSMetaKey: true
+                            AppleHealthConfig.TrioMetaDataKey: UUID().uuidString
                         ]
                     )
                     samples.append(fatSample)
@@ -305,10 +293,10 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
                         start: startDate,
                         end: startDate,
                         metadata: [
-                            HKMetadataKeyExternalUUID: id,
-                            HKMetadataKeySyncIdentifier: id,
+                            HKMetadataKeyExternalUUID: fpuID,
+                            HKMetadataKeySyncIdentifier: fpuID,
                             HKMetadataKeySyncVersion: 1,
-                            AppleHealthConfig.freeAPSMetaKey: true
+                            AppleHealthConfig.TrioMetaDataKey: UUID().uuidString
                         ]
                     )
                     samples.append(proteinSample)
@@ -394,7 +382,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
                         HKMetadataKeySyncIdentifier: insulinSample.id,
                         HKMetadataKeySyncVersion: 1,
                         HKMetadataKeyInsulinDeliveryReason: deliveryReason.rawValue,
-                        AppleHealthConfig.freeAPSMetaKey: true
+                        AppleHealthConfig.TrioMetaDataKey: UUID().uuidString
                     ]
                 )
             }
@@ -510,155 +498,6 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
                 }
             }
         }
-    }
-
-    // Observer that notifies when new Glucose values arrive in Apple Health
-
-    func createBGObserver() {
-        guard settingsManager.settings.useAppleHealth else { return }
-
-        guard let bgType = AppleHealthConfig.healthBGObject else {
-            warning(.service, "Can not create HealthKit Observer, because unable to get the Blood Glucose type")
-            return
-        }
-
-        let query = HKObserverQuery(sampleType: bgType, predicate: nil) { [weak self] _, _, observerError in
-            guard let self = self else { return }
-            debug(.service, "Execute HealthKit observer query for loading increment samples")
-            guard observerError == nil else {
-                warning(.service, "Error during execution of HealthKit Observer's query", error: observerError!)
-                return
-            }
-
-            if let incrementQuery = self.getBloodGlucoseHKQuery(predicate: self.loadBGPredicate) {
-                debug(.service, "Create increment query")
-                self.healthKitStore.execute(incrementQuery)
-            }
-        }
-        healthKitStore.execute(query)
-        debug(.service, "Create Observer for Blood Glucose")
-    }
-
-    func enableBackgroundDelivery() {
-        guard settingsManager.settings.useAppleHealth else {
-            healthKitStore.disableAllBackgroundDelivery { _, _ in }
-            return }
-
-        guard let bgType = AppleHealthConfig.healthBGObject else {
-            warning(
-                .service,
-                "Can not create background delivery, because unable to get the Blood Glucose type"
-            )
-            return
-        }
-
-        healthKitStore.enableBackgroundDelivery(for: bgType, frequency: .immediate) { status, error in
-            guard error == nil else {
-                warning(.service, "Can not enable background delivery", error: error)
-                return
-            }
-            debug(.service, "Background delivery status is \(status)")
-        }
-    }
-
-    private func getBloodGlucoseHKQuery(predicate: NSPredicate) -> HKQuery? {
-        guard let sampleType = AppleHealthConfig.healthBGObject else { return nil }
-
-        let query = HKAnchoredObjectQuery(
-            type: sampleType,
-            predicate: predicate,
-            anchor: lastBloodGlucoseQueryAnchor,
-            limit: HKObjectQueryNoLimit
-        ) { [weak self] _, addedObjects, _, anchor, _ in
-            guard let self = self else { return }
-            self.processQueue.async {
-                debug(.service, "AnchoredQuery did execute")
-
-                self.lastBloodGlucoseQueryAnchor = anchor
-
-                // Added objects
-                if let bgSamples = addedObjects as? [HKQuantitySample],
-                   bgSamples.isNotEmpty
-                {
-                    self.prepareBGSamplesToPublisherFetch(bgSamples)
-                }
-            }
-        }
-        return query
-    }
-
-    private func prepareBGSamplesToPublisherFetch(_ samples: [HKQuantitySample]) {
-        dispatchPrecondition(condition: .onQueue(processQueue))
-
-        newGlucose += samples
-            .compactMap { sample -> HealthKitSample? in
-                let fromTrio = sample.metadata?[AppleHealthConfig.freeAPSMetaKey] as? Bool ?? false
-                guard !fromTrio else { return nil }
-                return HealthKitSample(
-                    healthKitId: sample.uuid.uuidString,
-                    date: sample.startDate,
-                    glucose: Int(round(sample.quantity.doubleValue(for: .milligramsPerDeciliter)))
-                )
-            }
-            .map { sample in
-                BloodGlucose(
-                    _id: sample.healthKitId,
-                    sgv: sample.glucose,
-                    direction: nil,
-                    date: Decimal(Int(sample.date.timeIntervalSince1970) * 1000),
-                    dateString: sample.date,
-                    unfiltered: Decimal(sample.glucose),
-                    filtered: nil,
-                    noise: nil,
-                    glucose: sample.glucose,
-                    type: "sgv"
-                )
-            }
-            .filter { $0.dateString >= Date().addingTimeInterval(-1.days.timeInterval) }
-
-        newGlucose = newGlucose.removeDublicates()
-    }
-
-    // MARK: - GlucoseSource
-
-    var glucoseManager: FetchGlucoseManager?
-    var cgmManager: CGMManagerUI?
-
-    func fetch(_: DispatchTimer?) -> AnyPublisher<[BloodGlucose], Never> {
-        Future { [weak self] promise in
-            guard let self = self else {
-                promise(.success([]))
-                return
-            }
-
-            self.processQueue.async {
-                guard self.settingsManager.settings.useAppleHealth else {
-                    promise(.success([]))
-                    return
-                }
-
-                // Remove old BGs
-                self.newGlucose = self.newGlucose
-                    .filter { $0.dateString >= Date().addingTimeInterval(-1.days.timeInterval) }
-                // Get actual BGs (beetwen Date() - 1 day and Date())
-                let actualGlucose = self.newGlucose
-                    .filter { $0.dateString <= Date() }
-                // Update newGlucose
-                self.newGlucose = self.newGlucose
-                    .filter { !actualGlucose.contains($0) }
-
-                //  debug(.service, "Actual glucose is \(actualGlucose)")
-
-                //  debug(.service, "Current state of newGlucose is \(self.newGlucose)")
-
-                promise(.success(actualGlucose))
-            }
-        }
-        .eraseToAnyPublisher()
-    }
-
-    func fetchIfNeeded() -> AnyPublisher<[BloodGlucose], Never> {
-        fetch(nil)
     }
 }
 

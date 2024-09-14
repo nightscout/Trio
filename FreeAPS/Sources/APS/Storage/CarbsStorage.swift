@@ -46,8 +46,9 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             entriesToStore = await filterRemoteEntries(entries: entriesToStore)
         }
 
-        await saveCarbEquivalents(entries: entriesToStore, areFetchedFromRemote: areFetchedFromRemote)
         await saveCarbsToCoreData(entries: entriesToStore, areFetchedFromRemote: areFetchedFromRemote)
+
+        await saveCarbEquivalents(entries: entriesToStore, areFetchedFromRemote: areFetchedFromRemote)
 
         // TODO: - Should we really use a delegate here? If yes, should we also use this for NS/TP?
 
@@ -121,7 +122,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
      - Returns: A tuple containing the array of future carb entries and the total carb equivalents.
      */
     private func processFPU(
-        entries _: [CarbsEntry],
+        entries: [CarbsEntry],
         fat: Decimal,
         protein: Decimal,
         createdAt: Date,
@@ -150,7 +151,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         var numberOfEquivalents = carbEquivalents / carbEquivalentSize
 
         var useDate = actualDate ?? createdAt
-        let fpuID = UUID().uuidString
+        let fpuID = entries.first?.fpuID ?? UUID().uuidString
         var futureCarbArray = [CarbsEntry]()
         var firstIndex = true
 
@@ -210,6 +211,10 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             newItem.isUploadedToNS = areFetchedFromRemote ? true : false
             newItem.isUploadedToHealth = false
 
+            if entry.fat != nil, entry.protein != nil, let fpuId = entry.fpuID {
+                newItem.fpuID = UUID(uuidString: fpuId)
+            }
+
             do {
                 guard self.coredataContext.hasChanges else { return }
                 try self.coredataContext.save()
@@ -220,8 +225,10 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     }
 
     private func saveFPUToCoreDataAsBatchInsert(entries: [CarbsEntry], areFetchedFromRemote: Bool) async {
-        let commonFPUID =
-            UUID() // all fpus should only get ONE id per batch insert to be able to delete them referencing the fpuID
+        let commonFPUID = UUID(
+            uuidString: entries.first?.fpuID ?? UUID()
+                .uuidString
+        ) // all fpus should only get ONE id per batch insert to be able to delete them referencing the fpuID
         var entrySlice = ArraySlice(entries) // convert to ArraySlice
         let batchInsert = NSBatchInsertRequest(entity: CarbEntryStored.entity()) { (managedObject: NSManagedObject) -> Bool in
             guard let carbEntry = managedObject as? CarbEntryStored, let entry = entrySlice.popFirst(),

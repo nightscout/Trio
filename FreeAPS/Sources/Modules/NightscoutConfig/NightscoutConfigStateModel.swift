@@ -336,6 +336,7 @@ extension NightscoutConfig {
             } else {
                 await MainActor.run {
                     self.backfilling = false
+                    debug(.nightscout, "No glucose values found or fetched to backfill.")
                 }
             }
         }
