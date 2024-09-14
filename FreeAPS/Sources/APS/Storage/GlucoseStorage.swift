@@ -294,7 +294,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                     rate: nil,
                     eventType: .capillaryGlucose,
                     createdAt: result.date,
-                    enteredBy: "Trio",
+                    enteredBy: CarbsEntry.manual,
                     bolus: nil,
                     insulin: nil,
                     notes: "Trio User",

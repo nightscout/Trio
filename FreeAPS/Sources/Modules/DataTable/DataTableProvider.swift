@@ -55,5 +55,13 @@ extension DataTable {
                 await self.healthkitManager.deleteMealData(byID: id, sampleType: sampleType)
             }
         }
+
+        func deleteInsulinFromTidepool(withSyncId id: String, amount: Decimal, at: Date) {
+            tidepoolManager.deleteInsulin(withSyncId: id, amount: amount, at: at)
+        }
+
+        func deleteCarbsFromTidepool(withSyncId id: UUID, carbs: Decimal, at: Date, enteredBy: String) {
+            tidepoolManager.deleteCarbs(withSyncId: id, carbs: carbs, at: at, enteredBy: enteredBy)
+        }
     }
 }

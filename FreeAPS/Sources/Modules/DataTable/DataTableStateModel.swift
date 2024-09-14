@@ -145,13 +145,20 @@ extension DataTable {
                         }
                     } else {
                         // Delete carbs from Nightscout
-                        if let id = carbEntry.id?.uuidString {
-                            self.provider.deleteCarbsFromNightscout(withID: id)
+                        if let id = carbEntry.id, let entryDate = carbEntry.date {
+                            self.provider.deleteCarbsFromNightscout(withID: id.uuidString)
 
                             // Delete carbs from Apple Health
                             if let sampleType = AppleHealthConfig.healthCarbObject {
-                                self.provider.deleteMealDataFromHealth(byID: id, sampleType: sampleType)
+                                self.provider.deleteMealDataFromHealth(byID: id.uuidString, sampleType: sampleType)
                             }
+
+                            self.provider.deleteCarbsFromTidepool(
+                                withSyncId: id,
+                                carbs: Decimal(carbEntry.carbs),
+                                at: entryDate,
+                                enteredBy: CarbsEntry.manual
+                            )
                         }
                     }
 
@@ -214,9 +221,12 @@ extension DataTable {
                     }
 
                     // Delete Insulin from Nightscout and Apple Health
-                    if let id = treatmentToDelete.id {
+                    if let id = treatmentToDelete.id, let timestamp = treatmentToDelete.timestamp,
+                       let bolus = treatmentToDelete.bolus, let bolusAmount = bolus.amount
+                    {
                         self.provider.deleteInsulinFromNightscout(withID: id)
                         self.provider.deleteInsulinFromHealth(withSyncID: id)
+                        self.provider.deleteInsulinFromTidepool(withSyncId: id, amount: bolusAmount as Decimal, at: timestamp)
                     }
 
                     taskContext.delete(treatmentToDelete)

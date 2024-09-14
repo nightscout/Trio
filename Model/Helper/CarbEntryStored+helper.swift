@@ -89,7 +89,7 @@ extension CarbEntryStored: Encodable {
         try container.encode(formattedDate, forKey: .created_at)
 
         // TODO: handle this conditionally; pass in the enteredBy string (manual entry or via NS or Apple Health)
-        try container.encode("Open-iAPS", forKey: .enteredBy)
+        try container.encode("Trio", forKey: .enteredBy)
 
         try container.encode(carbs, forKey: .carbs)
         try container.encode(fat, forKey: .fat)

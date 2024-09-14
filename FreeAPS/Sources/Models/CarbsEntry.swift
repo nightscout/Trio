@@ -49,7 +49,7 @@ extension CarbsEntry {
             grams: Double(carbs),
             startDate: createdAt,
             uuid: UUID(uuidString: id!),
-            provenanceIdentifier: enteredBy ?? "",
+            provenanceIdentifier: enteredBy ?? "Trio",
             syncIdentifier: id,
             syncVersion: nil,
             userCreatedDate: nil,

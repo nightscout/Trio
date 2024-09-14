@@ -169,7 +169,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                 fat: 0,
                 protein: 0,
                 note: nil,
-                enteredBy: CarbsEntry.manual, isFPU: true,
+                enteredBy: CarbsEntry.manual,
+                isFPU: true,
                 fpuID: fpuID
             )
             futureCarbArray.append(eachCarbEntry)
@@ -442,7 +443,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     fat: Decimal(result.fat),
                     protein: Decimal(result.protein),
                     note: result.note,
-                    enteredBy: "Trio",
+                    enteredBy: CarbsEntry.manual,
                     isFPU: result.isFPU,
                     fpuID: result.fpuID?.uuidString
                 )
@@ -473,7 +474,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     fat: Decimal(result.fat),
                     protein: Decimal(result.protein),
                     note: result.note,
-                    enteredBy: "Trio",
+                    enteredBy: CarbsEntry.manual,
                     isFPU: result.isFPU,
                     fpuID: result.fpuID?.uuidString
                 )

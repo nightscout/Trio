@@ -11,9 +11,9 @@ protocol TidepoolManager {
     func getTidepoolServiceUI() -> ServiceUI?
     func getTidepoolPluginHost() -> PluginHost?
     func uploadCarbs() async
-    func deleteCarbs(at date: Date, isFPU: Bool?, fpuID: String?, syncID: String)
+    func deleteCarbs(withSyncId id: UUID, carbs: Decimal, at: Date, enteredBy: String)
     func uploadInsulin() async
-    func deleteInsulin(at date: Date)
+    func deleteInsulin(withSyncId id: String, amount: Decimal, at: Date)
     func uploadGlucose(device: HKDevice?) async
     func forceTidepoolDataUpload(device: HKDevice?)
 }
@@ -128,7 +128,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegat
                     case let .failure(error):
                         debug(.nightscout, "Error synchronizing carbs data: \(String(describing: error))")
                     case .success:
-                        debug(.nightscout, "Success synchronizing carbs data:")
+                        debug(.nightscout, "Success synchronizing carbs data")
                         // After successful upload, update the isUploadedToTidepool flag in Core Data
                         Task {
                             await self.updateCarbsAsUploaded(carbs)
@@ -161,30 +161,34 @@ final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegat
         }
     }
 
-    func deleteCarbs(at date: Date, isFPU: Bool?, fpuID: String?, syncID _: String) {
+    func deleteCarbs(withSyncId id: UUID, carbs: Decimal, at: Date, enteredBy: String) {
         guard let tidepoolService = self.tidepoolService else { return }
 
         processQueue.async {
-            var carbsToDelete: [CarbsEntry] = []
-            let allValues = self.storage.retrieve(OpenAPS.Monitor.carbHistory, as: [CarbsEntry].self) ?? []
-
-            if let isFPU = isFPU, isFPU {
-                guard let fpuID = fpuID else { return }
-                carbsToDelete = allValues.filter { $0.fpuID == fpuID }.removeDublicates()
-            } else {
-                carbsToDelete = allValues.filter { $0.createdAt == date }.removeDublicates()
-            }
-
-            let syncCarb = carbsToDelete.map { d in
-                d.convertSyncCarb(operation: .delete)
-            }
+            let syncCarb: [SyncCarbObject] = [SyncCarbObject(
+                absorptionTime: nil,
+                createdByCurrentApp: true,
+                foodType: nil,
+                grams: Double(carbs),
+                startDate: at,
+                uuid: id,
+                provenanceIdentifier: enteredBy,
+                syncIdentifier: id.uuidString,
+                syncVersion: nil,
+                userCreatedDate: nil,
+                userUpdatedDate: nil,
+                userDeletedDate: nil,
+                operation: LoopKit.Operation.delete,
+                addedDate: nil,
+                supercededDate: nil
+            )]
 
             tidepoolService.uploadCarbData(created: [], updated: [], deleted: syncCarb) { result in
                 switch result {
                 case let .failure(error):
                     debug(.nightscout, "Error synchronizing carbs data: \(String(describing: error))")
                 case .success:
-                    debug(.nightscout, "Success synchronizing carbs data:")
+                    debug(.nightscout, "Success synchronizing carbs data.")
                 }
             }
         }
@@ -317,7 +321,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegat
                 case let .failure(error):
                     debug(.nightscout, "Error synchronizing Dose data: \(String(describing: error))")
                 case .success:
-                    debug(.nightscout, "Success synchronizing Dose data:")
+                    debug(.nightscout, "Success synchronizing Dose data")
                     // After successful upload, update the isUploadedToTidepool flag in Core Data
                     Task {
                         let insulinEvents = events
@@ -334,7 +338,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegat
                 case let .failure(error):
                     debug(.nightscout, "Error synchronizing Pump Event data: \(String(describing: error))")
                 case .success:
-                    debug(.nightscout, "Success synchronizing Pump Event data:")
+                    debug(.nightscout, "Success synchronizing Pump Event data")
                     // After successful upload, update the isUploadedToTidepool flag in Core Data
                     Task {
                         let pumpEventType = events.map({ $0.type.mapEventTypeToPumpEventType()
@@ -370,24 +374,17 @@ final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegat
         }
     }
 
-    func deleteInsulin(at d: Date) {
-        let allValues = storage.retrieve(OpenAPS.Monitor.pumpHistory, as: [PumpHistoryEvent].self) ?? []
+    func deleteInsulin(withSyncId id: String, amount: Decimal, at: Date) {
+        guard let tidepoolService = self.tidepoolService else { return }
 
-        guard !allValues.isEmpty, let tidepoolService = self.tidepoolService else { return }
-
-        var doseDataToDelete: [DoseEntry] = []
-
-        guard let entry = allValues.first(where: { $0.timestamp == d }) else {
-            return
-        }
-        doseDataToDelete
-            .append(DoseEntry(
-                type: .bolus,
-                startDate: entry.timestamp,
-                value: Double(entry.amount!),
-                unit: .units,
-                syncIdentifier: entry.id
-            ))
+        // must be an array here, because `tidepoolService.uploadDoseData` expects a `deleted` array
+        let doseDataToDelete: [DoseEntry] = [DoseEntry(
+            type: .bolus,
+            startDate: at,
+            value: Double(amount),
+            unit: .units,
+            syncIdentifier: id
+        )]
 
         processQueue.async {
             tidepoolService.uploadDoseData(created: [], deleted: doseDataToDelete) { result in
@@ -395,7 +392,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegat
                 case let .failure(error):
                     debug(.nightscout, "Error synchronizing Dose delete data: \(String(describing: error))")
                 case .success:
-                    debug(.nightscout, "Success synchronizing Dose delete data:")
+                    debug(.nightscout, "Success synchronizing Dose delete data")
                 }
             }
         }
@@ -419,7 +416,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegat
                 tidepoolService.uploadGlucoseData(chunkStoreGlucose) { result in
                     switch result {
                     case .success:
-                        debug(.nightscout, "Success synchronizing glucose data:")
+                        debug(.nightscout, "Success synchronizing glucose data")
                         // After successful upload, update the isUploadedToTidepool flag in Core Data
                         Task {
                             await self.updateGlucoseAsUploaded(glucose)
