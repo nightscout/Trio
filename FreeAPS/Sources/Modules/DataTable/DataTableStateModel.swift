@@ -11,6 +11,7 @@ extension DataTable {
         @Injected() var pumpHistoryStorage: PumpHistoryStorage!
         @Injected() var glucoseStorage: GlucoseStorage!
         @Injected() var healthKitManager: HealthKitManager!
+        @Injected() var carbsStorage: CarbsStorage!
 
         let coredataContext = CoreDataStack.shared.newTaskContext()
 
@@ -98,9 +99,20 @@ extension DataTable {
         }
 
         func deleteCarbs(_ treatmentObjectID: NSManagedObjectID) async {
+            // Delete from Apple Health/Tidepool
+            await deleteCarbsFromServices(treatmentObjectID)
+
+            // Delete from Core Data
+            await carbsStorage.deleteCarbs(treatmentObjectID)
+
+            // Perform a determine basal sync to update cob
+            await apsManager.determineBasalSync()
+        }
+
+        func deleteCarbsFromServices(_ treatmentObjectID: NSManagedObjectID) async {
             let taskContext = CoreDataStack.shared.newTaskContext()
             taskContext.name = "deleteContext"
-            taskContext.transactionAuthor = "deleteCarbs"
+            taskContext.transactionAuthor = "deleteCarbsFromServices"
 
             var carbEntry: CarbEntryStored?
 
@@ -108,7 +120,7 @@ extension DataTable {
                 do {
                     carbEntry = try taskContext.existingObject(with: treatmentObjectID) as? CarbEntryStored
                     guard let carbEntry = carbEntry else {
-                        debugPrint("Carb entry for batch delete not found. \(DebuggingIdentifiers.failed)")
+                        debugPrint("Carb entry for deletion not found. \(DebuggingIdentifiers.failed)")
                         return
                     }
 
@@ -127,20 +139,6 @@ extension DataTable {
                                 self.provider.deleteMealDataFromHealth(byID: fpuID.uuidString, sampleType: validSampleType)
                             }
                         }
-
-                        // fetch request for all carb entries with the same id
-                        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = CarbEntryStored.fetchRequest()
-                        fetchRequest.predicate = NSPredicate(format: "isFPU == true AND fpuID == %@", fpuID as CVarArg)
-
-                        // NSBatchDeleteRequest
-                        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-                        deleteRequest.resultType = .resultTypeCount
-
-                        // execute the batch delete request
-                        let result = try taskContext.execute(deleteRequest) as? NSBatchDeleteResult
-                        debugPrint("\(DebuggingIdentifiers.succeeded) Deleted \(result?.result ?? 0) items with FpuID \(fpuID)")
-
-                        Foundation.NotificationCenter.default.post(name: .didPerformBatchDelete, object: nil)
                     } else {
                         // Delete carbs from Nightscout
                         if let id = carbEntry.id?.uuidString {
@@ -152,12 +150,6 @@ extension DataTable {
                             }
                         }
 
-                        // Now also delete carbs from the Database
-                        taskContext.delete(carbEntry)
-
-                        guard taskContext.hasChanges else { return }
-                        try taskContext.save()
-
                         debugPrint(
                             "Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted carb entry from core data"
                         )
@@ -167,9 +159,6 @@ extension DataTable {
                     debugPrint("\(DebuggingIdentifiers.failed) Error deleting carb entry: \(error.localizedDescription)")
                 }
             }
-
-            // Perform a determine basal sync to update cob
-            await apsManager.determineBasalSync()
         }
 
         // Insulin deletion from history
