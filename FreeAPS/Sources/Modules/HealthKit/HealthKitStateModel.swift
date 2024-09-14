@@ -14,7 +14,7 @@ extension AppleHealthKit {
 
             useAppleHealth = settingsManager.settings.useAppleHealth
 
-            needShowInformationTextForSetPermissions = healthKitManager.areAllowAllPermissions
+            needShowInformationTextForSetPermissions = healthKitManager.hasGrantedFullWritePermissions
 
             subscribeSetting(\.useAppleHealth, on: $useAppleHealth) {
                 useAppleHealth = $0
@@ -31,7 +31,7 @@ extension AppleHealthKit {
                         let permissionGranted = try await self.healthKitManager.requestPermission()
 
                         await MainActor.run {
-                            self.needShowInformationTextForSetPermissions = !self.healthKitManager.checkAvailabilitySaveBG()
+                            self.needShowInformationTextForSetPermissions = !self.healthKitManager.hasGlucoseWritePermission()
                         }
 
                         if permissionGranted {

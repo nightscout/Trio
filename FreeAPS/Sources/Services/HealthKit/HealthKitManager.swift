@@ -9,11 +9,13 @@ import Swinject
 protocol HealthKitManager {
     /// Check all needed permissions
     /// Return false if one or more permissions are deny or not choosen
-    var areAllowAllPermissions: Bool { get }
+    var hasGrantedFullWritePermissions: Bool { get }
     /// Check availability to save data of BG type to Health store
-    func checkAvailabilitySaveBG() -> Bool
+    func hasGlucoseWritePermission() -> Bool
     /// Requests user to give permissions on using HealthKit
     func requestPermission() async throws -> Bool
+    /// Checks whether permissions are granted for Trio to write to Health
+    func checkWriteToHealthPermissions(objectTypeToHealthStore: HKObjectType) -> Bool
     /// Save blood glucose to Health store
     func uploadGlucose() async
     /// Save carbs to Health store
@@ -68,53 +70,8 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
         }
     }
 
-    private let processQueue = DispatchQueue(label: "BaseHealthKitManager.processQueue")
-    private var lifetime = Lifetime()
-
-    // BG that will be returned by publisher
-    @SyncAccess @Persisted(key: "BaseHealthKitManager.newGlucose") private var newGlucose: [BloodGlucose] = []
-
-    // last anchor for HKAnchoredQuery
-    private var lastBloodGlucoseQueryAnchor: HKQueryAnchor? {
-        set {
-            persistedBGAnchor = try? NSKeyedArchiver.archivedData(withRootObject: newValue as Any, requiringSecureCoding: false)
-        }
-        get {
-            guard let data = persistedBGAnchor else { return nil }
-            return try? NSKeyedUnarchiver.unarchivedObject(ofClass: HKQueryAnchor.self, from: data)
-        }
-    }
-
-    @Persisted(key: "HealthKitManagerAnchor") private var persistedBGAnchor: Data? = nil
-
     var isAvailableOnCurrentDevice: Bool {
         HKHealthStore.isHealthDataAvailable()
-    }
-
-    var areAllowAllPermissions: Bool {
-        Set(AppleHealthConfig.writePermissions.map { healthKitStore.authorizationStatus(for: $0) })
-            .intersection([.sharingDenied, .notDetermined])
-            .isEmpty
-    }
-
-    // NSPredicate, which use during load increment BG from Health store
-    private var loadBGPredicate: NSPredicate {
-        // loading only daily bg
-        let predicateByStartDate = HKQuery.predicateForSamples(
-            withStart: Date().addingTimeInterval(-1.days.timeInterval),
-            end: nil,
-            options: .strictStartDate
-        )
-
-        // loading only not FreeAPS bg
-        // this predicate dont influence on Deleted Objects, only on added
-        let predicateByMeta = HKQuery.predicateForObjects(
-            withMetadataKey: AppleHealthConfig.TrioMetaDataKey,
-            operatorType: .notEqualTo,
-            value: 1
-        )
-
-        return NSCompoundPredicate(andPredicateWithSubpredicates: [predicateByStartDate, predicateByMeta])
     }
 
     init(resolver: Resolver) {
@@ -128,12 +85,18 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
         debug(.service, "HealthKitManager did create")
     }
 
-    func checkAvailabilitySave(objectTypeToHealthStore: HKObjectType) -> Bool {
+    func checkWriteToHealthPermissions(objectTypeToHealthStore: HKObjectType) -> Bool {
         healthKitStore.authorizationStatus(for: objectTypeToHealthStore) == .sharingAuthorized
     }
 
-    func checkAvailabilitySaveBG() -> Bool {
-        AppleHealthConfig.healthBGObject.map { checkAvailabilitySave(objectTypeToHealthStore: $0) } ?? false
+    var hasGrantedFullWritePermissions: Bool {
+        Set(AppleHealthConfig.writePermissions.map { healthKitStore.authorizationStatus(for: $0) })
+            .intersection([.sharingDenied, .notDetermined])
+            .isEmpty
+    }
+
+    func hasGlucoseWritePermission() -> Bool {
+        AppleHealthConfig.healthBGObject.map { checkWriteToHealthPermissions(objectTypeToHealthStore: $0) } ?? false
     }
 
     func requestPermission() async throws -> Bool {
@@ -165,7 +128,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
     func uploadGlucose(_ glucose: [BloodGlucose]) async {
         guard settingsManager.settings.useAppleHealth,
               let sampleType = AppleHealthConfig.healthBGObject,
-              checkAvailabilitySave(objectTypeToHealthStore: sampleType),
+              checkWriteToHealthPermissions(objectTypeToHealthStore: sampleType),
               glucose.isNotEmpty
         else { return }
 
@@ -238,7 +201,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
               let carbSampleType = AppleHealthConfig.healthCarbObject,
               let fatSampleType = AppleHealthConfig.healthFatObject,
               let proteinSampleType = AppleHealthConfig.healthProteinObject,
-              checkAvailabilitySave(objectTypeToHealthStore: carbSampleType),
+              checkWriteToHealthPermissions(objectTypeToHealthStore: carbSampleType),
               carbs.isNotEmpty
         else { return }
 
@@ -351,7 +314,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
     func uploadInsulin(_ insulin: [PumpHistoryEvent]) async {
         guard settingsManager.settings.useAppleHealth,
               let sampleType = AppleHealthConfig.healthInsulinObject,
-              checkAvailabilitySave(objectTypeToHealthStore: sampleType),
+              checkWriteToHealthPermissions(objectTypeToHealthStore: sampleType),
               insulin.isNotEmpty
         else { return }
 
@@ -431,7 +394,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
     func deleteGlucose(syncID: String) async {
         guard settingsManager.settings.useAppleHealth,
               let sampleType = AppleHealthConfig.healthBGObject,
-              checkAvailabilitySave(objectTypeToHealthStore: sampleType)
+              checkWriteToHealthPermissions(objectTypeToHealthStore: sampleType)
         else { return }
 
         let predicate = HKQuery.predicateForObjects(
@@ -468,7 +431,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
     func deleteInsulin(syncID: String) async {
         guard settingsManager.settings.useAppleHealth,
               let sampleType = AppleHealthConfig.healthInsulinObject,
-              checkAvailabilitySave(objectTypeToHealthStore: sampleType)
+              checkWriteToHealthPermissions(objectTypeToHealthStore: sampleType)
         else {
             debug(.service, "HealthKit permissions are not available for insulin deletion.")
             return

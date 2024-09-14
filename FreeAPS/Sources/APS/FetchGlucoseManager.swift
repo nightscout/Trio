@@ -165,7 +165,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     /// function to try to force the refresh of the CGM - generally provide by the pump heartbeat
     public func refreshCGM() {
         debug(.deviceManager, "refreshCGM by pump")
-        
+
         Publishers.CombineLatest(
             Just(glucoseStorage.syncDate()),
             glucoseSource.fetchIfNeeded()
