@@ -149,14 +149,10 @@ extension DataTable {
                                 self.provider.deleteMealDataFromHealth(byID: id, sampleType: sampleType)
                             }
                         }
-
-                        debugPrint(
-                            "Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted carb entry from core data"
-                        )
                     }
 
                 } catch {
-                    debugPrint("\(DebuggingIdentifiers.failed) Error deleting carb entry: \(error.localizedDescription)")
+                    debugPrint("\(DebuggingIdentifiers.failed) Error deleting carb entry from Apple Health/Nightscout with error: \(error.localizedDescription)")
                 }
             }
         }
@@ -182,12 +178,12 @@ extension DataTable {
                     debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Authentication Error")
                     return
                 }
-
-                async let deleteNSManagedObjectTask: () = CoreDataStack.shared.deleteObject(identifiedBy: treatmentObjectID)
-                async let deleteInsulinTask: () = deleteInsulin(with: treatmentObjectID)
-
-                await deleteNSManagedObjectTask
-                await deleteInsulinTask
+                
+                // Delete from Apple Health/Nightscout
+                await deleteInsulinFromServices(with: treatmentObjectID)
+                
+                // Delete from Core Data
+                await CoreDataStack.shared.deleteObject(identifiedBy: treatmentObjectID)
 
                 // Perform a determine basal sync to update iob
                 await apsManager.determineBasalSync()
@@ -198,7 +194,7 @@ extension DataTable {
             }
         }
 
-        func deleteInsulin(with treatmentObjectID: NSManagedObjectID) async {
+        func deleteInsulinFromServices(with treatmentObjectID: NSManagedObjectID) async {
             let taskContext = CoreDataStack.shared.newTaskContext()
 
             await taskContext.perform {
@@ -209,7 +205,7 @@ extension DataTable {
                         return
                     }
 
-                    // Delete Insulin from Nightscout
+                    // Delete Insulin from Nightscout and Apple Health
                     if let id = treatmentToDelete.id {
                         self.provider.deleteInsulinFromNightscout(withID: id)
                         self.provider.deleteInsulinFromHealth(withSyncID: id)
