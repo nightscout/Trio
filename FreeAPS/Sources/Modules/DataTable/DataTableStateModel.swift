@@ -36,10 +36,9 @@ extension DataTable {
             glucoseStorage.isGlucoseDataFresh(glucoseDate)
         }
 
-        // Carb and FPU deletion from history
-        /// marked as MainActor to be able to publish changes from the background
-        /// - Parameter: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
-        @MainActor func invokeGlucoseDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
+        // Glucose deletion from history and from remote services
+        /// -**Parameter**: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
+        func invokeGlucoseDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
             Task {
                 await deleteGlucose(treatmentObjectID)
             }
@@ -62,7 +61,7 @@ extension DataTable {
                     // Delete Manual Glucose from Nightscout
                     if glucoseToDelete.isManual == true {
                         if let id = glucoseToDelete.id?.uuidString {
-                            self.provider.deleteManualGlucose(withID: id)
+                            self.provider.deleteManualGlucoseFromNightscout(withID: id)
                         }
                     }
 
@@ -85,9 +84,8 @@ extension DataTable {
         }
 
         // Carb and FPU deletion from history
-        /// marked as MainActor to be able to publish changes from the background
-        /// - Parameter: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
-        @MainActor func invokeCarbDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
+        /// - **Parameter**: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
+        func invokeCarbDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
             Task {
                 await deleteCarbs(treatmentObjectID)
                 carbEntryDeleted = true
@@ -154,17 +152,16 @@ extension DataTable {
         }
 
         // Insulin deletion from history
-        /// marked as MainActor to be able to publish changes from the background
-        /// - Parameter: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
-        @MainActor func invokeInsulinDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
+        /// - **Parameter**: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
+        func invokeInsulinDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
             Task {
-                await deleteInsulin(treatmentObjectID)
+                await invokeInsulinDeletion(treatmentObjectID)
                 insulinEntryDeleted = true
                 waitForSuggestion = true
             }
         }
 
-        func deleteInsulin(_ treatmentObjectID: NSManagedObjectID) async {
+        func invokeInsulinDeletion(_ treatmentObjectID: NSManagedObjectID) async {
             do {
                 let authenticated = try await unlockmanager.unlock()
 
@@ -174,17 +171,48 @@ extension DataTable {
                 }
 
                 async let deleteNSManagedObjectTask: () = CoreDataStack.shared.deleteObject(identifiedBy: treatmentObjectID)
-                async let deleteInsulinFromNightScoutTask: () = provider.deleteInsulin(with: treatmentObjectID)
-                async let determineBasalTask: () = apsManager.determineBasalSync()
+                async let deleteInsulinTask: () = deleteInsulin(with: treatmentObjectID)
 
                 await deleteNSManagedObjectTask
-                await deleteInsulinFromNightScoutTask
-                await determineBasalTask
+                await deleteInsulinTask
 
+                // Perform a determine basal sync to update iob
+                await apsManager.determineBasalSync()
             } catch {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Error while Insulin Deletion Task: \(error.localizedDescription)"
                 )
+            }
+        }
+
+        func deleteInsulin(with treatmentObjectID: NSManagedObjectID) async {
+            let taskContext = CoreDataStack.shared.newTaskContext()
+
+            await taskContext.perform {
+                do {
+                    guard let treatmentToDelete = try taskContext.existingObject(with: treatmentObjectID) as? PumpEventStored
+                    else {
+                        debug(.default, "Could not cast the object to PumpEventStored")
+                        return
+                    }
+
+                    // Delete Insulin from Nightscout
+                    if let id = treatmentToDelete.id {
+                        self.provider.deleteInsulinFromNightscout(withID: id)
+                    }
+
+                    // TODO: - Rewrite healthkit implementation
+
+//                    let id = treatmentToDelete.id
+//                    self.healthkitManager.deleteInsulin(syncID: id)
+
+                    taskContext.delete(treatmentToDelete)
+                    try taskContext.save()
+
+                    debug(.default, "Successfully deleted the treatment object.")
+                } catch {
+                    debug(.default, "Failed to delete the treatment object: \(error.localizedDescription)")
+                }
             }
         }
 

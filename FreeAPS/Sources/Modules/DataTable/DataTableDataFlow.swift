@@ -218,6 +218,8 @@ enum DataTable {
 }
 
 protocol DataTableProvider: Provider {
-    func deleteCarbsFromNightscout(withID id: String) async
-    func deleteInsulin(with treatmentObjectID: NSManagedObjectID) async
+    func deleteCarbsFromNightscout(withID id: String)
+    func deleteInsulinFromNightscout(withID id: String)
+    func deleteManualGlucoseFromNightscout(withID id: String)
+    func deleteGlucoseFromHealth(withSyncID id: String)
 }
