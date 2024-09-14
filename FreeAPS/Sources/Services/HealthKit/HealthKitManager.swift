@@ -25,7 +25,7 @@ protocol HealthKitManager: GlucoseSource {
     /// Enable background delivering objects from Apple Health to Trio
     func enableBackgroundDelivery()
     /// Delete glucose with syncID
-    func deleteGlucose(syncID: String)
+    func deleteGlucose(syncID: String) async
     /// delete carbs with syncID
     func deleteCarbs(syncID: String, fpuID: String)
     /// delete insulin with syncID
@@ -434,7 +434,41 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
             }
         }
     }
-    
+
+    // Delete Glucose/Carbs/Insulin
+
+    func deleteGlucose(syncID: String) async {
+        guard settingsManager.settings.useAppleHealth,
+              let sampleType = Config.healthBGObject,
+              checkAvailabilitySave(objectTypeToHealthStore: sampleType)
+        else { return }
+
+        let predicate = HKQuery.predicateForObjects(
+            withMetadataKey: HKMetadataKeySyncIdentifier,
+            operatorType: .equalTo,
+            value: syncID
+        )
+
+        do {
+            try await deleteObjects(of: sampleType, predicate: predicate)
+            debug(.service, "Successfully deleted glucose sample with syncID: \(syncID)")
+        } catch {
+            warning(.service, "Failed to delete glucose sample with syncID: \(syncID)", error: error)
+        }
+    }
+
+    private func deleteObjects(of sampleType: HKSampleType, predicate: NSPredicate) async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            healthKitStore.deleteObjects(of: sampleType, predicate: predicate) { success, _, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                } else if success {
+                    continuation.resume(returning: ())
+                }
+            }
+        }
+    }
+
     // Observer that notifies when new Glucose values arrive in Apple Health
 
     func createBGObserver() {
@@ -582,26 +616,6 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
 
     func fetchIfNeeded() -> AnyPublisher<[BloodGlucose], Never> {
         fetch(nil)
-    }
-
-    func deleteGlucose(syncID: String) {
-        guard settingsManager.settings.useAppleHealth,
-              let sampleType = Config.healthBGObject,
-              checkAvailabilitySave(objectTypeToHealthStore: sampleType)
-        else { return }
-
-        processQueue.async {
-            let predicate = HKQuery.predicateForObjects(
-                withMetadataKey: HKMetadataKeySyncIdentifier,
-                operatorType: .equalTo,
-                value: syncID
-            )
-
-            self.healthKitStore.deleteObjects(of: sampleType, predicate: predicate) { _, _, error in
-                guard let error = error else { return }
-                warning(.service, "Cannot delete sample with syncID: \(syncID)", error: error)
-            }
-        }
     }
 
     // - MARK Carbs function

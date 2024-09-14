@@ -66,6 +66,11 @@ extension DataTable {
                         }
                     }
 
+                    // Delete Glucose from Apple Health
+                    if let id = glucoseToDelete.id?.uuidString {
+                        self.provider.deleteGlucoseFromHealth(withSyncID: id)
+                    }
+
                     taskContext.delete(glucoseToDelete)
 
                     guard taskContext.hasChanges else { return }
