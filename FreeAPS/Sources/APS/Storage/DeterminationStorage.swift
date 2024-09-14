@@ -38,7 +38,7 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
         await context.perform {
             do {
                 guard let determination = try context.existingObject(with: determinationID) as? OrefDetermination,
-                      let forecastSet = determination.forecasts as? Set<NSManagedObject>
+                      let forecastSet = determination.forecasts
                 else {
                     return []
                 }

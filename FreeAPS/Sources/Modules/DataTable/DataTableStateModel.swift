@@ -11,6 +11,7 @@ extension DataTable {
         @Injected() var pumpHistoryStorage: PumpHistoryStorage!
         @Injected() var glucoseStorage: GlucoseStorage!
         @Injected() var healthKitManager: HealthKitManager!
+        @Injected() var carbsStorage: CarbsStorage!
 
         let coredataContext = CoreDataStack.shared.newTaskContext()
 
@@ -46,9 +47,17 @@ extension DataTable {
         }
 
         func deleteGlucose(_ treatmentObjectID: NSManagedObjectID) async {
+            // Delete from Apple Health/Tidepool
+            await deleteGlucoseFromServices(treatmentObjectID)
+
+            // Delete from Core Data
+            await glucoseStorage.deleteGlucose(treatmentObjectID)
+        }
+
+        func deleteGlucoseFromServices(_ treatmentObjectID: NSManagedObjectID) async {
             let taskContext = CoreDataStack.shared.newTaskContext()
             taskContext.name = "deleteContext"
-            taskContext.transactionAuthor = "deleteGlucose"
+            taskContext.transactionAuthor = "deleteGlucoseFromServices"
 
             await taskContext.perform {
                 do {
@@ -59,26 +68,22 @@ extension DataTable {
                         return
                     }
 
-                    // Delete Manual Glucose from Nightscout
-                    if glucoseToDelete.isManual == true {
-                        if let id = glucoseToDelete.id?.uuidString {
-                            self.provider.deleteManualGlucoseFromNightscout(withID: id)
-                        }
+                    // Delete from Nightscout
+                    if let id = glucoseToDelete.id?.uuidString {
+                        self.provider.deleteManualGlucoseFromNightscout(withID: id)
                     }
 
-                    // Delete Glucose from Apple Health
+                    // Delete from Apple Health
                     if let id = glucoseToDelete.id?.uuidString {
                         self.provider.deleteGlucoseFromHealth(withSyncID: id)
                     }
 
-                    taskContext.delete(glucoseToDelete)
-
-                    guard taskContext.hasChanges else { return }
-                    try taskContext.save()
-                    debugPrint("Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted glucose from core data")
+                    debugPrint(
+                        "\(#file) \(#function) \(DebuggingIdentifiers.succeeded) deleted glucose from Apple Health/Nightscout"
+                    )
                 } catch {
                     debugPrint(
-                        "Data Table State: \(#function) \(DebuggingIdentifiers.failed) error while deleting glucose from core data: \(error.localizedDescription)"
+                        "\(#file) \(#function) \(DebuggingIdentifiers.failed) error while deleting glucose from Apple Health/Nightscout with error: \(error.localizedDescription)"
                     )
                 }
             }
@@ -98,9 +103,20 @@ extension DataTable {
         }
 
         func deleteCarbs(_ treatmentObjectID: NSManagedObjectID) async {
+            // Delete from Apple Health/Tidepool
+            await deleteCarbsFromServices(treatmentObjectID)
+
+            // Delete from Core Data
+            await carbsStorage.deleteCarbs(treatmentObjectID)
+
+            // Perform a determine basal sync to update cob
+            await apsManager.determineBasalSync()
+        }
+
+        func deleteCarbsFromServices(_ treatmentObjectID: NSManagedObjectID) async {
             let taskContext = CoreDataStack.shared.newTaskContext()
             taskContext.name = "deleteContext"
-            taskContext.transactionAuthor = "deleteCarbs"
+            taskContext.transactionAuthor = "deleteCarbsFromServices"
 
             var carbEntry: CarbEntryStored?
 
@@ -108,12 +124,12 @@ extension DataTable {
                 do {
                     carbEntry = try taskContext.existingObject(with: treatmentObjectID) as? CarbEntryStored
                     guard let carbEntry = carbEntry else {
-                        debugPrint("Carb entry for batch delete not found. \(DebuggingIdentifiers.failed)")
+                        debugPrint("Carb entry for deletion not found. \(DebuggingIdentifiers.failed)")
                         return
                     }
 
                     if carbEntry.isFPU, let fpuID = carbEntry.fpuID {
-                        // Delete FPUs from Nightscout
+                        // Delete Fat and Protein entries from Nightscout
                         self.provider.deleteCarbsFromNightscout(withID: fpuID.uuidString)
 
                         // Delete Fat and Protein entries from Apple Health
@@ -127,20 +143,6 @@ extension DataTable {
                                 self.provider.deleteMealDataFromHealth(byID: fpuID.uuidString, sampleType: validSampleType)
                             }
                         }
-
-                        // fetch request for all carb entries with the same id
-                        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = CarbEntryStored.fetchRequest()
-                        fetchRequest.predicate = NSPredicate(format: "isFPU == true AND fpuID == %@", fpuID as CVarArg)
-
-                        // NSBatchDeleteRequest
-                        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-                        deleteRequest.resultType = .resultTypeCount
-
-                        // execute the batch delete request
-                        let result = try taskContext.execute(deleteRequest) as? NSBatchDeleteResult
-                        debugPrint("\(DebuggingIdentifiers.succeeded) Deleted \(result?.result ?? 0) items with FpuID \(fpuID)")
-
-                        Foundation.NotificationCenter.default.post(name: .didPerformBatchDelete, object: nil)
                     } else {
                         // Delete carbs from Nightscout
                         if let id = carbEntry.id?.uuidString {
@@ -151,25 +153,14 @@ extension DataTable {
                                 self.provider.deleteMealDataFromHealth(byID: id, sampleType: sampleType)
                             }
                         }
-
-                        // Now also delete carbs from the Database
-                        taskContext.delete(carbEntry)
-
-                        guard taskContext.hasChanges else { return }
-                        try taskContext.save()
-
-                        debugPrint(
-                            "Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted carb entry from core data"
-                        )
                     }
 
                 } catch {
-                    debugPrint("\(DebuggingIdentifiers.failed) Error deleting carb entry: \(error.localizedDescription)")
+                    debugPrint(
+                        "\(DebuggingIdentifiers.failed) Error deleting carb entry from Apple Health/Nightscout with error: \(error.localizedDescription)"
+                    )
                 }
             }
-
-            // Perform a determine basal sync to update cob
-            await apsManager.determineBasalSync()
         }
 
         // Insulin deletion from history
@@ -194,11 +185,11 @@ extension DataTable {
                     return
                 }
 
-                async let deleteNSManagedObjectTask: () = CoreDataStack.shared.deleteObject(identifiedBy: treatmentObjectID)
-                async let deleteInsulinTask: () = deleteInsulin(with: treatmentObjectID)
+                // Delete from Apple Health/Nightscout
+                await deleteInsulinFromServices(with: treatmentObjectID)
 
-                await deleteNSManagedObjectTask
-                await deleteInsulinTask
+                // Delete from Core Data
+                await CoreDataStack.shared.deleteObject(identifiedBy: treatmentObjectID)
 
                 // Perform a determine basal sync to update iob
                 await apsManager.determineBasalSync()
@@ -209,8 +200,10 @@ extension DataTable {
             }
         }
 
-        func deleteInsulin(with treatmentObjectID: NSManagedObjectID) async {
+        func deleteInsulinFromServices(with treatmentObjectID: NSManagedObjectID) async {
             let taskContext = CoreDataStack.shared.newTaskContext()
+            taskContext.name = "deleteContext"
+            taskContext.transactionAuthor = "deleteInsulinFromServices"
 
             await taskContext.perform {
                 do {
@@ -220,7 +213,7 @@ extension DataTable {
                         return
                     }
 
-                    // Delete Insulin from Nightscout
+                    // Delete Insulin from Nightscout and Apple Health
                     if let id = treatmentToDelete.id {
                         self.provider.deleteInsulinFromNightscout(withID: id)
                         self.provider.deleteInsulinFromHealth(withSyncID: id)

@@ -23,6 +23,7 @@ protocol CarbsStorage {
     func getFPUsNotYetUploadedToNightscout() async -> [NightscoutTreatment]
     func deleteCarbs(at uniqueID: String, fpuID: String, complex: Bool)
     func getCarbsNotYetUploadedToHealth() async -> [CarbsEntry]
+    func deleteCarbs(_ treatmentObjectID: NSManagedObjectID) async
 }
 
 final class BaseCarbsStorage: CarbsStorage, Injectable {
@@ -293,6 +294,52 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                         $0.carbsDidUpdate(allValues)
                     }
                 }
+            }
+        }
+    }
+
+    func deleteCarbs(_ treatmentObjectID: NSManagedObjectID) async {
+        let taskContext = CoreDataStack.shared.newTaskContext()
+        taskContext.name = "deleteContext"
+        taskContext.transactionAuthor = "deleteCarbs"
+
+        var carbEntry: CarbEntryStored?
+
+        await taskContext.perform {
+            do {
+                carbEntry = try taskContext.existingObject(with: treatmentObjectID) as? CarbEntryStored
+                guard let carbEntry = carbEntry else {
+                    debugPrint("Carb entry for batch delete not found. \(DebuggingIdentifiers.failed)")
+                    return
+                }
+
+                if carbEntry.isFPU, let fpuID = carbEntry.fpuID {
+                    // fetch request for all carb entries with the same id
+                    let fetchRequest: NSFetchRequest<NSFetchRequestResult> = CarbEntryStored.fetchRequest()
+                    fetchRequest.predicate = NSPredicate(format: "isFPU == true AND fpuID == %@", fpuID as CVarArg)
+
+                    // NSBatchDeleteRequest
+                    let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+                    deleteRequest.resultType = .resultTypeCount
+
+                    // execute the batch delete request
+                    let result = try taskContext.execute(deleteRequest) as? NSBatchDeleteResult
+                    debugPrint("\(DebuggingIdentifiers.succeeded) Deleted \(result?.result ?? 0) items with FpuID \(fpuID)")
+
+                    Foundation.NotificationCenter.default.post(name: .didPerformBatchDelete, object: nil)
+                } else {
+                    taskContext.delete(carbEntry)
+
+                    guard taskContext.hasChanges else { return }
+                    try taskContext.save()
+
+                    debugPrint(
+                        "Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted carb entry from core data"
+                    )
+                }
+
+            } catch {
+                debugPrint("\(DebuggingIdentifiers.failed) Error deleting carb entry: \(error.localizedDescription)")
             }
         }
     }

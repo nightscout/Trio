@@ -18,6 +18,7 @@ protocol GlucoseStorage {
     func getGlucoseNotYetUploadedToHealth() async -> [BloodGlucose]
     func getManualGlucoseNotYetUploadedToHealth() async -> [BloodGlucose]
     var alarm: GlucoseAlarm? { get }
+    func deleteGlucose(_ treatmentObjectID: NSManagedObjectID) async
 }
 
 final class BaseGlucoseStorage: GlucoseStorage, Injectable {
@@ -382,32 +383,33 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                     noise: nil,
                     glucose: Int(result.glucose)
                 )
+            }
+        }
+    }
 
-//                NightscoutTreatment(
-//                    duration: nil,
-//                    rawDuration: nil,
-//                    rawRate: nil,
-//                    absolute: nil,
-//                    rate: nil,
-//                    eventType: .capillaryGlucose,
-//                    createdAt: result.date,
-//                    enteredBy: "Trio",
-//                    bolus: nil,
-//                    insulin: nil,
-//                    notes: "Trio User",
-//                    carbs: nil,
-//                    fat: nil,
-//                    protein: nil,
-//                    foodType: nil,
-//                    targetTop: nil,
-//                    targetBottom: nil,
-//                    glucoseType: "Manual",
-//                    glucose: self.settingsManager.settings
-//                        .units == .mgdL ? (self.glucoseFormatter.string(from: Int(result.glucose) as NSNumber) ?? "")
-//                        : (self.glucoseFormatter.string(from: Decimal(result.glucose).asMmolL as NSNumber) ?? ""),
-//                    units: self.settingsManager.settings.units == .mmolL ? "mmol" : "mg/dl",
-//                    id: result.id?.uuidString
-//                )
+    func deleteGlucose(_ treatmentObjectID: NSManagedObjectID) async {
+        let taskContext = CoreDataStack.shared.newTaskContext()
+        taskContext.name = "deleteContext"
+        taskContext.transactionAuthor = "deleteGlucose"
+
+        await taskContext.perform {
+            do {
+                let result = try taskContext.existingObject(with: treatmentObjectID) as? GlucoseStored
+
+                guard let glucoseToDelete = result else {
+                    debugPrint("Data Table State: \(#function) \(DebuggingIdentifiers.failed) glucose not found in core data")
+                    return
+                }
+
+                taskContext.delete(glucoseToDelete)
+
+                guard taskContext.hasChanges else { return }
+                try taskContext.save()
+                debugPrint("\(#file) \(#function) \(DebuggingIdentifiers.succeeded) deleted glucose from core data")
+            } catch {
+                debugPrint(
+                    "\(#file) \(#function) \(DebuggingIdentifiers.failed) error while deleting glucose from core data: \(error.localizedDescription)"
+                )
             }
         }
     }
