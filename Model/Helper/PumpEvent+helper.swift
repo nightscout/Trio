@@ -87,6 +87,11 @@ extension NSPredicate {
         let date = Date.oneDayAgo
         return NSPredicate(format: "timestamp >= %@ AND isUploadedToHealth == %@", date as NSDate, false as NSNumber)
     }
+
+    static var pumpEventsNotYetUploadedToTidepool: NSPredicate {
+        let date = Date.oneDayAgo
+        return NSPredicate(format: "timestamp >= %@ AND isUploadedToTidepool == %@", date as NSDate, false as NSNumber)
+    }
 }
 
 // Declare helper structs ("data transfer objects" = DTO) to utilize parsing a flattened pump history

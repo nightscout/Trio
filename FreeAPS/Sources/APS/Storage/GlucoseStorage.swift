@@ -83,6 +83,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                         glucoseEntry.direction = entry.direction?.rawValue
                         glucoseEntry.isUploadedToNS = false /// the value is not uploaded to NS (yet)
                         glucoseEntry.isUploadedToHealth = false /// the value is not uploaded to Health (yet)
+                        glucoseEntry.isUploadedToTidepool = false /// the value is not uploaded to Tidepool (yet)
                         return false // Continue processing
                     }
                 )

@@ -1,4 +1,5 @@
 import Combine
+import CoreData
 import Foundation
 import HealthKit
 import LoopKit
@@ -9,16 +10,15 @@ protocol TidepoolManager {
     func addTidepoolService(service: Service)
     func getTidepoolServiceUI() -> ServiceUI?
     func getTidepoolPluginHost() -> PluginHost?
+    func uploadCarbs() async
     func deleteCarbs(at date: Date, isFPU: Bool?, fpuID: String?, syncID: String)
+    func uploadInsulin() async
     func deleteInsulin(at date: Date)
-//    func uploadStatus()
     func uploadGlucose(device: HKDevice?) async
-    func forceUploadData(device: HKDevice?)
-//    func uploadPreferences(_ preferences: Preferences)
-//    func uploadProfileAndSettings(_: Bool)
+    func forceTidepoolDataUpload(device: HKDevice?)
 }
 
-final class BaseTidepoolManager: TidepoolManager, Injectable {
+final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegate, PumpHistoryDelegate {
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var pluginManager: PluginManager!
     @Injected() private var glucoseStorage: GlucoseStorage!
@@ -37,11 +37,29 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
         }
     }
 
+    private var backgroundContext = CoreDataStack.shared.newTaskContext()
+
+    func carbsStorageHasUpdatedCarbs(_: BaseCarbsStorage) {
+        Task.detached { [weak self] in
+            guard let self = self else { return }
+            await self.uploadCarbs()
+        }
+    }
+
+    func pumpHistoryHasUpdated(_: BasePumpHistoryStorage) {
+        Task.detached { [weak self] in
+            guard let self = self else { return }
+            await self.uploadInsulin()
+        }
+    }
+
     @PersistedProperty(key: "TidepoolState") var rawTidepoolManager: Service.RawValue?
 
     init(resolver: Resolver) {
         injectServices(resolver)
         loadTidepoolManager()
+        pumpHistoryStorage.delegate = self
+        carbsStorage.delegate = self
         subscribe()
     }
 
@@ -85,8 +103,6 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     }
 
     private func subscribe() {
-        broadcaster.register(PumpHistoryObserver.self, observer: self)
-        broadcaster.register(CarbsObserver.self, observer: self)
         broadcaster.register(TempTargetsObserver.self, observer: self)
     }
 
@@ -94,9 +110,11 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
         nil
     }
 
-    func uploadCarbs() {
-        let carbs: [CarbsEntry] = carbsStorage.recent()
+    func uploadCarbs() async {
+        uploadCarbs(await carbsStorage.getCarbsNotYetUploadedToHealth())
+    }
 
+    func uploadCarbs(_ carbs: [CarbsEntry]) {
         guard !carbs.isEmpty, let tidepoolService = self.tidepoolService else { return }
 
         processQueue.async {
@@ -111,8 +129,34 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
                         debug(.nightscout, "Error synchronizing carbs data: \(String(describing: error))")
                     case .success:
                         debug(.nightscout, "Success synchronizing carbs data:")
+                        // After successful upload, update the isUploadedToTidepool flag in Core Data
+                        Task {
+                            await self.updateCarbsAsUploaded(carbs)
+                        }
                     }
                 }
+            }
+        }
+    }
+
+    private func updateCarbsAsUploaded(_ carbs: [CarbsEntry]) async {
+        await backgroundContext.perform {
+            let ids = carbs.map(\.id) as NSArray
+            let fetchRequest: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
+
+            do {
+                let results = try self.backgroundContext.fetch(fetchRequest)
+                for result in results {
+                    result.isUploadedToHealth = true
+                }
+
+                guard self.backgroundContext.hasChanges else { return }
+                try self.backgroundContext.save()
+            } catch let error as NSError {
+                debugPrint(
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToHealth: \(error.userInfo)"
+                )
             }
         }
     }
@@ -146,39 +190,11 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
         }
     }
 
-    func deleteInsulin(at d: Date) {
-        let allValues = storage.retrieve(OpenAPS.Monitor.pumpHistory, as: [PumpHistoryEvent].self) ?? []
-
-        guard !allValues.isEmpty, let tidepoolService = self.tidepoolService else { return }
-
-        var doseDataToDelete: [DoseEntry] = []
-
-        guard let entry = allValues.first(where: { $0.timestamp == d }) else {
-            return
-        }
-        doseDataToDelete
-            .append(DoseEntry(
-                type: .bolus,
-                startDate: entry.timestamp,
-                value: Double(entry.amount!),
-                unit: .units,
-                syncIdentifier: entry.id
-            ))
-
-        processQueue.async {
-            tidepoolService.uploadDoseData(created: [], deleted: doseDataToDelete) { result in
-                switch result {
-                case let .failure(error):
-                    debug(.nightscout, "Error synchronizing Dose delete data: \(String(describing: error))")
-                case .success:
-                    debug(.nightscout, "Success synchronizing Dose delete data:")
-                }
-            }
-        }
+    func uploadInsulin() async {
+        uploadDose(await pumpHistoryStorage.getPumpHistoryNotYetUploadedToTidepool())
     }
 
-    func uploadDose() {
-        let events = pumpHistoryStorage.recent()
+    func uploadDose(_ events: [PumpHistoryEvent]) {
         guard !events.isEmpty, let tidepoolService = self.tidepoolService else { return }
 
         let eventsBasal = events.filter { $0.type == .tempBasal || $0.type == .tempBasalDuration }
@@ -203,7 +219,6 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
                         unit: last.unit,
                         deliveredUnits: value,
                         syncIdentifier: last.syncIdentifier,
-                        // scheduledBasalRate: last.scheduledBasalRate,
                         insulinType: last.insulinType,
                         automatic: last.automatic,
                         manuallyEntered: last.manuallyEntered
@@ -215,7 +230,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
                     value: 0.0,
                     unit: .units,
                     syncIdentifier: event.id,
-                    scheduledBasalRate: HKQuantity(unit: .internationalUnitsPerHour, doubleValue: Double(event.rate!)),
+                    scheduledBasalRate: HKQuantity(unit: .internationalUnitsPerHour, doubleValue: Double(event.amount!)),
                     insulinType: nil,
                     automatic: true,
                     manuallyEntered: false,
@@ -263,8 +278,8 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
                     syncIdentifier: event.id,
                     scheduledBasalRate: nil,
                     insulinType: nil,
-                    automatic: true,
-                    manuallyEntered: false
+                    automatic: event.isSMB ?? true,
+                    manuallyEntered: event.isExternal ?? false
                 )
             default: return nil
             }
@@ -303,6 +318,14 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
                     debug(.nightscout, "Error synchronizing Dose data: \(String(describing: error))")
                 case .success:
                     debug(.nightscout, "Success synchronizing Dose data:")
+                    // After successful upload, update the isUploadedToTidepool flag in Core Data
+                    Task {
+                        let insulinEvents = events
+                            .filter {
+                                $0.type == .tempBasal || $0.type == .tempBasalDuration || $0.type == .bolus
+                            }
+                        await self.updateInsulinAsUploaded(insulinEvents)
+                    }
                 }
             }
 
@@ -312,6 +335,67 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
                     debug(.nightscout, "Error synchronizing Pump Event data: \(String(describing: error))")
                 case .success:
                     debug(.nightscout, "Success synchronizing Pump Event data:")
+                    // After successful upload, update the isUploadedToTidepool flag in Core Data
+                    Task {
+                        let pumpEventType = events.map({ $0.type.mapEventTypeToPumpEventType()
+                        })
+                        let pumpEvents = events.filter { _ in pumpEventType.contains(pumpEventType) }
+
+                        await self.updateInsulinAsUploaded(pumpEvents)
+                    }
+                }
+            }
+        }
+    }
+
+    private func updateInsulinAsUploaded(_ insulin: [PumpHistoryEvent]) async {
+        await backgroundContext.perform {
+            let ids = insulin.map(\.id) as NSArray
+            let fetchRequest: NSFetchRequest<PumpEventStored> = PumpEventStored.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
+
+            do {
+                let results = try self.backgroundContext.fetch(fetchRequest)
+                for result in results {
+                    result.isUploadedToHealth = true
+                }
+
+                guard self.backgroundContext.hasChanges else { return }
+                try self.backgroundContext.save()
+            } catch let error as NSError {
+                debugPrint(
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToHealth: \(error.userInfo)"
+                )
+            }
+        }
+    }
+
+    func deleteInsulin(at d: Date) {
+        let allValues = storage.retrieve(OpenAPS.Monitor.pumpHistory, as: [PumpHistoryEvent].self) ?? []
+
+        guard !allValues.isEmpty, let tidepoolService = self.tidepoolService else { return }
+
+        var doseDataToDelete: [DoseEntry] = []
+
+        guard let entry = allValues.first(where: { $0.timestamp == d }) else {
+            return
+        }
+        doseDataToDelete
+            .append(DoseEntry(
+                type: .bolus,
+                startDate: entry.timestamp,
+                value: Double(entry.amount!),
+                unit: .units,
+                syncIdentifier: entry.id
+            ))
+
+        processQueue.async {
+            tidepoolService.uploadDoseData(created: [], deleted: doseDataToDelete) { result in
+                switch result {
+                case let .failure(error):
+                    debug(.nightscout, "Error synchronizing Dose delete data: \(String(describing: error))")
+                case .success:
+                    debug(.nightscout, "Success synchronizing Dose delete data:")
                 }
             }
         }
@@ -336,34 +420,47 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
                     switch result {
                     case .success:
                         debug(.nightscout, "Success synchronizing glucose data:")
+                        // After successful upload, update the isUploadedToTidepool flag in Core Data
+                        Task {
+                            await self.updateGlucoseAsUploaded(glucose)
+                        }
                     case let .failure(error):
                         debug(.nightscout, "Error synchronizing glucose data: \(String(describing: error))")
-                        // self.uploadFailed(key)
                     }
                 }
             }
         }
     }
 
-    /// force to uploads all data in Tidepool Service
-    func forceUploadData(device: HKDevice?) {
-        Task {
-            uploadDose()
-            uploadCarbs()
-            await uploadGlucose(device: device)
+    private func updateGlucoseAsUploaded(_ glucose: [BloodGlucose]) async {
+        await backgroundContext.perform {
+            let ids = glucose.map(\.id) as NSArray
+            let fetchRequest: NSFetchRequest<GlucoseStored> = GlucoseStored.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
+
+            do {
+                let results = try self.backgroundContext.fetch(fetchRequest)
+                for result in results {
+                    result.isUploadedToHealth = true
+                }
+
+                guard self.backgroundContext.hasChanges else { return }
+                try self.backgroundContext.save()
+            } catch let error as NSError {
+                debugPrint(
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToHealth: \(error.userInfo)"
+                )
+            }
         }
     }
-}
 
-extension BaseTidepoolManager: PumpHistoryObserver {
-    func pumpHistoryDidUpdate(_: [PumpHistoryEvent]) {
-        uploadDose()
-    }
-}
-
-extension BaseTidepoolManager: CarbsObserver {
-    func carbsDidUpdate(_: [CarbsEntry]) {
-        uploadCarbs()
+    /// force to uploads all data in Tidepool Service
+    func forceTidepoolDataUpload(device: HKDevice?) {
+        Task {
+            await uploadInsulin()
+            await uploadCarbs()
+            await uploadGlucose(device: device)
+        }
     }
 }
 
@@ -373,6 +470,7 @@ extension BaseTidepoolManager: TempTargetsObserver {
 
 extension BaseTidepoolManager: ServiceDelegate {
     var hostIdentifier: String {
+        // TODO: shouldn't this rather be `org.nightscout.Trio` ?
         "com.loopkit.Loop" // To check
     }
 

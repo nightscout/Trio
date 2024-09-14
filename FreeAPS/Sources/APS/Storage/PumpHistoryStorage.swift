@@ -22,6 +22,7 @@ protocol PumpHistoryStorage {
     func recent() -> [PumpHistoryEvent]
     func getPumpHistoryNotYetUploadedToNightscout() async -> [NightscoutTreatment]
     func getPumpHistoryNotYetUploadedToHealth() async -> [PumpHistoryEvent]
+    func getPumpHistoryNotYetUploadedToTidepool() async -> [PumpHistoryEvent]
     func deleteInsulin(at date: Date)
 }
 
@@ -84,6 +85,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                                         existingEvent.bolus?.isSMB = dose.automatic ?? true
                                         existingEvent.isUploadedToNS = false
                                         existingEvent.isUploadedToHealth = false
+                                        existingEvent.isUploadedToTidepool = false
 
                                         print("Updated existing event with smaller value: \(amount)")
                                     }
@@ -98,6 +100,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newPumpEvent.type = PumpEvent.bolus.rawValue
                         newPumpEvent.isUploadedToNS = false
                         newPumpEvent.isUploadedToHealth = false
+                        newPumpEvent.isUploadedToTidepool = false
 
                         let newBolusEntry = BolusStored(context: self.context)
                         newBolusEntry.pumpEvent = newPumpEvent
@@ -437,6 +440,42 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     }
 
     func getPumpHistoryNotYetUploadedToHealth() async -> [PumpHistoryEvent] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: PumpEventStored.self,
+            onContext: context,
+            predicate: NSPredicate.pumpEventsNotYetUploadedToHealth,
+            key: "timestamp",
+            ascending: false,
+            fetchLimit: 288
+        )
+
+        guard let fetchedPumpEvents = results as? [PumpEventStored] else { return [] }
+
+        return await context.perform {
+            fetchedPumpEvents.map { event in
+                switch event.type {
+                case PumpEvent.bolus.rawValue:
+                    return PumpHistoryEvent(
+                        id: event.id ?? UUID().uuidString,
+                        type: .bolus,
+                        timestamp: event.timestamp ?? Date(),
+                        amount: event.bolus?.amount as Decimal?
+                    )
+                case PumpEvent.tempBasal.rawValue:
+                    return PumpHistoryEvent(
+                        id: event.id ?? UUID().uuidString,
+                        type: .tempBasal,
+                        timestamp: event.timestamp ?? Date(),
+                        amount: event.tempBasal?.rate as Decimal?
+                    )
+                default:
+                    return nil
+                }
+            }.compactMap { $0 }
+        }
+    }
+
+    func getPumpHistoryNotYetUploadedToTidepool() async -> [PumpHistoryEvent] {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,

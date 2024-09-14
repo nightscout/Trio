@@ -31,6 +31,15 @@ extension NSPredicate {
         )
     }
 
+    static var carbsNotYetUploadedToTidepool: NSPredicate {
+        let date = Date.oneDayAgo
+        return NSPredicate(
+            format: "date >= %@ AND isUploadedToTidepool == %@",
+            date as NSDate,
+            false as NSNumber
+        )
+    }
+
     static var fpusNotYetUploadedToNightscout: NSPredicate {
         let date = Date.oneDayAgo
         return NSPredicate(

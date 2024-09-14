@@ -13,6 +13,7 @@ public extension GlucoseStored {
     @NSManaged var isManual: Bool
     @NSManaged var isUploadedToNS: Bool
     @NSManaged var isUploadedToHealth: Bool
+    @NSManaged var isUploadedToTidepool: Bool
 }
 
 extension GlucoseStored: Identifiable {}

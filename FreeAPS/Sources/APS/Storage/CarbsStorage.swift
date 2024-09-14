@@ -210,6 +210,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             newItem.isFPU = false
             newItem.isUploadedToNS = areFetchedFromRemote ? true : false
             newItem.isUploadedToHealth = false
+            newItem.isUploadedToTidepool = false
 
             if entry.fat != nil, entry.protein != nil, let fpuId = entry.fpuID {
                 newItem.fpuID = UUID(uuidString: fpuId)
@@ -242,6 +243,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             carbEntry.fpuID = commonFPUID
             carbEntry.isFPU = true
             carbEntry.isUploadedToNS = areFetchedFromRemote ? true : false
+            // do NOT set Health and Tidepool flags to ensure they will NOT be uploaded
             return false // return false to continue
         }
         await coredataContext.perform {
@@ -371,6 +373,37 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     }
 
     func getCarbsNotYetUploadedToHealth() async -> [CarbsEntry] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: CarbEntryStored.self,
+            onContext: coredataContext,
+            predicate: NSPredicate.carbsNotYetUploadedToHealth,
+            key: "date",
+            ascending: false
+        )
+
+        guard let carbEntries = results as? [CarbEntryStored] else {
+            return []
+        }
+
+        return await coredataContext.perform {
+            return carbEntries.map { result in
+                CarbsEntry(
+                    id: result.id?.uuidString,
+                    createdAt: result.date ?? Date(),
+                    actualDate: result.date,
+                    carbs: Decimal(result.carbs),
+                    fat: Decimal(result.fat),
+                    protein: Decimal(result.protein),
+                    note: result.note,
+                    enteredBy: "Trio",
+                    isFPU: result.isFPU,
+                    fpuID: result.fpuID?.uuidString
+                )
+            }
+        }
+    }
+
+    func getCarbsNotYetUploadedToTidepool() async -> [CarbsEntry] {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: coredataContext,

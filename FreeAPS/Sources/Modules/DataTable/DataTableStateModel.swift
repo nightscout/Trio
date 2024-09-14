@@ -249,6 +249,7 @@ extension DataTable {
                 newItem.isManual = true
                 newItem.isUploadedToNS = false
                 newItem.isUploadedToHealth = false
+                newItem.isUploadedToTidepool = false
 
                 do {
                     guard self.coredataContext.hasChanges else { return }
