@@ -258,7 +258,7 @@ extension OverrideConfig {
             } footer: {
                 HStack {
                     Image(systemName: "hand.draw.fill")
-                    Text("Swipe left to edit or delete an override preset. Hold, drag and drop to reorder a preset.")
+                    Text("Swipe left to edit or delete an Temp Target preset. Hold, drag and drop to reorder a preset.")
                 }
             }
         }

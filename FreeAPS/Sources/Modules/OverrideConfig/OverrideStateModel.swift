@@ -457,7 +457,7 @@ extension OverrideConfig.StateModel {
     @MainActor func updateLatestTempTargetConfigurationOfState(from IDs: [NSManagedObjectID]) async {
         do {
             let result = try IDs.compactMap { id in
-                try viewContext.existingObject(with: id) as? OverrideStored
+                try viewContext.existingObject(with: id) as? TempTargetStored
             }
             isTempTargetEnabled = result.first?.enabled ?? false
 
@@ -604,7 +604,7 @@ extension OverrideConfig.StateModel {
             isTempTargetEnabled = true
 
             /// disable all active Temp Targets and reset state variables
-            /// do not create a TempTargetRunStored entry because we only want that if we cancel a running Override, not when enacting a Preset
+            await disableAllActiveTempTargets(except: id, createTempTargetRunEntry: currentActiveTempTarget != nil)
 
             /// reset state variables
             await resetTempTargetState()

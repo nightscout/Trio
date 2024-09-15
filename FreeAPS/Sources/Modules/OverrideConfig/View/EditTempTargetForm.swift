@@ -149,7 +149,18 @@ struct EditTempTargetForm: View {
                         guard moc.hasChanges else { return }
                         try moc.save()
 
-                        // Update View
+                        // Disable previous active Temp Target and update View
+                        if let currentActiveTempTarget = state.currentActiveTempTarget {
+                            Task {
+                                await state.disableAllActiveOverrides(
+                                    except: currentActiveTempTarget.objectID,
+                                    createOverrideRunEntry: false
+                                )
+
+                                state.updateLatestTempTargetConfiguration()
+                            }
+                        }
+
                         hasChanges = false
                         presentationMode.wrappedValue.dismiss()
                     } catch {

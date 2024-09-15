@@ -295,17 +295,18 @@ struct EditOverrideForm: View {
                         guard moc.hasChanges else { return }
                         try moc.save()
 
+                        // Disable previous active Override
                         if let currentActiveOverride = state.currentActiveOverride {
                             Task {
                                 await state.disableAllActiveOverrides(
                                     except: currentActiveOverride.objectID,
                                     createOverrideRunEntry: false
                                 )
+                                // Update View
+                                state.updateLatestOverrideConfiguration()
                             }
                         }
 
-                        // Update View
-                        state.updateLatestOverrideConfiguration()
                         hasChanges = false
                         presentationMode.wrappedValue.dismiss()
                     } catch {
