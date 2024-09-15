@@ -47,7 +47,7 @@ extension OverrideConfig {
         @Published var isTempTargetEnabled: Bool = false
         @Published var date = Date()
         @Published var newPresetName = ""
-        @Published var presetsTT: [TempTarget] = []
+        @Published var tempTargetPresets: [TempTargetStored] = []
         @Published var percentageTT = 100.0
         @Published var maxValue: Decimal = 1.2
         @Published var viewPercantage = false
@@ -63,13 +63,14 @@ extension OverrideConfig {
         }
 
         override func subscribe() {
+            // TODO: - execute the init concurrently
             setupNotification()
             units = settingsManager.settings.units
             defaultSmbMinutes = settingsManager.preferences.maxSMBBasalMinutes
             defaultUamMinutes = settingsManager.preferences.maxUAMSMBBasalMinutes
             setupOverridePresetsArray()
+            setupTempTargetPresetsArray()
             updateLatestOverrideConfiguration()
-            presetsTT = storage.presets()
             maxValue = settingsManager.preferences.autosensMax
             broadcaster.register(SettingsObserver.self, observer: self)
         }
@@ -434,6 +435,44 @@ extension OverrideConfig.StateModel {
 // MARK: - Temp Targets
 
 extension OverrideConfig.StateModel {
+    // Fill the array of the Override Presets to display them in the UI
+    private func setupTempTargetPresetsArray() {
+        Task {
+            let ids = await self.fetchForTempTargetPresets()
+            await updateTempTargetPresetsArray(with: ids)
+        }
+    }
+
+    /// Returns the NSManagedObjectID of the Temp Target Presets
+    func fetchForTempTargetPresets() async -> [NSManagedObjectID] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: TempTargetStored.self,
+            onContext: coredataContext,
+            predicate: NSPredicate.allTempTargetPresets,
+            key: "date",
+            ascending: true
+        )
+
+        guard let fetchedResults = results as? [TempTargetStored] else { return [] }
+
+        return await coredataContext.perform {
+            return fetchedResults.map(\.objectID)
+        }
+    }
+
+    @MainActor private func updateTempTargetPresetsArray(with IDs: [NSManagedObjectID]) async {
+        do {
+            let tempTargetObjects = try IDs.compactMap { id in
+                try viewContext.existingObject(with: id) as? TempTargetStored
+            }
+            tempTargetPresets = tempTargetObjects
+        } catch {
+            debugPrint(
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to extract Temp Targets as NSManagedObjects from the NSManagedObjectIDs with error: \(error.localizedDescription)"
+            )
+        }
+    }
+
     // Creates and enacts a non Preset Temp Target
     func saveCustomTempTarget() async {
         let newTempTarget = TempTargetStored(context: coredataContext)
@@ -444,6 +483,7 @@ extension OverrideConfig.StateModel {
         newTempTarget.isUploadedToNS = false
         newTempTarget.name = tempTargetName
         newTempTarget.target = tempTargetTarget as NSDecimalNumber
+        newTempTarget.isPreset = false
 
         // disable all TempTargets
 
@@ -473,6 +513,7 @@ extension OverrideConfig.StateModel {
         newTempTarget.isUploadedToNS = false
         newTempTarget.name = tempTargetName
         newTempTarget.target = tempTargetTarget as NSDecimalNumber
+        newTempTarget.isPreset = true
 
         // disable all TempTargets
 
@@ -490,6 +531,7 @@ extension OverrideConfig.StateModel {
         await resetTempTargetState()
 
         // Update View
+        setupTempTargetPresetsArray()
     }
 
     // Enact Temp Target Preset
@@ -596,11 +638,6 @@ extension OverrideConfig.StateModel {
         tempTargetName = ""
         tempTargetTarget = 0
         tempTargetDuration = 0
-    }
-
-    func removePreset(id: String) {
-        presetsTT = presetsTT.filter { $0.id != id }
-        storage.storePresets(presetsTT)
     }
 
     func computeTarget() -> Decimal {

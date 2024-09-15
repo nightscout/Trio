@@ -112,6 +112,7 @@ struct AddTempTargetForm: View {
                 Button {
                     Task {
                         await state.saveTempTargetPreset()
+                        dismiss()
                     }
                 }
                 label: { Text("Save as preset") }

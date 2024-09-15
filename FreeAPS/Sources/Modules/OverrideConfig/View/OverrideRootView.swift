@@ -14,6 +14,7 @@ extension OverrideConfig {
         @State private var showingDetail = false
         @State private var showCheckmark: Bool = false
         @State private var selectedPresetID: String?
+        @State private var selectedTempTargetPresetID: String?
         @State private var selectedOverride: OverrideStored?
         @State private var selectedTempTarget: OverrideStored?
 
@@ -147,8 +148,8 @@ extension OverrideConfig {
         }
 
         @ViewBuilder func tempTargets() -> some View {
-            if state.presetsTT.isNotEmpty {
-                overridePresets
+            if state.tempTargetPresets.isNotEmpty {
+                tempTargetPresets
             } else {
                 defaultText
             }
@@ -218,7 +219,7 @@ extension OverrideConfig {
 
         private var tempTargetPresets: some View {
             Section {
-                ForEach(state.presetsTT) { preset in
+                ForEach(state.tempTargetPresets) { preset in
                     tempTargetView(for: preset)
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button(role: .none) {
@@ -313,25 +314,23 @@ extension OverrideConfig {
             }
         }
 
-        private func tempTargetView(for preset: TempTarget) -> some View {
-            var low = preset.targetBottom
-            var high = preset.targetTop
-            if state.units == .mmolL {
-                low = low?.asMmolL
-                high = high?.asMmolL
-            }
-            let isSelected = preset.id == selectedPresetID
+        private func tempTargetView(for preset: TempTargetStored) -> some View {
+            var target = preset.target
+//            if state.units == .mmolL {
+//                target.asMmolL
+//            }
+            let isSelected = preset.id?.uuidString == selectedTempTargetPresetID
 
             return ZStack(alignment: .trailing, content: {
                 HStack {
                     VStack {
                         HStack {
-                            Text(preset.displayName)
+                            Text(preset.name ?? "")
                             Spacer()
                         }
                         HStack(spacing: 2) {
                             Text(
-                                "\(formatter.string(from: (low ?? 0) as NSNumber)!) - \(formatter.string(from: (high ?? 0) as NSNumber)!)"
+                                "\(formatter.string(from: (target ?? 0) as NSNumber)!)"
                             )
                             .foregroundColor(.secondary)
                             .font(.caption)
@@ -342,7 +341,7 @@ extension OverrideConfig {
                             Text("for")
                                 .foregroundColor(.secondary)
                                 .font(.caption)
-                            Text("\(formatter.string(from: preset.duration as NSNumber)!)")
+                            Text("\(formatter.string(from: (preset.duration ?? 0) as NSNumber)!)")
                                 .foregroundColor(.secondary)
                                 .font(.caption)
                             Text("min")
@@ -371,8 +370,11 @@ extension OverrideConfig {
                         .onTapGesture {
                             removeAlert = Alert(
                                 title: Text("Are you sure?"),
-                                message: Text("Delete preset \"\(preset.displayName)\""),
-                                primaryButton: .destructive(Text("Delete"), action: { state.removePreset(id: preset.id) }),
+                                message: Text("Delete preset \"\(preset.name ?? "")\""),
+                                primaryButton: .destructive(Text("Delete"), action: {
+                                    // TODO: add deletion for Presets
+//                                    state.removePreset(id: preset.id)
+                                }),
                                 secondaryButton: .cancel()
                             )
                             isRemoveAlertPresented = true

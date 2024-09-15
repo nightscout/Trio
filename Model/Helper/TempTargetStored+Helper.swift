@@ -2,6 +2,10 @@ import CoreData
 import Foundation
 
 extension NSPredicate {
+    static var allTempTargetPresets: NSPredicate {
+        NSPredicate(format: "isPreset == %@", true as NSNumber)
+    }
+
     static var lastActiveTempTarget: NSPredicate {
         let date = Date.oneDayAgo
         return NSPredicate(
