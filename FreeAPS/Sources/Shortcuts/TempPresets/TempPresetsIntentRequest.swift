@@ -32,28 +32,30 @@ import Foundation
         return tempOneTarget
     }
 
+    // TODO: - probably broken for now...
+
     func enactTempTarget(_ presetTarget: TempTarget) throws -> TempTarget {
         var tempTarget = presetTarget
         tempTarget.createdAt = Date()
         storage.storeTempTargets([tempTarget])
 
         coredataContext.performAndWait {
-            var tempTargetsArray = [TempTargetsSlider]()
-            let requestTempTargets = TempTargetsSlider.fetchRequest() as NSFetchRequest<TempTargetsSlider>
+            var tempTargetsArray = [TempTargetStored]()
+            let requestTempTargets = TempTargetStored.fetchRequest() as NSFetchRequest<TempTargetStored>
             let sortTT = NSSortDescriptor(key: "date", ascending: false)
             requestTempTargets.sortDescriptors = [sortTT]
             if coredataContext.hasChanges {
                 try? tempTargetsArray = coredataContext.fetch(requestTempTargets)
             }
 
-            let whichID = tempTargetsArray.first(where: { $0.id == tempTarget.id })
+            let whichID = tempTargetsArray.first(where: { $0.id == UUID(uuidString: tempTarget.id) })
 
             if whichID != nil {
-                let saveToCoreData = TempTargets(context: self.coredataContext)
-                saveToCoreData.active = true
+                let saveToCoreData = TempTargetStored(context: self.coredataContext)
+                saveToCoreData.enabled = true
                 saveToCoreData.date = Date()
-                saveToCoreData.hbt = whichID?.hbt ?? 160
-                saveToCoreData.startDate = Date()
+                saveToCoreData.target = whichID?.target ?? 160
+                saveToCoreData.date = Date()
                 saveToCoreData.duration = whichID?.duration ?? 0
 
                 do {
@@ -63,8 +65,8 @@ import Foundation
                     print(error.localizedDescription)
                 }
             } else {
-                let saveToCoreData = TempTargets(context: self.coredataContext)
-                saveToCoreData.active = false
+                let saveToCoreData = TempTargetStored(context: self.coredataContext)
+                saveToCoreData.enabled = false
                 saveToCoreData.date = Date()
                 do {
                     guard coredataContext.hasChanges else { return }
@@ -81,14 +83,14 @@ import Foundation
     func cancelTempTarget() throws {
         storage.storeTempTargets([TempTarget.cancel(at: Date())])
         try coredataContext.performAndWait {
-            let saveToCoreData = TempTargets(context: self.coredataContext)
-            saveToCoreData.active = false
+            let saveToCoreData = TempTargetStored(context: self.coredataContext)
+            saveToCoreData.enabled = false
             saveToCoreData.date = Date()
             if coredataContext.hasChanges {
                 try self.coredataContext.save()
             }
 
-            let setHBT = TempTargetsSlider(context: self.coredataContext)
+            let setHBT = TempTargetStored(context: self.coredataContext)
             setHBT.enabled = false
             setHBT.date = Date()
             if coredataContext.hasChanges {

@@ -252,7 +252,6 @@ final class BaseCalendarManager: CalendarManager, Injectable {
                     settingsManager.settings.units == .mmolL ? Int(lastGlucoseValue)
                         .asMmolL : Decimal(lastGlucoseValue)
                 ) as NSNumber)!
-            debugPrint("\(DebuggingIdentifiers.failed) glucose text: \(glucoseText)")
 
             let directionText = lastGlucoseObject.directionEnum?.symbol ?? "↔︎"
 

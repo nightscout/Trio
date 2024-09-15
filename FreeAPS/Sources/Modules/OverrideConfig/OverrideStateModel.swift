@@ -41,7 +41,10 @@ extension OverrideConfig {
         // temp target stuff
         @Published var low: Decimal = 0
         @Published var high: Decimal = 0
-        @Published var durationTT: Decimal = 0
+        @Published var tempTargetDuration: Decimal = 0
+        @Published var tempTargetName: String = ""
+        @Published var tempTargetTarget: Decimal = 0 // lel
+        @Published var isTempTargetEnabled: Bool = false
         @Published var date = Date()
         @Published var newPresetName = ""
         @Published var presetsTT: [TempTarget] = []
@@ -50,6 +53,9 @@ extension OverrideConfig {
         @Published var viewPercantage = false
         @Published var hbt: Double = 160
         @Published var didSaveSettings: Bool = false
+
+        let coredataContext = CoreDataStack.shared.newTaskContext()
+        let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
         var alertMessage: String {
             let target: String = units == .mgdL ? "70-270 mg/dl" : "4-15 mmol/l"
@@ -67,9 +73,6 @@ extension OverrideConfig {
             maxValue = settingsManager.preferences.autosensMax
             broadcaster.register(SettingsObserver.self, observer: self)
         }
-
-        let coredataContext = CoreDataStack.shared.newTaskContext()
-        let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
         func isInputInvalid(target: Decimal) -> Bool {
             guard target != 0 else { return false }
@@ -428,181 +431,171 @@ extension OverrideConfig.StateModel {
     }
 }
 
-// MARK: - TEMP TARGET
+// MARK: - Temp Targets
 
 extension OverrideConfig.StateModel {
-    func enact() {
-        guard durationTT > 0 else {
-            return
-        }
-        var lowTarget = low
+    // Creates and enacts a non Preset Temp Target
+    func saveCustomTempTarget() async {
+        let newTempTarget = TempTargetStored(context: coredataContext)
+        newTempTarget.date = Date()
+        newTempTarget.id = UUID()
+        newTempTarget.enabled = true
+        newTempTarget.duration = tempTargetDuration as NSDecimalNumber
+        newTempTarget.isUploadedToNS = false
+        newTempTarget.name = tempTargetName
+        newTempTarget.target = tempTargetTarget as NSDecimalNumber
 
-        if viewPercantage {
-            lowTarget = Decimal(round(Double(computeTarget())))
-            coredataContext.performAndWait {
-                let saveToCoreData = TempTargets(context: self.coredataContext)
-                saveToCoreData.id = UUID().uuidString
-                saveToCoreData.active = true
-                saveToCoreData.hbt = hbt
-                saveToCoreData.date = Date()
-                saveToCoreData.duration = durationTT as NSDecimalNumber
-                saveToCoreData.startDate = Date()
-                try? self.coredataContext.save()
-            }
-            didSaveSettings = true
-        } else {
-            coredataContext.performAndWait {
-                let saveToCoreData = TempTargets(context: coredataContext)
-                saveToCoreData.active = false
-                saveToCoreData.date = Date()
-                do {
-                    guard coredataContext.hasChanges else { return }
-                    try coredataContext.save()
-                } catch {
-                    print(error.localizedDescription)
-                }
-            }
-        }
-        var highTarget = lowTarget
+        // disable all TempTargets
 
-        if units == .mmolL, !viewPercantage {
-            lowTarget = Decimal(round(Double(lowTarget.asMgdL)))
-            highTarget = lowTarget
+        // Save Temp Target to Core Data
+        do {
+            guard coredataContext.hasChanges else { return }
+            try coredataContext.save()
+        } catch let error as NSError {
+            debugPrint(
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save TempTarget to Core Data with error: \(error.userInfo)"
+            )
         }
 
-        let entry = TempTarget(
-            name: TempTarget.custom,
-            createdAt: date,
-            targetTop: highTarget,
-            targetBottom: lowTarget,
-            duration: durationTT,
-            enteredBy: TempTarget.manual,
-            reason: TempTarget.custom
+        // Reset State variables
+        await resetTempTargetState()
+
+        // Update View
+    }
+
+    // Creates a new Temp Target Preset
+    func saveTempTargetPreset() async {
+        let newTempTarget = TempTargetStored(context: coredataContext)
+        newTempTarget.date = Date()
+        newTempTarget.id = UUID()
+        newTempTarget.enabled = false
+        newTempTarget.duration = tempTargetDuration as NSDecimalNumber
+        newTempTarget.isUploadedToNS = false
+        newTempTarget.name = tempTargetName
+        newTempTarget.target = tempTargetTarget as NSDecimalNumber
+
+        // disable all TempTargets
+
+        // Save Temp Target to Core Data
+        do {
+            guard coredataContext.hasChanges else { return }
+            try coredataContext.save()
+        } catch let error as NSError {
+            debugPrint(
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save TempTarget to Core Data with error: \(error.userInfo)"
+            )
+        }
+
+        // Reset State variables
+        await resetTempTargetState()
+
+        // Update View
+    }
+
+    // Enact Temp Target Preset
+    /// here we only have to update the Boolean Flag 'enabled'
+    @MainActor func enactTempTargetPreset(withID id: NSManagedObjectID) async {
+        do {
+            /// get the underlying NSManagedObject of the Override that should be enabled
+            let tempTargetToEnact = try viewContext.existingObject(with: id) as? TempTargetStored
+            tempTargetToEnact?.enabled = true
+            tempTargetToEnact?.date = Date()
+            tempTargetToEnact?.isUploadedToNS = false
+
+            /// Update the 'Cancel Temp Target' button state
+            isTempTargetEnabled = true
+
+            /// disable all active Temp Targets and reset state variables
+            /// do not create a TempTargetRunStored entry because we only want that if we cancel a running Override, not when enacting a Preset
+
+            /// reset state variables
+            await resetTempTargetState()
+
+            guard viewContext.hasChanges else { return }
+            try viewContext.save()
+
+            // Update View
+
+        } catch {
+            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to enact Override Preset")
+        }
+    }
+
+    // Disable all active Temp Targets
+
+    func loadLatestTempTargetConfigurations(fetchLimit: Int) async -> [NSManagedObjectID] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: TempTargetStored.self,
+            onContext: coredataContext,
+            predicate: NSPredicate.lastActiveTempTarget,
+            key: "date",
+            ascending: true,
+            fetchLimit: fetchLimit
         )
-        storage.storeTempTargets([entry])
-        showModal(for: nil)
-    }
 
-    func cancel() {
-        storage.storeTempTargets([TempTarget.cancel(at: Date())])
-        showModal(for: nil)
+        guard let fetchedResults = results as? [TempTargetStored] else { return [] }
 
-        coredataContext.performAndWait {
-            let saveToCoreData = TempTargets(context: self.coredataContext)
-            saveToCoreData.active = false
-            saveToCoreData.date = Date()
-            do {
-                guard coredataContext.hasChanges else { return }
-                try coredataContext.save()
-            } catch {
-                print(error.localizedDescription)
-            }
-
-            let setHBT = TempTargetsSlider(context: self.coredataContext)
-            setHBT.enabled = false
-            setHBT.date = Date()
-            do {
-                guard coredataContext.hasChanges else { return }
-                try coredataContext.save()
-            } catch {
-                print(error.localizedDescription)
-            }
+        return await coredataContext.perform {
+            return fetchedResults.map(\.objectID)
         }
     }
 
-    func save() {
-        guard durationTT > 0 else {
-            return
-        }
-        var lowTarget = low
+    @MainActor func disableAllActiveTempTargets(except id: NSManagedObjectID? = nil, createTempTargetRunEntry: Bool) async {
+        // Get ALL NSManagedObject IDs of ALL active Temp Targets to cancel every single Temp Target
+        let ids = await loadLatestTempTargetConfigurations(fetchLimit: 0) // 0 = no fetch limit
 
-        if viewPercantage {
-            lowTarget = Decimal(round(Double(computeTarget())))
-            didSaveSettings = true
-        }
-        var highTarget = lowTarget
-
-        if units == .mmolL, !viewPercantage {
-            lowTarget = Decimal(round(Double(lowTarget.asMgdL)))
-            highTarget = lowTarget
-        }
-
-        let entry = TempTarget(
-            name: newPresetName.isEmpty ? TempTarget.custom : newPresetName,
-            createdAt: Date(),
-            targetTop: highTarget,
-            targetBottom: lowTarget,
-            duration: durationTT,
-            enteredBy: TempTarget.manual,
-            reason: newPresetName.isEmpty ? TempTarget.custom : newPresetName
-        )
-        presetsTT.append(entry)
-        storage.storePresets(presetsTT)
-
-        if viewPercantage {
-            let id = entry.id
-
-            coredataContext.performAndWait {
-                let saveToCoreData = TempTargetsSlider(context: self.coredataContext)
-                saveToCoreData.id = id
-                saveToCoreData.isPreset = true
-                saveToCoreData.enabled = true
-                saveToCoreData.hbt = hbt
-                saveToCoreData.date = Date()
-                saveToCoreData.duration = durationTT as NSDecimalNumber
-                do {
-                    guard coredataContext.hasChanges else { return }
-                    try coredataContext.save()
-                } catch {
-                    print(error.localizedDescription)
+        await viewContext.perform {
+            do {
+                // Fetch the existing TempTargetStored objects from the context
+                let results = try ids.compactMap { id in
+                    try self.viewContext.existingObject(with: id) as? TempTargetStored
                 }
-            }
-        }
-    }
 
-    func enactPreset(id: String) {
-        if var preset = presetsTT.first(where: { $0.id == id }) {
-            preset.createdAt = Date()
-            storage.storeTempTargets([preset])
-            showModal(for: nil)
+                // If there are no results, return early
+                guard !results.isEmpty else { return }
 
-            coredataContext.performAndWait {
-                var tempTargetsArray = [TempTargetsSlider]()
-                let requestTempTargets = TempTargetsSlider.fetchRequest() as NSFetchRequest<TempTargetsSlider>
-                let sortTT = NSSortDescriptor(key: "date", ascending: false)
-                requestTempTargets.sortDescriptors = [sortTT]
-                try? tempTargetsArray = coredataContext.fetch(requestTempTargets)
-
-                let whichID = tempTargetsArray.first(where: { $0.id == id })
-
-                if whichID != nil {
-                    let saveToCoreData = TempTargets(context: self.coredataContext)
-                    saveToCoreData.active = true
-                    saveToCoreData.date = Date()
-                    saveToCoreData.hbt = whichID?.hbt ?? 160
-                    // saveToCoreData.id = id
-                    saveToCoreData.startDate = Date()
-                    saveToCoreData.duration = whichID?.duration ?? 0
-
-                    do {
-                        guard coredataContext.hasChanges else { return }
-                        try coredataContext.save()
-                    } catch {
-                        print(error.localizedDescription)
-                    }
-                } else {
-                    let saveToCoreData = TempTargets(context: self.coredataContext)
-                    saveToCoreData.active = false
-                    saveToCoreData.date = Date()
-                    do {
-                        guard coredataContext.hasChanges else { return }
-                        try coredataContext.save()
-                    } catch {
-                        print(error.localizedDescription)
+                // Check if we also need to create a corresponding TempTargetRunStored entry, i.e. when the User uses the Cancel Button in Temp Target View
+                if createTempTargetRunEntry {
+                    // Use the first temp target to create a new TempTargetRunStored entry
+                    if let canceledTempTarget = results.first {
+                        let newTempTargetRunStored = TempTargetRunStored(context: self.viewContext)
+                        newTempTargetRunStored.id = UUID()
+                        newTempTargetRunStored.name = canceledTempTarget.name
+                        newTempTargetRunStored.startDate = canceledTempTarget.date ?? .distantPast
+                        newTempTargetRunStored.endDate = Date()
+                        newTempTargetRunStored
+                            .target = canceledTempTarget.target?.decimalValue ?? 0
+                        newTempTargetRunStored.tempTarget = canceledTempTarget
+                        newTempTargetRunStored.isUploadedToNS = false
                     }
                 }
+
+                // Disable all override except the one with overrideID
+                for tempTargetToCancel in results {
+                    if tempTargetToCancel.objectID != id {
+                        tempTargetToCancel.enabled = false
+                    }
+                }
+
+                // Save the context if there are changes
+                if self.viewContext.hasChanges {
+                    try self.viewContext.save()
+
+                    // Update the View
+                    self.updateLatestOverrideConfiguration()
+                }
+            } catch {
+                debugPrint(
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to disable active Overrides with error: \(error.localizedDescription)"
+                )
             }
         }
+    }
+
+    @MainActor func resetTempTargetState() async {
+        tempTargetName = ""
+        tempTargetTarget = 0
+        tempTargetDuration = 0
     }
 
     func removePreset(id: String) {

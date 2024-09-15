@@ -259,6 +259,12 @@
 		5864E8592C42CFAE00294306 /* DeterminationStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5864E8582C42CFAE00294306 /* DeterminationStorage.swift */; };
 		587DA1F62B77F3DD00B28F8A /* SettingsRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 587DA1F52B77F3DD00B28F8A /* SettingsRowView.swift */; };
 		5887527C2BD986E1008B081D /* OpenAPSBattery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5887527B2BD986E1008B081D /* OpenAPSBattery.swift */; };
+		58A3D53A2C96D4DE003F90FC /* AddTempTargetForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A3D5392C96D4DE003F90FC /* AddTempTargetForm.swift */; };
+		58A3D5442C96DE11003F90FC /* TempTargetStored+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A3D5432C96DE11003F90FC /* TempTargetStored+Helper.swift */; };
+		58A3D5512C96EFA8003F90FC /* TempTargetStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A3D54D2C96EFA8003F90FC /* TempTargetStored+CoreDataClass.swift */; };
+		58A3D5522C96EFA8003F90FC /* TempTargetStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A3D54E2C96EFA8003F90FC /* TempTargetStored+CoreDataProperties.swift */; };
+		58A3D5532C96EFA8003F90FC /* TempTargetRunStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A3D54F2C96EFA8003F90FC /* TempTargetRunStored+CoreDataClass.swift */; };
+		58A3D5542C96EFA8003F90FC /* TempTargetRunStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A3D5502C96EFA8003F90FC /* TempTargetRunStored+CoreDataProperties.swift */; };
 		58D08B222C8DAA8E00AA37D3 /* OverrideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D08B212C8DAA8E00AA37D3 /* OverrideView.swift */; };
 		58D08B302C8DEA7500AA37D3 /* ForecastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D08B2F2C8DEA7500AA37D3 /* ForecastView.swift */; };
 		58D08B322C8DF88900AA37D3 /* DummyCharts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D08B312C8DF88900AA37D3 /* DummyCharts.swift */; };
@@ -457,8 +463,6 @@
 		DDE179592C910127003CDDB7 /* ForecastValue+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179392C910127003CDDB7 /* ForecastValue+CoreDataProperties.swift */; };
 		DDE1795A2C910127003CDDB7 /* CarbEntryStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1793A2C910127003CDDB7 /* CarbEntryStored+CoreDataClass.swift */; };
 		DDE1795B2C910127003CDDB7 /* CarbEntryStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1793B2C910127003CDDB7 /* CarbEntryStored+CoreDataProperties.swift */; };
-		DDE1795C2C910127003CDDB7 /* TempTargets+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1793C2C910127003CDDB7 /* TempTargets+CoreDataClass.swift */; };
-		DDE1795D2C910127003CDDB7 /* TempTargets+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1793D2C910127003CDDB7 /* TempTargets+CoreDataProperties.swift */; };
 		DDE1795E2C910127003CDDB7 /* PumpEventStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1793E2C910127003CDDB7 /* PumpEventStored+CoreDataClass.swift */; };
 		DDE1795F2C910127003CDDB7 /* PumpEventStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1793F2C910127003CDDB7 /* PumpEventStored+CoreDataProperties.swift */; };
 		DDE179602C910127003CDDB7 /* StatsData+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179402C910127003CDDB7 /* StatsData+CoreDataClass.swift */; };
@@ -471,8 +475,6 @@
 		DDE179672C910127003CDDB7 /* OpenAPS_Battery+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179472C910127003CDDB7 /* OpenAPS_Battery+CoreDataProperties.swift */; };
 		DDE179682C910127003CDDB7 /* TempBasalStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179482C910127003CDDB7 /* TempBasalStored+CoreDataClass.swift */; };
 		DDE179692C910127003CDDB7 /* TempBasalStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179492C910127003CDDB7 /* TempBasalStored+CoreDataProperties.swift */; };
-		DDE1796A2C910127003CDDB7 /* TempTargetsSlider+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1794A2C910127003CDDB7 /* TempTargetsSlider+CoreDataClass.swift */; };
-		DDE1796B2C910127003CDDB7 /* TempTargetsSlider+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1794B2C910127003CDDB7 /* TempTargetsSlider+CoreDataProperties.swift */; };
 		DDE1796C2C910127003CDDB7 /* OverrideRunStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1794C2C910127003CDDB7 /* OverrideRunStored+CoreDataClass.swift */; };
 		DDE1796D2C910127003CDDB7 /* OverrideRunStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1794D2C910127003CDDB7 /* OverrideRunStored+CoreDataProperties.swift */; };
 		DDE1796E2C910127003CDDB7 /* OrefDetermination+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1794E2C910127003CDDB7 /* OrefDetermination+CoreDataClass.swift */; };
@@ -910,6 +912,12 @@
 		5864E8582C42CFAE00294306 /* DeterminationStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeterminationStorage.swift; sourceTree = "<group>"; };
 		587DA1F52B77F3DD00B28F8A /* SettingsRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRowView.swift; sourceTree = "<group>"; };
 		5887527B2BD986E1008B081D /* OpenAPSBattery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAPSBattery.swift; sourceTree = "<group>"; };
+		58A3D5392C96D4DE003F90FC /* AddTempTargetForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTempTargetForm.swift; sourceTree = "<group>"; };
+		58A3D5432C96DE11003F90FC /* TempTargetStored+Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetStored+Helper.swift"; sourceTree = "<group>"; };
+		58A3D54D2C96EFA8003F90FC /* TempTargetStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetStored+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
+		58A3D54E2C96EFA8003F90FC /* TempTargetStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
+		58A3D54F2C96EFA8003F90FC /* TempTargetRunStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetRunStored+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
+		58A3D5502C96EFA8003F90FC /* TempTargetRunStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetRunStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		58D08B212C8DAA8E00AA37D3 /* OverrideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideView.swift; sourceTree = "<group>"; };
 		58D08B2F2C8DEA7500AA37D3 /* ForecastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastView.swift; sourceTree = "<group>"; };
 		58D08B312C8DF88900AA37D3 /* DummyCharts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DummyCharts.swift; sourceTree = "<group>"; };
@@ -1111,8 +1119,6 @@
 		DDE179392C910127003CDDB7 /* ForecastValue+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ForecastValue+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		DDE1793A2C910127003CDDB7 /* CarbEntryStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CarbEntryStored+CoreDataClass.swift"; sourceTree = "<group>"; };
 		DDE1793B2C910127003CDDB7 /* CarbEntryStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CarbEntryStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		DDE1793C2C910127003CDDB7 /* TempTargets+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargets+CoreDataClass.swift"; sourceTree = "<group>"; };
-		DDE1793D2C910127003CDDB7 /* TempTargets+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargets+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		DDE1793E2C910127003CDDB7 /* PumpEventStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PumpEventStored+CoreDataClass.swift"; sourceTree = "<group>"; };
 		DDE1793F2C910127003CDDB7 /* PumpEventStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PumpEventStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		DDE179402C910127003CDDB7 /* StatsData+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StatsData+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -1125,8 +1131,6 @@
 		DDE179472C910127003CDDB7 /* OpenAPS_Battery+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OpenAPS_Battery+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		DDE179482C910127003CDDB7 /* TempBasalStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempBasalStored+CoreDataClass.swift"; sourceTree = "<group>"; };
 		DDE179492C910127003CDDB7 /* TempBasalStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempBasalStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		DDE1794A2C910127003CDDB7 /* TempTargetsSlider+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetsSlider+CoreDataClass.swift"; sourceTree = "<group>"; };
-		DDE1794B2C910127003CDDB7 /* TempTargetsSlider+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetsSlider+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		DDE1794C2C910127003CDDB7 /* OverrideRunStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideRunStored+CoreDataClass.swift"; sourceTree = "<group>"; };
 		DDE1794D2C910127003CDDB7 /* OverrideRunStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideRunStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		DDE1794E2C910127003CDDB7 /* OrefDetermination+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OrefDetermination+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -2240,6 +2244,7 @@
 				BDF34EBD2C0A31D000D51995 /* CustomNotification.swift */,
 				BDCD47AE2C1F3F1700F8BCD5 /* OverrideStored+helper.swift */,
 				BDB899892C565D0B006F3298 /* CarbsGlucose+helper.swift */,
+				58A3D5432C96DE11003F90FC /* TempTargetStored+Helper.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -2671,6 +2676,7 @@
 				DDD163172C4C694000CD525A /* OverrideRootView.swift */,
 				DDD163192C4C695E00CD525A /* EditOverrideForm.swift */,
 				DDD1631B2C4C697400CD525A /* AddOverrideForm.swift */,
+				58A3D5392C96D4DE003F90FC /* AddTempTargetForm.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -2678,6 +2684,10 @@
 		DDE179112C9100FA003CDDB7 /* Classes+Properties */ = {
 			isa = PBXGroup;
 			children = (
+				58A3D54D2C96EFA8003F90FC /* TempTargetStored+CoreDataClass.swift */,
+				58A3D54E2C96EFA8003F90FC /* TempTargetStored+CoreDataProperties.swift */,
+				58A3D54F2C96EFA8003F90FC /* TempTargetRunStored+CoreDataClass.swift */,
+				58A3D5502C96EFA8003F90FC /* TempTargetRunStored+CoreDataProperties.swift */,
 				DDE179322C910127003CDDB7 /* MealPresetStored+CoreDataClass.swift */,
 				DDE179332C910127003CDDB7 /* MealPresetStored+CoreDataProperties.swift */,
 				DDE179342C910127003CDDB7 /* LoopStatRecord+CoreDataClass.swift */,
@@ -2688,8 +2698,6 @@
 				DDE179392C910127003CDDB7 /* ForecastValue+CoreDataProperties.swift */,
 				DDE1793A2C910127003CDDB7 /* CarbEntryStored+CoreDataClass.swift */,
 				DDE1793B2C910127003CDDB7 /* CarbEntryStored+CoreDataProperties.swift */,
-				DDE1793C2C910127003CDDB7 /* TempTargets+CoreDataClass.swift */,
-				DDE1793D2C910127003CDDB7 /* TempTargets+CoreDataProperties.swift */,
 				DDE1793E2C910127003CDDB7 /* PumpEventStored+CoreDataClass.swift */,
 				DDE1793F2C910127003CDDB7 /* PumpEventStored+CoreDataProperties.swift */,
 				DDE179402C910127003CDDB7 /* StatsData+CoreDataClass.swift */,
@@ -2702,8 +2710,6 @@
 				DDE179472C910127003CDDB7 /* OpenAPS_Battery+CoreDataProperties.swift */,
 				DDE179482C910127003CDDB7 /* TempBasalStored+CoreDataClass.swift */,
 				DDE179492C910127003CDDB7 /* TempBasalStored+CoreDataProperties.swift */,
-				DDE1794A2C910127003CDDB7 /* TempTargetsSlider+CoreDataClass.swift */,
-				DDE1794B2C910127003CDDB7 /* TempTargetsSlider+CoreDataProperties.swift */,
 				DDE1794C2C910127003CDDB7 /* OverrideRunStored+CoreDataClass.swift */,
 				DDE1794D2C910127003CDDB7 /* OverrideRunStored+CoreDataProperties.swift */,
 				DDE1794E2C910127003CDDB7 /* OrefDetermination+CoreDataClass.swift */,
@@ -3158,6 +3164,7 @@
 				CE7CA3552A064973004BE681 /* ListStateIntent.swift in Sources */,
 				BDF530D82B40F8AC002CAF43 /* LockScreenView.swift in Sources */,
 				195D80B72AF697B800D25097 /* DynamicSettingsDataFlow.swift in Sources */,
+				58A3D5512C96EFA8003F90FC /* TempTargetStored+CoreDataClass.swift in Sources */,
 				3862CC2E2743F9F700BF832C /* CalendarManager.swift in Sources */,
 				CEA4F62329BE10F70011ADF7 /* SavitzkyGolayFilter.swift in Sources */,
 				38B4F3C325E2A20B00E76A18 /* PumpSetupView.swift in Sources */,
@@ -3199,6 +3206,7 @@
 				DD1745552C55CA6C00211FAC /* UnitsLimitsSettingsRootView.swift in Sources */,
 				384E803825C388640086DB71 /* Script.swift in Sources */,
 				CE94597E29E9E1EE0047C9C6 /* GarminManager.swift in Sources */,
+				58A3D5542C96EFA8003F90FC /* TempTargetRunStored+CoreDataProperties.swift in Sources */,
 				3883583425EEB38000E024B2 /* PumpSettings.swift in Sources */,
 				38DAB280260CBB7F00F74C1A /* PumpView.swift in Sources */,
 				DDD1631C2C4C697400CD525A /* AddOverrideForm.swift in Sources */,
@@ -3235,6 +3243,7 @@
 				5837A5302BD2E3C700A5DC04 /* CarbEntryStored+helper.swift in Sources */,
 				389A572026079BAA00BC102F /* Interpolation.swift in Sources */,
 				19A910382A24EF3200C8951B /* ChartsView.swift in Sources */,
+				58A3D5522C96EFA8003F90FC /* TempTargetStored+CoreDataProperties.swift in Sources */,
 				BDF34F832C10C5B600D51995 /* DataManager.swift in Sources */,
 				38B4F3C625E5017E00E76A18 /* NotificationCenter.swift in Sources */,
 				19D466A729AA2C22004D5F33 /* MealSettingsStateModel.swift in Sources */,
@@ -3275,6 +3284,7 @@
 				58D08B222C8DAA8E00AA37D3 /* OverrideView.swift in Sources */,
 				BD0B2EF32C5998E600B3298F /* MealPresetView.swift in Sources */,
 				582DF9752C8CDB92001F516D /* GlucoseChartView.swift in Sources */,
+				58A3D53A2C96D4DE003F90FC /* AddTempTargetForm.swift in Sources */,
 				DD1745302C55AE5300211FAC /* TargetBehaviorProvider.swift in Sources */,
 				58D08B382C8DFB6000AA37D3 /* BasalChart.swift in Sources */,
 				118DF76D2C5ECBC60067FEB7 /* OverridePresetEntity.swift in Sources */,
@@ -3458,6 +3468,8 @@
 				58D08B3A2C8DFECD00AA37D3 /* TempTargets.swift in Sources */,
 				38E98A2325F52C9300C0CED0 /* Signpost.swift in Sources */,
 				CE7CA3542A064973004BE681 /* TempPresetsIntentRequest.swift in Sources */,
+				58A3D5442C96DE11003F90FC /* TempTargetStored+Helper.swift in Sources */,
+				58A3D5532C96EFA8003F90FC /* TempTargetRunStored+CoreDataClass.swift in Sources */,
 				DD6B7CB42C7B71F700B75029 /* ForecastDisplayType.swift in Sources */,
 				F5F7E6C1B7F098F59EB67EC5 /* TargetsEditorDataFlow.swift in Sources */,
 				DD17453A2C55BFA600211FAC /* AlgorithmAdvancedSettingsDataFlow.swift in Sources */,
@@ -3553,8 +3565,6 @@
 				DDE179592C910127003CDDB7 /* ForecastValue+CoreDataProperties.swift in Sources */,
 				DDE1795A2C910127003CDDB7 /* CarbEntryStored+CoreDataClass.swift in Sources */,
 				DDE1795B2C910127003CDDB7 /* CarbEntryStored+CoreDataProperties.swift in Sources */,
-				DDE1795C2C910127003CDDB7 /* TempTargets+CoreDataClass.swift in Sources */,
-				DDE1795D2C910127003CDDB7 /* TempTargets+CoreDataProperties.swift in Sources */,
 				DDE1795E2C910127003CDDB7 /* PumpEventStored+CoreDataClass.swift in Sources */,
 				DDE1795F2C910127003CDDB7 /* PumpEventStored+CoreDataProperties.swift in Sources */,
 				DDE179602C910127003CDDB7 /* StatsData+CoreDataClass.swift in Sources */,
@@ -3567,8 +3577,6 @@
 				DDE179672C910127003CDDB7 /* OpenAPS_Battery+CoreDataProperties.swift in Sources */,
 				DDE179682C910127003CDDB7 /* TempBasalStored+CoreDataClass.swift in Sources */,
 				DDE179692C910127003CDDB7 /* TempBasalStored+CoreDataProperties.swift in Sources */,
-				DDE1796A2C910127003CDDB7 /* TempTargetsSlider+CoreDataClass.swift in Sources */,
-				DDE1796B2C910127003CDDB7 /* TempTargetsSlider+CoreDataProperties.swift in Sources */,
 				DDE1796C2C910127003CDDB7 /* OverrideRunStored+CoreDataClass.swift in Sources */,
 				DDE1796D2C910127003CDDB7 /* OverrideRunStored+CoreDataProperties.swift in Sources */,
 				DDE1796E2C910127003CDDB7 /* OrefDetermination+CoreDataClass.swift in Sources */,

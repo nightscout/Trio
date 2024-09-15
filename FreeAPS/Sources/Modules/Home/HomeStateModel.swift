@@ -456,15 +456,6 @@ extension Home {
         func openCGM() {
             router.mainSecondaryModalView.send(router.view(for: .cgmDirect))
         }
-
-        func infoPanelTTPercentage(_ hbt_: Double, _ target: Decimal) -> Decimal {
-            guard hbt_ != 0 || target != 0 else {
-                return 0
-            }
-            let c = Decimal(hbt_ - 100)
-            let ratio = min(c / (target + c - 100), maxValue)
-            return (ratio * 100)
-        }
     }
 }
 

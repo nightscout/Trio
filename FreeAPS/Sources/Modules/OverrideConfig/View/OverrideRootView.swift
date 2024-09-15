@@ -10,12 +10,14 @@ extension OverrideConfig {
 
         @State private var isEditing = false
         @State private var showOverrideCreationSheet = false
+        @State private var showTempTargetCreationSheet = false
         @State private var showingDetail = false
         @State private var showCheckmark: Bool = false
         @State private var selectedPresetID: String?
         @State private var selectedOverride: OverrideStored?
+        @State private var selectedTempTarget: OverrideStored?
+
         // temp targets
-        @State private var isPromptPresented = false
         @State private var isRemoveAlertPresented = false
         @State private var removeAlert: Alert?
         @State private var isEditingTT = false
@@ -38,11 +40,6 @@ extension OverrideConfig {
                     endPoint: .bottom
                 )
         }
-
-        @FetchRequest(
-            entity: TempTargetsSlider.entity(),
-            sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
-        ) var isEnabledArray: FetchedResults<TempTargetsSlider>
 
         private var formatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -91,8 +88,15 @@ extension OverrideConfig {
                                         Image(systemName: "plus")
                                     }
                                 })
-                            default:
-                                EmptyView()
+                            case .tempTargets:
+                                Button(action: {
+                                    showTempTargetCreationSheet = true
+                                }, label: {
+                                    HStack {
+                                        Text("Add Temp Target")
+                                        Image(systemName: "plus")
+                                    }
+                                })
                             }
                         }
                     }
@@ -111,6 +115,14 @@ extension OverrideConfig {
                         Task {
                             await state.resetStateVariables()
                             showOverrideCreationSheet = false
+                        }
+                    }) {
+                        AddOverrideForm(state: state)
+                    }
+                    .sheet(isPresented: $showTempTargetCreationSheet, onDismiss: {
+                        Task {
+                            await state.resetStateVariables()
+                            showTempTargetCreationSheet = false
                         }
                     }) {
                         AddOverrideForm(state: state)
@@ -134,11 +146,38 @@ extension OverrideConfig {
             }
         }
 
+        @ViewBuilder func tempTargets() -> some View {
+            if state.presetsTT.isNotEmpty {
+                overridePresets
+            } else {
+                defaultText
+            }
+//
+//            if state.isEnabled, state.activeOverrideName.isNotEmpty {
+//                currentActiveOverride
+//            }
+//
+//            if state.overridePresets.isNotEmpty || state.currentActiveOverride != nil {
+//                cancelOverrideButton
+//            }
+        }
+
         private var defaultText: some View {
-            Section {} header: {
-                Text("Add Preset or Override by tapping 'Add Override +' in the top right-hand corner of the screen.")
+            switch state.selectedTab {
+            case .overrides:
+                Section {} header: {
+                    Text("Add Preset or Override by tapping 'Add Override +' in the top right-hand corner of the screen.")
+                        .textCase(nil)
+                        .foregroundStyle(.secondary)
+                }
+            case .tempTargets:
+                Section {} header: {
+                    Text(
+                        "Add Preset or Temp Target by tapping 'Add Temp Target +' in the top right-hand corner of the screen."
+                    )
                     .textCase(nil)
                     .foregroundStyle(.secondary)
+                }
             }
         }
 
@@ -159,6 +198,41 @@ extension OverrideConfig {
                                 // Set the selected Override to the chosen Preset and pass it to the Edit Sheet
                                 selectedOverride = preset
                                 state.showOverrideEditSheet = true
+                            }, label: {
+                                Label("Edit", systemImage: "pencil")
+                                    .tint(.blue)
+                            })
+                        }
+                }
+                .onMove(perform: state.reorderOverride)
+                .listRowBackground(Color.chart)
+            } header: {
+                Text("Presets")
+            } footer: {
+                HStack {
+                    Image(systemName: "hand.draw.fill")
+                    Text("Swipe left to edit or delete an override preset. Hold, drag and drop to reorder a preset.")
+                }
+            }
+        }
+
+        private var tempTargetPresets: some View {
+            Section {
+                ForEach(state.presetsTT) { preset in
+                    tempTargetView(for: preset)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .none) {
+                                Task {
+//                                    await state.invokeOverridePresetDeletion(preset.objectID)
+                                }
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                                    .tint(.red)
+                            }
+                            Button(action: {
+                                // Set the selected Override to the chosen Preset and pass it to the Edit Sheet
+//                                selectedOverride = preset
+//                                state.showOverrideEditSheet = true
                             }, label: {
                                 Label("Edit", systemImage: "pencil")
                                     .tint(.blue)
@@ -205,175 +279,41 @@ extension OverrideConfig {
         }
 
         private var cancelOverrideButton: some View {
-            Button(action: {
-                Task {
-                    // Save cancelled Override in OverrideRunStored Entity
-                    // Cancel ALL active Override
-                    await state.disableAllActiveOverrides(createOverrideRunEntry: true)
-                }
-            }, label: {
-                Text("Cancel Override")
+            switch state.selectedTab {
+            case .overrides:
+                Button(action: {
+                    Task {
+                        // Save cancelled Override in OverrideRunStored Entity
+                        // Cancel ALL active Override
+                        await state.disableAllActiveOverrides(createOverrideRunEntry: true)
+                    }
+                }, label: {
+                    Text("Cancel Override")
 
-            })
-                .frame(maxWidth: .infinity, alignment: .center)
-                .disabled(!state.isEnabled)
-                .listRowBackground(!state.isEnabled ? Color(.systemGray4) : Color(.systemRed))
-                .tint(.white)
-        }
+                })
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .disabled(!state.isEnabled)
+                    .listRowBackground(!state.isEnabled ? Color(.systemGray4) : Color(.systemRed))
+                    .tint(.white)
+            case .tempTargets:
+                Button(action: {
+                    Task {
+                        // Save cancelled Temp Targets in TempTargetRunStored Entity
+                        // Cancel ALL active Temp Targets
+                        await state.disableAllActiveTempTargets(createTempTargetRunEntry: true)
+                    }
+                }, label: {
+                    Text("Cancel Temp Target")
 
-        @ViewBuilder func tempTargets() -> some View {
-            if !state.presetsTT.isEmpty {
-                Section(header: Text("Presets")) {
-                    ForEach(state.presetsTT) { preset in
-                        presetView(for: preset)
-                    }
-                }.listRowBackground(Color.chart)
-            }
-
-            HStack {
-                Text("Experimental")
-                Toggle(isOn: $state.viewPercantage) {}.controlSize(.mini)
-                Image(systemName: "figure.highintensity.intervaltraining")
-                Image(systemName: "fork.knife")
-            }.listRowBackground(Color.chart)
-
-            if state.viewPercantage {
-                Section {
-                    VStack {
-                        Text("\(state.percentageTT.formatted(.number)) % Insulin")
-                            .foregroundColor(isEditingTT ? .orange : .blue)
-                            .font(.largeTitle)
-                            .padding(.vertical)
-                        Slider(
-                            value: $state.percentageTT,
-                            in: 15 ...
-                                min(Double(state.maxValue * 100), 200),
-                            step: 1,
-                            onEditingChanged: { editing in
-                                isEditingTT = editing
-                            }
-                        )
-                        // Only display target slider when not 100 %
-                        if state.percentageTT != 100 {
-                            Spacer()
-                            Divider()
-                            Text(
-                                (
-                                    state
-                                        .units == .mmolL ?
-                                        "\(state.computeTarget().asMmolL.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))) mmol/L" :
-                                        "\(state.computeTarget().formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) mg/dl"
-                                )
-                                    + NSLocalizedString(" Target Glucose", comment: "")
-                            )
-                            .foregroundColor(.green)
-                            .padding(.vertical)
-
-                            Slider(
-                                value: $state.hbt,
-                                in: 101 ... 295,
-                                step: 1
-                            ).accentColor(.green)
-                        }
-                    }
-                }.listRowBackground(Color.chart)
-            } else {
-                Section(header: Text("Custom")) {
-                    HStack {
-                        Text("Target")
-                        Spacer()
-                        TextFieldWithToolBar(text: $state.low, placeholder: "0", numberFormatter: glucoseFormatter)
-                        Text(state.units.rawValue).foregroundColor(.secondary)
-                    }
-                    HStack {
-                        Text("Duration")
-                        Spacer()
-                        TextFieldWithToolBar(text: $state.durationTT, placeholder: "0", numberFormatter: formatter)
-                        Text("minutes").foregroundColor(.secondary)
-                    }
-                    DatePicker("Date", selection: $state.date)
-                    HStack {
-                        Button { state.enact() }
-                        label: { Text("Enact") }
-                            .disabled(state.durationTT == 0)
-                            .buttonStyle(BorderlessButtonStyle())
-                            .font(.callout)
-                            .controlSize(.mini)
-
-                        Button { isPromptPresented = true }
-                        label: { Text("Save as preset") }
-                            .disabled(state.durationTT == 0)
-                            .tint(.orange)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-                            .buttonStyle(BorderlessButtonStyle())
-                            .controlSize(.mini)
-                    }
-                }.listRowBackground(Color.chart)
-            }
-            if state.viewPercantage {
-                Section {
-                    HStack {
-                        Text("Duration")
-                        Spacer()
-                        TextFieldWithToolBar(text: $state.durationTT, placeholder: "0", numberFormatter: formatter)
-                        Text("minutes").foregroundColor(.secondary)
-                    }
-                    DatePicker("Date", selection: $state.date)
-                    HStack {
-                        Button { state.enact() }
-                        label: { Text("Enact") }
-                            .disabled(state.durationTT == 0)
-                            .buttonStyle(BorderlessButtonStyle())
-                            .font(.callout)
-                            .controlSize(.mini)
-
-                        Button { isPromptPresented = true }
-                        label: { Text("Save as preset") }
-                            .disabled(state.durationTT == 0)
-                            .tint(.orange)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-                            .buttonStyle(BorderlessButtonStyle())
-                            .controlSize(.mini)
-                    }
-                }.listRowBackground(Color.chart)
-            }
-
-            Section {
-                Button { state.cancel() }
-                label: {
-                    HStack {
-                        Spacer()
-                        Text("Cancel Temp Target")
-                        Spacer()
-                        Image(systemName: "xmark.app")
-                            .font(.title)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .center)
-                .disabled(state.storage.current() == nil)
-                .listRowBackground(state.storage.current() == nil ? Color(.systemGray4) : Color(.systemRed))
-                .tint(.white)
-            }.popover(isPresented: $isPromptPresented) {
-                Form {
-                    Section(header: Text("Enter preset name")) {
-                        TextField("Name", text: $state.newPresetName)
-                        Button {
-                            state.save()
-                            isPromptPresented = false
-                        }
-                        label: { Text("Save") }
-                        Button { isPromptPresented = false }
-                        label: { Text("Cancel") }
-                    }
-                }
-            }
-            .onAppear {
-                configureView()
-                state.hbt = isEnabledArray.first?.hbt ?? 160
+                })
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .disabled(!state.isTempTargetEnabled)
+                    .listRowBackground(!state.isTempTargetEnabled ? Color(.systemGray4) : Color(.systemRed))
+                    .tint(.white)
             }
         }
 
-        private func presetView(for preset: TempTarget) -> some View {
+        private func tempTargetView(for preset: TempTarget) -> some View {
             var low = preset.targetBottom
             var high = preset.targetTop
             if state.units == .mmolL {
@@ -414,14 +354,15 @@ extension OverrideConfig {
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        state.enactPreset(id: preset.id)
-                        selectedPresetID = preset.id
-                        showCheckmark.toggle()
-
-                        // deactivate showCheckmark after 3 seconds
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                            showCheckmark = false
-                        }
+                        // TODO: - adapt to Temp Targets
+//                        state.enactPreset(id: preset.id)
+//                        selectedPresetID = preset.id
+//                        showCheckmark.toggle()
+//
+//                        // deactivate showCheckmark after 3 seconds
+//                        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+//                            showCheckmark = false
+//                        }
                     }
 
                     Image(systemName: "xmark.circle").foregroundColor(showCheckmark && isSelected ? Color.clear : Color.secondary)

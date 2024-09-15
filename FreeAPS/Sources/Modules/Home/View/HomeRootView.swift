@@ -44,17 +44,21 @@ extension Home {
             fetchLimit: 1
         )) var latestOverride: FetchedResults<OverrideStored>
 
-        @FetchRequest(
-            entity: TempTargets.entity(),
-            sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
-        ) var sliderTTpresets: FetchedResults<TempTargets>
+        @FetchRequest(fetchRequest: TempTargetStored.fetch(
+            NSPredicate.lastActiveTempTarget,
+            ascending: false,
+            fetchLimit: 1
+        )) var latestTempTarget: FetchedResults<TempTargetStored>
 
-        @FetchRequest(
-            entity: TempTargetsSlider.entity(),
-            sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
-        ) var enactedSliderTT: FetchedResults<TempTargetsSlider>
-
-        // TODO: end todo
+//        @FetchRequest(
+//            entity: TempTargets.entity(),
+//            sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
+//        ) var sliderTTpresets: FetchedResults<TempTargets>
+//
+//        @FetchRequest(
+//            entity: TempTargetsSlider.entity(),
+//            sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
+//        ) var enactedSliderTT: FetchedResults<TempTargetsSlider>
 
         var bolusProgressFormatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -236,23 +240,41 @@ extension Home {
         }
 
         var tempTargetString: String? {
-            guard let tempTarget = state.tempTarget else {
+            guard let latestTempTarget = latestTempTarget.first else {
                 return nil
             }
-            let target = tempTarget.targetBottom ?? 0
-            let unitString = targetFormatter.string(from: (tempTarget.targetBottom?.asMmolL ?? 0) as NSNumber) ?? ""
-            let rawString = (tirFormatter.string(from: (tempTarget.targetBottom ?? 0) as NSNumber) ?? "") + " " + state.units
+
+            let name = latestTempTarget.name
+            let duration = latestTempTarget.duration
+            let addedMinutes = Int(truncating: duration ?? 0)
+            let date = latestTempTarget.date ?? Date()
+            let newDuration = max(
+                Decimal(Date().distance(to: date.addingTimeInterval(addedMinutes.minutes.timeInterval)).minutes),
+                0
+            )
+            var durationString = ""
+
+            let target = latestTempTarget.target
+            var targetString = target == 0 ? "" : (fetchedTargetFormatter.string(from: (target ?? 0) as NSNumber) ?? "") + " " +
+                state.units
                 .rawValue
 
-            var string = ""
-            if sliderTTpresets.first?.active ?? false {
-                let hbt = sliderTTpresets.first?.hbt ?? 0
-                string = ", " + (tirFormatter.string(from: state.infoPanelTTPercentage(hbt, target) as NSNumber) ?? "") + " %"
+            if newDuration >= 1 {
+                durationString =
+                    "\(newDuration.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) min"
+            } else if newDuration > 0 {
+                durationString =
+                    "\((newDuration * 60).formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) s"
+            } else {
+                /// Do not show the Override anymore
+                Task {
+                    guard let objectID = self.latestOverride.first?.objectID else { return }
+                    await state.cancelOverride(withID: objectID)
+                }
             }
 
-            let percentString = state
-                .units == .mmolL ? (unitString + " mmol/L" + string) : (rawString + (string == "0" ? "" : string))
-            return tempTarget.displayName + " " + percentString
+            let components = [targetString, durationString].filter { !$0.isEmpty }
+            return components.isEmpty ? nil : components.joined(separator: ", ")
         }
 
         var infoPanel: some View {
