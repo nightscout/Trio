@@ -5,8 +5,10 @@ extension UserDefaults {
         static let liveActivityOrder = "liveActivityOrder"
     }
 
-    func loadLiveActivityOrderFromUserDefaults() -> [String]? {
-        array(forKey: Keys.liveActivityOrder) as? [String]
+    func loadLiveActivityOrderFromUserDefaults() -> [LiveActivityAttributes.ItemOrder]? {
+        stringArray(forKey: Keys.liveActivityOrder)?.map({ str in
+            LiveActivityAttributes.ItemOrder(rawValue: str)
+        }) as? [LiveActivityAttributes.ItemOrder]
     }
 }
 
@@ -85,6 +87,9 @@ extension LiveActivityAttributes.ContentState {
         let trendString = bg.direction?.symbol as? String
         let change = Self.calculateChange(chart: chart, units: units)
 
+        let itemOrder = UserDefaults.standard
+            .loadLiveActivityOrderFromUserDefaults() ?? LiveActivityAttributes.ItemOrder.defaultOrders
+
         let detailedState: LiveActivityAttributes.ContentAdditionalState?
 
         switch settings.lockScreenView {
@@ -107,15 +112,17 @@ extension LiveActivityAttributes.ContentState {
                 overrideName: override?.overrideName ?? "Override",
                 overrideDate: override?.date ?? Date(),
                 overrideDuration: override?.duration ?? 0,
-                overrideTarget: override?.target ?? 0
+                overrideTarget: override?.target ?? 0,
+                itemOrder: itemOrder,
+                showCOB: settings.showCOB,
+                showIOB: settings.showIOB,
+                showCurrentGlucose: settings.showCurrentGlucose,
+                showUpdatedLabel: settings.showUpdatedLabel
             )
 
         case .simple:
             detailedState = nil
         }
-
-        let itemOrder = UserDefaults.standard
-            .loadLiveActivityOrderFromUserDefaults() ?? ["currentGlucose", "iob", "cob", "updatedLabel"]
 
         self.init(
             bg: formattedBG,
@@ -123,11 +130,6 @@ extension LiveActivityAttributes.ContentState {
             change: change,
             date: bg.date,
             detailedViewState: detailedState,
-            showCOB: settings.showCOB,
-            showIOB: settings.showIOB,
-            showCurrentGlucose: settings.showCurrentGlucose,
-            showUpdatedLabel: settings.showUpdatedLabel,
-            itemOrder: itemOrder,
             isInitialState: false
         )
     }

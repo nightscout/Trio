@@ -2,7 +2,14 @@ import ActivityKit
 import Foundation
 
 struct LiveActivityAttributes: ActivityAttributes {
-    public struct ContentState: Codable, Hashable {
+    enum ItemOrder: String, Hashable, Codable, Equatable {
+        case currentGlucose
+        case iob
+        case cob
+        case updatedLabel
+    }
+
+    struct ContentState: Codable, Hashable {
         let bg: String
         let direction: String?
         let change: String
@@ -10,18 +17,11 @@ struct LiveActivityAttributes: ActivityAttributes {
 
         let detailedViewState: ContentAdditionalState?
 
-        let showCOB: Bool
-        let showIOB: Bool
-        let showCurrentGlucose: Bool
-        let showUpdatedLabel: Bool
-
-        let itemOrder: [String]
-
         /// true for the first state that is set on the activity
         let isInitialState: Bool
     }
 
-    public struct ContentAdditionalState: Codable, Hashable {
+    struct ContentAdditionalState: Codable, Hashable {
         let chart: [Decimal]
         let chartDate: [Date?]
         let rotationDegrees: Double
@@ -36,7 +36,18 @@ struct LiveActivityAttributes: ActivityAttributes {
         let overrideDate: Date
         let overrideDuration: Decimal
         let overrideTarget: Decimal
+
+        let itemOrder: [ItemOrder]
+
+        let showCOB: Bool
+        let showIOB: Bool
+        let showCurrentGlucose: Bool
+        let showUpdatedLabel: Bool
     }
 
     let startDate: Date
+}
+
+extension LiveActivityAttributes.ItemOrder {
+    static let defaultOrders: [Self] = [.currentGlucose, .iob, .cob, .updatedLabel]
 }

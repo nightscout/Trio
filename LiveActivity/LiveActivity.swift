@@ -85,8 +85,13 @@ struct LiveActivity: Widget {
             } compactTrailing: {
                 LiveActivityCompactTrailingView(context: context)
             } minimal: {
-                LiveActivityMinimalView(context: context).font(.system(size: 11))
+                LiveActivityMinimalView(context: context)
             }
+            .widgetURL(URL(string: "Trio://"))
+            .keylineTint(Color.purple)
+            .contentMargins(.horizontal, 0, for: .minimal)
+            .contentMargins(.trailing, 0, for: .compactLeading)
+            .contentMargins(.leading, 0, for: .compactTrailing)
         }
     }
 }
@@ -118,10 +123,10 @@ struct LiveActivityView: View {
                     }
 
                 HStack {
-                    ForEach(Array(context.state.itemOrder.enumerated()), id: \.element) { index, item in
+                    ForEach(Array(detailedViewState.itemOrder.enumerated()), id: \.element) { index, item in
                         switch item {
-                        case "currentGlucose":
-                            if context.state.showCurrentGlucose {
+                        case .currentGlucose:
+                            if detailedViewState.showCurrentGlucose {
                                 VStack {
                                     LiveActivityBGLabelView(context: context, additionalState: detailedViewState)
                                     HStack {
@@ -132,23 +137,21 @@ struct LiveActivityView: View {
                                     }
                                 }
                             }
-                        case "iob":
-                            if context.state.showIOB {
+                        case .iob:
+                            if detailedViewState.showIOB {
                                 LiveActivityIOBLabelView(context: context, additionalState: detailedViewState)
                             }
-                        case "cob":
-                            if context.state.showCOB {
+                        case .cob:
+                            if detailedViewState.showCOB {
                                 LiveActivityCOBLabelView(context: context, additionalState: detailedViewState)
                             }
-                        case "updatedLabel":
-                            if context.state.showUpdatedLabel {
+                        case .updatedLabel:
+                            if detailedViewState.showUpdatedLabel {
                                 LiveActivityUpdatedLabelView(context: context, isDetailedLayout: true)
                             }
-                        default:
-                            EmptyView()
                         }
 
-                        if index < context.state.itemOrder.count - 1 {
+                        if index < detailedViewState.itemOrder.count - 1 {
                             Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
                         }
                     }
@@ -572,7 +575,12 @@ private extension LiveActivityAttributes.ContentState {
         overrideName: "Exercise",
         overrideDate: Date().addingTimeInterval(-3600),
         overrideDuration: 120,
-        overrideTarget: 150
+        overrideTarget: 150,
+        itemOrder: LiveActivityAttributes.ItemOrder.defaultOrders,
+        showCOB: true,
+        showIOB: true,
+        showCurrentGlucose: true,
+        showUpdatedLabel: true
     )
 
     // 0 is the widest digit. Use this to get an upper bound on text width.
@@ -584,12 +592,7 @@ private extension LiveActivityAttributes.ContentState {
             direction: "→",
             change: "+0.0",
             date: Date(),
-            detailedViewState: detailedViewState,
-            showCOB: true,
-            showIOB: true,
-            showCurrentGlucose: true,
-            showUpdatedLabel: true,
-            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
+            detailedViewState: nil,
             isInitialState: false
         )
     }
@@ -600,12 +603,7 @@ private extension LiveActivityAttributes.ContentState {
             direction: "↑↑",
             change: "+0.0",
             date: Date(),
-            detailedViewState: detailedViewState,
-            showCOB: true,
-            showIOB: true,
-            showCurrentGlucose: true,
-            showUpdatedLabel: true,
-            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
+            detailedViewState: nil,
             isInitialState: false
         )
     }
@@ -616,12 +614,7 @@ private extension LiveActivityAttributes.ContentState {
             direction: "↑↑↑",
             change: "+0.0",
             date: Date(),
-            detailedViewState: detailedViewState,
-            showCOB: true,
-            showIOB: true,
-            showCurrentGlucose: true,
-            showUpdatedLabel: true,
-            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
+            detailedViewState: nil,
             isInitialState: false
         )
     }
@@ -633,12 +626,7 @@ private extension LiveActivityAttributes.ContentState {
             direction: "↑",
             change: "+0",
             date: Date(),
-            detailedViewState: detailedViewState,
-            showCOB: true,
-            showIOB: true,
-            showCurrentGlucose: true,
-            showUpdatedLabel: true,
-            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
+            detailedViewState: nil,
             isInitialState: false
         )
     }
@@ -649,12 +637,7 @@ private extension LiveActivityAttributes.ContentState {
             direction: "↗︎",
             change: "+00",
             date: Date(),
-            detailedViewState: detailedViewState,
-            showCOB: true,
-            showIOB: true,
-            showCurrentGlucose: true,
-            showUpdatedLabel: true,
-            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
+            detailedViewState: nil,
             isInitialState: false
         )
     }
@@ -665,19 +648,81 @@ private extension LiveActivityAttributes.ContentState {
             direction: nil,
             change: "--",
             date: Date().addingTimeInterval(-60 * 60),
+            detailedViewState: nil,
+            isInitialState: false
+        )
+    }
+
+    static var testWideDetailed: LiveActivityAttributes.ContentState {
+        LiveActivityAttributes.ContentState(
+            bg: "00.0",
+            direction: "→",
+            change: "+0.0",
+            date: Date(),
             detailedViewState: detailedViewState,
-            showCOB: true,
-            showIOB: true,
-            showCurrentGlucose: true,
-            showUpdatedLabel: true,
-            itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
+            isInitialState: false
+        )
+    }
+
+    static var testVeryWideDetailed: LiveActivityAttributes.ContentState {
+        LiveActivityAttributes.ContentState(
+            bg: "00.0",
+            direction: "↑↑",
+            change: "+0.0",
+            date: Date(),
+            detailedViewState: detailedViewState,
+            isInitialState: false
+        )
+    }
+
+    static var testSuperWideDetailed: LiveActivityAttributes.ContentState {
+        LiveActivityAttributes.ContentState(
+            bg: "00.0",
+            direction: "↑↑↑",
+            change: "+0.0",
+            date: Date(),
+            detailedViewState: detailedViewState,
+            isInitialState: false
+        )
+    }
+
+    // 2 characters for BG, 1 character for change is the minimum that will be shown
+    static var testNarrowDetailed: LiveActivityAttributes.ContentState {
+        LiveActivityAttributes.ContentState(
+            bg: "00",
+            direction: "↑",
+            change: "+0",
+            date: Date(),
+            detailedViewState: detailedViewState,
+            isInitialState: false
+        )
+    }
+
+    static var testMediumDetailed: LiveActivityAttributes.ContentState {
+        LiveActivityAttributes.ContentState(
+            bg: "000",
+            direction: "↗︎",
+            change: "+00",
+            date: Date(),
+            detailedViewState: detailedViewState,
+            isInitialState: false
+        )
+    }
+
+    static var testExpiredDetailed: LiveActivityAttributes.ContentState {
+        LiveActivityAttributes.ContentState(
+            bg: "--",
+            direction: nil,
+            change: "--",
+            date: Date().addingTimeInterval(-60 * 60),
+            detailedViewState: detailedViewState,
             isInitialState: false
         )
     }
 }
 
 @available(iOS 17.0, iOSApplicationExtension 17.0, *)
-#Preview("Notification", as: .content, using: LiveActivityAttributes.preview) {
+#Preview("Simple", as: .content, using: LiveActivityAttributes.preview) {
     LiveActivity()
 } contentStates: {
     LiveActivityAttributes.ContentState.testSuperWide
@@ -686,4 +731,16 @@ private extension LiveActivityAttributes.ContentState {
     LiveActivityAttributes.ContentState.testMedium
     LiveActivityAttributes.ContentState.testNarrow
     LiveActivityAttributes.ContentState.testExpired
+}
+
+@available(iOS 17.0, iOSApplicationExtension 17.0, *)
+#Preview("Detailed", as: .content, using: LiveActivityAttributes.preview) {
+    LiveActivity()
+} contentStates: {
+    LiveActivityAttributes.ContentState.testSuperWideDetailed
+    LiveActivityAttributes.ContentState.testVeryWideDetailed
+    LiveActivityAttributes.ContentState.testWideDetailed
+    LiveActivityAttributes.ContentState.testMediumDetailed
+    LiveActivityAttributes.ContentState.testNarrowDetailed
+    LiveActivityAttributes.ContentState.testExpiredDetailed
 }

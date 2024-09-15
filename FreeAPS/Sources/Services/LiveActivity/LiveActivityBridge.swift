@@ -232,11 +232,6 @@ import UIKit
                         change: "--",
                         date: Date.now,
                         detailedViewState: nil,
-                        showCOB: true,
-                        showIOB: true,
-                        showCurrentGlucose: true,
-                        showUpdatedLabel: true,
-                        itemOrder: ["currentGlucose", "iob", "cob", "updatedLabel"],
                         isInitialState: true
                     ),
                     staleDate: Date.now.addingTimeInterval(60)
