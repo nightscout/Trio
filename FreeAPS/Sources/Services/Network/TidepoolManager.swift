@@ -148,7 +148,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegat
             do {
                 let results = try self.backgroundContext.fetch(fetchRequest)
                 for result in results {
-                    result.isUploadedToHealth = true
+                    result.isUploadedToTidepool = true
                 }
 
                 guard self.backgroundContext.hasChanges else { return }
@@ -204,69 +204,93 @@ final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegat
         let eventsBasal = events.filter { $0.type == .tempBasal || $0.type == .tempBasalDuration }
             .sorted { $0.timestamp < $1.timestamp }
 
-        let doseDataBasal: [DoseEntry] = eventsBasal.reduce([]) { result, event in
-            var result = result
+//        let doseDataBasal: [DoseEntry] = eventsBasal.reduce([]) { result, event in
+//            var result = result
+//            switch event.type {
+//            case .tempBasal:
+//                // update the previous tempBasal with endtime = starttime of the last event
+//                if let last: DoseEntry = result.popLast() {
+//                    let value = max(
+//                        0,
+//                        Double(event.timestamp.timeIntervalSince1970 - last.startDate.timeIntervalSince1970) / 3600
+//                    ) *
+//                        (last.scheduledBasalRate?.doubleValue(for: .internationalUnitsPerHour) ?? 0.0)
+//                    result.append(DoseEntry(
+//                        type: .tempBasal,
+//                        startDate: last.startDate,
+//                        endDate: event.timestamp,
+//                        value: value,
+//                        unit: last.unit,
+//                        deliveredUnits: value,
+//                        syncIdentifier: last.syncIdentifier,
+//                        insulinType: last.insulinType,
+//                        automatic: last.automatic,
+//                        manuallyEntered: last.manuallyEntered
+//                    ))
+//                }
+//                result.append(DoseEntry(
+//                    type: .tempBasal,
+//                    startDate: event.timestamp,
+//                    value: 0.0,
+//                    unit: .units,
+//                    syncIdentifier: event.id,
+//                    scheduledBasalRate: HKQuantity(unit: .internationalUnitsPerHour, doubleValue: Double(event.amount!)),
+//                    insulinType: nil,
+//                    automatic: true,
+//                    manuallyEntered: false,
+//                    isMutable: true
+//                ))
+//            case .tempBasalDuration:
+//                if let last: DoseEntry = result.popLast(),
+//                   last.type == .tempBasal,
+//                   last.startDate == event.timestamp
+//                {
+//                    let durationMin = event.durationMin ?? 0
+//                    // result.append(last)
+//                    let value = (Double(durationMin) / 60.0) *
+//                        (last.scheduledBasalRate?.doubleValue(for: .internationalUnitsPerHour) ?? 0.0)
+//                    result.append(DoseEntry(
+//                        type: .tempBasal,
+//                        startDate: last.startDate,
+//                        endDate: Calendar.current.date(byAdding: .minute, value: durationMin, to: last.startDate) ?? last
+//                            .startDate,
+//                        value: value,
+//                        unit: last.unit,
+//                        deliveredUnits: value,
+//                        syncIdentifier: last.syncIdentifier,
+//                        scheduledBasalRate: last.scheduledBasalRate,
+//                        insulinType: last.insulinType,
+//                        automatic: last.automatic,
+//                        manuallyEntered: last.manuallyEntered
+//                    ))
+//                }
+//            default: break
+//            }
+//            return result
+//        }
+
+        let tempBasals: [DoseEntry] = events.compactMap { event -> DoseEntry? in
             switch event.type {
             case .tempBasal:
-                // update the previous tempBasal with endtime = starttime of the last event
-                if let last: DoseEntry = result.popLast() {
-                    let value = max(
-                        0,
-                        Double(event.timestamp.timeIntervalSince1970 - last.startDate.timeIntervalSince1970) / 3600
-                    ) *
-                        (last.scheduledBasalRate?.doubleValue(for: .internationalUnitsPerHour) ?? 0.0)
-                    result.append(DoseEntry(
-                        type: .tempBasal,
-                        startDate: last.startDate,
-                        endDate: event.timestamp,
-                        value: value,
-                        unit: last.unit,
-                        deliveredUnits: value,
-                        syncIdentifier: last.syncIdentifier,
-                        insulinType: last.insulinType,
-                        automatic: last.automatic,
-                        manuallyEntered: last.manuallyEntered
-                    ))
-                }
-                result.append(DoseEntry(
+                return DoseEntry(
                     type: .tempBasal,
                     startDate: event.timestamp,
+                    endDate: event.timestamp
+                        .addingTimeInterval(TimeInterval(minutes: Double(event.duration ?? 0))),
                     value: 0.0,
                     unit: .units,
                     syncIdentifier: event.id,
-                    scheduledBasalRate: HKQuantity(unit: .internationalUnitsPerHour, doubleValue: Double(event.amount!)),
+                    scheduledBasalRate: HKQuantity(
+                        unit: .internationalUnitsPerHour,
+                        doubleValue: Double(event.rate!)
+                    ),
                     insulinType: nil,
                     automatic: true,
                     manuallyEntered: false,
                     isMutable: true
-                ))
-            case .tempBasalDuration:
-                if let last: DoseEntry = result.popLast(),
-                   last.type == .tempBasal,
-                   last.startDate == event.timestamp
-                {
-                    let durationMin = event.durationMin ?? 0
-                    // result.append(last)
-                    let value = (Double(durationMin) / 60.0) *
-                        (last.scheduledBasalRate?.doubleValue(for: .internationalUnitsPerHour) ?? 0.0)
-                    result.append(DoseEntry(
-                        type: .tempBasal,
-                        startDate: last.startDate,
-                        endDate: Calendar.current.date(byAdding: .minute, value: durationMin, to: last.startDate) ?? last
-                            .startDate,
-                        value: value,
-                        unit: last.unit,
-                        deliveredUnits: value,
-                        syncIdentifier: last.syncIdentifier,
-                        scheduledBasalRate: last.scheduledBasalRate,
-                        insulinType: last.insulinType,
-                        automatic: last.automatic,
-                        manuallyEntered: last.manuallyEntered
-                    ))
-                }
-            default: break
+                )
+            default: return nil
             }
-            return result
         }
 
         let boluses: [DoseEntry] = events.compactMap { event -> DoseEntry? in
@@ -316,7 +340,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegat
         }
 
         processQueue.async {
-            tidepoolService.uploadDoseData(created: doseDataBasal + boluses, deleted: []) { result in
+            tidepoolService.uploadDoseData(created: tempBasals + boluses, deleted: []) { result in
                 switch result {
                 case let .failure(error):
                     debug(.nightscout, "Error synchronizing Dose data: \(String(describing: error))")
@@ -361,7 +385,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegat
             do {
                 let results = try self.backgroundContext.fetch(fetchRequest)
                 for result in results {
-                    result.isUploadedToHealth = true
+                    result.isUploadedToTidepool = true
                 }
 
                 guard self.backgroundContext.hasChanges else { return }
@@ -438,7 +462,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegat
             do {
                 let results = try self.backgroundContext.fetch(fetchRequest)
                 for result in results {
-                    result.isUploadedToHealth = true
+                    result.isUploadedToTidepool = true
                 }
 
                 guard self.backgroundContext.hasChanges else { return }
