@@ -131,6 +131,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newPumpEvent.type = PumpEvent.tempBasal.rawValue
                         newPumpEvent.isUploadedToNS = false
                         newPumpEvent.isUploadedToHealth = false
+                        newPumpEvent.isUploadedToTidepool = false
 
                         let newTempBasal = TempBasalStored(context: self.context)
                         newTempBasal.pumpEvent = newPumpEvent
@@ -150,6 +151,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newPumpEvent.type = PumpEvent.pumpSuspend.rawValue
                         newPumpEvent.isUploadedToNS = false
                         newPumpEvent.isUploadedToHealth = false
+                        newPumpEvent.isUploadedToTidepool = false
 
                     case .resume:
                         guard existingEvents.isEmpty else {
@@ -163,6 +165,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newPumpEvent.type = PumpEvent.pumpResume.rawValue
                         newPumpEvent.isUploadedToNS = false
                         newPumpEvent.isUploadedToHealth = false
+                        newPumpEvent.isUploadedToTidepool = false
 
                     case .rewind:
                         guard existingEvents.isEmpty else {
@@ -176,6 +179,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newPumpEvent.type = PumpEvent.rewind.rawValue
                         newPumpEvent.isUploadedToNS = false
                         newPumpEvent.isUploadedToHealth = false
+                        newPumpEvent.isUploadedToTidepool = false
 
                     case .prime:
                         guard existingEvents.isEmpty else {
@@ -189,6 +193,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newPumpEvent.type = PumpEvent.prime.rawValue
                         newPumpEvent.isUploadedToNS = false
                         newPumpEvent.isUploadedToHealth = false
+                        newPumpEvent.isUploadedToTidepool = false
 
                     case .alarm:
                         guard existingEvents.isEmpty else {
@@ -202,6 +207,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newPumpEvent.type = PumpEvent.pumpAlarm.rawValue
                         newPumpEvent.isUploadedToNS = false
                         newPumpEvent.isUploadedToHealth = false
+                        newPumpEvent.isUploadedToTidepool = false
                         newPumpEvent.note = event.title
 
                     default:
@@ -500,12 +506,20 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         isExternal: event.bolus?.isExternal ?? false
                     )
                 case PumpEvent.tempBasal.rawValue:
-                    return PumpHistoryEvent(
-                        id: event.id ?? UUID().uuidString,
-                        type: .tempBasal,
-                        timestamp: event.timestamp ?? Date(),
-                        amount: event.tempBasal?.rate as Decimal?
-                    )
+                    if let id = event.id, let timestamp = event.timestamp, let tempBasal = event.tempBasal,
+                       let tempBasalRate = tempBasal.rate
+                    {
+                        return PumpHistoryEvent(
+                            id: id,
+                            type: .tempBasal,
+                            timestamp: timestamp,
+                            amount: tempBasalRate as Decimal,
+                            duration: Int(tempBasal.duration)
+                        )
+                    } else {
+                        return nil
+                    }
+
                 default:
                     return nil
                 }
