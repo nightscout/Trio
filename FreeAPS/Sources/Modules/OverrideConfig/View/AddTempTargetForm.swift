@@ -50,12 +50,12 @@ struct AddTempTargetForm: View {
             Form {
                 addTempTarget()
             }.scrollContentBackground(.hidden).background(color)
-                .navigationTitle("Add Override")
+                .navigationTitle("Add Temp Target")
                 .navigationBarItems(trailing: Button("Cancel") {
                     presentationMode.wrappedValue.dismiss()
                 })
                 .alert(
-                    "Start Override",
+                    "Start Temp Target",
                     isPresented: $showAlert,
                     actions: {
                         Button("Cancel", role: .cancel) { state.isTempTargetEnabled = false }
@@ -79,7 +79,7 @@ struct AddTempTargetForm: View {
     @ViewBuilder private func addTempTarget() -> some View {
         Section {
             VStack {
-                TextField("Name", text: $state.overrideName)
+                TextField("Name", text: $state.tempTargetName)
             }
         } header: {
             Text("Name")
@@ -127,36 +127,26 @@ struct AddTempTargetForm: View {
     }
 
     private func setupAlertString() async {
-        alertString = "\(state.overrideSliderPercentage.formatted(.number)) %, " +
+        alertString =
             (
-                state.overrideDuration > 0 || !state
-                    .indefinite ?
+                state.tempTargetDuration > 0 ?
                     (
                         state
-                            .overrideDuration
+                            .tempTargetDuration
                             .formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) +
                             " min."
                     ) :
                     NSLocalizedString(" infinite duration.", comment: "")
             ) +
             (
-                (state.target == 0 || !state.shouldOverrideTarget) ? "" :
-                    (" Target: " + state.target.formatted() + " " + state.units.rawValue + ".")
-            )
-            +
-            (
-                state
-                    .smbIsOff ?
-                    NSLocalizedString(
-                        " SMBs are disabled either by schedule or during the entire duration.",
-                        comment: ""
-                    ) : ""
+                state.tempTargetTarget == 0 ? "" :
+                    (" Target: " + state.tempTargetTarget.formatted() + " " + state.units.rawValue + ".")
             )
             +
             "\n\n"
             +
             NSLocalizedString(
-                "Starting this override will change your profiles and/or your Target Glucose used for looping during the entire selected duration. Tapping ”Start Override” will start your new Override or edit your current active Override.",
+                "Starting this Temp Target will change your profiles and/or your Target Glucose used for looping during the entire selected duration. Tapping ”Start Temp Target” will start your new Temp Target or edit your current active Temp Target.",
                 comment: ""
             )
     }
