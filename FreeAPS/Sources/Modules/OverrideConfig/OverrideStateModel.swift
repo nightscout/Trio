@@ -32,7 +32,9 @@ extension OverrideConfig {
         @Published var defaultUamMinutes: Decimal = 0
         @Published var selectedTab: Tab = .overrides
         @Published var activeOverrideName: String = ""
+        @Published var activeTempTargetName: String = ""
         @Published var currentActiveOverride: OverrideStored?
+        @Published var currentActiveTempTarget: TempTargetStored?
         @Published var showOverrideEditSheet = false
         @Published var showInvalidTargetAlert = false
 
@@ -71,6 +73,7 @@ extension OverrideConfig {
             setupOverridePresetsArray()
             setupTempTargetPresetsArray()
             updateLatestOverrideConfiguration()
+            updateLatestTempTargetConfiguration()
             maxValue = settingsManager.preferences.autosensMax
             broadcaster.register(SettingsObserver.self, observer: self)
         }
@@ -435,6 +438,58 @@ extension OverrideConfig.StateModel {
 // MARK: - Temp Targets
 
 extension OverrideConfig.StateModel {
+    // MARK: - Setup the State variables with the last Temp Target configuration
+
+    /// First get the latest Temp Target corresponding NSManagedObjectID with a background fetch
+    /// Then unpack it on the view context and update the State variables which can be used on in the View for some Logic
+    /// This also needs to be called when we cancel an Temp Target via the Home View to update the State of the Button for this case
+    func updateLatestTempTargetConfiguration() {
+        Task {
+            let id = await loadLatestTempTargetConfigurations(fetchLimit: 1)
+            async let updateState: () = updateLatestTempTargetConfigurationOfState(from: id)
+            async let setTempTarget: () = setCurrentTempTarget(from: id)
+
+            _ = await (updateState, setTempTarget)
+        }
+    }
+
+    @MainActor func updateLatestTempTargetConfigurationOfState(from IDs: [NSManagedObjectID]) async {
+        do {
+            let result = try IDs.compactMap { id in
+                try viewContext.existingObject(with: id) as? OverrideStored
+            }
+            isTempTargetEnabled = result.first?.enabled ?? false
+
+            if !isEnabled {
+                await resetTempTargetState()
+            }
+        } catch {
+            debugPrint(
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update latest temp target configuration"
+            )
+        }
+    }
+
+    // Sets the current active Preset name to show in the UI
+    @MainActor func setCurrentTempTarget(from IDs: [NSManagedObjectID]) async {
+        do {
+            guard let firstID = IDs.first else {
+                activeTempTargetName = "Custom Temp Target"
+                currentActiveTempTarget = nil
+                return
+            }
+
+            if let tempTargetToEdit = try viewContext.existingObject(with: firstID) as? TempTargetStored {
+                currentActiveTempTarget = tempTargetToEdit
+                activeTempTargetName = tempTargetToEdit.name ?? "Custom Temp Target"
+            }
+        } catch {
+            debugPrint(
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to set active preset name with error: \(error.localizedDescription)"
+            )
+        }
+    }
+
     // Fill the array of the Override Presets to display them in the UI
     private func setupTempTargetPresetsArray() {
         Task {
@@ -501,6 +556,7 @@ extension OverrideConfig.StateModel {
         await resetTempTargetState()
 
         // Update View
+        updateLatestTempTargetConfiguration()
     }
 
     // Creates a new Temp Target Preset
@@ -557,7 +613,7 @@ extension OverrideConfig.StateModel {
             try viewContext.save()
 
             // Update View
-
+            updateLatestTempTargetConfiguration()
         } catch {
             debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to enact Override Preset")
         }
@@ -624,7 +680,7 @@ extension OverrideConfig.StateModel {
                     try self.viewContext.save()
 
                     // Update the View
-                    self.updateLatestOverrideConfiguration()
+                    self.updateLatestTempTargetConfiguration()
                 }
             } catch {
                 debugPrint(
@@ -632,6 +688,18 @@ extension OverrideConfig.StateModel {
                 )
             }
         }
+    }
+
+    // Deletion of Temp Targets
+    func invokeTempTargetPresetDeletion(_ objectID: NSManagedObjectID) async {
+        await deleteOverridePreset(objectID)
+
+        // Update Presets View
+        setupTempTargetPresetsArray()
+    }
+
+    @MainActor func deleteOverridePreset(_ objectID: NSManagedObjectID) async {
+        await CoreDataStack.shared.deleteObject(identifiedBy: objectID)
     }
 
     @MainActor func resetTempTargetState() async {

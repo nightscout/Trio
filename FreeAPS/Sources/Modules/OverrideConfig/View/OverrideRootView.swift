@@ -16,7 +16,7 @@ extension OverrideConfig {
         @State private var selectedPresetID: String?
         @State private var selectedTempTargetPresetID: String?
         @State private var selectedOverride: OverrideStored?
-        @State private var selectedTempTarget: OverrideStored?
+        @State private var selectedTempTarget: TempTargetStored?
 
         // temp targets
         @State private var isRemoveAlertPresented = false
@@ -224,15 +224,15 @@ extension OverrideConfig {
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button(role: .none) {
                                 Task {
-//                                    await state.invokeOverridePresetDeletion(preset.objectID)
+                                    await state.invokeTempTargetPresetDeletion(preset.objectID)
                                 }
                             } label: {
                                 Label("Delete", systemImage: "trash")
                                     .tint(.red)
                             }
                             Button(action: {
-                                // Set the selected Override to the chosen Preset and pass it to the Edit Sheet
-//                                selectedOverride = preset
+                                // Set the selected Temp Target to the chosen Preset and pass it to the Edit Sheet
+                                selectedTempTarget = preset
 //                                state.showOverrideEditSheet = true
                             }, label: {
                                 Label("Edit", systemImage: "pencil")
@@ -253,30 +253,58 @@ extension OverrideConfig {
         }
 
         private var currentActiveOverride: some View {
-            Section {
-                HStack {
-                    Text("\(state.activeOverrideName) is running")
+            switch state.selectedTab {
+            case .overrides:
+                Section {
+                    HStack {
+                        Text("\(state.activeOverrideName) is running")
 
-                    Spacer()
-                    Image(systemName: "square.and.pencil")
-                        .foregroundStyle(Color.blue)
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    Task {
-                        /// To avoid editing the Preset when a Preset-Override is running we first duplicate the Preset-Override as a non-Preset Override
-                        /// The currentActiveOverride variable in the State will update automatically via MOC notification
-                        await state.duplicateOverridePresetAndCancelPreviousOverride()
+                        Spacer()
+                        Image(systemName: "square.and.pencil")
+                            .foregroundStyle(Color.blue)
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        Task {
+                            /// To avoid editing the Preset when a Preset-Override is running we first duplicate the Preset-Override as a non-Preset Override
+                            /// The currentActiveOverride variable in the State will update automatically via MOC notification
+                            await state.duplicateOverridePresetAndCancelPreviousOverride()
 
-                        /// selectedOverride is used for passing the chosen Override to the EditSheet so we have to set the updated currentActiveOverride to be the selectedOverride
-                        selectedOverride = state.currentActiveOverride
+                            /// selectedOverride is used for passing the chosen Override to the EditSheet so we have to set the updated currentActiveOverride to be the selectedOverride
+                            selectedOverride = state.currentActiveOverride
 
-                        /// Now we can show the Edit sheet
-                        state.showOverrideEditSheet = true
+                            /// Now we can show the Edit sheet
+                            state.showOverrideEditSheet = true
+                        }
                     }
                 }
+                .listRowBackground(Color.blue.opacity(0.2))
+            case .tempTargets:
+                Section {
+                    HStack {
+                        Text("\(state.activeOverrideName) is running")
+
+                        Spacer()
+                        Image(systemName: "square.and.pencil")
+                            .foregroundStyle(Color.blue)
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        Task {
+                            /// To avoid editing the Preset when a Preset-Override is running we first duplicate the Preset-Override as a non-Preset Override
+                            /// The currentActiveOverride variable in the State will update automatically via MOC notification
+                            await state.duplicateOverridePresetAndCancelPreviousOverride()
+
+                            /// selectedOverride is used for passing the chosen Override to the EditSheet so we have to set the updated currentActiveOverride to be the selectedOverride
+                            selectedOverride = state.currentActiveOverride
+
+                            /// Now we can show the Edit sheet
+                            state.showOverrideEditSheet = true
+                        }
+                    }
+                }
+                .listRowBackground(Color.blue.opacity(0.2))
             }
-            .listRowBackground(Color.blue.opacity(0.2))
         }
 
         private var cancelOverrideButton: some View {
@@ -353,15 +381,13 @@ extension OverrideConfig {
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        // TODO: - adapt to Temp Targets
-//                        state.enactPreset(id: preset.id)
-//                        selectedPresetID = preset.id
-//                        showCheckmark.toggle()
-//
-//                        // deactivate showCheckmark after 3 seconds
-//                        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-//                            showCheckmark = false
-//                        }
+                        Task {
+                            let objectID = preset.objectID
+                            await state.enactTempTargetPreset(withID: objectID)
+//                            state.hideModal() // is this needed???
+                            selectedTempTargetPresetID = preset.id?.uuidString
+                            // TODO: - add checkmark here when preset was selected
+                        }
                     }
 
                     Image(systemName: "xmark.circle").foregroundColor(showCheckmark && isSelected ? Color.clear : Color.secondary)
