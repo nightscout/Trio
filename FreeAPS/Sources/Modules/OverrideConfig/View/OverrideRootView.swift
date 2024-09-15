@@ -128,6 +128,17 @@ extension OverrideConfig {
                     }) {
                         AddTempTargetForm(state: state)
                     }
+                    .sheet(isPresented: $state.showTempTargetEditSheet, onDismiss: {
+                        Task {
+                            await state.resetTempTargetState()
+                            state.showTempTargetEditSheet = false
+                        }
+
+                    }) {
+                        if let tempTarget = selectedTempTarget {
+                            EditTempTargetForm(tempTargetToEdit: tempTarget, state: state)
+                        }
+                    }
             }.background(color)
         }
 
@@ -139,11 +150,11 @@ extension OverrideConfig {
             }
 
             if state.isEnabled, state.activeOverrideName.isNotEmpty {
-                currentActiveOverride
+                currentActiveAdjustment
             }
 
             if state.overridePresets.isNotEmpty || state.currentActiveOverride != nil {
-                cancelOverrideButton
+                cancelAdjustmentButton
             }
         }
 
@@ -153,14 +164,14 @@ extension OverrideConfig {
             } else {
                 defaultText
             }
-//
-//            if state.isEnabled, state.activeOverrideName.isNotEmpty {
-//                currentActiveOverride
-//            }
-//
-//            if state.overridePresets.isNotEmpty || state.currentActiveOverride != nil {
-//                cancelOverrideButton
-//            }
+
+            if state.isTempTargetEnabled, state.activeTempTargetName.isNotEmpty {
+                currentActiveAdjustment
+            }
+
+            if state.tempTargetPresets.isNotEmpty || state.currentActiveTempTarget != nil {
+                cancelAdjustmentButton
+            }
         }
 
         private var defaultText: some View {
@@ -233,14 +244,14 @@ extension OverrideConfig {
                             Button(action: {
                                 // Set the selected Temp Target to the chosen Preset and pass it to the Edit Sheet
                                 selectedTempTarget = preset
-//                                state.showOverrideEditSheet = true
+                                state.showTempTargetEditSheet = true
                             }, label: {
                                 Label("Edit", systemImage: "pencil")
                                     .tint(.blue)
                             })
                         }
                 }
-                .onMove(perform: state.reorderOverride)
+//                .onMove(perform: state.reorderOverride)
                 .listRowBackground(Color.chart)
             } header: {
                 Text("Presets")
@@ -252,7 +263,7 @@ extension OverrideConfig {
             }
         }
 
-        private var currentActiveOverride: some View {
+        private var currentActiveAdjustment: some View {
             switch state.selectedTab {
             case .overrides:
                 Section {
@@ -282,7 +293,7 @@ extension OverrideConfig {
             case .tempTargets:
                 Section {
                     HStack {
-                        Text("\(state.activeOverrideName) is running")
+                        Text("\(state.activeTempTargetName) is running")
 
                         Spacer()
                         Image(systemName: "square.and.pencil")
@@ -293,13 +304,13 @@ extension OverrideConfig {
                         Task {
                             /// To avoid editing the Preset when a Preset-Override is running we first duplicate the Preset-Override as a non-Preset Override
                             /// The currentActiveOverride variable in the State will update automatically via MOC notification
-                            await state.duplicateOverridePresetAndCancelPreviousOverride()
+                            await state.duplicateTempTargetPresetAndCancelPreviousTempTarget()
 
                             /// selectedOverride is used for passing the chosen Override to the EditSheet so we have to set the updated currentActiveOverride to be the selectedOverride
-                            selectedOverride = state.currentActiveOverride
+                            selectedTempTarget = state.currentActiveTempTarget
 
                             /// Now we can show the Edit sheet
-                            state.showOverrideEditSheet = true
+                            state.showTempTargetEditSheet = true
                         }
                     }
                 }
@@ -307,7 +318,7 @@ extension OverrideConfig {
             }
         }
 
-        private var cancelOverrideButton: some View {
+        private var cancelAdjustmentButton: some View {
             switch state.selectedTab {
             case .overrides:
                 Button(action: {

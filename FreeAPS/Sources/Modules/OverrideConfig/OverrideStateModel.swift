@@ -36,6 +36,7 @@ extension OverrideConfig {
         @Published var currentActiveOverride: OverrideStored?
         @Published var currentActiveTempTarget: TempTargetStored?
         @Published var showOverrideEditSheet = false
+        @Published var showTempTargetEditSheet = false
         @Published var showInvalidTargetAlert = false
 
         var units: GlucoseUnits = .mgdL
@@ -541,6 +542,7 @@ extension OverrideConfig.StateModel {
         newTempTarget.isPreset = false
 
         // disable all TempTargets
+        await disableAllActiveOverrides(createOverrideRunEntry: true)
 
         // Save Temp Target to Core Data
         do {
@@ -570,8 +572,6 @@ extension OverrideConfig.StateModel {
         newTempTarget.name = tempTargetName
         newTempTarget.target = tempTargetTarget as NSDecimalNumber
         newTempTarget.isPreset = true
-
-        // disable all TempTargets
 
         // Save Temp Target to Core Data
         do {
@@ -662,7 +662,7 @@ extension OverrideConfig.StateModel {
                         newTempTargetRunStored.startDate = canceledTempTarget.date ?? .distantPast
                         newTempTargetRunStored.endDate = Date()
                         newTempTargetRunStored
-                            .target = canceledTempTarget.target?.decimalValue ?? 0
+                            .target = canceledTempTarget.target ?? 0
                         newTempTargetRunStored.tempTarget = canceledTempTarget
                         newTempTargetRunStored.isUploadedToNS = false
                     }
@@ -688,6 +688,63 @@ extension OverrideConfig.StateModel {
                 )
             }
         }
+    }
+
+    @MainActor func duplicateTempTargetPresetAndCancelPreviousTempTarget() async {
+        // We get the current active Preset by using currentActiveTempTarget which can either be a Preset or a custom Override
+        guard let tempTargetPresetToDuplicate = currentActiveTempTarget,
+              tempTargetPresetToDuplicate.isPreset == true else { return }
+
+        // Copy the current TempTarget-Preset to not edit the underlying Preset
+        let duplidateId = await copyRunningTempTarget(tempTargetPresetToDuplicate)
+
+        // Cancel the duplicated Temp Target
+        /// As we are on the Main Thread already we don't need to cancel via the objectID in this case
+        do {
+            try await viewContext.perform {
+                tempTargetPresetToDuplicate.enabled = false
+
+                guard self.viewContext.hasChanges else { return }
+                try self.viewContext.save()
+            }
+
+            if let tempTargetToEdit = try viewContext.existingObject(with: duplidateId) as? TempTargetStored
+            {
+                currentActiveTempTarget = tempTargetToEdit
+                activeTempTargetName = tempTargetToEdit.name ?? "Custom Temp Target"
+            }
+        } catch {
+            debugPrint(
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to cancel previous override with error: \(error.localizedDescription)"
+            )
+        }
+    }
+
+    // Copy the current Temp Target if it is a RUNNING Preset
+    /// otherwise we would edit the Preset
+    @MainActor func copyRunningTempTarget(_ tempTarget: TempTargetStored) async -> NSManagedObjectID {
+        let newTempTarget = TempTargetStored(context: viewContext)
+        newTempTarget.date = tempTarget.date
+        newTempTarget.id = tempTarget.id
+        newTempTarget.enabled = tempTarget.enabled
+        newTempTarget.duration = tempTarget.duration
+        newTempTarget.isUploadedToNS = true // to avoid getting duplicates on NS
+        newTempTarget.name = tempTarget.name
+        newTempTarget.target = tempTarget.target
+        newTempTarget.isPreset = false // no Preset
+
+        await viewContext.perform {
+            do {
+                guard self.viewContext.hasChanges else { return }
+                try self.viewContext.save()
+            } catch let error as NSError {
+                debugPrint(
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to copy Temp Target with error: \(error.userInfo)"
+                )
+            }
+        }
+
+        return newTempTarget.objectID
     }
 
     // Deletion of Temp Targets

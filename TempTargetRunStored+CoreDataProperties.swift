@@ -7,7 +7,7 @@ public extension TempTargetRunStored {
     }
 
     @NSManaged var startDate: Date?
-    @NSManaged var target: Decimal
+    @NSManaged var target: NSDecimalNumber?
     @NSManaged var id: UUID?
     @NSManaged var endDate: Date?
     @NSManaged var isUploadedToNS: Bool

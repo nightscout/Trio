@@ -247,6 +247,7 @@
 		581516A92BCEEDF800BF67D7 /* NSPredicates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 581516A82BCEEDF800BF67D7 /* NSPredicates.swift */; };
 		581AC4392BE22ED10038760C /* JSONConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 581AC4382BE22ED10038760C /* JSONConverter.swift */; };
 		58237D9E2BCF0A6B00A47A79 /* PopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58237D9D2BCF0A6B00A47A79 /* PopupView.swift */; };
+		5825A1BE2C97335C0046467E /* EditTempTargetForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825A1BD2C97335C0046467E /* EditTempTargetForm.swift */; };
 		582DF9752C8CDB92001F516D /* GlucoseChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 582DF9742C8CDB92001F516D /* GlucoseChartView.swift */; };
 		582DF9772C8CDBE7001F516D /* InsulinView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 582DF9762C8CDBE7001F516D /* InsulinView.swift */; };
 		582DF9792C8CE1E5001F516D /* MainChartHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 582DF9782C8CE1E5001F516D /* MainChartHelper.swift */; };
@@ -900,6 +901,7 @@
 		581516A82BCEEDF800BF67D7 /* NSPredicates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSPredicates.swift; sourceTree = "<group>"; };
 		581AC4382BE22ED10038760C /* JSONConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONConverter.swift; sourceTree = "<group>"; };
 		58237D9D2BCF0A6B00A47A79 /* PopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopupView.swift; sourceTree = "<group>"; };
+		5825A1BD2C97335C0046467E /* EditTempTargetForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditTempTargetForm.swift; sourceTree = "<group>"; };
 		582DF9742C8CDB92001F516D /* GlucoseChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseChartView.swift; sourceTree = "<group>"; };
 		582DF9762C8CDBE7001F516D /* InsulinView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsulinView.swift; sourceTree = "<group>"; };
 		582DF9782C8CE1E5001F516D /* MainChartHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainChartHelper.swift; sourceTree = "<group>"; };
@@ -2677,6 +2679,7 @@
 				DDD163192C4C695E00CD525A /* EditOverrideForm.swift */,
 				DDD1631B2C4C697400CD525A /* AddOverrideForm.swift */,
 				58A3D5392C96D4DE003F90FC /* AddTempTargetForm.swift */,
+				5825A1BD2C97335C0046467E /* EditTempTargetForm.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -3153,6 +3156,7 @@
 				38E44537274E411700EC9A94 /* Disk+Helpers.swift in Sources */,
 				388E5A6025B6F2310019842D /* Autosens.swift in Sources */,
 				3811DE8F25C9D80400A708ED /* User.swift in Sources */,
+				5825A1BE2C97335C0046467E /* EditTempTargetForm.swift in Sources */,
 				19D466A329AA2B80004D5F33 /* MealSettingsDataFlow.swift in Sources */,
 				3811DEB225C9D88300A708ED /* KeychainItemAccessibility.swift in Sources */,
 				385CEAC425F2F154002D6D5B /* AnnouncementsStorage.swift in Sources */,

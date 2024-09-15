@@ -11,6 +11,7 @@ extension Home {
         @StateObject var state = StateModel()
         @State var isStatusPopupPresented = false
         @State var showCancelAlert = false
+        @State var showTempTargetCancelAlert = false
         @State var isMenuPresented = false
         @State var showTreatments = false
         @State var selectedTab: Int = 0
@@ -49,16 +50,6 @@ extension Home {
             ascending: false,
             fetchLimit: 1
         )) var latestTempTarget: FetchedResults<TempTargetStored>
-
-//        @FetchRequest(
-//            entity: TempTargets.entity(),
-//            sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
-//        ) var sliderTTpresets: FetchedResults<TempTargets>
-//
-//        @FetchRequest(
-//            entity: TempTargetsSlider.entity(),
-//            sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
-//        ) var enactedSliderTT: FetchedResults<TempTargetsSlider>
 
         var bolusProgressFormatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -268,7 +259,7 @@ extension Home {
             } else {
                 /// Do not show the Override anymore
                 Task {
-                    guard let objectID = self.latestOverride.first?.objectID else { return }
+                    guard let objectID = self.latestTempTarget.first?.objectID else { return }
                     await state.cancelOverride(withID: objectID)
                 }
             }
@@ -614,6 +605,24 @@ extension Home {
                                     .font(.subheadline)
                                 Spacer()
                             }.padding(.horizontal, 10)
+                                .alert(
+                                    "Return to Normal?", isPresented: $showTempTargetCancelAlert,
+                                    actions: {
+                                        Button("No", role: .cancel) {}
+                                        Button("Yes", role: .destructive) {
+                                            Task {
+                                                guard let objectID = latestTempTarget.first?.objectID else { return }
+                                                await state.cancelTempTarget(withID: objectID)
+                                            }
+                                        }
+                                    }, message: { Text("This will change settings back to your normal profile.") }
+                                )
+                                .onTapGesture {
+                                    if !latestTempTarget.isEmpty {
+                                        showTempTargetCancelAlert = true
+                                    }
+                                }
+
                         }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
                     }
                 }

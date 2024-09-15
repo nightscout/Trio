@@ -356,6 +356,22 @@ extension Home {
             }
         }
 
+        @MainActor func cancelTempTarget(withID id: NSManagedObjectID) async {
+            do {
+                let profileToCancel = try viewContext.existingObject(with: id) as? TempTargetStored
+                profileToCancel?.enabled = false
+
+                await saveToTempTargetRunStored(withID: id)
+
+                guard viewContext.hasChanges else { return }
+                try viewContext.save()
+
+                Foundation.NotificationCenter.default.post(name: .didUpdateTempTargetConfiguration, object: nil)
+            } catch {
+                debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to cancel Profile")
+            }
+        }
+
         func calculateTINS() -> String {
             let startTime = calculateStartTime(hours: Int(hours))
 
@@ -914,6 +930,26 @@ extension Home.StateModel {
 
     @MainActor private func updateOverrideRunStoredArray(with objects: [OverrideRunStored]) {
         overrideRunStored = objects
+    }
+
+    @MainActor func saveToTempTargetRunStored(withID id: NSManagedObjectID) async {
+        await viewContext.perform {
+            do {
+                guard let object = try self.viewContext.existingObject(with: id) as? TempTargetStored else { return }
+
+                let newTempTargetRunStored = TempTargetRunStored(context: self.viewContext)
+                newTempTargetRunStored.id = UUID()
+                newTempTargetRunStored.name = object.name
+                newTempTargetRunStored.startDate = object.date ?? .distantPast
+                newTempTargetRunStored.endDate = Date()
+                newTempTargetRunStored.target = object.target ?? 0
+                newTempTargetRunStored.tempTarget = object
+                newTempTargetRunStored.isUploadedToNS = false
+
+            } catch {
+                debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to initialize a new Override Run Object")
+            }
+        }
     }
 
     @MainActor func saveToOverrideRunStored(withID id: NSManagedObjectID) async {
