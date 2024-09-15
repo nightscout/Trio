@@ -503,129 +503,176 @@ extension Home {
 
         @ViewBuilder func profileView(geo: GeometryProxy) -> some View {
             ZStack {
-                /// rectangle as background
+                // Background rectangle
                 RoundedRectangle(cornerRadius: 15)
                     .fill(
-                        colorScheme == .dark ? Color(red: 0.03921568627, green: 0.133333333, blue: 0.2156862745) : Color.insulin
-                            .opacity(0.1)
+                        colorScheme == .dark
+                            ? Color(red: 0.039, green: 0.133, blue: 0.216)
+                            : Color.insulin.opacity(0.1)
                     )
-                    .clipShape(RoundedRectangle(cornerRadius: 15))
                     .frame(height: geo.size.height * 0.08)
                     .shadow(
-                        color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
-                            Color.black.opacity(0.33),
+                        color: colorScheme == .dark
+                            ? Color(red: 0.027, green: 0.11, blue: 0.141)
+                            : Color.black.opacity(0.33),
                         radius: 3
                     )
-                HStack {
-                    /// actual profile view
+
+                HStack(spacing: 15) {
+                    // Profile icon
                     Image(systemName: "person.fill")
                         .font(.system(size: 25))
 
                     Spacer()
 
-                    if let overrideString = overrideString {
-                        VStack {
-                            Text(latestOverride.first?.name ?? "Custom Override")
-                                .font(.subheadline)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-
-                            Text("\(overrideString)")
-                                .font(.caption)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-
-                        }.padding(.leading, 5)
-                        Spacer()
-                        Image(systemName: "xmark.app")
-                            .font(.system(size: 25))
-                    } else {
-                        if tempTargetString == nil {
-                            VStack {
-                                Text("Normal Profile")
-                                    .font(.subheadline)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                Text("100 %")
-                                    .font(.caption)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }.padding(.leading, 5)
-                            Spacer()
-                            /// to ensure the same position....
-                            Image(systemName: "xmark.app")
-                                .font(.system(size: 25))
-                                .foregroundStyle(Color.clear)
-                        }
-                    }
-                }.padding(.horizontal, 10)
-                    .alert(
-                        "Return to Normal?", isPresented: $showCancelAlert,
-                        actions: {
-                            Button("No", role: .cancel) {}
-                            Button("Yes", role: .destructive) {
-                                Task {
-                                    guard let objectID = latestOverride.first?.objectID else { return }
-                                    await state.cancelOverride(withID: objectID)
-                                }
-                            }
-                        }, message: { Text("This will change settings back to your normal profile.") }
-                    )
-                    .padding(.trailing, 8)
-                    .onTapGesture {
-                        if !latestOverride.isEmpty {
-                            showCancelAlert = true
-                        }
-                    }
-            }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
-                .overlay {
-                    /// just show temp target if no profile is already active
-                    if overrideString == nil, let tempTargetString = tempTargetString {
-                        ZStack {
-                            /// rectangle as background
-                            RoundedRectangle(cornerRadius: 15)
-                                .fill(
-                                    colorScheme == .dark ? Color(red: 0.03921568627, green: 0.133333333, blue: 0.2156862745) :
-                                        Color
-                                        .insulin
-                                        .opacity(0.2)
-                                )
-                                .clipShape(RoundedRectangle(cornerRadius: 15))
-                                .frame(height: UIScreen.main.bounds.height / 18)
-                                .shadow(
-                                    color: colorScheme == .dark ? Color(
-                                        red: 0.02745098039,
-                                        green: 0.1098039216,
-                                        blue: 0.1411764706
-                                    ) :
-                                        Color.black.opacity(0.33),
-                                    radius: 3
-                                )
+                    if let overrideString = overrideString, let tempTargetString = tempTargetString {
+                        // Both override and temp target are active
+                        HStack(spacing: 15) {
+                            // Override section
                             HStack {
-                                Image(systemName: "person.fill")
+                                VStack(alignment: .leading) {
+                                    Text(latestOverride.first?.name ?? "Custom Override")
+                                        .font(.subheadline)
+                                    Text("\(overrideString)")
+                                        .font(.caption)
+                                }
+                                .onTapGesture {
+                                    if !latestOverride.isEmpty {
+                                        showCancelAlert = true
+                                    }
+                                }
+                                Image(systemName: "xmark")
                                     .font(.system(size: 25))
-                                Spacer()
-                                Text(tempTargetString)
-                                    .font(.subheadline)
-                                Spacer()
-                            }.padding(.horizontal, 10)
-                                .alert(
-                                    "Return to Normal?", isPresented: $showTempTargetCancelAlert,
-                                    actions: {
-                                        Button("No", role: .cancel) {}
-                                        Button("Yes", role: .destructive) {
-                                            Task {
-                                                guard let objectID = latestTempTarget.first?.objectID else { return }
-                                                await state.cancelTempTarget(withID: objectID)
-                                            }
+                                    .onTapGesture {
+                                        if !latestOverride.isEmpty {
+                                            showCancelAlert = true
                                         }
-                                    }, message: { Text("This will change settings back to your normal profile.") }
-                                )
+                                    }
+                            }
+
+                            Divider()
+                                .frame(height: geo.size.height * 0.05)
+                                .padding(.horizontal, 5)
+
+                            // Temp Target section
+                            HStack {
+                                VStack(alignment: .leading) {
+                                    Text(latestTempTarget.first?.name ?? "Temp Target")
+                                        .font(.subheadline)
+                                    Text("\(tempTargetString)")
+                                        .font(.caption)
+                                }
                                 .onTapGesture {
                                     if !latestTempTarget.isEmpty {
                                         showTempTargetCancelAlert = true
                                     }
                                 }
-
-                        }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 25))
+                                    .onTapGesture {
+                                        if !latestTempTarget.isEmpty {
+                                            showTempTargetCancelAlert = true
+                                        }
+                                    }
+                            }
+                        }
+                    } else if let overrideString = overrideString {
+                        // Only override is active
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(latestOverride.first?.name ?? "Custom Override")
+                                    .font(.subheadline)
+                                Text("\(overrideString)")
+                                    .font(.caption)
+                            }
+                            .onTapGesture {
+                                if !latestOverride.isEmpty {
+                                    showCancelAlert = true
+                                }
+                            }
+                            Spacer()
+                            Image(systemName: "xmark")
+                                .font(.system(size: 25))
+                                .onTapGesture {
+                                    if !latestOverride.isEmpty {
+                                        showCancelAlert = true
+                                    }
+                                }
+                        }
+                    } else if let tempTargetString = tempTargetString {
+                        // Only temp target is active
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(latestTempTarget.first?.name ?? "Temp Target")
+                                    .font(.subheadline)
+                                Text("\(tempTargetString)")
+                                    .font(.caption)
+                            }
+                            .onTapGesture {
+                                if !latestTempTarget.isEmpty {
+                                    showTempTargetCancelAlert = true
+                                }
+                            }
+                            Spacer()
+                            Image(systemName: "xmark")
+                                .font(.system(size: 25))
+                                .onTapGesture {
+                                    if !latestTempTarget.isEmpty {
+                                        showTempTargetCancelAlert = true
+                                    }
+                                }
+                        }
+                    } else {
+                        // Normal profile view
+                        VStack(alignment: .leading) {
+                            Text("Normal Profile")
+                                .font(.subheadline)
+                            Text("100 %")
+                                .font(.caption)
+                        }
+                        Spacer()
+                        // Placeholder xmark to keep layout consistent
+                        Image(systemName: "xmark")
+                            .font(.system(size: 25))
+                            .foregroundColor(.clear)
                     }
                 }
+                .padding(.horizontal, 10)
+            }
+            .padding(.horizontal, 10)
+            .padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
+            .alert(
+                "Return to Normal?",
+                isPresented: $showCancelAlert,
+                actions: {
+                    Button("No", role: .cancel) {}
+                    Button("Yes", role: .destructive) {
+                        Task {
+                            if !latestOverride.isEmpty {
+                                guard let objectID = latestOverride.first?.objectID else { return }
+                                await state.cancelOverride(withID: objectID)
+                            }
+                        }
+                    }
+                },
+                message: { Text("This will change settings back to your normal profile.") }
+            )
+            .alert(
+                "Return to Normal?",
+                isPresented: $showTempTargetCancelAlert,
+                actions: {
+                    Button("No", role: .cancel) {}
+                    Button("Yes", role: .destructive) {
+                        Task {
+                            if !latestTempTarget.isEmpty {
+                                guard let objectID = latestTempTarget.first?.objectID else { return }
+                                await state.cancelTempTarget(withID: objectID)
+                            }
+                        }
+                    }
+                },
+                message: { Text("This will change settings back to your normal profile.") }
+            )
         }
 
         @ViewBuilder func bolusProgressBar(_ progress: Decimal) -> some View {
