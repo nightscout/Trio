@@ -51,10 +51,10 @@ extension OverrideConfig {
         @Published var date = Date()
         @Published var newPresetName = ""
         @Published var tempTargetPresets: [TempTargetStored] = []
-        @Published var percentageTT = 100.0
+        @Published var percentage = 100.0
         @Published var maxValue: Decimal = 1.2
         @Published var viewPercantage = false
-        @Published var hbt: Double = 160
+        @Published var halfBasalTarget: Decimal = 160
         @Published var didSaveSettings: Bool = false
 
         let coredataContext = CoreDataStack.shared.newTaskContext()
@@ -535,7 +535,8 @@ extension OverrideConfig.StateModel {
             enteredBy: TempTarget.manual,
             reason: TempTarget.custom,
             isPreset: false,
-            enabled: true
+            enabled: true,
+            halfBasalTarget: halfBasalTarget
         )
 
         // Save Temp Target to Core Data and to the storage
@@ -562,7 +563,8 @@ extension OverrideConfig.StateModel {
             enteredBy: TempTarget.manual,
             reason: TempTarget.custom,
             isPreset: true,
-            enabled: false
+            enabled: false,
+            halfBasalTarget: halfBasalTarget
         )
 
         await tempTargetStorage.storeTempTarget(tempTarget: tempTarget)
@@ -612,7 +614,8 @@ extension OverrideConfig.StateModel {
                 enteredBy: TempTarget.manual,
                 reason: TempTarget.custom,
                 isPreset: true,
-                enabled: true
+                enabled: true,
+                halfBasalTarget: halfBasalTarget
             )
 
             // Make sure the Temp Target gets used by Oref
@@ -723,16 +726,17 @@ extension OverrideConfig.StateModel {
         tempTargetDuration = 0
     }
 
-    func computeTarget() -> Decimal {
-        var ratio = Decimal(percentageTT / 100)
-        let c = Decimal(hbt - 100)
-        var target = (c / ratio) - c + 100
-
-        if c * (c + target - 100) <= 0 {
-            ratio = maxValue
-            target = (c / ratio) - c + 100
+    func computeHalfBasalTarget() -> Double {
+        let ratio = Decimal(percentage / 100)
+        let normalTarget: Decimal = 100
+        var target: Decimal = low
+        if units == .mmolL {
+            target = target.asMgdL }
+        var hbtcalc = halfBasalTarget
+        if ratio != 1 {
+            hbtcalc = ((2 * ratio * normalTarget) - normalTarget - (ratio * target)) / (ratio - 1)
         }
-        return Decimal(Double(target))
+        return round(Double(hbtcalc))
     }
 }
 

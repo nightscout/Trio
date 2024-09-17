@@ -448,7 +448,8 @@ extension BaseWatchManager: WCSessionDelegate {
                         enteredBy: TempTarget.manual,
                         reason: TempTarget.cancel,
                         isPreset: false,
-                        enabled: false
+                        enabled: false,
+                        halfBasalTarget: 160
                     )
                     await tempTargetsStorage.storeTempTarget(tempTarget: entry)
                     replyHandler(["confirmation": true])

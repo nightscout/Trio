@@ -11,6 +11,7 @@ struct TempTarget: JSON, Identifiable, Equatable, Hashable {
     let reason: String?
     let isPreset: Bool?
     let enabled: Bool?
+    let halfBasalTarget: Decimal?
 
     static let manual = "Trio"
     static let custom = "Temp target"
@@ -38,7 +39,8 @@ struct TempTarget: JSON, Identifiable, Equatable, Hashable {
             enteredBy: TempTarget.manual,
             reason: TempTarget.cancel,
             isPreset: nil,
-            enabled: nil
+            enabled: nil,
+            halfBasalTarget: 160
         )
     }
 }
@@ -55,5 +57,6 @@ extension TempTarget {
         case reason
         case isPreset
         case enabled
+        case halfBasalTarget
     }
 }

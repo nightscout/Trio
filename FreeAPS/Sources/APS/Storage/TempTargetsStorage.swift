@@ -78,6 +78,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             newTempTarget.name = tempTarget.name
             newTempTarget.target = NSDecimalNumber(decimal: tempTarget.targetTop ?? 0)
             newTempTarget.isPreset = tempTarget.isPreset ?? false
+            newTempTarget.halfBasalTarget = NSDecimalNumber(decimal: tempTarget.halfBasalTarget ?? 160)
 
             do {
                 guard self.backgroundContext.hasChanges else { return }
@@ -140,6 +141,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
         newTempTarget.name = tempTarget.name
         newTempTarget.target = tempTarget.target
         newTempTarget.isPreset = false // no Preset
+        newTempTarget.halfBasalTarget = tempTarget.halfBasalTarget
 
         await viewContext.perform {
             do {

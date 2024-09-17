@@ -500,16 +500,14 @@ final class OpenAPS {
             if isTemptargetActive {
                 if let tempTarget = tempTargetsArray.first {
                     let tempDuration = tempTarget.duration?.doubleValue ?? 0
-                    let targetValue = tempTarget.target?.doubleValue ?? Double(truncating: hbt_ as NSNumber)
+                    let halfBasalTarget = tempTarget.halfBasalTarget ?? NSDecimalNumber(decimal: hbt_)
                     let startDate = tempTarget.date ?? Date()
                     let tempTargetEndTime = startDate.addingTimeInterval(tempDuration * 60)
                     let timeRemaining = tempTargetEndTime.timeIntervalSinceNow / 60 // Time remaining in minutes
 
                     if timeRemaining > 0 {
-                        hbt_ = Decimal(targetValue)
+                        hbt_ = halfBasalTarget.decimalValue
                         isTemptargetActive = true
-                    } else {
-                        isTemptargetActive = false
                     }
                 }
             }

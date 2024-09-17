@@ -14,6 +14,7 @@ public extension TempTargetStored {
     @NSManaged var name: String?
     @NSManaged var isUploadedToNS: Bool
     @NSManaged var isPreset: Bool
+    @NSManaged var halfBasalTarget: NSDecimalNumber?
     @NSManaged var tempTargetRun: TempTargetRunStored?
 }
 

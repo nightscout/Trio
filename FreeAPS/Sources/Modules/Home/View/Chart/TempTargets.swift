@@ -18,7 +18,7 @@ extension MainChartView {
                 xEnd: .value("End", target.end),
                 y: .value("Value", targetLimited)
             )
-            .foregroundStyle(Color.purple.opacity(0.75)).lineStyle(.init(lineWidth: 8))
+            .foregroundStyle(Color.green.opacity(0.75)).lineStyle(.init(lineWidth: 8))
         }
     }
 
