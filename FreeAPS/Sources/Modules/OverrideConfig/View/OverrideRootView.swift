@@ -395,30 +395,14 @@ extension OverrideConfig {
                         Task {
                             let objectID = preset.objectID
                             await state.enactTempTargetPreset(withID: objectID)
-//                            state.hideModal() // is this needed???
                             selectedTempTargetPresetID = preset.id?.uuidString
-                            // TODO: - add checkmark here when preset was selected
+                            showCheckmark.toggle()
+
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                showCheckmark = false
+                            }
                         }
                     }
-
-                    Image(systemName: "xmark.circle").foregroundColor(showCheckmark && isSelected ? Color.clear : Color.secondary)
-                        .contentShape(Rectangle())
-                        .padding(.vertical)
-                        .onTapGesture {
-                            removeAlert = Alert(
-                                title: Text("Are you sure?"),
-                                message: Text("Delete preset \"\(preset.name ?? "")\""),
-                                primaryButton: .destructive(Text("Delete"), action: {
-                                    // TODO: add deletion for Presets
-//                                    state.removePreset(id: preset.id)
-                                }),
-                                secondaryButton: .cancel()
-                            )
-                            isRemoveAlertPresented = true
-                        }
-                        .alert(isPresented: $isRemoveAlertPresented) {
-                            removeAlert!
-                        }
                 }
                 if showCheckmark && isSelected {
                     // show checkmark to indicate if the preset was actually pressed

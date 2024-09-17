@@ -104,6 +104,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
 
             if let newActive = updatedTargets.last(where: { $0.isActive }) {
                 // Cancel current target
+                // This logic to add a new cancel Temp target to cancel the current one is so fucking dumb...
                 updatedTargets.append(.cancel(at: newActive.createdAt.addingTimeInterval(-1)))
             }
 
