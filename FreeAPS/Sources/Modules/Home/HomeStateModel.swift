@@ -368,7 +368,7 @@ extension Home {
                 try viewContext.save()
 
                 // We also need to update the storage for temp targets
-                tempTargetStorage.saveTempTargetsToStorage([TempTarget.cancel(at: Date())], isPreset: false)
+                tempTargetStorage.saveTempTargetsToStorage([TempTarget.cancel(at: Date())])
 
                 Foundation.NotificationCenter.default.post(name: .didUpdateTempTargetConfiguration, object: nil)
             } catch {

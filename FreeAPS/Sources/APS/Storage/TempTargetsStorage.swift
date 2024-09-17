@@ -9,8 +9,7 @@ protocol TempTargetsObserver {
 
 protocol TempTargetsStorage {
     func storeTempTarget(tempTarget: TempTarget) async
-    func storePresets(_ targets: [TempTarget])
-    func saveTempTargetsToStorage(_ targets: [TempTarget], isPreset: Bool)
+    func saveTempTargetsToStorage(_ targets: [TempTarget])
     func fetchForTempTargetPresets() async -> [NSManagedObjectID]
     func copyRunningTempTarget(_ tempTarget: TempTargetStored) async -> NSManagedObjectID
     func deleteOverridePreset(_ objectID: NSManagedObjectID) async
@@ -94,23 +93,21 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
              We only want that when either creating a new non-Preset-Temp Target or when enacting a Temp Target Preset, NOT when we are only saving a new Preset, hence the check here!
              */
             if !(tempTarget.isPreset ?? false) {
-                self.saveTempTargetsToStorage([tempTarget], isPreset: false)
+                self.saveTempTargetsToStorage([tempTarget])
             }
         }
     }
 
-    func saveTempTargetsToStorage(_ targets: [TempTarget], isPreset: Bool) {
-        processQueue.sync {
+    func saveTempTargetsToStorage(_ targets: [TempTarget]) {
+        processQueue.async {
             var updatedTargets = targets
 
-            if !isPreset, let currentTarget = current() {
-                if let newActive = updatedTargets.last(where: { $0.isActive }) {
-                    // Cancel current target
-                    updatedTargets.append(.cancel(at: newActive.createdAt.addingTimeInterval(-1)))
-                }
+            if let newActive = updatedTargets.last(where: { $0.isActive }) {
+                // Cancel current target
+                updatedTargets.append(.cancel(at: newActive.createdAt.addingTimeInterval(-1)))
             }
 
-            let file = isPreset ? OpenAPS.FreeAPS.tempTargetsPresets : OpenAPS.Settings.tempTargets
+            let file = OpenAPS.Settings.tempTargets
 
             var uniqEvents: [TempTarget] = []
             self.storage.transaction { storage in
@@ -118,22 +115,16 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
 
                 let retrievedTargets = storage.retrieve(file, as: [TempTarget].self) ?? []
                 uniqEvents = retrievedTargets
-                    .filter { isPreset || $0.isWithinLastDay }
+                    .filter { $0.isWithinLastDay }
                     .sorted(by: { $0.createdAt > $1.createdAt })
 
                 storage.save(uniqEvents, as: file)
             }
 
-            broadcaster.notify(TempTargetsObserver.self, on: processQueue) {
+            self.broadcaster.notify(TempTargetsObserver.self, on: self.processQueue) {
                 $0.tempTargetsDidUpdate(uniqEvents)
             }
         }
-    }
-
-    func storePresets(_ targets: [TempTarget]) {
-        storage.remove(OpenAPS.FreeAPS.tempTargetsPresets)
-
-        saveTempTargetsToStorage(targets, isPreset: false)
     }
 
     // Copy the current Temp Target if it is a RUNNING Preset

@@ -616,7 +616,7 @@ extension OverrideConfig.StateModel {
             )
 
             // Make sure the Temp Target gets used by Oref
-            tempTargetStorage.storePresets([tempTarget])
+            tempTargetStorage.saveTempTargetsToStorage([tempTarget])
         } catch {
             debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to enact Override Preset")
         }
@@ -669,7 +669,7 @@ extension OverrideConfig.StateModel {
 
                     // Update the storage
 //                   await self.tempTargetStorage.storeTempTarget(tempTarget: TempTarget.cancel(at: Date()))
-                    self.tempTargetStorage.saveTempTargetsToStorage([TempTarget.cancel(at: Date())], isPreset: false)
+                    self.tempTargetStorage.saveTempTargetsToStorage([TempTarget.cancel(at: Date())])
                 }
             } catch {
                 debugPrint(
