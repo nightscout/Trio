@@ -10,6 +10,7 @@ protocol TempTargetsObserver {
 protocol TempTargetsStorage {
     func storeTempTarget(tempTarget: TempTarget) async
     func storePresets(_ targets: [TempTarget])
+    func saveTempTargetsToStorage(_ targets: [TempTarget], isPreset: Bool)
     func fetchForTempTargetPresets() async -> [NSManagedObjectID]
     func copyRunningTempTarget(_ tempTarget: TempTargetStored) async -> NSManagedObjectID
     func deleteOverridePreset(_ objectID: NSManagedObjectID) async
@@ -17,7 +18,6 @@ protocol TempTargetsStorage {
     func syncDate() -> Date
     func recent() -> [TempTarget]
     func nightscoutTreatmentsNotUploaded() -> [NightscoutTreatment]
-//    func storePresets(_ targets: [TempTarget])
     func presets() -> [TempTarget]
     func current() -> TempTarget?
 }
@@ -99,7 +99,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
         }
     }
 
-    private func saveTempTargetsToStorage(_ targets: [TempTarget], isPreset: Bool) {
+    func saveTempTargetsToStorage(_ targets: [TempTarget], isPreset: Bool) {
         processQueue.sync {
             var updatedTargets = targets
 

@@ -13,6 +13,7 @@ extension Home {
         @Injected() var nightscoutManager: NightscoutManager!
         @Injected() var determinationStorage: DeterminationStorage!
         @Injected() var glucoseStorage: GlucoseStorage!
+        @Injected() var tempTargetStorage: TempTargetsStorage!
         private let timer = DispatchTimer(timeInterval: 5)
         private(set) var filteredHours = 24
         @Published var manualGlucose: [BloodGlucose] = []
@@ -365,6 +366,9 @@ extension Home {
 
                 guard viewContext.hasChanges else { return }
                 try viewContext.save()
+
+                // We also need to update the storage for temp targets
+                tempTargetStorage.saveTempTargetsToStorage([TempTarget.cancel(at: Date())], isPreset: false)
 
                 Foundation.NotificationCenter.default.post(name: .didUpdateTempTargetConfiguration, object: nil)
             } catch {

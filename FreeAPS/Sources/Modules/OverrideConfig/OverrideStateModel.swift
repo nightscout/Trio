@@ -666,6 +666,10 @@ extension OverrideConfig.StateModel {
 
                     // Update the View
                     self.updateLatestTempTargetConfiguration()
+
+                    // Update the storage
+//                   await self.tempTargetStorage.storeTempTarget(tempTarget: TempTarget.cancel(at: Date()))
+                    self.tempTargetStorage.saveTempTargetsToStorage([TempTarget.cancel(at: Date())], isPreset: false)
                 }
             } catch {
                 debugPrint(
