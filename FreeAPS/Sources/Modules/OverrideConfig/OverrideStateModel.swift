@@ -110,10 +110,22 @@ extension OverrideConfig.StateModel {
             name: .didUpdateOverrideConfiguration,
             object: nil
         )
+
+        // Custom Notification to update View when an Temp Target has been cancelled via Home View
+        Foundation.NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleTempTargetConfigurationUpdate),
+            name: .didUpdateTempTargetConfiguration,
+            object: nil
+        )
     }
 
     @objc private func handleOverrideConfigurationUpdate() {
         updateLatestOverrideConfiguration()
+    }
+
+    @objc private func handleTempTargetConfigurationUpdate() {
+        updateLatestTempTargetConfiguration()
     }
 
     // MARK: - Enact Overrides
@@ -576,16 +588,35 @@ extension OverrideConfig.StateModel {
             isTempTargetEnabled = true
 
             /// disable all active Temp Targets and reset state variables
-            await disableAllActiveTempTargets(except: id, createTempTargetRunEntry: currentActiveTempTarget != nil)
+            async let disableTempTargets: () = disableAllActiveTempTargets(
+                except: id,
+                createTempTargetRunEntry: currentActiveTempTarget != nil
+            )
+            async let resetState: () = resetTempTargetState()
 
-            /// reset state variables
-            await resetTempTargetState()
+            _ = await (disableTempTargets, resetState)
 
             guard viewContext.hasChanges else { return }
             try viewContext.save()
 
             // Update View
             updateLatestTempTargetConfiguration()
+
+            // Map to TempTarget Struct
+            let tempTarget = TempTarget(
+                name: tempTargetToEnact?.name,
+                createdAt: Date(),
+                targetTop: tempTargetToEnact?.target?.decimalValue,
+                targetBottom: tempTargetToEnact?.target?.decimalValue,
+                duration: tempTargetToEnact?.duration?.decimalValue ?? 0,
+                enteredBy: TempTarget.manual,
+                reason: TempTarget.custom,
+                isPreset: true,
+                enabled: true
+            )
+
+            // Make sure the Temp Target gets used by Oref
+            tempTargetStorage.storePresets([tempTarget])
         } catch {
             debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to enact Override Preset")
         }

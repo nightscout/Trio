@@ -9,6 +9,7 @@ protocol TempTargetsObserver {
 
 protocol TempTargetsStorage {
     func storeTempTarget(tempTarget: TempTarget) async
+    func storePresets(_ targets: [TempTarget])
     func fetchForTempTargetPresets() async -> [NSManagedObjectID]
     func copyRunningTempTarget(_ tempTarget: TempTargetStored) async -> NSManagedObjectID
     func deleteOverridePreset(_ objectID: NSManagedObjectID) async
@@ -88,9 +89,11 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
                 )
             }
 
-            if tempTarget.isPreset ?? false {
-                self.saveTempTargetsToStorage([tempTarget], isPreset: true)
-            } else {
+            /*
+             Saving the Preset to the Storage means that it gets used by Oref
+             We only want that when either creating a new non-Preset-Temp Target or when enacting a Temp Target Preset, NOT when we are only saving a new Preset, hence the check here!
+             */
+            if !(tempTarget.isPreset ?? false) {
                 self.saveTempTargetsToStorage([tempTarget], isPreset: false)
             }
         }
@@ -125,6 +128,12 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
                 $0.tempTargetsDidUpdate(uniqEvents)
             }
         }
+    }
+
+    func storePresets(_ targets: [TempTarget]) {
+        storage.remove(OpenAPS.FreeAPS.tempTargetsPresets)
+
+        saveTempTargetsToStorage(targets, isPreset: false)
     }
 
     // Copy the current Temp Target if it is a RUNNING Preset
@@ -205,12 +214,6 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
         return Array(Set(treatments).subtracting(Set(uploaded)))
     }
 
-//    func storePresets(_ targets: [TempTarget]) {
-//        storage.remove(OpenAPS.FreeAPS.tempTargetsPresets)
-//
-//        saveTempTargetsToStorage(targets, isPreset: true)
-//    }
-//
     func presets() -> [TempTarget] {
         storage.retrieve(OpenAPS.FreeAPS.tempTargetsPresets, as: [TempTarget].self)?.reversed() ?? []
     }
