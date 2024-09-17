@@ -42,8 +42,6 @@ extension OverrideConfig {
         var units: GlucoseUnits = .mgdL
 
         // temp target stuff
-        @Published var low: Decimal = 0
-        @Published var high: Decimal = 0
         @Published var tempTargetDuration: Decimal = 0
         @Published var tempTargetName: String = ""
         @Published var tempTargetTarget: Decimal = 0 // lel
@@ -495,6 +493,7 @@ extension OverrideConfig.StateModel {
             if let tempTargetToEdit = try viewContext.existingObject(with: firstID) as? TempTargetStored {
                 currentActiveTempTarget = tempTargetToEdit
                 activeTempTargetName = tempTargetToEdit.name ?? "Custom Temp Target"
+                tempTargetTarget = tempTargetToEdit.target?.decimalValue ?? 0
             }
         } catch {
             debugPrint(
@@ -729,7 +728,7 @@ extension OverrideConfig.StateModel {
     func computeHalfBasalTarget() -> Double {
         let ratio = Decimal(percentage / 100)
         let normalTarget: Decimal = 100
-        var target: Decimal = low
+        var target: Decimal = tempTargetTarget
         if units == .mmolL {
             target = target.asMgdL }
         var hbtcalc = halfBasalTarget
@@ -737,6 +736,30 @@ extension OverrideConfig.StateModel {
             hbtcalc = ((2 * ratio * normalTarget) - normalTarget - (ratio * target)) / (ratio - 1)
         }
         return round(Double(hbtcalc))
+    }
+
+    func computeSliderLow() -> Double {
+        var minSens: Double = 15
+        var target = tempTargetTarget
+        if units == .mmolL {
+            target = Decimal(round(Double(tempTargetTarget.asMgdL))) }
+        if target == 0 { return minSens }
+        if target < 100 ||
+            (
+                !settingsManager.preferences.highTemptargetRaisesSensitivity && !settingsManager.preferences
+                    .exerciseMode
+            ) { minSens = 100 }
+        return minSens
+    }
+
+    func computeSliderHigh() -> Double {
+        var maxSens = Double(maxValue * 100)
+        var target = tempTargetTarget
+        if target == 0 { return maxSens }
+        if units == .mmolL {
+            target = Decimal(round(Double(tempTargetTarget.asMgdL))) }
+        if target > 100 || !settingsManager.preferences.lowTemptargetLowersSensitivity { maxSens = 100 }
+        return maxSens
     }
 }
 

@@ -86,37 +86,40 @@ struct AddTempTargetForm: View {
             Text("Name")
         }.listRowBackground(Color.chart)
 
-        Section {
-            VStack {
-                Text("\(state.percentage.formatted(.number)) % Insulin")
-                    .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
-                    .font(.largeTitle)
+        if state.computeSliderLow() != state.computeSliderHigh() {
+            Section {
+                VStack {
+                    Text("\(state.percentage.formatted(.number)) % Insulin")
+                        .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
+                        .font(.largeTitle)
 
-                Slider(value: $state.percentage, in: computeSliderLow() ... computeSliderHigh(), step: 5) {}
-                minimumValueLabel: {
-                    Text("\(computeSliderLow(), specifier: "%.0f")%")
-                }
-                maximumValueLabel: {
-                    Text("\(computeSliderHigh(), specifier: "%.0f")%")
-                }
-                onEditingChanged: { editing in
-                    isUsingSlider = editing
-                    state.halfBasalTarget = Decimal(state.computeHalfBasalTarget())
-                }
+                    Slider(value: $state.percentage, in: state.computeSliderLow() ... state.computeSliderHigh(), step: 5) {}
+                    minimumValueLabel: {
+                        Text("\(state.computeSliderLow(), specifier: "%.0f")%")
+                    }
+                    maximumValueLabel: {
+                        Text("\(state.computeSliderHigh(), specifier: "%.0f")%")
+                    }
+                    onEditingChanged: { editing in
+                        isUsingSlider = editing
+                        state.halfBasalTarget = Decimal(state.computeHalfBasalTarget())
+                    }
+                    .disabled(!sliderEnabled)
 
-                Divider()
-                Text(
-                    state
-                        .units == .mgdL ?
-                        "Half Basal Exercise Target at: \(state.computeHalfBasalTarget().formatted(.number.precision(.fractionLength(0)))) mg/dl" :
-                        "Half Basal Exercise Target at: \(state.computeHalfBasalTarget().asMmolL.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))) mmol/L"
-                )
-                .foregroundColor(.secondary)
-                .font(.caption).italic()
-            }
-        } header: {
-            Text("% Insulin")
-        }.listRowBackground(Color.chart)
+                    Divider()
+                    Text(
+                        state
+                            .units == .mgdL ?
+                            "Half Basal Exercise Target at: \(state.computeHalfBasalTarget().formatted(.number.precision(.fractionLength(0)))) mg/dl" :
+                            "Half Basal Exercise Target at: \(state.computeHalfBasalTarget().asMmolL.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))) mmol/L"
+                    )
+                    .foregroundColor(.secondary)
+                    .font(.caption).italic()
+                }
+            } header: {
+                Text("% Insulin")
+            }.listRowBackground(Color.chart)
+        }
 
         Section {
             HStack {
@@ -160,6 +163,10 @@ struct AddTempTargetForm: View {
         }.listRowBackground(Color.chart)
     }
 
+    var sliderEnabled: Bool {
+        state.computeSliderHigh() > state.computeSliderLow()
+    }
+
     private func setupAlertString() async {
         alertString =
             (
@@ -183,29 +190,5 @@ struct AddTempTargetForm: View {
                 "Starting this Temp Target will change your profiles and/or your Target Glucose used for looping during the entire selected duration. Tapping ”Start Temp Target” will start your new Temp Target or edit your current active Temp Target.",
                 comment: ""
             )
-    }
-
-    func computeSliderLow() -> Double {
-        var minSens: Double = 15
-        var target = state.low
-        if state.units == .mmolL {
-            target = Decimal(round(Double(state.low.asMgdL))) }
-        if target == 0 { return minSens }
-        if target < 100 ||
-            (
-                !state.settingsManager.preferences.highTemptargetRaisesSensitivity && !state.settingsManager.preferences
-                    .exerciseMode
-            ) { minSens = 100 }
-        return minSens
-    }
-
-    func computeSliderHigh() -> Double {
-        var maxSens = Double(state.maxValue * 100)
-        var target = state.low
-        if target == 0 { return maxSens }
-        if state.units == .mmolL {
-            target = Decimal(round(Double(state.low.asMgdL))) }
-        if target > 100 || !state.settingsManager.preferences.lowTemptargetLowersSensitivity { maxSens = 100 }
-        return maxSens
     }
 }
