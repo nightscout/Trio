@@ -436,7 +436,7 @@ extension BaseWatchManager: WCSessionDelegate {
             Task {
                 if var preset = tempTargetsStorage.presets().first(where: { $0.id == tempTargetID }) {
                     preset.createdAt = Date()
-                    tempTargetsStorage.storeTempTargets([preset])
+                    await tempTargetsStorage.storeTempTarget(tempTarget: preset)
                     replyHandler(["confirmation": true])
                 } else if tempTargetID == "cancel" {
                     let entry = TempTarget(
@@ -446,9 +446,11 @@ extension BaseWatchManager: WCSessionDelegate {
                         targetBottom: 0,
                         duration: 0,
                         enteredBy: TempTarget.manual,
-                        reason: TempTarget.cancel
+                        reason: TempTarget.cancel,
+                        isPreset: false,
+                        enabled: false
                     )
-                    tempTargetsStorage.storeTempTargets([entry])
+                    await tempTargetsStorage.storeTempTarget(tempTarget: entry)
                     replyHandler(["confirmation": true])
                 } else {
                     replyHandler(["confirmation": false])

@@ -38,7 +38,9 @@ final class BaseFetchTreatmentsManager: FetchTreatmentsManager, Injectable {
 
                     let filteredTargets = await tempTargets.filter { !($0.enteredBy?.contains(TempTarget.manual) ?? false) }
                     if filteredTargets.isNotEmpty {
-                        self.tempTargetsStorage.storeTempTargets(filteredTargets)
+                        for tempTarget in filteredTargets {
+                            await self.tempTargetsStorage.storeTempTarget(tempTarget: tempTarget)
+                        }
                     }
                 }
             }

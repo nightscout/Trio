@@ -4,7 +4,7 @@ import SwiftUI
 extension OverrideConfig {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() var broadcaster: Broadcaster!
-        @Injected() var storage: TempTargetsStorage!
+        @Injected() var tempTargetStorage: TempTargetsStorage!
         @Injected() var apsManager: APSManager!
         @Injected() var overrideStorage: OverrideStorage!
 
@@ -446,7 +446,7 @@ extension OverrideConfig.StateModel {
     /// This also needs to be called when we cancel an Temp Target via the Home View to update the State of the Button for this case
     func updateLatestTempTargetConfiguration() {
         Task {
-            let id = await loadLatestTempTargetConfigurations(fetchLimit: 1)
+            let id = await tempTargetStorage.loadLatestTempTargetConfigurations(fetchLimit: 1)
             async let updateState: () = updateLatestTempTargetConfigurationOfState(from: id)
             async let setTempTarget: () = setCurrentTempTarget(from: id)
 
@@ -491,28 +491,11 @@ extension OverrideConfig.StateModel {
         }
     }
 
-    // Fill the array of the Override Presets to display them in the UI
+    // Fill the array of the Temp Target Presets to display them in the UI
     private func setupTempTargetPresetsArray() {
         Task {
-            let ids = await self.fetchForTempTargetPresets()
+            let ids = await tempTargetStorage.fetchForTempTargetPresets()
             await updateTempTargetPresetsArray(with: ids)
-        }
-    }
-
-    /// Returns the NSManagedObjectID of the Temp Target Presets
-    func fetchForTempTargetPresets() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: TempTargetStored.self,
-            onContext: coredataContext,
-            predicate: NSPredicate.allTempTargetPresets,
-            key: "date",
-            ascending: true
-        )
-
-        guard let fetchedResults = results as? [TempTargetStored] else { return [] }
-
-        return await coredataContext.perform {
-            return fetchedResults.map(\.objectID)
         }
     }
 
@@ -531,28 +514,23 @@ extension OverrideConfig.StateModel {
 
     // Creates and enacts a non Preset Temp Target
     func saveCustomTempTarget() async {
-        let newTempTarget = TempTargetStored(context: coredataContext)
-        newTempTarget.date = Date()
-        newTempTarget.id = UUID()
-        newTempTarget.enabled = true
-        newTempTarget.duration = tempTargetDuration as NSDecimalNumber
-        newTempTarget.isUploadedToNS = false
-        newTempTarget.name = tempTargetName
-        newTempTarget.target = tempTargetTarget as NSDecimalNumber
-        newTempTarget.isPreset = false
+        let tempTarget = TempTarget(
+            name: tempTargetName,
+            createdAt: Date(),
+            targetTop: tempTargetTarget,
+            targetBottom: tempTargetTarget,
+            duration: tempTargetDuration,
+            enteredBy: TempTarget.manual,
+            reason: TempTarget.custom,
+            isPreset: false,
+            enabled: true
+        )
+
+        // Save Temp Target to Core Data and to the storage
+        await tempTargetStorage.storeTempTarget(tempTarget: tempTarget)
 
         // disable all TempTargets
         await disableAllActiveOverrides(createOverrideRunEntry: true)
-
-        // Save Temp Target to Core Data
-        do {
-            guard coredataContext.hasChanges else { return }
-            try coredataContext.save()
-        } catch let error as NSError {
-            debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save TempTarget to Core Data with error: \(error.userInfo)"
-            )
-        }
 
         // Reset State variables
         await resetTempTargetState()
@@ -563,25 +541,19 @@ extension OverrideConfig.StateModel {
 
     // Creates a new Temp Target Preset
     func saveTempTargetPreset() async {
-        let newTempTarget = TempTargetStored(context: coredataContext)
-        newTempTarget.date = Date()
-        newTempTarget.id = UUID()
-        newTempTarget.enabled = false
-        newTempTarget.duration = tempTargetDuration as NSDecimalNumber
-        newTempTarget.isUploadedToNS = false
-        newTempTarget.name = tempTargetName
-        newTempTarget.target = tempTargetTarget as NSDecimalNumber
-        newTempTarget.isPreset = true
+        let tempTarget = TempTarget(
+            name: tempTargetName,
+            createdAt: Date(),
+            targetTop: tempTargetTarget,
+            targetBottom: tempTargetTarget,
+            duration: tempTargetDuration,
+            enteredBy: TempTarget.manual,
+            reason: TempTarget.custom,
+            isPreset: true,
+            enabled: false
+        )
 
-        // Save Temp Target to Core Data
-        do {
-            guard coredataContext.hasChanges else { return }
-            try coredataContext.save()
-        } catch let error as NSError {
-            debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save TempTarget to Core Data with error: \(error.userInfo)"
-            )
-        }
+        await tempTargetStorage.storeTempTarget(tempTarget: tempTarget)
 
         // Reset State variables
         await resetTempTargetState()
@@ -620,27 +592,9 @@ extension OverrideConfig.StateModel {
     }
 
     // Disable all active Temp Targets
-
-    func loadLatestTempTargetConfigurations(fetchLimit: Int) async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: TempTargetStored.self,
-            onContext: coredataContext,
-            predicate: NSPredicate.lastActiveTempTarget,
-            key: "date",
-            ascending: true,
-            fetchLimit: fetchLimit
-        )
-
-        guard let fetchedResults = results as? [TempTargetStored] else { return [] }
-
-        return await coredataContext.perform {
-            return fetchedResults.map(\.objectID)
-        }
-    }
-
     @MainActor func disableAllActiveTempTargets(except id: NSManagedObjectID? = nil, createTempTargetRunEntry: Bool) async {
         // Get ALL NSManagedObject IDs of ALL active Temp Targets to cancel every single Temp Target
-        let ids = await loadLatestTempTargetConfigurations(fetchLimit: 0) // 0 = no fetch limit
+        let ids = await tempTargetStorage.loadLatestTempTargetConfigurations(fetchLimit: 0) // 0 = no fetch limit
 
         await viewContext.perform {
             do {
@@ -696,7 +650,7 @@ extension OverrideConfig.StateModel {
               tempTargetPresetToDuplicate.isPreset == true else { return }
 
         // Copy the current TempTarget-Preset to not edit the underlying Preset
-        let duplidateId = await copyRunningTempTarget(tempTargetPresetToDuplicate)
+        let duplidateId = await tempTargetStorage.copyRunningTempTarget(tempTargetPresetToDuplicate)
 
         // Cancel the duplicated Temp Target
         /// As we are on the Main Thread already we don't need to cancel via the objectID in this case
@@ -720,43 +674,12 @@ extension OverrideConfig.StateModel {
         }
     }
 
-    // Copy the current Temp Target if it is a RUNNING Preset
-    /// otherwise we would edit the Preset
-    @MainActor func copyRunningTempTarget(_ tempTarget: TempTargetStored) async -> NSManagedObjectID {
-        let newTempTarget = TempTargetStored(context: viewContext)
-        newTempTarget.date = tempTarget.date
-        newTempTarget.id = tempTarget.id
-        newTempTarget.enabled = tempTarget.enabled
-        newTempTarget.duration = tempTarget.duration
-        newTempTarget.isUploadedToNS = true // to avoid getting duplicates on NS
-        newTempTarget.name = tempTarget.name
-        newTempTarget.target = tempTarget.target
-        newTempTarget.isPreset = false // no Preset
-
-        await viewContext.perform {
-            do {
-                guard self.viewContext.hasChanges else { return }
-                try self.viewContext.save()
-            } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to copy Temp Target with error: \(error.userInfo)"
-                )
-            }
-        }
-
-        return newTempTarget.objectID
-    }
-
     // Deletion of Temp Targets
     func invokeTempTargetPresetDeletion(_ objectID: NSManagedObjectID) async {
-        await deleteOverridePreset(objectID)
+        await tempTargetStorage.deleteOverridePreset(objectID)
 
         // Update Presets View
         setupTempTargetPresetsArray()
-    }
-
-    @MainActor func deleteOverridePreset(_ objectID: NSManagedObjectID) async {
-        await CoreDataStack.shared.deleteObject(identifiedBy: objectID)
     }
 
     @MainActor func resetTempTargetState() async {

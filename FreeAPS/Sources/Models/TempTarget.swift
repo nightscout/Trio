@@ -9,6 +9,8 @@ struct TempTarget: JSON, Identifiable, Equatable, Hashable {
     let duration: Decimal
     let enteredBy: String?
     let reason: String?
+    let isPreset: Bool?
+    let enabled: Bool?
 
     static let manual = "Trio"
     static let custom = "Temp target"
@@ -34,7 +36,9 @@ struct TempTarget: JSON, Identifiable, Equatable, Hashable {
             targetBottom: 0,
             duration: 0,
             enteredBy: TempTarget.manual,
-            reason: TempTarget.cancel
+            reason: TempTarget.cancel,
+            isPreset: nil,
+            enabled: nil
         )
     }
 }
@@ -49,5 +53,7 @@ extension TempTarget {
         case duration
         case enteredBy
         case reason
+        case isPreset
+        case enabled
     }
 }

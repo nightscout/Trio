@@ -65,7 +65,7 @@ import Foundation
 
             // TODO: enact the temp target
             let tempTarget = try intentRequest.findTempTarget(presetToApply)
-            let finalTempTargetApply = try intentRequest.enactTempTarget(tempTarget)
+            let finalTempTargetApply = try await intentRequest.enactTempTarget(tempTarget)
             let formattedTime = decimalToTimeFormattedString(decimal: finalTempTargetApply.duration)
             let displayDetail: String =
                 "Target '\(finalTempTargetApply.displayName)' applied for \(formattedTime)"

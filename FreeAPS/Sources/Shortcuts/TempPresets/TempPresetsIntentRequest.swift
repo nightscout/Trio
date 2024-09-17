@@ -34,10 +34,10 @@ import Foundation
 
     // TODO: - probably broken for now...
 
-    func enactTempTarget(_ presetTarget: TempTarget) throws -> TempTarget {
+    func enactTempTarget(_ presetTarget: TempTarget) async throws -> TempTarget {
         var tempTarget = presetTarget
         tempTarget.createdAt = Date()
-        storage.storeTempTargets([tempTarget])
+        await storage.storeTempTarget(tempTarget: tempTarget)
 
         coredataContext.performAndWait {
             var tempTargetsArray = [TempTargetStored]()
@@ -80,8 +80,8 @@ import Foundation
         return tempTarget
     }
 
-    func cancelTempTarget() throws {
-        storage.storeTempTargets([TempTarget.cancel(at: Date())])
+    func cancelTempTarget() async throws {
+        await storage.storeTempTarget(tempTarget: TempTarget.cancel(at: Date()))
         try coredataContext.performAndWait {
             let saveToCoreData = TempTargetStored(context: self.coredataContext)
             saveToCoreData.enabled = false

@@ -1,3 +1,4 @@
+import CoreData
 import Foundation
 import SwiftDate
 import Swinject
@@ -7,11 +8,15 @@ protocol TempTargetsObserver {
 }
 
 protocol TempTargetsStorage {
-    func storeTempTargets(_ targets: [TempTarget])
+    func storeTempTarget(tempTarget: TempTarget) async
+    func fetchForTempTargetPresets() async -> [NSManagedObjectID]
+    func copyRunningTempTarget(_ tempTarget: TempTargetStored) async -> NSManagedObjectID
+    func deleteOverridePreset(_ objectID: NSManagedObjectID) async
+    func loadLatestTempTargetConfigurations(fetchLimit: Int) async -> [NSManagedObjectID]
     func syncDate() -> Date
     func recent() -> [TempTarget]
     func nightscoutTreatmentsNotUploaded() -> [NightscoutTreatment]
-    func storePresets(_ targets: [TempTarget])
+//    func storePresets(_ targets: [TempTarget])
     func presets() -> [TempTarget]
     func current() -> TempTarget?
 }
@@ -21,43 +26,136 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
     @Injected() private var storage: FileStorage!
     @Injected() private var broadcaster: Broadcaster!
 
+    private let backgroundContext = CoreDataStack.shared.newTaskContext()
+    private let viewContext = CoreDataStack.shared.persistentContainer.viewContext
+
     init(resolver: Resolver) {
         injectServices(resolver)
     }
 
-    func storeTempTargets(_ targets: [TempTarget]) {
-        storeTempTargets(targets, isPresets: false)
+    func loadLatestTempTargetConfigurations(fetchLimit: Int) async -> [NSManagedObjectID] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: TempTargetStored.self,
+            onContext: backgroundContext,
+            predicate: NSPredicate.lastActiveTempTarget,
+            key: "date",
+            ascending: true,
+            fetchLimit: fetchLimit
+        )
+
+        guard let fetchedResults = results as? [TempTargetStored] else { return [] }
+
+        return await backgroundContext.perform {
+            return fetchedResults.map(\.objectID)
+        }
     }
 
-    private func storeTempTargets(_ targets: [TempTarget], isPresets: Bool) {
+    /// Returns the NSManagedObjectID of the Temp Target Presets
+    func fetchForTempTargetPresets() async -> [NSManagedObjectID] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: TempTargetStored.self,
+            onContext: backgroundContext,
+            predicate: NSPredicate.allTempTargetPresets,
+            key: "date",
+            ascending: true
+        )
+
+        guard let fetchedResults = results as? [TempTargetStored] else { return [] }
+
+        return await backgroundContext.perform {
+            return fetchedResults.map(\.objectID)
+        }
+    }
+
+    func storeTempTarget(tempTarget: TempTarget) async {
+        await backgroundContext.perform {
+            let newTempTarget = TempTargetStored(context: self.backgroundContext)
+            newTempTarget.date = tempTarget.createdAt
+            newTempTarget.id = UUID()
+            newTempTarget.enabled = tempTarget.enabled ?? false
+            newTempTarget.duration = tempTarget.duration as NSDecimalNumber
+            newTempTarget.isUploadedToNS = false
+            newTempTarget.name = tempTarget.name
+            newTempTarget.target = NSDecimalNumber(decimal: tempTarget.targetTop ?? 0)
+            newTempTarget.isPreset = tempTarget.isPreset ?? false
+
+            do {
+                guard self.backgroundContext.hasChanges else { return }
+                try self.backgroundContext.save()
+            } catch let error as NSError {
+                debugPrint(
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save Temp Target to Core Data with error: \(error.userInfo)"
+                )
+            }
+
+            if tempTarget.isPreset ?? false {
+                self.saveTempTargetsToStorage([tempTarget], isPreset: true)
+            } else {
+                self.saveTempTargetsToStorage([tempTarget], isPreset: false)
+            }
+        }
+    }
+
+    private func saveTempTargetsToStorage(_ targets: [TempTarget], isPreset: Bool) {
         processQueue.sync {
-            var targets = targets
-            if !isPresets {
-                if current() != nil, let newActive = targets.last(where: {
-                    $0.createdAt.addingTimeInterval(Int($0.duration).minutes.timeInterval) > Date()
-                        && $0.createdAt <= Date()
-                }) {
-                    // cancel current
-                    targets += [TempTarget.cancel(at: newActive.createdAt.addingTimeInterval(-1))]
+            var updatedTargets = targets
+
+            if !isPreset, let currentTarget = current() {
+                if let newActive = updatedTargets.last(where: { $0.isActive }) {
+                    // Cancel current target
+                    updatedTargets.append(.cancel(at: newActive.createdAt.addingTimeInterval(-1)))
                 }
             }
 
-            let file = isPresets ? OpenAPS.FreeAPS.tempTargetsPresets : OpenAPS.Settings.tempTargets
+            let file = isPreset ? OpenAPS.FreeAPS.tempTargetsPresets : OpenAPS.Settings.tempTargets
+
             var uniqEvents: [TempTarget] = []
             self.storage.transaction { storage in
-                storage.append(targets, to: file, uniqBy: \.createdAt)
-                uniqEvents = storage.retrieve(file, as: [TempTarget].self)?
-                    .filter {
-                        guard !isPresets else { return true }
-                        return $0.createdAt.addingTimeInterval(1.days.timeInterval) > Date()
-                    }
-                    .sorted { $0.createdAt > $1.createdAt } ?? []
-                storage.save(Array(uniqEvents), as: file)
+                storage.append(updatedTargets, to: file, uniqBy: \.createdAt)
+
+                let retrievedTargets = storage.retrieve(file, as: [TempTarget].self) ?? []
+                uniqEvents = retrievedTargets
+                    .filter { isPreset || $0.isWithinLastDay }
+                    .sorted(by: { $0.createdAt > $1.createdAt })
+
+                storage.save(uniqEvents, as: file)
             }
+
             broadcaster.notify(TempTargetsObserver.self, on: processQueue) {
                 $0.tempTargetsDidUpdate(uniqEvents)
             }
         }
+    }
+
+    // Copy the current Temp Target if it is a RUNNING Preset
+    /// otherwise we would edit the Preset
+    @MainActor func copyRunningTempTarget(_ tempTarget: TempTargetStored) async -> NSManagedObjectID {
+        let newTempTarget = TempTargetStored(context: viewContext)
+        newTempTarget.date = tempTarget.date
+        newTempTarget.id = tempTarget.id
+        newTempTarget.enabled = tempTarget.enabled
+        newTempTarget.duration = tempTarget.duration
+        newTempTarget.isUploadedToNS = true // to avoid getting duplicates on NS
+        newTempTarget.name = tempTarget.name
+        newTempTarget.target = tempTarget.target
+        newTempTarget.isPreset = false // no Preset
+
+        await viewContext.perform {
+            do {
+                guard self.viewContext.hasChanges else { return }
+                try self.viewContext.save()
+            } catch let error as NSError {
+                debugPrint(
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to copy Temp Target with error: \(error.userInfo)"
+                )
+            }
+        }
+
+        return newTempTarget.objectID
+    }
+
+    @MainActor func deleteOverridePreset(_ objectID: NSManagedObjectID) async {
+        await CoreDataStack.shared.deleteObject(identifiedBy: objectID)
     }
 
     func syncDate() -> Date {
@@ -107,13 +205,24 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
         return Array(Set(treatments).subtracting(Set(uploaded)))
     }
 
-    func storePresets(_ targets: [TempTarget]) {
-        storage.remove(OpenAPS.FreeAPS.tempTargetsPresets)
-
-        storeTempTargets(targets, isPresets: true)
-    }
-
+//    func storePresets(_ targets: [TempTarget]) {
+//        storage.remove(OpenAPS.FreeAPS.tempTargetsPresets)
+//
+//        saveTempTargetsToStorage(targets, isPreset: true)
+//    }
+//
     func presets() -> [TempTarget] {
         storage.retrieve(OpenAPS.FreeAPS.tempTargetsPresets, as: [TempTarget].self)?.reversed() ?? []
+    }
+}
+
+private extension TempTarget {
+    var isActive: Bool {
+        let expirationTime = createdAt.addingTimeInterval(Int(duration).minutes.timeInterval)
+        return expirationTime > Date() && createdAt <= Date()
+    }
+
+    var isWithinLastDay: Bool {
+        createdAt.addingTimeInterval(1.days.timeInterval) > Date()
     }
 }

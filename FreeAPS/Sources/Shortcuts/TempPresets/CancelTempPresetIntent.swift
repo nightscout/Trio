@@ -16,7 +16,7 @@ import Foundation
 
     @MainActor func perform() async throws -> some ProvidesDialog {
         do {
-            try intentRequest.cancelTempTarget()
+            try await intentRequest.cancelTempTarget()
             return .result(
                 dialog: IntentDialog(stringLiteral: "Temporary Target canceled")
             )
