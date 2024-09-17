@@ -383,7 +383,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             }
         }
 
-        if var fetchedEnacted = fetchedEnactedDetermination, settingsManager.settings.units == .mmolL {
+        if let fetchedEnacted = fetchedEnactedDetermination, settingsManager.settings.units == .mmolL {
             var modifiedFetchedEnactedDetermination = fetchedEnactedDetermination
             modifiedFetchedEnactedDetermination?
                 .reason = parseReasonGlucoseValuesToMmolL(fetchedEnacted.reason)

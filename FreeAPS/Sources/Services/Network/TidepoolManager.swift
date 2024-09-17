@@ -224,7 +224,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegat
             var result = result
             switch event.type {
             case .tempBasal:
-                if let duration = event.duration, let amount = event.amount {
+                if let duration = event.duration, let amount = event.amount, let currentBasalRate = self.getCurrentBasalRate() {
                     let value = (Decimal(duration) / 60.0) * amount
 
                     // Create updated previous entry, if applicable -> update end date
@@ -242,10 +242,10 @@ final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegat
                             unit: .units,
                             deliveredUnits: lastDeliveredUnits,
                             syncIdentifier: lastEntry.id ?? UUID().uuidString,
-                            scheduledBasalRate: HKQuantity(
-                                unit: .internationalUnitsPerHour,
-                                doubleValue: Double(truncating: lastEntry.tempBasal?.rate ?? 0.0)
-                            ),
+//                            scheduledBasalRate: HKQuantity(
+//                                unit: .internationalUnitsPerHour,
+//                                doubleValue: Double(truncating: lastEntry.tempBasal?.rate ?? 0.0)
+//                            ),
                             insulinType: apsManager.pumpManager?.status.insulinType ?? nil,
                             automatic: true,
                             manuallyEntered: false,
@@ -265,7 +265,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegat
                         syncIdentifier: event.id,
                         scheduledBasalRate: HKQuantity(
                             unit: .internationalUnitsPerHour,
-                            doubleValue: Double(amount)
+                            doubleValue: Double(currentBasalRate.rate)
                         ),
                         insulinType: apsManager.pumpManager?.status.insulinType ?? nil,
                         automatic: true,
@@ -515,6 +515,58 @@ extension BaseTidepoolManager: ServiceDelegate {
     ) async throws {}
 
     func deliverRemoteBolus(amountInUnits _: Double) async throws {}
+}
+
+extension BaseTidepoolManager {
+    private func getCurrentBasalRate() -> BasalProfileEntry? {
+        let now = Date()
+        let calendar = Calendar.current
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "HH:mm:ss"
+        dateFormatter.timeZone = TimeZone.current
+
+        let basalEntries = storage.retrieve(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self)
+            ?? [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile))
+            ?? []
+
+        var currentRate: BasalProfileEntry = basalEntries[0]
+
+        for (index, entry) in basalEntries.enumerated() {
+            guard let entryTime = dateFormatter.date(from: entry.start) else {
+                print("Invalid entry start time: \(entry.start)")
+                continue
+            }
+
+            let entryComponents = calendar.dateComponents([.hour, .minute, .second], from: entryTime)
+            let entryStartTime = calendar.date(
+                bySettingHour: entryComponents.hour!,
+                minute: entryComponents.minute!,
+                second: entryComponents.second!,
+                of: now
+            )!
+
+            let entryEndTime: Date
+            if index < basalEntries.count - 1,
+               let nextEntryTime = dateFormatter.date(from: basalEntries[index + 1].start)
+            {
+                let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
+                entryEndTime = calendar.date(
+                    bySettingHour: nextEntryComponents.hour!,
+                    minute: nextEntryComponents.minute!,
+                    second: nextEntryComponents.second!,
+                    of: now
+                )!
+            } else {
+                entryEndTime = calendar.date(byAdding: .day, value: 1, to: entryStartTime)!
+            }
+
+            if now >= entryStartTime, now < entryEndTime {
+                currentRate = entry
+            }
+        }
+
+        return currentRate
+    }
 }
 
 extension BaseTidepoolManager: StatefulPluggableDelegate {
