@@ -14,8 +14,8 @@ protocol FileStorage {
     func remove(_ name: String)
     func rename(_ name: String, to newName: String)
     func transaction(_ exec: (FileStorage) -> Void)
-
     func urlFor(file: String) -> URL?
+    func parseOnFileSettingsToMgdL() -> Bool
 }
 
 final class BaseFileStorage: FileStorage {
@@ -148,5 +148,116 @@ final class BaseFileStorage: FileStorage {
 
     func urlFor(file: String) -> URL? {
         try? Disk.url(for: file, in: .documents)
+    }
+}
+
+extension FileStorage {
+    private func correctUnitParsingOffsets(_ parsedValue: Decimal) -> Decimal {
+        Int(parsedValue) % 2 == 0 ? parsedValue : parsedValue + 1
+    }
+
+    func parseSettingIfMmolL(value: Decimal, threshold: Decimal = 39) -> Decimal {
+        value < threshold ? correctUnitParsingOffsets(value.asMgdL) : value
+    }
+
+    /// Parses mmol/L settings stored on file to mg/dL if necessary and updates the preferences, settings,  insulin sensitivities, and glucose targets.
+    /// - Returns: A boolean indicating whether any settings were parsed and updated.
+    func parseOnFileSettingsToMgdL() -> Bool {
+        debug(.businessLogic, "Check for mmol/L settings stored on file.")
+        var wasParsed = false
+
+        // Retrieve and parse preferences (Preferences struct)
+        if var preferences = retrieve(OpenAPS.Settings.preferences, as: Preferences.self) {
+            let initialThreshold = preferences.threshold_setting
+            let initialSMBTarget = preferences.enableSMB_high_bg_target
+            let initialExerciseTarget = preferences.halfBasalExerciseTarget
+
+            preferences.threshold_setting = parseSettingIfMmolL(value: preferences.threshold_setting)
+            preferences.enableSMB_high_bg_target = parseSettingIfMmolL(value: preferences.enableSMB_high_bg_target)
+            preferences.halfBasalExerciseTarget = parseSettingIfMmolL(value: preferences.halfBasalExerciseTarget)
+
+            if preferences.threshold_setting != initialThreshold ||
+                preferences.enableSMB_high_bg_target != initialSMBTarget ||
+                preferences.halfBasalExerciseTarget != initialExerciseTarget
+            {
+                debug(.businessLogic, "Preferences found in mmol/L. Parsing to mg/dL.")
+                save(preferences, as: OpenAPS.Settings.preferences)
+                wasParsed = true
+            } else {
+                debug(.businessLogic, "Preferences stored in mg/dL; no parsing required.")
+            }
+        }
+
+        // Retrieve and parse settings (FreeAPSSettings struct)
+        if var settings = retrieve(OpenAPS.Settings.settings, as: FreeAPSSettings.self) {
+            let initialHigh = settings.high
+            let initialLow = settings.low
+            let initialHighGlucose = settings.highGlucose
+            let initialLowGlucose = settings.lowGlucose
+
+            settings.high = parseSettingIfMmolL(value: settings.high)
+            settings.low = parseSettingIfMmolL(value: settings.low)
+            settings.highGlucose = parseSettingIfMmolL(value: settings.highGlucose)
+            settings.lowGlucose = parseSettingIfMmolL(value: settings.lowGlucose)
+
+            if settings.high != initialHigh ||
+                settings.low != initialLow ||
+                settings.highGlucose != initialHighGlucose ||
+                settings.lowGlucose != initialLowGlucose
+            {
+                debug(.businessLogic, "FreeAPSSettings found in mmol/L. Parsing to mg/dL.")
+                save(settings, as: OpenAPS.Settings.settings)
+                wasParsed = true
+            } else {
+                debug(.businessLogic, "FreeAPSSettings stored in mg/dL; no parsing required.")
+            }
+        }
+
+        // Retrieve and parse insulin sensitivities
+        if var sensitivities = retrieve(OpenAPS.Settings.insulinSensitivities, as: InsulinSensitivities.self),
+           sensitivities.units == .mmolL || sensitivities.userPreferredUnits == .mmolL
+        {
+            debug(.businessLogic, "Insulin sensitivities found in mmol/L. Parsing to mg/dL.")
+
+            sensitivities.sensitivities = sensitivities.sensitivities.map { isf in
+                InsulinSensitivityEntry(
+                    sensitivity: parseSettingIfMmolL(value: isf.sensitivity),
+                    offset: isf.offset,
+                    start: isf.start
+                )
+            }
+            sensitivities.units = .mgdL
+            sensitivities.userPreferredUnits = .mgdL
+
+            save(sensitivities, as: OpenAPS.Settings.insulinSensitivities)
+            wasParsed = true
+        } else {
+            debug(.businessLogic, "Insulin sensitivities stored in mg/dL; no parsing required.")
+        }
+
+        // Retrieve and parse glucose targets
+        if var glucoseTargets = retrieve(OpenAPS.Settings.bgTargets, as: BGTargets.self),
+           glucoseTargets.units == .mmolL || glucoseTargets.userPreferredUnits == .mmolL
+        {
+            debug(.businessLogic, "Glucose target profile found in mmol/L. Parsing to mg/dL.")
+
+            glucoseTargets.targets = glucoseTargets.targets.map { target in
+                BGTargetEntry(
+                    low: parseSettingIfMmolL(value: target.low),
+                    high: parseSettingIfMmolL(value: target.high),
+                    start: target.start,
+                    offset: target.offset
+                )
+            }
+            glucoseTargets.units = .mgdL
+            glucoseTargets.userPreferredUnits = .mgdL
+
+            save(glucoseTargets, as: OpenAPS.Settings.bgTargets)
+            wasParsed = true
+        } else {
+            debug(.businessLogic, "Glucose target profile stored in mg/dL; no parsing required.")
+        }
+
+        return wasParsed
     }
 }

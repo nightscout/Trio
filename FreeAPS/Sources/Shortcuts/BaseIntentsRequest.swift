@@ -13,10 +13,12 @@ import Swinject
     @Injected() var carbsStorage: CarbsStorage!
     @Injected() var glucoseStorage: GlucoseStorage!
     @Injected() var apsManager: APSManager!
+    @Injected() var overrideStorage: OverrideStorage!
 
     let resolver: Resolver
 
     let coredataContext = CoreDataStack.shared.newTaskContext()
+    let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
     override init() {
         resolver = FreeAPSApp.resolver

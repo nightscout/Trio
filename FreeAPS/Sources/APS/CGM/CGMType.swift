@@ -44,7 +44,7 @@ enum CGMType: String, JSON, CaseIterable, Identifiable {
     var externalLink: URL? {
         switch self {
         case .xdrip:
-            return URL(string: "https://github.com/JohanDegraeve/xdripswift")!
+            return URL(string: "https://xdrip4ios.readthedocs.io/")!
         default: return nil
         }
     }

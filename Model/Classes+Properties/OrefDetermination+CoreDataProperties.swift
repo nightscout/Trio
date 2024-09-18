@@ -38,7 +38,7 @@ public extension OrefDetermination {
     @NSManaged var timestamp: Date?
     @NSManaged var timestampEnacted: Date?
     @NSManaged var totalDailyDose: NSDecimalNumber?
-    @NSManaged var forecasts: NSSet?
+    @NSManaged var forecasts: Set<Forecast>?
 }
 
 // MARK: Generated accessors for forecasts

@@ -80,8 +80,6 @@ extension Settings {
                                         }
                                     }
                                 }
-
-                                Text("Statistics").navigationLink(to: .statistics, from: self)
                             }
                         }
                     ).listRowBackground(Color.chart)
@@ -221,6 +219,13 @@ extension Settings {
 //                        .navigationLink(to: .configEditor(file: OpenAPS.Settings.bgTargets), from: self)
 //                    Text("Sensitivities")
 //                        .navigationLink(to: .configEditor(file: OpenAPS.Settings.insulinSensitivities), from: self)
+//                    Text("Profile")
+//                        .navigationLink(to: .configEditor(file: OpenAPS.Settings.profile), from: self)
+//                    Text("Preferences")
+//                        .navigationLink(
+//                            to: .configEditor(file: OpenAPS.Settings.preferences),
+//                            from: self
+//                        )
 //                }.listRowBackground(Color.chart)
 
                 // TODO: remove this more or less entirely; add build-time flag to enable Middleware; add settings export feature

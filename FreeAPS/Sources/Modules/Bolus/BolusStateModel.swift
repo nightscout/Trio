@@ -109,7 +109,7 @@ extension Bolus {
         @Published var maxForecast: [Int] = []
         @Published var minCount: Int = 12 // count of Forecasts drawn in 5 min distances, i.e. 12 means a min of 1 hour
         @Published var forecastDisplayType: ForecastDisplayType = .cone
-        @Published var smooth: Bool = false
+        @Published var isSmoothingEnabled: Bool = false
         @Published var stops: [Gradient.Stop] = []
 
         let now = Date.now
@@ -122,51 +122,38 @@ extension Bolus {
         typealias PumpEvent = PumpEventStored.EventType
 
         override func subscribe() {
-            setupGlucoseNotification()
-            coreDataObserver = CoreDataObserver()
-            registerHandlers()
-            setupGlucoseArray()
-
             Task {
-                async let getAllSettingsDefaults: () = getAllSettingsValues()
-                async let setupDeterminations: () = setupDeterminationsArray()
+                await withTaskGroup(of: Void.self) { group in
+                    group.addTask {
+                        self.setupGlucoseNotification()
+                    }
+                    group.addTask {
+                        self.registerHandlers()
+                    }
+                    group.addTask {
+                        self.setupGlucoseArray()
+                    }
+                    group.addTask {
+                        self.setupDeterminationsAndForecasts()
+                    }
+                    group.addTask {
+                        await self.setupSettings()
+                    }
+                    group.addTask {
+                        self.registerObservers()
+                    }
 
-                await getAllSettingsDefaults
-                await setupDeterminations
-
-                // Determination has updated, so we can use this to draw the initial Forecast Chart
-                let forecastData = await mapForecastsForChart()
-                await updateForecasts(with: forecastData)
-            }
-
-            broadcaster.register(DeterminationObserver.self, observer: self)
-            broadcaster.register(BolusFailureObserver.self, observer: self)
-            units = settingsManager.settings.units
-            fraction = settings.settings.overrideFactor
-            fattyMeals = settings.settings.fattyMeals
-            fattyMealFactor = settings.settings.fattyMealFactor
-            sweetMeals = settings.settings.sweetMeals
-            sweetMealFactor = settings.settings.sweetMealFactor
-            displayPresets = settings.settings.displayPresets
-
-            forecastDisplayType = settings.settings.forecastDisplayType
-
-            lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
-            highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL
-
-            maxCarbs = settings.settings.maxCarbs
-            maxFat = settings.settings.maxFat
-            maxProtein = settings.settings.maxProtein
-            useFPUconversion = settingsManager.settings.useFPUconversion
-            smooth = settingsManager.settings.smoothGlucose
-
-            if waitForSuggestionInitial {
-                Task {
-                    let ok = await apsManager.determineBasal()
-                    if !ok {
-                        self.waitForSuggestion = false
-                        self.insulinRequired = 0
-                        self.insulinRecommended = 0
+                    if self.waitForSuggestionInitial {
+                        group.addTask {
+                            let isDetermineBasalSuccessful = await self.apsManager.determineBasal()
+                            if !isDetermineBasalSuccessful {
+                                await MainActor.run {
+                                    self.waitForSuggestion = false
+                                    self.insulinRequired = 0
+                                    self.insulinRecommended = 0
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -202,6 +189,43 @@ extension Bolus {
                     }
                 }
             }
+        }
+
+        private func setupDeterminationsAndForecasts() {
+            Task {
+                async let getAllSettingsDefaults: () = getAllSettingsValues()
+                async let setupDeterminations: () = setupDeterminationsArray()
+
+                await getAllSettingsDefaults
+                await setupDeterminations
+
+                // Determination has updated, so we can use this to draw the initial Forecast Chart
+                let forecastData = await mapForecastsForChart()
+                await updateForecasts(with: forecastData)
+            }
+        }
+
+        private func registerObservers() {
+            broadcaster.register(DeterminationObserver.self, observer: self)
+            broadcaster.register(BolusFailureObserver.self, observer: self)
+        }
+
+        @MainActor private func setupSettings() async {
+            units = settingsManager.settings.units
+            fraction = settings.settings.overrideFactor
+            fattyMeals = settings.settings.fattyMeals
+            fattyMealFactor = settings.settings.fattyMealFactor
+            sweetMeals = settings.settings.sweetMeals
+            sweetMealFactor = settings.settings.sweetMealFactor
+            displayPresets = settings.settings.displayPresets
+            forecastDisplayType = settings.settings.forecastDisplayType
+            lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
+            highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL
+            maxCarbs = settings.settings.maxCarbs
+            maxFat = settings.settings.maxFat
+            maxProtein = settings.settings.maxProtein
+            useFPUconversion = settingsManager.settings.useFPUconversion
+            isSmoothingEnabled = settingsManager.settings.smoothGlucose
         }
 
         private func getCurrentSettingValue(for type: SettingType) async {
@@ -439,54 +463,6 @@ extension Bolus {
             }
         }
 
-        private func calculateGradientStops() async -> [Gradient.Stop] {
-            let low = Double(lowGlucose)
-            let high = Double(highGlucose)
-
-            let glucoseValues = glucoseFromPersistence
-                .map { units == .mgdL ? Decimal($0.glucose) : Decimal($0.glucose).asMmolL }
-
-            let minimum = glucoseValues.min() ?? 0.0
-            let maximum = glucoseValues.max() ?? 0.0
-
-            // Handle edge case where minimum and maximum are equal
-            guard minimum != maximum else {
-                return [
-                    Gradient.Stop(color: .green, location: 0.0),
-                    Gradient.Stop(color: .green, location: 1.0)
-                ]
-            }
-
-            // Calculate positions for gradient
-            let lowPosition = (low - Double(truncating: minimum as NSNumber)) /
-                (Double(truncating: maximum as NSNumber) - Double(truncating: minimum as NSNumber))
-            let highPosition = (high - Double(truncating: minimum as NSNumber)) /
-                (Double(truncating: maximum as NSNumber) - Double(truncating: minimum as NSNumber))
-
-            // Ensure positions are in bounds [0, 1]
-            let clampedLowPosition = max(0.0, min(lowPosition, 1.0))
-            let clampedHighPosition = max(0.0, min(highPosition, 1.0))
-
-            // Ensure lowPosition is less than highPosition
-            let epsilon: CGFloat = 0.0001
-            let sortedPositions = [clampedLowPosition, clampedHighPosition].sorted()
-            var adjustedHighPosition = sortedPositions[1]
-
-            if adjustedHighPosition - sortedPositions[0] < epsilon {
-                adjustedHighPosition = min(1.0, sortedPositions[0] + epsilon)
-            }
-
-            return [
-                Gradient.Stop(color: .red, location: 0.0),
-                Gradient.Stop(color: .red, location: sortedPositions[0]), // draw red gradient till lowGlucose
-                Gradient.Stop(color: .green, location: sortedPositions[0] + epsilon),
-                // draw green above lowGlucose till highGlucose
-                Gradient.Stop(color: .green, location: adjustedHighPosition),
-                Gradient.Stop(color: .orange, location: adjustedHighPosition + epsilon), // draw orange above highGlucose
-                Gradient.Stop(color: .orange, location: 1.0)
-            ]
-        }
-
         // MARK: - Carbs
 
         func saveMeal() async {
@@ -624,14 +600,6 @@ extension Bolus.StateModel {
             let ids = await self.fetchGlucose()
             let glucoseObjects: [GlucoseStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
             await updateGlucoseArray(with: glucoseObjects)
-
-            if smooth {
-                let newStops = await self.calculateGradientStops()
-
-                await MainActor.run {
-                    self.stops = newStops
-                }
-            }
         }
     }
 

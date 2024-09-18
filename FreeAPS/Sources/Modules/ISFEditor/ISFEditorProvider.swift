@@ -1,3 +1,5 @@
+import Foundation
+
 extension ISFEditor {
     final class Provider: BaseProvider, ISFEditorProvider {
         var profile: InsulinSensitivities {
@@ -12,7 +14,11 @@ extension ISFEditor {
             // migrate existing mmol/L Trio users from mmol/L settings to pure mg/dl settings
             if retrievedSensitivities.units == .mmolL || retrievedSensitivities.userPreferredUnits == .mmolL {
                 let convertedSensitivities = retrievedSensitivities.sensitivities.map { isf in
-                    InsulinSensitivityEntry(sensitivity: isf.sensitivity.asMgdL, offset: isf.offset, start: isf.start)
+                    InsulinSensitivityEntry(
+                        sensitivity: storage.parseSettingIfMmolL(value: isf.sensitivity),
+                        offset: isf.offset,
+                        start: isf.start
+                    )
                 }
                 retrievedSensitivities = InsulinSensitivities(
                     units: .mgdL,

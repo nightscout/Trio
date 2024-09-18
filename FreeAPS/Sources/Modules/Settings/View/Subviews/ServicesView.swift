@@ -38,9 +38,7 @@ struct ServicesView: BaseView {
                 header: Text("Connected Services"),
                 content: {
                     Text("Nightscout").navigationLink(to: .nighscoutConfig, from: self)
-                    NavigationLink(destination: TidepoolStartView(state: state)) {
-                        Text("Tidepool")
-                    }
+                    Text("Tidepool").navigationLink(to: .tidepoolConfig, from: self)
                     if HKHealthStore.isHealthDataAvailable() {
                         Text("Apple Health").navigationLink(to: .healthkit, from: self)
                     }

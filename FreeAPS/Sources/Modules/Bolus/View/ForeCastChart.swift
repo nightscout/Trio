@@ -7,7 +7,6 @@ struct ForeCastChart: View {
     @StateObject var state: Bolus.StateModel
     @Environment(\.colorScheme) var colorScheme
     @Binding var units: GlucoseUnits
-    var stops: [Gradient.Stop]
 
     @State private var startMarker = Date(timeIntervalSinceNow: -4 * 60 * 60)
 
@@ -122,39 +121,28 @@ struct ForeCastChart: View {
 
     private func drawGlucose() -> some ChartContent {
         ForEach(state.glucoseFromPersistence) { item in
-            let glucoseToDisplay = units == .mgdL ? Decimal(item.glucose) : Decimal(item.glucose).asMmolL
+            let glucoseToDisplay = state.units == .mgdL ? Decimal(item.glucose) : Decimal(item.glucose).asMmolL
+            let pointMarkColor: Color = glucoseToDisplay > state.highGlucose ? Color.orange :
+                glucoseToDisplay < state.lowGlucose ? Color.red :
+                Color.green
 
-            if state.smooth {
-                LineMark(
-                    x: .value("Time", item.date ?? Date()),
+            if !state.isSmoothingEnabled {
+                PointMark(
+                    x: .value("Time", item.date ?? Date(), unit: .second),
                     y: .value("Value", glucoseToDisplay)
                 )
-                .foregroundStyle(
-                    .linearGradient(stops: stops, startPoint: .bottom, endPoint: .top)
-                )
-                .symbol(.circle).symbolSize(34)
+                .foregroundStyle(pointMarkColor)
+                .symbolSize(20)
             } else {
-                if item.glucose > Int(state.highGlucose) {
-                    PointMark(
-                        x: .value("Time", item.date ?? Date(), unit: .second),
-                        y: .value("Value", glucoseToDisplay)
-                    )
-                    .foregroundStyle(Color.orange.gradient)
-                    .symbolSize(20)
-                } else if item.glucose < Int(state.lowGlucose) {
-                    PointMark(
-                        x: .value("Time", item.date ?? Date(), unit: .second),
-                        y: .value("Value", glucoseToDisplay)
-                    )
-                    .foregroundStyle(Color.red.gradient)
-                    .symbolSize(20)
-                } else {
-                    PointMark(
-                        x: .value("Time", item.date ?? Date(), unit: .second),
-                        y: .value("Value", glucoseToDisplay)
-                    )
-                    .foregroundStyle(Color.green.gradient)
-                    .symbolSize(20)
+                PointMark(
+                    x: .value("Time", item.date ?? Date(), unit: .second),
+                    y: .value("Value", glucoseToDisplay)
+                )
+                .symbol {
+                    Image(systemName: "record.circle.fill")
+                        .font(.system(size: 8))
+                        .bold()
+                        .foregroundStyle(pointMarkColor)
                 }
             }
         }

@@ -180,7 +180,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
             propertiesToFetch: ["timestamp", "cob", "iob", "objectID"]
         )
 
-        guard let fetchedResults = results as? [[String: Any]], !fetchedResults.isEmpty else { return nil }
+        guard let fetchedResults = results as? [[String: Any]] /* , !fetchedResults.isEmpty */ else { return nil }
 
         return await backgroundContext.perform {
             return fetchedResults.first?["objectID"] as? NSManagedObjectID
@@ -193,7 +193,8 @@ final class BaseCalendarManager: CalendarManager, Injectable {
             onContext: backgroundContext,
             predicate: NSPredicate.predicateFor30MinAgo,
             key: "date",
-            ascending: false
+            ascending: false,
+            propertiesToFetch: ["objectID", "glucose"]
         )
 
         guard let fetchedResults = results as? [[String: Any]] else { return [] }

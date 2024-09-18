@@ -131,6 +131,15 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     private func subscribe() {
+        if settingsManager.settings.units == .mmolL {
+            let wasParsed = storage.parseOnFileSettingsToMgdL()
+            if wasParsed {
+                Task {
+                    try await makeProfiles()
+                }
+            }
+        }
+
         deviceDataManager.recommendsLoop
             .receive(on: processQueue)
             .sink { [weak self] in

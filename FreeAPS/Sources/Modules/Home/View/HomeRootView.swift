@@ -103,13 +103,6 @@ extension Home {
             return dateFormatter
         }
 
-        private var spriteScene: SKScene {
-            let scene = SnowScene()
-            scene.scaleMode = .resizeFill
-            scene.backgroundColor = .clear
-            return scene
-        }
-
         private var color: LinearGradient {
             colorScheme == .dark ? LinearGradient(
                 gradient: Gradient(colors: [
@@ -143,8 +136,7 @@ extension Home {
                 lowGlucose: $state.lowGlucose,
                 highGlucose: $state.highGlucose,
                 cgmAvailable: $state.cgmAvailable,
-                glucose: state.glucoseFromPersistence,
-                manualGlucose: state.manualGlucoseFromPersistence
+                glucose: state.latestTwoGlucoseValues
             ).scaleEffect(0.9)
                 .onTapGesture {
                     state.openCGM()
@@ -345,24 +337,18 @@ extension Home {
                 MainChartView(
                     geo: geo,
                     units: $state.units,
-                    announcement: $state.announcement,
                     hours: .constant(state.filteredHours),
-                    maxBasal: $state.maxBasal,
-                    autotunedBasalProfile: $state.autotunedBasalProfile,
-                    basalProfile: $state.basalProfile,
                     tempTargets: $state.tempTargets,
-                    smooth: $state.smooth,
                     highGlucose: $state.highGlucose,
                     lowGlucose: $state.lowGlucose,
                     screenHours: $state.hours,
                     displayXgridLines: $state.displayXgridLines,
                     displayYgridLines: $state.displayYgridLines,
                     thresholdLines: $state.thresholdLines,
-                    isTempTargetActive: $state.isTempTargetActive,
                     state: state
                 )
             }
-            .padding(.bottom)
+            .padding(.bottom, UIDevice.adjustPadding(min: 0, max: nil))
         }
 
         func highlightButtons() {
@@ -574,7 +560,7 @@ extension Home {
                             showCancelAlert = true
                         }
                     }
-            }.padding(.horizontal, 10).padding(.bottom, 10)
+            }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
                 .overlay {
                     /// just show temp target if no profile is already active
                     if overrideString == nil, let tempTargetString = tempTargetString {
@@ -606,7 +592,7 @@ extension Home {
                                     .font(.subheadline)
                                 Spacer()
                             }.padding(.horizontal, 10)
-                        }.padding(.horizontal, 10).padding(.bottom, 10)
+                        }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
                     }
                 }
         }
@@ -688,7 +674,7 @@ extension Home {
                     }.padding(.horizontal, 10)
                         .padding(.trailing, 8)
 
-                }.padding(.horizontal, 10).padding(.bottom, 10)
+                }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
                     .overlay(alignment: .bottom) {
                         bolusProgressBar(progress).padding(.horizontal, 18).offset(y: 48)
                     }.clipShape(RoundedRectangle(cornerRadius: 15))
@@ -715,16 +701,18 @@ extension Home {
                         }.padding(.leading, 20)
                     }.padding(.top, 10)
 
-                    mealPanel(geo).padding(.top, 30).padding(.bottom, 20)
+                    mealPanel(geo).padding(.top, UIDevice.adjustPadding(min: nil, max: 30))
+                        .padding(.bottom, UIDevice.adjustPadding(min: nil, max: 20))
 
                     mainChart(geo: geo)
 
-                    timeInterval.padding(.top, 12).padding(.bottom, 12)
+                    timeInterval.padding(.top, UIDevice.adjustPadding(min: 0, max: 12))
+                        .padding(.bottom, UIDevice.adjustPadding(min: 0, max: 12))
 
                     if let progress = state.bolusProgress {
-                        bolusView(geo: geo, progress).padding(.bottom, 40)
+                        bolusView(geo: geo, progress).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
                     } else {
-                        profileView(geo: geo).padding(.bottom, 40)
+                        profileView(geo: geo).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
                     }
                 }
                 .background(color)
@@ -822,7 +810,7 @@ extension Home {
                         List {
                             DefinitionRow(
                                 term: "Cone of Uncertainty",
-                                definition: "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result.",
+                                definition: "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result.\n\nTo modify the forecast display type, go to Trio Settings > Features > User Interface > Forecast Display Type.",
                                 color: Color.blue.opacity(0.5)
                             )
                         }
@@ -962,8 +950,13 @@ extension Home {
                         Text("Invalid CGM reading (HIGH).").font(.callout).bold().foregroundColor(.loopRed).padding(.top, 8)
                         Text("SMBs and High Temps Disabled.").font(.caption).foregroundColor(.white).padding(.bottom, 4)
                     } else {
-                        TagCloudView(tags: determination.reasonParts, shouldParseToMmolL: state.units == .mmolL)
-                            .animation(.none, value: false)
+                        let tags = !state.isSmoothingEnabled ? determination.reasonParts : determination
+                            .reasonParts + ["Smoothing: On"]
+                        TagCloudView(
+                            tags: tags,
+                            shouldParseToMmolL: state.units == .mmolL
+                        )
+                        .animation(.none, value: false)
 
                         Text(
                             self
@@ -1001,5 +994,35 @@ extension Home {
                 return
             }
         }
+    }
+}
+
+extension UIDevice {
+    public enum DeviceSize: CGFloat {
+        case smallDevice = 667 // Height for 4" iPhone SE
+        case largeDevice = 852 // Height for 6.1" iPhone 15 Pro
+    }
+
+    @usableFromInline static func adjustPadding(min: CGFloat? = nil, max: CGFloat? = nil) -> CGFloat? {
+        if UIScreen.screenHeight > UIDevice.DeviceSize.smallDevice.rawValue {
+            if UIScreen.screenHeight >= UIDevice.DeviceSize.largeDevice.rawValue {
+                return max
+            } else {
+                return min != nil ?
+                    (max != nil ? max! * (UIScreen.screenHeight / UIDevice.DeviceSize.largeDevice.rawValue) : nil) : nil
+            }
+        } else {
+            return min
+        }
+    }
+}
+
+extension UIScreen {
+    static var screenHeight: CGFloat {
+        UIScreen.main.bounds.height
+    }
+
+    static var screenWidth: CGFloat {
+        UIScreen.main.bounds.width
     }
 }

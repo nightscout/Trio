@@ -35,20 +35,6 @@ extension NightscoutConfig {
                 )
         }
 
-        @FetchRequest(
-            entity: ImportError.entity(),
-            sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)], predicate: NSPredicate(
-                format: "date > %@", Date().addingTimeInterval(-1.minutes.timeInterval) as NSDate
-            )
-        ) var fetchedErrors: FetchedResults<ImportError>
-
-        private var portFormater: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.allowsFloats = false
-            formatter.usesGroupingSeparator = false
-            return formatter
-        }
-
         var body: some View {
             ZStack {
                 Form {
@@ -67,16 +53,26 @@ extension NightscoutConfig {
                                 importAlert = Alert(
                                     title: Text("Import Therapy Settings?"),
                                     message: Text(
-                                        NSLocalizedString(
-                                            "This will replace some or all of your current therapy settings. Are you sure you want to import profile settings from Nightscout?",
-                                            comment: "Nightscout Settings Import Alert"
-                                        )
+                                        "Are you sure you want to import profile settings from Nightscout?\n\nThis will overwrite the following Trio therapy settings: Basal Rates, Insulin Sensitivities, Carb Ratios, Target Glucose, and Duration of Insulin Action."
                                     ),
                                     primaryButton: .default(
                                         Text("Yes, Import!"),
                                         action: {
                                             Task {
                                                 await state.importSettings()
+                                                // Check the import status and errors after the import process finishes
+                                                if state.importStatus == .failed, state.importErrors.isNotEmpty,
+                                                   let errorMessage = state.importErrors.first
+                                                {
+                                                    DispatchQueue.main.async {
+                                                        importAlert = Alert(
+                                                            title: Text("Import Failed"),
+                                                            message: Text(errorMessage.description),
+                                                            dismissButton: .default(Text("OK"))
+                                                        )
+                                                        isImportAlertPresented = true
+                                                    }
+                                                }
                                             }
                                         }
                                     ),
@@ -102,7 +98,7 @@ extension NightscoutConfig {
                                     action: {
                                         hintLabel = "Import Settings from Nightscout"
                                         selectedVerboseHint =
-                                            "Importing settings from Nightscout will overwrite the following Trio therapy settings: \n • DIA (Pump settings) \n • Basal Profile \n • Insulin Sensitivities \n • Carb Ratios \n • Target Glucose"
+                                            "This will overwrite the following Trio therapy settings: \n • Basal Rates \n • Insulin Sensitivities \n • Carb Ratios \n • Target Glucose \n • Duration of Insulin Action"
                                         shouldDisplayHint.toggle()
                                     },
                                     label: {
@@ -160,29 +156,6 @@ extension NightscoutConfig {
                 if state.importStatus == .running {
                     CustomProgressView(text: "Importing Profile...")
                 }
-                //            .alert(isPresented: $importedHasRun) {
-                //                Alert(
-                //                    title: Text(
-                //                        (fetchedErrors.first?.error ?? "")
-                //                            .count < 4 ? "Settings imported" : "Import Error"
-                //                    ),
-                //                    message: Text(
-                //                        (fetchedErrors.first?.error ?? "").count < 4 ?
-                //                            NSLocalizedString(
-                //                                "\nNow please verify all of your new settings thoroughly: \n\n • DIA (Pump settings)\n • Basal Rates\n • Insulin Sensitivities\n • Carb Ratios\n • Target Glucose\n\n in Trio Settings -> Configuration.\n\nBad or invalid profile settings could have disastrous effects.",
-                //                                comment: "Imported Profiles Alert"
-                //                            ) :
-                //                            NSLocalizedString(
-                //                                fetchedErrors.first?.error ?? "",
-                //                                comment: "Import Error"
-                //                            )
-                //                    ),
-                //                    primaryButton: .destructive(
-                //                        Text("OK")
-                //                    ),
-                //                    secondaryButton: .cancel()
-                //                )
-                //            }
             }
             .fullScreenCover(isPresented: $state.isImportResultReviewPresented, content: {
                 NightscoutImportResultView(resolver: resolver, state: state)
@@ -199,7 +172,7 @@ extension NightscoutConfig {
             .navigationBarTitle("Nightscout")
             .navigationBarTitleDisplayMode(.automatic)
             .alert(isPresented: $isImportAlertPresented) {
-                importAlert!
+                importAlert ?? Alert(title: Text("Unknown Error"))
             }
             .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)
