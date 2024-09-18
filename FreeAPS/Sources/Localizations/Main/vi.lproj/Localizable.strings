@@ -1314,7 +1314,7 @@ Enact a temp Basal or a temp target */
 "Override your Basal, ISF, CR and Target profiles" = "Ghi đè Basal, ISF, CR và Target của bạn";
 
 /* */
-"Enable indefinitely" = "Kích hoạt vô thời hạn";
+"Enable Indefinitely" = "Kích hoạt vô thời hạn";
 
 /* */
 "Override Profile target" = "Mục tiêu của ghi đè";
@@ -1332,10 +1332,10 @@ Enact a temp Basal or a temp target */
 "Profiles" = "Profiles";
 
 /* */
-"More options" = "Các lựa chọn khác";
+"More Options" = "Các lựa chọn khác";
 
 /* */
-"Schedule when SMBs are Off" = "Lịch trình khi SMBs tắt";
+"Schedule When SMBs Are Disabled" = "Lịch trình khi SMBs tắt";
 
 /* */
 "Change ISF and CR" = "Thay đổi ISF và CR";

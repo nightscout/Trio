@@ -1358,7 +1358,7 @@ Połączono z Nightscout!";
 "Override your Basal, ISF, CR and Target profiles" = "Override your Basal, ISF, CR and Target profiles";
 
 /* */
-"Enable indefinitely" = "Enable indefinitely";
+"Enable Indefinitely" = "Enable Indefinitely";
 
 /* */
 "Override Profile target" = "Override Profile target";
@@ -1376,10 +1376,10 @@ Połączono z Nightscout!";
 "Profiles" = "Profiles";
 
 /* */
-"More options" = "More options";
+"More Options" = "More Options";
 
 /* */
-"Schedule when SMBs are Off" = "Schedule when SMBs are Off";
+"Schedule When SMBs Are Disabled" = "Schedule When SMBs Are Disabled";
 
 /* */
 "Change ISF and CR" = "Change ISF and CR";

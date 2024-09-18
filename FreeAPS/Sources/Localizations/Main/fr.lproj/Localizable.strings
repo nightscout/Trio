@@ -1356,7 +1356,7 @@ Enact a temp Basal or a temp target */
 "Override your Basal, ISF, CR and Target profiles" = "Remplacer les profils Basal, ISF, CR et Target";
 
 /* */
-"Enable indefinitely" = "Activer indéfiniment";
+"Enable Indefinitely" = "Activer indéfiniment";
 
 /* */
 "Override Profile target" = "Remplacer la cible du profil";
@@ -1374,10 +1374,10 @@ Enact a temp Basal or a temp target */
 "Profiles" = "Profils";
 
 /* */
-"More options" = "Plus d'options";
+"More Options" = "Plus d'options";
 
 /* */
-"Schedule when SMBs are Off" = "Planifier quand les SMB sont désactivés";
+"Schedule When SMBs Are Disabled" = "Planifier quand les SMB sont désactivés";
 
 /* */
 "Change ISF and CR" = "Changer ISF et CR";

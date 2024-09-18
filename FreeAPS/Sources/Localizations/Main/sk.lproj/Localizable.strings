@@ -1314,7 +1314,7 @@ Enact a temp Basal or a temp target */
 "Override your Basal, ISF, CR and Target profiles" = "Prepíšte svoje profily Basal, ISF, CR a Target";
 
 /* */
-"Enable indefinitely" = "Povolenie na dobu neurčitú";
+"Enable Indefinitely" = "Povolenie na dobu neurčitú";
 
 /* */
 "Override Profile target" = "Prepísať cieľ profilu";
@@ -1332,10 +1332,10 @@ Enact a temp Basal or a temp target */
 "Profiles" = "Profily";
 
 /* */
-"More options" = "Viac možností";
+"More Options" = "Viac možností";
 
 /* */
-"Schedule when SMBs are Off" = "Plán, kedy sú SMB vypnuté";
+"Schedule When SMBs Are Disabled" = "Plán, kedy sú SMB vypnuté";
 
 /* */
 "Change ISF and CR" = "Zmena ISF a CR";

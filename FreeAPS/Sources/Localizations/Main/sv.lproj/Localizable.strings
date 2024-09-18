@@ -1356,7 +1356,7 @@ Enact a temp Basal or a temp target */
 "Override your Basal, ISF, CR and Target profiles" = "Ändra sparad basal, korrektionsfaktor, insulinkvot och målvärde med ett tillfälligt undantag";
 
 /* */
-"Enable indefinitely" = "Aktivera tillsvidare";
+"Enable Indefinitely" = "Aktivera tillsvidare";
 
 /* */
 "Override Profile target" = "Ändra målvärde";
@@ -1374,10 +1374,10 @@ Enact a temp Basal or a temp target */
 "Profiles" = "Profiler";
 
 /* */
-"More options" = "Fler alternativ";
+"More Options" = "Fler alternativ";
 
 /* */
-"Schedule when SMBs are Off" = "Schemalägg när autobolusar ska vara av ";
+"Schedule When SMBs Are Disabled" = "Schemalägg när autobolusar ska vara av ";
 
 /* */
 "Change ISF and CR" = "Ändra ISF and CR";

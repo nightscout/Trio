@@ -1356,7 +1356,7 @@ Enact a temp Basal or a temp target */
 "Override your Basal, ISF, CR and Target profiles" = "ПЕРЕВИЗНАЧИТИ БАЗАЛ, ISF, CR ТА ЦІЛЬОВІ ПРОФІЛІ";
 
 /* */
-"Enable indefinitely" = "Увімкнути на невизначений термін";
+"Enable Indefinitely" = "Увімкнути на невизначений термін";
 
 /* */
 "Override Profile target" = "Заміна Цільового Профілю";
@@ -1374,10 +1374,10 @@ Enact a temp Basal or a temp target */
 "Profiles" = "Профілі";
 
 /* */
-"More options" = "Додаткові параметри";
+"More Options" = "Додаткові параметри";
 
 /* */
-"Schedule when SMBs are Off" = "Розклад, коли SMBs вимкнено";
+"Schedule When SMBs Are Disabled" = "Розклад, коли SMBs вимкнено";
 
 /* */
 "Change ISF and CR" = "Змінити ISF і CR";
