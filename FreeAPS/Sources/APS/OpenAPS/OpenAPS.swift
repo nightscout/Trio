@@ -541,6 +541,9 @@ final class OpenAPS {
                     isfAndCr: overrideArray.first?.isfAndCr ?? false,
                     isf: overrideArray.first?.isf ?? false,
                     cr: overrideArray.first?.cr ?? false,
+                    smbIsScheduledOff: overrideArray.first?.smbIsScheduledOff ?? false,
+                    start: (overrideArray.first?.start ?? 0) as Decimal,
+                    end: (overrideArray.first?.end ?? 0) as Decimal,
                     smbMinutes: (overrideArray.first?.smbMinutes ?? smbMinutes) as Decimal,
                     uamMinutes: (overrideArray.first?.uamMinutes ?? uamMinutes) as Decimal
                 )
@@ -568,6 +571,9 @@ final class OpenAPS {
                     isfAndCr: overrideArray.first?.isfAndCr ?? false,
                     isf: overrideArray.first?.isf ?? false,
                     cr: overrideArray.first?.cr ?? false,
+                    smbIsScheduledOff: overrideArray.first?.smbIsScheduledOff ?? false,
+                    start: (overrideArray.first?.start ?? 0) as Decimal,
+                    end: (overrideArray.first?.end ?? 0) as Decimal,
                     smbMinutes: (overrideArray.first?.smbMinutes ?? smbMinutes) as Decimal,
                     uamMinutes: (overrideArray.first?.uamMinutes ?? uamMinutes) as Decimal
                 )
