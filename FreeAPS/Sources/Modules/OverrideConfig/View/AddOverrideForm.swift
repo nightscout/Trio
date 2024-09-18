@@ -93,7 +93,7 @@ struct AddOverrideForm: View {
                 )
                 Spacer()
                 Toggle(isOn: $state.indefinite) {
-                    Text("Enable indefinitely")
+                    Text("Enable Indefinitely")
                 }
             }
             if !state.indefinite {
@@ -118,28 +118,45 @@ struct AddOverrideForm: View {
             }
             HStack {
                 Toggle(isOn: $state.advancedSettings) {
-                    Text("More options")
+                    Text("More Options")
                 }
             }
             if state.advancedSettings {
                 HStack {
-                    Toggle(isOn: $state.smbIsOff) {
+                    Toggle(isOn: Binding(
+                        get: { state.smbIsOff },
+                        set: { newValue in
+                            state.smbIsOff = newValue
+                            if newValue {
+                                state.smbIsScheduledOff = false
+                            }
+                        }
+                    )) {
                         Text("Disable SMBs")
                     }
                 }
                 HStack {
-                    Toggle(isOn: $state.smbIsAlwaysOff) {
-                        Text("Schedule when SMBs are Off")
-                    }.disabled(!state.smbIsOff)
+                    Toggle(isOn: Binding(
+                        get: { state.smbIsScheduledOff },
+                        set: { newValue in
+                            state.smbIsScheduledOff = newValue
+                            if newValue {
+                                state.smbIsOff = false
+                            }
+                        }
+                    )) {
+                        Text("Schedule When SMBs Are Disabled")
+                    }
                 }
-                if state.smbIsAlwaysOff {
+
+                if state.smbIsScheduledOff {
                     HStack {
-                        Text("First Hour SMBs are Off (24 hours)")
+                        Text("First Hour SMBs Are Disabled (24 hours)")
                         TextFieldWithToolBar(text: $state.start, placeholder: "0", numberFormatter: formatter)
                         Text("hour").foregroundColor(.secondary)
                     }
                     HStack {
-                        Text("Last Hour SMBs are Off (24 hours)")
+                        Text("First Hour SMBs Are Resumed (24 hours)")
                         TextFieldWithToolBar(text: $state.end, placeholder: "0", numberFormatter: formatter)
                         Text("hour").foregroundColor(.secondary)
                     }
@@ -161,15 +178,17 @@ struct AddOverrideForm: View {
                         }
                     }
                 }
-                HStack {
-                    Text("SMB Minutes")
-                    TextFieldWithToolBar(text: $state.smbMinutes, placeholder: "0", numberFormatter: formatter)
-                    Text("minutes").foregroundColor(.secondary)
-                }
-                HStack {
-                    Text("UAM SMB Minutes")
-                    TextFieldWithToolBar(text: $state.uamMinutes, placeholder: "0", numberFormatter: formatter)
-                    Text("minutes").foregroundColor(.secondary)
+                if !state.smbIsOff {
+                    HStack {
+                        Text("SMB Minutes")
+                        TextFieldWithToolBar(text: $state.smbMinutes, placeholder: "0", numberFormatter: formatter)
+                        Text("minutes").foregroundColor(.secondary)
+                    }
+                    HStack {
+                        Text("UAM SMB Minutes")
+                        TextFieldWithToolBar(text: $state.uamMinutes, placeholder: "0", numberFormatter: formatter)
+                        Text("minutes").foregroundColor(.secondary)
+                    }
                 }
             }
 
@@ -178,14 +197,14 @@ struct AddOverrideForm: View {
         header: { Text("Add custom Override") }
         footer: {
             Text(
-                "Your profile basal insulin will be adjusted with the override percentage and your profile ISF and CR will be inversly adjusted with the percentage."
+                "Your profile ISF and CR will be inversly adjusted with the override percentage."
             )
         }.listRowBackground(Color.chart)
     }
 
     private var startAndSaveProfiles: some View {
         HStack {
-            Button("Start new Override") {
+            Button("Start New Override") {
                 if !state.isInputInvalid(target: state.target) {
                     showAlert.toggle()
 
@@ -271,17 +290,12 @@ struct AddOverrideForm: View {
     }
 
     private func unChanged() -> Bool {
-        let isChanged = (
-            state.overrideSliderPercentage == 100 && !state.shouldOverrideTarget && !state.smbIsOff && !state
-                .advancedSettings
-        ) ||
-            (!state.indefinite && state.overrideDuration == 0) || (state.shouldOverrideTarget && state.target == 0) ||
-            (
-                state.overrideSliderPercentage == 100 && !state.shouldOverrideTarget && !state.smbIsOff && state.isf && state
-                    .cr && state
-                    .smbMinutes == state.defaultSmbMinutes && state.uamMinutes == state.defaultUamMinutes
-            )
+        let defaultProfile = state.overrideSliderPercentage == 100 && !state.shouldOverrideTarget && !state.advancedSettings
+        let noDurationSpecified = !state.indefinite && state.overrideDuration == 0
+        let targetZeroWithOverride = state.shouldOverrideTarget && state.target == 0
+        let allSettingsDefault = state.overrideSliderPercentage == 100 && !state.shouldOverrideTarget && !state.smbIsOff && !state
+            .smbIsScheduledOff && state.smbMinutes == state.defaultSmbMinutes && state.uamMinutes == state.defaultUamMinutes
 
-        return isChanged
+        return defaultProfile || noDurationSpecified || targetZeroWithOverride || allSettingsDefault
     }
 }

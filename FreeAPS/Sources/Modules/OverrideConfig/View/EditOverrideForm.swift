@@ -14,7 +14,7 @@ struct EditOverrideForm: View {
     @State private var target: Decimal?
     @State private var advancedSettings: Bool
     @State private var smbIsOff: Bool
-    @State private var smbIsAlwaysOff: Bool
+    @State private var smbIsScheduledOff: Bool
     @State private var start: Decimal?
     @State private var end: Decimal?
     @State private var isfAndCr: Bool
@@ -42,7 +42,7 @@ struct EditOverrideForm: View {
         _target_override = State(initialValue: overrideToEdit.target?.decimalValue != 0)
         _advancedSettings = State(initialValue: overrideToEdit.advancedSettings)
         _smbIsOff = State(initialValue: overrideToEdit.smbIsOff)
-        _smbIsAlwaysOff = State(initialValue: overrideToEdit.smbIsAlwaysOff)
+        _smbIsScheduledOff = State(initialValue: overrideToEdit.smbIsScheduledOff)
         _start = State(initialValue: overrideToEdit.start?.decimalValue)
         _end = State(initialValue: overrideToEdit.end?.decimalValue)
         _isfAndCr = State(initialValue: overrideToEdit.isfAndCr)
@@ -143,7 +143,7 @@ struct EditOverrideForm: View {
                 ).onChange(of: percentage) { _ in hasChanges = true }
                 Spacer()
                 Toggle(isOn: $indefinite) {
-                    Text("Enable indefinitely")
+                    Text("Enable Indefinitely")
                 }.onChange(of: indefinite) { _ in hasChanges = true }
             }
             if !indefinite {
@@ -188,21 +188,43 @@ struct EditOverrideForm: View {
             }
 
             Toggle(isOn: $advancedSettings) {
-                Text("More options")
+                Text("More Options")
             }.onChange(of: advancedSettings) { _ in hasChanges = true }
 
             if advancedSettings {
-                Toggle(isOn: $smbIsOff) {
+                Toggle(
+                    isOn: Binding(
+                        get: { smbIsOff },
+                        set: { newValue in
+                            smbIsOff = newValue
+                            if newValue {
+                                smbIsScheduledOff = false
+                            }
+                            hasChanges = true
+                        }
+                    )
+                ) {
                     Text("Disable SMBs")
-                }.onChange(of: smbIsOff) { _ in hasChanges = true }
+                }
 
-                Toggle(isOn: $smbIsAlwaysOff) {
-                    Text("Schedule when SMBs are Off")
-                }.onChange(of: smbIsAlwaysOff) { _ in hasChanges = true }
+                Toggle(
+                    isOn: Binding(
+                        get: { smbIsScheduledOff },
+                        set: { newValue in
+                            smbIsScheduledOff = newValue
+                            if newValue {
+                                smbIsOff = false
+                            }
+                            hasChanges = true
+                        }
+                    )
+                ) {
+                    Text("Schedule When SMBs Are Disabled")
+                }
 
-                if smbIsAlwaysOff {
+                if smbIsScheduledOff {
                     HStack {
-                        Text("First Hour SMBs are Off (24 hours)")
+                        Text("First Hour SMBs Are Disabled (24 hours)")
                         TextFieldWithToolBar(
                             text: Binding(
                                 get: { start ?? 0 },
@@ -218,10 +240,10 @@ struct EditOverrideForm: View {
                     }
 
                     HStack {
-                        Text("Last Hour SMBs are Off (24 hours)")
+                        Text("First Hour SMBs Are Resumed (24 hours)")
                         TextFieldWithToolBar(
                             text: Binding(
-                                get: { end ?? 23 },
+                                get: { end ?? 0 },
                                 set: {
                                     end = $0
                                     hasChanges = true
@@ -248,36 +270,38 @@ struct EditOverrideForm: View {
                     }.onChange(of: cr) { _ in hasChanges = true }
                 }
 
-                HStack {
-                    Text("SMB Minutes")
-                    TextFieldWithToolBar(
-                        text: Binding(
-                            get: { smbMinutes ?? state.defaultSmbMinutes },
-                            set: {
-                                smbMinutes = $0
-                                hasChanges = true
-                            }
-                        ),
-                        placeholder: "0",
-                        numberFormatter: formatter
-                    )
-                    Text("minutes").foregroundColor(.secondary)
-                }
+                if !smbIsOff {
+                    HStack {
+                        Text("SMB Minutes")
+                        TextFieldWithToolBar(
+                            text: Binding(
+                                get: { smbMinutes ?? state.defaultSmbMinutes },
+                                set: {
+                                    smbMinutes = $0
+                                    hasChanges = true
+                                }
+                            ),
+                            placeholder: "0",
+                            numberFormatter: formatter
+                        )
+                        Text("minutes").foregroundColor(.secondary)
+                    }
 
-                HStack {
-                    Text("UAM SMB Minutes")
-                    TextFieldWithToolBar(
-                        text: Binding(
-                            get: { uamMinutes ?? state.defaultUamMinutes },
-                            set: {
-                                uamMinutes = $0
-                                hasChanges = true
-                            }
-                        ),
-                        placeholder: "0",
-                        numberFormatter: formatter
-                    )
-                    Text("minutes").foregroundColor(.secondary)
+                    HStack {
+                        Text("UAM SMB Minutes")
+                        TextFieldWithToolBar(
+                            text: Binding(
+                                get: { uamMinutes ?? state.defaultUamMinutes },
+                                set: {
+                                    uamMinutes = $0
+                                    hasChanges = true
+                                }
+                            ),
+                            placeholder: "0",
+                            numberFormatter: formatter
+                        )
+                        Text("minutes").foregroundColor(.secondary)
+                    }
                 }
             }
         }.listRowBackground(Color.chart)
@@ -341,7 +365,7 @@ struct EditOverrideForm: View {
         }
         override.advancedSettings = advancedSettings
         override.smbIsOff = smbIsOff
-        override.smbIsAlwaysOff = smbIsAlwaysOff
+        override.smbIsScheduledOff = smbIsScheduledOff
         override.start = start.map { NSDecimalNumber(decimal: $0) }
         override.end = end.map { NSDecimalNumber(decimal: $0) }
         override.isfAndCr = isfAndCr
@@ -360,7 +384,7 @@ struct EditOverrideForm: View {
         target = override.target?.decimalValue
         advancedSettings = override.advancedSettings
         smbIsOff = override.smbIsOff
-        smbIsAlwaysOff = override.smbIsAlwaysOff
+        smbIsScheduledOff = override.smbIsScheduledOff
         start = override.start?.decimalValue
         end = override.end?.decimalValue
         isfAndCr = override.isfAndCr

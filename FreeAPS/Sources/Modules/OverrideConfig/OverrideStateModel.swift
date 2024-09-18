@@ -23,9 +23,9 @@ extension OverrideConfig {
         @Published var isfAndCr: Bool = true
         @Published var isf: Bool = true
         @Published var cr: Bool = true
-        @Published var smbIsAlwaysOff: Bool = false
+        @Published var smbIsScheduledOff: Bool = false
         @Published var start: Decimal = 0
-        @Published var end: Decimal = 23
+        @Published var end: Decimal = 0
         @Published var smbMinutes: Decimal = 0
         @Published var uamMinutes: Decimal = 0
         @Published var defaultSmbMinutes: Decimal = 0
@@ -233,7 +233,7 @@ extension OverrideConfig.StateModel {
             isfAndCr: isfAndCr,
             isf: isf,
             cr: cr,
-            smbIsAlwaysOff: smbIsAlwaysOff,
+            smbIsScheduledOff: smbIsScheduledOff,
             start: start,
             end: end,
             smbMinutes: smbMinutes,
@@ -272,7 +272,7 @@ extension OverrideConfig.StateModel {
             isfAndCr: isfAndCr,
             isf: isf,
             cr: cr,
-            smbIsAlwaysOff: smbIsAlwaysOff,
+            smbIsScheduledOff: smbIsScheduledOff,
             start: start,
             end: end,
             smbMinutes: smbMinutes,
@@ -419,9 +419,9 @@ extension OverrideConfig.StateModel {
         isf = true
         cr = true
         isfAndCr = true
-        smbIsAlwaysOff = false
+        smbIsScheduledOff = false
         start = 0
-        end = 23
+        end = 0
         smbMinutes = defaultSmbMinutes
         uamMinutes = defaultUamMinutes
         target = 0
