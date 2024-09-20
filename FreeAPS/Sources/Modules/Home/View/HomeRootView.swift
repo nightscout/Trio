@@ -517,78 +517,49 @@ extension Home {
                             : Color.black.opacity(0.33),
                         radius: 3
                     )
-
-                HStack(spacing: 15) {
-                    // Profile icon
-                    Image(systemName: "person.fill")
-                        .font(.system(size: 25))
-
-                    Spacer()
-
+                HStack {
                     if let overrideString = overrideString, let tempTargetString = tempTargetString {
-                        // Both override and temp target are active
-                        HStack(spacing: 15) {
-                            // Override section
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    Text(latestOverride.first?.name ?? "Custom Override")
-                                        .font(.subheadline)
-                                    Text("\(overrideString)")
-                                        .font(.caption)
-                                }
-                                .onTapGesture {
-                                    if !latestOverride.isEmpty {
-                                        showCancelAlert = true
-                                    }
-                                }
-                                Image(systemName: "xmark")
-                                    .font(.system(size: 25))
-                                    .onTapGesture {
-                                        if !latestOverride.isEmpty {
-                                            showCancelAlert = true
-                                        }
-                                    }
-                            }
-
-                            Divider()
-                                .frame(height: geo.size.height * 0.05)
-                                .padding(.horizontal, 5)
-
-                            // Temp Target section
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    Text(latestTempTarget.first?.name ?? "Temp Target")
-                                        .font(.subheadline)
-                                    Text("\(tempTargetString)")
-                                        .font(.caption)
-                                }
-                                .onTapGesture {
-                                    if !latestTempTarget.isEmpty {
-                                        showTempTargetCancelAlert = true
-                                    }
-                                }
-                                Image(systemName: "xmark")
-                                    .font(.system(size: 25))
-                                    .onTapGesture {
-                                        if !latestTempTarget.isEmpty {
-                                            showTempTargetCancelAlert = true
-                                        }
-                                    }
-                            }
-                        }
-                    } else if let overrideString = overrideString {
-                        // Only override is active
                         HStack {
+                            /// override section
+                            Image(systemName: "person.fill")
+                                .font(.system(size: 24))
+                                .foregroundStyle(Color.purple)
                             VStack(alignment: .leading) {
                                 Text(latestOverride.first?.name ?? "Custom Override")
                                     .font(.subheadline)
-                                Text("\(overrideString)")
+                                    .frame(alignment: .leading)
+
+                                Text(overrideString)
                                     .font(.caption)
                             }
-                            .onTapGesture {
-                                if !latestOverride.isEmpty {
-                                    showCancelAlert = true
-                                }
+                            Spacer()
+                            Divider()
+                                .frame(height: geo.size.height * 0.05)
+                                .padding(.horizontal, 2)
+                            /// TempTarget section
+                            Image(systemName: "target")
+                                .font(.system(size: 24))
+                                .foregroundColor(.loopGreen)
+                            VStack(alignment: .leading) {
+                                Text(latestTempTarget.first?.name ?? "Temp Target")
+                                    .font(.subheadline)
+                                Text(tempTargetString)
+                                    .font(.caption)
+                            }
+                            Spacer()
+                        }
+                    } else
+                    if let overrideString = overrideString {
+                        // Only override is active
+                        HStack {
+                            Image(systemName: "person.fill")
+                                .font(.system(size: 24))
+                                .foregroundStyle(Color.purple)
+                            VStack(alignment: .leading) {
+                                Text(latestOverride.first?.name ?? "Custom Override")
+                                    .font(.subheadline)
+                                Text(overrideString)
+                                    .font(.caption)
                             }
                             Spacer()
                             Image(systemName: "xmark")
@@ -599,19 +570,18 @@ extension Home {
                                     }
                                 }
                         }
-                    } else if let tempTargetString = tempTargetString {
+                    } else
+                    if let tempTargetString = tempTargetString {
                         // Only temp target is active
                         HStack {
+                            Image(systemName: "target")
+                                .font(.system(size: 24))
+                                .foregroundColor(.loopGreen)
                             VStack(alignment: .leading) {
                                 Text(latestTempTarget.first?.name ?? "Temp Target")
                                     .font(.subheadline)
-                                Text("\(tempTargetString)")
+                                Text(tempTargetString)
                                     .font(.caption)
-                            }
-                            .onTapGesture {
-                                if !latestTempTarget.isEmpty {
-                                    showTempTargetCancelAlert = true
-                                }
                             }
                             Spacer()
                             Image(systemName: "xmark")
@@ -637,7 +607,7 @@ extension Home {
                             .foregroundColor(.clear)
                     }
                 }
-                .padding(.horizontal, 10)
+                .padding(5)
             }
             .padding(.horizontal, 10)
             .padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
@@ -655,10 +625,11 @@ extension Home {
                         }
                     }
                 },
-                message: { Text("This will change settings back to your normal profile.") }
+                message: { Text("This will change settings back to your normal profile.")
+                }
             )
             .alert(
-                "Return to Normal?",
+                "Cancel TempTarget?",
                 isPresented: $showTempTargetCancelAlert,
                 actions: {
                     Button("No", role: .cancel) {}
@@ -671,7 +642,7 @@ extension Home {
                         }
                     }
                 },
-                message: { Text("This will change settings back to your normal profile.") }
+                message: { Text("This will change settings back to your regular target.") }
             )
         }
 
@@ -790,7 +761,9 @@ extension Home {
                     if let progress = state.bolusProgress {
                         bolusView(geo: geo, progress).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
                     } else {
-                        profileView(geo: geo).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
+                        if overrideString != nil || tempTargetString != nil {                   // kills the Normal Profile View
+                            profileView(geo: geo).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
+                        }
                     }
                 }
                 .background(color)
