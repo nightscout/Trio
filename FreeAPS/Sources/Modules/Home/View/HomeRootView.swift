@@ -761,7 +761,7 @@ extension Home {
                     if let progress = state.bolusProgress {
                         bolusView(geo: geo, progress).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
                     } else {
-                        if overrideString != nil || tempTargetString != nil {                   // kills the Normal Profile View
+                        if overrideString != nil || tempTargetString != nil { // kills the Normal Profile View
                             profileView(geo: geo).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
                         }
                     }

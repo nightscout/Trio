@@ -62,12 +62,46 @@ extension OverrideConfig {
 
         var body: some View {
             VStack {
-                Picker("Tab", selection: $state.selectedTab) {
-                    ForEach(Tab.allCases) { tab in
-                        Text(NSLocalizedString(tab.name, comment: "")).tag(tab)
+                HStack(spacing: 6) {
+                    HStack {
+                        Spacer()
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 18))
+                            .foregroundColor(Color.purple)
+                        Text(OverrideConfig.Tab.overrides.name)
+                            .font(.subheadline)
+                        Spacer()
+                    }
+                    .padding(.vertical, 6)
+                    .background(state.selectedTab == .overrides ? Color.loopGray.opacity(0.4) : Color.clear)
+                    .cornerRadius(8)
+                    .onTapGesture {
+                        withAnimation {
+                            state.selectedTab = .overrides
+                        }
+                    }
+                    HStack {
+                        Spacer()
+                        Image(systemName: "target")
+                            .font(.system(size: 18))
+                            .foregroundColor(.loopGreen)
+                        Text(OverrideConfig.Tab.tempTargets.name)
+                            .font(.subheadline)
+                        Spacer()
+                    }
+                    .padding(.vertical, 6)
+                    .background(state.selectedTab == .tempTargets ? Color.loopGray.opacity(0.4) : Color.clear)
+                    .cornerRadius(8)
+                    .onTapGesture {
+                        withAnimation {
+                            state.selectedTab = .tempTargets
+                        }
                     }
                 }
-                .pickerStyle(.segmented).padding(.horizontal, 10)
+                .padding(2)
+                .background(Color.gray.opacity(0.2))
+                .cornerRadius(8)
+                .padding(.horizontal)
 
                 Form {
                     switch state.selectedTab {
