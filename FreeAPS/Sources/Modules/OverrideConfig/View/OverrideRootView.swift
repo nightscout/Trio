@@ -450,6 +450,11 @@ extension OverrideConfig {
             })
         }
 
+        private var overrideLabelDivider: some View {
+            Divider()
+                .frame(width: 1, height: 20)
+        }
+
         @ViewBuilder private func overridesView(for preset: OverrideStored) -> some View {
             let target = (state.units == .mgdL ? preset.target : preset.target?.decimalValue.asMmolL as NSDecimalNumber?) ?? 0
 
@@ -457,16 +462,18 @@ extension OverrideConfig {
             let name = ((preset.name ?? "") == "") || (preset.name?.isEmpty ?? true) ? "" : preset.name!
             let percent = preset.percentage / 100
             let perpetual = preset.indefinite
-            let durationString = perpetual ? "" : "\(formatter.string(from: duration as NSNumber)!)"
-            let scheduledSMBstring = (preset.smbIsOff && preset.smbIsScheduledOff) ? "Scheduled SMBs" : ""
-            let smbString = (preset.smbIsOff && scheduledSMBstring == "") ? "SMBs are off" : ""
-            let targetString = target != 0 ? target.description : ""
+            let durationString = perpetual ? "∞" : "\(formatter.string(from: duration as NSNumber)!) min"
+            let scheduledSMBstring = preset.smbIsScheduledOff && preset.start != preset.end
+                ? " \(preset.start?.stringValue ?? "")-\(preset.end?.stringValue ?? "")" : ""
+            let smbString = (preset.smbIsOff || preset.smbIsScheduledOff) ? "SMBs Off\(scheduledSMBstring)" : ""
+            let targetString = target != 0 ? "\(target.description) \(state.units.rawValue)" : ""
             let maxMinutesSMB = (preset.smbMinutes as Decimal?) != nil ? (preset.smbMinutes ?? 0) as Decimal : 0
             let maxMinutesUAM = (preset.uamMinutes as Decimal?) != nil ? (preset.uamMinutes ?? 0) as Decimal : 0
-            let isfString = preset.isf ? "ISF" : ""
-            let crString = preset.cr ? "CR" : ""
-            let dash = crString != "" ? "/" : ""
-            let isfAndCRstring = isfString + dash + crString
+            let maxSmbMinsString = (maxMinutesSMB != 0 && maxMinutesSMB != state.defaultSmbMinutes) ?
+                "\(maxMinutesSMB.formatted()) min SMB" : ""
+            let maxUamMinsString = (maxMinutesUAM != 0 && maxMinutesUAM != state.defaultUamMinutes) ?
+                "\(maxMinutesUAM.formatted()) min UAM" : ""
+            let isfAndCRstring = (preset.isf == preset.cr) ? "" : (preset.isf ? " ISF" : " CR")
             let isSelected = preset.id == selectedPresetID
 
             if name != "" {
@@ -478,18 +485,32 @@ extension OverrideConfig {
                                 Spacer()
                             }
                             HStack(spacing: 5) {
-                                Text(percent.formatted(.percent.grouping(.never).rounded().precision(.fractionLength(0))))
-                                if targetString != "" {
-                                    Text(targetString)
-                                    Text(targetString != "" ? state.units.rawValue : "")
+                                if durationString != "" {
+                                    Text(durationString)
                                 }
-                                if durationString != "" { Text(durationString + (perpetual ? "" : "min")) }
-                                if smbString != "" { Text(smbString).foregroundColor(.secondary).font(.caption) }
-                                if scheduledSMBstring != "" { Text(scheduledSMBstring) }
-                                if preset.advancedSettings {
-                                    Text(maxMinutesSMB == 0 ? "" : maxMinutesSMB.formatted() + " SMB")
-                                    Text(maxMinutesUAM == 0 ? "" : maxMinutesUAM.formatted() + " UAM")
-                                    Text(isfAndCRstring)
+                                if percent != 1 {
+                                    overrideLabelDivider
+                                    Text(
+                                        percent
+                                            .formatted(.percent.grouping(.never).rounded().precision(.fractionLength(0))) +
+                                            isfAndCRstring
+                                    )
+                                }
+                                if targetString != "" {
+                                    overrideLabelDivider
+                                    Text(targetString)
+                                }
+                                if smbString != "" {
+                                    overrideLabelDivider
+                                    Text(smbString).foregroundColor(.secondary).font(.caption)
+                                }
+                                if maxSmbMinsString != "" {
+                                    overrideLabelDivider
+                                    Text(maxSmbMinsString)
+                                }
+                                if maxUamMinsString != "" {
+                                    overrideLabelDivider
+                                    Text(maxUamMinsString)
                                 }
                                 Spacer()
                             }

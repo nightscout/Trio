@@ -211,7 +211,7 @@ extension Home {
                 0
             )
             let indefinite = latestOverride.indefinite
-            var durationString = ""
+            var durationString = "∞"
 
             if !indefinite {
                 if newDuration >= 1 {
@@ -229,9 +229,14 @@ extension Home {
                 }
             }
 
-            let smbToggleString = latestOverride.smbIsOff ? " \u{20e0}" : ""
+            let smbScheduleString = latestOverride
+                .smbIsScheduledOff && ((latestOverride.start?.stringValue ?? "") != (latestOverride.end?.stringValue ?? ""))
+                ? " \(latestOverride.start?.stringValue ?? "")-\(latestOverride.end?.stringValue ?? "")"
+                : ""
+            let smbToggleString = latestOverride.smbIsOff || latestOverride
+                .smbIsScheduledOff ? "SMBs Off\(smbScheduleString)" : ""
 
-            let components = [percentString, targetString, durationString, smbToggleString].filter { !$0.isEmpty }
+            let components = [durationString, percentString, targetString, smbToggleString].filter { !$0.isEmpty }
             return components.isEmpty ? nil : components.joined(separator: ", ")
         }
 
