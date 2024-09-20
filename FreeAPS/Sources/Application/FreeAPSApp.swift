@@ -70,7 +70,7 @@ import Swinject
     var body: some Scene {
         WindowGroup {
             Main.RootView(resolver: resolver)
-                .preferredColorScheme(colorScheme(for: colorSchemePreference ?? .system) ?? nil)
+                .preferredColorScheme(colorScheme(for: colorSchemePreference ?? .systemDefault) ?? nil)
                 .environment(\.managedObjectContext, coreDataStack.persistentContainer.viewContext)
                 .environmentObject(Icons())
                 .onOpenURL(perform: handleURL)
