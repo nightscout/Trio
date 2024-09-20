@@ -10,6 +10,9 @@ import Swinject
 
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
+    // Read the color scheme preference from UserDefaults; defaults to system default setting
+    @AppStorage("colorSchemePreference") private var colorSchemePreference: ColorSchemeOption = .systemDefault
+
     let coreDataStack = CoreDataStack.shared
 
     // Dependencies Assembler
@@ -67,6 +70,7 @@ import Swinject
     var body: some Scene {
         WindowGroup {
             Main.RootView(resolver: resolver)
+                .preferredColorScheme(colorScheme(for: colorSchemePreference ?? .system) ?? nil)
                 .environment(\.managedObjectContext, coreDataStack.persistentContainer.viewContext)
                 .environmentObject(Icons())
                 .onOpenURL(perform: handleURL)
@@ -82,6 +86,17 @@ import Swinject
         .backgroundTask(.appRefresh("com.openiaps.cleanup")) {
             await scheduleDatabaseCleaning()
             await cleanupOldData()
+        }
+    }
+
+    private func colorScheme(for colorScheme: ColorSchemeOption) -> ColorScheme? {
+        switch colorScheme {
+        case .systemDefault:
+            return nil // Uses the system theme.
+        case .light:
+            return .light
+        case .dark:
+            return .dark
         }
     }
 
