@@ -3,7 +3,7 @@ import CoreData
 import Foundation
 import SwiftUI
 
-struct ForeCastChart: View {
+struct ForecastChart: View {
     @StateObject var state: Bolus.StateModel
     @Environment(\.colorScheme) var colorScheme
     @Binding var units: GlucoseUnits
@@ -35,68 +35,62 @@ struct ForeCastChart: View {
 
     var body: some View {
         VStack {
-            HStack {
-                HStack {
-                    Text("Added carbs: ")
-                        .font(.footnote)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.orange)
-
-                    Text("\(state.carbs.description) g")
-                        .font(.footnote)
-                        .foregroundStyle(.orange)
-                }
-                .padding(8)
-                .background {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.orange.opacity(0.2))
-                }
-
-                Spacer()
-
-                HStack {
-                    Text("Added insulin: ")
-                        .font(.footnote)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.blue)
-
-                    Text("\(state.amount.description) U")
-                        .font(.footnote)
-                        .foregroundStyle(.blue)
-                }
-                .padding(8)
-                .background {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.blue.opacity(0.2))
-                }
-            }
+//            forecastChartLabels
 
             forecastChart
                 .padding(.vertical, 3)
-            HStack {
-                Spacer()
-                Image(systemName: "arrow.right.circle")
-                    .font(.system(size: 16, weight: .bold))
+        }
+    }
 
-                if let eventualBG = state.simulatedDetermination?.eventualBG {
+    private var forecastChartLabels: some View {
+        HStack {
+            HStack {
+                Image(systemName: "fork.knife")
+                Text("\(state.carbs.description) g")
+            }
+            .font(.footnote)
+            .foregroundStyle(.orange)
+            .padding(8)
+            .background {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.orange.opacity(0.2))
+            }
+
+            Spacer()
+
+            HStack {
+                Image(systemName: "syringe.fill")
+                Text("\(state.amount.description) U")
+            }
+            .font(.footnote)
+            .foregroundStyle(.blue)
+            .padding(8)
+            .background {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.blue.opacity(0.2))
+            }
+
+            Spacer()
+
+            HStack {
+                Image(systemName: "arrow.right.circle")
+
+                if let simulatedDetermination = state.simulatedDetermination, let eventualBG = simulatedDetermination.eventualBG {
                     HStack {
                         Text(
-                            units == .mgdL ? Decimal(eventualBG).description : eventualBG.formattedAsMmolL
+                            (units == .mgdL ? Decimal(eventualBG).description : eventualBG.formattedAsMmolL) + units.rawValue
                         )
-                        .font(.footnote)
-                        .foregroundStyle(.primary)
-                        Text("\(units.rawValue)")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
                     }
                 } else {
                     Text("---")
-                        .font(.footnote)
-                        .foregroundStyle(.primary)
-                    Text("\(units.rawValue)")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
                 }
+            }
+            .font(.footnote)
+            .foregroundStyle(.primary)
+            .padding(8)
+            .background {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.primary.opacity(0.2))
             }
         }
     }
@@ -195,18 +189,27 @@ struct ForeCastChart: View {
     }
 
     private func drawForecastLines() -> some ChartContent {
-        let predictions = state.predictionsForChart
+        if let predictions = state.predictionsForChart {
+            // Prepare the prediction data with only the first 36 values, i.e., 3 hours in the future
+            var predictionData: [(String, ArraySlice<Int>)] = [] // Non-optional array
 
-        // Prepare the prediction data with only the first 36 values, i.e. 3 hours in the future
-        let predictionData = [
-            ("iob", predictions?.iob?.prefix(36)),
-            ("zt", predictions?.zt?.prefix(36)),
-            ("cob", predictions?.cob?.prefix(36)),
-            ("uam", predictions?.uam?.prefix(36))
-        ]
+            if let iob = predictions.iob {
+                predictionData.append(("IOB", iob.prefix(36)))
+            }
 
-        return ForEach(predictionData, id: \.0) { name, values in
-            if let values = values {
+            if let zt = predictions.zt {
+                predictionData.append(("ZT", zt.prefix(36)))
+            }
+
+            if let cob = predictions.cob {
+                predictionData.append(("COB", cob.prefix(36)))
+            }
+
+            if let uam = predictions.uam {
+                predictionData.append(("UAM", uam.prefix(36)))
+            }
+
+            return ForEach(predictionData, id: \.0) { name, values in
                 ForEach(values.indices, id: \.self) { index in
                     LineMark(
                         x: .value("Time", timeForIndex(Int32(index))),
@@ -215,6 +218,11 @@ struct ForeCastChart: View {
                     .foregroundStyle(by: .value("Prediction Type", name))
                 }
             }
+        } else {
+        LineMark(
+            x: .value("Time", Date()),
+            y: .value("Value", 0)
+        )
         }
     }
 

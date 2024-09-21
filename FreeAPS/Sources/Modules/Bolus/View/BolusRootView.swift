@@ -171,96 +171,97 @@ extension Bolus {
                 VStack {
                     Form {
                         Section {
-                            ForeCastChart(state: state, units: $state.units)
+                            ForecastChart(state: state, units: $state.units)
                                 .padding(.vertical)
                         }.listRowBackground(Color.chart)
 
                         Section {
                             carbsTextField()
 
-                            DisclosureGroup("Extras") {
-                                if state.useFPUconversion {
-                                    proteinAndFat()
-                                }
+//                            DisclosureGroup("Extras") {
+                            if state.useFPUconversion {
+                                proteinAndFat()
+                            }
 
-                                // Time
-                                HStack {
-                                    Text("Time").foregroundStyle(Color.secondary)
-                                    Spacer()
-                                    if !pushed {
-                                        Button {
-                                            pushed = true
-                                        } label: { Text("Now") }.buttonStyle(.borderless).foregroundColor(.secondary)
-                                            .padding(.trailing, 5)
-                                    } else {
-                                        Button { state.date = state.date.addingTimeInterval(-15.minutes.timeInterval) }
-                                        label: { Image(systemName: "minus.circle") }.tint(.blue).buttonStyle(.borderless)
-                                        DatePicker(
-                                            "Time",
-                                            selection: $state.date,
-                                            displayedComponents: [.hourAndMinute]
-                                        ).controlSize(.mini)
-                                            .labelsHidden()
-                                        Button {
-                                            state.date = state.date.addingTimeInterval(15.minutes.timeInterval)
-                                        }
-                                        label: { Image(systemName: "plus.circle") }.tint(.blue).buttonStyle(.borderless)
+                            // Time
+                            HStack {
+                                Text("Time").foregroundStyle(Color.secondary)
+                                Spacer()
+                                if !pushed {
+                                    Button {
+                                        pushed = true
+                                    } label: { Text("Now") }.buttonStyle(.borderless).foregroundColor(.secondary)
+                                        .padding(.trailing, 5)
+                                } else {
+                                    Button { state.date = state.date.addingTimeInterval(-15.minutes.timeInterval) }
+                                    label: { Image(systemName: "minus.circle") }.tint(.blue).buttonStyle(.borderless)
+                                    DatePicker(
+                                        "Time",
+                                        selection: $state.date,
+                                        displayedComponents: [.hourAndMinute]
+                                    ).controlSize(.mini)
+                                        .labelsHidden()
+                                    Button {
+                                        state.date = state.date.addingTimeInterval(15.minutes.timeInterval)
                                     }
-                                }
-
-                                // Notes
-                                HStack {
-                                    Image(systemName: "square.and.pencil").foregroundColor(.secondary)
-                                    TextFieldWithToolBarString(text: $state.note, placeholder: "", maxLength: 25)
+                                    label: { Image(systemName: "plus.circle") }.tint(.blue).buttonStyle(.borderless)
                                 }
                             }
+
+                            // Notes
+                            HStack {
+                                Image(systemName: "square.and.pencil").foregroundColor(.secondary)
+                                TextFieldWithToolBarString(text: $state.note, placeholder: "Enter Note...", maxLength: 25)
+                            }
+//                            }
                         }.listRowBackground(Color.chart)
 
                         Section {
-                            HStack {
-                                Button(action: {
-                                    state.showInfo.toggle()
-                                }, label: {
-                                    Image(systemName: "info.circle")
-                                    Text("Calculations")
-                                })
-                                    .foregroundStyle(.blue)
-                                    .font(.footnote)
-                                    .buttonStyle(PlainButtonStyle())
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                                if state.fattyMeals {
-                                    Spacer()
-                                    Toggle(isOn: $state.useFattyMealCorrectionFactor) {
-                                        Text("Fatty Meal")
-                                    }
-                                    .toggleStyle(CheckboxToggleStyle())
-                                    .font(.footnote)
-                                    .onChange(of: state.useFattyMealCorrectionFactor) { _ in
-                                        state.insulinCalculated = state.calculateInsulin()
-                                        if state.useFattyMealCorrectionFactor {
-                                            state.useSuperBolus = false
+                            if state.fattyMeals || state.sweetMeals {
+                                HStack(spacing: 10) {
+                                    if state.fattyMeals {
+                                        Toggle(isOn: $state.useFattyMealCorrectionFactor) {
+                                            Text("Fatty Meal")
+                                        }
+                                        .toggleStyle(CheckboxToggleStyle())
+                                        .font(.footnote)
+                                        .onChange(of: state.useFattyMealCorrectionFactor) { _ in
+                                            state.insulinCalculated = state.calculateInsulin()
+                                            if state.useFattyMealCorrectionFactor {
+                                                state.useSuperBolus = false
+                                            }
                                         }
                                     }
-                                }
-                                if state.sweetMeals {
-                                    Spacer()
-                                    Toggle(isOn: $state.useSuperBolus) {
-                                        Text("Super Bolus")
-                                    }
-                                    .toggleStyle(CheckboxToggleStyle())
-                                    .font(.footnote)
-                                    .onChange(of: state.useSuperBolus) { _ in
-                                        state.insulinCalculated = state.calculateInsulin()
-                                        if state.useSuperBolus {
-                                            state.useFattyMealCorrectionFactor = false
+                                    if state.sweetMeals {
+                                        Toggle(isOn: $state.useSuperBolus) {
+                                            Text("Super Bolus")
+                                        }
+                                        .toggleStyle(CheckboxToggleStyle())
+                                        .font(.footnote)
+                                        .onChange(of: state.useSuperBolus) { _ in
+                                            state.insulinCalculated = state.calculateInsulin()
+                                            if state.useSuperBolus {
+                                                state.useFattyMealCorrectionFactor = false
+                                            }
                                         }
                                     }
                                 }
                             }
 
                             HStack {
-                                Text("Recommended Bolus")
+                                HStack {
+                                    Text("Recommended Bolus")
+                                    Button(action: {
+                                        state.showInfo.toggle()
+                                    }, label: {
+                                        Image(systemName: "info.circle")
+//                                        Text("Calculations")
+                                    })
+                                        .foregroundStyle(.blue)
+//                                        .font(.footnote)
+                                        .buttonStyle(PlainButtonStyle())
+//                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
                                 Spacer()
                                 Text(
                                     formatter
@@ -311,6 +312,8 @@ extension Bolus {
                     CustomProgressView(text: progressText.rawValue)
                 }
             }
+            .padding(.top)
+            .ignoresSafeArea(edges: .top)
             .scrollContentBackground(.hidden).background(color)
             .blur(radius: state.showInfo ? 3 : 0)
             .navigationTitle("Treatments")
