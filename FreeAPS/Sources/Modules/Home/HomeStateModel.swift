@@ -392,7 +392,7 @@ extension Home {
                 guard viewContext.hasChanges else { return }
                 try viewContext.save()
 
-                Foundation.NotificationCenter.default.post(name: .didUpdateOverrideConfiguration, object: nil)
+                Foundation.NotificationCenter.default.post(name: .willUpdateOverrideConfiguration, object: nil)
             } catch {
                 debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to cancel Profile")
             }

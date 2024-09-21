@@ -1,3 +1,4 @@
+import Combine
 import CoreData
 import Observation
 import SwiftUI
@@ -57,6 +58,8 @@ extension OverrideConfig {
             return "Please enter a valid target between" + " \(target)."
         }
 
+        private var cancellables = Set<AnyCancellable>()
+
         override func subscribe() {
             setupNotification()
             units = settingsManager.settings.units
@@ -97,16 +100,12 @@ extension OverrideConfig {
 extension OverrideConfig.StateModel {
     // Custom Notification to update View when an Override has been cancelled via Home View
     func setupNotification() {
-        Foundation.NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleOverrideConfigurationUpdate),
-            name: .didUpdateOverrideConfiguration,
-            object: nil
-        )
-    }
-
-    @objc private func handleOverrideConfigurationUpdate() {
-        updateLatestOverrideConfiguration()
+        Foundation.NotificationCenter.default.publisher(for: .willUpdateOverrideConfiguration)
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                self.updateLatestOverrideConfiguration()
+            }
+            .store(in: &cancellables)
     }
 
     // MARK: - Enact Overrides

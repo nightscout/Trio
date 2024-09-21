@@ -1,5 +1,6 @@
 import CoreData
 import Foundation
+import UIKit
 
 @available(iOS 16.0, *) final class OverridePresetsIntentRequest: BaseIntentsRequest {
     enum overridePresetsError: Error {
@@ -77,31 +78,57 @@ import Foundation
     }
 
     @MainActor func enactOverride(_ preset: OverridePreset) async -> Bool {
+        // Start background task to ensure that the task can run in background mode
+        var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
+        backgroundTaskID = await UIApplication.shared.beginBackgroundTask(withName: "Override Upload") {
+            guard backgroundTaskID != .invalid else { return }
+            Task {
+                // End background task when the time is about to expire
+                await UIApplication.shared.endBackgroundTask(backgroundTaskID)
+            }
+            backgroundTaskID = .invalid
+        }
+
         do {
             guard let overrideID = await fetchOverrideID(preset),
-                  let overrideObject = try viewContext.existingObject(with: overrideID) as? OverrideStored else { return false }
+                  let overrideObject = try viewContext.existingObject(with: overrideID) as? OverrideStored
+            else {
+                // Be sure to end background task if error occurs
+                await UIApplication.shared.endBackgroundTask(backgroundTaskID)
+                return false
+            }
 
+            // Enable Override
             overrideObject.enabled = true
             overrideObject.date = Date()
             overrideObject.isUploadedToNS = false
 
-            // Disable previous Overrides
-            /// do not create a OverrideRunEntry because we only want that if we cancel a running Override, not when enacting a Preset
+            // Disable previous overrides if necessary
             await disableAllActiveOverrides(except: overrideID, createOverrideRunEntry: true)
 
             if viewContext.hasChanges {
                 try viewContext.save()
 
                 // Update State variables in OverrideView
-                Foundation.NotificationCenter.default.post(name: .didUpdateOverrideConfiguration, object: nil)
+                Foundation.NotificationCenter.default.post(name: .willUpdateOverrideConfiguration, object: nil)
 
+                // Await the notification
+                print("Waiting for notification...")
+                await awaitNotification(.didUpdateOverrideConfiguration)
+                print("Notification received, continuing...")
+
+                // End background task after everything is done
+                await UIApplication.shared.endBackgroundTask(backgroundTaskID)
                 return true
             }
-        } catch let error as NSError {
-            debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to enact Override: \(error.localizedDescription)"
-            )
+        } catch {
+            // Handle error and ensure background task is ended
+            debugPrint("Failed to enact Override: \(error.localizedDescription)")
+            await UIApplication.shared.endBackgroundTask(backgroundTaskID)
         }
+
+        // Make sure background task ends in any case
+        await UIApplication.shared.endBackgroundTask(backgroundTaskID)
         return false
     }
 
