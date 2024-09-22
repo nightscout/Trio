@@ -46,7 +46,7 @@ public enum AppleHealthConfig {
     static let TrioMetaDataKey = "TrioMetaDataKey"
 }
 
-final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDelegate, PumpHistoryDelegate {
+final class BaseHealthKitManager: HealthKitManager, Injectable {
     @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var healthKitStore: HKHealthStore!
     @Injected() private var settingsManager: SettingsManager!
@@ -56,19 +56,8 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
 
     private var backgroundContext = CoreDataStack.shared.newTaskContext()
 
-    func carbsStorageHasUpdatedCarbs(_: BaseCarbsStorage) {
-        Task.detached { [weak self] in
-            guard let self = self else { return }
-            await self.uploadCarbs()
-        }
-    }
-
-    func pumpHistoryHasUpdated(_: BasePumpHistoryStorage) {
-        Task.detached { [weak self] in
-            guard let self = self else { return }
-            await self.uploadInsulin()
-        }
-    }
+    private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+    private var subscriptions = Set<AnyCancellable>()
 
     var isAvailableOnCurrentDevice: Bool {
         HKHealthStore.isHealthDataAvailable()
@@ -76,13 +65,37 @@ final class BaseHealthKitManager: HealthKitManager, Injectable, CarbsStoredDeleg
 
     init(resolver: Resolver) {
         injectServices(resolver)
+
+        coreDataPublisher =
+            changedObjectsOnManagedObjectContextDidSavePublisher()
+                .receive(on: DispatchQueue.global(qos: .background))
+                .share()
+                .eraseToAnyPublisher()
+
+        registerHandlers()
+        
         guard isAvailableOnCurrentDevice,
               AppleHealthConfig.healthBGObject != nil else { return }
 
-        carbsStorage.delegate = self
-        pumpHistoryStorage.delegate = self
-
         debug(.service, "HealthKitManager did create")
+    }
+
+    private func registerHandlers() {
+        coreDataPublisher?.filterByEntityName("PumpEventStored").sink { [weak self] _ in
+            guard let self = self else { return }
+            Task { [weak self] in
+                guard let self = self else { return }
+                await self.uploadInsulin()
+            }
+        }.store(in: &subscriptions)
+
+        coreDataPublisher?.filterByEntityName("CarbEntryStored").sink { [weak self] _ in
+            guard let self = self else { return }
+            Task { [weak self] in
+                guard let self = self else { return }
+                await self.uploadCarbs()
+            }
+        }.store(in: &subscriptions)
     }
 
     func checkWriteToHealthPermissions(objectTypeToHealthStore: HKObjectType) -> Bool {

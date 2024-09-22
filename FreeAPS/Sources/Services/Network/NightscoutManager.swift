@@ -72,12 +72,19 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     private var lastEnactedDetermination: Determination?
     private var lastSuggestedDetermination: Determination?
 
-    private var coreDataObserver: CoreDataObserver?
+    private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+    private var subscriptions = Set<AnyCancellable>()
 
     init(resolver: Resolver) {
         injectServices(resolver)
         subscribe()
-        coreDataObserver = CoreDataObserver()
+
+        coreDataPublisher =
+            changedObjectsOnManagedObjectContextDidSavePublisher()
+                .receive(on: DispatchQueue.global(qos: .background))
+                .share()
+                .eraseToAnyPublisher()
+
         registerHandlers()
         setupNotification()
     }
@@ -91,42 +98,47 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func registerHandlers() {
-        coreDataObserver?.registerHandler(for: "OrefDetermination") { [weak self] in
+        coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
             guard let self = self else { return }
             Task.detached {
                 await self.uploadStatus()
             }
-        }
-        coreDataObserver?.registerHandler(for: "OverrideStored") { [weak self] in
+        }.store(in: &subscriptions)
+
+        coreDataPublisher?.filterByEntityName("OverrideStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task.detached {
                 await self.uploadOverrides()
             }
-        }
-        coreDataObserver?.registerHandler(for: "OverrideRunStored") { [weak self] in
+        }.store(in: &subscriptions)
+
+        coreDataPublisher?.filterByEntityName("OverrideRunStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task.detached {
                 await self.uploadOverrides()
             }
-        }
-        coreDataObserver?.registerHandler(for: "PumpEventStored") { [weak self] in
+        }.store(in: &subscriptions)
+
+        coreDataPublisher?.filterByEntityName("PumpEventStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task.detached {
                 await self.uploadPumpHistory()
             }
-        }
-        coreDataObserver?.registerHandler(for: "CarbEntryStored") { [weak self] in
+        }.store(in: &subscriptions)
+
+        coreDataPublisher?.filterByEntityName("CarbEntryStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task.detached {
                 await self.uploadCarbs()
             }
-        }
-        coreDataObserver?.registerHandler(for: "GlucoseStored") { [weak self] in
+        }.store(in: &subscriptions)
+
+        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task.detached {
                 await self.uploadManualGlucose()
             }
-        }
+        }.store(in: &subscriptions)
     }
 
     func setupNotification() {

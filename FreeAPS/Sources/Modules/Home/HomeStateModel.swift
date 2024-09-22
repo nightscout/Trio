@@ -13,6 +13,7 @@ extension Home {
         @Injected() var nightscoutManager: NightscoutManager!
         @Injected() var determinationStorage: DeterminationStorage!
         @Injected() var glucoseStorage: GlucoseStorage!
+        @Injected() var carbsStorage: CarbsStorage!
         private let timer = DispatchTimer(timeInterval: 5)
         private(set) var filteredHours = 24
         @Published var manualGlucose: [BloodGlucose] = []
@@ -90,12 +91,17 @@ extension Home {
         let context = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
-        private var coreDataObserver: CoreDataObserver?
+        private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+        private var subscriptions = Set<AnyCancellable>()
 
         typealias PumpEvent = PumpEventStored.EventType
 
         override func subscribe() {
-            coreDataObserver = CoreDataObserver()
+            coreDataPublisher =
+                changedObjectsOnManagedObjectContextDidSavePublisher()
+                    .receive(on: DispatchQueue.global(qos: .background))
+                    .share()
+                    .eraseToAnyPublisher()
 
             // Parallelize Setup functions
             setupHomeViewConcurrently()
@@ -105,7 +111,7 @@ extension Home {
             Task {
                 await withTaskGroup(of: Void.self) { group in
                     group.addTask {
-                        self.setupNotification()
+                        self.registerSubscribers()
                     }
                     group.addTask {
                         self.registerHandlers()
@@ -165,43 +171,62 @@ extension Home {
             }
         }
 
+        // These combine subscribers are only necessary due to the batch inserts of glucose/FPUs which do not trigger a ManagedObjectContext change notification
+        private func registerSubscribers() {
+            glucoseStorage.updatePublisher
+                .receive(on: DispatchQueue.global(qos: .background))
+                .sink { [weak self] _ in
+                    guard let self = self else { return }
+                    self.setupGlucoseArray()
+                }
+                .store(in: &subscriptions)
+
+            carbsStorage.updatePublisher
+                .receive(on: DispatchQueue.global(qos: .background))
+                .sink { [weak self] _ in
+                    guard let self = self else { return }
+                    self.setupFPUsArray()
+                }
+                .store(in: &subscriptions)
+        }
+
         private func registerHandlers() {
-            coreDataObserver?.registerHandler(for: "OrefDetermination") { [weak self] in
+            coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupDeterminationsArray()
-            }
+            }.store(in: &subscriptions)
 
-            coreDataObserver?.registerHandler(for: "GlucoseStored") { [weak self] in
+            coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupGlucoseArray()
-            }
+            }.store(in: &subscriptions)
 
-            coreDataObserver?.registerHandler(for: "CarbEntryStored") { [weak self] in
+            coreDataPublisher?.filterByEntityName("CarbEntryStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupCarbsArray()
-            }
+            }.store(in: &subscriptions)
 
-            coreDataObserver?.registerHandler(for: "PumpEventStored") { [weak self] in
+            coreDataPublisher?.filterByEntityName("PumpEventStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupInsulinArray()
                 self.setupLastBolus()
                 self.displayPumpStatusHighlightMessage()
-            }
+            }.store(in: &subscriptions)
 
-            coreDataObserver?.registerHandler(for: "OpenAPS_Battery") { [weak self] in
+            coreDataPublisher?.filterByEntityName("OpenAPS_Battery").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupBatteryArray()
-            }
+            }.store(in: &subscriptions)
 
-            coreDataObserver?.registerHandler(for: "OverrideStored") { [weak self] in
+            coreDataPublisher?.filterByEntityName("OverrideStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupOverrides()
-            }
+            }.store(in: &subscriptions)
 
-            coreDataObserver?.registerHandler(for: "OverrideRunStored") { [weak self] in
+            coreDataPublisher?.filterByEntityName("OverrideRunStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupOverrideRunStored()
-            }
+            }.store(in: &subscriptions)
         }
 
         private func registerObservers() {
@@ -561,38 +586,6 @@ extension Home.StateModel: PumpManagerOnboardingDelegate {
 
     func pumpManagerOnboarding(didPauseOnboarding _: PumpManagerUI) {
         // TODO:
-    }
-}
-
-// MARK: - Setup Core Data observation
-
-extension Home.StateModel {
-    /// listens for the notifications sent when the managedObjectContext has saved!
-    func setupNotification() {
-        /// custom notification that is sent when a batch insert of glucose objects is done
-        Foundation.NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleBatchInsert),
-            name: .didPerformBatchInsert,
-            object: nil
-        )
-
-        /// custom notification that is sent when a batch delete of fpus is done
-        Foundation.NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleBatchDelete),
-            name: .didPerformBatchDelete,
-            object: nil
-        )
-    }
-
-    @objc private func handleBatchInsert() {
-        setupFPUsArray()
-        setupGlucoseArray()
-    }
-
-    @objc private func handleBatchDelete() {
-        setupFPUsArray()
     }
 }
 
