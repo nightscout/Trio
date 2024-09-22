@@ -44,7 +44,6 @@ final class JavaScriptWorker {
         let consoleLog: @convention(block) (String) -> Void = { message in
             let trimmedMessage = message.trimmingCharacters(in: .whitespacesAndNewlines)
             if !trimmedMessage.isEmpty {
-//                debug(.openAPS, "JavaScript log: \(trimmedMessage)")
                 self.consoleLogs.append("\(trimmedMessage)")
             }
         }
@@ -62,7 +61,7 @@ final class JavaScriptWorker {
 
         if outputLogs.isEmpty { return }
 
-        if logContext == "prepare/autosens.js" {
+        if logContext == "autosens.js" {
             outputLogs = outputLogs.split(separator: "\n").map { logLine in
                 logLine.replacingOccurrences(
                     of: "^[-+=x!]|u\\(|\\)|\\d{1,2}h$",
@@ -82,7 +81,7 @@ final class JavaScriptWorker {
     }
 
     @discardableResult func evaluate(script: Script) -> JSValue! {
-        logContext = script.name
+        logContext = URL(fileURLWithPath: script.name).lastPathComponent
         let result = evaluate(string: script.body)
         outputLogs()
         return result
