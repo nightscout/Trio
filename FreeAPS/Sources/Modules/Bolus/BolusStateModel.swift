@@ -395,7 +395,10 @@ extension Bolus {
 
                 // if glucose data is stale end the custom loading animation by hiding the modal
                 guard glucoseStorage.isGlucoseDataFresh(glucoseFromPersistence.first?.date) else {
-                    waitForSuggestion = false
+                    await MainActor.run {
+                        waitForSuggestion = false
+                    }
+
                     return hideModal()
                 }
             }

@@ -236,6 +236,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             newPumpEvent.type = PumpEvent.bolus.rawValue
             newPumpEvent.isUploadedToNS = false
             newPumpEvent.isUploadedToHealth = false
+            newPumpEvent.isUploadedToTidepool = false
 
             // create bolus entry and specify relationship to pump event
             let newBolusEntry = BolusStored(context: self.context)
