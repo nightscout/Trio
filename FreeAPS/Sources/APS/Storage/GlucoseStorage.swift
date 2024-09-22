@@ -423,7 +423,8 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                     noise: nil,
                     glucose: Int(result.glucose)
                 )
-            }.map { $0.convertStoredGlucoseSample(device: nil) }
+            }
+            .map { $0.convertStoredGlucoseSample(isManualGlucose: false) }
         }
     }
 
@@ -454,7 +455,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                     noise: nil,
                     glucose: Int(result.glucose)
                 )
-            }.map { $0.convertStoredGlucoseSample(device: nil) }
+            }.map { $0.convertStoredGlucoseSample(isManualGlucose: true) }
         }
     }
 

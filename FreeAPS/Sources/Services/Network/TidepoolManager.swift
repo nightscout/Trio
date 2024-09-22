@@ -118,13 +118,13 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
 
         // TODO: this is currently done in FetchGlucoseManager and forced there inside a background task.
         // leave it there, or move it here? not sure…
-//        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
-//            guard let self = self else { return }
-//            Task { [weak self] in
-//                guard let self = self else { return }
-//                await self.uploadGlucose(device: fetchCgmManager.cgmManager?.cgmManagerStatus.device)
-//            }
-//        }.store(in: &subscriptions)33
+        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
+            guard let self = self else { return }
+            Task { [weak self] in
+                guard let self = self else { return }
+                await self.uploadGlucose()
+            }
+        }.store(in: &subscriptions)
     }
 
     private func subscribe() {
