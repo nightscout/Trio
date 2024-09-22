@@ -28,10 +28,21 @@ struct EditTempTargetForm: View {
         _halfBasalTarget = State(initialValue: tempTargetToEdit.halfBasalTarget?.decimalValue ?? 160)
 
         let normalTarget: Decimal = 100
-        if let halfBasal = tempTargetToEdit.halfBasalTarget?.decimalValue {
-            let target = state.units == .mgdL ? state.tempTargetTarget.asMgdL : state.tempTargetTarget
-            let ratio = (halfBasal - normalTarget + (normalTarget * target) / 2) / normalTarget
-            _percentage = State(initialValue: ratio * 100)
+        if let hbt = tempTargetToEdit.halfBasalTarget?.decimalValue {
+            let H = hbt
+            let N: Decimal = normalTarget
+            var T = tempTargetToEdit.target?.decimalValue ?? 0
+            if state.units == .mmolL {
+                T = T.asMgdL
+            }
+
+            let denominator = H - (2 * N) + T
+            if denominator != 0 {
+                let ratio = (H - N) / denominator
+                _percentage = State(initialValue: ratio * 100)
+            } else {
+                _percentage = State(initialValue: 100)
+            }
         } else {
             _percentage = State(initialValue: 100)
         }
@@ -112,62 +123,66 @@ struct EditTempTargetForm: View {
             Text("Name")
         }.listRowBackground(Color.chart)
 
-        Section {
-            VStack {
+        if state.computeSliderLow() != state.computeSliderHigh() {
+            Section {
                 VStack {
-                    Text("\(state.percentage.formatted(.number)) % Insulin")
-                        .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
-                        .font(.largeTitle)
+                    VStack {
+                        Text("\(percentage.formatted(.number.precision(.fractionLength(0)))) % Insulin")
+                            .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
+                            .font(.largeTitle)
 
-                    Slider(value: Binding(
-                        get: {
-                            Double(truncating: percentage as NSNumber) // Decimal in Double umwandeln
-                        },
-                        set: { newValue in
-                            percentage = Decimal(newValue) // Den neuen Slider-Wert speichern
-                            hasChanges = true
+                        Slider(value: Binding(
+                            get: {
+                                Double(truncating: percentage as NSNumber)
+                            },
+                            set: { newValue in
+                                percentage = Decimal(newValue)
+                                hasChanges = true
 
-                            // Berechne das halfBasalTarget basierend auf dem neuen percentage-Wert
-                            let ratio = Decimal(Int(percentage) / 100)
-                            let normalTarget: Decimal = 100
-                            var target: Decimal = state.tempTargetTarget
-                            if state.units == .mmolL {
-                                target = target.asMgdL
+                                // Calculate the halfBasalTarget based on the new percentage value
+                                let ratio = Decimal(Int(percentage) / 100)
+                                let normalTarget: Decimal = 100
+                                var target: Decimal = target
+                                if state.units == .mmolL {
+                                    target = target.asMgdL
+                                }
+
+                                if ratio != 1 {
+                                    let hbtcalc = ((2 * ratio * normalTarget) - normalTarget - (ratio * target)) / (ratio - 1)
+                                    halfBasalTarget = hbtcalc
+                                } else {
+                                    halfBasalTarget = normalTarget
+                                }
                             }
-
-                            if ratio != 1 {
-                                let hbtcalc = ((2 * ratio * normalTarget) - normalTarget - (ratio * target)) / (ratio - 1)
-                                halfBasalTarget = hbtcalc
-                            } else {
-                                halfBasalTarget = normalTarget
-                            }
+                        ), in: Double(state.computeSliderLow()) ... Double(state.computeSliderHigh()), step: 5) {}
+                        minimumValueLabel: {
+                            Text("\(state.computeSliderLow(), specifier: "%.0f")%")
                         }
-                    ), in: Double(state.computeSliderLow()) ... Double(state.computeSliderHigh()), step: 5) {}
-                    minimumValueLabel: {
-                        Text("\(state.computeSliderLow(), specifier: "%.0f")%")
-                    }
-                    maximumValueLabel: {
-                        Text("\(state.computeSliderHigh(), specifier: "%.0f")%")
-                    }
-                    onEditingChanged: { editing in
-                        isUsingSlider = editing
-                        state.halfBasalTarget = Decimal(state.computeHalfBasalTarget())
-                    }
+                        maximumValueLabel: {
+                            Text("\(state.computeSliderHigh(), specifier: "%.0f")%")
+                        }
+                        onEditingChanged: { editing in
+                            isUsingSlider = editing
+                            state.halfBasalTarget = Decimal(state.computeHalfBasalTarget())
+                        }
 
-                    Divider()
-                    Text(
-                        state
-                            .units == .mgdL ?
-                            "Half Basal Exercise Target at: \(state.halfBasalTarget.formatted(.number.precision(.fractionLength(0)))) mg/dl" :
-                            "Half Basal Exercise Target at: \(state.halfBasalTarget.asMmolL.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))) mmol/L"
-                    )
-                    .foregroundColor(.secondary)
-                    .font(.caption).italic()
+                        Divider()
+                        Text(
+                            state
+                                .units == .mgdL ?
+                                "Half Basal Exercise Target at: \(halfBasalTarget.formatted(.number.precision(.fractionLength(0)))) mg/dl" :
+                                "Half Basal Exercise Target at: \(halfBasalTarget.asMmolL.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))) mmol/L"
+                        )
+                        .foregroundColor(.secondary)
+                        .font(.caption).italic()
+                    }
                 }
-            }
-        } header: {
-            Text("% Insulin")
-        }.listRowBackground(Color.chart)
+            } header: {
+                Text("% Insulin")
+            } footer: {
+                Text("The Slider values are limited to your Autosens Min and Max Settings!")
+            }.listRowBackground(Color.chart)
+        }
 
         Section {
             HStack {

@@ -10,6 +10,9 @@ struct AddTempTargetForm: View {
     @State private var showPresetAlert = false
     @State private var alertString = ""
     @State private var isUsingSlider = false
+    @State private var advancedConfiguration = false
+    @State private var didPressSave =
+        false // only used for fixing the Disclaimer showing up after pressing save (after the state was resetted), maybe refactor this...
 
     var color: LinearGradient {
         colorScheme == .dark ? LinearGradient(
@@ -62,6 +65,7 @@ struct AddTempTargetForm: View {
                         Button("Cancel", role: .cancel) { state.isTempTargetEnabled = false }
                         Button("Start Temp Target", role: .destructive) {
                             Task {
+                                didPressSave.toggle()
                                 await setupAlertString()
                                 state.isTempTargetEnabled.toggle()
                                 await state.saveCustomTempTarget()
@@ -85,41 +89,6 @@ struct AddTempTargetForm: View {
         } header: {
             Text("Name")
         }.listRowBackground(Color.chart)
-
-        if state.computeSliderLow() != state.computeSliderHigh() {
-            Section {
-                VStack {
-                    Text("\(state.percentage.formatted(.number)) % Insulin")
-                        .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
-                        .font(.largeTitle)
-
-                    Slider(value: $state.percentage, in: state.computeSliderLow() ... state.computeSliderHigh(), step: 5) {}
-                    minimumValueLabel: {
-                        Text("\(state.computeSliderLow(), specifier: "%.0f")%")
-                    }
-                    maximumValueLabel: {
-                        Text("\(state.computeSliderHigh(), specifier: "%.0f")%")
-                    }
-                    onEditingChanged: { editing in
-                        isUsingSlider = editing
-                        state.halfBasalTarget = Decimal(state.computeHalfBasalTarget())
-                    }
-                    .disabled(!sliderEnabled)
-
-                    Divider()
-                    Text(
-                        state
-                            .units == .mgdL ?
-                            "Half Basal Exercise Target at: \(state.computeHalfBasalTarget().formatted(.number.precision(.fractionLength(0)))) mg/dl" :
-                            "Half Basal Exercise Target at: \(state.computeHalfBasalTarget().asMmolL.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))) mmol/L"
-                    )
-                    .foregroundColor(.secondary)
-                    .font(.caption).italic()
-                }
-            } header: {
-                Text("% Insulin")
-            }.listRowBackground(Color.chart)
-        }
 
         Section {
             HStack {
@@ -147,6 +116,7 @@ struct AddTempTargetForm: View {
 
                 Button {
                     Task {
+                        didPressSave.toggle()
                         await state.saveTempTargetPreset()
                         dismiss()
                     }
@@ -161,6 +131,51 @@ struct AddTempTargetForm: View {
         } header: {
             Text("Add Custom Temp Target")
         }.listRowBackground(Color.chart)
+
+        Toggle("Advanced Configuration", isOn: $advancedConfiguration)
+
+        if advancedConfiguration && state.tempTargetTarget != 0 {
+            if state.computeSliderLow() != state.computeSliderHigh() {
+                Section {
+                    VStack {
+                        Text("\(state.percentage.formatted(.number)) % Insulin")
+                            .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
+                            .font(.largeTitle)
+
+                        Slider(value: $state.percentage, in: state.computeSliderLow() ... state.computeSliderHigh(), step: 5) {}
+                        minimumValueLabel: {
+                            Text("\(state.computeSliderLow(), specifier: "%.0f")%")
+                        }
+                        maximumValueLabel: {
+                            Text("\(state.computeSliderHigh(), specifier: "%.0f")%")
+                        }
+                        onEditingChanged: { editing in
+                            isUsingSlider = editing
+                            state.halfBasalTarget = Decimal(state.computeHalfBasalTarget())
+                        }
+                        .disabled(!sliderEnabled)
+
+                        Divider()
+                        Text(
+                            state
+                                .units == .mgdL ?
+                                "Half Basal Exercise Target at: \(state.computeHalfBasalTarget().formatted(.number.precision(.fractionLength(0)))) mg/dl" :
+                                "Half Basal Exercise Target at: \(state.computeHalfBasalTarget().asMmolL.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))) mmol/L"
+                        )
+                        .foregroundColor(.secondary)
+                        .font(.caption).italic()
+                    }
+                }.listRowBackground(Color.chart)
+            }
+        } else if advancedConfiguration && state.tempTargetTarget == 0 && !didPressSave {
+            Section {
+                VStack(alignment: .leading) {
+                    Text(
+                        "You need to input a Target for your Temp Target at first to use the advanced configuration!"
+                    ).bold()
+                }
+            }.listRowBackground(Color.tabBar)
+        }
     }
 
     var sliderEnabled: Bool {

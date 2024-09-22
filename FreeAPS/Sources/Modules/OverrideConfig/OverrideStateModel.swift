@@ -51,6 +51,7 @@ extension OverrideConfig {
         @Published var tempTargetPresets: [TempTargetStored] = []
         @Published var percentage = 100.0
         @Published var maxValue: Decimal = 1.2
+        @Published var minValue: Decimal = 0.15
         @Published var viewPercantage = false
         @Published var halfBasalTarget: Decimal = 160
         @Published var didSaveSettings: Bool = false
@@ -74,6 +75,7 @@ extension OverrideConfig {
             updateLatestOverrideConfiguration()
             updateLatestTempTargetConfiguration()
             maxValue = settingsManager.preferences.autosensMax
+            minValue = settingsManager.preferences.autosensMin
             broadcaster.register(SettingsObserver.self, observer: self)
         }
 
@@ -723,6 +725,8 @@ extension OverrideConfig.StateModel {
         tempTargetName = ""
         tempTargetTarget = 0
         tempTargetDuration = 0
+        percentage = 100
+        halfBasalTarget = 160
     }
 
     func computeHalfBasalTarget() -> Double {
@@ -739,7 +743,7 @@ extension OverrideConfig.StateModel {
     }
 
     func computeSliderLow() -> Double {
-        var minSens: Double = 15
+        var minSens = Double(minValue * 100)
         var target = tempTargetTarget
         if units == .mmolL {
             target = Decimal(round(Double(tempTargetTarget.asMgdL))) }
@@ -749,6 +753,7 @@ extension OverrideConfig.StateModel {
                 !settingsManager.preferences.highTemptargetRaisesSensitivity && !settingsManager.preferences
                     .exerciseMode
             ) { minSens = 100 }
+        minSens = max(0, minSens)
         return minSens
     }
 
@@ -769,5 +774,6 @@ extension OverrideConfig.StateModel: SettingsObserver {
         defaultSmbMinutes = settingsManager.preferences.maxSMBBasalMinutes
         defaultUamMinutes = settingsManager.preferences.maxUAMSMBBasalMinutes
         maxValue = settingsManager.preferences.autosensMax
+        minValue = settingsManager.preferences.autosensMin
     }
 }

@@ -156,16 +156,16 @@ extension OverrideConfig {
                     }
                     .sheet(isPresented: $showTempTargetCreationSheet, onDismiss: {
                         Task {
-                            await state.resetStateVariables()
                             showTempTargetCreationSheet = false
+                            await state.resetStateVariables()
                         }
                     }) {
                         AddTempTargetForm(state: state)
                     }
                     .sheet(isPresented: $state.showTempTargetEditSheet, onDismiss: {
                         Task {
-                            await state.resetTempTargetState()
                             state.showTempTargetEditSheet = false
+                            await state.resetTempTargetState()
                         }
 
                     }) {

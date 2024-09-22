@@ -14,7 +14,7 @@ protocol OverrideStorage {
     func getOverrideRunsNotYetUploadedToNightscout() async -> [NightscoutExercise]
 }
 
-final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
+final class BaseOverrideStorage: OverrideStorage, Injectable {
     @Injected() private var settingsManager: SettingsManager!
 
     private let viewContext = CoreDataStack.shared.persistentContainer.viewContext
