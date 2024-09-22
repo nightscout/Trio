@@ -120,6 +120,7 @@ extension DataTable {
 
             var carbEntry: CarbEntryStored?
 
+            // Delete carbs or FPUs from Nightscout
             await taskContext.perform {
                 do {
                     carbEntry = try taskContext.existingObject(with: treatmentObjectID) as? CarbEntryStored

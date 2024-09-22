@@ -19,7 +19,8 @@ final class BaseCalendarManager: CalendarManager, Injectable {
     @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var storage: FileStorage!
 
-    private var coreDataObserver: CoreDataObserver?
+    private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+    private var subscriptions = Set<AnyCancellable>()
 
     private var glucoseFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -58,12 +59,18 @@ final class BaseCalendarManager: CalendarManager, Injectable {
     init(resolver: Resolver) {
         injectServices(resolver)
         setupCurrentCalendar()
+
+        coreDataPublisher =
+            changedObjectsOnManagedObjectContextDidSavePublisher()
+                .receive(on: DispatchQueue.global(qos: .background))
+                .share()
+                .eraseToAnyPublisher()
+
         Task {
             await createEvent()
         }
-        coreDataObserver = CoreDataObserver()
         registerHandlers()
-        setupGlucoseNotification()
+        registerSubscribers()
     }
 
     let backgroundContext = CoreDataStack.shared.newTaskContext()
@@ -79,28 +86,24 @@ final class BaseCalendarManager: CalendarManager, Injectable {
     }
 
     private func registerHandlers() {
-        coreDataObserver?.registerHandler(for: "GlucoseStored") { [weak self] in
+        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
                 await self.createEvent()
             }
-        }
+        }.store(in: &subscriptions)
     }
 
-    private func setupGlucoseNotification() {
-        /// custom notification that is sent when a batch insert of glucose objects is done
-        Foundation.NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleBatchInsert),
-            name: .didPerformBatchInsert,
-            object: nil
-        )
-    }
-
-    @objc private func handleBatchInsert() {
-        Task {
-            await createEvent()
-        }
+    private func registerSubscribers() {
+        glucoseStorage.updatePublisher
+            .receive(on: DispatchQueue.global(qos: .background))
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                Task {
+                    await self.createEvent()
+                }
+            }
+            .store(in: &subscriptions)
     }
 
     func requestAccessIfNeeded() async -> Bool {
