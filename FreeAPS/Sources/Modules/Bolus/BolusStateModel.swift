@@ -314,7 +314,7 @@ extension Bolus {
 
         /// Calculate insulin recommendation
         func calculateInsulin() -> Decimal {
-            let isfForCalculation = units == .mmolL ? isf.asMgdL : isf
+            let isfForCalculation = isf
 
             // insulin needed for the current blood glucose
             targetDifference = currentBG - target
