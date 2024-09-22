@@ -2,6 +2,7 @@ import AVFAudio
 import Combine
 import CoreData
 import Foundation
+import LoopKit
 import SwiftDate
 import SwiftUI
 import Swinject
@@ -19,6 +20,8 @@ protocol GlucoseStorage {
     func getManualGlucoseNotYetUploadedToNightscout() async -> [NightscoutTreatment]
     func getGlucoseNotYetUploadedToHealth() async -> [BloodGlucose]
     func getManualGlucoseNotYetUploadedToHealth() async -> [BloodGlucose]
+    func getGlucoseNotYetUploadedToTidepool() async -> [StoredGlucoseSample]
+    func getManualGlucoseNotYetUploadedToTidepool() async -> [StoredGlucoseSample]
     var alarm: GlucoseAlarm? { get }
     func deleteGlucose(_ treatmentObjectID: NSManagedObjectID) async
 }
@@ -390,6 +393,68 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                     glucose: Int(result.glucose)
                 )
             }
+        }
+    }
+
+    // Fetch glucose that is not uploaded to Nightscout yet
+    /// - Returns: Array of BloodGlucose to ensure the correct format for the NS Upload
+    func getGlucoseNotYetUploadedToTidepool() async -> [StoredGlucoseSample] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: GlucoseStored.self,
+            onContext: coredataContext,
+            predicate: NSPredicate.manualGlucoseNotYetUploadedToTidepool,
+            key: "date",
+            ascending: false,
+            fetchLimit: 288
+        )
+
+        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+
+        return await coredataContext.perform {
+            return fetchedResults.map { result in
+                BloodGlucose(
+                    _id: result.id?.uuidString ?? UUID().uuidString,
+                    sgv: Int(result.glucose),
+                    direction: BloodGlucose.Direction(from: result.direction ?? ""),
+                    date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
+                    dateString: result.date ?? Date(),
+                    unfiltered: Decimal(result.glucose),
+                    filtered: Decimal(result.glucose),
+                    noise: nil,
+                    glucose: Int(result.glucose)
+                )
+            }.map { $0.convertStoredGlucoseSample(device: nil) }
+        }
+    }
+
+    // Fetch manual glucose that is not uploaded to Nightscout yet
+    /// - Returns: Array of NightscoutTreatment to ensure the correct format for the NS Upload
+    func getManualGlucoseNotYetUploadedToTidepool() async -> [StoredGlucoseSample] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: GlucoseStored.self,
+            onContext: coredataContext,
+            predicate: NSPredicate.manualGlucoseNotYetUploadedToTidepool,
+            key: "date",
+            ascending: false,
+            fetchLimit: 288
+        )
+
+        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+
+        return await coredataContext.perform {
+            return fetchedResults.map { result in
+                BloodGlucose(
+                    _id: result.id?.uuidString ?? UUID().uuidString,
+                    sgv: Int(result.glucose),
+                    direction: BloodGlucose.Direction(from: result.direction ?? ""),
+                    date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
+                    dateString: result.date ?? Date(),
+                    unfiltered: Decimal(result.glucose),
+                    filtered: Decimal(result.glucose),
+                    noise: nil,
+                    glucose: Int(result.glucose)
+                )
+            }.map { $0.convertStoredGlucoseSample(device: nil) }
         }
     }
 

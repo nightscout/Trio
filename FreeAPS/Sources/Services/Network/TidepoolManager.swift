@@ -14,11 +14,11 @@ protocol TidepoolManager {
     func deleteCarbs(withSyncId id: UUID, carbs: Decimal, at: Date, enteredBy: String)
     func uploadInsulin() async
     func deleteInsulin(withSyncId id: String, amount: Decimal, at: Date)
-    func uploadGlucose(device: HKDevice?) async
-    func forceTidepoolDataUpload(device: HKDevice?)
+    func uploadGlucose() async
+    func forceTidepoolDataUpload()
 }
 
-final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegate, PumpHistoryDelegate {
+final class BaseTidepoolManager: TidepoolManager, Injectable {
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var pluginManager: PluginManager!
     @Injected() private var glucoseStorage: GlucoseStorage!
@@ -40,19 +40,8 @@ final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegat
 
     private var backgroundContext = CoreDataStack.shared.newTaskContext()
 
-    func carbsStorageHasUpdatedCarbs(_: BaseCarbsStorage) {
-        Task.detached { [weak self] in
-            guard let self = self else { return }
-            await self.uploadCarbs()
-        }
-    }
-
-    func pumpHistoryHasUpdated(_: BasePumpHistoryStorage) {
-        Task.detached { [weak self] in
-            guard let self = self else { return }
-            await self.uploadInsulin()
-        }
-    }
+    private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+    private var subscriptions = Set<AnyCancellable>()
 
     @PersistedProperty(key: "TidepoolState") var rawTidepoolManager: Service.RawValue?
 
@@ -60,8 +49,13 @@ final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegat
         injectServices(resolver)
         loadTidepoolManager()
 
-        pumpHistoryStorage.delegate = self
-        carbsStorage.delegate = self
+        coreDataPublisher =
+            changedObjectsOnManagedObjectContextDidSavePublisher()
+                .receive(on: DispatchQueue.global(qos: .background))
+                .share()
+                .eraseToAnyPublisher()
+
+        registerHandlers()
 
         subscribe()
     }
@@ -105,6 +99,34 @@ final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegat
         } else { return nil }
     }
 
+    private func registerHandlers() {
+        coreDataPublisher?.filterByEntityName("PumpEventStored").sink { [weak self] _ in
+            guard let self = self else { return }
+            Task { [weak self] in
+                guard let self = self else { return }
+                await self.uploadInsulin()
+            }
+        }.store(in: &subscriptions)
+
+        coreDataPublisher?.filterByEntityName("CarbEntryStored").sink { [weak self] _ in
+            guard let self = self else { return }
+            Task { [weak self] in
+                guard let self = self else { return }
+                await self.uploadCarbs()
+            }
+        }.store(in: &subscriptions)
+
+        // TODO: this is currently done in FetchGlucoseManager and forced there inside a background task.
+        // leave it there, or move it here? not sure…
+//        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
+//            guard let self = self else { return }
+//            Task { [weak self] in
+//                guard let self = self else { return }
+//                await self.uploadGlucose(device: fetchCgmManager.cgmManager?.cgmManagerStatus.device)
+//            }
+//        }.store(in: &subscriptions)33
+    }
+
     private func subscribe() {
         broadcaster.register(TempTargetsObserver.self, observer: self)
     }
@@ -114,7 +136,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegat
     }
 
     func uploadCarbs() async {
-        uploadCarbs(await carbsStorage.getCarbsNotYetUploadedToHealth())
+        uploadCarbs(await carbsStorage.getCarbsNotYetUploadedToTidepool())
     }
 
     func uploadCarbs(_ carbs: [CarbsEntry]) {
@@ -218,7 +240,9 @@ final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegat
         ).filter { $0.tempBasal != nil }
 
         // remove first fetched existing entry, so new events and old events are off by 1 index, so the same index is always current event in events and the previous event to that one in existing events array.
-        existingTempBasalEntries.removeFirst()
+        if existingTempBasalEntries.isNotEmpty, existingTempBasalEntries.count > 1 {
+            existingTempBasalEntries.removeFirst()
+        }
 
         let insulinDoseEvents: [DoseEntry] = events.reduce([]) { result, event in
             var result = result
@@ -242,10 +266,6 @@ final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegat
                             unit: .units,
                             deliveredUnits: lastDeliveredUnits,
                             syncIdentifier: lastEntry.id ?? UUID().uuidString,
-//                            scheduledBasalRate: HKQuantity(
-//                                unit: .internationalUnitsPerHour,
-//                                doubleValue: Double(truncating: lastEntry.tempBasal?.rate ?? 0.0)
-//                            ),
                             insulinType: apsManager.pumpManager?.status.insulinType ?? nil,
                             automatic: true,
                             manuallyEntered: false,
@@ -414,25 +434,26 @@ final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegat
         }
     }
 
-    func uploadGlucose(device: HKDevice?) async {
-        // TODO: get correct glucose values
-        let glucose: [BloodGlucose] = await glucoseStorage.getGlucoseNotYetUploadedToNightscout()
+    func uploadGlucose() async {
+        uploadGlucose(await glucoseStorage.getGlucoseNotYetUploadedToTidepool())
+        uploadGlucose(
+            await glucoseStorage
+                .getManualGlucoseNotYetUploadedToTidepool()
+        )
+    }
 
+    func uploadGlucose(_ glucose: [StoredGlucoseSample]) {
         guard !glucose.isEmpty, let tidepoolService = self.tidepoolService else { return }
 
-        let glucoseWithoutCorrectID = glucose.filter { UUID(uuidString: $0._id ?? UUID().uuidString) != nil }
-
-        let chunks = glucoseWithoutCorrectID.chunks(ofCount: tidepoolService.glucoseDataLimit ?? 100)
+        let chunks = glucose.chunks(ofCount: tidepoolService.glucoseDataLimit ?? 100)
 
         processQueue.async {
             for chunk in chunks {
-                // Link all glucose values with the current device
-                let chunkStoreGlucose = chunk.map { $0.convertStoredGlucoseSample(device: device) }
-
-                tidepoolService.uploadGlucoseData(chunkStoreGlucose) { result in
+                tidepoolService.uploadGlucoseData(chunk) { result in
                     switch result {
                     case .success:
                         debug(.nightscout, "Success synchronizing glucose data")
+
                         // After successful upload, update the isUploadedToTidepool flag in Core Data
                         Task {
                             await self.updateGlucoseAsUploaded(glucose)
@@ -445,9 +466,9 @@ final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegat
         }
     }
 
-    private func updateGlucoseAsUploaded(_ glucose: [BloodGlucose]) async {
+    private func updateGlucoseAsUploaded(_ glucose: [StoredGlucoseSample]) async {
         await backgroundContext.perform {
-            let ids = glucose.map(\.id) as NSArray
+            let ids = glucose.map(\.syncIdentifier) as NSArray
             let fetchRequest: NSFetchRequest<GlucoseStored> = GlucoseStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
@@ -468,11 +489,11 @@ final class BaseTidepoolManager: TidepoolManager, Injectable, CarbsStoredDelegat
     }
 
     /// force to uploads all data in Tidepool Service
-    func forceTidepoolDataUpload(device: HKDevice?) {
+    func forceTidepoolDataUpload() {
         Task {
             await uploadInsulin()
             await uploadCarbs()
-            await uploadGlucose(device: device)
+            await uploadGlucose()
         }
     }
 }

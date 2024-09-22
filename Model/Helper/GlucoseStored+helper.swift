@@ -99,6 +99,16 @@ extension NSPredicate {
             true as NSNumber
         )
     }
+
+    static var manualGlucoseNotYetUploadedToTidepool: NSPredicate {
+        let date = Date.oneDayAgo
+        return NSPredicate(
+            format: "date >= %@ AND isUploadedToTidepool == %@ AND isManual == %@",
+            date as NSDate,
+            false as NSNumber,
+            true as NSNumber
+        )
+    }
 }
 
 extension GlucoseStored: Encodable {

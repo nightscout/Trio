@@ -18,6 +18,7 @@ protocol CarbsStorage {
     func getFPUsNotYetUploadedToNightscout() async -> [NightscoutTreatment]
     func deleteCarbs(at uniqueID: String, fpuID: String, complex: Bool)
     func getCarbsNotYetUploadedToHealth() async -> [CarbsEntry]
+    func getCarbsNotYetUploadedToTidepool() async -> [CarbsEntry]
 }
 
 final class BaseCarbsStorage: CarbsStorage, Injectable {
@@ -450,7 +451,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: coredataContext,
-            predicate: NSPredicate.carbsNotYetUploadedToHealth,
+            predicate: NSPredicate.carbsNotYetUploadedToTidepool,
             key: "date",
             ascending: false
         )

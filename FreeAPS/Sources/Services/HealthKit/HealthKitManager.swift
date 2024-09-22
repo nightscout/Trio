@@ -73,7 +73,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                 .eraseToAnyPublisher()
 
         registerHandlers()
-        
+
         guard isAvailableOnCurrentDevice,
               AppleHealthConfig.healthBGObject != nil else { return }
 

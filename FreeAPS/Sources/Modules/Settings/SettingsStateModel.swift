@@ -99,6 +99,6 @@ extension Settings.StateModel: ServiceOnboardingDelegate {
 extension Settings.StateModel: CompletionDelegate {
     func completionNotifyingDidComplete(_: CompletionNotifying) {
         setupTidepool = false
-        provider.tidepoolManager.forceTidepoolDataUpload(device: fetchCgmManager.cgmManager?.cgmManagerStatus.device)
+        provider.tidepoolManager.forceTidepoolDataUpload()
     }
 }

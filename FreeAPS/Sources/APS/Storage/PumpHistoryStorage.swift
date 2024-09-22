@@ -483,7 +483,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
-            predicate: NSPredicate.pumpEventsNotYetUploadedToHealth,
+            predicate: NSPredicate.pumpEventsNotYetUploadedToTidepool,
             key: "timestamp",
             ascending: false,
             fetchLimit: 288

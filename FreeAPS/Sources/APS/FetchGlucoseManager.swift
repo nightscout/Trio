@@ -266,7 +266,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         Task.detached {
             async let uploadToNS: () = self.nightscoutManager.uploadGlucose()
             async let uploadToHealth: () = self.healthKitManager.uploadGlucose()
-            async let uploadToTidepool: () = self.tidepoolService.uploadGlucose(device: self.cgmManager?.cgmManagerStatus.device)
+            async let uploadToTidepool: () = self.tidepoolService.uploadGlucose()
 
             await uploadToNS
             await uploadToHealth
