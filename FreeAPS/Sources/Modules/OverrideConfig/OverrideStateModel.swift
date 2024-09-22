@@ -743,7 +743,7 @@ extension OverrideConfig.StateModel {
     }
 
     func computeSliderLow() -> Double {
-        var minSens = Double(minValue * 100)
+        var minSens: Double = 15
         var target = tempTargetTarget
         if units == .mmolL {
             target = Decimal(round(Double(tempTargetTarget.asMgdL))) }
