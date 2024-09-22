@@ -110,8 +110,8 @@ import UIKit
             overrideObject.date = Date()
             overrideObject.isUploadedToNS = false
 
-            // Disable previous overrides if necessary
-            await disableAllActiveOverrides(except: overrideID, createOverrideRunEntry: true)
+            // Disable previous overrides if necessary, without starting a background task
+            await disableAllActiveOverrides(except: overrideID, createOverrideRunEntry: true, shouldStartBackgroundTask: false)
 
             if viewContext.hasChanges {
                 try viewContext.save()
@@ -135,27 +135,31 @@ import UIKit
     }
 
     func cancelOverride() async {
-        await disableAllActiveOverrides(createOverrideRunEntry: true)
+        await disableAllActiveOverrides(createOverrideRunEntry: true, shouldStartBackgroundTask: true)
     }
 
     @MainActor func disableAllActiveOverrides(
         except overrideID: NSManagedObjectID? = nil,
-        createOverrideRunEntry _: Bool
+        createOverrideRunEntry: Bool,
+        shouldStartBackgroundTask: Bool = true
     ) async {
-        // Start background task
         var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
-        backgroundTaskID = await UIApplication.shared.beginBackgroundTask(withName: "Override Cancel") {
-            guard backgroundTaskID != .invalid else { return }
-            Task {
-                // End background task when the time is about to expire
-                await UIApplication.shared.endBackgroundTask(backgroundTaskID)
+
+        if shouldStartBackgroundTask {
+            // Start background task
+            backgroundTaskID = await UIApplication.shared.beginBackgroundTask(withName: "Override Cancel") {
+                guard backgroundTaskID != .invalid else { return }
+                Task {
+                    // End background task when the time is about to expire
+                    await UIApplication.shared.endBackgroundTask(backgroundTaskID)
+                }
+                backgroundTaskID = .invalid
             }
-            backgroundTaskID = .invalid
         }
 
-        // Defer block to end background task when function exits
+        // Defer block to end background task when function exits, only if it was started
         defer {
-            if backgroundTaskID != .invalid {
+            if shouldStartBackgroundTask, backgroundTaskID != .invalid {
                 Task {
                     await UIApplication.shared.endBackgroundTask(backgroundTaskID)
                 }
@@ -172,11 +176,11 @@ import UIKit
                 try self.viewContext.existingObject(with: id) as? OverrideStored
             }
 
-            // Return early if no results (background task remains active until defer block executes)
+            // Return early if no results
             guard !results.isEmpty else { return }
 
             // Create OverrideRunStored entry if needed
-            if let canceledOverride = results.first {
+            if createOverrideRunEntry, let canceledOverride = results.first {
                 let newOverrideRunStored = OverrideRunStored(context: viewContext)
                 newOverrideRunStored.id = UUID()
                 newOverrideRunStored.name = canceledOverride.name
