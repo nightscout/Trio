@@ -396,13 +396,13 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
         }
     }
 
-    // Fetch glucose that is not uploaded to Nightscout yet
-    /// - Returns: Array of BloodGlucose to ensure the correct format for the NS Upload
+    // Fetch glucose that is not uploaded to Tidepool yet
+    /// - Returns: Array of StoredGlucoseSample to ensure the correct format for Tidepool upload
     func getGlucoseNotYetUploadedToTidepool() async -> [StoredGlucoseSample] {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: coredataContext,
-            predicate: NSPredicate.manualGlucoseNotYetUploadedToTidepool,
+            predicate: NSPredicate.glucoseNotYetUploadedToTidepool,
             key: "date",
             ascending: false,
             fetchLimit: 288
@@ -427,8 +427,8 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
         }
     }
 
-    // Fetch manual glucose that is not uploaded to Nightscout yet
-    /// - Returns: Array of NightscoutTreatment to ensure the correct format for the NS Upload
+    // Fetch manual glucose that is not uploaded to Tidepool yet
+    /// - Returns: Array of StoredGlucoseSample to ensure the correct format for the Tidepool upload
     func getManualGlucoseNotYetUploadedToTidepool() async -> [StoredGlucoseSample] {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
