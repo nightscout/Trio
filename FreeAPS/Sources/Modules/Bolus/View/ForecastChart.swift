@@ -35,10 +35,10 @@ struct ForecastChart: View {
 
     var body: some View {
         VStack {
-//            forecastChartLabels
+            forecastChartLabels
+                .padding(.bottom, 8)
 
             forecastChart
-                .padding(.vertical, 3)
         }
     }
 
@@ -219,10 +219,10 @@ struct ForecastChart: View {
                 }
             }
         } else {
-        LineMark(
-            x: .value("Time", Date()),
-            y: .value("Value", 0)
-        )
+            return LineMark(
+                x: .value("Time", Date()),
+                y: .value("Value", 0)
+            )
         }
     }
 

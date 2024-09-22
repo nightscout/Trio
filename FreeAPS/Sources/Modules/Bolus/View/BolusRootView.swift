@@ -94,36 +94,40 @@ extension Bolus {
 
         @ViewBuilder private func proteinAndFat() -> some View {
             HStack {
-                Text("Fat").foregroundColor(.orange)
-                Spacer()
-                TextFieldWithToolBar(
-                    text: $state.fat,
-                    placeholder: "0",
-                    keyboardType: .numberPad,
-                    numberFormatter: mealFormatter,
-                    previousTextField: { focusOnPreviousTextField(index: 2) },
-                    nextTextField: { focusOnNextTextField(index: 2) }
-                ).focused($focusedField, equals: .fat)
-                Text("g").foregroundColor(.secondary)
-            }
-            HStack {
-                Text("Protein").foregroundColor(.red)
-                Spacer()
-                TextFieldWithToolBar(
-                    text: $state.protein,
-                    placeholder: "0",
-                    keyboardType: .numberPad,
-                    numberFormatter: mealFormatter,
-                    previousTextField: { focusOnPreviousTextField(index: 3) },
-                    nextTextField: { focusOnNextTextField(index: 3) }
-                ).focused($focusedField, equals: .protein)
-                Text("g").foregroundColor(.secondary)
+                HStack {
+                    Text("Fat")
+                    TextFieldWithToolBar(
+                        text: $state.fat,
+                        placeholder: "0",
+                        keyboardType: .numberPad,
+                        numberFormatter: mealFormatter,
+                        previousTextField: { focusOnPreviousTextField(index: 2) },
+                        nextTextField: { focusOnNextTextField(index: 2) }
+                    ).focused($focusedField, equals: .fat)
+                    Text("g").foregroundColor(.secondary)
+                }
+
+                Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
+
+                HStack {
+                    Text("Protein")
+
+                    TextFieldWithToolBar(
+                        text: $state.protein,
+                        placeholder: "0",
+                        keyboardType: .numberPad,
+                        numberFormatter: mealFormatter,
+                        previousTextField: { focusOnPreviousTextField(index: 3) },
+                        nextTextField: { focusOnNextTextField(index: 3) }
+                    ).focused($focusedField, equals: .protein)
+                    Text("g").foregroundColor(.secondary)
+                }
             }
         }
 
         @ViewBuilder private func carbsTextField() -> some View {
             HStack {
-                Text("Carbs").fontWeight(.semibold)
+              Text("Carbs")
                 Spacer()
                 TextFieldWithToolBar(
                     text: $state.carbs,
@@ -169,7 +173,7 @@ extension Bolus {
         var body: some View {
             ZStack(alignment: .center) {
                 VStack {
-                    Form {
+                    List {
                         Section {
                             ForecastChart(state: state, units: $state.units)
                                 .padding(.vertical)
@@ -178,14 +182,15 @@ extension Bolus {
                         Section {
                             carbsTextField()
 
-//                            DisclosureGroup("Extras") {
+
                             if state.useFPUconversion {
                                 proteinAndFat()
                             }
 
                             // Time
                             HStack {
-                                Text("Time").foregroundStyle(Color.secondary)
+                                Image(systemName: "clock")
+
                                 Spacer()
                                 if !pushed {
                                     Button {
@@ -195,6 +200,7 @@ extension Bolus {
                                 } else {
                                     Button { state.date = state.date.addingTimeInterval(-15.minutes.timeInterval) }
                                     label: { Image(systemName: "minus.circle") }.tint(.blue).buttonStyle(.borderless)
+
                                     DatePicker(
                                         "Time",
                                         selection: $state.date,
@@ -210,10 +216,9 @@ extension Bolus {
 
                             // Notes
                             HStack {
-                                Image(systemName: "square.and.pencil").foregroundColor(.secondary)
-                                TextFieldWithToolBarString(text: $state.note, placeholder: "Enter Note...", maxLength: 25)
+                                Image(systemName: "square.and.pencil")
+                                TextFieldWithToolBarString(text: $state.note, placeholder: "Note...", maxLength: 25)
                             }
-//                            }
                         }.listRowBackground(Color.chart)
 
                         Section {
@@ -250,17 +255,14 @@ extension Bolus {
 
                             HStack {
                                 HStack {
-                                    Text("Recommended Bolus")
+                                    Text("Recommendation")
                                     Button(action: {
                                         state.showInfo.toggle()
                                     }, label: {
                                         Image(systemName: "info.circle")
-//                                        Text("Calculations")
                                     })
                                         .foregroundStyle(.blue)
-//                                        .font(.footnote)
                                         .buttonStyle(PlainButtonStyle())
-//                                        .frame(maxWidth: .infinity, alignment: .leading)
                                 }
                                 Spacer()
                                 Text(
@@ -297,14 +299,14 @@ extension Bolus {
                             }
 
                             HStack {
-                                Text("External insulin")
+                                Text("External Insulin")
                                 Spacer()
                                 Toggle("", isOn: $state.externalInsulin).toggleStyle(Checkbox())
                             }
                         }.listRowBackground(Color.chart)
 
                         treatmentButton
-                    }
+                    }.listSectionSpacing(20)
                 }
                 .blur(radius: state.waitForSuggestion ? 5 : 0)
 
@@ -383,7 +385,10 @@ extension Bolus {
                     .frame(height: 35)
             }
             .disabled(disableTaskButton)
-            .listRowBackground(limitExceeded ? Color(.systemRed) : Color(.systemBlue))
+            .listRowBackground(
+                limitExceeded ? Color(.systemRed) :
+                    Color(.systemBlue)
+            )
             .shadow(radius: 3)
             .clipShape(RoundedRectangle(cornerRadius: 8))
         }
