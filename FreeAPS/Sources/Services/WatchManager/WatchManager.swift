@@ -1,3 +1,4 @@
+import Combine
 import CoreData
 import Foundation
 import Swinject
@@ -17,6 +18,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
     @Injected() private var carbsStorage: CarbsStorage!
     @Injected() private var tempTargetsStorage: TempTargetsStorage!
     @Injected() private var garmin: GarminManager!
+    @Injected() private var glucoseStorage: GlucoseStorage!
 
     private var glucoseFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -56,7 +58,8 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
     let context = CoreDataStack.shared.newTaskContext()
     let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
-    private var coreDataObserver: CoreDataObserver?
+    private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+    private var subscriptions = Set<AnyCancellable>()
 
     private var lifetime = Lifetime()
 
@@ -64,9 +67,14 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         self.session = session
         super.init()
         injectServices(resolver)
-        setupNotification()
-        coreDataObserver = CoreDataObserver()
         registerHandlers()
+        registerSubscribers()
+
+        coreDataPublisher =
+            changedObjectsOnManagedObjectContextDidSavePublisher()
+                .receive(on: DispatchQueue.global(qos: .background))
+                .share()
+                .eraseToAnyPublisher()
 
         Task {
             await configureState()
@@ -94,42 +102,40 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         }
     }
 
-    func setupNotification() {
-        /// custom notification that is sent when a batch insert of glucose objects is done
-        Foundation.NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleBatchInsert),
-            name: .didPerformBatchInsert,
-            object: nil
-        )
-    }
-
-    @objc private func handleBatchInsert() {
-        Task {
-            await self.configureState()
-        }
+    private func registerSubscribers() {
+        glucoseStorage.updatePublisher
+            .receive(on: DispatchQueue.global(qos: .background))
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                Task {
+                    await self.configureState()
+                }
+            }
+            .store(in: &subscriptions)
     }
 
     private func registerHandlers() {
-        coreDataObserver?.registerHandler(for: "OrefDetermination") { [weak self] in
+        coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
                 await self.configureState()
             }
-        }
-        coreDataObserver?.registerHandler(for: "OverrideStored") { [weak self] in
+        }.store(in: &subscriptions)
+
+        coreDataPublisher?.filterByEntityName("OverrideStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
                 await self.configureState()
             }
-        }
+        }.store(in: &subscriptions)
+
         // Observes Deletion of Glucose Objects
-        coreDataObserver?.registerHandler(for: "GlucoseStored") { [weak self] in
+        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
                 await self.configureState()
             }
-        }
+        }.store(in: &subscriptions)
     }
 
     private func fetchlastDetermination() async -> [NSManagedObjectID] {

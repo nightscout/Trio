@@ -10,6 +10,7 @@ extension DataTable {
         @Injected() var pumpHistoryStorage: PumpHistoryStorage!
         @Injected() var glucoseStorage: GlucoseStorage!
         @Injected() var healthKitManager: HealthKitManager!
+        @Injected() var carbsStorage: CarbsStorage!
 
         let coredataContext = CoreDataStack.shared.newTaskContext()
 
@@ -97,6 +98,7 @@ extension DataTable {
 
             var carbEntry: CarbEntryStored?
 
+            // Delete carbs or FPUs from Nightscout
             await taskContext.perform {
                 do {
                     carbEntry = try taskContext.existingObject(with: treatmentObjectID) as? CarbEntryStored
@@ -108,41 +110,22 @@ extension DataTable {
                     if carbEntry.isFPU, let fpuID = carbEntry.fpuID {
                         // Delete FPUs from Nightscout
                         self.provider.deleteCarbsFromNightscout(withID: fpuID.uuidString)
-
-                        // fetch request for all carb entries with the same id
-                        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = CarbEntryStored.fetchRequest()
-                        fetchRequest.predicate = NSPredicate(format: "fpuID == %@", fpuID as CVarArg)
-
-                        // NSBatchDeleteRequest
-                        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-                        deleteRequest.resultType = .resultTypeCount
-
-                        // execute the batch delete request
-                        let result = try taskContext.execute(deleteRequest) as? NSBatchDeleteResult
-                        debugPrint("\(DebuggingIdentifiers.succeeded) Deleted \(result?.result ?? 0) items with FpuID \(fpuID)")
-
-                        Foundation.NotificationCenter.default.post(name: .didPerformBatchDelete, object: nil)
                     } else {
                         // Delete carbs from Nightscout
                         if let id = carbEntry.id?.uuidString {
                             self.provider.deleteCarbsFromNightscout(withID: id)
                         }
-
-                        // Now delete carbs also from the Database
-                        taskContext.delete(carbEntry)
-
-                        guard taskContext.hasChanges else { return }
-                        try taskContext.save()
-
-                        debugPrint(
-                            "Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted carb entry from core data"
-                        )
                     }
 
                 } catch {
-                    debugPrint("\(DebuggingIdentifiers.failed) Error deleting carb entry: \(error.localizedDescription)")
+                    debugPrint(
+                        "\(DebuggingIdentifiers.failed) Error deleting carb entry from Nightscout: \(error.localizedDescription)"
+                    )
                 }
             }
+
+            // Delete carbs from Core Data
+            await carbsStorage.deleteCarbs(treatmentObjectID)
 
             // Perform a determine basal sync to update cob
             await apsManager.determineBasalSync()
