@@ -135,7 +135,7 @@ struct AddTempTargetForm: View {
         Toggle("Advanced Configuration", isOn: $advancedConfiguration)
 
         if advancedConfiguration && state.tempTargetTarget != 0 {
-            if state.computeSliderLow() != state.computeSliderHigh() {
+            if sliderEnabled {
                 Section {
                     VStack {
                         Text("\(state.percentage.formatted(.number)) % Insulin")
@@ -166,6 +166,14 @@ struct AddTempTargetForm: View {
                         .font(.caption).italic()
                     }
                 }.listRowBackground(Color.chart)
+            } else {
+                Section {
+                    VStack(alignment: .leading) {
+                        Text(
+                            "You have not enabled the proper Preferences to change sensitivity with chosen TempTarget. Verify Autosens Max > 1 & lowTT lowers Sens is on for lowTT's. For high TTs check highTT raises Sens is on (or Exercise Mode)!"
+                        ).bold()
+                    }
+                }.listRowBackground(Color.tabBar)
             }
         } else if advancedConfiguration && state.tempTargetTarget == 0 && !didPressSave {
             Section {
