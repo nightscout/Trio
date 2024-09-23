@@ -211,6 +211,15 @@ extension Home {
                 guard let self = self else { return }
                 self.setupOverrideRunStored()
             }
+            coreDataObserver?.registerHandler(for: "TempTargetStored") { [weak self] in
+                guard let self = self else { return }
+                self.setupTempTargetsStored()
+            }
+
+            coreDataObserver?.registerHandler(for: "TempTargetRunStored") { [weak self] in
+                guard let self = self else { return }
+                self.setupTempTargetsRunStored()
+            }
         }
 
         private func registerObservers() {
