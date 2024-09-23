@@ -114,14 +114,51 @@ struct EditTempTargetForm: View {
     }
 
     @ViewBuilder private func editTempTarget() -> some View {
-        Section {
-            VStack {
-                TextField("Name", text: $name)
-                    .onChange(of: name) { _ in hasChanges = true }
-            }
-        } header: {
+        Section(
+            header: Text("Configure Temp Target"),
+        content: {
+        HStack {
             Text("Name")
-        }.listRowBackground(Color.chart)
+            Spacer()
+            TextField("Enter Name (optional)", text: $name)
+                .multilineTextAlignment(.trailing)
+        }
+            HStack {
+                Text("Target")
+                Spacer()
+                TextFieldWithToolBar(
+                    text: Binding(
+                        get: { target },
+                        set: {
+                            target = $0
+                            hasChanges = true
+                        }
+                    ),
+                    placeholder: "0",
+                    numberFormatter: glucoseFormatter
+                )
+                Text(state.units.rawValue).foregroundColor(.secondary)
+            }
+            HStack {
+                Text("Duration")
+                Spacer()
+                TextFieldWithToolBar(
+                    text: Binding(
+                        get: { duration },
+                        set: {
+                            duration = $0
+                            hasChanges = true
+                        }
+                    ),
+                    placeholder: "0",
+                    numberFormatter: formatter
+                )
+                Text("minutes").foregroundColor(.secondary)
+            }
+            DatePicker("Date", selection: $date)
+                .onChange(of: date) { _ in hasChanges = true }
+        }
+                ).listRowBackground(Color.chart)
 
         if state.computeSliderLow() != state.computeSliderHigh() {
             Section {
@@ -183,43 +220,6 @@ struct EditTempTargetForm: View {
                 Text("The Slider values are limited to your Autosens Min and Max Settings!")
             }.listRowBackground(Color.chart)
         }
-
-        Section {
-            HStack {
-                Text("Target")
-                Spacer()
-                TextFieldWithToolBar(
-                    text: Binding(
-                        get: { target },
-                        set: {
-                            target = $0
-                            hasChanges = true
-                        }
-                    ),
-                    placeholder: "0",
-                    numberFormatter: glucoseFormatter
-                )
-                Text(state.units.rawValue).foregroundColor(.secondary)
-            }
-            HStack {
-                Text("Duration")
-                Spacer()
-                TextFieldWithToolBar(
-                    text: Binding(
-                        get: { duration },
-                        set: {
-                            duration = $0
-                            hasChanges = true
-                        }
-                    ),
-                    placeholder: "0",
-                    numberFormatter: formatter
-                )
-                Text("minutes").foregroundColor(.secondary)
-            }
-            DatePicker("Date", selection: $date)
-                .onChange(of: date) { _ in hasChanges = true }
-        }.listRowBackground(Color.chart)
     }
 
     private var saveButton: some View {
@@ -249,7 +249,7 @@ struct EditTempTargetForm: View {
                         hasChanges = false
                         presentationMode.wrappedValue.dismiss()
                     } catch {
-                        debugPrint("Failed to edit Temp Target")
+                        debugPrint("Failed to Edit Temp Target")
                     }
                 }
             }, label: {

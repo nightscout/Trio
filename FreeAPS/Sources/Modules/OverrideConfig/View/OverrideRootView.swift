@@ -67,7 +67,7 @@ extension OverrideConfig {
                         Spacer()
                         Image(systemName: "person.fill")
                             .font(.system(size: 18))
-                            .foregroundColor(Color.purple)
+                            .foregroundColor(Color(red: 0.6235294118, green: 0.4235294118, blue: 0.9803921569))
                         Text(OverrideConfig.Tab.overrides.name)
                             .font(.subheadline)
                         Spacer()

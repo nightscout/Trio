@@ -12,6 +12,7 @@ extension Home {
         @State var isStatusPopupPresented = false
         @State var showCancelAlert = false
         @State var showTempTargetCancelAlert = false
+        @State var showCancelConfirmDialog = false
         @State var isMenuPresented = false
         @State var showTreatments = false
         @State var selectedTab: Int = 0
@@ -501,149 +502,182 @@ extension Home {
             }.padding(.horizontal, 10)
         }
 
-        @ViewBuilder func profileView(geo: GeometryProxy) -> some View {
+        @ViewBuilder func adjustmentsOverrideView(_ overrideString: String) -> some View {
+            Group {
+                Image(systemName: "person.fill")
+                    .font(.system(size: 24))
+                    .foregroundColor(Color(
+                        red: 0.6235294118,
+                        green: 0.4235294118,
+                        blue: 0.9803921569
+                    ))
+                VStack(alignment: .leading) {
+                    Text(latestOverride.first?.name ?? "Custom Override")
+                        .font(.subheadline)
+                        .frame(alignment: .leading)
+
+                    Text(overrideString)
+                        .font(.caption)
+                }
+            }
+        }
+
+        @ViewBuilder func adjustmentsTempTargetView(_ tempTargetString: String) -> some View {
+            Group {
+                /// TempTarget section
+                Image(systemName: "target")
+                    .font(.system(size: 24))
+                    .foregroundColor(.loopGreen)
+                VStack(alignment: .leading) {
+                    Text(latestTempTarget.first?.name ?? "Temp Target")
+                        .font(.subheadline)
+                    Text(tempTargetString)
+                        .font(.caption)
+                }
+            }
+        }
+
+        @ViewBuilder func adjustmentsCancelView(_ cancelAction: @escaping () -> Void) -> some View {
+            Image(systemName: "xmark.app")
+                .font(.system(size: 24))
+                .onTapGesture {
+                    cancelAction()
+                }
+        }
+
+        @ViewBuilder func adjustmentView(geo: GeometryProxy) -> some View {
             ZStack {
-                // Background rectangle
+                /// rectangle as background
                 RoundedRectangle(cornerRadius: 15)
                     .fill(
-                        colorScheme == .dark
-                            ? Color(red: 0.039, green: 0.133, blue: 0.216)
-                            : Color.insulin.opacity(0.1)
+                        colorScheme == .dark ? Color(red: 0.03921568627, green: 0.133333333, blue: 0.2156862745) : Color
+                            .insulin
+                            .opacity(0.1)
                     )
+                    .clipShape(RoundedRectangle(cornerRadius: 15))
                     .frame(height: geo.size.height * 0.08)
                     .shadow(
-                        color: colorScheme == .dark
-                            ? Color(red: 0.027, green: 0.11, blue: 0.141)
-                            : Color.black.opacity(0.33),
+                        color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
+                            Color.black.opacity(0.33),
                         radius: 3
                     )
                 HStack {
                     if let overrideString = overrideString, let tempTargetString = tempTargetString {
                         HStack {
-                            /// override section
-                            Image(systemName: "person.fill")
-                                .font(.system(size: 24))
-                                .foregroundStyle(Color.purple)
-                            VStack(alignment: .leading) {
-                                Text(latestOverride.first?.name ?? "Custom Override")
-                                    .font(.subheadline)
-                                    .frame(alignment: .leading)
+                            adjustmentsOverrideView(overrideString)
 
-                                Text(overrideString)
-                                    .font(.caption)
-                            }
                             Spacer()
+
                             Divider()
                                 .frame(height: geo.size.height * 0.05)
                                 .padding(.horizontal, 2)
-                            /// TempTarget section
-                            Image(systemName: "target")
-                                .font(.system(size: 24))
-                                .foregroundColor(.loopGreen)
-                            VStack(alignment: .leading) {
-                                Text(latestTempTarget.first?.name ?? "Temp Target")
-                                    .font(.subheadline)
-                                Text(tempTargetString)
-                                    .font(.caption)
-                            }
+
+                            adjustmentsTempTargetView(tempTargetString)
+
                             Spacer()
-                        }
-                    } else
-                    if let overrideString = overrideString {
-                        // Only override is active
-                        HStack {
-                            Image(systemName: "person.fill")
-                                .font(.system(size: 24))
-                                .foregroundStyle(Color.purple)
-                            VStack(alignment: .leading) {
-                                Text(latestOverride.first?.name ?? "Custom Override")
-                                    .font(.subheadline)
-                                Text(overrideString)
-                                    .font(.caption)
-                            }
-                            Spacer()
-                            Image(systemName: "xmark")
-                                .font(.system(size: 25))
-                                .onTapGesture {
-                                    if !latestOverride.isEmpty {
-                                        showCancelAlert = true
-                                    }
+
+                            adjustmentsCancelView({
+                                if !latestTempTarget.isEmpty, !latestOverride.isEmpty {
+                                    showCancelConfirmDialog = true
+                                } else if !latestOverride.isEmpty {
+                                    showCancelAlert = true
+                                } else if !latestTempTarget.isEmpty {
+                                    showTempTargetCancelAlert = true
                                 }
+                            })
                         }
-                    } else
-                    if let tempTargetString = tempTargetString {
-                        // Only temp target is active
-                        HStack {
-                            Image(systemName: "target")
-                                .font(.system(size: 24))
-                                .foregroundColor(.loopGreen)
-                            VStack(alignment: .leading) {
-                                Text(latestTempTarget.first?.name ?? "Temp Target")
-                                    .font(.subheadline)
-                                Text(tempTargetString)
-                                    .font(.caption)
+                    } else if let overrideString = overrideString {
+                        adjustmentsOverrideView(overrideString)
+
+                        Spacer()
+
+                        adjustmentsCancelView({
+                            if !latestOverride.isEmpty {
+                                showCancelAlert = true
                             }
+                        })
+                    } else if let tempTargetString = tempTargetString {
+                        HStack {
+                            adjustmentsTempTargetView(tempTargetString)
+
                             Spacer()
-                            Image(systemName: "xmark")
-                                .font(.system(size: 25))
-                                .onTapGesture {
-                                    if !latestTempTarget.isEmpty {
-                                        showTempTargetCancelAlert = true
-                                    }
+
+                            adjustmentsCancelView({
+                                if !latestTempTarget.isEmpty {
+                                    showTempTargetCancelAlert = true
                                 }
+                            })
                         }
                     } else {
-                        // Normal profile view
-                        VStack(alignment: .leading) {
-                            Text("Normal Profile")
+                        VStack {
+                            Text("No Active Adjustment")
                                 .font(.subheadline)
-                            Text("100 %")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            Text("Profile at 100 %")
                                 .font(.caption)
-                        }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }.padding(.leading, 10)
+
                         Spacer()
-                        // Placeholder xmark to keep layout consistent
-                        Image(systemName: "xmark")
+
+                        /// to ensure the same position....
+                        Image(systemName: "xmark.app")
                             .font(.system(size: 25))
-                            .foregroundColor(.clear)
+                            // clear color for the icon
+                            .foregroundStyle(Color.clear)
                     }
-                }
-                .padding(5)
-            }
-            .padding(.horizontal, 10)
-            .padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
-            .alert(
-                "Return to Normal?",
-                isPresented: $showCancelAlert,
-                actions: {
-                    Button("No", role: .cancel) {}
-                    Button("Yes", role: .destructive) {
-                        Task {
-                            if !latestOverride.isEmpty {
+                }.padding(.horizontal, 10)
+                    .alert(
+                        "Cancel Override?",
+                        isPresented: $showCancelAlert,
+                        actions: {
+                            Button("No", role: .cancel) {}
+                            Button("Yes", role: .destructive) {
+                                Task {
+                                    if !latestOverride.isEmpty {
+                                        guard let objectID = latestOverride.first?.objectID else { return }
+                                        await state.cancelOverride(withID: objectID)
+                                    }
+                                }
+                            }
+                        },
+                        message: { Text("This will change settings back to your normal profile.")
+                        }
+                    )
+                    .alert(
+                        "Cancel Temp Target?",
+                        isPresented: $showTempTargetCancelAlert,
+                        actions: {
+                            Button("No", role: .cancel) {}
+                            Button("Yes", role: .destructive) {
+                                Task {
+                                    if !latestTempTarget.isEmpty {
+                                        guard let objectID = latestTempTarget.first?.objectID else { return }
+                                        await state.cancelTempTarget(withID: objectID)
+                                    }
+                                }
+                            }
+                        },
+                        message: { Text("This will change settings back to your regular target.") }
+                    )
+                    .confirmationDialog("Adjustment to Cancel", isPresented: $showCancelConfirmDialog) {
+                        Button("Cancel Override") {
+                            Task {
                                 guard let objectID = latestOverride.first?.objectID else { return }
                                 await state.cancelOverride(withID: objectID)
                             }
                         }
-                    }
-                },
-                message: { Text("This will change settings back to your normal profile.")
-                }
-            )
-            .alert(
-                "Cancel TempTarget?",
-                isPresented: $showTempTargetCancelAlert,
-                actions: {
-                    Button("No", role: .cancel) {}
-                    Button("Yes", role: .destructive) {
-                        Task {
-                            if !latestTempTarget.isEmpty {
+                        Button("Cancel Temp Target") {
+                            Task {
                                 guard let objectID = latestTempTarget.first?.objectID else { return }
                                 await state.cancelTempTarget(withID: objectID)
                             }
                         }
+                    } message: {
+                        Text("Select Adjustment to Cancel")
                     }
-                },
-                message: { Text("This will change settings back to your regular target.") }
-            )
+
+            }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
         }
 
         @ViewBuilder func bolusProgressBar(_ progress: Decimal) -> some View {
@@ -761,7 +795,7 @@ extension Home {
                     if let progress = state.bolusProgress {
                         bolusView(geo: geo, progress).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
                     } else {
-                        profileView(geo: geo).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
+                        adjustmentView(geo: geo).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
                     }
                 }
                 .background(color)

@@ -14,6 +14,11 @@ struct AddTempTargetForm: View {
     @State private var didPressSave =
         false // only used for fixing the Disclaimer showing up after pressing save (after the state was resetted), maybe refactor this...
 
+    @State private var shouldDisplayHint: Bool = false
+    @State var hintDetent = PresentationDetent.large
+    @State var selectedVerboseHint: String?
+    @State var hintLabel: String?
+
     var color: LinearGradient {
         colorScheme == .dark ? LinearGradient(
             gradient: Gradient(colors: [
@@ -55,7 +60,8 @@ struct AddTempTargetForm: View {
                 addTempTarget()
             }.scrollContentBackground(.hidden).background(color)
                 .navigationTitle("Add Temp Target")
-                .navigationBarItems(trailing: Button("Cancel") {
+                .navigationBarTitleDisplayMode(.inline)
+                .navigationBarItems(leading: Button("Close") {
                     presentationMode.wrappedValue.dismiss()
                 })
                 .alert(
@@ -78,25 +84,36 @@ struct AddTempTargetForm: View {
                         Text(alertString)
                     }
                 )
+                .sheet(isPresented: $shouldDisplayHint) {
+                    SettingInputHintView(
+                        hintDetent: $hintDetent,
+                        shouldDisplayHint: $shouldDisplayHint,
+                        hintLabel: hintLabel ?? "",
+                        hintText: selectedVerboseHint ?? "",
+                        sheetTitle: "Help"
+                    )
+                }
         }
     }
 
     @ViewBuilder private func addTempTarget() -> some View {
-        Section {
-            VStack {
-                TextField("Name", text: $state.tempTargetName)
+        Section(
+            header: Text("Configure Temp Target"),
+            content: {
+            HStack {
+                Text("Name")
+                Spacer()
+                TextField("Enter Name (optional)", text: $state.tempTargetName)
+                    .multilineTextAlignment(.trailing)
             }
-        } header: {
-            Text("Name")
-        }.listRowBackground(Color.chart)
 
-        Section {
             HStack {
                 Text("Target")
                 Spacer()
                 TextFieldWithToolBar(text: $state.tempTargetTarget, placeholder: "0", numberFormatter: glucoseFormatter)
                 Text(state.units.rawValue).foregroundColor(.secondary)
             }
+
             HStack {
                 Text("Duration")
                 Spacer()
@@ -104,35 +121,65 @@ struct AddTempTargetForm: View {
                 Text("minutes").foregroundColor(.secondary)
             }
             DatePicker("Date", selection: $state.date)
-            HStack {
-                Button {
-                    showAlert.toggle()
-                }
-                label: { Text("Enact") }
-                    .disabled(state.tempTargetDuration == 0)
-                    .buttonStyle(BorderlessButtonStyle())
-                    .font(.callout)
-                    .controlSize(.mini)
+        }
+                ).listRowBackground(Color.chart)
 
-                Button {
-                    Task {
-                        didPressSave.toggle()
-                        await state.saveTempTargetPreset()
-                        dismiss()
-                    }
+        // TODO: with iOS 17 we can change the body content wrapper from FORM to LIST and apply the .listSpacing modifier to make this all nice and small.
+        Section {
+            Button(action: {
+                showAlert.toggle()
+            }, label: {
+                Text("Enact Temp Target")
+
+            })
+                .disabled(state.tempTargetDuration == 0)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .tint(.white)
+        }.listRowBackground(state.tempTargetDuration == 0 ? Color(.systemGray4) : Color(.systemBlue))
+
+        Section {
+            Button(action: {
+                Task {
+                    didPressSave.toggle()
+                    await state.saveTempTargetPreset()
+                    dismiss()
                 }
-                label: { Text("Save as preset") }
-                    .disabled(state.tempTargetDuration == 0)
-                    .tint(.orange)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-                    .buttonStyle(BorderlessButtonStyle())
-                    .controlSize(.mini)
-            }
-        } header: {
-            Text("Add Custom Temp Target")
+            }, label: {
+                Text("Save as Preset")
+
+            })
+                .disabled(state.tempTargetDuration == 0)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .tint(.white)
+        }.listRowBackground(state.tempTargetDuration == 0 ? Color(.systemGray4) : Color(.orange))
+
+        Section {
+            VStack {
+                Toggle("Enable Advanced Configuration", isOn: $advancedConfiguration).padding(.top)
+
+                HStack(alignment: .top) {
+                    Text(
+                        "Add an explanation of the advanced configuration options here."
+                    )
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+                    .lineLimit(nil)
+                    Spacer()
+                    Button(
+                        action: {
+                            hintLabel = "Advanced Temp Target Configuration"
+                            selectedVerboseHint = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                            shouldDisplayHint.toggle()
+                        },
+                        label: {
+                            HStack {
+                                Image(systemName: "questionmark.circle")
+                            }
+                        }
+                    ).buttonStyle(BorderlessButtonStyle())
+                }.padding(.top)
+            }.padding(.bottom)
         }.listRowBackground(Color.chart)
-
-        Toggle("Advanced Configuration", isOn: $advancedConfiguration)
 
         if advancedConfiguration && state.tempTargetTarget != 0 {
             if sliderEnabled {

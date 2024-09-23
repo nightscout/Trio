@@ -58,7 +58,8 @@ struct AddOverrideForm: View {
                 addOverride()
             }.scrollContentBackground(.hidden).background(color)
                 .navigationTitle("Add Override")
-                .navigationBarItems(trailing: Button("Cancel") {
+                .navigationBarTitleDisplayMode(.inline)
+                .navigationBarItems(leading: Button("Cancel") {
                     presentationMode.wrappedValue.dismiss()
                 })
         }
