@@ -1,3 +1,4 @@
+import Combine
 import CoreData
 import Foundation
 import LoopKit
@@ -117,18 +118,28 @@ extension Bolus {
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
         let backgroundContext = CoreDataStack.shared.newTaskContext()
 
-        private var coreDataObserver: CoreDataObserver?
+        private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+        private var subscriptions = Set<AnyCancellable>()
 
         typealias PumpEvent = PumpEventStored.EventType
 
         override func subscribe() {
+            coreDataPublisher =
+                changedObjectsOnManagedObjectContextDidSavePublisher()
+                    .receive(on: DispatchQueue.global(qos: .background))
+                    .share()
+                    .eraseToAnyPublisher()
+            setupBolusStateConcurrently()
+        }
+
+        private func setupBolusStateConcurrently() {
             Task {
                 await withTaskGroup(of: Void.self) { group in
                     group.addTask {
-                        self.setupGlucoseNotification()
+                        self.registerHandlers()
                     }
                     group.addTask {
-                        self.registerHandlers()
+                        self.registerSubscribers()
                     }
                     group.addTask {
                         self.setupGlucoseArray()
@@ -303,7 +314,7 @@ extension Bolus {
 
         /// Calculate insulin recommendation
         func calculateInsulin() -> Decimal {
-            let isfForCalculation = units == .mmolL ? isf.asMgdL : isf
+            let isfForCalculation = isf
 
             // insulin needed for the current blood glucose
             targetDifference = currentBG - target
@@ -561,33 +572,29 @@ extension Bolus.StateModel: DeterminationObserver, BolusFailureObserver {
 
 extension Bolus.StateModel {
     private func registerHandlers() {
-        coreDataObserver?.registerHandler(for: "OrefDetermination") { [weak self] in
+        coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
                 await self.setupDeterminationsArray()
                 await self.updateForecasts()
             }
-        }
+        }.store(in: &subscriptions)
 
         // Due to the Batch insert this only is used for observing Deletion of Glucose entries
-        coreDataObserver?.registerHandler(for: "GlucoseStored") { [weak self] in
+        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
             guard let self = self else { return }
             self.setupGlucoseArray()
-        }
+        }.store(in: &subscriptions)
     }
 
-    private func setupGlucoseNotification() {
-        /// custom notification that is sent when a batch insert of glucose objects is done
-        Foundation.NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleBatchInsert),
-            name: .didPerformBatchInsert,
-            object: nil
-        )
-    }
-
-    @objc private func handleBatchInsert() {
-        setupGlucoseArray()
+    private func registerSubscribers() {
+        glucoseStorage.updatePublisher
+            .receive(on: DispatchQueue.global(qos: .background))
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                self.setupGlucoseArray()
+            }
+            .store(in: &subscriptions)
     }
 }
 

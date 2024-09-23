@@ -1,3 +1,4 @@
+import Combine
 import CoreData
 import Foundation
 import LoopKit
@@ -9,6 +10,7 @@ protocol PumpHistoryObserver {
 }
 
 protocol PumpHistoryStorage {
+    var updatePublisher: AnyPublisher<Void, Never> { get }
     func storePumpEvents(_ events: [NewPumpEvent])
     func storeExternalInsulinEvent(amount: Decimal, timestamp: Date) async
     func recent() -> [PumpHistoryEvent]
@@ -21,6 +23,12 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     @Injected() private var storage: FileStorage!
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var settings: SettingsManager!
+
+    private let updateSubject = PassthroughSubject<Void, Never>()
+
+    var updatePublisher: AnyPublisher<Void, Never> {
+        updateSubject.eraseToAnyPublisher()
+    }
 
     init(resolver: Resolver) {
         injectServices(resolver)
@@ -190,6 +198,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 do {
                     guard self.context.hasChanges else { return }
                     try self.context.save()
+
+                    self.updateSubject.send(())
                     debugPrint("\(DebuggingIdentifiers.succeeded) stored pump events in Core Data")
                 } catch let error as NSError {
                     debugPrint("\(DebuggingIdentifiers.failed) failed to store pump events with error: \(error.userInfo)")
@@ -218,6 +228,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             do {
                 guard self.context.hasChanges else { return }
                 try self.context.save()
+
+                self.updateSubject.send(())
             } catch {
                 print(error.localizedDescription)
             }

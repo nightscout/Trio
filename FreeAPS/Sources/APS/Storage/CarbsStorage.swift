@@ -1,3 +1,4 @@
+import Combine
 import CoreData
 import Foundation
 import SwiftDate
@@ -8,7 +9,9 @@ protocol CarbsObserver {
 }
 
 protocol CarbsStorage {
+    var updatePublisher: AnyPublisher<Void, Never> { get }
     func storeCarbs(_ carbs: [CarbsEntry], areFetchedFromRemote: Bool) async
+    func deleteCarbs(_ treatmentObjectID: NSManagedObjectID) async
     func syncDate() -> Date
     func recent() -> [CarbsEntry]
     func getCarbsNotYetUploadedToNightscout() async -> [NightscoutTreatment]
@@ -23,6 +26,12 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     @Injected() private var settings: SettingsManager!
 
     let coredataContext = CoreDataStack.shared.newTaskContext()
+
+    private let updateSubject = PassthroughSubject<Void, Never>()
+
+    var updatePublisher: AnyPublisher<Void, Never> {
+        updateSubject.eraseToAnyPublisher()
+    }
 
     init(resolver: Resolver) {
         injectServices(resolver)
@@ -226,8 +235,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                 try self.coredataContext.execute(batchInsert)
                 debugPrint("Carbs Storage: \(DebuggingIdentifiers.succeeded) saved fpus to core data")
 
-                // Send notification for triggering a fetch in Home State Model to update the FPU Array
-                Foundation.NotificationCenter.default.post(name: .didPerformBatchInsert, object: nil)
+                // Notify subscriber in Home State Model to update the FPU Array
+                self.updateSubject.send(())
             } catch {
                 debugPrint("Carbs Storage: \(DebuggingIdentifiers.failed) error while saving fpus to core data")
             }
@@ -240,6 +249,53 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
 
     func recent() -> [CarbsEntry] {
         storage.retrieve(OpenAPS.Monitor.carbHistory, as: [CarbsEntry].self)?.reversed() ?? []
+    }
+
+    func deleteCarbs(_ treatmentObjectID: NSManagedObjectID) async {
+        let taskContext = CoreDataStack.shared.newTaskContext()
+        taskContext.name = "deleteContext"
+        taskContext.transactionAuthor = "deleteCarbs"
+
+        var carbEntry: CarbEntryStored?
+
+        await taskContext.perform {
+            do {
+                carbEntry = try taskContext.existingObject(with: treatmentObjectID) as? CarbEntryStored
+                guard let carbEntry = carbEntry else {
+                    debugPrint("Carb entry for batch delete not found. \(DebuggingIdentifiers.failed)")
+                    return
+                }
+
+                if carbEntry.isFPU, let fpuID = carbEntry.fpuID {
+                    // fetch request for all carb entries with the same id
+                    let fetchRequest: NSFetchRequest<NSFetchRequestResult> = CarbEntryStored.fetchRequest()
+                    fetchRequest.predicate = NSPredicate(format: "fpuID == %@", fpuID as CVarArg)
+
+                    // NSBatchDeleteRequest
+                    let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+                    deleteRequest.resultType = .resultTypeCount
+
+                    // execute the batch delete request
+                    let result = try taskContext.execute(deleteRequest) as? NSBatchDeleteResult
+                    debugPrint("\(DebuggingIdentifiers.succeeded) Deleted \(result?.result ?? 0) items with FpuID \(fpuID)")
+
+                    // Notifiy subscribers of the batch delete
+                    self.updateSubject.send(())
+                } else {
+                    taskContext.delete(carbEntry)
+
+                    guard taskContext.hasChanges else { return }
+                    try taskContext.save()
+
+                    debugPrint(
+                        "Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted carb entry from core data"
+                    )
+                }
+
+            } catch {
+                debugPrint("\(DebuggingIdentifiers.failed) Error deleting carb entry: \(error.localizedDescription)")
+            }
+        }
     }
 
     func deleteCarbs(at uniqueID: String, fpuID: String, complex: Bool) {
