@@ -76,6 +76,8 @@ extension OverrideConfig {
             updateLatestTempTargetConfiguration()
             maxValue = settingsManager.preferences.autosensMax
             minValue = settingsManager.preferences.autosensMin
+            halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
+            percentage = round(Double(computePercentage() * 100))
             broadcaster.register(SettingsObserver.self, observer: self)
         }
 
@@ -725,8 +727,8 @@ extension OverrideConfig.StateModel {
         tempTargetName = ""
         tempTargetTarget = 0
         tempTargetDuration = 0
-        percentage = 100
-        halfBasalTarget = 160
+        percentage = round(Double(computePercentage() * 100))
+        halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
     }
 
     func computeHalfBasalTarget() -> Double {
@@ -765,6 +767,19 @@ extension OverrideConfig.StateModel {
             target = Decimal(round(Double(tempTargetTarget.asMgdL))) }
         if target > 100 || !settingsManager.preferences.lowTemptargetLowersSensitivity { maxSens = 100 }
         return maxSens
+    }
+
+    func computePercentage() -> Decimal {
+        let c = (halfBasalTarget - 100)
+        let target = tempTargetTarget
+        var ratio: Decimal = 1
+        if c * (c + target - 100) <= 0 {
+            ratio = maxValue
+        } else {
+            ratio = c / (c + target - 100)
+        }
+        ratio = min(ratio, maxValue)
+        return ratio
     }
 }
 

@@ -111,6 +111,10 @@ struct AddTempTargetForm: View {
                     Text("Target")
                     Spacer()
                     TextFieldWithToolBar(text: $state.tempTargetTarget, placeholder: "0", numberFormatter: glucoseFormatter)
+                        .onChange(of: state.tempTargetTarget) { _ in
+                            // Recalculate the percentage when tempTargetTarget changes
+                            state.percentage = Double(state.computePercentage() * 100)
+                        }
                     Text(state.units.rawValue).foregroundColor(.secondary)
                 }
 
@@ -185,18 +189,21 @@ struct AddTempTargetForm: View {
             if sliderEnabled {
                 Section {
                     VStack {
-                        Text("\(state.percentage.formatted(.number)) % Insulin")
+                        // Display the percentage in large text
+                        Text("\(Int(state.percentage)) % Insulin")
                             .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
                             .font(.largeTitle)
 
-                        Slider(value: $state.percentage, in: state.computeSliderLow() ... state.computeSliderHigh(), step: 5) {}
-                        minimumValueLabel: {
+                        // Bind the slider to the percentage
+                        Slider(
+                            value: $state.percentage,
+                            in: state.computeSliderLow() ... state.computeSliderHigh(),
+                            step: 5
+                        ) {} minimumValueLabel: {
                             Text("\(state.computeSliderLow(), specifier: "%.0f")%")
-                        }
-                        maximumValueLabel: {
+                        } maximumValueLabel: {
                             Text("\(state.computeSliderHigh(), specifier: "%.0f")%")
-                        }
-                        onEditingChanged: { editing in
+                        } onEditingChanged: { editing in
                             isUsingSlider = editing
                             state.halfBasalTarget = Decimal(state.computeHalfBasalTarget())
                         }
