@@ -524,7 +524,6 @@ extension Home {
 
         @ViewBuilder func adjustmentsTempTargetView(_ tempTargetString: String) -> some View {
             Group {
-                /// TempTarget section
                 Image(systemName: "target")
                     .font(.system(size: 24))
                     .foregroundColor(.loopGreen)

@@ -76,6 +76,8 @@ extension Home {
         @Published var lastPumpBolus: PumpEventStored?
         @Published var overrides: [OverrideStored] = []
         @Published var overrideRunStored: [OverrideRunStored] = []
+        @Published var tempTargetStored: [TempTargetStored] = []
+        @Published var tempTargetRunStored: [TempTargetRunStored] = []
         @Published var isOverrideCancelled: Bool = false
         @Published var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
         @Published var pumpStatusHighlightMessage: String? = nil
@@ -155,6 +157,12 @@ extension Home {
                     }
                     group.addTask {
                         self.setupOverrideRunStored()
+                    }
+                    group.addTask {
+                        self.setupTempTargetsStored()
+                    }
+                    group.addTask {
+                        self.setupTempTargetsRunStored()
                     }
                     group.addTask {
                         await self.setupSettings()
@@ -934,6 +942,67 @@ extension Home.StateModel {
 
     @MainActor private func updateOverrideRunStoredArray(with objects: [OverrideRunStored]) {
         overrideRunStored = objects
+    }
+
+    // Setup active TempTargets
+    private func setupTempTargetsStored() {
+        Task {
+            let ids = await self.fetchTempTargets()
+            let tempTargetObjects: [TempTargetStored] = await CoreDataStack.shared
+                .getNSManagedObject(with: ids, context: viewContext)
+            await updateTempTargetsArray(with: tempTargetObjects)
+        }
+    }
+
+    private func fetchTempTargets() async -> [NSManagedObjectID] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: TempTargetStored.self,
+            onContext: context,
+            predicate: NSPredicate.lastActiveTempTarget,
+            key: "date",
+            ascending: false
+        )
+
+        guard let fetchedResults = results as? [TempTargetStored] else { return [] }
+
+        return await context.perform {
+            return fetchedResults.map(\.objectID)
+        }
+    }
+
+    @MainActor private func updateTempTargetsArray(with objects: [TempTargetStored]) {
+        tempTargetStored = objects
+    }
+
+    // Setup expired TempTargets
+    private func setupTempTargetsRunStored() {
+        Task {
+            let ids = await self.fetchTempTargetRunStored()
+            let tempTargetRunObjects: [TempTargetRunStored] = await CoreDataStack.shared
+                .getNSManagedObject(with: ids, context: viewContext)
+            await updateTempTargetRunStoredArray(with: tempTargetRunObjects)
+        }
+    }
+
+    private func fetchTempTargetRunStored() async -> [NSManagedObjectID] {
+        let predicate = NSPredicate(format: "startDate >= %@", Date.oneDayAgo as NSDate)
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: TempTargetRunStored.self,
+            onContext: context,
+            predicate: predicate,
+            key: "startDate",
+            ascending: false
+        )
+
+        guard let fetchedResults = results as? [TempTargetRunStored] else { return [] }
+
+        return await context.perform {
+            return fetchedResults.map(\.objectID)
+        }
+    }
+
+    @MainActor private func updateTempTargetRunStoredArray(with objects: [TempTargetRunStored]) {
+        tempTargetRunStored = objects
     }
 
     @MainActor func saveToTempTargetRunStored(withID id: NSManagedObjectID) async {

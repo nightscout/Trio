@@ -100,29 +100,29 @@ struct AddTempTargetForm: View {
         Section(
             header: Text("Configure Temp Target"),
             content: {
-            HStack {
-                Text("Name")
-                Spacer()
-                TextField("Enter Name (optional)", text: $state.tempTargetName)
-                    .multilineTextAlignment(.trailing)
-            }
+                HStack {
+                    Text("Name")
+                    Spacer()
+                    TextField("Enter Name (optional)", text: $state.tempTargetName)
+                        .multilineTextAlignment(.trailing)
+                }
 
-            HStack {
-                Text("Target")
-                Spacer()
-                TextFieldWithToolBar(text: $state.tempTargetTarget, placeholder: "0", numberFormatter: glucoseFormatter)
-                Text(state.units.rawValue).foregroundColor(.secondary)
-            }
+                HStack {
+                    Text("Target")
+                    Spacer()
+                    TextFieldWithToolBar(text: $state.tempTargetTarget, placeholder: "0", numberFormatter: glucoseFormatter)
+                    Text(state.units.rawValue).foregroundColor(.secondary)
+                }
 
-            HStack {
-                Text("Duration")
-                Spacer()
-                TextFieldWithToolBar(text: $state.tempTargetDuration, placeholder: "0", numberFormatter: formatter)
-                Text("minutes").foregroundColor(.secondary)
+                HStack {
+                    Text("Duration")
+                    Spacer()
+                    TextFieldWithToolBar(text: $state.tempTargetDuration, placeholder: "0", numberFormatter: formatter)
+                    Text("minutes").foregroundColor(.secondary)
+                }
+                DatePicker("Date", selection: $state.date)
             }
-            DatePicker("Date", selection: $state.date)
-        }
-                ).listRowBackground(Color.chart)
+        ).listRowBackground(Color.chart)
 
         // TODO: with iOS 17 we can change the body content wrapper from FORM to LIST and apply the .listSpacing modifier to make this all nice and small.
         Section {

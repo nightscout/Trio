@@ -16,11 +16,19 @@ struct OverrideView: ChartContent {
 
     private func drawActiveOverrides() -> some ChartContent {
         ForEach(overrides) { override in
-            if let duration = MainChartHelper.calculateDuration(objectID: override.objectID, context: viewContext) {
+            if let duration = MainChartHelper.calculateDuration(
+                objectID: override.objectID,
+                attribute: "duration",
+                context: viewContext
+            ) {
                 let start: Date = override.date ?? .distantPast
                 let end: Date = start.addingTimeInterval(duration)
 
-                if let target = MainChartHelper.calculateTarget(objectID: override.objectID, context: viewContext) {
+                if let target = MainChartHelper.calculateTarget(
+                    objectID: override.objectID,
+                    attribute: "target",
+                    context: viewContext
+                ) {
                     RuleMark(
                         xStart: .value("Start", start, unit: .second),
                         xEnd: .value("End", end, unit: .second),

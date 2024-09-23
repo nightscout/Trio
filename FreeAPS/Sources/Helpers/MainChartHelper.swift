@@ -67,31 +67,39 @@ enum MainChartHelper {
         units == .mgdL ? 30 : 1.66
     }
 
-    static func calculateDuration(objectID: NSManagedObjectID, context: NSManagedObjectContext) -> TimeInterval? {
+    static func calculateDuration(
+        objectID: NSManagedObjectID,
+        attribute: String,
+        context: NSManagedObjectContext
+    ) -> TimeInterval? {
         do {
-            if let override = try context.existingObject(with: objectID) as? OverrideStored,
-               let overrideDuration = override.duration as? Double, overrideDuration != 0
-            {
-                return TimeInterval(overrideDuration * 60) // return seconds
+            let object = try context.existingObject(with: objectID)
+            if let attributeValue = object.value(forKey: attribute) as? NSDecimalNumber {
+                let doubleValue = attributeValue.doubleValue
+                if doubleValue != 0 {
+                    return TimeInterval(doubleValue * 60) // return seconds
+                }
+            } else {
+                debugPrint("Attribute \(attribute) not found or not of type NSDecimalNumber")
             }
         } catch {
             debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to calculate Override Target with error: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to calculate duration for object with error: \(error.localizedDescription)"
             )
         }
+
         return nil
     }
 
-    static func calculateTarget(objectID: NSManagedObjectID, context: NSManagedObjectContext) -> Decimal? {
+    static func calculateTarget(objectID: NSManagedObjectID, attribute: String, context: NSManagedObjectContext) -> Decimal? {
         do {
-            if let override = try context.existingObject(with: objectID) as? OverrideStored,
-               let overrideTarget = override.target, overrideTarget != 0
-            {
-                return overrideTarget.decimalValue
+            let object = try context.existingObject(with: objectID)
+            if let attributeValue = object.value(forKey: attribute) as? NSDecimalNumber, attributeValue != 0 {
+                return attributeValue.decimalValue
             }
         } catch {
             debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to calculate Override Target with error: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to calculate target for object with error: \(error.localizedDescription)"
             )
         }
         return nil

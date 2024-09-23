@@ -21,7 +21,7 @@ struct MainChartView: View {
 
     @State var basalProfiles: [BasalProfile] = []
     @State var preparedTempBasals: [(start: Date, end: Date, rate: Double)] = []
-    @State var chartTempTargets: [ChartTempTarget] = []
+//    @State var chartTempTargets: [ChartTempTarget] = []
     @State var startMarker =
         Date(timeIntervalSinceNow: TimeInterval(hours: -24))
     @State var endMarker = Date(timeIntervalSinceNow: TimeInterval(hours: 3))
@@ -145,7 +145,6 @@ extension MainChartView {
                 drawStartRuleMark()
                 drawEndRuleMark()
                 drawCurrentTimeMarker()
-                drawTempTargets()
 
                 GlucoseChartView(
                     glucoseData: state.glucoseFromPersistence,
@@ -172,6 +171,13 @@ extension MainChartView {
                 OverrideView(
                     overrides: state.overrides,
                     overrideRunStored: state.overrideRunStored,
+                    units: state.units,
+                    viewContext: context
+                )
+
+                TempTargetView(
+                    tempTargetStored: state.tempTargetStored,
+                    tempTargetRunStored: state.tempTargetRunStored,
                     units: state.units,
                     viewContext: context
                 )
@@ -228,11 +234,6 @@ extension MainChartView {
             .id("MainChart")
             .onChange(of: state.insulinFromPersistence) { _ in
                 state.roundedTotalBolus = state.calculateTINS()
-            }
-            .onChange(of: tempTargets) { _ in
-                Task {
-                    await calculateTempTargets()
-                }
             }
             .frame(minHeight: geo.size.height * 0.28)
             .frame(width: fullWidth(viewWidth: screenSize.width))

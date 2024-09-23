@@ -116,49 +116,49 @@ struct EditTempTargetForm: View {
     @ViewBuilder private func editTempTarget() -> some View {
         Section(
             header: Text("Configure Temp Target"),
-        content: {
-        HStack {
-            Text("Name")
-            Spacer()
-            TextField("Enter Name (optional)", text: $name)
-                .multilineTextAlignment(.trailing)
-        }
-            HStack {
-                Text("Target")
-                Spacer()
-                TextFieldWithToolBar(
-                    text: Binding(
-                        get: { target },
-                        set: {
-                            target = $0
-                            hasChanges = true
-                        }
-                    ),
-                    placeholder: "0",
-                    numberFormatter: glucoseFormatter
-                )
-                Text(state.units.rawValue).foregroundColor(.secondary)
+            content: {
+                HStack {
+                    Text("Name")
+                    Spacer()
+                    TextField("Enter Name (optional)", text: $name)
+                        .multilineTextAlignment(.trailing)
+                }
+                HStack {
+                    Text("Target")
+                    Spacer()
+                    TextFieldWithToolBar(
+                        text: Binding(
+                            get: { target },
+                            set: {
+                                target = $0
+                                hasChanges = true
+                            }
+                        ),
+                        placeholder: "0",
+                        numberFormatter: glucoseFormatter
+                    )
+                    Text(state.units.rawValue).foregroundColor(.secondary)
+                }
+                HStack {
+                    Text("Duration")
+                    Spacer()
+                    TextFieldWithToolBar(
+                        text: Binding(
+                            get: { duration },
+                            set: {
+                                duration = $0
+                                hasChanges = true
+                            }
+                        ),
+                        placeholder: "0",
+                        numberFormatter: formatter
+                    )
+                    Text("minutes").foregroundColor(.secondary)
+                }
+                DatePicker("Date", selection: $date)
+                    .onChange(of: date) { _ in hasChanges = true }
             }
-            HStack {
-                Text("Duration")
-                Spacer()
-                TextFieldWithToolBar(
-                    text: Binding(
-                        get: { duration },
-                        set: {
-                            duration = $0
-                            hasChanges = true
-                        }
-                    ),
-                    placeholder: "0",
-                    numberFormatter: formatter
-                )
-                Text("minutes").foregroundColor(.secondary)
-            }
-            DatePicker("Date", selection: $date)
-                .onChange(of: date) { _ in hasChanges = true }
-        }
-                ).listRowBackground(Color.chart)
+        ).listRowBackground(Color.chart)
 
         if state.computeSliderLow() != state.computeSliderHigh() {
             Section {
