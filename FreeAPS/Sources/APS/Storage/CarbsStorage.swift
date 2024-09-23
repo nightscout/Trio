@@ -472,7 +472,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     note: result.note,
                     enteredBy: CarbsEntry.manual,
                     isFPU: nil,
-                    fpuID: nil,
+                    fpuID: nil
                 )
             }
         }
