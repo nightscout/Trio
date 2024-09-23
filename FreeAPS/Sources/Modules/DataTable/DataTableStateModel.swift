@@ -79,11 +79,11 @@ extension DataTable {
                     }
 
                     debugPrint(
-                        "\(#file) \(#function) \(DebuggingIdentifiers.succeeded) deleted glucose from Apple Health/Nightscout"
+                        "\(#file) \(#function) \(DebuggingIdentifiers.succeeded) deleted glucose from remote service(s) (Nightscout, Apple Health, Tidepool)"
                     )
                 } catch {
                     debugPrint(
-                        "\(#file) \(#function) \(DebuggingIdentifiers.failed) error while deleting glucose from Apple Health/Nightscout with error: \(error.localizedDescription)"
+                        "\(#file) \(#function) \(DebuggingIdentifiers.failed) error while deleting glucose remote service(s) (Nightscout, Apple Health, Tidepool) with error: \(error.localizedDescription)"
                     )
                 }
             }
@@ -165,7 +165,7 @@ extension DataTable {
 
                 } catch {
                     debugPrint(
-                        "\(DebuggingIdentifiers.failed) Error deleting carb entry from Apple Health/Nightscout with error: \(error.localizedDescription)"
+                        "\(DebuggingIdentifiers.failed) Error deleting carb entry from remote service(s) (Nightscout, Apple Health, Tidepool) with error: \(error.localizedDescription)"
                     )
                 }
             }
@@ -221,7 +221,6 @@ extension DataTable {
                         return
                     }
 
-                    // Delete Insulin from Nightscout and Apple Health
                     if let id = treatmentToDelete.id, let timestamp = treatmentToDelete.timestamp,
                        let bolus = treatmentToDelete.bolus, let bolusAmount = bolus.amount
                     {

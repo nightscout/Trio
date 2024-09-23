@@ -467,12 +467,12 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     createdAt: result.date ?? Date(),
                     actualDate: result.date,
                     carbs: Decimal(result.carbs),
-                    fat: Decimal(result.fat),
-                    protein: Decimal(result.protein),
+                    fat: nil,
+                    protein: nil,
                     note: result.note,
                     enteredBy: CarbsEntry.manual,
-                    isFPU: result.isFPU,
-                    fpuID: result.fpuID?.uuidString
+                    isFPU: nil,
+                    fpuID: nil,
                 )
             }
         }
