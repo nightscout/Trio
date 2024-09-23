@@ -193,7 +193,7 @@ extension DataTable {
                     return
                 }
 
-                // Delete from Apple Health/Nightscout
+                // Delete from remote service(s) (i.e. Nightscout, Apple Health, Tidepool)
                 await deleteInsulinFromServices(with: treatmentObjectID)
 
                 // Delete from Core Data
