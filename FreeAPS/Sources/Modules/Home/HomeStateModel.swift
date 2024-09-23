@@ -18,13 +18,11 @@ extension Home {
         private let timer = DispatchTimer(timeInterval: 5)
         private(set) var filteredHours = 24
         @Published var manualGlucose: [BloodGlucose] = []
-        @Published var announcement: [Announcement] = []
         @Published var uploadStats = false
         @Published var recentGlucose: BloodGlucose?
         @Published var maxBasal: Decimal = 2
         @Published var autotunedBasalProfile: [BasalProfileEntry] = []
         @Published var basalProfile: [BasalProfileEntry] = []
-        @Published var tempTargets: [TempTarget] = []
         @Published var timerDate = Date()
         @Published var closedLoop = false
         @Published var pumpSuspended = false
@@ -35,7 +33,6 @@ extension Home {
         @Published var reservoir: Decimal?
         @Published var pumpName = ""
         @Published var pumpExpiresAtDate: Date?
-        @Published var tempTarget: TempTarget?
         @Published var setupPump = false
         @Published var errorMessage: String? = nil
         @Published var errorDate: Date? = nil
@@ -85,6 +82,7 @@ extension Home {
         @Published var cgmAvailable: Bool = false
         @Published var showCarbsRequiredBadge: Bool = true
         private(set) var setupPumpType: PumpConfig.PumpType = .minimed
+        @Published var currentBGTarget: Decimal = 0
 
         @Published var minForecast: [Int] = []
         @Published var maxForecast: [Int] = []
@@ -147,13 +145,7 @@ extension Home {
                         self.setupBasalProfile()
                     }
                     group.addTask {
-                        self.setupTempTargets()
-                    }
-                    group.addTask {
                         self.setupReservoir()
-                    }
-                    group.addTask {
-                        self.setupAnnouncements()
                     }
                     group.addTask {
                         self.setupCurrentPumpTimezone()
@@ -175,6 +167,9 @@ extension Home {
                     }
                     group.addTask {
                         self.registerObservers()
+                    }
+                    group.addTask {
+                        await self.getCurrentBGTarget()
                     }
                 }
             }
@@ -244,14 +239,12 @@ extension Home {
             broadcaster.register(SettingsObserver.self, observer: self)
             broadcaster.register(PumpSettingsObserver.self, observer: self)
             broadcaster.register(BasalProfileObserver.self, observer: self)
-            broadcaster.register(TempTargetsObserver.self, observer: self)
             broadcaster.register(PumpReservoirObserver.self, observer: self)
             broadcaster.register(PumpDeactivatedObserver.self, observer: self)
 
             timer.eventHandler = {
                 DispatchQueue.main.async { [weak self] in
                     self?.timerDate = Date()
-                    self?.setupCurrentTempTarget()
                 }
             }
             timer.resume()
@@ -313,6 +306,63 @@ extension Home {
                 .store(in: &lifetime)
         }
 
+        private enum SettingType {
+            case basal
+            case carbRatio
+            case bgTarget
+            case isf
+        }
+
+        private func getCurrentBGTarget() async {
+            let now = Date()
+            let calendar = Calendar.current
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "HH:mm:ss"
+            dateFormatter.timeZone = TimeZone.current
+
+            let entries: [(start: String, value: Decimal)]
+
+            let bgTargets = await provider.getBGTarget()
+            entries = bgTargets.targets.map { ($0.start, $0.low) }
+
+            for (index, entry) in entries.enumerated() {
+                guard let entryTime = dateFormatter.date(from: entry.start) else {
+                    print("Invalid entry start time: \(entry.start)")
+                    continue
+                }
+
+                let entryComponents = calendar.dateComponents([.hour, .minute, .second], from: entryTime)
+                let entryStartTime = calendar.date(
+                    bySettingHour: entryComponents.hour!,
+                    minute: entryComponents.minute!,
+                    second: entryComponents.second!,
+                    of: now
+                )!
+
+                let entryEndTime: Date
+                if index < entries.count - 1,
+                   let nextEntryTime = dateFormatter.date(from: entries[index + 1].start)
+                {
+                    let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
+                    entryEndTime = calendar.date(
+                        bySettingHour: nextEntryComponents.hour!,
+                        minute: nextEntryComponents.minute!,
+                        second: nextEntryComponents.second!,
+                        of: now
+                    )!
+                } else {
+                    entryEndTime = calendar.date(byAdding: .day, value: 1, to: entryStartTime)!
+                }
+
+                if now >= entryStartTime, now < entryEndTime {
+                    await MainActor.run {
+                        currentBGTarget = entry.value
+                    }
+                    return
+                }
+            }
+        }
+
         @MainActor private func setupSettings() async {
             units = settingsManager.settings.units
             allowManualTemp = !settingsManager.settings.closedLoop
@@ -320,7 +370,6 @@ extension Home {
             lastLoopDate = apsManager.lastLoopDate
             alarm = provider.glucoseStorage.alarm
             manualTempBasal = apsManager.isManualTempBasal
-            setupCurrentTempTarget()
             isSmoothingEnabled = settingsManager.settings.smoothGlucose
             maxValue = settingsManager.preferences.autosensMax
             lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
@@ -473,30 +522,11 @@ extension Home {
             }
         }
 
-        private func setupTempTargets() {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.manualTempBasal = self.apsManager.isManualTempBasal
-                self.tempTargets = self.provider.tempTargets(hours: self.filteredHours)
-            }
-        }
-
-        private func setupAnnouncements() {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.announcement = self.provider.announcement(self.filteredHours)
-            }
-        }
-
         private func setupReservoir() {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
                 self.reservoir = self.provider.pumpReservoir()
             }
-        }
-
-        private func setupCurrentTempTarget() {
-            tempTarget = provider.tempTarget()
         }
 
         private func setupCurrentPumpTimezone() {
@@ -518,7 +548,6 @@ extension Home.StateModel:
     SettingsObserver,
     PumpSettingsObserver,
     BasalProfileObserver,
-    TempTargetsObserver,
     PumpReservoirObserver,
     PumpTimeZoneObserver,
     PumpDeactivatedObserver
@@ -550,6 +579,10 @@ extension Home.StateModel:
         cgmAvailable = (fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none)
         displayPumpStatusHighlightMessage()
         setupBatteryArray()
+
+        Task {
+            await self.getCurrentBGTarget()
+        }
     }
 
     // TODO: is this ever really triggered? react to MOC changes?
@@ -564,10 +597,6 @@ extension Home.StateModel:
 
     func basalProfileDidChange(_: [BasalProfileEntry]) {
         setupBasalProfile()
-    }
-
-    func tempTargetsDidUpdate(_: [TempTarget]) {
-        setupTempTargets()
     }
 
     func pumpReservoirDidChange(_: Decimal) {

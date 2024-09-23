@@ -352,7 +352,6 @@ extension Home {
                     geo: geo,
                     units: $state.units,
                     hours: .constant(state.filteredHours),
-                    tempTargets: $state.tempTargets,
                     highGlucose: $state.highGlucose,
                     lowGlucose: $state.lowGlucose,
                     screenHours: $state.hours,

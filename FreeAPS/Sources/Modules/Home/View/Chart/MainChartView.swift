@@ -9,7 +9,6 @@ struct MainChartView: View {
     var geo: GeometryProxy
     @Binding var units: GlucoseUnits
     @Binding var hours: Int
-    @Binding var tempTargets: [TempTarget]
     @Binding var highGlucose: Decimal
     @Binding var lowGlucose: Decimal
     @Binding var screenHours: Int16
@@ -21,7 +20,6 @@ struct MainChartView: View {
 
     @State var basalProfiles: [BasalProfile] = []
     @State var preparedTempBasals: [(start: Date, end: Date, rate: Double)] = []
-//    @State var chartTempTargets: [ChartTempTarget] = []
     @State var startMarker =
         Date(timeIntervalSinceNow: TimeInterval(hours: -24))
     @State var endMarker = Date(timeIntervalSinceNow: TimeInterval(hours: 3))
@@ -169,6 +167,7 @@ extension MainChartView {
                 )
 
                 OverrideView(
+                    state: state,
                     overrides: state.overrides,
                     overrideRunStored: state.overrideRunStored,
                     units: state.units,

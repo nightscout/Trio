@@ -4,6 +4,7 @@ import Foundation
 import SwiftUI
 
 struct OverrideView: ChartContent {
+    @ObservedObject var state: Home.StateModel // @ObservedObject will be replaced when converting to Observable
     let overrides: [OverrideStored]
     let overrideRunStored: [OverrideRunStored]
     let units: GlucoseUnits
@@ -16,28 +17,24 @@ struct OverrideView: ChartContent {
 
     private func drawActiveOverrides() -> some ChartContent {
         ForEach(overrides) { override in
-            if let duration = MainChartHelper.calculateDuration(
+            let start: Date = override.date ?? .distantPast
+            let duration = MainChartHelper.calculateDuration(
                 objectID: override.objectID,
                 attribute: "duration",
                 context: viewContext
-            ) {
-                let start: Date = override.date ?? .distantPast
-                let end: Date = start.addingTimeInterval(duration)
+            ) ?? 0
+            let end: Date = duration != 0 ? start.addingTimeInterval(duration) : start
+                .addingTimeInterval(6 * 60 * 60) // handle infinite overrides
 
-                if let target = MainChartHelper.calculateTarget(
-                    objectID: override.objectID,
-                    attribute: "target",
-                    context: viewContext
-                ) {
-                    RuleMark(
-                        xStart: .value("Start", start, unit: .second),
-                        xEnd: .value("End", end, unit: .second),
-                        y: .value("Value", units == .mgdL ? target : target.asMmolL)
-                    )
-                    .foregroundStyle(Color.purple.opacity(0.4))
-                    .lineStyle(.init(lineWidth: 8))
-                }
-            }
+            let target = getOverrideTarget(override: override)
+
+            RuleMark(
+                xStart: .value("Start", start, unit: .second),
+                xEnd: .value("End", end, unit: .second),
+                y: .value("Value", units == .mgdL ? target : target.asMmolL)
+            )
+            .foregroundStyle(Color.purple.opacity(0.4))
+            .lineStyle(.init(lineWidth: 8))
         }
     }
 
@@ -53,6 +50,19 @@ struct OverrideView: ChartContent {
             )
             .foregroundStyle(Color.purple.opacity(0.25))
             .lineStyle(.init(lineWidth: 8))
+        }
+    }
+
+    // Handle Overrides where no Target is provided
+    private func getOverrideTarget(override: OverrideStored) -> Decimal {
+        if let target = MainChartHelper
+            .calculateTarget(objectID: override.objectID, attribute: "target", context: viewContext)
+        {
+            return target
+        } else if override.target == 0 {
+            return state.currentBGTarget // Default target
+        } else {
+            return override.target?.decimalValue ?? state.currentBGTarget
         }
     }
 }

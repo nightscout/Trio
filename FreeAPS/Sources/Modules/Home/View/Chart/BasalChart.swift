@@ -32,12 +32,6 @@ extension MainChartView {
             .onChange(of: state.maxBasal) { _ in
                 calculateBasals()
             }
-            .onChange(of: state.autotunedBasalProfile) { _ in
-                calculateBasals()
-            }
-            .onChange(of: state.basalProfile) { _ in
-                calculateBasals()
-            }
             .frame(minHeight: geo.size.height * 0.05)
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .chartXScale(domain: startMarker ... endMarker)
