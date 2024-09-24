@@ -39,6 +39,7 @@ struct AddTempTargetForm: View {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.maximumFractionDigits = 0
+        formatter.roundingMode = .halfUp
         return formatter
     }
 
@@ -137,7 +138,7 @@ struct AddTempTargetForm: View {
                     VStack {
                         HStack(alignment: .top) {
                             Text(
-                                "The current high Temp Target of \(state.tempTargetTarget) would raise your sensitivity to \(round(state.percentage)) % Insulin."
+                                "The current high Temp Target of \(state.tempTargetTarget) would raise your sensitivity to \(formattedPercentage(state.percentage)) % Insulin."
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -147,7 +148,7 @@ struct AddTempTargetForm: View {
                                 action: {
                                     hintLabel = "Adjust Sensitivity for high Temp Target "
                                     selectedVerboseHint =
-                                        "You have enabled High TempTarget Raises Sensitivity in your Target Behaviour setting. Therefore current high Temp Target of \(state.tempTargetTarget) would raise your sensitivity, therefore reduce Insulin dosing to \(round(state.percentage)) % of regular amount. This can be adjusted to another desired Insulin percentage!"
+                                        "You have enabled High TempTarget Raises Sensitivity in your Target Behaviour setting. Therefore current high Temp Target of \(state.tempTargetTarget) would raise your sensitivity, therefore reduce Insulin dosing to \(formattedPercentage(state.percentage)) % of regular amount. This can be adjusted to another desired Insulin percentage!"
                                     shouldDisplayHint.toggle()
                                 },
                                 label: {
@@ -166,7 +167,7 @@ struct AddTempTargetForm: View {
                     VStack {
                         HStack(alignment: .top) {
                             Text(
-                                "The current low Temp Target of \(state.tempTargetTarget) would lower your sensitivity to \(round(state.percentage)) % Insulin."
+                                "The current low Temp Target of \(state.tempTargetTarget) would lower your sensitivity to \(formattedPercentage(state.percentage)) % Insulin."
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -176,7 +177,7 @@ struct AddTempTargetForm: View {
                                 action: {
                                     hintLabel = "Adjust Sensitivity for low Temp Target "
                                     selectedVerboseHint =
-                                        "You have enabled Low TempTarget Lowers Sensitivity and autosens Max >1 in your Target Behaviour setting. Therefore current low Temp Target of \(state.tempTargetTarget) would lower your sensitivity, therefore increase Insulin dosing to \(round(state.percentage)) % of regular amount. This can be adjusted to another desired Insulin percentage!"
+                                        "You have enabled Low TempTarget Lowers Sensitivity and autosens Max >1 in your Target Behaviour setting. Therefore current low Temp Target of \(state.tempTargetTarget) would lower your sensitivity, therefore increase Insulin dosing to \(formattedPercentage(state.percentage)) % of regular amount. This can be adjusted to another desired Insulin percentage!"
                                     shouldDisplayHint.toggle()
                                 },
                                 label: {
@@ -257,6 +258,11 @@ struct AddTempTargetForm: View {
                 .frame(maxWidth: .infinity, alignment: .center)
                 .tint(.white)
         }.listRowBackground(state.tempTargetDuration == 0 ? Color(.systemGray4) : Color(.orange))
+    }
+
+    private func formattedPercentage(_ value: Double) -> String {
+        let percentageNumber = NSNumber(value: value)
+        return formatter.string(from: percentageNumber) ?? "\(value)"
     }
 
     private func setupAlertString() async {

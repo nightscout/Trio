@@ -84,7 +84,7 @@ extension OverrideConfig {
             minValue = settingsManager.preferences.autosensMin
             setHBT = settingsManager.preferences.halfBasalExerciseTarget
             halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
-            percentage = round(Double(computePercentage() * 100))
+            percentage = Double(computePercentage() * 100)
             broadcaster.register(SettingsObserver.self, observer: self)
         }
 
