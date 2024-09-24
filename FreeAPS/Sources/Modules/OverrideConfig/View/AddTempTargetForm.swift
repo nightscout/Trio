@@ -10,11 +10,10 @@ struct AddTempTargetForm: View {
     @State private var showPresetAlert = false
     @State private var alertString = ""
     @State private var isUsingSlider = false
-    @State private var adjustSens = false
+
     @State private var didPressSave =
         false // only used for fixing the Disclaimer showing up after pressing save (after the state was resetted), maybe refactor this...
-
-    @State private var shouldDisplayHint: Bool = false
+    @State private var shouldDisplayHint = false
     @State var hintDetent = PresentationDetent.large
     @State var selectedVerboseHint: String?
     @State var hintLabel: String?
@@ -146,7 +145,7 @@ struct AddTempTargetForm: View {
                             Spacer()
                             Button(
                                 action: {
-                                    hintLabel = "Ajust Sensitivity for high Temp Target "
+                                    hintLabel = "Adjust Sensitivity for high Temp Target "
                                     selectedVerboseHint =
                                         "You have enabled High TempTarget Raises Sensitivity in your Target Behaviour setting. Therefore current high Temp Target of \(state.tempTargetTarget) would raise your sensitivity, therefore reduce Insulin dosing to \(round(state.percentage)) % of regular amount. This can be adjusted to another desired Insulin percentage!"
                                     shouldDisplayHint.toggle()
@@ -158,7 +157,7 @@ struct AddTempTargetForm: View {
                                 }
                             ).buttonStyle(BorderlessButtonStyle())
                         }.padding(.top)
-                        Toggle("Adjust sensitivity change for Temp Target?", isOn: $adjustSens).padding(.top)
+                        Toggle("Adjust sensitivity change for Temp Target?", isOn: $state.adjustSens).padding(.top)
 
                     }.padding(.bottom)
                 }.listRowBackground(Color.chart)
@@ -175,7 +174,7 @@ struct AddTempTargetForm: View {
                             Spacer()
                             Button(
                                 action: {
-                                    hintLabel = "Ajust Sensitivity for low Temp Target "
+                                    hintLabel = "Adjust Sensitivity for low Temp Target "
                                     selectedVerboseHint =
                                         "You have enabled Low TempTarget Lowers Sensitivity and autosens Max >1 in your Target Behaviour setting. Therefore current low Temp Target of \(state.tempTargetTarget) would lower your sensitivity, therefore increase Insulin dosing to \(round(state.percentage)) % of regular amount. This can be adjusted to another desired Insulin percentage!"
                                     shouldDisplayHint.toggle()
@@ -187,14 +186,13 @@ struct AddTempTargetForm: View {
                                 }
                             ).buttonStyle(BorderlessButtonStyle())
                         }.padding(.top)
-                        Toggle("Adjust sensitivity change for Temp Target?", isOn: $adjustSens).padding(.top)
+                        Toggle("Adjust sensitivity change for Temp Target?", isOn: $state.adjustSens).padding(.top)
 
                     }.padding(.bottom)
                 }.listRowBackground(Color.chart)
             }
-            // TODO: if adjustSens goes to false the state.halfBasalTarget needs to revert to HBT in settings
 
-            if adjustSens && state.tempTargetTarget != 100 {
+            if state.adjustSens && state.tempTargetTarget != 100 {
                 Section {
                     VStack {
                         // Display the percentage in large text

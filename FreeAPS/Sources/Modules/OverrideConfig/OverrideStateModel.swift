@@ -56,6 +56,11 @@ extension OverrideConfig {
         @Published var halfBasalTarget: Decimal = 160
         @Published var setHBT: Decimal = 160
         @Published var didSaveSettings: Bool = false
+        @Published var adjustSens: Bool = false {
+            didSet {
+                handleAdjustSensToggle()
+            }
+        }
 
         let coredataContext = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
@@ -733,6 +738,13 @@ extension OverrideConfig.StateModel {
         halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
     }
 
+    func handleAdjustSensToggle() {
+        if !adjustSens {
+            halfBasalTarget = setHBT
+            percentage = Double(computePercentage(using: setHBT) * 100)
+        }
+    }
+
     func computeHalfBasalTarget() -> Double {
         let ratio = Decimal(percentage / 100)
         let normalTarget: Decimal = 100
@@ -771,8 +783,9 @@ extension OverrideConfig.StateModel {
         return maxSens
     }
 
-    func computePercentage() -> Decimal {
-        let c = (halfBasalTarget - 100)
+    func computePercentage(using initialHBT: Decimal? = nil) -> Decimal {
+        let hbt = initialHBT ?? halfBasalTarget
+        let c = (hbt - 100)
         let target = tempTargetTarget
         var ratio: Decimal = 1
         if c * (c + target - 100) <= 0 {
