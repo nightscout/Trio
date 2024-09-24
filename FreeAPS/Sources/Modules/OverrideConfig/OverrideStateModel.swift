@@ -729,7 +729,7 @@ extension OverrideConfig.StateModel {
         tempTargetName = ""
         tempTargetTarget = 0
         tempTargetDuration = 0
-        percentage = round(Double(computePercentage() * 100))
+        percentage = 100
         halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
     }
 
