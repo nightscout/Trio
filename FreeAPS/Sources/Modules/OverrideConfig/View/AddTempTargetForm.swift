@@ -39,7 +39,6 @@ struct AddTempTargetForm: View {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.maximumFractionDigits = 0
-        formatter.roundingMode = .halfUp
         return formatter
     }
 
