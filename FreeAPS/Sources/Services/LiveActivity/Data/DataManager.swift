@@ -14,11 +14,11 @@ extension LiveActivityBridge {
             fetchLimit: 72
         )
 
-        guard let glucoseResults = results as? [GlucoseStored] else {
-            return
-        }
-
         await context.perform {
+            guard let glucoseResults = results as? [GlucoseStored] else {
+                return
+            }
+
             self.glucoseFromPersistence = glucoseResults.map {
                 GlucoseData(glucose: Int($0.glucose), date: $0.date ?? Date(), direction: $0.directionEnum)
             }
@@ -36,11 +36,11 @@ extension LiveActivityBridge {
             propertiesToFetch: ["iob", "cob"]
         )
 
-        guard let determinationResults = results as? [[String: Any]] else {
-            return
-        }
-
         await context.perform {
+            guard let determinationResults = results as? [[String: Any]] else {
+                return
+            }
+
             self.determination = determinationResults.first.map {
                 DeterminationData(
                     cob: ($0["cob"] as? Int) ?? 0,
@@ -61,11 +61,11 @@ extension LiveActivityBridge {
             propertiesToFetch: ["enabled"]
         )
 
-        guard let overrideResults = results as? [[String: Any]] else {
-            return
-        }
-
         await context.perform {
+            guard let overrideResults = results as? [[String: Any]] else {
+                return
+            }
+
             self.isOverridesActive = overrideResults.first.map {
                 OverrideData(isActive: $0["enabled"] as? Bool ?? false)
             }
