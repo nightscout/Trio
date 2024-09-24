@@ -10,7 +10,7 @@ struct AddTempTargetForm: View {
     @State private var showPresetAlert = false
     @State private var alertString = ""
     @State private var isUsingSlider = false
-    @State private var advancedConfiguration = false
+    @State private var adjustSens = false
     @State private var didPressSave =
         false // only used for fixing the Disclaimer showing up after pressing save (after the state was resetted), maybe refactor this...
 
@@ -52,6 +52,10 @@ struct AddTempTargetForm: View {
         }
         formatter.roundingMode = .halfUp
         return formatter
+    }
+
+    var sliderEnabled: Bool {
+        state.computeSliderHigh() > state.computeSliderLow()
     }
 
     var body: some View {
@@ -128,65 +132,69 @@ struct AddTempTargetForm: View {
             }
         ).listRowBackground(Color.chart)
 
-        // TODO: with iOS 17 we can change the body content wrapper from FORM to LIST and apply the .listSpacing modifier to make this all nice and small.
-        Section {
-            Button(action: {
-                showAlert.toggle()
-            }, label: {
-                Text("Enact Temp Target")
+        if sliderEnabled && state.tempTargetTarget != 0 {
+            if state.tempTargetTarget > 100 {
+                Section {
+                    VStack {
+                        HStack(alignment: .top) {
+                            Text(
+                                "The current high Temp Target of \(state.tempTargetTarget) would raise your sensitivity to \(round(state.percentage)) % Insulin."
+                            )
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .lineLimit(nil)
+                            Spacer()
+                            Button(
+                                action: {
+                                    hintLabel = "Ajust Sensitivity for high Temp Target "
+                                    selectedVerboseHint =
+                                        "You have enabled High TempTarget Raises Sensitivity in your Target Behaviour setting. Therefore current high Temp Target of \(state.tempTargetTarget) would raise your sensitivity, therefore reduce Insulin dosing to \(round(state.percentage)) % of regular amount. This can be adjusted to another desired Insulin percentage!"
+                                    shouldDisplayHint.toggle()
+                                },
+                                label: {
+                                    HStack {
+                                        Image(systemName: "questionmark.circle")
+                                    }
+                                }
+                            ).buttonStyle(BorderlessButtonStyle())
+                        }.padding(.top)
+                        Toggle("Adjust sensitivity change for Temp Target?", isOn: $adjustSens).padding(.top)
 
-            })
-                .disabled(state.tempTargetDuration == 0)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .tint(.white)
-        }.listRowBackground(state.tempTargetDuration == 0 ? Color(.systemGray4) : Color(.systemBlue))
+                    }.padding(.bottom)
+                }.listRowBackground(Color.chart)
+            } else if state.tempTargetTarget < 100 {
+                Section {
+                    VStack {
+                        HStack(alignment: .top) {
+                            Text(
+                                "The current low Temp Target of \(state.tempTargetTarget) would lower your sensitivity to \(round(state.percentage)) % Insulin."
+                            )
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .lineLimit(nil)
+                            Spacer()
+                            Button(
+                                action: {
+                                    hintLabel = "Ajust Sensitivity for low Temp Target "
+                                    selectedVerboseHint =
+                                        "You have enabled Low TempTarget Lowers Sensitivity and autosens Max >1 in your Target Behaviour setting. Therefore current low Temp Target of \(state.tempTargetTarget) would lower your sensitivity, therefore increase Insulin dosing to \(round(state.percentage)) % of regular amount. This can be adjusted to another desired Insulin percentage!"
+                                    shouldDisplayHint.toggle()
+                                },
+                                label: {
+                                    HStack {
+                                        Image(systemName: "questionmark.circle")
+                                    }
+                                }
+                            ).buttonStyle(BorderlessButtonStyle())
+                        }.padding(.top)
+                        Toggle("Adjust sensitivity change for Temp Target?", isOn: $adjustSens).padding(.top)
 
-        Section {
-            Button(action: {
-                Task {
-                    didPressSave.toggle()
-                    await state.saveTempTargetPreset()
-                    dismiss()
-                }
-            }, label: {
-                Text("Save as Preset")
+                    }.padding(.bottom)
+                }.listRowBackground(Color.chart)
+            }
+            // TODO: if adjustSens goes to false the state.halfBasalTarget needs to revert to HBT in settings
 
-            })
-                .disabled(state.tempTargetDuration == 0)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .tint(.white)
-        }.listRowBackground(state.tempTargetDuration == 0 ? Color(.systemGray4) : Color(.orange))
-
-        Section {
-            VStack {
-                Toggle("Enable Advanced Configuration", isOn: $advancedConfiguration).padding(.top)
-
-                HStack(alignment: .top) {
-                    Text(
-                        "Add an explanation of the advanced configuration options here."
-                    )
-                    .font(.footnote)
-                    .foregroundColor(.secondary)
-                    .lineLimit(nil)
-                    Spacer()
-                    Button(
-                        action: {
-                            hintLabel = "Advanced Temp Target Configuration"
-                            selectedVerboseHint = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
-                            shouldDisplayHint.toggle()
-                        },
-                        label: {
-                            HStack {
-                                Image(systemName: "questionmark.circle")
-                            }
-                        }
-                    ).buttonStyle(BorderlessButtonStyle())
-                }.padding(.top)
-            }.padding(.bottom)
-        }.listRowBackground(Color.chart)
-
-        if advancedConfiguration && state.tempTargetTarget != 0 {
-            if sliderEnabled {
+            if adjustSens && state.tempTargetTarget != 100 {
                 Section {
                     VStack {
                         // Display the percentage in large text
@@ -220,28 +228,37 @@ struct AddTempTargetForm: View {
                         .font(.caption).italic()
                     }
                 }.listRowBackground(Color.chart)
-            } else {
-                Section {
-                    VStack(alignment: .leading) {
-                        Text(
-                            "You have not enabled the proper Preferences to change sensitivity with chosen TempTarget. Verify Autosens Max > 1 & lowTT lowers Sens is on for lowTT's. For high TTs check highTT raises Sens is on (or Exercise Mode)!"
-                        ).bold()
-                    }
-                }.listRowBackground(Color.tabBar)
             }
-        } else if advancedConfiguration && state.tempTargetTarget == 0 && !didPressSave {
-            Section {
-                VStack(alignment: .leading) {
-                    Text(
-                        "You need to input a Target for your Temp Target at first to use the advanced configuration!"
-                    ).bold()
-                }
-            }.listRowBackground(Color.tabBar)
         }
-    }
 
-    var sliderEnabled: Bool {
-        state.computeSliderHigh() > state.computeSliderLow()
+        // TODO: with iOS 17 we can change the body content wrapper from FORM to LIST and apply the .listSpacing modifier to make this all nice and small.
+        Section {
+            Button(action: {
+                showAlert.toggle()
+            }, label: {
+                Text("Enact Temp Target")
+
+            })
+                .disabled(state.tempTargetDuration == 0)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .tint(.white)
+        }.listRowBackground(state.tempTargetDuration == 0 ? Color(.systemGray4) : Color(.systemBlue))
+
+        Section {
+            Button(action: {
+                Task {
+                    didPressSave.toggle()
+                    await state.saveTempTargetPreset()
+                    dismiss()
+                }
+            }, label: {
+                Text("Save as Preset")
+
+            })
+                .disabled(state.tempTargetDuration == 0)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .tint(.white)
+        }.listRowBackground(state.tempTargetDuration == 0 ? Color(.systemGray4) : Color(.orange))
     }
 
     private func setupAlertString() async {

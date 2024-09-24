@@ -54,6 +54,7 @@ extension OverrideConfig {
         @Published var minValue: Decimal = 0.15
         @Published var viewPercantage = false
         @Published var halfBasalTarget: Decimal = 160
+        @Published var setHBT: Decimal = 160
         @Published var didSaveSettings: Bool = false
 
         let coredataContext = CoreDataStack.shared.newTaskContext()
@@ -76,6 +77,7 @@ extension OverrideConfig {
             updateLatestTempTargetConfiguration()
             maxValue = settingsManager.preferences.autosensMax
             minValue = settingsManager.preferences.autosensMin
+            setHBT = settingsManager.preferences.halfBasalExerciseTarget
             halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
             percentage = round(Double(computePercentage() * 100))
             broadcaster.register(SettingsObserver.self, observer: self)
