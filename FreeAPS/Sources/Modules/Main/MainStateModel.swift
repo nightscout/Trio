@@ -79,12 +79,27 @@ extension Main {
                                 self.router.mainSecondaryModalView.send(view)
                             }
                         }
+                    case .pumpConfig:
+                        titleContent = ""
+                        if let pump = self.provider.deviceManager.pumpManager,
+                           let bluetooth = self.provider.bluetoothProvider
+                        {
+                            let view = PumpConfig.PumpSettingsView(
+                                pumpManager: pump,
+                                bluetoothManager: bluetooth,
+                                completionDelegate: self
+                            ).asAny()
+                            self.router.mainSecondaryModalView.send(view)
+                        }
                     }
 
-                    view.titleLabel?.text = titleContent
-                    config.dimMode = .gray(interactive: true)
+                    if message.type != .pumpConfig
+                    {
+                        view.titleLabel?.text = titleContent
+                        config.dimMode = .gray(interactive: true)
 
-                    SwiftMessages.show(config: config, view: view)
+                        SwiftMessages.show(config: config, view: view)
+                    }
                 }
                 .store(in: &lifetime)
 

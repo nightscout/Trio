@@ -20,6 +20,7 @@ enum NotificationAction: String {
     static let key = "action"
 
     case snooze
+    case pumpConfig
 }
 
 protocol BolusFailureObserver {
@@ -467,6 +468,10 @@ extension BaseUserNotificationsManager: pumpNotificationObserver {
     func pumpNotification(alert: AlertEntry) {
         ensureCanSendNotification {
             let content = UNMutableNotificationContent()
+            let alertUp = alert.alertIdentifier.uppercased()
+            if alertUp.contains("FAULT") || alertUp.contains("ERROR") {
+                content.userInfo[NotificationAction.key] = NotificationAction.pumpConfig.rawValue
+            }
             content.title = alert.contentTitle ?? "Unknown"
             content.body = alert.contentBody ?? "Unknown"
             content.sound = .default
@@ -504,10 +509,15 @@ extension BaseUserNotificationsManager: BolusFailureObserver {
 extension BaseUserNotificationsManager: UNUserNotificationCenterDelegate {
     func userNotificationCenter(
         _: UNUserNotificationCenter,
-        willPresent _: UNNotification,
+        willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
-        completionHandler([.banner, .badge, .sound])
+        switch notification.request.identifier {
+        case Identifier.pumpNotification.rawValue:
+            completionHandler([.banner, .badge, .sound, .list])
+        default:
+            completionHandler([.banner, .badge, .sound])
+        }
     }
 
     func userNotificationCenter(
@@ -523,6 +533,9 @@ extension BaseUserNotificationsManager: UNUserNotificationCenterDelegate {
         switch action {
         case .snooze:
             router.mainModalScreen.send(.snooze)
+        case .pumpConfig:
+            let messageCont = MessageContent(content: response.notification.request.content.body, type: MessageType.pumpConfig)
+            router.alertMessage.send(messageCont)
         }
     }
 }

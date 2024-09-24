@@ -6,6 +6,7 @@ enum MessageType {
     case info
     case warning
     case errorPump
+    case pumpConfig
 }
 
 struct MessageContent {
