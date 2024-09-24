@@ -137,7 +137,7 @@ struct AddTempTargetForm: View {
                     VStack {
                         HStack(alignment: .top) {
                             Text(
-                                "The current high Temp Target of \(state.tempTargetTarget) would raise your sensitivity to \(formattedPercentage(state.percentage)) % Insulin."
+                                "Temp Target raises Sensitivity. Insulin reduced to \(formattedPercentage(state.percentage))% of regular amount."
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -147,7 +147,7 @@ struct AddTempTargetForm: View {
                                 action: {
                                     hintLabel = "Adjust Sensitivity for high Temp Target "
                                     selectedVerboseHint =
-                                        "You have enabled High TempTarget Raises Sensitivity in your Target Behaviour setting. Therefore current high Temp Target of \(state.tempTargetTarget) would raise your sensitivity, therefore reduce Insulin dosing to \(formattedPercentage(state.percentage)) % of regular amount. This can be adjusted to another desired Insulin percentage!"
+                                        "You have enabled High TempTarget Raises Sensitivity in Target Behaviour settings. Therefore current high Temp Target of \(state.tempTargetTarget) would raise your sensitivity, hence reduce Insulin dosing to \(formattedPercentage(state.percentage)) % of regular amount. This can be adjusted to another desired Insulin percentage!"
                                     shouldDisplayHint.toggle()
                                 },
                                 label: {
@@ -157,7 +157,7 @@ struct AddTempTargetForm: View {
                                 }
                             ).buttonStyle(BorderlessButtonStyle())
                         }.padding(.top)
-                        Toggle("Adjust sensitivity change for Temp Target?", isOn: $state.adjustSens).padding(.top)
+                        Toggle("Adjust Sensitivity", isOn: $state.adjustSens).padding(.top)
 
                     }.padding(.bottom)
                 }.listRowBackground(Color.chart)
@@ -166,7 +166,7 @@ struct AddTempTargetForm: View {
                     VStack {
                         HStack(alignment: .top) {
                             Text(
-                                "The current low Temp Target of \(state.tempTargetTarget) would lower your sensitivity to \(formattedPercentage(state.percentage)) % Insulin."
+                                "Insulin increased to \(formattedPercentage(state.percentage))% of regular amount."
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -176,7 +176,7 @@ struct AddTempTargetForm: View {
                                 action: {
                                     hintLabel = "Adjust Sensitivity for low Temp Target "
                                     selectedVerboseHint =
-                                        "You have enabled Low TempTarget Lowers Sensitivity and autosens Max >1 in your Target Behaviour setting. Therefore current low Temp Target of \(state.tempTargetTarget) would lower your sensitivity, therefore increase Insulin dosing to \(formattedPercentage(state.percentage)) % of regular amount. This can be adjusted to another desired Insulin percentage!"
+                                        "You have enabled Low TempTarget Lowers Sensitivity in Target Behaviour settings and set autosens Max > 1. Therefore current low Temp Target of \(state.tempTargetTarget) would lower your sensitivity, hence increase Insulin dosing to \(formattedPercentage(state.percentage)) % of regular amount. This can be adjusted to another desired Insulin percentage!"
                                     shouldDisplayHint.toggle()
                                 },
                                 label: {
@@ -186,7 +186,7 @@ struct AddTempTargetForm: View {
                                 }
                             ).buttonStyle(BorderlessButtonStyle())
                         }.padding(.top)
-                        Toggle("Adjust sensitivity change for Temp Target?", isOn: $state.adjustSens).padding(.top)
+                        Toggle("Adjust Insulin %", isOn: $state.adjustSens).padding(.top)
 
                     }.padding(.bottom)
                 }.listRowBackground(Color.chart)
