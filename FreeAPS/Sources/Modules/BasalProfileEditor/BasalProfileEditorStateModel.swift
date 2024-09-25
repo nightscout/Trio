@@ -82,6 +82,7 @@ extension BasalProfileEditor {
                 let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
                 sorted.first?.timeIndex = 0
                 self.items = sorted
+                self.calcTotal()
             }
         }
     }

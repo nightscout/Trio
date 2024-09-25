@@ -81,7 +81,6 @@ extension BasalProfileEditor {
                                 ).tag(i)
                             }
                         }
-                        .onChange(of: state.items[index].rateIndex, perform: { _ in state.calcTotal() })
                         .frame(maxWidth: geometry.size.width / 2)
                         .clipped()
 
@@ -96,7 +95,6 @@ extension BasalProfileEditor {
                                 ).tag(i)
                             }
                         }
-                        .onChange(of: state.items[index].timeIndex, perform: { _ in state.calcTotal() })
                         .frame(maxWidth: geometry.size.width / 2)
                         .clipped()
                     }
