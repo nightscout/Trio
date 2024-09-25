@@ -119,6 +119,58 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
         nil
     }
 
+    /// Forces a full data upload to Tidepool
+    func forceTidepoolDataUpload() {
+        Task {
+            await uploadInsulin()
+            await uploadCarbs()
+            await uploadGlucose()
+        }
+    }
+}
+
+extension BaseTidepoolManager: TempTargetsObserver {
+    func tempTargetsDidUpdate(_: [TempTarget]) {}
+}
+
+extension BaseTidepoolManager: ServiceDelegate {
+    var hostIdentifier: String {
+        // TODO: shouldn't this rather be `org.nightscout.Trio` ?
+        "com.loopkit.Loop" // To check
+    }
+
+    var hostVersion: String {
+        var semanticVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as! String
+
+        while semanticVersion.split(separator: ".").count < 3 {
+            semanticVersion += ".0"
+        }
+
+        semanticVersion += "+\(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as! String)"
+
+        return semanticVersion
+    }
+
+    func issueAlert(_: LoopKit.Alert) {}
+
+    func retractAlert(identifier _: LoopKit.Alert.Identifier) {}
+
+    func enactRemoteOverride(name _: String, durationTime _: TimeInterval?, remoteAddress _: String) async throws {}
+
+    func cancelRemoteOverride() async throws {}
+
+    func deliverRemoteCarbs(
+        amountInGrams _: Double,
+        absorptionTime _: TimeInterval?,
+        foodType _: String?,
+        startDate _: Date?
+    ) async throws {}
+
+    func deliverRemoteBolus(amountInUnits _: Double) async throws {}
+}
+
+/// Carb Upload and Deletion Functionality
+extension BaseTidepoolManager {
     func uploadCarbs() async {
         uploadCarbs(await carbsStorage.getCarbsNotYetUploadedToTidepool())
     }
@@ -202,7 +254,10 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
             }
         }
     }
+}
 
+/// Insulin Upload and Deletion Functionality
+extension BaseTidepoolManager {
     func uploadInsulin() async {
         uploadDose(await pumpHistoryStorage.getPumpHistoryNotYetUploadedToTidepool())
     }
@@ -225,7 +280,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
             switch event.type {
             case .tempBasal:
                 result
-                    .append(contentsOf: processTempBasalEvent(event, existingTempBasalEntries: existingTempBasalEntries))
+                    .append(contentsOf: self.processTempBasalEvent(event, existingTempBasalEntries: existingTempBasalEntries))
 
             case .bolus:
                 let bolusDoseEntry = DoseEntry(
@@ -314,7 +369,56 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
         }
     }
 
-    func processTempBasalEvent(_ event: PumpHistoryEvent, existingTempBasalEntries: [PumpEventStored]) -> [DoseEntry] {
+    private func updateInsulinAsUploaded(_ insulin: [PumpHistoryEvent]) async {
+        await backgroundContext.perform {
+            let ids = insulin.map(\.id) as NSArray
+            let fetchRequest: NSFetchRequest<PumpEventStored> = PumpEventStored.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
+
+            do {
+                let results = try self.backgroundContext.fetch(fetchRequest)
+                for result in results {
+                    result.isUploadedToTidepool = true
+                }
+
+                guard self.backgroundContext.hasChanges else { return }
+                try self.backgroundContext.save()
+            } catch let error as NSError {
+                debugPrint(
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToTidepool: \(error.userInfo)"
+                )
+            }
+        }
+    }
+
+    func deleteInsulin(withSyncId id: String, amount: Decimal, at: Date) {
+        guard let tidepoolService = self.tidepoolService else { return }
+
+        // must be an array here, because `tidepoolService.uploadDoseData` expects a `deleted` array
+        let doseDataToDelete: [DoseEntry] = [DoseEntry(
+            type: .bolus,
+            startDate: at,
+            value: Double(amount),
+            unit: .units,
+            syncIdentifier: id
+        )]
+
+        processQueue.async {
+            tidepoolService.uploadDoseData(created: [], deleted: doseDataToDelete) { result in
+                switch result {
+                case let .failure(error):
+                    debug(.nightscout, "Error synchronizing Dose delete data: \(String(describing: error))")
+                case .success:
+                    debug(.nightscout, "Success synchronizing Dose delete data")
+                }
+            }
+        }
+    }
+}
+
+/// Insulin Helper Functions
+extension BaseTidepoolManager {
+    private func processTempBasalEvent(_ event: PumpHistoryEvent, existingTempBasalEntries: [PumpEventStored]) -> [DoseEntry] {
         var insulinDoseEvents: [DoseEntry] = []
 
         // Loop through the pump history events
@@ -396,52 +500,59 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
         return insulinDoseEvents
     }
 
-    private func updateInsulinAsUploaded(_ insulin: [PumpHistoryEvent]) async {
-        await backgroundContext.perform {
-            let ids = insulin.map(\.id) as NSArray
-            let fetchRequest: NSFetchRequest<PumpEventStored> = PumpEventStored.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
+    private func getCurrentBasalRate() -> BasalProfileEntry? {
+        let now = Date()
+        let calendar = Calendar.current
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "HH:mm:ss"
+        dateFormatter.timeZone = TimeZone.current
 
-            do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
-                for result in results {
-                    result.isUploadedToTidepool = true
-                }
+        let basalEntries = storage.retrieve(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self)
+            ?? [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile))
+            ?? []
 
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
-            } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToTidepool: \(error.userInfo)"
-                )
+        var currentRate: BasalProfileEntry = basalEntries[0]
+
+        for (index, entry) in basalEntries.enumerated() {
+            guard let entryTime = dateFormatter.date(from: entry.start) else {
+                print("Invalid entry start time: \(entry.start)")
+                continue
+            }
+
+            let entryComponents = calendar.dateComponents([.hour, .minute, .second], from: entryTime)
+            let entryStartTime = calendar.date(
+                bySettingHour: entryComponents.hour!,
+                minute: entryComponents.minute!,
+                second: entryComponents.second!,
+                of: now
+            )!
+
+            let entryEndTime: Date
+            if index < basalEntries.count - 1,
+               let nextEntryTime = dateFormatter.date(from: basalEntries[index + 1].start)
+            {
+                let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
+                entryEndTime = calendar.date(
+                    bySettingHour: nextEntryComponents.hour!,
+                    minute: nextEntryComponents.minute!,
+                    second: nextEntryComponents.second!,
+                    of: now
+                )!
+            } else {
+                entryEndTime = calendar.date(byAdding: .day, value: 1, to: entryStartTime)!
+            }
+
+            if now >= entryStartTime, now < entryEndTime {
+                currentRate = entry
             }
         }
+
+        return currentRate
     }
+}
 
-    func deleteInsulin(withSyncId id: String, amount: Decimal, at: Date) {
-        guard let tidepoolService = self.tidepoolService else { return }
-
-        // must be an array here, because `tidepoolService.uploadDoseData` expects a `deleted` array
-        let doseDataToDelete: [DoseEntry] = [DoseEntry(
-            type: .bolus,
-            startDate: at,
-            value: Double(amount),
-            unit: .units,
-            syncIdentifier: id
-        )]
-
-        processQueue.async {
-            tidepoolService.uploadDoseData(created: [], deleted: doseDataToDelete) { result in
-                switch result {
-                case let .failure(error):
-                    debug(.nightscout, "Error synchronizing Dose delete data: \(String(describing: error))")
-                case .success:
-                    debug(.nightscout, "Success synchronizing Dose delete data")
-                }
-            }
-        }
-    }
-
+/// Glucose Upload Functionality
+extension BaseTidepoolManager {
     func uploadGlucose() async {
         uploadGlucose(await glucoseStorage.getGlucoseNotYetUploadedToTidepool())
         uploadGlucose(
@@ -494,107 +605,6 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
                 )
             }
         }
-    }
-
-    /// Forces a full data upload to Tidepool
-    func forceTidepoolDataUpload() {
-        Task {
-            await uploadInsulin()
-            await uploadCarbs()
-            await uploadGlucose()
-        }
-    }
-}
-
-extension BaseTidepoolManager: TempTargetsObserver {
-    func tempTargetsDidUpdate(_: [TempTarget]) {}
-}
-
-extension BaseTidepoolManager: ServiceDelegate {
-    var hostIdentifier: String {
-        // TODO: shouldn't this rather be `org.nightscout.Trio` ?
-        "com.loopkit.Loop" // To check
-    }
-
-    var hostVersion: String {
-        var semanticVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as! String
-
-        while semanticVersion.split(separator: ".").count < 3 {
-            semanticVersion += ".0"
-        }
-
-        semanticVersion += "+\(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as! String)"
-
-        return semanticVersion
-    }
-
-    func issueAlert(_: LoopKit.Alert) {}
-
-    func retractAlert(identifier _: LoopKit.Alert.Identifier) {}
-
-    func enactRemoteOverride(name _: String, durationTime _: TimeInterval?, remoteAddress _: String) async throws {}
-
-    func cancelRemoteOverride() async throws {}
-
-    func deliverRemoteCarbs(
-        amountInGrams _: Double,
-        absorptionTime _: TimeInterval?,
-        foodType _: String?,
-        startDate _: Date?
-    ) async throws {}
-
-    func deliverRemoteBolus(amountInUnits _: Double) async throws {}
-}
-
-extension BaseTidepoolManager {
-    private func getCurrentBasalRate() -> BasalProfileEntry? {
-        let now = Date()
-        let calendar = Calendar.current
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "HH:mm:ss"
-        dateFormatter.timeZone = TimeZone.current
-
-        let basalEntries = storage.retrieve(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self)
-            ?? [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile))
-            ?? []
-
-        var currentRate: BasalProfileEntry = basalEntries[0]
-
-        for (index, entry) in basalEntries.enumerated() {
-            guard let entryTime = dateFormatter.date(from: entry.start) else {
-                print("Invalid entry start time: \(entry.start)")
-                continue
-            }
-
-            let entryComponents = calendar.dateComponents([.hour, .minute, .second], from: entryTime)
-            let entryStartTime = calendar.date(
-                bySettingHour: entryComponents.hour!,
-                minute: entryComponents.minute!,
-                second: entryComponents.second!,
-                of: now
-            )!
-
-            let entryEndTime: Date
-            if index < basalEntries.count - 1,
-               let nextEntryTime = dateFormatter.date(from: basalEntries[index + 1].start)
-            {
-                let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
-                entryEndTime = calendar.date(
-                    bySettingHour: nextEntryComponents.hour!,
-                    minute: nextEntryComponents.minute!,
-                    second: nextEntryComponents.second!,
-                    of: now
-                )!
-            } else {
-                entryEndTime = calendar.date(byAdding: .day, value: 1, to: entryStartTime)!
-            }
-
-            if now >= entryStartTime, now < entryEndTime {
-                currentRate = entry
-            }
-        }
-
-        return currentRate
     }
 }
 
