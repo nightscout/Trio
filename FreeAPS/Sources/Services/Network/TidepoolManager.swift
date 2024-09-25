@@ -98,18 +98,32 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
 
     /// Registers handlers for Core Data changes
     private func registerHandlers() {
-        coreDataPublisher?.filterByEntityName("PumpEventStored").sink { [weak self] _ in
-            Task { await self?.uploadInsulin() }
-        }.store(in: &subscriptions)
+            coreDataPublisher?.filterByEntityName("PumpEventStored").sink { [weak self] _ in
+                guard let self = self else { return }
+                Task { [weak self] in
+                    guard let self = self else { return }
+                    await self.uploadInsulin()
+                }
+            }.store(in: &subscriptions)
 
-        coreDataPublisher?.filterByEntityName("CarbEntryStored").sink { [weak self] _ in
-            Task { await self?.uploadCarbs() }
-        }.store(in: &subscriptions)
+            coreDataPublisher?.filterByEntityName("CarbEntryStored").sink { [weak self] _ in
+                guard let self = self else { return }
+                Task { [weak self] in
+                    guard let self = self else { return }
+                    await self.uploadCarbs()
+                }
+            }.store(in: &subscriptions)
 
-        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
-            Task { await self?.uploadGlucose() }
-        }.store(in: &subscriptions)
-    }
+            // TODO: this is currently done in FetchGlucoseManager and forced there inside a background task.
+            // leave it there, or move it here? not sure…
+            coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
+                guard let self = self else { return }
+                Task { [weak self] in
+                    guard let self = self else { return }
+                    await self.uploadGlucose()
+                }
+            }.store(in: &subscriptions)
+        }
 
     private func subscribe() {
         broadcaster.register(TempTargetsObserver.self, observer: self)
