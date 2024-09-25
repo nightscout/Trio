@@ -2,7 +2,6 @@ import CoreData
 import Foundation
 
 extension Home.StateModel {
-    // Setup Insulin
     func setupInsulinArray() {
         Task {
             let ids = await self.fetchInsulin()
@@ -32,11 +31,9 @@ extension Home.StateModel {
     @MainActor private func updateInsulinArray(with insulinObjects: [PumpEventStored]) {
         insulinFromPersistence = insulinObjects
 
-        // Filter tempbasals
         manualTempBasal = apsManager.isManualTempBasal
         tempBasals = insulinFromPersistence.filter({ $0.tempBasal != nil })
 
-        // Suspension and resume events
         suspensions = insulinFromPersistence.filter {
             $0.type == EventType.pumpSuspend.rawValue || $0.type == EventType.pumpResume.rawValue
         }

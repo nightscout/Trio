@@ -2,7 +2,6 @@ import CoreData
 import Foundation
 
 extension Home.StateModel {
-    // Setup Carbs
     func setupCarbsArray() {
         Task {
             let ids = await self.fetchCarbs()
@@ -31,7 +30,6 @@ extension Home.StateModel {
         carbsFromPersistence = objects
     }
 
-    // Setup FPUs
     func setupFPUsArray() {
         Task {
             let ids = await self.fetchFPUs()

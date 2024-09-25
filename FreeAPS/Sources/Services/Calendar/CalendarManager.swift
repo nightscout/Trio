@@ -184,7 +184,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         )
 
         return await backgroundContext.perform {
-            guard let fetchedResults = results as? [[String: Any]] /* , !fetchedResults.isEmpty */ else { return nil }
+            guard let fetchedResults = results as? [[String: Any]] else { return nil }
 
             return fetchedResults.first?["objectID"] as? NSManagedObjectID
         }

@@ -2,20 +2,19 @@ import CoreData
 import Foundation
 
 extension Home.StateModel {
-    // Setup Determinations
     func setupDeterminationsArray() {
         Task {
             // Get the NSManagedObjectIDs
-            async let enactedObjectIDs = determinationStorage
+            async let enactedObjectIds = determinationStorage
                 .fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDetermination)
-            async let enactedAndNonEnactedObjectIDs = fetchCobAndIob()
+            async let enactedAndNonEnactedObjectIds = fetchCobAndIob()
 
-            let enactedIDs = await enactedObjectIDs
-            let enactedAndNonEnactedIDs = await enactedAndNonEnactedObjectIDs
+            let enactedIDs = await enactedObjectIds
+            let enactedAndNonEnactedIds = await enactedAndNonEnactedObjectIds
 
             // Get the NSManagedObjects and return them on the Main Thread
             await updateDeterminationsArray(with: enactedIDs, keyPath: \.determinationsFromPersistence)
-            await updateDeterminationsArray(with: enactedAndNonEnactedIDs, keyPath: \.enactedAndNonEnactedDeterminations)
+            await updateDeterminationsArray(with: enactedAndNonEnactedIds, keyPath: \.enactedAndNonEnactedDeterminations)
 
             await updateForecastData()
         }

@@ -194,12 +194,12 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
     }
 
     @MainActor private func configureState() async {
-        let glucoseValuesIDs = await fetchGlucose()
-        async let lastDeterminationIDs = fetchlastDetermination()
-        async let latestOverrideID = fetchLatestOverride()
+        let glucoseValuesIds = await fetchGlucose()
+        async let lastDeterminationIds = fetchlastDetermination()
+        async let latestOverrideId = fetchLatestOverride()
 
-        guard let lastDeterminationID = await lastDeterminationIDs.first,
-              let latestOverrideID = await latestOverrideID
+        guard let lastDeterminationId = await lastDeterminationIds.first,
+              let latestOverrideId = await latestOverrideId
         else {
             debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to get last Determination/ last Override")
             return
@@ -207,14 +207,14 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
 
         do {
             let glucoseValues: [GlucoseStored] = await CoreDataStack.shared
-                .getNSManagedObject(with: glucoseValuesIDs, context: viewContext)
+                .getNSManagedObject(with: glucoseValuesIds, context: viewContext)
 
-            let lastDetermination = try viewContext.existingObject(with: lastDeterminationID) as? OrefDetermination
-            let latestOverride = try viewContext.existingObject(with: latestOverrideID) as? OverrideStored
+            let lastDetermination = try viewContext.existingObject(with: lastDeterminationId) as? OrefDetermination
+            let latestOverride = try viewContext.existingObject(with: latestOverrideId) as? OverrideStored
 
             let recommendedInsulin = await newBolusCalc(
-                glucoseIDs: glucoseValuesIDs,
-                determinationID: lastDeterminationID
+                glucoseIds: glucoseValuesIds,
+                determinationId: lastDeterminationId
             )
 
             await MainActor.run { [weak self] in
@@ -343,10 +343,10 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         return description
     }
 
-    private func newBolusCalc(glucoseIDs: [NSManagedObjectID], determinationID: NSManagedObjectID) async -> Decimal {
+    private func newBolusCalc(glucoseIds: [NSManagedObjectID], determinationId: NSManagedObjectID) async -> Decimal {
         await context.perform {
-            let glucoseObjects = glucoseIDs.compactMap { self.context.object(with: $0) as? GlucoseStored }
-            guard let determination = self.context.object(with: determinationID) as? OrefDetermination else {
+            let glucoseObjects = glucoseIds.compactMap { self.context.object(with: $0) as? GlucoseStored }
+            guard let determination = self.context.object(with: determinationId) as? OrefDetermination else {
                 print("Failed to fetch determination")
                 return 0
             }

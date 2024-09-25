@@ -2,7 +2,6 @@ import CoreData
 import Foundation
 
 extension Home.StateModel {
-    // Setup Battery
     func setupBatteryArray() {
         Task {
             let ids = await self.fetchBattery()
