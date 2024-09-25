@@ -137,9 +137,8 @@ extension Bolus {
             Task {
                 await withTaskGroup(of: Void.self) { group in
                     group.addTask {
+                        // Avoid Race Condition by not executing these functions in parallel -> both are modifying the subscriptions var
                         self.registerHandlers()
-                    }
-                    group.addTask {
                         self.registerSubscribers()
                     }
                     group.addTask {

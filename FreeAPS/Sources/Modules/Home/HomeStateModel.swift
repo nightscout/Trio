@@ -127,9 +127,8 @@ extension Home {
             Task {
                 await withTaskGroup(of: Void.self) { group in
                     group.addTask {
+                        // Avoid Race Condition by not executing these functions in parallel -> both are modifying the subscriptions var
                         self.registerSubscribers()
-                    }
-                    group.addTask {
                         self.registerHandlers()
                     }
                     group.addTask {
