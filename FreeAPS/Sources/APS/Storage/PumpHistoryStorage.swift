@@ -467,12 +467,19 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         amount: event.bolus?.amount as Decimal?
                     )
                 case PumpEvent.tempBasal.rawValue:
-                    return PumpHistoryEvent(
-                        id: event.id ?? UUID().uuidString,
-                        type: .tempBasal,
-                        timestamp: event.timestamp ?? Date(),
-                        amount: event.tempBasal?.rate as Decimal?
-                    )
+                    if let id = event.id, let timestamp = event.timestamp, let tempBasal = event.tempBasal,
+                       let tempBasalRate = tempBasal.rate
+                    {
+                        return PumpHistoryEvent(
+                            id: id,
+                            type: .tempBasal,
+                            timestamp: timestamp,
+                            amount: tempBasalRate as Decimal,
+                            duration: Int(tempBasal.duration)
+                        )
+                    } else {
+                        return nil
+                    }
                 default:
                     return nil
                 }
