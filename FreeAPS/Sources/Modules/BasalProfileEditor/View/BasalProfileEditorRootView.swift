@@ -85,7 +85,7 @@ extension BasalProfileEditor {
                         .clipped()
 
                         Picker(selection: $state.items[index].timeIndex, label: EmptyView()) {
-                            ForEach(0 ..< state.timeValues.count, id: \.self) { i in
+                            ForEach(state.availableTimeIndices(forItemIndex: index), id: \.self) { i in
                                 Text(
                                     self.dateFormatter
                                         .string(from: Date(
