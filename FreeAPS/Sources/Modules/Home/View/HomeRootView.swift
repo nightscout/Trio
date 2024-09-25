@@ -231,8 +231,9 @@ extension Home {
 
             let smbScheduleString = latestOverride
                 .smbIsScheduledOff && ((latestOverride.start?.stringValue ?? "") != (latestOverride.end?.stringValue ?? ""))
-                ? " \(latestOverride.start?.stringValue ?? "")-\(latestOverride.end?.stringValue ?? "")"
+                ? " \(formatTimeRange(start: latestOverride.start?.stringValue, end: latestOverride.end?.stringValue))"
                 : ""
+
             let smbToggleString = latestOverride.smbIsOff || latestOverride
                 .smbIsScheduledOff ? "SMBs Off\(smbScheduleString)" : ""
 
@@ -1029,5 +1030,36 @@ extension UIScreen {
 
     static var screenWidth: CGFloat {
         UIScreen.main.bounds.width
+    }
+}
+
+// Helper function to convert a start and end hour to either 24-hour or AM/PM format
+func formatTimeRange(start: String?, end: String?) -> String {
+    guard let start = start, let end = end else {
+        return ""
+    }
+
+    // Check if the format is 24-hour or AM/PM
+    if is24HourFormat() {
+        // Return the original 24-hour format
+        return "\(start)-\(end)"
+    } else {
+        // Convert to AM/PM format using DateFormatter
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH"
+
+        if let startHour = Int(start), let endHour = Int(end) {
+            let startDate = Calendar.current.date(bySettingHour: startHour, minute: 0, second: 0, of: Date()) ?? Date()
+            let endDate = Calendar.current.date(bySettingHour: endHour, minute: 0, second: 0, of: Date()) ?? Date()
+
+            // Customize the format to "2p" or "2a"
+            formatter.dateFormat = "ha"
+            let startFormatted = formatter.string(from: startDate).lowercased().replacingOccurrences(of: "m", with: "")
+            let endFormatted = formatter.string(from: endDate).lowercased().replacingOccurrences(of: "m", with: "")
+
+            return "\(startFormatted)-\(endFormatted)"
+        } else {
+            return ""
+        }
     }
 }

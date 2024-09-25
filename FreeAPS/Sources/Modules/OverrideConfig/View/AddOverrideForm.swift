@@ -5,6 +5,10 @@ struct AddOverrideForm: View {
     @Environment(\.presentationMode) var presentationMode
     @StateObject var state: OverrideConfig.StateModel
     @State private var isEditing = false
+    @State private var displayPickerStart: Bool = false
+    @State private var displayPickerEnd: Bool = false
+    @State private var displayPickerSmbMinutes: Bool = false
+    @State private var displayPickerUamMinutes: Bool = false
     @State private var overrideTarget = false
     @Environment(\.colorScheme) var colorScheme
     @State private var showAlert = false
@@ -150,16 +154,71 @@ struct AddOverrideForm: View {
                 }
 
                 if state.smbIsScheduledOff {
-                    HStack {
-                        Text("First Hour SMBs Are Disabled (24 hours)")
-                        TextFieldWithToolBar(text: $state.start, placeholder: "0", numberFormatter: formatter)
-                        Text("hour").foregroundColor(.secondary)
+                    // First Hour SMBs Are Disabled
+                    VStack {
+                        HStack {
+                            Text("First Hour SMBs Are Disabled")
+                            Spacer()
+
+                            // Display current selection based on format
+                            Text(
+                                is24HourFormat() ? format24Hour(Int(truncating: state.start as NSNumber)) + ":00" :
+                                    convertTo12HourFormat(Int(truncating: state.start as NSNumber))
+                            )
+                            .foregroundColor(!displayPickerStart ? .primary : .accentColor)
+                        }
+                        .onTapGesture {
+                            displayPickerStart.toggle() // Toggle the picker visibility
+                        }
+
+                        // Show picker if toggled
+                        if displayPickerStart {
+                            Picker(selection: Binding(
+                                get: { Int(truncating: state.start as NSNumber) },
+                                set: { state.start = Decimal($0) }
+                            ), label: Text("")) {
+                                ForEach(0 ..< 24, id: \.self) { hour in
+                                    Text(is24HourFormat() ? format24Hour(hour) + ":00" : convertTo12HourFormat(hour)).tag(hour)
+                                }
+                            }
+                            .pickerStyle(WheelPickerStyle()) // Use wheel style
+                            .frame(maxWidth: .infinity)
+                        }
                     }
-                    HStack {
-                        Text("First Hour SMBs Are Resumed (24 hours)")
-                        TextFieldWithToolBar(text: $state.end, placeholder: "0", numberFormatter: formatter)
-                        Text("hour").foregroundColor(.secondary)
+                    .padding(.top)
+
+                    // First Hour SMBs Are Resumed
+                    VStack {
+                        HStack {
+                            Text("First Hour SMBs Are Resumed")
+                            Spacer()
+
+                            // Display current selection based on format
+                            Text(
+                                is24HourFormat() ? format24Hour(Int(truncating: state.end as NSNumber)) + ":00" :
+                                    convertTo12HourFormat(Int(truncating: state.end as NSNumber))
+                            )
+                            .foregroundColor(!displayPickerEnd ? .primary : .accentColor)
+                        }
+                        .onTapGesture {
+                            displayPickerEnd.toggle() // Toggle the picker visibility
+                        }
+
+                        // Show picker if toggled
+                        if displayPickerEnd {
+                            Picker(selection: Binding(
+                                get: { Int(truncating: state.end as NSNumber) },
+                                set: { state.end = Decimal($0) }
+                            ), label: Text("")) {
+                                ForEach(0 ..< 24, id: \.self) { hour in
+                                    Text(is24HourFormat() ? format24Hour(hour) + ":00" : convertTo12HourFormat(hour)).tag(hour)
+                                }
+                            }
+                            .pickerStyle(WheelPickerStyle()) // Use wheel style
+                            .frame(maxWidth: .infinity)
+                        }
                     }
+                    .padding(.top)
                 }
                 HStack {
                     Toggle(isOn: $state.isfAndCr) {
@@ -179,16 +238,63 @@ struct AddOverrideForm: View {
                     }
                 }
                 if !state.smbIsOff {
-                    HStack {
-                        Text("SMB Minutes")
-                        TextFieldWithToolBar(text: $state.smbMinutes, placeholder: "0", numberFormatter: formatter)
-                        Text("minutes").foregroundColor(.secondary)
+                    // SMB Minutes Picker
+                    VStack {
+                        HStack {
+                            Text("Max SMB Minutes")
+                            Spacer()
+
+                            // Display current selection based on format
+                            Text("\(state.smbMinutes.formatted(.number)) min")
+                                .foregroundColor(!displayPickerSmbMinutes ? .primary : .accentColor)
+                        }
+                        .onTapGesture {
+                            displayPickerSmbMinutes.toggle() // Toggle the picker visibility
+                        }
+
+                        // Show picker if toggled
+                        if displayPickerSmbMinutes {
+                            Picker(selection: Binding(
+                                get: { Int(truncating: state.smbMinutes as NSNumber) },
+                                set: { state.smbMinutes = Decimal($0) }
+                            ), label: Text("")) {
+                                ForEach(Array(stride(from: 0, through: 180, by: 5)), id: \.self) { minute in
+                                    Text("\(minute) min").tag(minute)
+                                }
+                            }
+                            .pickerStyle(WheelPickerStyle()) // Use wheel style
+                            .frame(maxWidth: .infinity)
+                        }
                     }
-                    HStack {
-                        Text("UAM SMB Minutes")
-                        TextFieldWithToolBar(text: $state.uamMinutes, placeholder: "0", numberFormatter: formatter)
-                        Text("minutes").foregroundColor(.secondary)
+                    .padding(.top)
+
+                    // UAM SMB Minutes Picker
+                    VStack {
+                        HStack {
+                            Text("Max UAM SMB Minutes")
+                            Spacer()
+                            Text("\(state.uamMinutes.formatted(.number)) min")
+                                .foregroundColor(!displayPickerUamMinutes ? .primary : .accentColor)
+                        }
+                        .onTapGesture {
+                            displayPickerUamMinutes.toggle() // Toggle picker visibility
+                        }
+
+                        // Show picker if toggled
+                        if displayPickerUamMinutes {
+                            Picker(selection: Binding(
+                                get: { Int(truncating: state.uamMinutes as NSNumber) },
+                                set: { state.uamMinutes = Decimal($0) }
+                            ), label: Text("")) {
+                                ForEach(Array(stride(from: 0, through: 180, by: 5)), id: \.self) { minute in
+                                    Text("\(minute) min").tag(minute)
+                                }
+                            }
+                            .pickerStyle(WheelPickerStyle()) // Use wheel style
+                            .frame(maxWidth: .infinity)
+                        }
                     }
+                    .padding(.top)
                 }
             }
 
@@ -298,4 +404,33 @@ struct AddOverrideForm: View {
 
         return defaultProfile || noDurationSpecified || targetZeroWithOverride || allSettingsDefault
     }
+}
+
+// Function to check if the phone is using 24-hour format
+func is24HourFormat() -> Bool {
+    let formatter = DateFormatter()
+    formatter.locale = Locale.current
+    formatter.dateStyle = .none
+    formatter.timeStyle = .short
+    let dateString = formatter.string(from: Date())
+
+    return !dateString.contains("AM") && !dateString.contains("PM")
+}
+
+// Helper function to convert hours to AM/PM format
+func convertTo12HourFormat(_ hour: Int) -> String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "h a"
+
+    // Create a date from the hour and format it to AM/PM
+    let calendar = Calendar.current
+    let components = DateComponents(hour: hour)
+    let date = calendar.date(from: components) ?? Date()
+
+    return formatter.string(from: date)
+}
+
+// Helper function to format 24-hour numbers as two digits
+func format24Hour(_ hour: Int) -> String {
+    String(format: "%02d", hour)
 }
