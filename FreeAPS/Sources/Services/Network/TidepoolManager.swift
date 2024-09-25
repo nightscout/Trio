@@ -60,7 +60,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
         subscribe()
     }
 
-    /// load the Tidepool Remote Data Service if available
+    /// Loads the Tidepool service from saved state
     fileprivate func loadTidepoolManager() {
         if let rawTidepoolManager = rawTidepoolManager {
             tidepoolService = tidepoolServiceFromRaw(rawTidepoolManager)
@@ -69,61 +69,45 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
         }
     }
 
-    /// allows access to tidepoolService as a simple ServiceUI
+    /// Returns the Tidepool service UI if available
     func getTidepoolServiceUI() -> ServiceUI? {
-        if let tidepoolService = self.tidepoolService {
-            return tidepoolService as! any ServiceUI as ServiceUI
-        } else {
-            return nil
-        }
+        tidepoolService as? ServiceUI
     }
 
-    /// get the pluginHost of Tidepool
+    /// Returns the Tidepool plugin host
     func getTidepoolPluginHost() -> PluginHost? {
         self as PluginHost
     }
 
+    /// Adds a Tidepool service
     func addTidepoolService(service: Service) {
-        tidepoolService = service as! any RemoteDataService as RemoteDataService
+        tidepoolService = service as? RemoteDataService
     }
 
-    /// load the Tidepool Remote Data Service from raw storage
+    /// Loads the Tidepool service from raw stored data
     private func tidepoolServiceFromRaw(_ rawValue: [String: Any]) -> RemoteDataService? {
         guard let rawState = rawValue["state"] as? Service.RawStateValue,
               let serviceType = pluginManager.getServiceTypeByIdentifier("TidepoolService")
-        else {
-            return nil
-        }
+        else { return nil }
+
         if let service = serviceType.init(rawState: rawState) {
-            return service as! any RemoteDataService as RemoteDataService
-        } else { return nil }
+            return service as? RemoteDataService
+        }
+        return nil
     }
 
+    /// Registers handlers for Core Data changes
     private func registerHandlers() {
         coreDataPublisher?.filterByEntityName("PumpEventStored").sink { [weak self] _ in
-            guard let self = self else { return }
-            Task { [weak self] in
-                guard let self = self else { return }
-                await self.uploadInsulin()
-            }
+            Task { await self?.uploadInsulin() }
         }.store(in: &subscriptions)
 
         coreDataPublisher?.filterByEntityName("CarbEntryStored").sink { [weak self] _ in
-            guard let self = self else { return }
-            Task { [weak self] in
-                guard let self = self else { return }
-                await self.uploadCarbs()
-            }
+            Task { await self?.uploadCarbs() }
         }.store(in: &subscriptions)
 
-        // TODO: this is currently done in FetchGlucoseManager and forced there inside a background task.
-        // leave it there, or move it here? not sure…
         coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
-            guard let self = self else { return }
-            Task { [weak self] in
-                guard let self = self else { return }
-                await self.uploadGlucose()
-            }
+            Task { await self?.uploadGlucose() }
         }.store(in: &subscriptions)
     }
 
@@ -151,9 +135,9 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
                 tidepoolService.uploadCarbData(created: syncCarb, updated: [], deleted: []) { result in
                     switch result {
                     case let .failure(error):
-                        debug(.nightscout, "Error synchronizing carbs data: \(String(describing: error))")
+                        debug(.nightscout, "Error synchronizing carbs data with Tidepool: \(String(describing: error))")
                     case .success:
-                        debug(.nightscout, "Success synchronizing carbs data")
+                        debug(.nightscout, "Success synchronizing carbs data. Upload to Tidepool complete.")
                         // After successful upload, update the isUploadedToTidepool flag in Core Data
                         Task {
                             await self.updateCarbsAsUploaded(carbs)
@@ -211,9 +195,9 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
             tidepoolService.uploadCarbData(created: [], updated: [], deleted: syncCarb) { result in
                 switch result {
                 case let .failure(error):
-                    debug(.nightscout, "Error synchronizing carbs data: \(String(describing: error))")
+                    debug(.nightscout, "Error synchronizing carbs data with Tidepool: \(String(describing: error))")
                 case .success:
-                    debug(.nightscout, "Success synchronizing carbs data.")
+                    debug(.nightscout, "Success synchronizing carbs data. Upload to Tidepool complete.")
                 }
             }
         }
@@ -226,80 +210,22 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     func uploadDose(_ events: [PumpHistoryEvent]) {
         guard !events.isEmpty, let tidepoolService = self.tidepoolService else { return }
 
-        let tempBasalEventCount = events.filter { $0.type == .tempBasal }.count
-
-        // Fetch existing entries with an additional +1 count to get the previous entry as well -> need to update
-        var existingTempBasalEntries: [PumpEventStored] = CoreDataStack.shared.fetchEntities(
+        // Fetch all temp basal entries from Core Data for the last 24 hours
+        let existingTempBasalEntries: [PumpEventStored] = CoreDataStack.shared.fetchEntities(
             ofType: PumpEventStored.self,
             onContext: backgroundContext,
             predicate: NSPredicate.pumpHistoryLast24h,
             key: "timestamp",
-            ascending: false,
-            fetchLimit: tempBasalEventCount + 1,
+            ascending: true,
             batchSize: 50
         ).filter { $0.tempBasal != nil }
 
-        // remove first fetched existing entry, so new events and old events are off by 1 index, so the same index is always current event in events and the previous event to that one in existing events array.
-        if existingTempBasalEntries.isNotEmpty, existingTempBasalEntries.count > 1 {
-            existingTempBasalEntries.removeFirst()
-        }
-
-        let insulinDoseEvents: [DoseEntry] = events.reduce([]) { result, event in
+        var insulinDoseEvents: [DoseEntry] = events.reduce([]) { result, event in
             var result = result
             switch event.type {
             case .tempBasal:
-                if let duration = event.duration, let amount = event.amount, let currentBasalRate = self.getCurrentBasalRate() {
-                    let value = (Decimal(duration) / 60.0) * amount
-
-                    // Create updated previous entry, if applicable -> update end date
-                    if let lastEntry = existingTempBasalEntries.first, let lastTimeStamp = lastEntry.timestamp {
-                        let lastEndDate = event.timestamp
-                        let lastDuration = lastEndDate.timeIntervalSince(lastTimeStamp) / 3600
-                        let lastDeliveredUnits = Double(lastDuration / 60.0) *
-                            Double(truncating: lastEntry.tempBasal?.rate ?? 0.0)
-
-                        let updatedLastEntry = DoseEntry(
-                            type: .tempBasal,
-                            startDate: lastTimeStamp,
-                            endDate: lastEndDate,
-                            value: lastDeliveredUnits,
-                            unit: .units,
-                            deliveredUnits: lastDeliveredUnits,
-                            syncIdentifier: lastEntry.id ?? UUID().uuidString,
-                            insulinType: apsManager.pumpManager?.status.insulinType ?? nil,
-                            automatic: true,
-                            manuallyEntered: false,
-                            isMutable: false
-                        )
-                        result.append(updatedLastEntry)
-                    }
-
-                    // Create new entry for current event
-                    let newDoseEntry = DoseEntry(
-                        type: .tempBasal,
-                        startDate: event.timestamp,
-                        endDate: event.timestamp.addingTimeInterval(TimeInterval(minutes: Double(duration))),
-                        value: Double(value),
-                        unit: .units,
-                        deliveredUnits: Double(value),
-                        syncIdentifier: event.id,
-                        scheduledBasalRate: HKQuantity(
-                            unit: .internationalUnitsPerHour,
-                            doubleValue: Double(currentBasalRate.rate)
-                        ),
-                        insulinType: apsManager.pumpManager?.status.insulinType ?? nil,
-                        automatic: true,
-                        manuallyEntered: false,
-                        isMutable: false
-                    )
-
-                    result.append(newDoseEntry)
-
-                    // Remove the first element from existingTempBasalEntries so that it does not get processed again
-                    if existingTempBasalEntries.isNotEmpty {
-                        existingTempBasalEntries.removeFirst()
-                    }
-                }
+                result
+                    .append(contentsOf: processTempBasalEvent(event, existingTempBasalEntries: existingTempBasalEntries))
 
             case .bolus:
                 let bolusDoseEntry = DoseEntry(
@@ -357,9 +283,9 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
             tidepoolService.uploadDoseData(created: insulinDoseEvents, deleted: []) { result in
                 switch result {
                 case let .failure(error):
-                    debug(.nightscout, "Error synchronizing Dose data: \(String(describing: error))")
+                    debug(.nightscout, "Error synchronizing dose data with Tidepool: \(String(describing: error))")
                 case .success:
-                    debug(.nightscout, "Success synchronizing Dose data")
+                    debug(.nightscout, "Success synchronizing dose data. Upload to Tidepool complete.")
                     // After successful upload, update the isUploadedToTidepool flag in Core Data
                     Task {
                         let insulinEvents = events.filter {
@@ -373,9 +299,9 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
             tidepoolService.uploadPumpEventData(pumpEvents) { result in
                 switch result {
                 case let .failure(error):
-                    debug(.nightscout, "Error synchronizing Pump Event data: \(String(describing: error))")
+                    debug(.nightscout, "Error synchronizing pump events data: \(String(describing: error))")
                 case .success:
-                    debug(.nightscout, "Success synchronizing Pump Event data")
+                    debug(.nightscout, "Success synchronizing pump events data. Upload to Tidepool complete.")
                     // After successful upload, update the isUploadedToTidepool flag in Core Data
                     Task {
                         let pumpEventType = events.map { $0.type.mapEventTypeToPumpEventType() }
@@ -386,6 +312,88 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
                 }
             }
         }
+    }
+
+    func processTempBasalEvent(_ event: PumpHistoryEvent, existingTempBasalEntries: [PumpEventStored]) -> [DoseEntry] {
+        var insulinDoseEvents: [DoseEntry] = []
+
+        // Loop through the pump history events
+        guard let duration = event.duration, let amount = event.amount,
+              let currentBasalRate = getCurrentBasalRate()
+        else {
+            return []
+        }
+        let value = (Decimal(duration) / 60.0) * amount
+
+        // Find the corresponding temp basal entry in existingTempBasalEntries
+        if let matchingEntryIndex = existingTempBasalEntries.firstIndex(where: { $0.timestamp == event.timestamp }) {
+            // Check for a predecessor (the entry before the matching entry)
+            let predecessorIndex = matchingEntryIndex - 1
+            if predecessorIndex >= 0 {
+                let predecessorEntry = existingTempBasalEntries[predecessorIndex]
+
+                if let predecessorTimestamp = predecessorEntry.timestamp,
+                   let predecessorEntrySyncIdentifier = predecessorEntry.id
+                {
+                    let predecessorEndDate = predecessorTimestamp
+                        .addingTimeInterval(TimeInterval(
+                            Int(predecessorEntry.tempBasal?.duration ?? 0) *
+                                60
+                        )) // parse duration to minutes
+
+                    // If the predecessor's end date is later than the current event's start date, adjust it
+                    if predecessorEndDate > event.timestamp {
+                        let adjustedEndDate = event.timestamp
+                        let adjustedDuration = adjustedEndDate.timeIntervalSince(predecessorTimestamp)
+                        let adjustedDeliveredUnits = (adjustedDuration / 3600) *
+                            Double(truncating: predecessorEntry.tempBasal?.rate ?? 0)
+
+                        // Create updated predecessor dose entry
+                        let updatedPredecessorEntry = DoseEntry(
+                            type: .tempBasal,
+                            startDate: predecessorTimestamp,
+                            endDate: adjustedEndDate,
+                            value: adjustedDeliveredUnits,
+                            unit: .units,
+                            deliveredUnits: adjustedDeliveredUnits,
+                            syncIdentifier: predecessorEntrySyncIdentifier,
+                            insulinType: apsManager.pumpManager?.status.insulinType ?? nil,
+                            automatic: true,
+                            manuallyEntered: false,
+                            isMutable: false
+                        )
+
+                        // Add the updated predecessor entry to the result
+                        insulinDoseEvents.append(updatedPredecessorEntry)
+                    }
+                }
+            }
+
+            // Create a new dose entry for the current event
+            let currentEndDate = event.timestamp.addingTimeInterval(TimeInterval(minutes: Double(duration)))
+            let newDoseEntry = DoseEntry(
+                type: .tempBasal,
+                startDate: event.timestamp,
+                endDate: currentEndDate,
+                value: Double(value),
+                unit: .units,
+                deliveredUnits: Double(value),
+                syncIdentifier: event.id,
+                scheduledBasalRate: HKQuantity(
+                    unit: .internationalUnitsPerHour,
+                    doubleValue: Double(currentBasalRate.rate)
+                ),
+                insulinType: apsManager.pumpManager?.status.insulinType ?? nil,
+                automatic: true,
+                manuallyEntered: false,
+                isMutable: false
+            )
+
+            // Add the new event entry to the result
+            insulinDoseEvents.append(newDoseEntry)
+        }
+
+        return insulinDoseEvents
     }
 
     private func updateInsulinAsUploaded(_ insulin: [PumpHistoryEvent]) async {
@@ -488,7 +496,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
         }
     }
 
-    /// force to uploads all data in Tidepool Service
+    /// Forces a full data upload to Tidepool
     func forceTidepoolDataUpload() {
         Task {
             await uploadInsulin()
