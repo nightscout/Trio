@@ -119,6 +119,9 @@ extension Home {
                     .share()
                     .eraseToAnyPublisher()
 
+            registerSubscribers()
+            registerHandlers()
+
             // Parallelize Setup functions
             setupHomeViewConcurrently()
         }
@@ -126,11 +129,6 @@ extension Home {
         private func setupHomeViewConcurrently() {
             Task {
                 await withTaskGroup(of: Void.self) { group in
-                    group.addTask {
-                        // Avoid Race Condition by not executing these functions in parallel -> both are modifying the subscriptions var
-                        self.registerSubscribers()
-                        self.registerHandlers()
-                    }
                     group.addTask {
                         self.setupGlucoseArray()
                     }
