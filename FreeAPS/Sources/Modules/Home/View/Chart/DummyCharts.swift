@@ -21,7 +21,10 @@ extension MainChartView {
         .chartXScale(domain: startMarker ... endMarker)
         .chartXAxis(.hidden)
         .chartYAxis { mainChartYAxis }
-        .chartYScale(domain: units == .mgdL ? minValue ... maxValue : minValue.asMmolL ... maxValue.asMmolL)
+        .chartYScale(
+            domain: units == .mgdL ? state.minYAxisValue ... state.maxYAxisValue : state.minYAxisValue.asMmolL ... state
+                .maxYAxisValue.asMmolL
+        )
         .chartLegend(.hidden)
     }
 
@@ -48,7 +51,7 @@ extension MainChartView {
         .chartXAxis(.hidden)
         .chartYAxis { cobChartYAxis }
         .chartYAxis(.hidden)
-        .chartYScale(domain: minValueCobChart ... maxValueCobChart)
+        .chartYScale(domain: state.minValueCobChart ... state.maxValueCobChart)
         .chartLegend(.hidden)
     }
 }

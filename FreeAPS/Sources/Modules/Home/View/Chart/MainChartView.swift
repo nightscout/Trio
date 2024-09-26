@@ -25,13 +25,9 @@ struct MainChartView: View {
     @State var startMarker =
         Date(timeIntervalSinceNow: TimeInterval(hours: -24))
     @State var endMarker = Date(timeIntervalSinceNow: TimeInterval(hours: 3))
-    @State var minValue: Decimal = 39
-    @State var maxValue: Decimal = 300
+
     @State var selection: Date? = nil
-    @State var minValueCobChart: Decimal = 0
-    @State var maxValueCobChart: Decimal = 20
-    @State var minValueIobChart: Decimal = 0
-    @State var maxValueIobChart: Decimal = 5
+
     @State var mainChartHasInitialized = false
 
     let now = Date.now
@@ -104,29 +100,22 @@ struct MainChartView: View {
                             scroller.scrollTo("MainChart", anchor: .trailing)
                         }
                         .onChange(of: state.glucoseFromPersistence.last?.glucose) { _ in
-                            updateStartEndMarkers()
-                            yAxisChartData()
                             scroller.scrollTo("MainChart", anchor: .trailing)
+                            updateStartEndMarkers()
                         }
                         .onChange(of: state.enactedAndNonEnactedDeterminations.first?.deliverAt) { _ in
-                            yAxisChartDataCobChart()
-                            yAxisChartDataIobChart()
                             scroller.scrollTo("MainChart", anchor: .trailing)
                         }
                         .onChange(of: units) { _ in
-                            yAxisChartData()
-                            yAxisChartDataCobChart()
-                            yAxisChartDataIobChart()
+                            // TODO: - Refactor this to only update the Y Axis Scale
+                            state.setupGlucoseArray()
                         }
                         .onAppear {
                             if !mainChartHasInitialized {
+                                scroller.scrollTo("MainChart", anchor: .trailing)
                                 updateStartEndMarkers()
-                                yAxisChartData()
-                                yAxisChartDataCobChart()
-                                yAxisChartDataIobChart()
                                 calculateTempBasalsInBackground()
                                 mainChartHasInitialized = true
-                                scroller.scrollTo("MainChart", anchor: .trailing)
                             }
                         }
                     }
@@ -166,7 +155,7 @@ extension MainChartView {
                     units: state.units,
                     carbData: state.carbsFromPersistence,
                     fpuData: state.fpusFromPersistence,
-                    minValue: minValue
+                    minValue: state.minYAxisValue
                 )
 
                 OverrideView(
@@ -181,7 +170,7 @@ extension MainChartView {
                     minForecast: state.minForecast,
                     maxForecast: state.maxForecast,
                     units: state.units,
-                    maxValue: maxValue,
+                    maxValue: state.maxYAxisValue,
                     forecastDisplayType: state.forecastDisplayType
                 )
 
@@ -241,7 +230,10 @@ extension MainChartView {
             .chartYAxis { mainChartYAxis }
             .chartYAxis(.hidden)
             .backport.chartXSelection(value: $selection)
-            .chartYScale(domain: units == .mgdL ? minValue ... maxValue : minValue.asMmolL ... maxValue.asMmolL)
+            .chartYScale(
+                domain: units == .mgdL ? state.minYAxisValue ... state.maxYAxisValue : state.minYAxisValue
+                    .asMmolL ... state.maxYAxisValue.asMmolL
+            )
             .backport.chartForegroundStyleScale(state: state)
         }
     }
@@ -410,84 +402,6 @@ extension MainChartView {
         endMarker = state
             .forecastDisplayType == .lines ? threeHourSinceNow : dynamicFutureDateForCone <= threeHourSinceNow ?
             dynamicFutureDateForCone.addingTimeInterval(TimeInterval(minutes: 30)) : threeHourSinceNow
-    }
-
-    private func yAxisChartData() {
-        Task {
-            let (minGlucose, maxGlucose, minForecast, maxForecast) = await Task
-                .detached { () -> (Decimal?, Decimal?, Decimal?, Decimal?) in
-                    let glucoseMapped = await state.glucoseFromPersistence.map { Decimal($0.glucose) }
-                    let forecastValues = await state.preprocessedData.map { Decimal($0.forecastValue.value) }
-
-                    // Calculate min and max values for glucose and forecast
-                    return (glucoseMapped.min(), glucoseMapped.max(), forecastValues.min(), forecastValues.max())
-                }.value
-
-            // Ensure all values exist, otherwise set default values
-            guard let minGlucose = minGlucose, let maxGlucose = maxGlucose,
-                  let minForecast = minForecast, let maxForecast = maxForecast
-            else {
-                await updateChartBounds(minValue: 39, maxValue: 300)
-                return
-            }
-
-            // Adjust max forecast to be no more than 100 over max glucose
-            let adjustedMaxForecast = min(maxForecast, maxGlucose + 100)
-            let minOverall = min(minGlucose, minForecast)
-            let maxOverall = max(maxGlucose, adjustedMaxForecast)
-
-            // Update the chart bounds on the main thread
-            await updateChartBounds(minValue: minOverall - 50, maxValue: maxOverall + 80)
-        }
-    }
-
-    @MainActor private func updateChartBounds(minValue: Decimal, maxValue: Decimal) async {
-        self.minValue = minValue
-        self.maxValue = maxValue
-    }
-
-    private func yAxisChartDataCobChart() {
-        Task {
-            let maxCob = await Task.detached { () -> Decimal? in
-                let cobMapped = await state.enactedAndNonEnactedDeterminations.map { Decimal($0.cob) }
-                return cobMapped.max()
-            }.value
-
-            // Ensure the result exists or set default values
-            if let maxCob = maxCob {
-                let calculatedMax = maxCob == 0 ? 20 : maxCob + 20
-                await updateCobChartBounds(minValue: 0, maxValue: calculatedMax)
-            } else {
-                await updateCobChartBounds(minValue: 0, maxValue: 20)
-            }
-        }
-    }
-
-    @MainActor private func updateCobChartBounds(minValue: Decimal, maxValue: Decimal) async {
-        minValueCobChart = minValue
-        maxValueCobChart = maxValue
-    }
-
-    private func yAxisChartDataIobChart() {
-        Task {
-            let (minIob, maxIob) = await Task.detached { () -> (Decimal?, Decimal?) in
-                let iobMapped = await state.enactedAndNonEnactedDeterminations.compactMap { $0.iob?.decimalValue }
-                return (iobMapped.min(), iobMapped.max())
-            }.value
-
-            // Ensure min and max IOB values exist, or set defaults
-            if let minIob = minIob, let maxIob = maxIob {
-                let adjustedMin = minIob < 0 ? minIob - 2 : 0
-                await updateIobChartBounds(minValue: adjustedMin, maxValue: maxIob + 2)
-            } else {
-                await updateIobChartBounds(minValue: 0, maxValue: 5)
-            }
-        }
-    }
-
-    @MainActor private func updateIobChartBounds(minValue: Decimal, maxValue: Decimal) async {
-        minValueIobChart = minValue
-        maxValueIobChart = maxValue
     }
 }
 

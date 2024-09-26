@@ -260,9 +260,9 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             fetchLimit: 288
         )
 
-        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
-
         return await coredataContext.perform {
+            guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+
             return fetchedResults.map { result in
                 BloodGlucose(
                     _id: result.id?.uuidString ?? UUID().uuidString,

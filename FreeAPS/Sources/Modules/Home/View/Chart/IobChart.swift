@@ -32,7 +32,7 @@ extension MainChartView {
             .backport.chartXSelection(value: $selection)
             .chartXAxis { basalChartXAxis }
             .chartYAxis { cobChartYAxis }
-            .chartYScale(domain: minValueIobChart ... maxValueIobChart)
+            .chartYScale(domain: state.minValueIobChart ... state.maxValueIobChart)
             .chartYAxis(.hidden)
         }
     }
