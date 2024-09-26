@@ -344,20 +344,20 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
             batchSize: 50
         )
 
-        // Ensure that the fetched results are of the expected type
-        guard let existingTempBasalEntries = results as? [PumpEventStored] else { return }
-
-        // Create a mapping from timestamps to indices for quick access to existing entries
-        let existingEntriesByTimestamp = Dictionary(
-            uniqueKeysWithValues: existingTempBasalEntries.enumerated()
-                .map { ($0.element.timestamp, $0.offset) }
-        )
-
         // Initialize an array to hold the HealthKit samples to be uploaded
         var insulinSamples: [HKQuantitySample] = []
 
         // Perform the data processing on the background context
         await backgroundContext.perform {
+            // Ensure that the fetched results are of the expected type
+            guard let existingTempBasalEntries = results as? [PumpEventStored] else { return }
+
+            // Create a mapping from timestamps to indices for quick access to existing entries
+            let existingEntriesByTimestamp = Dictionary(
+                uniqueKeysWithValues: existingTempBasalEntries.enumerated()
+                    .map { ($0.element.timestamp, $0.offset) }
+            )
+
             for event in insulin {
                 switch event.type {
                 case .bolus:
