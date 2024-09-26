@@ -148,10 +148,10 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
             fetchLimit: 1
         )
 
-        guard let fetchedResults = results as? [OrefDetermination] else { return [] }
-
         return await context.perform {
-            fetchedResults.map(\.objectID)
+            guard let fetchedResults = results as? [OrefDetermination] else { return [] }
+
+            return fetchedResults.map(\.objectID)
         }
     }
 
@@ -166,10 +166,10 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
             propertiesToFetch: ["enabled", "percentage", "objectID"]
         )
 
-        guard let fetchedResults = results as? [[String: Any]] else { return nil }
-
         return await context.perform {
-            fetchedResults.compactMap { $0["objectID"] as? NSManagedObjectID }.first
+            guard let fetchedResults = results as? [[String: Any]] else { return nil }
+
+            return fetchedResults.compactMap { $0["objectID"] as? NSManagedObjectID }.first
         }
     }
 
@@ -184,22 +184,22 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
             batchSize: 12
         )
 
-        guard let glucoseResults = results as? [GlucoseStored] else {
-            return []
-        }
-
         return await context.perform {
-            glucoseResults.map(\.objectID)
+            guard let glucoseResults = results as? [GlucoseStored] else {
+                return []
+            }
+
+            return glucoseResults.map(\.objectID)
         }
     }
 
-    private func configureState() async {
-        let glucoseValuesIDs = await fetchGlucose()
-        async let lastDeterminationIDs = fetchlastDetermination()
-        async let latestOverrideID = fetchLatestOverride()
+    @MainActor private func configureState() async {
+        let glucoseValuesIds = await fetchGlucose()
+        async let lastDeterminationIds = fetchlastDetermination()
+        async let latestOverrideId = fetchLatestOverride()
 
-        guard let lastDeterminationID = await lastDeterminationIDs.first,
-              let latestOverrideID = await latestOverrideID
+        guard let lastDeterminationId = await lastDeterminationIds.first,
+              let latestOverrideId = await latestOverrideId
         else {
             debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to get last Determination/ last Override")
             return
@@ -207,14 +207,14 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
 
         do {
             let glucoseValues: [GlucoseStored] = await CoreDataStack.shared
-                .getNSManagedObject(with: glucoseValuesIDs, context: viewContext)
+                .getNSManagedObject(with: glucoseValuesIds, context: viewContext)
 
-            let lastDetermination = try viewContext.existingObject(with: lastDeterminationID) as? OrefDetermination
-            let latestOverride = try viewContext.existingObject(with: latestOverrideID) as? OverrideStored
+            let lastDetermination = try viewContext.existingObject(with: lastDeterminationId) as? OrefDetermination
+            let latestOverride = try viewContext.existingObject(with: latestOverrideId) as? OverrideStored
 
             let recommendedInsulin = await newBolusCalc(
-                ids: glucoseValuesIDs,
-                determination: lastDetermination
+                glucoseIds: glucoseValuesIds,
+                determinationId: lastDeterminationId
             )
 
             await MainActor.run { [weak self] in
@@ -343,9 +343,14 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
         return description
     }
 
-    private func newBolusCalc(ids: [NSManagedObjectID], determination: OrefDetermination?) async -> Decimal {
+    private func newBolusCalc(glucoseIds: [NSManagedObjectID], determinationId: NSManagedObjectID) async -> Decimal {
         await context.perform {
-            let glucoseObjects = ids.compactMap { self.context.object(with: $0) as? GlucoseStored }
+            let glucoseObjects = glucoseIds.compactMap { self.context.object(with: $0) as? GlucoseStored }
+            guard let determination = self.context.object(with: determinationId) as? OrefDetermination else {
+                print("Failed to fetch determination")
+                return 0
+            }
+
             guard let firstGlucose = glucoseObjects.first else {
                 return 0 // If there's no glucose data, exit the block
             }
@@ -359,8 +364,8 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
 
             let conversion: Decimal = self.settingsManager.settings.units == .mmolL ? 0.0555 : 1
             let isf = self.state.isf ?? 0
-            let target = determination?.currentTarget as? Decimal ?? 100
-            let carbratio = determination?.carbRatio as? Decimal ?? 10
+            let target = determination.currentTarget as? Decimal ?? 100
+            let carbratio = determination.carbRatio as? Decimal ?? 10
             let cob = self.state.cob ?? 0
             let iob = self.state.iob ?? 0
             let fattyMealFactor = self.settingsManager.settings.fattyMealFactor

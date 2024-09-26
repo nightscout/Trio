@@ -63,6 +63,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         }
 
         // Extract dates into a set for efficient lookup
+        // Since we are not dealing with NSManagedObjects directly it is safe to pass properties between threads
         let existingTimestamps = Set(existing24hCarbEntries.compactMap { $0["date"] as? Date })
 
         // Remove all entries that have a matching date in existingTimestamps
@@ -337,11 +338,11 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             ascending: false
         )
 
-        guard let carbEntries = results as? [CarbEntryStored] else {
-            return []
-        }
-
         return await coredataContext.perform {
+            guard let carbEntries = results as? [CarbEntryStored] else {
+                return []
+            }
+
             return carbEntries.map { result in
                 NightscoutTreatment(
                     duration: nil,
@@ -376,9 +377,9 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             ascending: false
         )
 
-        guard let fpuEntries = results as? [CarbEntryStored] else { return [] }
-
         return await coredataContext.perform {
+            guard let fpuEntries = results as? [CarbEntryStored] else { return [] }
+
             return fpuEntries.map { result in
                 NightscoutTreatment(
                     duration: nil,
