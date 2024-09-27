@@ -470,9 +470,9 @@ extension OverrideConfig {
             let targetString = target != 0 ? "\(target.description) \(state.units.rawValue)" : ""
             let maxMinutesSMB = (preset.smbMinutes as Decimal?) != nil ? (preset.smbMinutes ?? 0) as Decimal : 0
             let maxMinutesUAM = (preset.uamMinutes as Decimal?) != nil ? (preset.uamMinutes ?? 0) as Decimal : 0
-            let maxSmbMinsString = (maxMinutesSMB != 0 && maxMinutesSMB != state.defaultSmbMinutes) ?
+            let maxSmbMinsString = (maxMinutesSMB != 0 && preset.advancedSettings && maxMinutesSMB != state.defaultSmbMinutes) ?
                 "\(maxMinutesSMB.formatted()) min SMB" : ""
-            let maxUamMinsString = (maxMinutesUAM != 0 && maxMinutesUAM != state.defaultUamMinutes) ?
+            let maxUamMinsString = (maxMinutesUAM != 0 && preset.advancedSettings && maxMinutesUAM != state.defaultUamMinutes) ?
                 "\(maxMinutesUAM.formatted()) min UAM" : ""
             let isfAndCRstring = (preset.isf == preset.cr) ? "" : (preset.isf ? " ISF" : " CR")
             let isSelected = preset.id == selectedPresetID
