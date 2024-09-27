@@ -459,7 +459,6 @@ extension BaseTidepoolManager {
 
             // Calculate the exact insulin delivered based on the duration in seconds
             let preciseDurationSeconds = TimeInterval(duration * 60) // Convert duration from minutes to seconds
-            let preciseDeliveredUnits = (Decimal(preciseDurationSeconds) / 3600) * amount
 
             // Find the corresponding temp basal entry in existingTempBasalEntries
             if let matchingEntryIndex = existingTempBasalEntries.firstIndex(where: { $0.timestamp == event.timestamp }) {
