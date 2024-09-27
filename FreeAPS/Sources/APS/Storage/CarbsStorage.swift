@@ -1,3 +1,4 @@
+import Combine
 import CoreData
 import Foundation
 import SwiftDate
@@ -8,7 +9,9 @@ protocol CarbsObserver {
 }
 
 protocol CarbsStorage {
-    func storeCarbs(_ carbs: [CarbsEntry]) async
+    var updatePublisher: AnyPublisher<Void, Never> { get }
+    func storeCarbs(_ carbs: [CarbsEntry], areFetchedFromRemote: Bool) async
+    func deleteCarbs(_ treatmentObjectID: NSManagedObjectID) async
     func syncDate() -> Date
     func recent() -> [CarbsEntry]
     func getCarbsNotYetUploadedToNightscout() async -> [NightscoutTreatment]
@@ -24,13 +27,53 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
 
     let coredataContext = CoreDataStack.shared.newTaskContext()
 
+    private let updateSubject = PassthroughSubject<Void, Never>()
+
+    var updatePublisher: AnyPublisher<Void, Never> {
+        updateSubject.eraseToAnyPublisher()
+    }
+
     init(resolver: Resolver) {
         injectServices(resolver)
     }
 
-    func storeCarbs(_ entries: [CarbsEntry]) async {
-        await saveCarbEquivalents(entries: entries)
-        await saveCarbsToCoreData(entries: entries)
+    func storeCarbs(_ entries: [CarbsEntry], areFetchedFromRemote: Bool) async {
+        var entriesToStore = entries
+
+        if areFetchedFromRemote {
+            entriesToStore = await filterRemoteEntries(entries: entriesToStore)
+        }
+
+        await saveCarbEquivalents(entries: entriesToStore, areFetchedFromRemote: areFetchedFromRemote)
+        await saveCarbsToCoreData(entries: entriesToStore, areFetchedFromRemote: areFetchedFromRemote)
+    }
+
+    private func filterRemoteEntries(entries: [CarbsEntry]) async -> [CarbsEntry] {
+        // Fetch only the date property from Core Data
+        guard let existing24hCarbEntries = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: CarbEntryStored.self,
+            onContext: coredataContext,
+            predicate: NSPredicate.predicateForOneDayAgo,
+            key: "date",
+            ascending: false,
+            batchSize: 50,
+            propertiesToFetch: ["date", "objectID"]
+        ) as? [[String: Any]] else {
+            return entries
+        }
+
+        // Extract dates into a set for efficient lookup
+        // Since we are not dealing with NSManagedObjects directly it is safe to pass properties between threads
+        let existingTimestamps = Set(existing24hCarbEntries.compactMap { $0["date"] as? Date })
+
+        // Remove all entries that have a matching date in existingTimestamps
+        var filteredEntries = entries
+        filteredEntries.removeAll { entry in
+            let entryDate = entry.actualDate ?? entry.createdAt
+            return existingTimestamps.contains(entryDate)
+        }
+
+        return filteredEntries
     }
 
     /**
@@ -129,7 +172,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         return (futureCarbArray, carbEquivalents)
     }
 
-    private func saveCarbEquivalents(entries: [CarbsEntry]) async {
+    private func saveCarbEquivalents(entries: [CarbsEntry], areFetchedFromRemote: Bool) async {
         guard let lastEntry = entries.last else { return }
 
         if let fat = lastEntry.fat, let protein = lastEntry.protein, fat > 0 || protein > 0 {
@@ -142,12 +185,12 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             )
 
             if carbEquivalentCount > 0 {
-                await saveFPUToCoreDataAsBatchInsert(entries: futureCarbEquivalents)
+                await saveFPUToCoreDataAsBatchInsert(entries: futureCarbEquivalents, areFetchedFromRemote: areFetchedFromRemote)
             }
         }
     }
 
-    private func saveCarbsToCoreData(entries: [CarbsEntry]) async {
+    private func saveCarbsToCoreData(entries: [CarbsEntry], areFetchedFromRemote: Bool) async {
         guard let entry = entries.last, entry.carbs != 0 else { return }
 
         await coredataContext.perform {
@@ -159,7 +202,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             newItem.note = entry.note
             newItem.id = UUID()
             newItem.isFPU = false
-            newItem.isUploadedToNS = false
+            newItem.isUploadedToNS = areFetchedFromRemote ? true : false
 
             do {
                 guard self.coredataContext.hasChanges else { return }
@@ -170,7 +213,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         }
     }
 
-    private func saveFPUToCoreDataAsBatchInsert(entries: [CarbsEntry]) async {
+    private func saveFPUToCoreDataAsBatchInsert(entries: [CarbsEntry], areFetchedFromRemote: Bool) async {
         let commonFPUID =
             UUID() // all fpus should only get ONE id per batch insert to be able to delete them referencing the fpuID
         var entrySlice = ArraySlice(entries) // convert to ArraySlice
@@ -185,7 +228,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             carbEntry.id = UUID.init(uuidString: entryId)
             carbEntry.fpuID = commonFPUID
             carbEntry.isFPU = true
-            carbEntry.isUploadedToNS = false
+            carbEntry.isUploadedToNS = areFetchedFromRemote ? true : false
             return false // return false to continue
         }
         await coredataContext.perform {
@@ -193,8 +236,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                 try self.coredataContext.execute(batchInsert)
                 debugPrint("Carbs Storage: \(DebuggingIdentifiers.succeeded) saved fpus to core data")
 
-                // Send notification for triggering a fetch in Home State Model to update the FPU Array
-                Foundation.NotificationCenter.default.post(name: .didPerformBatchInsert, object: nil)
+                // Notify subscriber in Home State Model to update the FPU Array
+                self.updateSubject.send(())
             } catch {
                 debugPrint("Carbs Storage: \(DebuggingIdentifiers.failed) error while saving fpus to core data")
             }
@@ -207,6 +250,53 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
 
     func recent() -> [CarbsEntry] {
         storage.retrieve(OpenAPS.Monitor.carbHistory, as: [CarbsEntry].self)?.reversed() ?? []
+    }
+
+    func deleteCarbs(_ treatmentObjectID: NSManagedObjectID) async {
+        let taskContext = CoreDataStack.shared.newTaskContext()
+        taskContext.name = "deleteContext"
+        taskContext.transactionAuthor = "deleteCarbs"
+
+        var carbEntry: CarbEntryStored?
+
+        await taskContext.perform {
+            do {
+                carbEntry = try taskContext.existingObject(with: treatmentObjectID) as? CarbEntryStored
+                guard let carbEntry = carbEntry else {
+                    debugPrint("Carb entry for batch delete not found. \(DebuggingIdentifiers.failed)")
+                    return
+                }
+
+                if carbEntry.isFPU, let fpuID = carbEntry.fpuID {
+                    // fetch request for all carb entries with the same id
+                    let fetchRequest: NSFetchRequest<NSFetchRequestResult> = CarbEntryStored.fetchRequest()
+                    fetchRequest.predicate = NSPredicate(format: "fpuID == %@", fpuID as CVarArg)
+
+                    // NSBatchDeleteRequest
+                    let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+                    deleteRequest.resultType = .resultTypeCount
+
+                    // execute the batch delete request
+                    let result = try taskContext.execute(deleteRequest) as? NSBatchDeleteResult
+                    debugPrint("\(DebuggingIdentifiers.succeeded) Deleted \(result?.result ?? 0) items with FpuID \(fpuID)")
+
+                    // Notifiy subscribers of the batch delete
+                    self.updateSubject.send(())
+                } else {
+                    taskContext.delete(carbEntry)
+
+                    guard taskContext.hasChanges else { return }
+                    try taskContext.save()
+
+                    debugPrint(
+                        "Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted carb entry from core data"
+                    )
+                }
+
+            } catch {
+                debugPrint("\(DebuggingIdentifiers.failed) Error deleting carb entry: \(error.localizedDescription)")
+            }
+        }
     }
 
     func deleteCarbs(at uniqueID: String, fpuID: String, complex: Bool) {
@@ -248,11 +338,11 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             ascending: false
         )
 
-        guard let carbEntries = results as? [CarbEntryStored] else {
-            return []
-        }
-
         return await coredataContext.perform {
+            guard let carbEntries = results as? [CarbEntryStored] else {
+                return []
+            }
+
             return carbEntries.map { result in
                 NightscoutTreatment(
                     duration: nil,
@@ -287,9 +377,9 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             ascending: false
         )
 
-        guard let fpuEntries = results as? [CarbEntryStored] else { return [] }
-
         return await coredataContext.perform {
+            guard let fpuEntries = results as? [CarbEntryStored] else { return [] }
+
             return fpuEntries.map { result in
                 NightscoutTreatment(
                     duration: nil,

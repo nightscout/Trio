@@ -10,7 +10,7 @@ struct UnlockError: Error {
 }
 
 final class BaseUnlockManager: UnlockManager {
-    func unlock() async throws -> Bool {
+    @MainActor func unlock() async throws -> Bool {
         let context = LAContext()
         let reason = "We need to make sure you are the owner of the device."
 

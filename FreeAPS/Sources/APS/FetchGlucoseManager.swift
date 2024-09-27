@@ -136,8 +136,6 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
                 glucoseSource = nightscoutManager
             case .simulator:
                 glucoseSource = simulatorSource
-            case .glucoseDirect:
-                glucoseSource = AppGroupSource(from: "GlucoseDirect", cgmType: .glucoseDirect)
             case .enlite:
                 glucoseSource = deviceDataManager
             case .plugin:

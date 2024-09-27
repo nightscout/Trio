@@ -17,6 +17,81 @@ enum GlucoseUnits: String, Equatable {
     static let exchangeRate: Decimal = 0.0555
 }
 
+enum GlucoseColorStyle: String, Equatable {
+    case staticColor = "staticColor"
+    case dynamicColor = "dynamicColor"
+}
+
+// Helper function to decide how to pick the glucose color
+func getDynamicGlucoseColor(
+    glucoseValue: Decimal,
+    highGlucoseColorValue: Decimal,
+    lowGlucoseColorValue: Decimal,
+    targetGlucose: Decimal,
+    glucoseColorStyle: GlucoseColorStyle,
+    offset: Decimal
+) -> Color {
+    // Convert Decimal to Int for high and low glucose values
+    let lowGlucose = lowGlucoseColorValue - offset
+    let highGlucose = highGlucoseColorValue + (offset * 1.75)
+    let targetGlucose = targetGlucose
+
+    // Only use calculateHueBasedGlucoseColor if the setting is enabled in preferences
+    if glucoseColorStyle == .dynamicColor {
+        return calculateHueBasedGlucoseColor(
+            glucoseValue: glucoseValue,
+            highGlucose: highGlucose,
+            lowGlucose: lowGlucose,
+            targetGlucose: targetGlucose
+        )
+    }
+    // Otheriwse, use static (orange = high, red = low, green = range)
+    else {
+        if glucoseValue > highGlucose {
+            return Color.orange
+        } else if glucoseValue < lowGlucose {
+            return Color.red
+        } else {
+            return Color.green
+        }
+    }
+}
+
+// Dynamic color - Define the hue values for the key points
+// We'll shift color gradually one glucose point at a time
+// We'll shift through the rainbow colors of ROY-G-BIV from low to high
+// Start at red for lowGlucose, green for targetGlucose, and violet for highGlucose
+func calculateHueBasedGlucoseColor(
+    glucoseValue: Decimal,
+    highGlucose: Decimal,
+    lowGlucose: Decimal,
+    targetGlucose: Decimal
+) -> Color {
+    let redHue: CGFloat = 0.0 / 360.0 // 0 degrees
+    let greenHue: CGFloat = 120.0 / 360.0 // 120 degrees
+    let purpleHue: CGFloat = 270.0 / 360.0 // 270 degrees
+
+    // Calculate the hue based on the bgLevel
+    var hue: CGFloat
+    if glucoseValue <= lowGlucose {
+        hue = redHue
+    } else if glucoseValue >= highGlucose {
+        hue = purpleHue
+    } else if glucoseValue <= targetGlucose {
+        // Interpolate between red and green
+        let ratio = CGFloat(truncating: (glucoseValue - lowGlucose) / (targetGlucose - lowGlucose) as NSNumber)
+
+        hue = redHue + ratio * (greenHue - redHue)
+    } else {
+        // Interpolate between green and purple
+        let ratio = CGFloat(truncating: (glucoseValue - targetGlucose) / (highGlucose - targetGlucose) as NSNumber)
+        hue = greenHue + ratio * (purpleHue - greenHue)
+    }
+    // Return the color with full saturation and brightness
+    let color = Color(hue: hue, saturation: 0.6, brightness: 0.9)
+    return color
+}
+
 func rounded(_ value: Decimal, scale: Int, roundingMode: NSDecimalNumber.RoundingMode) -> Decimal {
     var result = Decimal()
     var toRound = value
@@ -297,8 +372,8 @@ struct LiveActivity: Widget {
                         highGlucoseColorValue: additionalState.highGlucose,
                         lowGlucoseColorValue: additionalState.lowGlucose,
                         targetGlucose: 90,
-                        dynamicGlucoseColor: additionalState.dynamicGlucoseColor,
-                        offset: additionalState.unit == "mg/dL" ? 20 : 20.asMmolL
+                        glucoseColorStyle: additionalState.glucoseColorStyle ?? "staticColor",
+                        offset: additionalState.unit == "mg/dL" ? Decimal(20) : Decimal(20).asMmolL
                     )
 
                     pointMark.foregroundStyle(color)
@@ -346,8 +421,8 @@ struct LiveActivity: Widget {
                     highGlucoseColorValue: context.state.detailedViewState?.highGlucose ?? 180,
                     lowGlucoseColorValue: context.state.detailedViewState?.lowGlucose ?? 70,
                     targetGlucose: 90,
-                    dynamicGlucoseColor: context.state.detailedViewState?.dynamicGlucoseColor ?? false,
-                    offset: context.state.detailedViewState?.unit == "mg/dL" ? 20 : 20.asMmolL
+                    glucoseColorStyle: context.state.detailedViewState?.glucoseColorStyle ?? "staticColor",
+                    offset: context.state.detailedViewState?.unit == "mg/dL" ? Decimal(20) : Decimal(20).asMmolL
                 )
 
                 if context.state.isInitialState {
@@ -387,14 +462,13 @@ struct LiveActivity: Widget {
         let glucoseValueForColor = context.state.bg
         let highGlucose = context.state.detailedViewState?.highGlucose ?? 180
         let lowGlucose = context.state.detailedViewState?.lowGlucose ?? 70
-        let dynamicGlucoseColor = context.state.detailedViewState?.dynamicGlucoseColor ?? false
         let glucoseColor = getDynamicGlucoseColor(
             glucoseValue: Decimal(string: glucoseValueForColor) ?? 100,
             highGlucoseColorValue: highGlucose,
             lowGlucoseColorValue: lowGlucose,
             targetGlucose: 90,
-            dynamicGlucoseColor: dynamicGlucoseColor,
-            offset: context.state.detailedViewState?.unit == "mg/dL" ? 20 : 20.asMmolL
+            glucoseColorStyle: context.state.detailedViewState?.glucoseColorStyle ?? "staticColor",
+            offset: context.state.detailedViewState?.unit == "mg/dL" ? Decimal(20) : Decimal(20).asMmolL
         )
 
         return DynamicIsland {
@@ -451,7 +525,6 @@ struct LiveActivity: Widget {
         ActivityConfiguration(for: LiveActivityAttributes.self, content: self.content, dynamicIsland: self.dynamicIsland)
     }
 }
-
 private extension LiveActivityAttributes {
     static var preview: LiveActivityAttributes {
         LiveActivityAttributes(startDate: Date())

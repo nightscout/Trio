@@ -40,10 +40,12 @@ extension BasalProfileEditor {
 
         var body: some View {
             Form {
+                let shouldDisableButton = state.syncInProgress || state.items.isEmpty || !state.hasChanges
+
                 Section(header: Text("Schedule")) {
                     list
-                    addButton
-                }
+                }.listRowBackground(Color.chart)
+
                 Section {
                     HStack {
                         Text("Total")
@@ -55,27 +57,48 @@ extension BasalProfileEditor {
                             Text(" U/day")
                             .foregroundColor(.secondary)
                     }
-                }
+                }.listRowBackground(Color.chart)
+
                 Section {
                     HStack {
                         if state.syncInProgress {
                             ProgressView().padding(.trailing, 10)
                         }
-                        Button { state.save() }
-                        label: {
-                            Text(state.syncInProgress ? "Saving..." : "Save on Pump")
+                        Button {
+                            let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+                            impactHeavy.impactOccurred()
+                            state.save()
+                        } label: {
+                            Text(state.syncInProgress ? "Saving..." : "Save")
                         }
-                        .disabled(state.syncInProgress || state.items.isEmpty)
+                        .disabled(shouldDisableButton)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .tint(.white)
                     }
-                }
+                }.listRowBackground(shouldDisableButton ? Color(.systemGray4) : Color(.systemBlue))
+            }
+            .alert(isPresented: $state.showAlert) {
+                Alert(
+                    title: Text("Unable to Save"),
+                    message: Text("Trio could not communicate with your pump. Changes to your basal profile were not saved."),
+                    dismissButton: .default(Text("Close"))
+                )
+            }
+            .onChange(of: state.items) { _ in
+                state.calcTotal()
             }
             .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)
             .navigationTitle("Basal Profile")
             .navigationBarTitleDisplayMode(.automatic)
-            .navigationBarItems(
-                trailing: EditButton()
-            )
+            .toolbar(content: {
+                ToolbarItem(placement: .topBarTrailing) {
+                    EditButton()
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    addButton
+                }
+            })
             .environment(\.editMode, $editMode)
             .onAppear {
                 state.validate()
@@ -83,44 +106,40 @@ extension BasalProfileEditor {
         }
 
         private func pickers(for index: Int) -> some View {
-            GeometryReader { geometry in
-                VStack {
-                    HStack {
-                        Text("Rate").frame(width: geometry.size.width / 2)
-                        Text("Time").frame(width: geometry.size.width / 2)
-                    }
-                    HStack(spacing: 0) {
-                        Picker(selection: $state.items[index].rateIndex, label: EmptyView()) {
-                            ForEach(0 ..< state.rateValues.count, id: \.self) { i in
-                                Text(
-                                    (
-                                        self.rateFormatter
-                                            .string(from: state.rateValues[i] as NSNumber) ?? ""
-                                    ) + " U/hr"
-                                ).tag(i)
-                            }
+            Form {
+                Section {
+                    Picker(selection: $state.items[index].rateIndex, label: Text("Rate")) {
+                        ForEach(0 ..< state.rateValues.count, id: \.self) { i in
+                            Text(
+                                (
+                                    self.rateFormatter
+                                        .string(from: state.rateValues[i] as NSNumber) ?? ""
+                                ) + " U/hr"
+                            ).tag(i)
                         }
-                        .onChange(of: state.items[index].rateIndex, perform: { _ in state.calcTotal() })
-                        .frame(maxWidth: geometry.size.width / 2)
-                        .clipped()
+                    }
+                    .onChange(of: state.items[index].rateIndex, perform: { _ in state.calcTotal() })
+                }.listRowBackground(Color.chart)
 
-                        Picker(selection: $state.items[index].timeIndex, label: EmptyView()) {
-                            ForEach(0 ..< state.timeValues.count, id: \.self) { i in
-                                Text(
-                                    self.dateFormatter
-                                        .string(from: Date(
-                                            timeIntervalSince1970: state
-                                                .timeValues[i]
-                                        ))
-                                ).tag(i)
-                            }
+                Section {
+                    Picker(selection: $state.items[index].timeIndex, label: Text("Time")) {
+                        ForEach(0 ..< state.timeValues.count, id: \.self) { i in
+                            Text(
+                                self.dateFormatter
+                                    .string(from: Date(
+                                        timeIntervalSince1970: state
+                                            .timeValues[i]
+                                    ))
+                            ).tag(i)
                         }
-                        .onChange(of: state.items[index].timeIndex, perform: { _ in state.calcTotal() })
-                        .frame(maxWidth: geometry.size.width / 2)
-                        .clipped()
                     }
-                }
+                    .onChange(of: state.items[index].timeIndex, perform: { _ in state.calcTotal() })
+                }.listRowBackground(Color.chart)
             }
+            .padding(.top)
+            .scrollContentBackground(.hidden).background(color)
+            .navigationTitle("Set Rate")
+            .navigationBarTitleDisplayMode(.automatic)
         }
 
         private var list: some View {
@@ -152,7 +171,7 @@ extension BasalProfileEditor {
 
             switch editMode {
             case .inactive:
-                return AnyView(Button(action: onAdd) { Text("Add") })
+                return AnyView(Button(action: onAdd) { Image(systemName: "plus") })
             default:
                 return AnyView(EmptyView())
             }

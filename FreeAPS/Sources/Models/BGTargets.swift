@@ -1,15 +1,15 @@
 import Foundation
 
 struct BGTargets: JSON {
-    let units: GlucoseUnits
-    let userPrefferedUnits: GlucoseUnits
-    let targets: [BGTargetEntry]
+    var units: GlucoseUnits
+    var userPreferredUnits: GlucoseUnits
+    var targets: [BGTargetEntry]
 }
 
 extension BGTargets {
     private enum CodingKeys: String, CodingKey {
         case units
-        case userPrefferedUnits = "user_preferred_units"
+        case userPreferredUnits = "user_preferred_units"
         case targets
     }
 }

@@ -2,17 +2,22 @@ import SwiftUI
 
 extension TargetsEditor {
     final class StateModel: BaseStateModel<Provider> {
+        @Injected() private var nightscout: NightscoutManager!
+
         @Published var items: [Item] = []
+        @Published var initialItems: [Item] = []
+        @Published var shouldDisplaySaving: Bool = false
 
         let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
 
         var rateValues: [Decimal] {
-            switch units {
-            case .mgdL:
-                return stride(from: 72, to: 180.01, by: 1.0).map { $0 }
-            case .mmolL:
-                return stride(from: 4.0, to: 10.01, by: 0.1).map { $0 }
+            var values = stride(from: 72.0, to: 180.01, by: 1.0).map { Decimal($0) }
+
+            if units == .mmolL {
+                values = values.filter { Int(truncating: $0 as NSNumber) % 2 == 0 }
             }
+
+            return values
         }
 
         var canAdd: Bool {
@@ -20,17 +25,25 @@ extension TargetsEditor {
             return lastItem.timeIndex < timeValues.count - 1
         }
 
+        var hasChanges: Bool {
+            initialItems != items
+        }
+
         private(set) var units: GlucoseUnits = .mgdL
 
         override func subscribe() {
+            units = settingsManager.settings.units
+
             let profile = provider.profile
-            units = profile.units
+
             items = profile.targets.map { value in
                 let timeIndex = timeValues.firstIndex(of: Double(value.offset * 60)) ?? 0
                 let lowIndex = rateValues.firstIndex(of: value.low) ?? 0
                 let highIndex = rateValues.firstIndex(of: value.high) ?? 0
                 return Item(lowIndex: lowIndex, highIndex: highIndex, timeIndex: timeIndex)
             }
+
+            initialItems = items.map { Item(lowIndex: $0.lowIndex, highIndex: $0.highIndex, timeIndex: $0.timeIndex) }
         }
 
         func add() {
@@ -49,6 +62,9 @@ extension TargetsEditor {
         }
 
         func save() {
+            guard hasChanges else { return }
+            shouldDisplaySaving.toggle()
+
             let targets = items.map { item -> BGTargetEntry in
                 let formatter = DateFormatter()
                 formatter.timeZone = TimeZone(secondsFromGMT: 0)
@@ -59,8 +75,14 @@ extension TargetsEditor {
                 let high = low
                 return BGTargetEntry(low: low, high: high, start: formatter.string(from: date), offset: minutes)
             }
-            let profile = BGTargets(units: units, userPrefferedUnits: settingsManager.settings.units, targets: targets)
+            let profile = BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: targets)
             provider.saveProfile(profile)
+            initialItems = items.map { Item(lowIndex: $0.lowIndex, highIndex: $0.highIndex, timeIndex: $0.timeIndex) }
+
+            Task.detached(priority: .low) {
+                debug(.nightscout, "Attempting to upload targets to Nightscout")
+                await self.nightscout.uploadProfiles()
+            }
         }
 
         func validate() {

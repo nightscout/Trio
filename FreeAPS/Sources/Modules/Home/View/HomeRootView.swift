@@ -15,6 +15,7 @@ extension Home {
         @State var showTreatments = false
         @State var selectedTab: Int = 0
         @State private var statusTitle: String = ""
+        @State var showPumpSelection: Bool = false
 
         struct Buttons: Identifiable {
             let label: String
@@ -33,25 +34,6 @@ extension Home {
         ]
 
         let buttonFont = Font.custom("TimeButtonFont", size: 14)
-
-        struct DefinitionRow: View {
-            var term: String
-            var definition: String
-            var color: Color
-
-            var body: some View {
-                VStack(alignment: .leading) {
-                    HStack {
-                        Image(systemName: "circle.fill").foregroundStyle(color)
-                        Text(term).font(.subheadline).fontWeight(.semibold)
-                    }
-                    Text(definition)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                .padding(.vertical, 5)
-            }
-        }
 
         @Environment(\.managedObjectContext) var moc
         @Environment(\.colorScheme) var colorScheme
@@ -121,13 +103,6 @@ extension Home {
             return dateFormatter
         }
 
-        private var spriteScene: SKScene {
-            let scene = SnowScene()
-            scene.scaleMode = .resizeFill
-            scene.backgroundColor = .clear
-            return scene
-        }
-
         private var color: LinearGradient {
             colorScheme == .dark ? LinearGradient(
                 gradient: Gradient(colors: [
@@ -161,8 +136,7 @@ extension Home {
                 lowGlucose: $state.lowGlucose,
                 highGlucose: $state.highGlucose,
                 cgmAvailable: $state.cgmAvailable,
-                glucose: state.glucoseFromPersistence,
-                manualGlucose: state.manualGlucoseFromPersistence
+                glucose: state.latestTwoGlucoseValues
             ).scaleEffect(0.9)
                 .onTapGesture {
                     state.openCGM()
@@ -184,7 +158,13 @@ extension Home {
                 pumpStatusHighlightMessage: $state.pumpStatusHighlightMessage,
                 battery: $state.batteryFromPersistence
             ).onTapGesture {
-                state.setupPump = true
+                if state.pumpDisplayState == nil {
+                    // shows user confirmation dialog with pump model choices, then proceeds to setup
+                    showPumpSelection.toggle()
+                } else {
+                    // sends user to pump settings
+                    state.setupPump.toggle()
+                }
             }
         }
 
@@ -287,7 +267,7 @@ extension Home {
                         .foregroundColor(.insulin)
                         .padding(.leading, 8)
                 }
-                if state.tins {
+                if state.totalInsulinDisplayType == .totalInsulinInScope {
                     Text(
                         "TINS: \(state.calculateTINS())" +
                             NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
@@ -354,35 +334,23 @@ extension Home {
 
         @ViewBuilder func mainChart(geo: GeometryProxy) -> some View {
             ZStack {
-                if state.animatedBackground {
-                    SpriteView(scene: spriteScene, options: [.allowsTransparency])
-                        .ignoresSafeArea()
-                        .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
-                }
-
                 MainChartView(
                     geo: geo,
                     units: $state.units,
-                    announcement: $state.announcement,
                     hours: .constant(state.filteredHours),
-                    maxBasal: $state.maxBasal,
-                    autotunedBasalProfile: $state.autotunedBasalProfile,
-                    basalProfile: $state.basalProfile,
                     tempTargets: $state.tempTargets,
-                    smooth: $state.smooth,
                     highGlucose: $state.highGlucose,
                     lowGlucose: $state.lowGlucose,
                     currentGlucoseTarget: $state.currentGlucoseTarget,
                     screenHours: $state.hours,
-                    dynamicGlucoseColor: $state.dynamicGlucoseColor,
+                    glucoseColorStyle: $state.glucoseColorStyle,
                     displayXgridLines: $state.displayXgridLines,
                     displayYgridLines: $state.displayYgridLines,
                     thresholdLines: $state.thresholdLines,
-                    isTempTargetActive: $state.isTempTargetActive,
                     state: state
                 )
             }
-            .padding(.bottom)
+            .padding(.bottom, UIDevice.adjustPadding(min: 0, max: nil))
         }
 
         func highlightButtons() {
@@ -489,7 +457,7 @@ extension Home {
                             .font(.system(size: 16, weight: .bold, design: .rounded))
                     }
                 }
-                if !state.tins {
+                if state.totalInsulinDisplayType == .totalDailyDose {
                     Spacer()
                     Text(
                         "TDD: " +
@@ -594,7 +562,7 @@ extension Home {
                             showCancelAlert = true
                         }
                     }
-            }.padding(.horizontal, 10).padding(.bottom, 10)
+            }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
                 .overlay {
                     /// just show temp target if no profile is already active
                     if overrideString == nil, let tempTargetString = tempTargetString {
@@ -626,7 +594,7 @@ extension Home {
                                     .font(.subheadline)
                                 Spacer()
                             }.padding(.horizontal, 10)
-                        }.padding(.horizontal, 10).padding(.bottom, 10)
+                        }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
                     }
                 }
         }
@@ -708,7 +676,7 @@ extension Home {
                     }.padding(.horizontal, 10)
                         .padding(.trailing, 8)
 
-                }.padding(.horizontal, 10).padding(.bottom, 10)
+                }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
                     .overlay(alignment: .bottom) {
                         bolusProgressBar(progress).padding(.horizontal, 18).offset(y: 48)
                     }.clipShape(RoundedRectangle(cornerRadius: 15))
@@ -735,16 +703,18 @@ extension Home {
                         }.padding(.leading, 20)
                     }.padding(.top, 10)
 
-                    mealPanel(geo).padding(.top, 30).padding(.bottom, 20)
+                    mealPanel(geo).padding(.top, UIDevice.adjustPadding(min: nil, max: 30))
+                        .padding(.bottom, UIDevice.adjustPadding(min: nil, max: 20))
 
                     mainChart(geo: geo)
 
-                    timeInterval.padding(.top, 12).padding(.bottom, 12)
+                    timeInterval.padding(.top, UIDevice.adjustPadding(min: 0, max: 12))
+                        .padding(.bottom, UIDevice.adjustPadding(min: 0, max: 12))
 
                     if let progress = state.bolusProgress {
-                        bolusView(geo: geo, progress).padding(.bottom, 40)
+                        bolusView(geo: geo, progress).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
                     } else {
-                        profileView(geo: geo).padding(.bottom, 40)
+                        profileView(geo: geo).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
                     }
                 }
                 .background(color)
@@ -781,6 +751,30 @@ extension Home {
                             }
                     )
             }
+            .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {
+                Button("Medtronic") { state.addPump(.minimed) }
+                Button("Omnipod Eros") { state.addPump(.omnipod) }
+                Button("Omnipod Dash") { state.addPump(.omnipodBLE) }
+                Button("Pump Simulator") { state.addPump(.simulator) }
+            } message: { Text("Select Pump Model") }
+            .sheet(isPresented: $state.setupPump) {
+                if let pumpManager = state.provider.apsManager.pumpManager {
+                    PumpConfig.PumpSettingsView(
+                        pumpManager: pumpManager,
+                        bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                        completionDelegate: state,
+                        setupDelegate: state
+                    )
+                } else {
+                    PumpConfig.PumpSetupView(
+                        pumpType: state.setupPumpType,
+                        pumpInitialSettings: PumpConfig.PumpInitialSettings.default,
+                        bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                        completionDelegate: state,
+                        setupDelegate: state
+                    )
+                }
+            }
             .sheet(isPresented: $state.isLegendPresented) {
                 NavigationStack {
                     Text(
@@ -789,7 +783,7 @@ extension Home {
                     .font(.subheadline)
                     .foregroundColor(.secondary)
 
-                    if state.settingsManager.settings.displayForecastsAsLines {
+                    if state.forecastDisplayType == .lines {
                         List {
                             DefinitionRow(
                                 term: "IOB (Insulin on Board)",
@@ -818,7 +812,7 @@ extension Home {
                         List {
                             DefinitionRow(
                                 term: "Cone of Uncertainty",
-                                definition: "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result.",
+                                definition: "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result.\n\nTo modify the forecast display type, go to Trio Settings > Features > User Interface > Forecast Display Type.",
                                 color: Color.blue.opacity(0.5)
                             )
                         }
@@ -845,7 +839,9 @@ extension Home {
             ZStack(alignment: .bottom) {
                 TabView(selection: $selectedTab) {
                     let carbsRequiredBadge: String? = {
-                        guard let carbsRequired = state.enactedAndNonEnactedDeterminations.first?.carbsRequired else {
+                        guard let carbsRequired = state.enactedAndNonEnactedDeterminations.first?.carbsRequired,
+                              state.showCarbsRequiredBadge
+                        else {
                             return nil
                         }
                         let carbsRequiredDecimal = Decimal(carbsRequired)
@@ -909,6 +905,44 @@ extension Home {
             }
         }
 
+        private func parseReasonConclusion(_ reasonConclusion: String, isMmolL: Bool) -> String {
+            var updatedConclusion = reasonConclusion
+
+            // Handle "minGuardBG x<y" pattern
+            if let range = updatedConclusion.range(of: "minGuardBG\\s*-?\\d+<\\d+", options: .regularExpression) {
+                let matchedString = updatedConclusion[range]
+                let parts = matchedString.components(separatedBy: "<")
+
+                if let firstValue = Double(parts[0].components(separatedBy: CharacterSet.decimalDigits.inverted).joined()),
+                   let secondValue = Double(parts[1])
+                {
+                    let formattedFirstValue = isMmolL ? Double(firstValue.asMmolL) : firstValue
+                    let formattedSecondValue = isMmolL ? Double(secondValue.asMmolL) : secondValue
+
+                    let formattedString = "minGuardBG \(formattedFirstValue)<\(formattedSecondValue)"
+                    updatedConclusion = updatedConclusion.replacingOccurrences(of: matchedString, with: formattedString)
+                }
+            }
+
+            // Handle "Eventual BG x >= target" pattern
+            if let range = updatedConclusion.range(of: "Eventual BG\\s*\\d+\\s*>?=\\s*\\d+", options: .regularExpression) {
+                let matchedString = updatedConclusion[range]
+                let parts = matchedString.components(separatedBy: " >= ")
+
+                if let firstValue = Double(parts[0].components(separatedBy: CharacterSet.decimalDigits.inverted).joined()),
+                   let secondValue = Double(parts[1])
+                {
+                    let formattedFirstValue = isMmolL ? Double(firstValue.asMmolL) : firstValue
+                    let formattedSecondValue = isMmolL ? Double(secondValue.asMmolL) : secondValue
+
+                    let formattedString = "Eventual BG \(formattedFirstValue) >= \(formattedSecondValue)"
+                    updatedConclusion = updatedConclusion.replacingOccurrences(of: matchedString, with: formattedString)
+                }
+            }
+
+            return updatedConclusion.capitalizingFirstLetter()
+        }
+
         private var popup: some View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(statusTitle).font(.headline).foregroundColor(.white)
@@ -918,9 +952,21 @@ extension Home {
                         Text("Invalid CGM reading (HIGH).").font(.callout).bold().foregroundColor(.loopRed).padding(.top, 8)
                         Text("SMBs and High Temps Disabled.").font(.caption).foregroundColor(.white).padding(.bottom, 4)
                     } else {
-                        TagCloudView(tags: determination.reasonParts).animation(.none, value: false)
+                        let tags = !state.isSmoothingEnabled ? determination.reasonParts : determination
+                            .reasonParts + ["Smoothing: On"]
+                        TagCloudView(
+                            tags: tags,
+                            shouldParseToMmolL: state.units == .mmolL
+                        )
+                        .animation(.none, value: false)
 
-                        Text(determination.reasonConclusion.capitalizingFirstLetter()).font(.caption).foregroundColor(.white)
+                        Text(
+                            self
+                                .parseReasonConclusion(
+                                    determination.reasonConclusion,
+                                    isMmolL: state.units == .mmolL
+                                )
+                        ).font(.caption).foregroundColor(.white)
                     }
                 } else {
                     Text("No determination found").font(.body).foregroundColor(.white)
@@ -950,5 +996,35 @@ extension Home {
                 return
             }
         }
+    }
+}
+
+extension UIDevice {
+    public enum DeviceSize: CGFloat {
+        case smallDevice = 667 // Height for 4" iPhone SE
+        case largeDevice = 852 // Height for 6.1" iPhone 15 Pro
+    }
+
+    @usableFromInline static func adjustPadding(min: CGFloat? = nil, max: CGFloat? = nil) -> CGFloat? {
+        if UIScreen.screenHeight > UIDevice.DeviceSize.smallDevice.rawValue {
+            if UIScreen.screenHeight >= UIDevice.DeviceSize.largeDevice.rawValue {
+                return max
+            } else {
+                return min != nil ?
+                    (max != nil ? max! * (UIScreen.screenHeight / UIDevice.DeviceSize.largeDevice.rawValue) : nil) : nil
+            }
+        } else {
+            return min
+        }
+    }
+}
+
+extension UIScreen {
+    static var screenHeight: CGFloat {
+        UIScreen.main.bounds.height
+    }
+
+    static var screenWidth: CGFloat {
+        UIScreen.main.bounds.width
     }
 }

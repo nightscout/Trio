@@ -13,6 +13,7 @@ extension Home {
         @Injected() var nightscoutManager: NightscoutManager!
         @Injected() var determinationStorage: DeterminationStorage!
         @Injected() var glucoseStorage: GlucoseStorage!
+        @Injected() var carbsStorage: CarbsStorage!
         private let timer = DispatchTimer(timeInterval: 5)
         private(set) var filteredHours = 24
         @Published var manualGlucose: [BloodGlucose] = []
@@ -43,15 +44,14 @@ extension Home {
         @Published var units: GlucoseUnits = .mgdL
         @Published var pumpDisplayState: PumpDisplayState?
         @Published var alarm: GlucoseAlarm?
-        @Published var animatedBackground = false
         @Published var manualTempBasal = false
-        @Published var smooth = false
+        @Published var isSmoothingEnabled = false
         @Published var maxValue: Decimal = 1.2
         @Published var lowGlucose: Decimal = 70
         @Published var highGlucose: Decimal = 180
         @Published var currentGlucoseTarget: Decimal = 100
         @Published var overrideUnit: Bool = false
-        @Published var dynamicGlucoseColor: Bool = false
+        @Published var glucoseColorStyle: GlucoseColorStyle = .staticColor
         @Published var displayXgridLines: Bool = false
         @Published var displayYgridLines: Bool = false
         @Published var thresholdLines: Bool = false
@@ -61,13 +61,12 @@ extension Home {
         @Published var isStatusPopupPresented: Bool = false
         @Published var isLegendPresented: Bool = false
         @Published var legendSheetDetent = PresentationDetent.large
-        @Published var tins: Bool = false
-        @Published var isTempTargetActive: Bool = false
+        @Published var totalInsulinDisplayType: TotalInsulinDisplayType = .totalDailyDose
         @Published var roundedTotalBolus: String = ""
         @Published var selectedTab: Int = 0
         @Published var waitForSuggestion: Bool = false
         @Published var glucoseFromPersistence: [GlucoseStored] = []
-        @Published var manualGlucoseFromPersistence: [GlucoseStored] = []
+        @Published var latestTwoGlucoseValues: [GlucoseStored] = []
         @Published var carbsFromPersistence: [CarbEntryStored] = []
         @Published var fpusFromPersistence: [CarbEntryStored] = []
         @Published var determinationsFromPersistence: [OrefDetermination] = []
@@ -83,66 +82,169 @@ extension Home {
         @Published var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
         @Published var pumpStatusHighlightMessage: String? = nil
         @Published var cgmAvailable: Bool = false
+        @Published var showCarbsRequiredBadge: Bool = true
+        private(set) var setupPumpType: PumpConfig.PumpType = .minimed
 
         @Published var minForecast: [Int] = []
         @Published var maxForecast: [Int] = []
         @Published var minCount: Int = 12 // count of Forecasts drawn in 5 min distances, i.e. 12 means a min of 1 hour
-        @Published var displayForecastsAsLines: Bool = false
+        @Published var forecastDisplayType: ForecastDisplayType = .cone
 
-        let context = CoreDataStack.shared.newTaskContext()
+        @Published var minYAxisValue: Decimal = 39
+        @Published var maxYAxisValue: Decimal = 300
+
+        @Published var minValueCobChart: Decimal = 0
+        @Published var maxValueCobChart: Decimal = 20
+
+        @Published var minValueIobChart: Decimal = 0
+        @Published var maxValueIobChart: Decimal = 5
+
+        let taskContext = CoreDataStack.shared.newTaskContext()
+        let glucoseFetchContext = CoreDataStack.shared.newTaskContext()
+        let carbsFetchContext = CoreDataStack.shared.newTaskContext()
+        let fpuFetchContext = CoreDataStack.shared.newTaskContext()
+        let determinationFetchContext = CoreDataStack.shared.newTaskContext()
+        let pumpHistoryFetchContext = CoreDataStack.shared.newTaskContext()
+        let overrideFetchContext = CoreDataStack.shared.newTaskContext()
+        let batteryFetchContext = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
-        private var coreDataObserver: CoreDataObserver?
+        private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+        private var subscriptions = Set<AnyCancellable>()
 
         typealias PumpEvent = PumpEventStored.EventType
 
         override func subscribe() {
-            setupNotification()
-            coreDataObserver = CoreDataObserver()
+            coreDataPublisher =
+                changedObjectsOnManagedObjectContextDidSavePublisher()
+                    .receive(on: DispatchQueue.global(qos: .background))
+                    .share()
+                    .eraseToAnyPublisher()
+
+            registerSubscribers()
             registerHandlers()
-            setupGlucoseArray()
-            setupManualGlucoseArray()
-            setupCarbsArray()
-            setupFPUsArray()
-            setupDeterminationsArray()
-            setupInsulinArray()
-            setupLastBolus()
-            setupBatteryArray()
-            setupPumpSettings()
-            setupBasalProfile()
-            setupTempTargets()
-            setupReservoir()
-            setupAnnouncements()
-            setupCurrentPumpTimezone()
-            setupOverrides()
-            setupOverrideRunStored()
 
-            // TODO: isUploadEnabled the right var here??
-            uploadStats = settingsManager.settings.isUploadEnabled
-            units = settingsManager.settings.units
-            allowManualTemp = !settingsManager.settings.closedLoop
-            closedLoop = settingsManager.settings.closedLoop
-            lastLoopDate = apsManager.lastLoopDate
-            alarm = provider.glucoseStorage.alarm
-            manualTempBasal = apsManager.isManualTempBasal
-            setupCurrentTempTarget()
-            smooth = settingsManager.settings.smoothGlucose
-            maxValue = settingsManager.preferences.autosensMax
-            lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
-            highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL
+            // Parallelize Setup functions
+            setupHomeViewConcurrently()
+        }
+
+        private func setupHomeViewConcurrently() {
             Task {
-                await self.getCurrentGlucoseTarget()
+                await withTaskGroup(of: Void.self) { group in
+                    group.addTask {
+                        self.setupGlucoseArray()
+                    }
+                    group.addTask {
+                        self.setupCarbsArray()
+                    }
+                    group.addTask {
+                        self.setupFPUsArray()
+                    }
+                    group.addTask {
+                        self.setupDeterminationsArray()
+                    }
+                    group.addTask {
+                        self.setupInsulinArray()
+                    }
+                    group.addTask {
+                        self.setupLastBolus()
+                    }
+                    group.addTask {
+                        self.setupBatteryArray()
+                    }
+                    group.addTask {
+                        self.setupPumpSettings()
+                    }
+                    group.addTask {
+                        self.setupBasalProfile()
+                    }
+                    group.addTask {
+                        self.setupTempTargets()
+                    }
+                    group.addTask {
+                        self.setupReservoir()
+                    }
+                    group.addTask {
+                        self.setupAnnouncements()
+                    }
+                    group.addTask {
+                        self.setupCurrentPumpTimezone()
+                    }
+                    group.addTask {
+                        self.setupOverrides()
+                    }
+                    group.addTask {
+                        self.setupOverrideRunStored()
+                    }
+                    group.addTask {
+                        await self.setupSettings()
+                    }
+                    group.addTask {
+                        self.registerObservers()
+                    }
+                }
             }
-            overrideUnit = settingsManager.settings.overrideHbA1cUnit
-            dynamicGlucoseColor = settingsManager.settings.dynamicGlucoseColor
-            displayXgridLines = settingsManager.settings.xGridLines
-            displayYgridLines = settingsManager.settings.yGridLines
-            thresholdLines = settingsManager.settings.rulerMarks
-            tins = settingsManager.settings.tins
-            cgmAvailable = fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none
+        }
 
-            displayForecastsAsLines = settingsManager.settings.displayForecastsAsLines
+        // These combine subscribers are only necessary due to the batch inserts of glucose/FPUs which do not trigger a ManagedObjectContext change notification
+        private func registerSubscribers() {
+            glucoseStorage.updatePublisher
+                .receive(on: DispatchQueue.global(qos: .background))
+                .sink { [weak self] _ in
+                    guard let self = self else { return }
+                    self.setupGlucoseArray()
+                }
+                .store(in: &subscriptions)
 
+            carbsStorage.updatePublisher
+                .receive(on: DispatchQueue.global(qos: .background))
+                .sink { [weak self] _ in
+                    guard let self = self else { return }
+                    self.setupFPUsArray()
+                }
+                .store(in: &subscriptions)
+        }
+
+        private func registerHandlers() {
+            coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
+                guard let self = self else { return }
+                self.setupDeterminationsArray()
+            }.store(in: &subscriptions)
+
+            coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
+                guard let self = self else { return }
+                self.setupGlucoseArray()
+            }.store(in: &subscriptions)
+
+            coreDataPublisher?.filterByEntityName("CarbEntryStored").sink { [weak self] _ in
+                guard let self = self else { return }
+                self.setupCarbsArray()
+            }.store(in: &subscriptions)
+
+            coreDataPublisher?.filterByEntityName("PumpEventStored").sink { [weak self] _ in
+                guard let self = self else { return }
+                self.setupInsulinArray()
+                self.setupLastBolus()
+                self.displayPumpStatusHighlightMessage()
+            }.store(in: &subscriptions)
+
+            coreDataPublisher?.filterByEntityName("OpenAPS_Battery").sink { [weak self] _ in
+                guard let self = self else { return }
+                self.setupBatteryArray()
+            }.store(in: &subscriptions)
+
+            coreDataPublisher?.filterByEntityName("OverrideStored").sink { [weak self] _ in
+                guard let self = self else { return }
+                self.setupOverrides()
+            }.store(in: &subscriptions)
+
+            coreDataPublisher?.filterByEntityName("OverrideRunStored").sink { [weak self] _ in
+                guard let self = self else { return }
+                self.setupOverrideRunStored()
+            }.store(in: &subscriptions)
+        }
+
+        private func registerObservers() {
             broadcaster.register(GlucoseObserver.self, observer: self)
             broadcaster.register(DeterminationObserver.self, observer: self)
             broadcaster.register(SettingsObserver.self, observer: self)
@@ -151,8 +253,6 @@ extension Home {
             broadcaster.register(TempTargetsObserver.self, observer: self)
             broadcaster.register(PumpReservoirObserver.self, observer: self)
             broadcaster.register(PumpDeactivatedObserver.self, observer: self)
-
-            animatedBackground = settingsManager.settings.animatedBackground
 
             timer.eventHandler = {
                 DispatchQueue.main.async { [weak self] in
@@ -217,67 +317,33 @@ extension Home {
                     }
                 }
                 .store(in: &lifetime)
-
-            $setupPump
-                .sink { [weak self] show in
-                    guard let self = self else { return }
-                    if show, let pumpManager = self.provider.apsManager.pumpManager,
-                       let bluetoothProvider = self.provider.apsManager.bluetoothManager
-                    {
-                        let view = PumpConfig.PumpSettingsView(
-                            pumpManager: pumpManager,
-                            bluetoothManager: bluetoothProvider,
-                            completionDelegate: self,
-                            setupDelegate: self
-                        ).asAny()
-                        self.router.mainSecondaryModalView.send(view)
-                    } else if show {
-                        self.router.mainSecondaryModalView.send(self.router.view(for: .pumpConfigDirect))
-                    } else {
-                        self.router.mainSecondaryModalView.send(nil)
-                    }
-                }
-                .store(in: &lifetime)
         }
 
-        private func registerHandlers() {
-            coreDataObserver?.registerHandler(for: "OrefDetermination") { [weak self] in
-                guard let self = self else { return }
-                self.setupDeterminationsArray()
-            }
+        @MainActor private func setupSettings() async {
+            units = settingsManager.settings.units
+            allowManualTemp = !settingsManager.settings.closedLoop
+            closedLoop = settingsManager.settings.closedLoop
+            lastLoopDate = apsManager.lastLoopDate
+            alarm = provider.glucoseStorage.alarm
+            manualTempBasal = apsManager.isManualTempBasal
+            setupCurrentTempTarget()
+            isSmoothingEnabled = settingsManager.settings.smoothGlucose
+            maxValue = settingsManager.preferences.autosensMax
+            lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
+            highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL
+            overrideUnit = settingsManager.settings.overrideHbA1cUnit
+            displayXgridLines = settingsManager.settings.xGridLines
+            displayYgridLines = settingsManager.settings.yGridLines
+            thresholdLines = settingsManager.settings.rulerMarks
+            totalInsulinDisplayType = settingsManager.settings.totalInsulinDisplayType
+            cgmAvailable = fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none
+            showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
+            forecastDisplayType = settingsManager.settings.forecastDisplayType
+        }
 
-            coreDataObserver?.registerHandler(for: "GlucoseStored") { [weak self] in
-                guard let self = self else { return }
-                self.setupGlucoseArray()
-                self.setupManualGlucoseArray()
-            }
-
-            coreDataObserver?.registerHandler(for: "CarbEntryStored") { [weak self] in
-                guard let self = self else { return }
-                self.setupCarbsArray()
-            }
-
-            coreDataObserver?.registerHandler(for: "PumpEventStored") { [weak self] in
-                guard let self = self else { return }
-                self.setupInsulinArray()
-                self.setupLastBolus()
-                self.displayPumpStatusHighlightMessage()
-            }
-
-            coreDataObserver?.registerHandler(for: "OpenAPS_Battery") { [weak self] in
-                guard let self = self else { return }
-                self.setupBatteryArray()
-            }
-
-            coreDataObserver?.registerHandler(for: "OverrideStored") { [weak self] in
-                guard let self = self else { return }
-                self.setupOverrides()
-            }
-
-            coreDataObserver?.registerHandler(for: "OverrideRunStored") { [weak self] in
-                guard let self = self else { return }
-                self.setupOverrideRunStored()
-            }
+        func addPump(_ type: PumpConfig.PumpType) {
+            setupPumpType = type
+            setupPump = true
         }
 
         /// Display the eventual status message provided by the manager of the pump
@@ -514,21 +580,21 @@ extension Home.StateModel:
         allowManualTemp = !settings.closedLoop
         closedLoop = settingsManager.settings.closedLoop
         units = settingsManager.settings.units
-        animatedBackground = settingsManager.settings.animatedBackground
         manualTempBasal = apsManager.isManualTempBasal
-        smooth = settingsManager.settings.smoothGlucose
+        isSmoothingEnabled = settingsManager.settings.smoothGlucose
         lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
         highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL
         Task {
             await getCurrentGlucoseTarget()
         }
         overrideUnit = settingsManager.settings.overrideHbA1cUnit
-        dynamicGlucoseColor = settingsManager.settings.dynamicGlucoseColor
+        glucoseColorStyle = settingsManager.settings.glucoseColorStyle
         displayXgridLines = settingsManager.settings.xGridLines
         displayYgridLines = settingsManager.settings.yGridLines
         thresholdLines = settingsManager.settings.rulerMarks
-        displayForecastsAsLines = settingsManager.settings.displayForecastsAsLines
-        tins = settingsManager.settings.tins
+        totalInsulinDisplayType = settingsManager.settings.totalInsulinDisplayType
+        showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
+        forecastDisplayType = settingsManager.settings.forecastDisplayType
         cgmAvailable = (fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none)
         displayPumpStatusHighlightMessage()
         setupBatteryArray()
@@ -587,540 +653,5 @@ extension Home.StateModel: PumpManagerOnboardingDelegate {
 
     func pumpManagerOnboarding(didPauseOnboarding _: PumpManagerUI) {
         // TODO:
-    }
-}
-
-// MARK: - Setup Core Data observation
-
-extension Home.StateModel {
-    /// listens for the notifications sent when the managedObjectContext has saved!
-    func setupNotification() {
-        /// custom notification that is sent when a batch insert of glucose objects is done
-        Foundation.NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleBatchInsert),
-            name: .didPerformBatchInsert,
-            object: nil
-        )
-
-        /// custom notification that is sent when a batch delete of fpus is done
-        Foundation.NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleBatchDelete),
-            name: .didPerformBatchDelete,
-            object: nil
-        )
-    }
-
-    @objc private func handleBatchInsert() {
-        setupFPUsArray()
-        setupGlucoseArray()
-    }
-
-    @objc private func handleBatchDelete() {
-        setupFPUsArray()
-    }
-}
-
-// MARK: - Handle Core Data changes and update Arrays to display them in the UI
-
-extension Home.StateModel {
-    // Setup Glucose
-    private func setupGlucoseArray() {
-        Task {
-            let ids = await self.fetchGlucose()
-            let glucoseObjects: [GlucoseStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
-            await updateGlucoseArray(with: glucoseObjects)
-        }
-    }
-
-    private func fetchGlucose() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: GlucoseStored.self,
-            onContext: context,
-            predicate: NSPredicate.glucose,
-            key: "date",
-            ascending: false,
-            fetchLimit: 288
-        )
-
-        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
-
-        return await context.perform {
-            return fetchedResults.map(\.objectID)
-        }
-    }
-
-    @MainActor private func updateGlucoseArray(with objects: [GlucoseStored]) {
-        glucoseFromPersistence = objects
-    }
-
-    // Setup Manual Glucose
-    private func setupManualGlucoseArray() {
-        Task {
-            let ids = await self.fetchManualGlucose()
-            let manualGlucoseObjects: [GlucoseStored] = await CoreDataStack.shared
-                .getNSManagedObject(with: ids, context: viewContext)
-            await updateManualGlucoseArray(with: manualGlucoseObjects)
-        }
-    }
-
-    private func fetchManualGlucose() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: GlucoseStored.self,
-            onContext: context,
-            predicate: NSPredicate.manualGlucose,
-            key: "date",
-            ascending: false,
-            fetchLimit: 288
-        )
-
-        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
-
-        return await context.perform {
-            return fetchedResults.map(\.objectID)
-        }
-    }
-
-    @MainActor private func updateManualGlucoseArray(with objects: [GlucoseStored]) {
-        manualGlucoseFromPersistence = objects
-    }
-
-    // Setup Carbs
-    private func setupCarbsArray() {
-        Task {
-            let ids = await self.fetchCarbs()
-            let carbObjects: [CarbEntryStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
-            await updateCarbsArray(with: carbObjects)
-        }
-    }
-
-    private func fetchCarbs() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: CarbEntryStored.self,
-            onContext: context,
-            predicate: NSPredicate.carbsForChart,
-            key: "date",
-            ascending: false
-        )
-
-        guard let fetchedResults = results as? [CarbEntryStored] else { return [] }
-
-        return await context.perform {
-            return fetchedResults.map(\.objectID)
-        }
-    }
-
-    @MainActor private func updateCarbsArray(with objects: [CarbEntryStored]) {
-        carbsFromPersistence = objects
-    }
-
-    // Setup FPUs
-    private func setupFPUsArray() {
-        Task {
-            let ids = await self.fetchFPUs()
-            let fpuObjects: [CarbEntryStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
-            await updateFPUsArray(with: fpuObjects)
-        }
-    }
-
-    private func fetchFPUs() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: CarbEntryStored.self,
-            onContext: context,
-            predicate: NSPredicate.fpusForChart,
-            key: "date",
-            ascending: false
-        )
-
-        guard let fetchedResults = results as? [CarbEntryStored] else { return [] }
-
-        return await context.perform {
-            return fetchedResults.map(\.objectID)
-        }
-    }
-
-    @MainActor private func updateFPUsArray(with objects: [CarbEntryStored]) {
-        fpusFromPersistence = objects
-    }
-
-    // Custom fetch to more efficiently filter only for cob and iob
-    private func fetchCobAndIob() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: OrefDetermination.self,
-            onContext: context,
-            predicate: NSPredicate.determinationsForCobIobCharts,
-            key: "deliverAt",
-            ascending: false,
-            batchSize: 50,
-            propertiesToFetch: ["cob", "iob", "objectID"]
-        )
-
-        guard let fetchedResults = results as? [[String: Any]] else {
-            return []
-        }
-
-        return await context.perform {
-            return fetchedResults.compactMap { $0["objectID"] as? NSManagedObjectID }
-        }
-    }
-
-    // Setup Determinations
-    private func setupDeterminationsArray() {
-        Task {
-            // Get the NSManagedObjectIDs
-            async let enactedObjectIDs = determinationStorage
-                .fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDetermination)
-            async let enactedAndNonEnactedObjectIDs = fetchCobAndIob()
-
-            let enactedIDs = await enactedObjectIDs
-            let enactedAndNonEnactedIDs = await enactedAndNonEnactedObjectIDs
-
-            // Get the NSManagedObjects and return them on the Main Thread
-            await updateDeterminationsArray(with: enactedIDs, keyPath: \.determinationsFromPersistence)
-            await updateDeterminationsArray(with: enactedAndNonEnactedIDs, keyPath: \.enactedAndNonEnactedDeterminations)
-
-            await updateForecastData()
-        }
-    }
-
-    @MainActor private func updateDeterminationsArray(
-        with IDs: [NSManagedObjectID],
-        keyPath: ReferenceWritableKeyPath<Home.StateModel, [OrefDetermination]>
-    ) async {
-        // Fetch the objects off the main thread
-        let determinationObjects: [OrefDetermination] = await CoreDataStack.shared
-            .getNSManagedObject(with: IDs, context: viewContext)
-
-        // Update the array on the main thread
-        self[keyPath: keyPath] = determinationObjects
-    }
-
-    // Setup Insulin
-    private func setupInsulinArray() {
-        Task {
-            let ids = await self.fetchInsulin()
-            let insulinObjects: [PumpEventStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
-            await updateInsulinArray(with: insulinObjects)
-        }
-    }
-
-    private func fetchInsulin() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: PumpEventStored.self,
-            onContext: context,
-            predicate: NSPredicate.pumpHistoryLast24h,
-            key: "timestamp",
-            ascending: true
-        )
-
-        guard let pumpEvents = results as? [PumpEventStored] else {
-            return []
-        }
-
-        return await context.perform {
-            return pumpEvents.map(\.objectID)
-        }
-    }
-
-    @MainActor private func updateInsulinArray(with insulinObjects: [PumpEventStored]) {
-        insulinFromPersistence = insulinObjects
-
-        // Filter tempbasals
-        manualTempBasal = apsManager.isManualTempBasal
-        tempBasals = insulinFromPersistence.filter({ $0.tempBasal != nil })
-
-        // Suspension and resume events
-        suspensions = insulinFromPersistence.filter {
-            $0.type == EventType.pumpSuspend.rawValue || $0.type == EventType.pumpResume.rawValue
-        }
-        let lastSuspension = suspensions.last
-
-        pumpSuspended = tempBasals.last?.timestamp ?? Date() > lastSuspension?.timestamp ?? .distantPast && lastSuspension?
-            .type == EventType.pumpSuspend.rawValue
-    }
-
-    // Setup Last Bolus to display the bolus progress bar
-    // The predicate filters out all external boluses to prevent the progress bar from displaying the amount of an external bolus when an external bolus is added after a pump bolus
-    private func setupLastBolus() {
-        Task {
-            guard let id = await self.fetchLastBolus() else { return }
-            await updateLastBolus(with: id)
-        }
-    }
-
-    private func fetchLastBolus() async -> NSManagedObjectID? {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: PumpEventStored.self,
-            onContext: context,
-            predicate: NSPredicate.lastPumpBolus,
-            key: "timestamp",
-            ascending: false,
-            fetchLimit: 1
-        )
-
-        guard let fetchedResults = results as? [PumpEventStored] else { return [].first }
-
-        return await context.perform {
-            return fetchedResults.map(\.objectID).first
-        }
-    }
-
-    @MainActor private func updateLastBolus(with ID: NSManagedObjectID) {
-        do {
-            lastPumpBolus = try viewContext.existingObject(with: ID) as? PumpEventStored
-        } catch {
-            debugPrint(
-                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the insulin array: \(error.localizedDescription)"
-            )
-        }
-    }
-
-    // Setup Battery
-    private func setupBatteryArray() {
-        Task {
-            let ids = await self.fetchBattery()
-            let batteryObjects: [OpenAPS_Battery] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
-            await updateBatteryArray(with: batteryObjects)
-        }
-    }
-
-    private func fetchBattery() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: OpenAPS_Battery.self,
-            onContext: context,
-            predicate: NSPredicate.predicateFor30MinAgo,
-            key: "date",
-            ascending: false
-        )
-
-        guard let fetchedResults = results as? [OpenAPS_Battery] else { return [] }
-
-        return await context.perform {
-            return fetchedResults.map(\.objectID)
-        }
-    }
-
-    @MainActor private func updateBatteryArray(with objects: [OpenAPS_Battery]) {
-        batteryFromPersistence = objects
-    }
-}
-
-extension Home.StateModel {
-    // Setup Overrides
-    private func setupOverrides() {
-        Task {
-            let ids = await self.fetchOverrides()
-            let overrideObjects: [OverrideStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
-            await updateOverrideArray(with: overrideObjects)
-        }
-    }
-
-    private func fetchOverrides() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: OverrideStored.self,
-            onContext: context,
-            predicate: NSPredicate.lastActiveOverride, // this predicate filters for all Overrides within the last 24h
-            key: "date",
-            ascending: false
-        )
-
-        guard let fetchedResults = results as? [OverrideStored] else { return [] }
-
-        return await context.perform {
-            return fetchedResults.map(\.objectID)
-        }
-    }
-
-    @MainActor private func updateOverrideArray(with objects: [OverrideStored]) {
-        overrides = objects
-    }
-
-    @MainActor func calculateDuration(override: OverrideStored) -> TimeInterval {
-        guard let overrideDuration = override.duration as? Double, overrideDuration != 0 else {
-            return TimeInterval(60 * 60 * 24) // one day
-        }
-        return TimeInterval(overrideDuration * 60) // return seconds
-    }
-
-    @MainActor func calculateTarget(override: OverrideStored) -> Decimal {
-        guard let overrideTarget = override.target, overrideTarget != 0 else {
-            return 100 // default
-        }
-        return overrideTarget.decimalValue
-    }
-
-    // Setup expired Overrides
-    private func setupOverrideRunStored() {
-        Task {
-            let ids = await self.fetchOverrideRunStored()
-            let overrideRunObjects: [OverrideRunStored] = await CoreDataStack.shared
-                .getNSManagedObject(with: ids, context: viewContext)
-            await updateOverrideRunStoredArray(with: overrideRunObjects)
-        }
-    }
-
-    private func fetchOverrideRunStored() async -> [NSManagedObjectID] {
-        let predicate = NSPredicate(format: "startDate >= %@", Date.oneDayAgo as NSDate)
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: OverrideRunStored.self,
-            onContext: context,
-            predicate: predicate,
-            key: "startDate",
-            ascending: false
-        )
-
-        guard let fetchedResults = results as? [OverrideRunStored] else { return [] }
-
-        return await context.perform {
-            return fetchedResults.map(\.objectID)
-        }
-    }
-
-    @MainActor private func updateOverrideRunStoredArray(with objects: [OverrideRunStored]) {
-        overrideRunStored = objects
-    }
-
-    @MainActor func saveToOverrideRunStored(withID id: NSManagedObjectID) async {
-        await viewContext.perform {
-            do {
-                guard let object = try self.viewContext.existingObject(with: id) as? OverrideStored else { return }
-
-                let newOverrideRunStored = OverrideRunStored(context: self.viewContext)
-                newOverrideRunStored.id = UUID()
-                newOverrideRunStored.name = object.name
-                newOverrideRunStored.startDate = object.date ?? .distantPast
-                newOverrideRunStored.endDate = Date()
-                newOverrideRunStored.target = NSDecimalNumber(decimal: self.calculateTarget(override: object))
-                newOverrideRunStored.override = object
-                newOverrideRunStored.isUploadedToNS = false
-
-            } catch {
-                debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to initialize a new Override Run Object")
-            }
-        }
-    }
-}
-
-extension Home.StateModel {
-    // Asynchronously preprocess forecast data in a background thread
-    func preprocessForecastData() async -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] {
-        await Task.detached { [self] () -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] in
-            // Get the first determination ID from persistence
-            guard let id = enactedAndNonEnactedDeterminations.first?.objectID else {
-                return []
-            }
-
-            // Get the forecast IDs for the determination ID
-            let forecastIDs = await determinationStorage.getForecastIDs(for: id, in: context)
-            var result: [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] = []
-
-            // Use a task group to fetch forecast value IDs concurrently
-            await withTaskGroup(of: (UUID, NSManagedObjectID, [NSManagedObjectID]).self) { group in
-                for forecastID in forecastIDs {
-                    group.addTask {
-                        let forecastValueIDs = await self.determinationStorage.getForecastValueIDs(
-                            for: forecastID,
-                            in: self.context
-                        )
-                        return (UUID(), forecastID, forecastValueIDs)
-                    }
-                }
-
-                // Collect the results from the task group
-                for await (uuid, forecastID, forecastValueIDs) in group {
-                    result.append((id: uuid, forecastID: forecastID, forecastValueIDs: forecastValueIDs))
-                }
-            }
-
-            return result
-        }.value
-    }
-
-    // Fetch forecast values for a given data set
-    func fetchForecastValues(
-        for data: (id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID]),
-        in context: NSManagedObjectContext
-    ) async -> (UUID, Forecast?, [ForecastValue]) {
-        var forecast: Forecast?
-        var forecastValues: [ForecastValue] = []
-
-        do {
-            try await context.perform {
-                // Fetch the forecast object
-                forecast = try context.existingObject(with: data.forecastID) as? Forecast
-
-                // Fetch the first 3h of forecast values
-                for forecastValueID in data.forecastValueIDs.prefix(36) {
-                    if let forecastValue = try context.existingObject(with: forecastValueID) as? ForecastValue {
-                        forecastValues.append(forecastValue)
-                    }
-                }
-            }
-        } catch {
-            debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch forecast Values with error: \(error.localizedDescription)"
-            )
-        }
-
-        return (data.id, forecast, forecastValues)
-    }
-
-    // Update forecast data and UI on the main thread
-    @MainActor func updateForecastData() async {
-        // Preprocess forecast data on a background thread
-        let forecastData = await preprocessForecastData()
-
-        var allForecastValues = [[ForecastValue]]()
-        var preprocessedData = [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)]()
-
-        // Use a task group to fetch forecast values concurrently
-        await withTaskGroup(of: (UUID, Forecast?, [ForecastValue]).self) { group in
-            for data in forecastData {
-                group.addTask {
-                    await self.fetchForecastValues(for: data, in: self.viewContext)
-                }
-            }
-
-            // Collect the results from the task group
-            for await (id, forecast, forecastValues) in group {
-                guard let forecast = forecast, !forecastValues.isEmpty else { continue }
-
-                allForecastValues.append(forecastValues)
-                preprocessedData.append(contentsOf: forecastValues.map { (id: id, forecast: forecast, forecastValue: $0) })
-            }
-        }
-
-        self.preprocessedData = preprocessedData
-
-        // Ensure there are forecast values to process
-        guard !allForecastValues.isEmpty else {
-            minForecast = []
-            maxForecast = []
-            return
-        }
-
-        minCount = max(12, allForecastValues.map(\.count).min() ?? 0)
-        guard minCount > 0 else { return }
-
-        // Copy allForecastValues to a local constant for thread safety
-        let localAllForecastValues = allForecastValues
-
-        // Calculate min and max forecast values in a background task
-        let (minResult, maxResult) = await Task.detached {
-            let minForecast = (0 ..< self.minCount).map { index in
-                localAllForecastValues.compactMap { $0.indices.contains(index) ? Int($0[index].value) : nil }.min() ?? 0
-            }
-
-            let maxForecast = (0 ..< self.minCount).map { index in
-                localAllForecastValues.compactMap { $0.indices.contains(index) ? Int($0[index].value) : nil }.max() ?? 0
-            }
-
-            return (minForecast, maxForecast)
-        }.value
-
-        // Update the properties on the main thread
-        minForecast = minResult
-        maxForecast = maxResult
     }
 }

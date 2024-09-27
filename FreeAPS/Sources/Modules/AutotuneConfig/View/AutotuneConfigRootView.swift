@@ -5,6 +5,14 @@ extension AutotuneConfig {
     struct RootView: BaseView {
         let resolver: Resolver
         @StateObject var state = StateModel()
+
+        @State private var shouldDisplayHint: Bool = false
+        @State var hintDetent = PresentationDetent.large
+        @State var selectedVerboseHint: String?
+        @State var hintLabel: String?
+        @State private var decimalPlaceholder: Decimal = 0.0
+        @State private var booleanPlaceholder: Bool = false
+
         @State var replaceAlert = false
 
         @Environment(\.colorScheme) var colorScheme
@@ -48,22 +56,62 @@ extension AutotuneConfig {
 
         var body: some View {
             Form {
-                Section {
-                    Toggle("Use Autotune", isOn: $state.useAutotune)
-                    if state.useAutotune {
-                        Toggle("Only Autotune Basal Insulin", isOn: $state.onlyAutotuneBasals)
-                    }
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.useAutotune,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Use Autotune"
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: "Use Autotune",
+                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+                    verboseHint: "Autotune… bla bla bla",
+                    headerText: "Data-driven Adjustments"
+                )
+
+                if state.useAutotune {
+                    SettingInputSection(
+                        decimalValue: $decimalPlaceholder,
+                        booleanValue: $state.onlyAutotuneBasals,
+                        shouldDisplayHint: $shouldDisplayHint,
+                        selectedVerboseHint: Binding(
+                            get: { selectedVerboseHint },
+                            set: {
+                                selectedVerboseHint = $0
+                                hintLabel = "Only Autotune Basal Insulin"
+                            }
+                        ),
+                        units: state.units,
+                        type: .boolean,
+                        label: "Only Autotune Basal Insulin",
+                        miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+                        verboseHint: "Only Autotune Basal Insulin… bla bla bla"
+                    )
                 }
 
-                Section {
-                    HStack {
+                Section(
+                    header: HStack {
                         Text("Last run")
                         Spacer()
                         Text(dateFormatter.string(from: state.publishedDate))
+                    },
+                    content: {
+                        Button {
+                            state.run()
+                        } label: {
+                            Text("Run now")
+                        }
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .listRowBackground(Color(.systemBlue))
+                        .tint(.white)
                     }
-                    Button { state.run() }
-                    label: { Text("Run now") }
-                }
+                )
 
                 if let autotune = state.autotune {
                     if !state.onlyAutotuneBasals {
@@ -85,6 +133,7 @@ extension AutotuneConfig {
                                 Text(state.units.rawValue + "/U").foregroundColor(.secondary)
                             }
                         }
+                        .listRowBackground(Color.chart)
                     }
 
                     Section(header: Text("Basal profile")) {
@@ -107,26 +156,41 @@ extension AutotuneConfig {
                                 .foregroundColor(.secondary)
                         }
                     }
+                    .listRowBackground(Color.chart)
 
                     Section {
                         Button {
                             Task {
                                 await state.delete()
                             }
+                        } label: {
+                            Text("Delete Autotune Data")
                         }
-                        label: { Text("Delete autotune data") }
-                            .foregroundColor(.red)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .listRowBackground(Color(.loopRed))
+                        .tint(.white)
                     }
 
-                    /* Section {
-                         Button {
-                             replaceAlert = true
-                         }
-                         label: { Text("Save as your Normal Basal Rates") }
-                     } header: {
-                         Text("Replace Normal Basal")
-                     } */
+                    // Section {
+                    //     Button {
+                    //         replaceAlert = true
+                    //     } label: {
+                    //         Text("Save as Normal Basal Rates")
+                    //     }
+                    //     .frame(maxWidth: .infinity, alignment: .center)
+                    //     .listRowBackground(Color(.systemGray4))
+                    //     .tint(.white)
+                    // }
                 }
+            }
+            .sheet(isPresented: $shouldDisplayHint) {
+                SettingInputHintView(
+                    hintDetent: $hintDetent,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    hintLabel: hintLabel ?? "",
+                    hintText: selectedVerboseHint ?? "",
+                    sheetTitle: "Help"
+                )
             }
             .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)

@@ -70,7 +70,7 @@ extension DataTable {
                 formatter.minimumFractionDigits = 0
                 formatter.maximumFractionDigits = 1
             }
-            formatter.roundingMode = .down
+            formatter.roundingMode = .halfUp
             return formatter
         }
 
@@ -143,12 +143,24 @@ extension DataTable {
                 .navigationTitle("History")
                 .navigationBarTitleDisplayMode(.large)
                 .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
+                    ToolbarItem(placement: .topBarLeading, content: {
+                        Button(
+                            action: { state.showModal(for: .statistics) },
+                            label: {
+                                HStack {
+                                    Text("Statistics")
+                                }
+                            }
+                        )
+                    })
+                }
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing, content: {
                         addButton({
                             showManualGlucose = true
                             state.manualGlucose = 0
                         })
-                    }
+                    })
                 }
                 .sheet(isPresented: $showManualGlucose) {
                     addGlucoseView()

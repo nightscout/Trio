@@ -4,7 +4,7 @@ import EventKit
 import Swinject
 
 protocol CalendarManager {
-    func requestAccessIfNeeded() -> AnyPublisher<Bool, Never>
+    func requestAccessIfNeeded() async -> Bool
     func calendarIDs() -> [String]
     var currentCalendarID: String? { get set }
     func createEvent() async
@@ -19,7 +19,8 @@ final class BaseCalendarManager: CalendarManager, Injectable {
     @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var storage: FileStorage!
 
-    private var coreDataObserver: CoreDataObserver?
+    private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+    private var subscriptions = Set<AnyCancellable>()
 
     private var glucoseFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -58,12 +59,18 @@ final class BaseCalendarManager: CalendarManager, Injectable {
     init(resolver: Resolver) {
         injectServices(resolver)
         setupCurrentCalendar()
+
+        coreDataPublisher =
+            changedObjectsOnManagedObjectContextDidSavePublisher()
+                .receive(on: DispatchQueue.global(qos: .background))
+                .share()
+                .eraseToAnyPublisher()
+
         Task {
             await createEvent()
         }
-        coreDataObserver = CoreDataObserver()
         registerHandlers()
-        setupGlucoseNotification()
+        registerSubscribers()
     }
 
     let backgroundContext = CoreDataStack.shared.newTaskContext()
@@ -79,85 +86,86 @@ final class BaseCalendarManager: CalendarManager, Injectable {
     }
 
     private func registerHandlers() {
-        coreDataObserver?.registerHandler(for: "GlucoseStored") { [weak self] in
+        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
                 await self.createEvent()
             }
-        }
+        }.store(in: &subscriptions)
     }
 
-    private func setupGlucoseNotification() {
-        /// custom notification that is sent when a batch insert of glucose objects is done
-        Foundation.NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleBatchInsert),
-            name: .didPerformBatchInsert,
-            object: nil
-        )
+    private func registerSubscribers() {
+        glucoseStorage.updatePublisher
+            .receive(on: DispatchQueue.global(qos: .background))
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                Task {
+                    await self.createEvent()
+                }
+            }
+            .store(in: &subscriptions)
     }
 
-    @objc private func handleBatchInsert() {
-        Task {
-            await createEvent()
-        }
-    }
-
-    func requestAccessIfNeeded() -> AnyPublisher<Bool, Never> {
-        Future { promise in
-            let status = EKEventStore.authorizationStatus(for: .event)
-            switch status {
-            case .notDetermined:
+    func requestAccessIfNeeded() async -> Bool {
+        let status = EKEventStore.authorizationStatus(for: .event)
+        switch status {
+        case .notDetermined:
+            return await withCheckedContinuation { continuation in
                 #if swift(>=5.9)
                     if #available(iOS 17.0, *) {
-                        EKEventStore().requestFullAccessToEvents(completion: { (granted: Bool, error: Error?) -> Void in
+                        EKEventStore().requestFullAccessToEvents { granted, error in
                             if let error = error {
+                                print("Calendar access not granted: \(error)")
                                 warning(.service, "Calendar access not granted", error: error)
                             }
-                            promise(.success(granted))
-                        })
+                            continuation.resume(returning: granted)
+                        }
                     } else {
                         EKEventStore().requestAccess(to: .event) { granted, error in
                             if let error = error {
+                                print("Calendar access not granted: \(error)")
                                 warning(.service, "Calendar access not granted", error: error)
                             }
-                            promise(.success(granted))
+                            continuation.resume(returning: granted)
                         }
                     }
                 #else
                     EKEventStore().requestAccess(to: .event) { granted, error in
                         if let error = error {
+                            print("Calendar access not granted: \(error)")
                             warning(.service, "Calendar access not granted", error: error)
                         }
-                        promise(.success(granted))
+                        continuation.resume(returning: granted)
                     }
                 #endif
-            case .denied,
-                 .restricted:
-                promise(.success(false))
-            case .authorized:
-                promise(.success(true))
-
-            #if swift(>=5.9)
-                case .fullAccess:
-                    promise(.success(true))
-                case .writeOnly:
-                    if #available(iOS 17.0, *) {
-                        EKEventStore().requestFullAccessToEvents(completion: { (granted: Bool, error: Error?) -> Void in
+            }
+        case .denied,
+             .restricted:
+            return false
+        case .authorized:
+            return true
+        #if swift(>=5.9)
+            case .fullAccess:
+                return true
+            case .writeOnly:
+                if #available(iOS 17.0, *) {
+                    return await withCheckedContinuation { continuation in
+                        EKEventStore().requestFullAccessToEvents { granted, error in
                             if let error = error {
-                                print("Calendar access not upgraded")
+                                print("Calendar access not upgraded: \(error)")
                                 warning(.service, "Calendar access not upgraded", error: error)
                             }
-                            promise(.success(granted))
-                        })
+                            continuation.resume(returning: granted)
+                        }
                     }
-            #endif
-
-            @unknown default:
-                warning(.service, "Unknown calendar access status")
-                promise(.success(false))
-            }
-        }.eraseToAnyPublisher()
+                } else {
+                    return false
+                }
+        #endif
+        @unknown default:
+            warning(.service, "Unknown calendar access status")
+            return false
+        }
     }
 
     func calendarIDs() -> [String] {
@@ -175,9 +183,9 @@ final class BaseCalendarManager: CalendarManager, Injectable {
             propertiesToFetch: ["timestamp", "cob", "iob", "objectID"]
         )
 
-        guard let fetchedResults = results as? [[String: Any]], !fetchedResults.isEmpty else { return nil }
-
         return await backgroundContext.perform {
+            guard let fetchedResults = results as? [[String: Any]] else { return nil }
+
             return fetchedResults.first?["objectID"] as? NSManagedObjectID
         }
     }
@@ -188,12 +196,13 @@ final class BaseCalendarManager: CalendarManager, Injectable {
             onContext: backgroundContext,
             predicate: NSPredicate.predicateFor30MinAgo,
             key: "date",
-            ascending: false
+            ascending: false,
+            propertiesToFetch: ["objectID", "glucose"]
         )
 
-        guard let fetchedResults = results as? [[String: Any]] else { return [] }
-
         return await backgroundContext.perform {
+            guard let fetchedResults = results as? [[String: Any]] else { return [] }
+
             return fetchedResults.compactMap { $0["objectID"] as? NSManagedObjectID }
         }
     }
@@ -246,7 +255,6 @@ final class BaseCalendarManager: CalendarManager, Injectable {
                     settingsManager.settings.units == .mmolL ? Int(lastGlucoseValue)
                         .asMmolL : Decimal(lastGlucoseValue)
                 ) as NSNumber)!
-            debugPrint("\(DebuggingIdentifiers.failed) glucose text: \(glucoseText)")
 
             let directionText = lastGlucoseObject.directionEnum?.symbol ?? "↔︎"
 

@@ -25,8 +25,6 @@ struct FreeAPSSettings: JSON, Equatable {
     var useLocalGlucoseSource: Bool = false
     var localGlucosePort: Int = 8080
     var debugOptions: Bool = false
-    var insulinReqPercentage: Decimal = 70
-    var skipBolusScreenAfterCarbs: Bool = false
     var displayHR: Bool = false
     var cgm: CGMType = .none
     var cgmPluginIdentifier: String = ""
@@ -41,9 +39,9 @@ struct FreeAPSSettings: JSON, Equatable {
     var lowGlucose: Decimal = 72
     var highGlucose: Decimal = 270
     var carbsRequiredThreshold: Decimal = 10
-    var animatedBackground: Bool = false
+    var showCarbsRequiredBadge: Bool = true
     var useFPUconversion: Bool = true
-    var tins: Bool = false
+    var totalInsulinDisplayType: TotalInsulinDisplayType = .totalDailyDose
     var individualAdjustmentFactor: Decimal = 0.5
     var timeCap: Int = 8
     var minuteInterval: Int = 30
@@ -55,12 +53,12 @@ struct FreeAPSSettings: JSON, Equatable {
     var high: Decimal = 180
     var low: Decimal = 70
     var hours: Int = 6
-    var dynamicGlucoseColor: Bool = false
+    var glucoseColorStyle: GlucoseColorStyle = .staticColor
     var xGridLines: Bool = true
     var yGridLines: Bool = true
     var oneDimensionalGraph: Bool = false
     var rulerMarks: Bool = true
-    var displayForecastsAsLines: Bool = false
+    var forecastDisplayType: ForecastDisplayType = .cone
     var maxCarbs: Decimal = 250
     var maxFat: Decimal = 250
     var maxProtein: Decimal = 250
@@ -68,14 +66,12 @@ struct FreeAPSSettings: JSON, Equatable {
     var confirmBolusFaster: Bool = false
     var onlyAutotuneBasals: Bool = false
     var overrideFactor: Decimal = 0.8
-    var useCalc: Bool = true
     var fattyMeals: Bool = false
     var fattyMealFactor: Decimal = 0.7
     var sweetMeals: Bool = false
     var sweetMealFactor: Decimal = 2
     var displayPresets: Bool = true
     var useLiveActivity: Bool = false
-    var historyLayout: HistoryLayout = .twoTabs
     var lockScreenView: LockScreenView = .simple
     var bolusShortcut: BolusShortcutLimit = .notAllowed
 }
@@ -120,14 +116,6 @@ extension FreeAPSSettings: Decodable {
 
         if let debugOptions = try? container.decode(Bool.self, forKey: .debugOptions) {
             settings.debugOptions = debugOptions
-        }
-
-        if let insulinReqPercentage = try? container.decode(Decimal.self, forKey: .insulinReqPercentage) {
-            settings.insulinReqPercentage = insulinReqPercentage
-        }
-
-        if let skipBolusScreenAfterCarbs = try? container.decode(Bool.self, forKey: .skipBolusScreenAfterCarbs) {
-            settings.skipBolusScreenAfterCarbs = skipBolusScreenAfterCarbs
         }
 
         if let displayHR = try? container.decode(Bool.self, forKey: .displayHR) {
@@ -176,16 +164,12 @@ extension FreeAPSSettings: Decodable {
             settings.useFPUconversion = useFPUconversion
         }
 
-        if let tins = try? container.decode(Bool.self, forKey: .tins) {
-            settings.tins = tins
+        if let totalInsulinDisplayType = try? container.decode(TotalInsulinDisplayType.self, forKey: .totalInsulinDisplayType) {
+            settings.totalInsulinDisplayType = totalInsulinDisplayType
         }
 
         if let individualAdjustmentFactor = try? container.decode(Decimal.self, forKey: .individualAdjustmentFactor) {
             settings.individualAdjustmentFactor = individualAdjustmentFactor
-        }
-
-        if let useCalc = try? container.decode(Bool.self, forKey: .useCalc) {
-            settings.useCalc = useCalc
         }
 
         if let fattyMeals = try? container.decode(Bool.self, forKey: .fattyMeals) {
@@ -247,8 +231,8 @@ extension FreeAPSSettings: Decodable {
             settings.carbsRequiredThreshold = carbsRequiredThreshold
         }
 
-        if let animatedBackground = try? container.decode(Bool.self, forKey: .animatedBackground) {
-            settings.animatedBackground = animatedBackground
+        if let showCarbsRequiredBadge = try? container.decode(Bool.self, forKey: .showCarbsRequiredBadge) {
+            settings.showCarbsRequiredBadge = showCarbsRequiredBadge
         }
 
         if let smoothGlucose = try? container.decode(Bool.self, forKey: .smoothGlucose) {
@@ -267,8 +251,8 @@ extension FreeAPSSettings: Decodable {
             settings.hours = hours
         }
 
-        if let dynamicGlucoseColor = try? container.decode(Bool.self, forKey: .dynamicGlucoseColor) {
-            settings.dynamicGlucoseColor = dynamicGlucoseColor
+        if let glucoseColorStyle = try? container.decode(GlucoseColorStyle.self, forKey: .glucoseColorStyle) {
+            settings.glucoseColorStyle = glucoseColorStyle
         }
 
         if let xGridLines = try? container.decode(Bool.self, forKey: .xGridLines) {
@@ -287,8 +271,8 @@ extension FreeAPSSettings: Decodable {
             settings.rulerMarks = rulerMarks
         }
 
-        if let displayForecastsAsLines = try? container.decode(Bool.self, forKey: .displayForecastsAsLines) {
-            settings.displayForecastsAsLines = displayForecastsAsLines
+        if let forecastDisplayType = try? container.decode(ForecastDisplayType.self, forKey: .forecastDisplayType) {
+            settings.forecastDisplayType = forecastDisplayType
         }
 
         if let overrideHbA1cUnit = try? container.decode(Bool.self, forKey: .overrideHbA1cUnit) {
@@ -325,10 +309,6 @@ extension FreeAPSSettings: Decodable {
 
         if let useLiveActivity = try? container.decode(Bool.self, forKey: .useLiveActivity) {
             settings.useLiveActivity = useLiveActivity
-        }
-
-        if let historyLayout = try? container.decode(HistoryLayout.self, forKey: .historyLayout) {
-            settings.historyLayout = historyLayout
         }
 
         if let lockScreenView = try? container.decode(LockScreenView.self, forKey: .lockScreenView) {

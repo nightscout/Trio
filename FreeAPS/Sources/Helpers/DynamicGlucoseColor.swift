@@ -1,4 +1,3 @@
-import CoreData
 import Foundation
 import SwiftUI
 
@@ -8,7 +7,7 @@ public func getDynamicGlucoseColor(
     highGlucoseColorValue: Decimal,
     lowGlucoseColorValue: Decimal,
     targetGlucose: Decimal,
-    dynamicGlucoseColor: Bool,
+    glucoseColorStyle: GlucoseColorStyle,
     offset: Decimal
 ) -> Color {
     // Convert Decimal to Int for high and low glucose values
@@ -17,7 +16,7 @@ public func getDynamicGlucoseColor(
     let targetGlucose = targetGlucose
 
     // Only use calculateHueBasedGlucoseColor if the setting is enabled in preferences
-    if dynamicGlucoseColor {
+    if GlucoseColorStyle == .dynamicColor {
         return calculateHueBasedGlucoseColor(
             glucoseValue: glucoseValue,
             highGlucose: highGlucose,

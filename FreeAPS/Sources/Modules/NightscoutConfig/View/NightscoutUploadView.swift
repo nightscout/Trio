@@ -1,30 +1,86 @@
-
 import SwiftUI
 
 struct NightscoutUploadView: View {
     @ObservedObject var state: NightscoutConfig.StateModel
 
+    @State private var shouldDisplayHint: Bool = false
+    @State var hintDetent = PresentationDetent.large
+    @State var selectedVerboseHint: String?
+    @State var hintLabel: String?
+    @State private var decimalPlaceholder: Decimal = 0.0
+    @State private var booleanPlaceholder: Bool = false
+
+    @Environment(\.colorScheme) var colorScheme
+    var color: LinearGradient {
+        colorScheme == .dark ? LinearGradient(
+            gradient: Gradient(colors: [
+                Color.bgDarkBlue,
+                Color.bgDarkerDarkBlue
+            ]),
+            startPoint: .top,
+            endPoint: .bottom
+        )
+            :
+            LinearGradient(
+                gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+    }
+
     var body: some View {
         Form {
-            Section(
-                header: Text("Allow Uploading to Nightscout"),
-                footer: VStack(alignment: .leading, spacing: 2) {
-                    Text(
-                        "The Upload Treatments toggle enables uploading of carbs, temp targets, device status, preferences and settings."
-                    )
-                    Text("\nThe Upload Glucose toggle enables uploading of CGM readings.")
-
-                    if !state.changeUploadGlucose {
-                        Text("\nTo flip the Upload Glucose toggle, go to ⚙️ > CGM > CGM Configuration")
+            SettingInputSection(
+                decimalValue: $decimalPlaceholder,
+                booleanValue: $state.isUploadEnabled,
+                shouldDisplayHint: $shouldDisplayHint,
+                selectedVerboseHint: Binding(
+                    get: { selectedVerboseHint },
+                    set: {
+                        selectedVerboseHint = $0
+                        hintLabel = "Allow Uploading to Nightscout"
+                        shouldDisplayHint = true
                     }
-                }
+                ),
+                units: state.units,
+                type: .boolean,
+                label: "Allow Uploading to Nightscout",
+                miniHint: "Enables upload of selected data sets to Nightscout. See hint for more details.",
+                verboseHint: "The Upload Treatments toggle enables uploading of carbs, temp targets, device status, preferences and settings."
             )
-                {
-                    Toggle("Upload Treatments and Settings", isOn: $state.isUploadEnabled)
 
-                    Toggle("Upload Glucose", isOn: $state.uploadGlucose).disabled(!state.changeUploadGlucose)
-                }
+            if state.changeUploadGlucose {
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.uploadGlucose,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Upload Glucose"
+                            shouldDisplayHint = true
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: "Upload Glucose",
+                    miniHint: "Enables uploading of CGM readings to Nightscout.",
+                    verboseHint: "Write stuff here."
+                )
+            }
+        }
+        .sheet(isPresented: $shouldDisplayHint) {
+            SettingInputHintView(
+                hintDetent: $hintDetent,
+                shouldDisplayHint: $shouldDisplayHint,
+                hintLabel: hintLabel ?? "",
+                hintText: selectedVerboseHint ?? "",
+                sheetTitle: "Help"
+            )
         }
         .navigationTitle("Upload")
+        .navigationBarTitleDisplayMode(.automatic)
+        .scrollContentBackground(.hidden).background(color)
     }
 }

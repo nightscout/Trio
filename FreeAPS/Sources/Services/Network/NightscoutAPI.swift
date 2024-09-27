@@ -352,7 +352,7 @@ extension NightscoutAPI {
         }
         request.httpMethod = "POST"
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (_, response) = try await URLSession.shared.data(for: request)
 
         // Check the response status code
         guard let httpResponse = response as? HTTPURLResponse, 200 ..< 300 ~= httpResponse.statusCode else {
@@ -388,7 +388,7 @@ extension NightscoutAPI {
         }
         request.httpMethod = "POST"
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (_, response) = try await URLSession.shared.data(for: request)
 
         // Check the response status code
         guard let httpResponse = response as? HTTPURLResponse, 200 ..< 300 ~= httpResponse.statusCode else {
@@ -396,31 +396,6 @@ extension NightscoutAPI {
         }
 
 //        debugPrint("Upload successful, response data: \(String(data: data, encoding: .utf8) ?? "No data")")
-    }
-
-    func uploadStats(_ stats: NightscoutStatistics) async throws {
-        var components = URLComponents()
-        components.scheme = url.scheme
-        components.host = url.host
-        components.port = url.port
-        components.path = Config.statusPath
-
-        var request = URLRequest(url: components.url!)
-        request.allowsConstrainedNetworkAccess = false
-        request.timeoutInterval = Config.timeout
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if let secret = secret {
-            request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
-        }
-        request.httpBody = try JSONCoding.encoder.encode(stats)
-        request.httpMethod = "POST"
-
-        let (data, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
-            throw URLError(.badServerResponse)
-        }
     }
 
     func uploadStatus(_ status: NightscoutStatus) async throws {
@@ -442,7 +417,7 @@ extension NightscoutAPI {
         do {
             let encodedBody = try JSONCoding.encoder.encode(status)
             request.httpBody = encodedBody
-//            debugPrint("Payload glucose size: \(encodedBody.count) bytes")
+//            debugPrint("Payload status size: \(encodedBody.count) bytes")
 //            debugPrint(String(data: encodedBody, encoding: .utf8) ?? "Invalid payload")
         } catch {
             debugPrint("Error encoding payload: \(error.localizedDescription)")
@@ -458,62 +433,18 @@ extension NightscoutAPI {
         }
     }
 
-    func uploadPrefs(_ prefs: NightscoutPreferences) -> AnyPublisher<Void, Swift.Error> {
-        var components = URLComponents()
-        components.scheme = url.scheme
-        components.host = url.host
-        components.port = url.port
-        components.path = Config.statusPath
-
-        var request = URLRequest(url: components.url!)
-        request.allowsConstrainedNetworkAccess = false
-        request.timeoutInterval = Config.timeout
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if let secret = secret {
-            request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
-        }
-        request.httpBody = try! JSONCoding.encoder.encode(prefs)
-        request.httpMethod = "POST"
-
-        return service.run(request)
-            .retry(Config.retryCount)
-            .map { _ in () }
-            .eraseToAnyPublisher()
-    }
-
-    func uploadSettings(_ settings: NightscoutSettings) -> AnyPublisher<Void, Swift.Error> {
-        var components = URLComponents()
-        components.scheme = url.scheme
-        components.host = url.host
-        components.port = url.port
-        components.path = Config.statusPath
-
-        var request = URLRequest(url: components.url!)
-        request.allowsConstrainedNetworkAccess = false
-        request.timeoutInterval = Config.timeout
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if let secret = secret {
-            request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
-        }
-        request.httpBody = try! JSONCoding.encoder.encode(settings)
-        request.httpMethod = "POST"
-
-        return service.run(request)
-            .retry(Config.retryCount)
-            .map { _ in () }
-            .eraseToAnyPublisher()
-    }
-
-    func uploadProfile(_ profile: NightscoutProfileStore) -> AnyPublisher<Void, Swift.Error> {
+    func uploadProfile(_ profile: NightscoutProfileStore) async throws {
         var components = URLComponents()
         components.scheme = url.scheme
         components.host = url.host
         components.port = url.port
         components.path = Config.profilePath
 
-        var request = URLRequest(url: components.url!)
+        guard let url = components.url else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
         request.allowsConstrainedNetworkAccess = false
         request.timeoutInterval = Config.timeout
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -521,37 +452,22 @@ extension NightscoutAPI {
         if let secret = secret {
             request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
         }
-        request.httpBody = try! JSONCoding.encoder.encode(profile)
-        request.httpMethod = "POST"
 
-        return service.run(request)
-            .retry(Config.retryCount)
-            .map { _ in () }
-            .eraseToAnyPublisher()
-    }
-
-    func uploadPreferences(_ preferences: Preferences) -> AnyPublisher<Void, Swift.Error> {
-        var components = URLComponents()
-        components.scheme = url.scheme
-        components.host = url.host
-        components.port = url.port
-        components.path = Config.profilePath
-
-        var request = URLRequest(url: components.url!)
-        request.allowsConstrainedNetworkAccess = false
-        request.timeoutInterval = Config.timeout
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if let secret = secret {
-            request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
+        do {
+            let encodedBody = try JSONCoding.encoder.encode(profile)
+            request.httpBody = encodedBody
+//            debugPrint("Payload profile upload size: \(encodedBody.count) bytes")
+//            debugPrint(String(data: encodedBody, encoding: .utf8) ?? "Invalid payload")
+        } catch {
+            debugPrint("Error encoding payload: \(error.localizedDescription)")
+            throw error
         }
-        request.httpBody = try! JSONCoding.encoder.encode(preferences)
         request.httpMethod = "POST"
 
-        return service.run(request)
-            .retry(Config.retryCount)
-            .map { _ in () }
-            .eraseToAnyPublisher()
+        let (_, response) = try await URLSession.shared.data(for: request)
+        if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
+            throw URLError(.badServerResponse)
+        }
     }
 
     func uploadOverrides(_ overrides: [NightscoutExercise]) async throws {
@@ -580,7 +496,7 @@ extension NightscoutAPI {
         }
         request.httpMethod = "POST"
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (_, response) = try await URLSession.shared.data(for: request)
 
         // Check the response status code
         guard let httpResponse = response as? HTTPURLResponse, 200 ..< 300 ~= httpResponse.statusCode else {
@@ -588,6 +504,53 @@ extension NightscoutAPI {
         }
 
 //        debugPrint("Upload successful, response data: \(String(data: data, encoding: .utf8) ?? "No data")")
+    }
+
+    func importSettings() async throws -> ScheduledNightscoutProfile {
+        var components = URLComponents()
+        components.scheme = url.scheme
+        components.host = url.host
+        components.port = url.port
+        components.path = Config.profilePath
+        components.queryItems = [URLQueryItem(name: "count", value: "1")]
+
+        guard let url = components.url else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.allowsConstrainedNetworkAccess = false
+        request.timeoutInterval = Config.timeout
+
+        if let secret = secret {
+            request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
+        }
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
+                throw URLError(.badServerResponse)
+            }
+
+            guard let mimeType = httpResponse.mimeType, mimeType == "application/json" else {
+                throw URLError(.unsupportedURL)
+            }
+
+            let jsonDecoder = JSONCoding.decoder
+            let fetchedProfileStore = try jsonDecoder.decode([FetchedNightscoutProfileStore].self, from: data)
+            guard let fetchedProfile = fetchedProfileStore.first?.store["default"] else {
+                throw NSError(
+                    domain: "ImportError",
+                    code: 1,
+                    userInfo: [NSLocalizedDescriptionKey: "Can't find the default Nightscout Profile."]
+                )
+            }
+
+            return fetchedProfile
+        } catch {
+            warning(.nightscout, "Could not fetch Nightscout Profile! Error: \(error.localizedDescription)")
+            throw error
+        }
     }
 }
 

@@ -26,40 +26,18 @@ extension WatchConfig {
 
         var body: some View {
             Form {
-                Section(header: Text("Apple Watch")) {
-                    Picker(
-                        selection: $state.selectedAwConfig,
-                        label: Text("Display on Watch")
-                    ) {
-                        ForEach(AwConfig.allCases) { v in
-                            Text(v.displayName).tag(v)
-                        }
+                Section(
+                    header: Text("Smartwatch Configuration"),
+                    content: {
+                        NavigationLink("Apple Watch", destination: WatchConfigAppleWatchView(state: state))
+                        NavigationLink("Garmin", destination: WatchConfigGarminView(state: state))
                     }
-                    Toggle("Display Protein & Fat", isOn: $state.displayFatAndProteinOnWatch)
-                    Toggle("Confirm Bolus Faster", isOn: $state.confirmBolusFaster)
-                }
-
-                Section(header: Text("Garmin Watch")) {
-                    List {
-                        ForEach(state.devices, id: \.uuid) { device in
-                            Text(device.friendlyName)
-                        }
-                        .onDelete(perform: onDelete)
-                    }
-                    Button("Add devices") {
-                        state.selectGarminDevices()
-                    }
-                }
+                ).listRowBackground(Color.chart)
             }
             .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)
-            .navigationTitle("Watch Configuration")
+            .navigationTitle("Watch")
             .navigationBarTitleDisplayMode(.automatic)
-        }
-
-        private func onDelete(offsets: IndexSet) {
-            state.devices.remove(atOffsets: offsets)
-            state.deleteGarminDevice()
         }
     }
 }

@@ -1,9 +1,9 @@
 {
-    "units": "mmol/L",
-    "user_preferred_units": "mmol/L",
+    "units": "mg/dL",
+    "user_preferred_units": "mg/dL",
     "sensitivities": [
         {
-            "sensitivity": 3.0,
+            "sensitivity": 54,
             "offset": 0,
             "start": "00:00:00"
         }

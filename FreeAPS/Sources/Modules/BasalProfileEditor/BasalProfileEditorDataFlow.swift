@@ -6,8 +6,8 @@ enum BasalProfileEditor {
 
     class Item: Identifiable, Hashable, Equatable {
         let id = UUID()
-        var rateIndex = 0
-        var timeIndex = 0
+        var rateIndex: Int
+        var timeIndex: Int
 
         init(rateIndex: Int, timeIndex: Int) {
             self.rateIndex = rateIndex
@@ -15,10 +15,11 @@ enum BasalProfileEditor {
         }
 
         static func == (lhs: Item, rhs: Item) -> Bool {
-            lhs.timeIndex == rhs.timeIndex
+            lhs.rateIndex == rhs.rateIndex && lhs.timeIndex == rhs.timeIndex
         }
 
         func hash(into hasher: inout Hasher) {
+            hasher.combine(rateIndex)
             hasher.combine(timeIndex)
         }
     }

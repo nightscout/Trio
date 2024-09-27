@@ -102,17 +102,19 @@ final class OpenAPS {
             fetchLimit: 2
         )
 
-        guard let previousDeterminations = results as? [OrefDetermination] else {
-            return
-        }
+        await context.perform {
+            guard let previousDeterminations = results as? [OrefDetermination] else {
+                return
+            }
 
-        // We need to get the second last Determination for this comparison because we have saved the current Determination already to Core Data
-        if let previousDetermination = previousDeterminations.dropFirst().first {
-            let iobChanged = previousDetermination.iob != decimalToNSDecimalNumber(determination.iob)
-            let cobChanged = previousDetermination.cob != Int16(Int(determination.cob ?? 0))
+            // We need to get the second last Determination for this comparison because we have saved the current Determination already to Core Data
+            if let previousDetermination = previousDeterminations.dropFirst().first {
+                let iobChanged = previousDetermination.iob != self.decimalToNSDecimalNumber(determination.iob)
+                let cobChanged = previousDetermination.cob != Int16(Int(determination.cob ?? 0))
 
-            if iobChanged || cobChanged {
-                Foundation.NotificationCenter.default.post(name: .didUpdateCobIob, object: nil)
+                if iobChanged || cobChanged {
+                    Foundation.NotificationCenter.default.post(name: .didUpdateCobIob, object: nil)
+                }
             }
         }
     }
@@ -140,11 +142,11 @@ final class OpenAPS {
             batchSize: 24
         )
 
-        guard let glucoseResults = results as? [GlucoseStored] else {
-            return ""
-        }
-
         return await context.perform {
+            guard let glucoseResults = results as? [GlucoseStored] else {
+                return ""
+            }
+
             // convert to JSON
             return self.jsonConverter.convertToJSON(glucoseResults)
         }
@@ -159,11 +161,11 @@ final class OpenAPS {
             ascending: false
         )
 
-        guard let carbResults = results as? [CarbEntryStored] else {
-            return ""
-        }
-
         let json = await context.perform {
+            guard let carbResults = results as? [CarbEntryStored] else {
+                return ""
+            }
+
             var jsonArray = self.jsonConverter.convertToJSON(carbResults)
 
             if let additionalCarbs = additionalCarbs {
@@ -209,11 +211,11 @@ final class OpenAPS {
             batchSize: 50
         )
 
-        guard let pumpEventResults = results as? [PumpEventStored] else {
-            return nil
-        }
-
         return await context.perform {
+            guard let pumpEventResults = results as? [PumpEventStored] else {
+                return nil
+            }
+
             return pumpEventResults.map(\.objectID)
         }
     }
@@ -249,11 +251,11 @@ final class OpenAPS {
             if let bolusDTO = event.toBolusDTOEnum() {
                 eventDTOs.append(bolusDTO)
             }
-            if let tempBasalDTO = event.toTempBasalDTOEnum() {
-                eventDTOs.append(tempBasalDTO)
-            }
             if let tempBasalDurationDTO = event.toTempBasalDurationDTOEnum() {
                 eventDTOs.append(tempBasalDurationDTO)
+            }
+            if let tempBasalDTO = event.toTempBasalDTOEnum() {
+                eventDTOs.append(tempBasalDTO)
             }
             return eventDTOs
         }
@@ -466,7 +468,6 @@ final class OpenAPS {
             let weighted_average = weight * average2hours + (1 - weight) * average14
 
             var duration: Decimal = 0
-            var newDuration: Decimal = 0
             var overrideTarget: Decimal = 0
 
             if useOverride {

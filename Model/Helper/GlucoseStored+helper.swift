@@ -32,7 +32,7 @@ extension GlucoseStored {
 extension NSPredicate {
     static var glucose: NSPredicate {
         let date = Date.oneDayAgo
-        return NSPredicate(format: "isManual == %@ AND date >= %@", false as NSNumber, date as NSDate)
+        return NSPredicate(format: "date >= %@", date as NSDate)
     }
 
     static var manualGlucose: NSPredicate {

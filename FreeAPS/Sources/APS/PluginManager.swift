@@ -26,10 +26,10 @@ class BasePluginManager: Injectable, PluginManager {
                 {
                     if let bundle = Bundle(url: pluginURL) {
                         if let bname = bundle.object(forInfoDictionaryKey: "CFBundleName") as? String {
-                            debug(.deviceManager, "bundle name2:\(bname)")
+                            debug(.deviceManager, "bundle name: \(bname)")
                         }
                         if let bcgm = bundle.object(forInfoDictionaryKey: "com.loopkit.Loop.CGMManagerIdentifier") as? String {
-                            debug(.deviceManager, "bundle is CGM")
+                            debug(.deviceManager, "bundle is CGM: \(bcgm)")
                         }
 
                         if bundle.isLoopPlugin {

@@ -32,37 +32,50 @@ extension TargetsEditor {
             return formatter
         }
 
-        private var rateFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            return formatter
-        }
-
         var body: some View {
             Form {
+                let shouldDisableButton = state.shouldDisplaySaving || state.items.isEmpty || !state.hasChanges
+
                 Section(header: Text("Schedule")) {
                     list
-                    addButton
-                }
+                }.listRowBackground(Color.chart)
+
                 Section {
-                    Button {
-                        let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
-                        impactHeavy.impactOccurred()
-                        state.save()
+                    HStack {
+                        if state.shouldDisplaySaving {
+                            ProgressView().padding(.trailing, 10)
+                        }
+
+                        Button {
+                            let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+                            impactHeavy.impactOccurred()
+                            state.save()
+
+                            // deactivate saving display after 1.25 seconds
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.25) {
+                                state.shouldDisplaySaving = false
+                            }
+                        } label: {
+                            Text(state.shouldDisplaySaving ? "Saving..." : "Save")
+                        }
+                        .disabled(shouldDisableButton)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .tint(.white)
                     }
-                    label: {
-                        Text("Save")
-                    }
-                    .disabled(state.items.isEmpty)
-                }
+                }.listRowBackground(shouldDisableButton ? Color(.systemGray4) : Color(.systemBlue))
             }
             .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)
             .navigationTitle("Target Glucose")
             .navigationBarTitleDisplayMode(.automatic)
-            .navigationBarItems(
-                trailing: EditButton()
-            )
+            .toolbar(content: {
+                ToolbarItem(placement: .topBarTrailing) {
+                    EditButton()
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    addButton
+                }
+            })
             .environment(\.editMode, $editMode)
             .onAppear {
                 state.validate()
@@ -70,39 +83,37 @@ extension TargetsEditor {
         }
 
         private func pickers(for index: Int) -> some View {
-            GeometryReader { geometry in
-                VStack {
-                    HStack {
-                        Text("Target").frame(width: geometry.size.width / 3)
-                        Text("Time").frame(width: geometry.size.width / 3)
-                    }
-                    HStack(spacing: 0) {
-                        Picker(selection: $state.items[index].lowIndex, label: EmptyView()) {
-                            ForEach(0 ..< state.rateValues.count, id: \.self) { i in
-                                Text(
-                                    self.rateFormatter
-                                        .string(from: state.rateValues[i] as NSNumber) ?? ""
-                                ).tag(i)
-                            }
+            Form {
+                Section {
+                    Picker(
+                        selection: $state.items[index].lowIndex,
+                        label: Text("Target ")
+                    ) {
+                        ForEach(0 ..< state.rateValues.count, id: \.self) { i in
+                            Text(state.units == .mgdL ? state.rateValues[i].description : state.rateValues[i].formattedAsMmolL)
+                                .tag(i)
                         }
-                        .frame(maxWidth: geometry.size.width / 3)
-                        .clipped()
-                        Picker(selection: $state.items[index].timeIndex, label: EmptyView()) {
-                            ForEach(0 ..< state.timeValues.count, id: \.self) { i in
-                                Text(
-                                    self.dateFormatter
-                                        .string(from: Date(
-                                            timeIntervalSince1970: state
-                                                .timeValues[i]
-                                        ))
-                                ).tag(i)
-                            }
-                        }
-                        .frame(maxWidth: geometry.size.width / 3)
-                        .clipped()
                     }
-                }
+                }.listRowBackground(Color.chart)
+
+                Section {
+                    Picker(selection: $state.items[index].timeIndex, label: Text("Time")) {
+                        ForEach(0 ..< state.timeValues.count, id: \.self) { i in
+                            Text(
+                                self.dateFormatter
+                                    .string(from: Date(
+                                        timeIntervalSince1970: state
+                                            .timeValues[i]
+                                    ))
+                            ).tag(i)
+                        }
+                    }
+                }.listRowBackground(Color.chart)
             }
+            .padding(.top)
+            .scrollContentBackground(.hidden).background(color)
+            .navigationTitle("Set Target")
+            .navigationBarTitleDisplayMode(.automatic)
         }
 
         private var list: some View {
@@ -111,7 +122,8 @@ extension TargetsEditor {
                     NavigationLink(destination: pickers(for: index)) {
                         HStack {
                             Text(
-                                "\(rateFormatter.string(from: state.rateValues[item.lowIndex] as NSNumber) ?? "0")"
+                                state.units == .mgdL ? state.rateValues[item.lowIndex].description : state
+                                    .rateValues[item.lowIndex].formattedAsMmolL
                             )
                             Text("\(state.units.rawValue)").foregroundColor(.secondary)
                             Spacer()
@@ -134,7 +146,7 @@ extension TargetsEditor {
 
             switch editMode {
             case .inactive:
-                return AnyView(Button(action: onAdd) { Text("Add") })
+                return AnyView(Button(action: onAdd) { Image(systemName: "plus") })
             default:
                 return AnyView(EmptyView())
             }

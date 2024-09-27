@@ -1,5 +1,6 @@
 import Algorithms
 import Combine
+import CoreData
 import Foundation
 import LoopKit
 import LoopKitUI
@@ -81,6 +82,18 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                 pumpDisplayState.value = PumpDisplayState(name: pumpManager.localizedTitle, image: pumpManager.smallImage)
                 pumpName.send(pumpManager.localizedTitle)
 
+                var modifiedPreferences = settingsManager.preferences
+                let bolusIncrement = Decimal(
+                    pumpManager.supportedBolusVolumes.first ??
+                        Double(
+                            settingsManager.preferences
+                                .bolusIncrement
+                        )
+                )
+                modifiedPreferences
+                    .bolusIncrement = bolusIncrement != 0.025 ? bolusIncrement : 0.1
+                storage.save(modifiedPreferences, as: OpenAPS.Settings.preferences)
+
                 if let omnipod = pumpManager as? OmnipodPumpManager {
                     guard let endTime = omnipod.state.podState?.expiresAt else {
                         pumpExpiresAtDate.send(nil)
@@ -140,6 +153,30 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                 pumpDisplayState.value = nil
                 pumpExpiresAtDate.send(nil)
                 pumpName.send("")
+                // Reset bolusIncrement setting to default value, which is 0.1 U
+                var modifiedPreferences = settingsManager.preferences
+                modifiedPreferences.bolusIncrement = 0.1
+                storage.save(modifiedPreferences, as: OpenAPS.Settings.preferences)
+                // Remove OpenAPS_Battery entries
+                Task {
+                    await self.privateContext.perform {
+                        let fetchRequest: NSFetchRequest<OpenAPS_Battery> = OpenAPS_Battery.fetchRequest()
+
+                        do {
+                            let batteryEntries = try self.privateContext.fetch(fetchRequest)
+
+                            for entry in batteryEntries {
+                                self.privateContext.delete(entry)
+                            }
+
+                            guard self.privateContext.hasChanges else { return }
+                            try self.privateContext.save()
+
+                        } catch {
+                            print("Failed to delete OpenAPS_Battery entries: \(error.localizedDescription)")
+                        }
+                    }
+                }
             }
         }
     }

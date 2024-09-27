@@ -1,4 +1,5 @@
 import AudioToolbox
+import Combine
 import CoreData
 import Foundation
 import LoopKit
@@ -56,12 +57,20 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     private let viewContext = CoreDataStack.shared.persistentContainer.viewContext
     private let backgroundContext = CoreDataStack.shared.newTaskContext()
 
-    private var coreDataObserver: CoreDataObserver?
+    private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+    private var subscriptions = Set<AnyCancellable>()
 
     init(resolver: Resolver) {
         super.init()
         center.delegate = self
         injectServices(resolver)
+
+        coreDataPublisher =
+            changedObjectsOnManagedObjectContextDidSavePublisher()
+                .receive(on: DispatchQueue.global(qos: .background))
+                .share()
+                .eraseToAnyPublisher()
+
         broadcaster.register(DeterminationObserver.self, observer: self)
         broadcaster.register(BolusFailureObserver.self, observer: self)
         broadcaster.register(pumpNotificationObserver.self, observer: self)
@@ -70,7 +79,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             await sendGlucoseNotification()
         }
         registerHandlers()
-        setupGlucoseNotification()
+        registerSubscribers()
         subscribeOnLoop()
     }
 
@@ -84,28 +93,24 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
 
     private func registerHandlers() {
         // Due to the Batch insert this only is used for observing Deletion of Glucose entries
-        coreDataObserver?.registerHandler(for: "GlucoseStored") { [weak self] in
+        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
                 await self.sendGlucoseNotification()
             }
-        }
+        }.store(in: &subscriptions)
     }
 
-    private func setupGlucoseNotification() {
-        /// custom notification that is sent when a batch insert of glucose objects is done
-        Foundation.NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleBatchInsert),
-            name: .didPerformBatchInsert,
-            object: nil
-        )
-    }
-
-    @objc private func handleBatchInsert() {
-        Task {
-            await sendGlucoseNotification()
-        }
+    private func registerSubscribers() {
+        glucoseStorage.updatePublisher
+            .receive(on: DispatchQueue.global(qos: .background))
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                Task {
+                    await self.sendGlucoseNotification()
+                }
+            }
+            .store(in: &subscriptions)
     }
 
     private func addAppBadge(glucose: Int?) {
@@ -129,7 +134,8 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     }
 
     private func notifyCarbsRequired(_ carbs: Int) {
-        guard Decimal(carbs) >= settingsManager.settings.carbsRequiredThreshold else { return }
+        guard Decimal(carbs) >= settingsManager.settings.carbsRequiredThreshold,
+              settingsManager.settings.showCarbsRequiredBadge else { return }
 
         ensureCanSendNotification {
             var titles: [String] = []
@@ -226,9 +232,9 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             fetchLimit: 3
         )
 
-        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
-
         return await backgroundContext.perform {
+            guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+
             return fetchedResults.map(\.objectID)
         }
     }

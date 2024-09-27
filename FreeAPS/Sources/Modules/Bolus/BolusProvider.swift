@@ -21,7 +21,7 @@ extension Bolus {
         func getBGTarget() async -> BGTargets {
             await storage.retrieveAsync(OpenAPS.Settings.bgTargets, as: BGTargets.self)
                 ?? BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
-                ?? BGTargets(units: .mgdL, userPrefferedUnits: .mgdL, targets: [])
+                ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
         }
 
         func getISFValues() async -> InsulinSensitivities {
@@ -29,7 +29,7 @@ extension Bolus {
                 ?? InsulinSensitivities(from: OpenAPS.defaults(for: OpenAPS.Settings.insulinSensitivities))
                 ?? InsulinSensitivities(
                     units: .mgdL,
-                    userPrefferedUnits: .mgdL,
+                    userPreferredUnits: .mgdL,
                     sensitivities: []
                 )
         }
