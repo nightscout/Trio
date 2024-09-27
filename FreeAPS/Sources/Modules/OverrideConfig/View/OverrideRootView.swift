@@ -84,14 +84,9 @@ extension OverrideConfig {
                     }
                     HStack {
                         Spacer()
-                        ZStack {
-                            Image(systemName: "arrow.up.and.line.horizontal.and.arrow.down")
-                                .font(.system(size: 20))
-                                .foregroundStyle(Color.loopGreen, Color.primary)
-                            Image(systemName: "circle")
-                                .font(.system(size: 10))
-                                .foregroundStyle(Color.loopGreen)
-                        }
+                        Image(systemName: "target")
+                            .font(.system(size: 20))
+                            .foregroundStyle(Color.loopGreen)
                         Text(OverrideConfig.Tab.tempTargets.name)
                             .font(.subheadline)
                             .lineLimit(1)

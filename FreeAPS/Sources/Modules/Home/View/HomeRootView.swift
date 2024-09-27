@@ -519,14 +519,9 @@ extension Home {
 
         @ViewBuilder func adjustmentsTempTargetView(_ tempTargetString: String) -> some View {
             Group {
-                ZStack {
-                    Image(systemName: "arrow.up.and.line.horizontal.and.arrow.down")
-                        .font(.system(size: 20))
-                        .foregroundStyle(Color.loopGreen, Color.primary)
-                    Image(systemName: "circle")
-                        .font(.system(size: 10))
-                        .foregroundStyle(Color.loopGreen)
-                }
+                Image(systemName: "target")
+                    .font(.system(size: 20))
+                    .foregroundStyle(Color.loopGreen)
                 VStack(alignment: .leading) {
                     Text(latestTempTarget.first?.name ?? "Temp Target")
                         .font(.subheadline)
