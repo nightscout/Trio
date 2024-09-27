@@ -106,6 +106,15 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                 await self.uploadCarbs()
             }
         }.store(in: &subscriptions)
+
+        // This works only for manual Glucose
+        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
+            guard let self = self else { return }
+            Task { [weak self] in
+                guard let self = self else { return }
+                await self.uploadGlucose()
+            }
+        }.store(in: &subscriptions)
     }
 
     func checkWriteToHealthPermissions(objectTypeToHealthStore: HKObjectType) -> Bool {
