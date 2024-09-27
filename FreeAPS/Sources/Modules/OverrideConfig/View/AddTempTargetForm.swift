@@ -135,9 +135,10 @@ struct AddTempTargetForm: View {
             if state.tempTargetTarget > 100 {
                 Section {
                     VStack {
+                        Toggle("Adjust Sensitivity", isOn: $state.adjustSens).padding(.top)
                         HStack(alignment: .top) {
                             Text(
-                                "Temp Target raises Sensitivity. Insulin reduced to \(formattedPercentage(state.percentage))% of regular amount."
+                                "Temp Target raises Sensitivity. Insulin reduced to \(formattedPercentage(state.percentage))% of regular amount. Further adjust if desired!"
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -157,16 +158,15 @@ struct AddTempTargetForm: View {
                                 }
                             ).buttonStyle(BorderlessButtonStyle())
                         }.padding(.top)
-                        Toggle("Adjust Sensitivity", isOn: $state.adjustSens).padding(.top)
-
                     }.padding(.bottom)
                 }.listRowBackground(Color.chart)
             } else if state.tempTargetTarget < 100 {
                 Section {
                     VStack {
+                        Toggle("Adjust Insulin %", isOn: $state.adjustSens).padding(.top)
                         HStack(alignment: .top) {
                             Text(
-                                "Insulin increased to \(formattedPercentage(state.percentage))% of regular amount."
+                                "Temp Target lowers Sensitivity. Insulin increased to \(formattedPercentage(state.percentage))% of regular amount. Further adjust if desired!"
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -186,8 +186,6 @@ struct AddTempTargetForm: View {
                                 }
                             ).buttonStyle(BorderlessButtonStyle())
                         }.padding(.top)
-                        Toggle("Adjust Insulin %", isOn: $state.adjustSens).padding(.top)
-
                     }.padding(.bottom)
                 }.listRowBackground(Color.chart)
             }
