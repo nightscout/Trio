@@ -278,7 +278,7 @@ public struct TextFieldWithToolBarString: UIViewRepresentable {
         textField.keyboardType = keyboardType
         textField.autocapitalizationType = autocapitalizationType
         textField.autocorrectionType = autocorrectionType
-        textField.adjustsFontSizeToFitWidth = false
+        textField.adjustsFontSizeToFitWidth = true
         return textField
     }
 

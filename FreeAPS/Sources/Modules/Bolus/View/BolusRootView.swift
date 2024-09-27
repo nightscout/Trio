@@ -127,7 +127,7 @@ extension Bolus {
 
         @ViewBuilder private func carbsTextField() -> some View {
             HStack {
-              Text("Carbs")
+                Text("Carbs")
                 Spacer()
                 TextFieldWithToolBar(
                     text: $state.carbs,
@@ -181,7 +181,6 @@ extension Bolus {
 
                         Section {
                             carbsTextField()
-
 
                             if state.useFPUconversion {
                                 proteinAndFat()
