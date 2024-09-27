@@ -43,7 +43,7 @@ public enum AppleHealthConfig {
     static let healthInsulinObject = HKObjectType.quantityType(forIdentifier: .insulinDelivery)
 
     // MetaDataKey of Trio data in HealthStore
-    static let TrioMetaDataKey = "TrioMetaDataKey"
+    static let TrioInsulinType = "Trio Insulin Type"
 }
 
 final class BaseHealthKitManager: HealthKitManager, Injectable {
@@ -51,8 +51,9 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
     @Injected() private var healthKitStore: HKHealthStore!
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var broadcaster: Broadcaster!
-    @Injected() var carbsStorage: CarbsStorage!
-    @Injected() var pumpHistoryStorage: PumpHistoryStorage!
+    @Injected() private var carbsStorage: CarbsStorage!
+    @Injected() private var pumpHistoryStorage: PumpHistoryStorage!
+    @Injected() private var deviceDataManager: DeviceDataManager!
 
     private var backgroundContext = CoreDataStack.shared.newTaskContext()
 
@@ -178,7 +179,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                         HKMetadataKeyExternalUUID: glucoseSample.id,
                         HKMetadataKeySyncIdentifier: glucoseSample.id,
                         HKMetadataKeySyncVersion: 1,
-                        AppleHealthConfig.TrioMetaDataKey: UUID().uuidString
+                        AppleHealthConfig.TrioInsulinType: deviceDataManager?.pumpManager?.status.insulinType?.title ?? ""
                     ]
                 )
             }
@@ -257,8 +258,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                     metadata: [
                         HKMetadataKeyExternalUUID: id,
                         HKMetadataKeySyncIdentifier: id,
-                        HKMetadataKeySyncVersion: 1,
-                        AppleHealthConfig.TrioMetaDataKey: UUID().uuidString
+                        HKMetadataKeySyncVersion: 1
                     ]
                 )
                 samples.append(carbSample)
@@ -273,8 +273,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                         metadata: [
                             HKMetadataKeyExternalUUID: fpuID,
                             HKMetadataKeySyncIdentifier: fpuID,
-                            HKMetadataKeySyncVersion: 1,
-                            AppleHealthConfig.TrioMetaDataKey: UUID().uuidString
+                            HKMetadataKeySyncVersion: 1
                         ]
                     )
                     samples.append(fatSample)
@@ -290,8 +289,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                         metadata: [
                             HKMetadataKeyExternalUUID: fpuID,
                             HKMetadataKeySyncIdentifier: fpuID,
-                            HKMetadataKeySyncVersion: 1,
-                            AppleHealthConfig.TrioMetaDataKey: UUID().uuidString
+                            HKMetadataKeySyncVersion: 1
                         ]
                     )
                     samples.append(proteinSample)
@@ -451,7 +449,11 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
     }
 
     // Helper function to create a HealthKit sample from a PumpHistoryEvent
-    private func createSample(for event: PumpHistoryEvent, sampleType: HKQuantityType) -> HKQuantitySample? {
+    private func createSample(
+        for event: PumpHistoryEvent,
+        sampleType: HKQuantityType,
+        isUpdate: Bool = false
+    ) -> HKQuantitySample? {
         // Ensure the event has a valid insulin amount
         guard let insulinValue = event.amount else { return nil }
 
@@ -478,9 +480,9 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
             metadata: [
                 HKMetadataKeyExternalUUID: event.id,
                 HKMetadataKeySyncIdentifier: event.id,
-                HKMetadataKeySyncVersion: 1,
+                HKMetadataKeySyncVersion: !isUpdate ? 1 : 2,
                 HKMetadataKeyInsulinDeliveryReason: deliveryReason.rawValue,
-                AppleHealthConfig.TrioMetaDataKey: UUID().uuidString
+                AppleHealthConfig.TrioInsulinType: deviceDataManager?.pumpManager?.status.insulinType?.title ?? ""
             ]
         )
 
@@ -499,30 +501,40 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
 
         // Calculate the original end date of the predecessor temp basal
         let predecessorDurationMinutes = predecessorEntry.tempBasal?.duration ?? 0
-        let predecessorEndDate = predecessorTimestamp.addingTimeInterval(TimeInterval(Int(predecessorDurationMinutes) * 60))
+        let predecessorEndDate = predecessorTimestamp.addingTimeInterval(TimeInterval(predecessorDurationMinutes * 60))
 
         // Check if the predecessor temp basal overlaps with the next event
         if predecessorEndDate > nextEventTimestamp {
             // Adjust the end date to the start of the next event to prevent overlap
             let adjustedEndDate = nextEventTimestamp
-            let adjustedDuration = adjustedEndDate.timeIntervalSince(predecessorTimestamp)
+            let adjustedDuration = adjustedEndDate.timeIntervalSince(predecessorTimestamp) // Precise duration in seconds
 
             // Calculate the insulin rate and adjusted delivered units
-            let predecessorEntryRate = predecessorEntry.tempBasal?.rate?.decimalValue ?? 0
-            let adjustedDurationHours = Decimal(adjustedDuration) / 3600
+            let predecessorEntryRate = predecessorEntry.tempBasal?.rate?.doubleValue ?? 0
+            let adjustedDurationHours = adjustedDuration / 3600 // Precise duration in hours
             let adjustedDeliveredUnits = adjustedDurationHours * predecessorEntryRate
+
+            // Round the rate to a supported basal rate using pumpManager's rounding function
+            let roundedRate = deviceDataManager?.pumpManager?
+                .roundToSupportedBasalRate(unitsPerHour: predecessorEntryRate) ?? predecessorEntryRate
+
+            // Recalculate the delivered units using the rounded rate
+            let adjustedDeliveredUnitsRounded = adjustedDurationHours * adjustedDeliveredUnits
 
             // Create a new PumpHistoryEvent with the adjusted values
             let adjustedEvent = PumpHistoryEvent(
                 id: predecessorEntryId,
                 type: .tempBasal,
                 timestamp: predecessorTimestamp,
-                amount: adjustedDeliveredUnits,
-                duration: Int(adjustedDuration / 60)
+                amount: Decimal(adjustedDeliveredUnitsRounded), // Ensure this is a Decimal if needed
+                duration: Int(
+                    adjustedDuration /
+                        60
+                ) // Rounded to full minutes for display, but still using seconds for precise calculations
             )
 
             // Create and return the HealthKit sample for the adjusted event
-            return createSample(for: adjustedEvent, sampleType: sampleType)
+            return createSample(for: adjustedEvent, sampleType: sampleType, isUpdate: true)
         }
 
         // If there is no overlap, no adjustment is needed
