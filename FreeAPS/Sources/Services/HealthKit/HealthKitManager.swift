@@ -526,7 +526,11 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                 id: predecessorEntryId,
                 type: .tempBasal,
                 timestamp: predecessorTimestamp,
-                amount: Decimal(adjustedDeliveredUnitsRounded), // Ensure this is a Decimal if needed
+                amount: Decimal(
+                    deviceDataManager?.pumpManager?
+                        .roundToSupportedBolusVolume(units: adjustedDeliveredUnitsRounded) ?? adjustedDeliveredUnitsRounded
+                ),
+                // Ensure this is a Decimal if needed
                 duration: Int(
                     adjustedDuration /
                         60

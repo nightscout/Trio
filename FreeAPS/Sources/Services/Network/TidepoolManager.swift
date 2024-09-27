@@ -495,7 +495,8 @@ extension BaseTidepoolManager {
                                 type: .tempBasal,
                                 startDate: predecessorTimestamp,
                                 endDate: adjustedEndDate,
-                                value: adjustedDeliveredUnits,
+                                value: self.apsManager.pumpManager?
+                                    .roundToSupportedBolusVolume(units: adjustedDeliveredUnits) ?? adjustedDeliveredUnits,
                                 unit: .units,
                                 deliveredUnits: adjustedDeliveredUnits,
                                 syncIdentifier: predecessorEntrySyncIdentifier,
@@ -518,13 +519,19 @@ extension BaseTidepoolManager {
                 let roundedRate = self.apsManager.pumpManager?
                     .roundToSupportedBasalRate(unitsPerHour: Double(amount)) ?? Double(amount)
 
+                let deliveredAmount = self.apsManager.pumpManager?
+                    .roundToSupportedBolusVolume(units: Double(roundedRate) * (preciseDurationSeconds / 3600)) ??
+                    Double(roundedRate) * (preciseDurationSeconds / 3600)
+
                 let newDoseEntry = DoseEntry(
                     type: .tempBasal,
                     startDate: event.timestamp,
                     endDate: currentEndDate,
-                    value: Double(roundedRate) * (preciseDurationSeconds / 3600), // precise value using seconds
+                    value: self.apsManager.pumpManager?
+                        .roundToSupportedBolusVolume(units: deliveredAmount) ?? deliveredAmount,
                     unit: .units,
-                    deliveredUnits: Double(roundedRate) * (preciseDurationSeconds / 3600), // precise value using seconds
+                    deliveredUnits: self.apsManager.pumpManager?
+                        .roundToSupportedBolusVolume(units: deliveredAmount) ?? deliveredAmount,
                     syncIdentifier: event.id,
                     scheduledBasalRate: HKQuantity(
                         unit: .internationalUnitsPerHour,
