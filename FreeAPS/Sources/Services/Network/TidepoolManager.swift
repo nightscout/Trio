@@ -456,7 +456,10 @@ extension BaseTidepoolManager {
             else {
                 return
             }
-            let value = (Decimal(duration) / 60.0) * amount
+
+            // Calculate the exact insulin delivered based on the duration in seconds
+            let preciseDurationSeconds = TimeInterval(duration * 60) // Convert duration from minutes to seconds
+            let preciseDeliveredUnits = (Decimal(preciseDurationSeconds) / 3600) * amount
 
             // Find the corresponding temp basal entry in existingTempBasalEntries
             if let matchingEntryIndex = existingTempBasalEntries.firstIndex(where: { $0.timestamp == event.timestamp }) {
@@ -468,18 +471,24 @@ extension BaseTidepoolManager {
                     if let predecessorTimestamp = predecessorEntry.timestamp,
                        let predecessorEntrySyncIdentifier = predecessorEntry.id
                     {
-                        let predecessorEndDate = predecessorTimestamp
-                            .addingTimeInterval(TimeInterval(
-                                Int(predecessorEntry.tempBasal?.duration ?? 0) *
-                                    60
-                            )) // parse duration to minutes
+                        let predecessorDurationSeconds = TimeInterval(predecessorEntry.tempBasal?.duration ?? 0) * 60
+                        let predecessorEndDate = predecessorTimestamp.addingTimeInterval(predecessorDurationSeconds)
 
                         // If the predecessor's end date is later than the current event's start date, adjust it
                         if predecessorEndDate > event.timestamp {
                             let adjustedEndDate = event.timestamp
                             let adjustedDuration = adjustedEndDate.timeIntervalSince(predecessorTimestamp)
-                            let adjustedDeliveredUnits = (adjustedDuration / 3600) *
-                                Double(truncating: predecessorEntry.tempBasal?.rate ?? 0)
+
+                            // Use precise duration in hours and round the basal rate
+                            let adjustedDurationHours = adjustedDuration / 3600
+                            let originalRate = Double(truncating: predecessorEntry.tempBasal?.rate ?? 0)
+
+                            // Round the rate to a supported basal rate using pumpManager's rounding function
+                            let roundedRate = self.apsManager.pumpManager?
+                                .roundToSupportedBasalRate(unitsPerHour: originalRate) ?? originalRate
+
+                            // Recalculate the delivered units using the rounded rate
+                            let adjustedDeliveredUnits = adjustedDurationHours * roundedRate
 
                             // Create updated predecessor dose entry
                             let updatedPredecessorEntry = DoseEntry(
@@ -503,14 +512,19 @@ extension BaseTidepoolManager {
                 }
 
                 // Create a new dose entry for the current event
-                let currentEndDate = event.timestamp.addingTimeInterval(TimeInterval(minutes: Double(duration)))
+                let currentEndDate = event.timestamp.addingTimeInterval(preciseDurationSeconds)
+
+                // Round the basal rate for the current event as well
+                let roundedRate = self.apsManager.pumpManager?
+                    .roundToSupportedBasalRate(unitsPerHour: Double(amount)) ?? Double(amount)
+
                 let newDoseEntry = DoseEntry(
                     type: .tempBasal,
                     startDate: event.timestamp,
                     endDate: currentEndDate,
-                    value: Double(value),
+                    value: Double(roundedRate) * (preciseDurationSeconds / 3600), // precise value using seconds
                     unit: .units,
-                    deliveredUnits: Double(value),
+                    deliveredUnits: Double(roundedRate) * (preciseDurationSeconds / 3600), // precise value using seconds
                     syncIdentifier: event.id,
                     scheduledBasalRate: HKQuantity(
                         unit: .internationalUnitsPerHour,
