@@ -72,6 +72,16 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                 .share()
                 .eraseToAnyPublisher()
 
+        glucoseStorage.updatePublisher
+            .receive(on: DispatchQueue.global(qos: .background))
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                Task {
+                    await self.uploadGlucose()
+                }
+            }
+            .store(in: &subscriptions)
+
         registerHandlers()
 
         guard isAvailableOnCurrentDevice,
@@ -94,6 +104,15 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
             Task { [weak self] in
                 guard let self = self else { return }
                 await self.uploadCarbs()
+            }
+        }.store(in: &subscriptions)
+
+        // This works only for manual Glucose
+        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
+            guard let self = self else { return }
+            Task { [weak self] in
+                guard let self = self else { return }
+                await self.uploadGlucose()
             }
         }.store(in: &subscriptions)
     }
@@ -331,53 +350,183 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
               insulin.isNotEmpty
         else { return }
 
-        do {
-            let insulinSamples = insulin.compactMap { insulinSample -> HKQuantitySample? in
-                guard let insulinValue = insulinSample.amount else { return nil }
+        // Fetch existing temp basal entries from Core Data for the last 24 hours
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: PumpEventStored.self,
+            onContext: backgroundContext,
+            predicate: NSCompoundPredicate(andPredicateWithSubpredicates: [
+                NSPredicate.pumpHistoryLast24h,
+                NSPredicate(format: "tempBasal != nil")
+            ]),
+            key: "timestamp",
+            ascending: true,
+            batchSize: 50
+        )
 
-                // Determine the insulin delivery reason (bolus or basal)
-                let deliveryReason: HKInsulinDeliveryReason
-                switch insulinSample.type {
+        // Initialize an array to hold the HealthKit samples to be uploaded
+        var insulinSamples: [HKQuantitySample] = []
+
+        // Perform the data processing on the background context
+        await backgroundContext.perform {
+            // Ensure that the fetched results are of the expected type
+            guard let existingTempBasalEntries = results as? [PumpEventStored] else { return }
+
+            // Create a mapping from timestamps to indices for quick access to existing entries
+            let existingEntriesByTimestamp = Dictionary(
+                uniqueKeysWithValues: existingTempBasalEntries.enumerated()
+                    .map { ($0.element.timestamp, $0.offset) }
+            )
+
+            for event in insulin {
+                switch event.type {
                 case .bolus:
-                    deliveryReason = .bolus
+                    // For bolus events, create a HealthKit sample directly
+                    if let sample = self.createSample(for: event, sampleType: sampleType) {
+                        insulinSamples.append(sample)
+                    }
+
                 case .tempBasal:
-                    deliveryReason = .basal
+                    // For temp basal events, process them and adjust overlapping durations if necessary
+                    guard let duration = event.duration, let amount = event.amount else { continue }
+
+                    // Calculate the total insulin delivered during the temp basal period
+                    let value = (Decimal(duration) / 60.0) * amount
+
+                    // Check if there's a matching existing temp basal entry
+                    if let matchingEntryIndex = existingEntriesByTimestamp[event.timestamp] {
+                        let predecessorIndex = matchingEntryIndex - 1
+                        if predecessorIndex >= 0 {
+                            // Get the predecessor entry to handle overlapping temp basal events
+                            let predecessorEntry = existingTempBasalEntries[predecessorIndex]
+
+                            // Adjust the predecessor entry if it overlaps with the current event
+                            if let adjustedSample = self.processPredecessorEntry(
+                                predecessorEntry,
+                                nextEventTimestamp: event.timestamp,
+                                sampleType: sampleType
+                            ) {
+                                insulinSamples.append(adjustedSample)
+                            }
+                        }
+
+                        // Create a new PumpHistoryEvent with the calculated insulin value
+                        let newEvent = PumpHistoryEvent(
+                            id: event.id,
+                            type: .tempBasal,
+                            timestamp: event.timestamp,
+                            amount: value,
+                            duration: event.duration
+                        )
+
+                        // Create a HealthKit sample for the current temp basal event
+                        if let sample = self.createSample(for: newEvent, sampleType: sampleType) {
+                            insulinSamples.append(sample)
+                        }
+                    }
+
                 default:
-                    // Skip other types
-                    /// If deliveryReason is nil, the compactMap will filter this sample out preventing a crash
-                    return nil
+                    // Ignore other event types
+                    break
                 }
-
-                return HKQuantitySample(
-                    type: sampleType,
-                    quantity: HKQuantity(unit: .internationalUnit(), doubleValue: Double(insulinValue)),
-                    start: insulinSample.timestamp,
-                    end: insulinSample.timestamp,
-                    metadata: [
-                        HKMetadataKeyExternalUUID: insulinSample.id,
-                        HKMetadataKeySyncIdentifier: insulinSample.id,
-                        HKMetadataKeySyncVersion: 1,
-                        HKMetadataKeyInsulinDeliveryReason: deliveryReason.rawValue,
-                        AppleHealthConfig.TrioMetaDataKey: UUID().uuidString
-                    ]
-                )
             }
+        }
 
+        // Save the processed insulin samples to HealthKit
+        do {
             guard insulinSamples.isNotEmpty else {
                 debug(.service, "No insulin samples available for upload.")
                 return
             }
 
-            // Attempt to save the insulin samples to Apple Health
+            // Attempt to save the samples to HealthKit
             try await healthKitStore.save(insulinSamples)
             debug(.service, "Successfully stored \(insulinSamples.count) insulin samples in HealthKit.")
 
-            // After successful upload, update the isUploadedToHealth flag in Core Data
+            // Mark the insulin events as uploaded
             await updateInsulinAsUploaded(insulin)
 
         } catch {
             debug(.service, "Failed to upload insulin samples to HealthKit: \(error.localizedDescription)")
         }
+    }
+
+    // Helper function to create a HealthKit sample from a PumpHistoryEvent
+    private func createSample(for event: PumpHistoryEvent, sampleType: HKQuantityType) -> HKQuantitySample? {
+        // Ensure the event has a valid insulin amount
+        guard let insulinValue = event.amount else { return nil }
+
+        // Determine the insulin delivery reason based on the event type
+        let deliveryReason: HKInsulinDeliveryReason
+        switch event.type {
+        case .bolus:
+            deliveryReason = .bolus
+        case .tempBasal:
+            deliveryReason = .basal
+        default:
+            return nil
+        }
+
+        // Calculate the end date based on the event duration
+        let endDate = event.timestamp.addingTimeInterval(TimeInterval(minutes: Double(event.duration ?? 0)))
+
+        // Create the HealthKit quantity sample with the appropriate metadata
+        let sample = HKQuantitySample(
+            type: sampleType,
+            quantity: HKQuantity(unit: .internationalUnit(), doubleValue: Double(insulinValue)),
+            start: event.timestamp,
+            end: endDate,
+            metadata: [
+                HKMetadataKeyExternalUUID: event.id,
+                HKMetadataKeySyncIdentifier: event.id,
+                HKMetadataKeySyncVersion: 1,
+                HKMetadataKeyInsulinDeliveryReason: deliveryReason.rawValue,
+                AppleHealthConfig.TrioMetaDataKey: UUID().uuidString
+            ]
+        )
+
+        return sample
+    }
+
+    // Helper function to process a predecessor temp basal entry and adjust overlapping durations
+    private func processPredecessorEntry(
+        _ predecessorEntry: PumpEventStored,
+        nextEventTimestamp: Date,
+        sampleType: HKQuantityType
+    ) -> HKQuantitySample? {
+        // Ensure the predecessor entry has the necessary data
+        guard let predecessorTimestamp = predecessorEntry.timestamp,
+              let predecessorEntryId = predecessorEntry.id else { return nil }
+
+        // Calculate the original end date of the predecessor temp basal
+        let predecessorDurationMinutes = predecessorEntry.tempBasal?.duration ?? 0
+        let predecessorEndDate = predecessorTimestamp.addingTimeInterval(TimeInterval(Int(predecessorDurationMinutes) * 60))
+
+        // Check if the predecessor temp basal overlaps with the next event
+        if predecessorEndDate > nextEventTimestamp {
+            // Adjust the end date to the start of the next event to prevent overlap
+            let adjustedEndDate = nextEventTimestamp
+            let adjustedDuration = adjustedEndDate.timeIntervalSince(predecessorTimestamp)
+
+            // Calculate the insulin rate and adjusted delivered units
+            let predecessorEntryRate = predecessorEntry.tempBasal?.rate?.decimalValue ?? 0
+            let adjustedDurationHours = Decimal(adjustedDuration) / 3600
+            let adjustedDeliveredUnits = adjustedDurationHours * predecessorEntryRate
+
+            // Create a new PumpHistoryEvent with the adjusted values
+            let adjustedEvent = PumpHistoryEvent(
+                id: predecessorEntryId,
+                type: .tempBasal,
+                timestamp: predecessorTimestamp,
+                amount: adjustedDeliveredUnits,
+                duration: Int(adjustedDuration / 60)
+            )
+
+            // Create and return the HealthKit sample for the adjusted event
+            return createSample(for: adjustedEvent, sampleType: sampleType)
+        }
+
+        // If there is no overlap, no adjustment is needed
+        return nil
     }
 
     private func updateInsulinAsUploaded(_ insulin: [PumpHistoryEvent]) async {

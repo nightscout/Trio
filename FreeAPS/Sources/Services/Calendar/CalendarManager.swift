@@ -183,9 +183,9 @@ final class BaseCalendarManager: CalendarManager, Injectable {
             propertiesToFetch: ["timestamp", "cob", "iob", "objectID"]
         )
 
-        guard let fetchedResults = results as? [[String: Any]] /* , !fetchedResults.isEmpty */ else { return nil }
-
         return await backgroundContext.perform {
+            guard let fetchedResults = results as? [[String: Any]] else { return nil }
+
             return fetchedResults.first?["objectID"] as? NSManagedObjectID
         }
     }
@@ -200,9 +200,9 @@ final class BaseCalendarManager: CalendarManager, Injectable {
             propertiesToFetch: ["objectID", "glucose"]
         )
 
-        guard let fetchedResults = results as? [[String: Any]] else { return [] }
-
         return await backgroundContext.perform {
+            guard let fetchedResults = results as? [[String: Any]] else { return [] }
+
             return fetchedResults.compactMap { $0["objectID"] as? NSManagedObjectID }
         }
     }
@@ -255,7 +255,6 @@ final class BaseCalendarManager: CalendarManager, Injectable {
                     settingsManager.settings.units == .mmolL ? Int(lastGlucoseValue)
                         .asMmolL : Decimal(lastGlucoseValue)
                 ) as NSNumber)!
-            debugPrint("\(DebuggingIdentifiers.failed) glucose text: \(glucoseText)")
 
             let directionText = lastGlucoseObject.directionEnum?.symbol ?? "↔︎"
 

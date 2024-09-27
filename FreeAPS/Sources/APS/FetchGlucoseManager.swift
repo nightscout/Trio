@@ -263,17 +263,6 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
 
         deviceDataManager.heartbeat(date: Date())
 
-        // Upload to NS/Health/Tidepool
-        Task.detached {
-            async let uploadToNS: () = self.nightscoutManager.uploadGlucose()
-            async let uploadToHealth: () = self.healthKitManager.uploadGlucose()
-            async let uploadToTidepool: () = self.tidepoolService.uploadGlucose()
-
-            await uploadToNS
-            await uploadToHealth
-            await uploadToTidepool
-        }
-
         // End of the Background tasks
         if let backgroundTask = backGroundFetchBGTaskID {
             UIApplication.shared.endBackgroundTask(backgroundTask)

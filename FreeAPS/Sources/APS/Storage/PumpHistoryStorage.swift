@@ -294,10 +294,10 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             fetchLimit: 288
         )
 
-        guard let fetchedPumpEvents = results as? [PumpEventStored] else { return [] }
-
         return await context.perform { [self] in
-            fetchedPumpEvents.map { event in
+            guard let fetchedPumpEvents = results as? [PumpEventStored] else { return [] }
+
+            return fetchedPumpEvents.map { event in
                 switch event.type {
                 case PumpEvent.bolus.rawValue:
                     // eventType determines whether bolus is external, smb or manual (=administered via app by user)
@@ -467,12 +467,19 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         amount: event.bolus?.amount as Decimal?
                     )
                 case PumpEvent.tempBasal.rawValue:
-                    return PumpHistoryEvent(
-                        id: event.id ?? UUID().uuidString,
-                        type: .tempBasal,
-                        timestamp: event.timestamp ?? Date(),
-                        amount: event.tempBasal?.rate as Decimal?
-                    )
+                    if let id = event.id, let timestamp = event.timestamp, let tempBasal = event.tempBasal,
+                       let tempBasalRate = tempBasal.rate
+                    {
+                        return PumpHistoryEvent(
+                            id: id,
+                            type: .tempBasal,
+                            timestamp: timestamp,
+                            amount: tempBasalRate as Decimal,
+                            duration: Int(tempBasal.duration)
+                        )
+                    } else {
+                        return nil
+                    }
                 default:
                     return nil
                 }
