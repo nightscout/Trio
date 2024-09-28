@@ -380,6 +380,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                 case .bolus:
                     // For bolus events, create a HealthKit sample directly
                     if let sample = self.createSample(for: event, sampleType: sampleType) {
+                        debug(.service, "Created HealthKit sample for bolus entry: \(sample)")
                         insulinSamples.append(sample)
                     }
 
@@ -418,6 +419,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
 
                         // Create a HealthKit sample for the current temp basal event
                         if let sample = self.createSample(for: newEvent, sampleType: sampleType) {
+                            debug(.service, "Created HealthKit sample for initial temp basal entry: \(sample)")
                             insulinSamples.append(sample)
                         }
                     }
@@ -451,8 +453,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
     // Helper function to create a HealthKit sample from a PumpHistoryEvent
     private func createSample(
         for event: PumpHistoryEvent,
-        sampleType: HKQuantityType,
-        isUpdate: Bool = false
+        sampleType: HKQuantityType
     ) -> HKQuantitySample? {
         // Ensure the event has a valid insulin amount
         guard let insulinValue = event.amount else { return nil }
@@ -480,7 +481,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
             metadata: [
                 HKMetadataKeyExternalUUID: event.id,
                 HKMetadataKeySyncIdentifier: event.id,
-                HKMetadataKeySyncVersion: !isUpdate ? 1 : 2,
+                HKMetadataKeySyncVersion: 1,
                 HKMetadataKeyInsulinDeliveryReason: deliveryReason.rawValue,
                 AppleHealthConfig.TrioInsulinType: deviceDataManager?.pumpManager?.status.insulinType?.title ?? ""
             ]
@@ -507,39 +508,37 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
         if predecessorEndDate > nextEventTimestamp {
             // Adjust the end date to the start of the next event to prevent overlap
             let adjustedEndDate = nextEventTimestamp
-            let adjustedDuration = adjustedEndDate.timeIntervalSince(predecessorTimestamp) // Precise duration in seconds
+            // Precise duration in seconds
+            let adjustedDuration = adjustedEndDate.timeIntervalSince(predecessorTimestamp)
+            // Precise duration in hours
+            let adjustedDurationHours = adjustedDuration / 3600
 
             // Calculate the insulin rate and adjusted delivered units
             let predecessorEntryRate = predecessorEntry.tempBasal?.rate?.doubleValue ?? 0
+            let adjustedDeliveredUnits = adjustedDurationHours * predecessorEntryRate
+            let adjustedDeliveredUnitsRounded = deviceDataManager?.pumpManager?
+                .roundToSupportedBolusVolume(units: adjustedDeliveredUnits) ?? adjustedDeliveredUnits
 
-            // Round the rate to a supported basal rate using pumpManager's rounding function
-            let roundedRate = deviceDataManager?.pumpManager?
-                .roundToSupportedBasalRate(unitsPerHour: predecessorEntryRate) ?? predecessorEntryRate
-
-            let adjustedDurationHours = adjustedDuration / 3600 // Precise duration in hours
-            let adjustedDeliveredUnits = adjustedDurationHours * roundedRate
-
-            // Recalculate the delivered units using the rounded rate
-            let adjustedDeliveredUnitsRounded = adjustedDurationHours * adjustedDeliveredUnits
-
-            // Create a new PumpHistoryEvent with the adjusted values
-            let adjustedEvent = PumpHistoryEvent(
-                id: predecessorEntryId,
-                type: .tempBasal,
-                timestamp: predecessorTimestamp,
-                amount: Decimal(
-                    deviceDataManager?.pumpManager?
-                        .roundToSupportedBolusVolume(units: adjustedDeliveredUnitsRounded) ?? adjustedDeliveredUnitsRounded
-                ),
-                // Ensure this is a Decimal if needed
-                duration: Int(
-                    adjustedDuration /
-                        60
-                ) // Rounded to full minutes for display, but still using seconds for precise calculations
+            // Create the HealthKit quantity sample with the appropriate metadata
+            // Intentionally do it here manually and no use `createSample()` to handle utmost precise `end`.
+            let sample = HKQuantitySample(
+                type: sampleType,
+                quantity: HKQuantity(unit: .internationalUnit(), doubleValue: Double(adjustedDeliveredUnitsRounded)),
+                start: predecessorTimestamp,
+                end: adjustedEndDate,
+                metadata: [
+                    HKMetadataKeyExternalUUID: predecessorEntryId,
+                    HKMetadataKeySyncIdentifier: predecessorEntryId,
+                    HKMetadataKeySyncVersion: 2, // set the version # to 2, as we update an entry. initial version is 1.
+                    HKMetadataKeyInsulinDeliveryReason: HKInsulinDeliveryReason.basal.rawValue,
+                    AppleHealthConfig.TrioInsulinType: deviceDataManager?.pumpManager?.status.insulinType?.title ?? ""
+                ]
             )
 
+            debug(.service, "Created HealthKit sample for adjusted temp basal entry: \(sample)")
+
             // Create and return the HealthKit sample for the adjusted event
-            return createSample(for: adjustedEvent, sampleType: sampleType, isUpdate: true)
+            return sample
         }
 
         // If there is no overlap, no adjustment is needed
