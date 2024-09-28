@@ -15,6 +15,7 @@ extension OverrideConfig {
         @State private var selectedPresetID: String?
         @State private var selectedOverride: OverrideStored?
         // temp targets
+        @State private var isConfirmDeleteShown = false
         @State private var isPromptPresented = false
         @State private var isRemoveAlertPresented = false
         @State private var removeAlert: Alert?
@@ -148,9 +149,8 @@ extension OverrideConfig {
                     overridesView(for: preset)
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button(role: .none) {
-                                Task {
-                                    await state.invokeOverridePresetDeletion(preset.objectID)
-                                }
+                                selectedOverride = preset
+                                isConfirmDeleteShown = true
                             } label: {
                                 Label("Delete", systemImage: "trash")
                                     .tint(.red)
@@ -166,6 +166,44 @@ extension OverrideConfig {
                         }
                 }
                 .onMove(perform: state.reorderOverride)
+                .confirmationDialog(
+                    "Delete the preset \"\(selectedOverride?.name ?? "")\"?",
+                    isPresented: $isConfirmDeleteShown,
+                    titleVisibility: .visible
+                ) {
+                    if let itemToDelete = selectedOverride {
+                        Button(
+                            state.currentActiveOverride == selectedOverride ? "Cancel and Delete" : "Delete",
+                            role: .destructive
+                        ) {
+                            if state.currentActiveOverride == selectedOverride {
+                                Task {
+                                    // Save cancelled Override in OverrideRunStored Entity
+                                    // Cancel ALL active Override
+                                    await state.disableAllActiveOverrides(createOverrideRunEntry: true)
+                                }
+                            }
+                            // Perform the delete action
+                            Task {
+                                await state.invokeOverridePresetDeletion(itemToDelete.objectID)
+                            }
+                            // Reset the selected item after deletion
+                            selectedOverride = nil
+                        }
+                    }
+                    Button("Cancel", role: .cancel) {
+                        // Dismiss the dialog without action
+                        selectedOverride = nil
+                    }
+                } message: {
+                    if state.currentActiveOverride == selectedOverride {
+                        Text(
+                            state
+                                .currentActiveOverride == selectedOverride ?
+                                "This preset is currently running. Deleting will cancel it." : ""
+                        )
+                    }
+                }
                 .listRowBackground(Color.chart)
             } header: {
                 Text("Presets")
