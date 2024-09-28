@@ -189,27 +189,18 @@ struct ForecastChart: View {
     }
 
     private func drawForecastLines() -> some ChartContent {
-        if let predictions = state.predictionsForChart {
-            // Prepare the prediction data with only the first 36 values, i.e., 3 hours in the future
-            var predictionData: [(String, ArraySlice<Int>)] = [] // Non-optional array
+        let predictions = state.predictionsForChart
 
-            if let iob = predictions.iob {
-                predictionData.append(("IOB", iob.prefix(36)))
-            }
+        // Prepare the prediction data with only the first 36 values, i.e. 3 hours in the future
+        let predictionData = [
+            ("iob", predictions?.iob?.prefix(36)),
+            ("zt", predictions?.zt?.prefix(36)),
+            ("cob", predictions?.cob?.prefix(36)),
+            ("uam", predictions?.uam?.prefix(36))
+        ]
 
-            if let zt = predictions.zt {
-                predictionData.append(("ZT", zt.prefix(36)))
-            }
-
-            if let cob = predictions.cob {
-                predictionData.append(("COB", cob.prefix(36)))
-            }
-
-            if let uam = predictions.uam {
-                predictionData.append(("UAM", uam.prefix(36)))
-            }
-
-            return ForEach(predictionData, id: \.0) { name, values in
+        return ForEach(predictionData, id: \.0) { name, values in
+            if let values = values {
                 ForEach(values.indices, id: \.self) { index in
                     LineMark(
                         x: .value("Time", timeForIndex(Int32(index))),
@@ -218,11 +209,6 @@ struct ForecastChart: View {
                     .foregroundStyle(by: .value("Prediction Type", name))
                 }
             }
-        } else {
-            return LineMark(
-                x: .value("Time", Date()),
-                y: .value("Value", 0)
-            )
         }
     }
 
