@@ -3,7 +3,7 @@ import CoreData
 import Foundation
 import SwiftUI
 
-struct ForeCastChart: View {
+struct ForecastChart: View {
     @StateObject var state: Bolus.StateModel
     @Environment(\.colorScheme) var colorScheme
     @Binding var units: GlucoseUnits
@@ -35,68 +35,62 @@ struct ForeCastChart: View {
 
     var body: some View {
         VStack {
-            HStack {
-                HStack {
-                    Text("Added carbs: ")
-                        .font(.footnote)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.orange)
-
-                    Text("\(state.carbs.description) g")
-                        .font(.footnote)
-                        .foregroundStyle(.orange)
-                }
-                .padding(8)
-                .background {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.orange.opacity(0.2))
-                }
-
-                Spacer()
-
-                HStack {
-                    Text("Added insulin: ")
-                        .font(.footnote)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.blue)
-
-                    Text("\(state.amount.description) U")
-                        .font(.footnote)
-                        .foregroundStyle(.blue)
-                }
-                .padding(8)
-                .background {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.blue.opacity(0.2))
-                }
-            }
+            forecastChartLabels
+                .padding(.bottom, 8)
 
             forecastChart
-                .padding(.vertical, 3)
-            HStack {
-                Spacer()
-                Image(systemName: "arrow.right.circle")
-                    .font(.system(size: 16, weight: .bold))
+        }
+    }
 
-                if let eventualBG = state.simulatedDetermination?.eventualBG {
+    private var forecastChartLabels: some View {
+        HStack {
+            HStack {
+                Image(systemName: "fork.knife")
+                Text("\(state.carbs.description) g")
+            }
+            .font(.footnote)
+            .foregroundStyle(.orange)
+            .padding(8)
+            .background {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.orange.opacity(0.2))
+            }
+
+            Spacer()
+
+            HStack {
+                Image(systemName: "syringe.fill")
+                Text("\(state.amount.description) U")
+            }
+            .font(.footnote)
+            .foregroundStyle(.blue)
+            .padding(8)
+            .background {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.blue.opacity(0.2))
+            }
+
+            Spacer()
+
+            HStack {
+                Image(systemName: "arrow.right.circle")
+
+                if let simulatedDetermination = state.simulatedDetermination, let eventualBG = simulatedDetermination.eventualBG {
                     HStack {
                         Text(
-                            units == .mgdL ? Decimal(eventualBG).description : eventualBG.formattedAsMmolL
+                            (units == .mgdL ? Decimal(eventualBG).description : eventualBG.formattedAsMmolL) + units.rawValue
                         )
-                        .font(.footnote)
-                        .foregroundStyle(.primary)
-                        Text("\(units.rawValue)")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
                     }
                 } else {
                     Text("---")
-                        .font(.footnote)
-                        .foregroundStyle(.primary)
-                    Text("\(units.rawValue)")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
                 }
+            }
+            .font(.footnote)
+            .foregroundStyle(.primary)
+            .padding(8)
+            .background {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.primary.opacity(0.2))
             }
         }
     }
