@@ -134,11 +134,21 @@ struct AddTempTargetForm: View {
         if sliderEnabled && state.tempTargetTarget != 0 {
             if state.tempTargetTarget > 100 {
                 Section {
+                    VStack(alignment: .leading) {
+                        Text("Raised Sensitivity:")
+                            .font(.footnote)
+                            .fontWeight(.bold)
+                        Text("Insulin reduced to \(formattedPercentage(state.percentage))% of regular amount.")
+                            .font(.footnote)
+                            .lineLimit(1)
+                    }
+                }.listRowBackground(Color.tabBar)
+                Section {
                     VStack {
                         Toggle("Adjust Sensitivity", isOn: $state.adjustSens).padding(.top)
                         HStack(alignment: .top) {
                             Text(
-                                "Temp Target raises Sensitivity. Insulin reduced to \(formattedPercentage(state.percentage))% of regular amount. Further adjust if desired!"
+                                "Temp Target raises Sensitivity. Further adjust if desired!"
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -162,11 +172,21 @@ struct AddTempTargetForm: View {
                 }.listRowBackground(Color.chart)
             } else if state.tempTargetTarget < 100 {
                 Section {
+                    VStack(alignment: .leading) {
+                        Text("Lowered Sensitivity:")
+                            .font(.footnote)
+                            .fontWeight(.bold)
+                        Text("Insulin increased to \(formattedPercentage(state.percentage))% of regular amount.")
+                            .font(.footnote)
+                            .lineLimit(1)
+                    }
+                }.listRowBackground(Color.tabBar)
+                Section {
                     VStack {
                         Toggle("Adjust Insulin %", isOn: $state.adjustSens).padding(.top)
                         HStack(alignment: .top) {
                             Text(
-                                "Temp Target lowers Sensitivity. Insulin increased to \(formattedPercentage(state.percentage))% of regular amount. Further adjust if desired!"
+                                "Temp Target lowers Sensitivity. Further adjust if desired!"
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
