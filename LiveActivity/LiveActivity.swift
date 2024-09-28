@@ -17,9 +17,9 @@ enum GlucoseUnits: String, Equatable {
     static let exchangeRate: Decimal = 0.0555
 }
 
-enum GlucoseColorStyle: String, Equatable {
-    case staticColor = "staticColor"
-    case dynamicColor = "dynamicColor"
+enum GlucoseColorScheme: String, Equatable {
+    case staticColor
+    case dynamicColor
 }
 
 // Helper function to decide how to pick the glucose color
@@ -28,16 +28,17 @@ func getDynamicGlucoseColor(
     highGlucoseColorValue: Decimal,
     lowGlucoseColorValue: Decimal,
     targetGlucose: Decimal,
-    glucoseColorStyle: GlucoseColorStyle,
+    glucoseColorScheme: String,
     offset: Decimal
 ) -> Color {
+    let colorStyle = GlucoseColorScheme(rawValue: glucoseColorScheme) ?? .staticColor
     // Convert Decimal to Int for high and low glucose values
     let lowGlucose = lowGlucoseColorValue - offset
     let highGlucose = highGlucoseColorValue + (offset * 1.75)
     let targetGlucose = targetGlucose
 
     // Only use calculateHueBasedGlucoseColor if the setting is enabled in preferences
-    if glucoseColorStyle == .dynamicColor {
+    if glucoseColorScheme == "dynamicColor" {
         return calculateHueBasedGlucoseColor(
             glucoseValue: glucoseValue,
             highGlucose: highGlucose,
@@ -372,7 +373,7 @@ struct LiveActivity: Widget {
                         highGlucoseColorValue: additionalState.highGlucose,
                         lowGlucoseColorValue: additionalState.lowGlucose,
                         targetGlucose: 90,
-                        glucoseColorStyle: additionalState.glucoseColorStyle ?? "staticColor",
+                        glucoseColorScheme: additionalState.glucoseColorScheme ?? "staticColor",
                         offset: additionalState.unit == "mg/dL" ? Decimal(20) : Decimal(20).asMmolL
                     )
 
@@ -421,7 +422,7 @@ struct LiveActivity: Widget {
                     highGlucoseColorValue: context.state.detailedViewState?.highGlucose ?? 180,
                     lowGlucoseColorValue: context.state.detailedViewState?.lowGlucose ?? 70,
                     targetGlucose: 90,
-                    glucoseColorStyle: context.state.detailedViewState?.glucoseColorStyle ?? "staticColor",
+                    glucoseColorScheme: context.state.detailedViewState?.glucoseColorScheme ?? "staticColor",
                     offset: context.state.detailedViewState?.unit == "mg/dL" ? Decimal(20) : Decimal(20).asMmolL
                 )
 
@@ -467,7 +468,7 @@ struct LiveActivity: Widget {
             highGlucoseColorValue: highGlucose,
             lowGlucoseColorValue: lowGlucose,
             targetGlucose: 90,
-            glucoseColorStyle: context.state.detailedViewState?.glucoseColorStyle ?? "staticColor",
+            glucoseColorScheme: context.state.detailedViewState?.glucoseColorScheme ?? "staticColor",
             offset: context.state.detailedViewState?.unit == "mg/dL" ? Decimal(20) : Decimal(20).asMmolL
         )
 
@@ -525,6 +526,7 @@ struct LiveActivity: Widget {
         ActivityConfiguration(for: LiveActivityAttributes.self, content: self.content, dynamicIsland: self.dynamicIsland)
     }
 }
+
 private extension LiveActivityAttributes {
     static var preview: LiveActivityAttributes {
         LiveActivityAttributes(startDate: Date())

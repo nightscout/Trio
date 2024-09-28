@@ -13,7 +13,7 @@ extension MainChartView {
                     highGlucoseColorValue: highGlucose,
                     lowGlucoseColorValue: highGlucose,
                     targetGlucose: currentGlucoseTarget,
-                    glucoseColorStyle: glucoseColorStyle,
+                    glucoseColorScheme: glucoseColorScheme,
                     offset: units == .mgdL ? 20 : 20.asMmolL
                 )
                 let lowColor = FreeAPS.getDynamicGlucoseColor(
@@ -21,13 +21,15 @@ extension MainChartView {
                     highGlucoseColorValue: highGlucose,
                     lowGlucoseColorValue: lowGlucose,
                     targetGlucose: currentGlucoseTarget,
-                    glucoseColorStyle: glucoseColorStyle,
+                    glucoseColorScheme: glucoseColorScheme,
                     offset: units == .mgdL ? 20 : 20.asMmolL
                 )
 
-                RuleMark(y: .value("High", highGlucose)).foregroundStyle(highColor)
+                RuleMark(y: .value("High", highGlucose))
+                    .foregroundStyle(highColor)
                     .lineStyle(.init(lineWidth: 1, dash: [5]))
-                RuleMark(y: .value("Low", lowGlucose)).foregroundStyle(lowColor)
+                RuleMark(y: .value("Low", lowGlucose))
+                    .foregroundStyle(lowColor)
                     .lineStyle(.init(lineWidth: 1, dash: [5]))
             }
         }

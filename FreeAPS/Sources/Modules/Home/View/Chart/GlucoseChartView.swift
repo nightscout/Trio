@@ -9,7 +9,7 @@ struct GlucoseChartView: ChartContent {
     let lowGlucose: Decimal
     let currentGlucoseTarget: Decimal
     let isSmoothingEnabled: Bool
-    let glucoseColorStyle: GlucoseColorStyle
+    let glucoseColorScheme: GlucoseColorScheme
 
     var body: some ChartContent {
         drawGlucoseChart()
@@ -24,7 +24,7 @@ struct GlucoseChartView: ChartContent {
                 highGlucoseColorValue: highGlucose,
                 lowGlucoseColorValue: lowGlucose,
                 targetGlucose: currentGlucoseTarget,
-                glucoseColorStyle: glucoseColorStyle,
+                glucoseColorScheme: glucoseColorScheme,
                 offset: units == .mgdL ? 20 : 20.asMmolL
             )
 

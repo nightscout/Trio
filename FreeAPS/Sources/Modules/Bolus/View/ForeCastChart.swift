@@ -122,9 +122,14 @@ struct ForeCastChart: View {
     private func drawGlucose() -> some ChartContent {
         ForEach(state.glucoseFromPersistence) { item in
             let glucoseToDisplay = state.units == .mgdL ? Decimal(item.glucose) : Decimal(item.glucose).asMmolL
-            let pointMarkColor: Color = glucoseToDisplay > state.highGlucose ? Color.orange :
-                glucoseToDisplay < state.lowGlucose ? Color.red :
-                Color.green
+            let pointMarkColor = FreeAPS.getDynamicGlucoseColor(
+                glucoseValue: glucoseToDisplay,
+                highGlucoseColorValue: state.highGlucose,
+                lowGlucoseColorValue: state.lowGlucose,
+                targetGlucose: (state.determination.first?.currentTarget ?? state.currentBGTarget as NSDecimalNumber) as Decimal,
+                glucoseColorScheme: state.glucoseColorScheme,
+                offset: units == .mgdL ? 20 : 20.asMmolL
+            )
 
             if !state.isSmoothingEnabled {
                 PointMark(

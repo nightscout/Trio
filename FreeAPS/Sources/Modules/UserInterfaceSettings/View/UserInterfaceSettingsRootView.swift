@@ -93,6 +93,42 @@ extension UserInterfaceSettings {
                     }
                 ).listRowBackground(Color.chart)
 
+                Section {
+                    VStack {
+                        Picker(
+                            selection: $state.glucoseColorScheme,
+                            label: Text("Glucose Color Scheme")
+                        ) {
+                            ForEach(GlucoseColorScheme.allCases) { selection in
+                                Text(selection.displayName).tag(selection)
+                            }
+                        }.padding(.top)
+
+                        HStack(alignment: .top) {
+                            Text(
+                                "Glucose Scheme Preference ... dynamic or static ... Lorem ipsum dolor"
+                            )
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .lineLimit(nil)
+                            Spacer()
+                            Button(
+                                action: {
+                                    hintLabel = "Glucose Scheme Preference"
+                                    selectedVerboseHint =
+                                        "Glucose Scheme Preference... Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                    shouldDisplayHint.toggle()
+                                },
+                                label: {
+                                    HStack {
+                                        Image(systemName: "questionmark.circle")
+                                    }
+                                }
+                            ).buttonStyle(BorderlessButtonStyle())
+                        }.padding(.top)
+                    }.padding(.bottom)
+                }.listRowBackground(Color.chart)
+
                 Section(
                     header: Text("Home View Settings"),
                     content: {

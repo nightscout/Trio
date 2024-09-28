@@ -14,7 +14,7 @@ struct MainChartView: View {
     @Binding var lowGlucose: Decimal
     @Binding var currentGlucoseTarget: Decimal
     @Binding var screenHours: Int16
-    @Binding var glucoseColorStyle: GlucoseColorStyle
+    @Binding var glucoseColorScheme: GlucoseColorScheme
     @Binding var displayXgridLines: Bool
     @Binding var displayYgridLines: Bool
     @Binding var thresholdLines: Bool
@@ -145,7 +145,7 @@ extension MainChartView {
                     lowGlucose: state.lowGlucose,
                     currentGlucoseTarget: state.currentGlucoseTarget,
                     isSmoothingEnabled: state.isSmoothingEnabled,
-                    glucoseColorStyle: state.glucoseColorStyle
+                    glucoseColorScheme: state.glucoseColorScheme
                 )
 
                 InsulinView(
@@ -257,7 +257,7 @@ extension MainChartView {
                     highGlucoseColorValue: highGlucose,
                     lowGlucoseColorValue: lowGlucose,
                     targetGlucose: currentGlucoseTarget,
-                    glucoseColorStyle: glucoseColorStyle,
+                    glucoseColorScheme: glucoseColorScheme,
                     offset: units == .mgdL ? 20 : 20.asMmolL
                 )
                 HStack {

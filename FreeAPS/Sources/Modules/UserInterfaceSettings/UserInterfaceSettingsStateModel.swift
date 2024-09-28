@@ -14,7 +14,7 @@ extension UserInterfaceSettings {
         @Published var totalInsulinDisplayType: TotalInsulinDisplayType = .totalDailyDose
         @Published var showCarbsRequiredBadge: Bool = true
         @Published var carbsRequiredThreshold: Decimal = 0
-        @Published var glucoseColorStyle: GlucoseColorStyle = .staticColor
+        @Published var glucoseColorScheme: GlucoseColorScheme = .staticColor
 
         var units: GlucoseUnits = .mgdL
 
@@ -43,7 +43,7 @@ extension UserInterfaceSettings {
                 on: $carbsRequiredThreshold
             ) { carbsRequiredThreshold = $0 }
 
-            subscribeSetting(\.glucoseColorStyle, on: $glucoseColorStyle) { glucoseColorStyle = $0 }
+            subscribeSetting(\.glucoseColorScheme, on: $glucoseColorScheme) { glucoseColorScheme = $0 }
         }
     }
 }

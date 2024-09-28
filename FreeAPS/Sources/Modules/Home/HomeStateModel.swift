@@ -51,7 +51,7 @@ extension Home {
         @Published var highGlucose: Decimal = 180
         @Published var currentGlucoseTarget: Decimal = 100
         @Published var overrideUnit: Bool = false
-        @Published var glucoseColorStyle: GlucoseColorStyle = .staticColor
+        @Published var glucoseColorScheme: GlucoseColorScheme = .staticColor
         @Published var displayXgridLines: Bool = false
         @Published var displayYgridLines: Bool = false
         @Published var thresholdLines: Bool = false
@@ -328,6 +328,7 @@ extension Home {
             manualTempBasal = apsManager.isManualTempBasal
             setupCurrentTempTarget()
             isSmoothingEnabled = settingsManager.settings.smoothGlucose
+            glucoseColorScheme = settingsManager.settings.glucoseColorScheme
             maxValue = settingsManager.preferences.autosensMax
             lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
             highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL
@@ -588,7 +589,7 @@ extension Home.StateModel:
             await getCurrentGlucoseTarget()
         }
         overrideUnit = settingsManager.settings.overrideHbA1cUnit
-        glucoseColorStyle = settingsManager.settings.glucoseColorStyle
+        glucoseColorScheme = settingsManager.settings.glucoseColorScheme
         displayXgridLines = settingsManager.settings.xGridLines
         displayYgridLines = settingsManager.settings.yGridLines
         thresholdLines = settingsManager.settings.rulerMarks

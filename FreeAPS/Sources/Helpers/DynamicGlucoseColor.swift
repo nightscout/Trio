@@ -7,28 +7,28 @@ public func getDynamicGlucoseColor(
     highGlucoseColorValue: Decimal,
     lowGlucoseColorValue: Decimal,
     targetGlucose: Decimal,
-    glucoseColorStyle: GlucoseColorStyle,
+    glucoseColorScheme: GlucoseColorScheme,
     offset: Decimal
 ) -> Color {
     // Convert Decimal to Int for high and low glucose values
-    let lowGlucose = lowGlucoseColorValue - offset
-    let highGlucose = highGlucoseColorValue + (offset * 1.75)
+    let lowGlucose = lowGlucoseColorValue
+    let highGlucose = highGlucoseColorValue
     let targetGlucose = targetGlucose
 
     // Only use calculateHueBasedGlucoseColor if the setting is enabled in preferences
-    if GlucoseColorStyle == .dynamicColor {
+    if glucoseColorScheme == .dynamicColor {
         return calculateHueBasedGlucoseColor(
             glucoseValue: glucoseValue,
-            highGlucose: highGlucose,
-            lowGlucose: lowGlucose,
+            highGlucose: highGlucose + (offset * 1.75),
+            lowGlucose: lowGlucose - offset,
             targetGlucose: targetGlucose
         )
     }
     // Otheriwse, use static (orange = high, red = low, green = range)
     else {
-        if glucoseValue > highGlucose {
+        if glucoseValue >= highGlucose {
             return Color.orange
-        } else if glucoseValue < lowGlucose {
+        } else if glucoseValue <= lowGlucose {
             return Color.red
         } else {
             return Color.green

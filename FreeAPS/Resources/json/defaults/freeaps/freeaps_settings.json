@@ -37,7 +37,7 @@
   "high" : 180,
   "low" : 70,
   "hours" : 6,
-  "glucoseColorStyle" : "staticColor",
+  "glucoseColorScheme" : "staticColor",
   "xGridLines" : true,
   "yGridLines" : true,
   "oneDimensionalGraph" : false,
