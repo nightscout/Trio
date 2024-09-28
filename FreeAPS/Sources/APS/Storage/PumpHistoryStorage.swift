@@ -274,10 +274,10 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             fetchLimit: 288
         )
 
-        guard let fetchedPumpEvents = results as? [PumpEventStored] else { return [] }
-
         return await context.perform { [self] in
-            fetchedPumpEvents.map { event in
+            guard let fetchedPumpEvents = results as? [PumpEventStored] else { return [] }
+
+            return fetchedPumpEvents.map { event in
                 switch event.type {
                 case PumpEvent.bolus.rawValue:
                     // eventType determines whether bolus is external, smb or manual (=administered via app by user)
