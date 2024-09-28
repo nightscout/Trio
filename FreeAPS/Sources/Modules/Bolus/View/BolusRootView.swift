@@ -137,7 +137,7 @@ extension Bolus {
                     previousTextField: { focusOnPreviousTextField(index: 1) },
                     nextTextField: { focusOnNextTextField(index: 1) }
                 ).focused($focusedField, equals: .carbs)
-                    .onChange(of: state.carbs) { _ in
+                    .onChange(of: state.carbs) {
                         handleDebouncedInput()
                     }
                 Text("g").foregroundColor(.secondary)
@@ -188,7 +188,11 @@ extension Bolus {
 
                             // Time
                             HStack {
-                                Image(systemName: "clock")
+                                // Semi-hacky workaround to make sure the List renders the horizontal divider properly between the `Time` and `Note` rows within the Section
+                                HStack {
+                                    Text("")
+                                    Image(systemName: "clock").padding(.leading, -7)
+                                }
 
                                 Spacer()
                                 if !pushed {
@@ -229,7 +233,7 @@ extension Bolus {
                                         }
                                         .toggleStyle(CheckboxToggleStyle())
                                         .font(.footnote)
-                                        .onChange(of: state.useFattyMealCorrectionFactor) { _ in
+                                        .onChange(of: state.useFattyMealCorrectionFactor) {
                                             state.insulinCalculated = state.calculateInsulin()
                                             if state.useFattyMealCorrectionFactor {
                                                 state.useSuperBolus = false
@@ -242,7 +246,7 @@ extension Bolus {
                                         }
                                         .toggleStyle(CheckboxToggleStyle())
                                         .font(.footnote)
-                                        .onChange(of: state.useSuperBolus) { _ in
+                                        .onChange(of: state.useSuperBolus) {
                                             state.insulinCalculated = state.calculateInsulin()
                                             if state.useSuperBolus {
                                                 state.useFattyMealCorrectionFactor = false
@@ -289,7 +293,7 @@ extension Bolus {
                                     previousTextField: { focusOnPreviousTextField(index: 4) },
                                     nextTextField: { focusOnNextTextField(index: 4) }
                                 ).focused($focusedField, equals: .bolus)
-                                    .onChange(of: state.amount) { _ in
+                                    .onChange(of: state.amount) {
                                         Task {
                                             await state.updateForecasts()
                                         }
