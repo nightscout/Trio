@@ -2,116 +2,115 @@ import Combine
 import CoreData
 import Foundation
 import LoopKit
+import Observation
 import SwiftUI
 import Swinject
 
 extension Bolus {
-    final class StateModel: BaseStateModel<Provider> {
-        @Injected() var unlockmanager: UnlockManager!
-        @Injected() var apsManager: APSManager!
-        @Injected() var broadcaster: Broadcaster!
-        @Injected() var pumpHistoryStorage: PumpHistoryStorage!
-        // added for bolus calculator
-        @Injected() var settings: SettingsManager!
-        @Injected() var nsManager: NightscoutManager!
-        @Injected() var carbsStorage: CarbsStorage!
-        @Injected() var glucoseStorage: GlucoseStorage!
-        @Injected() var determinationStorage: DeterminationStorage!
+    @Observable final class StateModel: BaseStateModel<Provider> {
+        @ObservationIgnored @Injected() var unlockmanager: UnlockManager!
+        @ObservationIgnored @Injected() var apsManager: APSManager!
+        @ObservationIgnored @Injected() var broadcaster: Broadcaster!
+        @ObservationIgnored @Injected() var pumpHistoryStorage: PumpHistoryStorage!
+        @ObservationIgnored @Injected() var settings: SettingsManager!
+        @ObservationIgnored @Injected() var nsManager: NightscoutManager!
+        @ObservationIgnored @Injected() var carbsStorage: CarbsStorage!
+        @ObservationIgnored @Injected() var glucoseStorage: GlucoseStorage!
+        @ObservationIgnored @Injected() var determinationStorage: DeterminationStorage!
 
-        @Published var lowGlucose: Decimal = 70
-        @Published var highGlucose: Decimal = 180
+        var lowGlucose: Decimal = 70
+        var highGlucose: Decimal = 180
 
-        @Published var predictions: Predictions?
-        @Published var amount: Decimal = 0
-        @Published var insulinRecommended: Decimal = 0
-        @Published var insulinRequired: Decimal = 0
-        @Published var units: GlucoseUnits = .mgdL
-        @Published var threshold: Decimal = 0
-        @Published var maxBolus: Decimal = 0
+        var predictions: Predictions?
+        var amount: Decimal = 0
+        var insulinRecommended: Decimal = 0
+        var insulinRequired: Decimal = 0
+        var units: GlucoseUnits = .mgdL
+        var threshold: Decimal = 0
+        var maxBolus: Decimal = 0
         var maxExternal: Decimal { maxBolus * 3 }
-        @Published var errorString: Decimal = 0
-        @Published var evBG: Decimal = 0
-        @Published var insulin: Decimal = 0
-        @Published var isf: Decimal = 0
-        @Published var error: Bool = false
-        @Published var minGuardBG: Decimal = 0
-        @Published var minDelta: Decimal = 0
-        @Published var expectedDelta: Decimal = 0
-        @Published var minPredBG: Decimal = 0
-        @Published var waitForSuggestion: Bool = false
-        @Published var carbRatio: Decimal = 0
+        var errorString: Decimal = 0
+        var evBG: Decimal = 0
+        var insulin: Decimal = 0
+        var isf: Decimal = 0
+        var error: Bool = false
+        var minGuardBG: Decimal = 0
+        var minDelta: Decimal = 0
+        var expectedDelta: Decimal = 0
+        var minPredBG: Decimal = 0
+        var waitForSuggestion: Bool = false
+        var carbRatio: Decimal = 0
 
-        @Published var addButtonPressed: Bool = false
+        var addButtonPressed: Bool = false
 
         var waitForSuggestionInitial: Bool = false
 
-        // added for bolus calculator
-        @Published var target: Decimal = 0
-        @Published var cob: Int16 = 0
-        @Published var iob: Decimal = 0
+        var target: Decimal = 0
+        var cob: Int16 = 0
+        var iob: Decimal = 0
 
-        @Published var currentBG: Decimal = 0
-        @Published var fifteenMinInsulin: Decimal = 0
-        @Published var deltaBG: Decimal = 0
-        @Published var targetDifferenceInsulin: Decimal = 0
-        @Published var targetDifference: Decimal = 0
-        @Published var wholeCob: Decimal = 0
-        @Published var wholeCobInsulin: Decimal = 0
-        @Published var iobInsulinReduction: Decimal = 0
-        @Published var wholeCalc: Decimal = 0
-        @Published var insulinCalculated: Decimal = 0
-        @Published var fraction: Decimal = 0
-        @Published var basal: Decimal = 0
-        @Published var fattyMeals: Bool = false
-        @Published var fattyMealFactor: Decimal = 0
-        @Published var useFattyMealCorrectionFactor: Bool = false
-        @Published var displayPresets: Bool = true
+        var currentBG: Decimal = 0
+        var fifteenMinInsulin: Decimal = 0
+        var deltaBG: Decimal = 0
+        var targetDifferenceInsulin: Decimal = 0
+        var targetDifference: Decimal = 0
+        var wholeCob: Decimal = 0
+        var wholeCobInsulin: Decimal = 0
+        var iobInsulinReduction: Decimal = 0
+        var wholeCalc: Decimal = 0
+        var insulinCalculated: Decimal = 0
+        var fraction: Decimal = 0
+        var basal: Decimal = 0
+        var fattyMeals: Bool = false
+        var fattyMealFactor: Decimal = 0
+        var useFattyMealCorrectionFactor: Bool = false
+        var displayPresets: Bool = true
 
-        @Published var currentBasal: Decimal = 0
-        @Published var currentCarbRatio: Decimal = 0
-        @Published var currentBGTarget: Decimal = 0
-        @Published var currentISF: Decimal = 0
+        var currentBasal: Decimal = 0
+        var currentCarbRatio: Decimal = 0
+        var currentBGTarget: Decimal = 0
+        var currentISF: Decimal = 0
 
-        @Published var sweetMeals: Bool = false
-        @Published var sweetMealFactor: Decimal = 0
-        @Published var useSuperBolus: Bool = false
-        @Published var superBolusInsulin: Decimal = 0
+        var sweetMeals: Bool = false
+        var sweetMealFactor: Decimal = 0
+        var useSuperBolus: Bool = false
+        var superBolusInsulin: Decimal = 0
 
-        @Published var meal: [CarbsEntry]?
-        @Published var carbs: Decimal = 0
-        @Published var fat: Decimal = 0
-        @Published var protein: Decimal = 0
-        @Published var note: String = ""
+        var meal: [CarbsEntry]?
+        var carbs: Decimal = 0
+        var fat: Decimal = 0
+        var protein: Decimal = 0
+        var note: String = ""
 
-        @Published var date = Date()
+        var date = Date()
 
-        @Published var carbsRequired: Decimal?
-        @Published var useFPUconversion: Bool = false
-        @Published var dish: String = ""
-        @Published var selection: MealPresetStored?
-        @Published var summation: [String] = []
-        @Published var maxCarbs: Decimal = 0
-        @Published var maxFat: Decimal = 0
-        @Published var maxProtein: Decimal = 0
+        var carbsRequired: Decimal?
+        var useFPUconversion: Bool = false
+        var dish: String = ""
+        var selection: MealPresetStored?
+        var summation: [String] = []
+        var maxCarbs: Decimal = 0
+        var maxFat: Decimal = 0
+        var maxProtein: Decimal = 0
 
-        @Published var id_: String = ""
-        @Published var summary: String = ""
+        var id_: String = ""
+        var summary: String = ""
 
-        @Published var externalInsulin: Bool = false
-        @Published var showInfo: Bool = false
-        @Published var glucoseFromPersistence: [GlucoseStored] = []
-        @Published var determination: [OrefDetermination] = []
-        @Published var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
-        @Published var predictionsForChart: Predictions?
-        @Published var simulatedDetermination: Determination?
-        @Published var determinationObjectIDs: [NSManagedObjectID] = []
+        var externalInsulin: Bool = false
+        var showInfo: Bool = false
+        var glucoseFromPersistence: [GlucoseStored] = []
+        var determination: [OrefDetermination] = []
+        var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
+        var predictionsForChart: Predictions?
+        var simulatedDetermination: Determination?
+        var determinationObjectIDs: [NSManagedObjectID] = []
 
-        @Published var minForecast: [Int] = []
-        @Published var maxForecast: [Int] = []
-        @Published var minCount: Int = 12 // count of Forecasts drawn in 5 min distances, i.e. 12 means a min of 1 hour
-        @Published var forecastDisplayType: ForecastDisplayType = .cone
-        @Published var isSmoothingEnabled: Bool = false
-        @Published var stops: [Gradient.Stop] = []
+        var minForecast: [Int] = []
+        var maxForecast: [Int] = []
+        var minCount: Int = 12 // count of Forecasts drawn in 5 min distances, i.e. 12 means a min of 1 hour
+        var forecastDisplayType: ForecastDisplayType = .cone
+        var isSmoothingEnabled: Bool = false
+        var stops: [Gradient.Stop] = []
 
         let now = Date.now
 

@@ -1,26 +1,27 @@
+import Observation
 import SwiftUI
 
 extension SMBSettings {
-    final class StateModel: BaseStateModel<Provider> {
-        @Injected() var settings: SettingsManager!
-        @Injected() var storage: FileStorage!
+    @Observable final class StateModel: BaseStateModel<Provider> {
+        @ObservationIgnored @Injected() var settings: SettingsManager!
+        @ObservationIgnored @Injected() var storage: FileStorage!
 
-        @Published var units: GlucoseUnits = .mgdL
+        var units: GlucoseUnits = .mgdL
 
-        @Published var enableSMBAlways: Bool = false
-        @Published var maxDeltaBGthreshold: Decimal = 0.2
-        @Published var enableSMBWithCOB: Bool = false
-        @Published var enableSMBWithTemptarget: Bool = false
-        @Published var enableSMBAfterCarbs: Bool = false
-        @Published var allowSMBWithHighTemptarget: Bool = false
-        @Published var enableSMB_high_bg: Bool = false
-        @Published var enableSMB_high_bg_target: Decimal = 100
-        @Published var maxSMBBasalMinutes: Decimal = 30
-        @Published var smbDeliveryRatio: Decimal = 0.5
-        @Published var smbInterval: Decimal = 3
-        @Published var bolusIncrement: Decimal = 0.1 // get this from pump, dafuq?: Bool = false
-        @Published var enableUAM: Bool = false
-        @Published var maxUAMSMBBasalMinutes: Decimal = 30
+        var enableSMBAlways: Bool = false
+        var maxDeltaBGthreshold: Decimal = 0.2
+        var enableSMBWithCOB: Bool = false
+        var enableSMBWithTemptarget: Bool = false
+        var enableSMBAfterCarbs: Bool = false
+        var allowSMBWithHighTemptarget: Bool = false
+        var enableSMB_high_bg: Bool = false
+        var enableSMB_high_bg_target: Decimal = 100
+        var maxSMBBasalMinutes: Decimal = 30
+        var smbDeliveryRatio: Decimal = 0.5
+        var smbInterval: Decimal = 3
+        var bolusIncrement: Decimal = 0.1 // get this from pump, dafuq?: Bool = false
+        var enableUAM: Bool = false
+        var maxUAMSMBBasalMinutes: Decimal = 30
 
         var preferences: Preferences {
             settingsManager.preferences

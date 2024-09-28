@@ -17,7 +17,7 @@ extension Bolus {
 
         let resolver: Resolver
 
-        @StateObject var state = StateModel()
+        @State var state = StateModel()
 
         @State private var showPresetSheet = false
         @State private var autofocus: Bool = true
@@ -171,7 +171,7 @@ extension Bolus {
                 VStack {
                     Form {
                         Section {
-                            ForeCastChart(state: state, units: $state.units)
+                            ForeCastChart(state: state)
                                 .padding(.vertical)
                         }.listRowBackground(Color.chart)
 

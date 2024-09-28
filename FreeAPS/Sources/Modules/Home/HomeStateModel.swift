@@ -2,100 +2,101 @@ import Combine
 import CoreData
 import Foundation
 import LoopKitUI
+import Observation
 import SwiftDate
 import SwiftUI
 
 extension Home {
-    final class StateModel: BaseStateModel<Provider> {
-        @Injected() var broadcaster: Broadcaster!
-        @Injected() var apsManager: APSManager!
-        @Injected() var fetchGlucoseManager: FetchGlucoseManager!
-        @Injected() var nightscoutManager: NightscoutManager!
-        @Injected() var determinationStorage: DeterminationStorage!
-        @Injected() var glucoseStorage: GlucoseStorage!
-        @Injected() var carbsStorage: CarbsStorage!
+    @Observable final class StateModel: BaseStateModel<Provider> {
+        @ObservationIgnored @Injected() var broadcaster: Broadcaster!
+        @ObservationIgnored @Injected() var apsManager: APSManager!
+        @ObservationIgnored @Injected() var fetchGlucoseManager: FetchGlucoseManager!
+        @ObservationIgnored @Injected() var nightscoutManager: NightscoutManager!
+        @ObservationIgnored @Injected() var determinationStorage: DeterminationStorage!
+        @ObservationIgnored @Injected() var glucoseStorage: GlucoseStorage!
+        @ObservationIgnored @Injected() var carbsStorage: CarbsStorage!
         private let timer = DispatchTimer(timeInterval: 5)
         private(set) var filteredHours = 24
-        @Published var manualGlucose: [BloodGlucose] = []
-        @Published var announcement: [Announcement] = []
-        @Published var uploadStats = false
-        @Published var recentGlucose: BloodGlucose?
-        @Published var maxBasal: Decimal = 2
-        @Published var autotunedBasalProfile: [BasalProfileEntry] = []
-        @Published var basalProfile: [BasalProfileEntry] = []
-        @Published var tempTargets: [TempTarget] = []
-        @Published var timerDate = Date()
-        @Published var closedLoop = false
-        @Published var pumpSuspended = false
-        @Published var isLooping = false
-        @Published var statusTitle = ""
-        @Published var lastLoopDate: Date = .distantPast
-        @Published var battery: Battery?
-        @Published var reservoir: Decimal?
-        @Published var pumpName = ""
-        @Published var pumpExpiresAtDate: Date?
-        @Published var tempTarget: TempTarget?
-        @Published var setupPump = false
-        @Published var errorMessage: String? = nil
-        @Published var errorDate: Date? = nil
-        @Published var bolusProgress: Decimal?
-        @Published var eventualBG: Int?
-        @Published var allowManualTemp = false
-        @Published var units: GlucoseUnits = .mgdL
-        @Published var pumpDisplayState: PumpDisplayState?
-        @Published var alarm: GlucoseAlarm?
-        @Published var manualTempBasal = false
-        @Published var isSmoothingEnabled = false
-        @Published var maxValue: Decimal = 1.2
-        @Published var lowGlucose: Decimal = 70
-        @Published var highGlucose: Decimal = 180
-        @Published var overrideUnit: Bool = false
-        @Published var displayXgridLines: Bool = false
-        @Published var displayYgridLines: Bool = false
-        @Published var thresholdLines: Bool = false
-        @Published var timeZone: TimeZone?
-        @Published var hours: Int16 = 6
-        @Published var totalBolus: Decimal = 0
-        @Published var isStatusPopupPresented: Bool = false
-        @Published var isLegendPresented: Bool = false
-        @Published var legendSheetDetent = PresentationDetent.large
-        @Published var totalInsulinDisplayType: TotalInsulinDisplayType = .totalDailyDose
-        @Published var roundedTotalBolus: String = ""
-        @Published var selectedTab: Int = 0
-        @Published var waitForSuggestion: Bool = false
-        @Published var glucoseFromPersistence: [GlucoseStored] = []
-        @Published var latestTwoGlucoseValues: [GlucoseStored] = []
-        @Published var carbsFromPersistence: [CarbEntryStored] = []
-        @Published var fpusFromPersistence: [CarbEntryStored] = []
-        @Published var determinationsFromPersistence: [OrefDetermination] = []
-        @Published var enactedAndNonEnactedDeterminations: [OrefDetermination] = []
-        @Published var insulinFromPersistence: [PumpEventStored] = []
-        @Published var tempBasals: [PumpEventStored] = []
-        @Published var suspensions: [PumpEventStored] = []
-        @Published var batteryFromPersistence: [OpenAPS_Battery] = []
-        @Published var lastPumpBolus: PumpEventStored?
-        @Published var overrides: [OverrideStored] = []
-        @Published var overrideRunStored: [OverrideRunStored] = []
-        @Published var isOverrideCancelled: Bool = false
-        @Published var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
-        @Published var pumpStatusHighlightMessage: String? = nil
-        @Published var cgmAvailable: Bool = false
-        @Published var showCarbsRequiredBadge: Bool = true
+        var manualGlucose: [BloodGlucose] = []
+        var announcement: [Announcement] = []
+        var uploadStats = false
+        var recentGlucose: BloodGlucose?
+        var maxBasal: Decimal = 2
+        var autotunedBasalProfile: [BasalProfileEntry] = []
+        var basalProfile: [BasalProfileEntry] = []
+        var tempTargets: [TempTarget] = []
+        var timerDate = Date()
+        var closedLoop = false
+        var pumpSuspended = false
+        var isLooping = false
+        var statusTitle = ""
+        var lastLoopDate: Date = .distantPast
+        var battery: Battery?
+        var reservoir: Decimal?
+        var pumpName = ""
+        var pumpExpiresAtDate: Date?
+        var tempTarget: TempTarget?
+        var setupPump = false
+        var errorMessage: String?
+        var errorDate: Date?
+        var bolusProgress: Decimal?
+        var eventualBG: Int?
+        var allowManualTemp = false
+        var units: GlucoseUnits = .mgdL
+        var pumpDisplayState: PumpDisplayState?
+        var alarm: GlucoseAlarm?
+        var manualTempBasal = false
+        var isSmoothingEnabled = false
+        var maxValue: Decimal = 1.2
+        var lowGlucose: Decimal = 70
+        var highGlucose: Decimal = 180
+        var overrideUnit: Bool = false
+        var displayXgridLines: Bool = false
+        var displayYgridLines: Bool = false
+        var thresholdLines: Bool = false
+        var timeZone: TimeZone?
+        var hours: Int16 = 6
+        var totalBolus: Decimal = 0
+        var isStatusPopupPresented: Bool = false
+        var isLegendPresented: Bool = false
+        var legendSheetDetent = PresentationDetent.large
+        var totalInsulinDisplayType: TotalInsulinDisplayType = .totalDailyDose
+        var roundedTotalBolus: String = ""
+        var selectedTab: Int = 0
+        var waitForSuggestion: Bool = false
+        var glucoseFromPersistence: [GlucoseStored] = []
+        var latestTwoGlucoseValues: [GlucoseStored] = []
+        var carbsFromPersistence: [CarbEntryStored] = []
+        var fpusFromPersistence: [CarbEntryStored] = []
+        var determinationsFromPersistence: [OrefDetermination] = []
+        var enactedAndNonEnactedDeterminations: [OrefDetermination] = []
+        var insulinFromPersistence: [PumpEventStored] = []
+        var tempBasals: [PumpEventStored] = []
+        var suspensions: [PumpEventStored] = []
+        var batteryFromPersistence: [OpenAPS_Battery] = []
+        var lastPumpBolus: PumpEventStored?
+        var overrides: [OverrideStored] = []
+        var overrideRunStored: [OverrideRunStored] = []
+        var isOverrideCancelled: Bool = false
+        var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
+        var pumpStatusHighlightMessage: String?
+        var cgmAvailable: Bool = false
+        var showCarbsRequiredBadge: Bool = true
         private(set) var setupPumpType: PumpConfig.PumpType = .minimed
 
-        @Published var minForecast: [Int] = []
-        @Published var maxForecast: [Int] = []
-        @Published var minCount: Int = 12 // count of Forecasts drawn in 5 min distances, i.e. 12 means a min of 1 hour
-        @Published var forecastDisplayType: ForecastDisplayType = .cone
+        var minForecast: [Int] = []
+        var maxForecast: [Int] = []
+        var minCount: Int = 12 // count of Forecasts drawn in 5 min distances, i.e. 12 means a min of 1 hour
+        var forecastDisplayType: ForecastDisplayType = .cone
 
-        @Published var minYAxisValue: Decimal = 39
-        @Published var maxYAxisValue: Decimal = 300
+        var minYAxisValue: Decimal = 39
+        var maxYAxisValue: Decimal = 300
 
-        @Published var minValueCobChart: Decimal = 0
-        @Published var maxValueCobChart: Decimal = 20
+        var minValueCobChart: Decimal = 0
+        var maxValueCobChart: Decimal = 20
 
-        @Published var minValueIobChart: Decimal = 0
-        @Published var maxValueIobChart: Decimal = 5
+        var minValueIobChart: Decimal = 0
+        var maxValueIobChart: Decimal = 5
 
         let taskContext = CoreDataStack.shared.newTaskContext()
         let glucoseFetchContext = CoreDataStack.shared.newTaskContext()

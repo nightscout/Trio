@@ -7,17 +7,17 @@ let calendar = Calendar.current
 
 struct MainChartView: View {
     var geo: GeometryProxy
-    @Binding var units: GlucoseUnits
-    @Binding var hours: Int
-    @Binding var tempTargets: [TempTarget]
-    @Binding var highGlucose: Decimal
-    @Binding var lowGlucose: Decimal
-    @Binding var screenHours: Int16
-    @Binding var displayXgridLines: Bool
-    @Binding var displayYgridLines: Bool
-    @Binding var thresholdLines: Bool
+    var units: GlucoseUnits
+    var hours: Int
+    var tempTargets: [TempTarget]
+    var highGlucose: Decimal
+    var lowGlucose: Decimal
+    var screenHours: Int16
+    var displayXgridLines: Bool
+    var displayYgridLines: Bool
+    var thresholdLines: Bool
 
-    @StateObject var state: Home.StateModel
+    var state: Home.StateModel
 
     @State var basalProfiles: [BasalProfile] = []
     @State var preparedTempBasals: [(start: Date, end: Date, rate: Double)] = []

@@ -1,55 +1,56 @@
 import CoreData
+import Observation
 import SwiftUI
 
 extension OverrideConfig {
-    final class StateModel: BaseStateModel<Provider> {
-        @Injected() var broadcaster: Broadcaster!
-        @Injected() var storage: TempTargetsStorage!
-        @Injected() var apsManager: APSManager!
-        @Injected() var overrideStorage: OverrideStorage!
+    @Observable final class StateModel: BaseStateModel<Provider> {
+        @ObservationIgnored @Injected() var broadcaster: Broadcaster!
+        @ObservationIgnored @Injected() var storage: TempTargetsStorage!
+        @ObservationIgnored @Injected() var apsManager: APSManager!
+        @ObservationIgnored @Injected() var overrideStorage: OverrideStorage!
 
-        @Published var overrideSliderPercentage: Double = 100
-        @Published var isEnabled = false
-        @Published var indefinite = true
-        @Published var overrideDuration: Decimal = 0
-        @Published var target: Decimal = 0
-        @Published var shouldOverrideTarget: Bool = false
-        @Published var smbIsOff: Bool = false
-        @Published var id = ""
-        @Published var overrideName: String = ""
-        @Published var isPreset: Bool = false
-        @Published var overridePresets: [OverrideStored] = []
-        @Published var advancedSettings: Bool = false
-        @Published var isfAndCr: Bool = true
-        @Published var isf: Bool = true
-        @Published var cr: Bool = true
-        @Published var smbIsAlwaysOff: Bool = false
-        @Published var start: Decimal = 0
-        @Published var end: Decimal = 23
-        @Published var smbMinutes: Decimal = 0
-        @Published var uamMinutes: Decimal = 0
-        @Published var defaultSmbMinutes: Decimal = 0
-        @Published var defaultUamMinutes: Decimal = 0
-        @Published var selectedTab: Tab = .overrides
-        @Published var activeOverrideName: String = ""
-        @Published var currentActiveOverride: OverrideStored?
-        @Published var showOverrideEditSheet = false
-        @Published var showInvalidTargetAlert = false
+        var overrideSliderPercentage: Double = 100
+        var isEnabled = false
+        var indefinite = true
+        var overrideDuration: Decimal = 0
+        var target: Decimal = 0
+        var shouldOverrideTarget: Bool = false
+        var smbIsOff: Bool = false
+        var id = ""
+        var overrideName: String = ""
+        var isPreset: Bool = false
+        var overridePresets: [OverrideStored] = []
+        var advancedSettings: Bool = false
+        var isfAndCr: Bool = true
+        var isf: Bool = true
+        var cr: Bool = true
+        var smbIsAlwaysOff: Bool = false
+        var start: Decimal = 0
+        var end: Decimal = 23
+        var smbMinutes: Decimal = 0
+        var uamMinutes: Decimal = 0
+        var defaultSmbMinutes: Decimal = 0
+        var defaultUamMinutes: Decimal = 0
+        var selectedTab: Tab = .overrides
+        var activeOverrideName: String = ""
+        var currentActiveOverride: OverrideStored?
+        var showOverrideEditSheet = false
+        var showInvalidTargetAlert = false
 
         var units: GlucoseUnits = .mgdL
 
         // temp target stuff
-        @Published var low: Decimal = 0
-        @Published var high: Decimal = 0
-        @Published var durationTT: Decimal = 0
-        @Published var date = Date()
-        @Published var newPresetName = ""
-        @Published var presetsTT: [TempTarget] = []
-        @Published var percentageTT = 100.0
-        @Published var maxValue: Decimal = 1.2
-        @Published var viewPercantage = false
-        @Published var hbt: Double = 160
-        @Published var didSaveSettings: Bool = false
+        var low: Decimal = 0
+        var high: Decimal = 0
+        var durationTT: Decimal = 0
+        var date = Date()
+        var newPresetName = ""
+        var presetsTT: [TempTarget] = []
+        var percentageTT = 100.0
+        var maxValue: Decimal = 1.2
+        var viewPercantage = false
+        var hbt: Double = 160
+        var didSaveSettings: Bool = false
 
         var alertMessage: String {
             let target: String = units == .mgdL ? "70-270 mg/dl" : "4-15 mmol/l"

@@ -8,7 +8,7 @@ extension Home {
     struct RootView: BaseView {
         let resolver: Resolver
 
-        @StateObject var state = StateModel()
+        @State var state = StateModel()
         @State var isStatusPopupPresented = false
         @State var showCancelAlert = false
         @State var isMenuPresented = false
@@ -53,8 +53,6 @@ extension Home {
             entity: TempTargetsSlider.entity(),
             sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
         ) var enactedSliderTT: FetchedResults<TempTargetsSlider>
-
-        // TODO: end todo
 
         var bolusProgressFormatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -130,12 +128,12 @@ extension Home {
 
         var glucoseView: some View {
             CurrentGlucoseView(
-                timerDate: $state.timerDate,
-                units: $state.units,
-                alarm: $state.alarm,
-                lowGlucose: $state.lowGlucose,
-                highGlucose: $state.highGlucose,
-                cgmAvailable: $state.cgmAvailable,
+                timerDate: state.timerDate,
+                units: state.units,
+                alarm: state.alarm,
+                lowGlucose: state.lowGlucose,
+                highGlucose: state.highGlucose,
+                cgmAvailable: state.cgmAvailable,
                 glucose: state.latestTwoGlucoseValues
             ).scaleEffect(0.9)
                 .onTapGesture {
@@ -150,13 +148,13 @@ extension Home {
 
         var pumpView: some View {
             PumpView(
-                reservoir: $state.reservoir,
-                name: $state.pumpName,
-                expiresAtDate: $state.pumpExpiresAtDate,
-                timerDate: $state.timerDate,
-                timeZone: $state.timeZone,
-                pumpStatusHighlightMessage: $state.pumpStatusHighlightMessage,
-                battery: $state.batteryFromPersistence
+                reservoir: state.reservoir,
+                name: state.pumpName,
+                expiresAtDate: state.pumpExpiresAtDate,
+                timerDate: state.timerDate,
+                timeZone: state.timeZone,
+                pumpStatusHighlightMessage: state.pumpStatusHighlightMessage,
+                battery: state.batteryFromPersistence
             ).onTapGesture {
                 if state.pumpDisplayState == nil {
                     // shows user confirmation dialog with pump model choices, then proceeds to setup
@@ -336,15 +334,15 @@ extension Home {
             ZStack {
                 MainChartView(
                     geo: geo,
-                    units: $state.units,
-                    hours: .constant(state.filteredHours),
-                    tempTargets: $state.tempTargets,
-                    highGlucose: $state.highGlucose,
-                    lowGlucose: $state.lowGlucose,
-                    screenHours: $state.hours,
-                    displayXgridLines: $state.displayXgridLines,
-                    displayYgridLines: $state.displayYgridLines,
-                    thresholdLines: $state.thresholdLines,
+                    units: state.units,
+                    hours: state.filteredHours,
+                    tempTargets: state.tempTargets,
+                    highGlucose: state.highGlucose,
+                    lowGlucose: state.lowGlucose,
+                    screenHours: state.hours,
+                    displayXgridLines: state.displayXgridLines,
+                    displayYgridLines: state.displayYgridLines,
+                    thresholdLines: state.thresholdLines,
                     state: state
                 )
             }
@@ -361,11 +359,11 @@ extension Home {
             VStack(alignment: .leading, spacing: 20) {
                 /// Loop view at bottomLeading
                 LoopView(
-                    closedLoop: $state.closedLoop,
-                    timerDate: $state.timerDate,
-                    isLooping: $state.isLooping,
-                    lastLoopDate: $state.lastLoopDate,
-                    manualTempBasal: $state.manualTempBasal,
+                    closedLoop: state.closedLoop,
+                    timerDate: state.timerDate,
+                    isLooping: state.isLooping,
+                    lastLoopDate: state.lastLoopDate,
+                    manualTempBasal: state.manualTempBasal,
                     determination: state.determinationsFromPersistence
                 ).onTapGesture {
                     state.isStatusPopupPresented = true

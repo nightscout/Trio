@@ -1,5 +1,6 @@
 import CoreData
 import Foundation
+import Observation
 import SwiftUI
 
 struct AddMealPresetView: View {
