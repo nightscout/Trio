@@ -390,6 +390,8 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
 
                     // Calculate the total insulin delivered during the temp basal period
                     let value = (Decimal(duration) / 60.0) * amount
+                    let valueRounded = self.deviceDataManager?.pumpManager?
+                        .roundToSupportedBolusVolume(units: Double(value)) ?? Double(value)
 
                     // Check if there's a matching existing temp basal entry
                     if let matchingEntryIndex = existingEntriesByTimestamp[event.timestamp] {
@@ -413,7 +415,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                             id: event.id,
                             type: .tempBasal,
                             timestamp: event.timestamp,
-                            amount: value,
+                            amount: Decimal(valueRounded),
                             duration: event.duration
                         )
 
@@ -520,7 +522,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                 .roundToSupportedBolusVolume(units: adjustedDeliveredUnits) ?? adjustedDeliveredUnits
 
             // Create the HealthKit quantity sample with the appropriate metadata
-            // Intentionally do it here manually and no use `createSample()` to handle utmost precise `end`.
+            // Intentionally do it here manually and do not use `createSample()` to handle utmost precise `end`.
             let sample = HKQuantitySample(
                 type: sampleType,
                 quantity: HKQuantity(unit: .internationalUnit(), doubleValue: Double(adjustedDeliveredUnitsRounded)),
