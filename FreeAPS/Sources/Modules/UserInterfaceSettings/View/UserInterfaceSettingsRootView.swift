@@ -61,7 +61,7 @@ extension UserInterfaceSettings {
                         VStack {
                             Picker(
                                 selection: $colorSchemePreference,
-                                label: Text("Color Scheme")
+                                label: Text("Trio Color Scheme")
                             ) {
                                 ForEach(ColorSchemeOption.allCases) { selection in
                                     Text(selection.displayName).tag(selection)
@@ -106,7 +106,7 @@ extension UserInterfaceSettings {
 
                         HStack(alignment: .top) {
                             Text(
-                                "Glucose Scheme Preference ... dynamic or static ... Lorem ipsum dolor"
+                                "Glucose Color Scheme ... dynamic or static ... Lorem ipsum dolor"
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -114,9 +114,9 @@ extension UserInterfaceSettings {
                             Spacer()
                             Button(
                                 action: {
-                                    hintLabel = "Glucose Scheme Preference"
+                                    hintLabel = "Glucose Color Scheme"
                                     selectedVerboseHint =
-                                        "Glucose Scheme Preference... Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                        "Glucose Color Scheme... Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
                                     shouldDisplayHint.toggle()
                                 },
                                 label: {

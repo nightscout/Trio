@@ -191,7 +191,9 @@ enum SettingItems {
                 "Standing / Laying TIR Chart",
                 "Show Carbs Required Badge",
                 "Carbs Required Threshold",
-                "Forecast Display Type"
+                "Forecast Display Type",
+                "Trio Color Scheme",
+                "Glucose Color Scheme"
             ],
             path: ["Features", "User Interface"]
         ),
