@@ -8,6 +8,8 @@ struct CurrentGlucoseView: View {
     @Binding var lowGlucose: Decimal
     @Binding var highGlucose: Decimal
     @Binding var cgmAvailable: Bool
+    @Binding var currentGlucoseTarget: Decimal
+    @Binding var glucoseColorScheme: GlucoseColorScheme
 
     var glucose: [GlucoseStored] // This contains the last two glucose values, no matter if its manual or a cgm reading
 
@@ -163,12 +165,6 @@ struct CurrentGlucoseView: View {
     var glucoseDisplayColor: Color {
         guard let lastGlucose = glucose.last?.glucose else { return .primary }
 
-        // Convert the lastest glucose value to Int for comparison
-        let whichGlucose = Int(lastGlucose)
-
-        // Define default color based on the color scheme
-        let defaultColor: Color = colorScheme == .dark ? .white : .black
-
         // low and high glucose is parsed in state to mmol/L; parse it back to mg/dl here for comparison
         let lowGlucose = units == .mgdL ? lowGlucose : lowGlucose.asMgdL
         let highGlucose = units == .mgdL ? highGlucose : highGlucose.asMgdL
@@ -176,17 +172,14 @@ struct CurrentGlucoseView: View {
         // Ensure the thresholds are logical
         guard lowGlucose < highGlucose else { return .primary }
 
-        // Perform range checks using Int converted values
-        switch whichGlucose {
-        case 0 ..< Int(lowGlucose):
-            return .loopRed
-        case Int(lowGlucose) ..< Int(highGlucose):
-            return defaultColor
-        case Int(highGlucose)...:
-            return .loopYellow
-        default:
-            return defaultColor
-        }
+        return FreeAPS.getDynamicGlucoseColor(
+            glucoseValue: Decimal(lastGlucose),
+            highGlucoseColorValue: highGlucose,
+            lowGlucoseColorValue: lowGlucose,
+            targetGlucose: currentGlucoseTarget,
+            glucoseColorScheme: glucoseColorScheme,
+            offset: units == .mgdL ? 20 : 20.asMmolL
+        )
     }
 }
 

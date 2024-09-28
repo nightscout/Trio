@@ -136,6 +136,8 @@ extension Home {
                 lowGlucose: $state.lowGlucose,
                 highGlucose: $state.highGlucose,
                 cgmAvailable: $state.cgmAvailable,
+                currentGlucoseTarget: $state.currentGlucoseTarget,
+                glucoseColorScheme: $state.glucoseColorScheme,
                 glucose: state.latestTwoGlucoseValues
             ).scaleEffect(0.9)
                 .onTapGesture {
