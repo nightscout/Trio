@@ -172,6 +172,8 @@ struct CurrentGlucoseView: View {
         // Ensure the thresholds are logical
         guard lowGlucose < highGlucose else { return .primary }
 
+        guard Decimal(lastGlucose) <= lowGlucose && Decimal(lastGlucose) >= highGlucose else { return .primary }
+
         return FreeAPS.getDynamicGlucoseColor(
             glucoseValue: Decimal(lastGlucose),
             highGlucoseColorValue: highGlucose,

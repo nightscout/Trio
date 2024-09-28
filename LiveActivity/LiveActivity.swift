@@ -22,77 +22,6 @@ enum GlucoseColorScheme: String, Equatable {
     case dynamicColor
 }
 
-// Helper function to decide how to pick the glucose color
-func getDynamicGlucoseColor(
-    glucoseValue: Decimal,
-    highGlucoseColorValue: Decimal,
-    lowGlucoseColorValue: Decimal,
-    targetGlucose: Decimal,
-    glucoseColorScheme: String,
-    offset: Decimal
-) -> Color {
-    let colorStyle = GlucoseColorScheme(rawValue: glucoseColorScheme) ?? .staticColor
-    // Convert Decimal to Int for high and low glucose values
-    let lowGlucose = lowGlucoseColorValue - offset
-    let highGlucose = highGlucoseColorValue + (offset * 1.75)
-    let targetGlucose = targetGlucose
-
-    // Only use calculateHueBasedGlucoseColor if the setting is enabled in preferences
-    if glucoseColorScheme == "dynamicColor" {
-        return calculateHueBasedGlucoseColor(
-            glucoseValue: glucoseValue,
-            highGlucose: highGlucose,
-            lowGlucose: lowGlucose,
-            targetGlucose: targetGlucose
-        )
-    }
-    // Otheriwse, use static (orange = high, red = low, green = range)
-    else {
-        if glucoseValue > highGlucose {
-            return Color.orange
-        } else if glucoseValue < lowGlucose {
-            return Color.red
-        } else {
-            return Color.green
-        }
-    }
-}
-
-// Dynamic color - Define the hue values for the key points
-// We'll shift color gradually one glucose point at a time
-// We'll shift through the rainbow colors of ROY-G-BIV from low to high
-// Start at red for lowGlucose, green for targetGlucose, and violet for highGlucose
-func calculateHueBasedGlucoseColor(
-    glucoseValue: Decimal,
-    highGlucose: Decimal,
-    lowGlucose: Decimal,
-    targetGlucose: Decimal
-) -> Color {
-    let redHue: CGFloat = 0.0 / 360.0 // 0 degrees
-    let greenHue: CGFloat = 120.0 / 360.0 // 120 degrees
-    let purpleHue: CGFloat = 270.0 / 360.0 // 270 degrees
-
-    // Calculate the hue based on the bgLevel
-    var hue: CGFloat
-    if glucoseValue <= lowGlucose {
-        hue = redHue
-    } else if glucoseValue >= highGlucose {
-        hue = purpleHue
-    } else if glucoseValue <= targetGlucose {
-        // Interpolate between red and green
-        let ratio = CGFloat(truncating: (glucoseValue - lowGlucose) / (targetGlucose - lowGlucose) as NSNumber)
-
-        hue = redHue + ratio * (greenHue - redHue)
-    } else {
-        // Interpolate between green and purple
-        let ratio = CGFloat(truncating: (glucoseValue - targetGlucose) / (highGlucose - targetGlucose) as NSNumber)
-        hue = greenHue + ratio * (purpleHue - greenHue)
-    }
-    // Return the color with full saturation and brightness
-    let color = Color(hue: hue, saturation: 0.6, brightness: 0.9)
-    return color
-}
-
 func rounded(_ value: Decimal, scale: Int, roundingMode: NSDecimalNumber.RoundingMode) -> Decimal {
     var result = Decimal()
     var toRound = value
@@ -136,6 +65,76 @@ extension NumberFormatter {
 }
 
 struct LiveActivity: Widget {
+    // Helper function to decide how to pick the glucose color
+    func getDynamicGlucoseColor(
+        glucoseValue: Decimal,
+        highGlucoseColorValue: Decimal,
+        lowGlucoseColorValue: Decimal,
+        targetGlucose: Decimal,
+        glucoseColorScheme: String,
+        offset: Decimal
+    ) -> Color {
+        // Convert Decimal to Int for high and low glucose values
+        let lowGlucose = lowGlucoseColorValue - offset
+        let highGlucose = highGlucoseColorValue + (offset * 1.75)
+        let targetGlucose = targetGlucose
+
+        // Only use calculateHueBasedGlucoseColor if the setting is enabled in preferences
+        if glucoseColorScheme == "dynamicColor" {
+            return calculateHueBasedGlucoseColor(
+                glucoseValue: glucoseValue,
+                highGlucose: highGlucose,
+                lowGlucose: lowGlucose,
+                targetGlucose: targetGlucose
+            )
+        }
+        // Otheriwse, use static (orange = high, red = low, green = range)
+        else {
+            if glucoseValue > highGlucose {
+                return Color.orange
+            } else if glucoseValue < lowGlucose {
+                return Color.red
+            } else {
+                return Color.green
+            }
+        }
+    }
+
+    // Dynamic color - Define the hue values for the key points
+    // We'll shift color gradually one glucose point at a time
+    // We'll shift through the rainbow colors of ROY-G-BIV from low to high
+    // Start at red for lowGlucose, green for targetGlucose, and violet for highGlucose
+    func calculateHueBasedGlucoseColor(
+        glucoseValue: Decimal,
+        highGlucose: Decimal,
+        lowGlucose: Decimal,
+        targetGlucose: Decimal
+    ) -> Color {
+        let redHue: CGFloat = 0.0 / 360.0 // 0 degrees
+        let greenHue: CGFloat = 120.0 / 360.0 // 120 degrees
+        let purpleHue: CGFloat = 270.0 / 360.0 // 270 degrees
+
+        // Calculate the hue based on the bgLevel
+        var hue: CGFloat
+        if glucoseValue <= lowGlucose {
+            hue = redHue
+        } else if glucoseValue >= highGlucose {
+            hue = purpleHue
+        } else if glucoseValue <= targetGlucose {
+            // Interpolate between red and green
+            let ratio = CGFloat(truncating: (glucoseValue - lowGlucose) / (targetGlucose - lowGlucose) as NSNumber)
+
+            hue = redHue + ratio * (greenHue - redHue)
+        } else {
+            // Interpolate between green and purple
+            let ratio = CGFloat(truncating: (glucoseValue - targetGlucose) / (highGlucose - targetGlucose) as NSNumber)
+            hue = greenHue + ratio * (purpleHue - greenHue)
+        }
+        // Return the color with full saturation and brightness
+        let color = Color(hue: hue, saturation: 0.6, brightness: 0.9)
+        return color
+    }
+
     private let dateFormatter: DateFormatter = {
         var f = DateFormatter()
         f.dateStyle = .none
@@ -258,7 +257,8 @@ struct LiveActivity: Widget {
     private func bgAndTrend(
         context: ActivityViewContext<LiveActivityAttributes>,
         size: Size,
-        dynamicColor _: Color
+        hasStaticColorScheme: Bool,
+        glucoseColor: Color
     ) -> (some View, Int) {
         var characters = 0
 
@@ -294,17 +294,15 @@ struct LiveActivity: Widget {
 
         let stack = HStack(spacing: spacing) {
             Text(bgText)
+                .foregroundColor(hasStaticColorScheme ? .primary : glucoseColor)
                 .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
+
             if let direction = directionText {
                 let text = Text(direction)
                 switch size {
                 case .minimal:
                     let scaledText = text.scaleEffect(x: 0.7, y: 0.7, anchor: .leading)
-                    if let warnColor {
-                        scaledText.foregroundStyle(warnColor)
-                    } else {
-                        scaledText
-                    }
+                    scaledText.foregroundStyle(hasStaticColorScheme ? .primary : glucoseColor)
                 case .compact:
                     text.scaleEffect(x: 0.8, y: 0.8, anchor: .leading).padding(.trailing, -3)
 
@@ -313,7 +311,7 @@ struct LiveActivity: Widget {
                 }
             }
         }
-        .foregroundStyle(context.isStale ? Color.primary.opacity(0.5) : Color.primary)
+        .foregroundColor(context.isStale ? Color.primary.opacity(0.5) : (hasStaticColorScheme ? .primary : glucoseColor))
 
         return (stack, characters)
     }
@@ -339,7 +337,8 @@ struct LiveActivity: Widget {
 
     @ViewBuilder func chart(
         context: ActivityViewContext<LiveActivityAttributes>,
-        additionalState: LiveActivityAttributes.ContentAdditionalState
+        additionalState: LiveActivityAttributes.ContentAdditionalState,
+        glucoseColor: Color
     ) -> some View {
         if context.isStale {
             Text("No data available")
@@ -348,9 +347,9 @@ struct LiveActivity: Widget {
             let min = min(additionalState.chart.min() ?? 45, 40) - 20
             let max = max(additionalState.chart.max() ?? 270, 300) + 50
 
-            let yAxisRuleMarkMin = additionalState.unit == "mg/dL" ? additionalState.lowGlucose : additionalState.lowGlucose
+            let yAxisRuleMarkMin = additionalState.unit == "mg/dL" ? context.state.lowGlucose : context.state.lowGlucose
                 .asMmolL
-            let yAxisRuleMarkMax = additionalState.unit == "mg/dL" ? additionalState.highGlucose : additionalState.highGlucose
+            let yAxisRuleMarkMax = additionalState.unit == "mg/dL" ? context.state.highGlucose : context.state.highGlucose
                 .asMmolL
 
             Chart {
@@ -368,16 +367,7 @@ struct LiveActivity: Widget {
                         y: .value("Value", displayValue)
                     ).symbolSize(15)
 
-                    let color = getDynamicGlucoseColor(
-                        glucoseValue: currentValue,
-                        highGlucoseColorValue: additionalState.highGlucose,
-                        lowGlucoseColorValue: additionalState.lowGlucose,
-                        targetGlucose: 90,
-                        glucoseColorScheme: additionalState.glucoseColorScheme ?? "staticColor",
-                        offset: additionalState.unit == "mg/dL" ? Decimal(20) : Decimal(20).asMmolL
-                    )
-
-                    pointMark.foregroundStyle(color)
+                    pointMark.foregroundStyle(glucoseColor)
                 }
             }
             .chartYAxis {
@@ -396,9 +386,20 @@ struct LiveActivity: Widget {
     }
 
     @ViewBuilder func content(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
+        let hasStaticColorScheme = context.state.glucoseColorScheme == "staticColor"
+        let glucoseColor = getDynamicGlucoseColor(
+            glucoseValue: Decimal(string: context.state.bg) ?? 100,
+            highGlucoseColorValue: context.state.highGlucose,
+            lowGlucoseColorValue: context.state.lowGlucose,
+            targetGlucose: 90,
+            glucoseColorScheme: context.state.glucoseColorScheme,
+            offset: context.state.detailedViewState?.unit == "mg/dL" ? Decimal(20) : Decimal(20).asMmolL
+        )
+
         if let detailedViewState = context.state.detailedViewState {
             HStack(spacing: 12) {
-                chart(context: context, additionalState: detailedViewState).frame(maxWidth: UIScreen.main.bounds.width / 1.8)
+                chart(context: context, additionalState: detailedViewState, glucoseColor: glucoseColor)
+                    .frame(maxWidth: UIScreen.main.bounds.width / 1.8)
                 VStack(alignment: .leading) {
                     Spacer()
                     bgLabel(context: context, additionalState: detailedViewState)
@@ -417,15 +418,6 @@ struct LiveActivity: Widget {
             .activityBackgroundTint(Color.black.opacity(0.8))
         } else {
             Group {
-                let glucoseColor = getDynamicGlucoseColor(
-                    glucoseValue: Decimal(string: context.state.bg) ?? 100,
-                    highGlucoseColorValue: context.state.detailedViewState?.highGlucose ?? 180,
-                    lowGlucoseColorValue: context.state.detailedViewState?.lowGlucose ?? 70,
-                    targetGlucose: 90,
-                    glucoseColorScheme: context.state.detailedViewState?.glucoseColorScheme ?? "staticColor",
-                    offset: context.state.detailedViewState?.unit == "mg/dL" ? Decimal(20) : Decimal(20).asMmolL
-                )
-
                 if context.state.isInitialState {
                     // add vertical and horizontal spacers around the label to ensure that the live activity view gets filled completely
                     HStack {
@@ -439,11 +431,21 @@ struct LiveActivity: Widget {
                     }
                 } else {
                     HStack(spacing: 3) {
-                        bgAndTrend(context: context, size: .expanded, dynamicColor: glucoseColor).0.font(.title)
+                        bgAndTrend(
+                            context: context,
+                            size: .expanded,
+                            hasStaticColorScheme: hasStaticColorScheme,
+                            glucoseColor: glucoseColor
+                        ).0.font(.title)
                         Spacer()
                         VStack(alignment: .trailing, spacing: 5) {
                             changeLabel(context: context).font(.title3)
-                            updatedLabel(context: context).font(.caption).foregroundStyle(.primary.opacity(0.7))
+                                .foregroundStyle(hasStaticColorScheme ? .primary : glucoseColor)
+                            updatedLabel(context: context).font(.caption)
+                                .foregroundStyle(
+                                    hasStaticColorScheme ? .primary
+                                        .opacity(0.7) : glucoseColor
+                                )
                         }
                     }
                 }
@@ -461,29 +463,38 @@ struct LiveActivity: Widget {
 
     func dynamicIsland(context: ActivityViewContext<LiveActivityAttributes>) -> DynamicIsland {
         let glucoseValueForColor = context.state.bg
-        let highGlucose = context.state.detailedViewState?.highGlucose ?? 180
-        let lowGlucose = context.state.detailedViewState?.lowGlucose ?? 70
+        let highGlucose = context.state.highGlucose
+        let lowGlucose = context.state.lowGlucose
+        let hasStaticColorScheme = context.state.glucoseColorScheme == "staticColor"
         let glucoseColor = getDynamicGlucoseColor(
             glucoseValue: Decimal(string: glucoseValueForColor) ?? 100,
             highGlucoseColorValue: highGlucose,
             lowGlucoseColorValue: lowGlucose,
             targetGlucose: 90,
-            glucoseColorScheme: context.state.detailedViewState?.glucoseColorScheme ?? "staticColor",
+            glucoseColorScheme: context.state.glucoseColorScheme,
             offset: context.state.detailedViewState?.unit == "mg/dL" ? Decimal(20) : Decimal(20).asMmolL
         )
 
+        print("Glucose color: \(glucoseColor)")
+
         return DynamicIsland {
             DynamicIslandExpandedRegion(.leading) {
-                bgAndTrend(context: context, size: .expanded, dynamicColor: glucoseColor).0.font(.title2).padding(.leading, 5)
+                bgAndTrend(
+                    context: context,
+                    size: .expanded,
+                    hasStaticColorScheme: hasStaticColorScheme,
+                    glucoseColor: glucoseColor
+                ).0.font(.title2).padding(.leading, 5)
             }
             DynamicIslandExpandedRegion(.trailing) {
                 changeLabel(context: context).font(.title2).padding(.trailing, 5)
+                    .foregroundStyle(hasStaticColorScheme ? .primary : glucoseColor)
             }
             DynamicIslandExpandedRegion(.bottom) {
                 if context.state.isInitialState {
                     expiredLabel()
                 } else if let detailedViewState = context.state.detailedViewState {
-                    chart(context: context, additionalState: detailedViewState)
+                    chart(context: context, additionalState: detailedViewState, glucoseColor: glucoseColor)
                 } else {
                     Group {
                         updatedLabel(context: context).font(.caption).foregroundStyle(Color.secondary)
@@ -500,11 +511,17 @@ struct LiveActivity: Widget {
                 }
             }
         } compactLeading: {
-            bgAndTrend(context: context, size: .compact, dynamicColor: glucoseColor).0.padding(.leading, 4)
+            bgAndTrend(context: context, size: .compact, hasStaticColorScheme: hasStaticColorScheme, glucoseColor: glucoseColor).0
+                .padding(.leading, 4)
         } compactTrailing: {
-            changeLabel(context: context).padding(.trailing, 4)
+            changeLabel(context: context).padding(.trailing, 4).foregroundStyle(hasStaticColorScheme ? .primary : glucoseColor)
         } minimal: {
-            let (_label, characterCount) = bgAndTrend(context: context, size: .minimal, dynamicColor: glucoseColor)
+            let (_label, characterCount) = bgAndTrend(
+                context: context,
+                size: .minimal,
+                hasStaticColorScheme: hasStaticColorScheme,
+                glucoseColor: glucoseColor
+            )
             let label = _label.padding(.leading, 7).padding(.trailing, 3)
 
             if characterCount < 4 {
@@ -516,7 +533,7 @@ struct LiveActivity: Widget {
             }
         }
         .widgetURL(URL(string: "Trio://"))
-        .keylineTint(Color.purple)
+        .keylineTint(hasStaticColorScheme ? Color.purple : glucoseColor)
         .contentMargins(.horizontal, 0, for: .minimal)
         .contentMargins(.trailing, 0, for: .compactLeading)
         .contentMargins(.leading, 0, for: .compactTrailing)
@@ -543,6 +560,9 @@ private extension LiveActivityAttributes.ContentState {
             direction: "→",
             change: "+0.0",
             date: Date(),
+            highGlucose: 180,
+            lowGlucose: 70,
+            glucoseColorScheme: "staticColor",
             detailedViewState: nil,
             isInitialState: false
         )
@@ -554,6 +574,9 @@ private extension LiveActivityAttributes.ContentState {
             direction: "↑↑",
             change: "+0.0",
             date: Date(),
+            highGlucose: 180,
+            lowGlucose: 70,
+            glucoseColorScheme: "staticColor",
             detailedViewState: nil,
             isInitialState: false
         )
@@ -565,6 +588,9 @@ private extension LiveActivityAttributes.ContentState {
             direction: "↑↑↑",
             change: "+0.0",
             date: Date(),
+            highGlucose: 180,
+            lowGlucose: 70,
+            glucoseColorScheme: "staticColor",
             detailedViewState: nil,
             isInitialState: false
         )
@@ -577,6 +603,9 @@ private extension LiveActivityAttributes.ContentState {
             direction: "↑",
             change: "+0",
             date: Date(),
+            highGlucose: 180,
+            lowGlucose: 70,
+            glucoseColorScheme: "staticColor",
             detailedViewState: nil,
             isInitialState: false
         )
@@ -588,6 +617,9 @@ private extension LiveActivityAttributes.ContentState {
             direction: "↗︎",
             change: "+00",
             date: Date(),
+            highGlucose: 180,
+            lowGlucose: 70,
+            glucoseColorScheme: "staticColor",
             detailedViewState: nil,
             isInitialState: false
         )
@@ -599,6 +631,9 @@ private extension LiveActivityAttributes.ContentState {
             direction: nil,
             change: "--",
             date: Date().addingTimeInterval(-60 * 60),
+            highGlucose: 180,
+            lowGlucose: 70,
+            glucoseColorScheme: "staticColor",
             detailedViewState: nil,
             isInitialState: true
         )
