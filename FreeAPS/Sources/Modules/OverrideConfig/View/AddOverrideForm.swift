@@ -136,9 +136,9 @@ struct AddOverrideForm: View {
                         Text("Change CR")
                     }
                 }
+            }
 
-                Divider()
-
+            VStack {
                 Toggle(isOn: $state.indefinite) {
                     Text("Enable Indefinitely")
                 }
@@ -149,9 +149,9 @@ struct AddOverrideForm: View {
                         Text("min").foregroundColor(.secondary)
                     }
                 }
+            }
 
-                Divider()
-
+            VStack {
                 Toggle(isOn: $state.shouldOverrideTarget) {
                     Text("Override Profile Target")
                 }
@@ -162,29 +162,25 @@ struct AddOverrideForm: View {
                         Text(state.units.rawValue).foregroundColor(.secondary)
                     }
                 }
+            }
 
-                Divider()
-
-                Toggle(isOn: $state.advancedSettings) {
-                    Text("More Options")
-                }
-                if state.advancedSettings {
-                    Divider()
-
-                    Toggle(isOn: Binding(
-                        get: { state.smbIsOff },
-                        set: { newValue in
-                            state.smbIsOff = newValue
-                            if newValue {
-                                state.smbIsScheduledOff = false
-                            }
+            Toggle(isOn: $state.advancedSettings) {
+                Text("More Options")
+            }
+            if state.advancedSettings {
+                Toggle(isOn: Binding(
+                    get: { state.smbIsOff },
+                    set: { newValue in
+                        state.smbIsOff = newValue
+                        if newValue {
+                            state.smbIsScheduledOff = false
                         }
-                    )) {
-                        Text("Disable SMBs")
                     }
+                )) {
+                    Text("Disable SMBs")
+                }
 
-                    Divider()
-
+                VStack {
                     Toggle(isOn: Binding(
                         get: { state.smbIsScheduledOff },
                         set: { newValue in
@@ -261,10 +257,10 @@ struct AddOverrideForm: View {
                         }
                         .padding(.vertical, 10)
                     }
+                }
 
-                    if !state.smbIsOff {
-                        Divider()
-
+                if !state.smbIsOff {
+                    VStack {
                         // SMB Minutes Picker
                         VStack {
                             HStack {

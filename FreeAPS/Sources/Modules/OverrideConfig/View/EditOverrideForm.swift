@@ -190,9 +190,9 @@ struct EditOverrideForm: View {
                         Text("Change CR")
                     }.onChange(of: cr) { _ in hasChanges = true }
                 }
+            }
 
-                Divider()
-
+            VStack {
                 Toggle(isOn: $indefinite) {
                     Text("Enable Indefinitely")
                 }.onChange(of: indefinite) { _ in hasChanges = true }
@@ -214,9 +214,9 @@ struct EditOverrideForm: View {
                         Text("min").foregroundColor(.secondary)
                     }
                 }
+            }
 
-                Divider()
-
+            VStack {
                 Toggle(isOn: $target_override) {
                     Text("Override Override Target")
                 }.onChange(of: target_override) { _ in
@@ -237,16 +237,14 @@ struct EditOverrideForm: View {
                         Text(state.units.rawValue).foregroundColor(.secondary)
                     }
                 }
+            }
 
-                Divider()
+            Toggle(isOn: $advancedSettings) {
+                Text("More Options")
+            }.onChange(of: advancedSettings) { _ in hasChanges = true }
 
-                Toggle(isOn: $advancedSettings) {
-                    Text("More Options")
-                }.onChange(of: advancedSettings) { _ in hasChanges = true }
-
-                if advancedSettings {
-                    Divider()
-
+            if advancedSettings {
+                VStack {
                     Toggle(
                         isOn: Binding(
                             get: { smbIsOff },
@@ -360,10 +358,10 @@ struct EditOverrideForm: View {
                         }
                         .padding(.top)
                     }
+                }
 
-                    if !smbIsOff {
-                        Divider()
-
+                if !smbIsOff {
+                    VStack {
                         // SMB Minutes Picker
                         VStack {
                             HStack {
