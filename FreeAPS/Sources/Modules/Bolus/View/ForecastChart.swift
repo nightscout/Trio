@@ -116,13 +116,19 @@ struct ForecastChart: View {
     private func drawGlucose() -> some ChartContent {
         ForEach(state.glucoseFromPersistence) { item in
             let glucoseToDisplay = state.units == .mgdL ? Decimal(item.glucose) : Decimal(item.glucose).asMmolL
-            let pointMarkColor = FreeAPS.getDynamicGlucoseColor(
-                glucoseValue: glucoseToDisplay,
-                highGlucoseColorValue: state.highGlucose,
-                lowGlucoseColorValue: state.lowGlucose,
-                targetGlucose: (state.determination.first?.currentTarget ?? state.currentBGTarget as NSDecimalNumber) as Decimal,
+
+            // low and high glucose is parsed in state to mmol/L; parse it back to mg/dl here for comparison
+            let lowGlucose = units == .mgdL ? state.lowGlucose : state.lowGlucose.asMgdL
+            let highGlucose = units == .mgdL ? state.highGlucose : state.highGlucose.asMgdL
+            let targetGlucose = (state.determination.first?.currentTarget ?? state.currentBGTarget as NSDecimalNumber) as Decimal
+
+            let pointMarkColor: Color = FreeAPS.getDynamicGlucoseColor(
+                glucoseValue: Decimal(item.glucose),
+                highGlucoseColorValue: highGlucose,
+                lowGlucoseColorValue: lowGlucose,
+                targetGlucose: targetGlucose,
                 glucoseColorScheme: state.glucoseColorScheme,
-                offset: units == .mgdL ? 20 : 20.asMmolL
+                offset: 20
             )
 
             if !state.isSmoothingEnabled {
@@ -131,7 +137,7 @@ struct ForecastChart: View {
                     y: .value("Value", glucoseToDisplay)
                 )
                 .foregroundStyle(pointMarkColor)
-                .symbolSize(20)
+                .symbolSize(18)
             } else {
                 PointMark(
                     x: .value("Time", item.date ?? Date(), unit: .second),
@@ -139,7 +145,7 @@ struct ForecastChart: View {
                 )
                 .symbol {
                     Image(systemName: "record.circle.fill")
-                        .font(.system(size: 8))
+                        .font(.system(size: 6))
                         .bold()
                         .foregroundStyle(pointMarkColor)
                 }
@@ -231,8 +237,8 @@ struct ForecastChart: View {
         AxisMarks(values: .stride(by: .hour, count: 2)) { _ in
             AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
             AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
-                .font(.footnote)
-                .foregroundStyle(Color.primary)
+                .font(.caption2)
+                .foregroundStyle(Color.secondary)
         }
     }
 
@@ -240,7 +246,7 @@ struct ForecastChart: View {
         AxisMarks(position: .trailing) { _ in
             AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
             AxisTick(length: 3, stroke: .init(lineWidth: 3)).foregroundStyle(Color.secondary)
-            AxisValueLabel().font(.footnote).foregroundStyle(Color.primary)
+            AxisValueLabel().font(.caption2).foregroundStyle(Color.secondary)
         }
     }
 }
