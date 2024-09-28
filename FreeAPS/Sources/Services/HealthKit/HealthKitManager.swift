@@ -511,11 +511,11 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
 
             // Calculate the insulin rate and adjusted delivered units
             let predecessorEntryRate = predecessorEntry.tempBasal?.rate?.doubleValue ?? 0
-            
+
             // Round the rate to a supported basal rate using pumpManager's rounding function
             let roundedRate = deviceDataManager?.pumpManager?
                 .roundToSupportedBasalRate(unitsPerHour: predecessorEntryRate) ?? predecessorEntryRate
-            
+
             let adjustedDurationHours = adjustedDuration / 3600 // Precise duration in hours
             let adjustedDeliveredUnits = adjustedDurationHours * roundedRate
 
