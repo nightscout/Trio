@@ -79,6 +79,13 @@ struct LiveActivity: Widget {
         let highGlucose = highGlucoseColorValue + (offset * 1.75)
         let targetGlucose = targetGlucose
 
+        print("glucoseValue: \(glucoseValue)")
+        print("lowGlucose: \(lowGlucose)")
+        print("highGlucose: \(highGlucose)")
+        print("targetGlucose: \(targetGlucose)")
+        print("glucoseColorScheme: \(glucoseColorScheme)")
+        print("offset: \(offset)")
+
         // Only use calculateHueBasedGlucoseColor if the setting is enabled in preferences
         if glucoseColorScheme == "dynamicColor" {
             return calculateHueBasedGlucoseColor(
@@ -268,16 +275,11 @@ struct LiveActivity: Widget {
         // narrow mode is for the minimal dynamic island view
         // there is not enough space to show all three arrow there
         // and everything has to be squeezed together to some degree
-        // only display the first arrow character and make it red in case there were more characters
+        // only display the first arrow character
         var directionText: String?
-        var warnColor: Color?
         if let direction = context.state.direction {
             if size == .compact {
                 directionText = String(direction[direction.startIndex ... direction.startIndex])
-
-                if direction.count > 1 {
-                    warnColor = Color.red
-                }
             } else {
                 directionText = direction
             }
@@ -337,8 +339,7 @@ struct LiveActivity: Widget {
 
     @ViewBuilder func chart(
         context: ActivityViewContext<LiveActivityAttributes>,
-        additionalState: LiveActivityAttributes.ContentAdditionalState,
-        glucoseColor: Color
+        additionalState: LiveActivityAttributes.ContentAdditionalState
     ) -> some View {
         if context.isStale {
             Text("No data available")
@@ -352,22 +353,56 @@ struct LiveActivity: Widget {
             let yAxisRuleMarkMax = additionalState.unit == "mg/dL" ? context.state.highGlucose : context.state.highGlucose
                 .asMmolL
 
+            // TODO: grab target from proper targets, do not hard code.
+            let highColor = getDynamicGlucoseColor(
+                glucoseValue: yAxisRuleMarkMax,
+                highGlucoseColorValue: yAxisRuleMarkMax,
+                lowGlucoseColorValue: yAxisRuleMarkMin,
+                targetGlucose: additionalState.unit == "mg/dL" ? Decimal(90) : Decimal(90).asMmolL,
+                glucoseColorScheme: context.state.glucoseColorScheme,
+                offset: additionalState.unit == "mg/dL" ? Decimal(20) : Decimal(20).asMmolL
+            )
+
+            // TODO: grab target from proper targets, do not hard code.
+            let lowColor = getDynamicGlucoseColor(
+                glucoseValue: yAxisRuleMarkMin,
+                highGlucoseColorValue: yAxisRuleMarkMax,
+                lowGlucoseColorValue: yAxisRuleMarkMin,
+                targetGlucose: additionalState.unit == "mg/dL" ? Decimal(90) : Decimal(90).asMmolL,
+                glucoseColorScheme: context.state.glucoseColorScheme,
+                offset: additionalState.unit == "mg/dL" ? Decimal(20) : Decimal(20).asMmolL
+            )
+
             Chart {
-                RuleMark(y: .value("Low", yAxisRuleMarkMin))
-                    .lineStyle(.init(lineWidth: 0.5, dash: [5]))
                 RuleMark(y: .value("High", yAxisRuleMarkMax))
+                    .foregroundStyle(highColor)
+                    .lineStyle(.init(lineWidth: 0.5, dash: [5]))
+                RuleMark(y: .value("Low", yAxisRuleMarkMin))
+                    .foregroundStyle(lowColor)
                     .lineStyle(.init(lineWidth: 0.5, dash: [5]))
 
                 ForEach(additionalState.chart.indices, id: \.self) { index in
                     let currentValue = additionalState.chart[index]
                     let displayValue = additionalState.unit == "mg/dL" ? currentValue : currentValue.asMmolL
+
+                    // TODO: grab target from proper targets, do not hard code.
+                    let pointMarkColor = self.getDynamicGlucoseColor(
+                        glucoseValue: currentValue,
+                        highGlucoseColorValue: context.state.highGlucose,
+                        lowGlucoseColorValue: context.state.lowGlucose,
+                        targetGlucose: 90,
+                        glucoseColorScheme: context.state.glucoseColorScheme,
+                        offset: 20
+                    )
+
                     let chartDate = additionalState.chartDate[index] ?? Date()
+
                     let pointMark = PointMark(
                         x: .value("Time", chartDate),
                         y: .value("Value", displayValue)
                     ).symbolSize(15)
 
-                    pointMark.foregroundStyle(glucoseColor)
+                    pointMark.foregroundStyle(pointMarkColor)
                 }
             }
             .chartYAxis {
@@ -387,18 +422,19 @@ struct LiveActivity: Widget {
 
     @ViewBuilder func content(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
         let hasStaticColorScheme = context.state.glucoseColorScheme == "staticColor"
+        // TODO: grab target from proper targets, do not hard code.
         let glucoseColor = getDynamicGlucoseColor(
             glucoseValue: Decimal(string: context.state.bg) ?? 100,
             highGlucoseColorValue: context.state.highGlucose,
             lowGlucoseColorValue: context.state.lowGlucose,
             targetGlucose: 90,
             glucoseColorScheme: context.state.glucoseColorScheme,
-            offset: context.state.detailedViewState?.unit == "mg/dL" ? Decimal(20) : Decimal(20).asMmolL
+            offset: 20
         )
 
         if let detailedViewState = context.state.detailedViewState {
             HStack(spacing: 12) {
-                chart(context: context, additionalState: detailedViewState, glucoseColor: glucoseColor)
+                chart(context: context, additionalState: detailedViewState)
                     .frame(maxWidth: UIScreen.main.bounds.width / 1.8)
                 VStack(alignment: .leading) {
                     Spacer()
@@ -465,14 +501,16 @@ struct LiveActivity: Widget {
         let glucoseValueForColor = context.state.bg
         let highGlucose = context.state.highGlucose
         let lowGlucose = context.state.lowGlucose
+
         let hasStaticColorScheme = context.state.glucoseColorScheme == "staticColor"
+        // TODO: grab target from proper targets, do not hard code.
         let glucoseColor = getDynamicGlucoseColor(
             glucoseValue: Decimal(string: glucoseValueForColor) ?? 100,
             highGlucoseColorValue: highGlucose,
             lowGlucoseColorValue: lowGlucose,
             targetGlucose: 90,
             glucoseColorScheme: context.state.glucoseColorScheme,
-            offset: context.state.detailedViewState?.unit == "mg/dL" ? Decimal(20) : Decimal(20).asMmolL
+            offset: 20
         )
 
         print("Glucose color: \(glucoseColor)")
@@ -494,7 +532,7 @@ struct LiveActivity: Widget {
                 if context.state.isInitialState {
                     expiredLabel()
                 } else if let detailedViewState = context.state.detailedViewState {
-                    chart(context: context, additionalState: detailedViewState, glucoseColor: glucoseColor)
+                    chart(context: context, additionalState: detailedViewState)
                 } else {
                     Group {
                         updatedLabel(context: context).font(.caption).foregroundStyle(Color.secondary)
