@@ -10,7 +10,7 @@ extension Home {
 
         @StateObject var state = StateModel()
         @State var isStatusPopupPresented = false
-        @State var showCancelAlert = false
+        @State var isConfirmStopOverrideShown = false
         @State var isMenuPresented = false
         @State var showTreatments = false
         @State var selectedTab: Int = 0
@@ -547,25 +547,27 @@ extension Home {
                                 .foregroundStyle(Color.clear)
                         }
                     }
-                }.padding(.horizontal, 10)
-                    .alert(
-                        "Return to Normal?", isPresented: $showCancelAlert,
-                        actions: {
-                            Button("No", role: .cancel) {}
-                            Button("Yes", role: .destructive) {
-                                Task {
-                                    guard let objectID = latestOverride.first?.objectID else { return }
-                                    await state.cancelOverride(withID: objectID)
-                                }
-                            }
-                        }, message: { Text("This will change settings back to your normal profile.") }
-                    )
-                    .padding(.trailing, 8)
-                    .onTapGesture {
-                        if !latestOverride.isEmpty {
-                            showCancelAlert = true
+                }
+                .padding(.horizontal, 10)
+                .confirmationDialog(
+                    "Stop the Override \"\(latestOverride.first?.name ?? "")\"?",
+                    isPresented: $isConfirmStopOverrideShown,
+                    titleVisibility: .visible
+                ) {
+                    Button("Stop", role: .destructive) {
+                        Task {
+                            guard let objectID = latestOverride.first?.objectID else { return }
+                            await state.cancelOverride(withID: objectID)
                         }
                     }
+                    Button("Cancel", role: .cancel) {}
+                }
+                .padding(.trailing, 8)
+                .onTapGesture {
+                    if !latestOverride.isEmpty {
+                        isConfirmStopOverrideShown = true
+                    }
+                }
             }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
                 .overlay {
                     /// just show temp target if no profile is already active

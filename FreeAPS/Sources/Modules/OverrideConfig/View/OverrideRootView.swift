@@ -167,13 +167,13 @@ extension OverrideConfig {
                 }
                 .onMove(perform: state.reorderOverride)
                 .confirmationDialog(
-                    "Delete the preset \"\(selectedOverride?.name ?? "")\"?",
+                    "Delete the Override Preset \"\(selectedOverride?.name ?? "")\"?",
                     isPresented: $isConfirmDeleteShown,
                     titleVisibility: .visible
                 ) {
                     if let itemToDelete = selectedOverride {
                         Button(
-                            state.currentActiveOverride == selectedOverride ? "Cancel and Delete" : "Delete",
+                            state.currentActiveOverride == selectedOverride ? "Stop and Delete" : "Delete",
                             role: .destructive
                         ) {
                             if state.currentActiveOverride == selectedOverride {
@@ -200,7 +200,7 @@ extension OverrideConfig {
                         Text(
                             state
                                 .currentActiveOverride == selectedOverride ?
-                                "This preset is currently running. Deleting will cancel it." : ""
+                                "This override preset is currently running. Deleting will stop it." : ""
                         )
                     }
                 }
@@ -250,7 +250,7 @@ extension OverrideConfig {
                     await state.disableAllActiveOverrides(createOverrideRunEntry: true)
                 }
             }, label: {
-                Text("Cancel Override")
+                Text("Stop Override")
 
             })
                 .frame(maxWidth: .infinity, alignment: .center)
