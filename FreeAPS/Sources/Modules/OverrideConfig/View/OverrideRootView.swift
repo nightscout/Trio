@@ -65,11 +65,13 @@ extension OverrideConfig {
                 HStack(spacing: 6) {
                     HStack {
                         Spacer()
-                        Image(systemName: "person.fill")
-                            .font(.system(size: 18))
-                            .foregroundColor(Color(red: 0.6235294118, green: 0.4235294118, blue: 0.9803921569))
+                        Image(systemName: "clock.arrow.2.circlepath")
+                            .font(.system(size: 20))
+                            .foregroundStyle(Color.primary, Color(red: 0.6235294118, green: 0.4235294118, blue: 0.9803921569))
                         Text(OverrideConfig.Tab.overrides.name)
                             .font(.subheadline)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
                         Spacer()
                     }
                     .padding(.vertical, 6)
@@ -83,10 +85,12 @@ extension OverrideConfig {
                     HStack {
                         Spacer()
                         Image(systemName: "target")
-                            .font(.system(size: 18))
-                            .foregroundColor(.loopGreen)
+                            .font(.system(size: 20))
+                            .foregroundStyle(Color.loopGreen)
                         Text(OverrideConfig.Tab.tempTargets.name)
                             .font(.subheadline)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
                         Spacer()
                     }
                     .padding(.vertical, 6)
@@ -98,7 +102,6 @@ extension OverrideConfig {
                         }
                     }
                 }
-                .padding(2)
                 .background(Color.gray.opacity(0.2))
                 .cornerRadius(8)
                 .padding(.horizontal)

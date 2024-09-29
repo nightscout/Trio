@@ -503,13 +503,9 @@ extension Home {
 
         @ViewBuilder func adjustmentsOverrideView(_ overrideString: String) -> some View {
             Group {
-                Image(systemName: "person.fill")
-                    .font(.system(size: 24))
-                    .foregroundColor(Color(
-                        red: 0.6235294118,
-                        green: 0.4235294118,
-                        blue: 0.9803921569
-                    ))
+                Image(systemName: "clock.arrow.2.circlepath")
+                    .font(.system(size: 20))
+                    .foregroundStyle(Color.primary, Color(red: 0.6235294118, green: 0.4235294118, blue: 0.9803921569))
                 VStack(alignment: .leading) {
                     Text(latestOverride.first?.name ?? "Custom Override")
                         .font(.subheadline)
@@ -524,8 +520,8 @@ extension Home {
         @ViewBuilder func adjustmentsTempTargetView(_ tempTargetString: String) -> some View {
             Group {
                 Image(systemName: "target")
-                    .font(.system(size: 24))
-                    .foregroundColor(.loopGreen)
+                    .font(.system(size: 20))
+                    .foregroundStyle(Color.loopGreen)
                 VStack(alignment: .leading) {
                     Text(latestTempTarget.first?.name ?? "Temp Target")
                         .font(.subheadline)

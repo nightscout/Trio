@@ -10,11 +10,10 @@ struct AddTempTargetForm: View {
     @State private var showPresetAlert = false
     @State private var alertString = ""
     @State private var isUsingSlider = false
-    @State private var advancedConfiguration = false
+
     @State private var didPressSave =
         false // only used for fixing the Disclaimer showing up after pressing save (after the state was resetted), maybe refactor this...
-
-    @State private var shouldDisplayHint: Bool = false
+    @State private var shouldDisplayHint = false
     @State var hintDetent = PresentationDetent.large
     @State var selectedVerboseHint: String?
     @State var hintLabel: String?
@@ -52,6 +51,10 @@ struct AddTempTargetForm: View {
         }
         formatter.roundingMode = .halfUp
         return formatter
+    }
+
+    var isSliderEnabled: Bool {
+        state.computeSliderHigh() > state.computeSliderLow()
     }
 
     var body: some View {
@@ -111,6 +114,9 @@ struct AddTempTargetForm: View {
                     Text("Target")
                     Spacer()
                     TextFieldWithToolBar(text: $state.tempTargetTarget, placeholder: "0", numberFormatter: glucoseFormatter)
+                        .onChange(of: state.tempTargetTarget) { _ in
+                            state.percentage = Double(state.computeAdjustedPercentage() * 100)
+                        }
                     Text(state.units.rawValue).foregroundColor(.secondary)
                 }
 
@@ -123,6 +129,123 @@ struct AddTempTargetForm: View {
                 DatePicker("Date", selection: $state.date)
             }
         ).listRowBackground(Color.chart)
+
+        if isSliderEnabled && state.tempTargetTarget != 0 {
+            if state.tempTargetTarget > 100 {
+                Section {
+                    VStack(alignment: .leading) {
+                        Text("Raised Sensitivity:")
+                            .font(.footnote)
+                            .fontWeight(.bold)
+                        Text("Insulin reduced to \(formattedPercentage(state.percentage))% of regular amount.")
+                            .font(.footnote)
+                            .lineLimit(1)
+                    }
+                }.listRowBackground(Color.tabBar)
+                Section {
+                    VStack {
+                        Toggle("Adjust Sensitivity", isOn: $state.didAdjustSens).padding(.top)
+                        HStack(alignment: .top) {
+                            Text(
+                                "Temp Target raises Sensitivity. Further adjust if desired!"
+                            )
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .lineLimit(nil)
+                            Spacer()
+                            Button(
+                                action: {
+                                    hintLabel = "Adjust Sensitivity for high Temp Target "
+                                    selectedVerboseHint =
+                                        "You have enabled High TempTarget Raises Sensitivity in Target Behaviour settings. Therefore current high Temp Target of \(state.tempTargetTarget) would raise your sensitivity, hence reduce Insulin dosing to \(formattedPercentage(state.percentage)) % of regular amount. This can be adjusted to another desired Insulin percentage!"
+                                    shouldDisplayHint.toggle()
+                                },
+                                label: {
+                                    HStack {
+                                        Image(systemName: "questionmark.circle")
+                                    }
+                                }
+                            ).buttonStyle(BorderlessButtonStyle())
+                        }.padding(.top)
+                    }.padding(.bottom)
+                }.listRowBackground(Color.chart)
+            } else if state.tempTargetTarget < 100 {
+                Section {
+                    VStack(alignment: .leading) {
+                        Text("Lowered Sensitivity:")
+                            .font(.footnote)
+                            .fontWeight(.bold)
+                        Text("Insulin increased to \(formattedPercentage(state.percentage))% of regular amount.")
+                            .font(.footnote)
+                            .lineLimit(1)
+                    }
+                }.listRowBackground(Color.tabBar)
+                Section {
+                    VStack {
+                        Toggle("Adjust Insulin %", isOn: $state.didAdjustSens).padding(.top)
+                        HStack(alignment: .top) {
+                            Text(
+                                "Temp Target lowers Sensitivity. Further adjust if desired!"
+                            )
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .lineLimit(nil)
+                            Spacer()
+                            Button(
+                                action: {
+                                    hintLabel = "Adjust Sensitivity for low Temp Target "
+                                    selectedVerboseHint =
+                                        "You have enabled Low TempTarget Lowers Sensitivity in Target Behaviour settings and set autosens Max > 1. Therefore current low Temp Target of \(state.tempTargetTarget) would lower your sensitivity, hence increase Insulin dosing to \(formattedPercentage(state.percentage)) % of regular amount. This can be adjusted to another desired Insulin percentage!"
+                                    shouldDisplayHint.toggle()
+                                },
+                                label: {
+                                    HStack {
+                                        Image(systemName: "questionmark.circle")
+                                    }
+                                }
+                            ).buttonStyle(BorderlessButtonStyle())
+                        }.padding(.top)
+                    }.padding(.bottom)
+                }.listRowBackground(Color.chart)
+            }
+
+            if state.didAdjustSens && state.tempTargetTarget != 100 {
+                Section {
+                    VStack {
+                        Text("\(Int(state.percentage)) % Insulin")
+                            .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
+                            .font(.largeTitle)
+                        Slider(
+                            value: $state.percentage,
+                            in: state.computeSliderLow() ... state.computeSliderHigh(),
+                            step: 5
+                        ) {} minimumValueLabel: {
+                            Text("\(state.computeSliderLow(), specifier: "%.0f")%")
+                        } maximumValueLabel: {
+                            Text("\(state.computeSliderHigh(), specifier: "%.0f")%")
+                        } onEditingChanged: { editing in
+                            isUsingSlider = editing
+                            state.halfBasalTarget = Decimal(state.computeHalfBasalTarget())
+                        }
+                        .disabled(!isSliderEnabled)
+
+                        Divider()
+                        HStack {
+                            Text(
+                                state
+                                    .units == .mgdL ?
+                                    "Half Basal Exercise Target at: \(state.computeHalfBasalTarget().formatted(.number.precision(.fractionLength(0)))) mg/dl" :
+                                    "Half Basal Exercise Target at: \(state.computeHalfBasalTarget().asMmolL.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))) mmol/L"
+                            )
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
+                            .foregroundColor(.secondary)
+                            Spacer()
+                        }
+                    }
+                }.listRowBackground(Color.chart)
+            }
+        }
 
         // TODO: with iOS 17 we can change the body content wrapper from FORM to LIST and apply the .listSpacing modifier to make this all nice and small.
         Section {
@@ -152,89 +275,11 @@ struct AddTempTargetForm: View {
                 .frame(maxWidth: .infinity, alignment: .center)
                 .tint(.white)
         }.listRowBackground(state.tempTargetDuration == 0 ? Color(.systemGray4) : Color(.orange))
-
-        Section {
-            VStack {
-                Toggle("Enable Advanced Configuration", isOn: $advancedConfiguration).padding(.top)
-
-                HStack(alignment: .top) {
-                    Text(
-                        "Add an explanation of the advanced configuration options here."
-                    )
-                    .font(.footnote)
-                    .foregroundColor(.secondary)
-                    .lineLimit(nil)
-                    Spacer()
-                    Button(
-                        action: {
-                            hintLabel = "Advanced Temp Target Configuration"
-                            selectedVerboseHint = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
-                            shouldDisplayHint.toggle()
-                        },
-                        label: {
-                            HStack {
-                                Image(systemName: "questionmark.circle")
-                            }
-                        }
-                    ).buttonStyle(BorderlessButtonStyle())
-                }.padding(.top)
-            }.padding(.bottom)
-        }.listRowBackground(Color.chart)
-
-        if advancedConfiguration && state.tempTargetTarget != 0 {
-            if sliderEnabled {
-                Section {
-                    VStack {
-                        Text("\(state.percentage.formatted(.number)) % Insulin")
-                            .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
-                            .font(.largeTitle)
-
-                        Slider(value: $state.percentage, in: state.computeSliderLow() ... state.computeSliderHigh(), step: 5) {}
-                        minimumValueLabel: {
-                            Text("\(state.computeSliderLow(), specifier: "%.0f")%")
-                        }
-                        maximumValueLabel: {
-                            Text("\(state.computeSliderHigh(), specifier: "%.0f")%")
-                        }
-                        onEditingChanged: { editing in
-                            isUsingSlider = editing
-                            state.halfBasalTarget = Decimal(state.computeHalfBasalTarget())
-                        }
-                        .disabled(!sliderEnabled)
-
-                        Divider()
-                        Text(
-                            state
-                                .units == .mgdL ?
-                                "Half Basal Exercise Target at: \(state.computeHalfBasalTarget().formatted(.number.precision(.fractionLength(0)))) mg/dl" :
-                                "Half Basal Exercise Target at: \(state.computeHalfBasalTarget().asMmolL.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))) mmol/L"
-                        )
-                        .foregroundColor(.secondary)
-                        .font(.caption).italic()
-                    }
-                }.listRowBackground(Color.chart)
-            } else {
-                Section {
-                    VStack(alignment: .leading) {
-                        Text(
-                            "You have not enabled the proper Preferences to change sensitivity with chosen TempTarget. Verify Autosens Max > 1 & lowTT lowers Sens is on for lowTT's. For high TTs check highTT raises Sens is on (or Exercise Mode)!"
-                        ).bold()
-                    }
-                }.listRowBackground(Color.tabBar)
-            }
-        } else if advancedConfiguration && state.tempTargetTarget == 0 && !didPressSave {
-            Section {
-                VStack(alignment: .leading) {
-                    Text(
-                        "You need to input a Target for your Temp Target at first to use the advanced configuration!"
-                    ).bold()
-                }
-            }.listRowBackground(Color.tabBar)
-        }
     }
 
-    var sliderEnabled: Bool {
-        state.computeSliderHigh() > state.computeSliderLow()
+    private func formattedPercentage(_ value: Double) -> String {
+        let percentageNumber = NSNumber(value: value)
+        return formatter.string(from: percentageNumber) ?? "\(value)"
     }
 
     private func setupAlertString() async {
