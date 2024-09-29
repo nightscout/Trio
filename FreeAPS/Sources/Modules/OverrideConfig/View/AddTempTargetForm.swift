@@ -116,7 +116,7 @@ struct AddTempTargetForm: View {
                     TextFieldWithToolBar(text: $state.tempTargetTarget, placeholder: "0", numberFormatter: glucoseFormatter)
                         .onChange(of: state.tempTargetTarget) { _ in
                             // Recalculate the percentage when tempTargetTarget changes
-                            state.percentage = Double(state.computePercentage() * 100)
+                            state.percentage = Double(state.computeAdjustedPercentage() * 100)
                         }
                     Text(state.units.rawValue).foregroundColor(.secondary)
                 }

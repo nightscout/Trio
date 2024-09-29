@@ -84,7 +84,7 @@ extension OverrideConfig {
             minValue = settingsManager.preferences.autosensMin
             settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
             halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
-            percentage = Double(computePercentage() * 100)
+            percentage = Double(computeAdjustedPercentage() * 100)
             broadcaster.register(SettingsObserver.self, observer: self)
         }
 
@@ -741,30 +741,31 @@ extension OverrideConfig.StateModel {
     func handleAdjustSensToggle() {
         if !didAdjustSens {
             halfBasalTarget = settingHalfBasalTarget
-            percentage = Double(computePercentage(using: settingHalfBasalTarget) * 100)
+            percentage = Double(computeAdjustedPercentage(using: settingHalfBasalTarget) * 100)
         }
     }
 
     func computeHalfBasalTarget() -> Double {
-        let ratio = Decimal(percentage / 100)
+        let adjustmentRatio = Decimal(percentage / 100)
         let normalTarget: Decimal = 100
-        var target: Decimal = tempTargetTarget
+        var tempTargetValue: Decimal = tempTargetTarget
         if units == .mmolL {
-            target = target.asMgdL }
-        var hbtcalc = halfBasalTarget
-        if ratio != 1 {
-            hbtcalc = ((2 * ratio * normalTarget) - normalTarget - (ratio * target)) / (ratio - 1)
+            tempTargetValue = tempTargetValue.asMgdL }
+        var halfBasalTargetValue = halfBasalTarget
+        if adjustmentRatio != 1 {
+            halfBasalTargetValue = ((2 * adjustmentRatio * normalTarget) - normalTarget - (adjustmentRatio * tempTargetValue)) /
+                (adjustmentRatio - 1)
         }
-        return round(Double(hbtcalc))
+        return round(Double(halfBasalTargetValue))
     }
 
     func computeSliderLow() -> Double {
         var minSens: Double = 15
-        var target = tempTargetTarget
+        var tempTargetValue = tempTargetTarget
         if units == .mmolL {
-            target = Decimal(round(Double(tempTargetTarget.asMgdL))) }
-        if target == 0 { return minSens }
-        if target < 100 ||
+            tempTargetValue = Decimal(round(Double(tempTargetTarget.asMgdL))) }
+        if tempTargetValue == 0 { return minSens }
+        if tempTargetValue < 100 ||
             (
                 !settingsManager.preferences.highTemptargetRaisesSensitivity && !settingsManager.preferences
                     .exerciseMode
@@ -775,26 +776,29 @@ extension OverrideConfig.StateModel {
 
     func computeSliderHigh() -> Double {
         var maxSens = Double(maxValue * 100)
-        var target = tempTargetTarget
-        if target == 0 { return maxSens }
+        var tempTargetValue = tempTargetTarget
+        if tempTargetValue == 0 { return maxSens }
         if units == .mmolL {
-            target = Decimal(round(Double(tempTargetTarget.asMgdL))) }
-        if target > 100 || !settingsManager.preferences.lowTemptargetLowersSensitivity { maxSens = 100 }
+            tempTargetValue = Decimal(round(Double(tempTargetTarget.asMgdL))) }
+        if tempTargetValue > 100 || !settingsManager.preferences.lowTemptargetLowersSensitivity { maxSens = 100 }
         return maxSens
     }
 
-    func computePercentage(using initialHBT: Decimal? = nil) -> Decimal {
-        let hbt = initialHBT ?? halfBasalTarget
-        let c = (hbt - 100)
-        let target = tempTargetTarget
-        var ratio: Decimal = 1
-        if c * (c + target - 100) <= 0 {
-            ratio = maxValue
+    func computeAdjustedPercentage(using initialHalfBasalTarget: Decimal? = nil) -> Decimal {
+        let halfBasalTargetValue = initialHalfBasalTarget ?? halfBasalTarget
+        let normalTarget: Decimal = 100
+        let deviationFromNormal = (halfBasalTargetValue - normalTarget)
+        let tempTargetValue = tempTargetTarget
+        var adjustmentRatio: Decimal = 1
+
+        if deviationFromNormal * (deviationFromNormal + tempTargetValue - normalTarget) <= 0 {
+            adjustmentRatio = maxValue
         } else {
-            ratio = c / (c + target - 100)
+            adjustmentRatio = deviationFromNormal / (deviationFromNormal + tempTargetValue - normalTarget)
         }
-        ratio = min(ratio, maxValue)
-        return ratio
+
+        adjustmentRatio = min(adjustmentRatio, maxValue)
+        return adjustmentRatio
     }
 }
 
