@@ -53,5 +53,11 @@ extension Home {
             storage.retrieve(OpenAPS.Settings.pumpProfile, as: Autotune.self)?.basalProfile
                 ?? [BasalProfileEntry(start: "00:00", minutes: 0, rate: 1)]
         }
+
+        func getBGTarget() async -> BGTargets {
+            await storage.retrieveAsync(OpenAPS.Settings.bgTargets, as: BGTargets.self)
+                ?? BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
+                ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
+        }
     }
 }

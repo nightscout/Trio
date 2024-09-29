@@ -8,9 +8,28 @@ extension MainChartView {
         Chart {
             /// high and low threshold lines
             if thresholdLines {
-                RuleMark(y: .value("High", highGlucose)).foregroundStyle(Color.loopYellow)
+                let highColor = FreeAPS.getDynamicGlucoseColor(
+                    glucoseValue: highGlucose,
+                    highGlucoseColorValue: highGlucose,
+                    lowGlucoseColorValue: highGlucose,
+                    targetGlucose: units == .mgdL ? currentGlucoseTarget : currentGlucoseTarget.asMmolL,
+                    glucoseColorScheme: glucoseColorScheme,
+                    offset: units == .mgdL ? Decimal(20) : Decimal(20).asMmolL
+                )
+                let lowColor = FreeAPS.getDynamicGlucoseColor(
+                    glucoseValue: lowGlucose,
+                    highGlucoseColorValue: highGlucose,
+                    lowGlucoseColorValue: lowGlucose,
+                    targetGlucose: units == .mgdL ? currentGlucoseTarget : currentGlucoseTarget.asMmolL,
+                    glucoseColorScheme: glucoseColorScheme,
+                    offset: units == .mgdL ? Decimal(20) : Decimal(20).asMmolL
+                )
+
+                RuleMark(y: .value("High", highGlucose))
+                    .foregroundStyle(highColor)
                     .lineStyle(.init(lineWidth: 1, dash: [5]))
-                RuleMark(y: .value("Low", lowGlucose)).foregroundStyle(Color.loopRed)
+                RuleMark(y: .value("Low", lowGlucose))
+                    .foregroundStyle(lowColor)
                     .lineStyle(.init(lineWidth: 1, dash: [5]))
             }
         }

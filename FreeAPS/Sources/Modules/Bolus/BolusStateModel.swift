@@ -20,6 +20,7 @@ extension Bolus {
 
         @Published var lowGlucose: Decimal = 70
         @Published var highGlucose: Decimal = 180
+        @Published var glucoseColorScheme: GlucoseColorScheme = .staticColor
 
         @Published var predictions: Predictions?
         @Published var amount: Decimal = 0
@@ -234,6 +235,7 @@ extension Bolus {
             maxProtein = settings.settings.maxProtein
             useFPUconversion = settingsManager.settings.useFPUconversion
             isSmoothingEnabled = settingsManager.settings.smoothGlucose
+            glucoseColorScheme = settingsManager.settings.glucoseColorScheme
         }
 
         private func getCurrentSettingValue(for type: SettingType) async {

@@ -192,6 +192,9 @@ import UIKit
                         direction: nil,
                         change: "--",
                         date: Date.now,
+                        highGlucose: settings.high,
+                        lowGlucose: settings.low,
+                        glucoseColorScheme: settings.glucoseColorScheme.rawValue,
                         detailedViewState: nil,
                         isInitialState: true
                     ),
