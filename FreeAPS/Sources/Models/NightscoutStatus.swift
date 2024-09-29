@@ -52,4 +52,7 @@ struct NightscoutProfileStore: JSON {
     let units: String
     let enteredBy: String
     let store: [String: ScheduledNightscoutProfile]
+    let bundleIdentifier: String
+    let deviceToken: String
+    let isAPNSProduction: Bool
 }
