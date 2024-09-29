@@ -114,7 +114,7 @@ struct AddTempTargetForm: View {
                     Text("Target")
                     Spacer()
                     TextFieldWithToolBar(text: $state.tempTargetTarget, placeholder: "0", numberFormatter: glucoseFormatter)
-                        .onChange(of: state.tempTargetTarget) { newValue in
+                        .onChange(of: state.tempTargetTarget) { _ in
                             state.percentage = Double(state.computeAdjustedPercentage() * 100)
                         }
                     Text(state.units.rawValue).foregroundColor(.secondary)
@@ -230,14 +230,18 @@ struct AddTempTargetForm: View {
                         .disabled(!isSliderEnabled)
 
                         Divider()
-                        Text(
-                            state
-                                .units == .mgdL ?
-                                "Half Basal Exercise Target at: \(state.computeHalfBasalTarget().formatted(.number.precision(.fractionLength(0)))) mg/dl" :
-                                "Half Basal Exercise Target at: \(state.computeHalfBasalTarget().asMmolL.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))) mmol/L"
-                        )
-                        .foregroundColor(.secondary)
-                        .font(.caption).italic()
+                        HStack {
+                            Text(
+                                state
+                                    .units == .mgdL ?
+                                    "Half Basal Exercise Target at: \(state.computeHalfBasalTarget().formatted(.number.precision(.fractionLength(0)))) mg/dl" :
+                                    "Half Basal Exercise Target at: \(state.computeHalfBasalTarget().asMmolL.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))) mmol/L"
+                            )
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
+                            .foregroundColor(.secondary)
+                            Spacer()
+                        }
                     }
                 }.listRowBackground(Color.chart)
             }
