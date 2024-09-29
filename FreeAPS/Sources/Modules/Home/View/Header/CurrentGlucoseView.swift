@@ -8,7 +8,8 @@ struct CurrentGlucoseView: View {
     let lowGlucose: Decimal
     let highGlucose: Decimal
     let cgmAvailable: Bool
-
+    var currentGlucoseTarget: Decimal
+    let glucoseColorScheme: GlucoseColorScheme
     let glucose: [GlucoseStored] // This contains the last two glucose values, no matter if its manual or a cgm reading
 
     @State private var rotationDegrees: Double = 0.0
@@ -79,15 +80,34 @@ struct CurrentGlucoseView: View {
                         if let glucoseValue = glucose.last?.glucose {
                             let displayGlucose = units == .mgdL ? Decimal(glucoseValue).description : Decimal(glucoseValue)
                                 .formattedAsMmolL
-                            Text(
+
+                            // low glucose, high glucose and target is parsed in state to mmol/L; parse it back to mg/dl here for comparison
+                            let lowGlucose = units == .mgdL ? lowGlucose : lowGlucose.asMgdL
+                            let highGlucose = units == .mgdL ? highGlucose : highGlucose.asMgdL
+                            let targetGlucose = units == .mgdL ? currentGlucoseTarget : currentGlucoseTarget.asMgdL
+
+                            var glucoseDisplayColor = Color.primary
+
+                            if Decimal(glucoseValue) <= lowGlucose || Decimal(glucoseValue) >= highGlucose {
+                                glucoseDisplayColor = FreeAPS.getDynamicGlucoseColor(
+                                    glucoseValue: Decimal(glucoseValue),
+                                    highGlucoseColorValue: highGlucose,
+                                    lowGlucoseColorValue: lowGlucose,
+                                    targetGlucose: targetGlucose,
+                                    glucoseColorScheme: glucoseColorScheme,
+                                    offset: 20
+                                )
+                            }
+
+                            return Text(
                                 glucoseValue == 400 ? "HIGH" : displayGlucose
                             )
                             .font(.system(size: 40, weight: .bold, design: .rounded))
-                            .foregroundColor(alarm == nil ? glucoseDisplayColor : .loopRed)
+                            .foregroundStyle(glucoseDisplayColor)
                         } else {
-                            Text("--")
+                            return Text("--")
                                 .font(.system(size: 40, weight: .bold, design: .rounded))
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(.secondary)
                         }
                     }
                     HStack {
@@ -99,18 +119,18 @@ struct CurrentGlucoseView: View {
                                     NSLocalizedString("min", comment: "Short form for minutes") + " "
                             )
                         )
-                        .font(.caption2).foregroundColor(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
+                        .font(.caption2).foregroundStyle(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
 
                         Text(
                             delta
                         )
-                        .font(.caption2).foregroundColor(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
+                        .font(.caption2).foregroundStyle(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
                     }.frame(alignment: .top)
                 }
             }
-            .onChange(of: glucose.last?.directionEnum) { newDirection in
+            .onChange(of: glucose.last?.directionEnum) {
                 withAnimation {
-                    switch newDirection {
+                    switch glucose.last?.directionEnum {
                     case .doubleUp,
                          .singleUp,
                          .tripleUp:
@@ -160,34 +180,27 @@ struct CurrentGlucoseView: View {
         return deltaFormatter.string(from: deltaAsDecimal as NSNumber) ?? "--"
     }
 
-    var glucoseDisplayColor: Color {
-        guard let lastGlucose = glucose.last?.glucose else { return .primary }
-
-        // Convert the lastest glucose value to Int for comparison
-        let whichGlucose = Int(lastGlucose)
-
-        // Define default color based on the color scheme
-        let defaultColor: Color = colorScheme == .dark ? .white : .black
-
-        // low and high glucose is parsed in state to mmol/L; parse it back to mg/dl here for comparison
-        let lowGlucose = units == .mgdL ? lowGlucose : lowGlucose.asMgdL
-        let highGlucose = units == .mgdL ? highGlucose : highGlucose.asMgdL
-
-        // Ensure the thresholds are logical
-        guard lowGlucose < highGlucose else { return .primary }
-
-        // Perform range checks using Int converted values
-        switch whichGlucose {
-        case 0 ..< Int(lowGlucose):
-            return .loopRed
-        case Int(lowGlucose) ..< Int(highGlucose):
-            return defaultColor
-        case Int(highGlucose)...:
-            return .loopYellow
-        default:
-            return defaultColor
-        }
-    }
+//    var glucoseDisplayColor: Color {
+//        guard let lastGlucose = glucose.last?.glucose else { return .primary }
+//
+//        // low and high glucose is parsed in state to mmol/L; parse it back to mg/dl here for comparison
+//        let lowGlucose = units == .mgdL ? lowGlucose : lowGlucose.asMgdL
+//        let highGlucose = units == .mgdL ? highGlucose : highGlucose.asMgdL
+//
+//        // Ensure the thresholds are logical
+//        guard lowGlucose < highGlucose else { return .primary }
+//
+//        guard Decimal(lastGlucose) <= lowGlucose && Decimal(lastGlucose) >= highGlucose else { return .primary }
+//
+//        return FreeAPS.getDynamicGlucoseColor(
+//            glucoseValue: Decimal(lastGlucose),
+//            highGlucoseColorValue: highGlucose,
+//            lowGlucoseColorValue: lowGlucose,
+//            targetGlucose: currentGlucoseTarget,
+//            glucoseColorScheme: glucoseColorScheme,
+//            offset: 20
+//        )
+//    }
 }
 
 struct Triangle: Shape {

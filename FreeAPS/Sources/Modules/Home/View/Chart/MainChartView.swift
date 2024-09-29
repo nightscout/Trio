@@ -12,11 +12,12 @@ struct MainChartView: View {
     var tempTargets: [TempTarget]
     var highGlucose: Decimal
     var lowGlucose: Decimal
+    var currentGlucoseTarget: Decimal
+    var glucoseColorScheme: GlucoseColorScheme
     var screenHours: Int16
     var displayXgridLines: Bool
     var displayYgridLines: Bool
     var thresholdLines: Bool
-
     var state: Home.StateModel
 
     @State var basalProfiles: [BasalProfile] = []
@@ -141,7 +142,9 @@ extension MainChartView {
                     units: state.units,
                     highGlucose: state.highGlucose,
                     lowGlucose: state.lowGlucose,
-                    isSmoothingEnabled: state.isSmoothingEnabled
+                    currentGlucoseTarget: state.currentGlucoseTarget,
+                    isSmoothingEnabled: state.isSmoothingEnabled,
+                    glucoseColorScheme: state.glucoseColorScheme
                 )
 
                 InsulinView(
@@ -248,13 +251,20 @@ extension MainChartView {
                         .font(.body).bold()
                 }.font(.body).padding(.bottom, 5)
 
+                let glucoseColor = FreeAPS.getDynamicGlucoseColor(
+                    glucoseValue: glucoseToShow,
+                    highGlucoseColorValue: highGlucose,
+                    lowGlucoseColorValue: lowGlucose,
+                    targetGlucose: currentGlucoseTarget,
+                    glucoseColorScheme: glucoseColorScheme,
+                    offset: units == .mgdL ? 20 : 20.asMmolL
+                )
                 HStack {
                     Text(units == .mgdL ? glucoseToShow.description : Decimal(sgv).formattedAsMmolL)
                         .bold()
                         + Text(" \(units.rawValue)")
                 }.foregroundStyle(
-                    glucoseToShow < lowGlucose ? Color
-                        .red : (glucoseToShow > highGlucose ? Color.orange : Color.primary)
+                    Color(glucoseColor)
                 ).font(.body)
 
                 if let selectedIOBValue, let iob = selectedIOBValue.iob {
