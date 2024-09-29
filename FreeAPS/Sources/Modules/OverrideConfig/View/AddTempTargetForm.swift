@@ -145,7 +145,7 @@ struct AddTempTargetForm: View {
                 }.listRowBackground(Color.tabBar)
                 Section {
                     VStack {
-                        Toggle("Adjust Sensitivity", isOn: $state.adjustSens).padding(.top)
+                        Toggle("Adjust Sensitivity", isOn: $state.didAdjustSens).padding(.top)
                         HStack(alignment: .top) {
                             Text(
                                 "Temp Target raises Sensitivity. Further adjust if desired!"
@@ -183,7 +183,7 @@ struct AddTempTargetForm: View {
                 }.listRowBackground(Color.tabBar)
                 Section {
                     VStack {
-                        Toggle("Adjust Insulin %", isOn: $state.adjustSens).padding(.top)
+                        Toggle("Adjust Insulin %", isOn: $state.didAdjustSens).padding(.top)
                         HStack(alignment: .top) {
                             Text(
                                 "Temp Target lowers Sensitivity. Further adjust if desired!"
@@ -210,7 +210,7 @@ struct AddTempTargetForm: View {
                 }.listRowBackground(Color.chart)
             }
 
-            if state.adjustSens && state.tempTargetTarget != 100 {
+            if state.didAdjustSens && state.tempTargetTarget != 100 {
                 Section {
                     VStack {
                         // Display the percentage in large text

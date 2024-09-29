@@ -56,7 +56,7 @@ extension OverrideConfig {
         @Published var halfBasalTarget: Decimal = 160
         @Published var setHBT: Decimal = 160
         @Published var didSaveSettings: Bool = false
-        @Published var adjustSens: Bool = false {
+        @Published var didAdjustSens: Bool = false {
             didSet {
                 handleAdjustSensToggle()
             }
@@ -739,7 +739,7 @@ extension OverrideConfig.StateModel {
     }
 
     func handleAdjustSensToggle() {
-        if !adjustSens {
+        if !didAdjustSens {
             halfBasalTarget = setHBT
             percentage = Double(computePercentage(using: setHBT) * 100)
         }
