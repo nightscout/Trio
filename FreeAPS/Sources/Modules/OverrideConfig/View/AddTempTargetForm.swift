@@ -53,7 +53,7 @@ struct AddTempTargetForm: View {
         return formatter
     }
 
-    var sliderEnabled: Bool {
+    var isSliderEnabled: Bool {
         state.computeSliderHigh() > state.computeSliderLow()
     }
 
@@ -131,7 +131,7 @@ struct AddTempTargetForm: View {
             }
         ).listRowBackground(Color.chart)
 
-        if sliderEnabled && state.tempTargetTarget != 0 {
+        if isSliderEnabled && state.tempTargetTarget != 0 {
             if state.tempTargetTarget > 100 {
                 Section {
                     VStack(alignment: .leading) {
@@ -231,7 +231,7 @@ struct AddTempTargetForm: View {
                             isUsingSlider = editing
                             state.halfBasalTarget = Decimal(state.computeHalfBasalTarget())
                         }
-                        .disabled(!sliderEnabled)
+                        .disabled(!isSliderEnabled)
 
                         Divider()
                         Text(
