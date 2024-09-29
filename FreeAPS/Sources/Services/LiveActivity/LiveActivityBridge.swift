@@ -117,18 +117,22 @@ import UIKit
 
     private func setupGlucoseArray() {
         Task {
+            async let glucoseTask: () = fetchAndMapGlucose()
+            async let determinationTask: () = fetchAndMapDetermination()
+            async let overrideTask: () = fetchAndMapOverride()
+            
             // Fetch and map glucose to GlucoseData struct
-            await fetchAndMapGlucose()
+            await glucoseTask
 
             // Fetch and map Determination to DeterminationData struct
-            await fetchAndMapDetermination()
+            await determinationTask
 
             // Fetch and map Override to OverrideData struct
             /// shows if there is an active Override
-            await fetchAndMapOverride()
+            await overrideTask
 
             // Push the update to the Live Activity
-            glucoseDidUpdate(glucoseFromPersistence ?? [])
+            await glucoseDidUpdate(glucoseFromPersistence ?? [])
         }
     }
 
@@ -146,7 +150,7 @@ import UIKit
 
     /// creates and tries to present a new activity update from the current GlucoseStorage values if live activities are enabled in settings
     /// Ends existing live activities if live activities are not enabled in settings
-    private func forceActivityUpdate() {
+    @MainActor private func forceActivityUpdate() {
         // just before app resigns active, show a new activity
         // only do this if there is no current activity or the current activity is older than 1h
         if settings.useLiveActivity {
@@ -251,7 +255,7 @@ import UIKit
 
 @available(iOS 16.2, *)
 extension LiveActivityBridge {
-    func glucoseDidUpdate(_ glucose: [GlucoseData]) {
+    @MainActor func glucoseDidUpdate(_ glucose: [GlucoseData]) {
         guard settings.useLiveActivity else {
             if currentActivity != nil {
                 Task {
