@@ -114,8 +114,7 @@ struct AddTempTargetForm: View {
                     Text("Target")
                     Spacer()
                     TextFieldWithToolBar(text: $state.tempTargetTarget, placeholder: "0", numberFormatter: glucoseFormatter)
-                        .onChange(of: state.tempTargetTarget) { _ in
-                            // Recalculate the percentage when tempTargetTarget changes
+                        .onChange(of: state.tempTargetTarget) { newValue in
                             state.percentage = Double(state.computeAdjustedPercentage() * 100)
                         }
                     Text(state.units.rawValue).foregroundColor(.secondary)
@@ -213,12 +212,9 @@ struct AddTempTargetForm: View {
             if state.didAdjustSens && state.tempTargetTarget != 100 {
                 Section {
                     VStack {
-                        // Display the percentage in large text
                         Text("\(Int(state.percentage)) % Insulin")
                             .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
                             .font(.largeTitle)
-
-                        // Bind the slider to the percentage
                         Slider(
                             value: $state.percentage,
                             in: state.computeSliderLow() ... state.computeSliderHigh(),
