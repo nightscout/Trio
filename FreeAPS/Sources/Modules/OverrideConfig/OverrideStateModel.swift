@@ -54,7 +54,7 @@ extension OverrideConfig {
         @Published var minValue: Decimal = 0.15
         @Published var viewPercantage = false
         @Published var halfBasalTarget: Decimal = 160
-        @Published var setHBT: Decimal = 160
+        @Published var settingHalfBasalTarget: Decimal = 160
         @Published var didSaveSettings: Bool = false
         @Published var didAdjustSens: Bool = false {
             didSet {
@@ -82,7 +82,7 @@ extension OverrideConfig {
             updateLatestTempTargetConfiguration()
             maxValue = settingsManager.preferences.autosensMax
             minValue = settingsManager.preferences.autosensMin
-            setHBT = settingsManager.preferences.halfBasalExerciseTarget
+            settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
             halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
             percentage = Double(computePercentage() * 100)
             broadcaster.register(SettingsObserver.self, observer: self)
@@ -740,8 +740,8 @@ extension OverrideConfig.StateModel {
 
     func handleAdjustSensToggle() {
         if !didAdjustSens {
-            halfBasalTarget = setHBT
-            percentage = Double(computePercentage(using: setHBT) * 100)
+            halfBasalTarget = settingHalfBasalTarget
+            percentage = Double(computePercentage(using: settingHalfBasalTarget) * 100)
         }
     }
 
