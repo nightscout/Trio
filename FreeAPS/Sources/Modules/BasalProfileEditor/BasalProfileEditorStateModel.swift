@@ -86,9 +86,9 @@ extension BasalProfileEditor {
             }
         }
 
-        func availableTimeIndices(forItemIndex: Int) -> [Int]
+        func availableTimeIndices(_ itemIndex: Int) -> [Int]
         {
-            let usedIndicesByOtherItems = items.filter { $0 != items[forItemIndex] }.map(\.timeIndex)
+            let usedIndicesByOtherItems = items.filter { $0 != items[itemIndex] }.map(\.timeIndex)
             return (0 ..< timeValues.count).filter { !usedIndicesByOtherItems.contains($0) }
         }
     }
