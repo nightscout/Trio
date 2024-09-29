@@ -19,16 +19,15 @@ struct GlucoseChartView: ChartContent {
         ForEach(glucoseData) { item in
             let glucoseToDisplay = units == .mgdL ? Decimal(item.glucose) : Decimal(item.glucose).asMmolL
 
-            // low glucose, high glucose and target is parsed in state to mmol/L; parse it back to mg/dl here for comparison
+            // low glucose and high glucose is parsed in state to mmol/L; parse it back to mg/dL here for comparison
             let lowGlucose = units == .mgdL ? lowGlucose : lowGlucose.asMgdL
             let highGlucose = units == .mgdL ? highGlucose : highGlucose.asMgdL
-            let targetGlucose = units == .mgdL ? currentGlucoseTarget : currentGlucoseTarget.asMgdL
 
             let pointMarkColor: Color = FreeAPS.getDynamicGlucoseColor(
                 glucoseValue: Decimal(item.glucose),
                 highGlucoseColorValue: highGlucose,
                 lowGlucoseColorValue: lowGlucose,
-                targetGlucose: targetGlucose,
+                targetGlucose: currentGlucoseTarget,
                 glucoseColorScheme: glucoseColorScheme,
                 offset: 20
             )
