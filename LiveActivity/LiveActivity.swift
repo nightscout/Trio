@@ -79,13 +79,6 @@ struct LiveActivity: Widget {
         let highGlucose = highGlucoseColorValue + (offset * 1.75)
         let targetGlucose = targetGlucose
 
-        print("glucoseValue: \(glucoseValue)")
-        print("lowGlucose: \(lowGlucose)")
-        print("highGlucose: \(highGlucose)")
-        print("targetGlucose: \(targetGlucose)")
-        print("glucoseColorScheme: \(glucoseColorScheme)")
-        print("offset: \(offset)")
-
         // Only use calculateHueBasedGlucoseColor if the setting is enabled in preferences
         if glucoseColorScheme == "dynamicColor" {
             return calculateHueBasedGlucoseColor(
@@ -512,8 +505,6 @@ struct LiveActivity: Widget {
             glucoseColorScheme: context.state.glucoseColorScheme,
             offset: 20
         )
-
-        print("Glucose color: \(glucoseColor)")
 
         return DynamicIsland {
             DynamicIslandExpandedRegion(.leading) {
