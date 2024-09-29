@@ -27,6 +27,7 @@ struct EditOverrideForm: View {
     @State private var isEditing = false
     @State private var target_override = false
     @State private var showAlert = false
+    @State private var displayPickerDuration: Bool = false
     @State private var displayPickerStart: Bool = false
     @State private var displayPickerEnd: Bool = false
     @State private var displayPickerSmbMinutes: Bool = false
@@ -198,21 +199,61 @@ struct EditOverrideForm: View {
                 }.onChange(of: indefinite) { _ in hasChanges = true }
 
                 if !indefinite {
-                    HStack {
-                        Text("Duration")
-                        TextFieldWithToolBar(
-                            text: Binding(
-                                get: { duration },
-                                set: {
-                                    duration = $0
-                                    hasChanges = true
+                    VStack {
+                        HStack {
+                            Text("Duration")
+                            Spacer()
+                            Text(formatHrMin(Int(truncating: duration as NSNumber)))
+                                .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
+                        }
+                        .onTapGesture {
+                            displayPickerDuration.toggle()
+                        }
+
+                        if displayPickerDuration {
+                            HStack {
+                                Picker(
+                                    selection: Binding(
+                                        get: {
+                                            Int(truncating: duration as NSNumber) / 60
+                                        },
+                                        set: {
+                                            duration = Decimal($0 * 60 + Int(truncating: duration as NSNumber) % 60)
+                                            hasChanges = true
+                                        }
+                                    ),
+                                    label: Text("")
+                                ) {
+                                    ForEach(0 ..< 24) { hour in
+                                        Text("\(hour) hr").tag(hour)
+                                    }
                                 }
-                            ),
-                            placeholder: "0",
-                            numberFormatter: formatter
-                        )
-                        Text("min").foregroundColor(.secondary)
+                                .pickerStyle(WheelPickerStyle())
+                                .frame(width: 100)
+
+                                Picker(
+                                    selection: Binding(
+                                        get: {
+                                            Int(truncating: duration as NSNumber) %
+                                                60 // Convert Decimal to Int for modulus operation
+                                        },
+                                        set: {
+                                            duration = Decimal((Int(truncating: duration as NSNumber) / 60) * 60 + $0)
+                                            hasChanges = true
+                                        }
+                                    ),
+                                    label: Text("")
+                                ) {
+                                    ForEach(Array(stride(from: 0, through: 55, by: 5)), id: \.self) { minute in
+                                        Text("\(minute) min").tag(minute)
+                                    }
+                                }
+                                .pickerStyle(WheelPickerStyle())
+                                .frame(width: 100)
+                            }
+                        }
                     }
+                    .padding(.top)
                 }
             }
 

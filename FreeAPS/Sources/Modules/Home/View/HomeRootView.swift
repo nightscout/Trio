@@ -211,15 +211,14 @@ extension Home {
                 0
             )
             let indefinite = latestOverride.indefinite
-            var durationString = "∞"
+            var durationString = ""
 
             if !indefinite {
                 if newDuration >= 1 {
-                    durationString =
-                        "\(newDuration.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) min"
+                    durationString = formatHrMin(Int(newDuration))
                 } else if newDuration > 0 {
-                    durationString =
-                        "\((newDuration * 60).formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) s"
+                    durationString = "\(Int(newDuration * 60)) s"
+
                 } else {
                     /// Do not show the Override anymore
                     Task {

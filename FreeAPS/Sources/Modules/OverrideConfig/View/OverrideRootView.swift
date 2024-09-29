@@ -500,7 +500,7 @@ extension OverrideConfig {
             let name = ((preset.name ?? "") == "") || (preset.name?.isEmpty ?? true) ? "" : preset.name!
             let percent = preset.percentage / 100
             let perpetual = preset.indefinite
-            let durationString = perpetual ? "∞" : "\(formatter.string(from: duration as NSNumber)!) min"
+            let durationString = perpetual ? "" : "\(formatHrMin(Int(duration)))"
             let scheduledSMBstring = preset.smbIsScheduledOff && preset.start != preset.end
                 ? " \(formatTimeRange(start: preset.start?.stringValue, end: preset.end?.stringValue))"
                 : ""
@@ -528,11 +528,11 @@ extension OverrideConfig {
                                     Text(durationString)
                                 }
                                 if percent != 1 {
-                                    overrideLabelDivider
+                                    if durationString != "" {
+                                        overrideLabelDivider
+                                    }
                                     Text(
-                                        percent
-                                            .formatted(.percent.grouping(.never).rounded().precision(.fractionLength(0))) +
-                                            isfAndCRstring
+                                        "\(Int(percent * 100))%\(isfAndCRstring)"
                                     )
                                 }
                                 if targetString != "" {

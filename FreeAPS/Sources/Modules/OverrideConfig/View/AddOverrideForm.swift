@@ -4,10 +4,13 @@ import SwiftUI
 struct AddOverrideForm: View {
     @Environment(\.presentationMode) var presentationMode
     @StateObject var state: OverrideConfig.StateModel
+    @State private var displayPickerDuration: Bool = false
     @State private var displayPickerStart: Bool = false
     @State private var displayPickerEnd: Bool = false
     @State private var displayPickerSmbMinutes: Bool = false
     @State private var displayPickerUamMinutes: Bool = false
+    @State private var durationHours = 0
+    @State private var durationMinutes = 0
     @State private var overrideTarget = false
     @Environment(\.colorScheme) var colorScheme
     @State private var showAlert = false
@@ -143,11 +146,44 @@ struct AddOverrideForm: View {
                     Text("Enable Indefinitely")
                 }
                 if !state.indefinite {
-                    HStack {
-                        Text("Duration")
-                        TextFieldWithToolBar(text: $state.overrideDuration, placeholder: "0", numberFormatter: formatter)
-                        Text("min").foregroundColor(.secondary)
+                    VStack {
+                        HStack {
+                            Text("Duration")
+                            Spacer()
+                            Text(formatHrMin(Int(state.overrideDuration)))
+                                .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
+                        }
+                        .onTapGesture {
+                            displayPickerDuration.toggle()
+                        }
+
+                        if displayPickerDuration {
+                            HStack {
+                                Picker("Hours", selection: $durationHours) {
+                                    ForEach(0 ..< 24) { hour in
+                                        Text("\(hour) hr").tag(hour)
+                                    }
+                                }
+                                .pickerStyle(WheelPickerStyle())
+                                .frame(width: 100)
+                                .onChange(of: durationHours) { _ in
+                                    state.overrideDuration = Decimal(totalDurationInMinutes())
+                                }
+
+                                Picker("Minutes", selection: $durationMinutes) {
+                                    ForEach(Array(stride(from: 0, through: 55, by: 5)), id: \.self) { minute in
+                                        Text("\(minute) min").tag(minute)
+                                    }
+                                }
+                                .pickerStyle(WheelPickerStyle())
+                                .frame(width: 100)
+                                .onChange(of: durationMinutes) { _ in
+                                    state.overrideDuration = Decimal(totalDurationInMinutes())
+                                }
+                            }
+                        }
                     }
+                    .padding(.top)
                 }
             }
 
@@ -416,6 +452,11 @@ struct AddOverrideForm: View {
         }
     }
 
+    private func totalDurationInMinutes() -> Int {
+        let durationTotal = (durationHours * 60) + durationMinutes
+        return max(0, durationTotal)
+    }
+
     private func unChanged() -> Bool {
         let defaultProfile = state.overrideSliderPercentage == 100 && !state.shouldOverrideTarget && !state.advancedSettings
         let noDurationSpecified = !state.indefinite && state.overrideDuration == 0
@@ -454,4 +495,18 @@ func convertTo12HourFormat(_ hour: Int) -> String {
 // Helper function to format 24-hour numbers as two digits
 func format24Hour(_ hour: Int) -> String {
     String(format: "%02d", hour)
+}
+
+func formatHrMin(_ durationInMinutes: Int) -> String {
+    let hours = durationInMinutes / 60
+    let minutes = durationInMinutes % 60
+
+    switch (hours, minutes) {
+    case let (0, m):
+        return "\(m) min"
+    case let (h, 0):
+        return "\(h) hr"
+    default:
+        return "\(hours) hr \(minutes) min"
+    }
 }
