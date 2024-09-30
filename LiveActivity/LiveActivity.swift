@@ -418,11 +418,13 @@ struct LiveActivity: Widget {
         // TODO: grab target from proper targets, do not hard code.
         let glucoseColor = getDynamicGlucoseColor(
             glucoseValue: Decimal(string: context.state.bg) ?? 100,
-            highGlucoseColorValue: context.state.highGlucose,
-            lowGlucoseColorValue: context.state.lowGlucose,
-            targetGlucose: 90,
+            highGlucoseColorValue: context.state.detailedViewState?.unit == "mg/dL" ? context.state.highGlucose : context.state
+                .highGlucose.asMmolL,
+            lowGlucoseColorValue: context.state.detailedViewState?.unit == "mg/dL" ? context.state.lowGlucose : context.state
+                .lowGlucose.asMmolL,
+            targetGlucose: context.state.detailedViewState?.unit == "mg/dL" ? 90 : 90.asMmolL,
             glucoseColorScheme: context.state.glucoseColorScheme,
-            offset: 20
+            offset: context.state.detailedViewState?.unit == "mg/dL" ? 20 : 20.asMmolL
         )
 
         if let detailedViewState = context.state.detailedViewState {
@@ -499,11 +501,11 @@ struct LiveActivity: Widget {
         // TODO: grab target from proper targets, do not hard code.
         let glucoseColor = getDynamicGlucoseColor(
             glucoseValue: Decimal(string: glucoseValueForColor) ?? 100,
-            highGlucoseColorValue: highGlucose,
-            lowGlucoseColorValue: lowGlucose,
-            targetGlucose: 90,
+            highGlucoseColorValue: context.state.detailedViewState?.unit == "mg/dL" ? highGlucose : highGlucose.asMmolL,
+            lowGlucoseColorValue: context.state.detailedViewState?.unit == "mg/dL" ? lowGlucose : lowGlucose.asMmolL,
+            targetGlucose: context.state.detailedViewState?.unit == "mg/dL" ? 90 : 90.asMmolL,
             glucoseColorScheme: context.state.glucoseColorScheme,
-            offset: 20
+            offset: context.state.detailedViewState?.unit == "mg/dL" ? 20 : 20.asMmolL
         )
 
         return DynamicIsland {
