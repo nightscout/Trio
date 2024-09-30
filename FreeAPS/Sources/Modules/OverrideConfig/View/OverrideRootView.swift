@@ -512,7 +512,19 @@ extension OverrideConfig {
                 "\(maxMinutesSMB.formatted()) min SMB" : ""
             let maxUamMinsString = (maxMinutesUAM != 0 && preset.advancedSettings && maxMinutesUAM != state.defaultUamMinutes) ?
                 "\(maxMinutesUAM.formatted()) min UAM" : ""
-            let isfAndCRstring = (preset.isf == preset.cr) ? "" : (preset.isf ? " ISF" : " CR")
+            let isfAndCRstring: String = {
+                switch (preset.isfAndCr, preset.isf, preset.cr) {
+                case (_, true, true),
+                     (true, _, _):
+                    return " ISF/CR"
+                case (false, true, false):
+                    return " ISF"
+                case (false, false, true):
+                    return " CR"
+                default:
+                    return ""
+                }
+            }()
             let isSelected = preset.id == selectedPresetID
 
             let labels: [String] = [

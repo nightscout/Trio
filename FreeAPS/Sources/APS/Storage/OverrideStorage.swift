@@ -124,6 +124,9 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             newOverride.duration = override.duration as NSDecimalNumber
             newOverride.indefinite = override.indefinite
             newOverride.percentage = override.percentage
+            newOverride.isfAndCr = override.isfAndCr
+            newOverride.isf = override.isf
+            newOverride.cr = override.cr
             newOverride.enabled = override.enabled
             newOverride.smbIsOff = override.smbIsOff
             if override.overrideTarget {
@@ -135,14 +138,6 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             }
             if override.advancedSettings {
                 newOverride.advancedSettings = true
-
-                if !override.isfAndCr {
-                    newOverride.isfAndCr = false
-                    newOverride.isf = override.isf
-                    newOverride.cr = override.cr
-                } else {
-                    newOverride.isfAndCr = true
-                }
 
                 if override.smbIsScheduledOff {
                     newOverride.smbIsScheduledOff = true

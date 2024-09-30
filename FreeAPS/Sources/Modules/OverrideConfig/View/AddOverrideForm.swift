@@ -4,6 +4,7 @@ import SwiftUI
 struct AddOverrideForm: View {
     @Environment(\.presentationMode) var presentationMode
     @StateObject var state: OverrideConfig.StateModel
+    @State private var selectedApplyToOption: ApplyToOption = .isfAndCr
     @State private var displayPickerDuration: Bool = false
     @State private var displayPickerStart: Bool = false
     @State private var displayPickerEnd: Bool = false
@@ -17,6 +18,13 @@ struct AddOverrideForm: View {
     @State private var alertString = ""
 
     @Environment(\.dismiss) var dismiss
+
+    enum ApplyToOption: String, CaseIterable {
+        case isfAndCr = "ISF/CR"
+        case isf = "ISF"
+        case cr = "CR"
+        case none = "None"
+    }
 
     var color: LinearGradient {
         colorScheme == .dark ? LinearGradient(
@@ -127,16 +135,31 @@ struct AddOverrideForm: View {
                     step: 1
                 )
 
-                Toggle(isOn: $state.isfAndCr) {
-                    Text("Change ISF and CR")
-                }
-                if !state.isfAndCr {
-                    Toggle(isOn: $state.isf) {
-                        Text("Change ISF")
+                // Picker for ISF/CR settings
+                Picker("Apply to", selection: $selectedApplyToOption) {
+                    ForEach(ApplyToOption.allCases, id: \.self) { option in
+                        Text(option.rawValue).tag(option)
                     }
-
-                    Toggle(isOn: $state.cr) {
-                        Text("Change CR")
+                }
+                .pickerStyle(MenuPickerStyle())
+                .onChange(of: selectedApplyToOption) { newValue in
+                    switch newValue {
+                    case .isfAndCr:
+                        state.isfAndCr = true
+                        state.isf = true
+                        state.cr = true
+                    case .isf:
+                        state.isfAndCr = false
+                        state.isf = true
+                        state.cr = false
+                    case .cr:
+                        state.isfAndCr = false
+                        state.isf = false
+                        state.cr = true
+                    case .none:
+                        state.isfAndCr = false
+                        state.isf = false
+                        state.cr = false
                     }
                 }
             }

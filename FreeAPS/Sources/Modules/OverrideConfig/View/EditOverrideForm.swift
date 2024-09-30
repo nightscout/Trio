@@ -22,6 +22,7 @@ struct EditOverrideForm: View {
     @State private var cr: Bool
     @State private var smbMinutes: Decimal?
     @State private var uamMinutes: Decimal?
+    @State private var selectedApplyToOption: ApplyToOption
 
     @State private var hasChanges = false
     @State private var isEditing = false
@@ -53,8 +54,19 @@ struct EditOverrideForm: View {
         _isfAndCr = State(initialValue: overrideToEdit.isfAndCr)
         _isf = State(initialValue: overrideToEdit.isf)
         _cr = State(initialValue: overrideToEdit.cr)
+        _selectedApplyToOption = State(
+            initialValue: overrideToEdit
+                .isfAndCr ? .isfAndCr : (overrideToEdit.isf ? .isf : (overrideToEdit.cr ? .cr : .none))
+        )
         _smbMinutes = State(initialValue: overrideToEdit.smbMinutes?.decimalValue)
         _uamMinutes = State(initialValue: overrideToEdit.uamMinutes?.decimalValue)
+    }
+
+    enum ApplyToOption: String, CaseIterable {
+        case isfAndCr = "ISF/CR"
+        case isf = "ISF"
+        case cr = "CR"
+        case none = "None"
     }
 
     var color: LinearGradient {
@@ -179,18 +191,33 @@ struct EditOverrideForm: View {
                     step: 1
                 ).onChange(of: percentage) { _ in hasChanges = true }
 
-                Toggle(isOn: $isfAndCr) {
-                    Text("Change ISF and CR")
-                }.onChange(of: isfAndCr) { _ in hasChanges = true }
-
-                if !isfAndCr {
-                    Toggle(isOn: $isf) {
-                        Text("Change ISF")
-                    }.onChange(of: isf) { _ in hasChanges = true }
-
-                    Toggle(isOn: $cr) {
-                        Text("Change CR")
-                    }.onChange(of: cr) { _ in hasChanges = true }
+                // Picker for ISF/CR settings
+                Picker("Apply to", selection: $selectedApplyToOption) {
+                    ForEach(ApplyToOption.allCases, id: \.self) { option in
+                        Text(option.rawValue).tag(option)
+                    }
+                }
+                .pickerStyle(MenuPickerStyle())
+                .onChange(of: selectedApplyToOption) { newValue in
+                    switch newValue {
+                    case .isfAndCr:
+                        isfAndCr = true
+                        isf = false
+                        cr = false
+                    case .isf:
+                        isfAndCr = false
+                        isf = true
+                        cr = false
+                    case .cr:
+                        isfAndCr = false
+                        isf = false
+                        cr = true
+                    case .none:
+                        isfAndCr = false
+                        isf = false
+                        cr = false
+                    }
+                    hasChanges = true
                 }
             }
 
