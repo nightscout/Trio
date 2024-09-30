@@ -73,13 +73,13 @@ struct AddOverrideForm: View {
     @ViewBuilder private func addOverride() -> some View {
         Section {
             VStack {
-                TextField("Name", text: $state.overrideName)
+                HStack {
+                    Text("Name")
+                    Spacer()
+                    TextField("(Optional)", text: $state.overrideName).multilineTextAlignment(.trailing)
+                }
             }
-        } header: {
-            Text("Name")
-        }.listRowBackground(Color.chart)
 
-        Section {
             VStack {
                 HStack {
                     Spacer()
@@ -360,7 +360,7 @@ struct AddOverrideForm: View {
         header: { Text("Add custom Override") }
         footer: {
             Text(
-                "Your profile ISF and CR will be inversly adjusted with the override percentage."
+                "Your profile ISF and CR will be inversely adjusted with the override percentage."
             )
         }.listRowBackground(Color.chart)
     }

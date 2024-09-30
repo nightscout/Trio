@@ -497,7 +497,7 @@ extension OverrideConfig {
             let target = (state.units == .mgdL ? preset.target : preset.target?.decimalValue.asMmolL as NSDecimalNumber?) ?? 0
 
             let duration = (preset.duration ?? 0) as Decimal
-            let name = ((preset.name ?? "") == "") || (preset.name?.isEmpty ?? true) ? "" : preset.name!
+            let name = preset.name ?? ""
             let percent = preset.percentage / 100
             let perpetual = preset.indefinite
             let durationString = perpetual ? "" : "\(formatHrMin(Int(duration)))"
@@ -515,8 +515,17 @@ extension OverrideConfig {
             let isfAndCRstring = (preset.isf == preset.cr) ? "" : (preset.isf ? " ISF" : " CR")
             let isSelected = preset.id == selectedPresetID
 
-            if name != "" {
-                ZStack(alignment: .trailing, content: {
+            let labels: [String] = [
+                durationString,
+                percent != 1 ? "\(Int(percent * 100))%\(isfAndCRstring)" : "",
+                targetString,
+                smbString,
+                maxSmbMinsString,
+                maxUamMinsString
+            ].filter { !$0.isEmpty } // filter out empty labels
+
+            if !name.isEmpty {
+                ZStack(alignment: .trailing) {
                     HStack {
                         VStack {
                             HStack {
@@ -524,32 +533,11 @@ extension OverrideConfig {
                                 Spacer()
                             }
                             HStack(spacing: 5) {
-                                if durationString != "" {
-                                    Text(durationString)
-                                }
-                                if percent != 1 {
-                                    if durationString != "" {
+                                ForEach(labels, id: \.self) { label in
+                                    Text(label)
+                                    if label != labels.last { // Add divider between labels
                                         overrideLabelDivider
                                     }
-                                    Text(
-                                        "\(Int(percent * 100))%\(isfAndCRstring)"
-                                    )
-                                }
-                                if targetString != "" {
-                                    overrideLabelDivider
-                                    Text(targetString)
-                                }
-                                if smbString != "" {
-                                    overrideLabelDivider
-                                    Text(smbString).foregroundColor(.secondary).font(.caption)
-                                }
-                                if maxSmbMinsString != "" {
-                                    overrideLabelDivider
-                                    Text(maxSmbMinsString)
-                                }
-                                if maxUamMinsString != "" {
-                                    overrideLabelDivider
-                                    Text(maxUamMinsString)
                                 }
                                 Spacer()
                             }
@@ -566,7 +554,7 @@ extension OverrideConfig {
                                 showCheckmark.toggle()
                                 selectedPresetID = preset.id
 
-                                // deactivate showCheckmark after 3 seconds
+                                // Deactivate checkmark after 3 seconds
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                                     showCheckmark = false
                                 }
@@ -584,7 +572,7 @@ extension OverrideConfig {
                             .imageScale(.medium)
                             .foregroundStyle(.secondary)
                     }
-                })
+                }
             }
         }
     }

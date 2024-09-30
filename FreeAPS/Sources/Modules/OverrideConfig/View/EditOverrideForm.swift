@@ -121,17 +121,18 @@ struct EditOverrideForm: View {
     }
 
     @ViewBuilder private func editOverride() -> some View {
-        if override.name != nil {
-            Section {
-                VStack {
-                    TextField("Name", text: $name)
-                        .onChange(of: name) { _ in hasChanges = true }
-                }
-            } header: {
-                Text("Name")
-            }.listRowBackground(Color.chart)
-        }
         Section {
+            if override.name != nil {
+                VStack {
+                    HStack {
+                        Text("Name")
+                        Spacer()
+                        TextField("Name", text: $name)
+                            .onChange(of: name) { _ in hasChanges = true }
+                            .multilineTextAlignment(.trailing)
+                    }
+                }
+            }
             VStack {
                 HStack {
                     Spacer()
@@ -259,7 +260,7 @@ struct EditOverrideForm: View {
 
             VStack {
                 Toggle(isOn: $target_override) {
-                    Text("Override Override Target")
+                    Text("Override Target")
                 }.onChange(of: target_override) { _ in
                     hasChanges = true
                 }
