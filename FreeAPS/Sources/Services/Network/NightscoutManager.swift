@@ -85,6 +85,16 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 .share()
                 .eraseToAnyPublisher()
 
+        glucoseStorage.updatePublisher
+            .receive(on: DispatchQueue.global(qos: .background))
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                Task {
+                    await self.uploadGlucose()
+                }
+            }
+            .store(in: &subscriptions)
+
         registerHandlers()
         setupNotification()
     }
@@ -395,7 +405,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             }
         }
 
-        if var fetchedEnacted = fetchedEnactedDetermination, settingsManager.settings.units == .mmolL {
+        if let fetchedEnacted = fetchedEnactedDetermination, settingsManager.settings.units == .mmolL {
             var modifiedFetchedEnactedDetermination = fetchedEnactedDetermination
             modifiedFetchedEnactedDetermination?
                 .reason = parseReasonGlucoseValuesToMmolL(fetchedEnacted.reason)

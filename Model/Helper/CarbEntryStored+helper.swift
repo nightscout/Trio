@@ -22,6 +22,24 @@ extension NSPredicate {
         )
     }
 
+    static var carbsNotYetUploadedToHealth: NSPredicate {
+        let date = Date.oneDayAgo
+        return NSPredicate(
+            format: "date >= %@ AND isUploadedToHealth == %@",
+            date as NSDate,
+            false as NSNumber
+        )
+    }
+
+    static var carbsNotYetUploadedToTidepool: NSPredicate {
+        let date = Date.oneDayAgo
+        return NSPredicate(
+            format: "date >= %@ AND isUploadedToTidepool == %@",
+            date as NSDate,
+            false as NSNumber
+        )
+    }
+
     static var fpusNotYetUploadedToNightscout: NSPredicate {
         let date = Date.oneDayAgo
         return NSPredicate(
@@ -71,7 +89,7 @@ extension CarbEntryStored: Encodable {
         try container.encode(formattedDate, forKey: .created_at)
 
         // TODO: handle this conditionally; pass in the enteredBy string (manual entry or via NS or Apple Health)
-        try container.encode("Open-iAPS", forKey: .enteredBy)
+        try container.encode("Trio", forKey: .enteredBy)
 
         try container.encode(carbs, forKey: .carbs)
         try container.encode(fat, forKey: .fat)
