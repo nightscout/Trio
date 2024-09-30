@@ -7,14 +7,14 @@
 "Add insulin without actually bolusing" = "Add insulin without actually bolusing";
 
 /* Add insulin from source outside of pump */
-"Add %@ without bolusing" = "Dodaj %@ bez bolusa";
+"Add %@ without bolusing" = "Add %@ without bolusing";
 
 "Bolus" = "Bolus";
 
-"Close" = "Zamknij";
+"Close" = "Close";
 
 /* Continue after added carbs without bolus */
-"Continue without bolus" = "Kontynuuj bez bolusa";
+"Continue without bolus" = "Continue without bolus";
 
 /* Alert when adding large amount without bolusing */
 "\nAmount is more than your Max Bolus setting! \nAre you sure you want to add " = "\nAmount is more than your Max Bolus setting! \nAre you sure you want to add ";
@@ -26,25 +26,25 @@
 "Enact bolus" = "Enact bolus";
 
 /*  */
-"Insulin recommended" = "Zalecana ilość insuliny";
+"Insulin recommended" = "Insulin recommended";
 
 /*  */
-"Insulin required" = "Potrzebna ilość insuliny";
+"Insulin required" = "Insulin required";
 
 /* Bolus screen */
 "Recommendation" = "Recommendation";
 
 /* Button */
-"Clear" = "Usuń";
+"Clear" = "Clear";
 
 /* Button */
 "Done" = "Done";
 
 /*  */
-"Wait please" = "Proszę czekać";
+"Wait please" = "Wait please";
 
 /*  */
-"Agree and continue" = "Zaakceptuj i kontynuuj";
+"Agree and continue" = "Agree and Continue";
 
 /* Bolus progress view */
 "of" = "of";
@@ -92,7 +92,7 @@
 "Your entered amount was limited by your max Bolus setting of %d%@" = "Your entered amount was limited by your max Bolus setting of %d%@";
 
 /* Bolus View Continue Button */
-"Continue" = "Kontynuuj";
+"Continue" = "Continue";
 
 /* Home title */
 "Home" = "Home";
@@ -101,16 +101,16 @@
 "looping" = "looping";
 
 /* min ago since last loop */
-"min ago" = "minut temu";
+"min ago" = "min ago";
 
 /* Status Title */
-"No suggestion" = "Brak sugestii";
+"No suggestion" = "No suggestion";
 
 /* Replace pod text in Header */
-"Replace pod" = "Wymień Pod";
+"Replace pod" = "Replace pod";
 
 /* Add carbs screen */
-"Add Carbs" = "Dodaj węglowodany";
+"Add Carbs" = "Add Carbs";
 
 /* Add carbs header and button in Watch app. You can skip the last " " space. It's just for differentiation */
 "Add Carbs " = "Add Carbs ";
@@ -119,7 +119,7 @@
 "Amount Carbs" = "Amount Carbs";
 
 /* Grams unit */
-"grams" = "gramy";
+"grams" = "grams";
 
 /*  */
 "Carbs required" = "Carbs required";
@@ -128,31 +128,31 @@
 "Saved Food" = "Saved Food";
 
 /* */
-"Are you sure?" = "Czy jesteś pewien?";
+"Are you sure?" = "Are you sure?";
 
 /* Bottom target temp */
 "Bottom target" = "Bottom target";
 
 /* Cancel preset name */
-"Cancel" = "Anuluj";
+"Cancel" = "Cancel";
 
 /*  */
-"Cancel Temp Target" = "Anuluj tymczasowy cel";
+"Cancel Temp Target" = "Cancel Temp Target";
 
 /* Custom temp target */
-"Custom" = "Dostosuj";
+"Custom" = "Custom";
 
 /*  */
-"Date" = "Data";
+"Date" = "Date";
 
 /*  */
-"Delete" = "Usuń";
+"Delete" = "Delete";
 
 /* Delete preset temp target */
-"Delete preset \"%@\"" = "Usuń profil %@";
+"Delete preset \"%@\"" = "Delete preset \"%@\"";
 
 /* Duration of target temp or temp basal */
-"Duration" = "Czas trwania";
+"Duration" = "Duration";
 
 /*  */
 "Enact Temp Target" = "Enact Temp Target";
@@ -173,19 +173,19 @@
 "mg/dl. Autosens.max limits the max endpoint" = "mg/dl. Autosens.max limits the max endpoint";
 
 /*  */
-"Enter preset name" = "Wpisz nazwę profilu";
+"Enter preset name" = "";
 
 /* Preset name */
 "Name" = "Name";
 
 /* minutes of target temp */
-"minutes" = "minut";
+"minutes" = "minutes";
 
 /*  */
-"Presets" = "Profile";
+"Presets" = "Presets";
 
 /* Save preset name */
-"Save" = "Zapisz";
+"Save" = "Save";
 
 /*  */
 "Save as Preset" = "Save as Preset";
@@ -209,52 +209,52 @@
 "[ -1 ]" = "[ -1 ]";
 
 /* Upper temp target limit */
-"Top target" = "Górna wartość docelowa";
+"Top target" = "Top target";
 
 /*  Temp target set for ... minutes */
 "for" = "for";
 
 /*  Temp target set for ... minutes */
-"min" = "min.";
+"min" = "min";
 
 /*  */
 "Autotune" = "Autotune";
 
 /*  */
-"Basal profile" = "Profil bazy";
+"Basal profile" = "Basal profile";
 
 /*  */
 "Carb ratio" = "Carb ratio";
 
 /*  */
-"Delete autotune data" = "Usuń dane autotune";
+"Delete autotune data" = "Delete autotune data";
 
 /*  */
-"Run now" = "Uruchom teraz";
+"Run now" = "Run now";
 
 /*  */
 "Last run" = "Last run";
 
 /*  */
-"Sensitivity" = "Wrażliwość";
+"Sensitivity" = "Sensitivity";
 
 /*  */
-"Use Autotune" = "użyj autotune";
+"Use Autotune" = "Use Autotune";
 
 /* Add profile basal */
-"Add" = "Dodaj";
+"Add" = "Add";
 
 /*  */
-"Basal Profile" = "Profil bazy";
+"Basal Profile" = "Basal Profile";
 
 /* Rate basal profile */
 "Rate" = "Rate";
 
 /*  */
-"Save on Pump" = "Zapisz na pompie";
+"Save on Pump" = "Save on Pump";
 
 /*  */
-"Saving..." = "Zapisywanie...";
+"Saving..." = "Saving...";
 
 /*  */
 "Schedule" = "Schedule";
@@ -263,7 +263,7 @@
 "starts at" = "starts at";
 
 /* Time basal profile */
-"Time" = "Czas";
+"Time" = "Time";
 
 /* */
 "Calculated Ratio" = "Calculated Ratio";
@@ -278,16 +278,16 @@
 "Autosens" = "Autosens";
 
 /*  */
-"Calculated Sensitivity" = "Obliczona wrażliwość";
+"Calculated Sensitivity" = "Calculated Sensitivity";
 
 /*  */
-"Insulin Sensitivities" = "Wrażliwość na insulinę";
+"Insulin Sensitivities" = "Insulin Sensitivities";
 
 /* */
-"Sensitivity Ratio" = "Współczynnik wrażliwości";
+"Sensitivity Ratio" = "Sensitivity Ratio";
 
 /*  */
-"Dismiss" = "Zignoruj";
+"Dismiss" = "Dismiss";
 
 /*  */
 "Important message" = "Important message";
@@ -296,14 +296,14 @@
 "Amount" = "Amount";
 
 /* */
-"Cancel Temp Basal" = "Anuluj bazę tymczasową";
+"Cancel Temp Basal" = "Cancel Temp Basal";
 
 /* Enact
 Enact a temp Basal or a temp target */
 "Enact" = "Enact";
 
 /* */
-"Manual Temp Basal" = "Manual Temp Basal";
+"Manual Temp Basal" = "Ręczna dawka tymczasowa";
 
 /* Allow uploads to different services */
 "Allow uploads" = "Allow uploads";
@@ -312,24 +312,22 @@ Enact a temp Basal or a temp target */
 "API secret" = "API secret";
 
 /* Connect to NS */
-"Connect" = "Połącz";
+"Connect" = "Connect";
 
 /* Connected to NS */
-"Connected!" = "Połączono
-Połączono z Nightscout!";
+"Connected!" = "Connected!";
 
 /* Connecting to NS */
-"Connecting..." = "Łączenie...
-Łączenie z Nightscout...";
+"Connecting..." = "Connecting...";
 
 /*  */
-"Invalid URL" = "Nieprawidłowy adres URL";
+"Invalid URL" = "Invalid URL";
 
 /*  */
 "Local glucose source" = "Local glucose source";
 
 /* Header */
-"Nightscout Config" = "Konfiguracja Nightscout";
+"Nightscout Config" = "Nightscout Config";
 
 /*  */
 "Port" = "Port";
@@ -359,7 +357,7 @@ Połączono z Nightscout!";
 "Skip Bolus screen after carbs" = "Skip Bolus screen after carbs";
 
 /* Allow remote control from NS */
-"Remote Control" = "Remote control";
+"Remote Control" = "Remote Control";
 
 /* Imported Profiles Alert */
 "\nNow please verify all of your new settings thoroughly: \n\n • DIA (Pump settings)\n • Basal Profile\n • Insulin Sensitivities\n • Carb Ratios\n • Target Glucose\n\n in Trio Settings -> Configuration.\n\nBad or invalid profile settings could have disastrous effects." = "\nNow please verify all of your new settings thoroughly: \n\n • DIA (Pump settings)\n • Basal Profile\n • Insulin Sensitivities\n • Carb Ratios\n • Target Glucose\n\n in Trio Settings -> Configuration.\n\nBad or invalid profile settings could have disastrous effects.";
@@ -368,7 +366,7 @@ Połączono z Nightscout!";
 "This will replace some or all of your current pump settings. Are you sure you want to import profile settings from Nightscout?" = "This will replace some or all of your current pump settings. Are you sure you want to import profile settings from Nightscout?";
 
 /* Import Error */
-"\nInvalid Nightcsout Basal Settings. \n\nImport aborted. Please check your Nightscout Profile Basal Settings!" = "\nInvalid Nightcsout Basal Settings. \n\nImport aborted. Please check your Nightscout Profile Basal Settings!";
+"\nInvalid Nightcsout Basal Settings. \n\nImport aborted. Please check your Nightscout Profile Basal Settings!" = "Nieprawidłowe ustawienia dawki podstawowej Nightcsout. \n\nImport przerwany. Sprawdź ustawienia dawki podstawowej Nightscout!";
 
 /* Import Error */
 "\nSettings were imported but the Basals couldn't be saved to pump (No pump). Check your basal settings and tap ´Save on Pump´ to sync the new basal settings" = "\nSettings were imported but the Basals couldn't be saved to pump (No pump). Check your basal settings and tap ´Save on Pump´ to sync the new basal settings";
@@ -458,7 +456,7 @@ Połączono z Nightscout!";
 "exceeded" = "exceeded";
 
 /* */
-"Pump Settings" = "Pump Settings";
+"Pump Settings" = "Ustawienia pompy";
 
 /* Insulin unit per hour */
 "U/hr" = "U/hr";
@@ -476,10 +474,10 @@ Połączono z Nightscout!";
 " U/hr" = " U/hr";
 
 /* Number of units per hour*/
-"%@ U/hr" = "%@ j./godz";
+"%@ U/hr" = "%@ U/hr";
 
 /* Number of units insulin delivered */
-"%@ U" = "%@ j.";
+"%@ U" = "%@ U";
 
 /*Carb ratio unit */
 "g/U" = "g/U";
@@ -497,10 +495,10 @@ Połączono z Nightscout!";
 "d" = "d";
 
 /* abbreviation for hours */
-"h" = "godz";
+"h" = "h";
 
 /* abbreviation for minutes */
-"m" = "min.";
+"m" = "m";
 
 /*  */
 "Closed loop" = "Closed loop";
@@ -566,7 +564,7 @@ Połączono z Nightscout!";
 "High target" = "High target";
 
 /* Lower target */
-"Low target" = "Low target";
+"Low target" = "";
 
 /* When bolusing */
 "Bolusing" = "Bolusing";
@@ -632,10 +630,10 @@ Połączono z Nightscout!";
 "Calibrations" = "Calibrations";
 
 /* */
-"Create Events in Calendar" = "Create Events in Calendar";
+"Create Events in Calendar" = "Utwórz wydarzenia w kalendarzu";
 
 /* */
-"Calendar" = "Calendar";
+"Calendar" = "Kalendarz";
 
 /* Automatic delivered treatments */
 "Automatic" = "Automatic";
@@ -716,7 +714,7 @@ Połączono z Nightscout!";
 "Calibrationinfo" = "Calibrationinfo";
 
 /* */
-"Unknown" = "Nieznana";
+"Unknown" = "Unknown";
 
 /* */
 "Not paired yet" = "Not paired yet";
@@ -776,7 +774,7 @@ Połączono z Nightscout!";
 "New Sensor Detected" = "New Sensor Detected";
 
 /* Please wait up to 30 minutes before glucose readings are available! */
-"Please wait up to 30 minutes before glucose readings are available!" = "Please wait up to 30 minutes before glucose readings are available!";
+"Please wait up to 30 minutes before glucose readings are available!" = "Poczekaj do 30 minut, zanim odczyty glukozy będą dostępne!";
 
 /* Invalid Glucose sample detected, try again later */
 "Invalid Glucose sample detected, try again later" = "Invalid Glucose sample detected, try again later";
@@ -860,10 +858,10 @@ Połączono z Nightscout!";
 "Hardware" = "Hardware";
 
 /* */
-"Firmware" = "Oprogramowanie";
+"Firmware" = "Firmware";
 
 /* */
-"Connection State" = "Status połączenia";
+"Connection State" = "Connection State";
 
 /* */
 "Transmitter Type" = "Transmitter Type";
@@ -896,7 +894,7 @@ Połączono z Nightscout!";
 "Advanced" = "Advanced";
 
 /* */
-"Alarms" = "Alarmy";
+"Alarms" = "Alarms";
 
 /* */
 "Glucose Settings" = "Glucose Settings";
@@ -1172,7 +1170,7 @@ Połączono z Nightscout!";
 "Save as your Normal Basal Rates" = "Save as your Normal Basal Rates";
 
 /* */
-"Save on Pump" = "Zapisz na pompie";
+"Save on Pump" = "Save on Pump";
 
 /* Debug option view Pump History */
 "Pump History" = "Pump History";
@@ -1231,7 +1229,7 @@ Połączono z Nightscout!";
 "Info" = "Info";
 
 /* Warning title */
-"Warning" = "Ostrzeżenie";
+"Warning" = "Warning";
 
 /* Error title */
 "Error" = "Error";
@@ -1361,10 +1359,10 @@ Połączono z Nightscout!";
 "Save as Profile" = "Save as Profile";
 
 /* Alert */
-"Cancel Profile Override" = "Cancel Profile Override";
+"Cancel Profile Override" = "Cancel Profile Override?";
 
 /* Alert */
-"Cancel Temp Target" = "Anuluj tymczasowy cel";
+"Cancel Temp Target" = "Cancel Temp Target";
 
 /* Alert */
 "Return to Normal?" = "Return to Normal?";
@@ -1505,7 +1503,7 @@ Połączono z Nightscout!";
 */
 "Attach Pod" = "Attach Pod";
 
-"Deactivate Pod" = "Dezaktywuj PODa";
+"Deactivate Pod" = "Deactivate Pod";
 
 /* */
 "Deactivating..." = "Deactivating...";
@@ -1521,10 +1519,10 @@ Połączono z Nightscout!";
 "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced.";
 
 /* button title for saving low reservoir reminder while saving */
-"Saving..." = "Zapisywanie...";
+"Saving..." = "Saving...";
 
 /* button title for saving low reservoir reminder */
-"Save" = "Zapisz";
+"Save" = "Save";
 
 /* Alert title for error when updating confidence reminder preference */
 "Failed to update confidence reminder preference." = "Failed to update confidence reminder preference.";
@@ -1533,13 +1531,13 @@ Połączono z Nightscout!";
 "No Error" = "No Error";
 
 /* description label for active time pod details row */
-"Active Time" = "Czas aktywny";
+"Active Time" = "Active Time";
 
 /* Title string for BeepPreference.silent */
 "Disabled" = "Disabled";
 
 /* Title string for BeepPreference.manualCommands */
-"Enabled" = "Włączony";
+"Enabled" = "Enabled";
 
 /* Title string for BeepPreference.extended */
 "Extended" = "Extended";
@@ -1557,7 +1555,7 @@ Połączono z Nightscout!";
 "Expiration Reminder Default" = "Expiration Reminder Default";
 
 /* */
-"Expiration Reminder" = "Przypomnienie o terminie ważności";
+"Expiration Reminder" = "Expiration Reminder";
 
 /* */
 "Low Reservoir" = "Low Reservoir";
@@ -1606,7 +1604,7 @@ Połączono z Nightscout!";
 "This PumpManager has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to therapy settings -> delivery limits and set a new maximum basal rate." = "This PumpManager has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to therapy settings -> delivery limits and set a new maximum basal rate.";
 
 /* description label for active time pod details row */
-"Active Time" = "Czas aktywny";
+"Active Time" = "Active Time";
 
 /* description label for total delivery pod details row */
 "Total Delivery" = "Total Delivery";
@@ -1615,7 +1613,7 @@ Połączono z Nightscout!";
 "Add Omnipod Dash" = "Add Omnipod Dash";
 
 /* */
-"Insert Cannula" = "Wprowadź kaniulę";
+"Insert Cannula" = "Insert Cannula";
 
 /* */
 "Check Cannula" = "Check Cannula";
@@ -1754,7 +1752,7 @@ Połączono z Nightscout!";
 "Interval" = "Interval";
 
 /* Median loop interval */
-"Duration" = "Czas trwania";
+"Duration" = "Duration";
 
 /* "Display SD */
 "Display SD instead of CV" = "Display SD instead of CV";
