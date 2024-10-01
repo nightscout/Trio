@@ -16,6 +16,7 @@ extension Home {
         @State var selectedTab: Int = 0
         @State private var statusTitle: String = ""
         @State var showPumpSelection: Bool = false
+        @State var notificationsDisabled = false
 
         struct Buttons: Identifiable {
             let label: String
@@ -126,6 +127,22 @@ extension Home {
             } else {
                 return "book"
             }
+        }
+
+        private func sendSafetyNotification() {
+            let messageCont = MessageContent(
+                content: NSLocalizedString(
+                    "Fix now by turning Notifications ON.",
+                    comment: "Secondary text for alerts disabled warning, which appears on the main status screen."
+                ),
+                type: MessageType.alertPermissionWarning,
+                title: NSLocalizedString(
+                    "⚠️ Safety Notifications are OFF", // \u{26A0}
+                    comment: "Warning text for when Notifications or Critical Alerts Permissions is disabled"
+                ),
+                useAPN: false
+            )
+            router.alertMessage.send(messageCont)
         }
 
         var glucoseView: some View {
@@ -725,6 +742,14 @@ extension Home {
                     highlightButtons()
                 }
             }
+            .onReceive(resolver.resolve(AlertPermissionsChecker.self)!.$notificationsDisabled, perform: {
+                if notificationsDisabled != $0 {
+                    notificationsDisabled = $0
+                    if notificationsDisabled {
+                        sendSafetyNotification()
+                    }
+                }
+            })
             .navigationTitle("Home")
             .navigationBarHidden(true)
             .ignoresSafeArea(.keyboard)

@@ -7,11 +7,15 @@ enum MessageType {
     case warning
     case errorPump
     case pumpConfig
+    case alertPermissionWarning
+    case other
 }
 
 struct MessageContent {
     var content: String
     var type: MessageType = .info
+    var title: String = ""
+    var useAPN: Bool = true
 }
 
 protocol Router {
