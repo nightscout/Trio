@@ -212,14 +212,16 @@ class TrioRemoteControl: Injectable {
         }
 
         let durationInMinutes = Int(durationValue)
+        let pushMessageDate = Date(timeIntervalSince1970: pushMessage.timestamp)
+
         let tempTarget = TempTarget(
-            name: "Remote Control",
-            createdAt: Date(),
+            name: TempTarget.custom,
+            createdAt: pushMessageDate,
             targetTop: Decimal(targetValue),
             targetBottom: Decimal(targetValue),
             duration: Decimal(durationInMinutes),
-            enteredBy: pushMessage.user,
-            reason: "Remote temp target command"
+            enteredBy: TempTarget.manual,
+            reason: TempTarget.custom
         )
 
         tempTargetsStorage.storeTempTargets([tempTarget])
