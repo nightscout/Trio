@@ -22,7 +22,8 @@ struct EditOverrideForm: View {
     @State private var cr: Bool
     @State private var smbMinutes: Decimal?
     @State private var uamMinutes: Decimal?
-    @State private var selectedApplyToOption: ApplyToOption
+    @State private var selectedIsfCrOption: isfAndOrCrOptions
+    @State private var selectedDisableSmbOption: disableSmbOptions
 
     @State private var hasChanges = false
     @State private var isEditing = false
@@ -54,19 +55,29 @@ struct EditOverrideForm: View {
         _isfAndCr = State(initialValue: overrideToEdit.isfAndCr)
         _isf = State(initialValue: overrideToEdit.isf)
         _cr = State(initialValue: overrideToEdit.cr)
-        _selectedApplyToOption = State(
-            initialValue: overrideToEdit
-                .isfAndCr ? .isfAndCr : (overrideToEdit.isf ? .isf : (overrideToEdit.cr ? .cr : .none))
+        _selectedIsfCrOption = State(
+            initialValue: overrideToEdit.isfAndCr ? .isfAndCr
+                : (overrideToEdit.isf ? .isf : (overrideToEdit.cr ? .cr : .none))
+        )
+        _selectedDisableSmbOption = State(
+            initialValue: overrideToEdit.smbIsScheduledOff ? .disableOnSchedule
+                : (overrideToEdit.smbIsOff ? .disable : .dontDisable)
         )
         _smbMinutes = State(initialValue: overrideToEdit.smbMinutes?.decimalValue)
         _uamMinutes = State(initialValue: overrideToEdit.uamMinutes?.decimalValue)
     }
 
-    enum ApplyToOption: String, CaseIterable {
+    enum isfAndOrCrOptions: String, CaseIterable {
         case isfAndCr = "ISF/CR"
         case isf = "ISF"
         case cr = "CR"
         case none = "None"
+    }
+
+    enum disableSmbOptions: String, CaseIterable {
+        case dontDisable = "Don't Disable"
+        case disable = "Disable"
+        case disableOnSchedule = "Disable on Schedule"
     }
 
     var color: LinearGradient {
@@ -192,13 +203,13 @@ struct EditOverrideForm: View {
                 ).onChange(of: percentage) { _ in hasChanges = true }
 
                 // Picker for ISF/CR settings
-                Picker("Apply to", selection: $selectedApplyToOption) {
-                    ForEach(ApplyToOption.allCases, id: \.self) { option in
+                Picker("Apply to", selection: $selectedIsfCrOption) {
+                    ForEach(isfAndOrCrOptions.allCases, id: \.self) { option in
                         Text(option.rawValue).tag(option)
                     }
                 }
                 .pickerStyle(MenuPickerStyle())
-                .onChange(of: selectedApplyToOption) { newValue in
+                .onChange(of: selectedIsfCrOption) { newValue in
                     switch newValue {
                     case .isfAndCr:
                         isfAndCr = true
@@ -308,129 +319,119 @@ struct EditOverrideForm: View {
                 }
             }
 
-            Toggle(isOn: $advancedSettings) {
-                Text("More Options")
-            }.onChange(of: advancedSettings) { _ in hasChanges = true }
-
-            if advancedSettings {
-                VStack {
-                    Toggle(
-                        isOn: Binding(
-                            get: { smbIsOff },
-                            set: { newValue in
-                                smbIsOff = newValue
-                                if newValue {
-                                    smbIsScheduledOff = false
-                                }
-                                hasChanges = true
-                            }
-                        )
-                    ) {
-                        Text("Disable SMBs")
-                    }
-
-                    Divider()
-
-                    Toggle(
-                        isOn: Binding(
-                            get: { smbIsScheduledOff },
-                            set: { newValue in
-                                smbIsScheduledOff = newValue
-                                if newValue {
-                                    smbIsOff = false
-                                }
-                                hasChanges = true
-                            }
-                        )
-                    ) {
-                        Text("Schedule When SMBs Are Disabled")
-                    }
-
-                    if smbIsScheduledOff {
-                        // First Hour SMBs Are Disabled
-                        VStack {
-                            HStack {
-                                Text("From")
-                                Spacer()
-
-                                Text(
-                                    is24HourFormat() ? format24Hour(Int(truncating: start! as NSNumber)) + ":00" :
-                                        convertTo12HourFormat(Int(truncating: start! as NSNumber))
-                                )
-                                .foregroundColor(!displayPickerStart ? .primary : .accentColor)
-                            }
-                            .onTapGesture {
-                                displayPickerStart.toggle()
-                            }
-
-                            if displayPickerStart {
-                                Picker(selection: Binding(
-                                    get: { Int(truncating: start! as NSNumber) },
-                                    set: {
-                                        start = Decimal($0)
-                                        hasChanges = true
-                                    }
-                                ), label: Text("")) {
-                                    if is24HourFormat() {
-                                        ForEach(0 ..< 24, id: \.self) { hour in
-                                            Text(format24Hour(hour) + ":00").tag(hour)
-                                        }
-                                    } else {
-                                        ForEach(0 ..< 24, id: \.self) { hour in
-                                            Text(convertTo12HourFormat(hour)).tag(hour)
-                                        }
-                                    }
-                                }
-                                .pickerStyle(WheelPickerStyle())
-                                .frame(maxWidth: .infinity)
-                            }
-                        }
-                        .padding(.top)
-
-                        // First Hour SMBs Are Resumed
-                        VStack {
-                            HStack {
-                                Text("To")
-                                Spacer()
-
-                                Text(
-                                    is24HourFormat() ? format24Hour(Int(truncating: end! as NSNumber)) + ":00" :
-                                        convertTo12HourFormat(Int(truncating: end! as NSNumber))
-                                )
-                                .foregroundColor(!displayPickerEnd ? .primary : .accentColor)
-                            }
-                            .onTapGesture {
-                                displayPickerEnd.toggle()
-                            }
-
-                            if displayPickerEnd {
-                                Picker(selection: Binding(
-                                    get: { Int(truncating: end! as NSNumber) },
-                                    set: {
-                                        end = Decimal($0)
-                                        hasChanges = true
-                                    }
-                                ), label: Text("")) {
-                                    if is24HourFormat() {
-                                        ForEach(0 ..< 24, id: \.self) { hour in
-                                            Text(format24Hour(hour) + ":00").tag(hour)
-                                        }
-                                    } else {
-                                        ForEach(0 ..< 24, id: \.self) { hour in
-                                            Text(convertTo12HourFormat(hour)).tag(hour)
-                                        }
-                                    }
-                                }
-                                .pickerStyle(WheelPickerStyle())
-                                .frame(maxWidth: .infinity)
-                            }
-                        }
-                        .padding(.top)
+            VStack {
+                // Picker for Disable SMB settings
+                Picker("Disable SMBs", selection: $selectedDisableSmbOption) {
+                    ForEach(disableSmbOptions.allCases, id: \.self) { option in
+                        Text(option.rawValue).tag(option)
                     }
                 }
+                .pickerStyle(MenuPickerStyle())
+                .onChange(of: selectedDisableSmbOption) { newValue in
+                    switch newValue {
+                    case .dontDisable:
+                        smbIsOff = false
+                        smbIsScheduledOff = false
+                    case .disable:
+                        smbIsOff = true
+                        smbIsScheduledOff = false
+                    case .disableOnSchedule:
+                        smbIsOff = false
+                        smbIsScheduledOff = true
+                    }
+                    hasChanges = true
+                }
 
-                if !smbIsOff {
+                if smbIsScheduledOff {
+                    // First Hour SMBs Are Disabled
                     VStack {
+                        HStack {
+                            Text("From")
+                            Spacer()
+
+                            Text(
+                                is24HourFormat() ? format24Hour(Int(truncating: start! as NSNumber)) + ":00" :
+                                    convertTo12HourFormat(Int(truncating: start! as NSNumber))
+                            )
+                            .foregroundColor(!displayPickerStart ? .primary : .accentColor)
+                        }
+                        .onTapGesture {
+                            displayPickerStart.toggle()
+                        }
+
+                        if displayPickerStart {
+                            Picker(selection: Binding(
+                                get: { Int(truncating: start! as NSNumber) },
+                                set: {
+                                    start = Decimal($0)
+                                    hasChanges = true
+                                }
+                            ), label: Text("")) {
+                                if is24HourFormat() {
+                                    ForEach(0 ..< 24, id: \.self) { hour in
+                                        Text(format24Hour(hour) + ":00").tag(hour)
+                                    }
+                                } else {
+                                    ForEach(0 ..< 24, id: \.self) { hour in
+                                        Text(convertTo12HourFormat(hour)).tag(hour)
+                                    }
+                                }
+                            }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: .infinity)
+                        }
+                    }
+                    .padding(.top)
+
+                    // First Hour SMBs Are Resumed
+                    VStack {
+                        HStack {
+                            Text("To")
+                            Spacer()
+
+                            Text(
+                                is24HourFormat() ? format24Hour(Int(truncating: end! as NSNumber)) + ":00" :
+                                    convertTo12HourFormat(Int(truncating: end! as NSNumber))
+                            )
+                            .foregroundColor(!displayPickerEnd ? .primary : .accentColor)
+                        }
+                        .onTapGesture {
+                            displayPickerEnd.toggle()
+                        }
+
+                        if displayPickerEnd {
+                            Picker(selection: Binding(
+                                get: { Int(truncating: end! as NSNumber) },
+                                set: {
+                                    end = Decimal($0)
+                                    hasChanges = true
+                                }
+                            ), label: Text("")) {
+                                if is24HourFormat() {
+                                    ForEach(0 ..< 24, id: \.self) { hour in
+                                        Text(format24Hour(hour) + ":00").tag(hour)
+                                    }
+                                } else {
+                                    ForEach(0 ..< 24, id: \.self) { hour in
+                                        Text(convertTo12HourFormat(hour)).tag(hour)
+                                    }
+                                }
+                            }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: .infinity)
+                        }
+                    }
+                    .padding(.top)
+                }
+            }
+
+            if !smbIsOff {
+                VStack {
+                    Toggle(isOn: $advancedSettings) {
+                        Text("Change Max SMB Minutes")
+                    }.onChange(of: advancedSettings) { _ in hasChanges = true }
+
+                    if advancedSettings {
                         // SMB Minutes Picker
                         VStack {
                             HStack {
@@ -499,6 +500,7 @@ struct EditOverrideForm: View {
                     }
                 }
             }
+
         }.listRowBackground(Color.chart)
     }
 
