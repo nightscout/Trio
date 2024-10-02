@@ -161,7 +161,7 @@
 "Target" = "Cel";
 
 /* */
-"Basal Insulin and Sensitivity ratio" = "Wskaźnik dawki podstawowej i wrażliwości";
+"Basal Insulin and Sensitivity ratio" = "Dawka podstawowa i wrażliwość";
 
 /* */
 "A lower 'Half Basal Target' setting will reduce the basal and raise the ISF earlier, at a lower target glucose." = "Niższe ustawienie „Połowa dawki podstawowej” spowoduje wcześniejsze obniżenie dawki podstawowej i wcześniejsze podniesienie ISF przy niższym docelowym stężeniu glukozy.";
@@ -248,7 +248,7 @@
 "Basal Profile" = "Profil dawki podstawowej";
 
 /* Rate basal profile */
-"Rate" = "Rata";
+"Rate" = "Dawka";
 
 /*  */
 "Save on Pump" = "Zapisz w pompie";
@@ -300,7 +300,7 @@
 
 /* Enact
 Enact a temp Basal or a temp target */
-"Enact" = "Ustaw";
+"Enact" = "Wprowadź";
 
 /* */
 "Manual Temp Basal" = "Ręczna dawka tymczasowa";
@@ -327,7 +327,7 @@ Enact a temp Basal or a temp target */
 "Local glucose source" = "Lokalne źródło glukozy";
 
 /* Header */
-"Nightscout Config" = "Ustawienia Nightscout";
+"Nightscout Config" = "Konfiguracja Nightscout";
 
 /*  */
 "Port" = "Port";
@@ -360,7 +360,7 @@ Enact a temp Basal or a temp target */
 "Remote Control" = "Kontrola zdalna";
 
 /* Imported Profiles Alert */
-"\nNow please verify all of your new settings thoroughly: \n\n • DIA (Pump settings)\n • Basal Profile\n • Insulin Sensitivities\n • Carb Ratios\n • Target Glucose\n\n in Trio Settings -> Configuration.\n\nBad or invalid profile settings could have disastrous effects." = "Teraz sprawdź dokładnie wszystkie nowe ustawienia: \n\n • DIA (ustawienia pompy)\n • Profil dawki podstawowej\n • Wrażliwości na insulinę\n • Współczynniki węglowodanów\n • Docelowy poziom glukozy\n\n w Ustawieniach Trio -> Konfiguracja.\n\nZłe lub nieprawidłowe ustawienia profilu mogą mieć katastrofalne skutki.";
+"\nNow please verify all of your new settings thoroughly: \n\n • DIA (Pump settings)\n • Basal Profile\n • Insulin Sensitivities\n • Carb Ratios\n • Target Glucose\n\n in Trio Settings -> Configuration.\n\nBad or invalid profile settings could have disastrous effects." = "Teraz sprawdź dokładnie wszystkie nowe ustawienia: \n\n • DIA (ustawienia pompy)\n • Profil dawki podstawowej\n • Wrażliwości na insulinę\n • Współczynniki węglowodanów\n • Docelowy poziom glukozy\n\n w Ustawieniach Trio -> Konfiguracja.\n\n Złe lub nieprawidłowe ustawienia profilu mogą mieć katastrofalne skutki.";
 
 /* Profile Import Alert */
 "This will replace some or all of your current pump settings. Are you sure you want to import profile settings from Nightscout?" = "Spowoduje to zastąpienie niektórych lub wszystkich bieżących ustawień pompy. Czy na pewno chcesz zaimportować ustawienia profilu z Nightscout?";
@@ -417,7 +417,7 @@ Enact a temp Basal or a temp target */
 "Delivery limits" = "Limit podawania";
 
 /*  */
-"Duration of Insulin Action" = "Czas działania insuliny (DIA)";
+"Duration of Insulin Action" = "(DIA) Czas działania insuliny ";
 
 /* hours of duration of insulin activity */
 "hours" = "godzin (-y)";
@@ -939,7 +939,7 @@ Enact a temp Basal or a temp target */
 "Adds Transmitter Battery" = "Dodaje baterię nadajnika";
 
 /* */
-"Also vibrate" = "Wibracja";
+"Also vibrate" = "Wibracje";
 
 /* */
 "Additional notification types" = "Dodatkowe rodzaje powiadomień";
@@ -1008,7 +1008,7 @@ Enact a temp Basal or a temp target */
 "Strength" = "Siła";
 
 /* */
-"Hold the top of your iPhone near the sensor to pair" = "Przytrzymaj górną część telefonu w pobliżu czujnika, aby sparować";
+"Hold the top of your iPhone near the sensor to pair" = "Przyłóż górną część telefonu do czujnika, aby sparować";
 
 /* */
 "Sensor not found" = "Nie znaleziono czujnika";
@@ -1575,7 +1575,7 @@ Enact a temp Basal or a temp target */
 "Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains." = "Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains.";
 
 /* Label text for temporary basal rate summary */
-"Rate" = "Rate";
+"Rate" = "Dawka";
 
 /* Summary string for temporary basal rate configuration page */
 "%1$@ for %2$@" = "%1$@ z %2$@";
@@ -1752,7 +1752,7 @@ Enact a temp Basal or a temp target */
 "Interval" = "Interval";
 
 /* Median loop interval */
-"Duration" = "Duration";
+"Duration" = "Czas trwania";
 
 /* "Display SD */
 "Display SD instead of CV" = "Display SD instead of CV";
@@ -1880,49 +1880,49 @@ Enact a temp Basal or a temp target */
 "Enable UAM" = "Enable UAM";
 
 /* "Enable UAM" */
-"With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell Trio about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier." = "With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell Trio about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier.";
+"With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell Trio about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier." = "Po włączeniu tej opcji algorytm SMB może rozpoznawać niezapowiedziane posiłki. Jest to pomocne, jeśli zapomnisz powiedzieć Trio o węglowodanach lub oszacujesz je źle, a ilość wprowadzonych węglowodanów jest błędna lub jeśli posiłek z dużą ilością tłuszczu i białka trwa dłużej niż oczekiwano. Bez wprowadzania węglowodanów UAM może rozpoznawać szybkie wzrosty glikemii spowodowane węglowodanami, adrenaliną itp. i próbuje je ograniczyć za pomocą SMB. Działa to również w odwrotną stronę: jeśli występuje szybki spadek glikemii, SMB może wcześniej zatrzymać podawanie insuliny.";
 
 /* Headline "Enable SMB With COB" */
-"Enable SMB With COB" = "Enable SMB With COB";
+"Enable SMB With COB" = "Włącz SMB z COB";
 
 /* Enable SMB With COB" */
-"This enables supermicrobolus (SMB) while carbs on board (COB) are positive." = "This enables supermicrobolus (SMB) while carbs on board (COB) are positive.";
+"This enables supermicrobolus (SMB) while carbs on board (COB) are positive." = "Włącza supermikrobolus (SMB), gdy węglowodany na pokładzie (COB) są dodatnie.";
 
 /* Headline "Enable SMB With Temptarget” */
-"Enable SMB With Temptarget" = "Enable SMB With Temptarget";
+"Enable SMB With Temptarget" = "Włącz SMB z celem tymczasowym";
 
 /* "Enable SMB With Temptarget” */
-"This enables supermicrobolus (SMB) with eating soon / low temp targets. With this feature enabled, any temporary target below 100mg/dL, such as a temp target of 99 (or 80, the typical eating soon target) will enable SMB." = "This enables supermicrobolus (SMB) with eating soon / low temp targets. With this feature enabled, any temporary target below 100mg/dL, such as a temp target of 99 (or 80, the typical eating soon target) will enable SMB.";
+"This enables supermicrobolus (SMB) with eating soon / low temp targets. With this feature enabled, any temporary target below 100mg/dL, such as a temp target of 99 (or 80, the typical eating soon target) will enable SMB." = "Włącza supermikrobolus (SMB) z jedzeniem wkrótce / niskim celem tymczasowym. Gdy funkcja jest włączona, dowolny tymczasowy cel poniżej 100 mg/dL, taki jak cel tymczasowy 99 (lub 80 - typowy cel do szybkiego jedzenia) umożliwi SMB.";
 
 /* Headline "Enable SMB Always" */
-"Enable SMB Always" = "Enable SMB Always";
+"Enable SMB Always" = "Zawsze włącz SMB";
 
 /* "Enable SMB Always" */
-"Defaults to false. When true, always enable supermicrobolus (unless disabled by high temptarget)." = "Defaults to false. When true, always enable supermicrobolus (unless disabled by high temptarget).";
+"Defaults to false. When true, always enable supermicrobolus (unless disabled by high temptarget)." = "Domyślnie opcja jest wyłączona. SMB jest zawsze włączony (chyba że jest wyłączony przez wysoki poziom tymczasowy).";
 
 /* Headline "Enable SMB After Carbs" */
-"Enable SMB After Carbs" = "Enable SMB After Carbs";
+"Enable SMB After Carbs" = "SMB jest zawsze włączony (chyba że jest wyłączony przez wysoki poziom tymczasowy). Domyślnie opcja jest wyłączona.";
 
 /* "Enable SMB After Carbs" */
-"Defaults to false. When true, enables supermicrobolus (SMB) for 6h after carbs, even with 0 carbs on board (COB)." = "Defaults to false. When true, enables supermicrobolus (SMB) for 6h after carbs, even with 0 carbs on board (COB).";
+"Defaults to false. When true, enables supermicrobolus (SMB) for 6h after carbs, even with 0 carbs on board (COB)." = "Domyślnie opcja jest wyłączona. SMB jest zawsze włączony (chyba że jest wyłączony przez wysoki poziom tymczasowy).";
 
 /* Enable "Allow SMB With High Temptarget" */
-"Allow SMB With High Temptarget" = "Allow SMB With High Temptarget";
+"Allow SMB With High Temptarget" = "Zezwalaj na SMB z wysokim celem tymczasowym";
 
 /* Headline "Allow SMB With High Temptarget" */
-"Allow SMB With High Temptarget" = "Allow SMB With High Temptarget";
+"Allow SMB With High Temptarget" = "Zezwalaj na SMB z wysokim celem tymczasowym";
 
 /* "Allow SMB With High Temptarget" */
-"Defaults to false. When true, allows supermicrobolus (if otherwise enabled) even with high temp targets (> 100 mg/dl)." = "Defaults to false. When true, allows supermicrobolus (if otherwise enabled) even with high temp targets (> 100 mg/dl).";
+"Defaults to false. When true, allows supermicrobolus (if otherwise enabled) even with high temp targets (> 100 mg/dl)." = "Domyślnie opcja jest wyłączona. Pozwala na supermikrobolus (SMB)  z wysokimi celami tymczasowymi (> 100 mg/dl).";
 
 /* Headline "Use Custom Peak Time” */
-"Use Custom Peak Time" = "Use Custom Peak Time";
+"Use Custom Peak Time" = "Użyj własnego czasu szczytu insuliny";
 
 /* "Use Custom Peak Time” */
 "Defaults to false. Setting to true allows changing insulinPeakTime" = "Defaults to false. Setting to true allows changing insulinPeakTime";
 
 /* Headline "Suspend Zeros IOB” */
-"Suspend Zeros IOB" = "Suspend Zeros IOB";
+"Suspend Zeros IOB" = "Domyślnie opcja jest wyłączona. Pozwala ustawić własną krzywą wykładniczą insuliny (szczyt działania insuliny).";
 
 /* "Suspend Zeros IOB” */
 "Default is false. Any existing temp basals during times the pump was suspended will be deleted and 0 temp basals to negate the profile basal rates during times pump is suspended will be added." = "Default is false. Any existing temp basals during times the pump was suspended will be deleted and 0 temp basals to negate the profile basal rates during times pump is suspended will be added.";
@@ -1931,25 +1931,25 @@ Enact a temp Basal or a temp target */
 "Max IOB" = "Max IOB";
 
 /* "Max IOB" */
-"Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two OpenAPS safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings\n\n(Tip from https://www.loopandlearn.org/freeaps-x/#open-loop)." = "Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two OpenAPS safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings\n\n(Tip from https://www.loopandlearn.org/freeaps-x/#open-loop).";
+"Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two OpenAPS safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings\n\n(Tip from https://www.loopandlearn.org/freeaps-x/#open-loop)." = "Max IOB to maksymalna ilość insuliny na pokładzie ze wszystkich źródeł - zarówno bazowej (lub korekty SMB), jak i insuliny bolusowej - którą pętla może kumulować się w celu leczenia wyższego niż docelowy stężenia BG. W przeciwieństwie do pozostałych dwóch ustawień bezpieczeństwa OpenAPS (max_daily_safety_multiplier i current_basal_safety_multiplier), max_iob jest ustawiony jako stała liczba jednostek insuliny. Od teraz ręczne bolusy NIE są ograniczone przez to ustawienie. \n\n Aby przetestować dawki bazowe w nocy, możesz zmodyfikować ustawienie Max IOB do zera w zamkniętej pętli. Spowoduje to włączenie trybu zawieszania niskiej glukozy podczas testowania ustawień podstawowych\n\n(Tip z https://www.loopandlearn.org/freeaps-x/#open-loop).";
 
 /* Headline "Max Daily Safety Multiplier" */
-"Max Daily Safety Multiplier" = "Max Daily Safety Multiplier";
+"Max Daily Safety Multiplier" = "Maksymalny dzienny mnożnik bezpieczeństwa";
 
 /* "Max Daily Safety Multiplier" */
-"This is an important OpenAPS safety limit. The default setting (which is unlikely to need adjusting) is 3. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 3x the highest hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "This is an important OpenAPS safety limit. The default setting (which is unlikely to need adjusting) is 3. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 3x the highest hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune.";
+"This is an important OpenAPS safety limit. The default setting (which is unlikely to need adjusting) is 3. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 3x the highest hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "Jest to ważny limit bezpieczeństwa OpenAPS. Domyślne ustawienie (jest mało prawdopodobne, aby wymagało dostosowania) to 3. Oznacza to, że OpenAPS nigdy nie będzie mógł ustawić tymczasowej dawki podstawowej, która jest większa niż 3 krotność najwyższej godzinowej raty dawki podstawowej zaprogramowanej w pompie użytkownika, lub włączonej przez autotune.";
 
 /* Headline "Current Basal Safety Multiplier" */
-"Current Basal Safety Multiplier" = "Current Basal Safety Multiplier";
+"Current Basal Safety Multiplier" = "Aktualny mnożnik bezpieczeństwa bazy";
 
 /* "Current Basal Safety Multiplier" */
-"This is another important OpenAPS safety limit. The default setting (which is also unlikely to need adjusting) is 4. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 4x the current hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "This is another important OpenAPS safety limit. The default setting (which is also unlikely to need adjusting) is 4. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 4x the current hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune.";
+"This is another important OpenAPS safety limit. The default setting (which is also unlikely to need adjusting) is 4. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 4x the current hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "Jest to kolejny ważny limit bezpieczeństwa OpenAPS. Domyślne ustawienie (co również jest mało prawdopodobne, aby wymagało dostosowania) wynosi 4. Oznacza to, że OpenAPS nigdy nie będzie mógł ustawiać tymczasowej dawki podstawowej, która jest większa niż 4 krotność aktualnej godzinowej raty dawki podstawowej zaprogramowanej w pompie użytkownika, lub włączonej przez autotune.";
 
 /* Headline "Autosens Max" */
 "Autosens Max" = "Autosens Max";
 
 /* "Autosens Max" */
-"This is a multiplier cap for autosens (and autotune) to set a 20% max limit on how high the autosens ratio can be, which in turn determines how high autosens can adjust basals, how low it can adjust ISF, and how low it can set the BG target." = "This is a multiplier cap for autosens (and autotune) to set a 20% max limit on how high the autosens ratio can be, which in turn determines how high autosens can adjust basals, how low it can adjust ISF, and how low it can set the BG target.";
+"This is a multiplier cap for autosens (and autotune) to set a 20% max limit on how high the autosens ratio can be, which in turn determines how high autosens can adjust basals, how low it can adjust ISF, and how low it can set the BG target." = "Jest to mnożnik dla autosens i autotune. Ustawia 20% maksymalnego limitu dla najwyższej wartości jaką autosens może przyjąć, co z kolei określa jak wysoko autosens może zwiększyć bazę, jak nisko może ustawić współczynnik wrażliwości insuliny ISF, i jak nisko może ustawić docelową wartość glikemii.";
 
 /* Headline "Autosens Min" */
 "Autosens Min" = "Autosens Min";
@@ -1958,16 +1958,16 @@ Enact a temp Basal or a temp target */
 "The other side of the autosens safety limits, putting a cap on how low autosens can adjust basals, and how high it can adjust ISF and BG targets." = "The other side of the autosens safety limits, putting a cap on how low autosens can adjust basals, and how high it can adjust ISF and BG targets.";
 
 /* Headline "Half Basal Exercise Target" */
-"Half Basal Exercise Target" = "Half Basal Exercise Target";
+"Half Basal Exercise Target" = "Druga strona granic bezpieczeństwa autosens. Nakłada limit jak nisko autosens może korygować dawkę bazową, i jak wysoko może ustawić współczynnik wrażliwości insuliny (ISF) i docelową wartość glikemii (BG).";
 
 /* "Half Basal Exercise Target" */
-"Set to a number, e.g. 160, which means when temp target is 160 mg/dL and exercise_mode=true, run 50% basal at this level (120 = 75%; 140 = 60%). This can be adjusted, to give you more control over your exercise modes." = "Set to a number, e.g. 160, which means when temp target is 160 mg/dL and exercise_mode=true, run 50% basal at this level (120 = 75%; 140 = 60%). This can be adjusted, to give you more control over your exercise modes.";
+"Set to a number, e.g. 160, which means when temp target is 160 mg/dL and exercise_mode=true, run 50% basal at this level (120 = 75%; 140 = 60%). This can be adjusted, to give you more control over your exercise modes." = "Ustaw liczbę, np. 160, co oznacza, że jeśli cel tymczasowy wynosi 160 mg/dl a tryb ćwiczeń jest włączony to uruchomi 50% dawki podstawowej na tym poziomie (120 = 75%; 140 = 60%). Można to dostosować, aby zapewnić większą kontrolę nad trybami ćwiczeń.";
 
 /* Headline "Max COB" */
 "Max COB" = "Max COB";
 
 /* "Max COB" */
-"The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, Trio will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)" = "The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, Trio will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)";
+"The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, Trio will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)" = "Wartość domyślna Max COB wynosi 120. (Jeśli ktoś wpisuje więcej węglowodanów w jednym lub wielu wpisach, Trio ograniczy poziom COB do wartości maxCOB i utrzyma go na poziomie maxCOB do czasu wykazania, że węglowodany wpisane powyżej wartości maxCOB są wchłaniane. Zasadniczo ogranicza to użycie UAM jako limitu bezpieczeństwa do dziwnych obliczeń COB z powodu niedokładnych danych)";
 
 /* Headline "Bolus Snooze DIA Divisor" */
 "Bolus Snooze DIA Divisor" = "Bolus Snooze DIA Divisor";
