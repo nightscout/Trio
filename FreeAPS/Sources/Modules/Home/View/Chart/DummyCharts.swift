@@ -8,9 +8,28 @@ extension MainChartView {
         Chart {
             /// high and low threshold lines
             if thresholdLines {
-                RuleMark(y: .value("High", highGlucose)).foregroundStyle(Color.loopYellow)
+                let highColor = FreeAPS.getDynamicGlucoseColor(
+                    glucoseValue: highGlucose,
+                    highGlucoseColorValue: highGlucose,
+                    lowGlucoseColorValue: highGlucose,
+                    targetGlucose: units == .mgdL ? currentGlucoseTarget : currentGlucoseTarget.asMmolL,
+                    glucoseColorScheme: glucoseColorScheme,
+                    offset: units == .mgdL ? Decimal(20) : Decimal(20).asMmolL
+                )
+                let lowColor = FreeAPS.getDynamicGlucoseColor(
+                    glucoseValue: lowGlucose,
+                    highGlucoseColorValue: highGlucose,
+                    lowGlucoseColorValue: lowGlucose,
+                    targetGlucose: units == .mgdL ? currentGlucoseTarget : currentGlucoseTarget.asMmolL,
+                    glucoseColorScheme: glucoseColorScheme,
+                    offset: units == .mgdL ? Decimal(20) : Decimal(20).asMmolL
+                )
+
+                RuleMark(y: .value("High", highGlucose))
+                    .foregroundStyle(highColor)
                     .lineStyle(.init(lineWidth: 1, dash: [5]))
-                RuleMark(y: .value("Low", lowGlucose)).foregroundStyle(Color.loopRed)
+                RuleMark(y: .value("Low", lowGlucose))
+                    .foregroundStyle(lowColor)
                     .lineStyle(.init(lineWidth: 1, dash: [5]))
             }
         }
@@ -21,7 +40,10 @@ extension MainChartView {
         .chartXScale(domain: startMarker ... endMarker)
         .chartXAxis(.hidden)
         .chartYAxis { mainChartYAxis }
-        .chartYScale(domain: units == .mgdL ? minValue ... maxValue : minValue.asMmolL ... maxValue.asMmolL)
+        .chartYScale(
+            domain: units == .mgdL ? state.minYAxisValue ... state.maxYAxisValue : state.minYAxisValue.asMmolL ... state
+                .maxYAxisValue.asMmolL
+        )
         .chartLegend(.hidden)
     }
 
@@ -48,7 +70,7 @@ extension MainChartView {
         .chartXAxis(.hidden)
         .chartYAxis { cobChartYAxis }
         .chartYAxis(.hidden)
-        .chartYScale(domain: minValueCobChart ... maxValueCobChart)
+        .chartYScale(domain: state.minValueCobChart ... state.maxValueCobChart)
         .chartLegend(.hidden)
     }
 }

@@ -121,33 +121,6 @@ extension SMBSettings {
                     )
 
                     SettingInputSection(
-                        decimalValue: $decimalPlaceholder,
-                        booleanValue: $state.allowSMBWithHighTemptarget,
-                        shouldDisplayHint: $shouldDisplayHint,
-                        selectedVerboseHint: Binding(
-                            get: { selectedVerboseHint },
-                            set: {
-                                selectedVerboseHint = $0
-                                hintLabel = NSLocalizedString(
-                                    "Allow SMB With High Temptarget",
-                                    comment: "Allow SMB With High Temptarget"
-                                )
-                            }
-                        ),
-                        units: state.units,
-                        type: .boolean,
-                        label: NSLocalizedString(
-                            "Allow SMB With High Temptarget",
-                            comment: "Allow SMB With High Temptarget"
-                        ),
-                        miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                        verboseHint: NSLocalizedString(
-                            "Defaults to false. When true, allows supermicrobolus (if otherwise enabled) even with high temp targets (> 100 mg/dl).",
-                            comment: "Allow SMB With High Temptarget"
-                        )
-                    )
-
-                    SettingInputSection(
                         decimalValue: $state.enableSMB_high_bg_target,
                         booleanValue: $state.enableSMB_high_bg,
                         shouldDisplayHint: $shouldDisplayHint,
@@ -168,28 +141,55 @@ extension SMBSettings {
                             comment: "Enable SMB With High BG"
                         )
                     )
-
-                    SettingInputSection(
-                        decimalValue: $decimalPlaceholder,
-                        booleanValue: $state.enableUAM,
-                        shouldDisplayHint: $shouldDisplayHint,
-                        selectedVerboseHint: Binding(
-                            get: { selectedVerboseHint },
-                            set: {
-                                selectedVerboseHint = $0
-                                hintLabel = NSLocalizedString("Enable UAM", comment: "Enable UAM")
-                            }
-                        ),
-                        units: state.units,
-                        type: .boolean,
-                        label: NSLocalizedString("Enable UAM", comment: "Enable UAM"),
-                        miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                        verboseHint: NSLocalizedString(
-                            "With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell Trio about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier.",
-                            comment: "Enable UAM"
-                        )
-                    )
                 }
+
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.allowSMBWithHighTemptarget,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = NSLocalizedString(
+                                "Allow SMB With High Temptarget",
+                                comment: "Allow SMB With High Temptarget"
+                            )
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: NSLocalizedString(
+                        "Allow SMB With High Temptarget",
+                        comment: "Allow SMB With High Temptarget"
+                    ),
+                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+                    verboseHint: NSLocalizedString(
+                        "Defaults to false. When true, allows supermicrobolus (if otherwise enabled) even with high temp targets (> 100 mg/dl).",
+                        comment: "Allow SMB With High Temptarget"
+                    )
+                )
+
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.enableUAM,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = NSLocalizedString("Enable UAM", comment: "Enable UAM")
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: NSLocalizedString("Enable UAM", comment: "Enable UAM"),
+                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+                    verboseHint: NSLocalizedString(
+                        "With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell Trio about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier.",
+                        comment: "Enable UAM"
+                    )
+                )
 
                 SettingInputSection(
                     decimalValue: $state.maxSMBBasalMinutes,

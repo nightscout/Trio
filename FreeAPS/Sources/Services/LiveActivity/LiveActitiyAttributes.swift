@@ -14,7 +14,10 @@ struct LiveActivityAttributes: ActivityAttributes {
         let direction: String?
         let change: String
         let date: Date
-
+        let highGlucose: Decimal
+        let lowGlucose: Decimal
+        let target: Decimal
+        let glucoseColorScheme: String
         let detailedViewState: ContentAdditionalState?
 
         /// true for the first state that is set on the activity
@@ -25,9 +28,6 @@ struct LiveActivityAttributes: ActivityAttributes {
         let chart: [Decimal]
         let chartDate: [Date?]
         let rotationDegrees: Double
-        let highGlucose: Decimal
-        let lowGlucose: Decimal
-        let target: Decimal
         let cob: Decimal
         let iob: Decimal
         let unit: String
@@ -36,9 +36,7 @@ struct LiveActivityAttributes: ActivityAttributes {
         let overrideDate: Date
         let overrideDuration: Decimal
         let overrideTarget: Decimal
-
         let itemOrder: [ItemOrder]
-
         let showCOB: Bool
         let showIOB: Bool
         let showCurrentGlucose: Bool

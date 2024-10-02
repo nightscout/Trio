@@ -16,6 +16,11 @@ enum GlucoseUnits: String, Equatable {
     static let exchangeRate: Decimal = 0.0555
 }
 
+enum GlucoseColorScheme: String, Equatable {
+    case staticColor
+    case dynamicColor
+}
+
 func rounded(_ value: Decimal, scale: Int, roundingMode: NSDecimalNumber.RoundingMode) -> Decimal {
     var result = Decimal()
     var toRound = value
@@ -59,7 +64,75 @@ extension NumberFormatter {
 }
 
 extension Color {
-    static let systemBackground = Color(UIColor.systemBackground)
+    // Helper function to decide how to pick the glucose color
+    static func getDynamicGlucoseColor(
+        glucoseValue: Decimal,
+        highGlucoseColorValue: Decimal,
+        lowGlucoseColorValue: Decimal,
+        targetGlucose: Decimal,
+        glucoseColorScheme: String,
+        offset: Decimal
+    ) -> Color {
+        // Convert Decimal to Int for high and low glucose values
+        let lowGlucose = lowGlucoseColorValue - offset
+        let highGlucose = highGlucoseColorValue + (offset * 1.75)
+        let targetGlucose = targetGlucose
+
+        // Only use calculateHueBasedGlucoseColor if the setting is enabled in preferences
+        if glucoseColorScheme == "dynamicColor" {
+            return calculateHueBasedGlucoseColor(
+                glucoseValue: glucoseValue,
+                highGlucose: highGlucose,
+                lowGlucose: lowGlucose,
+                targetGlucose: targetGlucose
+            )
+        }
+        // Otheriwse, use static (orange = high, red = low, green = range)
+        else {
+            if glucoseValue > highGlucose {
+                return Color.orange
+            } else if glucoseValue < lowGlucose {
+                return Color.red
+            } else {
+                return Color.green
+            }
+        }
+    }
+
+    // Dynamic color - Define the hue values for the key points
+    // We'll shift color gradually one glucose point at a time
+    // We'll shift through the rainbow colors of ROY-G-BIV from low to high
+    // Start at red for lowGlucose, green for targetGlucose, and violet for highGlucose
+    private static func calculateHueBasedGlucoseColor(
+        glucoseValue: Decimal,
+        highGlucose: Decimal,
+        lowGlucose: Decimal,
+        targetGlucose: Decimal
+    ) -> Color {
+        let redHue: CGFloat = 0.0 / 360.0 // 0 degrees
+        let greenHue: CGFloat = 120.0 / 360.0 // 120 degrees
+        let purpleHue: CGFloat = 270.0 / 360.0 // 270 degrees
+
+        // Calculate the hue based on the bgLevel
+        var hue: CGFloat
+        if glucoseValue <= lowGlucose {
+            hue = redHue
+        } else if glucoseValue >= highGlucose {
+            hue = purpleHue
+        } else if glucoseValue <= targetGlucose {
+            // Interpolate between red and green
+            let ratio = CGFloat(truncating: (glucoseValue - lowGlucose) / (targetGlucose - lowGlucose) as NSNumber)
+
+            hue = redHue + ratio * (greenHue - redHue)
+        } else {
+            // Interpolate between green and purple
+            let ratio = CGFloat(truncating: (glucoseValue - targetGlucose) / (highGlucose - targetGlucose) as NSNumber)
+            hue = greenHue + ratio * (purpleHue - greenHue)
+        }
+        // Return the color with full saturation and brightness
+        let color = Color(hue: hue, saturation: 0.6, brightness: 0.9)
+        return color
+    }
 }
 
 struct LiveActivity: Widget {
@@ -67,12 +140,32 @@ struct LiveActivity: Widget {
         ActivityConfiguration(for: LiveActivityAttributes.self) { context in
             LiveActivityView(context: context)
         } dynamicIsland: { context in
-            DynamicIsland {
+            var glucoseColor: Color {
+                let state = context.state
+                let detailedState = state.detailedViewState
+                let isMgdL = detailedState?.unit == "mg/dL"
+
+                return Color.getDynamicGlucoseColor(
+                    glucoseValue: Decimal(string: state.bg) ?? 100,
+                    highGlucoseColorValue: isMgdL ? state.highGlucose : context.state.highGlucose.asMmolL,
+                    lowGlucoseColorValue: isMgdL ? state.lowGlucose : state.lowGlucose.asMmolL,
+                    targetGlucose: isMgdL ? state.target : state.target.asMmolL,
+                    glucoseColorScheme: state.glucoseColorScheme,
+                    offset: isMgdL ? 20 : 20.asMmolL
+                )
+            }
+
+            var hasStaticColorScheme = context.state.glucoseColorScheme == "staticColor"
+
+            return DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    LiveActivityExpandedLeadingView(context: context)
+                    LiveActivityExpandedLeadingView(context: context, glucoseColor: glucoseColor)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    LiveActivityExpandedTrailingView(context: context)
+                    LiveActivityExpandedTrailingView(
+                        context: context,
+                        glucoseColor: hasStaticColorScheme ? .primary : glucoseColor
+                    )
                 }
                 DynamicIslandExpandedRegion(.bottom) {
                     LiveActivityExpandedBottomView(context: context)
@@ -81,11 +174,11 @@ struct LiveActivity: Widget {
                     LiveActivityExpandedCenterView(context: context)
                 }
             } compactLeading: {
-                LiveActivityCompactLeadingView(context: context)
+                LiveActivityCompactLeadingView(context: context, glucoseColor: glucoseColor)
             } compactTrailing: {
-                LiveActivityCompactTrailingView(context: context)
+                LiveActivityCompactTrailingView(context: context, glucoseColor: hasStaticColorScheme ? .primary : glucoseColor)
             } minimal: {
-                LiveActivityMinimalView(context: context)
+                LiveActivityMinimalView(context: context, glucoseColor: glucoseColor)
             }
             .widgetURL(URL(string: "Trio://"))
             .keylineTint(Color.purple)
@@ -99,6 +192,25 @@ struct LiveActivity: Widget {
 struct LiveActivityView: View {
     @Environment(\.colorScheme) var colorScheme
     var context: ActivityViewContext<LiveActivityAttributes>
+
+    private var glucoseColor: Color {
+        let state = context.state
+        let detailedState = state.detailedViewState
+        let isMgdL = detailedState?.unit == "mg/dL"
+
+        return Color.getDynamicGlucoseColor(
+            glucoseValue: Decimal(string: state.bg) ?? 100,
+            highGlucoseColorValue: isMgdL ? state.highGlucose : context.state.highGlucose.asMmolL,
+            lowGlucoseColorValue: isMgdL ? state.lowGlucose : state.lowGlucose.asMmolL,
+            targetGlucose: isMgdL ? state.target : state.target.asMmolL,
+            glucoseColorScheme: state.glucoseColorScheme,
+            offset: isMgdL ? 20 : 20.asMmolL
+        )
+    }
+
+    private var hasStaticColorScheme: Bool {
+        context.state.glucoseColorScheme == "staticColor"
+    }
 
     var body: some View {
         if let detailedViewState = context.state.detailedViewState {
@@ -130,7 +242,7 @@ struct LiveActivityView: View {
                                 VStack {
                                     LiveActivityBGLabelView(context: context, additionalState: detailedViewState)
                                     HStack {
-                                        LiveActivityGlucoseDeltaLabelView(context: context)
+                                        LiveActivityGlucoseDeltaLabelView(context: context, glucoseColor: .primary)
                                         if !context.isStale, let direction = context.state.direction {
                                             Text(direction).font(.headline)
                                         }
@@ -163,10 +275,13 @@ struct LiveActivityView: View {
             .activityBackgroundTint(colorScheme == .light ? Color.white.opacity(0.43) : Color.black.opacity(0.43))
         } else {
             HStack(spacing: 3) {
-                LiveActivityBGAndTrendView(context: context, size: .expanded).font(.title)
+                LiveActivityBGAndTrendView(context: context, size: .expanded, glucoseColor: glucoseColor).font(.title)
                 Spacer()
                 VStack(alignment: .trailing, spacing: 5) {
-                    LiveActivityGlucoseDeltaLabelView(context: context).font(.title3)
+                    LiveActivityGlucoseDeltaLabelView(
+                        context: context,
+                        glucoseColor: hasStaticColorScheme ? .primary : glucoseColor
+                    ).font(.title3)
                     LiveActivityUpdatedLabelView(context: context, isDetailedLayout: false).font(.caption)
                         .foregroundStyle(.primary.opacity(0.7))
                 }
@@ -183,9 +298,10 @@ struct LiveActivityView: View {
 struct LiveActivityBGAndTrendView: View {
     var context: ActivityViewContext<LiveActivityAttributes>
     fileprivate var size: Size
+    var glucoseColor: Color
 
     var body: some View {
-        let (view, _) = bgAndTrend(context: context, size: size)
+        let (view, _) = bgAndTrend(context: context, size: size, glucoseColor: glucoseColor)
         return view
     }
 }
@@ -204,10 +320,12 @@ struct LiveActivityBGLabelView: View {
 
 struct LiveActivityGlucoseDeltaLabelView: View {
     var context: ActivityViewContext<LiveActivityAttributes>
+    var glucoseColor: Color
 
     var body: some View {
         if !context.state.change.isEmpty {
             Text(context.state.change).foregroundStyle(.primary)
+                .foregroundStyle(context.state.glucoseColorScheme == "staticColor" ? .primary : glucoseColor)
                 .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
         } else {
             Text("--")
@@ -270,7 +388,8 @@ struct LiveActivityUpdatedLabelView: View {
 
     var body: some View {
         if isDetailedLayout {
-            let dateText = Text("\(dateFormatter.string(from: context.state.date))").font(.title3)
+            let minutesAgo = Int(Date().timeIntervalSince(context.state.date) / 60)
+            let dateText = Text("\(minutesAgo < 1 ? "<1" : minutesAgo.description)m ago").font(.title3)
                 .foregroundStyle(.primary)
 
             VStack {
@@ -320,15 +439,18 @@ struct LiveActivityChartView: View {
     var additionalState: LiveActivityAttributes.ContentAdditionalState
 
     var body: some View {
+        let state = context.state
+        let isMgdl: Bool = additionalState.unit == "mg/dL"
+
         // Determine scale
         let minValue = min(additionalState.chart.min() ?? 39, 39) as Decimal
         let maxValue = max(additionalState.chart.max() ?? 300, 300) as Decimal
 
-        let yAxisRuleMarkMin = additionalState.unit == "mg/dL" ? additionalState.lowGlucose : additionalState.lowGlucose
+        let yAxisRuleMarkMin = isMgdl ? state.lowGlucose : state.lowGlucose
             .asMmolL
-        let yAxisRuleMarkMax = additionalState.unit == "mg/dL" ? additionalState.highGlucose : additionalState.highGlucose
+        let yAxisRuleMarkMax = isMgdl ? state.highGlucose : state.highGlucose
             .asMmolL
-        let target = additionalState.unit == "mg/dL" ? additionalState.target : additionalState.target.asMmolL
+        let target = isMgdl ? state.target : state.target.asMmolL
 
         let isOverrideActive = additionalState.isOverrideActive == true
 
@@ -338,12 +460,36 @@ struct LiveActivityChartView: View {
         let startDate = calendar.date(byAdding: .hour, value: -6, to: now) ?? now
         let endDate = isOverrideActive ? (calendar.date(byAdding: .hour, value: 2, to: now) ?? now) : now
 
+        let highColor = Color.getDynamicGlucoseColor(
+            glucoseValue: yAxisRuleMarkMax,
+            highGlucoseColorValue: yAxisRuleMarkMax,
+            lowGlucoseColorValue: yAxisRuleMarkMin,
+            targetGlucose: isMgdl ? state.target : state.target.asMmolL,
+            glucoseColorScheme: context.state.glucoseColorScheme,
+            offset: isMgdl ? Decimal(20) : Decimal(20).asMmolL
+        )
+
+        let lowColor = Color.getDynamicGlucoseColor(
+            glucoseValue: yAxisRuleMarkMin,
+            highGlucoseColorValue: yAxisRuleMarkMax,
+            lowGlucoseColorValue: yAxisRuleMarkMin,
+            targetGlucose: isMgdl ? state.target : state.target.asMmolL,
+            glucoseColorScheme: context.state.glucoseColorScheme,
+            offset: isMgdl ? Decimal(20) : Decimal(20).asMmolL
+        )
+
         Chart {
-            RuleMark(y: .value("Low", yAxisRuleMarkMin))
-                .lineStyle(.init(lineWidth: 0.5, dash: [5]))
             RuleMark(y: .value("High", yAxisRuleMarkMax))
+                .foregroundStyle(highColor)
                 .lineStyle(.init(lineWidth: 0.5, dash: [5]))
-            RuleMark(y: .value("Target", target)).foregroundStyle(.green.gradient).lineStyle(.init(lineWidth: 1))
+
+            RuleMark(y: .value("Low", yAxisRuleMarkMin))
+                .foregroundStyle(lowColor)
+                .lineStyle(.init(lineWidth: 0.5, dash: [5]))
+
+            RuleMark(y: .value("Target", target))
+                .foregroundStyle(.green.gradient)
+                .lineStyle(.init(lineWidth: 1))
 
             if isOverrideActive {
                 drawActiveOverrides()
@@ -393,23 +539,27 @@ struct LiveActivityChartView: View {
         .lineStyle(.init(lineWidth: 8))
     }
 
-    private func drawChart(yAxisRuleMarkMin: Decimal, yAxisRuleMarkMax: Decimal) -> some ChartContent {
+    private func drawChart(yAxisRuleMarkMin _: Decimal, yAxisRuleMarkMax _: Decimal) -> some ChartContent {
         ForEach(additionalState.chart.indices, id: \.self) { index in
+            let isMgdL = additionalState.unit == "mg/dL"
             let currentValue = additionalState.chart[index]
-            let displayValue = additionalState.unit == "mg/dL" ? currentValue : currentValue.asMmolL
+            let displayValue = isMgdL ? currentValue : currentValue.asMmolL
             let chartDate = additionalState.chartDate[index] ?? Date()
+            let pointMarkColor = Color.getDynamicGlucoseColor(
+                glucoseValue: currentValue,
+                highGlucoseColorValue: context.state.highGlucose,
+                lowGlucoseColorValue: context.state.lowGlucose,
+                targetGlucose: context.state.target,
+                glucoseColorScheme: context.state.glucoseColorScheme,
+                offset: 20
+            )
+
             let pointMark = PointMark(
                 x: .value("Time", chartDate),
                 y: .value("Value", displayValue)
             ).symbolSize(15)
 
-            if displayValue > yAxisRuleMarkMax {
-                pointMark.foregroundStyle(Color.orange.gradient)
-            } else if displayValue < yAxisRuleMarkMin {
-                pointMark.foregroundStyle(Color.red.gradient)
-            } else {
-                pointMark.foregroundStyle(Color.green.gradient)
-            }
+            pointMark.foregroundStyle(pointMarkColor)
         }
     }
 }
@@ -417,17 +567,20 @@ struct LiveActivityChartView: View {
 // Expanded, minimal, compact view components
 struct LiveActivityExpandedLeadingView: View {
     var context: ActivityViewContext<LiveActivityAttributes>
+    var glucoseColor: Color
 
     var body: some View {
-        LiveActivityBGAndTrendView(context: context, size: .expanded).font(.title2).padding(.leading, 5)
+        LiveActivityBGAndTrendView(context: context, size: .expanded, glucoseColor: glucoseColor).font(.title2)
+            .padding(.leading, 5)
     }
 }
 
 struct LiveActivityExpandedTrailingView: View {
     var context: ActivityViewContext<LiveActivityAttributes>
+    var glucoseColor: Color
 
     var body: some View {
-        LiveActivityGlucoseDeltaLabelView(context: context).font(.title2).padding(.trailing, 5)
+        LiveActivityGlucoseDeltaLabelView(context: context, glucoseColor: glucoseColor).font(.title2).padding(.trailing, 5)
     }
 }
 
@@ -453,25 +606,28 @@ struct LiveActivityExpandedCenterView: View {
 
 struct LiveActivityCompactLeadingView: View {
     var context: ActivityViewContext<LiveActivityAttributes>
+    var glucoseColor: Color
 
     var body: some View {
-        LiveActivityBGAndTrendView(context: context, size: .compact).padding(.leading, 4)
+        LiveActivityBGAndTrendView(context: context, size: .compact, glucoseColor: glucoseColor).padding(.leading, 4)
     }
 }
 
 struct LiveActivityCompactTrailingView: View {
     var context: ActivityViewContext<LiveActivityAttributes>
+    var glucoseColor: Color
 
     var body: some View {
-        LiveActivityGlucoseDeltaLabelView(context: context).padding(.trailing, 4)
+        LiveActivityGlucoseDeltaLabelView(context: context, glucoseColor: glucoseColor).padding(.trailing, 4)
     }
 }
 
 struct LiveActivityMinimalView: View {
     var context: ActivityViewContext<LiveActivityAttributes>
+    var glucoseColor: Color
 
     var body: some View {
-        let (label, characterCount) = bgAndTrend(context: context, size: .minimal)
+        let (label, characterCount) = bgAndTrend(context: context, size: .minimal, glucoseColor: glucoseColor)
         let adjustedLabel = label.padding(.leading, 5).padding(.trailing, 2)
 
         if characterCount < 4 {
@@ -484,7 +640,13 @@ struct LiveActivityMinimalView: View {
     }
 }
 
-private func bgAndTrend(context: ActivityViewContext<LiveActivityAttributes>, size: Size) -> (some View, Int) {
+private func bgAndTrend(
+    context: ActivityViewContext<LiveActivityAttributes>,
+    size: Size,
+    glucoseColor: Color
+) -> (some View, Int) {
+    let hasStaticColorScheme = context.state.glucoseColorScheme == "staticColor"
+
     var characters = 0
 
     let bgText = context.state.bg
@@ -495,14 +657,9 @@ private func bgAndTrend(context: ActivityViewContext<LiveActivityAttributes>, si
     // and everything has to be squeezed together to some degree
     // only display the first arrow character and make it red in case there were more characters
     var directionText: String?
-    var warnColor: Color?
     if let direction = context.state.direction {
         if size == .compact || size == .minimal {
             directionText = String(direction[direction.startIndex ... direction.startIndex])
-
-            if direction.count > 1 {
-                warnColor = Color.red
-            }
         } else {
             directionText = direction
         }
@@ -519,17 +676,14 @@ private func bgAndTrend(context: ActivityViewContext<LiveActivityAttributes>, si
 
     let stack = HStack(spacing: spacing) {
         Text(bgText)
+            .foregroundColor(hasStaticColorScheme ? .primary : glucoseColor)
             .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
         if let direction = directionText {
             let text = Text(direction)
             switch size {
             case .minimal:
                 let scaledText = text.scaleEffect(x: 0.7, y: 0.7, anchor: .leading)
-                if let warnColor {
-                    scaledText.foregroundStyle(warnColor)
-                } else {
-                    scaledText
-                }
+                scaledText.foregroundStyle(hasStaticColorScheme ? .primary : glucoseColor)
             case .compact:
                 text.scaleEffect(x: 0.8, y: 0.8, anchor: .leading).padding(.trailing, -3)
 
@@ -537,7 +691,8 @@ private func bgAndTrend(context: ActivityViewContext<LiveActivityAttributes>, si
                 text.scaleEffect(x: 0.7, y: 0.7, anchor: .leading).padding(.trailing, -5)
             }
         }
-    }
+    }.foregroundColor(context.isStale ? Color.primary.opacity(0.5) : (hasStaticColorScheme ? .primary : glucoseColor))
+
     return (stack, characters)
 }
 
@@ -565,9 +720,6 @@ private extension LiveActivityAttributes.ContentState {
         chart: chartData.map { Decimal($0.glucose) },
         chartDate: chartData.map(\.date),
         rotationDegrees: 0,
-        highGlucose: 180,
-        lowGlucose: 70,
-        target: 100,
         cob: 20,
         iob: 1.5,
         unit: GlucoseUnits.mgdL.rawValue,
@@ -592,6 +744,10 @@ private extension LiveActivityAttributes.ContentState {
             direction: "→",
             change: "+0.0",
             date: Date(),
+            highGlucose: 180,
+            lowGlucose: 70,
+            target: 100,
+            glucoseColorScheme: "staticColor",
             detailedViewState: nil,
             isInitialState: false
         )
@@ -603,6 +759,10 @@ private extension LiveActivityAttributes.ContentState {
             direction: "↑↑",
             change: "+0.0",
             date: Date(),
+            highGlucose: 180,
+            lowGlucose: 70,
+            target: 100,
+            glucoseColorScheme: "staticColor",
             detailedViewState: nil,
             isInitialState: false
         )
@@ -614,6 +774,10 @@ private extension LiveActivityAttributes.ContentState {
             direction: "↑↑↑",
             change: "+0.0",
             date: Date(),
+            highGlucose: 180,
+            lowGlucose: 70,
+            target: 100,
+            glucoseColorScheme: "staticColor",
             detailedViewState: nil,
             isInitialState: false
         )
@@ -626,6 +790,10 @@ private extension LiveActivityAttributes.ContentState {
             direction: "↑",
             change: "+0",
             date: Date(),
+            highGlucose: 180,
+            lowGlucose: 70,
+            target: 100,
+            glucoseColorScheme: "staticColor",
             detailedViewState: nil,
             isInitialState: false
         )
@@ -637,6 +805,10 @@ private extension LiveActivityAttributes.ContentState {
             direction: "↗︎",
             change: "+00",
             date: Date(),
+            highGlucose: 180,
+            lowGlucose: 70,
+            target: 100,
+            glucoseColorScheme: "staticColor",
             detailedViewState: nil,
             isInitialState: false
         )
@@ -648,6 +820,10 @@ private extension LiveActivityAttributes.ContentState {
             direction: nil,
             change: "--",
             date: Date().addingTimeInterval(-60 * 60),
+            highGlucose: 180,
+            lowGlucose: 70,
+            target: 100,
+            glucoseColorScheme: "staticColor",
             detailedViewState: nil,
             isInitialState: false
         )
@@ -659,6 +835,10 @@ private extension LiveActivityAttributes.ContentState {
             direction: "→",
             change: "+0.0",
             date: Date(),
+            highGlucose: 180,
+            lowGlucose: 70,
+            target: 100,
+            glucoseColorScheme: "staticColor",
             detailedViewState: detailedViewState,
             isInitialState: false
         )
@@ -670,6 +850,10 @@ private extension LiveActivityAttributes.ContentState {
             direction: "↑↑",
             change: "+0.0",
             date: Date(),
+            highGlucose: 180,
+            lowGlucose: 70,
+            target: 100,
+            glucoseColorScheme: "staticColor",
             detailedViewState: detailedViewState,
             isInitialState: false
         )
@@ -681,6 +865,10 @@ private extension LiveActivityAttributes.ContentState {
             direction: "↑↑↑",
             change: "+0.0",
             date: Date(),
+            highGlucose: 180,
+            lowGlucose: 70,
+            target: 100,
+            glucoseColorScheme: "staticColor",
             detailedViewState: detailedViewState,
             isInitialState: false
         )
@@ -693,6 +881,10 @@ private extension LiveActivityAttributes.ContentState {
             direction: "↑",
             change: "+0",
             date: Date(),
+            highGlucose: 180,
+            lowGlucose: 70,
+            target: 100,
+            glucoseColorScheme: "staticColor",
             detailedViewState: detailedViewState,
             isInitialState: false
         )
@@ -704,6 +896,10 @@ private extension LiveActivityAttributes.ContentState {
             direction: "↗︎",
             change: "+00",
             date: Date(),
+            highGlucose: 180,
+            lowGlucose: 70,
+            target: 100,
+            glucoseColorScheme: "staticColor",
             detailedViewState: detailedViewState,
             isInitialState: false
         )
@@ -715,6 +911,10 @@ private extension LiveActivityAttributes.ContentState {
             direction: nil,
             change: "--",
             date: Date().addingTimeInterval(-60 * 60),
+            highGlucose: 180,
+            lowGlucose: 70,
+            target: 100,
+            glucoseColorScheme: "staticColor",
             detailedViewState: detailedViewState,
             isInitialState: false
         )

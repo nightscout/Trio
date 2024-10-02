@@ -136,6 +136,8 @@ extension Home {
                 lowGlucose: $state.lowGlucose,
                 highGlucose: $state.highGlucose,
                 cgmAvailable: $state.cgmAvailable,
+                currentGlucoseTarget: $state.currentGlucoseTarget,
+                glucoseColorScheme: $state.glucoseColorScheme,
                 glucose: state.latestTwoGlucoseValues
             ).scaleEffect(0.9)
                 .onTapGesture {
@@ -341,7 +343,9 @@ extension Home {
                     tempTargets: $state.tempTargets,
                     highGlucose: $state.highGlucose,
                     lowGlucose: $state.lowGlucose,
+                    currentGlucoseTarget: $state.currentGlucoseTarget,
                     screenHours: $state.hours,
+                    glucoseColorScheme: $state.glucoseColorScheme,
                     displayXgridLines: $state.displayXgridLines,
                     displayYgridLines: $state.displayYgridLines,
                     thresholdLines: $state.thresholdLines,

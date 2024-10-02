@@ -1,3 +1,4 @@
+import Combine
 import CoreData
 import Foundation
 import LoopKit
@@ -9,10 +10,13 @@ protocol PumpHistoryObserver {
 }
 
 protocol PumpHistoryStorage {
+    var updatePublisher: AnyPublisher<Void, Never> { get }
     func storePumpEvents(_ events: [NewPumpEvent])
     func storeExternalInsulinEvent(amount: Decimal, timestamp: Date) async
     func recent() -> [PumpHistoryEvent]
     func getPumpHistoryNotYetUploadedToNightscout() async -> [NightscoutTreatment]
+    func getPumpHistoryNotYetUploadedToHealth() async -> [PumpHistoryEvent]
+    func getPumpHistoryNotYetUploadedToTidepool() async -> [PumpHistoryEvent]
     func deleteInsulin(at date: Date)
 }
 
@@ -21,6 +25,12 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     @Injected() private var storage: FileStorage!
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var settings: SettingsManager!
+
+    private let updateSubject = PassthroughSubject<Void, Never>()
+
+    var updatePublisher: AnyPublisher<Void, Never> {
+        updateSubject.eraseToAnyPublisher()
+    }
 
     init(resolver: Resolver) {
         injectServices(resolver)
@@ -72,6 +82,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                                         existingEvent.bolus?.amount = amount as NSDecimalNumber
                                         existingEvent.bolus?.isSMB = dose.automatic ?? true
                                         existingEvent.isUploadedToNS = false
+                                        existingEvent.isUploadedToHealth = false
+                                        existingEvent.isUploadedToTidepool = false
 
                                         print("Updated existing event with smaller value: \(amount)")
                                     }
@@ -85,6 +97,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newPumpEvent.timestamp = event.date
                         newPumpEvent.type = PumpEvent.bolus.rawValue
                         newPumpEvent.isUploadedToNS = false
+                        newPumpEvent.isUploadedToHealth = false
+                        newPumpEvent.isUploadedToTidepool = false
 
                         let newBolusEntry = BolusStored(context: self.context)
                         newBolusEntry.pumpEvent = newPumpEvent
@@ -114,6 +128,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newPumpEvent.timestamp = date
                         newPumpEvent.type = PumpEvent.tempBasal.rawValue
                         newPumpEvent.isUploadedToNS = false
+                        newPumpEvent.isUploadedToHealth = false
+                        newPumpEvent.isUploadedToTidepool = false
 
                         let newTempBasal = TempBasalStored(context: self.context)
                         newTempBasal.pumpEvent = newPumpEvent
@@ -132,6 +148,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newPumpEvent.timestamp = event.date
                         newPumpEvent.type = PumpEvent.pumpSuspend.rawValue
                         newPumpEvent.isUploadedToNS = false
+                        newPumpEvent.isUploadedToHealth = false
+                        newPumpEvent.isUploadedToTidepool = false
 
                     case .resume:
                         guard existingEvents.isEmpty else {
@@ -144,6 +162,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newPumpEvent.timestamp = event.date
                         newPumpEvent.type = PumpEvent.pumpResume.rawValue
                         newPumpEvent.isUploadedToNS = false
+                        newPumpEvent.isUploadedToHealth = false
+                        newPumpEvent.isUploadedToTidepool = false
 
                     case .rewind:
                         guard existingEvents.isEmpty else {
@@ -156,6 +176,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newPumpEvent.timestamp = event.date
                         newPumpEvent.type = PumpEvent.rewind.rawValue
                         newPumpEvent.isUploadedToNS = false
+                        newPumpEvent.isUploadedToHealth = false
+                        newPumpEvent.isUploadedToTidepool = false
 
                     case .prime:
                         guard existingEvents.isEmpty else {
@@ -168,6 +190,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newPumpEvent.timestamp = event.date
                         newPumpEvent.type = PumpEvent.prime.rawValue
                         newPumpEvent.isUploadedToNS = false
+                        newPumpEvent.isUploadedToHealth = false
+                        newPumpEvent.isUploadedToTidepool = false
 
                     case .alarm:
                         guard existingEvents.isEmpty else {
@@ -180,6 +204,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         newPumpEvent.timestamp = event.date
                         newPumpEvent.type = PumpEvent.pumpAlarm.rawValue
                         newPumpEvent.isUploadedToNS = false
+                        newPumpEvent.isUploadedToHealth = false
+                        newPumpEvent.isUploadedToTidepool = false
                         newPumpEvent.note = event.title
 
                     default:
@@ -190,6 +216,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 do {
                     guard self.context.hasChanges else { return }
                     try self.context.save()
+
+                    self.updateSubject.send(())
                     debugPrint("\(DebuggingIdentifiers.succeeded) stored pump events in Core Data")
                 } catch let error as NSError {
                     debugPrint("\(DebuggingIdentifiers.failed) failed to store pump events with error: \(error.userInfo)")
@@ -207,6 +235,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             newPumpEvent.timestamp = timestamp
             newPumpEvent.type = PumpEvent.bolus.rawValue
             newPumpEvent.isUploadedToNS = false
+            newPumpEvent.isUploadedToHealth = false
+            newPumpEvent.isUploadedToTidepool = false
 
             // create bolus entry and specify relationship to pump event
             let newBolusEntry = BolusStored(context: self.context)
@@ -218,6 +248,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             do {
                 guard self.context.hasChanges else { return }
                 try self.context.save()
+
+                self.updateSubject.send(())
             } catch {
                 print(error.localizedDescription)
             }
@@ -262,10 +294,10 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             fetchLimit: 288
         )
 
-        guard let fetchedPumpEvents = results as? [PumpEventStored] else { return [] }
-
         return await context.perform { [self] in
-            fetchedPumpEvents.map { event in
+            guard let fetchedPumpEvents = results as? [PumpEventStored] else { return [] }
+
+            return fetchedPumpEvents.map { event in
                 switch event.type {
                 case PumpEvent.bolus.rawValue:
                     // eventType determines whether bolus is external, smb or manual (=administered via app by user)
@@ -404,6 +436,95 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         targetTop: nil,
                         targetBottom: nil
                     )
+
+                default:
+                    return nil
+                }
+            }.compactMap { $0 }
+        }
+    }
+
+    func getPumpHistoryNotYetUploadedToHealth() async -> [PumpHistoryEvent] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: PumpEventStored.self,
+            onContext: context,
+            predicate: NSPredicate.pumpEventsNotYetUploadedToHealth,
+            key: "timestamp",
+            ascending: false,
+            fetchLimit: 288
+        )
+
+        guard let fetchedPumpEvents = results as? [PumpEventStored] else { return [] }
+
+        return await context.perform {
+            fetchedPumpEvents.map { event in
+                switch event.type {
+                case PumpEvent.bolus.rawValue:
+                    return PumpHistoryEvent(
+                        id: event.id ?? UUID().uuidString,
+                        type: .bolus,
+                        timestamp: event.timestamp ?? Date(),
+                        amount: event.bolus?.amount as Decimal?
+                    )
+                case PumpEvent.tempBasal.rawValue:
+                    if let id = event.id, let timestamp = event.timestamp, let tempBasal = event.tempBasal,
+                       let tempBasalRate = tempBasal.rate
+                    {
+                        return PumpHistoryEvent(
+                            id: id,
+                            type: .tempBasal,
+                            timestamp: timestamp,
+                            amount: tempBasalRate as Decimal,
+                            duration: Int(tempBasal.duration)
+                        )
+                    } else {
+                        return nil
+                    }
+                default:
+                    return nil
+                }
+            }.compactMap { $0 }
+        }
+    }
+
+    func getPumpHistoryNotYetUploadedToTidepool() async -> [PumpHistoryEvent] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: PumpEventStored.self,
+            onContext: context,
+            predicate: NSPredicate.pumpEventsNotYetUploadedToTidepool,
+            key: "timestamp",
+            ascending: false,
+            fetchLimit: 288
+        )
+
+        guard let fetchedPumpEvents = results as? [PumpEventStored] else { return [] }
+
+        return await context.perform {
+            fetchedPumpEvents.map { event in
+                switch event.type {
+                case PumpEvent.bolus.rawValue:
+                    return PumpHistoryEvent(
+                        id: event.id ?? UUID().uuidString,
+                        type: .bolus,
+                        timestamp: event.timestamp ?? Date(),
+                        amount: event.bolus?.amount as Decimal?,
+                        isSMB: event.bolus?.isSMB ?? true,
+                        isExternal: event.bolus?.isExternal ?? false
+                    )
+                case PumpEvent.tempBasal.rawValue:
+                    if let id = event.id, let timestamp = event.timestamp, let tempBasal = event.tempBasal,
+                       let tempBasalRate = tempBasal.rate
+                    {
+                        return PumpHistoryEvent(
+                            id: id,
+                            type: .tempBasal,
+                            timestamp: timestamp,
+                            amount: tempBasalRate as Decimal,
+                            duration: Int(tempBasal.duration)
+                        )
+                    } else {
+                        return nil
+                    }
 
                 default:
                     return nil

@@ -3,7 +3,7 @@ import CoreData
 import Foundation
 import SwiftUI
 
-struct ForeCastChart: View {
+struct ForecastChart: View {
     @StateObject var state: Bolus.StateModel
     @Environment(\.colorScheme) var colorScheme
     @Binding var units: GlucoseUnits
@@ -35,68 +35,62 @@ struct ForeCastChart: View {
 
     var body: some View {
         VStack {
-            HStack {
-                HStack {
-                    Text("Added carbs: ")
-                        .font(.footnote)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.orange)
-
-                    Text("\(state.carbs.description) g")
-                        .font(.footnote)
-                        .foregroundStyle(.orange)
-                }
-                .padding(8)
-                .background {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.orange.opacity(0.2))
-                }
-
-                Spacer()
-
-                HStack {
-                    Text("Added insulin: ")
-                        .font(.footnote)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.blue)
-
-                    Text("\(state.amount.description) U")
-                        .font(.footnote)
-                        .foregroundStyle(.blue)
-                }
-                .padding(8)
-                .background {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.blue.opacity(0.2))
-                }
-            }
+            forecastChartLabels
+                .padding(.bottom, 8)
 
             forecastChart
-                .padding(.vertical, 3)
-            HStack {
-                Spacer()
-                Image(systemName: "arrow.right.circle")
-                    .font(.system(size: 16, weight: .bold))
+        }
+    }
 
-                if let eventualBG = state.simulatedDetermination?.eventualBG {
+    private var forecastChartLabels: some View {
+        HStack {
+            HStack {
+                Image(systemName: "fork.knife")
+                Text("\(state.carbs.description) g")
+            }
+            .font(.footnote)
+            .foregroundStyle(.orange)
+            .padding(8)
+            .background {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.orange.opacity(0.2))
+            }
+
+            Spacer()
+
+            HStack {
+                Image(systemName: "syringe.fill")
+                Text("\(state.amount.description) U")
+            }
+            .font(.footnote)
+            .foregroundStyle(.blue)
+            .padding(8)
+            .background {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.blue.opacity(0.2))
+            }
+
+            Spacer()
+
+            HStack {
+                Image(systemName: "arrow.right.circle")
+
+                if let simulatedDetermination = state.simulatedDetermination, let eventualBG = simulatedDetermination.eventualBG {
                     HStack {
                         Text(
-                            units == .mgdL ? Decimal(eventualBG).description : eventualBG.formattedAsMmolL
+                            (units == .mgdL ? Decimal(eventualBG).description : eventualBG.formattedAsMmolL) + units.rawValue
                         )
-                        .font(.footnote)
-                        .foregroundStyle(.primary)
-                        Text("\(units.rawValue)")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
                     }
                 } else {
                     Text("---")
-                        .font(.footnote)
-                        .foregroundStyle(.primary)
-                    Text("\(units.rawValue)")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
                 }
+            }
+            .font(.footnote)
+            .foregroundStyle(.primary)
+            .padding(8)
+            .background {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.primary.opacity(0.2))
             }
         }
     }
@@ -122,9 +116,20 @@ struct ForeCastChart: View {
     private func drawGlucose() -> some ChartContent {
         ForEach(state.glucoseFromPersistence) { item in
             let glucoseToDisplay = state.units == .mgdL ? Decimal(item.glucose) : Decimal(item.glucose).asMmolL
-            let pointMarkColor: Color = glucoseToDisplay > state.highGlucose ? Color.orange :
-                glucoseToDisplay < state.lowGlucose ? Color.red :
-                Color.green
+
+            // low and high glucose is parsed in state to mmol/L; parse it back to mg/dl here for comparison
+            let lowGlucose = units == .mgdL ? state.lowGlucose : state.lowGlucose.asMgdL
+            let highGlucose = units == .mgdL ? state.highGlucose : state.highGlucose.asMgdL
+            let targetGlucose = (state.determination.first?.currentTarget ?? state.currentBGTarget as NSDecimalNumber) as Decimal
+
+            let pointMarkColor: Color = FreeAPS.getDynamicGlucoseColor(
+                glucoseValue: Decimal(item.glucose),
+                highGlucoseColorValue: highGlucose,
+                lowGlucoseColorValue: lowGlucose,
+                targetGlucose: targetGlucose,
+                glucoseColorScheme: state.glucoseColorScheme,
+                offset: 20
+            )
 
             if !state.isSmoothingEnabled {
                 PointMark(
@@ -132,7 +137,7 @@ struct ForeCastChart: View {
                     y: .value("Value", glucoseToDisplay)
                 )
                 .foregroundStyle(pointMarkColor)
-                .symbolSize(20)
+                .symbolSize(18)
             } else {
                 PointMark(
                     x: .value("Time", item.date ?? Date(), unit: .second),
@@ -140,7 +145,7 @@ struct ForeCastChart: View {
                 )
                 .symbol {
                     Image(systemName: "record.circle.fill")
-                        .font(.system(size: 8))
+                        .font(.system(size: 6))
                         .bold()
                         .foregroundStyle(pointMarkColor)
                 }
@@ -232,8 +237,8 @@ struct ForeCastChart: View {
         AxisMarks(values: .stride(by: .hour, count: 2)) { _ in
             AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
             AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
-                .font(.footnote)
-                .foregroundStyle(Color.primary)
+                .font(.caption2)
+                .foregroundStyle(Color.secondary)
         }
     }
 
@@ -241,7 +246,7 @@ struct ForeCastChart: View {
         AxisMarks(position: .trailing) { _ in
             AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
             AxisTick(length: 3, stroke: .init(lineWidth: 3)).foregroundStyle(Color.secondary)
-            AxisValueLabel().font(.footnote).foregroundStyle(Color.primary)
+            AxisValueLabel().font(.caption2).foregroundStyle(Color.secondary)
         }
     }
 }

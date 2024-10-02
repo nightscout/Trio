@@ -157,12 +157,13 @@ extension BloodGlucose: SavitzkyGolaySmoothable {
 }
 
 extension BloodGlucose {
-    func convertStoredGlucoseSample(device: HKDevice?) -> StoredGlucoseSample {
+    func convertStoredGlucoseSample(isManualGlucose: Bool) -> StoredGlucoseSample {
         StoredGlucoseSample(
             syncIdentifier: id,
             startDate: dateString.date,
             quantity: HKQuantity(unit: .milligramsPerDeciliter, doubleValue: Double(glucose!)),
-            device: device
+            wasUserEntered: isManualGlucose,
+            device: HKDevice.local()
         )
     }
 }

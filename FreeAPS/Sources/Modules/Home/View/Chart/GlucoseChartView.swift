@@ -7,7 +7,9 @@ struct GlucoseChartView: ChartContent {
     let units: GlucoseUnits
     let highGlucose: Decimal
     let lowGlucose: Decimal
+    let currentGlucoseTarget: Decimal
     let isSmoothingEnabled: Bool
+    let glucoseColorScheme: GlucoseColorScheme
 
     var body: some ChartContent {
         drawGlucoseChart()
@@ -16,9 +18,19 @@ struct GlucoseChartView: ChartContent {
     private func drawGlucoseChart() -> some ChartContent {
         ForEach(glucoseData) { item in
             let glucoseToDisplay = units == .mgdL ? Decimal(item.glucose) : Decimal(item.glucose).asMmolL
-            let pointMarkColor: Color = glucoseToDisplay > highGlucose ? Color.orange :
-                glucoseToDisplay < lowGlucose ? Color.red :
-                Color.green
+
+            // low glucose and high glucose is parsed in state to mmol/L; parse it back to mg/dL here for comparison
+            let lowGlucose = units == .mgdL ? lowGlucose : lowGlucose.asMgdL
+            let highGlucose = units == .mgdL ? highGlucose : highGlucose.asMgdL
+
+            let pointMarkColor: Color = FreeAPS.getDynamicGlucoseColor(
+                glucoseValue: Decimal(item.glucose),
+                highGlucoseColorValue: highGlucose,
+                lowGlucoseColorValue: lowGlucose,
+                targetGlucose: currentGlucoseTarget,
+                glucoseColorScheme: glucoseColorScheme,
+                offset: 20
+            )
 
             if !isSmoothingEnabled {
                 PointMark(

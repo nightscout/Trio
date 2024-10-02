@@ -102,9 +102,6 @@ extension LiveActivityAttributes.ContentState {
                 chart: chartBG,
                 chartDate: chartDate,
                 rotationDegrees: rotationDegrees,
-                highGlucose: settings.high,
-                lowGlucose: settings.low,
-                target: determination?.target ?? 0 as Decimal,
                 cob: Decimal(determination?.cob ?? 0),
                 iob: determination?.iob ?? 0 as Decimal,
                 unit: settings.units.rawValue,
@@ -129,6 +126,10 @@ extension LiveActivityAttributes.ContentState {
             direction: trendString,
             change: change,
             date: bg.date,
+            highGlucose: settings.high,
+            lowGlucose: settings.low,
+            target: determination?.target ?? 100 as Decimal,
+            glucoseColorScheme: settings.glucoseColorScheme.rawValue,
             detailedViewState: detailedState,
             isInitialState: false
         )
