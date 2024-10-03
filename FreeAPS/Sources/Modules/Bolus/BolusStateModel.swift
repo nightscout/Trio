@@ -20,6 +20,7 @@ extension Bolus {
 
         @Published var lowGlucose: Decimal = 70
         @Published var highGlucose: Decimal = 180
+        @Published var glucoseColorScheme: GlucoseColorScheme = .staticColor
 
         @Published var predictions: Predictions?
         @Published var amount: Decimal = 0
@@ -116,7 +117,8 @@ extension Bolus {
         let now = Date.now
 
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
-        let backgroundContext = CoreDataStack.shared.newTaskContext()
+        let glucoseFetchContext = CoreDataStack.shared.newTaskContext()
+        let determinationFetchContext = CoreDataStack.shared.newTaskContext()
 
         private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
         private var subscriptions = Set<AnyCancellable>()
@@ -129,18 +131,14 @@ extension Bolus {
                     .receive(on: DispatchQueue.global(qos: .background))
                     .share()
                     .eraseToAnyPublisher()
+            registerHandlers()
+            registerSubscribers()
             setupBolusStateConcurrently()
         }
 
         private func setupBolusStateConcurrently() {
             Task {
                 await withTaskGroup(of: Void.self) { group in
-                    group.addTask {
-                        self.registerHandlers()
-                    }
-                    group.addTask {
-                        self.registerSubscribers()
-                    }
                     group.addTask {
                         self.setupGlucoseArray()
                     }
@@ -237,6 +235,7 @@ extension Bolus {
             maxProtein = settings.settings.maxProtein
             useFPUconversion = settingsManager.settings.useFPUconversion
             isSmoothingEnabled = settingsManager.settings.smoothGlucose
+            glucoseColorScheme = settingsManager.settings.glucoseColorScheme
         }
 
         private func getCurrentSettingValue(for type: SettingType) async {
@@ -393,9 +392,16 @@ extension Bolus {
 
                 await saveMeal()
 
-                // if glucose data is stale end the custom loading animation by hiding the modal
-                guard glucoseStorage.isGlucoseDataFresh(glucoseFromPersistence.first?.date) else {
-                    waitForSuggestion = false
+                // If glucose data is stale end the custom loading animation by hiding the modal
+                // Get date on Main thread
+                let date = await MainActor.run {
+                    glucoseFromPersistence.first?.date
+                }
+
+                guard glucoseStorage.isGlucoseDataFresh(date) else {
+                    await MainActor.run {
+                        waitForSuggestion = false
+                    }
                     return hideModal()
                 }
             }
@@ -613,16 +619,16 @@ extension Bolus.StateModel {
     private func fetchGlucose() async -> [NSManagedObjectID] {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
-            onContext: backgroundContext,
+            onContext: glucoseFetchContext,
             predicate: NSPredicate.glucose,
             key: "date",
             ascending: false,
             fetchLimit: 288
         )
 
-        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+        return await glucoseFetchContext.perform {
+            guard let fetchedResults = results as? [GlucoseStored] else { return [] }
 
-        return await backgroundContext.perform {
             return fetchedResults.map(\.objectID)
         }
     }
@@ -658,16 +664,16 @@ extension Bolus.StateModel {
 
     private func mapForecastsForChart() async -> Determination? {
         let determinationObjects: [OrefDetermination] = await CoreDataStack.shared
-            .getNSManagedObject(with: determinationObjectIDs, context: backgroundContext)
+            .getNSManagedObject(with: determinationObjectIDs, context: determinationFetchContext)
 
-        return await backgroundContext.perform {
+        return await determinationFetchContext.perform {
             guard let determinationObject = determinationObjects.first else {
                 return nil
             }
 
             let eventualBG = determinationObject.eventualBG?.intValue
 
-            let forecastsSet = determinationObject.forecasts as? Set<Forecast> ?? []
+            let forecastsSet = determinationObject.forecasts ?? []
             let predictions = Predictions(
                 iob: forecastsSet.extractValues(for: "iob"),
                 zt: forecastsSet.extractValues(for: "zt"),

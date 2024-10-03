@@ -326,12 +326,17 @@ extension NightscoutConfig {
             if glucose.isNotEmpty {
                 await MainActor.run {
                     self.backfilling = false
-                    self.healthKitManager.saveIfNeeded(bloodGlucose: glucose)
-                    self.glucoseStorage.storeGlucose(glucose)
+                }
+
+                glucoseStorage.storeGlucose(glucose)
+
+                Task.detached {
+                    await self.healthKitManager.uploadGlucose()
                 }
             } else {
                 await MainActor.run {
                     self.backfilling = false
+                    debug(.nightscout, "No glucose values found or fetched to backfill.")
                 }
             }
         }

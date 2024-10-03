@@ -17,6 +17,8 @@ protocol CarbsStorage {
     func getCarbsNotYetUploadedToNightscout() async -> [NightscoutTreatment]
     func getFPUsNotYetUploadedToNightscout() async -> [NightscoutTreatment]
     func deleteCarbs(at uniqueID: String, fpuID: String, complex: Bool)
+    func getCarbsNotYetUploadedToHealth() async -> [CarbsEntry]
+    func getCarbsNotYetUploadedToTidepool() async -> [CarbsEntry]
 }
 
 final class BaseCarbsStorage: CarbsStorage, Injectable {
@@ -44,8 +46,9 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             entriesToStore = await filterRemoteEntries(entries: entriesToStore)
         }
 
-        await saveCarbEquivalents(entries: entriesToStore, areFetchedFromRemote: areFetchedFromRemote)
         await saveCarbsToCoreData(entries: entriesToStore, areFetchedFromRemote: areFetchedFromRemote)
+
+        await saveCarbEquivalents(entries: entriesToStore, areFetchedFromRemote: areFetchedFromRemote)
     }
 
     private func filterRemoteEntries(entries: [CarbsEntry]) async -> [CarbsEntry] {
@@ -63,6 +66,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         }
 
         // Extract dates into a set for efficient lookup
+        // Since we are not dealing with NSManagedObjects directly it is safe to pass properties between threads
         let existingTimestamps = Set(existing24hCarbEntries.compactMap { $0["date"] as? Date })
 
         // Remove all entries that have a matching date in existingTimestamps
@@ -115,7 +119,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
      - Returns: A tuple containing the array of future carb entries and the total carb equivalents.
      */
     private func processFPU(
-        entries _: [CarbsEntry],
+        entries: [CarbsEntry],
         fat: Decimal,
         protein: Decimal,
         createdAt: Date,
@@ -144,7 +148,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         var numberOfEquivalents = carbEquivalents / carbEquivalentSize
 
         var useDate = actualDate ?? createdAt
-        let fpuID = UUID().uuidString
+        let fpuID = entries.first?.fpuID ?? UUID().uuidString
         var futureCarbArray = [CarbsEntry]()
         var firstIndex = true
 
@@ -161,7 +165,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                 fat: 0,
                 protein: 0,
                 note: nil,
-                enteredBy: CarbsEntry.manual, isFPU: true,
+                enteredBy: CarbsEntry.manual,
+                isFPU: true,
                 fpuID: fpuID
             )
             futureCarbArray.append(eachCarbEntry)
@@ -202,6 +207,12 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             newItem.id = UUID()
             newItem.isFPU = false
             newItem.isUploadedToNS = areFetchedFromRemote ? true : false
+            newItem.isUploadedToHealth = false
+            newItem.isUploadedToTidepool = false
+
+            if entry.fat != nil, entry.protein != nil, let fpuId = entry.fpuID {
+                newItem.fpuID = UUID(uuidString: fpuId)
+            }
 
             do {
                 guard self.coredataContext.hasChanges else { return }
@@ -213,8 +224,10 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     }
 
     private func saveFPUToCoreDataAsBatchInsert(entries: [CarbsEntry], areFetchedFromRemote: Bool) async {
-        let commonFPUID =
-            UUID() // all fpus should only get ONE id per batch insert to be able to delete them referencing the fpuID
+        let commonFPUID = UUID(
+            uuidString: entries.first?.fpuID ?? UUID()
+                .uuidString
+        ) // all fpus should only get ONE id per batch insert to be able to delete them referencing the fpuID
         var entrySlice = ArraySlice(entries) // convert to ArraySlice
         let batchInsert = NSBatchInsertRequest(entity: CarbEntryStored.entity()) { (managedObject: NSManagedObject) -> Bool in
             guard let carbEntry = managedObject as? CarbEntryStored, let entry = entrySlice.popFirst(),
@@ -228,6 +241,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             carbEntry.fpuID = commonFPUID
             carbEntry.isFPU = true
             carbEntry.isUploadedToNS = areFetchedFromRemote ? true : false
+            // do NOT set Health and Tidepool flags to ensure they will NOT be uploaded
             return false // return false to continue
         }
         await coredataContext.perform {
@@ -337,11 +351,11 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             ascending: false
         )
 
-        guard let carbEntries = results as? [CarbEntryStored] else {
-            return []
-        }
-
         return await coredataContext.perform {
+            guard let carbEntries = results as? [CarbEntryStored] else {
+                return []
+            }
+
             return carbEntries.map { result in
                 NightscoutTreatment(
                     duration: nil,
@@ -376,9 +390,9 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             ascending: false
         )
 
-        guard let fpuEntries = results as? [CarbEntryStored] else { return [] }
-
         return await coredataContext.perform {
+            guard let fpuEntries = results as? [CarbEntryStored] else { return [] }
+
             return fpuEntries.map { result in
                 NightscoutTreatment(
                     duration: nil,
@@ -398,6 +412,68 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     targetTop: nil,
                     targetBottom: nil,
                     id: result.fpuID?.uuidString
+                )
+            }
+        }
+    }
+
+    func getCarbsNotYetUploadedToHealth() async -> [CarbsEntry] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: CarbEntryStored.self,
+            onContext: coredataContext,
+            predicate: NSPredicate.carbsNotYetUploadedToHealth,
+            key: "date",
+            ascending: false
+        )
+
+        guard let carbEntries = results as? [CarbEntryStored] else {
+            return []
+        }
+
+        return await coredataContext.perform {
+            return carbEntries.map { result in
+                CarbsEntry(
+                    id: result.id?.uuidString,
+                    createdAt: result.date ?? Date(),
+                    actualDate: result.date,
+                    carbs: Decimal(result.carbs),
+                    fat: Decimal(result.fat),
+                    protein: Decimal(result.protein),
+                    note: result.note,
+                    enteredBy: CarbsEntry.manual,
+                    isFPU: result.isFPU,
+                    fpuID: result.fpuID?.uuidString
+                )
+            }
+        }
+    }
+
+    func getCarbsNotYetUploadedToTidepool() async -> [CarbsEntry] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: CarbEntryStored.self,
+            onContext: coredataContext,
+            predicate: NSPredicate.carbsNotYetUploadedToTidepool,
+            key: "date",
+            ascending: false
+        )
+
+        guard let carbEntries = results as? [CarbEntryStored] else {
+            return []
+        }
+
+        return await coredataContext.perform {
+            return carbEntries.map { result in
+                CarbsEntry(
+                    id: result.id?.uuidString,
+                    createdAt: result.date ?? Date(),
+                    actualDate: result.date,
+                    carbs: Decimal(result.carbs),
+                    fat: nil,
+                    protein: nil,
+                    note: result.note,
+                    enteredBy: CarbsEntry.manual,
+                    isFPU: nil,
+                    fpuID: nil
                 )
             }
         }
