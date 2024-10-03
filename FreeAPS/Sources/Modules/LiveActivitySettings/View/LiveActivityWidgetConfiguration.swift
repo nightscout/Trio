@@ -49,7 +49,7 @@ struct LiveActivityWidgetConfiguration: BaseView {
         }
         return data
     }
-    
+
 //    var body: some View {
 //            VStack {
 //                Group {
@@ -253,7 +253,11 @@ struct LiveActivityWidgetConfiguration: BaseView {
                         selectedItems[index] = item // Update button index to selected item
                         saveOrder() // Save the order to UserDefaults
                     }
-                }.disabled(selectedItems.contains { $0.value == item }) // Disable already selected items
+                }
+                .disabled(selectedItems.contains(item))
+                // This causes the type check error
+                
+//                .disabled(selectedItems.contains { $0.value == item }) // Disable already selected items
             }
         }
     }
@@ -263,8 +267,15 @@ struct LiveActivityWidgetConfiguration: BaseView {
             buttonIndexToUpdate = index
             showAddItemDialog.toggle()
         }) {
-            if let selectedItem = LiveActivityItem.allCases.first(where: { $0.id == selectedItems[index].id }) {
-                // Show item preview if an item is selected
+            // This causes an index out of range error
+            
+//            if let selectedItem = LiveActivityItem.allCases.first(where: { $0.id == selectedItems[index].id }) {
+//                // Show item preview if an item is selected
+//                getItemPreview(for: selectedItem)
+//            }
+            if index < selectedItems.count {
+                // Zeige Vorschau, wenn ein Item ausgewählt wurde
+                let selectedItem = selectedItems[index]
                 getItemPreview(for: selectedItem)
             } else {
                 // Show "+" symbol if no item is selected
