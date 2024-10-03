@@ -15,6 +15,8 @@ extension UserInterfaceSettings {
         @State private var displayPickerLowThreshold: Bool = false
         @State private var displayPickerHighThreshold: Bool = false
 
+        @AppStorage("colorSchemePreference") private var colorSchemePreference: ColorSchemeOption = .systemDefault
+
         @Environment(\.colorScheme) var colorScheme
         var color: LinearGradient {
             colorScheme == .dark ? LinearGradient(
@@ -53,6 +55,80 @@ extension UserInterfaceSettings {
 
         var body: some View {
             Form {
+                Section(
+                    header: Text("General Appearance"),
+                    content: {
+                        VStack {
+                            Picker(
+                                selection: $colorSchemePreference,
+                                label: Text("Trio Color Scheme")
+                            ) {
+                                ForEach(ColorSchemeOption.allCases) { selection in
+                                    Text(selection.displayName).tag(selection)
+                                }
+                            }.padding(.top)
+
+                            HStack(alignment: .top) {
+                                Text(
+                                    "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                )
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+                                .lineLimit(nil)
+                                Spacer()
+                                Button(
+                                    action: {
+                                        hintLabel = "Color Scheme Preference"
+                                        selectedVerboseHint = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                        shouldDisplayHint.toggle()
+                                    },
+                                    label: {
+                                        HStack {
+                                            Image(systemName: "questionmark.circle")
+                                        }
+                                    }
+                                ).buttonStyle(BorderlessButtonStyle())
+                            }.padding(.top)
+                        }.padding(.bottom)
+                    }
+                ).listRowBackground(Color.chart)
+
+                Section {
+                    VStack {
+                        Picker(
+                            selection: $state.glucoseColorScheme,
+                            label: Text("Glucose Color Scheme")
+                        ) {
+                            ForEach(GlucoseColorScheme.allCases) { selection in
+                                Text(selection.displayName).tag(selection)
+                            }
+                        }.padding(.top)
+
+                        HStack(alignment: .top) {
+                            Text(
+                                "Glucose Color Scheme ... dynamic or static ... Lorem ipsum dolor"
+                            )
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .lineLimit(nil)
+                            Spacer()
+                            Button(
+                                action: {
+                                    hintLabel = "Glucose Color Scheme"
+                                    selectedVerboseHint =
+                                        "Glucose Color Scheme... Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                    shouldDisplayHint.toggle()
+                                },
+                                label: {
+                                    HStack {
+                                        Image(systemName: "questionmark.circle")
+                                    }
+                                }
+                            ).buttonStyle(BorderlessButtonStyle())
+                        }.padding(.top)
+                    }.padding(.bottom)
+                }.listRowBackground(Color.chart)
+
                 Section(
                     header: Text("Home View Settings"),
                     content: {

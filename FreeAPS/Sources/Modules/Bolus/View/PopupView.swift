@@ -134,14 +134,15 @@ struct PopupView: View {
             Text(state.carbRatio.formatted() + " " + NSLocalizedString("g/U", comment: " grams per Unit"))
                 .gridCellAnchor(.leading)
 
+            let isf = state.units == .mmolL ? state.isf.formattedAsMmolL : state.isf.description
             Text(
-                state.isf.formatted() + " " + state.units
+                isf + " " + state.units
                     .rawValue + NSLocalizedString("/U", comment: "/Insulin unit")
             ).gridCellAnchor(.leading)
-            let target = state.units == .mmolL ? state.target.asMmolL : state.target
+
+            let target = state.units == .mmolL ? state.target.formattedAsMmolL : state.target.description
             Text(
-                target
-                    .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits))) +
+                target +
                     " " + state.units.rawValue
             ).gridCellAnchor(.leading)
         }
@@ -149,28 +150,25 @@ struct PopupView: View {
 
     var calcGlucoseFirstRow: some View {
         GridRow(alignment: .center) {
-            let currentBG = state.units == .mmolL ? state.currentBG.asMmolL : state.currentBG
-            let target = state.units == .mmolL ? state.target.asMmolL : state.target
+            let currentBG = state.units == .mmolL ? state.currentBG.formattedAsMmolL : state.currentBG.description
+            let target = state.units == .mmolL ? state.target.formattedAsMmolL : state.target.description
 
             Text("Glucose:").foregroundColor(.secondary)
 
-            let targetDifference = state.units == .mmolL ? state.targetDifference.asMmolL : state.targetDifference
+            let targetDifference = state.units == .mmolL ? state.targetDifference.formattedAsMmolL : state.targetDifference
+                .description
             let firstRow = currentBG
-                .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits)))
-
                 + " - " +
                 target
-                .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits)))
                 + " = " +
                 targetDifference
-                .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits)))
 
             Text(firstRow).frame(minWidth: 0, alignment: .leading).foregroundColor(.secondary)
                 .gridColumnAlignment(.leading)
 
             HStack {
                 Text(
-                    self.insulinRounder(state.targetDifferenceInsulin).formatted()
+                    self.insulinFormatter(state.targetDifferenceInsulin)
                 )
                 Text("U").foregroundColor(.secondary)
             }.fontWeight(.bold)
@@ -180,24 +178,18 @@ struct PopupView: View {
 
     var calcGlucoseSecondRow: some View {
         GridRow(alignment: .center) {
-            let currentBG = state.units == .mmolL ? state.currentBG.asMmolL : state.currentBG
+            let currentBG = state.units == .mmolL ? state.currentBG.formattedAsMmolL : state.currentBG.description
             Text(
                 currentBG
-                    .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits))) +
-                    " " +
+                    + " " +
                     state.units.rawValue
             )
 
-            let targetDifference = state.units == .mmolL ? state.targetDifference.asMmolL : state.targetDifference
-            let secondRow = targetDifference
-                .formatted(
-                    .number.grouping(.never).rounded()
-                        .precision(.fractionLength(fractionDigits))
-                )
-                + " / " +
-                (state.units == .mgdL ? state.isf : state.isf.asMmolL).formatted()
-                + " ≈ " +
-                self.insulinRounder(state.targetDifferenceInsulin).formatted()
+            let targetDifference = state.units == .mmolL ? state.targetDifference.formattedAsMmolL : state.targetDifference
+                .description
+            let secondRow = targetDifference + " / " +
+                (state.units == .mmolL ? state.isf.formattedAsMmolL : state.isf.description)
+                .description + " ≈ " + self.insulinFormatter(state.targetDifferenceInsulin)
 
             Text(secondRow).foregroundColor(.secondary).gridColumnAlignment(.leading)
 
@@ -221,13 +213,13 @@ struct PopupView: View {
             HStack {
                 Text("IOB:").foregroundColor(.secondary)
                 Text(
-                    self.insulinRounder(state.iob).formatted()
+                    self.insulinFormatter(state.iob)
                 )
             }
 
             Text("Subtract IOB").foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8)).font(.footnote)
 
-            let iobFormatted = self.insulinRounder(state.iob).formatted()
+            let iobFormatted = self.insulinFormatter(state.iob)
             HStack {
                 Text((state.iob >= 0 ? "-" : "") + (state.iob >= 0 ? iobFormatted : "(" + iobFormatted + ")"))
                 Text("U").foregroundColor(.secondary)
@@ -253,14 +245,14 @@ struct PopupView: View {
                     + " / " +
                     state.carbRatio.formatted()
                     + " ≈ " +
-                    self.insulinRounder(state.wholeCobInsulin).formatted()
+                    self.insulinFormatter(state.wholeCobInsulin)
             )
             .foregroundColor(.secondary)
             .gridColumnAlignment(.leading)
 
             HStack {
                 Text(
-                    self.insulinRounder(state.wholeCobInsulin).formatted()
+                    self.insulinFormatter(state.wholeCobInsulin)
                 )
                 Text("U").foregroundColor(.secondary)
             }.fontWeight(.bold)
@@ -283,25 +275,19 @@ struct PopupView: View {
         GridRow(alignment: .center) {
             Text("Delta:").foregroundColor(.secondary)
 
-            let deltaBG = state.units == .mmolL ? state.deltaBG.asMmolL : state.deltaBG
+            let deltaBG = state.units == .mmolL ? state.deltaBG.formattedAsMmolL : state.deltaBG.description
+            let isf = state.units == .mmolL ? state.isf.formattedAsMmolL : state.isf.description
+
+            let fifteenMinInsulinFormatted = self.insulinFormatter(state.fifteenMinInsulin)
+
             Text(
-                deltaBG
-                    .formatted(
-                        .number.grouping(.never).rounded()
-                            .precision(.fractionLength(fractionDigits))
-                    )
-                    + " / " +
-                    state.isf.formatted()
-                    + " ≈ " +
-                    self.insulinRounder(state.fifteenMinInsulin).formatted()
+                deltaBG + " / " + isf + " ≈ " + fifteenMinInsulinFormatted
             )
             .foregroundColor(.secondary)
             .gridColumnAlignment(.leading)
 
             HStack {
-                Text(
-                    self.insulinRounder(state.fifteenMinInsulin).formatted()
-                )
+                Text(fifteenMinInsulinFormatted)
                 Text("U").foregroundColor(.secondary)
             }.fontWeight(.bold)
                 .gridColumnAlignment(.trailing)
@@ -310,13 +296,10 @@ struct PopupView: View {
 
     var calcDeltaFormulaRow: some View {
         GridRow(alignment: .center) {
-            let deltaBG = state.units == .mmolL ? state.deltaBG.asMmolL : state.deltaBG
+            let deltaBG = state.units == .mmolL ? state.deltaBG.formattedAsMmolL : state.deltaBG.description
             Text(
                 deltaBG
-                    .formatted(
-                        .number.grouping(.never).rounded()
-                            .precision(.fractionLength(fractionDigits))
-                    ) + " " +
+                    + " " +
                     state.units.rawValue
             )
 
@@ -334,7 +317,7 @@ struct PopupView: View {
             Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
 
             HStack {
-                Text(self.insulinRounder(state.wholeCalc).formatted())
+                Text(self.insulinFormatter(state.wholeCalc))
                     .foregroundStyle(state.wholeCalc < 0 ? Color.loopRed : Color.primary)
                 Text("U").foregroundColor(.secondary)
             }.gridColumnAlignment(.trailing)
@@ -350,7 +333,7 @@ struct PopupView: View {
             Text("Added to Result").foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8)).font(.footnote)
 
             HStack {
-                Text("+" + self.insulinRounder(state.superBolusInsulin).formatted())
+                Text("+" + self.insulinFormatter(state.superBolusInsulin))
                     .foregroundStyle(Color.loopRed)
                 Text("U").foregroundColor(.secondary)
             }.gridColumnAlignment(.trailing)
@@ -379,7 +362,7 @@ struct PopupView: View {
                     .foregroundColor(.secondary)
                     // endif fatty meal is chosen
 
-                    + Text(self.insulinRounder(state.wholeCalc).formatted())
+                    + Text(self.insulinFormatter(state.wholeCalc))
                     .foregroundColor(state.wholeCalc < 0 ? Color.loopRed : Color.primary)
 
                     // if superbolus is chosen
@@ -389,7 +372,7 @@ struct PopupView: View {
                     + Text(state.useSuperBolus ? " + " : "")
                     .foregroundColor(.secondary)
 
-                    + Text(state.useSuperBolus ? state.superBolusInsulin.formatted() : "")
+                    + Text(state.useSuperBolus ? self.insulinFormatter(state.superBolusInsulin) : "")
                     .foregroundColor(.loopRed)
                     // endif superbolus is chosen
 
@@ -399,7 +382,7 @@ struct PopupView: View {
             .gridColumnAlignment(.leading)
 
             HStack {
-                Text(self.insulinRounder(state.insulinCalculated).formatted())
+                Text(self.insulinFormatter(state.insulinCalculated))
                     .fontWeight(.bold)
                     .foregroundColor(state.wholeCalc >= state.maxBolus ? Color.loopRed : Color.blue)
                 Text("U").foregroundColor(.secondary)
@@ -447,9 +430,17 @@ struct PopupView: View {
         }
     }
 
-    private func insulinRounder(_ value: Decimal) -> Decimal {
+    private func insulinFormatter(_ value: Decimal) -> String {
         let toRound = NSDecimalNumber(decimal: value).doubleValue
-        return Decimal(floor(100 * toRound) / 100)
+        let roundedValue = Decimal(floor(100 * toRound) / 100)
+
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.minimumFractionDigits = 2
+        formatter.maximumFractionDigits = 2
+        formatter.locale = Locale.current // Uses the user's locale
+
+        return formatter.string(from: roundedValue as NSNumber) ?? String(format: "%.2f", toRound)
     }
 
     struct DividerDouble: View {
@@ -476,7 +467,3 @@ struct PopupView: View {
         }
     }
 }
-
-// #Preview {
-//    PopupView()
-// }

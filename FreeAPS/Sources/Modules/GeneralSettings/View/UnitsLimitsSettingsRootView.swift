@@ -45,6 +45,27 @@ extension UnitsLimitsSettings {
                 ).listRowBackground(Color.chart)
 
                 SettingInputSection(
+                    decimalValue: $state.maxIOB,
+                    booleanValue: $booleanPlaceholder,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = NSLocalizedString("Max IOB", comment: "Max IOB")
+                        }
+                    ),
+                    units: state.units,
+                    type: .decimal("maxIOB"),
+                    label: NSLocalizedString("Max IOB", comment: "Max IOB"),
+                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+                    verboseHint: NSLocalizedString(
+                        "Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two OpenAPS safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings.",
+                        comment: "Max IOB"
+                    )
+                )
+
+                SettingInputSection(
                     decimalValue: $state.maxBolus,
                     booleanValue: $booleanPlaceholder,
                     shouldDisplayHint: $shouldDisplayHint,
@@ -78,27 +99,6 @@ extension UnitsLimitsSettings {
                     label: "Max Basal",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                     verboseHint: "Max Basal… bla bla bla"
-                )
-
-                SettingInputSection(
-                    decimalValue: $state.maxIOB,
-                    booleanValue: $booleanPlaceholder,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    selectedVerboseHint: Binding(
-                        get: { selectedVerboseHint },
-                        set: {
-                            selectedVerboseHint = $0
-                            hintLabel = NSLocalizedString("Max IOB", comment: "Max IOB")
-                        }
-                    ),
-                    units: state.units,
-                    type: .decimal("maxIOB"),
-                    label: NSLocalizedString("Max IOB", comment: "Max IOB"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two OpenAPS safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings.",
-                        comment: "Max IOB"
-                    )
                 )
 
                 SettingInputSection(

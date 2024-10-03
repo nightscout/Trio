@@ -45,9 +45,9 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             fetchLimit: 1
         )
 
-        guard let fetchedResults = results as? [OverrideStored] else { return [] }
-
         return await backgroundContext.perform {
+            guard let fetchedResults = results as? [OverrideStored] else { return [] }
+
             return fetchedResults.map(\.objectID)
         }
     }
@@ -62,9 +62,9 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             fetchLimit: fetchLimit
         )
 
-        guard let fetchedResults = results as? [OverrideStored] else { return [] }
-
         return await backgroundContext.perform {
+            guard let fetchedResults = results as? [OverrideStored] else { return [] }
+
             return fetchedResults.map(\.objectID)
         }
     }
@@ -79,9 +79,9 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             ascending: true
         )
 
-        guard let fetchedResults = results as? [OverrideStored] else { return [] }
-
         return await backgroundContext.perform {
+            guard let fetchedResults = results as? [OverrideStored] else { return [] }
+
             return fetchedResults.map(\.objectID)
         }
     }
@@ -215,9 +215,9 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             ascending: false
         )
 
-        guard let fetchedOverrides = results as? [OverrideStored] else { return [] }
-
         return await backgroundContext.perform {
+            guard let fetchedOverrides = results as? [OverrideStored] else { return [] }
+
             return fetchedOverrides.map { override in
                 let duration = override.indefinite ? 1440 : override.duration ?? 0 // 1440 min = 1 day
                 return NightscoutExercise(
@@ -245,9 +245,9 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             ascending: false
         )
 
-        guard let fetchedOverrideRuns = results as? [OverrideRunStored] else { return [] }
-
         return await backgroundContext.perform {
+            guard let fetchedOverrideRuns = results as? [OverrideRunStored] else { return [] }
+
             return fetchedOverrideRuns.map { overrideRun in
                 var durationInMinutes = (overrideRun.endDate?.timeIntervalSince(overrideRun.startDate ?? Date()) ?? 1) / 60
                 durationInMinutes = durationInMinutes < 1 ? 1 : durationInMinutes

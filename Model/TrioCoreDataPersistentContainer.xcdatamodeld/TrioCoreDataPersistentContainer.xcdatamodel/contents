@@ -13,7 +13,9 @@
         <attribute name="fpuID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="isFPU" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="isUploadedToHealth" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="isUploadedToNS" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="isUploadedToTidepool" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="note" optional="YES" attributeType="String"/>
         <attribute name="protein" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <fetchIndex name="byDate">
@@ -44,15 +46,20 @@
         <attribute name="glucose" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="isManual" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="isUploadedToHealth" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="isUploadedToNS" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="isUploadedToTidepool" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <fetchIndex name="byDate">
-            <fetchIndexElement property="date" type="Binary" order="descending"/>
+            <fetchIndexElement property="date" type="Binary" order="ascending"/>
         </fetchIndex>
         <fetchIndex name="byIsManual">
             <fetchIndexElement property="isManual" type="Binary" order="ascending"/>
         </fetchIndex>
         <fetchIndex name="byIsUploadedToNS">
             <fetchIndexElement property="isUploadedToNS" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byIsUploadedToHealth">
+            <fetchIndexElement property="isUploadedToHealth" type="Binary" order="ascending"/>
         </fetchIndex>
     </entity>
     <entity name="LoopStatRecord" representedClassName="LoopStatRecord" syncable="YES">
@@ -161,7 +168,9 @@
     </entity>
     <entity name="PumpEventStored" representedClassName="PumpEventStored" syncable="YES">
         <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="isUploadedToHealth" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="isUploadedToNS" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="isUploadedToTidepool" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="note" optional="YES" attributeType="String"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="type" optional="YES" attributeType="String"/>

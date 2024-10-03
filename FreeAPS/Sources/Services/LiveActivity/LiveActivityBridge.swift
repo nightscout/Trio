@@ -1,4 +1,5 @@
 import ActivityKit
+import Combine
 import CoreData
 import Foundation
 import Swinject
@@ -29,6 +30,7 @@ import UIKit
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var storage: FileStorage!
+    @Injected() private var glucoseStorage: GlucoseStorage!
 
     private let activityAuthorizationInfo = ActivityAuthorizationInfo()
     @Published private(set) var systemEnabled: Bool
@@ -45,13 +47,20 @@ import UIKit
 
     let context = CoreDataStack.shared.newTaskContext()
 
-    private var coreDataObserver: CoreDataObserver?
+    private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+    private var subscriptions = Set<AnyCancellable>()
 
     init(resolver: Resolver) {
+        coreDataPublisher =
+            changedObjectsOnManagedObjectContextDidSavePublisher()
+                .receive(on: DispatchQueue.global(qos: .background))
+                .share()
+                .eraseToAnyPublisher()
+
         systemEnabled = activityAuthorizationInfo.areActivitiesEnabled
         injectServices(resolver)
         setupNotifications()
-        coreDataObserver = CoreDataObserver()
+        registerSubscribers()
         registerHandler()
         monitorForLiveActivityAuthorizationChanges()
         setupGlucoseArray()
@@ -59,7 +68,6 @@ import UIKit
 
     private func setupNotifications() {
         let notificationCenter = Foundation.NotificationCenter.default
-        notificationCenter.addObserver(self, selector: #selector(handleBatchInsert), name: .didPerformBatchInsert, object: nil)
         notificationCenter.addObserver(self, selector: #selector(cobOrIobDidUpdate), name: .didUpdateCobIob, object: nil)
         notificationCenter
             .addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { [weak self] _ in
@@ -73,14 +81,20 @@ import UIKit
 
     private func registerHandler() {
         // Since we are only using this info to show if an Override is active or not in the Live Activity it is enough to observe only the 'OverrideStored' Entity
-        coreDataObserver?.registerHandler(for: "OverrideStored") { [weak self] in
+        coreDataPublisher?.filterByEntityName("OverrideStored").sink { [weak self] _ in
             guard let self = self else { return }
             self.overridesDidUpdate()
-        }
+        }.store(in: &subscriptions)
     }
 
-    @objc private func handleBatchInsert() {
-        setupGlucoseArray()
+    private func registerSubscribers() {
+        glucoseStorage.updatePublisher
+            .receive(on: DispatchQueue.global(qos: .background))
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                self.setupGlucoseArray()
+            }
+            .store(in: &subscriptions)
     }
 
     @objc private func cobOrIobDidUpdate() {
@@ -178,6 +192,9 @@ import UIKit
                         direction: nil,
                         change: "--",
                         date: Date.now,
+                        highGlucose: settings.high,
+                        lowGlucose: settings.low,
+                        glucoseColorScheme: settings.glucoseColorScheme.rawValue,
                         detailedViewState: nil,
                         isInitialState: true
                     ),

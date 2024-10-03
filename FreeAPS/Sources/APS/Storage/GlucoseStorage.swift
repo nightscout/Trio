@@ -1,11 +1,14 @@
 import AVFAudio
+import Combine
 import CoreData
 import Foundation
+import LoopKit
 import SwiftDate
 import SwiftUI
 import Swinject
 
 protocol GlucoseStorage {
+    var updatePublisher: AnyPublisher<Void, Never> { get }
     func storeGlucose(_ glucose: [BloodGlucose])
     func isGlucoseDataFresh(_ glucoseDate: Date?) -> Bool
     func syncDate() -> Date
@@ -15,7 +18,12 @@ protocol GlucoseStorage {
     func getGlucoseNotYetUploadedToNightscout() async -> [BloodGlucose]
     func getCGMStateNotYetUploadedToNightscout() async -> [NightscoutTreatment]
     func getManualGlucoseNotYetUploadedToNightscout() async -> [NightscoutTreatment]
+    func getGlucoseNotYetUploadedToHealth() async -> [BloodGlucose]
+    func getManualGlucoseNotYetUploadedToHealth() async -> [BloodGlucose]
+    func getGlucoseNotYetUploadedToTidepool() async -> [StoredGlucoseSample]
+    func getManualGlucoseNotYetUploadedToTidepool() async -> [StoredGlucoseSample]
     var alarm: GlucoseAlarm? { get }
+    func deleteGlucose(_ treatmentObjectID: NSManagedObjectID) async
 }
 
 final class BaseGlucoseStorage: GlucoseStorage, Injectable {
@@ -25,6 +33,12 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     @Injected() private var settingsManager: SettingsManager!
 
     let coredataContext = CoreDataStack.shared.newTaskContext()
+
+    private let updateSubject = PassthroughSubject<Void, Never>()
+
+    var updatePublisher: AnyPublisher<Void, Never> {
+        updateSubject.eraseToAnyPublisher()
+    }
 
     private enum Config {
         static let filterTime: TimeInterval = 3.5 * 60
@@ -80,6 +94,8 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                         glucoseEntry.date = entry.dateString
                         glucoseEntry.direction = entry.direction?.rawValue
                         glucoseEntry.isUploadedToNS = false /// the value is not uploaded to NS (yet)
+                        glucoseEntry.isUploadedToHealth = false /// the value is not uploaded to Health (yet)
+                        glucoseEntry.isUploadedToTidepool = false /// the value is not uploaded to Tidepool (yet)
                         return false // Continue processing
                     }
                 )
@@ -87,12 +103,10 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                 // process batch insert
                 do {
                     try self.coredataContext.execute(batchInsert)
-//                    debugPrint("Glucose Storage: \(#function) \(DebuggingIdentifiers.succeeded) saved glucose to Core Data")
 
-                    // Send notification for triggering a fetch in Home State Model to update the Glucose Array
-                    /// This is necessary because changes only get merged automatically into the viewContext because of the Persistent History Tracking
-                    /// But I do not want to fetch on the Main Thread using the @FetchRequest property, I also can not use the FetchedResultsController because of the architecture of the State Model (it must inherit from BaseStateModel and therefore can not inherit from NSObject as well) and because of the fact that I am using a batch insert here there are no notifications sent from the managedObjectContext because changes are directly stored in the persistent container
-                    Foundation.NotificationCenter.default.post(name: .didPerformBatchInsert, object: nil)
+                    // Notify subscribers that there is a new glucose value
+                    // We need to do this because the due to the batch insert there is no ManagedObjectContext notification
+                    self.updateSubject.send(())
                 } catch {
                     debugPrint(
                         "Glucose Storage: \(#function) \(DebuggingIdentifiers.failed) failed to execute batch insert: \(error)"
@@ -235,7 +249,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     }
 
     // Fetch glucose that is not uploaded to Nightscout yet
-    /// Returns: Array of BloodGlucose to ensure the correct format for the NS Upload
+    /// - Returns: Array of BloodGlucose to ensure the correct format for the NS Upload
     func getGlucoseNotYetUploadedToNightscout() async -> [BloodGlucose] {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
@@ -246,9 +260,9 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             fetchLimit: 288
         )
 
-        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
-
         return await coredataContext.perform {
+            guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+
             return fetchedResults.map { result in
                 BloodGlucose(
                     _id: result.id?.uuidString ?? UUID().uuidString,
@@ -266,7 +280,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     }
 
     // Fetch manual glucose that is not uploaded to Nightscout yet
-    /// Returns: Array of NightscoutTreatment to ensure the correct format for the NS Upload
+    /// - Returns: Array of NightscoutTreatment to ensure the correct format for the NS Upload
     func getManualGlucoseNotYetUploadedToNightscout() async -> [NightscoutTreatment] {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
@@ -289,7 +303,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                     rate: nil,
                     eventType: .capillaryGlucose,
                     createdAt: result.date,
-                    enteredBy: "Trio",
+                    enteredBy: CarbsEntry.manual,
                     bolus: nil,
                     insulin: nil,
                     notes: "Trio User",
@@ -318,6 +332,158 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
         let (alreadyUploadedValues, allValuesSet) = await (alreadyUploaded, allValues)
         return Array(Set(allValuesSet).subtracting(Set(alreadyUploadedValues)))
+    }
+
+    // Fetch glucose that is not uploaded to Nightscout yet
+    /// - Returns: Array of BloodGlucose to ensure the correct format for the NS Upload
+    func getGlucoseNotYetUploadedToHealth() async -> [BloodGlucose] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: GlucoseStored.self,
+            onContext: coredataContext,
+            predicate: NSPredicate.glucoseNotYetUploadedToHealth,
+            key: "date",
+            ascending: false,
+            fetchLimit: 288
+        )
+
+        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+
+        return await coredataContext.perform {
+            return fetchedResults.map { result in
+                BloodGlucose(
+                    _id: result.id?.uuidString ?? UUID().uuidString,
+                    sgv: Int(result.glucose),
+                    direction: BloodGlucose.Direction(from: result.direction ?? ""),
+                    date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
+                    dateString: result.date ?? Date(),
+                    unfiltered: Decimal(result.glucose),
+                    filtered: Decimal(result.glucose),
+                    noise: nil,
+                    glucose: Int(result.glucose)
+                )
+            }
+        }
+    }
+
+    // Fetch manual glucose that is not uploaded to Nightscout yet
+    /// - Returns: Array of NightscoutTreatment to ensure the correct format for the NS Upload
+    func getManualGlucoseNotYetUploadedToHealth() async -> [BloodGlucose] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: GlucoseStored.self,
+            onContext: coredataContext,
+            predicate: NSPredicate.manualGlucoseNotYetUploadedToHealth,
+            key: "date",
+            ascending: false,
+            fetchLimit: 288
+        )
+
+        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+
+        return await coredataContext.perform {
+            return fetchedResults.map { result in
+                BloodGlucose(
+                    _id: result.id?.uuidString ?? UUID().uuidString,
+                    sgv: Int(result.glucose),
+                    direction: BloodGlucose.Direction(from: result.direction ?? ""),
+                    date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
+                    dateString: result.date ?? Date(),
+                    unfiltered: Decimal(result.glucose),
+                    filtered: Decimal(result.glucose),
+                    noise: nil,
+                    glucose: Int(result.glucose)
+                )
+            }
+        }
+    }
+
+    // Fetch glucose that is not uploaded to Tidepool yet
+    /// - Returns: Array of StoredGlucoseSample to ensure the correct format for Tidepool upload
+    func getGlucoseNotYetUploadedToTidepool() async -> [StoredGlucoseSample] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: GlucoseStored.self,
+            onContext: coredataContext,
+            predicate: NSPredicate.glucoseNotYetUploadedToTidepool,
+            key: "date",
+            ascending: false,
+            fetchLimit: 288
+        )
+
+        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+
+        return await coredataContext.perform {
+            return fetchedResults.map { result in
+                BloodGlucose(
+                    _id: result.id?.uuidString ?? UUID().uuidString,
+                    sgv: Int(result.glucose),
+                    direction: BloodGlucose.Direction(from: result.direction ?? ""),
+                    date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
+                    dateString: result.date ?? Date(),
+                    unfiltered: Decimal(result.glucose),
+                    filtered: Decimal(result.glucose),
+                    noise: nil,
+                    glucose: Int(result.glucose)
+                )
+            }
+            .map { $0.convertStoredGlucoseSample(isManualGlucose: false) }
+        }
+    }
+
+    // Fetch manual glucose that is not uploaded to Tidepool yet
+    /// - Returns: Array of StoredGlucoseSample to ensure the correct format for the Tidepool upload
+    func getManualGlucoseNotYetUploadedToTidepool() async -> [StoredGlucoseSample] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: GlucoseStored.self,
+            onContext: coredataContext,
+            predicate: NSPredicate.manualGlucoseNotYetUploadedToTidepool,
+            key: "date",
+            ascending: false,
+            fetchLimit: 288
+        )
+
+        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+
+        return await coredataContext.perform {
+            return fetchedResults.map { result in
+                BloodGlucose(
+                    _id: result.id?.uuidString ?? UUID().uuidString,
+                    sgv: Int(result.glucose),
+                    direction: BloodGlucose.Direction(from: result.direction ?? ""),
+                    date: Decimal(result.date?.timeIntervalSince1970 ?? Date().timeIntervalSince1970) * 1000,
+                    dateString: result.date ?? Date(),
+                    unfiltered: Decimal(result.glucose),
+                    filtered: Decimal(result.glucose),
+                    noise: nil,
+                    glucose: Int(result.glucose)
+                )
+            }.map { $0.convertStoredGlucoseSample(isManualGlucose: true) }
+        }
+    }
+
+    func deleteGlucose(_ treatmentObjectID: NSManagedObjectID) async {
+        let taskContext = CoreDataStack.shared.newTaskContext()
+        taskContext.name = "deleteContext"
+        taskContext.transactionAuthor = "deleteGlucose"
+
+        await taskContext.perform {
+            do {
+                let result = try taskContext.existingObject(with: treatmentObjectID) as? GlucoseStored
+
+                guard let glucoseToDelete = result else {
+                    debugPrint("Data Table State: \(#function) \(DebuggingIdentifiers.failed) glucose not found in core data")
+                    return
+                }
+
+                taskContext.delete(glucoseToDelete)
+
+                guard taskContext.hasChanges else { return }
+                try taskContext.save()
+                debugPrint("\(#file) \(#function) \(DebuggingIdentifiers.succeeded) deleted glucose from core data")
+            } catch {
+                debugPrint(
+                    "\(#file) \(#function) \(DebuggingIdentifiers.failed) error while deleting glucose from core data: \(error.localizedDescription)"
+                )
+            }
+        }
     }
 
     var alarm: GlucoseAlarm? {

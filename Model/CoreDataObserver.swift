@@ -1,46 +1,25 @@
+import Combine
 import CoreData
 import Foundation
 
-class CoreDataObserver {
-    private var entityUpdateHandlers: [String: () -> Void] = [:] // Dictionary to store pairs of entities and handlers
+func changedObjectsOnManagedObjectContextDidSavePublisher() -> some Publisher<Set<NSManagedObject>, Never> {
+    Foundation.NotificationCenter.default
+        .publisher(for: NSNotification.Name.NSManagedObjectContextDidSave)
+        .map { notification in
+            guard let userInfo = notification.userInfo else { return Set<NSManagedObject>() }
 
-    init() {
-        setupNotification()
-    }
+            var objects = Set((userInfo[NSInsertedObjectsKey] as? Set<NSManagedObject>) ?? [])
+            objects.formUnion((userInfo[NSUpdatedObjectsKey] as? Set<NSManagedObject>) ?? [])
+            objects.formUnion((userInfo[NSDeletedObjectsKey] as? Set<NSManagedObject>) ?? [])
 
-    func registerHandler(for entityName: String, handler: @escaping () -> Void) {
-        entityUpdateHandlers[entityName] = handler
-    }
-
-    private func setupNotification() {
-        Foundation.NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(contextDidSave(_:)),
-            name: NSNotification.Name.NSManagedObjectContextDidSave,
-            object: nil
-        )
-    }
-
-    @objc private func contextDidSave(_ notification: Notification) {
-        guard let userInfo = notification.userInfo else { return }
-
-        Task {
-            await processUpdates(userInfo: userInfo)
+            return objects
         }
-    }
+}
 
-    private func processUpdates(userInfo: [AnyHashable: Any]) async {
-        var objects = Set((userInfo[NSInsertedObjectsKey] as? Set<NSManagedObject>) ?? [])
-        objects.formUnion((userInfo[NSUpdatedObjectsKey] as? Set<NSManagedObject>) ?? [])
-        objects.formUnion((userInfo[NSDeletedObjectsKey] as? Set<NSManagedObject>) ?? [])
-
-        for (entityName, handler) in entityUpdateHandlers {
-            let entityUpdates = objects.filter { $0.entity.name == entityName }
-            DispatchQueue.global(qos: .background).async {
-                if entityUpdates.isNotEmpty {
-                    handler()
-                }
-            }
+extension Publisher where Output == Set<NSManagedObject> {
+    func filterByEntityName(_ name: String) -> some Publisher<Self.Output, Self.Failure> {
+        filter { objects in
+            objects.contains(where: { $0.entity.name == name })
         }
     }
 }
