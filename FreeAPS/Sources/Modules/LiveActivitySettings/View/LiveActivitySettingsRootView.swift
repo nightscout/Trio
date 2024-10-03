@@ -122,7 +122,7 @@ extension LiveActivitySettings {
                                 content: {
                                     NavigationLink(
                                         "Widget Configuration",
-                                        destination: LiveActivityBottomRowConfiguration(resolver: resolver, state: state)
+                                        destination: LiveActivityWidgetConfiguration(resolver: resolver, state: state)
                                     )
                                 }
                             ).listRowBackground(Color.chart)

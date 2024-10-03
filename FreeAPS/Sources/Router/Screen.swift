@@ -132,7 +132,7 @@ extension Screen {
         case .liveActivitySettings:
             LiveActivitySettings.RootView(resolver: resolver)
         case .liveActivityBottomRowSettings:
-            LiveActivityBottomRowConfiguration(resolver: resolver, state: LiveActivitySettings.StateModel())
+            LiveActivityWidgetConfiguration(resolver: resolver, state: LiveActivitySettings.StateModel())
         case .calendarEventSettings:
             CalendarEventSettings.RootView(resolver: resolver)
         case .serviceSettings:
