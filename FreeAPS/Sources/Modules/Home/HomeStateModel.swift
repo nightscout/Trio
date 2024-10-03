@@ -247,6 +247,16 @@ extension Home {
                 guard let self = self else { return }
                 self.setupOverrideRunStored()
             }.store(in: &subscriptions)
+
+            coreDataPublisher?.filterByEntityName("TempTargetStored").sink { [weak self] _ in
+                guard let self = self else { return }
+                self.setupTempTargetsStored()
+            }.store(in: &subscriptions)
+
+            coreDataPublisher?.filterByEntityName("TempTargetRunStored").sink { [weak self] _ in
+                guard let self = self else { return }
+                self.setupTempTargetsRunStored()
+            }.store(in: &subscriptions)
         }
 
         private func registerObservers() {
