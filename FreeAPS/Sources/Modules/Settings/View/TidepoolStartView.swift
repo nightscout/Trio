@@ -36,12 +36,36 @@ struct TidepoolStartView: BaseView {
                 content:
                 {
                     VStack {
-                        Button {
-                            state.setupTidepool.toggle()
+                        if let serviceUIType = state.serviceUIType,
+                           let pluginHost = state.provider.tidepoolManager.getTidepoolPluginHost()
+                        {
+                            if let serviceUI = state.provider.tidepoolManager.getTidepoolServiceUI()
+                            {
+                                Button {
+                                    state.setupTidepool.toggle()
+                                }
+                                label: {
+                                    HStack {
+                                        Text("Connected to Tidepool").font(.title3)
+                                        ZStack {
+                                            Image(systemName: "network")
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .foregroundColor(.green).font(.caption2)
+                                                .offset(x: 9, y: 6)
+                                        }
+                                    }
+                                }
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .buttonStyle(.bordered)
+                            } else {
+                                Button {
+                                    state.setupTidepool.toggle()
+                                }
+                                label: { Text("Connect to Tidepool").font(.title3) }
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                    .buttonStyle(.bordered)
+                            }
                         }
-                        label: { Text("Connect to Tidepool").font(.title3) }
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .buttonStyle(.bordered)
 
                         HStack(alignment: .top) {
                             Text("You can connect Trio to seamlessly upload and manage your diabetes data on Tidepool.")
