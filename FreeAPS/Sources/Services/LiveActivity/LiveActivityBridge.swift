@@ -68,7 +68,6 @@ import UIKit
 
     private func setupNotifications() {
         let notificationCenter = Foundation.NotificationCenter.default
-        notificationCenter.addObserver(self, selector: #selector(cobOrIobDidUpdate), name: .didUpdateCobIob, object: nil)
         notificationCenter
             .addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { [weak self] _ in
                 self?.forceActivityUpdate()
