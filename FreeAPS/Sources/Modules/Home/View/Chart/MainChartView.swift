@@ -96,17 +96,17 @@ struct MainChartView: View {
                                 iobChart
                             }
 
-                        }.onChange(of: screenHours) { _ in
+                        }.onChange(of: screenHours) {
                             scroller.scrollTo("MainChart", anchor: .trailing)
                         }
-                        .onChange(of: state.glucoseFromPersistence.last?.glucose) { _ in
+                        .onChange(of: state.glucoseFromPersistence.last?.glucose) {
                             scroller.scrollTo("MainChart", anchor: .trailing)
                             updateStartEndMarkers()
                         }
-                        .onChange(of: state.enactedAndNonEnactedDeterminations.first?.deliverAt) { _ in
+                        .onChange(of: state.enactedAndNonEnactedDeterminations.first?.deliverAt) {
                             scroller.scrollTo("MainChart", anchor: .trailing)
                         }
-                        .onChange(of: units) { _ in
+                        .onChange(of: units) {
                             // TODO: - Refactor this to only update the Y Axis Scale
                             state.setupGlucoseArray()
                         }
@@ -224,7 +224,7 @@ extension MainChartView {
                 }
             }
             .id("MainChart")
-            .onChange(of: state.insulinFromPersistence) { _ in
+            .onChange(of: state.insulinFromPersistence) {
                 state.roundedTotalBolus = state.calculateTINS()
             }
             .frame(minHeight: geo.size.height * 0.28)
