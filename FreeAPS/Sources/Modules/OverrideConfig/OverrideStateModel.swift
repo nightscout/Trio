@@ -553,7 +553,7 @@ extension OverrideConfig.StateModel {
         await tempTargetStorage.storeTempTarget(tempTarget: tempTarget)
 
         // disable all TempTargets
-        await disableAllActiveOverrides(createOverrideRunEntry: true)
+        await disableAllActiveTempTargets(createTempTargetRunEntry: true)
 
         // Reset State variables
         await resetTempTargetState()
