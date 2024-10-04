@@ -260,10 +260,10 @@ extension Home {
                 durationString =
                     "\((newDuration * 60).formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) s"
             } else {
-                /// Do not show the Override anymore
+                /// Do not show the Temp Target anymore
                 Task {
                     guard let objectID = self.latestTempTarget.first?.objectID else { return }
-                    await state.cancelOverride(withID: objectID)
+                    await state.cancelTempTarget(withID: objectID)
                 }
             }
 
