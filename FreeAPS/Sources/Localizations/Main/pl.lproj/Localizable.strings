@@ -191,7 +191,7 @@
 "Save as Preset" = "Zapisz Preset";
 
 /* Delete Meal Preset */
-"Delete Preset" = "Usuń Preset";
+"Delete Preset" = "Usuń zapisany posiłek";
 
 /* Confirm Deletion */
 "Delete preset '%@'?" = "Usuń preset '%@'?";
@@ -612,7 +612,7 @@ Enact a temp Basal or a temp target */
 "Delete Insulin?" = "Usunąć insulinę?";
 
 /* Treatments list */
-"Treatments" = "Zabiegi";
+"Treatments" = "Zdarzenia";
 
 /* " min" in Treatments list */
 " min" = " min";
@@ -1273,10 +1273,10 @@ Enact a temp Basal or a temp target */
 "Interval In Minutes" = "Odstęp czasowy w minutach";
 
 /* Override */
-"Override With A Factor Of " = "Nadpisz współczynnikiem ";
+"Override With A Factor Of " = "Współczynnik dopasowania ";
 
 /* Description */
-"Allows fat and protein to be converted into future carb equivalents using the Warsaw formula of kilocalories divided by 10.\n\nThis spreads the carb equivilants over a maximum duration setting that can be configured from 5-12 hours.\n\nDelay is time from now until the first future carb entry.\n\nInterval in minutes is how many minutes are between entries. The shorter the interval, the smoother the result. 10, 15, 20, 30, or 60 are reasonable choices.\n\nAdjustment factor is how much effect the fat and protein has on the entries. 1.0 is full effect (original Warsaw Method) and 0.5 is half effect. Note that you may find that your normal carb ratio needs to increase to a larger number if you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 0.5 to ease into it.\n\nDefault settings: Time Cap: 8 h, Interval: 30 min, Factor: 0.5, Delay 60 min" = "Umożliwia konwersję tłuszczu i białka na przyszłe ekwiwalenty węglowodanów przy użyciu wzoru warszawskiego kilokalorii podzielonych przez 10.\n\nRozkłada to ekwiwalenty węglowodanów na maksymalny czas trwania, który można skonfigurować w zakresie od 5 do 12 godzin.\n\nOpóźnienie to czas od teraz do pierwszego przyszłego wpisu węglowodanów.\n\nOdstęp w minutach to liczba minut między wpisami. Im krótszy odstęp, tym gładszy wynik. 10, 15, 20, 30 lub 60 to rozsądne wybory.\n\nWspółczynnik korekty to wpływ tłuszczu i białka na wpisy. 1,0 to pełny efekt (oryginalna metoda warszawska), a 0,5 to połowa efektu. Należy pamiętać, że może się okazać, że normalny stosunek węglowodanów musi wzrosnąć do większej liczby, jeśli zaczniesz dodawać wpisy tłuszczu i białka. Z tego powodu najlepiej zacząć od współczynnika około 0,5, aby stopniowo się przyzwyczaić.\n\nUstawienia domyślne: Limit czasu: 8 godz., Interwał: 30 min, Współczynnik: 0,5, Opóźnienie 60 min";
+"Allows fat and protein to be converted into future carb equivalents using the Warsaw formula of kilocalories divided by 10.\n\nThis spreads the carb equivilants over a maximum duration setting that can be configured from 5-12 hours.\n\nDelay is time from now until the first future carb entry.\n\nInterval in minutes is how many minutes are between entries. The shorter the interval, the smoother the result. 10, 15, 20, 30, or 60 are reasonable choices.\n\nAdjustment factor is how much effect the fat and protein has on the entries. 1.0 is full effect (original Warsaw Method) and 0.5 is half effect. Note that you may find that your normal carb ratio needs to increase to a larger number if you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 0.5 to ease into it.\n\nDefault settings: Time Cap: 8 h, Interval: 30 min, Factor: 0.5, Delay 60 min" = "Umożliwia konwersję tłuszczu i białka na przyszłe ekwiwalenty węglowodanów przy użyciu wzoru warszawskiego kilokalorii podzielonych przez 10.\n\nRozkłada to ekwiwalenty węglowodanów na maksymalny czas trwania, który można skonfigurować w zakresie od 5 do 12 godzin.\n\nOpóźnienie to czas od teraz do pierwszego przyszłego wpisu węglowodanów.\n\nOdstęp w minutach to liczba minut między wpisami. Im krótszy odstęp, tym gładszy wynik. 10, 15, 20, 30 lub 60 to rozsądne wybory.\n\nWspółczynnik dopasowania to wpływ tłuszczu i białka na wpisy. 1,0 to pełny efekt (oryginalna metoda warszawska), a 0,5 to połowa efektu. Należy pamiętać, że może się okazać, że normalny stosunek węglowodanów musi wzrosnąć do większej liczby, jeśli zaczniesz dodawać wpisy tłuszczu i białka. Z tego powodu najlepiej zacząć od współczynnika około 0,5, aby stopniowo się przyzwyczaić.\n\nUstawienia domyślne: Limit czasu: 8 godz., Interwał: 30 min, Współczynnik: 0,5, Opóźnienie 60 min";
 
 /* FPU Settings Title */
 "Fat and Protein" = "Tłuszcze i Białka";
@@ -1674,7 +1674,7 @@ Enact a temp Basal or a temp target */
 "Change HbA1c Unit" = "Zmień jednostkę HbA1c";
 
 /* */
-"Display Chart X - Grid lines" = "Wykres X - Linie siatki";
+"Display Chart X - Grid lines" = "Oś X - Linie siatki";
 
 /* */
 "Display Chart Y - Grid lines" = "Oś Y - Linie siatki";
@@ -1820,7 +1820,7 @@ Enact a temp Basal or a temp target */
 "Rewind Resets Autosens" = "Przewiń resetuje Autosens";
 
 /* ”Rewind Resets Autosens” */
-"This feature, enabled by default, resets the autosens ratio to neutral when you rewind your pump, on the assumption that this corresponds to a probable site change. Autosens will begin learning sensitivity anew from the time of the rewind, which may take up to 6 hours. If you usually rewind your pump independently of site changes, you may want to consider disabling this feature." = "Funkcja domyślnie włączona. W żargonie Medtronic termin „przewinięcie” oznacza podłączenie nowego zbiornika insuliny i zestawu infuzyjnego. Dla użytkowników Omnipoda oznacza to wymianę kapsuły na nową. To ustawienie resetuje obliczony współczynnik Autosens i wymusza jego ponowne uruchomienie od chwili zmiany miejsca w celu poprawy obliczonych dawek podstawowych, współczynnika wrażliwości i docelowego poziomu glukozy we krwi. Nauka od momentu zmiany może potrwać do 6 godzin. Jeśli zwykle przewijasz pompę niezależnie od zmian miejsca możesz rozważyć wyłączenie tej funkcji. 
+"This feature, enabled by default, resets the autosens ratio to neutral when you rewind your pump, on the assumption that this corresponds to a probable site change. Autosens will begin learning sensitivity anew from the time of the rewind, which may take up to 6 hours. If you usually rewind your pump independently of site changes, you may want to consider disabling this feature." = "Funkcja domyślnie włączona. W żargonie Medtronic termin „przewinięcie” oznacza podłączenie nowego zbiornika insuliny i zestawu infuzyjnego. Dla użytkowników Omnipoda oznacza to wymianę kapsuły na nową. To ustawienie resetuje obliczony współczynnik Autosens i wymusza jego ponowne uruchomienie od chwili zmiany miejsca w celu poprawy obliczonych dawek podstawowych, współczynnika wrażliwości i docelowego poziomu glikemii we krwi. Nauka od momentu zmiany może potrwać do 6 godzin. Jeśli zwykle przewijasz pompę niezależnie od zmian miejsca możesz rozważyć wyłączenie tej funkcji. 
 ";
 
 /* Headline "High Temptarget Raises Sensitivity" */
@@ -1989,16 +1989,16 @@ Enact a temp Basal or a temp target */
 "The default of 0.5 for this value keeps autotune ISF closer to pump ISF via a weighted average of fullNewISF and pumpISF. 1.0 allows full adjustment, 0 is no adjustment from pump ISF." = "Wartość domyślna 0,5. Dla tej wartości autotune utrzymuje ISF bliżej ustawionego ISF przez użytkownika wyliczonego wg średniej ważonej fullNewISF i pumpISF. 1 pozwala na pełną regulację, 0 oznacza brak regulacji.";
 
 /* Headline "Remaining Carbs Fraction" */
-"Remaining Carbs Fraction" = "Pozostały współczynnik węglowodanów";
+"Remaining Carbs Fraction" = "Pozostałe frakcje węglowodanów";
 
 /* "Remaining Carbs Fraction" */
 "This is the fraction of carbs we’ll assume will absorb over 4h if we don’t yet see carb absorption." = "Jest to część węglowodanów, które zakładamy że wchłoną się przez 4 godziny, jeżeli jeszcze nie rozpoczęło się wchłanianie węglowodanów.";
 
 /* Headline "Remaining Carbs Cap" */
-"Remaining Carbs Cap" = "Pozostały współczynnik węglowodanów";
+"Remaining Carbs Cap" = "Limit pozostałych węglowodanów";
 
 /* "Remaining Carbs Cap" */
-"This is the amount of the maximum number of carbs we’ll assume will absorb over 4h if we don’t yet see carb absorption." = "Jest to maksymalna ilość węglowodanów, którą założymy, że zostanie wchłonięta w ciągu 4 godzin, jeśli jeszcze nie rozpoczęło się wchłanianie węglowodanów.";
+"This is the amount of the maximum number of carbs we’ll assume will absorb over 4h if we don’t yet see carb absorption." = "Jest to ilość węglowodanów, która ma zostać wchłonięta po 4 godzinach wchłaniania węglowodanów.";
 
 /* Headline ”Max SMB Basal Minutes" */
 "Max SMB Basal Minutes" = "Max SMB Basal Minutes";
@@ -2013,10 +2013,10 @@ Enact a temp Basal or a temp target */
 "Defaults to start at 30. This is the maximum minutes of basal that can be delivered by UAM as a single SMB when IOB exceeds COB. This gives the ability to make UAM more or less aggressive if you choose. It is recommended that the value is set to start at 30, in line with the default, and if you choose to increase this value, do so in no more than 15 minute increments, keeping a close eye on the effects of the changes. Reducing the value will cause UAM to dose less insulin for each SMB. It is not recommended to set this value higher than 60 mins, as this may affect the ability for the algorithm to safely zero temp. It is also recommended that pushover is used when setting the value to be greater than default, so that alerts are generated for any predicted lows or highs." = "Domyślnie wartość to 30. Jest to maksymalna liczba minut bazowych, które mogą być dostarczane przez UAM jako pojedynczy SMB, gdy IOB przekracza COB. Daje to możliwość uczynienia UAM bardziej lub mniej agresywnym, jeśli chcesz. Zaleca się, aby wartość była ustawiona na 30, zgodnie z wartością domyślną, a jeśli zdecydujesz się zwiększyć tę wartość, rób to w odstępach nie dłuższych niż 15 minut, uważnie obserwując skutki zmian. Zmniejszenie wartości spowoduje, że UAM będzie dawkować mniej insuliny dla każdego SMB. Nie zaleca się ustawiania tej wartości wyższej niż 60 minut, ponieważ może to wpłynąć na zdolność algorytmu do bezpiecznego zerowania bazy. Zaleca się również użycie powiadomień podczas ustawiania wartości większej niż domyślna, aby alerty były generowane dla wszelkich przewidywanych minimów lub maksimów.";
 
 /* Headline "SMB Interval" */
-"SMB Interval" = "Interwał SMB";
+"SMB Interval" = "SMB odstęp czasowy";
 
 /* "SMB Interval" */
-"Minimum duration in minutes for new SMB since last SMB or manual bolus" = "Minimalny czas trwania w minutach dla nowego SMB od ostatniego SMB lub ręcznego bolusa";
+"Minimum duration in minutes for new SMB since last SMB or manual bolus" = "Minimalny odstęp czasowy w minutach pomiędzy podaniem nowego SMB a ostatnim podanym SMB lub ręcznym bolusem";
 
 /* Headline "Bolus Increment" */
 "Bolus Increment" = "Przyrost bolusa";
