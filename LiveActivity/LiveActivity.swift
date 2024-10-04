@@ -159,7 +159,7 @@ struct LiveActivity: Widget {
 
     @ViewBuilder private func changeLabel(context: ActivityViewContext<LiveActivityAttributes>) -> some View {
         if !context.state.change.isEmpty {
-            Text(context.state.change).foregroundStyle(.primary.opacity(0.5)).font(.headline)
+            Text(context.state.change).foregroundStyle(.primary).font(.headline)
                 .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
         } else {
             Text("--")
