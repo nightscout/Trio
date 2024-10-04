@@ -431,8 +431,9 @@ extension Home {
                         .foregroundColor(.loopYellow)
                     Text(
                         (
-                            numberFormatter
-                                .string(from: (state.enactedAndNonEnactedDeterminations.first?.cob ?? 0) as NSNumber) ?? "0"
+                            numberFormatter.string(
+                                from: NSNumber(value: state.enactedAndNonEnactedDeterminations.first?.cob ?? 0)
+                            ) ?? "0"
                         ) +
                             NSLocalizedString(" g", comment: "gram of carbs")
                     )

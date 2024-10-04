@@ -85,6 +85,11 @@ import UIKit
             guard let self = self else { return }
             self.overridesDidUpdate()
         }.store(in: &subscriptions)
+
+        coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
+            guard let self = self else { return }
+            self.cobOrIobDidUpdate()
+        }.store(in: &subscriptions)
     }
 
     private func registerSubscribers() {
@@ -106,7 +111,7 @@ import UIKit
         }
     }
 
-    @objc private func overridesDidUpdate() {
+    private func overridesDidUpdate() {
         Task {
             await fetchAndMapOverride()
             if let determination = determination {
@@ -119,13 +124,6 @@ import UIKit
         Task {
             // Fetch and map glucose to GlucoseData struct
             await fetchAndMapGlucose()
-
-            // Fetch and map Determination to DeterminationData struct
-            await fetchAndMapDetermination()
-
-            // Fetch and map Override to OverrideData struct
-            /// shows if there is an active Override
-            await fetchAndMapOverride()
 
             // Push the update to the Live Activity
             glucoseDidUpdate(glucoseFromPersistence ?? [])
