@@ -222,7 +222,7 @@ extension MainChartView {
             .onChange(of: state.insulinFromPersistence) {
                 state.roundedTotalBolus = state.calculateTINS()
             }
-            .onChange(of: tempTargets) { _ in
+            .onChange(of: tempTargets) {
                 Task {
                     await calculateTempTargets()
                 }
