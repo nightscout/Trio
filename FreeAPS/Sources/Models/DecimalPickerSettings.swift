@@ -110,7 +110,7 @@ struct DecimalPickerSettings {
         value: 0.2,
         step: 0.05,
         min: 0.1,
-        max: 2,
+        max: 0.4,
         type: PickerSetting.PickerSettingType.factor
     )
     var adjustmentFactor = PickerSetting(value: 0.8, step: 0.1, min: 0.5, max: 1.5, type: PickerSetting.PickerSettingType.factor)
