@@ -25,11 +25,11 @@ extension MainChartView {
                 drawTempBasals(dummy: false)
                 drawBasalProfile()
                 drawSuspensions()
-            }.onChange(of: state.tempBasals) {
+            }.onChange(of: state.tempBasals) { _ in
                 calculateBasals()
                 calculateTempBasalsInBackground()
             }
-            .onChange(of: state.maxBasal) {
+            .onChange(of: state.maxBasal) { _ in
                 calculateBasals()
             }
             .frame(minHeight: geo.size.height * 0.05)
