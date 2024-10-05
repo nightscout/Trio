@@ -549,11 +549,11 @@ extension OverrideConfig.StateModel {
             halfBasalTarget: halfBasalTarget
         )
 
-        // Save Temp Target to Core Data and to the storage
-        await tempTargetStorage.storeTempTarget(tempTarget: tempTarget)
-
         // disable all TempTargets
         await disableAllActiveTempTargets(createTempTargetRunEntry: true)
+
+        // Save Temp Target to Core Data and to the storage
+        await tempTargetStorage.storeTempTarget(tempTarget: tempTarget)
 
         // Reset State variables
         await resetTempTargetState()
