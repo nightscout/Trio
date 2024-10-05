@@ -74,8 +74,8 @@ extension Color {
         offset: Decimal
     ) -> Color {
         // Convert Decimal to Int for high and low glucose values
-        let lowGlucose = lowGlucoseColorValue - offset
-        let highGlucose = highGlucoseColorValue + (offset * 1.75)
+        let lowGlucose = glucoseColorScheme == "dynamicColor" ? (lowGlucoseColorValue - offset) : lowGlucoseColorValue
+        let highGlucose = glucoseColorScheme == "dynamicColor" ? (highGlucoseColorValue + (offset * 1.75)) : highGlucoseColorValue
         let targetGlucose = targetGlucose
 
         // Only use calculateHueBasedGlucoseColor if the setting is enabled in preferences
@@ -388,8 +388,7 @@ struct LiveActivityUpdatedLabelView: View {
 
     var body: some View {
         if isDetailedLayout {
-            let minutesAgo = Int(Date().timeIntervalSince(context.state.date) / 60)
-            let dateText = Text("\(minutesAgo < 1 ? "<1" : minutesAgo.description)m ago").font(.title3)
+            let dateText = Text("\(dateFormatter.string(from: context.state.date))").font(.title3)
                 .foregroundStyle(.primary)
 
             VStack {

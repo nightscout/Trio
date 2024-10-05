@@ -256,7 +256,7 @@ struct LiveActivityWidgetConfiguration: BaseView {
                 }
                 .disabled(selectedItems.contains(item))
                 // This causes the type check error
-                
+
 //                .disabled(selectedItems.contains { $0.value == item }) // Disable already selected items
             }
         }
@@ -268,7 +268,7 @@ struct LiveActivityWidgetConfiguration: BaseView {
             showAddItemDialog.toggle()
         }) {
             // This causes an index out of range error
-            
+
 //            if let selectedItem = LiveActivityItem.allCases.first(where: { $0.id == selectedItems[index].id }) {
 //                // Show item preview if an item is selected
 //                getItemPreview(for: selectedItem)
