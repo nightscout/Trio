@@ -6,17 +6,16 @@ struct AddOverrideForm: View {
     @StateObject var state: OverrideConfig.StateModel
     @State private var selectedIsfCrOption: isfAndOrCrOptions = .isfAndCr
     @State private var selectedDisableSmbOption: disableSmbOptions = .dontDisable
+    @State private var displayPickerPercentage: Bool = false
     @State private var displayPickerDuration: Bool = false
-    @State private var displayPickerStart: Bool = false
-    @State private var displayPickerEnd: Bool = false
+    @State private var displayPickerTarget: Bool = false
+    @State private var displayPickerDisableSmbSchedule: Bool = false
     @State private var displayPickerSmbMinutes: Bool = false
-    @State private var displayPickerUamMinutes: Bool = false
     @State private var durationHours = 0
     @State private var durationMinutes = 0
     @State private var overrideTarget = false
+    @State private var didPressSave = false
     @Environment(\.colorScheme) var colorScheme
-    @State private var showAlert = false
-    @State private var alertString = ""
 
     @Environment(\.dismiss) var dismiss
 
@@ -41,8 +40,7 @@ struct AddOverrideForm: View {
             ]),
             startPoint: .top,
             endPoint: .bottom
-        )
-            :
+        ) :
             LinearGradient(
                 gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
                 startPoint: .top,
@@ -68,88 +66,114 @@ struct AddOverrideForm: View {
         return formatter
     }
 
-    private var alertMessage: String {
-        let target: String = state.units == .mgdL ? "70-270 mg/dl" : "4-15 mmol/l"
-        return "Please enter a valid target between" + " \(target)."
-    }
-
     var body: some View {
         NavigationView {
-            Form {
+            List {
                 addOverride()
-            }.scrollContentBackground(.hidden).background(color)
-                .navigationTitle("Add Override")
-                .navigationBarItems(trailing: Button("Cancel") {
-                    presentationMode.wrappedValue.dismiss()
-                })
+                saveButton
+            }
+            .listSectionSpacing(20)
+            .listRowSpacing(10)
+            .scrollContentBackground(.hidden).background(color)
+            .navigationTitle("New Override")
+            .navigationBarItems(trailing: Button("Cancel") {
+                presentationMode.wrappedValue.dismiss()
+            })
         }
     }
 
     @ViewBuilder private func addOverride() -> some View {
         Section {
+            let pad: CGFloat = 3
             VStack {
                 HStack {
                     Text("Name")
                     Spacer()
                     TextField("(Optional)", text: $state.overrideName).multilineTextAlignment(.trailing)
                 }
+                .padding(.vertical, pad)
             }
 
             VStack {
-                HStack {
-                    Spacer()
-
-                    // Decrement button
-                    Button(action: {
-                        if state.overrideSliderPercentage > 10 {
-                            state.overrideSliderPercentage -= 1
-                        }
-                    }) {
-                        Image(systemName: "minus.circle.fill")
-                            .font(.title)
-                            .foregroundColor(state.overrideSliderPercentage > 10 ? .accentColor : .loopGray)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-
-                    Spacer()
-
-                    Text("\(Int(state.overrideSliderPercentage)) %")
-                        .font(.largeTitle)
-                        .foregroundColor(.accentColor)
-
-                    Spacer()
-
-                    // Increment button
-                    Button(action: {
-                        if state.overrideSliderPercentage < 200 {
-                            state.overrideSliderPercentage += 1
-                        }
-                    }) {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title)
-                            .foregroundColor(state.overrideSliderPercentage < 200 ? .accentColor : .loopGray)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-
-                    Spacer()
+                Toggle(isOn: $state.indefinite) {
+                    Text("Enable Indefinitely")
                 }
-                .padding()
+                .padding(.vertical, pad)
+                if !state.indefinite {
+                    HStack {
+                        Text("Duration")
+                        Spacer()
+                        Text(formatHrMin(Int(state.overrideDuration)))
+                            .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
+                    }
+                    .padding(.vertical, pad)
+                    .onTapGesture {
+                        displayPickerDuration.toggle()
+                    }
 
-                // Slider to adjust value
-                Slider(
-                    value: $state.overrideSliderPercentage,
-                    in: 10 ... 200,
-                    step: 1
-                )
+                    if displayPickerDuration {
+                        HStack {
+                            Picker("Hours", selection: $durationHours) {
+                                ForEach(0 ..< 24) { hour in
+                                    Text("\(hour) hr").tag(hour)
+                                }
+                            }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: .infinity)
+                            .onChange(of: durationHours) {
+                                state.overrideDuration = Decimal(totalDurationInMinutes())
+                            }
+
+                            Picker("Minutes", selection: $durationMinutes) {
+                                ForEach(Array(stride(from: 0, through: 55, by: 5)), id: \.self) { minute in
+                                    Text("\(minute) min").tag(minute)
+                                }
+                            }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: .infinity)
+                            .onChange(of: durationMinutes) {
+                                state.overrideDuration = Decimal(totalDurationInMinutes())
+                            }
+                        }
+                    }
+                }
+            }
+
+            VStack {
+                // Percentage Picker
+                HStack {
+                    Text("Change Basal Rate by")
+                    Spacer()
+                    Text("\(state.overridePercentage.formatted(.number)) %")
+                        .foregroundColor(!displayPickerPercentage ? .primary : .accentColor)
+                }
+                .padding(.vertical, pad)
+                .onTapGesture {
+                    displayPickerPercentage.toggle()
+                }
+
+                if displayPickerPercentage {
+                    Picker(selection: Binding(
+                        get: { Int(truncating: state.overridePercentage as NSNumber) },
+                        set: { state.overridePercentage = Double($0) }
+                    ), label: Text("")) {
+                        ForEach(Array(stride(from: 10, through: 200, by: 5)), id: \.self) { percent in
+                            Text("\(percent) %").tag(percent)
+                        }
+                    }
+                    .pickerStyle(WheelPickerStyle())
+                    .frame(maxWidth: .infinity)
+                }
 
                 // Picker for ISF/CR settings
-                Picker("Apply to", selection: $selectedIsfCrOption) {
+                Picker("Also Inversely Change", selection: $selectedIsfCrOption) {
                     ForEach(isfAndOrCrOptions.allCases, id: \.self) { option in
                         Text(option.rawValue).tag(option)
                     }
                 }
+                .padding(.top, pad)
                 .pickerStyle(MenuPickerStyle())
-                .onChange(of: selectedIsfCrOption) { newValue in
+                .onChange(of: selectedIsfCrOption) { _, newValue in
                     switch newValue {
                     case .isfAndCr:
                         state.isfAndCr = true
@@ -172,60 +196,41 @@ struct AddOverrideForm: View {
             }
 
             VStack {
-                Toggle(isOn: $state.indefinite) {
-                    Text("Enable Indefinitely")
-                }
-                if !state.indefinite {
-                    VStack {
-                        HStack {
-                            Text("Duration")
-                            Spacer()
-                            Text(formatHrMin(Int(state.overrideDuration)))
-                                .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
-                        }
-                        .onTapGesture {
-                            displayPickerDuration.toggle()
-                        }
-
-                        if displayPickerDuration {
-                            HStack {
-                                Picker("Hours", selection: $durationHours) {
-                                    ForEach(0 ..< 24) { hour in
-                                        Text("\(hour) hr").tag(hour)
-                                    }
-                                }
-                                .pickerStyle(WheelPickerStyle())
-                                .frame(width: 100)
-                                .onChange(of: durationHours) { _ in
-                                    state.overrideDuration = Decimal(totalDurationInMinutes())
-                                }
-
-                                Picker("Minutes", selection: $durationMinutes) {
-                                    ForEach(Array(stride(from: 0, through: 55, by: 5)), id: \.self) { minute in
-                                        Text("\(minute) min").tag(minute)
-                                    }
-                                }
-                                .pickerStyle(WheelPickerStyle())
-                                .frame(width: 100)
-                                .onChange(of: durationMinutes) { _ in
-                                    state.overrideDuration = Decimal(totalDurationInMinutes())
-                                }
-                            }
-                        }
-                    }
-                    .padding(.top)
-                }
-            }
-
-            VStack {
                 Toggle(isOn: $state.shouldOverrideTarget) {
                     Text("Override Profile Target")
                 }
+                .padding(.vertical, pad)
                 if state.shouldOverrideTarget {
-                    HStack {
-                        Text("Target Glucose")
-                        TextFieldWithToolBar(text: $state.target, placeholder: "0", numberFormatter: glucoseFormatter)
-                        Text(state.units.rawValue).foregroundColor(.secondary)
+                    VStack {
+                        HStack {
+                            Text("Target Glucose")
+                            Spacer()
+                            Text(formattedGlucose(glucose: state.target))
+                                .foregroundColor(!displayPickerTarget ? .primary : .accentColor)
+                        }
+                        .padding(.vertical, pad)
+                        .onTapGesture {
+                            displayPickerTarget.toggle()
+                        }
+
+                        if displayPickerTarget {
+                            let step = state.units == .mgdL ? 1 : 2
+                            Picker(selection: Binding(
+                                get: { Int(truncating: state.target as NSNumber) },
+                                set: { state.target = Decimal($0)
+                                }
+                            ), label: Text("")) {
+                                ForEach(
+                                    Array(stride(from: 72, through: 270, by: step)),
+                                    id: \.self
+                                ) { glucose in
+                                    Text(formattedGlucose(glucose: Decimal(glucose)))
+                                        .tag(glucose)
+                                }
+                            }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: .infinity)
+                        }
                     }
                 }
             }
@@ -237,8 +242,9 @@ struct AddOverrideForm: View {
                         Text(option.rawValue).tag(option)
                     }
                 }
+                .padding(.vertical, pad)
                 .pickerStyle(MenuPickerStyle())
-                .onChange(of: selectedDisableSmbOption) { newValue in
+                .onChange(of: selectedDisableSmbOption) { _, newValue in
                     switch newValue {
                     case .dontDisable:
                         state.smbIsOff = false
@@ -258,63 +264,57 @@ struct AddOverrideForm: View {
                         HStack {
                             Text("From")
                             Spacer()
-
                             Text(
                                 is24HourFormat() ? format24Hour(Int(truncating: state.start as NSNumber)) + ":00" :
                                     convertTo12HourFormat(Int(truncating: state.start as NSNumber))
                             )
-                            .foregroundColor(!displayPickerStart ? .primary : .accentColor)
-                        }
-                        .onTapGesture {
-                            displayPickerStart.toggle()
-                        }
+                            .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
 
-                        if displayPickerStart {
-                            Picker(selection: Binding(
-                                get: { Int(truncating: state.start as NSNumber) },
-                                set: { state.start = Decimal($0) }
-                            ), label: Text("")) {
-                                ForEach(0 ..< 24, id: \.self) { hour in
-                                    Text(is24HourFormat() ? format24Hour(hour) + ":00" : convertTo12HourFormat(hour))
-                                        .tag(hour)
-                                }
-                            }
-                            .pickerStyle(WheelPickerStyle())
-                            .frame(maxWidth: .infinity)
-                        }
-                    }
-                    .padding(.top, 10)
-
-                    // First Hour SMBs Are Resumed
-                    VStack {
-                        HStack {
+                            Divider().frame(width: 1, height: 20)
                             Text("To")
                             Spacer()
                             Text(
                                 is24HourFormat() ? format24Hour(Int(truncating: state.end as NSNumber)) + ":00" :
                                     convertTo12HourFormat(Int(truncating: state.end as NSNumber))
                             )
-                            .foregroundColor(!displayPickerEnd ? .primary : .accentColor)
+                            .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
+                            Spacer()
                         }
+                        .padding(.vertical, pad)
                         .onTapGesture {
-                            displayPickerEnd.toggle()
+                            displayPickerDisableSmbSchedule.toggle()
                         }
 
-                        if displayPickerEnd {
-                            Picker(selection: Binding(
-                                get: { Int(truncating: state.end as NSNumber) },
-                                set: { state.end = Decimal($0) }
-                            ), label: Text("")) {
-                                ForEach(0 ..< 24, id: \.self) { hour in
-                                    Text(is24HourFormat() ? format24Hour(hour) + ":00" : convertTo12HourFormat(hour))
-                                        .tag(hour)
+                        if displayPickerDisableSmbSchedule {
+                            HStack {
+                                // From Picker
+                                Picker(selection: Binding(
+                                    get: { Int(truncating: state.start as NSNumber) },
+                                    set: { state.start = Decimal($0) }
+                                ), label: Text("")) {
+                                    ForEach(0 ..< 24, id: \.self) { hour in
+                                        Text(is24HourFormat() ? format24Hour(hour) + ":00" : convertTo12HourFormat(hour))
+                                            .tag(hour)
+                                    }
                                 }
+                                .pickerStyle(WheelPickerStyle())
+                                .frame(maxWidth: .infinity)
+
+                                // To Picker
+                                Picker(selection: Binding(
+                                    get: { Int(truncating: state.end as NSNumber) },
+                                    set: { state.end = Decimal($0) }
+                                ), label: Text("")) {
+                                    ForEach(0 ..< 24, id: \.self) { hour in
+                                        Text(is24HourFormat() ? format24Hour(hour) + ":00" : convertTo12HourFormat(hour))
+                                            .tag(hour)
+                                    }
+                                }
+                                .pickerStyle(WheelPickerStyle())
+                                .frame(maxWidth: .infinity)
                             }
-                            .pickerStyle(WheelPickerStyle())
-                            .frame(maxWidth: .infinity)
                         }
                     }
-                    .padding(.vertical, 10)
                 }
             }
 
@@ -323,160 +323,101 @@ struct AddOverrideForm: View {
                     Toggle(isOn: $state.advancedSettings) {
                         Text("Override Max SMB Minutes")
                     }
+                    .padding(.vertical, pad)
 
                     if state.advancedSettings {
                         // SMB Minutes Picker
                         VStack {
                             HStack {
-                                Text("Max SMB Minutes")
+                                Text("SMB")
                                 Spacer()
-
                                 Text("\(state.smbMinutes.formatted(.number)) min")
                                     .foregroundColor(!displayPickerSmbMinutes ? .primary : .accentColor)
+                                Divider().frame(width: 1, height: 20)
+                                Text("UAM")
+                                Spacer()
+                                Text("\(state.uamMinutes.formatted(.number)) min")
+                                    .foregroundColor(!displayPickerSmbMinutes ? .primary : .accentColor)
                             }
+                            .padding(.vertical, pad)
                             .onTapGesture {
                                 displayPickerSmbMinutes.toggle()
                             }
 
                             if displayPickerSmbMinutes {
-                                Picker(selection: Binding(
-                                    get: { Int(truncating: state.smbMinutes as NSNumber) },
-                                    set: { state.smbMinutes = Decimal($0) }
-                                ), label: Text("")) {
-                                    ForEach(Array(stride(from: 0, through: 180, by: 5)), id: \.self) { minute in
-                                        Text("\(minute) min").tag(minute)
+                                HStack {
+                                    Picker(selection: Binding(
+                                        get: { Int(truncating: state.smbMinutes as NSNumber) },
+                                        set: { state.smbMinutes = Decimal($0) }
+                                    ), label: Text("")) {
+                                        ForEach(Array(stride(from: 0, through: 180, by: 5)), id: \.self) { minute in
+                                            Text("\(minute) min").tag(minute)
+                                        }
                                     }
+                                    .pickerStyle(WheelPickerStyle())
+                                    .frame(maxWidth: .infinity)
+
+                                    Picker(selection: Binding(
+                                        get: { Int(truncating: state.uamMinutes as NSNumber) },
+                                        set: { state.uamMinutes = Decimal($0) }
+                                    ), label: Text("")) {
+                                        ForEach(Array(stride(from: 0, through: 180, by: 5)), id: \.self) { minute in
+                                            Text("\(minute) min").tag(minute)
+                                        }
+                                    }
+                                    .pickerStyle(WheelPickerStyle())
+                                    .frame(maxWidth: .infinity)
                                 }
-                                .pickerStyle(WheelPickerStyle())
-                                .frame(maxWidth: .infinity)
                             }
                         }
-                        .padding(.top)
-
-                        // UAM SMB Minutes Picker
-                        VStack {
-                            HStack {
-                                Text("Max UAM SMB Minutes")
-                                Spacer()
-                                Text("\(state.uamMinutes.formatted(.number)) min")
-                                    .foregroundColor(!displayPickerUamMinutes ? .primary : .accentColor)
-                            }
-                            .onTapGesture {
-                                displayPickerUamMinutes.toggle()
-                            }
-
-                            if displayPickerUamMinutes {
-                                Picker(selection: Binding(
-                                    get: { Int(truncating: state.uamMinutes as NSNumber) },
-                                    set: { state.uamMinutes = Decimal($0) }
-                                ), label: Text("")) {
-                                    ForEach(Array(stride(from: 0, through: 180, by: 5)), id: \.self) { minute in
-                                        Text("\(minute) min").tag(minute)
-                                    }
-                                }
-                                .pickerStyle(WheelPickerStyle())
-                                .frame(maxWidth: .infinity)
-                            }
-                        }
-                        .padding(.top)
                     }
                 }
             }
-
-            startAndSaveProfiles
         }
-        header: { Text("Add custom Override") }
-        footer: {
-            Text(
-                "Your profile ISF and CR will be inversely adjusted with the override percentage."
-            )
-        }.listRowBackground(Color.chart)
+        .listRowBackground(Color.chart)
     }
 
-    private var startAndSaveProfiles: some View {
-        HStack {
-            Button("Start New Override") {
-                if !state.isInputInvalid(target: state.target) {
-                    showAlert.toggle()
+    private var saveButton: some View {
+        let (isInvalid, errorMessage) = isOverrideInvalid()
 
-                    alertString = "\(state.overrideSliderPercentage.formatted(.number)) %, " +
-                        (
-                            state.overrideDuration > 0 || !state
-                                .indefinite ?
-                                (
-                                    state
-                                        .overrideDuration
-                                        .formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) +
-                                        " min."
-                                ) :
-                                NSLocalizedString(" infinite duration.", comment: "")
-                        ) +
-                        (
-                            (state.target == 0 || !state.shouldOverrideTarget) ? "" :
-                                (" Target: " + state.target.formatted() + " " + state.units.rawValue + ".")
-                        )
-                        +
-                        (
-                            state
-                                .smbIsOff ?
-                                NSLocalizedString(
-                                    " SMBs are disabled either by schedule or during the entire duration.",
-                                    comment: ""
-                                ) : ""
-                        )
-                        +
-                        "\n\n"
-                        +
-                        NSLocalizedString(
-                            "Starting this override will change your profiles and/or your Target Glucose used for looping during the entire selected duration. Tapping ”Start Override” will start your new Override or edit your current active Override.",
-                            comment: ""
-                        )
-                }
-            }
-            .disabled(unChanged())
-            .buttonStyle(BorderlessButtonStyle())
-            .font(.callout)
-            .controlSize(.mini)
-            .alert(
-                "Start Override",
-                isPresented: $showAlert,
-                actions: {
-                    Button("Cancel", role: .cancel) { state.isEnabled = false }
-                    Button("Start Override", role: .destructive) {
-                        Task {
-                            if state.indefinite { state.overrideDuration = 0 }
-                            state.isEnabled.toggle()
-                            await state.saveCustomOverride()
-                            await state.resetStateVariables()
-                            dismiss()
-                        }
+        return Group {
+            Section {
+                Button(action: {
+                    Task {
+                        if state.indefinite { state.overrideDuration = 0 }
+                        state.isEnabled.toggle()
+                        await state.saveCustomOverride()
+                        await state.resetStateVariables()
+                        dismiss()
                     }
-                },
-                message: {
-                    Text(alertString)
-                }
-            )
-            .alert(isPresented: $state.showInvalidTargetAlert) {
-                Alert(
-                    title: Text("Invalid Input"),
-                    message: Text("\(state.alertMessage)"),
-                    dismissButton: .default(Text("OK")) { state.showInvalidTargetAlert = false }
-                )
-            }
-            Button {
-                Task {
-                    if !state.isInputInvalid(target: state.target) {
+                }, label: {
+                    Text("Enact Override")
+                })
+                    .disabled(isInvalid)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .tint(.white)
+            }.listRowBackground(isInvalid ? Color(.systemGray4) : Color(.systemBlue))
+
+            Section(
+                footer: Text(errorMessage ?? "")
+                    .foregroundColor(.red)
+            ) {
+                Button(action: {
+                    Task {
                         await state.saveOverridePreset()
                         dismiss()
                     }
-                }
+                }, label: {
+                    Text("Save as Preset")
+
+                })
+                    .disabled(isInvalid)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .tint(.white)
             }
-            label: { Text("Save as Preset") }
-                .tint(.orange)
-                .frame(maxWidth: .infinity, alignment: .trailing)
-                .buttonStyle(BorderlessButtonStyle())
-                .controlSize(.mini)
-                .disabled(unChanged())
+            .listRowBackground(
+                isInvalid ? Color(.systemGray4) : Color(.orange)
+            )
         }
     }
 
@@ -485,14 +426,35 @@ struct AddOverrideForm: View {
         return max(0, durationTotal)
     }
 
-    private func unChanged() -> Bool {
-        let defaultProfile = state.overrideSliderPercentage == 100 && !state.shouldOverrideTarget && !state.advancedSettings
+    private func isOverrideInvalid() -> (Bool, String?) {
         let noDurationSpecified = !state.indefinite && state.overrideDuration == 0
         let targetZeroWithOverride = state.shouldOverrideTarget && state.target == 0
-        let allSettingsDefault = state.overrideSliderPercentage == 100 && !state.shouldOverrideTarget && !state.smbIsOff && !state
-            .smbIsScheduledOff && state.smbMinutes == state.defaultSmbMinutes && state.uamMinutes == state.defaultUamMinutes
+        let allSettingsDefault = state.overridePercentage == 100 && !state.shouldOverrideTarget &&
+            !state.advancedSettings && !state.smbIsOff && !state.smbIsScheduledOff
 
-        return defaultProfile || noDurationSpecified || targetZeroWithOverride || allSettingsDefault
+        if noDurationSpecified {
+            return (true, "Enable indefinitely or set a duration.")
+        }
+
+        if targetZeroWithOverride {
+            return (true, "Target glucose is out of range (\(state.units == .mgdL ? "72-270" : "4-14")).")
+        }
+
+        if allSettingsDefault {
+            return (true, "All settings are at default values.")
+        }
+
+        return (false, nil)
+    }
+
+    private func formattedGlucose(glucose: Decimal) -> String {
+        let formattedValue: String
+        if state.units == .mgdL {
+            formattedValue = glucoseFormatter.string(from: glucose as NSDecimalNumber) ?? "\(glucose)"
+        } else {
+            formattedValue = glucose.formattedAsMmolL
+        }
+        return "\(formattedValue) \(state.units.rawValue)"
     }
 }
 

@@ -484,7 +484,7 @@ extension Home {
                                 NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
                         )
                         .font(.system(size: 16, weight: .bold, design: .rounded))
-                        .onChange(of: state.hours) { _ in
+                        .onChange(of: state.hours) {
                             state.roundedTotalBolus = state.calculateTINS()
                         }
                         .onAppear {
@@ -728,7 +728,7 @@ extension Home {
                 }
                 .background(color)
             }
-            .onChange(of: state.hours) { _ in
+            .onChange(of: state.hours) {
                 highlightButtons()
             }
             .onAppear {
@@ -898,7 +898,7 @@ extension Home {
                     }
                 )
             }.ignoresSafeArea(.keyboard, edges: .bottom).blur(radius: state.waitForSuggestion ? 8 : 0)
-                .onChange(of: selectedTab) { _ in
+                .onChange(of: selectedTab) {
                     print("current path is empty: \(settingsPath.isEmpty)")
                     settingsPath = NavigationPath()
                 }

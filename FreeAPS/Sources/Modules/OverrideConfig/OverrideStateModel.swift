@@ -8,11 +8,11 @@ extension OverrideConfig {
         @Injected() var apsManager: APSManager!
         @Injected() var overrideStorage: OverrideStorage!
 
-        @Published var overrideSliderPercentage: Double = 100
+        @Published var overridePercentage: Double = 100
         @Published var isEnabled = false
         @Published var indefinite = true
         @Published var overrideDuration: Decimal = 0
-        @Published var target: Decimal = 0
+        @Published var target: Decimal = 100
         @Published var shouldOverrideTarget: Bool = false
         @Published var smbIsOff: Bool = false
         @Published var id = ""
@@ -34,7 +34,6 @@ extension OverrideConfig {
         @Published var activeOverrideName: String = ""
         @Published var currentActiveOverride: OverrideStored?
         @Published var showOverrideEditSheet = false
-        @Published var showInvalidTargetAlert = false
 
         var units: GlucoseUnits = .mgdL
 
@@ -70,24 +69,6 @@ extension OverrideConfig {
 
         let coredataContext = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
-
-        func isInputInvalid(target: Decimal) -> Bool {
-            guard target != 0 else { return false }
-
-            if units == .mgdL,
-               target < 70 || target > 270
-            {
-                showInvalidTargetAlert = true
-                return true
-            } else if units == .mmolL,
-                      target < 4 || target > 15
-            {
-                showInvalidTargetAlert = true
-                return true
-            } else {
-                return false
-            }
-        }
     }
 }
 
@@ -223,7 +204,7 @@ extension OverrideConfig.StateModel {
             date: Date(),
             duration: overrideDuration,
             indefinite: indefinite,
-            percentage: overrideSliderPercentage,
+            percentage: overridePercentage,
             smbIsOff: smbIsOff,
             isPreset: isPreset,
             id: id,
@@ -262,7 +243,7 @@ extension OverrideConfig.StateModel {
             date: Date(),
             duration: overrideDuration,
             indefinite: indefinite,
-            percentage: overrideSliderPercentage,
+            percentage: overridePercentage,
             smbIsOff: smbIsOff,
             isPreset: true,
             id: id,
@@ -410,8 +391,7 @@ extension OverrideConfig.StateModel {
 
         overrideDuration = 0
         indefinite = true
-        overrideSliderPercentage = 100
-
+        overridePercentage = 100
         advancedSettings = false
         smbIsOff = false
         overrideName = ""
@@ -424,7 +404,7 @@ extension OverrideConfig.StateModel {
         end = 0
         smbMinutes = defaultSmbMinutes
         uamMinutes = defaultUamMinutes
-        target = 0
+        target = 100
     }
 }
 
@@ -466,7 +446,7 @@ extension OverrideConfig.StateModel {
         var highTarget = lowTarget
 
         if units == .mmolL, !viewPercantage {
-            lowTarget = Decimal(round(Double(lowTarget.asMgdL)))
+            lowTarget = Decimal(round(Double(lowTarget)))
             highTarget = lowTarget
         }
 

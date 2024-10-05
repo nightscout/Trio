@@ -88,7 +88,7 @@ extension OverrideConfig {
                                     showOverrideCreationSheet = true
                                 }, label: {
                                     HStack {
-                                        Text("Add Override")
+                                        Text("New Override")
                                         Image(systemName: "plus")
                                     }
                                 })
@@ -338,7 +338,7 @@ extension OverrideConfig {
                             .font(.callout)
                             .controlSize(.mini)
 
-                        Button { isPromptPresented = true }
+                        Button { state.save() }
                         label: { Text("Save as preset") }
                             .disabled(state.durationTT == 0)
                             .tint(.orange)
@@ -495,7 +495,6 @@ extension OverrideConfig {
 
         @ViewBuilder private func overridesView(for preset: OverrideStored) -> some View {
             let target = (state.units == .mgdL ? preset.target : preset.target?.decimalValue.asMmolL as NSDecimalNumber?) ?? 0
-
             let duration = (preset.duration ?? 0) as Decimal
             let name = preset.name ?? ""
             let percent = preset.percentage / 100

@@ -130,9 +130,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             newOverride.enabled = override.enabled
             newOverride.smbIsOff = override.smbIsOff
             if override.overrideTarget {
-                newOverride.target = (
-                    self.settingsManager.settings.units == .mmolL ? override.target.asMgdL : override.target
-                ) as NSDecimalNumber
+                newOverride.target = override.target as NSDecimalNumber
             } else {
                 newOverride.target = 0
             }

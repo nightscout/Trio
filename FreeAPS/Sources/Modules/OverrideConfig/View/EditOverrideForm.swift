@@ -28,12 +28,11 @@ struct EditOverrideForm: View {
     @State private var hasChanges = false
     @State private var isEditing = false
     @State private var target_override = false
-    @State private var showAlert = false
+    @State private var displayPickerPercentage: Bool = false
     @State private var displayPickerDuration: Bool = false
-    @State private var displayPickerStart: Bool = false
-    @State private var displayPickerEnd: Bool = false
+    @State private var displayPickerTarget: Bool = false
+    @State private var displayPickerDisableSmbSchedule: Bool = false
     @State private var displayPickerSmbMinutes: Bool = false
-    @State private var displayPickerUamMinutes: Bool = false
 
     init(overrideToEdit: OverrideStored, state: OverrideConfig.StateModel) {
         override = overrideToEdit
@@ -42,10 +41,7 @@ struct EditOverrideForm: View {
         _percentage = State(initialValue: overrideToEdit.percentage)
         _indefinite = State(initialValue: overrideToEdit.indefinite)
         _duration = State(initialValue: overrideToEdit.duration?.decimalValue ?? 0)
-        _target = State(
-            initialValue: state.units == .mgdL ? overrideToEdit.target?.decimalValue : overrideToEdit.target?
-                .decimalValue.asMmolL
-        )
+        _target = State(initialValue: overrideToEdit.target?.decimalValue)
         _target_override = State(initialValue: overrideToEdit.target?.decimalValue != 0)
         _advancedSettings = State(initialValue: overrideToEdit.advancedSettings)
         _smbIsOff = State(initialValue: overrideToEdit.smbIsOff)
@@ -116,100 +112,147 @@ struct EditOverrideForm: View {
 
     var body: some View {
         NavigationView {
-            Form {
+            List {
                 editOverride()
-
                 saveButton
-
-            }.scrollContentBackground(.hidden).background(color)
-                .navigationTitle("Edit Override")
-                .navigationBarTitleDisplayMode(.inline)
-                .navigationBarItems(leading: Button("Close") {
-                    presentationMode.wrappedValue.dismiss()
-                })
-                .onDisappear {
-                    if !hasChanges {
-                        // Reset UI changes
-                        resetValues()
-                    }
+            }
+            .listSectionSpacing(20)
+            .listRowSpacing(10)
+            .scrollContentBackground(.hidden).background(color)
+            .navigationTitle("Edit Override")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarItems(trailing: Button("Cancel") {
+                presentationMode.wrappedValue.dismiss()
+            })
+            .onDisappear {
+                if !hasChanges {
+                    // Reset UI changes
+                    resetValues()
                 }
-                .alert(isPresented: $state.showInvalidTargetAlert) {
-                    Alert(
-                        title: Text("Invalid Input"),
-                        message: Text("\(state.alertMessage)"),
-                        dismissButton: .default(Text("OK")) { state.showInvalidTargetAlert = false }
-                    )
-                }
+            }
         }
     }
 
     @ViewBuilder private func editOverride() -> some View {
         Section {
+            let pad: CGFloat = 3
             if override.name != nil {
                 VStack {
                     HStack {
                         Text("Name")
                         Spacer()
                         TextField("Name", text: $name)
-                            .onChange(of: name) { _ in hasChanges = true }
+                            .onChange(of: name) { hasChanges = true }
                             .multilineTextAlignment(.trailing)
+                    }
+                    .padding(.vertical, pad)
+                }
+            }
+
+            VStack {
+                Toggle(isOn: $indefinite) { Text("Enable Indefinitely") }
+                    .padding(.vertical, pad)
+                    .onChange(of: indefinite) { hasChanges = true }
+
+                if !indefinite {
+                    HStack {
+                        Text("Duration")
+                        Spacer()
+                        Text(formatHrMin(Int(truncating: duration as NSNumber)))
+                            .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
+                    }
+                    .padding(.vertical, pad)
+                    .onTapGesture {
+                        displayPickerDuration.toggle()
+                    }
+
+                    if displayPickerDuration {
+                        HStack {
+                            Picker(
+                                selection: Binding(
+                                    get: {
+                                        Int(truncating: duration as NSNumber) / 60
+                                    },
+                                    set: {
+                                        duration = Decimal($0 * 60 + Int(truncating: duration as NSNumber) % 60)
+                                        hasChanges = true
+                                    }
+                                ),
+                                label: Text("")
+                            ) {
+                                ForEach(0 ..< 24) { hour in
+                                    Text("\(hour) hr").tag(hour)
+                                }
+                            }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: .infinity)
+
+                            Picker(
+                                selection: Binding(
+                                    get: {
+                                        Int(truncating: duration as NSNumber) %
+                                            60 // Convert Decimal to Int for modulus operation
+                                    },
+                                    set: {
+                                        duration = Decimal((Int(truncating: duration as NSNumber) / 60) * 60 + $0)
+                                        hasChanges = true
+                                    }
+                                ),
+                                label: Text("")
+                            ) {
+                                ForEach(Array(stride(from: 0, through: 55, by: 5)), id: \.self) { minute in
+                                    Text("\(minute) min").tag(minute)
+                                }
+                            }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: .infinity)
+                        }
                     }
                 }
             }
+
+            // Percentage Picker
             VStack {
                 HStack {
+                    Text("Change Basal Rate by")
                     Spacer()
-
-                    // Decrement button
-                    Button(action: {
-                        if percentage > 10 {
-                            percentage -= 1
-                        }
-                    }) {
-                        Image(systemName: "minus.circle.fill")
-                            .font(.title)
-                            .foregroundColor(percentage > 10 ? .accentColor : .loopGray)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-
-                    Spacer()
-
                     Text("\(percentage.formatted(.number)) %")
-                        .foregroundColor(.accentColor)
-                        .font(.largeTitle)
-
-                    Spacer()
-
-                    // Increment button
-                    Button(action: {
-                        if percentage < 200 {
-                            percentage += 1
-                        }
-                    }) {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title)
-                            .foregroundColor(percentage < 200 ? .accentColor : .loopGray)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-
-                    Spacer()
+                        .foregroundColor(!displayPickerPercentage ? .primary : .accentColor)
                 }
-                .padding()
+                .padding(.vertical, pad)
+                .onTapGesture {
+                    displayPickerPercentage.toggle()
+                }
 
-                Slider(
-                    value: $percentage,
-                    in: 10 ... 200,
-                    step: 1
-                ).onChange(of: percentage) { _ in hasChanges = true }
+                if displayPickerPercentage {
+                    Picker(
+                        selection: Binding(
+                            get: { max(10, min(floor(percentage / 5) * 5, 200)) },
+                            // round down to nearest multiple of 5 and limit from 10-200
+                            set: {
+                                percentage = $0
+                                hasChanges = true
+                            }
+                        ),
+                        label: Text("")
+                    ) {
+                        ForEach(Array(stride(from: 10.0, through: 200.0, by: 5.0)), id: \.self) { percent in
+                            Text("\(Int(percent)) %").tag(percent)
+                        }
+                    }
+                    .pickerStyle(WheelPickerStyle())
+                    .frame(maxWidth: .infinity)
+                }
 
                 // Picker for ISF/CR settings
-                Picker("Apply to", selection: $selectedIsfCrOption) {
+                Picker("Also Change", selection: $selectedIsfCrOption) {
                     ForEach(isfAndOrCrOptions.allCases, id: \.self) { option in
                         Text(option.rawValue).tag(option)
                     }
                 }
+                .padding(.top, pad)
                 .pickerStyle(MenuPickerStyle())
-                .onChange(of: selectedIsfCrOption) { newValue in
+                .onChange(of: selectedIsfCrOption) { _, newValue in
                     switch newValue {
                     case .isfAndCr:
                         isfAndCr = true
@@ -233,89 +276,26 @@ struct EditOverrideForm: View {
             }
 
             VStack {
-                Toggle(isOn: $indefinite) {
-                    Text("Enable Indefinitely")
-                }.onChange(of: indefinite) { _ in hasChanges = true }
-
-                if !indefinite {
-                    VStack {
-                        HStack {
-                            Text("Duration")
-                            Spacer()
-                            Text(formatHrMin(Int(truncating: duration as NSNumber)))
-                                .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
-                        }
-                        .onTapGesture {
-                            displayPickerDuration.toggle()
-                        }
-
-                        if displayPickerDuration {
-                            HStack {
-                                Picker(
-                                    selection: Binding(
-                                        get: {
-                                            Int(truncating: duration as NSNumber) / 60
-                                        },
-                                        set: {
-                                            duration = Decimal($0 * 60 + Int(truncating: duration as NSNumber) % 60)
-                                            hasChanges = true
-                                        }
-                                    ),
-                                    label: Text("")
-                                ) {
-                                    ForEach(0 ..< 24) { hour in
-                                        Text("\(hour) hr").tag(hour)
-                                    }
-                                }
-                                .pickerStyle(WheelPickerStyle())
-                                .frame(width: 100)
-
-                                Picker(
-                                    selection: Binding(
-                                        get: {
-                                            Int(truncating: duration as NSNumber) %
-                                                60 // Convert Decimal to Int for modulus operation
-                                        },
-                                        set: {
-                                            duration = Decimal((Int(truncating: duration as NSNumber) / 60) * 60 + $0)
-                                            hasChanges = true
-                                        }
-                                    ),
-                                    label: Text("")
-                                ) {
-                                    ForEach(Array(stride(from: 0, through: 55, by: 5)), id: \.self) { minute in
-                                        Text("\(minute) min").tag(minute)
-                                    }
-                                }
-                                .pickerStyle(WheelPickerStyle())
-                                .frame(width: 100)
-                            }
-                        }
-                    }
-                    .padding(.top)
-                }
-            }
-
-            VStack {
                 Toggle(isOn: $target_override) {
                     Text("Override Target")
-                }.onChange(of: target_override) { _ in
+                }
+                .padding(.vertical, pad)
+                .onChange(of: target_override) {
                     hasChanges = true
                 }
+                // Target Glucose Picker
                 if target_override {
-                    HStack {
-                        Text("Target Glucose")
-                        TextFieldWithToolBar(text: Binding(
-                            get: {
-                                target ?? 0
-                            },
-                            set: {
-                                target = $0
-                                hasChanges = true
-                            }
-                        ), placeholder: "0", numberFormatter: glucoseFormatter)
-                        Text(state.units.rawValue).foregroundColor(.secondary)
-                    }
+                    let step: Decimal = state.units == .mgdL ? 1 : 2
+                    ScrollWheelPicker(
+                        label: "Target Glucose",
+                        selection: Binding(
+                            get: { target ?? Decimal(100) },
+                            set: { target = $0 }
+                        ),
+                        options: Array(stride(from: Decimal(72), through: Decimal(270), by: step)),
+                        formatter: { formattedGlucose(glucose: $0) },
+                        hasChanges: $hasChanges
+                    )
                 }
             }
 
@@ -326,8 +306,9 @@ struct EditOverrideForm: View {
                         Text(option.rawValue).tag(option)
                     }
                 }
+                .padding(.vertical, pad)
                 .pickerStyle(MenuPickerStyle())
-                .onChange(of: selectedDisableSmbOption) { newValue in
+                .onChange(of: selectedDisableSmbOption) { _, newValue in
                     switch newValue {
                     case .dontDisable:
                         smbIsOff = false
@@ -344,22 +325,31 @@ struct EditOverrideForm: View {
 
                 if smbIsScheduledOff {
                     // First Hour SMBs Are Disabled
-                    VStack {
+                    HStack {
+                        Text("From")
+                        Spacer()
+                        Text(
+                            is24HourFormat() ? format24Hour(Int(truncating: start! as NSNumber)) + ":00" :
+                                convertTo12HourFormat(Int(truncating: start! as NSNumber))
+                        )
+                        .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
+
+                        Divider().frame(width: 1, height: 20)
+                        Text("To")
+                        Spacer()
+                        Text(
+                            is24HourFormat() ? format24Hour(Int(truncating: end! as NSNumber)) + ":00" :
+                                convertTo12HourFormat(Int(truncating: end! as NSNumber))
+                        )
+                        .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
+                    }
+                    .padding(.vertical, pad)
+                    .onTapGesture {
+                        displayPickerDisableSmbSchedule.toggle()
+                    }
+
+                    if displayPickerDisableSmbSchedule {
                         HStack {
-                            Text("From")
-                            Spacer()
-
-                            Text(
-                                is24HourFormat() ? format24Hour(Int(truncating: start! as NSNumber)) + ":00" :
-                                    convertTo12HourFormat(Int(truncating: start! as NSNumber))
-                            )
-                            .foregroundColor(!displayPickerStart ? .primary : .accentColor)
-                        }
-                        .onTapGesture {
-                            displayPickerStart.toggle()
-                        }
-
-                        if displayPickerStart {
                             Picker(selection: Binding(
                                 get: { Int(truncating: start! as NSNumber) },
                                 set: {
@@ -379,27 +369,7 @@ struct EditOverrideForm: View {
                             }
                             .pickerStyle(WheelPickerStyle())
                             .frame(maxWidth: .infinity)
-                        }
-                    }
-                    .padding(.top)
 
-                    // First Hour SMBs Are Resumed
-                    VStack {
-                        HStack {
-                            Text("To")
-                            Spacer()
-
-                            Text(
-                                is24HourFormat() ? format24Hour(Int(truncating: end! as NSNumber)) + ":00" :
-                                    convertTo12HourFormat(Int(truncating: end! as NSNumber))
-                            )
-                            .foregroundColor(!displayPickerEnd ? .primary : .accentColor)
-                        }
-                        .onTapGesture {
-                            displayPickerEnd.toggle()
-                        }
-
-                        if displayPickerEnd {
                             Picker(selection: Binding(
                                 get: { Int(truncating: end! as NSNumber) },
                                 set: {
@@ -421,7 +391,6 @@ struct EditOverrideForm: View {
                             .frame(maxWidth: .infinity)
                         }
                     }
-                    .padding(.top)
                 }
             }
 
@@ -429,119 +398,148 @@ struct EditOverrideForm: View {
                 VStack {
                     Toggle(isOn: $advancedSettings) {
                         Text("Change Max SMB Minutes")
-                    }.onChange(of: advancedSettings) { _ in hasChanges = true }
+                    }
+                    .padding(.vertical, pad)
+                    .onChange(of: advancedSettings) { hasChanges = true }
 
                     if advancedSettings {
                         // SMB Minutes Picker
                         VStack {
                             HStack {
-                                Text("Max SMB Minutes")
+                                Text("SMB")
                                 Spacer()
                                 Text("\(smbMinutes?.formatted(.number) ?? "\(state.defaultSmbMinutes)") min")
                                     .foregroundColor(!displayPickerSmbMinutes ? .primary : .accentColor)
+                                Divider().frame(width: 1, height: 20)
+                                Text("UAM")
+                                Spacer()
+                                Text("\(uamMinutes?.formatted(.number) ?? "\(state.defaultUamMinutes)") min")
+                                    .foregroundColor(!displayPickerSmbMinutes ? .primary : .accentColor)
                             }
+                            .padding(.vertical, pad)
                             .onTapGesture {
                                 displayPickerSmbMinutes.toggle()
                             }
 
                             if displayPickerSmbMinutes {
-                                Picker(
-                                    selection: Binding(
-                                        get: { smbMinutes ?? state.defaultSmbMinutes },
-                                        set: {
-                                            smbMinutes = $0
-                                            hasChanges = true
+                                HStack {
+                                    Picker(
+                                        selection: Binding(
+                                            get: { smbMinutes ?? state.defaultSmbMinutes },
+                                            set: {
+                                                smbMinutes = $0
+                                                hasChanges = true
+                                            }
+                                        ),
+                                        label: Text("")
+                                    ) {
+                                        ForEach(Array(stride(from: 0, through: 180, by: 5)), id: \.self) { minute in
+                                            Text("\(minute) min").tag(Decimal(minute))
                                         }
-                                    ),
-                                    label: Text("")
-                                ) {
-                                    ForEach(Array(stride(from: 0, through: 180, by: 5)), id: \.self) { minute in
-                                        Text("\(minute) min").tag(Decimal(minute))
                                     }
+                                    .pickerStyle(WheelPickerStyle())
+                                    .frame(maxWidth: .infinity)
+
+                                    Picker(
+                                        selection: Binding(
+                                            get: { uamMinutes ?? state.defaultUamMinutes },
+                                            set: {
+                                                uamMinutes = $0
+                                                hasChanges = true
+                                            }
+                                        ),
+                                        label: Text("")
+                                    ) {
+                                        ForEach(Array(stride(from: 0, through: 180, by: 5)), id: \.self) { minute in
+                                            Text("\(minute) min").tag(Decimal(minute))
+                                        }
+                                    }
+                                    .pickerStyle(WheelPickerStyle())
+                                    .frame(maxWidth: .infinity)
                                 }
-                                .pickerStyle(WheelPickerStyle())
-                                .frame(maxWidth: .infinity)
                             }
                         }
-                        .padding(.top)
-
-                        // UAM SMB Minutes Picker
-                        VStack {
-                            HStack {
-                                Text("Max UAM SMB Minutes")
-                                Spacer()
-                                Text("\(uamMinutes?.formatted(.number) ?? "\(state.defaultUamMinutes)") min")
-                                    .foregroundColor(!displayPickerUamMinutes ? .primary : .accentColor)
-                            }
-                            .onTapGesture {
-                                displayPickerUamMinutes.toggle()
-                            }
-
-                            if displayPickerUamMinutes {
-                                Picker(
-                                    selection: Binding(
-                                        get: { uamMinutes ?? state.defaultUamMinutes },
-                                        set: {
-                                            uamMinutes = $0
-                                            hasChanges = true
-                                        }
-                                    ),
-                                    label: Text("")
-                                ) {
-                                    ForEach(Array(stride(from: 0, through: 180, by: 5)), id: \.self) { minute in
-                                        Text("\(minute) min").tag(Decimal(minute))
-                                    }
-                                }
-                                .pickerStyle(WheelPickerStyle())
-                                .frame(maxWidth: .infinity)
-                            }
-                        }
-                        .padding(.top)
                     }
                 }
             }
-
-        }.listRowBackground(Color.chart)
+        }
+        .listRowBackground(Color.chart)
     }
 
     private var saveButton: some View {
-        HStack {
-            Spacer()
+        let (isInvalid, errorMessage) = isOverrideInvalid()
+
+        return Section(
+            footer: Text(errorMessage ?? "")
+                .foregroundColor(.red)
+        ) {
             Button(action: {
-                if !state.isInputInvalid(target: target ?? 0) {
-                    saveChanges()
+                saveChanges()
 
-                    do {
-                        guard let moc = override.managedObjectContext else { return }
-                        guard moc.hasChanges else { return }
-                        try moc.save()
+                do {
+                    guard let moc = override.managedObjectContext else { return }
+                    guard moc.hasChanges else { return }
+                    try moc.save()
 
-                        if let currentActiveOverride = state.currentActiveOverride {
-                            Task {
-                                await state.disableAllActiveOverrides(
-                                    except: currentActiveOverride.objectID,
-                                    createOverrideRunEntry: false
-                                )
-                            }
+                    if let currentActiveOverride = state.currentActiveOverride {
+                        Task {
+                            await state.disableAllActiveOverrides(
+                                except: currentActiveOverride.objectID,
+                                createOverrideRunEntry: false
+                            )
+                            // Update View
+                            state.updateLatestOverrideConfiguration()
                         }
-
-                        // Update View
-                        state.updateLatestOverrideConfiguration()
-                        hasChanges = false
-                        presentationMode.wrappedValue.dismiss()
-                    } catch {
-                        debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to edit Override")
                     }
+
+                    hasChanges = false
+                    presentationMode.wrappedValue.dismiss()
+                } catch {
+                    debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to edit Override")
                 }
             }, label: {
-                Text("Save")
+                Text("Save Override")
             })
-                .disabled(!hasChanges || (!indefinite && duration == 0))
+                .disabled(isInvalid) // Disable button if changes are invalid
                 .frame(maxWidth: .infinity, alignment: .center)
                 .tint(.white)
+        }
+        .listRowBackground(isInvalid ? Color(.systemGray4) : Color(.systemBlue))
+    }
 
-            Spacer()
-        }.listRowBackground(hasChanges ? Color(.systemBlue) : Color(.systemGray4))
+    private func isOverrideInvalid() -> (Bool, String?) {
+        let noDurationSpecified = !indefinite && duration == 0
+        let targetZeroWithOverride = target_override && (target ?? 0 < 72 || target ?? 0 > 270)
+        let allSettingsDefault = percentage == 100 && !target_override && !advancedSettings &&
+            !smbIsOff && !smbIsScheduledOff
+
+        if noDurationSpecified {
+            return (true, "Enable indefinitely or set a duration.")
+        }
+
+        if targetZeroWithOverride {
+            return (true, "Target glucose is out of range (\(state.units == .mgdL ? "72-270" : "4-14")).")
+        }
+
+        if allSettingsDefault {
+            return (true, "All settings are at default values.")
+        }
+
+        if !hasChanges {
+            return (true, nil)
+        }
+
+        return (false, nil)
+    }
+
+    private func formattedGlucose(glucose: Decimal) -> String {
+        let formattedValue: String
+        if state.units == .mgdL {
+            formattedValue = glucoseFormatter.string(from: glucose as NSDecimalNumber) ?? "\(glucose)"
+        } else {
+            formattedValue = glucose.formattedAsMmolL
+        }
+        return "\(formattedValue) \(state.units.rawValue)"
     }
 
     private func saveChanges() {
@@ -589,5 +587,43 @@ struct EditOverrideForm: View {
         cr = override.cr
         smbMinutes = override.smbMinutes?.decimalValue ?? state.defaultSmbMinutes
         uamMinutes = override.uamMinutes?.decimalValue ?? state.defaultUamMinutes
+    }
+}
+
+struct ScrollWheelPicker<T: Hashable>: View {
+    let label: String
+    @Binding var selection: T
+    let options: [T]
+    let formatter: (T) -> String
+    @Binding var hasChanges: Bool
+    @State private var isDisplayed: Bool = false
+
+    var body: some View {
+        VStack {
+            HStack {
+                Text(label)
+                Spacer()
+                Text(formatter(selection))
+                    .foregroundColor(.accentColor)
+            }
+            .onTapGesture {
+                isDisplayed.toggle()
+            }
+            if isDisplayed {
+                Picker(selection: Binding(
+                    get: { selection },
+                    set: {
+                        selection = $0
+                        hasChanges = true
+                    }
+                ), label: Text("")) {
+                    ForEach(options, id: \.self) { option in
+                        Text(formatter(option)).tag(option)
+                    }
+                }
+                .pickerStyle(WheelPickerStyle())
+                .frame(maxWidth: .infinity)
+            }
+        }
     }
 }
