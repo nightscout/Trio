@@ -155,7 +155,7 @@ struct LiveActivity: Widget {
                 )
             }
 
-            var hasStaticColorScheme = context.state.glucoseColorScheme == "staticColor"
+            let hasStaticColorScheme = context.state.glucoseColorScheme == "staticColor"
 
             return DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
