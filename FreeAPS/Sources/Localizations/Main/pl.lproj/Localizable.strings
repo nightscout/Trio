@@ -53,7 +53,7 @@
 "Enacted at" = "Wprowadzono o";
 
 /* Headline in suggested pop up (at: at what time) */
-"Suggested at" = "Sugerowano o";
+"Suggested at" = "Działania o";
 
 /* Headline in enacted pop up (at: at what time) */
 "Error at" = "Błąd o";
@@ -149,7 +149,7 @@
 "Delete" = "Usuń";
 
 /* Delete preset temp target */
-"Delete preset \"%@\"" = "Usunąć '%@\"";
+"Delete preset \"%@\"" = "Usuń '%@\"";
 
 /* Duration of target temp or temp basal */
 "Duration" = "Czas trwania";
@@ -194,7 +194,7 @@
 "Delete Preset" = "Usuń zapisany posiłek";
 
 /* Confirm Deletion */
-"Delete preset '%@'?" = "Usuń preset '%@'?";
+"Delete preset '%@'?" = "Usunąć '%@'?";
 
 /* Button */
 "No" = "Nie";
@@ -260,7 +260,7 @@
 "Schedule" = "Harmonogram";
 
 /*  */
-"starts at" = "Zaczyna się o";
+"starts at" = "Od godziny";
 
 /* Time basal profile */
 "Time" = "Czas";
@@ -272,7 +272,7 @@
 "Carb Ratios" = "Współczynniki węglowodanowe";
 
 /*  */
-"Ratio" = "Współczynnik";
+"Ratio" = "Ilość";
 
 /*  */
 "Autosens" = "Autosens";
@@ -423,7 +423,7 @@ Enact a temp Basal or a temp target */
 "hours" = "godzin (-y)";
 
 /* Max setting */
-"Max Basal" = "Maksymalna baza";
+"Max Basal" = "Maksymalna dawka podstawowa";
 
 /* Max setting */
 "Max Bolus" = "Maksymalny Bolus";
@@ -459,28 +459,28 @@ Enact a temp Basal or a temp target */
 "Pump Settings" = "Ustawienia pompy";
 
 /* Insulin unit per hour */
-"U/hr" = "U/hr";
+"U/hr" = "J/h";
 
 /* Unit in number of units delivered (keep the space character!) */
-" U" = " U";
+" U" = " J";
 
 /* /Insulin unit */
-"/U" = "/U";
+"/U" = "/J";
 
 /* Insulin unit */
-"U" = "U";
+"U" = "J";
 
 /* Unit per hour with space */
-" U/hr" = " U/hr";
+" U/hr" = " J/h";
 
 /* Number of units per hour*/
-"%@ U/hr" = "%@ U/hr";
+"%@ U/hr" = "%@ J/h";
 
 /* Number of units insulin delivered */
-"%@ U" = "%@ U";
+"%@ U" = "%@ J";
 
 /*Carb ratio unit */
-"g/U" = "g/U";
+"g/U" = "g/J";
 
 /* grams */
 " g" = " g";
@@ -489,7 +489,7 @@ Enact a temp Basal or a temp target */
 "g" = "g";
 
 /* when 0 U/hr */
-"0 U/hr" = "0 U/hr";
+"0 U/hr" = "0 J/h";
 
 /* abbreviation for days */
 "d" = "d";
@@ -957,7 +957,7 @@ Enact a temp Basal or a temp target */
 "High" = "Wysoki";
 
 /* */
-"glucose" = "glukoza";
+"glucose" = "glikemia";
 
 /* */
 "Schedule " = "Harmonogram ";
@@ -1014,7 +1014,7 @@ Enact a temp Basal or a temp target */
 "Sensor not found" = "Nie znaleziono czujnika";
 
 /* */
-"Also play alert sound" = "Odtwórz również dźwięk alarmu";
+"Also play alert sound" = "Odtwórz dźwięk alarmu";
 
 /* */
 "Notification Settings" = "Ustawienia powiadomień";
@@ -1047,10 +1047,10 @@ Enact a temp Basal or a temp target */
 "Battery" = "Bateria";
 
 /* */
-"Also add source info" = "Dodaj również informacje źródłowe";
+"Also add source info" = "Dodaj informacje źródłowe";
 
 /* */
-"Carbs Required Threshold" = "Próg wymaganych węglowodanów";
+"Carbs Required Threshold" = "Wymagany próg węglowodanów";
 
 /* */
 "Carbs required: %d g" = "Wymagane węglowodany: %d g";
@@ -1250,7 +1250,7 @@ Enact a temp Basal or a temp target */
 " -  Manual Basal ⚠️" = " -  Ręczna dawka tymczasowa ⚠️";
 
 /* Total AT / Scheduled basal insulin */
-" U/day" = " U/day";
+" U/day" = " J/dobę";
 
 /* Total AT / Scheduled basal insulin */
 "Total" = "Ogółem";
@@ -1267,10 +1267,10 @@ Enact a temp Basal or a temp target */
 "Delay In Minutes" = "Opóźnienie w minutach";
 
 /* Duration */
-"Maximum Duration In Hours" = "Maksymalny czas trwania w godzinach";
+"Maximum Duration In Hours" = "Czas trwania w godzinach";
 
 /* Interval */
-"Interval In Minutes" = "Odstęp czasowy w minutach";
+"Interval In Minutes" = "Odstęp w minutach";
 
 /* Override */
 "Override With A Factor Of " = "Współczynnik dopasowania ";
@@ -1404,7 +1404,7 @@ Enact a temp Basal or a temp target */
 "All FPUs of the meal will be deleted." = "Wszystkie wpisy posiłku zostaną usunięte.";
 
 /* */
-"Delete Glucose?" = "Usunąć glukozę?";
+"Delete Glucose?" = "Usunąć glikemię?";
 
 /* */
 "Meal Presets" = "Zapisane posiłki";
@@ -1448,7 +1448,7 @@ Enact a temp Basal or a temp target */
 "Please wait" = "Proszę czekać";
 
 /* */
-"Glucose, " = "Glukoza, ";
+"Glucose, " = "Glikemia, ";
 
 /* */
 "Target Glucose" = "Docelowa glikemia";
@@ -1481,19 +1481,19 @@ Enact a temp Basal or a temp target */
 "Eventual Glucose > Target Glucose, but glucose is climbing slower than expected. Expected: " = "Przewidywana glikemia > glikemii docelowej, ale glukoza rośnie wolniej niż oczekiwano. Oczekiwano: ";
 
 //* Bolus pop-up / Alert string. Make translations concise! */
-". Climbing: " = "Wzrost glikemii: ";
+". Climbing: " = ". Wzrost glikemii: ";
 
 /* Bolus pop-up / Alert string. Make translations concise! */
 "Eventual Glucose > Target Glucose, but glucose is falling faster than expected. Expected: " = "Przewidywana glikemia > glikemii docelowej, ale glukoza spada szybciej niż oczekiwano. Oczekiwano: ";
 
 /* Bolus pop-up / Alert string. Make translations concise! */
-". Falling: " = "Spadek glikemii: ";
+". Falling: " = ". Spadek glikemii: ";
 
 /* Bolus pop-up / Alert string. Make translations concise! */
 "Eventual Glucose > Target Glucose, but glucose is changing faster than expected. Expected: " = "Przewidywana glikemia > glikemii docelowej, ale glukoza zmienia się szybciej niż oczekiwano. Oczekiwano: ";
 
 /* Bolus pop-up / Alert string. Make translations concise! */
-". Changing: " = "Zmiana glikemii: ";
+". Changing: " = ". Zmiana glikemii: ";
 
 /* Add insulin without bolusing alert */
 " without bolusing" = " bez bolusa";
@@ -1836,7 +1836,7 @@ Enact a temp Basal or a temp target */
 "Defaults to false. When set to true, can lower sensitivity (higher sensitivity ratio) for temptargets <= 99. The lower your temp target below 100 will result in less sensitive (higher) ratios, e.g., temp target of 95 results in sensitivity ratio of 1.09, while 85 results in 1.33 (with default halfBasalTarget of 160)." = "Domyślnie Wyłączone. Po Włączeniu, może obniżyć wrażliwość (wyższy współczynnik wrażliwości) dla celów tymczasowych <= 99. Im niższy cel tymczasowy poniżej 100, tym niższe (wyższe) współczynniki będą miały niższą wrażliwość, np. cel tymczasowy 95 da współczynnik wrażliwości 1,09, podczas gdy 85 da współczynnik wrażliwości 1,33 (przy domyślnym poziomie trybu ćwiczeń równym 160).";
 
 /* Headline ”Sensitivity Raises Target" */
-"Sensitivity Raises Target" = "Wrażliwość podnosi poziom docelowy";
+"Sensitivity Raises Target" = "Wrażliwość podnosi cel";
 
 /* ”Sensitivity Raises Target" */
 "When true, raises BG target when autosens detects sensitivity" = "Gdy włączony, podnosi poziom docelowy, gdy autosens wykrywa wrażliwość";
@@ -1902,7 +1902,7 @@ Enact a temp Basal or a temp target */
 "Defaults to false. When true, always enable supermicrobolus (unless disabled by high temptarget)." = "Domyślnie opcja jest wyłączona. SMB jest zawsze włączony (chyba że jest wyłączony przez wysoki poziom tymczasowy).";
 
 /* Headline "Enable SMB After Carbs" */
-"Enable SMB After Carbs" = "SMB jest zawsze włączony (chyba że jest wyłączony przez wysoki poziom tymczasowy). Domyślnie opcja jest wyłączona.";
+"Enable SMB After Carbs" = "Włącz SMB po węglowodanach";
 
 /* "Enable SMB After Carbs" */
 "Defaults to false. When true, enables supermicrobolus (SMB) for 6h after carbs, even with 0 carbs on board (COB)." = "Domyślnie opcja jest wyłączona. SMB jest zawsze włączony (chyba że jest wyłączony przez wysoki poziom tymczasowy).";
@@ -1935,13 +1935,13 @@ Enact a temp Basal or a temp target */
 "Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two OpenAPS safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings\n\n(Tip from https://www.loopandlearn.org/freeaps-x/#open-loop)." = "Max IOB to maksymalna ilość insuliny na pokładzie ze wszystkich źródeł - zarówno bazowej (lub korekty SMB), jak i insuliny bolusowej - którą pętla może kumulować się w celu leczenia wyższego niż docelowy stężenia BG. W przeciwieństwie do pozostałych dwóch ustawień bezpieczeństwa OpenAPS (max_daily_safety_multiplier i current_basal_safety_multiplier), max_iob jest ustawiony jako stała liczba jednostek insuliny. Od teraz ręczne bolusy NIE są ograniczone przez to ustawienie. \n\n Aby przetestować dawki bazowe w nocy, możesz zmodyfikować ustawienie Max IOB do zera w zamkniętej pętli. Spowoduje to włączenie trybu zawieszania niskiej glukozy podczas testowania ustawień podstawowych\n\n(Tip z https://www.loopandlearn.org/freeaps-x/#open-loop).";
 
 /* Headline "Max Daily Safety Multiplier" */
-"Max Daily Safety Multiplier" = "Maksymalny dzienny mnożnik bezpieczeństwa";
+"Max Daily Safety Multiplier" = "Dzienny mnożnik bezpieczeństwa";
 
 /* "Max Daily Safety Multiplier" */
 "This is an important OpenAPS safety limit. The default setting (which is unlikely to need adjusting) is 3. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 3x the highest hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "Jest to ważny limit bezpieczeństwa OpenAPS. Domyślne ustawienie (jest mało prawdopodobne, aby wymagało dostosowania) to 3. Oznacza to, że OpenAPS nigdy nie będzie mógł ustawić tymczasowej dawki podstawowej, która jest większa niż 3 krotność najwyższej godzinowej raty dawki podstawowej zaprogramowanej w pompie użytkownika, lub włączonej przez autotune.";
 
 /* Headline "Current Basal Safety Multiplier" */
-"Current Basal Safety Multiplier" = "Aktualny mnożnik bezpieczeństwa bazy";
+"Current Basal Safety Multiplier" = "Godzinowy mnożnik bezpieczeństwa";
 
 /* "Current Basal Safety Multiplier" */
 "This is another important OpenAPS safety limit. The default setting (which is also unlikely to need adjusting) is 4. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 4x the current hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "Jest to kolejny ważny limit bezpieczeństwa OpenAPS. Domyślne ustawienie (co również jest mało prawdopodobne, aby wymagało dostosowania) wynosi 4. Oznacza to, że OpenAPS nigdy nie będzie mógł ustawiać tymczasowej dawki podstawowej, która jest większa niż 4 krotność aktualnej godzinowej raty dawki podstawowej zaprogramowanej w pompie użytkownika, lub włączonej przez autotune.";
@@ -2164,7 +2164,7 @@ Enact a temp Basal or a temp target */
 "Defaults to 0.2 (20%). Maximum positive percentual change of BG level to use SMB, above that will disable SMB. Hardcoded cap of 40%. For UAM fully-closed-loop 30% is advisable. Observe in log and popup (maxDelta 27 > 20% of BG 100 - disabling SMB!)." = "Domyślne ustawienie 0,2 (20%). Maksymalna dodatnia procentowa zmiana poziomu BG do użycia SMB, powyżej której SMB zostanie wyłączone. Zakodowany na stałe limit 40%. Dla całkowicie zamkniętej pętli UAM zaleca się 30%. Obserwuj w dzienniku i wyskakującym okienku (maxDelta 27 > 20% BG 100 - wyłączenie SMB!).";
 
 /* Headline "... When Blood Glucose Is Over (mg/dl):" */
-"... When Blood Glucose Is Over (mg/dl):" = "... Kiedy poziom glukozy we krwi jest powyżej (mg/dl):";
+"... When Blood Glucose Is Over (mg/dl):" = "... kiedy poziom glukozy we krwi jest powyżej (mg/dl):";
 
 /* ... When Blood Glucose Is Over (mg/dl): */
 "Set the value enableSMB_high_bg will compare against to enable SMB. If BG > than this value, SMBs should enable." = "Ustawiona wartość \"Włącz SMB z wysokim BG\" będzie sprawdzać poziom aktualnej glikemii aby włączyć SMB. Jeśli BG będzie wyższa niż ustawiona wartość SMB będzie się aktywować.";
