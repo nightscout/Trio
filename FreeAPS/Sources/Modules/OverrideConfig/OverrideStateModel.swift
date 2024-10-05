@@ -71,21 +71,37 @@ extension OverrideConfig {
         }
 
         override func subscribe() {
-            // TODO: - execute the init concurrently
             setupNotification()
+            setupSettings()
+            broadcaster.register(SettingsObserver.self, observer: self)
+
+            Task {
+                await withTaskGroup(of: Void.self) { group in
+                    group.addTask {
+                        self.setupOverridePresetsArray()
+                    }
+                    group.addTask {
+                        self.setupTempTargetPresetsArray()
+                    }
+                    group.addTask {
+                        self.updateLatestOverrideConfiguration()
+                    }
+                    group.addTask {
+                        self.updateLatestTempTargetConfiguration()
+                    }
+                }
+            }
+        }
+
+        private func setupSettings() {
             units = settingsManager.settings.units
             defaultSmbMinutes = settingsManager.preferences.maxSMBBasalMinutes
             defaultUamMinutes = settingsManager.preferences.maxUAMSMBBasalMinutes
-            setupOverridePresetsArray()
-            setupTempTargetPresetsArray()
-            updateLatestOverrideConfiguration()
-            updateLatestTempTargetConfiguration()
             maxValue = settingsManager.preferences.autosensMax
             minValue = settingsManager.preferences.autosensMin
             settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
             halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
             percentage = Double(computeAdjustedPercentage() * 100)
-            broadcaster.register(SettingsObserver.self, observer: self)
         }
 
         func isInputInvalid(target: Decimal) -> Bool {
@@ -549,14 +565,16 @@ extension OverrideConfig.StateModel {
             halfBasalTarget: halfBasalTarget
         )
 
-        // disable all TempTargets
+        // First disable all active TempTargets
         await disableAllActiveTempTargets(createTempTargetRunEntry: true)
 
         // Save Temp Target to Core Data and to the storage
-        await tempTargetStorage.storeTempTarget(tempTarget: tempTarget)
+        async let storeTempTarget: () = tempTargetStorage.storeTempTarget(tempTarget: tempTarget)
 
         // Reset State variables
-        await resetTempTargetState()
+        async let resetState: () = resetTempTargetState()
+
+        _ = await (storeTempTarget, resetState)
 
         // Update View
         updateLatestTempTargetConfiguration()
