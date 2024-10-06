@@ -39,5 +39,5 @@
 	url = https://github.com/loopandlearn/TidepoolService.git
 [submodule "DanaKit"]
 	path = DanaKit
-	url = https://github.com/bastiaanv/DanaKit.git
-	branch = dev
+	url = https://github.com/loopandlearn/DanaKit.git
+	branch = trio
