@@ -288,7 +288,7 @@ extension OverrideConfig {
                             })
                         }
                 }
-//                .onMove(perform: state.reorderOverride)
+                .onMove(perform: state.reorderTempTargets)
                 .listRowBackground(Color.chart)
             } header: {
                 Text("Presets")
@@ -378,6 +378,9 @@ extension OverrideConfig {
                         // Save cancelled Temp Targets in TempTargetRunStored Entity
                         // Cancel ALL active Temp Targets
                         await state.disableAllActiveTempTargets(createTempTargetRunEntry: true)
+
+                        // Update View
+                        state.updateLatestTempTargetConfiguration()
                     }
                 }, label: {
                     Text("Cancel Temp Target")
@@ -447,6 +450,10 @@ extension OverrideConfig {
                         .imageScale(.large)
                         .fontWeight(.bold)
                         .foregroundStyle(Color.green)
+                } else {
+                    Image(systemName: "line.3.horizontal")
+                        .imageScale(.medium)
+                        .foregroundStyle(.secondary)
                 }
             })
         }

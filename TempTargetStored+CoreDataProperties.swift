@@ -16,6 +16,7 @@ public extension TempTargetStored {
     @NSManaged var isPreset: Bool
     @NSManaged var halfBasalTarget: NSDecimalNumber?
     @NSManaged var tempTargetRun: TempTargetRunStored?
+    @NSManaged var orderPosition: Int16
 }
 
 extension TempTargetStored: Identifiable {}

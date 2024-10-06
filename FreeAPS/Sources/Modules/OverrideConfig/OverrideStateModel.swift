@@ -175,6 +175,26 @@ extension OverrideConfig.StateModel {
         }
     }
 
+    func reorderTempTargets(from source: IndexSet, to destination: Int) {
+        tempTargetPresets.move(fromOffsets: source, toOffset: destination)
+
+        for (index, tempTarget) in tempTargetPresets.enumerated() {
+            tempTarget.orderPosition = Int16(index + 1)
+        }
+
+        do {
+            guard viewContext.hasChanges else { return }
+            try viewContext.save()
+
+            // Update Presets View
+            setupTempTargetPresetsArray()
+        } catch {
+            debugPrint(
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save after reordering Temp Target Presets with error: \(error.localizedDescription)"
+            )
+        }
+    }
+
     /// here we only have to update the Boolean Flag 'enabled'
     @MainActor func enactOverridePreset(withID id: NSManagedObjectID) async {
         do {
@@ -288,11 +308,11 @@ extension OverrideConfig.StateModel {
         // First disable all Overrides
         await disableAllActiveOverrides(createOverrideRunEntry: true)
 
-        // Then save and activate a new custom Override and reset the State variables
-        async let storeOverride: () = overrideStorage.storeOverride(override: override)
-        async let resetState: () = resetStateVariables()
+        // Then save and activate a new custom Override
+        await overrideStorage.storeOverride(override: override)
 
-        _ = await (storeOverride, resetState)
+        // Reset State variables
+        await resetStateVariables()
 
         // Update View
         updateLatestOverrideConfiguration()
@@ -550,8 +570,15 @@ extension OverrideConfig.StateModel {
         }
     }
 
+    func saveTempTargetToStorage(tempTargets: [TempTarget]) {
+        tempTargetStorage.saveTempTargetsToStorage(tempTargets)
+    }
+
     // Creates and enacts a non Preset Temp Target
     func saveCustomTempTarget() async {
+        // First disable all active TempTargets
+        await disableAllActiveTempTargets(createTempTargetRunEntry: true)
+
         let tempTarget = TempTarget(
             name: tempTargetName,
             createdAt: Date(),
@@ -565,16 +592,14 @@ extension OverrideConfig.StateModel {
             halfBasalTarget: halfBasalTarget
         )
 
-        // First disable all active TempTargets
-        await disableAllActiveTempTargets(createTempTargetRunEntry: true)
+        // Save Temp Target to Core Data
+        await tempTargetStorage.storeTempTarget(tempTarget: tempTarget)
 
-        // Save Temp Target to Core Data and to the storage
-        async let storeTempTarget: () = tempTargetStorage.storeTempTarget(tempTarget: tempTarget)
+        // Enact Temp Target for oref
+        tempTargetStorage.saveTempTargetsToStorage([tempTarget])
 
         // Reset State variables
-        async let resetState: () = resetTempTargetState()
-
-        _ = await (storeTempTarget, resetState)
+        await resetTempTargetState()
 
         // Update View
         updateLatestTempTargetConfiguration()
@@ -595,6 +620,7 @@ extension OverrideConfig.StateModel {
             halfBasalTarget: halfBasalTarget
         )
 
+        // Save to Core Data
         await tempTargetStorage.storeTempTarget(tempTarget: tempTarget)
 
         // Reset State variables
@@ -626,8 +652,9 @@ extension OverrideConfig.StateModel {
 
             _ = await (disableTempTargets, resetState)
 
-            guard viewContext.hasChanges else { return }
-            try viewContext.save()
+            if viewContext.hasChanges {
+                try viewContext.save()
+            }
 
             // Update View
             updateLatestTempTargetConfiguration()
@@ -695,12 +722,8 @@ extension OverrideConfig.StateModel {
                 if self.viewContext.hasChanges {
                     try self.viewContext.save()
 
-                    // Update the View
-                    self.updateLatestTempTargetConfiguration()
-
                     // Update the storage
-//                   await self.tempTargetStorage.storeTempTarget(tempTarget: TempTarget.cancel(at: Date()))
-                    self.tempTargetStorage.saveTempTargetsToStorage([TempTarget.cancel(at: Date())])
+                    self.tempTargetStorage.saveTempTargetsToStorage([TempTarget.cancel(at: Date().addingTimeInterval(-1))])
                 }
             } catch {
                 debugPrint(

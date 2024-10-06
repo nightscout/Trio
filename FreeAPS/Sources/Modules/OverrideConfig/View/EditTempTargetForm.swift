@@ -17,6 +17,8 @@ struct EditTempTargetForm: View {
     @State private var hasChanges = false
     @State private var showAlert = false
     @State private var isUsingSlider = false
+    @State private var isPreset = false
+    @State private var isEnabled = false
 
     init(tempTargetToEdit: TempTargetStored, state: OverrideConfig.StateModel) {
         tempTarget = tempTargetToEdit
@@ -26,6 +28,8 @@ struct EditTempTargetForm: View {
         _duration = State(initialValue: tempTargetToEdit.duration?.decimalValue ?? 0)
         _date = State(initialValue: tempTargetToEdit.date ?? Date())
         _halfBasalTarget = State(initialValue: tempTargetToEdit.halfBasalTarget?.decimalValue ?? 160)
+        _isPreset = State(initialValue: tempTargetToEdit.isPreset)
+        _isEnabled = State(initialValue: tempTargetToEdit.enabled)
 
         let normalTarget: Decimal = 100
         if let hbt = tempTargetToEdit.halfBasalTarget?.decimalValue {
@@ -122,6 +126,9 @@ struct EditTempTargetForm: View {
                     Spacer()
                     TextField("Enter Name (optional)", text: $name)
                         .multilineTextAlignment(.trailing)
+                        .onChange(of: name) {
+                            hasChanges = true
+                        }
                 }
                 HStack {
                     Text("Target")
@@ -156,7 +163,7 @@ struct EditTempTargetForm: View {
                     Text("minutes").foregroundColor(.secondary)
                 }
                 DatePicker("Date", selection: $date)
-                    .onChange(of: date) { _ in hasChanges = true }
+                    .onChange(of: date) { hasChanges = true }
             }
         ).listRowBackground(Color.chart)
 
@@ -234,14 +241,35 @@ struct EditTempTargetForm: View {
                         guard moc.hasChanges else { return }
                         try moc.save()
 
-                        // Disable previous active Temp Target and update View
                         if let currentActiveTempTarget = state.currentActiveTempTarget {
                             Task {
+                                // TODO: - Creating a Run entry is probably needed for Overrides as well and the reason for "jumping" Overrides?
+                                // Disable previous active Temp Targets
                                 await state.disableAllActiveOverrides(
                                     except: currentActiveTempTarget.objectID,
                                     createOverrideRunEntry: false
                                 )
 
+                                // If the temp target which currently gets edited is enabled, then store it to the Temp Target JSON so that oref uses it
+                                if isEnabled {
+                                    let tempTarget = TempTarget(
+                                        name: name,
+                                        createdAt: Date(),
+                                        targetTop: target,
+                                        targetBottom: target,
+                                        duration: duration,
+                                        enteredBy: TempTarget.manual,
+                                        reason: TempTarget.custom,
+                                        isPreset: isPreset ? true : false,
+                                        enabled: isEnabled ? true : false,
+                                        halfBasalTarget: halfBasalTarget
+                                    )
+
+                                    // Store to TempTargetStorage so that oref uses the edited Temp target
+                                    state.saveTempTargetToStorage(tempTargets: [tempTarget])
+                                }
+
+                                // Update view
                                 state.updateLatestTempTargetConfiguration()
                             }
                         }

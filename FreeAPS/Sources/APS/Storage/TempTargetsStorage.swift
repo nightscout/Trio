@@ -38,7 +38,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             ofType: TempTargetStored.self,
             onContext: backgroundContext,
             predicate: NSPredicate.lastActiveTempTarget,
-            key: "date",
+            key: "orderPosition",
             ascending: true,
             fetchLimit: fetchLimit
         )
@@ -56,7 +56,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             ofType: TempTargetStored.self,
             onContext: backgroundContext,
             predicate: NSPredicate.allTempTargetPresets,
-            key: "date",
+            key: "orderPosition",
             ascending: true
         )
 
@@ -68,6 +68,12 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
     }
 
     func storeTempTarget(tempTarget: TempTarget) async {
+        var presetCount = -1
+        if tempTarget.isPreset == true {
+            let presets = await fetchForTempTargetPresets()
+            presetCount = presets.count
+        }
+
         await backgroundContext.perform {
             let newTempTarget = TempTargetStored(context: self.backgroundContext)
             newTempTarget.date = tempTarget.createdAt
@@ -80,6 +86,11 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             newTempTarget.isPreset = tempTarget.isPreset ?? false
             newTempTarget.halfBasalTarget = NSDecimalNumber(decimal: tempTarget.halfBasalTarget ?? 160)
 
+            // Set order position if we have a valid count and the temp target is a preset
+            if tempTarget.isPreset == true, presetCount > -1 {
+                newTempTarget.orderPosition = Int16(presetCount + 1)
+            }
+
             do {
                 guard self.backgroundContext.hasChanges else { return }
                 try self.backgroundContext.save()
@@ -88,32 +99,15 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save Temp Target to Core Data with error: \(error.userInfo)"
                 )
             }
-
-            /*
-             Saving the Preset to the Storage means that it gets used by Oref
-             We only want that when either creating a new non-Preset-Temp Target or when enacting a Temp Target Preset, NOT when we are only saving a new Preset, hence the check here!
-             */
-            if !(tempTarget.isPreset ?? false) {
-                self.saveTempTargetsToStorage([tempTarget])
-            }
         }
     }
 
     func saveTempTargetsToStorage(_ targets: [TempTarget]) {
         processQueue.async {
-            var updatedTargets = targets
-
-            if let newActive = updatedTargets.last(where: { $0.isActive }) {
-                // Cancel current target
-                // This logic to add a new cancel Temp target to cancel the current one is so fucking dumb...
-                updatedTargets.append(.cancel(at: newActive.createdAt.addingTimeInterval(-1)))
-            }
-
             let file = OpenAPS.Settings.tempTargets
-
             var uniqEvents: [TempTarget] = []
             self.storage.transaction { storage in
-                storage.append(updatedTargets, to: file, uniqBy: \.createdAt)
+                storage.append(targets, to: file, uniqBy: \.createdAt)
 
                 let retrievedTargets = storage.retrieve(file, as: [TempTarget].self) ?? []
                 uniqEvents = retrievedTargets
