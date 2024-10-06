@@ -4,7 +4,7 @@
 */
 /* -------------------------------- */
 /* Bolus screen when adding insulin */
-"Add insulin without actually bolusing" = "Dodaj insulinę bez podawania bolusa";
+"Add insulin without actually bolusing" = "Dodaj insulinę bez podawania";
 
 /* Add insulin from source outside of pump */
 "Add %@ without bolusing" = "Dodaj %@ bez bolusa";
@@ -245,7 +245,7 @@
 "Add" = "Dodaj";
 
 /*  */
-"Basal Profile" = "Profil dawki podstawowej";
+"Basal Profile" = "Dawka podstawowa";
 
 /* Rate basal profile */
 "Rate" = "Dawka";
@@ -296,7 +296,7 @@
 "Amount" = "Wartość";
 
 /* */
-"Cancel Temp Basal" = "Anuluj bazę tymczasową";
+"Cancel Temp Basal" = "Anuluj dawkę tymczasową";
 
 /* Enact
 Enact a temp Basal or a temp target */
@@ -417,7 +417,7 @@ Enact a temp Basal or a temp target */
 "Delivery limits" = "Limit podawania";
 
 /*  */
-"Duration of Insulin Action" = "(DIA) Czas działania insuliny ";
+"Duration of Insulin Action" = "(DIA) Czas działania insuliny";
 
 /* hours of duration of insulin activity */
 "hours" = "godzin (-y)";
@@ -1285,7 +1285,7 @@ Enact a temp Basal or a temp target */
 "Fat & Protein" = "Tłuszcze i Białka";
 
 /* */
-"Hide Fat & Protein" = "Ukryj tłuszcz i białko";
+"Hide Fat & Protein" = "Ukryj tłuszcze i białka";
 
 /* Add Fat */
 "Fat" = "Tłuszcze";
@@ -1604,7 +1604,7 @@ Enact a temp Basal or a temp target */
 "This PumpManager has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to therapy settings -> delivery limits and set a new maximum basal rate." = "Limit podaży został ustawiony przed wprowadzeniem bazy tymczasowej. Wróć do ustawień terapii i ustaw nowy limit maksymalnej dawki podstawowej (bazy).";
 
 /* description label for active time pod details row */
-"Active Time" = "Limit podaży został ustawiony przed wprowadzeniem bazy tymczasowej. Wróć do ustawień terapii i ustaw nowy limit maksymalnej dawki podstawowej (bazy).";
+"Active Time" = "Czas aktywności";
 
 /* description label for total delivery pod details row */
 "Total Delivery" = "Łącznie podano";
@@ -1920,10 +1920,10 @@ Enact a temp Basal or a temp target */
 "Use Custom Peak Time" = "Użyj własnego czasu szczytu insuliny";
 
 /* "Use Custom Peak Time” */
-"Defaults to false. Setting to true allows changing insulinPeakTime" = "Domyślnie opcja jest wyłączona. Pozwala na zmianę czasu szczytu insuliny (PeakTime), w którym insulina ma maksymalną aktywność";
+"Defaults to false. Setting to true allows changing insulinPeakTime" = "Domyślnie opcja jest wyłączona. Pozwala na zmianę czasu szczytu insuliny, w którym insulina ma maksymalną aktywność";
 
 /* Headline "Suspend Zeros IOB” */
-"Suspend Zeros IOB" = "Domyślnie opcja jest wyłączona. Pozwala ustawić własną krzywą wykładniczą insuliny (szczyt działania insuliny).";
+"Suspend Zeros IOB" = "Wstrzymaj zerowe IOB";
 
 /* "Suspend Zeros IOB” */
 "Default is false. Any existing temp basals during times the pump was suspended will be deleted and 0 temp basals to negate the profile basal rates during times pump is suspended will be added." = "Domyślnie jest wyłączone. Wszystkie dawki tymczasowe podczas wstrzymania podawania zostaną usunięte poprawiając obliczenia IOB przez algorytm.";
@@ -1935,13 +1935,13 @@ Enact a temp Basal or a temp target */
 "Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two OpenAPS safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings\n\n(Tip from https://www.loopandlearn.org/freeaps-x/#open-loop)." = "Max IOB to maksymalna ilość insuliny na pokładzie ze wszystkich źródeł - zarówno bazowej (lub korekty SMB), jak i insuliny bolusowej - którą pętla może kumulować się w celu leczenia wyższego niż docelowy stężenia BG. W przeciwieństwie do pozostałych dwóch ustawień bezpieczeństwa OpenAPS (max_daily_safety_multiplier i current_basal_safety_multiplier), max_iob jest ustawiony jako stała liczba jednostek insuliny. Od teraz ręczne bolusy NIE są ograniczone przez to ustawienie. \n\n Aby przetestować dawki bazowe w nocy, możesz zmodyfikować ustawienie Max IOB do zera w zamkniętej pętli. Spowoduje to włączenie trybu zawieszania niskiej glukozy podczas testowania ustawień podstawowych\n\n(Tip z https://www.loopandlearn.org/freeaps-x/#open-loop).";
 
 /* Headline "Max Daily Safety Multiplier" */
-"Max Daily Safety Multiplier" = "Dzienny mnożnik bezpieczeństwa";
+"Max Daily Safety Multiplier" = "Dzienny mnożnik bezpieczeństwa bazy";
 
 /* "Max Daily Safety Multiplier" */
-"This is an important OpenAPS safety limit. The default setting (which is unlikely to need adjusting) is 3. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 3x the highest hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "Jest to ważny limit bezpieczeństwa OpenAPS. Domyślne ustawienie (jest mało prawdopodobne, aby wymagało dostosowania) to 3. Oznacza to, że OpenAPS nigdy nie będzie mógł ustawić tymczasowej dawki podstawowej, która jest większa niż 3 krotność najwyższej godzinowej raty dawki podstawowej zaprogramowanej w pompie użytkownika, lub włączonej przez autotune.";
+"This is an important OpenAPS safety limit. The default setting (which is unlikely to need adjusting) is 3. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 3x the highest hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "Jest to ważny limit bezpieczeństwa OpenAPS. Domyślne ustawienie (jest mało prawdopodobne, aby wymagało dostosowania) to 3. Oznacza to, że OpenAPS nigdy nie będzie mógł ustawiać tymczasowej dawki podstawowej, która jest większa niż 3 krotność najwyższej godzinowej raty dawki podstawowej zaprogramowanej w pompie użytkownika, lub włączonej przez autotune.";
 
 /* Headline "Current Basal Safety Multiplier" */
-"Current Basal Safety Multiplier" = "Godzinowy mnożnik bezpieczeństwa";
+"Current Basal Safety Multiplier" = "Godzinowy mnożnik bezpieczeństwa bazy";
 
 /* "Current Basal Safety Multiplier" */
 "This is another important OpenAPS safety limit. The default setting (which is also unlikely to need adjusting) is 4. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 4x the current hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "Jest to kolejny ważny limit bezpieczeństwa OpenAPS. Domyślne ustawienie (co również jest mało prawdopodobne, aby wymagało dostosowania) wynosi 4. Oznacza to, że OpenAPS nigdy nie będzie mógł ustawiać tymczasowej dawki podstawowej, która jest większa niż 4 krotność aktualnej godzinowej raty dawki podstawowej zaprogramowanej w pompie użytkownika, lub włączonej przez autotune.";
@@ -1959,7 +1959,7 @@ Enact a temp Basal or a temp target */
 "The other side of the autosens safety limits, putting a cap on how low autosens can adjust basals, and how high it can adjust ISF and BG targets." = "Druga strona limitów bezpieczeństwa autosens, narzucająca ograniczenie na to, jak nisko autosens może zmniejszyć dawki bazowe, a jak wysoko może ustawić współczynnik wrażliwości insuliny ISF i  docelową wartość glikemii.";
 
 /* Headline "Half Basal Exercise Target" */
-"Half Basal Exercise Target" = "Druga strona granic bezpieczeństwa autosens. Nakłada limit jak nisko autosens może korygować dawkę bazową, i jak wysoko może ustawić współczynnik wrażliwości insuliny (ISF) i docelową wartość glikemii (BG).";
+"Half Basal Exercise Target" = "Połowa bazy dla celu ćwiczeń";
 
 /* "Half Basal Exercise Target" */
 "Set to a number, e.g. 160, which means when temp target is 160 mg/dL and exercise_mode=true, run 50% basal at this level (120 = 75%; 140 = 60%). This can be adjusted, to give you more control over your exercise modes." = "Ustaw liczbę, np. 160, co oznacza, że jeśli cel tymczasowy wynosi 160 mg/dl a tryb ćwiczeń jest włączony to uruchomi 50% dawki podstawowej na tym poziomie (120 = 75%; 140 = 60%). Można to dostosować, aby zapewnić większą kontrolę nad trybami ćwiczeń.";
