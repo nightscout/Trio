@@ -611,12 +611,8 @@ Enact a temp Basal or a temp target */
 /* Delete insulin from pump history and Nightscout */
 "Delete Insulin?" = "Delete Insulin?";
 
-/* Delete insulin from pump history and Nightscout */
-"Delete Insulin?" = "Delete Insulin?";
->>>>>>> Crowdin
-
 /* Treatments list */
-"Treatments" = "Tedaviler";
+"Treatments" = "Treatments";
 
 /* " min" in Treatments list */
 " min" = " dk";
@@ -646,7 +642,7 @@ Enact a temp Basal or a temp target */
 "External" = "External";
 
 /* */
-"Other" = "Diğer";
+"Other" = "Other";
 
 /* */
 "Libre Transmitter" = "Libre Vericisi";
@@ -1174,7 +1170,7 @@ Enact a temp Basal or a temp target */
 "Save as your Normal Basal Rates" = "Save as your Normal Basal Rates";
 
 /* */
-"Save on Pump" = "Pompa'ya Kaydet";
+"Save on Pump" = "Save on Pump";
 
 /* Debug option view Pump History */
 "Pump History" = "Pompa geçmişi";
@@ -1204,7 +1200,7 @@ Enact a temp Basal or a temp target */
 "Enacted announcements" = "Enacted announcements";
 
 /* Debug option view Autotune */
-"Autotune" = "Otoayar";
+"Autotune" = "Autotune";
 
 /* Debug option view Target presets */
 "Target presets" = "Target presets";
@@ -1230,13 +1226,13 @@ Enact a temp Basal or a temp target */
 
 /* New ALerts ------------------------- */
 /* Info title */
-"Info" = "Bilgi";
+"Info" = "Info";
 
 /* Warning title */
 "Warning" = "Uyarı";
 
 /* Error title */
-"Error" = "Hata";
+"Error" = "Error";
 
 /* Manual temp basal mode */
 "Manual" = "Manuel";
@@ -1366,7 +1362,7 @@ Enact a temp Basal or a temp target */
 "Cancel Profile Override" = "Cancel Profile Override";
 
 /* Alert */
-"Cancel Temp Target" = "Geçici Hedefi İptal Et";
+"Cancel Temp Target" = "Cancel Temp Target";
 
 /* Alert */
 "Return to Normal?" = "Return to Normal?";
@@ -1523,10 +1519,10 @@ Enact a temp Basal or a temp target */
 "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced.";
 
 /* button title for saving low reservoir reminder while saving */
-"Saving..." = "Kaydediliyor...";
+"Saving..." = "Saving...";
 
 /* button title for saving low reservoir reminder */
-"Save" = "Kaydet";
+"Save" = "Save";
 
 /* Alert title for error when updating confidence reminder preference */
 "Failed to update confidence reminder preference." = "Onay sesi tercihi güncellenemedi.";
@@ -1579,7 +1575,7 @@ Enact a temp Basal or a temp target */
 "Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains." = "Pod'u şimdi değiştirin. İnsülin iletimi %1$@ içinde veya daha fazla insülin kalmadığında duracaktır.";
 
 /* Label text for temporary basal rate summary */
-"Rate" = "Oran";
+"Rate" = "Rate";
 
 /* Summary string for temporary basal rate configuration page */
 "%1$@ for %2$@" = "%2$@ için %1$@";
@@ -1608,7 +1604,7 @@ Enact a temp Basal or a temp target */
 "This PumpManager has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to therapy settings -> delivery limits and set a new maximum basal rate." = "Pompa Yönetimi, daha önce manuel geçici bazal eklendiğinden, maksimum bazal oranı ile yapılandırılmadı. Lütfen terapi ayarları -> iletim limitlerine gidin ve yeni bir maksimum bazal oran ayarlayın.";
 
 /* description label for active time pod details row */
-"Active Time" = "Aktif Süre";
+"Active Time" = "Active Time";
 
 /* description label for total delivery pod details row */
 "Total Delivery" = "Toplam İletim";
@@ -1657,7 +1653,7 @@ Enact a temp Basal or a temp target */
 "Month" = "Month";
 
 /* */
-"Total" = "Toplam";
+"Total" = "Total";
 
 /* Headline Statistics */
 "Statistics" = "İstatistikler";
@@ -1666,10 +1662,10 @@ Enact a temp Basal or a temp target */
 "Allow Upload of Statistics to NS" = "Allow Upload of Statistics to NS";
 
 /* Low Glucose Threshold in Statistics settings */
-"Low" = "Düşük";
+"Low" = "Low";
 
 /* High Glucose Threshold in Statistics settings */
-"High" = "Yüksek";
+"High" = "High";
 
 /* In Range */
 "In Range" = "In Range";
@@ -1756,7 +1752,7 @@ Enact a temp Basal or a temp target */
 "Interval" = "Aralık";
 
 /* Median loop interval */
-"Duration" = "Süre";
+"Duration" = "Duration";
 
 /* "Display SD */
 "Display SD instead of CV" = "Display SD instead of CV";
@@ -2057,13 +2053,13 @@ Enact a temp Basal or a temp target */
 "Adjust Dynamic ISF constant" = "Dinamik İDF sabitini ayarla";
 
 /* Adjust Dynamic ISF constant */
-"Adjust Dynamic ISF constant" = "Dinamik İDF sabitini ayarla";
+"Adjust Dynamic ISF constant" = "Adjust Dynamic ISF constant";
 
 /* Enable Dynamic ISF, Headline */
 "Enable Dynamic ISF" = "Dinamik İDF Etkinleştir";
 
 /* Headline "Enable Dynamic ISF" */
-"Enable Dynamic ISF" = "Dinamik İDF Etkinleştir";
+"Enable Dynamic ISF" = "Enable Dynamic ISF";
 
 /* Enable Dynamic ISF */
 "Calculate a new ISF with every loop cycle. New ISF will be based on current BG, TDD of insulin (past 24 hours or a weighted average) and an Adjustment Factor (default is 1).\n\nDynamic ISF and CR ratios will be limited by your autosens.min/max limits.\n\nDynamic ratio replaces the autosens.ratio: New ISF = Static ISF / Dynamic ratio,\nDynamic ratio = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes" = "Her döngü döngüsünde yeni bir İDF hesaplayın. Yeni İDF, mevcut BG'ye dayalı olacaktır, GTD'unuz (son 24 saat veya ağırlıklı bir ortalama) ve bir Ayarlama Faktörüne (varsayılan 1'dir) dayalı olacaktır.\n\nDinamik İDF ve KHO oranları, autosens.min/maks limitlerinizle sınırlanacaktır. .\n\nDinamik oran, autosens.ratio'nun yerini alır: Yeni İDF = Statik İDF / Dinamik oran,\nDynamic oran = profile.sens * AdjustFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - İnsülinPeakTimeInMinutes";
@@ -2081,7 +2077,7 @@ Enact a temp Basal or a temp target */
 "Activate Dynamic Carb Ratio (CR)" = "Activate Dynamic Carb Ratio (CR)";
 
 /* Headline "Adjust Dynamic ISF constant" */
-"Adjust Dynamic ISF constant" = "Dinamik İDF sabitini ayarla";
+"Adjust Dynamic ISF constant" = "Adjust Dynamic ISF constant";
 
 /* Adjust Dynamic ISF constant */
 "Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula there is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users" = "Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula threre is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users";

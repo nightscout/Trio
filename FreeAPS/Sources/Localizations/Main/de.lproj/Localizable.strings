@@ -309,7 +309,7 @@ Enact a temp Basal or a temp target */
 "Allow uploads" = "Erlaube Uploads der Daten";
 
 /* API secret in NS */
-"API secret" = "API secret";
+"API secret" = "API-Geheimnis";
 
 /* Connect to NS */
 "Connect" = "Verbinden";
@@ -432,28 +432,28 @@ Enact a temp Basal or a temp target */
 "Max Carbs" = "Max Kohlenhydrate";
 
 /* Max setting */
-"Max Fat" = "Max Fat";
+"Max Fat" = "Max. Fett";
 
 /* Max setting */
-"Max Protein" = "Max Protein";
+"Max Protein" = "Max. Protein";
 
 /* Max setting */
-"Limit Per Entry" = "Limit Per Entry";
+"Limit Per Entry" = "Limit pro Eintrag";
 
 /* Max Carbs limit exceeded */
-"Max Carbs of" = "Max Carbs of";
+"Max Carbs of" = "Max. Carbs von";
 
 /* Max Fat limit exceeded */
-"Max Fat of" = "Max Fat of";
+"Max Fat of" = "Max. Fett von";
 
 /* Max Protein limit exceeded */
-"Max Protein of" = "Max Protein of";
+"Max Protein of" = "Max. Protein von";
 
 /* Max Bolus limit exceeded */
-"Max Bolus of" = "Max Bolus of";
+"Max Bolus of" = "Max. Bolus von";
 
 /* Limit Exceeded label */
-"exceeded" = "exceeded";
+"exceeded" = "überschritten";
 
 /* */
 "Pump Settings" = "Pumpeneinstellungen";
@@ -513,19 +513,19 @@ Enact a temp Basal or a temp target */
 "Pump" = "Pumpe";
 
 /* */
-"Watch" = "Watch";
+"Watch" = "Beobachten";
 
 /* */
 "Watch Configuration" = "Apple Watch Einstellungen";
 
 /* */
-"Apple Watch" = "Apple Watch";
+"Apple Watch" = "Apfelwache";
 
 /* */
 "Display on Watch" = "Anzeige auf der Uhr";
 
 /* */
-"Garmin Watch" = "Garmin Watch";
+"Garmin Watch" = "Garmin-Überwachung";
 
 /* */
 "Add devices" = "Geräte hinzufügen";
@@ -579,7 +579,7 @@ Enact a temp Basal or a temp target */
 "History" = "Verlauf";
 
 /* Nightscout option */
-"Upload" = "Upload";
+"Upload" = "Hochladen";
 
 /* Nightscout option */
 "Allow Uploads" = "Erlaube Uploads der Daten";
@@ -588,7 +588,7 @@ Enact a temp Basal or a temp target */
 "Type" = "Typ";
 
 /* CGM */
-"CGM" = "CGM";
+"CGM" = "KGM";
 
 /* CGM Transmitter ID */
 "Transmitter ID" = "Sender-ID";
@@ -610,9 +610,6 @@ Enact a temp Basal or a temp target */
 
 /* Delete insulin from pump history and Nightscout */
 "Delete Insulin?" = "Insulin löschen?";
-
-/* Delete insulin from pump history and Nightscout */
-"Delete Insulin?" = "Delete Insulin?";
 
 /* Treatments list */
 "Treatments" = "Behandlungen";
@@ -645,7 +642,7 @@ Enact a temp Basal or a temp target */
 "External" = "Externe";
 
 /* */
-"Other" = "Sonstiges";
+"Other" = "Andere";
 
 /* */
 "Libre Transmitter" = "Libre Sender";
@@ -855,7 +852,7 @@ Enact a temp Basal or a temp target */
 "Sensor Serial" = "Sensor Seriennummer";
 
 /* */
-"Transmitter Info" = "Transmitter Info";
+"Transmitter Info" = "Sender-Info";
 
 /* */
 "Hardware" = "Hardware";
@@ -1173,7 +1170,7 @@ Enact a temp Basal or a temp target */
 "Save as your Normal Basal Rates" = "Als deine normalen Basalraten speichern";
 
 /* */
-"Save on Pump" = "Auf Pumpe speichern";
+"Save on Pump" = "Auf Pumpe sparen";
 
 /* Debug option view Pump History */
 "Pump History" = "Insulinpumpen-Speicher";
@@ -1216,7 +1213,7 @@ Enact a temp Basal or a temp target */
 
 /* --------------- HealthKit intergration --------------------*/
 /* */
-"Apple Health" = "Apple Health";
+"Apple Health" = "Apfelgesundheit";
 
 /* */
 "Connect to Apple Health" = "Apple Health verbinden";
@@ -1264,7 +1261,7 @@ Enact a temp Basal or a temp target */
 "Enable" = "Einschalten";
 
 /* Header */
-"Fat and Protein Conversion Settings" = "Fat and Protein Conversion Settings";
+"Fat and Protein Conversion Settings" = "Fett- und Protein-Konvertierungseinstellungen";
 
 /* Delay */
 "Delay In Minutes" = "Verzögerung in Minuten";
@@ -1282,7 +1279,7 @@ Enact a temp Basal or a temp target */
 "Allows fat and protein to be converted into future carb equivalents using the Warsaw formula of kilocalories divided by 10.\n\nThis spreads the carb equivilants over a maximum duration setting that can be configured from 5-12 hours.\n\nDelay is time from now until the first future carb entry.\n\nInterval in minutes is how many minutes are between entries. The shorter the interval, the smoother the result. 10, 15, 20, 30, or 60 are reasonable choices.\n\nAdjustment factor is how much effect the fat and protein has on the entries. 1.0 is full effect (original Warsaw Method) and 0.5 is half effect. Note that you may find that your normal carb ratio needs to increase to a larger number if you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 0.5 to ease into it.\n\nDefault settings: Time Cap: 8 h, Interval: 30 min, Factor: 0.5, Delay 60 min" = "Ermöglicht die Umwandlung von Fett und Eiweiß in zukünftige Kohlenhydratäquivalente unter Verwendung der Warschauer Formel (Kilokalorien geteilt durch 10). Dadurch werden die Kohlenhydratäquivalente über eine maximale Dauer verteilt, die zwischen 5 und 12 Stunden eingestellt werden kann. Je kürzer das Intervall, desto gleichmäßiger das Ergebnis. 10, 15, 20, 30 oder 60 sind eine vernünftige Wahl.\n\nAnpassungsfaktor gibt an, wie stark sich Fett und Eiweiß auf die Einträge auswirken. 1,0 entspricht der vollen Wirkung (ursprüngliche Warschauer Methode) und 0,5 der halben Wirkung. Beachten Sie, dass Ihr normales Kohlenhydratverhältnis möglicherweise auf eine größere Zahl ansteigen muss, wenn Sie beginnen, Fett- und Eiweißeinträge hinzuzufügen. Aus diesem Grund ist es am besten, mit einem Faktor von etwa 0,5 zu beginnen, um den Einstieg zu erleichtern.\n\nStandardeinstellungen: Zeit Cap: 8 h, Interval: 30 min, Faktor: 0,5, Verzögerung: 60 min";
 
 /* FPU Settings Title */
-"Fat and Protein" = "Fat and Protein";
+"Fat and Protein" = "Fett und Protein";
 
 /* Display fat and protein entities */
 "Fat & Protein" = "Fett und Eiweiß";
@@ -1297,7 +1294,7 @@ Enact a temp Basal or a temp target */
 "Protein" = "Eiweiß";
 
 /* Service Section */
-"Meal Settings" = "Meal Settings";
+"Meal Settings" = "Mahlzeit-Einstellungen";
 
 /* Service Section */
 "Profile Override" = "Profil überschreibung";
@@ -1365,7 +1362,7 @@ Enact a temp Basal or a temp target */
 "Cancel Profile Override" = "Profilüberschreibung abbrechen?";
 
 /* Alert */
-"Cancel Temp Target" = "Temporäres Ziel abbrechen";
+"Cancel Temp Target" = "Cancel Temp Target";
 
 /* Alert */
 "Return to Normal?" = "Rückkehr zum Normalzustand?";
@@ -1428,7 +1425,7 @@ Enact a temp Basal or a temp target */
 "Save and continue" = "Speichern und weiter";
 
 /* */
-"Save as Preset" = "Speichern als Voreinstellung";
+"Save as Preset" = "Als Preset speichern";
 
 /* */
 "Predictions" = "Prognosen";
@@ -1578,7 +1575,7 @@ Enact a temp Basal or a temp target */
 "Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains." = "Wechsle jetzt den Pod! Die Insulinabgabe wird in %1$@ unterbrochen, spätestens wenn kein Insulin mehr vorhanden ist.";
 
 /* Label text for temporary basal rate summary */
-"Rate" = "BR";
+"Rate" = "Rate";
 
 /* Summary string for temporary basal rate configuration page */
 "%1$@ for %2$@" = "%1$@ für %2$@";
@@ -1607,7 +1604,7 @@ Enact a temp Basal or a temp target */
 "This PumpManager has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to therapy settings -> delivery limits and set a new maximum basal rate." = "Dieser PumpManager wurde nicht mit einer maximalen Basalrate konfiguriert, da er hinzugefügt wurde, bevor es die Funktion \"manuelle temporäre Basalrate\" gab. Bitte gehe zum Menü Therapieeinstellungen -> Verabreichungsgrenzen und lege eine neue maximale Basalrate fest.";
 
 /* description label for active time pod details row */
-"Active Time" = "Laufzeit";
+"Active Time" = "Aktive Zeit";
 
 /* description label for total delivery pod details row */
 "Total Delivery" = "gesamte Abgabe";
@@ -1665,7 +1662,7 @@ Enact a temp Basal or a temp target */
 "Allow Upload of Statistics to NS" = "Hochladen von Statistiken in NS zulassen";
 
 /* Low Glucose Threshold in Statistics settings */
-"Low" = "Tief";
+"Low" = "Niedrig";
 
 /* High Glucose Threshold in Statistics settings */
 "High" = "Hoch";
@@ -1746,7 +1743,7 @@ Enact a temp Basal or a temp target */
 "days" = "Tage";
 
 /* Nr of Loops in statPanel */
-"Loops" = "Loops";
+"Loops" = "Schleifen";
 
 /* Loop Errors in statPanel */
 "Errors" = "Fehler";
@@ -2056,13 +2053,13 @@ Enact a temp Basal or a temp target */
 "Adjust Dynamic ISF constant" = "Dynamic ISF-Konstante anpassen";
 
 /* Adjust Dynamic ISF constant */
-"Adjust Dynamic ISF constant" = "Dynamic ISF-Konstante anpassen";
+"Adjust Dynamic ISF constant" = "Dynamische ISF-Konstante anpassen";
 
 /* Enable Dynamic ISF, Headline */
 "Enable Dynamic ISF" = "Aktiviere Dynamic ISF";
 
 /* Headline "Enable Dynamic ISF" */
-"Enable Dynamic ISF" = "Aktiviere Dynamic ISF";
+"Enable Dynamic ISF" = "Dynamische ISF aktivieren";
 
 /* Enable Dynamic ISF */
 "Calculate a new ISF with every loop cycle. New ISF will be based on current BG, TDD of insulin (past 24 hours or a weighted average) and an Adjustment Factor (default is 1).\n\nDynamic ISF and CR ratios will be limited by your autosens.min/max limits.\n\nDynamic ratio replaces the autosens.ratio: New ISF = Static ISF / Dynamic ratio,\nDynamic ratio = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes" = "Berechnet einen neuen ISF mit jedem Loop-Zyklus. Die neue ISF basiert auf dem aktuellen BG, TDD des Insulins (nach 24 Stunden oder einem gewichteten Durchschnitt) und einem Anpassungsfaktor (Standardeinstellung ist 1).\n\nDynamic ISF und CR Verhältnisse werden durch Ihre autosens.min/max Limits begrenzt.\n\nDas dynamische Verhältnis ersetzt das autosens.ratio: New ISF = Static ISF / Dynamic ratio,\nDynamic Ratio = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes";
@@ -2080,7 +2077,7 @@ Enact a temp Basal or a temp target */
 "Activate Dynamic Carb Ratio (CR)" = "Dynamisches Carb Ratio (CR) aktivieren";
 
 /* Headline "Adjust Dynamic ISF constant" */
-"Adjust Dynamic ISF constant" = "Dynamic ISF-Konstante anpassen";
+"Adjust Dynamic ISF constant" = "Dynamische ISF-Konstante anpassen";
 
 /* Adjust Dynamic ISF constant */
 "Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula there is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users" = "Dynamische Verhältnisse um eine Konstante anpassen. Die Voreinstellung ist 0,5. Je höher der Wert, desto größer ist die Korrektur Ihres ISF für einen hohen oder niedrigen BG. Die maximale Korrektur wird durch die Autosens min/max-Einstellungen bestimmt. Für die Sigmoid-Funktion wird für den Anfang ein Anpassungsfaktor von 0,4 - 0,5 empfohlen. Für die logarithmische Formel gibt es weniger Konsens, aber ein Anfangswert von 0,5 - 0,8 ist für die meisten Benutzer angemessener.";
@@ -2098,10 +2095,10 @@ Enact a temp Basal or a temp target */
 "Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function." = "Verwenden Sie eine sigmoid Funktion für ISF (und für CR, wenn aktiviert), anstelle der Standard-logarithmischen Formel. Erfordert die Aktivierung der dynamischen ISF-Einstellung in den Einstellungen\n\nDie Veränderungsanpassung passt die Neigung der Kurve an (Y: Dynamisches Verhältnis, X: Blutzucker). Ein niedrigerer Wert ==> weniger steil == weniger aggressiv.\n\nDie autosens.min/max Einstellungen bestimmen sowohl die max/min Grenzen für das dynamische Verhältnis UND wie sehr das dynamische Verhältnis angepasst wird. Wenn AF ist der Hang der Kurve, die Autosen. in/max ist die Höhe des Diagramms, das Y-Intervall, wo Y: dynamisches Verhältnis. Die Kurve hat immer eine S-Form, egal welche autosense.min/max Einstellungen verwendet werden, was bedeutet, dass diese Einstellungen große Folgen für das Ergebnis des berechneten dynamischen ISF haben. Bitte sei vorsichtig, einen zu hohen autosens.max Wert zu setzen. Mit einer korrekten Profil-ISF-Einstellung werden Sie wahrscheinlich nie mehr als 1 benötigen.\n\nEin Autosens.max Limit > 1.5 ist nicht ratsam, wenn Sie die sigmoid Funktion benutzen.";
 
 /* Headline Threshold Setting */
-"Minimum Safety Threshold (mg/dL)" = "Minimum Safety Threshold (mg/dL)";
+"Minimum Safety Threshold (mg/dL)" = "Minimaler Sicherheitsgrenzwert (mg/dL)";
 
 /* Minimum Safety Threshold */
-"All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted." = "All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted.";
+"All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted." = "Das Insulin wird aufgehoben, wenn dein Glukose voraussichtlich unter den Sicherheitsschwellenwert fallen soll.\n\nMuss zwischen 60-120 mg/dL gesetzt werden.\nUm aus mmol/L zu konvertieren, multiplizieren Sie mit 18.\n\nHinweis: Basal kann wieder aufgenommen werden, wenn es negative IOB gibt und die Glukose schneller steigt als vorhergesagt.";
 
 /* Header */
 "Calculator settings" = "Berechnungseinstellungen";
