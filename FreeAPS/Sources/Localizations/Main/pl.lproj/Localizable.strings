@@ -50,10 +50,10 @@
 "of" = "z";
 
 /* Headline in enacted pop up (at: at what time) */
-"Enacted at" = "Wprowadzono o";
+"Enacted at" = "Ustawiono o";
 
 /* Headline in suggested pop up (at: at what time) */
-"Suggested at" = "Działania o";
+"Suggested at" = "Zalecono o";
 
 /* Headline in enacted pop up (at: at what time) */
 "Error at" = "Błąd o";
@@ -1923,10 +1923,10 @@ Enact a temp Basal or a temp target */
 "Defaults to false. Setting to true allows changing insulinPeakTime" = "Domyślnie opcja jest wyłączona. Pozwala na zmianę czasu szczytu insuliny, w którym insulina ma maksymalną aktywność";
 
 /* Headline "Suspend Zeros IOB” */
-"Suspend Zeros IOB" = "Wstrzymaj zerowe IOB";
+"Suspend Zeros IOB" = "Zawieś zerowe IOB";
 
 /* "Suspend Zeros IOB” */
-"Default is false. Any existing temp basals during times the pump was suspended will be deleted and 0 temp basals to negate the profile basal rates during times pump is suspended will be added." = "Domyślnie jest wyłączone. Wszystkie dawki tymczasowe podczas wstrzymania podawania zostaną usunięte poprawiając obliczenia IOB przez algorytm.";
+"Default is false. Any existing temp basals during times the pump was suspended will be deleted and 0 temp basals to negate the profile basal rates during times pump is suspended will be added." = "Domyślnie jest wyłączone. Wszystkie dawki tymczasowe podczas zawieszenia podawania zostaną usunięte poprawiając obliczenia IOB przez algorytm.";
 
 /* Headline "Max IOB" */
 "Max IOB" = "Max IOB";
