@@ -52,184 +52,6 @@ struct LiveActivityWidgetConfiguration: BaseView {
         return data
     }
 
-//    var body: some View {
-//            VStack {
-//                Group {
-//                    VStack(alignment: .leading, spacing: 0) {
-//                        Text("Live Activity Personalization".uppercased())
-//                            .frame(maxWidth: .infinity, alignment: .leading)
-//                            .foregroundColor(.secondary)
-//                            .font(.footnote)
-//                            .padding(.leading)
-//                    }
-//                    VStack {
-//                        Text(
-//                            "Trio offers you to customize your Live Activity lock screen widget. The default configuration will display current glucose, IOB, COB and the time of last algorithm run."
-//                        )
-//                        .padding()
-//                        .font(.footnote)
-//                        .foregroundColor(.secondary)
-//                    }
-//                    .background(
-//                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-//                            .fill(Color.chart)
-//                    )
-//                }
-//
-//                GroupBox {
-//                    VStack {
-//                        dummyChart
-//
-//                        HStack {
-//                            if selectedItems.isEmpty {
-//                                Spacer()
-//                                Button(action: {
-//                                    showAddItemDialog.toggle()
-//                                }) {
-//                                    VStack {
-//                                        Image(systemName: "plus")
-//                                            .font(.title2)
-//                                            .foregroundColor(.gray)
-//                                    }
-//                                    .frame(width: 60, height: 40)
-//                                    .overlay(
-//                                        RoundedRectangle(cornerRadius: 12)
-//                                            .stroke(style: StrokeStyle(lineWidth: 2, dash: [5]))
-//                                            .foregroundColor(.gray)
-//                                    )
-//                                }
-//                                Spacer()
-//                            } else {
-//                                ForEach(Array(selectedItems.enumerated()), id: \.element) { index, item in
-//                                    if index > 0 {
-//                                        Divider()
-//                                            .frame(height: 50)
-//                                    }
-//
-//                                    ZStack(alignment: .topTrailing) {
-//                                        getItemPreview(for: item)
-//                                            .frame(width: 50, height: 50)
-//                                            .padding(5)
-//                                            .background(
-//                                                draggingItem == item ? Color.blue.opacity(0.2) : Color.clear
-//                                            )
-//                                            .cornerRadius(12)
-//                                            .overlay(
-//                                                RoundedRectangle(cornerRadius: 12)
-//                                                    .stroke(
-//                                                        draggingItem == item ? Color.blue : Color.primary,
-//                                                        lineWidth: draggingItem == item ? 2 : 1
-//                                                    )
-//                                            )
-//                                            .opacity(draggingItem == item ? 0.85 : 1.0)
-//                                            .onDrag {
-//                                                self.draggingItem = item
-//                                                return NSItemProvider(object: item.rawValue as NSString)
-//                                            }
-//                                            .onDrop(
-//                                                of: [UTType.text],
-//                                                delegate: DropViewDelegate(
-//                                                    item: item,
-//                                                    items: $selectedItems,
-//                                                    draggingItem: $draggingItem
-//                                                )
-//                                            )
-//                                            .disabled(!isEditMode)
-//                                            .rotationEffect(.degrees(isEditMode ? 2.5 : 0))
-//                                            .rotation3DEffect(.degrees(isEditMode ? 2.5 : 0), axis: (x: 0, y: -5, z: 0))
-//                                            .animation(
-//                                                isEditMode ? Animation.easeInOut(duration: 0.15)
-//                                                    .repeatForever(autoreverses: true) : .default,
-//                                                value: isEditMode
-//                                            )
-//                                        if isEditMode {
-//                                            Button(action: {
-//                                                showDeleteAlert = true
-//                                            }) {
-//                                                Image(systemName: "minus.circle.fill")
-//                                                    .foregroundColor(Color(UIColor.systemGray2)) // Opaque foreground color
-//                                                    .background(Color.white) // Adding a background for contrast
-//                                                    .clipShape(Circle()) // Make sure the background stays circular
-//                                                    .font(.system(size: 20))
-//                                            }
-//                                            .offset(x: -45, y: -10)
-//                                            .alert(isPresented: $showDeleteAlert) {
-//                                                Alert(
-//                                                    title: Text("Delete Widget"),
-//                                                    message: Text("Are you sure you want to delete this widget?"),
-//                                                    primaryButton: .destructive(Text("Delete")) {
-//                                                        removeItem(item)
-//                                                    },
-//                                                    secondaryButton: .cancel()
-//                                                )
-//                                            }
-//                                        }
-//                                    }
-//                                    .animation(.easeInOut, value: draggingItem)
-//                                    .frame(maxWidth: .infinity)
-//                                }
-//                            }
-//                        }
-//                        .padding()
-//                        .overlay(
-//                            RoundedRectangle(cornerRadius: 12)
-//                                .stroke(style: StrokeStyle(lineWidth: 2, dash: [5]))
-//                                .foregroundColor(.gray)
-//                        )
-//                        .cornerRadius(12)
-//                    }
-//                }.padding(.vertical).groupBoxStyle(.dummyChart)
-//
-//                if isEditMode {
-//                    HStack {
-//                        Image(systemName: "hand.draw.fill")
-//                        Text("Tap 'Add +' to add a widget. Press, drag and drop a widget to re-order a widget.")
-//                    }.frame(maxWidth: .infinity, alignment: .leading)
-//                        .foregroundColor(.secondary)
-//                        .font(.footnote)
-//                        .padding(.horizontal)
-//                }
-//
-//                Spacer()
-//            }
-//            .padding()
-//            .scrollContentBackground(.hidden).background(color)
-//            .navigationTitle("Widget Configuration")
-//            .navigationBarTitleDisplayMode(.automatic)
-//            .toolbar {
-//                ToolbarItem(placement: .topBarTrailing) {
-//                    Button {
-//                        isEditMode.toggle()
-//                    } label: {
-//                        HStack {
-//                            Text("Edit")
-//                        }
-//                    }
-//                }
-//                ToolbarItem(placement: .topBarTrailing) {
-//                    Button {
-//                        showAddItemDialog.toggle()
-//                    } label: {
-//                        HStack {
-//                            Text("Add")
-//                            Image(systemName: "plus")
-//                        }
-//                    }
-//                }
-//            }
-//            .confirmationDialog("Add Widget", isPresented: $showAddItemDialog, titleVisibility: .visible) {
-//                ForEach(LiveActivityItem.allCases, id: \.self) { item in
-//                    Button(item.displayName) {
-//                        addItem(item)
-//                    }.disabled(selectedItems.contains(item))
-//                }
-//            }
-//            .onAppear {
-//                configureView()
-//                loadOrder()
-//            }
-//        }
-
     var body: some View {
         VStack {
             Group {
@@ -408,10 +230,18 @@ struct LiveActivityWidgetConfiguration: BaseView {
     private var dummyChart: some View {
         Chart {
             ForEach(glucoseData) { data in
+                let pointMarkColor = FreeAPS.getDynamicGlucoseColor(
+                    glucoseValue: Decimal(data.glucoseLevel),
+                    highGlucoseColorValue: state.settingsManager.settings.highGlucose,
+                    lowGlucoseColorValue: state.settingsManager.settings.lowGlucose,
+                    targetGlucose: state.units == .mgdL ? Decimal(100) : 100.asMmolL,
+                    glucoseColorScheme: state.settingsManager.settings.glucoseColorScheme
+                )
+
                 PointMark(
                     x: .value("Time", data.time),
                     y: .value("Glucose Level", data.glucoseLevel)
-                ).foregroundStyle(.green.gradient).symbolSize(15)
+                ).foregroundStyle(pointMarkColor).symbolSize(15)
             }
         }
         .chartPlotStyle { plotContent in

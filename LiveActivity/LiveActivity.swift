@@ -70,28 +70,22 @@ extension Color {
         highGlucoseColorValue: Decimal,
         lowGlucoseColorValue: Decimal,
         targetGlucose: Decimal,
-        glucoseColorScheme: String,
-        offset: Decimal
+        glucoseColorScheme: String
     ) -> Color {
-        // Convert Decimal to Int for high and low glucose values
-        let lowGlucose = glucoseColorScheme == "dynamicColor" ? (lowGlucoseColorValue - offset) : lowGlucoseColorValue
-        let highGlucose = glucoseColorScheme == "dynamicColor" ? (highGlucoseColorValue + (offset * 1.75)) : highGlucoseColorValue
-        let targetGlucose = targetGlucose
-
         // Only use calculateHueBasedGlucoseColor if the setting is enabled in preferences
         if glucoseColorScheme == "dynamicColor" {
             return calculateHueBasedGlucoseColor(
                 glucoseValue: glucoseValue,
-                highGlucose: highGlucose,
-                lowGlucose: lowGlucose,
+                highGlucose: highGlucoseColorValue,
+                lowGlucose: lowGlucoseColorValue,
                 targetGlucose: targetGlucose
             )
         }
         // Otheriwse, use static (orange = high, red = low, green = range)
         else {
-            if glucoseValue > highGlucose {
+            if glucoseValue > highGlucoseColorValue {
                 return Color.orange
-            } else if glucoseValue < lowGlucose {
+            } else if glucoseValue < lowGlucoseColorValue {
                 return Color.red
             } else {
                 return Color.green
@@ -145,13 +139,16 @@ struct LiveActivity: Widget {
                 let detailedState = state.detailedViewState
                 let isMgdL = detailedState?.unit == "mg/dL"
 
+                // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
+                let hardCodedLow = isMgdL ? Decimal(55) : 55.asMmolL
+                let hardCodedHigh = isMgdL ? Decimal(220) : 220.asMmolL
+
                 return Color.getDynamicGlucoseColor(
                     glucoseValue: Decimal(string: state.bg) ?? 100,
-                    highGlucoseColorValue: isMgdL ? state.highGlucose : context.state.highGlucose.asMmolL,
-                    lowGlucoseColorValue: isMgdL ? state.lowGlucose : state.lowGlucose.asMmolL,
+                    highGlucoseColorValue: hardCodedHigh,
+                    lowGlucoseColorValue: hardCodedLow,
                     targetGlucose: isMgdL ? state.target : state.target.asMmolL,
-                    glucoseColorScheme: state.glucoseColorScheme,
-                    offset: isMgdL ? 20 : 20.asMmolL
+                    glucoseColorScheme: state.glucoseColorScheme
                 )
             }
 
@@ -198,13 +195,16 @@ struct LiveActivityView: View {
         let detailedState = state.detailedViewState
         let isMgdL = detailedState?.unit == "mg/dL"
 
+        // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
+        let hardCodedLow = isMgdL ? Decimal(55) : 55.asMmolL
+        let hardCodedHigh = isMgdL ? Decimal(220) : 220.asMmolL
+
         return Color.getDynamicGlucoseColor(
             glucoseValue: Decimal(string: state.bg) ?? 100,
-            highGlucoseColorValue: isMgdL ? state.highGlucose : context.state.highGlucose.asMmolL,
-            lowGlucoseColorValue: isMgdL ? state.lowGlucose : state.lowGlucose.asMmolL,
+            highGlucoseColorValue: hardCodedHigh,
+            lowGlucoseColorValue: hardCodedLow,
             targetGlucose: isMgdL ? state.target : state.target.asMmolL,
-            glucoseColorScheme: state.glucoseColorScheme,
-            offset: isMgdL ? 20 : 20.asMmolL
+            glucoseColorScheme: state.glucoseColorScheme
         )
     }
 
@@ -464,8 +464,7 @@ struct LiveActivityChartView: View {
             highGlucoseColorValue: yAxisRuleMarkMax,
             lowGlucoseColorValue: yAxisRuleMarkMin,
             targetGlucose: isMgdl ? state.target : state.target.asMmolL,
-            glucoseColorScheme: context.state.glucoseColorScheme,
-            offset: isMgdl ? Decimal(20) : Decimal(20).asMmolL
+            glucoseColorScheme: context.state.glucoseColorScheme
         )
 
         let lowColor = Color.getDynamicGlucoseColor(
@@ -473,8 +472,7 @@ struct LiveActivityChartView: View {
             highGlucoseColorValue: yAxisRuleMarkMax,
             lowGlucoseColorValue: yAxisRuleMarkMin,
             targetGlucose: isMgdl ? state.target : state.target.asMmolL,
-            glucoseColorScheme: context.state.glucoseColorScheme,
-            offset: isMgdl ? Decimal(20) : Decimal(20).asMmolL
+            glucoseColorScheme: context.state.glucoseColorScheme
         )
 
         Chart {
@@ -544,13 +542,17 @@ struct LiveActivityChartView: View {
             let currentValue = additionalState.chart[index]
             let displayValue = isMgdL ? currentValue : currentValue.asMmolL
             let chartDate = additionalState.chartDate[index] ?? Date()
+
+            // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
+            let hardCodedLow = Decimal(55)
+            let hardCodedHigh = Decimal(220)
+
             let pointMarkColor = Color.getDynamicGlucoseColor(
                 glucoseValue: currentValue,
-                highGlucoseColorValue: context.state.highGlucose,
-                lowGlucoseColorValue: context.state.lowGlucose,
+                highGlucoseColorValue: hardCodedHigh,
+                lowGlucoseColorValue: hardCodedLow,
                 targetGlucose: context.state.target,
-                glucoseColorScheme: context.state.glucoseColorScheme,
-                offset: 20
+                glucoseColorScheme: context.state.glucoseColorScheme
             )
 
             let pointMark = PointMark(

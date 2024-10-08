@@ -11,18 +11,16 @@ extension MainChartView {
                 let highColor = FreeAPS.getDynamicGlucoseColor(
                     glucoseValue: highGlucose,
                     highGlucoseColorValue: highGlucose,
-                    lowGlucoseColorValue: highGlucose,
-                    targetGlucose: units == .mgdL ? currentGlucoseTarget : currentGlucoseTarget.asMmolL,
-                    glucoseColorScheme: glucoseColorScheme,
-                    offset: units == .mgdL ? Decimal(20) : Decimal(20).asMmolL
+                    lowGlucoseColorValue: lowGlucose,
+                    targetGlucose: currentGlucoseTarget,
+                    glucoseColorScheme: glucoseColorScheme
                 )
                 let lowColor = FreeAPS.getDynamicGlucoseColor(
                     glucoseValue: lowGlucose,
                     highGlucoseColorValue: highGlucose,
                     lowGlucoseColorValue: lowGlucose,
-                    targetGlucose: units == .mgdL ? currentGlucoseTarget : currentGlucoseTarget.asMmolL,
-                    glucoseColorScheme: glucoseColorScheme,
-                    offset: units == .mgdL ? Decimal(20) : Decimal(20).asMmolL
+                    targetGlucose: currentGlucoseTarget,
+                    glucoseColorScheme: glucoseColorScheme
                 )
 
                 RuleMark(y: .value("High", highGlucose))

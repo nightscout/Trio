@@ -3,7 +3,6 @@ import SwiftUI
 
 extension LiveActivitySettings {
     final class StateModel: BaseStateModel<Provider> {
-        @Injected() var settings: SettingsManager!
         @Injected() var storage: FileStorage!
 
         @Published var units: GlucoseUnits = .mgdL
@@ -35,11 +34,11 @@ extension LiveActivitySettings {
 extension LiveActivitySettings.StateModel: SettingsObserver {
     func settingsDidChange(_: FreeAPSSettings) {
         units = settingsManager.settings.units
-//        showChart = settingsManager.settings.showChart
-//        showCurrentGlucose = settingsManager.settings.showCurrentGlucose
-//        showChangeLabel = settingsManager.settings.showChangeLabel
-//        showIOB = settingsManager.settings.showIOB
-//        showCOB = settingsManager.settings.showCOB
-//        showUpdatedLabel = settingsManager.settings.showUpdatedLabel
+        showChart = settingsManager.settings.showChart
+        showCurrentGlucose = settingsManager.settings.showCurrentGlucose
+        showChangeLabel = settingsManager.settings.showChangeLabel
+        showIOB = settingsManager.settings.showIOB
+        showCOB = settingsManager.settings.showCOB
+        showUpdatedLabel = settingsManager.settings.showUpdatedLabel
     }
 }
