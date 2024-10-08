@@ -101,7 +101,7 @@ import UIKit
             .store(in: &subscriptions)
     }
 
-    @objc private func cobOrIobDidUpdate() {
+    private func cobOrIobDidUpdate() {
         Task {
             await fetchAndMapDetermination()
             if let determination = determination {

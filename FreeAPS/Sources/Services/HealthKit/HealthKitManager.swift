@@ -361,94 +361,67 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
             batchSize: 50
         )
 
-        // Initialize an array to hold the HealthKit samples to be uploaded
-        var insulinSamples: [HKQuantitySample] = []
-
         // Perform the data processing on the background context
         await backgroundContext.perform {
-            // Ensure that the fetched results are of the expected type
             guard let existingTempBasalEntries = results as? [PumpEventStored] else { return }
 
-            // Create a mapping from timestamps to indices for quick access to existing entries
-            let existingEntriesByTimestamp = Dictionary(
-                uniqueKeysWithValues: existingTempBasalEntries.enumerated()
-                    .map { ($0.element.timestamp, $0.offset) }
-            )
+            let insulinSamples: [HKQuantitySample] = insulin.reduce([]) { result, event in
+                var result = result
 
-            for event in insulin {
                 switch event.type {
                 case .bolus:
                     // For bolus events, create a HealthKit sample directly
                     if let sample = self.createSample(for: event, sampleType: sampleType) {
                         debug(.service, "Created HealthKit sample for bolus entry: \(sample)")
-                        insulinSamples.append(sample)
+                        result.append(sample)
                     }
 
                 case .tempBasal:
                     // For temp basal events, process them and adjust overlapping durations if necessary
-                    guard let duration = event.duration, let amount = event.amount else { continue }
+                    guard let duration = event.duration, let amount = event.amount else { return result }
 
-                    // Calculate the total insulin delivered during the temp basal period
                     let value = (Decimal(duration) / 60.0) * amount
                     let valueRounded = self.deviceDataManager?.pumpManager?
                         .roundToSupportedBolusVolume(units: Double(value)) ?? Double(value)
 
-                    // Check if there's a matching existing temp basal entry
-                    if let matchingEntryIndex = existingEntriesByTimestamp[event.timestamp] {
-                        let predecessorIndex = matchingEntryIndex - 1
-                        if predecessorIndex >= 0 {
-                            // Get the predecessor entry to handle overlapping temp basal events
-                            let predecessorEntry = existingTempBasalEntries[predecessorIndex]
+                    // Process and append temp basal event
+                    let newEvent = PumpHistoryEvent(
+                        id: event.id,
+                        type: .tempBasal,
+                        timestamp: event.timestamp,
+                        amount: Decimal(valueRounded),
+                        duration: event.duration
+                    )
 
-                            // Adjust the predecessor entry if it overlaps with the current event
-                            if let adjustedSample = self.processPredecessorEntry(
-                                predecessorEntry,
-                                nextEventTimestamp: event.timestamp,
-                                sampleType: sampleType
-                            ) {
-                                insulinSamples.append(adjustedSample)
-                            }
-                        }
-
-                        // Create a new PumpHistoryEvent with the calculated insulin value
-                        let newEvent = PumpHistoryEvent(
-                            id: event.id,
-                            type: .tempBasal,
-                            timestamp: event.timestamp,
-                            amount: Decimal(valueRounded),
-                            duration: event.duration
-                        )
-
-                        // Create a HealthKit sample for the current temp basal event
-                        if let sample = self.createSample(for: newEvent, sampleType: sampleType) {
-                            debug(.service, "Created HealthKit sample for initial temp basal entry: \(sample)")
-                            insulinSamples.append(sample)
-                        }
+                    if let sample = self.createSample(for: newEvent, sampleType: sampleType) {
+                        debug(.service, "Created HealthKit sample for temp basal entry: \(sample)")
+                        result.append(sample)
                     }
 
                 default:
-                    // Ignore other event types
                     break
                 }
-            }
-        }
-
-        // Save the processed insulin samples to HealthKit
-        do {
-            guard insulinSamples.isNotEmpty else {
-                debug(.service, "No insulin samples available for upload.")
-                return
+                return result
             }
 
-            // Attempt to save the samples to HealthKit
-            try await healthKitStore.save(insulinSamples)
-            debug(.service, "Successfully stored \(insulinSamples.count) insulin samples in HealthKit.")
+            // Save the processed insulin samples to HealthKit
+            Task {
+                do {
+                    guard insulinSamples.isNotEmpty else {
+                        debug(.service, "No insulin samples available for upload.")
+                        return
+                    }
 
-            // Mark the insulin events as uploaded
-            await updateInsulinAsUploaded(insulin)
+                    try await self.healthKitStore.save(insulinSamples)
+                    debug(.service, "Successfully stored \(insulinSamples.count) insulin samples in HealthKit.")
 
-        } catch {
-            debug(.service, "Failed to upload insulin samples to HealthKit: \(error.localizedDescription)")
+                    // Mark the insulin events as uploaded
+                    await self.updateInsulinAsUploaded(insulin)
+
+                } catch {
+                    debug(.service, "Failed to upload insulin samples to HealthKit: \(error.localizedDescription)")
+                }
+            }
         }
     }
 
