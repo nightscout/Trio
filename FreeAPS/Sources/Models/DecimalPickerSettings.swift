@@ -133,7 +133,7 @@ struct DecimalPickerSettings {
     var updateInterval = PickerSetting(value: 20, step: 5, min: 1, max: 60, type: PickerSetting.PickerSettingType.minute)
     var delay = PickerSetting(value: 60, step: 15, min: 30, max: 120, type: PickerSetting.PickerSettingType.minute)
     var minuteInterval = PickerSetting(value: 20, step: 5, min: 5, max: 60, type: PickerSetting.PickerSettingType.minute)
-    var timeCap = PickerSetting(value: 20, step: 1, min: 5, max: 12, type: PickerSetting.PickerSettingType.hour)
+    var timeCap = PickerSetting(value: 8, step: 1, min: 5, max: 12, type: PickerSetting.PickerSettingType.hour)
     var hours = PickerSetting(value: 6, step: 0.5, min: 2, max: 24, type: PickerSetting.PickerSettingType.hour)
     var dia = PickerSetting(value: 6, step: 0.5, min: 4, max: 10, type: PickerSetting.PickerSettingType.hour)
     var maxBolus = PickerSetting(value: 10, step: 0.5, min: 1, max: 30, type: PickerSetting.PickerSettingType.insulinUnit)
