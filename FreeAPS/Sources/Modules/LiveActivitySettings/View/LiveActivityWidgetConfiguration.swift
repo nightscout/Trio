@@ -15,9 +15,11 @@ struct LiveActivityWidgetConfiguration: BaseView {
 
     @State private var isEditMode: Bool = false
     @State private var draggingItem: LiveActivityItem?
+    @State private var itemToDelete: LiveActivityItem?
     @State private var showDeleteAlert: Bool = false
 
     @Environment(\.colorScheme) var colorScheme
+    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
 
     private var color: LinearGradient {
         colorScheme == .dark ? LinearGradient(
@@ -230,67 +232,163 @@ struct LiveActivityWidgetConfiguration: BaseView {
 
     var body: some View {
         VStack {
-            dummyChart
-
-            HStack {
-                ForEach(0 ..< 4) { index in
-                    widgetButton(for: index)
+            Group {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Live Activity Personalization".uppercased())
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .foregroundColor(.secondary)
+                        .font(.footnote)
+                        .padding(.leading)
                 }
+                VStack {
+                    Text(
+                        "Trio offers you to customize your Live Activity lock screen widget. The default configuration will display current glucose, IOB, COB and the time of last algorithm run."
+                    )
+                    .padding()
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Color.chart)
+                )
             }
-            .padding()
+
+            GroupBox {
+                VStack {
+                    dummyChart
+
+                    HStack(spacing: 15) {
+                        ForEach(0 ..< 4) { index in
+                            widgetButton(for: index)
+                        }
+                    }
+                    .padding()
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(style: StrokeStyle(lineWidth: 2, dash: [5]))
+                            .foregroundColor(.gray)
+                    )
+                    .cornerRadius(12)
+                }
+
+            }.padding(.vertical).groupBoxStyle(.dummyChart)
+
+            if isEditMode {
+                Group {
+                    Button {
+                        saveOrder()
+                        isEditMode = false
+                    } label: {
+                        Text("Save Configuration")
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .tint(Color.white)
+                            .background(Color(.systemBlue))
+                    }
+                    .padding(.vertical)
+                    .tint(Color(.systemBlue))
+                    .buttonStyle(.borderedProminent)
+                    .cornerRadius(12)
+                }.padding(.vertical)
+            }
+
+            Spacer()
         }
         .padding()
         .scrollContentBackground(.hidden).background(color)
         .navigationTitle("Widget Configuration")
         .navigationBarTitleDisplayMode(.automatic)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    isEditMode.toggle()
+                } label: {
+                    Text(isEditMode ? "Cancel" : "Edit")
+                }
+            }
+        }
         .onAppear {
             loadOrder() // Load the saved order when the view appears
         }
         .confirmationDialog("Add Widget", isPresented: $showAddItemDialog, titleVisibility: .visible) {
-            ForEach(LiveActivityItem.allCases, id: \.self) { item in
+            ForEach(LiveActivityItem.allCases.filter { !selectedItems.contains($0) }, id: \.self) { item in
                 Button(item.displayName) {
                     if let index = buttonIndexToUpdate {
-                        selectedItems[index] = item // Update button index to selected item
+                        if index == selectedItems.count {
+                            selectedItems.append(item) // Item will be last element in array, just append
+                        } else {
+                            selectedItems[index] = item // Update button index to selected item
+                        }
                         saveOrder() // Save the order to UserDefaults
                     }
                 }
-                .disabled(selectedItems.contains(item))
-                // This causes the type check error
-
-//                .disabled(selectedItems.contains { $0.value == item }) // Disable already selected items
             }
         }
     }
 
     @ViewBuilder private func widgetButton(for index: Int) -> some View {
-        Button(action: {
-            buttonIndexToUpdate = index
-            showAddItemDialog.toggle()
-        }) {
-            // This causes an index out of range error
+        if index < selectedItems.count {
+            let selectedItem = selectedItems[index]
 
-//            if let selectedItem = LiveActivityItem.allCases.first(where: { $0.id == selectedItems[index].id }) {
-//                // Show item preview if an item is selected
-//                getItemPreview(for: selectedItem)
-//            }
-            if index < selectedItems.count {
-                // Zeige Vorschau, wenn ein Item ausgewählt wurde
-                let selectedItem = selectedItems[index]
+            ZStack(alignment: .topTrailing) {
                 getItemPreview(for: selectedItem)
-            } else {
-                // Show "+" symbol if no item is selected
+                    .frame(width: 50, height: 50)
+                    .padding(5)
+                    .background(Color.clear)
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(
+                                Color.primary,
+                                lineWidth: 1
+                            )
+                    )
+
+                if isEditMode {
+                    Button(action: {
+                        showDeleteAlert = true
+                        itemToDelete = selectedItem
+                    }) {
+                        Image(systemName: "minus.circle.fill")
+                            .foregroundColor(Color(UIColor.systemGray2)) // Opaque foreground color
+                            .background(Color.white) // Adding a background for contrast
+                            .clipShape(Circle()) // Make sure the background stays circular
+                            .font(.system(size: 20))
+                    }
+                    .offset(x: -45, y: -10)
+                    .alert(isPresented: $showDeleteAlert) {
+                        Alert(
+                            title: Text("Delete Widget"),
+                            message: Text("Are you sure you want to delete this widget?"),
+                            primaryButton: .destructive(Text("Delete")) {
+                                if let itemToDelete = itemToDelete {
+                                    removeItem(itemToDelete)
+                                }
+                            },
+                            secondaryButton: .cancel()
+                        )
+                    }
+                }
+            }
+        } else {
+            // Show "+" symbol if no item is selected
+            Button(action: {
+                buttonIndexToUpdate = index
+                showAddItemDialog.toggle()
+            }) {
                 VStack {
                     Image(systemName: "plus")
                         .font(.title2)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.accentColor)
                 }
-                .frame(width: 60, height: 40)
+                .frame(width: 50, height: 50)
+                .padding(5)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(style: StrokeStyle(lineWidth: 2, dash: [5]))
-                        .foregroundColor(.gray)
+                        .stroke(style: StrokeStyle(lineWidth: 1, dash: [5]))
+                        .foregroundColor(.primary)
                 )
-            }
+            }.buttonStyle(.plain)
         }
     }
 
