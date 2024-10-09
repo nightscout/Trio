@@ -83,9 +83,9 @@ extension Color {
         }
         // Otheriwse, use static (orange = high, red = low, green = range)
         else {
-            if glucoseValue > highGlucoseColorValue {
+            if glucoseValue >= highGlucoseColorValue {
                 return Color.orange
-            } else if glucoseValue < lowGlucoseColorValue {
+            } else if glucoseValue <= lowGlucoseColorValue {
                 return Color.red
             } else {
                 return Color.green
@@ -134,6 +134,8 @@ struct LiveActivity: Widget {
         ActivityConfiguration(for: LiveActivityAttributes.self) { context in
             LiveActivityView(context: context)
         } dynamicIsland: { context in
+            let hasStaticColorScheme = context.state.glucoseColorScheme == "staticColor"
+
             var glucoseColor: Color {
                 let state = context.state
                 let detailedState = state.detailedViewState
@@ -145,14 +147,12 @@ struct LiveActivity: Widget {
 
                 return Color.getDynamicGlucoseColor(
                     glucoseValue: Decimal(string: state.bg) ?? 100,
-                    highGlucoseColorValue: hardCodedHigh,
-                    lowGlucoseColorValue: hardCodedLow,
+                    highGlucoseColorValue: !hasStaticColorScheme ? hardCodedHigh : state.highGlucose,
+                    lowGlucoseColorValue: !hasStaticColorScheme ? hardCodedLow : state.lowGlucose,
                     targetGlucose: isMgdL ? state.target : state.target.asMmolL,
                     glucoseColorScheme: state.glucoseColorScheme
                 )
             }
-
-            let hasStaticColorScheme = context.state.glucoseColorScheme == "staticColor"
 
             return DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
@@ -190,6 +190,10 @@ struct LiveActivityView: View {
     @Environment(\.colorScheme) var colorScheme
     var context: ActivityViewContext<LiveActivityAttributes>
 
+    private var hasStaticColorScheme: Bool {
+        context.state.glucoseColorScheme == "staticColor"
+    }
+
     private var glucoseColor: Color {
         let state = context.state
         let detailedState = state.detailedViewState
@@ -201,15 +205,11 @@ struct LiveActivityView: View {
 
         return Color.getDynamicGlucoseColor(
             glucoseValue: Decimal(string: state.bg) ?? 100,
-            highGlucoseColorValue: hardCodedHigh,
-            lowGlucoseColorValue: hardCodedLow,
+            highGlucoseColorValue: !hasStaticColorScheme ? hardCodedHigh : state.highGlucose,
+            lowGlucoseColorValue: !hasStaticColorScheme ? hardCodedLow : state.lowGlucose,
             targetGlucose: isMgdL ? state.target : state.target.asMmolL,
             glucoseColorScheme: state.glucoseColorScheme
         )
-    }
-
-    private var hasStaticColorScheme: Bool {
-        context.state.glucoseColorScheme == "staticColor"
     }
 
     var body: some View {
@@ -439,17 +439,17 @@ struct LiveActivityChartView: View {
 
     var body: some View {
         let state = context.state
-        let isMgdl: Bool = additionalState.unit == "mg/dL"
+        let isMgdL: Bool = additionalState.unit == "mg/dL"
 
         // Determine scale
         let minValue = min(additionalState.chart.min() ?? 39, 39) as Decimal
         let maxValue = max(additionalState.chart.max() ?? 300, 300) as Decimal
 
-        let yAxisRuleMarkMin = isMgdl ? state.lowGlucose : state.lowGlucose
+        let yAxisRuleMarkMin = isMgdL ? state.lowGlucose : state.lowGlucose
             .asMmolL
-        let yAxisRuleMarkMax = isMgdl ? state.highGlucose : state.highGlucose
+        let yAxisRuleMarkMax = isMgdL ? state.highGlucose : state.highGlucose
             .asMmolL
-        let target = isMgdl ? state.target : state.target.asMmolL
+        let target = isMgdL ? state.target : state.target.asMmolL
 
         let isOverrideActive = additionalState.isOverrideActive == true
 
@@ -459,19 +459,24 @@ struct LiveActivityChartView: View {
         let startDate = calendar.date(byAdding: .hour, value: -6, to: now) ?? now
         let endDate = isOverrideActive ? (calendar.date(byAdding: .hour, value: 2, to: now) ?? now) : now
 
+        // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
+        let hardCodedLow = isMgdL ? Decimal(55) : 55.asMmolL
+        let hardCodedHigh = isMgdL ? Decimal(220) : 220.asMmolL
+        let hasStaticColorScheme = context.state.glucoseColorScheme == "staticColor"
+
         let highColor = Color.getDynamicGlucoseColor(
             glucoseValue: yAxisRuleMarkMax,
-            highGlucoseColorValue: yAxisRuleMarkMax,
-            lowGlucoseColorValue: yAxisRuleMarkMin,
-            targetGlucose: isMgdl ? state.target : state.target.asMmolL,
+            highGlucoseColorValue: !hasStaticColorScheme ? hardCodedHigh : yAxisRuleMarkMax,
+            lowGlucoseColorValue: !hasStaticColorScheme ? hardCodedLow : yAxisRuleMarkMin,
+            targetGlucose: target,
             glucoseColorScheme: context.state.glucoseColorScheme
         )
 
         let lowColor = Color.getDynamicGlucoseColor(
             glucoseValue: yAxisRuleMarkMin,
-            highGlucoseColorValue: yAxisRuleMarkMax,
-            lowGlucoseColorValue: yAxisRuleMarkMin,
-            targetGlucose: isMgdl ? state.target : state.target.asMmolL,
+            highGlucoseColorValue: !hasStaticColorScheme ? hardCodedHigh : yAxisRuleMarkMax,
+            lowGlucoseColorValue: !hasStaticColorScheme ? hardCodedLow : yAxisRuleMarkMin,
+            targetGlucose: target,
             glucoseColorScheme: context.state.glucoseColorScheme
         )
 
@@ -546,11 +551,12 @@ struct LiveActivityChartView: View {
             // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
             let hardCodedLow = Decimal(55)
             let hardCodedHigh = Decimal(220)
+            let hasStaticColorScheme = context.state.glucoseColorScheme == "staticColor"
 
             let pointMarkColor = Color.getDynamicGlucoseColor(
                 glucoseValue: currentValue,
-                highGlucoseColorValue: hardCodedHigh,
-                lowGlucoseColorValue: hardCodedLow,
+                highGlucoseColorValue: !hasStaticColorScheme ? hardCodedHigh : context.state.highGlucose,
+                lowGlucoseColorValue: !hasStaticColorScheme ? hardCodedLow : context.state.lowGlucose,
                 targetGlucose: context.state.target,
                 glucoseColorScheme: context.state.glucoseColorScheme
             )

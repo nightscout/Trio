@@ -7,18 +7,24 @@ extension MainChartView {
     var staticYAxisChart: some View {
         Chart {
             /// high and low threshold lines
+
+            // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
+            let hardCodedLow = Decimal(55)
+            let hardCodedHigh = Decimal(220)
+            let isDynamicColorScheme = glucoseColorScheme == .dynamicColor
+
             if thresholdLines {
                 let highColor = FreeAPS.getDynamicGlucoseColor(
                     glucoseValue: highGlucose,
-                    highGlucoseColorValue: highGlucose,
-                    lowGlucoseColorValue: lowGlucose,
+                    highGlucoseColorValue: isDynamicColorScheme ? hardCodedHigh : highGlucose,
+                    lowGlucoseColorValue: isDynamicColorScheme ? hardCodedLow : lowGlucose,
                     targetGlucose: currentGlucoseTarget,
                     glucoseColorScheme: glucoseColorScheme
                 )
                 let lowColor = FreeAPS.getDynamicGlucoseColor(
                     glucoseValue: lowGlucose,
-                    highGlucoseColorValue: highGlucose,
-                    lowGlucoseColorValue: lowGlucose,
+                    highGlucoseColorValue: isDynamicColorScheme ? hardCodedHigh : highGlucose,
+                    lowGlucoseColorValue: isDynamicColorScheme ? hardCodedLow : lowGlucose,
                     targetGlucose: currentGlucoseTarget,
                     glucoseColorScheme: glucoseColorScheme
                 )

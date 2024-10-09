@@ -125,11 +125,12 @@ struct ForecastChart: View {
             // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
             let hardCodedLow = Decimal(55)
             let hardCodedHigh = Decimal(220)
+            let isDynamicColorScheme = state.glucoseColorScheme == .dynamicColor
 
             let pointMarkColor: Color = FreeAPS.getDynamicGlucoseColor(
                 glucoseValue: Decimal(item.glucose),
-                highGlucoseColorValue: hardCodedHigh,
-                lowGlucoseColorValue: hardCodedLow,
+                highGlucoseColorValue: isDynamicColorScheme ? hardCodedHigh : highGlucose,
+                lowGlucoseColorValue: isDynamicColorScheme ? hardCodedLow : lowGlucose,
                 targetGlucose: targetGlucose,
                 glucoseColorScheme: state.glucoseColorScheme
             )

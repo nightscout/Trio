@@ -254,11 +254,12 @@ extension MainChartView {
                 // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
                 let hardCodedLow = Decimal(55)
                 let hardCodedHigh = Decimal(220)
+                let isDynamicColorScheme = glucoseColorScheme == .dynamicColor
 
                 let glucoseColor = FreeAPS.getDynamicGlucoseColor(
                     glucoseValue: Decimal(sgv),
-                    highGlucoseColorValue: hardCodedHigh,
-                    lowGlucoseColorValue: hardCodedLow,
+                    highGlucoseColorValue: isDynamicColorScheme ? hardCodedHigh : highGlucose,
+                    lowGlucoseColorValue: isDynamicColorScheme ? hardCodedLow : lowGlucose,
                     targetGlucose: units == .mgdL ? currentGlucoseTarget : currentGlucoseTarget.asMgdL,
                     glucoseColorScheme: glucoseColorScheme
                 )

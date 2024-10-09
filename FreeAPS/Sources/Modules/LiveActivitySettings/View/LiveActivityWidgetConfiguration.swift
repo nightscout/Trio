@@ -108,23 +108,6 @@ struct LiveActivityWidgetConfiguration: BaseView {
                 .padding(.vertical, 8)
                 .padding(.horizontal)
 
-//                Group {
-//                    Button {
-//                        saveOrder()
-//                        isEditMode = false
-//                    } label: {
-//                        Text("Save Configuration")
-//                            .frame(maxWidth: .infinity, alignment: .center)
-//                            .tint(Color.white)
-//                            .background(Color(.systemBlue))
-//                    }
-//                    .padding(.vertical)
-//                    .tint(Color(.systemBlue))
-//                    .buttonStyle(.borderedProminent)
-//                    .cornerRadius(12)
-//                }.padding(.vertical)
-//            }
-
             Spacer()
         }
         .padding()

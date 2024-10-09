@@ -92,12 +92,13 @@ struct CurrentGlucoseView: View {
                             // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
                             let hardCodedLow = Decimal(55)
                             let hardCodedHigh = Decimal(220)
+                            let isDynamicColorScheme = glucoseColorScheme == .dynamicColor
 
                             if Decimal(glucoseValue) <= lowGlucose || Decimal(glucoseValue) >= highGlucose {
                                 glucoseDisplayColor = FreeAPS.getDynamicGlucoseColor(
                                     glucoseValue: Decimal(glucoseValue),
-                                    highGlucoseColorValue: hardCodedHigh,
-                                    lowGlucoseColorValue: hardCodedLow,
+                                    highGlucoseColorValue: isDynamicColorScheme ? hardCodedHigh : highGlucose,
+                                    lowGlucoseColorValue: isDynamicColorScheme ? hardCodedLow : lowGlucose,
                                     targetGlucose: targetGlucose,
                                     glucoseColorScheme: glucoseColorScheme
                                 )
