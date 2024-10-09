@@ -260,7 +260,7 @@ extension MainChartView {
                     glucoseValue: Decimal(sgv),
                     highGlucoseColorValue: isDynamicColorScheme ? hardCodedHigh : highGlucose,
                     lowGlucoseColorValue: isDynamicColorScheme ? hardCodedLow : lowGlucose,
-                    targetGlucose: units == .mgdL ? currentGlucoseTarget : currentGlucoseTarget.asMgdL,
+                    targetGlucose: currentGlucoseTarget,
                     glucoseColorScheme: glucoseColorScheme
                 )
                 HStack {

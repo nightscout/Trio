@@ -82,11 +82,6 @@ struct CurrentGlucoseView: View {
                             let displayGlucose = units == .mgdL ? Decimal(glucoseValue).description : Decimal(glucoseValue)
                                 .formattedAsMmolL
 
-                            // low glucose, high glucose and target is parsed in state to mmol/L; parse it back to mg/dl here for comparison
-                            let lowGlucose = units == .mgdL ? lowGlucose : lowGlucose.asMgdL
-                            let highGlucose = units == .mgdL ? highGlucose : highGlucose.asMgdL
-                            let targetGlucose = units == .mgdL ? currentGlucoseTarget : currentGlucoseTarget.asMgdL
-
                             var glucoseDisplayColor = Color.primary
 
                             // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
@@ -99,7 +94,7 @@ struct CurrentGlucoseView: View {
                                     glucoseValue: Decimal(glucoseValue),
                                     highGlucoseColorValue: isDynamicColorScheme ? hardCodedHigh : highGlucose,
                                     lowGlucoseColorValue: isDynamicColorScheme ? hardCodedLow : lowGlucose,
-                                    targetGlucose: targetGlucose,
+                                    targetGlucose: currentGlucoseTarget,
                                     glucoseColorScheme: glucoseColorScheme
                                 )
                             }

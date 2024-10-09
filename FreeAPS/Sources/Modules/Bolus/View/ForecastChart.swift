@@ -117,9 +117,6 @@ struct ForecastChart: View {
         ForEach(state.glucoseFromPersistence) { item in
             let glucoseToDisplay = state.units == .mgdL ? Decimal(item.glucose) : Decimal(item.glucose).asMmolL
 
-            // low and high glucose is parsed in state to mmol/L; parse it back to mg/dl here for comparison
-            let lowGlucose = units == .mgdL ? state.lowGlucose : state.lowGlucose.asMgdL
-            let highGlucose = units == .mgdL ? state.highGlucose : state.highGlucose.asMgdL
             let targetGlucose = (state.determination.first?.currentTarget ?? state.currentBGTarget as NSDecimalNumber) as Decimal
 
             // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
@@ -129,8 +126,8 @@ struct ForecastChart: View {
 
             let pointMarkColor: Color = FreeAPS.getDynamicGlucoseColor(
                 glucoseValue: Decimal(item.glucose),
-                highGlucoseColorValue: isDynamicColorScheme ? hardCodedHigh : highGlucose,
-                lowGlucoseColorValue: isDynamicColorScheme ? hardCodedLow : lowGlucose,
+                highGlucoseColorValue: isDynamicColorScheme ? hardCodedHigh : state.highGlucose,
+                lowGlucoseColorValue: isDynamicColorScheme ? hardCodedLow : state.lowGlucose,
                 targetGlucose: targetGlucose,
                 glucoseColorScheme: state.glucoseColorScheme
             )

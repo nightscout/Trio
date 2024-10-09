@@ -19,10 +19,6 @@ struct GlucoseChartView: ChartContent {
         ForEach(glucoseData) { item in
             let glucoseToDisplay = units == .mgdL ? Decimal(item.glucose) : Decimal(item.glucose).asMmolL
 
-            // low glucose and high glucose is parsed in state to mmol/L; parse it back to mg/dL here for comparison
-            let lowGlucose = units == .mgdL ? lowGlucose : lowGlucose.asMgdL
-            let highGlucose = units == .mgdL ? highGlucose : highGlucose.asMgdL
-
             // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
             let hardCodedLow = Decimal(55)
             let hardCodedHigh = Decimal(220)

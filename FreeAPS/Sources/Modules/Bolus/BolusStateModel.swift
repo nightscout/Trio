@@ -228,8 +228,8 @@ extension Bolus {
             sweetMealFactor = settings.settings.sweetMealFactor
             displayPresets = settings.settings.displayPresets
             forecastDisplayType = settings.settings.forecastDisplayType
-            lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
-            highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL
+            lowGlucose = settingsManager.settings.low
+            highGlucose = settingsManager.settings.high
             maxCarbs = settings.settings.maxCarbs
             maxFat = settings.settings.maxFat
             maxProtein = settings.settings.maxProtein
