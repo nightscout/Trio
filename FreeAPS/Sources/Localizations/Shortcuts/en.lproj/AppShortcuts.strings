@@ -1,0 +1,41 @@
+/*
+  AppShortcuts.strings
+*/
+/* -------------------------------- */
+
+/* Trio apply Bolus*/
+"${applicationName} Bolus" = "${applicationName} Bolus";
+
+"Enacts a ${applicationName} Bolus" = "Enacts a ${applicationName} Bolus";
+
+/* Trio Temporary Target shortcut*/
+"Activate ${applicationName} TempTarget Preset" = "Activate ${applicationName} TempTarget Preset";
+
+"Activates an available ${applicationName} TempTarget Preset" = "Activates an available ${applicationName} TempTarget Preset";
+
+"New ${applicationName} TempTarget" = "New ${applicationName} TempTarget";
+
+"Creates and applies a newly configured ${applicationName} TempTarget"  = "Creates and applies a newly configured ${applicationName} TempTarget";
+
+"Cancel ${applicationName} TempTarget" =  "Cancel ${applicationName} TempTarget";
+
+"Cancels an active ${applicationName} TempTarget" = "Cancels an active ${applicationName} TempTarget";
+
+/* Trio List state shortcut*/
+"List ${applicationName} state" =  "List ${applicationName} state";
+
+"Lists different states of ${applicationName}"="Lists different states of ${applicationName}";
+
+/* Trio add carbs shortcut*/
+"${applicationName} Carbs" = "${applicationName} Carbs";
+
+"Adds carbs to ${applicationName}" = "Adds carbs to ${applicationName}";
+
+/* Trio override shortcut*/
+"Activate ${applicationName} Override Preset" = "Activate ${applicationName} Override Preset";
+
+"Activates an available ${applicationName} Override Preset" = "Activates an available ${applicationName} Override Preset";
+
+"Cancel ${applicationName} Override" =  "Cancel ${applicationName} Override";
+
+"Cancels an active ${applicationName} Override" = "Cancels an active ${applicationName} Override";

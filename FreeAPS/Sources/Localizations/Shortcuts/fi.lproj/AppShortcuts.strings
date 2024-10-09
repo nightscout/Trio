@@ -1,0 +1,41 @@
+/*
+  AppShortcuts.strings
+*/
+/* -------------------------------- */
+
+/* Trio aplicar bolus */
+"${applicationName} Bolus" = "${applicationName} Bolus";
+
+"Enacts a ${applicationName} Bolus" = "Suorittaa boluksen ${applicationName}";
+
+/* Trio väliaikaisen tavoitteen pikanäppäin */
+"Activate ${applicationName} TempTarget Preset" = "Aktivoi ${applicationName} TempTarget -esiasetus";
+
+"Activates an available ${applicationName} TempTarget Preset" = "Aktivoi käytettävissä olevan ${applicationName} TempTarget -esiasetuksen";
+
+"New ${applicationName} TempTarget" = "Uusi ${applicationName} TempTarget";
+
+"Creates and applies a newly configured ${applicationName} TempTarget" = "Luo ja soveltaa uuden ${applicationName} TempTarget -asetuksen";
+
+"Cancel ${applicationName} TempTarget" = "Peruuta ${applicationName} TempTarget";
+
+"Cancels an active ${applicationName} TempTarget" = "Peruuttaa aktiivisen ${applicationName} TempTarget -asetuksen";
+
+/* Trio listaa tilan pikanäppäin */
+"List ${applicationName} state" = "Listaa ${applicationName} tila";
+
+"Lists different states of ${applicationName}" = "Listaa ${applicationName} erilaiset tilat";
+
+/* Trio lisää hiilihydraatteja pikanäppäin */
+"${applicationName} Carbs" = "${applicationName} Hiilihydraatit";
+
+"Adds carbs to ${applicationName}" = "Lisää hiilihydraatteja ${applicationName}";
+
+/* Trio ylikirjoituksen pikanäppäin */
+"Activate ${applicationName} Override Preset" = "Aktivoi ${applicationName} Override -esiasetus";
+
+"Activates an available ${applicationName} Override Preset" = "Aktivoi käytettävissä olevan ${applicationName} Override -esiasetuksen";
+
+"Cancel ${applicationName} Override" = "Peruuta ${applicationName} Override";
+
+"Cancels an active ${applicationName} Override" = "Peruuttaa aktiivisen ${applicationName} Override -asetuksen";
