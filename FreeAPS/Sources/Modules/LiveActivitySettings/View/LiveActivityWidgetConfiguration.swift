@@ -96,23 +96,34 @@ struct LiveActivityWidgetConfiguration: BaseView {
 
             }.padding(.vertical).groupBoxStyle(.dummyChart)
 
-            if isEditMode {
-                Group {
-                    Button {
-                        saveOrder()
-                        isEditMode = false
-                    } label: {
-                        Text("Save Configuration")
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .tint(Color.white)
-                            .background(Color(.systemBlue))
-                    }
-                    .padding(.vertical)
-                    .tint(Color(.systemBlue))
-                    .buttonStyle(.borderedProminent)
-                    .cornerRadius(12)
-                }.padding(.vertical)
-            }
+            Group {
+                Text(
+                    "Tap 'Edit Mode' to add or remove a widget. You can re-order widgets by removing them from their current position and adding them to the desired one."
+                )
+
+                Text("Note: Once you confirm a deletion, you cannot undo it.")
+            }.frame(maxWidth: .infinity, alignment: .leading)
+                .foregroundColor(.secondary)
+                .font(.footnote)
+                .padding(.vertical, 8)
+                .padding(.horizontal)
+
+//                Group {
+//                    Button {
+//                        saveOrder()
+//                        isEditMode = false
+//                    } label: {
+//                        Text("Save Configuration")
+//                            .frame(maxWidth: .infinity, alignment: .center)
+//                            .tint(Color.white)
+//                            .background(Color(.systemBlue))
+//                    }
+//                    .padding(.vertical)
+//                    .tint(Color(.systemBlue))
+//                    .buttonStyle(.borderedProminent)
+//                    .cornerRadius(12)
+//                }.padding(.vertical)
+//            }
 
             Spacer()
         }
@@ -125,14 +136,14 @@ struct LiveActivityWidgetConfiguration: BaseView {
                 Button {
                     isEditMode.toggle()
                 } label: {
-                    Text(isEditMode ? "Cancel" : "Edit")
+                    Text(isEditMode ? "Exit Edit Mode" : "Edit Mode")
                 }
             }
         }
         .onAppear {
             loadOrder() // Load the saved order when the view appears
         }
-        .confirmationDialog("Add Widget", isPresented: $showAddItemDialog, titleVisibility: .visible) {
+        .confirmationDialog("Choose Widget to add", isPresented: $showAddItemDialog, titleVisibility: .visible) {
             ForEach(LiveActivityItem.allCases.filter { !selectedItems.contains($0) }, id: \.self) { item in
                 Button(item.displayName) {
                     if let index = buttonIndexToUpdate {
@@ -178,17 +189,12 @@ struct LiveActivityWidgetConfiguration: BaseView {
                             .font(.system(size: 20))
                     }
                     .offset(x: -45, y: -10)
-                    .alert(isPresented: $showDeleteAlert) {
-                        Alert(
-                            title: Text("Delete Widget"),
-                            message: Text("Are you sure you want to delete this widget?"),
-                            primaryButton: .destructive(Text("Delete")) {
-                                if let itemToDelete = itemToDelete {
-                                    removeItem(itemToDelete)
-                                }
-                            },
-                            secondaryButton: .cancel()
-                        )
+                    .confirmationDialog("Delete Widget", isPresented: $showDeleteAlert, titleVisibility: .hidden) {
+                        Button("Delete Widget", role: .destructive) {
+                            if let itemToDelete = itemToDelete {
+                                removeItem(itemToDelete)
+                            }
+                        }
                     }
                 }
             }
@@ -210,7 +216,9 @@ struct LiveActivityWidgetConfiguration: BaseView {
                         .stroke(style: StrokeStyle(lineWidth: 1, dash: [5]))
                         .foregroundColor(.primary)
                 )
-            }.buttonStyle(.plain)
+            }
+            .disabled(!isEditMode)
+            .buttonStyle(.plain)
         }
     }
 
