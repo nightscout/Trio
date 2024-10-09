@@ -15,8 +15,8 @@ struct LiveActivityWidgetConfiguration: BaseView {
 
     @State private var isEditMode: Bool = false
     @State private var draggingItem: LiveActivityItem?
-    @State private var itemToDelete: LiveActivityItem?
-    @State private var showDeleteAlert: Bool = false
+    @State private var itemToRemove: LiveActivityItem?
+    @State private var isRemovalConfirmationPresented: Bool = false
 
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
@@ -101,7 +101,7 @@ struct LiveActivityWidgetConfiguration: BaseView {
                     "Tap 'Edit Mode' to add or remove a widget. You can re-order widgets by removing them from their current position and adding them to the desired one."
                 )
 
-                Text("Note: Once you confirm a deletion, you cannot undo it.")
+                Text("Note: Once you confirm the removal of a widget, you cannot undo it.")
             }.frame(maxWidth: .infinity, alignment: .leading)
                 .foregroundColor(.secondary)
                 .font(.footnote)
@@ -162,8 +162,8 @@ struct LiveActivityWidgetConfiguration: BaseView {
 
                 if isEditMode {
                     Button(action: {
-                        showDeleteAlert = true
-                        itemToDelete = selectedItem
+                        isRemovalConfirmationPresented = true
+                        itemToRemove = selectedItem
                     }) {
                         Image(systemName: "minus.circle.fill")
                             .foregroundColor(Color(UIColor.systemGray2)) // Opaque foreground color
@@ -172,10 +172,10 @@ struct LiveActivityWidgetConfiguration: BaseView {
                             .font(.system(size: 20))
                     }
                     .offset(x: -45, y: -10)
-                    .confirmationDialog("Delete Widget", isPresented: $showDeleteAlert, titleVisibility: .hidden) {
-                        Button("Delete Widget", role: .destructive) {
-                            if let itemToDelete = itemToDelete {
-                                removeItem(itemToDelete)
+                    .confirmationDialog("Remove Widget", isPresented: $isRemovalConfirmationPresented, titleVisibility: .hidden) {
+                        Button("Remove Widget", role: .destructive) {
+                            if let itemToRemove = itemToRemove {
+                                removeItem(itemToRemove)
                             }
                         }
                     }
