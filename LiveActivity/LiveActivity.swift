@@ -178,7 +178,7 @@ struct LiveActivity: Widget {
                 LiveActivityMinimalView(context: context, glucoseColor: glucoseColor)
             }
             .widgetURL(URL(string: "Trio://"))
-            .keylineTint(Color.purple)
+            .keylineTint(glucoseColor)
             .contentMargins(.horizontal, 0, for: .minimal)
             .contentMargins(.trailing, 0, for: .compactLeading)
             .contentMargins(.leading, 0, for: .compactTrailing)
