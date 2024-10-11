@@ -97,8 +97,6 @@ extension LiveActivityAttributes.ContentState {
         let itemOrder = UserDefaults.standard
             .loadLiveActivityOrderFromUserDefaults() ?? LiveActivityAttributes.ItemOrder.defaultOrders
 
-        print("Loaded item order: \(itemOrder)")
-
         let detailedState: LiveActivityAttributes.ContentAdditionalState?
 
         switch settings.lockScreenView {
