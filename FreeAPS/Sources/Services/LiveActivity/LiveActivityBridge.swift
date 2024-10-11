@@ -68,14 +68,17 @@ import UIKit
 
     private func setupNotifications() {
         let notificationCenter = Foundation.NotificationCenter.default
-        notificationCenter.addObserver(self, selector: #selector(cobOrIobDidUpdate), name: .didUpdateCobIob, object: nil)
         notificationCenter
             .addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { [weak self] _ in
-                self?.forceActivityUpdate()
+                Task { @MainActor in
+                    self?.forceActivityUpdate()
+                }
             }
         notificationCenter
             .addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: nil) { [weak self] _ in
-                self?.forceActivityUpdate()
+                Task { @MainActor in
+                    self?.forceActivityUpdate()
+                }
             }
     }
 
@@ -84,6 +87,11 @@ import UIKit
         coreDataPublisher?.filterByEntityName("OverrideStored").sink { [weak self] _ in
             guard let self = self else { return }
             self.overridesDidUpdate()
+        }.store(in: &subscriptions)
+
+        coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
+            guard let self = self else { return }
+            self.cobOrIobDidUpdate()
         }.store(in: &subscriptions)
     }
 
@@ -97,7 +105,7 @@ import UIKit
             .store(in: &subscriptions)
     }
 
-    @objc private func cobOrIobDidUpdate() {
+    private func cobOrIobDidUpdate() {
         Task {
             await fetchAndMapDetermination()
             if let determination = determination {
@@ -106,7 +114,7 @@ import UIKit
         }
     }
 
-    @objc private func overridesDidUpdate() {
+    private func overridesDidUpdate() {
         Task {
             await fetchAndMapOverride()
             if let determination = determination {
@@ -117,19 +125,8 @@ import UIKit
 
     private func setupGlucoseArray() {
         Task {
-            async let glucoseTask: () = fetchAndMapGlucose()
-            async let determinationTask: () = fetchAndMapDetermination()
-            async let overrideTask: () = fetchAndMapOverride()
-            
             // Fetch and map glucose to GlucoseData struct
-            await glucoseTask
-
-            // Fetch and map Determination to DeterminationData struct
-            await determinationTask
-
-            // Fetch and map Override to OverrideData struct
-            /// shows if there is an active Override
-            await overrideTask
+            await fetchAndMapGlucose()
 
             // Push the update to the Live Activity
             await glucoseDidUpdate(glucoseFromPersistence ?? [])

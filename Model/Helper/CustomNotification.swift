@@ -4,7 +4,6 @@ import Foundation
 extension Notification.Name {
     static let willUpdateOverrideConfiguration = Notification.Name("willUpdateOverrideConfiguration")
     static let didUpdateOverrideConfiguration = Notification.Name("didUpdateOverrideConfiguration")
-    static let didUpdateCobIob = Notification.Name("didUpdateCobIob")
 }
 
 func awaitNotification(_ name: Notification.Name) async {
