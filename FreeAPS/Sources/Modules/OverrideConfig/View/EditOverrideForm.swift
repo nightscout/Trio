@@ -116,14 +116,22 @@ struct EditOverrideForm: View {
                 editOverride()
                 saveButton
             }
-            .listSectionSpacing(20)
+            .listSectionSpacing(10)
             .listRowSpacing(10)
+            .padding(.top, 30)
+            .ignoresSafeArea(edges: .top)
             .scrollContentBackground(.hidden).background(color)
             .navigationTitle("Edit Override")
             .navigationBarTitleDisplayMode(.inline)
-            .navigationBarItems(trailing: Button("Cancel") {
-                presentationMode.wrappedValue.dismiss()
-            })
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(action: {
+                        presentationMode.wrappedValue.dismiss()
+                    }, label: {
+                        Text("Cancel")
+                    })
+                }
+            }
             .onDisappear {
                 if !hasChanges {
                     // Reset UI changes
@@ -334,7 +342,12 @@ struct EditOverrideForm: View {
                         )
                         .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
 
+                        Spacer()
+
                         Divider().frame(width: 1, height: 20)
+
+                        Spacer()
+
                         Text("To")
                         Spacer()
                         Text(
@@ -410,7 +423,13 @@ struct EditOverrideForm: View {
                                 Spacer()
                                 Text("\(smbMinutes?.formatted(.number) ?? "\(state.defaultSmbMinutes)") min")
                                     .foregroundColor(!displayPickerSmbMinutes ? .primary : .accentColor)
+
+                                Spacer()
+
                                 Divider().frame(width: 1, height: 20)
+
+                                Spacer()
+
                                 Text("UAM")
                                 Spacer()
                                 Text("\(uamMinutes?.formatted(.number) ?? "\(state.defaultUamMinutes)") min")
@@ -470,40 +489,46 @@ struct EditOverrideForm: View {
         let (isInvalid, errorMessage) = isOverrideInvalid()
 
         return Section(
-            footer: Text(errorMessage ?? "")
-                .foregroundColor(.red)
-        ) {
-            Button(action: {
-                saveChanges()
+            header:
+            HStack {
+                Spacer()
+                Text(errorMessage ?? "").textCase(nil)
+                    .foregroundColor(colorScheme == .dark ? .orange : .accentColor)
+                Spacer()
+            },
+            content: {
+                Button(action: {
+                    saveChanges()
 
-                do {
-                    guard let moc = override.managedObjectContext else { return }
-                    guard moc.hasChanges else { return }
-                    try moc.save()
+                    do {
+                        guard let moc = override.managedObjectContext else { return }
+                        guard moc.hasChanges else { return }
+                        try moc.save()
 
-                    if let currentActiveOverride = state.currentActiveOverride {
-                        Task {
-                            await state.disableAllActiveOverrides(
-                                except: currentActiveOverride.objectID,
-                                createOverrideRunEntry: false
-                            )
-                            // Update View
-                            state.updateLatestOverrideConfiguration()
+                        if let currentActiveOverride = state.currentActiveOverride {
+                            Task {
+                                await state.disableAllActiveOverrides(
+                                    except: currentActiveOverride.objectID,
+                                    createOverrideRunEntry: false
+                                )
+                                // Update View
+                                state.updateLatestOverrideConfiguration()
+                            }
                         }
-                    }
 
-                    hasChanges = false
-                    presentationMode.wrappedValue.dismiss()
-                } catch {
-                    debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to edit Override")
-                }
-            }, label: {
-                Text("Save Override")
-            })
-                .disabled(isInvalid) // Disable button if changes are invalid
-                .frame(maxWidth: .infinity, alignment: .center)
-                .tint(.white)
-        }
+                        hasChanges = false
+                        presentationMode.wrappedValue.dismiss()
+                    } catch {
+                        debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to edit Override")
+                    }
+                }, label: {
+                    Text("Save Override")
+                })
+                    .disabled(isInvalid) // Disable button if changes are invalid
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .tint(.white)
+            }
+        )
         .listRowBackground(isInvalid ? Color(.systemGray4) : Color(.systemBlue))
     }
 

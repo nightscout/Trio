@@ -88,7 +88,7 @@ extension OverrideConfig {
                                     showOverrideCreationSheet = true
                                 }, label: {
                                     HStack {
-                                        Text("New Override")
+                                        Text("Add Override")
                                         Image(systemName: "plus")
                                     }
                                 })

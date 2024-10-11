@@ -72,13 +72,22 @@ struct AddOverrideForm: View {
                 addOverride()
                 saveButton
             }
-            .listSectionSpacing(20)
+            .listSectionSpacing(10)
             .listRowSpacing(10)
+            .padding(.top, 30)
+            .ignoresSafeArea(edges: .top)
             .scrollContentBackground(.hidden).background(color)
-            .navigationTitle("New Override")
-            .navigationBarItems(trailing: Button("Cancel") {
-                presentationMode.wrappedValue.dismiss()
-            })
+            .navigationTitle("Add Override")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(action: {
+                        presentationMode.wrappedValue.dismiss()
+                    }, label: {
+                        Text("Cancel")
+                    })
+                }
+            }
         }
     }
 
@@ -270,7 +279,12 @@ struct AddOverrideForm: View {
                             )
                             .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
 
+                            Spacer()
+
                             Divider().frame(width: 1, height: 20)
+
+                            Spacer()
+
                             Text("To")
                             Spacer()
                             Text(
@@ -333,7 +347,13 @@ struct AddOverrideForm: View {
                                 Spacer()
                                 Text("\(state.smbMinutes.formatted(.number)) min")
                                     .foregroundColor(!displayPickerSmbMinutes ? .primary : .accentColor)
+
+                                Spacer()
+
                                 Divider().frame(width: 1, height: 20)
+
+                                Spacer()
+
                                 Text("UAM")
                                 Spacer()
                                 Text("\(state.uamMinutes.formatted(.number)) min")
@@ -381,27 +401,33 @@ struct AddOverrideForm: View {
         let (isInvalid, errorMessage) = isOverrideInvalid()
 
         return Group {
-            Section {
-                Button(action: {
-                    Task {
-                        if state.indefinite { state.overrideDuration = 0 }
-                        state.isEnabled.toggle()
-                        await state.saveCustomOverride()
-                        await state.resetStateVariables()
-                        dismiss()
-                    }
-                }, label: {
-                    Text("Enact Override")
-                })
-                    .disabled(isInvalid)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .tint(.white)
-            }.listRowBackground(isInvalid ? Color(.systemGray4) : Color(.systemBlue))
-
             Section(
-                footer: Text(errorMessage ?? "")
-                    .foregroundColor(.red)
-            ) {
+                header:
+                HStack {
+                    Spacer()
+                    Text(errorMessage ?? "").textCase(nil)
+                        .foregroundColor(colorScheme == .dark ? .orange : .accentColor)
+                    Spacer()
+                },
+                content: {
+                    Button(action: {
+                        Task {
+                            if state.indefinite { state.overrideDuration = 0 }
+                            state.isEnabled.toggle()
+                            await state.saveCustomOverride()
+                            await state.resetStateVariables()
+                            dismiss()
+                        }
+                    }, label: {
+                        Text("Enact Override")
+                    })
+                        .disabled(isInvalid)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .tint(.white)
+                }
+            ).listRowBackground(isInvalid ? Color(.systemGray4) : Color(.systemBlue))
+
+            Section {
                 Button(action: {
                     Task {
                         await state.saveOverridePreset()
@@ -416,7 +442,7 @@ struct AddOverrideForm: View {
                     .tint(.white)
             }
             .listRowBackground(
-                isInvalid ? Color(.systemGray4) : Color(.orange)
+                isInvalid ? Color(.systemGray4) : Color.secondary
             )
         }
     }
