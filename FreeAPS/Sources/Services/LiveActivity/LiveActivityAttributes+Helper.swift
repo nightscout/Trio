@@ -6,9 +6,16 @@ extension UserDefaults {
     }
 
     func loadLiveActivityOrderFromUserDefaults() -> [LiveActivityAttributes.ItemOrder]? {
-        stringArray(forKey: Keys.liveActivityOrder)?.map({ str in
-            LiveActivityAttributes.ItemOrder(rawValue: str)
-        }) as? [LiveActivityAttributes.ItemOrder]
+        if let itemStrings = stringArray(forKey: Keys.liveActivityOrder) {
+            return itemStrings.map { string in
+                if string == "" {
+                    return .empty
+                } else {
+                    return LiveActivityAttributes.ItemOrder(rawValue: string) ?? .empty
+                }
+            }
+        }
+        return nil
     }
 }
 
@@ -89,6 +96,8 @@ extension LiveActivityAttributes.ContentState {
 
         let itemOrder = UserDefaults.standard
             .loadLiveActivityOrderFromUserDefaults() ?? LiveActivityAttributes.ItemOrder.defaultOrders
+
+        print("Loaded item order: \(itemOrder)")
 
         let detailedState: LiveActivityAttributes.ContentAdditionalState?
 

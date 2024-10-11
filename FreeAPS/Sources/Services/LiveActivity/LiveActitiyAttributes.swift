@@ -7,6 +7,7 @@ struct LiveActivityAttributes: ActivityAttributes {
         case iob
         case cob
         case updatedLabel
+        case empty
     }
 
     struct ContentState: Codable, Hashable {

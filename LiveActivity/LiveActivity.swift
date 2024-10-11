@@ -235,36 +235,42 @@ struct LiveActivityView: View {
                     }
 
                 HStack {
-                    ForEach(Array(detailedViewState.itemOrder.enumerated()), id: \.element) { index, item in
-                        switch item {
-                        case .currentGlucose:
-                            if detailedViewState.showCurrentGlucose {
-                                VStack {
-                                    LiveActivityBGLabelView(context: context, additionalState: detailedViewState)
-                                    HStack {
-                                        LiveActivityGlucoseDeltaLabelView(context: context, glucoseColor: .primary)
-                                        if !context.isStale, let direction = context.state.direction {
-                                            Text(direction).font(.headline)
+                    HStack {
+                        HStack {
+                            ForEach(Array(detailedViewState.itemOrder.enumerated()), id: \.element) { index, widgetItem in
+                                switch widgetItem {
+                                case .currentGlucose:
+                                    if detailedViewState.showCurrentGlucose {
+                                        VStack {
+                                            LiveActivityBGLabelView(context: context, additionalState: detailedViewState)
+                                            HStack {
+                                                LiveActivityGlucoseDeltaLabelView(context: context, glucoseColor: .primary)
+                                                if !context.isStale, let direction = context.state.direction {
+                                                    Text(direction).font(.headline)
+                                                }
+                                            }
                                         }
                                     }
+                                case .iob:
+                                    if detailedViewState.showIOB {
+                                        LiveActivityIOBLabelView(context: context, additionalState: detailedViewState)
+                                    }
+                                case .cob:
+                                    if detailedViewState.showCOB {
+                                        LiveActivityCOBLabelView(context: context, additionalState: detailedViewState)
+                                    }
+                                case .updatedLabel:
+                                    if detailedViewState.showUpdatedLabel {
+                                        LiveActivityUpdatedLabelView(context: context, isDetailedLayout: true)
+                                    }
+                                case .empty:
+                                    Text("").frame(width: 50, height: 50)
+                                }
+
+                                if index < detailedViewState.itemOrder.count - 1 {
+                                    Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
                                 }
                             }
-                        case .iob:
-                            if detailedViewState.showIOB {
-                                LiveActivityIOBLabelView(context: context, additionalState: detailedViewState)
-                            }
-                        case .cob:
-                            if detailedViewState.showCOB {
-                                LiveActivityCOBLabelView(context: context, additionalState: detailedViewState)
-                            }
-                        case .updatedLabel:
-                            if detailedViewState.showUpdatedLabel {
-                                LiveActivityUpdatedLabelView(context: context, isDetailedLayout: true)
-                            }
-                        }
-
-                        if index < detailedViewState.itemOrder.count - 1 {
-                            Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
                         }
                     }
                 }
@@ -518,7 +524,7 @@ struct LiveActivityChartView: View {
         .chartXScale(domain: startDate ... endDate)
         .chartXAxis {
             AxisMarks(position: .automatic) { _ in
-                AxisGridLine(stroke: .init(lineWidth: 0.2, dash: [2, 3])).foregroundStyle(Color.white)
+                AxisGridLine(stroke: .init(lineWidth: 0.2, dash: [2, 3])).foregroundStyle(Color.primary)
             }
         }
     }
