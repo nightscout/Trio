@@ -1,6 +1,6 @@
 import CoreData
-import Observation
 import HealthKit
+import Observation
 import SwiftUI
 
 extension DataTable {
