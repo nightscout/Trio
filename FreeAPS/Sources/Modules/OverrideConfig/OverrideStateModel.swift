@@ -9,34 +9,35 @@ extension OverrideConfig {
         @ObservationIgnored @Injected() var storage: TempTargetsStorage!
         @ObservationIgnored @Injected() var apsManager: APSManager!
         @ObservationIgnored @Injected() var overrideStorage: OverrideStorage!
+        @ObservationIgnored @Injected() var nightscoutManager: NightscoutManager!
 
-        var overrideSliderPercentage: Double = 100
-        var isEnabled = false
-        var indefinite = true
-        var overrideDuration: Decimal = 0
-        var target: Decimal = 0
-        var shouldOverrideTarget: Bool = false
-        var smbIsOff: Bool = false
-        var id = ""
-        var overrideName: String = ""
-        var isPreset: Bool = false
-        var overridePresets: [OverrideStored] = []
-        var advancedSettings: Bool = false
-        var isfAndCr: Bool = true
-        var isf: Bool = true
-        var cr: Bool = true
-        var smbIsAlwaysOff: Bool = false
-        var start: Decimal = 0
-        var end: Decimal = 23
-        var smbMinutes: Decimal = 0
-        var uamMinutes: Decimal = 0
-        var defaultSmbMinutes: Decimal = 0
-        var defaultUamMinutes: Decimal = 0
-        var selectedTab: Tab = .overrides
-        var activeOverrideName: String = ""
-        var currentActiveOverride: OverrideStored?
-        var showOverrideEditSheet = false
-        var showInvalidTargetAlert = false
+        @Published var overrideSliderPercentage: Double = 100
+        @Published var isEnabled = false
+        @Published var indefinite = true
+        @Published var overrideDuration: Decimal = 0
+        @Published var target: Decimal = 0
+        @Published var shouldOverrideTarget: Bool = false
+        @Published var smbIsOff: Bool = false
+        @Published var id = ""
+        @Published var overrideName: String = ""
+        @Published var isPreset: Bool = false
+        @Published var overridePresets: [OverrideStored] = []
+        @Published var advancedSettings: Bool = false
+        @Published var isfAndCr: Bool = true
+        @Published var isf: Bool = true
+        @Published var cr: Bool = true
+        @Published var smbIsAlwaysOff: Bool = false
+        @Published var start: Decimal = 0
+        @Published var end: Decimal = 23
+        @Published var smbMinutes: Decimal = 0
+        @Published var uamMinutes: Decimal = 0
+        @Published var defaultSmbMinutes: Decimal = 0
+        @Published var defaultUamMinutes: Decimal = 0
+        @Published var selectedTab: Tab = .overrides
+        @Published var activeOverrideName: String = ""
+        @Published var currentActiveOverride: OverrideStored?
+        @Published var showOverrideEditSheet = false
+        @Published var showInvalidTargetAlert = false
 
         var units: GlucoseUnits = .mgdL
 
@@ -123,6 +124,10 @@ extension OverrideConfig.StateModel {
 
             // Update Presets View
             setupOverridePresetsArray()
+
+            Task {
+                await uploadProfiles()
+            }
         } catch {
             debugPrint(
                 "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save after reordering Override Presets with error: \(error.localizedDescription)"
@@ -286,6 +291,8 @@ extension OverrideConfig.StateModel {
 
         // Update Presets View
         setupOverridePresetsArray()
+
+        await uploadProfiles()
     }
 
     // MARK: - Setup Override Presets Array
@@ -318,6 +325,8 @@ extension OverrideConfig.StateModel {
 
         // Update Presets View
         setupOverridePresetsArray()
+
+        await uploadProfiles()
     }
 
     // MARK: - Setup the State variables with the last Override configuration
@@ -620,6 +629,10 @@ extension OverrideConfig.StateModel {
             target = (c / ratio) - c + 100
         }
         return Decimal(Double(target))
+    }
+
+    func uploadProfiles() async {
+        await nightscoutManager.uploadProfiles()
     }
 }
 

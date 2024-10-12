@@ -55,4 +55,12 @@ struct NightscoutProfileStore: JSON {
     let bundleIdentifier: String
     let deviceToken: String
     let isAPNSProduction: Bool
+    let overrides: [NightscoutPresetOverride]?
+}
+
+struct NightscoutPresetOverride: JSON {
+    let name: String
+    let duration: Decimal?
+    let percentage: Double?
+    let target: Decimal?
 }

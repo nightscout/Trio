@@ -1,3 +1,4 @@
+import CoreData
 import Foundation
 import Swinject
 
@@ -8,6 +9,7 @@ class TrioRemoteControl: Injectable {
     @Injected() private var carbsStorage: CarbsStorage!
     @Injected() private var nightscoutManager: NightscoutManager!
     @Injected() private var pumpHistoryStorage: PumpHistoryStorage!
+    @Injected() private var overrideStorage: OverrideStorage!
 
     private let timeWindow: TimeInterval = 600 // Defines how old messages that are accepted, 10 minutes
 
@@ -71,14 +73,18 @@ class TrioRemoteControl: Injectable {
             }
 
             switch pushMessage.commandType {
-            case "bolus":
+            case .bolus:
                 await handleBolusCommand(pushMessage)
-            case "temp_target":
+            case .tempTarget:
                 await handleTempTargetCommand(pushMessage)
-            case "cancel_temp_target":
+            case .cancelTempTarget:
                 await cancelTempTarget()
-            case "meal":
+            case .meal:
                 await handleMealCommand(pushMessage)
+            case .startOverride:
+                await handleStartOverrideCommand(pushMessage)
+            case .cancelOverride:
+                await handleCancelOverrideCommand(pushMessage)
             default:
                 await logError(
                     "Command rejected: unsupported command type '\(pushMessage.commandType)'.",
@@ -239,6 +245,88 @@ class TrioRemoteControl: Injectable {
         let cancelEntry = TempTarget.cancel(at: Date())
         tempTargetsStorage.storeTempTargets([cancelEntry])
         debug(.remoteControl, "Temp target cancelled successfully.")
+    }
+
+    @MainActor private func handleCancelOverrideCommand(_: PushMessage) async {
+        await disableAllActiveOverrides()
+        debug(.remoteControl, "Active override cancelled successfully.")
+    }
+
+    @MainActor private func handleStartOverrideCommand(_ pushMessage: PushMessage) async {
+        guard let overrideName = pushMessage.overrideName, !overrideName.isEmpty else {
+            await logError("Command rejected: override name is missing.", pushMessage: pushMessage)
+            return
+        }
+
+        let viewContext = CoreDataStack.shared.persistentContainer.viewContext
+
+        let presetIDs = await overrideStorage.fetchForOverridePresets()
+
+        let presets = presetIDs.compactMap { id in
+            try? viewContext.existingObject(with: id) as? OverrideStored
+        }
+
+        if let preset = presets.first(where: { $0.name == overrideName }) {
+            await enactOverridePreset(preset: preset)
+            debug(.remoteControl, "Override '\(overrideName)' started successfully.")
+        } else {
+            await logError("Command rejected: override preset '\(overrideName)' not found.", pushMessage: pushMessage)
+        }
+    }
+
+    @MainActor private func enactOverridePreset(preset: OverrideStored) async {
+        await disableAllActiveOverrides()
+
+        let viewContext = CoreDataStack.shared.persistentContainer.viewContext
+
+        preset.enabled = true
+        preset.date = Date()
+        preset.isUploadedToNS = false
+
+        do {
+            if viewContext.hasChanges {
+                try viewContext.save()
+            }
+        } catch {
+            debug(.remoteControl, "Failed to enact override preset: \(error.localizedDescription)")
+        }
+    }
+
+    @MainActor func disableAllActiveOverrides() async {
+        let viewContext = CoreDataStack.shared.persistentContainer.viewContext
+        let ids = await overrideStorage.loadLatestOverrideConfigurations(fetchLimit: 0) // 0 = no fetch limit
+
+        await viewContext.perform {
+            do {
+                let results = try ids.compactMap { id in
+                    try viewContext.existingObject(with: id) as? OverrideStored
+                }
+
+                guard !results.isEmpty else { return }
+
+                for canceledOverride in results where canceledOverride.enabled {
+                    let newOverrideRunStored = OverrideRunStored(context: viewContext)
+                    newOverrideRunStored.id = UUID()
+                    newOverrideRunStored.name = canceledOverride.name
+                    newOverrideRunStored.startDate = canceledOverride.date ?? .distantPast
+                    newOverrideRunStored.endDate = Date()
+                    newOverrideRunStored
+                        .target = NSDecimalNumber(decimal: self.overrideStorage.calculateTarget(override: canceledOverride))
+                    newOverrideRunStored.override = canceledOverride
+                    newOverrideRunStored.isUploadedToNS = false
+
+                    canceledOverride.enabled = false
+                }
+
+                if viewContext.hasChanges {
+                    try viewContext.save()
+                }
+            } catch {
+                debugPrint(
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to disable active Overrides with error: \(error.localizedDescription)"
+                )
+            }
+        }
     }
 
     func handleAPNSChanges(deviceToken: String?) async {

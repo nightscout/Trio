@@ -294,7 +294,9 @@ struct EditOverrideForm: View {
                         guard let moc = override.managedObjectContext else { return }
                         guard moc.hasChanges else { return }
                         try moc.save()
-
+                        Task {
+                            await state.uploadProfiles()
+                        }
                         if let currentActiveOverride = state.currentActiveOverride {
                             Task {
                                 await state.disableAllActiveOverrides(

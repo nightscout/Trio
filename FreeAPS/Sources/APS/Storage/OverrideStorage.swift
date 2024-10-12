@@ -12,6 +12,7 @@ protocol OverrideStorage {
     func deleteOverridePreset(_ objectID: NSManagedObjectID) async
     func getOverridesNotYetUploadedToNightscout() async -> [NightscoutExercise]
     func getOverrideRunsNotYetUploadedToNightscout() async -> [NightscoutExercise]
+    func getPresetOverridesForNightscout() async -> [NightscoutPresetOverride]
 }
 
 final class BaseOverrideStorage: OverrideStorage, Injectable {
@@ -263,6 +264,33 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
                     enteredBy: NightscoutExercise.local,
                     notes: overrideRun.name ?? "Custom Override",
                     id: overrideRun.id
+                )
+            }
+        }
+    }
+
+    func getPresetOverridesForNightscout() async -> [NightscoutPresetOverride] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: OverrideStored.self,
+            onContext: backgroundContext,
+            predicate: NSPredicate.allOverridePresets,
+            key: "orderPosition",
+            ascending: true
+        )
+
+        return await backgroundContext.perform {
+            guard let fetchedResults = results as? [OverrideStored] else { return [] }
+
+            return fetchedResults.map { overrideStored in
+                let duration = overrideStored.duration as? Decimal != 0 ? overrideStored.duration as? Decimal : nil
+                let percentage = overrideStored.percentage != 0 ? overrideStored.percentage : nil
+                let target = (overrideStored.target as? Decimal) != 0 ? overrideStored.target as? Decimal : nil
+
+                return NightscoutPresetOverride(
+                    name: overrideStored.name ?? "",
+                    duration: duration,
+                    percentage: percentage,
+                    target: target
                 )
             }
         }

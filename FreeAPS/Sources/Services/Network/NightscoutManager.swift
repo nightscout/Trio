@@ -37,6 +37,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     @Injected() private var reachabilityManager: ReachabilityManager!
     @Injected() var healthkitManager: HealthKitManager!
 
+    private let uploadOverridesSubject = PassthroughSubject<Void, Never>()
     private let processQueue = DispatchQueue(label: "BaseNetworkManager.processQueue")
     private var ping: TimeInterval?
 
@@ -96,6 +97,16 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             }
             .store(in: &subscriptions)
 
+        uploadOverridesSubject
+            .debounce(for: .seconds(1), scheduler: DispatchQueue.global(qos: .background))
+            .sink { [weak self] in
+                guard let self = self else { return }
+                Task {
+                    await self.uploadOverrides()
+                }
+            }
+            .store(in: &subscriptions)
+
         registerHandlers()
         setupNotification()
     }
@@ -117,17 +128,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }.store(in: &subscriptions)
 
         coreDataPublisher?.filterByEntityName("OverrideStored").sink { [weak self] _ in
-            guard let self = self else { return }
-            Task.detached {
-                await self.uploadOverrides()
-            }
+            self?.uploadOverridesSubject.send()
         }.store(in: &subscriptions)
 
         coreDataPublisher?.filterByEntityName("OverrideRunStored").sink { [weak self] _ in
-            guard let self = self else { return }
-            Task.detached {
-                await self.uploadOverrides()
-            }
+            self?.uploadOverridesSubject.send()
         }.store(in: &subscriptions)
 
         coreDataPublisher?.filterByEntityName("PumpEventStored").sink { [weak self] _ in
@@ -624,6 +629,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 let bundleIdentifier = Bundle.main.bundleIdentifier ?? ""
                 let deviceToken = UserDefaults.standard.string(forKey: "deviceToken") ?? ""
                 let isAPNSProduction = UserDefaults.standard.bool(forKey: "isAPNSProduction")
+                let presetOverrides = await overridesStorage.getPresetOverridesForNightscout()
 
                 let profileStore = NightscoutProfileStore(
                     defaultProfile: defaultProfile,
@@ -634,7 +640,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     store: [defaultProfile: scheduledProfile],
                     bundleIdentifier: bundleIdentifier,
                     deviceToken: deviceToken,
-                    isAPNSProduction: isAPNSProduction
+                    isAPNSProduction: isAPNSProduction,
+                    overrides: presetOverrides
                 )
 
                 guard let nightscout = nightscoutAPI, isNetworkReachable else {
