@@ -11,8 +11,9 @@ extension Home {
         @StateObject var state = StateModel()
         @State var isStatusPopupPresented = false
         @State var showCancelAlert = false
-        @State var showTempTargetCancelAlert = false
         @State var showCancelConfirmDialog = false
+        @State var isConfirmStopOverrideShown = false
+        @State var isConfirmStopTempTargetShown = false
         @State var isMenuPresented = false
         @State var showTreatments = false
         @State var selectedTab: Int = 0
@@ -543,6 +544,54 @@ extension Home {
                 }
         }
 
+        @ViewBuilder func adjustmentsCancelTempTargetView() -> some View {
+            Image(systemName: "xmark.app")
+                .font(.system(size: 24))
+                .confirmationDialog(
+                    "Stop the Temp Target \"\(latestTempTarget.first?.name ?? "")\"?",
+                    isPresented: $isConfirmStopTempTargetShown,
+                    titleVisibility: .visible
+                ) {
+                    Button("Stop", role: .destructive) {
+                        Task {
+                            guard let objectID = latestTempTarget.first?.objectID else { return }
+                            await state.cancelTempTarget(withID: objectID)
+                        }
+                    }
+                    Button("Cancel", role: .cancel) {}
+                }
+                .padding(.trailing, 8)
+                .onTapGesture {
+                    if !latestTempTarget.isEmpty {
+                        isConfirmStopTempTargetShown = true
+                    }
+                }
+        }
+
+        @ViewBuilder func adjustmentsCancelOverrideView() -> some View {
+            Image(systemName: "xmark.app")
+                .font(.system(size: 24))
+                .confirmationDialog(
+                    "Stop the Override \"\(latestOverride.first?.name ?? "")\"?",
+                    isPresented: $isConfirmStopOverrideShown,
+                    titleVisibility: .visible
+                ) {
+                    Button("Stop", role: .destructive) {
+                        Task {
+                            guard let objectID = latestOverride.first?.objectID else { return }
+                            await state.cancelOverride(withID: objectID)
+                        }
+                    }
+                    Button("Cancel", role: .cancel) {}
+                }
+                .padding(.trailing, 8)
+                .onTapGesture {
+                    if !latestOverride.isEmpty {
+                        isConfirmStopOverrideShown = true
+                    }
+                }
+        }
+
         @ViewBuilder func adjustmentView(geo: GeometryProxy) -> some View {
             ZStack {
                 /// rectangle as background
@@ -580,31 +629,20 @@ extension Home {
                                 } else if !latestOverride.isEmpty {
                                     showCancelAlert = true
                                 } else if !latestTempTarget.isEmpty {
-                                    showTempTargetCancelAlert = true
+                                    showCancelAlert = true
                                 }
                             })
                         }
                     } else if let overrideString = overrideString {
                         adjustmentsOverrideView(overrideString)
-
                         Spacer()
+                        adjustmentsCancelOverrideView()
 
-                        adjustmentsCancelView({
-                            if !latestOverride.isEmpty {
-                                showCancelAlert = true
-                            }
-                        })
                     } else if let tempTargetString = tempTargetString {
                         HStack {
                             adjustmentsTempTargetView(tempTargetString)
-
                             Spacer()
-
-                            adjustmentsCancelView({
-                                if !latestTempTarget.isEmpty {
-                                    showTempTargetCancelAlert = true
-                                }
-                            })
+                            adjustmentsCancelTempTargetView()
                         }
                     } else {
                         VStack {
@@ -625,39 +663,6 @@ extension Home {
                             .foregroundStyle(Color.clear)
                     }
                 }.padding(.horizontal, 10)
-                    .alert(
-                        "Cancel Override?",
-                        isPresented: $showCancelAlert,
-                        actions: {
-                            Button("No", role: .cancel) {}
-                            Button("Yes", role: .destructive) {
-                                Task {
-                                    if !latestOverride.isEmpty {
-                                        guard let objectID = latestOverride.first?.objectID else { return }
-                                        await state.cancelOverride(withID: objectID)
-                                    }
-                                }
-                            }
-                        },
-                        message: { Text("This will change settings back to your normal profile.")
-                        }
-                    )
-                    .alert(
-                        "Cancel Temp Target?",
-                        isPresented: $showTempTargetCancelAlert,
-                        actions: {
-                            Button("No", role: .cancel) {}
-                            Button("Yes", role: .destructive) {
-                                Task {
-                                    if !latestTempTarget.isEmpty {
-                                        guard let objectID = latestTempTarget.first?.objectID else { return }
-                                        await state.cancelTempTarget(withID: objectID)
-                                    }
-                                }
-                            }
-                        },
-                        message: { Text("This will change settings back to your regular target.") }
-                    )
                     .confirmationDialog("Adjustment to Cancel", isPresented: $showCancelConfirmDialog) {
                         Button("Cancel Override") {
                             Task {
