@@ -341,14 +341,14 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
         await uploadInsulin(pumpHistoryStorage.getPumpHistoryNotYetUploadedToHealth())
     }
 
-    func uploadInsulin(_ insulin: [PumpHistoryEvent]) async {
+    func uploadInsulin(_ insulinEvents: [PumpHistoryEvent]) async {
         guard settingsManager.settings.useAppleHealth,
               let sampleType = AppleHealthConfig.healthInsulinObject,
               checkWriteToHealthPermissions(objectTypeToHealthStore: sampleType),
-              insulin.isNotEmpty else { return }
+              insulinEvents.isNotEmpty else { return }
 
         // Fetch existing temp basal entries from Core Data for the last 24 hours
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+        let fetchedInsulinEntries = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: backgroundContext,
             predicate: NSCompoundPredicate(andPredicateWithSubpredicates: [
@@ -363,16 +363,18 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
         var insulinSamples: [HKQuantitySample] = []
 
         await backgroundContext.perform {
-            guard let existingTempBasalEntries = results as? [PumpEventStored] else { return }
+            guard let existingTempBasalEntries = fetchedInsulinEntries as? [PumpEventStored] else { return }
 
-            for event in insulin {
+            for event in insulinEvents {
                 switch event.type {
                 case .bolus:
+                    // For bolus events, create a HealthKit sample directly
                     if let sample = self.createSample(for: event, sampleType: sampleType) {
                         debug(.service, "Created HealthKit sample for bolus entry: \(sample)")
                         insulinSamples.append(sample)
                     }
                 case .tempBasal:
+                    // For temp basal events, process them and adjust overlapping durations if necessary
                     guard let duration = event.duration, let amount = event.amount else { continue }
 
                     let value = (Decimal(duration) / 60.0) * amount
@@ -423,7 +425,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
 
             try await healthKitStore.save(insulinSamples)
             debug(.service, "Successfully stored \(insulinSamples.count) insulin samples in HealthKit.")
-            await updateInsulinAsUploaded(insulin)
+            await updateInsulinAsUploaded(insulinEvents)
         } catch {
             debug(.service, "Failed to upload insulin samples to HealthKit: \(error.localizedDescription)")
         }
