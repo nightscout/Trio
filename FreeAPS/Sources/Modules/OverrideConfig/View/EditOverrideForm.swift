@@ -28,6 +28,7 @@ struct EditOverrideForm: View {
     @State private var hasChanges = false
     @State private var isEditing = false
     @State private var target_override = false
+    @State private var percentageStep: Int = 5
     @State private var displayPickerPercentage: Bool = false
     @State private var displayPickerDuration: Bool = false
     @State private var displayPickerTarget: Bool = false
@@ -108,6 +109,19 @@ struct EditOverrideForm: View {
         }
         formatter.roundingMode = .halfUp
         return formatter
+    }
+
+    private var percentageSelection: Binding<Double> {
+        Binding<Double>(
+            get: {
+                let value = floor(percentage / Double(percentageStep)) * Double(percentageStep)
+                return max(10, min(value, 200))
+            },
+            set: {
+                percentage = $0
+                hasChanges = true
+            }
+        )
     }
 
     var body: some View {
@@ -233,23 +247,37 @@ struct EditOverrideForm: View {
                 }
 
                 if displayPickerPercentage {
-                    Picker(
-                        selection: Binding(
-                            get: { max(10, min(floor(percentage / 5) * 5, 200)) },
-                            // round down to nearest multiple of 5 and limit from 10-200
-                            set: {
-                                percentage = $0
-                                hasChanges = true
+                    HStack {
+                        // Radio buttons and text on the left side
+                        VStack(alignment: .leading) {
+                            // Radio buttons for step iteration
+                            ForEach([1, 5], id: \.self) { step in
+                                RadioButton(isSelected: percentageStep == step, label: "\(step) %") {
+                                    percentageStep = step
+                                    roundPercentageToStep()
+                                }
+                                .padding(.top, 10)
                             }
-                        ),
-                        label: Text("")
-                    ) {
-                        ForEach(Array(stride(from: 10.0, through: 200.0, by: 5.0)), id: \.self) { percent in
-                            Text("\(Int(percent)) %").tag(percent)
                         }
+                        .frame(maxWidth: .infinity)
+
+                        Spacer()
+
+                        // Picker on the right side
+                        Picker(
+                            selection: percentageSelection,
+                            label: Text("")
+                        ) {
+                            ForEach(
+                                Array(stride(from: 40.0, through: 150.0, by: Double(percentageStep))),
+                                id: \.self
+                            ) { percent in
+                                Text("\(Int(percent)) %").tag(percent)
+                            }
+                        }
+                        .pickerStyle(WheelPickerStyle())
+                        .frame(maxWidth: .infinity)
                     }
-                    .pickerStyle(WheelPickerStyle())
-                    .frame(maxWidth: .infinity)
                 }
 
                 // Picker for ISF/CR settings
@@ -613,6 +641,26 @@ struct EditOverrideForm: View {
         smbMinutes = override.smbMinutes?.decimalValue ?? state.defaultSmbMinutes
         uamMinutes = override.uamMinutes?.decimalValue ?? state.defaultUamMinutes
     }
+
+    private func roundPercentageToStep() {
+        // Check if overridePercentage is not divisible by the selected step
+        if percentage.truncatingRemainder(dividingBy: Double(percentageStep)) != 0 {
+            let roundedValue: Double
+
+            if percentage > 100 {
+                // Round down to the nearest valid step away from 100
+                let stepCount = (percentage - 100) / Double(percentageStep)
+                roundedValue = 100 + floor(stepCount) * Double(percentageStep)
+            } else {
+                // Round up to the nearest valid step away from 100
+                let stepCount = (100 - percentage) / Double(percentageStep)
+                roundedValue = 100 - floor(stepCount) * Double(percentageStep)
+            }
+
+            // Ensure the value stays between 10 and 200
+            percentage = max(10, min(roundedValue, 200))
+        }
+    }
 }
 
 struct ScrollWheelPicker<T: Hashable>: View {
@@ -629,7 +677,7 @@ struct ScrollWheelPicker<T: Hashable>: View {
                 Text(label)
                 Spacer()
                 Text(formatter(selection))
-                    .foregroundColor(.accentColor)
+                    .foregroundColor(!isDisplayed ? .primary : .accentColor)
             }
             .onTapGesture {
                 isDisplayed.toggle()

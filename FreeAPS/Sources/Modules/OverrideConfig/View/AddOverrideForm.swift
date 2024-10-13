@@ -6,6 +6,7 @@ struct AddOverrideForm: View {
     @StateObject var state: OverrideConfig.StateModel
     @State private var selectedIsfCrOption: isfAndOrCrOptions = .isfAndCr
     @State private var selectedDisableSmbOption: disableSmbOptions = .dontDisable
+    @State private var percentageStep: Int = 5
     @State private var displayPickerPercentage: Bool = false
     @State private var displayPickerDuration: Bool = false
     @State private var displayPickerTarget: Bool = false
@@ -162,15 +163,36 @@ struct AddOverrideForm: View {
                 }
 
                 if displayPickerPercentage {
-                    Picker(selection: Binding(
-                        get: { Int(truncating: state.overridePercentage as NSNumber) },
-                        set: { state.overridePercentage = Double($0) }
-                    ), label: Text("")) {
-                        ForEach(Array(stride(from: 10, through: 200, by: 5)), id: \.self) { percent in
-                            Text("\(percent) %").tag(percent)
+                    HStack {
+                        // Radio buttons and text on the left side
+                        VStack(alignment: .leading) {
+                            // Radio buttons for step iteration
+                            ForEach([1, 5], id: \.self) { step in
+                                RadioButton(isSelected: percentageStep == step, label: "\(step) %") {
+                                    percentageStep = step
+                                    roundOverridePercentageToStep()
+                                }
+                                .padding(.top, 10)
+                            }
                         }
+                        .frame(maxWidth: .infinity)
+
+                        Spacer()
+
+                        // Picker on the right side
+                        Picker(
+                            selection: Binding(
+                                get: { Int(truncating: state.overridePercentage as NSNumber) },
+                                set: { state.overridePercentage = Double($0) }
+                            ), label: Text("")
+                        ) {
+                            ForEach(Array(stride(from: 40, through: 150, by: percentageStep)), id: \.self) { percent in
+                                Text("\(percent) %").tag(percent)
+                            }
+                        }
+                        .pickerStyle(WheelPickerStyle())
+                        .frame(maxWidth: .infinity)
                     }
-                    .pickerStyle(WheelPickerStyle())
                     .frame(maxWidth: .infinity)
                 }
 
@@ -482,6 +504,26 @@ struct AddOverrideForm: View {
         }
         return "\(formattedValue) \(state.units.rawValue)"
     }
+
+    private func roundOverridePercentageToStep() {
+        // Check if overridePercentage is not divisible by the selected step
+        if state.overridePercentage.truncatingRemainder(dividingBy: Double(percentageStep)) != 0 {
+            let roundedValue: Double
+
+            if state.overridePercentage > 100 {
+                // Round down to the nearest valid step away from 100
+                let stepCount = (state.overridePercentage - 100) / Double(percentageStep)
+                roundedValue = 100 + floor(stepCount) * Double(percentageStep)
+            } else {
+                // Round up to the nearest valid step away from 100
+                let stepCount = (100 - state.overridePercentage) / Double(percentageStep)
+                roundedValue = 100 - floor(stepCount) * Double(percentageStep)
+            }
+
+            // Ensure the value stays between 10 and 200
+            state.overridePercentage = max(10, min(roundedValue, 200))
+        }
+    }
 }
 
 // Function to check if the phone is using 24-hour format
@@ -524,5 +566,23 @@ func formatHrMin(_ durationInMinutes: Int) -> String {
         return "\(h) hr"
     default:
         return "\(hours) hr \(minutes) min"
+    }
+}
+
+struct RadioButton: View {
+    var isSelected: Bool
+    var label: String
+    var action: () -> Void
+
+    var body: some View {
+        Button(action: {
+            action()
+        }) {
+            HStack {
+                Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
+                Text(label) // Add label inside the button to make it tappable
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
