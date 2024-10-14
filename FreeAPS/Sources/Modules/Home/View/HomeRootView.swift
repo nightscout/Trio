@@ -664,20 +664,20 @@ extension Home {
                     }
                 }.padding(.horizontal, 10)
                     .confirmationDialog("Adjustment to Cancel", isPresented: $showCancelConfirmDialog) {
-                        Button("Cancel Override") {
+                        Button("Stop Override") {
                             Task {
                                 guard let objectID = latestOverride.first?.objectID else { return }
                                 await state.cancelOverride(withID: objectID)
                             }
                         }
-                        Button("Cancel Temp Target") {
+                        Button("Stop Temp Target") {
                             Task {
                                 guard let objectID = latestTempTarget.first?.objectID else { return }
                                 await state.cancelTempTarget(withID: objectID)
                             }
                         }
                     } message: {
-                        Text("Select Adjustment to Cancel")
+                        Text("Select Adjustment")
                     }
 
             }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
