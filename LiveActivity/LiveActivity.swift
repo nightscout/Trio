@@ -235,39 +235,45 @@ struct LiveActivityView: View {
                     }
 
                 HStack {
-                    HStack {
-                        HStack {
-                            ForEach(Array(detailedViewState.itemOrder.enumerated()), id: \.element) { index, widgetItem in
-                                switch widgetItem {
-                                case .currentGlucose:
-                                    if detailedViewState.showCurrentGlucose {
-                                        VStack {
-                                            LiveActivityBGLabelView(context: context, additionalState: detailedViewState)
-                                            HStack {
-                                                LiveActivityGlucoseDeltaLabelView(context: context, glucoseColor: .primary)
-                                                if !context.isStale, let direction = context.state.direction {
-                                                    Text(direction).font(.headline)
-                                                }
+                    if detailedViewState.itemOrder.contains(where: { $0 != .empty }) {
+                        ForEach(Array(detailedViewState.itemOrder.enumerated()), id: \.element) { index, widgetItem in
+                            switch widgetItem {
+                            case .currentGlucose:
+                                if detailedViewState.showCurrentGlucose {
+                                    VStack {
+                                        LiveActivityBGLabelView(context: context, additionalState: detailedViewState)
+                                        HStack {
+                                            LiveActivityGlucoseDeltaLabelView(
+                                                context: context,
+                                                glucoseColor: .primary,
+                                                isDetailed: true
+                                            )
+                                            if !context.isStale, let direction = context.state.direction {
+                                                Text(direction).font(.headline)
                                             }
                                         }
                                     }
-                                case .iob:
-                                    if detailedViewState.showIOB {
-                                        LiveActivityIOBLabelView(context: context, additionalState: detailedViewState)
-                                    }
-                                case .cob:
-                                    if detailedViewState.showCOB {
-                                        LiveActivityCOBLabelView(context: context, additionalState: detailedViewState)
-                                    }
-                                case .updatedLabel:
-                                    if detailedViewState.showUpdatedLabel {
-                                        LiveActivityUpdatedLabelView(context: context, isDetailedLayout: true)
-                                    }
-                                case .empty:
-                                    Text("").frame(width: 50, height: 50)
                                 }
+                            case .iob:
+                                if detailedViewState.showIOB {
+                                    LiveActivityIOBLabelView(context: context, additionalState: detailedViewState)
+                                }
+                            case .cob:
+                                if detailedViewState.showCOB {
+                                    LiveActivityCOBLabelView(context: context, additionalState: detailedViewState)
+                                }
+                            case .updatedLabel:
+                                if detailedViewState.showUpdatedLabel {
+                                    LiveActivityUpdatedLabelView(context: context, isDetailedLayout: true)
+                                }
+                            case .empty:
+                                Text("").frame(width: 50, height: 50)
+                            }
 
-                                if index < detailedViewState.itemOrder.count - 1 {
+                            // Find the next non-empty widget for the divider check
+                            if index < detailedViewState.itemOrder.count - 1 {
+                                let nextNonEmptyIndex = detailedViewState.itemOrder[(index + 1)...].firstIndex { $0 != .empty }
+                                if let nextIndex = nextNonEmptyIndex, nextIndex > index {
                                     Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
                                 }
                             }
@@ -280,16 +286,23 @@ struct LiveActivityView: View {
             .foregroundStyle(Color.primary)
             .activityBackgroundTint(colorScheme == .light ? Color.white.opacity(0.43) : Color.black.opacity(0.43))
         } else {
-            HStack(spacing: 3) {
-                LiveActivityBGAndTrendView(context: context, size: .expanded, glucoseColor: glucoseColor).font(.title)
-                Spacer()
-                VStack(alignment: .trailing, spacing: 5) {
-                    LiveActivityGlucoseDeltaLabelView(
-                        context: context,
-                        glucoseColor: hasStaticColorScheme ? .primary : glucoseColor
-                    ).font(.title3)
-                    LiveActivityUpdatedLabelView(context: context, isDetailedLayout: false).font(.caption)
-                        .foregroundStyle(.primary.opacity(0.7))
+            Group {
+                if context.state.isInitialState {
+                    Text("Live Activity Expired. Open Trio to Refresh").minimumScaleFactor(0.01)
+                } else {
+                    HStack(spacing: 3) {
+                        LiveActivityBGAndTrendView(context: context, size: .expanded, glucoseColor: glucoseColor).font(.title)
+                        Spacer()
+                        VStack(alignment: .trailing, spacing: 5) {
+                            LiveActivityGlucoseDeltaLabelView(
+                                context: context,
+                                glucoseColor: hasStaticColorScheme ? .primary : glucoseColor,
+                                isDetailed: false
+                            ).font(.title3)
+                            LiveActivityUpdatedLabelView(context: context, isDetailedLayout: false).font(.caption)
+                                .foregroundStyle(.primary.opacity(0.7))
+                        }
+                    }
                 }
             }
             .privacySensitive()
@@ -320,6 +333,7 @@ struct LiveActivityBGLabelView: View {
         Text(context.state.bg)
             .fontWeight(.bold)
             .font(.title3)
+            .foregroundStyle(context.isStale ? .secondary : .primary)
             .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
     }
 }
@@ -327,10 +341,11 @@ struct LiveActivityBGLabelView: View {
 struct LiveActivityGlucoseDeltaLabelView: View {
     var context: ActivityViewContext<LiveActivityAttributes>
     var glucoseColor: Color
+    var isDetailed: Bool = false
 
     var body: some View {
         if !context.state.change.isEmpty {
-            Text(context.state.change).foregroundStyle(.primary)
+            Text(context.state.change)
                 .foregroundStyle(context.state.glucoseColorScheme == "staticColor" ? .primary : glucoseColor)
                 .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
         } else {
@@ -356,8 +371,16 @@ struct LiveActivityIOBLabelView: View {
             HStack {
                 Text(
                     bolusFormatter.string(from: additionalState.iob as NSNumber) ?? "--"
-                ).fontWeight(.bold).font(.title3).strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
-                Text("U").foregroundStyle(.primary).font(.headline).fontWeight(.bold)
+                )
+                .fontWeight(.bold)
+                .font(.title3)
+                .foregroundStyle(context.isStale ? .secondary : .primary)
+                .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
+
+                Text("U")
+                    .font(.headline).fontWeight(.bold)
+                    .foregroundStyle(context.isStale ? .secondary : .primary)
+                    .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
             }
             Text("IOB").font(.subheadline).foregroundStyle(.primary)
         }
@@ -373,8 +396,15 @@ struct LiveActivityCOBLabelView: View {
             HStack {
                 Text(
                     "\(additionalState.cob)"
-                ).fontWeight(.bold).font(.title3).strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
-                Text("g").foregroundStyle(.primary).font(.headline).fontWeight(.bold)
+                ).fontWeight(.bold)
+                    .font(.title3)
+                    .foregroundStyle(context.isStale ? .secondary : .primary)
+                    .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
+
+                Text("g")
+                    .font(.headline).fontWeight(.bold)
+                    .foregroundStyle(context.isStale ? .secondary : .primary)
+                    .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
             }
             Text("COB").font(.subheadline).foregroundStyle(.primary)
         }
@@ -393,53 +423,35 @@ struct LiveActivityUpdatedLabelView: View {
     }
 
     var body: some View {
-        if isDetailedLayout {
-            let dateText = Text("\(dateFormatter.string(from: context.state.date))").font(.title3)
-                .foregroundStyle(.primary)
+        let dateText = Text("\(dateFormatter.string(from: context.state.date))")
 
+        if isDetailedLayout {
             VStack {
-                if context.isStale {
-                    if #available(iOSApplicationExtension 17.0, *) {
-                        dateText.bold().foregroundStyle(.red)
-                    } else {
-                        dateText.bold().foregroundColor(.red)
-                    }
-                } else {
-                    if #available(iOSApplicationExtension 17.0, *) {
-                        dateText.bold().foregroundStyle(.primary)
-                    } else {
-                        dateText.bold().foregroundColor(.primary)
-                    }
-                }
+                dateText
+                    .font(.title3)
+                    .bold()
+                    .foregroundStyle(context.isStale ? .red.opacity(0.6) : .primary)
+                    .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
 
                 Text("Updated").font(.subheadline).foregroundStyle(.primary)
             }
         } else {
-            let dateText = Text("\(dateFormatter.string(from: context.state.date))").font(.subheadline)
-                .foregroundStyle(.secondary)
-
             HStack {
                 Text("Updated:").font(.subheadline).foregroundStyle(.secondary)
 
-                if context.isStale {
-                    if #available(iOSApplicationExtension 17.0, *) {
-                        dateText.bold().foregroundStyle(.red)
-                    } else {
-                        dateText.bold().foregroundColor(.red)
-                    }
-                } else {
-                    if #available(iOSApplicationExtension 17.0, *) {
-                        dateText.bold().foregroundStyle(.primary)
-                    } else {
-                        dateText.bold().foregroundColor(.primary)
-                    }
-                }
+                dateText
+                    .font(.subheadline)
+                    .bold()
+                    .foregroundStyle(context.isStale ? .red.opacity(0.6) : .secondary)
+                    .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
             }
         }
     }
 }
 
 struct LiveActivityChartView: View {
+    @Environment(\.colorScheme) var colorScheme
+
     var context: ActivityViewContext<LiveActivityAttributes>
     var additionalState: LiveActivityAttributes.ContentAdditionalState
 
@@ -489,15 +501,15 @@ struct LiveActivityChartView: View {
         Chart {
             RuleMark(y: .value("High", yAxisRuleMarkMax))
                 .foregroundStyle(highColor)
-                .lineStyle(.init(lineWidth: 0.5, dash: [5]))
+                .lineStyle(.init(lineWidth: 1, dash: [5]))
 
             RuleMark(y: .value("Low", yAxisRuleMarkMin))
                 .foregroundStyle(lowColor)
-                .lineStyle(.init(lineWidth: 0.5, dash: [5]))
+                .lineStyle(.init(lineWidth: 1, dash: [5]))
 
             RuleMark(y: .value("Target", target))
                 .foregroundStyle(.green.gradient)
-                .lineStyle(.init(lineWidth: 1))
+                .lineStyle(.init(lineWidth: 1.5))
 
             if isOverrideActive {
                 drawActiveOverrides()
@@ -507,7 +519,8 @@ struct LiveActivityChartView: View {
         }
         .chartYAxis {
             AxisMarks(position: .trailing) { _ in
-                AxisGridLine(stroke: .init(lineWidth: 0.2, dash: [2, 3])).foregroundStyle(Color.white)
+                AxisGridLine(stroke: .init(lineWidth: 0.65, dash: [2, 3]))
+                    .foregroundStyle(Color.white.opacity(colorScheme == .light ? 1 : 0.5))
                 AxisValueLabel().foregroundStyle(.primary).font(.footnote)
             }
         }
@@ -517,14 +530,15 @@ struct LiveActivityChartView: View {
             plotContent
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.clear)
+                        .fill(colorScheme == .light ? Color.black.opacity(0.275) : .clear)
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .chartXScale(domain: startDate ... endDate)
         .chartXAxis {
             AxisMarks(position: .automatic) { _ in
-                AxisGridLine(stroke: .init(lineWidth: 0.2, dash: [2, 3])).foregroundStyle(Color.primary)
+                AxisGridLine(stroke: .init(lineWidth: 0.65, dash: [2, 3]))
+                    .foregroundStyle(Color.white.opacity(colorScheme == .light ? 1 : 0.5))
             }
         }
     }
@@ -570,7 +584,7 @@ struct LiveActivityChartView: View {
             let pointMark = PointMark(
                 x: .value("Time", chartDate),
                 y: .value("Value", displayValue)
-            ).symbolSize(15)
+            ).symbolSize(16)
 
             pointMark.foregroundStyle(pointMarkColor)
         }
@@ -593,7 +607,8 @@ struct LiveActivityExpandedTrailingView: View {
     var glucoseColor: Color
 
     var body: some View {
-        LiveActivityGlucoseDeltaLabelView(context: context, glucoseColor: glucoseColor).font(.title2).padding(.trailing, 5)
+        LiveActivityGlucoseDeltaLabelView(context: context, glucoseColor: glucoseColor, isDetailed: false).font(.title2)
+            .padding(.trailing, 5)
     }
 }
 
@@ -602,7 +617,7 @@ struct LiveActivityExpandedBottomView: View {
 
     var body: some View {
         if context.state.isInitialState {
-            Text("Live Activity Expired. Open Trio to Refresh")
+            Text("Live Activity Expired. Open Trio to Refresh").minimumScaleFactor(0.01)
         } else if let detailedViewState = context.state.detailedViewState {
             LiveActivityChartView(context: context, additionalState: detailedViewState)
         }
@@ -631,7 +646,7 @@ struct LiveActivityCompactTrailingView: View {
     var glucoseColor: Color
 
     var body: some View {
-        LiveActivityGlucoseDeltaLabelView(context: context, glucoseColor: glucoseColor).padding(.trailing, 4)
+        LiveActivityGlucoseDeltaLabelView(context: context, glucoseColor: glucoseColor, isDetailed: false).padding(.trailing, 4)
     }
 }
 
@@ -689,7 +704,7 @@ private func bgAndTrend(
 
     let stack = HStack(spacing: spacing) {
         Text(bgText)
-            .foregroundColor(hasStaticColorScheme ? .primary : glucoseColor)
+            .foregroundStyle(hasStaticColorScheme ? .primary : glucoseColor)
             .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
         if let direction = directionText {
             let text = Text(direction)
@@ -704,7 +719,8 @@ private func bgAndTrend(
                 text.scaleEffect(x: 0.7, y: 0.7, anchor: .leading).padding(.trailing, -5)
             }
         }
-    }.foregroundColor(context.isStale ? Color.primary.opacity(0.5) : (hasStaticColorScheme ? .primary : glucoseColor))
+    }.foregroundStyle(hasStaticColorScheme ? .primary : glucoseColor)
+        .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
 
     return (stack, characters)
 }

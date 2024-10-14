@@ -115,18 +115,19 @@ extension LiveActivitySettings {
                                     ).buttonStyle(BorderlessButtonStyle())
                                 }.padding(.top)
                             }.padding(.bottom)
-                        }.listRowBackground(Color.chart)
 
-                        if state.lockScreenView == .detailed {
-                            Section(
-                                content: {
+                            if state.lockScreenView == .detailed {
+                                HStack {
                                     NavigationLink(
                                         "Widget Configuration",
-                                        destination: LiveActivityWidgetConfiguration(resolver: resolver, state: state)
-                                    )
+                                        destination: LiveActivityWidgetConfiguration(
+                                            resolver: resolver,
+                                            state: state
+                                        )
+                                    ).foregroundStyle(Color.accentColor)
                                 }
-                            ).listRowBackground(Color.chart)
-                        }
+                            }
+                        }.listRowBackground(Color.chart)
                     }
                 }
             }
