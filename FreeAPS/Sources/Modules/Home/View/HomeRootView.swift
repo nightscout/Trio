@@ -60,8 +60,8 @@ extension Home {
 
         func sendTestRepeat(storedMessages: [MessageContent], repeats: Bool = false) { // TODO: REMOVE!!!
             if repeats == true {
-                for loop in 0 ... 5 {
-                    for i in 0 ... storedMessages.count - 1 {
+                for _ in 0 ... 5 {
+                    for _ in 0 ... storedMessages.count - 1 {
                         var count = 0
                         _ = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { t in
                             print(count)
@@ -78,7 +78,9 @@ extension Home {
                 for i in 0 ... storedMessages.count - 1 {
                     print(i)
                     print(storedMessages[i].content)
-                    router.alertMessage.send(storedMessages[i])
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        router.alertMessage.send(storedMessages[i])
+                    }
                 }
             }
         }
@@ -95,7 +97,7 @@ extension Home {
                 type: MessageType.info,
                 subtype: .algorithm,
                 title: "Trio Not Active",
-                useAPN: false,
+                useAPN: true,
                 trigger: firstTrigger
             )
             debug(
@@ -110,7 +112,7 @@ extension Home {
                 type: MessageType.warning,
                 subtype: .algorithm,
                 title: "Trio Not Active",
-                useAPN: false,
+                useAPN: true,
                 trigger: secondTrigger
             )
             debug(
@@ -127,14 +129,14 @@ extension Home {
             var messageCont: MessageContent
 
             sendTestTriggerMessage()
-//            return
+
             messageCont = MessageContent(
-                // content: "68 mg/dL" + "↔︎" + "-1" + "\n" + "Plugin CGM Source",
-                content: "68 mg/dL" + "↔︎" + "-1",
+                content: "68 mg/dL" + "↔︎" + "-1" + "\n" + "Plugin CGM Source",
                 type: MessageType.warning,
                 subtype: .glucose,
                 title: "LOWALERT! 68 mg/dL" + "↔︎" + "-1",
-                useAPN: true
+                useAPN: true,
+                action: .snooze
             )
             router.alertMessage.send(messageCont)
 
@@ -143,6 +145,7 @@ extension Home {
                 type: MessageType.error, // errorPump
                 subtype: .pump,
                 title: "Critical Pod Fault 008",
+                useAPN: true,
                 action: .pumpConfig
             )
             storedMessages.append(messageCont)
@@ -158,7 +161,8 @@ extension Home {
                 content: "10 U insulin or less remaining in Pod. Change Pod soon.",
                 type: MessageType.warning,
                 subtype: .pump,
-                title: "Low Reservoir"
+                title: "Low Reservoir",
+                useAPN: true
             )
             storedMessages.append(messageCont)
 
@@ -171,10 +175,11 @@ extension Home {
             storedMessages.append(messageCont)
 
             messageCont = MessageContent(
-                content: "83 mg/dL" + "↔︎" + "-1" + "\n" + "Plugin CGM Source",
-                type: MessageType.other,
+                content: "83 mg/dL" + "↔︎" + "-1", // + "\n" + "Plugin CGM Source",
+                type: MessageType.info,
                 subtype: .glucose,
-                title: "Glucose 83 mg/dL" + "↔︎" + "-1"
+                title: "Glucose 83 mg/dL" + "↔︎" + "-1",
+                action: .snooze
             )
             storedMessages.append(messageCont)
             messageCont = MessageContent(
@@ -200,14 +205,7 @@ extension Home {
 //            info(.apsManager, "Temp Basal failed with error")
 //            info(.apsManager, "Pump not suspended by Announcement")
 
-//            sendTestRepeat(storedMessages: storedMessages, repeats: true)
-
             sendTestRepeat(storedMessages: storedMessages, repeats: false)
-            for i in 0 ... storedMessages.count - 1 {
-                print(i)
-                print(storedMessages[i].content)
-                router.alertMessage.send(storedMessages[i])
-            }
         }
 
         var bolusProgressFormatter: NumberFormatter {

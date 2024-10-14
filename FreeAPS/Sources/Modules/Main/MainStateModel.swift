@@ -194,7 +194,6 @@ extension Main {
             var config = SwiftMessages.defaultConfig
             let view = MessageView.viewFromNib(layout: .cardView)
 
-//            viewRespectsSystemMinimumLayoutMargins = false
             view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
             config.prefersStatusBarHidden = true
 
@@ -231,7 +230,7 @@ extension Main {
             switch message.type {
             case .info,
                  .other:
-                config.duration = .seconds(seconds: 5)//.automatic
+                config.duration = .seconds(seconds: 5)
                 titleContent = message.title != "" ? message.title : NSLocalizedString("Info", comment: "Info title")
             case .warning:
                 config.duration = .forever
@@ -279,8 +278,7 @@ extension Main {
                 .sink { message in
                     guard !self.isApnPumpConfigAction(message) else { return }
                     guard self.allowNotify(message) else { return }
-//                    self.queueMessageIfNeeded(message) // TODO: Remove if Batched Info and Throttled APNs are NOT in-scope
-                    self.showAlertMessage(message) // TODO: Call this if Batched Info and Throttled APNs are NOT in-scope
+                    self.showAlertMessage(message)
                 }
                 .store(in: &lifetime)
 
@@ -310,24 +308,44 @@ extension MessageView {
     }
 
     func customConfigureTheme(colorSchemePreference: ColorSchemeOption) {
-        let defaultSystemColorScheme = currentColorScheme() // UIColor.defaultSystemBackgroundColor
+        let defaultSystemColorScheme = currentColorScheme()
         var backgroundColor = UIColor.systemBackground
         var foregroundColor = UIColor.white
-        // Color.gray.opacity(0.1) is used by MainRootView but is translucent
-        // lightGray is same color as MainRootView background and systemGray6 is a shade darker
-        // systemGray5 is a shade darker than systemGray6 and gray is a few shades darker
-        // systemBackground is the same as systemGray6 when iOS is light mode
+        let iOSlightTrioDark = UIColor(
+            red: 122 / 255,
+            green: 146 / 255,
+            blue: 163 / 255,
+            alpha: 0.95
+        )
+        let iOSlightTrioLight = UIColor(
+            red: 234 / 255,
+            green: 236 / 255,
+            blue: 237 / 255,
+            alpha: 1
+        )
+        let iOSlightTrioSystem = UIColor(
+            red: 233 / 255,
+            green: 235 / 255,
+            blue: 236 / 255,
+            alpha: 0.95
+        )
+        let iOSdarkTrioDark = UIColor(
+            red: 16 / 255,
+            green: 37 / 255,
+            blue: 53 / 255,
+            alpha: 0.95
+        )
         switch colorSchemePreference {
         case .systemDefault:
-            backgroundColor = defaultSystemColorScheme == .light ? UIColor.systemBackground :
-                UIColor(Color.black.opacity(0.9))
+            backgroundColor = defaultSystemColorScheme == .light ? iOSlightTrioSystem :
+                iOSdarkTrioDark
             foregroundColor = UIColor.label
         case .dark:
-            backgroundColor = defaultSystemColorScheme == .light ? UIColor.systemGray5 :
-                UIColor(Color.black.opacity(0.9))
+            backgroundColor = defaultSystemColorScheme == .light ? iOSlightTrioDark :
+                iOSdarkTrioDark
             foregroundColor = defaultSystemColorScheme == .light ? UIColor.black : UIColor.white
         case .light:
-            backgroundColor = defaultSystemColorScheme == .light ? .systemGray6 : UIColor
+            backgroundColor = defaultSystemColorScheme == .light ? iOSlightTrioLight : UIColor
                 .gray
             foregroundColor = defaultSystemColorScheme == .light ? UIColor.black : UIColor.white
         }

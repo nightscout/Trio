@@ -484,6 +484,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
 extension BaseUserNotificationsManager: alertMessageNotificationObserver {
     func alertMessageNotification(_ message: MessageContent) {
         let content = UNMutableNotificationContent()
+        var identifier: Identifier = .alertMessageNotification
 
         if message.title == "" {
             switch message.type {
@@ -491,13 +492,29 @@ extension BaseUserNotificationsManager: alertMessageNotificationObserver {
                 content.title = NSLocalizedString("Info", comment: "Info title")
             case .warning:
                 content.title = NSLocalizedString("Warning", comment: "Warning title")
-            case .error: // .errorPump:
+            case .error:
                 content.title = NSLocalizedString("Error", comment: "Error title")
             default:
                 content.title = message.title
             }
         } else {
             content.title = message.title
+        }
+        switch message.subtype {
+        case .pump:
+            identifier = .pumpNotification
+        case .carb:
+            identifier = .carbsRequiredNotification
+        case .glucose:
+            identifier = .glucocoseNotification
+        case .algorithm:
+            if message.trigger != nil {
+                identifier = .noLoopFirstNotification
+            } else {
+                identifier = .alertMessageNotification
+            }
+        default:
+            identifier = .alertMessageNotification
         }
         switch message.action {
         case .snooze:
@@ -510,7 +527,7 @@ extension BaseUserNotificationsManager: alertMessageNotificationObserver {
         content.body = NSLocalizedString(message.content, comment: "Info message")
         content.sound = .default
         addRequest(
-            identifier: .alertMessageNotification,
+            identifier: identifier,
             content: content,
             deleteOld: true,
             trigger: message.trigger,
