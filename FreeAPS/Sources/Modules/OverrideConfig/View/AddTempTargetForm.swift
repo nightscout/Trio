@@ -87,7 +87,7 @@ struct AddTempTargetForm: View {
                 HStack {
                     Text("Name")
                     Spacer()
-                    TextField("Enter Name (optional)", text: $state.tempTargetName)
+                    TextField("Enter Name", text: $state.tempTargetName)
                         .multilineTextAlignment(.trailing)
                 }
 
@@ -277,23 +277,30 @@ struct AddTempTargetForm: View {
     }
 
     private var saveButton: some View {
-        let (isInvalid, errorMessage) = isTempTargetInvalid()
+        var (isInvalid, errorMessage) = isTempTargetInvalid()
+        let noNameSpecified = state.tempTargetName == ""
+        if errorMessage == nil && noNameSpecified {
+            errorMessage = "To save Preset assign a name!"
+        }
 
         return Group {
             if errorMessage != nil {
                 Section {
-                    VStack(alignment: .center) {
+                    HStack {
+                        Spacer()
                         Text(errorMessage ?? "")
                             .textCase(nil)
                             .font(.footnote)
                             .lineLimit(1)
                             .minimumScaleFactor(0.5)
+                        Spacer()
                     }
                 }.listRowBackground(Color.tabBar)
             }
             Section {
                 Button(action: {
                     Task {
+                        if noNameSpecified { state.tempTargetName = "Custom Target" }
                         didPressSave.toggle()
                         state.isTempTargetEnabled.toggle()
                         await state.saveCustomTempTarget()
@@ -320,7 +327,7 @@ struct AddTempTargetForm: View {
                     Text("Save as Preset")
 
                 })
-                    .disabled(isInvalid)
+                    .disabled(isInvalid || noNameSpecified)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .tint(.white)
             }
