@@ -68,26 +68,6 @@ struct AddTempTargetForm: View {
                 .navigationBarItems(leading: Button("Close") {
                     presentationMode.wrappedValue.dismiss()
                 })
-                .alert(
-                    "Start Temp Target",
-                    isPresented: $showAlert,
-                    actions: {
-                        Button("Cancel", role: .cancel) { state.isTempTargetEnabled = false }
-                        Button("Start Temp Target", role: .destructive) {
-                            Task {
-                                didPressSave.toggle()
-                                await setupAlertString()
-                                state.isTempTargetEnabled.toggle()
-                                await state.saveCustomTempTarget()
-                                await state.resetTempTargetState()
-                                dismiss()
-                            }
-                        }
-                    },
-                    message: {
-                        Text(alertString)
-                    }
-                )
                 .sheet(isPresented: $shouldDisplayHint) {
                     SettingInputHintView(
                         hintDetent: $hintDetent,
@@ -249,33 +229,33 @@ struct AddTempTargetForm: View {
         }
 
         // TODO: with iOS 17 we can change the body content wrapper from FORM to LIST and apply the .listSpacing modifier to make this all nice and small.
-        Section {
-            Button(action: {
-                showAlert.toggle()
-            }, label: {
-                Text("Enact Temp Target")
-
-            })
-                .disabled(state.tempTargetDuration == 0)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .tint(.white)
-        }.listRowBackground(state.tempTargetDuration == 0 ? Color(.systemGray4) : Color(.systemBlue))
-
-        Section {
-            Button(action: {
-                Task {
-                    didPressSave.toggle()
-                    await state.saveTempTargetPreset()
-                    dismiss()
-                }
-            }, label: {
-                Text("Save as Preset")
-
-            })
-                .disabled(state.tempTargetDuration == 0)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .tint(.white)
-        }.listRowBackground(state.tempTargetDuration == 0 ? Color(.systemGray4) : Color(.orange))
+//        Section {
+//            Button(action: {
+//                showAlert.toggle()
+//            }, label: {
+//                Text("Enact Temp Target")
+//
+//            })
+//                .disabled(state.tempTargetDuration == 0)
+//                .frame(maxWidth: .infinity, alignment: .center)
+//                .tint(.white)
+//        }.listRowBackground(state.tempTargetDuration == 0 ? Color(.systemGray4) : Color(.systemBlue))
+//
+//        Section {
+//            Button(action: {
+//                Task {
+//                    didPressSave.toggle()
+//                    await state.saveTempTargetPreset()
+//                    dismiss()
+//                }
+//            }, label: {
+//                Text("Save as Preset")
+//
+//            })
+//                .disabled(state.tempTargetDuration == 0)
+//                .frame(maxWidth: .infinity, alignment: .center)
+//                .tint(.white)
+//        }.listRowBackground(state.tempTargetDuration == 0 ? Color(.systemGray4) : Color(.orange))
     }
 
     private func isTempTargetInvalid() -> (Bool, String?) {
@@ -289,7 +269,7 @@ struct AddTempTargetForm: View {
         if targetZero {
             return (
                 true,
-                "\(state.units == .mgdL ? "80 " : "4.4 ")" + state.units.rawValue + " needed as min. glucose target."
+                "\(state.units == .mgdL ? "80 " : "4.4 ")" + state.units.rawValue + " needed as min. Glucose Target!"
             )
         }
 
@@ -300,33 +280,34 @@ struct AddTempTargetForm: View {
         let (isInvalid, errorMessage) = isTempTargetInvalid()
 
         return Group {
-            Section(
-                header:
-                HStack {
-                    Spacer()
-                    Text(errorMessage ?? "").textCase(nil)
-                        .foregroundColor(colorScheme == .dark ? .orange : .accentColor)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.5)
-                    Spacer()
-                },
-                content: {
-                    Button(action: {
-                        Task {
-                            didPressSave.toggle()
-                            state.isTempTargetEnabled.toggle()
-                            await state.saveCustomTempTarget()
-                            await state.resetTempTargetState()
-                            dismiss()
-                        }
-                    }, label: {
-                        Text("Enact Temp Target")
-                    })
-                        .disabled(isInvalid)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .tint(.white)
-                }
-            ).listRowBackground(isInvalid ? Color(.systemGray4) : Color(.systemBlue))
+            if errorMessage != nil {
+                Section {
+                    VStack(alignment: .center) {
+                        Text(errorMessage ?? "")
+                            .textCase(nil)
+                            .font(.footnote)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
+                    }
+                }.listRowBackground(Color.tabBar)
+            }
+            Section {
+                Button(action: {
+                    Task {
+                        didPressSave.toggle()
+                        state.isTempTargetEnabled.toggle()
+                        await state.saveCustomTempTarget()
+                        await state.resetTempTargetState()
+                        dismiss()
+                    }
+                }, label: {
+                    Text("Enact Temp Target")
+                })
+                    .disabled(isInvalid)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .tint(.white)
+            }
+            .listRowBackground(isInvalid ? Color(.systemGray4) : Color(.systemBlue))
 
             Section {
                 Button(action: {
@@ -353,5 +334,4 @@ struct AddTempTargetForm: View {
         let percentageNumber = NSNumber(value: value)
         return formatter.string(from: percentageNumber) ?? "\(value)"
     }
-    
 }
