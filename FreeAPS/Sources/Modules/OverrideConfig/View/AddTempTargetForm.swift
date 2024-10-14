@@ -61,6 +61,7 @@ struct AddTempTargetForm: View {
         NavigationView {
             Form {
                 addTempTarget()
+                saveButton
             }.scrollContentBackground(.hidden).background(color)
                 .navigationTitle("Add Temp Target")
                 .navigationBarTitleDisplayMode(.inline)
@@ -277,33 +278,80 @@ struct AddTempTargetForm: View {
         }.listRowBackground(state.tempTargetDuration == 0 ? Color(.systemGray4) : Color(.orange))
     }
 
+    private func isTempTargetInvalid() -> (Bool, String?) {
+        let noDurationSpecified = state.tempTargetDuration == 0
+        let targetZero = state.tempTargetTarget < 80
+
+        if noDurationSpecified {
+            return (true, "Set a duration!")
+        }
+
+        if targetZero {
+            return (
+                true,
+                "\(state.units == .mgdL ? "80 " : "4.4 ")" + state.units.rawValue + " needed as min. glucose target."
+            )
+        }
+
+        return (false, nil)
+    }
+
+    private var saveButton: some View {
+        let (isInvalid, errorMessage) = isTempTargetInvalid()
+
+        return Group {
+            Section(
+                header:
+                HStack {
+                    Spacer()
+                    Text(errorMessage ?? "").textCase(nil)
+                        .foregroundColor(colorScheme == .dark ? .orange : .accentColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
+                    Spacer()
+                },
+                content: {
+                    Button(action: {
+                        Task {
+                            didPressSave.toggle()
+                            state.isTempTargetEnabled.toggle()
+                            await state.saveCustomTempTarget()
+                            await state.resetTempTargetState()
+                            dismiss()
+                        }
+                    }, label: {
+                        Text("Enact Temp Target")
+                    })
+                        .disabled(isInvalid)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .tint(.white)
+                }
+            ).listRowBackground(isInvalid ? Color(.systemGray4) : Color(.systemBlue))
+
+            Section {
+                Button(action: {
+                    Task {
+                        didPressSave.toggle()
+                        await state.saveTempTargetPreset()
+                        dismiss()
+                    }
+                }, label: {
+                    Text("Save as Preset")
+
+                })
+                    .disabled(isInvalid)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .tint(.white)
+            }
+            .listRowBackground(
+                isInvalid ? Color(.systemGray4) : Color.secondary
+            )
+        }
+    }
+
     private func formattedPercentage(_ value: Double) -> String {
         let percentageNumber = NSNumber(value: value)
         return formatter.string(from: percentageNumber) ?? "\(value)"
     }
-
-    private func setupAlertString() async {
-        alertString =
-            (
-                state.tempTargetDuration > 0 ?
-                    (
-                        state
-                            .tempTargetDuration
-                            .formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) +
-                            " min."
-                    ) :
-                    NSLocalizedString(" infinite duration.", comment: "")
-            ) +
-            (
-                state.tempTargetTarget == 0 ? "" :
-                    (" Target: " + state.tempTargetTarget.formatted() + " " + state.units.rawValue + ".")
-            )
-            +
-            "\n\n"
-            +
-            NSLocalizedString(
-                "Starting this Temp Target will change your profiles and/or your Target Glucose used for looping during the entire selected duration. Tapping ”Start Temp Target” will start your new Temp Target or edit your current active Temp Target.",
-                comment: ""
-            )
-    }
+    
 }
