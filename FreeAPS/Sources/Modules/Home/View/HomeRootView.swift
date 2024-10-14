@@ -17,6 +17,7 @@ extension Home {
         @State private var statusTitle: String = ""
         @State var showPumpSelection: Bool = false
         @State var notificationsDisabled = false
+        @State var alertSafetyNotificationsViewHeight = 0
 
         struct Buttons: Identifiable {
             let label: String
@@ -56,6 +57,158 @@ extension Home {
         ) var enactedSliderTT: FetchedResults<TempTargetsSlider>
 
         // TODO: end todo
+
+        func sendTestRepeat(storedMessages: [MessageContent], repeats: Bool = false) { // TODO: REMOVE!!!
+            if repeats == true {
+                for loop in 0 ... 5 {
+                    for i in 0 ... storedMessages.count - 1 {
+                        var count = 0
+                        _ = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { t in
+                            print(count)
+                            print(storedMessages[count].content)
+                            router.alertMessage.send(storedMessages[count])
+                            count += 1
+                            if count >= storedMessages.count {
+                                t.invalidate()
+                            }
+                        }
+                    }
+                }
+            } else {
+                for i in 0 ... storedMessages.count - 1 {
+                    print(i)
+                    print(storedMessages[i].content)
+                    router.alertMessage.send(storedMessages[i])
+                }
+            }
+        }
+
+        func sendTestTriggerMessage() { // TODO: REMOVE!!!
+            var storedMessages: [MessageContent] = []
+            var messageCont: MessageContent
+
+            let firstInterval = 1 // min
+            let secondInterval = 2 // min
+            let firstTrigger = UNTimeIntervalNotificationTrigger(timeInterval: 60 * TimeInterval(firstInterval), repeats: false)
+            messageCont = MessageContent(
+                content: "Last Loop was more than 20 min ago - TEST",
+                type: MessageType.info,
+                subtype: .algorithm,
+                title: "Trio Not Active",
+                useAPN: false,
+                trigger: firstTrigger
+            )
+            debug(
+                .default,
+                "TEST \(messageCont.title) \(messageCont.content) \(messageCont.type) \(messageCont.subtype)"
+            )
+            storedMessages.append(messageCont)
+
+            let secondTrigger = UNTimeIntervalNotificationTrigger(timeInterval: 60 * TimeInterval(secondInterval), repeats: false)
+            messageCont = MessageContent(
+                content: "Last Loop was more than 40 min ago - TEST",
+                type: MessageType.warning,
+                subtype: .algorithm,
+                title: "Trio Not Active",
+                useAPN: false,
+                trigger: secondTrigger
+            )
+            debug(
+                .default,
+                "TEST \(messageCont.title) \(messageCont.content) \(messageCont.type) \(messageCont.subtype)"
+            )
+            storedMessages.append(messageCont)
+
+            sendTestRepeat(storedMessages: storedMessages, repeats: true)
+        }
+
+        func sendTestNotifications() { // TODO: REMOVE!!!
+            var storedMessages: [MessageContent] = []
+            var messageCont: MessageContent
+
+            sendTestTriggerMessage()
+//            return
+            messageCont = MessageContent(
+                // content: "68 mg/dL" + "↔︎" + "-1" + "\n" + "Plugin CGM Source",
+                content: "68 mg/dL" + "↔︎" + "-1",
+                type: MessageType.warning,
+                subtype: .glucose,
+                title: "LOWALERT! 68 mg/dL" + "↔︎" + "-1",
+                useAPN: true
+            )
+            router.alertMessage.send(messageCont)
+
+            messageCont = MessageContent(
+                content: "Insulin delivery stopped. Change Pod now.",
+                type: MessageType.error, // errorPump
+                subtype: .pump,
+                title: "Critical Pod Fault 008",
+                action: .pumpConfig
+            )
+            storedMessages.append(messageCont)
+
+            messageCont = MessageContent(
+                content: "Pod expires in 68 hours.",
+                type: MessageType.warning,
+                subtype: .pump,
+                title: "Pod Expiration Reminder"
+            )
+            storedMessages.append(messageCont)
+            messageCont = MessageContent(
+                content: "10 U insulin or less remaining in Pod. Change Pod soon.",
+                type: MessageType.warning,
+                subtype: .pump,
+                title: "Low Reservoir"
+            )
+            storedMessages.append(messageCont)
+
+            messageCont = MessageContent(
+                content: "To prevent LOW required 30 g of carbs",
+                type: MessageType.warning,
+                subtype: .carb,
+                title: "Carbs required: 30 g"
+            )
+            storedMessages.append(messageCont)
+
+            messageCont = MessageContent(
+                content: "83 mg/dL" + "↔︎" + "-1" + "\n" + "Plugin CGM Source",
+                type: MessageType.other,
+                subtype: .glucose,
+                title: "Glucose 83 mg/dL" + "↔︎" + "-1"
+            )
+            storedMessages.append(messageCont)
+            messageCont = MessageContent(
+                content: "68 mg/dL" + "↔︎" + "-1" + "\n" + "Plugin CGM Source",
+                type: MessageType.warning,
+                subtype: .glucose,
+                title: "LOWALERT! 68 mg/dL" + "↔︎" + "-1"
+            )
+            storedMessages.append(messageCont)
+
+            messageCont = MessageContent(
+                content: "Error: Invalid glucose: Not enough glucose data",
+                type: MessageType.info,
+                subtype: .algorithm
+            )
+            storedMessages.append(messageCont)
+
+//            info(.apsManager, "Not enough glucose data")
+//            info(.apsManager, "Glucose data is stale")
+//            info(.apsManager, "Glucose data is too flat")
+//            info(.apsManager, "Glucose validation failed")
+//            info(.apsManager, "Loop not possible during the manual basal temp")
+//            info(.apsManager, "Temp Basal failed with error")
+//            info(.apsManager, "Pump not suspended by Announcement")
+
+//            sendTestRepeat(storedMessages: storedMessages, repeats: true)
+
+            sendTestRepeat(storedMessages: storedMessages, repeats: false)
+            for i in 0 ... storedMessages.count - 1 {
+                print(i)
+                print(storedMessages[i].content)
+                router.alertMessage.send(storedMessages[i])
+            }
+        }
 
         var bolusProgressFormatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -127,22 +280,6 @@ extension Home {
             } else {
                 return "book"
             }
-        }
-
-        private func sendSafetyNotification() {
-            let messageCont = MessageContent(
-                content: NSLocalizedString(
-                    "Fix now by turning Notifications ON.",
-                    comment: "Secondary text for alerts disabled warning, which appears on the main status screen."
-                ),
-                type: MessageType.alertPermissionWarning,
-                title: NSLocalizedString(
-                    "⚠️ Safety Notifications are OFF", // \u{26A0}
-                    comment: "Warning text for when Notifications or Critical Alerts Permissions is disabled"
-                ),
-                useAPN: false
-            )
-            router.alertMessage.send(messageCont)
         }
 
         var glucoseView: some View {
@@ -698,41 +835,122 @@ extension Home {
             }
         }
 
-        @ViewBuilder func mainView() -> some View {
+        @ViewBuilder func alertSafetyNotificationsView(geo: GeometryProxy) -> some View {
+            ZStack {
+                /// rectangle as background
+                RoundedRectangle(cornerRadius: 15)
+                    .fill(
+                        Color(
+                            red: 0.9,
+                            green: 0.133333333,
+                            blue: 0.2156862745
+                        )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 15))
+                    .frame(height: geo.size.height * 0.08)
+                    .coordinateSpace(name: "alertSafetyNotificationsView")
+                    .shadow(
+                        color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
+                            Color.black.opacity(0.33),
+                        radius: 3
+                    )
+                HStack {
+                    Spacer()
+                    VStack {
+                        Text("⚠️ Safety Notifications are OFF")
+                            .font(.subheadline)
+                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white.gradient)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text("Fix now by turning Notifications ON.")
+                            .font(.caption)
+                            .font(.system(size: 12, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white.gradient)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }.padding(.leading, 5)
+                    Spacer()
+                    Image(systemName: "chevron.right").foregroundColor(.white)
+                        .font(.system(size: 15, design: .rounded))
+                }.padding(.horizontal, 10)
+                    .padding(.trailing, 8)
+                    .onTapGesture {
+                        UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
+                    }
+            }.padding(.horizontal, 10)
+                .padding(.top, 0)
+        }
+
+        @ViewBuilder func mainViewWithScrollView() -> some View {
             GeometryReader { geo in
-                VStack(spacing: 0) {
-                    ZStack {
-                        /// glucose bobble
-                        glucoseView
+                ScrollView(.vertical, showsIndicators: false) {
+                    mainViewViews(geo)
+                }
+            }
+        }
 
-                        /// right panel with loop status and evBG
-                        HStack {
-                            Spacer()
-                            rightHeaderPanel(geo)
-                        }.padding(.trailing, 20)
+        @ViewBuilder func mainViewViews(_ geo: GeometryProxy) -> some View {
+            VStack(spacing: 0) {
+                if notificationsDisabled {
+                    alertSafetyNotificationsView(geo: geo)
+                        .padding(.top, UIDevice.adjustPadding(min: nil, max: 40))
+                }
+                ZStack(alignment: .top) {
+                    /// glucose bobble
+                    glucoseView
 
-                        /// left panel with pump related info
-                        HStack {
-                            pumpView
-                            Spacer()
-                        }.padding(.leading, 20)
-                    }.padding(.top, 10)
+                    /// right panel with loop status and evBG
+                    HStack {
+                        Spacer()
+                        rightHeaderPanel(geo)
+                    }.padding(.trailing, 20)
 
-                    mealPanel(geo).padding(.top, UIDevice.adjustPadding(min: nil, max: 30))
-                        .padding(.bottom, UIDevice.adjustPadding(min: nil, max: 20))
+                    /// left panel with pump related info
+                    HStack {
+                        pumpView
+                        Spacer()
+                    }.padding(.leading, 20)
+                }.padding(.top, 10)
 
-                    mainChart(geo: geo)
+                mealPanel(geo).padding(.top, UIDevice.adjustPadding(min: nil, max: 30))
+                    .padding(.bottom, UIDevice.adjustPadding(min: nil, max: 20))
 
-                    timeInterval.padding(.top, UIDevice.adjustPadding(min: 0, max: 12))
-                        .padding(.bottom, UIDevice.adjustPadding(min: 0, max: 12))
+                mainChart(geo: geo)
 
-                    if let progress = state.bolusProgress {
-                        bolusView(geo: geo, progress).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
-                    } else {
-                        profileView(geo: geo).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
+                timeInterval.padding(.top, UIDevice.adjustPadding(min: 0, max: 12))
+                    .padding(.bottom, UIDevice.adjustPadding(min: 0, max: 12))
+
+                if let progress = state.bolusProgress {
+                    bolusView(geo: geo, progress)
+                        .padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
+                } else {
+                    profileView(geo: geo).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
+                }
+            }
+            .background(color)
+            .onReceive(
+                resolver.resolve(AlertPermissionsChecker.self)!.$notificationsDisabled,
+                perform: { // AlertPermissionsChecker
+                    if notificationsDisabled != $0 {
+                        notificationsDisabled = $0
+                        if notificationsDisabled {
+                            debug(.default, "notificationsDisabled")
+                        }
                     }
                 }
-                .background(color)
+            )
+        }
+
+        @ViewBuilder func mainView() -> some View {
+            GeometryReader { geo in
+                if notificationsDisabled {
+                    ScrollView(.vertical, showsIndicators: false) {
+                        mainViewViews(geo)
+                    }
+                } else {
+                    GeometryReader { geo in
+                        mainViewViews(geo)
+                    }
+                }
             }
             .onChange(of: state.hours) { _ in
                 highlightButtons()
@@ -742,14 +960,6 @@ extension Home {
                     highlightButtons()
                 }
             }
-            .onReceive(resolver.resolve(AlertPermissionsChecker.self)!.$notificationsDisabled, perform: {
-                if notificationsDisabled != $0 {
-                    notificationsDisabled = $0
-                    if notificationsDisabled {
-                        sendSafetyNotification()
-                    }
-                }
-            })
             .navigationTitle("Home")
             .navigationBarHidden(true)
             .ignoresSafeArea(.keyboard)
@@ -764,6 +974,7 @@ extension Home {
                     )
                     .onTapGesture {
                         state.isStatusPopupPresented = false
+                        sendTestNotifications() // TODO: Remove!
                     }
                     .gesture(
                         DragGesture(minimumDistance: 10, coordinateSpace: .local)
@@ -1028,7 +1239,10 @@ extension UIDevice {
         case largeDevice = 852 // Height for 6.1" iPhone 15 Pro
     }
 
-    @usableFromInline static func adjustPadding(min: CGFloat? = nil, max: CGFloat? = nil) -> CGFloat? {
+    @usableFromInline static func adjustPadding(
+        min: CGFloat? = nil,
+        max: CGFloat? = nil
+    ) -> CGFloat? {
         if UIScreen.screenHeight > UIDevice.DeviceSize.smallDevice.rawValue {
             if UIScreen.screenHeight >= UIDevice.DeviceSize.largeDevice.rawValue {
                 return max

@@ -55,26 +55,94 @@ extension GlucoseNotificationSettings {
 
         var body: some View {
             Form {
-                if !notificationsDisabled {
-                    SettingInputSection(
-                        decimalValue: $decimalPlaceholder,
-                        booleanValue: $state.glucoseBadge,
-                        shouldDisplayHint: $shouldDisplayHint,
-                        selectedVerboseHint: Binding(
-                            get: { selectedVerboseHint },
-                            set: {
-                                selectedVerboseHint = $0
-                                hintLabel = "Show Glucose App Badge"
-                            }
-                        ),
-                        units: state.units,
-                        type: .boolean,
-                        label: "Show Glucose App Badge",
-                        miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                        verboseHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                        headerText: "Various Glucose Notifications"
-                    )
-                }
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.notificationsPump,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Always Notify Pump"
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: "Always Notify Pump",
+                    miniHint: "Always Notify Pump Warnings",
+                    verboseHint: "With iOS Trio Notifications enabled, you can let Trio display most Pump Notifications in iOS Notification Center as a Banner, List and on the Lock Screen. It allows you to refer to Trio Information at a glance and troubleshoot any informational issue.\n\nIf iOS Trio Notifications is disabled, Trio will display these messages in-app as a banner only.\n\nAn example of a Pump Warning is 'Pod Expiration Reminder'",
+                    headerText: "Trio Information Notifications"
+                )
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.notificationsCgm,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Always Notify CGM"
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: "Always Notify CGM",
+                    miniHint: "Always Notify CGM Warnings",
+                    verboseHint: "With iOS Trio Notifications enabled, you can let Trio display most CGM Notifications in iOS Notification Center as a Banner, List and on the Lock Screen. It allows you to refer to Trio Information at a glance and troubleshoot any informational issue.\n\nIf iOS Trio Notifications is disabled, Trio will display these messages in-app as a banner only.\n\nAn example of a CGM Warning is 'Unable to open the app'"
+                )
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.notificationsCarb,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Always Notify Carb"
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: "Always Notify Carb",
+                    miniHint: "Always Notify Carb Warnings",
+                    verboseHint: "With iOS Trio Notifications enabled, you can let Trio display most Carb Notifications in iOS Notification Center as a Banner, List and on the Lock Screen. It allows you to refer to Trio Information at a glance and troubleshoot any informational issue.\n\nIf iOS Trio Notifications is disabled, Trio will display these messages in-app as a banner only.\n\nAn example of a Carb Warning is 'Carbs required: 30 g'"
+                )
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.notificationsAlgorithm,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Always Notify Algorithm"
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: "Always Notify Algorithm",
+                    miniHint: "Always Notify Algorithm Warnings",
+                    verboseHint: "With iOS Trio Notifications enabled, you can let Trio display most Algorithm Notifications in iOS Notification Center as a Banner, List and on the Lock Screen. It allows you to refer to Trio Information at a glance and troubleshoot any informational issue.\n\nIf iOS Trio Notifications is disabled, Trio will display these messages in-app as a banner only.\n\nAn example of a Algorithm Warning is 'Error: Invalid glucose: Not enough glucose data'"
+                )
+
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.glucoseBadge,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Show Glucose App Badge"
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: "Show Glucose App Badge",
+                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+                    verboseHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+                    headerText: "Various Glucose Notifications"
+                )
 
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
@@ -84,7 +152,7 @@ extension GlucoseNotificationSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0
-                            hintLabel = "Always Notify Glucose"
+                            hintLabel = "e"
                         }
                     ),
                     units: state.units,
@@ -94,82 +162,81 @@ extension GlucoseNotificationSettings {
                     verboseHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
                 )
 
-                if !notificationsDisabled {
-                    SettingInputSection(
-                        decimalValue: $decimalPlaceholder,
-                        booleanValue: $state.useAlarmSound,
-                        shouldDisplayHint: $shouldDisplayHint,
-                        selectedVerboseHint: Binding(
-                            get: { selectedVerboseHint },
-                            set: {
-                                selectedVerboseHint = $0
-                                hintLabel = "Play Alarm Sound"
-                            }
-                        ),
-                        units: state.units,
-                        type: .boolean,
-                        label: "Play Alarm Sound",
-                        miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                        verboseHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
-                    )
-
-                    SettingInputSection(
-                        decimalValue: $decimalPlaceholder,
-                        booleanValue: $state.addSourceInfoToGlucoseNotifications,
-                        shouldDisplayHint: $shouldDisplayHint,
-                        selectedVerboseHint: Binding(
-                            get: { selectedVerboseHint },
-                            set: {
-                                selectedVerboseHint = $0
-                                hintLabel = "Add Glucose Source to Alarm"
-                            }
-                        ),
-                        units: state.units,
-                        type: .boolean,
-                        label: "Add Glucose Source to Alarm",
-                        miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                        verboseHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
-                    )
-
-                    Section {
-                        HStack {
-                            Text("Low Glucose Alarm Limit")
-                            Spacer()
-                            TextFieldWithToolBar(text: $state.lowGlucose, placeholder: "0", numberFormatter: glucoseFormatter)
-                            Text(state.units.rawValue).foregroundColor(.secondary)
-                        }.padding(.top)
-
-                        HStack {
-                            Text("High Glucose Alarm Limit")
-                            Spacer()
-                            TextFieldWithToolBar(text: $state.highGlucose, placeholder: "0", numberFormatter: glucoseFormatter)
-                            Text(state.units.rawValue).foregroundColor(.secondary)
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.useAlarmSound,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Play Alarm Sound"
                         }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: "Play Alarm Sound",
+                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+                    verboseHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                )
 
-                        HStack(alignment: .top) {
-                            Text(
-                                "Set the lower and upper limit for glucose alarms. See hint for more details."
-                            )
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
-                            .lineLimit(nil)
-                            Spacer()
-                            Button(
-                                action: {
-                                    hintLabel = "Low and High Glucose Alarm Limits"
-                                    selectedVerboseHint =
-                                        "These two settings limit the range outside of which you will be notified via push notifications. If your CGM readings are below 'Low' or above 'High', you will receive a glucose alarm."
-                                    shouldDisplayHint.toggle()
-                                },
-                                label: {
-                                    HStack {
-                                        Image(systemName: "questionmark.circle")
-                                    }
-                                }
-                            ).buttonStyle(BorderlessButtonStyle())
-                        }.padding(.vertical)
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.addSourceInfoToGlucoseNotifications,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Add Glucose Source to Alarm"
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: "Add Glucose Source to Alarm",
+                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+                    verboseHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                )
+
+                Section {
+                    HStack {
+                        Text("Low Glucose Alarm Limit")
+                        Spacer()
+                        TextFieldWithToolBar(text: $state.lowGlucose, placeholder: "0", numberFormatter: glucoseFormatter)
+                        Text(state.units.rawValue).foregroundColor(.secondary)
+                    }.padding(.top)
+
+                    HStack {
+                        Text("High Glucose Alarm Limit")
+                        Spacer()
+                        TextFieldWithToolBar(text: $state.highGlucose, placeholder: "0", numberFormatter: glucoseFormatter)
+                        Text(state.units.rawValue).foregroundColor(.secondary)
                     }
-                    .listRowBackground(Color.chart)
+
+                    HStack(alignment: .top) {
+                        Text(
+                            "Set the lower and upper limit for glucose alarms. See hint for more details."
+                        )
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                        .lineLimit(nil)
+                        Spacer()
+                        Button(
+                            action: {
+                                hintLabel = "Low and High Glucose Alarm Limits"
+                                selectedVerboseHint =
+                                    "These two settings limit the range outside of which you will be notified via push notifications. If your CGM readings are below 'Low' or above 'High', you will receive a glucose alarm."
+                                shouldDisplayHint.toggle()
+                            },
+                            label: {
+                                HStack {
+                                    Image(systemName: "questionmark.circle")
+                                }
+                            }
+                        ).buttonStyle(BorderlessButtonStyle())
+                    }.padding(.vertical)
+//                    }
+                        .listRowBackground(Color.chart)
                 }
             }
             .sheet(isPresented: $shouldDisplayHint) {
@@ -181,12 +248,18 @@ extension GlucoseNotificationSettings {
                     sheetTitle: "Help"
                 )
             }
-            .onReceive(resolver.resolve(AlertPermissionsChecker.self)!.$notificationsDisabled, perform: {
-                notificationsDisabled = $0
-            })
+            .onReceive(
+                resolver.resolve(AlertPermissionsChecker.self)!.$notificationsDisabled,
+                perform: {
+                    notificationsDisabled = $0
+                }
+            )
             .scrollContentBackground(.hidden).background(color)
-            .onAppear(perform: configureView)
-            .navigationBarTitle("Glucose Notifications")
+//            .onAppear(perform: configureView)
+            .onAppear {
+                configureView {}
+            }
+            .navigationBarTitle("Trio Notifications")
             .navigationBarTitleDisplayMode(.automatic)
         }
     }

@@ -21,6 +21,7 @@ enum NotificationAction: String {
 
     case snooze
     case pumpConfig
+    case none
 }
 
 protocol BolusFailureObserver {
@@ -166,7 +167,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             ),
             carbs
         )
-        addRequest(identifier: .carbsRequiredNotification, content: content, deleteOld: true)
+        addRequest(identifier: .carbsRequiredNotification, content: content, deleteOld: true, messageSubtype: .carb)
     }
 
     private func scheduleMissingLoopNotifiactions(date _: Date) {
@@ -193,13 +194,17 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             identifier: .noLoopFirstNotification,
             content: firstContent,
             deleteOld: true,
-            trigger: firstTrigger
+            trigger: firstTrigger,
+            messageType: .error,
+            messageSubtype: .algorithm
         )
         addRequest(
             identifier: .noLoopSecondNotification,
             content: secondContent,
             deleteOld: true,
-            trigger: secondTrigger
+            trigger: secondTrigger,
+            messageType: .error,
+            messageSubtype: .algorithm
         )
     }
 
@@ -218,7 +223,9 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             identifier: .noLoopFirstNotification,
             content: content,
             deleteOld: true,
-            trigger: nil
+            trigger: nil,
+            messageType: .error,
+            messageSubtype: .pump
         )
     }
 
@@ -257,15 +264,18 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
 
             var titles: [String] = []
             var notificationAlarm = false
+            var messageType = MessageType.info
 
             switch glucoseStorage.alarm {
             case .none:
                 titles.append(NSLocalizedString("Glucose", comment: "Glucose"))
             case .low:
                 titles.append(NSLocalizedString("LOWALERT!", comment: "LOWALERT!"))
+                messageType = MessageType.warning
                 notificationAlarm = true
             case .high:
                 titles.append(NSLocalizedString("HIGHALERT!", comment: "HIGHALERT!"))
+                messageType = MessageType.warning
                 notificationAlarm = true
             }
 
@@ -291,7 +301,14 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                     content.userInfo[NotificationAction.key] = NotificationAction.snooze.rawValue
                 }
 
-                addRequest(identifier: .glucocoseNotification, content: content, deleteOld: true)
+                addRequest(
+                    identifier: .glucocoseNotification,
+                    content: content,
+                    deleteOld: true,
+                    messageType: messageType,
+                    messageSubtype: .glucose,
+                    action: NotificationAction.snooze
+                )
             }
         } catch {
             debugPrint(
@@ -376,44 +393,29 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         }
     }
 
-    private func ensureCanSendNotification(_ completion: @escaping () -> Void) {
-        center.getNotificationSettings { settings in
-            guard settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional else {
-                warning(.service, "ensureCanSendNotification failed, authorization denied")
-                return
-            }
-
-            debug(.service, "Sending notification was allowed")
-
-            completion()
-        }
-    }
-
     private func addRequest(
         identifier: Identifier,
         content: UNMutableNotificationContent,
         deleteOld: Bool = false,
         trigger: UNNotificationTrigger? = nil,
-        messageType: MessageType = MessageType.other
+        messageType: MessageType = MessageType.other,
+        messageSubtype: MessageSubtype = MessageSubtype.misc,
+        action: NotificationAction = NotificationAction.none
     ) {
-        if alertPermissionsChecker.notificationsDisabled, trigger == nil {
-            if trigger != nil {
-                debug(.default, "TODO: Triggers are not supported by alertMessage")
-                return
-            }
+        if alertPermissionsChecker.notificationsDisabled {
             let messageCont = MessageContent(
                 content: content.body,
                 type: messageType,
+                subtype: messageSubtype,
                 title: content.title,
-                useAPN: false
+                useAPN: false,
+                trigger: trigger,
+                action: action
             )
             router.alertMessage.send(messageCont)
             return
         }
-        let timestamp = Date().timeIntervalSince1970
-        let uniqueIdentifier = "\(identifier.rawValue)_\(timestamp)"
-        content.threadIdentifier = String(describing: messageType)
-        let request = UNNotificationRequest(identifier: uniqueIdentifier, content: content, trigger: trigger)
+        let request = UNNotificationRequest(identifier: identifier.rawValue, content: content, trigger: trigger)
 
         if deleteOld {
             DispatchQueue.main.async {
@@ -483,15 +485,26 @@ extension BaseUserNotificationsManager: alertMessageNotificationObserver {
     func alertMessageNotification(_ message: MessageContent) {
         let content = UNMutableNotificationContent()
 
-        switch message.type {
-        case .info:
-            content.title = NSLocalizedString("Info", comment: "Info title")
-        case .warning:
-            content.title = NSLocalizedString("Warning", comment: "Warning title")
-        case .errorPump:
-            content.title = NSLocalizedString("Error", comment: "Error title")
-        default:
+        if message.title == "" {
+            switch message.type {
+            case .info:
+                content.title = NSLocalizedString("Info", comment: "Info title")
+            case .warning:
+                content.title = NSLocalizedString("Warning", comment: "Warning title")
+            case .error: // .errorPump:
+                content.title = NSLocalizedString("Error", comment: "Error title")
+            default:
+                content.title = message.title
+            }
+        } else {
             content.title = message.title
+        }
+        switch message.action {
+        case .snooze:
+            content.userInfo[NotificationAction.key] = NotificationAction.snooze.rawValue
+        case .pumpConfig:
+            content.userInfo[NotificationAction.key] = NotificationAction.pumpConfig.rawValue
+        default: break
         }
 
         content.body = NSLocalizedString(message.content, comment: "Info message")
@@ -500,8 +513,10 @@ extension BaseUserNotificationsManager: alertMessageNotificationObserver {
             identifier: .alertMessageNotification,
             content: content,
             deleteOld: true,
-            trigger: nil,
-            messageType: message.type
+            trigger: message.trigger,
+            messageType: message.type,
+            messageSubtype: message.subtype,
+            action: message.action
         )
     }
 }
@@ -510,8 +525,12 @@ extension BaseUserNotificationsManager: pumpNotificationObserver {
     func pumpNotification(alert: AlertEntry) {
         let content = UNMutableNotificationContent()
         let alertUp = alert.alertIdentifier.uppercased()
+        let typeMessage: MessageType
         if alertUp.contains("FAULT") || alertUp.contains("ERROR") {
             content.userInfo[NotificationAction.key] = NotificationAction.pumpConfig.rawValue
+            typeMessage = .error
+        } else {
+            typeMessage = .warning
         }
         content.title = alert.contentTitle ?? "Unknown"
         content.body = alert.contentBody ?? "Unknown"
@@ -521,7 +540,9 @@ extension BaseUserNotificationsManager: pumpNotificationObserver {
             content: content,
             deleteOld: true,
             trigger: nil,
-            messageType: MessageType.errorPump
+            messageType: typeMessage,
+            messageSubtype: .pump,
+            action: .pumpConfig
         )
     }
 
@@ -575,8 +596,15 @@ extension BaseUserNotificationsManager: UNUserNotificationCenterDelegate {
         case .snooze:
             router.mainModalScreen.send(.snooze)
         case .pumpConfig:
-            let messageCont = MessageContent(content: response.notification.request.content.body, type: MessageType.pumpConfig)
+            let messageCont = MessageContent(
+                content: response.notification.request.content.body,
+                type: MessageType.other,
+                subtype: .pump,
+                useAPN: false,
+                action: .pumpConfig
+            )
             router.alertMessage.send(messageCont)
+        default: break
         }
     }
 }

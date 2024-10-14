@@ -13,86 +13,160 @@ extension Main {
         @Published var isSecondaryModalPresented = false
         @Published var secondaryModalView: AnyView? = nil
 
-        private var storedMessages: [MessageContent] = []
-        private let maxStoredMessages = 3
-        private let maxNotificationsPerMinute = 3
-        private var lastMessageTimestamp: Date?
-        private var timer: AnyCancellable?
-        private var timeInterval: TimeInterval = 1
-        private let limitInterval: TimeInterval = 20
-        private var lastNotificationTime: TimeInterval = 0
-        private var sentNotifications: [TimeInterval] = []
+        @Persisted(key: "UserNotificationsManager.snoozeUntilDate") private var snoozeUntilDate: Date = .distantPast
+        private var timers: [TimeInterval: Timer] = [:]
 
-        // Method to queue new message and check if it matches the "NOTE-*" pattern
-        func queueMessageIfNeeded(_ message: MessageContent) {
-            if message.type != MessageType.info {
-                showAlertMessage(message)
-                return
+        private var formatter: DateComponentsFormatter { // TODO: Remove debug only
+            let formatter = DateComponentsFormatter()
+            formatter.allowsFractionalUnits = false
+            formatter.unitsStyle = .full
+            return formatter
+        }
+
+        private var dateFormatter: DateFormatter { // TODO: Remove debug only
+            let formatter = DateFormatter()
+            formatter.timeStyle = .short
+            return formatter
+        }
+
+        private func formatInterval(_ interval: TimeInterval) -> String { // TODO: Remove debug only
+            formatter.string(from: interval)!
+        }
+
+        private func showTriggeredView(
+            message: MessageContent,
+            interval: TimeInterval,
+            config: SwiftMessages.Config,
+            view: MessageView
+        ) {
+            let snoozeFor = formatter.string(from: interval)! // TODO: Remove debug only
+            let untilDate = Date() + interval
+            debug(
+                .default,
+                "Notification triggered for: \n \(String(describing: view.titleLabel?.text)) \(String(describing: view.bodyLabel?.text)) snoozed for \(snoozeFor) until \(dateFormatter.string(from: untilDate))"
+            )
+
+            view.customConfigureTheme(
+                colorSchemePreference: colorSchemePreference
+            )
+            setupAction(message: message, view: view)
+
+            SwiftMessages.show(config: config, view: view)
+        }
+
+        // Add or replace timer for a specific TimeInterval
+        private func addOrReplaceTriggerTimer(message: MessageContent, config: SwiftMessages.Config, view: MessageView) {
+            let trigger = message.trigger as! UNTimeIntervalNotificationTrigger
+            guard trigger.timeInterval > 0 else { return }
+            let interval = trigger.timeInterval
+
+//            let interval = message.content.contains("20") ? TimeInterval(60) :
+//                TimeInterval(120) // TimeInterval(60) // trigger.timeInterval // TODO: remove 60 secs for test
+            let snoozeFor = formatter.string(from: interval)! // TODO: Remove debug only
+            let untilDate = Date() + interval
+            debug(
+                .default,
+                "\(message.title) \(message.content) \(message.type) \(message.subtype) will snooze for \(snoozeFor) until \(dateFormatter.string(from: untilDate)) for view.id \(view.id)"
+            )
+
+            SwiftMessages.hide(id: view.id)
+
+            // If a timer already exists for this interval, invalidate it
+            if let existingTimer = timers[interval] {
+                existingTimer.invalidate()
             }
-            if !storedMessages.filter({ $0.content == message.content && $0.title == message.title }).isEmpty { return }
 
-            storedMessages.append(message)
-            lastMessageTimestamp = Date()
+            // Create a new timer with the provided interval
+            let newTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: false) { [weak self] _ in
+                self?.showTriggeredView(message: message, interval: interval, config: config, view: view)
+                self?.timers[interval] = nil
+            }
 
-            // If we have accumulated messages, concatenate and display
-            if storedMessages.count >= maxStoredMessages {
-                checkAndDisplayStoredMessages()
-            } else {
-                startTimer()
+            timers[interval] = newTimer
+        }
+
+        // Cancel all timers (optional cleanup method)
+        private func cancelAllTimers() {
+            timers.values.forEach { $0.invalidate() }
+            timers.removeAll()
+        }
+
+        private func setupPumpConfig() {
+            // display the pump configuration immediatly
+            if let pump = provider.deviceManager.pumpManager,
+               let bluetooth = provider.bluetoothProvider
+            {
+                let view = PumpConfig.PumpSettingsView(
+                    pumpManager: pump,
+                    bluetoothManager: bluetooth,
+                    completionDelegate: self
+                ).asAny()
+                router.mainSecondaryModalView.send(view)
             }
         }
 
-        // Start or restart the timer that checks for the 1-minute interval
-        private func startTimer() {
-            timer = Timer.publish(every: timeInterval, on: .main, in: .common)
-                .autoconnect()
-                .sink { [weak self] _ in
-                    self?.checkAndDisplayStoredMessages()
+        private func setupButton(message _: MessageContent, view: MessageView) {
+            view.button?.setImage(UIImage(), for: .normal)
+            view.iconLabel = nil
+            let buttonImage = UIImage(systemName: "chevron.right")?.withTintColor(.white)
+            view.button?.setImage(buttonImage, for: .normal)
+            view.button?.backgroundColor = view.backgroundView.backgroundColor
+            view.button?.tintColor = view.iconImageView?.tintColor // .foregroundColor
+        }
+
+        private func setupAction(message: MessageContent, view: MessageView) {
+            switch message.action {
+            case .snooze:
+                setupButton(message: message, view: view)
+                view.buttonTapHandler = { _ in
+                    // Popup Snooze view when user taps on Glucose Notification
+                    SwiftMessages.hide()
+                    self.router.mainModalScreen.send(.snooze)
                 }
-        }
-
-        // Method to check the stored messages and show them after 1 minute
-        private func checkAndDisplayStoredMessages() {
-            guard !storedMessages.isEmpty else { return }
-
-            // Ensure rate limit is not exceeded
-            let currentTime = Date().timeIntervalSince1970
-            pruneOldNotifications(currentTime: currentTime)
-
-            // Ensure we do not exceed maxNotificationsPerMinute
-            if sentNotifications.count < maxNotificationsPerMinute {
-                // If below the limit, send the next notification in the queue
-                if !alertPermissionsChecker.notificationsDisabled {
-                    let request = storedMessages.removeFirst()
-                    showAlertMessage(request)
-                    sentNotifications.append(currentTime)
-                } else {
-                    let max = storedMessages.count >= maxStoredMessages ? maxStoredMessages : storedMessages.count
-                    var content = ""
-                    for _ in 1 ... max {
-                        let request = storedMessages.removeFirst()
-                        sentNotifications.append(currentTime)
-                        content = content + request.content + "\n"
-                    }
-                    if content != "" {
-                        let messageCont = MessageContent(
-                            content: content,
-                            type: MessageType.other
-                        )
-                        showAlertMessage(messageCont)
-                    }
+            case .pumpConfig:
+                setupButton(message: message, view: view)
+                view.buttonTapHandler = { _ in
+                    SwiftMessages.hide()
+                    self.setupPumpConfig()
+                }
+            default: // break
+                view.button?.setImage(UIImage(), for: .normal)
+                view.buttonTapHandler = { _ in
+                    SwiftMessages.hide()
                 }
             }
         }
 
-        // Remove notifications from the sent list that are older than `limitInterval`
-        private func pruneOldNotifications(currentTime: TimeInterval) {
-            // Remove any notifications older than `limitInterval`
-            sentNotifications = sentNotifications.filter { currentTime - $0 < limitInterval }
+        private func isApnPumpConfigAction(_ message: MessageContent) -> Bool {
+            if message.type != .error, message.action == .pumpConfig {
+                setupPumpConfig()
+                return true
+            }
+            return false
+        }
+
+        private func allowNotify(_ message: MessageContent) -> Bool {
+            if message.type == .error { return true } // .errorPump
+            switch message.subtype {
+            case .pump:
+                guard settingsManager.settings.notificationsPump else { return false }
+            case .cgm:
+                guard settingsManager.settings.notificationsCgm else { return false }
+            case .carb:
+                guard settingsManager.settings.notificationsCarb else { return false }
+            case .glucose:
+                guard settingsManager.settings.glucoseNotificationsAlways else { return false }
+            case .algorithm:
+                guard settingsManager.settings.notificationsAlgorithm else { return false }
+            case .misc:
+                return true
+            }
+            return true
         }
 
         private func showAlertMessage(_ message: MessageContent) {
-            if message.useAPN, !alertPermissionsChecker.notificationsDisabled, message.type != MessageType.pumpConfig {
+            if message.useAPN, !alertPermissionsChecker.notificationsDisabled
+            {
                 showAPN(message)
             } else {
                 showSwiftMessage(message)
@@ -100,34 +174,39 @@ extension Main {
         }
 
         private func showAPN(_ message: MessageContent) {
-            let messageCont = MessageContent(content: message.content, type: message.type)
-            switch message.type {
-            case .pumpConfig:
-                if let pump = provider.deviceManager.pumpManager,
-                   let bluetooth = provider.bluetoothProvider
-                {
-                    let view = PumpConfig.PumpSettingsView(
-                        pumpManager: pump,
-                        bluetoothManager: bluetooth,
-                        completionDelegate: self
-                    ).asAny()
-                    router.mainSecondaryModalView.send(view)
-                }
-            default:
-                DispatchQueue.main.async {
-                    self.broadcaster.notify(alertMessageNotificationObserver.self, on: .main) {
-                        $0.alertMessageNotification(messageCont)
-                    }
+            DispatchQueue.main.async {
+                self.broadcaster.notify(alertMessageNotificationObserver.self, on: .main) {
+                    $0.alertMessageNotification(message)
                 }
             }
         }
 
+        // Read the color scheme preference from UserDefaults; defaults to system default setting
+        @AppStorage("colorSchemePreference") private var colorSchemePreference: ColorSchemeOption = .systemDefault
+
         private func showSwiftMessage(_ message: MessageContent) {
             // SwiftMessages.pauseBetweenMessages = 1.0
+
+            if snoozeUntilDate > Date(), message.action == .snooze {
+                return
+            }
+
             var config = SwiftMessages.defaultConfig
             let view = MessageView.viewFromNib(layout: .cardView)
 
+//            viewRespectsSystemMinimumLayoutMargins = false
+            view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+            config.prefersStatusBarHidden = true
+
+            // Set id so that multiple notifications are not queued while waiting for user response; only the latest will be shown
+            if message.subtype == .glucose || message.subtype == .carb {
+                view.id = message.type.rawValue + message.subtype.rawValue
+            }
+
             let titleContent: String
+
+            let iconName = UIApplication.shared.alternateIconName ?? "trioBlack"
+            let iconImage = UIImage(named: iconName) ?? UIImage()
 
             view.configureContent(
                 title: "title",
@@ -139,81 +218,42 @@ extension Main {
                 buttonTapHandler: nil
             )
 
+            view.configureIcon(withSize: CGSize(width: 40, height: 40), contentMode: .scaleAspectFit)
+            view.iconImageView!.image = iconImage
+            view.iconImageView?.layer.cornerRadius = 10
+
+            view.customConfigureTheme(
+                colorSchemePreference: colorSchemePreference
+            )
+
+            view.iconImageView?.image = iconImage
+
             switch message.type {
             case .info,
                  .other:
-                view.backgroundColor = .secondarySystemGroupedBackground
-                config.duration = .automatic
+                config.duration = .seconds(seconds: 5)//.automatic
                 titleContent = message.title != "" ? message.title : NSLocalizedString("Info", comment: "Info title")
             case .warning:
-                view.configureTheme(.warning, iconStyle: .subtle)
                 config.duration = .forever
-                view.button?.setImage(Icon.warningSubtle.image, for: .normal)
                 titleContent = message.title != "" ? message
                     .title : NSLocalizedString("Warning", comment: "Warning title")
-                view.buttonTapHandler = { _ in
-                    SwiftMessages.hide()
-                }
-            case .errorPump:
-                view.configureTheme(.error, iconStyle: .subtle)
+            case .error:
                 config.duration = .forever
-                view.button?.setImage(Icon.errorSubtle.image, for: .normal)
                 titleContent = message.title != "" ? message
                     .title : NSLocalizedString("Error", comment: "Error title")
-                view.buttonTapHandler = { _ in
-                    SwiftMessages.hide()
-                    // display the pump configuration immediatly
-                    if let pump = self.provider.deviceManager.pumpManager,
-                       let bluetooth = self.provider.bluetoothProvider
-                    {
-                        let view = PumpConfig.PumpSettingsView(
-                            pumpManager: pump,
-                            bluetoothManager: bluetooth,
-                            completionDelegate: self
-                        ).asAny()
-                        self.router.mainSecondaryModalView.send(view)
-                    }
-                }
-            case .alertPermissionWarning:
-                view.configureTheme(.error, iconStyle: .none)
-                config.duration = .forever
-
-                view.iconLabel = nil
-                view.iconImageView = nil
-                let disclosureIndicator = UIImage(systemName: "chevron.right")?.withTintColor(.white)
-                view.button?.setImage(disclosureIndicator, for: .normal)
-                view.button?.backgroundColor = UIColor.red
-                view.button?.tintColor = UIColor.white
-
-                titleContent = message.title != "" ? message
-                    .title : NSLocalizedString("Error", comment: "Error title")
-                view.buttonTapHandler = { _ in
-                    SwiftMessages.hide()
-                    UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
-                }
-            case .pumpConfig:
-                titleContent = ""
-                if let pump = provider.deviceManager.pumpManager,
-                   let bluetooth = provider.bluetoothProvider
-                {
-                    let view = PumpConfig.PumpSettingsView(
-                        pumpManager: pump,
-                        bluetoothManager: bluetooth,
-                        completionDelegate: self
-                    ).asAny()
-                    router.mainSecondaryModalView.send(view)
-                }
             }
 
-            if message.type != .pumpConfig
-            {
-                view.titleLabel?.text = titleContent
-                config.dimMode = .gray(interactive: true)
-                // Show if not hidden
-                if !view.isHidden {
-                    SwiftMessages.show(config: config, view: view)
-                }
+            view.titleLabel?.text = titleContent
+            config.dimMode = .gray(interactive: true)
+
+            setupAction(message: message, view: view)
+            if message.trigger != nil {
+                addOrReplaceTriggerTimer(message: message, config: config, view: view)
             }
+
+            guard message.type == .error || message.action != .pumpConfig, message.trigger == nil, !view.isHidden else { return }
+
+            SwiftMessages.show(config: config, view: view)
         }
 
         override func subscribe() {
@@ -237,7 +277,10 @@ extension Main {
             router.alertMessage
                 .receive(on: DispatchQueue.main)
                 .sink { message in
-                    self.queueMessageIfNeeded(message)
+                    guard !self.isApnPumpConfigAction(message) else { return }
+                    guard self.allowNotify(message) else { return }
+//                    self.queueMessageIfNeeded(message) // TODO: Remove if Batched Info and Throttled APNs are NOT in-scope
+                    self.showAlertMessage(message) // TODO: Call this if Batched Info and Throttled APNs are NOT in-scope
                 }
                 .store(in: &lifetime)
 
@@ -260,10 +303,70 @@ extension Main {
     }
 }
 
+extension MessageView {
+    func currentColorScheme() -> ColorScheme {
+        let userInterfaceStyle = UITraitCollection.current.userInterfaceStyle
+        return userInterfaceStyle == .dark ? .dark : .light
+    }
+
+    func customConfigureTheme(colorSchemePreference: ColorSchemeOption) {
+        let defaultSystemColorScheme = currentColorScheme() // UIColor.defaultSystemBackgroundColor
+        var backgroundColor = UIColor.systemBackground
+        var foregroundColor = UIColor.white
+        // Color.gray.opacity(0.1) is used by MainRootView but is translucent
+        // lightGray is same color as MainRootView background and systemGray6 is a shade darker
+        // systemGray5 is a shade darker than systemGray6 and gray is a few shades darker
+        // systemBackground is the same as systemGray6 when iOS is light mode
+        switch colorSchemePreference {
+        case .systemDefault:
+            backgroundColor = defaultSystemColorScheme == .light ? UIColor.systemBackground :
+                UIColor(Color.black.opacity(0.9))
+            foregroundColor = UIColor.label
+        case .dark:
+            backgroundColor = defaultSystemColorScheme == .light ? UIColor.systemGray5 :
+                UIColor(Color.black.opacity(0.9))
+            foregroundColor = defaultSystemColorScheme == .light ? UIColor.black : UIColor.white
+        case .light:
+            backgroundColor = defaultSystemColorScheme == .light ? .systemGray6 : UIColor
+                .gray
+            foregroundColor = defaultSystemColorScheme == .light ? UIColor.black : UIColor.white
+        }
+
+        iconImageView?.tintColor = foregroundColor
+        backgroundView.backgroundColor = backgroundColor
+        titleLabel?.textColor = foregroundColor
+        bodyLabel?.textColor = foregroundColor
+        iconImageView?.isHidden = iconImageView?.image == nil
+
+        backgroundView.layer.cornerRadius = 25
+
+        let adjustedFont = UIFont.systemFont(ofSize: 13.0, weight: .bold)
+        let preferredTitleFont = UIFontMetrics(forTextStyle: .footnote).scaledFont(for: adjustedFont)
+        let preferredBodyFont = UIFont.preferredFontforStyle(forTextStyle: .footnote)
+        // Set the title and body font to the dynamic type sizes
+        titleLabel?.adjustsFontForContentSizeCategory = true
+        titleLabel?.font = preferredTitleFont
+        bodyLabel?.adjustsFontForContentSizeCategory = true
+        bodyLabel?.font = preferredBodyFont
+        // Set custom colors for title and body text
+        titleLabel?.textColor = foregroundColor
+        bodyLabel?.textColor = foregroundColor
+    }
+}
+
 @available(iOS 16.0, *)
 extension Main.StateModel: CompletionDelegate {
     func completionNotifyingDidComplete(_: CompletionNotifying) {
         // close the window
         router.mainSecondaryModalView.send(nil)
+    }
+}
+
+// Extension to convert SwiftUI TextStyle to UIFont
+extension UIFont {
+    static func preferredFontforStyle(forTextStyle: UIFont.TextStyle) -> UIFont {
+        let uiFontMetrics = UIFontMetrics.default
+        let descriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: forTextStyle)
+        return uiFontMetrics.scaledFont(for: UIFont(descriptor: descriptor, size: 0)) // size: 12
     }
 }
