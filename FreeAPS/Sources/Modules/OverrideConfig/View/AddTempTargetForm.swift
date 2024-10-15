@@ -117,6 +117,7 @@ struct AddTempTargetForm: View {
                 TextField("Enter Name (optional)", text: $state.tempTargetName)
                     .multilineTextAlignment(.trailing)
             }
+            DatePicker("Date", selection: $state.date)
             VStack {
                 HStack {
                     Text("Duration")
@@ -230,8 +231,8 @@ struct AddTempTargetForm: View {
                     .frame(maxWidth: .infinity)
                 }
             }
-            DatePicker("Date", selection: $state.date)
-        }
+
+        }.listRowBackground(Color.chart)
 
         if isSliderEnabled && state.tempTargetTarget != 0 {
             if state.tempTargetTarget > 100 {
@@ -244,7 +245,7 @@ struct AddTempTargetForm: View {
                             .font(.footnote)
                             .lineLimit(1)
                     }
-                }.listRowBackground(Color.tabBar)
+                }
                 Section {
                     VStack {
                         Toggle("Adjust Sensitivity", isOn: $state.didAdjustSens).padding(.top)
@@ -282,7 +283,7 @@ struct AddTempTargetForm: View {
                             .font(.footnote)
                             .lineLimit(1)
                     }
-                }.listRowBackground(Color.tabBar)
+                }
                 Section {
                     VStack {
                         Toggle("Adjust Insulin %", isOn: $state.didAdjustSens).padding(.top)
