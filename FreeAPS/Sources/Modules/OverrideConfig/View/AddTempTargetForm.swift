@@ -298,10 +298,7 @@ struct AddTempTargetForm: View {
                         Divider()
                         HStack {
                             Text(
-                                state
-                                    .units == .mgdL ?
-                                    "Half Basal Exercise Target at: \(state.computeHalfBasalTarget().formatted(.number.precision(.fractionLength(0)))) mg/dl" :
-                                    "Half Basal Exercise Target at: \(state.computeHalfBasalTarget().asMmolL.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))) mmol/L"
+                                "Half Basal Exercise Target at: \(formattedGlucose(glucose: Decimal(state.computeHalfBasalTarget())))"
                             )
                             .lineLimit(1)
                             .minimumScaleFactor(0.5)
