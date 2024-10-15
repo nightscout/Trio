@@ -2,11 +2,16 @@ import Foundation
 import SwiftUI
 
 struct AddTempTargetForm: View {
+    init(state: OverrideConfig.StateModel) {
+        _state = StateObject(wrappedValue: state)
+        _targetStep = State(initialValue: state.units == .mgdL ? 5.0 : 9.0)
+    }
+
     @StateObject var state: OverrideConfig.StateModel
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dismiss) var dismiss
-    @State private var targetStep: Int = 5
+    @State private var targetStep: Double
     @State private var displayPickerTarget: Bool = false
     @State private var showAlert = false
     @State private var showPresetAlert = false
@@ -122,15 +127,15 @@ struct AddTempTargetForm: View {
                     if displayPickerTarget {
                         HStack {
                             // Radio buttons and text on the left side
-                            let factor = state.units == .mgdL ? 1 : 2
+                            let steps = state.units == .mgdL ? [1.0, 5.0] : [1.8, 9.0]
                             VStack(alignment: .leading) {
                                 // Radio buttons for step iteration
-                                ForEach([1, 5], id: \.self) { step in
+                                ForEach(steps, id: \.self) { step in
                                     RadioButton(
-                                        isSelected: targetStep == step * factor,
+                                        isSelected: targetStep == step,
                                         label: "\(formattedGlucose(glucose: Decimal(step)))"
                                     ) {
-                                        targetStep = step * factor
+                                        targetStep = step
                                         roundTargetToStep()
                                     }
                                     .padding(.top, 10)
@@ -152,7 +157,7 @@ struct AddTempTargetForm: View {
                                     id: \.self
                                 ) { glucose in
                                     Text(formattedGlucose(glucose: Decimal(glucose)))
-                                        .tag(glucose)
+                                        .tag(Int(glucose))
                                 }
                             }
                             .pickerStyle(WheelPickerStyle())
@@ -402,18 +407,18 @@ struct AddTempTargetForm: View {
     private func roundTargetToStep() {
         // Check if tempTargetTarget is not divisible by the selected step
         if let tempTarget = state.tempTargetTarget as? Double,
-           tempTarget.truncatingRemainder(dividingBy: Double(targetStep)) != 0
+           tempTarget.truncatingRemainder(dividingBy: targetStep) != 0
         {
             let roundedValue: Double
 
             if state.tempTargetTarget > 100 {
                 // Round down to the nearest valid step away from 100
-                let stepCount = (Double(state.tempTargetTarget) - 100) / Double(targetStep)
-                roundedValue = 100 + floor(stepCount) * Double(targetStep)
+                let stepCount = (Double(state.tempTargetTarget) - 100) / targetStep
+                roundedValue = 100 + floor(stepCount) * targetStep
             } else {
                 // Round up to the nearest valid step away from 100
-                let stepCount = (100 - Double(state.tempTargetTarget)) / Double(targetStep)
-                roundedValue = 100 - floor(stepCount) * Double(targetStep)
+                let stepCount = (100 - Double(state.tempTargetTarget)) / targetStep
+                roundedValue = 100 - floor(stepCount) * targetStep
             }
 
             // Ensure the value stays higher than 79
