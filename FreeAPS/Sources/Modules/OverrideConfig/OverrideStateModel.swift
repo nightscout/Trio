@@ -789,7 +789,7 @@ extension OverrideConfig.StateModel {
     func computeHalfBasalTarget() -> Double {
         let adjustmentRatio = Decimal(percentage / 100)
         let normalTarget: Decimal = 100
-        var tempTargetValue: Decimal = tempTargetTarget
+        let tempTargetValue: Decimal = tempTargetTarget
         var halfBasalTargetValue = halfBasalTarget
         if adjustmentRatio != 1 {
             halfBasalTargetValue = ((2 * adjustmentRatio * normalTarget) - normalTarget - (adjustmentRatio * tempTargetValue)) /
@@ -800,9 +800,7 @@ extension OverrideConfig.StateModel {
 
     func computeSliderLow() -> Double {
         var minSens: Double = 15
-        var tempTargetValue = tempTargetTarget
-        if units == .mmolL {
-            tempTargetValue = Decimal(round(Double(tempTargetTarget.asMgdL))) }
+        let tempTargetValue = tempTargetTarget
         if tempTargetValue == 0 { return minSens }
         if tempTargetValue < 100 ||
             (
@@ -815,10 +813,8 @@ extension OverrideConfig.StateModel {
 
     func computeSliderHigh() -> Double {
         var maxSens = Double(maxValue * 100)
-        var tempTargetValue = tempTargetTarget
+        let tempTargetValue = tempTargetTarget
         if tempTargetValue == 0 { return maxSens }
-        if units == .mmolL {
-            tempTargetValue = Decimal(round(Double(tempTargetTarget.asMgdL))) }
         if tempTargetValue > 100 || !settingsManager.preferences.lowTemptargetLowersSensitivity { maxSens = 100 }
         return maxSens
     }

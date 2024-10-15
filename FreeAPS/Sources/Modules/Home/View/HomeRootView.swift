@@ -248,8 +248,8 @@ extension Home {
                 0
             )
             var durationString = ""
-
-            let target = latestTempTarget.target
+            var target = (latestTempTarget.target ?? 100) as Decimal
+            target = state.units == .mmolL ? target.asMmolL : target
             var targetString = target == 0 ? "" : (fetchedTargetFormatter.string(from: (target ?? 0) as NSNumber) ?? "") + " " +
                 state.units
                 .rawValue
