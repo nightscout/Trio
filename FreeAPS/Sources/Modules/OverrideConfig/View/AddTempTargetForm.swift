@@ -76,47 +76,48 @@ struct AddTempTargetForm: View {
 
     var body: some View {
         NavigationView {
-            Form {
+            List {
                 addTempTarget()
                 saveButton
-            }.scrollContentBackground(.hidden).background(color)
-                .navigationTitle("Add Temp Target")
-                .navigationBarTitleDisplayMode(.inline)
-                .navigationBarItems(leading: Button("Close") {
-                    presentationMode.wrappedValue.dismiss()
-                })
-                .sheet(isPresented: $shouldDisplayHint) {
-                    SettingInputHintView(
-                        hintDetent: $hintDetent,
-                        shouldDisplayHint: $shouldDisplayHint,
-                        hintLabel: hintLabel ?? "",
-                        hintText: selectedVerboseHint ?? "",
-                        sheetTitle: "Help"
-                    )
+            }
+            .listSectionSpacing(10)
+            .listRowSpacing(10)
+            .padding(.top, 30)
+            .ignoresSafeArea(edges: .top)
+            .scrollContentBackground(.hidden).background(color)
+            .navigationTitle("Add Temp Target")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(action: {
+                        presentationMode.wrappedValue.dismiss()
+                    }, label: {
+                        Text("Cancel")
+                    })
                 }
+            }
+            .sheet(isPresented: $shouldDisplayHint) {
+                SettingInputHintView(
+                    hintDetent: $hintDetent,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    hintLabel: hintLabel ?? "",
+                    hintText: selectedVerboseHint ?? "",
+                    sheetTitle: "Help"
+                )
+            }
         }
     }
 
     @ViewBuilder private func addTempTarget() -> some View {
-        let pad: CGFloat = 3
-        VStack {
+        Section {
+            let pad: CGFloat = 3
             HStack {
                 Text("Name")
                 Spacer()
-                TextField("(Optional)", text: $state.overrideName).multilineTextAlignment(.trailing)
+                TextField("Enter Name (optional)", text: $state.tempTargetName)
+                    .multilineTextAlignment(.trailing)
             }
-            .padding(.vertical, pad)
-        }
-        Section(
-            header: Text("Configure Temp Target"),
-            content: {
-                HStack {
-                    Text("Name")
-                    Spacer()
-                    TextField("Enter Name (optional)", text: $state.tempTargetName)
-                        .multilineTextAlignment(.trailing)
-                }
-
+            VStack {
                 HStack {
                     Text("Duration")
                     Spacer()
@@ -153,85 +154,84 @@ struct AddTempTargetForm: View {
                         }
                     }
                 }
-
-                VStack {
+            }
+            VStack {
+                HStack {
+                    Text("Target Glucose")
+                    Spacer()
+                    Text(formattedGlucose(glucose: state.tempTargetTarget))
+                        .foregroundColor(!displayPickerTarget ? .primary : .accentColor)
+                }
+                .padding(.vertical, pad)
+                .onTapGesture {
+                    displayPickerTarget.toggle()
+                }
+                if displayPickerTarget {
                     HStack {
-                        Text("Target Glucose")
-                        Spacer()
-                        Text(formattedGlucose(glucose: state.tempTargetTarget))
-                            .foregroundColor(!displayPickerTarget ? .primary : .accentColor)
-                    }
-                    .padding(.vertical, pad)
-                    .onTapGesture {
-                        displayPickerTarget.toggle()
-                    }
-                    if displayPickerTarget {
-                        HStack {
-                            VStack(alignment: .leading) {
-                                // Toggle for step iteration
-                                VStack {
-                                    Text(formattedGlucose(glucose: Decimal(state.units == .mgdL ? smallMgdL : smallMmolL)))
-                                        .tag(Int(state.units == .mgdL ? smallMgdL : smallMmolL))
-                                        .foregroundColor(toggleBigStepOn ? .primary : .tabBar)
-                                    ZStack {
-                                        Group {
-                                            Capsule()
-                                                .frame(width: 22, height: 40)
-                                                .foregroundColor(Color.loopGray)
-                                            ZStack {
-                                                Circle()
-                                                    .frame(width: 20, height: 22)
-                                                Image(systemName: toggleBigStepOn ? "forward.circle.fill" : "play.circle.fill")
-                                                    .foregroundStyle(Color.white, Color.tabBar)
-                                            }
-                                            .shadow(color: .black.opacity(0.14), radius: 4, x: 0, y: 2)
-                                            .offset(y: toggleBigStepOn ? 9 : -9)
-                                            .padding(12)
+                        VStack(alignment: .leading) {
+                            // Toggle for step iteration
+                            VStack {
+                                Text(formattedGlucose(glucose: Decimal(state.units == .mgdL ? smallMgdL : smallMmolL)))
+                                    .tag(Int(state.units == .mgdL ? smallMgdL : smallMmolL))
+                                    .foregroundColor(toggleBigStepOn ? .primary : .tabBar)
+                                ZStack {
+                                    Group {
+                                        Capsule()
+                                            .frame(width: 22, height: 40)
+                                            .foregroundColor(Color.loopGray)
+                                        ZStack {
+                                            Circle()
+                                                .frame(width: 20, height: 22)
+                                            Image(systemName: toggleBigStepOn ? "forward.circle.fill" : "play.circle.fill")
+                                                .foregroundStyle(Color.white, Color.tabBar)
                                         }
+                                        .shadow(color: .black.opacity(0.14), radius: 4, x: 0, y: 2)
+                                        .offset(y: toggleBigStepOn ? 9 : -9)
+                                        .padding(12)
                                     }
-                                    .onTapGesture {
-                                        // Toggling between small and big step
-                                        toggleBigStepOn.toggle()
-                                        targetStep = toggleBigStepOn ? (state.units == .mgdL ? bigMgdL : bigMmolL) :
-                                            (state.units == .mgdL ? smallMgdL : smallMmolL)
-                                    }
-                                    Text(formattedGlucose(glucose: Decimal(state.units == .mgdL ? bigMgdL : bigMmolL)))
-                                        .tag(Int(state.units == .mgdL ? bigMgdL : bigMmolL))
-                                        .foregroundColor(toggleBigStepOn ? .tabBar : .primary)
                                 }
-                                .padding(.top, 10)
-                            }
-                            .frame(maxWidth: .infinity)
-
-                            Spacer()
-
-                            // Picker on the right side
-                            Picker(
-                                selection: Binding(
-                                    get: { Int(truncating: state.tempTargetTarget as NSNumber) },
-                                    set: { state.tempTargetTarget = Decimal($0) }
-                                ), label: Text("")
-                            ) {
-                                ForEach(
-                                    Array(stride(from: 80, through: 270, by: targetStep)),
-                                    id: \.self
-                                ) { glucoseTarget in
-                                    Text(formattedGlucose(glucose: Decimal(glucoseTarget)))
-                                        .tag(Int(glucoseTarget))
+                                .onTapGesture {
+                                    // Toggling between small and big step
+                                    toggleBigStepOn.toggle()
+                                    targetStep = toggleBigStepOn ? (state.units == .mgdL ? bigMgdL : bigMmolL) :
+                                        (state.units == .mgdL ? smallMgdL : smallMmolL)
                                 }
+                                Text(formattedGlucose(glucose: Decimal(state.units == .mgdL ? bigMgdL : bigMmolL)))
+                                    .tag(Int(state.units == .mgdL ? bigMgdL : bigMmolL))
+                                    .foregroundColor(toggleBigStepOn ? .tabBar : .primary)
                             }
-                            .pickerStyle(WheelPickerStyle())
-                            .frame(maxWidth: .infinity)
-                            .onChange(of: state.tempTargetTarget) { _ in
-                                state.percentage = Double(state.computeAdjustedPercentage() * 100)
-                            }
+                            .padding(.top, 10)
                         }
                         .frame(maxWidth: .infinity)
+
+                        Spacer()
+
+                        // Picker on the right side
+                        Picker(
+                            selection: Binding(
+                                get: { Int(truncating: state.tempTargetTarget as NSNumber) },
+                                set: { state.tempTargetTarget = Decimal($0) }
+                            ), label: Text("")
+                        ) {
+                            ForEach(
+                                Array(stride(from: 80, through: 270, by: targetStep)),
+                                id: \.self
+                            ) { glucoseTarget in
+                                Text(formattedGlucose(glucose: Decimal(glucoseTarget)))
+                                    .tag(Int(glucoseTarget))
+                            }
+                        }
+                        .pickerStyle(WheelPickerStyle())
+                        .frame(maxWidth: .infinity)
+                        .onChange(of: state.tempTargetTarget) { _ in
+                            state.percentage = Double(state.computeAdjustedPercentage() * 100)
+                        }
                     }
-                    DatePicker("Date", selection: $state.date)
+                    .frame(maxWidth: .infinity)
                 }
             }
-        ).listRowBackground(Color.chart)
+            DatePicker("Date", selection: $state.date)
+        }
 
         if isSliderEnabled && state.tempTargetTarget != 0 {
             if state.tempTargetTarget > 100 {
