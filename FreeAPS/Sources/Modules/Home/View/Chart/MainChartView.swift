@@ -7,19 +7,18 @@ let calendar = Calendar.current
 
 struct MainChartView: View {
     var geo: GeometryProxy
-    @Binding var units: GlucoseUnits
-    @Binding var hours: Int
-    @Binding var tempTargets: [TempTarget]
-    @Binding var highGlucose: Decimal
-    @Binding var lowGlucose: Decimal
-    @Binding var currentGlucoseTarget: Decimal
-    @Binding var screenHours: Int16
-    @Binding var glucoseColorScheme: GlucoseColorScheme
-    @Binding var displayXgridLines: Bool
-    @Binding var displayYgridLines: Bool
-    @Binding var thresholdLines: Bool
-
-    @StateObject var state: Home.StateModel
+    var units: GlucoseUnits
+    var hours: Int
+    var tempTargets: [TempTarget]
+    var highGlucose: Decimal
+    var lowGlucose: Decimal
+    var currentGlucoseTarget: Decimal
+    var glucoseColorScheme: GlucoseColorScheme
+    var screenHours: Int16
+    var displayXgridLines: Bool
+    var displayYgridLines: Bool
+    var thresholdLines: Bool
+    var state: Home.StateModel
 
     @State var basalProfiles: [BasalProfile] = []
     @State var preparedTempBasals: [(start: Date, end: Date, rate: Double)] = []
@@ -98,17 +97,17 @@ struct MainChartView: View {
                                 iobChart
                             }
 
-                        }.onChange(of: screenHours) { _ in
+                        }.onChange(of: screenHours) {
                             scroller.scrollTo("MainChart", anchor: .trailing)
                         }
-                        .onChange(of: state.glucoseFromPersistence.last?.glucose) { _ in
+                        .onChange(of: state.glucoseFromPersistence.last?.glucose) {
                             scroller.scrollTo("MainChart", anchor: .trailing)
                             updateStartEndMarkers()
                         }
-                        .onChange(of: state.enactedAndNonEnactedDeterminations.first?.deliverAt) { _ in
+                        .onChange(of: state.enactedAndNonEnactedDeterminations.first?.deliverAt) {
                             scroller.scrollTo("MainChart", anchor: .trailing)
                         }
-                        .onChange(of: units) { _ in
+                        .onChange(of: units) {
                             // TODO: - Refactor this to only update the Y Axis Scale
                             state.setupGlucoseArray()
                         }
@@ -219,10 +218,10 @@ extension MainChartView {
                 }
             }
             .id("MainChart")
-            .onChange(of: state.insulinFromPersistence) { _ in
+            .onChange(of: state.insulinFromPersistence) {
                 state.roundedTotalBolus = state.calculateTINS()
             }
-            .onChange(of: tempTargets) { _ in
+            .onChange(of: tempTargets) {
                 Task {
                     await calculateTempTargets()
                 }

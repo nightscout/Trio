@@ -80,19 +80,24 @@ extension Home.StateModel {
             return
         }
 
+        // Update minCount on the Main Thread
         minCount = max(12, allForecastValues.map(\.count).min() ?? 0)
-        guard minCount > 0 else { return }
+
+        // Safely read minCount for use inside the detached task
+        let localMinCount = minCount
+
+        guard localMinCount > 0 else { return }
 
         // Copy allForecastValues to a local constant for thread safety
         let localAllForecastValues = allForecastValues
 
         // Calculate min and max forecast values in a background task
         let (minResult, maxResult) = await Task.detached {
-            let minForecast = (0 ..< self.minCount).map { index in
+            let minForecast = (0 ..< localMinCount).map { index in
                 localAllForecastValues.compactMap { $0.indices.contains(index) ? $0[index] : nil }.min() ?? 0
             }
 
-            let maxForecast = (0 ..< self.minCount).map { index in
+            let maxForecast = (0 ..< localMinCount).map { index in
                 localAllForecastValues.compactMap { $0.indices.contains(index) ? $0[index] : nil }.max() ?? 0
             }
 
