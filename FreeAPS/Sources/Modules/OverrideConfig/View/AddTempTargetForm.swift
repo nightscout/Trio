@@ -6,6 +6,8 @@ struct AddTempTargetForm: View {
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dismiss) var dismiss
+    @State private var targetStep: Int = 5
+    @State private var displayPickerTarget: Bool = false
     @State private var showAlert = false
     @State private var showPresetAlert = false
     @State private var alertString = ""
@@ -81,33 +83,85 @@ struct AddTempTargetForm: View {
     }
 
     @ViewBuilder private func addTempTarget() -> some View {
+        let pad: CGFloat = 3
+        VStack {
+            HStack {
+                Text("Name")
+                Spacer()
+                TextField("(Optional)", text: $state.overrideName).multilineTextAlignment(.trailing)
+            }
+            .padding(.vertical, pad)
+        }
         Section(
             header: Text("Configure Temp Target"),
             content: {
                 HStack {
                     Text("Name")
                     Spacer()
-                    TextField("Enter Name", text: $state.tempTargetName)
+                    TextField("Enter Name (optional)", text: $state.tempTargetName)
                         .multilineTextAlignment(.trailing)
                 }
-
-                HStack {
-                    Text("Target")
-                    Spacer()
-                    TextFieldWithToolBar(text: $state.tempTargetTarget, placeholder: "0", numberFormatter: glucoseFormatter)
-                        .onChange(of: state.tempTargetTarget) { _ in
-                            state.percentage = Double(state.computeAdjustedPercentage() * 100)
-                        }
-                    Text(state.units.rawValue).foregroundColor(.secondary)
-                }
-
                 HStack {
                     Text("Duration")
                     Spacer()
                     TextFieldWithToolBar(text: $state.tempTargetDuration, placeholder: "0", numberFormatter: formatter)
                     Text("minutes").foregroundColor(.secondary)
                 }
-                DatePicker("Date", selection: $state.date)
+                VStack {
+                    HStack {
+                        Text("Target Glucose")
+                        Spacer()
+                        Text(formattedGlucose(glucose: state.tempTargetTarget))
+                            .foregroundColor(!displayPickerTarget ? .primary : .accentColor)
+                    }
+                    .padding(.vertical, pad)
+                    .onTapGesture {
+                        displayPickerTarget.toggle()
+                    }
+
+                    if displayPickerTarget {
+                        HStack {
+                            // Radio buttons and text on the left side
+                            let factor = state.units == .mgdL ? 1 : 2
+                            VStack(alignment: .leading) {
+                                // Radio buttons for step iteration
+                                ForEach([1, 5], id: \.self) { step in
+                                    RadioButton(
+                                        isSelected: targetStep == step * factor,
+                                        label: "\(formattedGlucose(glucose: Decimal(step)))"
+                                    ) {
+                                        targetStep = step * factor
+                                        roundTargetToStep()
+                                    }
+                                    .padding(.top, 10)
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+
+                            Spacer()
+
+                            // Picker on the right side
+                            Picker(
+                                selection: Binding(
+                                    get: { Int(truncating: state.tempTargetTarget as NSNumber) },
+                                    set: { state.tempTargetTarget = Decimal($0) }
+                                ), label: Text("")
+                            ) {
+                                ForEach(
+                                    Array(stride(from: 80, through: 270, by: targetStep)),
+                                    id: \.self
+                                ) { glucose in
+                                    Text(formattedGlucose(glucose: Decimal(glucose)))
+                                        .tag(glucose)
+                                }
+                            }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: .infinity)
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    DatePicker("Date", selection: $state.date)
+                }
             }
         ).listRowBackground(Color.chart)
 
@@ -277,48 +331,41 @@ struct AddTempTargetForm: View {
     }
 
     private var saveButton: some View {
-        var (isInvalid, errorMessage) = isTempTargetInvalid()
+        let (isInvalid, errorMessage) = isTempTargetInvalid()
         let noNameSpecified = state.tempTargetName == ""
-        if errorMessage == nil && noNameSpecified {
-            errorMessage = "To save Preset assign a name!"
-        }
 
         return Group {
-            if errorMessage != nil {
-                Section {
-                    HStack {
-                        Spacer()
-                        Text(errorMessage ?? "")
-                            .textCase(nil)
-                            .font(.footnote)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.5)
-                        Spacer()
-                    }
-                }.listRowBackground(Color.tabBar)
-            }
+            Section(
+                header:
+                HStack {
+                    Spacer()
+                    Text(errorMessage ?? "").textCase(nil)
+                        .foregroundColor(colorScheme == .dark ? .orange : .accentColor)
+                    Spacer()
+                },
+                content: {
+                    Button(action: {
+                        Task {
+                            if noNameSpecified { state.tempTargetName = "Custom Target" }
+                            didPressSave.toggle()
+                            state.isTempTargetEnabled.toggle()
+                            await state.saveCustomTempTarget()
+                            await state.resetTempTargetState()
+                            dismiss()
+                        }
+                    }, label: {
+                        Text("Enact Temp Target")
+                    })
+                        .disabled(isInvalid)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .tint(.white)
+                }
+            ).listRowBackground(isInvalid ? Color(.systemGray4) : Color(.systemBlue))
+
             Section {
                 Button(action: {
                     Task {
                         if noNameSpecified { state.tempTargetName = "Custom Target" }
-                        didPressSave.toggle()
-                        state.isTempTargetEnabled.toggle()
-                        await state.saveCustomTempTarget()
-                        await state.resetTempTargetState()
-                        dismiss()
-                    }
-                }, label: {
-                    Text("Enact Temp Target")
-                })
-                    .disabled(isInvalid)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .tint(.white)
-            }
-            .listRowBackground(isInvalid ? Color(.systemGray4) : Color(.systemBlue))
-
-            Section {
-                Button(action: {
-                    Task {
                         didPressSave.toggle()
                         await state.saveTempTargetPreset()
                         dismiss()
@@ -327,7 +374,7 @@ struct AddTempTargetForm: View {
                     Text("Save as Preset")
 
                 })
-                    .disabled(isInvalid || noNameSpecified)
+                    .disabled(isInvalid)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .tint(.white)
             }
@@ -340,5 +387,55 @@ struct AddTempTargetForm: View {
     private func formattedPercentage(_ value: Double) -> String {
         let percentageNumber = NSNumber(value: value)
         return formatter.string(from: percentageNumber) ?? "\(value)"
+    }
+
+    private func formattedGlucose(glucose: Decimal) -> String {
+        let formattedValue: String
+        if state.units == .mgdL {
+            formattedValue = glucoseFormatter.string(from: glucose as NSDecimalNumber) ?? "\(glucose)"
+        } else {
+            formattedValue = glucose.formattedAsMmolL
+        }
+        return "\(formattedValue) \(state.units.rawValue)"
+    }
+
+    private func roundTargetToStep() {
+        // Check if tempTargetTarget is not divisible by the selected step
+        if let tempTarget = state.tempTargetTarget as? Double,
+           tempTarget.truncatingRemainder(dividingBy: Double(targetStep)) != 0
+        {
+            let roundedValue: Double
+
+            if state.tempTargetTarget > 100 {
+                // Round down to the nearest valid step away from 100
+                let stepCount = (Double(state.tempTargetTarget) - 100) / Double(targetStep)
+                roundedValue = 100 + floor(stepCount) * Double(targetStep)
+            } else {
+                // Round up to the nearest valid step away from 100
+                let stepCount = (100 - Double(state.tempTargetTarget)) / Double(targetStep)
+                roundedValue = 100 - floor(stepCount) * Double(targetStep)
+            }
+
+            // Ensure the value stays higher than 79
+            state.tempTargetTarget = Decimal(max(80, roundedValue))
+        }
+    }
+}
+
+struct RadioButton: View {
+    var isSelected: Bool
+    var label: String
+    var action: () -> Void
+
+    var body: some View {
+        Button(action: {
+            action()
+        }) {
+            HStack {
+                Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
+                Text(label) // Add label inside the button to make it tappable
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }

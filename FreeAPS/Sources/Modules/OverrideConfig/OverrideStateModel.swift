@@ -108,12 +108,12 @@ extension OverrideConfig {
             guard target != 0 else { return false }
 
             if units == .mgdL,
-               target < 70 || target > 270
+               target < 80 || target > 270 // in oref min lowTT = 80!
             {
                 showInvalidTargetAlert = true
                 return true
             } else if units == .mmolL,
-                      target < 4 || target > 15
+                      target < 4.4 || target > 15 // in oref min lowTT = 80!
             {
                 showInvalidTargetAlert = true
                 return true
