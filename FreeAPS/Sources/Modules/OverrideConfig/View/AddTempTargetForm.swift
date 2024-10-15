@@ -159,7 +159,6 @@ struct AddTempTargetForm: View {
                                         toggleBigStepOn.toggle()
                                         targetStep = toggleBigStepOn ? (state.units == .mgdL ? bigMgdL : bigMmolL) :
                                             (state.units == .mgdL ? smallMgdL : smallMmolL)
-                                        roundTargetToStep() // Ensure rounding happens after step change
                                     }
                                     Text(formattedGlucose(glucose: Decimal(state.units == .mgdL ? bigMgdL : bigMmolL)))
                                         .tag(Int(state.units == .mgdL ? bigMgdL : bigMmolL))
@@ -396,27 +395,5 @@ struct AddTempTargetForm: View {
             formattedValue = glucose.formattedAsMmolL
         }
         return "\(formattedValue) \(state.units.rawValue)"
-    }
-
-    private func roundTargetToStep() {
-        // Check if tempTargetTarget is not divisible by the selected step
-        if let tempTarget = state.tempTargetTarget as? Double,
-           tempTarget.truncatingRemainder(dividingBy: targetStep) != 0
-        {
-            let roundedValue: Double
-
-            if state.tempTargetTarget > 100 {
-                // Round down to the nearest valid step away from 100
-                let stepCount = (Double(state.tempTargetTarget) - 100) / targetStep
-                roundedValue = 100 + floor(stepCount) * targetStep
-            } else {
-                // Round up to the nearest valid step away from 100
-                let stepCount = (100 - Double(state.tempTargetTarget)) / targetStep
-                roundedValue = 100 - floor(stepCount) * targetStep
-            }
-
-            // Ensure the value stays higher than 79
-            state.tempTargetTarget = Decimal(max(80, roundedValue))
-        }
     }
 }
