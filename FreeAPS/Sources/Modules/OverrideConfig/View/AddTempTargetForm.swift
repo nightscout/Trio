@@ -2,10 +2,17 @@ import Foundation
 import SwiftUI
 
 struct AddTempTargetForm: View {
+    // settings for picker steps
+    let smallMgdL = 1.0
+    let bigMgdL = 5.0
+    let smallMmolL = 0.1 / 0.0555
+    let bigMmolL = 0.5 / 0.0555
     init(state: OverrideConfig.StateModel) {
         _state = StateObject(wrappedValue: state)
-        _targetStep = State(initialValue: state.units == .mgdL ? 5.0 : 9.0)
+        _targetStep = State(initialValue: state.units == .mgdL ? bigMgdL : bigMmolL)
     }
+
+    @State var toggleBigStepOn = true
 
     @StateObject var state: OverrideConfig.StateModel
     @Environment(\.presentationMode) var presentationMode
@@ -117,29 +124,48 @@ struct AddTempTargetForm: View {
                         Text("Target Glucose")
                         Spacer()
                         Text(formattedGlucose(glucose: state.tempTargetTarget))
-                            .foregroundColor(!displayPickerTarget ? .primary : .accentColor)
+                            .foregroundColor(!displayPickerTarget ? .primary : .tabBar)
                     }
                     .padding(.vertical, pad)
                     .onTapGesture {
                         displayPickerTarget.toggle()
                     }
-
                     if displayPickerTarget {
                         HStack {
-                            // Radio buttons and text on the left side
-                            let steps = state.units == .mgdL ? [1.0, 5.0] : [1.8, 9.0]
                             VStack(alignment: .leading) {
-                                // Radio buttons for step iteration
-                                ForEach(steps, id: \.self) { step in
-                                    RadioButton(
-                                        isSelected: targetStep == step,
-                                        label: "\(formattedGlucose(glucose: Decimal(step)))"
-                                    ) {
-                                        targetStep = step
-                                        roundTargetToStep()
+                                // Toggle for step iteration
+                                VStack {
+                                    Text(formattedGlucose(glucose: Decimal(state.units == .mgdL ? smallMgdL : smallMmolL)))
+                                        .tag(Int(state.units == .mgdL ? smallMgdL : smallMmolL))
+                                        .foregroundColor(toggleBigStepOn ? .primary : .tabBar)
+                                    ZStack {
+                                        Group {
+                                            Capsule()
+                                                .frame(width: 22, height: 40)
+                                                .foregroundColor(Color.loopGray)
+                                            ZStack {
+                                                Circle()
+                                                    .frame(width: 20, height: 22)
+                                                Image(systemName: toggleBigStepOn ? "forward.circle.fill" : "play.circle.fill")
+                                                    .foregroundStyle(Color.white, Color.tabBar)
+                                            }
+                                            .shadow(color: .black.opacity(0.14), radius: 4, x: 0, y: 2)
+                                            .offset(y: toggleBigStepOn ? 9 : -9)
+                                            .padding(12)
+                                        }
                                     }
-                                    .padding(.top, 10)
+                                    .onTapGesture {
+                                        // Toggling between small and big step
+                                        toggleBigStepOn.toggle()
+                                        targetStep = toggleBigStepOn ? (state.units == .mgdL ? bigMgdL : bigMmolL) :
+                                            (state.units == .mgdL ? smallMgdL : smallMmolL)
+                                        roundTargetToStep() // Ensure rounding happens after step change
+                                    }
+                                    Text(formattedGlucose(glucose: Decimal(state.units == .mgdL ? bigMgdL : bigMmolL)))
+                                        .tag(Int(state.units == .mgdL ? bigMgdL : bigMmolL))
+                                        .foregroundColor(toggleBigStepOn ? .tabBar : .primary)
                                 }
+                                .padding(.top, 10)
                             }
                             .frame(maxWidth: .infinity)
 
