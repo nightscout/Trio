@@ -341,15 +341,14 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
         await uploadInsulin(pumpHistoryStorage.getPumpHistoryNotYetUploadedToHealth())
     }
 
-    func uploadInsulin(_ insulin: [PumpHistoryEvent]) async {
+    func uploadInsulin(_ insulinEvents: [PumpHistoryEvent]) async {
         guard settingsManager.settings.useAppleHealth,
               let sampleType = AppleHealthConfig.healthInsulinObject,
               checkWriteToHealthPermissions(objectTypeToHealthStore: sampleType),
-              insulin.isNotEmpty
-        else { return }
+              insulinEvents.isNotEmpty else { return }
 
         // Fetch existing temp basal entries from Core Data for the last 24 hours
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+        let fetchedInsulinEntries = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: backgroundContext,
             predicate: NSCompoundPredicate(andPredicateWithSubpredicates: [
@@ -361,21 +360,12 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
             batchSize: 50
         )
 
-        // Initialize an array to hold the HealthKit samples to be uploaded
         var insulinSamples: [HKQuantitySample] = []
 
-        // Perform the data processing on the background context
         await backgroundContext.perform {
-            // Ensure that the fetched results are of the expected type
-            guard let existingTempBasalEntries = results as? [PumpEventStored] else { return }
+            guard let existingTempBasalEntries = fetchedInsulinEntries as? [PumpEventStored] else { return }
 
-            // Create a mapping from timestamps to indices for quick access to existing entries
-            let existingEntriesByTimestamp = Dictionary(
-                uniqueKeysWithValues: existingTempBasalEntries.enumerated()
-                    .map { ($0.element.timestamp, $0.offset) }
-            )
-
-            for event in insulin {
+            for event in insulinEvents {
                 switch event.type {
                 case .bolus:
                     // For bolus events, create a HealthKit sample directly
@@ -383,24 +373,21 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                         debug(.service, "Created HealthKit sample for bolus entry: \(sample)")
                         insulinSamples.append(sample)
                     }
-
                 case .tempBasal:
                     // For temp basal events, process them and adjust overlapping durations if necessary
                     guard let duration = event.duration, let amount = event.amount else { continue }
 
-                    // Calculate the total insulin delivered during the temp basal period
                     let value = (Decimal(duration) / 60.0) * amount
                     let valueRounded = self.deviceDataManager?.pumpManager?
                         .roundToSupportedBolusVolume(units: Double(value)) ?? Double(value)
 
-                    // Check if there's a matching existing temp basal entry
-                    if let matchingEntryIndex = existingEntriesByTimestamp[event.timestamp] {
-                        let predecessorIndex = matchingEntryIndex - 1
+                    // Use binary search for efficient lookup of matching entry
+                    if let matchingIndex = self.binarySearch(entries: existingTempBasalEntries, timestamp: event.timestamp) {
+                        let predecessorIndex = matchingIndex - 1
+
                         if predecessorIndex >= 0 {
-                            // Get the predecessor entry to handle overlapping temp basal events
                             let predecessorEntry = existingTempBasalEntries[predecessorIndex]
 
-                            // Adjust the predecessor entry if it overlaps with the current event
                             if let adjustedSample = self.processPredecessorEntry(
                                 predecessorEntry,
                                 nextEventTimestamp: event.timestamp,
@@ -410,7 +397,6 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                             }
                         }
 
-                        // Create a new PumpHistoryEvent with the calculated insulin value
                         let newEvent = PumpHistoryEvent(
                             id: event.id,
                             type: .tempBasal,
@@ -419,7 +405,6 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                             duration: event.duration
                         )
 
-                        // Create a HealthKit sample for the current temp basal event
                         if let sample = self.createSample(for: newEvent, sampleType: sampleType) {
                             debug(.service, "Created HealthKit sample for initial temp basal entry: \(sample)")
                             insulinSamples.append(sample)
@@ -427,29 +412,44 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                     }
 
                 default:
-                    // Ignore other event types
                     break
                 }
             }
         }
 
-        // Save the processed insulin samples to HealthKit
         do {
             guard insulinSamples.isNotEmpty else {
                 debug(.service, "No insulin samples available for upload.")
                 return
             }
 
-            // Attempt to save the samples to HealthKit
             try await healthKitStore.save(insulinSamples)
             debug(.service, "Successfully stored \(insulinSamples.count) insulin samples in HealthKit.")
-
-            // Mark the insulin events as uploaded
-            await updateInsulinAsUploaded(insulin)
-
+            await updateInsulinAsUploaded(insulinEvents)
         } catch {
             debug(.service, "Failed to upload insulin samples to HealthKit: \(error.localizedDescription)")
         }
+    }
+
+    // Helper function to perform binary search on the sorted entries by timestamp
+    private func binarySearch(entries: [PumpEventStored], timestamp: Date) -> Int? {
+        var lowerBound = 0
+        var upperBound = entries.count - 1
+
+        while lowerBound <= upperBound {
+            let midIndex = (lowerBound + upperBound) / 2
+            guard let midTimestamp = entries[midIndex].timestamp else { return nil }
+
+            if midTimestamp == timestamp {
+                return midIndex
+            } else if midTimestamp < timestamp {
+                lowerBound = midIndex + 1
+            } else {
+                upperBound = midIndex - 1
+            }
+        }
+
+        return nil
     }
 
     // Helper function to create a HealthKit sample from a PumpHistoryEvent

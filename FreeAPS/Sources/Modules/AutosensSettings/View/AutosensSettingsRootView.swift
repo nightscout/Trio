@@ -4,7 +4,7 @@ import Swinject
 extension AutosensSettings {
     struct RootView: BaseView {
         let resolver: Resolver
-        @StateObject var state = StateModel()
+        @State var state = StateModel()
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
         @State var selectedVerboseHint: String?

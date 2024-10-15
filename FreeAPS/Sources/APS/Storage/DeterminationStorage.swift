@@ -82,11 +82,11 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
         for data: (id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID]),
         in context: NSManagedObjectContext
     ) async -> (UUID, Forecast?, [ForecastValue]) {
-        var forecast: Forecast?
-        var forecastValues: [ForecastValue] = []
+        return await context.perform {
+            var forecast: Forecast?
+            var forecastValues: [ForecastValue] = []
 
-        do {
-            try await context.perform {
+            do {
                 // Fetch the forecast object
                 forecast = try context.existingObject(with: data.forecastID) as? Forecast
 
@@ -96,14 +96,13 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
                         forecastValues.append(forecastValue)
                     }
                 }
+            } catch {
+                debugPrint(
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch forecast Values with error: \(error.localizedDescription)"
+                )
             }
-        } catch {
-            debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch forecast Values with error: \(error.localizedDescription)"
-            )
+            return (data.id, forecast, forecastValues)
         }
-
-        return (data.id, forecast, forecastValues)
     }
 
     // Convert NSDecimalNumber to Decimal

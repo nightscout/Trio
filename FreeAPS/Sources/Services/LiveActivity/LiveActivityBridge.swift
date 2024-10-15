@@ -68,14 +68,17 @@ import UIKit
 
     private func setupNotifications() {
         let notificationCenter = Foundation.NotificationCenter.default
-        notificationCenter.addObserver(self, selector: #selector(cobOrIobDidUpdate), name: .didUpdateCobIob, object: nil)
         notificationCenter
             .addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { [weak self] _ in
-                self?.forceActivityUpdate()
+                Task { @MainActor in
+                    self?.forceActivityUpdate()
+                }
             }
         notificationCenter
             .addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: nil) { [weak self] _ in
-                self?.forceActivityUpdate()
+                Task { @MainActor in
+                    self?.forceActivityUpdate()
+                }
             }
     }
 
@@ -84,6 +87,11 @@ import UIKit
         coreDataPublisher?.filterByEntityName("OverrideStored").sink { [weak self] _ in
             guard let self = self else { return }
             self.overridesDidUpdate()
+        }.store(in: &subscriptions)
+
+        coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
+            guard let self = self else { return }
+            self.cobOrIobDidUpdate()
         }.store(in: &subscriptions)
     }
 
@@ -97,7 +105,7 @@ import UIKit
             .store(in: &subscriptions)
     }
 
-    @objc private func cobOrIobDidUpdate() {
+    private func cobOrIobDidUpdate() {
         Task {
             await fetchAndMapDetermination()
             if let determination = determination {
@@ -106,7 +114,7 @@ import UIKit
         }
     }
 
-    @objc private func overridesDidUpdate() {
+    private func overridesDidUpdate() {
         Task {
             await fetchAndMapOverride()
             if let determination = determination {
@@ -120,15 +128,8 @@ import UIKit
             // Fetch and map glucose to GlucoseData struct
             await fetchAndMapGlucose()
 
-            // Fetch and map Determination to DeterminationData struct
-            await fetchAndMapDetermination()
-
-            // Fetch and map Override to OverrideData struct
-            /// shows if there is an active Override
-            await fetchAndMapOverride()
-
             // Push the update to the Live Activity
-            glucoseDidUpdate(glucoseFromPersistence ?? [])
+            await glucoseDidUpdate(glucoseFromPersistence ?? [])
         }
     }
 
@@ -146,7 +147,7 @@ import UIKit
 
     /// creates and tries to present a new activity update from the current GlucoseStorage values if live activities are enabled in settings
     /// Ends existing live activities if live activities are not enabled in settings
-    private func forceActivityUpdate() {
+    @MainActor private func forceActivityUpdate() {
         // just before app resigns active, show a new activity
         // only do this if there is no current activity or the current activity is older than 1h
         if settings.useLiveActivity {
@@ -251,7 +252,7 @@ import UIKit
 
 @available(iOS 16.2, *)
 extension LiveActivityBridge {
-    func glucoseDidUpdate(_ glucose: [GlucoseData]) {
+    @MainActor func glucoseDidUpdate(_ glucose: [GlucoseData]) {
         guard settings.useLiveActivity else {
             if currentActivity != nil {
                 Task {
