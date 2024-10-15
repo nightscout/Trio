@@ -272,7 +272,7 @@ struct AddTempTargetForm: View {
                             ).buttonStyle(BorderlessButtonStyle())
                         }.padding(.top)
                     }.padding(.bottom)
-                }.listRowBackground(Color.chart)
+                }.listRowBackground(Color.tabBar)
             } else if state.tempTargetTarget < 100 {
                 Section {
                     VStack(alignment: .leading) {
@@ -310,7 +310,7 @@ struct AddTempTargetForm: View {
                             ).buttonStyle(BorderlessButtonStyle())
                         }.padding(.top)
                     }.padding(.bottom)
-                }.listRowBackground(Color.chart)
+                }.listRowBackground(Color.tabBar)
             }
 
             if state.didAdjustSens && state.tempTargetTarget != 100 {
