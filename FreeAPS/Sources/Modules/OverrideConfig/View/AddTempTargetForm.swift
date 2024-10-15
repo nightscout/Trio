@@ -124,7 +124,7 @@ struct AddTempTargetForm: View {
                         Text("Target Glucose")
                         Spacer()
                         Text(formattedGlucose(glucose: state.tempTargetTarget))
-                            .foregroundColor(!displayPickerTarget ? .primary : .tabBar)
+                            .foregroundColor(!displayPickerTarget ? .primary : .accentColor)
                     }
                     .padding(.vertical, pad)
                     .onTapGesture {
