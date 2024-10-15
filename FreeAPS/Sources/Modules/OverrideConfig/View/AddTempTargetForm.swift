@@ -309,35 +309,6 @@ struct AddTempTargetForm: View {
                 }.listRowBackground(Color.chart)
             }
         }
-
-        // TODO: with iOS 17 we can change the body content wrapper from FORM to LIST and apply the .listSpacing modifier to make this all nice and small.
-//        Section {
-//            Button(action: {
-//                showAlert.toggle()
-//            }, label: {
-//                Text("Enact Temp Target")
-//
-//            })
-//                .disabled(state.tempTargetDuration == 0)
-//                .frame(maxWidth: .infinity, alignment: .center)
-//                .tint(.white)
-//        }.listRowBackground(state.tempTargetDuration == 0 ? Color(.systemGray4) : Color(.systemBlue))
-//
-//        Section {
-//            Button(action: {
-//                Task {
-//                    didPressSave.toggle()
-//                    await state.saveTempTargetPreset()
-//                    dismiss()
-//                }
-//            }, label: {
-//                Text("Save as Preset")
-//
-//            })
-//                .disabled(state.tempTargetDuration == 0)
-//                .frame(maxWidth: .infinity, alignment: .center)
-//                .tint(.white)
-//        }.listRowBackground(state.tempTargetDuration == 0 ? Color(.systemGray4) : Color(.orange))
     }
 
     private func isTempTargetInvalid() -> (Bool, String?) {
@@ -447,23 +418,5 @@ struct AddTempTargetForm: View {
             // Ensure the value stays higher than 79
             state.tempTargetTarget = Decimal(max(80, roundedValue))
         }
-    }
-}
-
-struct RadioButton: View {
-    var isSelected: Bool
-    var label: String
-    var action: () -> Void
-
-    var body: some View {
-        Button(action: {
-            action()
-        }) {
-            HStack {
-                Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
-                Text(label) // Add label inside the button to make it tappable
-            }
-        }
-        .buttonStyle(PlainButtonStyle())
     }
 }
