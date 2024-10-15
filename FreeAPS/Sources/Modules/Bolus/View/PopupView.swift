@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct PopupView: View {
-    @StateObject var state: Bolus.StateModel
+    var state: Bolus.StateModel
     @Environment(\.colorScheme) var colorScheme
 
     private var fractionDigits: Int {
