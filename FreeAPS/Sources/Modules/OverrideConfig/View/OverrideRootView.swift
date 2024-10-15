@@ -60,6 +60,16 @@ extension OverrideConfig {
             return formatter
         }
 
+        private func formattedGlucose(glucose: Decimal) -> String {
+            let formattedValue: String
+            if state.units == .mgdL {
+                formattedValue = glucoseFormatter.string(from: glucose as NSDecimalNumber) ?? "\(glucose)"
+            } else {
+                formattedValue = glucose.formattedAsMmolL
+            }
+            return "\(formattedValue) \(state.units.rawValue)"
+        }
+
         var body: some View {
             VStack {
                 HStack(spacing: 6) {
@@ -395,9 +405,6 @@ extension OverrideConfig {
 
         private func tempTargetView(for preset: TempTargetStored) -> some View {
             var target = preset.target
-//            if state.units == .mmolL {
-//                target.asMmolL
-//            }
             let isSelected = preset.id?.uuidString == selectedTempTargetPresetID
 
             return ZStack(alignment: .trailing, content: {
@@ -408,13 +415,7 @@ extension OverrideConfig {
                             Spacer()
                         }
                         HStack(spacing: 2) {
-                            Text(
-                                "\(formatter.string(from: (target ?? 0) as NSNumber)!)"
-                            )
-                            .foregroundColor(.secondary)
-                            .font(.caption)
-
-                            Text(state.units.rawValue)
+                            Text(formattedGlucose(glucose: target as! Decimal))
                                 .foregroundColor(.secondary)
                                 .font(.caption)
                             Text("for")
