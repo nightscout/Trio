@@ -4,8 +4,8 @@ import SwiftUI
 struct AddOverrideForm: View {
     @Environment(\.presentationMode) var presentationMode
     @StateObject var state: OverrideConfig.StateModel
-    @State private var selectedIsfCrOption: isfAndOrCrOptions = .isfAndCr
-    @State private var selectedDisableSmbOption: disableSmbOptions = .dontDisable
+    @State private var selectedIsfCrOption: IsfAndOrCrOptions = .isfAndCr
+    @State private var selectedDisableSmbOption: DisableSmbOptions = .dontDisable
     @State private var percentageStep: Int = 5
     @State private var displayPickerPercentage: Bool = false
     @State private var displayPickerDuration: Bool = false
@@ -20,14 +20,14 @@ struct AddOverrideForm: View {
 
     @Environment(\.dismiss) var dismiss
 
-    enum isfAndOrCrOptions: String, CaseIterable {
+    enum IsfAndOrCrOptions: String, CaseIterable {
         case isfAndCr = "ISF/CR"
         case isf = "ISF"
         case cr = "CR"
-        case none = "None"
+        case nothing = "None"
     }
 
-    enum disableSmbOptions: String, CaseIterable {
+    enum DisableSmbOptions: String, CaseIterable {
         case dontDisable = "Don't Disable"
         case disable = "Disable"
         case disableOnSchedule = "Disable on Schedule"
@@ -198,7 +198,7 @@ struct AddOverrideForm: View {
 
                 // Picker for ISF/CR settings
                 Picker("Also Inversely Change", selection: $selectedIsfCrOption) {
-                    ForEach(isfAndOrCrOptions.allCases, id: \.self) { option in
+                    ForEach(IsfAndOrCrOptions.allCases, id: \.self) { option in
                         Text(option.rawValue).tag(option)
                     }
                 }
@@ -218,7 +218,7 @@ struct AddOverrideForm: View {
                         state.isfAndCr = false
                         state.isf = false
                         state.cr = true
-                    case .none:
+                    case .nothing:
                         state.isfAndCr = false
                         state.isf = false
                         state.cr = false
@@ -269,7 +269,7 @@ struct AddOverrideForm: View {
             VStack {
                 // Picker for ISF/CR settings
                 Picker("Disable SMBs", selection: $selectedDisableSmbOption) {
-                    ForEach(disableSmbOptions.allCases, id: \.self) { option in
+                    ForEach(DisableSmbOptions.allCases, id: \.self) { option in
                         Text(option.rawValue).tag(option)
                     }
                 }

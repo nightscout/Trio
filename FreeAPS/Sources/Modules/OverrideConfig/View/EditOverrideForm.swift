@@ -22,8 +22,8 @@ struct EditOverrideForm: View {
     @State private var cr: Bool
     @State private var smbMinutes: Decimal?
     @State private var uamMinutes: Decimal?
-    @State private var selectedIsfCrOption: isfAndOrCrOptions
-    @State private var selectedDisableSmbOption: disableSmbOptions
+    @State private var selectedIsfCrOption: IsfAndOrCrOptions
+    @State private var selectedDisableSmbOption: DisableSmbOptions
 
     @State private var hasChanges = false
     @State private var isEditing = false
@@ -54,7 +54,7 @@ struct EditOverrideForm: View {
         _cr = State(initialValue: overrideToEdit.cr)
         _selectedIsfCrOption = State(
             initialValue: overrideToEdit.isfAndCr ? .isfAndCr
-                : (overrideToEdit.isf ? .isf : (overrideToEdit.cr ? .cr : .none))
+                : (overrideToEdit.isf ? .isf : (overrideToEdit.cr ? .cr : .nothing))
         )
         _selectedDisableSmbOption = State(
             initialValue: overrideToEdit.smbIsScheduledOff ? .disableOnSchedule
@@ -64,14 +64,14 @@ struct EditOverrideForm: View {
         _uamMinutes = State(initialValue: overrideToEdit.uamMinutes?.decimalValue)
     }
 
-    enum isfAndOrCrOptions: String, CaseIterable {
+    enum IsfAndOrCrOptions: String, CaseIterable {
         case isfAndCr = "ISF/CR"
         case isf = "ISF"
         case cr = "CR"
-        case none = "None"
+        case nothing = "None"
     }
 
-    enum disableSmbOptions: String, CaseIterable {
+    enum DisableSmbOptions: String, CaseIterable {
         case dontDisable = "Don't Disable"
         case disable = "Disable"
         case disableOnSchedule = "Disable on Schedule"
@@ -196,7 +196,9 @@ struct EditOverrideForm: View {
                                         Int(truncating: duration as NSNumber) / 60
                                     },
                                     set: {
-                                        duration = Decimal($0 * 60 + Int(truncating: duration as NSNumber) % 60)
+                                        let minutes = Int(truncating: duration as NSNumber) % 60
+                                        let totalMinutes = $0 * 60 + minutes
+                                        duration = Decimal(totalMinutes)
                                         hasChanges = true
                                     }
                                 ),
@@ -282,7 +284,7 @@ struct EditOverrideForm: View {
 
                 // Picker for ISF/CR settings
                 Picker("Also Change", selection: $selectedIsfCrOption) {
-                    ForEach(isfAndOrCrOptions.allCases, id: \.self) { option in
+                    ForEach(IsfAndOrCrOptions.allCases, id: \.self) { option in
                         Text(option.rawValue).tag(option)
                     }
                 }
@@ -302,7 +304,7 @@ struct EditOverrideForm: View {
                         isfAndCr = false
                         isf = false
                         cr = true
-                    case .none:
+                    case .nothing:
                         isfAndCr = false
                         isf = false
                         cr = false
@@ -338,7 +340,7 @@ struct EditOverrideForm: View {
             VStack {
                 // Picker for Disable SMB settings
                 Picker("Disable SMBs", selection: $selectedDisableSmbOption) {
-                    ForEach(disableSmbOptions.allCases, id: \.self) { option in
+                    ForEach(DisableSmbOptions.allCases, id: \.self) { option in
                         Text(option.rawValue).tag(option)
                     }
                 }
