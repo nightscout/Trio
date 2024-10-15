@@ -311,42 +311,18 @@ extension MessageView {
         let defaultSystemColorScheme = currentColorScheme()
         var backgroundColor = UIColor.systemBackground
         var foregroundColor = UIColor.white
-        let iOSlightTrioDark = UIColor(
-            red: 122 / 255,
-            green: 146 / 255,
-            blue: 163 / 255,
-            alpha: 0.95
-        )
-        let iOSlightTrioLight = UIColor(
-            red: 234 / 255,
-            green: 236 / 255,
-            blue: 237 / 255,
-            alpha: 1
-        )
-        let iOSlightTrioSystem = UIColor(
-            red: 233 / 255,
-            green: 235 / 255,
-            blue: 236 / 255,
-            alpha: 0.95
-        )
-        let iOSdarkTrioDark = UIColor(
-            red: 16 / 255,
-            green: 37 / 255,
-            blue: 53 / 255,
-            alpha: 0.95
-        )
+        let ApnBackground = UIColor(named: "ApnBackground") ?? UIColor.lightGray
+        let iOSlightTrioDark = UIColor(named: "ApnBackgroundLightDark") ?? UIColor.lightGray
+
         switch colorSchemePreference {
         case .systemDefault:
-            backgroundColor = defaultSystemColorScheme == .light ? iOSlightTrioSystem :
-                iOSdarkTrioDark
+            backgroundColor = ApnBackground
             foregroundColor = UIColor.label
         case .dark:
-            backgroundColor = defaultSystemColorScheme == .light ? iOSlightTrioDark :
-                iOSdarkTrioDark
+            backgroundColor = defaultSystemColorScheme == .light ? iOSlightTrioDark : ApnBackground
             foregroundColor = defaultSystemColorScheme == .light ? UIColor.black : UIColor.white
         case .light:
-            backgroundColor = defaultSystemColorScheme == .light ? iOSlightTrioLight : UIColor
-                .gray
+            backgroundColor = defaultSystemColorScheme == .light ? ApnBackground : UIColor.gray
             foregroundColor = defaultSystemColorScheme == .light ? UIColor.black : UIColor.white
         }
 
