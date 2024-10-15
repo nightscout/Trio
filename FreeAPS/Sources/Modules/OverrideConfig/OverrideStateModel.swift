@@ -790,8 +790,6 @@ extension OverrideConfig.StateModel {
         let adjustmentRatio = Decimal(percentage / 100)
         let normalTarget: Decimal = 100
         var tempTargetValue: Decimal = tempTargetTarget
-        if units == .mmolL {
-            tempTargetValue = tempTargetValue.asMgdL }
         var halfBasalTargetValue = halfBasalTarget
         if adjustmentRatio != 1 {
             halfBasalTargetValue = ((2 * adjustmentRatio * normalTarget) - normalTarget - (adjustmentRatio * tempTargetValue)) /
