@@ -18,6 +18,9 @@ struct AddTempTargetForm: View {
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dismiss) var dismiss
+    @State private var displayPickerDuration: Bool = false
+    @State private var durationHours = 0
+    @State private var durationMinutes = 0
     @State private var targetStep: Double
     @State private var displayPickerTarget: Bool = false
     @State private var showAlert = false
@@ -113,12 +116,44 @@ struct AddTempTargetForm: View {
                     TextField("Enter Name (optional)", text: $state.tempTargetName)
                         .multilineTextAlignment(.trailing)
                 }
+
                 HStack {
                     Text("Duration")
                     Spacer()
-                    TextFieldWithToolBar(text: $state.tempTargetDuration, placeholder: "0", numberFormatter: formatter)
-                    Text("minutes").foregroundColor(.secondary)
+                    Text(formatHrMin(Int(state.tempTargetDuration)))
+                        .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
                 }
+                .padding(.vertical, pad)
+                .onTapGesture {
+                    displayPickerDuration.toggle()
+                }
+
+                if displayPickerDuration {
+                    HStack {
+                        Picker("Hours", selection: $durationHours) {
+                            ForEach(0 ..< 24) { hour in
+                                Text("\(hour) hr").tag(hour)
+                            }
+                        }
+                        .pickerStyle(WheelPickerStyle())
+                        .frame(maxWidth: .infinity)
+                        .onChange(of: durationHours) {
+                            state.tempTargetDuration = Decimal(totalDurationInMinutes())
+                        }
+
+                        Picker("Minutes", selection: $durationMinutes) {
+                            ForEach(Array(stride(from: 0, through: 55, by: 5)), id: \.self) { minute in
+                                Text("\(minute) min").tag(minute)
+                            }
+                        }
+                        .pickerStyle(WheelPickerStyle())
+                        .frame(maxWidth: .infinity)
+                        .onChange(of: durationMinutes) {
+                            state.tempTargetDuration = Decimal(totalDurationInMinutes())
+                        }
+                    }
+                }
+
                 VStack {
                     HStack {
                         Text("Target Glucose")
@@ -382,6 +417,11 @@ struct AddTempTargetForm: View {
         }
     }
 
+    private func totalDurationInMinutes() -> Int {
+        let durationTotal = (durationHours * 60) + durationMinutes
+        return max(0, durationTotal)
+    }
+
     private func formattedPercentage(_ value: Double) -> String {
         let percentageNumber = NSNumber(value: value)
         return formatter.string(from: percentageNumber) ?? "\(value)"
@@ -395,5 +435,19 @@ struct AddTempTargetForm: View {
             formattedValue = glucose.formattedAsMmolL
         }
         return "\(formattedValue) \(state.units.rawValue)"
+    }
+}
+
+func formatHrMin(_ durationInMinutes: Int) -> String {
+    let hours = durationInMinutes / 60
+    let minutes = durationInMinutes % 60
+
+    switch (hours, minutes) {
+    case let (0, m):
+        return "\(m) min"
+    case let (h, 0):
+        return "\(h) hr"
+    default:
+        return "\(hours) hr \(minutes) min"
     }
 }
