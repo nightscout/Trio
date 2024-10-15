@@ -181,9 +181,9 @@ struct AddTempTargetForm: View {
                                 ForEach(
                                     Array(stride(from: 80, through: 270, by: targetStep)),
                                     id: \.self
-                                ) { glucose in
-                                    Text(formattedGlucose(glucose: Decimal(glucose)))
-                                        .tag(Int(glucose))
+                                ) { glucoseTarget in
+                                    Text(formattedGlucose(glucose: Decimal(glucoseTarget)))
+                                        .tag(Int(glucoseTarget))
                                 }
                             }
                             .pickerStyle(WheelPickerStyle())
