@@ -222,6 +222,9 @@ struct AddTempTargetForm: View {
                             }
                             .pickerStyle(WheelPickerStyle())
                             .frame(maxWidth: .infinity)
+                            .onChange(of: state.tempTargetTarget) { _ in
+                                state.percentage = Double(state.computeAdjustedPercentage() * 100)
+                            }
                         }
                         .frame(maxWidth: .infinity)
                     }
