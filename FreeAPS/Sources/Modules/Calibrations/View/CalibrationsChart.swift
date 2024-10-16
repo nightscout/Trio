@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct CalibrationsChart: View {
-    @EnvironmentObject var state: Calibrations.StateModel
+    var state: Calibrations.StateModel
 
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()

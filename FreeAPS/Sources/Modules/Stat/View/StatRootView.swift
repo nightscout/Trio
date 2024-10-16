@@ -7,7 +7,7 @@ import Swinject
 extension Stat {
     struct RootView: BaseView {
         let resolver: Resolver
-        @StateObject var state = StateModel()
+        @State var state = StateModel()
 
         @Environment(\.colorScheme) var colorScheme
 
@@ -42,42 +42,42 @@ extension Stat {
                 case .Today:
                     StatsView(
                         filter: filter.today,
-                        $state.highLimit,
-                        $state.lowLimit,
-                        $state.units,
-                        $state.overrideUnit
+                        highLimit: state.highLimit,
+                        lowLimit: state.lowLimit,
+                        units: state.units,
+                        overrideUnit: state.overrideUnit
                     )
                 case .Day:
                     StatsView(
                         filter: filter.day,
-                        $state.highLimit,
-                        $state.lowLimit,
-                        $state.units,
-                        $state.overrideUnit
+                        highLimit: state.highLimit,
+                        lowLimit: state.lowLimit,
+                        units: state.units,
+                        overrideUnit: state.overrideUnit
                     )
                 case .Week:
                     StatsView(
                         filter: filter.week,
-                        $state.highLimit,
-                        $state.lowLimit,
-                        $state.units,
-                        $state.overrideUnit
+                        highLimit: state.highLimit,
+                        lowLimit: state.lowLimit,
+                        units: state.units,
+                        overrideUnit: state.overrideUnit
                     )
                 case .Month:
                     StatsView(
                         filter: filter.month,
-                        $state.highLimit,
-                        $state.lowLimit,
-                        $state.units,
-                        $state.overrideUnit
+                        highLimit: state.highLimit,
+                        lowLimit: state.lowLimit,
+                        units: state.units,
+                        overrideUnit: state.overrideUnit
                     )
                 case .Total:
                     StatsView(
                         filter: filter.total,
-                        $state.highLimit,
-                        $state.lowLimit,
-                        $state.units,
-                        $state.overrideUnit
+                        highLimit: state.highLimit,
+                        lowLimit: state.lowLimit,
+                        units: state.units,
+                        overrideUnit: state.overrideUnit
                     )
                 }
             }
@@ -87,47 +87,47 @@ extension Stat {
             switch state.selectedDuration {
             case .Today:
                 ChartsView(
-                    $state.highLimit,
-                    $state.lowLimit,
-                    $state.units,
-                    $state.overrideUnit,
-                    $state.layingChart,
+                    highLimit: state.highLimit,
+                    lowLimit: state.lowLimit,
+                    units: state.units,
+                    overrideUnit: state.overrideUnit,
+                    standing: state.layingChart,
                     glucose: state.glucoseFromPersistence
                 )
             case .Day:
                 ChartsView(
-                    $state.highLimit,
-                    $state.lowLimit,
-                    $state.units,
-                    $state.overrideUnit,
-                    $state.layingChart,
+                    highLimit: state.highLimit,
+                    lowLimit: state.lowLimit,
+                    units: state.units,
+                    overrideUnit: state.overrideUnit,
+                    standing: state.layingChart,
                     glucose: state.glucoseFromPersistence
                 )
             case .Week:
                 ChartsView(
-                    $state.highLimit,
-                    $state.lowLimit,
-                    $state.units,
-                    $state.overrideUnit,
-                    $state.layingChart,
+                    highLimit: state.highLimit,
+                    lowLimit: state.lowLimit,
+                    units: state.units,
+                    overrideUnit: state.overrideUnit,
+                    standing: state.layingChart,
                     glucose: state.glucoseFromPersistence
                 )
             case .Month:
                 ChartsView(
-                    $state.highLimit,
-                    $state.lowLimit,
-                    $state.units,
-                    $state.overrideUnit,
-                    $state.layingChart,
+                    highLimit: state.highLimit,
+                    lowLimit: state.lowLimit,
+                    units: state.units,
+                    overrideUnit: state.overrideUnit,
+                    standing: state.layingChart,
                     glucose: state.glucoseFromPersistence
                 )
             case .Total:
                 ChartsView(
-                    $state.highLimit,
-                    $state.lowLimit,
-                    $state.units,
-                    $state.overrideUnit,
-                    $state.layingChart,
+                    highLimit: state.highLimit,
+                    lowLimit: state.lowLimit,
+                    units: state.units,
+                    overrideUnit: state.overrideUnit,
+                    standing: state.layingChart,
                     glucose: state.glucoseFromPersistence
                 )
             }
