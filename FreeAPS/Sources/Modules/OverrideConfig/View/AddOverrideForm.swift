@@ -9,6 +9,7 @@ struct AddOverrideForm: View {
     @State private var percentageStep: Int = 5
     @State private var displayPickerPercentage: Bool = false
     @State private var displayPickerDuration: Bool = false
+    @State private var targetStep: Decimal = 5
     @State private var displayPickerTarget: Bool = false
     @State private var displayPickerDisableSmbSchedule: Bool = false
     @State private var displayPickerSmbMinutes: Bool = false
@@ -89,6 +90,7 @@ struct AddOverrideForm: View {
                     })
                 }
             }
+            .onAppear { targetStep = state.units == .mgdL ? 5 : 9 }
         }
     }
 
@@ -245,22 +247,42 @@ struct AddOverrideForm: View {
                         }
 
                         if displayPickerTarget {
-                            let step = state.units == .mgdL ? 1 : 2
-                            Picker(selection: Binding(
-                                get: { Int(truncating: state.target as NSNumber) },
-                                set: { state.target = Decimal($0)
+                            HStack {
+                                // Radio buttons and text on the left side
+                                VStack(alignment: .leading) {
+                                    // Radio buttons for step iteration
+                                    let stepChoices: [Decimal] = state.units == .mgdL ? [1, 5] : [1, 9]
+                                    ForEach(stepChoices, id: \.self) { step in
+                                        RadioButton(
+                                            isSelected: targetStep == step,
+                                            label: "\(state.units == .mgdL ? step : step.asMmolL) \(state.units.rawValue)"
+                                        ) {
+                                            targetStep = step
+                                            state.target = roundTargetToStep(state.target, targetStep)
+                                        }
+                                        .padding(.top, 10)
+                                    }
                                 }
-                            ), label: Text("")) {
-                                ForEach(
-                                    Array(stride(from: 72, through: 270, by: step)),
-                                    id: \.self
-                                ) { glucose in
-                                    Text(formattedGlucose(glucose: Decimal(glucose)))
-                                        .tag(glucose)
+                                .frame(maxWidth: .infinity)
+
+                                Spacer()
+
+                                // Picker on the right side
+                                Picker(selection: Binding(
+                                    get: { roundTargetToStep(state.target, targetStep) },
+                                    set: { state.target = $0 }
+                                ), label: Text("")) {
+                                    ForEach(
+                                        generateTargetPickerValues(),
+                                        id: \.self
+                                    ) { glucose in
+                                        Text(formattedGlucose(glucose: glucose))
+                                            .tag(glucose)
+                                    }
                                 }
+                                .pickerStyle(WheelPickerStyle())
+                                .frame(maxWidth: .infinity)
                             }
-                            .pickerStyle(WheelPickerStyle())
-                            .frame(maxWidth: .infinity)
                         }
                     }
                 }
@@ -523,6 +545,60 @@ struct AddOverrideForm: View {
             // Ensure the value stays between 10 and 200
             state.overridePercentage = max(10, min(roundedValue, 200))
         }
+    }
+
+    private func roundTargetToStep(_ target: Decimal, _ step: Decimal) -> Decimal {
+        // Convert target and step to NSDecimalNumber
+        guard let targetValue = NSDecimalNumber(decimal: target).doubleValue as Double?,
+              let stepValue = NSDecimalNumber(decimal: step).doubleValue as Double?
+        else {
+            print("Failed to unwrap target or step as NSDecimalNumber")
+            return target
+        }
+
+        // Perform the remainder check using truncatingRemainder
+        let remainder = Decimal(targetValue.truncatingRemainder(dividingBy: stepValue))
+
+        if remainder != 0 {
+            // Calculate how much to adjust (up or down) based on the remainder
+            let adjustment = step - remainder
+            return target + adjustment
+        }
+
+        // Return the original target if no adjustment is needed
+        return target
+    }
+
+    func generateTargetPickerValues() -> [Decimal] {
+        var values: [Decimal] = []
+        var currentValue: Double = 72
+        let step = Double(targetStep)
+
+        // Adjust currentValue to be divisible by targetStep
+        let remainder = currentValue.truncatingRemainder(dividingBy: step)
+        if remainder != 0 {
+            // Move currentValue up to the next value divisible by targetStep
+            currentValue += (step - remainder)
+        }
+
+        // Now generate the picker values starting from currentValue
+        while currentValue <= 270 {
+            values.append(Decimal(currentValue))
+            currentValue += step
+        }
+
+        // Glucose values are stored as mg/dl values, so Integers.
+        // Filter out duplicate values when rounded to 1 decimal place.
+        if state.units == .mmolL {
+            // Use a Set to track unique values rounded to 1 decimal
+            var uniqueRoundedValues = Set<String>()
+            values = values.filter { value in
+                let roundedValue = String(format: "%.1f", NSDecimalNumber(decimal: value.asMmolL).doubleValue)
+                return uniqueRoundedValues.insert(roundedValue).inserted
+            }
+        }
+
+        return values
     }
 }
 

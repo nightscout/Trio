@@ -31,6 +31,7 @@ struct EditOverrideForm: View {
     @State private var percentageStep: Int = 5
     @State private var displayPickerPercentage: Bool = false
     @State private var displayPickerDuration: Bool = false
+    @State private var targetStep: Decimal = 5
     @State private var displayPickerTarget: Bool = false
     @State private var displayPickerDisableSmbSchedule: Bool = false
     @State private var displayPickerSmbMinutes: Bool = false
@@ -146,6 +147,7 @@ struct EditOverrideForm: View {
                     })
                 }
             }
+            .onAppear { targetStep = state.units == .mgdL ? 5 : 9 }
             .onDisappear {
                 if !hasChanges {
                     // Reset UI changes
@@ -323,16 +325,17 @@ struct EditOverrideForm: View {
                 }
                 // Target Glucose Picker
                 if target_override {
-                    let step: Decimal = state.units == .mgdL ? 1 : 2
-                    ScrollWheelPicker(
+                    TargetPicker(
                         label: "Target Glucose",
                         selection: Binding(
-                            get: { target ?? Decimal(100) },
+                            get: { target ?? 100 },
                             set: { target = $0 }
                         ),
-                        options: Array(stride(from: Decimal(72), through: Decimal(270), by: step)),
+                        options: generateTargetPickerValues(),
                         formatter: { formattedGlucose(glucose: $0) },
-                        hasChanges: $hasChanges
+                        units: state.units,
+                        hasChanges: $hasChanges,
+                        targetStep: $targetStep
                     )
                 }
             }
@@ -663,14 +666,70 @@ struct EditOverrideForm: View {
             percentage = max(10, min(roundedValue, 200))
         }
     }
+
+    func generateTargetPickerValues() -> [Decimal] {
+        var values: [Decimal] = []
+        var currentValue: Double = 72
+        let step = Double(targetStep)
+
+        // Adjust currentValue to be divisible by targetStep
+        let remainder = currentValue.truncatingRemainder(dividingBy: step)
+        if remainder != 0 {
+            // Move currentValue up to the next value divisible by targetStep
+            currentValue += (step - remainder)
+        }
+
+        // Now generate the picker values starting from currentValue
+        while currentValue <= 270 {
+            values.append(Decimal(currentValue))
+            currentValue += step
+        }
+
+        // Glucose values are stored as mg/dl values, so Integers.
+        // Filter out duplicate values when rounded to 1 decimal place.
+        if state.units == .mmolL {
+            // Use a Set to track unique values rounded to 1 decimal
+            var uniqueRoundedValues = Set<String>()
+            values = values.filter { value in
+                let roundedValue = String(format: "%.1f", NSDecimalNumber(decimal: value.asMmolL).doubleValue)
+                return uniqueRoundedValues.insert(roundedValue).inserted
+            }
+        }
+
+        return values
+    }
 }
 
-struct ScrollWheelPicker<T: Hashable>: View {
+private func roundTargetToStep(_ target: Decimal, _ step: Decimal) -> Decimal {
+    // Convert target and step to NSDecimalNumber
+    guard let targetValue = NSDecimalNumber(decimal: target).doubleValue as Double?,
+          let stepValue = NSDecimalNumber(decimal: step).doubleValue as Double?
+    else {
+        print("Failed to unwrap target or step as NSDecimalNumber")
+        return target
+    }
+
+    // Perform the remainder check using truncatingRemainder
+    let remainder = Decimal(targetValue.truncatingRemainder(dividingBy: stepValue))
+
+    if remainder != 0 {
+        // Calculate how much to adjust (up or down) based on the remainder
+        let adjustment = step - remainder
+        return target + adjustment
+    }
+
+    // Return the original target if no adjustment is needed
+    return target
+}
+
+struct TargetPicker: View {
     let label: String
-    @Binding var selection: T
-    let options: [T]
-    let formatter: (T) -> String
+    @Binding var selection: Decimal
+    let options: [Decimal]
+    let formatter: (Decimal) -> String
+    let units: GlucoseUnits
     @Binding var hasChanges: Bool
+    @Binding var targetStep: Decimal
     @State private var isDisplayed: Bool = false
 
     var body: some View {
@@ -685,19 +744,41 @@ struct ScrollWheelPicker<T: Hashable>: View {
                 isDisplayed.toggle()
             }
             if isDisplayed {
-                Picker(selection: Binding(
-                    get: { selection },
-                    set: {
-                        selection = $0
-                        hasChanges = true
+                HStack {
+                    // Radio buttons and text on the left side
+                    VStack(alignment: .leading) {
+                        // Radio buttons for step iteration
+                        let stepChoices: [Decimal] = units == .mgdL ? [1, 5] : [1, 9]
+                        ForEach(stepChoices, id: \.self) { step in
+                            RadioButton(
+                                isSelected: targetStep == step,
+                                label: "\(units == .mgdL ? step : step.asMmolL) \(units.rawValue)"
+                            ) {
+                                targetStep = step
+                                selection = roundTargetToStep(selection, step)
+                            }
+                            .padding(.top, 10)
+                        }
                     }
-                ), label: Text("")) {
-                    ForEach(options, id: \.self) { option in
-                        Text(formatter(option)).tag(option)
+                    .frame(maxWidth: .infinity)
+
+                    Spacer()
+
+                    // Picker on the right side
+                    Picker(selection: Binding(
+                        get: { roundTargetToStep(selection, targetStep) },
+                        set: {
+                            selection = $0
+                            hasChanges = true
+                        }
+                    ), label: Text("")) {
+                        ForEach(options, id: \.self) { option in
+                            Text(formatter(option)).tag(option)
+                        }
                     }
+                    .pickerStyle(WheelPickerStyle())
+                    .frame(maxWidth: .infinity)
                 }
-                .pickerStyle(WheelPickerStyle())
-                .frame(maxWidth: .infinity)
             }
         }
     }
