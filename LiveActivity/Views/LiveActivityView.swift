@@ -104,7 +104,12 @@ struct LiveActivityView: View {
             .privacySensitive()
             .padding(.all, 14)
             .foregroundStyle(Color.primary)
-            .activityBackgroundTint(colorScheme == .light ? Color.white.opacity(0.43) : Color.black.opacity(0.43))
+            // Semantic BackgroundStyle and Color values work here. They adapt to the given interface style (light mode, dark mode)
+            // Semantic UIColors do NOT (as of iOS 17.1.1). Like UIColor.systemBackgroundColor (it does not adapt to changes of the interface style)
+            // The colorScheme environment variable does work here, but BackgroundStyle gives us this functionality for free
+            .foregroundStyle(Color.primary)
+            .background(BackgroundStyle.background.opacity(0.4))
+            .activityBackgroundTint(Color.clear)
         } else {
             Group {
                 if context.state.isInitialState {
@@ -128,7 +133,12 @@ struct LiveActivityView: View {
             .privacySensitive()
             .padding(.all, 15)
             .foregroundStyle(Color.primary)
-            .activityBackgroundTint(colorScheme == .light ? Color.white.opacity(0.43) : Color.black.opacity(0.43))
+            /// Semantic BackgroundStyle and Color values work here. They adapt to the given interface style (light mode, dark mode)
+            // Semantic UIColors do NOT (as of iOS 17.1.1). Like UIColor.systemBackgroundColor (it does not adapt to changes of the interface style)
+            // The colorScheme environment variable does work here, but BackgroundStyle gives us this functionality for free
+            .foregroundStyle(Color.primary)
+            .background(BackgroundStyle.background.opacity(0.4))
+            .activityBackgroundTint(Color.clear)
         }
     }
 }
