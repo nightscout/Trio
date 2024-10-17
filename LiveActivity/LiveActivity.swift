@@ -235,46 +235,43 @@ struct LiveActivityView: View {
                     }
 
                 HStack {
-                    if detailedViewState.itemOrder.contains(where: { $0 != .empty }) {
-                        ForEach(Array(detailedViewState.itemOrder.enumerated()), id: \.element) { index, widgetItem in
+                    if detailedViewState.widgetItems.contains(where: { $0 != .empty }) {
+                        ForEach(Array(detailedViewState.widgetItems.enumerated()), id: \.element) { index, widgetItem in
                             switch widgetItem {
                             case .currentGlucose:
-                                if detailedViewState.showCurrentGlucose {
-                                    VStack {
-                                        LiveActivityBGLabelView(context: context, additionalState: detailedViewState)
-                                        HStack {
-                                            LiveActivityGlucoseDeltaLabelView(
-                                                context: context,
-                                                glucoseColor: .primary,
-                                                isDetailed: true
-                                            )
-                                            if !context.isStale, let direction = context.state.direction {
-                                                Text(direction).font(.headline)
-                                            }
+                                VStack {
+                                    LiveActivityBGLabelView(context: context, additionalState: detailedViewState)
+                                    HStack {
+                                        LiveActivityGlucoseDeltaLabelView(
+                                            context: context,
+                                            glucoseColor: .primary,
+                                            isDetailed: true
+                                        )
+                                        if !context.isStale, let direction = context.state.direction {
+                                            Text(direction).font(.headline)
                                         }
                                     }
                                 }
                             case .iob:
-                                if detailedViewState.showIOB {
-                                    LiveActivityIOBLabelView(context: context, additionalState: detailedViewState)
-                                }
+                                LiveActivityIOBLabelView(context: context, additionalState: detailedViewState)
                             case .cob:
-                                if detailedViewState.showCOB {
-                                    LiveActivityCOBLabelView(context: context, additionalState: detailedViewState)
-                                }
+                                LiveActivityCOBLabelView(context: context, additionalState: detailedViewState)
                             case .updatedLabel:
-                                if detailedViewState.showUpdatedLabel {
-                                    LiveActivityUpdatedLabelView(context: context, isDetailedLayout: true)
-                                }
+                                LiveActivityUpdatedLabelView(context: context, isDetailedLayout: true)
                             case .empty:
                                 Text("").frame(width: 50, height: 50)
                             }
 
-                            // Find the next non-empty widget for the divider check
-                            if index < detailedViewState.itemOrder.count - 1 {
-                                let nextNonEmptyIndex = detailedViewState.itemOrder[(index + 1)...].firstIndex { $0 != .empty }
-                                if let nextIndex = nextNonEmptyIndex, nextIndex > index {
-                                    Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
+                            /// Check if the next item is also non-empty to determine if a divider should be shown
+                            if index < detailedViewState.widgetItems.count - 1 {
+                                let currentItem = detailedViewState.widgetItems[index]
+                                let nextItem = detailedViewState.widgetItems[index + 1]
+
+                                if currentItem != .empty, nextItem != .empty {
+                                    Divider()
+                                        .foregroundStyle(.primary)
+                                        .fontWeight(.bold)
+                                        .frame(width: 10)
                                 }
                             }
                         }
@@ -757,11 +754,7 @@ private extension LiveActivityAttributes.ContentState {
         overrideDate: Date().addingTimeInterval(-3600),
         overrideDuration: 120,
         overrideTarget: 150,
-        itemOrder: LiveActivityAttributes.ItemOrder.defaultOrders,
-        showCOB: true,
-        showIOB: true,
-        showCurrentGlucose: true,
-        showUpdatedLabel: true
+        widgetItems: LiveActivityAttributes.LiveActivityItem.defaultItems
     )
 
     // 0 is the widest digit. Use this to get an upper bound on text width.

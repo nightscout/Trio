@@ -44,6 +44,7 @@ import UIKit
     private var latestGlucose: GlucoseData?
     var glucoseFromPersistence: [GlucoseData]?
     var isOverridesActive: OverrideData?
+    var widgetItems: [LiveActivityAttributes.LiveActivityItem]?
 
     let context = CoreDataStack.shared.newTaskContext()
 
@@ -92,22 +93,8 @@ import UIKit
     // TODO: - use a delegate or a custom notification here instead
 
     func settingsDidChange(_: FreeAPSSettings) {
-        guard let latestGlucose = latestGlucose else { return }
-
-        let content = LiveActivityAttributes.ContentState(
-            new: latestGlucose,
-            prev: latestGlucose,
-            units: settings.units,
-            chart: glucoseFromPersistence ?? [],
-            settings: settings,
-            determination: determination,
-            override: isOverridesActive
-        )
-
-        if let content = content {
-            Task {
-                await pushUpdate(content)
-            }
+        Task {
+            await updateContentState()
         }
     }
 
@@ -154,11 +141,13 @@ import UIKit
 
     @objc private func handleLiveActivityOrderChange() {
         Task {
+            self.widgetItems = UserDefaults.standard
+                .loadLiveActivityOrderFromUserDefaults() ?? LiveActivityAttributes.LiveActivityItem.defaultItems
             await self.updateLiveActivityOrder()
         }
     }
 
-    @MainActor private func updateLiveActivityOrder() async {
+    @MainActor  private func updateContentState() async {
         guard let latestGlucose = latestGlucose else { return }
 
         let content = LiveActivityAttributes.ContentState(
@@ -168,11 +157,20 @@ import UIKit
             chart: glucoseFromPersistence ?? [],
             settings: settings,
             determination: determination,
-            override: isOverridesActive
+            override: isOverridesActive,
+            widgetItems: widgetItems
         )
 
         if let content = content {
-            await pushUpdate(content)
+            Task {
+                await pushUpdate(content)
+            }
+        }
+    }
+
+    @MainActor private func updateLiveActivityOrder() async {
+        Task {
+            await updateContentState()
         }
     }
 
@@ -272,21 +270,9 @@ import UIKit
         }
     }
 
-    @MainActor private func pushDeterminationUpdate(_ determination: DeterminationData) async {
-        guard let latestGlucose = latestGlucose else { return }
-
-        let content = LiveActivityAttributes.ContentState(
-            new: latestGlucose,
-            prev: latestGlucose,
-            units: settings.units,
-            chart: glucoseFromPersistence ?? [],
-            settings: settings,
-            determination: determination,
-            override: isOverridesActive
-        )
-
-        if let content = content {
-            await pushUpdate(content)
+    @MainActor private func pushDeterminationUpdate(_: DeterminationData) async {
+        Task {
+            await updateContentState()
         }
     }
 
@@ -336,7 +322,8 @@ extension LiveActivityBridge {
                 chart: glucose,
                 settings: settings,
                 determination: determination,
-                override: isOverridesActive
+                override: isOverridesActive,
+                widgetItems: widgetItems
             )
 
             if let content = content {

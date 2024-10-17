@@ -54,12 +54,6 @@
   "sweetMeals": false,
   "sweetMealFactor": 2,
   "lockScreenView": "simple",
-  "showChart": true,
-  "showCurrentGlucose": true,
-  "showChangeLabel": true,
-  "showIOB": true,
-  "showCOB": true,
-  "showUpdatedLabel": true,
   "useCalendar": false,
   "displayCalendarIOBandCOB": false,
   "displayCalendarEmojis": false

@@ -73,12 +73,6 @@ struct FreeAPSSettings: JSON, Equatable {
     var displayPresets: Bool = true
     var useLiveActivity: Bool = false
     var lockScreenView: LockScreenView = .simple
-    var showChart: Bool = true
-    var showCurrentGlucose: Bool = true
-    var showChangeLabel: Bool = true
-    var showIOB: Bool = true
-    var showCOB: Bool = true
-    var showUpdatedLabel: Bool = true
     var bolusShortcut: BolusShortcutLimit = .notAllowed
 }
 
@@ -319,30 +313,6 @@ extension FreeAPSSettings: Decodable {
 
         if let lockScreenView = try? container.decode(LockScreenView.self, forKey: .lockScreenView) {
             settings.lockScreenView = lockScreenView
-        }
-
-        if let showChart = try? container.decode(Bool.self, forKey: .showChart) {
-            settings.showChart = showChart
-        }
-
-        if let showCurrentGlucose = try? container.decode(Bool.self, forKey: .showCurrentGlucose) {
-            settings.showCurrentGlucose = showCurrentGlucose
-        }
-
-        if let showChangeLabel = try? container.decode(Bool.self, forKey: .showChangeLabel) {
-            settings.showChangeLabel = showChangeLabel
-        }
-
-        if let showIOB = try? container.decode(Bool.self, forKey: .showIOB) {
-            settings.showIOB = showIOB
-        }
-
-        if let showCOB = try? container.decode(Bool.self, forKey: .showCOB) {
-            settings.showCOB = showCOB
-        }
-
-        if let showUpdatedLabel = try? container.decode(Bool.self, forKey: .showUpdatedLabel) {
-            settings.showUpdatedLabel = showUpdatedLabel
         }
 
         if let bolusShortcut = try? container.decode(BolusShortcutLimit.self, forKey: .bolusShortcut) {

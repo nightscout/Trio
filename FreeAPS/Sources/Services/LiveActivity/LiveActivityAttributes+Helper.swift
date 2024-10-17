@@ -5,13 +5,13 @@ extension UserDefaults {
         static let liveActivityOrder = "liveActivityOrder"
     }
 
-    func loadLiveActivityOrderFromUserDefaults() -> [LiveActivityAttributes.ItemOrder]? {
+    func loadLiveActivityOrderFromUserDefaults() -> [LiveActivityAttributes.LiveActivityItem]? {
         if let itemStrings = stringArray(forKey: Keys.liveActivityOrder) {
             return itemStrings.map { string in
                 if string == "" {
                     return .empty
                 } else {
-                    return LiveActivityAttributes.ItemOrder(rawValue: string) ?? .empty
+                    return LiveActivityAttributes.LiveActivityItem(rawValue: string) ?? .empty
                 }
             }
         }
@@ -62,7 +62,8 @@ extension LiveActivityAttributes.ContentState {
         chart: [GlucoseData],
         settings: FreeAPSSettings,
         determination: DeterminationData?,
-        override: OverrideData?
+        override: OverrideData?,
+        widgetItems: [LiveActivityAttributes.LiveActivityItem]?
     ) {
         let glucose = bg.glucose
         let formattedBG = Self.formatGlucose(Int(glucose), units: units, forceSign: false)
@@ -94,8 +95,8 @@ extension LiveActivityAttributes.ContentState {
         let trendString = bg.direction?.symbol as? String
         let change = Self.calculateChange(chart: chart, units: units)
 
-        let itemOrder = UserDefaults.standard
-            .loadLiveActivityOrderFromUserDefaults() ?? LiveActivityAttributes.ItemOrder.defaultOrders
+//        let widgetItems = UserDefaults.standard
+//            .loadLiveActivityOrderFromUserDefaults() ?? LiveActivityAttributes.LiveActivityItem.defaultItems
 
         let detailedState: LiveActivityAttributes.ContentAdditionalState?
 
@@ -117,11 +118,7 @@ extension LiveActivityAttributes.ContentState {
                 overrideDate: override?.date ?? Date(),
                 overrideDuration: override?.duration ?? 0,
                 overrideTarget: override?.target ?? 0,
-                itemOrder: itemOrder,
-                showCOB: settings.showCOB,
-                showIOB: settings.showIOB,
-                showCurrentGlucose: settings.showCurrentGlucose,
-                showUpdatedLabel: settings.showUpdatedLabel
+                widgetItems: widgetItems ?? LiveActivityAttributes.LiveActivityItem.defaultItems
             )
 
         case .simple:

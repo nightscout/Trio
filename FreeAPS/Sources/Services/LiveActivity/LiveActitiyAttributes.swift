@@ -2,12 +2,14 @@ import ActivityKit
 import Foundation
 
 struct LiveActivityAttributes: ActivityAttributes {
-    enum ItemOrder: String, Hashable, Codable, Equatable {
+    enum LiveActivityItem: String, Hashable, Codable, Equatable {
         case currentGlucose
         case iob
         case cob
         case updatedLabel
         case empty
+
+        static let defaultItems: [Self] = [.currentGlucose, .iob, .cob, .updatedLabel]
     }
 
     struct ContentState: Codable, Hashable {
@@ -37,16 +39,8 @@ struct LiveActivityAttributes: ActivityAttributes {
         let overrideDate: Date
         let overrideDuration: Decimal
         let overrideTarget: Decimal
-        let itemOrder: [ItemOrder]
-        let showCOB: Bool
-        let showIOB: Bool
-        let showCurrentGlucose: Bool
-        let showUpdatedLabel: Bool
+        let widgetItems: [LiveActivityItem]
     }
 
     let startDate: Date
-}
-
-extension LiveActivityAttributes.ItemOrder {
-    static let defaultOrders: [Self] = [.currentGlucose, .iob, .cob, .updatedLabel]
 }

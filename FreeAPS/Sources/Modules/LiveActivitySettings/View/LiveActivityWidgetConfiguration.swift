@@ -12,11 +12,9 @@ struct LiveActivityWidgetConfiguration: BaseView {
     @State private var selectedItems: [LiveActivityItem?] = Array(repeating: nil, count: 4)
     @State private var showAddItemDialog: Bool = false
     @State private var buttonIndexToUpdate: Int?
-
-    @State private var isEditMode: Bool = false
-    @State private var draggingItem: LiveActivityItem?
     @State private var itemToRemove: LiveActivityItem?
     @State private var isRemovalConfirmationPresented: Bool = false
+    @State private var glucoseData: [DummyGlucoseData] = []
 
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
@@ -49,25 +47,25 @@ struct LiveActivityWidgetConfiguration: BaseView {
             let time = Double(minute) / 60.0 // Convert minutes to hours
 
             let trendFactor: Double
+            let randomFactor = Double.random(in: -5 ... 5) // Add slight randomness to each point
 
             // Simulate different phases during the 6-hour window
             if time < 1 { // Stable glucose (pre-meal or fasting period)
-                trendFactor = 0.5 // Small increase
+                trendFactor = 0.5 + randomFactor // Small increase with some variability
             } else if time >= 1, time < 2 { // Glucose rising (e.g., post-meal spike)
-                trendFactor = 3.0 // Rapid increase for glucose spike
+                trendFactor = 3.0 + randomFactor // Rapid increase with slight variation
             } else if time >= 2, time < 3.5 { // Peak and plateau
-                trendFactor = -0.1 // Gradual decrease after the peak
+                trendFactor = -0.1 + randomFactor // Gradual decrease after the peak with variability
             } else if time >= 3.5, time < 4.5 { // Second peak (optional, simulate another meal)
-                trendFactor = 2.5 // Another spike (e.g., after a second meal)
+                trendFactor = 2.5 + randomFactor // Another spike with some randomness
             } else { // Post-meal decrease (insulin effect)
-                trendFactor = -1.5 // Glucose decreasing gradually
+                trendFactor = -1.5 + randomFactor // Glucose decreasing gradually with some variability
             }
 
-            // Calculate the next glucose level with trend factors only
+            // Calculate the next glucose level with trend factors
             glucoseLevel += trendFactor
 
             // Ensure glucose level doesn't go out of realistic bounds:
-            // Clamp glucose levels between 70 and 200 mg/dL
             glucoseLevel = max(70, min(glucoseLevel, 200))
 
             data.append(DummyGlucoseData(time: Double(minute), glucoseLevel: Int(glucoseLevel.rounded())))
@@ -76,30 +74,16 @@ struct LiveActivityWidgetConfiguration: BaseView {
     }
 
     var body: some View {
-        let glucoseData: [DummyGlucoseData] = generateDummyGlucoseData()
-
         VStack {
             Group {
-                VStack(alignment: .leading, spacing: 0) {
+                VStack(alignment: .trailing, spacing: 0) {
                     Text("Live Activity Personalization".uppercased())
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .foregroundColor(.secondary)
                         .font(.footnote)
                         .padding(.leading)
                 }
-                VStack {
-                    Text(
-                        "Trio offers you to customize your Live Activity lock screen widget. The default configuration will display current glucose, IOB, COB and the time of last algorithm run."
-                    )
-                    .padding()
-                    .font(.footnote)
-                    .foregroundColor(.secondary)
-                }
-                .background(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color.chart)
-                )
-            }
+            }.padding(.bottom, -15)
 
             GroupBox {
                 VStack {
@@ -122,15 +106,15 @@ struct LiveActivityWidgetConfiguration: BaseView {
             }.padding(.vertical).groupBoxStyle(.dummyChart)
 
             Group {
-                Text(
-                    "Tap 'Edit Mode' to add or remove a widget. You can re-order widgets by removing them from their current position and adding them to the desired one."
-                )
-
-                Text("Note: Once you confirm the removal of a widget, you cannot undo it.")
+                HStack {
+                    Image(systemName: "info.circle")
+                    Text(
+                        "To re-order widgets, remove them and re-add them in the desired order."
+                    )
+                }
             }.frame(maxWidth: .infinity, alignment: .leading)
                 .foregroundColor(.secondary)
                 .font(.footnote)
-                .padding(.vertical, 8)
                 .padding(.horizontal)
 
             Spacer()
@@ -139,19 +123,13 @@ struct LiveActivityWidgetConfiguration: BaseView {
         .scrollContentBackground(.hidden).background(color)
         .navigationTitle("Widget Configuration")
         .navigationBarTitleDisplayMode(.automatic)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    isEditMode.toggle()
-                } label: {
-                    Text(isEditMode ? "Exit Edit Mode" : "Edit Mode")
-                }
-            }
-        }
         .onAppear {
+            if glucoseData.isEmpty {
+                glucoseData = generateDummyGlucoseData()
+            }
             loadOrder() // Load the saved order when the view appears
         }
-        .confirmationDialog("Choose Widget to add", isPresented: $showAddItemDialog, titleVisibility: .visible) {
+        .confirmationDialog("Add Widget", isPresented: $showAddItemDialog, titleVisibility: .visible) {
             ForEach(LiveActivityItem.allCases.filter { !selectedItems.contains($0) }, id: \.self) { item in
                 Button(item.displayName) {
                     if let index = buttonIndexToUpdate {
@@ -175,23 +153,21 @@ struct LiveActivityWidgetConfiguration: BaseView {
                         RoundedRectangle(cornerRadius: 12)
                             .stroke(Color.primary, lineWidth: 1)
                     )
-                if isEditMode {
-                    Button(action: {
-                        isRemovalConfirmationPresented = true
-                        itemToRemove = selectedItem
-                    }) {
-                        Image(systemName: "minus.circle.fill")
-                            .foregroundColor(Color(UIColor.systemGray2))
-                            .background(Color.white)
-                            .clipShape(Circle())
-                            .font(.system(size: 20))
-                    }
-                    .offset(x: -45, y: -10)
-                    .confirmationDialog("Remove Widget", isPresented: $isRemovalConfirmationPresented, titleVisibility: .hidden) {
-                        Button("Remove Widget", role: .destructive) {
-                            if let itemToRemove = itemToRemove {
-                                removeItem(itemToRemove)
-                            }
+                Button(action: {
+                    isRemovalConfirmationPresented = true
+                    itemToRemove = selectedItem
+                }) {
+                    Image(systemName: "trash.circle.fill")
+                        .foregroundColor(Color(UIColor.systemGray2))
+                        .background(Color.white)
+                        .clipShape(Circle())
+                        .font(.system(size: 20))
+                }
+                .offset(x: 10, y: -10)
+                .confirmationDialog("Remove Widget", isPresented: $isRemovalConfirmationPresented, titleVisibility: .hidden) {
+                    Button("Remove Widget", role: .destructive) {
+                        if let itemToRemove = itemToRemove {
+                            removeItem(itemToRemove)
                         }
                     }
                 }
@@ -215,7 +191,6 @@ struct LiveActivityWidgetConfiguration: BaseView {
                         .foregroundColor(.primary)
                 )
             }
-            .disabled(!isEditMode)
             .buttonStyle(.plain)
         }
     }
@@ -324,51 +299,22 @@ struct LiveActivityWidgetConfiguration: BaseView {
             selectedItems = LiveActivityItem.defaultItems
             saveOrder()
         }
-        updateVisibilityForSelectedItems()
     }
 
     private func saveOrder() {
         UserDefaults.standard.saveLiveActivityOrder(selectedItems)
+        Foundation.NotificationCenter.default.post(name: .liveActivityOrderDidChange, object: nil)
     }
 
     private func addItem(_ item: LiveActivityItem, at index: Int) {
-        setItemVisibility(item: item, isVisible: true)
         selectedItems[index] = item
         saveOrder()
-        updateVisibilityForSelectedItems()
     }
 
     private func removeItem(_ item: LiveActivityItem) {
         if let index = selectedItems.firstIndex(of: item) {
             selectedItems[index] = nil
-            setItemVisibility(item: item, isVisible: false)
             saveOrder()
-        }
-    }
-
-    private func setItemVisibility(item: LiveActivityItem, isVisible: Bool) {
-        switch item {
-        case .currentGlucose:
-            state.showCurrentGlucose = isVisible
-        case .iob:
-            state.showIOB = isVisible
-        case .cob:
-            state.showCOB = isVisible
-        case .updatedLabel:
-            state.showUpdatedLabel = isVisible
-        }
-    }
-
-    private func updateVisibilityForSelectedItems() {
-        for item in selectedItems {
-            if let widget = item {
-                setItemVisibility(item: widget, isVisible: true)
-            }
-        }
-        let allItems = LiveActivityItem.allCases
-        let hiddenItems = allItems.filter { !selectedItems.contains($0) }
-        for item in hiddenItems {
-            setItemVisibility(item: item, isVisible: false)
         }
     }
 }
@@ -382,7 +328,6 @@ extension UserDefaults {
     func saveLiveActivityOrder(_ items: [LiveActivityItem?]) {
         let itemStrings = items.map { $0?.rawValue ?? "" }
         set(itemStrings, forKey: Keys.liveActivityOrder)
-        print("Saved order to UserDefaults: \(itemStrings)")
     }
 
     func loadLiveActivityOrder() -> [LiveActivityItem?]? {
@@ -415,7 +360,7 @@ enum LiveActivityItem: String, CaseIterable, Identifiable {
         case .cob:
             return "COB"
         case .updatedLabel:
-            return "Updated Label"
+            return "Last Updated"
         }
     }
 }
