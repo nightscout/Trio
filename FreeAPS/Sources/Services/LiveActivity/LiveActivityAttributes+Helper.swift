@@ -95,9 +95,6 @@ extension LiveActivityAttributes.ContentState {
         let trendString = bg.direction?.symbol as? String
         let change = Self.calculateChange(chart: chart, units: units)
 
-//        let widgetItems = UserDefaults.standard
-//            .loadLiveActivityOrderFromUserDefaults() ?? LiveActivityAttributes.LiveActivityItem.defaultItems
-
         let detailedState: LiveActivityAttributes.ContentAdditionalState?
 
         switch settings.lockScreenView {

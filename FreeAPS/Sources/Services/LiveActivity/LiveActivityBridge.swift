@@ -147,7 +147,7 @@ import UIKit
         }
     }
 
-    @MainActor  private func updateContentState() async {
+    @MainActor private func updateContentState() async {
         guard let latestGlucose = latestGlucose else { return }
 
         let content = LiveActivityAttributes.ContentState(
