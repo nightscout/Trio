@@ -68,6 +68,9 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
     private var subscriptions = Set<AnyCancellable>()
 
+    let firstInterval = 20 // min
+    let secondInterval = 40 // min
+
     init(resolver: Resolver) {
         super.init()
         center.delegate = self
@@ -173,9 +176,6 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     private func scheduleMissingLoopNotifiactions(date _: Date) {
         let title = NSLocalizedString("Trio Not Active", comment: "Trio Not Active")
         let body = NSLocalizedString("Last loop was more than %d min ago", comment: "Last loop was more than %d min ago")
-
-        let firstInterval = 20 // min
-        let secondInterval = 40 // min
 
         let firstContent = UNMutableNotificationContent()
         firstContent.title = title
@@ -415,7 +415,10 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             router.alertMessage.send(messageCont)
             return
         }
-        let request = UNNotificationRequest(identifier: identifier.rawValue, content: content, trigger: trigger)
+        var alertIdentifier = identifier.rawValue
+        alertIdentifier = identifier == .pumpNotification ? alertIdentifier + content
+            .title : (identifier == .alertMessageNotification ? alertIdentifier + content.body : alertIdentifier)
+        let request = UNNotificationRequest(identifier: alertIdentifier, content: content, trigger: trigger)
 
         if deleteOld {
             DispatchQueue.main.async {
@@ -509,9 +512,10 @@ extension BaseUserNotificationsManager: alertMessageNotificationObserver {
             identifier = .glucocoseNotification
         case .algorithm:
             if message.trigger != nil {
-                identifier = .noLoopFirstNotification
+                identifier = message.content.contains(String(firstInterval)) ? Identifier.noLoopFirstNotification : Identifier
+                    .noLoopSecondNotification
             } else {
-                identifier = .alertMessageNotification
+                identifier = Identifier.alertMessageNotification
             }
         default:
             identifier = .alertMessageNotification
@@ -588,15 +592,10 @@ extension BaseUserNotificationsManager: BolusFailureObserver {
 extension BaseUserNotificationsManager: UNUserNotificationCenterDelegate {
     func userNotificationCenter(
         _: UNUserNotificationCenter,
-        willPresent notification: UNNotification,
+        willPresent _: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
-        switch notification.request.identifier {
-        case Identifier.pumpNotification.rawValue:
-            completionHandler([.banner, .badge, .sound, .list])
-        default:
-            completionHandler([.banner, .badge, .sound, .list])
-        }
+        completionHandler([.banner, .badge, .sound])
     }
 
     func userNotificationCenter(

@@ -16,36 +16,12 @@ extension Main {
         @Persisted(key: "UserNotificationsManager.snoozeUntilDate") private var snoozeUntilDate: Date = .distantPast
         private var timers: [TimeInterval: Timer] = [:]
 
-        private var formatter: DateComponentsFormatter { // TODO: Remove debug only
-            let formatter = DateComponentsFormatter()
-            formatter.allowsFractionalUnits = false
-            formatter.unitsStyle = .full
-            return formatter
-        }
-
-        private var dateFormatter: DateFormatter { // TODO: Remove debug only
-            let formatter = DateFormatter()
-            formatter.timeStyle = .short
-            return formatter
-        }
-
-        private func formatInterval(_ interval: TimeInterval) -> String { // TODO: Remove debug only
-            formatter.string(from: interval)!
-        }
-
         private func showTriggeredView(
             message: MessageContent,
-            interval: TimeInterval,
+            interval _: TimeInterval,
             config: SwiftMessages.Config,
             view: MessageView
         ) {
-            let snoozeFor = formatter.string(from: interval)! // TODO: Remove debug only
-            let untilDate = Date() + interval
-            debug(
-                .default,
-                "Notification triggered for: \n \(String(describing: view.titleLabel?.text)) \(String(describing: view.bodyLabel?.text)) snoozed for \(snoozeFor) until \(dateFormatter.string(from: untilDate))"
-            )
-
             view.customConfigureTheme(
                 colorSchemePreference: colorSchemePreference
             )
@@ -59,15 +35,6 @@ extension Main {
             let trigger = message.trigger as! UNTimeIntervalNotificationTrigger
             guard trigger.timeInterval > 0 else { return }
             let interval = trigger.timeInterval
-
-//            let interval = message.content.contains("20") ? TimeInterval(60) :
-//                TimeInterval(120) // TimeInterval(60) // trigger.timeInterval // TODO: remove 60 secs for test
-            let snoozeFor = formatter.string(from: interval)! // TODO: Remove debug only
-            let untilDate = Date() + interval
-            debug(
-                .default,
-                "\(message.title) \(message.content) \(message.type) \(message.subtype) will snooze for \(snoozeFor) until \(dateFormatter.string(from: untilDate)) for view.id \(view.id)"
-            )
 
             SwiftMessages.hide(id: view.id)
 
@@ -111,7 +78,7 @@ extension Main {
             let buttonImage = UIImage(systemName: "chevron.right")?.withTintColor(.white)
             view.button?.setImage(buttonImage, for: .normal)
             view.button?.backgroundColor = view.backgroundView.backgroundColor
-            view.button?.tintColor = view.iconImageView?.tintColor // .foregroundColor
+            view.button?.tintColor = view.iconImageView?.tintColor
         }
 
         private func setupAction(message: MessageContent, view: MessageView) {
@@ -185,8 +152,6 @@ extension Main {
         @AppStorage("colorSchemePreference") private var colorSchemePreference: ColorSchemeOption = .systemDefault
 
         private func showSwiftMessage(_ message: MessageContent) {
-            // SwiftMessages.pauseBetweenMessages = 1.0
-
             if snoozeUntilDate > Date(), message.action == .snooze {
                 return
             }
@@ -361,6 +326,6 @@ extension UIFont {
     static func preferredFontforStyle(forTextStyle: UIFont.TextStyle) -> UIFont {
         let uiFontMetrics = UIFontMetrics.default
         let descriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: forTextStyle)
-        return uiFontMetrics.scaledFont(for: UIFont(descriptor: descriptor, size: 0)) // size: 12
+        return uiFontMetrics.scaledFont(for: UIFont(descriptor: descriptor, size: 0))
     }
 }

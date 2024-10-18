@@ -58,156 +58,6 @@ extension Home {
 
         // TODO: end todo
 
-        func sendTestRepeat(storedMessages: [MessageContent], repeats: Bool = false) { // TODO: REMOVE!!!
-            if repeats == true {
-                for _ in 0 ... 5 {
-                    for _ in 0 ... storedMessages.count - 1 {
-                        var count = 0
-                        _ = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { t in
-                            print(count)
-                            print(storedMessages[count].content)
-                            router.alertMessage.send(storedMessages[count])
-                            count += 1
-                            if count >= storedMessages.count {
-                                t.invalidate()
-                            }
-                        }
-                    }
-                }
-            } else {
-                for i in 0 ... storedMessages.count - 1 {
-                    print(i)
-                    print(storedMessages[i].content)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                        router.alertMessage.send(storedMessages[i])
-                    }
-                }
-            }
-        }
-
-        func sendTestTriggerMessage() { // TODO: REMOVE!!!
-            var storedMessages: [MessageContent] = []
-            var messageCont: MessageContent
-
-            let firstInterval = 1 // min
-            let secondInterval = 2 // min
-            let firstTrigger = UNTimeIntervalNotificationTrigger(timeInterval: 60 * TimeInterval(firstInterval), repeats: false)
-            messageCont = MessageContent(
-                content: "Last Loop was more than 20 min ago - TEST",
-                type: MessageType.info,
-                subtype: .algorithm,
-                title: "Trio Not Active",
-                useAPN: true,
-                trigger: firstTrigger
-            )
-            debug(
-                .default,
-                "TEST \(messageCont.title) \(messageCont.content) \(messageCont.type) \(messageCont.subtype)"
-            )
-            storedMessages.append(messageCont)
-
-            let secondTrigger = UNTimeIntervalNotificationTrigger(timeInterval: 60 * TimeInterval(secondInterval), repeats: false)
-            messageCont = MessageContent(
-                content: "Last Loop was more than 40 min ago - TEST",
-                type: MessageType.warning,
-                subtype: .algorithm,
-                title: "Trio Not Active",
-                useAPN: true,
-                trigger: secondTrigger
-            )
-            debug(
-                .default,
-                "TEST \(messageCont.title) \(messageCont.content) \(messageCont.type) \(messageCont.subtype)"
-            )
-            storedMessages.append(messageCont)
-
-            sendTestRepeat(storedMessages: storedMessages, repeats: true)
-        }
-
-        func sendTestNotifications() { // TODO: REMOVE!!!
-            var storedMessages: [MessageContent] = []
-            var messageCont: MessageContent
-
-            sendTestTriggerMessage()
-
-            messageCont = MessageContent(
-                content: "68 mg/dL" + "↔︎" + "-1" + "\n" + "Plugin CGM Source",
-                type: MessageType.warning,
-                subtype: .glucose,
-                title: "LOWALERT! 68 mg/dL" + "↔︎" + "-1",
-                useAPN: true,
-                action: .snooze
-            )
-            router.alertMessage.send(messageCont)
-
-            messageCont = MessageContent(
-                content: "Insulin delivery stopped. Change Pod now.",
-                type: MessageType.error, // errorPump
-                subtype: .pump,
-                title: "Critical Pod Fault 008",
-                useAPN: true,
-                action: .pumpConfig
-            )
-            storedMessages.append(messageCont)
-
-            messageCont = MessageContent(
-                content: "Pod expires in 68 hours.",
-                type: MessageType.warning,
-                subtype: .pump,
-                title: "Pod Expiration Reminder"
-            )
-            storedMessages.append(messageCont)
-            messageCont = MessageContent(
-                content: "10 U insulin or less remaining in Pod. Change Pod soon.",
-                type: MessageType.warning,
-                subtype: .pump,
-                title: "Low Reservoir",
-                useAPN: true
-            )
-            storedMessages.append(messageCont)
-
-            messageCont = MessageContent(
-                content: "To prevent LOW required 30 g of carbs",
-                type: MessageType.warning,
-                subtype: .carb,
-                title: "Carbs required: 30 g"
-            )
-            storedMessages.append(messageCont)
-
-            messageCont = MessageContent(
-                content: "83 mg/dL" + "↔︎" + "-1", // + "\n" + "Plugin CGM Source",
-                type: MessageType.info,
-                subtype: .glucose,
-                title: "Glucose 83 mg/dL" + "↔︎" + "-1",
-                action: .snooze
-            )
-            storedMessages.append(messageCont)
-            messageCont = MessageContent(
-                content: "68 mg/dL" + "↔︎" + "-1" + "\n" + "Plugin CGM Source",
-                type: MessageType.warning,
-                subtype: .glucose,
-                title: "LOWALERT! 68 mg/dL" + "↔︎" + "-1"
-            )
-            storedMessages.append(messageCont)
-
-            messageCont = MessageContent(
-                content: "Error: Invalid glucose: Not enough glucose data",
-                type: MessageType.info,
-                subtype: .algorithm
-            )
-            storedMessages.append(messageCont)
-
-//            info(.apsManager, "Not enough glucose data")
-//            info(.apsManager, "Glucose data is stale")
-//            info(.apsManager, "Glucose data is too flat")
-//            info(.apsManager, "Glucose validation failed")
-//            info(.apsManager, "Loop not possible during the manual basal temp")
-//            info(.apsManager, "Temp Basal failed with error")
-//            info(.apsManager, "Pump not suspended by Announcement")
-
-            sendTestRepeat(storedMessages: storedMessages, repeats: false)
-        }
-
         var bolusProgressFormatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
@@ -927,7 +777,7 @@ extension Home {
             .background(color)
             .onReceive(
                 resolver.resolve(AlertPermissionsChecker.self)!.$notificationsDisabled,
-                perform: { // AlertPermissionsChecker
+                perform: {
                     if notificationsDisabled != $0 {
                         notificationsDisabled = $0
                         if notificationsDisabled {
@@ -972,7 +822,6 @@ extension Home {
                     )
                     .onTapGesture {
                         state.isStatusPopupPresented = false
-                        sendTestNotifications() // TODO: Remove!
                     }
                     .gesture(
                         DragGesture(minimumDistance: 10, coordinateSpace: .local)
