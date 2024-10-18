@@ -2,18 +2,6 @@ import Foundation
 import SwiftUI
 
 struct AddTempTargetForm: View {
-    // settings for picker steps
-    let smallMgdL = 1.0
-    let bigMgdL = 5.0
-    let smallMmolL = 0.1 / 0.0555
-    let bigMmolL = 0.5 / 0.0555
-    init(state: OverrideConfig.StateModel) {
-        _state = StateObject(wrappedValue: state)
-        _targetStep = State(initialValue: state.units == .mgdL ? bigMgdL : bigMmolL)
-    }
-
-    @State var toggleBigStepOn = true
-
     @StateObject var state: OverrideConfig.StateModel
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) var colorScheme
@@ -21,7 +9,7 @@ struct AddTempTargetForm: View {
     @State private var displayPickerDuration: Bool = false
     @State private var durationHours = 0
     @State private var durationMinutes = 0
-    @State private var targetStep: Double
+    @State private var targetStep: Decimal = 5
     @State private var displayPickerTarget: Bool = false
     @State private var showAlert = false
     @State private var showPresetAlert = false
@@ -105,6 +93,7 @@ struct AddTempTargetForm: View {
                     sheetTitle: "Help"
                 )
             }
+            .onAppear { targetStep = state.units == .mgdL ? 5 : 9 }
         }
     }
 
@@ -170,58 +159,36 @@ struct AddTempTargetForm: View {
                 }
                 if displayPickerTarget {
                     HStack {
+                        // Radio buttons and text on the left side
                         VStack(alignment: .leading) {
-                            // Toggle for step iteration
-                            VStack {
-                                Text(formattedGlucose(glucose: Decimal(state.units == .mgdL ? smallMgdL : smallMmolL)))
-                                    .tag(Int(state.units == .mgdL ? smallMgdL : smallMmolL))
-                                    .foregroundColor(toggleBigStepOn ? .secondary : .tabBar)
-                                ZStack {
-                                    Group {
-                                        Capsule()
-                                            .frame(width: 26, height: 44)
-                                            .foregroundColor(Color.loopGray)
-                                        ZStack {
-                                            Circle()
-                                                .frame(width: 24, height: 24)
-                                            Image(systemName: toggleBigStepOn ? "forward.circle.fill" : "play.circle.fill")
-                                                .font(.system(size: 24))
-                                                .foregroundStyle(Color.white, Color.tabBar)
-                                        }
-//                                        .shadow(color: .black.opacity(0.14), radius: 4, x: 0, y: 2)
-                                        .offset(y: toggleBigStepOn ? 10 : -10)
-                                        .padding(12)
-                                    }
+                            // Radio buttons for step iteration
+                            let stepChoices: [Decimal] = state.units == .mgdL ? [1, 5] : [1, 9]
+                            ForEach(stepChoices, id: \.self) { step in
+                                RadioButton(
+                                    isSelected: targetStep == step,
+                                    label: "\(state.units == .mgdL ? step : step.asMmolL) \(state.units.rawValue)"
+                                ) {
+                                    targetStep = step
+                                    state.tempTargetTarget = roundTargetToStep(state.tempTargetTarget, targetStep)
                                 }
-                                .onTapGesture {
-                                    // Toggling between small and big step
-                                    toggleBigStepOn.toggle()
-                                    targetStep = toggleBigStepOn ? (state.units == .mgdL ? bigMgdL : bigMmolL) :
-                                        (state.units == .mgdL ? smallMgdL : smallMmolL)
-                                }
-                                Text(formattedGlucose(glucose: Decimal(state.units == .mgdL ? bigMgdL : bigMmolL)))
-                                    .tag(Int(state.units == .mgdL ? bigMgdL : bigMmolL))
-                                    .foregroundColor(toggleBigStepOn ? .tabBar : .secondary)
+                                .padding(.top, 10)
                             }
-                            .padding(.top, 10)
                         }
                         .frame(maxWidth: .infinity)
 
                         Spacer()
 
                         // Picker on the right side
-                        Picker(
-                            selection: Binding(
-                                get: { Int(truncating: state.tempTargetTarget as NSNumber) },
-                                set: { state.tempTargetTarget = Decimal($0) }
-                            ), label: Text("")
-                        ) {
+                        Picker(selection: Binding(
+                            get: { roundTargetToStep(state.tempTargetTarget, targetStep) },
+                            set: { state.tempTargetTarget = $0 }
+                        ), label: Text("")) {
                             ForEach(
-                                Array(stride(from: 80, through: 270, by: targetStep)),
+                                generateTargetPickerValues(),
                                 id: \.self
-                            ) { glucoseTarget in
-                                Text(formattedGlucose(glucose: Decimal(glucoseTarget)))
-                                    .tag(Int(glucoseTarget))
+                            ) { glucose in
+                                Text(formattedGlucose(glucose: glucose))
+                                    .tag(glucose)
                             }
                         }
                         .pickerStyle(WheelPickerStyle())
@@ -230,7 +197,6 @@ struct AddTempTargetForm: View {
                             state.percentage = Double(state.computeAdjustedPercentage() * 100)
                         }
                     }
-                    .frame(maxWidth: .infinity)
                 }
             }
             if isSliderEnabled && state.tempTargetTarget != 0 {
@@ -447,6 +413,60 @@ struct AddTempTargetForm: View {
         }
         return "\(formattedValue) \(state.units.rawValue)"
     }
+
+    private func roundTargetToStep(_ target: Decimal, _ step: Decimal) -> Decimal {
+        // Convert target and step to NSDecimalNumber
+        guard let targetValue = NSDecimalNumber(decimal: target).doubleValue as Double?,
+              let stepValue = NSDecimalNumber(decimal: step).doubleValue as Double?
+        else {
+            print("Failed to unwrap target or step as NSDecimalNumber")
+            return target
+        }
+
+        // Perform the remainder check using truncatingRemainder
+        let remainder = Decimal(targetValue.truncatingRemainder(dividingBy: stepValue))
+
+        if remainder != 0 {
+            // Calculate how much to adjust (up or down) based on the remainder
+            let adjustment = step - remainder
+            return target + adjustment
+        }
+
+        // Return the original target if no adjustment is needed
+        return target
+    }
+
+    func generateTargetPickerValues() -> [Decimal] {
+        var values: [Decimal] = []
+        var currentValue: Double = 72
+        let step = Double(targetStep)
+
+        // Adjust currentValue to be divisible by targetStep
+        let remainder = currentValue.truncatingRemainder(dividingBy: step)
+        if remainder != 0 {
+            // Move currentValue up to the next value divisible by targetStep
+            currentValue += (step - remainder)
+        }
+
+        // Now generate the picker values starting from currentValue
+        while currentValue <= 270 {
+            values.append(Decimal(currentValue))
+            currentValue += step
+        }
+
+        // Glucose values are stored as mg/dl values, so Integers.
+        // Filter out duplicate values when rounded to 1 decimal place.
+        if state.units == .mmolL {
+            // Use a Set to track unique values rounded to 1 decimal
+            var uniqueRoundedValues = Set<String>()
+            values = values.filter { value in
+                let roundedValue = String(format: "%.1f", NSDecimalNumber(decimal: value.asMmolL).doubleValue)
+                return uniqueRoundedValues.insert(roundedValue).inserted
+            }
+        }
+
+        return values
+    }
 }
 
 func formatHrMin(_ durationInMinutes: Int) -> String {
@@ -460,5 +480,23 @@ func formatHrMin(_ durationInMinutes: Int) -> String {
         return "\(h) hr"
     default:
         return "\(hours) hr \(minutes) min"
+    }
+}
+
+struct RadioButton: View {
+    var isSelected: Bool
+    var label: String
+    var action: () -> Void
+
+    var body: some View {
+        Button(action: {
+            action()
+        }) {
+            HStack {
+                Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
+                Text(label) // Add label inside the button to make it tappable
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
