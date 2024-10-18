@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import HealthKit
 import LoopKit
 import LoopKitUI
 import SwiftDate
@@ -98,6 +99,14 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         settingsManager.settings.uploadGlucose = cgmM.shouldSyncToRemoteService
     }
 
+    private func updateManagerUnits(_ manager: CGMManagerUI?) {
+        let units = settingsManager.settings.units
+        let managerName = cgmManager.map { "\(type(of: $0))" } ?? "nil"
+        let loopkitUnits: HKUnit = units == .mgdL ? .milligramsPerDeciliter : .millimolesPerLiter
+        print("manager: \(managerName) is changing units to: \(loopkitUnits.description) ")
+        manager?.unitDidChange(to: loopkitUnits)
+    }
+
     func updateGlucoseSource(cgmGlucoseSourceType: CGMType, cgmGlucosePluginId: String, newManager: CGMManagerUI?) {
         // if changed, remove all calibrations
         if self.cgmGlucoseSourceType != cgmGlucoseSourceType || self.cgmGlucosePluginId != cgmGlucosePluginId {
@@ -120,6 +129,8 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             removeCalibrations()
         } else if self.cgmGlucoseSourceType == .plugin, cgmManager == nil, let rawCGMManager = rawCGMManager {
             cgmManager = cgmManagerFromRawValue(rawCGMManager)
+            updateManagerUnits(cgmManager)
+
         } else {
             saveConfigManager()
         }
@@ -151,7 +162,6 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         else {
             return nil
         }
-
         return Manager.init(rawState: rawState)
     }
 

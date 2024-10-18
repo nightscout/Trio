@@ -45,7 +45,7 @@ extension DataTable {
                 formatter.minimumFractionDigits = 0
                 formatter.maximumFractionDigits = 1
             }
-            formatter.roundingMode = .down
+            formatter.roundingMode = .halfUp
             return formatter
         }
 

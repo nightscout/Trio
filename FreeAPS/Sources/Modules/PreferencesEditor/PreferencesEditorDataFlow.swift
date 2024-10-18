@@ -109,6 +109,7 @@ protocol PreferencesEditorProvider: Provider {
     var preferences: Preferences { get }
     func savePreferences(_ preferences: Preferences)
     func migrateUnits()
+    func updateManagerUnits()
 }
 
 protocol PreferencesSettable: AnyObject {

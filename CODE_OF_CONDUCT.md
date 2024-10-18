@@ -59,7 +59,7 @@ representative at an online or offline event.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the Discord server admins. Please join our [Discord server](https://discord.gg/dbe5Twav8D) to contact
+reported to the Discord server admins. Please join our [Discord server](http://discord.diy-trio.org) to contact
 them directly for any enforcement issues. All complaints will be reviewed and
 investigated promptly and fairly.
 
