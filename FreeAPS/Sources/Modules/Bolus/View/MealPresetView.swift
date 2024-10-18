@@ -3,7 +3,7 @@ import Foundation
 import SwiftUI
 
 struct MealPresetView: View {
-    @Bindable var state: Bolus.StateModel
+    @StateObject var state: Bolus.StateModel
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dismiss) var dismiss
     @Environment(\.managedObjectContext) var moc

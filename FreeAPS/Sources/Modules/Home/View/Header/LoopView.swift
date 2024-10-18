@@ -8,13 +8,13 @@ struct LoopView: View {
         static let lag: TimeInterval = 30
     }
 
-    let closedLoop: Bool
-    let timerDate: Date
-    let isLooping: Bool
-    let lastLoopDate: Date
-    let manualTempBasal: Bool
+    @Binding var closedLoop: Bool
+    @Binding var timerDate: Date
+    @Binding var isLooping: Bool
+    @Binding var lastLoopDate: Date
+    @Binding var manualTempBasal: Bool
 
-    let determination: [OrefDetermination]
+    var determination: [OrefDetermination]
 
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()

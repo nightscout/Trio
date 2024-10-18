@@ -4,7 +4,7 @@ import Swinject
 extension Calibrations {
     struct RootView: BaseView {
         let resolver: Resolver
-        @State var state = StateModel()
+        @StateObject var state = StateModel()
 
         @Environment(\.colorScheme) var colorScheme
         var color: LinearGradient {
@@ -101,7 +101,7 @@ extension Calibrations {
 
                     if state.calibrations.isNotEmpty {
                         Section(header: Text("Chart")) {
-                            CalibrationsChart(state: state)
+                            CalibrationsChart().environmentObject(state)
                                 .frame(minHeight: geo.size.width)
                         }.listRowBackground(Color.chart)
                     }

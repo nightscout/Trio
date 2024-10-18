@@ -8,10 +8,10 @@ struct StatsView: View {
 
     @State var headline: Color = .secondary
 
-    var highLimit: Decimal
-    var lowLimit: Decimal
-    var units: GlucoseUnits
-    var overrideUnit: Bool
+    @Binding var highLimit: Decimal
+    @Binding var lowLimit: Decimal
+    @Binding var units: GlucoseUnits
+    @Binding var overrideUnit: Bool
 
     private let conversionFactor = 0.0555
 
@@ -27,10 +27,10 @@ struct StatsView: View {
 
     init(
         filter: NSDate,
-        highLimit: Decimal,
-        lowLimit: Decimal,
-        units: GlucoseUnits,
-        overrideUnit: Bool
+        _ highLimit: Binding<Decimal>,
+        _ lowLimit: Binding<Decimal>,
+        _ units: Binding<GlucoseUnits>,
+        _ overrideUnit: Binding<Bool>
     ) {
         _fetchRequest = FetchRequest<LoopStatRecord>(
             sortDescriptors: [NSSortDescriptor(key: "start", ascending: false)],
@@ -42,10 +42,10 @@ struct StatsView: View {
             predicate: NSPredicate(format: "glucose > 0 AND date > %@", filter)
         )
 
-        self.highLimit = highLimit
-        self.lowLimit = lowLimit
-        self.units = units
-        self.overrideUnit = overrideUnit
+        _highLimit = highLimit
+        _lowLimit = lowLimit
+        _units = units
+        _overrideUnit = overrideUnit
     }
 
     var loops: some View {

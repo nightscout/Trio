@@ -1,21 +1,21 @@
-import Observation
 import SwiftDate
 import SwiftUI
 
 extension Calibrations {
-    @Observable final class StateModel: BaseStateModel<Provider> {
-        @ObservationIgnored @Injected() var glucoseStorage: GlucoseStorage!
-        @ObservationIgnored @Injected() var calibrationService: CalibrationService!
+    final class StateModel: BaseStateModel<Provider> {
+        @Injected() var glucoseStorage: GlucoseStorage!
+        @Injected() var calibrationService: CalibrationService!
 
-        var slope: Double = 1
-        var intercept: Double = 1
-        var newCalibration: Decimal = 0
-        var calibrations: [Calibration] = []
-        var calibrate: (Int) -> Double = { Double($0) }
-        var items: [Item] = []
+        @Published var slope: Double = 1
+        @Published var intercept: Double = 1
+        @Published var newCalibration: Decimal = 0
+        @Published var calibrations: [Calibration] = []
+        @Published var calibrate: (Int) -> Double = { Double($0) }
+        @Published var items: [Item] = []
 
         var units: GlucoseUnits = .mgdL
 
+        // TODO: - test if we need to use the viewContext here
         private let context = CoreDataStack.shared.newTaskContext()
 
         override func subscribe() {

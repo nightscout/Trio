@@ -4,13 +4,13 @@ import SwiftDate
 import SwiftUI
 
 struct ChartsView: View {
-    let highLimit: Decimal
-    let lowLimit: Decimal
-    let units: GlucoseUnits
-    let overrideUnit: Bool
-    let standing: Bool
+    @Binding var highLimit: Decimal
+    @Binding var lowLimit: Decimal
+    @Binding var units: GlucoseUnits
+    @Binding var overrideUnit: Bool
+    @Binding var standing: Bool
 
-    let glucose: [GlucoseStored]
+    var glucose: [GlucoseStored]
 
     @State var headline: Color = .secondary
 
@@ -36,18 +36,18 @@ struct ChartsView: View {
     }
 
     init(
-        highLimit: Decimal,
-        lowLimit: Decimal,
-        units: GlucoseUnits,
-        overrideUnit: Bool,
-        standing: Bool,
+        _ highLimit: Binding<Decimal>,
+        _ lowLimit: Binding<Decimal>,
+        _ units: Binding<GlucoseUnits>,
+        _ overrideUnit: Binding<Bool>,
+        _ standing: Binding<Bool>,
         glucose: [GlucoseStored]
     ) {
-        self.highLimit = highLimit
-        self.lowLimit = lowLimit
-        self.units = units
-        self.overrideUnit = overrideUnit
-        self.standing = standing
+        _highLimit = highLimit
+        _lowLimit = lowLimit
+        _units = units
+        _overrideUnit = overrideUnit
+        _standing = standing
         self.glucose = glucose
     }
 

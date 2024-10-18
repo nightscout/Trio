@@ -1,15 +1,14 @@
-import Observation
 import SwiftUI
 
 extension BasalProfileEditor {
-    @Observable final class StateModel: BaseStateModel<Provider> {
-        @ObservationIgnored @Injected() private var nightscout: NightscoutManager!
+    final class StateModel: BaseStateModel<Provider> {
+        @Injected() private var nightscout: NightscoutManager!
 
-        var syncInProgress: Bool = false
-        var initialItems: [Item] = []
-        var items: [Item] = []
-        var total: Decimal = 0.0
-        var showAlert: Bool = false
+        @Published var syncInProgress: Bool = false
+        @Published var initialItems: [Item] = []
+        @Published var items: [Item] = []
+        @Published var total: Decimal = 0.0
+        @Published var showAlert: Bool = false
 
         let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
 

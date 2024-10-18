@@ -8,12 +8,7 @@ extension Color {
 
     static let glucose = Color("glucose")
 
-    static let insulin =
-        // workaround for 'No color named 'Insulin' found in asset catalog' error which is most likely a bug
-        Color(
-            UIColor(named: "Insulin") ??
-                UIColor(red: 0.118, green: 0.588, blue: 0.988, alpha: 1.0) // these are RGB of our insulin color
-        )
+    static let insulin = Color("Insulin")
 
     // The loopAccent color is intended to be use as the app accent color.
     public static let loopAccent = Color("accent")

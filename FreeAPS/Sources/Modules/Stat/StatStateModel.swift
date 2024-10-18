@@ -1,20 +1,19 @@
 import CoreData
 import Foundation
-import Observation
 import SwiftUI
 import Swinject
 
 extension Stat {
-    @Observable final class StateModel: BaseStateModel<Provider> {
-        @ObservationIgnored @Injected() var settings: SettingsManager!
-        var highLimit: Decimal = 10 / 0.0555
-        var lowLimit: Decimal = 4 / 0.0555
-        var overrideUnit: Bool = false
-        var layingChart: Bool = false
-        var units: GlucoseUnits = .mgdL
-        var glucoseFromPersistence: [GlucoseStored] = []
+    final class StateModel: BaseStateModel<Provider> {
+        @Injected() var settings: SettingsManager!
+        @Published var highLimit: Decimal = 10 / 0.0555
+        @Published var lowLimit: Decimal = 4 / 0.0555
+        @Published var overrideUnit: Bool = false
+        @Published var layingChart: Bool = false
+        @Published var units: GlucoseUnits = .mgdL
+        @Published var glucoseFromPersistence: [GlucoseStored] = []
 
-        var selectedDuration: Duration = .Today
+        @Published var selectedDuration: Duration = .Today
 
         private let context = CoreDataStack.shared.newTaskContext()
         private let viewContext = CoreDataStack.shared.persistentContainer.viewContext

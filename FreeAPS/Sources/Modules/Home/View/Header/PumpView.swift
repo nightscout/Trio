@@ -2,13 +2,13 @@ import CoreData
 import SwiftUI
 
 struct PumpView: View {
-    let reservoir: Decimal?
-    let name: String
-    let expiresAtDate: Date?
-    let timerDate: Date
-    let timeZone: TimeZone?
-    let pumpStatusHighlightMessage: String?
-    let battery: [OpenAPS_Battery]
+    @Binding var reservoir: Decimal?
+    @Binding var name: String
+    @Binding var expiresAtDate: Date?
+    @Binding var timerDate: Date
+    @Binding var timeZone: TimeZone?
+    @Binding var pumpStatusHighlightMessage: String?
+    @Binding var battery: [OpenAPS_Battery]
 
     @Environment(\.colorScheme) var colorScheme
 

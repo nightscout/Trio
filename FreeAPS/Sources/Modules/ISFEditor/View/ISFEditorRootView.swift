@@ -4,7 +4,7 @@ import Swinject
 extension ISFEditor {
     struct RootView: BaseView {
         let resolver: Resolver
-        @State var state = StateModel()
+        @StateObject var state = StateModel()
         @State private var editMode = EditMode.inactive
 
         @Environment(\.colorScheme) var colorScheme

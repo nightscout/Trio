@@ -6,7 +6,7 @@ extension OverrideConfig {
     struct RootView: BaseView {
         let resolver: Resolver
 
-        @State var state = StateModel()
+        @StateObject var state = StateModel()
 
         @State private var isEditing = false
         @State private var showOverrideCreationSheet = false

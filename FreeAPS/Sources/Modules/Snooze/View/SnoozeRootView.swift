@@ -5,7 +5,7 @@ import Swinject
 extension Snooze {
     struct RootView: BaseView {
         let resolver: Resolver
-        @State var state = StateModel()
+        @StateObject var state = StateModel()
 
         @Environment(\.colorScheme) var colorScheme
         var color: LinearGradient {

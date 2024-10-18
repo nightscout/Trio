@@ -1,20 +1,19 @@
-import Observation
 import SwiftUI
 
 extension DynamicSettings {
-    @Observable final class StateModel: BaseStateModel<Provider> {
-        @ObservationIgnored @Injected() var settings: SettingsManager!
-        @ObservationIgnored @Injected() var storage: FileStorage!
+    final class StateModel: BaseStateModel<Provider> {
+        @Injected() var settings: SettingsManager!
+        @Injected() var storage: FileStorage!
 
-        var useNewFormula: Bool = false
-        var enableDynamicCR: Bool = false
-        var sigmoid: Bool = false
-        var adjustmentFactor: Decimal = 0.8
-        var adjustmentFactorSigmoid: Decimal = 0.5
-        var weightPercentage: Decimal = 0.65
-        var tddAdjBasal: Bool = false
-        var threshold_setting: Decimal = 60
-        var units: GlucoseUnits = .mgdL
+        @Published var useNewFormula: Bool = false
+        @Published var enableDynamicCR: Bool = false
+        @Published var sigmoid: Bool = false
+        @Published var adjustmentFactor: Decimal = 0.8
+        @Published var adjustmentFactorSigmoid: Decimal = 0.5
+        @Published var weightPercentage: Decimal = 0.65
+        @Published var tddAdjBasal: Bool = false
+        @Published var threshold_setting: Decimal = 60
+        @Published var units: GlucoseUnits = .mgdL
 
         var preferences: Preferences {
             settingsManager.preferences

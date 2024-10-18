@@ -1,16 +1,15 @@
-import Observation
 import SwiftUI
 
 extension AutosensSettings {
-    @Observable final class StateModel: BaseStateModel<Provider> {
-        @ObservationIgnored @Injected() var settings: SettingsManager!
-        @ObservationIgnored @Injected() var storage: FileStorage!
+    final class StateModel: BaseStateModel<Provider> {
+        @Injected() var settings: SettingsManager!
+        @Injected() var storage: FileStorage!
 
-        var units: GlucoseUnits = .mgdL
+        @Published var units: GlucoseUnits = .mgdL
 
-        var autosensMax: Decimal = 1.2
-        var autosensMin: Decimal = 0.7
-        var rewindResetsAutosens: Bool = true
+        @Published var autosensMax: Decimal = 1.2
+        @Published var autosensMin: Decimal = 0.7
+        @Published var rewindResetsAutosens: Bool = true
 
         var preferences: Preferences {
             settingsManager.preferences

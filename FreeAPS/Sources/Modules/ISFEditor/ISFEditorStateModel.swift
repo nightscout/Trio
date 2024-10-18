@@ -1,19 +1,18 @@
 import CoreData
-import Observation
 import SwiftUI
 
 extension ISFEditor {
-    @Observable final class StateModel: BaseStateModel<Provider> {
-        @ObservationIgnored @Injected() var determinationStorage: DeterminationStorage!
-        @ObservationIgnored @Injected() private var nightscout: NightscoutManager!
+    final class StateModel: BaseStateModel<Provider> {
+        @Injected() var determinationStorage: DeterminationStorage!
+        @Injected() private var nightscout: NightscoutManager!
 
-        var items: [Item] = []
-        var initialItems: [Item] = []
-        var shouldDisplaySaving: Bool = false
+        @Published var items: [Item] = []
+        @Published var initialItems: [Item] = []
+        @Published var shouldDisplaySaving: Bool = false
         private(set) var autosensISF: Decimal?
         private(set) var autosensRatio: Decimal = 0
-        var autotune: Autotune?
-        var determinationsFromPersistence: [OrefDetermination] = []
+        @Published var autotune: Autotune?
+        @Published var determinationsFromPersistence: [OrefDetermination] = []
 
         let context = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext

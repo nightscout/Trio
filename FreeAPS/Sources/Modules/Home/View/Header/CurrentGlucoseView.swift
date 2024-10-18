@@ -2,15 +2,16 @@ import CoreData
 import SwiftUI
 
 struct CurrentGlucoseView: View {
-    let timerDate: Date
-    let units: GlucoseUnits
-    let alarm: GlucoseAlarm?
-    let lowGlucose: Decimal
-    let highGlucose: Decimal
-    let cgmAvailable: Bool
-    var currentGlucoseTarget: Decimal
-    let glucoseColorScheme: GlucoseColorScheme
-    let glucose: [GlucoseStored] // This contains the last two glucose values, no matter if its manual or a cgm reading
+    @Binding var timerDate: Date
+    @Binding var units: GlucoseUnits
+    @Binding var alarm: GlucoseAlarm?
+    @Binding var lowGlucose: Decimal
+    @Binding var highGlucose: Decimal
+    @Binding var cgmAvailable: Bool
+    @Binding var currentGlucoseTarget: Decimal
+    @Binding var glucoseColorScheme: GlucoseColorScheme
+
+    var glucose: [GlucoseStored] // This contains the last two glucose values, no matter if its manual or a cgm reading
 
     @State private var rotationDegrees: Double = 0.0
     @State private var angularGradient = AngularGradient(colors: [

@@ -1,11 +1,10 @@
-import Observation
 import SwiftUI
 
 extension ManualTempBasal {
-    @Observable final class StateModel: BaseStateModel<Provider> {
-        @ObservationIgnored @Injected() var apsManager: APSManager!
-        var rate: Decimal = 0
-        var durationIndex = 0
+    final class StateModel: BaseStateModel<Provider> {
+        @Injected() var apsManager: APSManager!
+        @Published var rate: Decimal = 0
+        @Published var durationIndex = 0
 
         let durationValues = stride(from: 30.0, to: 720.1, by: 30.0).map { $0 }
 

@@ -152,17 +152,18 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     func setupNotification() {
-        Foundation.NotificationCenter.default.publisher(for: .willUpdateOverrideConfiguration)
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                Task {
-                    await self.uploadOverrides()
+        Foundation.NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleOverrideConfigurationUpdate),
+            name: .didUpdateOverrideConfiguration,
+            object: nil
+        )
+    }
 
-                    // Post a notification indicating that the upload has finished and that we can end the background task in the OverridePresetsIntentRequest
-                    Foundation.NotificationCenter.default.post(name: .didUpdateOverrideConfiguration, object: nil)
-                }
-            }
-            .store(in: &subscriptions)
+    @objc private func handleOverrideConfigurationUpdate() {
+        Task.detached {
+            await self.uploadOverrides()
+        }
     }
 
     func sourceInfo() -> [String: Any]? {

@@ -225,14 +225,10 @@ extension TextFieldWithToolBar.Coordinator: UITextFieldDelegate {
                 let hasTrailingZeros = (hasDecimalSeparator && proposedText[lastCharIndex] == "0") || isDecimalSeparator
                 if !hasTrailingZeros
                 {
-                    DispatchQueue.main.async {
-                        self.parent.text = number.decimalValue
-                    }
+                    parent.text = number.decimalValue
                 }
             } else {
-                DispatchQueue.main.async {
-                    self.parent.text = 0
-                }
+                parent.text = 0
             }
         }
 

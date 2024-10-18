@@ -8,7 +8,7 @@ extension Home {
     struct RootView: BaseView {
         let resolver: Resolver
 
-        @State var state = StateModel()
+        @StateObject var state = StateModel()
         @State var isStatusPopupPresented = false
         @State var showCancelAlert = false
         @State var showCancelConfirmDialog = false
@@ -52,6 +52,7 @@ extension Home {
             ascending: false,
             fetchLimit: 1
         )) var latestTempTarget: FetchedResults<TempTargetStored>
+
         var bolusProgressFormatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
@@ -126,14 +127,14 @@ extension Home {
 
         var glucoseView: some View {
             CurrentGlucoseView(
-                timerDate: state.timerDate,
-                units: state.units,
-                alarm: state.alarm,
-                lowGlucose: state.lowGlucose,
-                highGlucose: state.highGlucose,
-                cgmAvailable: state.cgmAvailable,
-                currentGlucoseTarget: state.currentGlucoseTarget,
-                glucoseColorScheme: state.glucoseColorScheme,
+                timerDate: $state.timerDate,
+                units: $state.units,
+                alarm: $state.alarm,
+                lowGlucose: $state.lowGlucose,
+                highGlucose: $state.highGlucose,
+                cgmAvailable: $state.cgmAvailable,
+                currentGlucoseTarget: $state.currentGlucoseTarget,
+                glucoseColorScheme: $state.glucoseColorScheme,
                 glucose: state.latestTwoGlucoseValues
             ).scaleEffect(0.9)
                 .onTapGesture {
@@ -148,13 +149,13 @@ extension Home {
 
         var pumpView: some View {
             PumpView(
-                reservoir: state.reservoir,
-                name: state.pumpName,
-                expiresAtDate: state.pumpExpiresAtDate,
-                timerDate: state.timerDate,
-                timeZone: state.timeZone,
-                pumpStatusHighlightMessage: state.pumpStatusHighlightMessage,
-                battery: state.batteryFromPersistence
+                reservoir: $state.reservoir,
+                name: $state.pumpName,
+                expiresAtDate: $state.pumpExpiresAtDate,
+                timerDate: $state.timerDate,
+                timeZone: $state.timeZone,
+                pumpStatusHighlightMessage: $state.pumpStatusHighlightMessage,
+                battery: $state.batteryFromPersistence
             ).onTapGesture {
                 if state.pumpDisplayState == nil {
                     // shows user confirmation dialog with pump model choices, then proceeds to setup
@@ -352,17 +353,16 @@ extension Home {
             ZStack {
                 MainChartView(
                     geo: geo,
-                    units: state.units,
-                    hours: state.filteredHours,
-                    tempTargets: state.tempTargets,
-                    highGlucose: state.highGlucose,
-                    lowGlucose: state.lowGlucose,
-                    currentGlucoseTarget: state.currentGlucoseTarget,
-                    glucoseColorScheme: state.glucoseColorScheme,
-                    screenHours: state.hours,
-                    displayXgridLines: state.displayXgridLines,
-                    displayYgridLines: state.displayYgridLines,
-                    thresholdLines: state.thresholdLines,
+                    units: $state.units,
+                    hours: .constant(state.filteredHours),
+                    highGlucose: $state.highGlucose,
+                    lowGlucose: $state.lowGlucose,
+                    currentGlucoseTarget: $state.currentGlucoseTarget,
+                    screenHours: $state.hours,
+                    glucoseColorScheme: $state.glucoseColorScheme,
+                    displayXgridLines: $state.displayXgridLines,
+                    displayYgridLines: $state.displayYgridLines,
+                    thresholdLines: $state.thresholdLines,
                     state: state
                 )
             }
@@ -379,11 +379,11 @@ extension Home {
             VStack(alignment: .leading, spacing: 20) {
                 /// Loop view at bottomLeading
                 LoopView(
-                    closedLoop: state.closedLoop,
-                    timerDate: state.timerDate,
-                    isLooping: state.isLooping,
-                    lastLoopDate: state.lastLoopDate,
-                    manualTempBasal: state.manualTempBasal,
+                    closedLoop: $state.closedLoop,
+                    timerDate: $state.timerDate,
+                    isLooping: $state.isLooping,
+                    lastLoopDate: $state.lastLoopDate,
+                    manualTempBasal: $state.manualTempBasal,
                     determination: state.determinationsFromPersistence
                 ).onTapGesture {
                     state.isStatusPopupPresented = true
@@ -445,9 +445,8 @@ extension Home {
                         .foregroundColor(.loopYellow)
                     Text(
                         (
-                            numberFormatter.string(
-                                from: NSNumber(value: state.enactedAndNonEnactedDeterminations.first?.cob ?? 0)
-                            ) ?? "0"
+                            numberFormatter
+                                .string(from: (state.enactedAndNonEnactedDeterminations.first?.cob ?? 0) as NSNumber) ?? "0"
                         ) +
                             NSLocalizedString(" g", comment: "gram of carbs")
                     )
