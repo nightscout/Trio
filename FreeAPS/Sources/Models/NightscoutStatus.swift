@@ -56,6 +56,7 @@ struct NightscoutProfileStore: JSON {
     let deviceToken: String
     let isAPNSProduction: Bool
     let overrides: [NightscoutPresetOverride]?
+    let teamID: String
 }
 
 struct NightscoutPresetOverride: JSON {

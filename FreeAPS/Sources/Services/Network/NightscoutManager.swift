@@ -630,6 +630,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 let deviceToken = UserDefaults.standard.string(forKey: "deviceToken") ?? ""
                 let isAPNSProduction = UserDefaults.standard.bool(forKey: "isAPNSProduction")
                 let presetOverrides = await overridesStorage.getPresetOverridesForNightscout()
+                let teamID = Bundle.main.object(forInfoDictionaryKey: "TeamID") as? String ?? ""
 
                 let profileStore = NightscoutProfileStore(
                     defaultProfile: defaultProfile,
@@ -641,7 +642,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     bundleIdentifier: bundleIdentifier,
                     deviceToken: deviceToken,
                     isAPNSProduction: isAPNSProduction,
-                    overrides: presetOverrides
+                    overrides: presetOverrides,
+                    teamID: teamID
                 )
 
                 guard let nightscout = nightscoutAPI, isNetworkReachable else {
