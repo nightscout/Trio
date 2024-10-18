@@ -147,8 +147,8 @@ extension Bolus {
                     }
                     HStack {
                         Text("ISF").foregroundColor(.secondary)
-                        let isf = state.isf
-                        Text(isf.formatted())
+                        let isf = state.units == .mmolL ? state.target.asMmolL : state.isf
+                        Text(isf.formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits))))
                         Text(state.units.rawValue + NSLocalizedString("/U", comment: "/Insulin unit"))
                             .foregroundColor(.secondary)
                     }
