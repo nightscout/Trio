@@ -6,9 +6,9 @@ import SwiftUI
 extension OverrideConfig {
     @Observable final class StateModel: BaseStateModel<Provider> {
         @ObservationIgnored @Injected() var broadcaster: Broadcaster!
+        @ObservationIgnored @Injected() var storage: TempTargetsStorage!
         @ObservationIgnored @Injected() var apsManager: APSManager!
         @ObservationIgnored @Injected() var overrideStorage: OverrideStorage!
-        @ObservationIgnored @Injected() var tempTargetStorage: TempTargetsStorage!
 
         var overridePercentage: Double = 100
         var isEnabled = false
@@ -17,7 +17,6 @@ extension OverrideConfig {
         var target: Decimal = 100
         var shouldOverrideTarget: Bool = false
         var smbIsOff: Bool = false
-        var smbIsScheduledOff: Bool = false
         var id = ""
         var overrideName: String = ""
         var isPreset: Bool = false
@@ -26,6 +25,7 @@ extension OverrideConfig {
         var isfAndCr: Bool = true
         var isf: Bool = true
         var cr: Bool = true
+        var smbIsScheduledOff: Bool = false
         var start: Decimal = 0
         var end: Decimal = 0
         var smbMinutes: Decimal = 0
@@ -38,8 +38,8 @@ extension OverrideConfig {
         var showOverrideEditSheet = false
         var showTempTargetEditSheet = false
         var currentActiveTempTarget: TempTargetStored?
+        var currentActiveOverride: OverrideStored?
         var activeTempTargetName: String = ""
-        var showInvalidTargetAlert = false
 
         var units: GlucoseUnits = .mgdL
 
@@ -139,8 +139,15 @@ extension OverrideConfig.StateModel {
                 self.updateLatestOverrideConfiguration()
             }
             .store(in: &cancellables)
-    }
 
+        // Custom Notification to update View when an Temp Target has been cancelled via Home View
+        Foundation.NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleTempTargetConfigurationUpdate),
+            name: .didUpdateTempTargetConfiguration,
+            object: nil
+        )
+    }
     // MARK: - Enact Overrides
 
     func reorderOverride(from source: IndexSet, to destination: Int) {
@@ -276,7 +283,7 @@ extension OverrideConfig.StateModel {
             date: Date(),
             duration: overrideDuration,
             indefinite: indefinite,
-            percentage: overridePercentage,
+            percentage: overrideSliderPercentage,
             smbIsOff: smbIsOff,
             isPreset: isPreset,
             id: id,
@@ -286,7 +293,7 @@ extension OverrideConfig.StateModel {
             isfAndCr: isfAndCr,
             isf: isf,
             cr: cr,
-            smbIsScheduledOff: smbIsScheduledOff,
+            smbIsAlwaysOff: smbIsAlwaysOff,
             start: start,
             end: end,
             smbMinutes: smbMinutes,
@@ -315,7 +322,7 @@ extension OverrideConfig.StateModel {
             date: Date(),
             duration: overrideDuration,
             indefinite: indefinite,
-            percentage: overridePercentage,
+            percentage: overrideSliderPercentage,
             smbIsOff: smbIsOff,
             isPreset: true,
             id: id,
@@ -325,7 +332,7 @@ extension OverrideConfig.StateModel {
             isfAndCr: isfAndCr,
             isf: isf,
             cr: cr,
-            smbIsScheduledOff: smbIsScheduledOff,
+            smbIsAlwaysOff: smbIsAlwaysOff,
             start: start,
             end: end,
             smbMinutes: smbMinutes,
@@ -463,16 +470,16 @@ extension OverrideConfig.StateModel {
 
         overrideDuration = 0
         indefinite = true
-        overridePercentage = 100
+        overrideSliderPercentage = 100
 
         advancedSettings = false
-        smbIsScheduledOff = false
+        smbIsOff = false
         overrideName = ""
         shouldOverrideTarget = false
         isf = true
         cr = true
         isfAndCr = true
-        smbIsScheduledOff = false
+        smbIsAlwaysOff = false
         start = 0
         end = 23
         smbMinutes = defaultSmbMinutes

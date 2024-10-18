@@ -88,7 +88,7 @@ extension Home {
         var tempTargetStored: [TempTargetStored] = []
         var tempTargetRunStored: [TempTargetRunStored] = []
         private(set) var setupPumpType: PumpConfig.PumpType = .minimed
-        var currentBGTarget: Decimal = 0
+        @Published var currentBGTarget: Decimal = 0
 
         var minForecast: [Int] = []
         var maxForecast: [Int] = []
@@ -451,6 +451,22 @@ extension Home {
 
                 // perform determine basal sync, otherwise you have could end up with too much iob when opening the calculator again
                 await apsManager.determineBasalSync()
+            }
+        }
+
+        @MainActor func cancelOverride(withID id: NSManagedObjectID) async {
+            do {
+                let profileToCancel = try viewContext.existingObject(with: id) as? OverrideStored
+                profileToCancel?.enabled = false
+
+                await saveToOverrideRunStored(withID: id)
+
+                guard viewContext.hasChanges else { return }
+                try viewContext.save()
+
+                Foundation.NotificationCenter.default.post(name: .willUpdateOverrideConfiguration, object: nil)
+            } catch {
+                debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to cancel Profile")
             }
         }
 

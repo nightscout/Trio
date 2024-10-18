@@ -144,12 +144,12 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
                     newOverride.isfAndCr = true
                 }
 
-                if override.smbIsScheduledOff {
-                    newOverride.smbIsScheduledOff = true
+                if override.smbIsAlwaysOff {
+                    newOverride.smbIsAlwaysOff = true
                     newOverride.start = override.start as NSDecimalNumber
                     newOverride.end = override.end as NSDecimalNumber
                 } else {
-                    newOverride.smbIsScheduledOff = false
+                    newOverride.smbIsAlwaysOff = false
                 }
 
                 newOverride.smbMinutes = override.smbMinutes as NSDecimalNumber
@@ -184,7 +184,7 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
         newOverride.isfAndCr = override.isfAndCr
         newOverride.isf = override.isf
         newOverride.cr = override.cr
-        newOverride.smbIsScheduledOff = override.smbIsScheduledOff
+        newOverride.smbIsAlwaysOff = override.smbIsAlwaysOff
         newOverride.start = override.start
         newOverride.end = override.end
         newOverride.smbMinutes = override.smbMinutes
