@@ -101,17 +101,6 @@ struct EditOverrideForm: View {
         return formatter
     }
 
-    private var glucoseFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        if state.units == .mmolL {
-            formatter.maximumFractionDigits = 1
-        }
-        formatter.roundingMode = .halfUp
-        return formatter
-    }
-
     private var percentageSelection: Binding<Double> {
         Binding<Double>(
             get: {
@@ -146,6 +135,16 @@ struct EditOverrideForm: View {
                         Text("Cancel")
                     })
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(
+                        action: {
+                            state.isHelpSheetPresented.toggle()
+                        },
+                        label: {
+                            Image(systemName: "questionmark.circle")
+                        }
+                    )
+                }
             }
             .onAppear { targetStep = state.units == .mgdL ? 5 : 9 }
             .onDisappear {
@@ -153,6 +152,35 @@ struct EditOverrideForm: View {
                     // Reset UI changes
                     resetValues()
                 }
+            }
+            .sheet(isPresented: $state.isHelpSheetPresented) {
+                NavigationStack {
+                    List {
+                        Text(
+                            "Lorem Ipsum Dolor Sit Amet"
+                        )
+
+                        Text(
+                            "Lorem Ipsum Dolor Sit Amet"
+                        )
+
+                        Text(
+                            "Lorem Ipsum Dolor Sit Amet"
+                        )
+                    }
+                    .padding(.trailing, 10)
+                    .navigationBarTitle("Help", displayMode: .inline)
+
+                    Button { state.isHelpSheetPresented.toggle() }
+                    label: { Text("Got it!").frame(maxWidth: .infinity, alignment: .center) }
+                        .buttonStyle(.bordered)
+                        .padding(.top)
+                }
+                .padding()
+                .presentationDetents(
+                    [.fraction(0.9), .large],
+                    selection: $state.helpSheetDetent
+                )
             }
         }
     }
@@ -332,7 +360,6 @@ struct EditOverrideForm: View {
                             set: { target = $0 }
                         ),
                         options: generateTargetPickerValues(),
-                        formatter: { formattedGlucose(glucose: $0) },
                         units: state.units,
                         hasChanges: $hasChanges,
                         targetStep: $targetStep
@@ -590,16 +617,6 @@ struct EditOverrideForm: View {
         return (false, nil)
     }
 
-    private func formattedGlucose(glucose: Decimal) -> String {
-        let formattedValue: String
-        if state.units == .mgdL {
-            formattedValue = glucoseFormatter.string(from: glucose as NSDecimalNumber) ?? "\(glucose)"
-        } else {
-            formattedValue = glucose.formattedAsMmolL
-        }
-        return "\(formattedValue) \(state.units.rawValue)"
-    }
-
     private func saveChanges() {
         if !override.isPreset, hasChanges, name == (override.name ?? "") {
             override.name = "Custom Override"
@@ -609,13 +626,7 @@ struct EditOverrideForm: View {
         override.percentage = percentage
         override.indefinite = indefinite
         override.duration = NSDecimalNumber(decimal: duration)
-        if target_override {
-            override.target = target.map {
-                state.units == .mmolL ? NSDecimalNumber(decimal: $0.asMgdL) : NSDecimalNumber(decimal: $0)
-            }
-        } else {
-            override.target = 0
-        }
+        override.target = NSDecimalNumber(decimal: target ?? 100)
         override.advancedSettings = advancedSettings
         override.smbIsOff = smbIsOff
         override.smbIsScheduledOff = smbIsScheduledOff
@@ -726,7 +737,6 @@ struct TargetPicker: View {
     let label: String
     @Binding var selection: Decimal
     let options: [Decimal]
-    let formatter: (Decimal) -> String
     let units: GlucoseUnits
     @Binding var hasChanges: Bool
     @Binding var targetStep: Decimal
@@ -737,8 +747,10 @@ struct TargetPicker: View {
             HStack {
                 Text(label)
                 Spacer()
-                Text(formatter(selection))
-                    .foregroundColor(!isDisplayed ? .primary : .accentColor)
+                Text(
+                    (units == .mgdL ? selection.description : selection.formattedAsMmolL) + " " + units.rawValue
+                )
+                .foregroundColor(!isDisplayed ? .primary : .accentColor)
             }
             .onTapGesture {
                 isDisplayed.toggle()
@@ -750,9 +762,11 @@ struct TargetPicker: View {
                         // Radio buttons for step iteration
                         let stepChoices: [Decimal] = units == .mgdL ? [1, 5] : [1, 9]
                         ForEach(stepChoices, id: \.self) { step in
+                            let label = (units == .mgdL ? step.description : step.formattedAsMmolL) + " " +
+                                units.rawValue
                             RadioButton(
                                 isSelected: targetStep == step,
-                                label: "\(units == .mgdL ? step : step.asMmolL) \(units.rawValue)"
+                                label: label
                             ) {
                                 targetStep = step
                                 selection = roundTargetToStep(selection, step)
@@ -773,7 +787,8 @@ struct TargetPicker: View {
                         }
                     ), label: Text("")) {
                         ForEach(options, id: \.self) { option in
-                            Text(formatter(option)).tag(option)
+                            Text((units == .mgdL ? option.description : option.formattedAsMmolL) + " " + units.rawValue)
+                                .tag(option)
                         }
                     }
                     .pickerStyle(WheelPickerStyle())

@@ -57,17 +57,6 @@ struct AddOverrideForm: View {
         return formatter
     }
 
-    private var glucoseFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        if state.units == .mmolL {
-            formatter.maximumFractionDigits = 1
-        }
-        formatter.roundingMode = .halfUp
-        return formatter
-    }
-
     var body: some View {
         NavigationView {
             List {
@@ -89,8 +78,47 @@ struct AddOverrideForm: View {
                         Text("Cancel")
                     })
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(
+                        action: {
+                            state.isHelpSheetPresented.toggle()
+                        },
+                        label: {
+                            Image(systemName: "questionmark.circle")
+                        }
+                    )
+                }
             }
             .onAppear { targetStep = state.units == .mgdL ? 5 : 9 }
+            .sheet(isPresented: $state.isHelpSheetPresented) {
+                NavigationStack {
+                    List {
+                        Text(
+                            "Lorem Ipsum Dolor Sit Amet"
+                        )
+
+                        Text(
+                            "Lorem Ipsum Dolor Sit Amet"
+                        )
+
+                        Text(
+                            "Lorem Ipsum Dolor Sit Amet"
+                        )
+                    }
+                    .padding(.trailing, 10)
+                    .navigationBarTitle("Help", displayMode: .inline)
+
+                    Button { state.isHelpSheetPresented.toggle() }
+                    label: { Text("Got it!").frame(maxWidth: .infinity, alignment: .center) }
+                        .buttonStyle(.bordered)
+                        .padding(.top)
+                }
+                .padding()
+                .presentationDetents(
+                    [.fraction(0.9), .large],
+                    selection: $state.helpSheetDetent
+                )
+            }
         }
     }
 
@@ -238,8 +266,11 @@ struct AddOverrideForm: View {
                         HStack {
                             Text("Target Glucose")
                             Spacer()
-                            Text(formattedGlucose(glucose: state.target))
-                                .foregroundColor(!displayPickerTarget ? .primary : .accentColor)
+                            Text(
+                                (state.units == .mgdL ? state.target.description : state.target.formattedAsMmolL) + " " + state
+                                    .units.rawValue
+                            )
+                            .foregroundColor(!displayPickerTarget ? .primary : .accentColor)
                         }
                         .padding(.vertical, pad)
                         .onTapGesture {
@@ -253,9 +284,12 @@ struct AddOverrideForm: View {
                                     // Radio buttons for step iteration
                                     let stepChoices: [Decimal] = state.units == .mgdL ? [1, 5] : [1, 9]
                                     ForEach(stepChoices, id: \.self) { step in
+                                        let label = (state.units == .mgdL ? step.description : step.formattedAsMmolL) + " " +
+                                            state.units.rawValue
+
                                         RadioButton(
                                             isSelected: targetStep == step,
-                                            label: "\(state.units == .mgdL ? step : step.asMmolL) \(state.units.rawValue)"
+                                            label: label
                                         ) {
                                             targetStep = step
                                             state.target = roundTargetToStep(state.target, targetStep)
@@ -276,8 +310,11 @@ struct AddOverrideForm: View {
                                         generateTargetPickerValues(),
                                         id: \.self
                                     ) { glucose in
-                                        Text(formattedGlucose(glucose: glucose))
-                                            .tag(glucose)
+                                        Text(
+                                            (state.units == .mgdL ? glucose.description : glucose.formattedAsMmolL) + " " + state
+                                                .units.rawValue
+                                        )
+                                        .tag(glucose)
                                     }
                                 }
                                 .pickerStyle(WheelPickerStyle())
@@ -515,16 +552,6 @@ struct AddOverrideForm: View {
         }
 
         return (false, nil)
-    }
-
-    private func formattedGlucose(glucose: Decimal) -> String {
-        let formattedValue: String
-        if state.units == .mgdL {
-            formattedValue = glucoseFormatter.string(from: glucose as NSDecimalNumber) ?? "\(glucose)"
-        } else {
-            formattedValue = glucose.formattedAsMmolL
-        }
-        return "\(formattedValue) \(state.units.rawValue)"
     }
 
     private func roundOverridePercentageToStep() {

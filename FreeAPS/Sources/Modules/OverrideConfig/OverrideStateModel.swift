@@ -52,6 +52,9 @@ extension OverrideConfig {
         var hbt: Double = 160
         var didSaveSettings: Bool = false
 
+        var isHelpSheetPresented: Bool = false
+        var helpSheetDetent = PresentationDetent.large
+
         var alertMessage: String {
             let target: String = units == .mgdL ? "70-270 mg/dl" : "4-15 mmol/l"
             return "Please enter a valid target between" + " \(target)."
