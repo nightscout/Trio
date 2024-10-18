@@ -9,9 +9,10 @@ class SettingsRootViewModel: ObservableObject {
         let buildDetails = BuildDetails.default
         let versionNumber = Bundle.main.releaseVersionNumber ?? "Unknown"
         let buildNumber = Bundle.main.buildVersionNumber ?? "Unknown"
-        let branch = buildDetails.branchAndSha
+        let branch = buildDetails.branch
+        let sha = buildDetails.sha
 
-        let headerBase = "Trio v\(versionNumber) (\(buildNumber))\nBranch: \(branch)"
+        let headerBase = "Trio v\(versionNumber) (\(buildNumber))\nBranch: \(branch)\nCommit: \(sha)"
 
         if let expirationDate = buildDetails.calculateExpirationDate() {
             let formattedDate = DateFormatter.localizedString(from: expirationDate, dateStyle: .medium, timeStyle: .none)

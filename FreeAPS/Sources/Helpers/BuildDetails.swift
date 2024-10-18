@@ -26,10 +26,14 @@ class BuildDetails {
         dict["com-trio-build-date"] as? String
     }
 
-    var branchAndSha: String {
+    var branch: String {
         let branch = dict["com-trio-branch"] as? String ?? "Unknown"
+        return "\(branch)"
+    }
+
+    var sha: String {
         let sha = dict["com-trio-commit-sha"] as? String ?? "Unknown"
-        return "\(branch) \(sha)"
+        return "\(sha)"
     }
 
     // Determine if the build is from TestFlight
