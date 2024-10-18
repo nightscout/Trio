@@ -438,7 +438,7 @@ struct AddTempTargetForm: View {
 
     func generateTargetPickerValues() -> [Decimal] {
         var values: [Decimal] = []
-        var currentValue: Double = 72
+        var currentValue: Double = 80 // lowest allowed TT in oref
         let step = Double(targetStep)
 
         // Adjust currentValue to be divisible by targetStep
