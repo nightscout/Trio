@@ -52,7 +52,7 @@ struct ListStateView: View {
             Spacer()
 
             HStack {
-                Text("IOB").font(.caption).foregroundColor(.secondary)
+                Text("IOB", tableName: "ShortcutsDetail").font(.caption).foregroundColor(.secondary)
                 Text(
                     (numberFormatter.string(from: (state.iob ?? 0) as NSNumber) ?? "0") +
                         NSLocalizedString(" U", comment: "Insulin unit")
@@ -60,7 +60,7 @@ struct ListStateView: View {
                 .font(.body).fontWeight(.bold)
             }
             HStack {
-                Text("COB").font(.caption).foregroundColor(.secondary)
+                Text("COB", tableName: "ShortcutsDetail").font(.caption).foregroundColor(.secondary)
                 Text(
                     (numberFormatter.string(from: (state.cob ?? 0) as NSNumber) ?? "0") +
                         NSLocalizedString(" g", comment: "gram of carbs")
@@ -70,7 +70,7 @@ struct ListStateView: View {
             Spacer()
             HStack {
                 Text(
-                    state.glucose
+                    "\(state.glucose)", tableName: "ShortcutsDetail"
                 )
                 .font(.title).fontWeight(.bold).foregroundColor(.loopGreen)
                 image
@@ -78,13 +78,10 @@ struct ListStateView: View {
             HStack {
                 let minutes = -1 * state.date.timeIntervalSinceNow / 60
                 let text = timaAgoFormatter.string(for: Double(minutes)) ?? ""
-                Text(
-                    minutes <= 1 ? "< 1 " + NSLocalizedString("min", comment: "Short form for minutes") : (
-                        text + " " +
-                            NSLocalizedString("min", comment: "Short form for minutes") + " "
-                    )
-                )
-                .font(.caption2).foregroundColor(.secondary)
+                let textContent: LocalizedStringResource = minutes <= 1 ? .init("< 1 min", table: "ShortcutsDetail") :
+                    .init("\(text) min", table: "ShortcutsDetail")
+                Text(textContent)
+                    .font(.caption2).foregroundColor(.secondary)
 
                 Text(
                     state.delta

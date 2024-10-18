@@ -1,0 +1,41 @@
+/*
+  AppShortcuts.strings
+*/
+/* -------------------------------- */
+
+/* Trio appliquer Bolus */
+"${applicationName} Bolus" = "${applicationName} Bolus";
+
+"Enacts a ${applicationName} Bolus" = "Effectue un bolus ${applicationName}";
+
+/* Trio raccourci Cible Temporaire */
+"Activate ${applicationName} TempTarget Preset" = "Activer le préréglage temporaire de ${applicationName}";
+
+"Activates an available ${applicationName} TempTarget Preset" = "Active un préréglage temporaire disponible de ${applicationName}";
+
+"New ${applicationName} TempTarget" = "Nouveau TempTarget ${applicationName}";
+
+"Creates and applies a newly configured ${applicationName} TempTarget" = "Crée et applique un nouveau prérégleage temporaire configuré de ${applicationName}";
+
+"Cancel ${applicationName} TempTarget" = "Annuler le préréglage temporaire ${applicationName}";
+
+"Cancels an active ${applicationName} TempTarget" = "Annule un préréglage temporaire actif de ${applicationName}";
+
+/* Trio lister l'état */
+"List ${applicationName} state" = "Lister l'état de ${applicationName}";
+
+"Lists different states of ${applicationName}" = "Liste les différents états de ${applicationName}";
+
+/* Trio ajouter des glucides */
+"${applicationName} Carbs" = "Glucides ${applicationName}";
+
+"Adds carbs to ${applicationName}" = "Ajoute des glucides à ${applicationName}";
+
+/* Trio raccourci de remplacement */
+"Activate ${applicationName} Override Preset" = "Activer le profil de ${applicationName}";
+
+"Activates an available ${applicationName} Override Preset" = "Active un profil disponible de ${applicationName}";
+
+"Cancel ${applicationName} Override" = "Annuler profil ${applicationName}";
+
+"Cancels an active ${applicationName} Override" = "Annule le profil actif de ${applicationName}";
