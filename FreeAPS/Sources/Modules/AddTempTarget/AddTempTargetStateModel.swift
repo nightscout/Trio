@@ -33,9 +33,13 @@ extension AddTempTarget {
                 return
             }
             var lowTarget = low
+            if units == .mmolL {
+                lowTarget = Decimal(round(Double(lowTarget.asMgdL)))
+            }
+            let highTarget = lowTarget
 
             if viewPercantage {
-                lowTarget = Decimal(round(Double(computeTarget())))
+                hbt = computeHBT()
                 coredataContext.performAndWait {
                     let saveToCoreData = TempTargets(context: self.coredataContext)
                     saveToCoreData.id = UUID().uuidString
@@ -54,12 +58,6 @@ extension AddTempTarget {
                     saveToCoreData.date = Date()
                     try? coredataContext.save()
                 }
-            }
-            var highTarget = lowTarget
-
-            if units == .mmolL, !viewPercantage {
-                lowTarget = Decimal(round(Double(lowTarget.asMgdL)))
-                highTarget = lowTarget
             }
 
             let entry = TempTarget(
@@ -105,16 +103,14 @@ extension AddTempTarget {
                 return
             }
             var lowTarget = low
+            if units == .mmolL {
+                lowTarget = Decimal(round(Double(lowTarget.asMgdL)))
+            }
+            let highTarget = lowTarget
 
             if viewPercantage {
-                lowTarget = Decimal(round(Double(computeTarget())))
+                hbt = computeHBT()
                 saveSettings = true
-            }
-            var highTarget = lowTarget
-
-            if units == .mmolL, !viewPercantage {
-                lowTarget = Decimal(round(Double(lowTarget.asMgdL)))
-                highTarget = lowTarget
             }
 
             let entry = TempTarget(
@@ -196,28 +192,15 @@ extension AddTempTarget {
             return Decimal(Double(target))
         }
 
-        func computePercentage(target: Decimal) -> Decimal {
-            let c = Decimal(hbt - 100)
-            var ratio = c / (c + target - 100)
-
-            if ratio > maxValue {
-                ratio = maxValue
-            }
-
-            let adjustedPercentage = ratio * 100
-            let roundedPercentage = (adjustedPercentage as NSDecimalNumber).rounding(accordingToBehavior: nil)
-            return roundedPercentage as Decimal
-        }
-
         func updatePreset(_ preset: TempTarget) {
             var lowTarget = low
 
-            if viewPercantage {
-                lowTarget = Decimal(round(Double(computeTarget())))
-            }
-
             if units == .mmolL, !viewPercantage {
                 lowTarget = Decimal(round(Double(lowTarget.asMgdL)))
+            }
+
+            if viewPercantage {
+                hbt = computeHBT()
             }
 
             let updatedPreset = TempTarget(
@@ -235,6 +218,32 @@ extension AddTempTarget {
                 presets[index] = updatedPreset
                 storage.storePresets(presets)
             }
+        }
+
+        func computePercentage(target: Decimal) -> Decimal {
+            let c = Decimal(hbt - 100)
+            var ratio = c / (c + target - 100)
+
+            if ratio > maxValue {
+                ratio = maxValue
+            }
+
+            let adjustedPercentage = ratio * 100
+            let roundedPercentage = (adjustedPercentage as NSDecimalNumber).rounding(accordingToBehavior: nil)
+            return roundedPercentage as Decimal
+        }
+
+        func computeHBT() -> Double {
+            let ratio = Decimal(percentage / 100)
+            let normalTarget: Decimal = 100
+            var target: Decimal = low
+            if units == .mmolL {
+                target = target.asMgdL }
+            var hbtcalc = Decimal(hbt)
+            if ratio != 1 {
+                hbtcalc = ((2 * ratio * normalTarget) - normalTarget - (ratio * target)) / (ratio - 1)
+            }
+            return round(Double(hbtcalc))
         }
     }
 }
