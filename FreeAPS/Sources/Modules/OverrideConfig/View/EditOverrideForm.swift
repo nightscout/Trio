@@ -14,7 +14,7 @@ struct EditOverrideForm: View {
     @State private var target: Decimal?
     @State private var advancedSettings: Bool
     @State private var smbIsOff: Bool
-    @State private var smbIsAlwaysOff: Bool
+    @State private var smbIsScheduledOff: Bool
     @State private var start: Decimal?
     @State private var end: Decimal?
     @State private var isfAndCr: Bool
@@ -42,7 +42,7 @@ struct EditOverrideForm: View {
         _target_override = State(initialValue: overrideToEdit.target?.decimalValue != 0)
         _advancedSettings = State(initialValue: overrideToEdit.advancedSettings)
         _smbIsOff = State(initialValue: overrideToEdit.smbIsOff)
-        _smbIsAlwaysOff = State(initialValue: overrideToEdit.smbIsAlwaysOff)
+        _smbIsScheduledOff = State(initialValue: overrideToEdit.smbIsScheduledOff)
         _start = State(initialValue: overrideToEdit.start?.decimalValue)
         _end = State(initialValue: overrideToEdit.end?.decimalValue)
         _isfAndCr = State(initialValue: overrideToEdit.isfAndCr)
@@ -132,7 +132,7 @@ struct EditOverrideForm: View {
                 Text("\(percentage.formatted(.number)) %")
                     .foregroundColor(
                         state
-                            .overrideSliderPercentage >= 130 ? .red :
+                            .overridePercentage >= 130 ? .red :
                             (isEditing ? .orange : Color.tabBar)
                     )
                     .font(.largeTitle)
@@ -196,11 +196,11 @@ struct EditOverrideForm: View {
                     Text("Disable SMBs")
                 }.onChange(of: smbIsOff) { _ in hasChanges = true }
 
-                Toggle(isOn: $smbIsAlwaysOff) {
+                Toggle(isOn: $smbIsScheduledOff) {
                     Text("Schedule when SMBs are Off")
-                }.onChange(of: smbIsAlwaysOff) { _ in hasChanges = true }
+                }.onChange(of: smbIsScheduledOff) { _ in hasChanges = true }
 
-                if smbIsAlwaysOff {
+                if smbIsScheduledOff {
                     HStack {
                         Text("First Hour SMBs are Off (24 hours)")
                         TextFieldWithToolBar(
@@ -342,7 +342,7 @@ struct EditOverrideForm: View {
         }
         override.advancedSettings = advancedSettings
         override.smbIsOff = smbIsOff
-        override.smbIsAlwaysOff = smbIsAlwaysOff
+        override.smbIsScheduledOff = smbIsScheduledOff
         override.start = start.map { NSDecimalNumber(decimal: $0) }
         override.end = end.map { NSDecimalNumber(decimal: $0) }
         override.isfAndCr = isfAndCr
@@ -361,7 +361,7 @@ struct EditOverrideForm: View {
         target = override.target?.decimalValue
         advancedSettings = override.advancedSettings
         smbIsOff = override.smbIsOff
-        smbIsAlwaysOff = override.smbIsAlwaysOff
+        smbIsScheduledOff = override.smbIsScheduledOff
         start = override.start?.decimalValue
         end = override.end?.decimalValue
         isfAndCr = override.isfAndCr

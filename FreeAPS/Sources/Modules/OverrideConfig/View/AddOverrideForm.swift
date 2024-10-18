@@ -77,15 +77,15 @@ struct AddOverrideForm: View {
         Section {
             VStack {
                 Spacer()
-                Text("\(state.overrideSliderPercentage.formatted(.number)) %")
+                Text("\(state.overridePercentage.formatted(.number)) %")
                     .foregroundColor(
                         state
-                            .overrideSliderPercentage >= 130 ? .red :
+                            .overridePercentage >= 130 ? .red :
                             (isEditing ? .orange : Color.tabBar)
                     )
                     .font(.largeTitle)
                 Slider(
-                    value: $state.overrideSliderPercentage,
+                    value: $state.overridePercentage,
                     in: 10 ... 200,
                     step: 1,
                     onEditingChanged: { editing in
@@ -129,11 +129,11 @@ struct AddOverrideForm: View {
                     }
                 }
                 HStack {
-                    Toggle(isOn: $state.smbIsAlwaysOff) {
+                    Toggle(isOn: $state.smbIsScheduledOff) {
                         Text("Schedule when SMBs are Off")
-                    }.disabled(!state.smbIsOff)
+                    }.disabled(!state.smbIsScheduledOff)
                 }
-                if state.smbIsAlwaysOff {
+                if state.smbIsScheduledOff {
                     HStack {
                         Text("First Hour SMBs are Off (24 hours)")
                         TextFieldWithToolBar(text: $state.start, placeholder: "0", numberFormatter: formatter)
@@ -190,7 +190,7 @@ struct AddOverrideForm: View {
                 if !state.isInputInvalid(target: state.target) {
                     showAlert.toggle()
 
-                    alertString = "\(state.overrideSliderPercentage.formatted(.number)) %, " +
+                    alertString = "\(state.overridePercentage.formatted(.number)) %, " +
                         (
                             state.overrideDuration > 0 || !state
                                 .indefinite ?
@@ -273,12 +273,12 @@ struct AddOverrideForm: View {
 
     private func unChanged() -> Bool {
         let isChanged = (
-            state.overrideSliderPercentage == 100 && !state.shouldOverrideTarget && !state.smbIsOff && !state
+            state.overridePercentage == 100 && !state.shouldOverrideTarget && !state.smbIsOff && !state
                 .advancedSettings
         ) ||
             (!state.indefinite && state.overrideDuration == 0) || (state.shouldOverrideTarget && state.target == 0) ||
             (
-                state.overrideSliderPercentage == 100 && !state.shouldOverrideTarget && !state.smbIsOff && state.isf && state
+                state.overridePercentage == 100 && !state.shouldOverrideTarget && !state.smbIsOff && state.isf && state
                     .cr && state
                     .smbMinutes == state.defaultSmbMinutes && state.uamMinutes == state.defaultUamMinutes
             )
