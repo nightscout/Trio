@@ -34,6 +34,7 @@ enum Screen: Identifiable, Hashable {
     case watch
     case statisticsConfig
     case calibrations
+    case shortcutsConfig
 
     var id: Int { String(reflecting: self).hashValue }
 }
@@ -105,6 +106,8 @@ extension Screen {
             StatConfig.RootView(resolver: resolver)
         case .calibrations:
             Calibrations.RootView(resolver: resolver)
+        case .shortcutsConfig:
+            ShortcutsConfig.RootView(resolver: resolver)
         }
     }
 
