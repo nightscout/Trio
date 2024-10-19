@@ -48,9 +48,16 @@ extension AutosensSettings {
                     units: state.units,
                     type: .decimal("autosensMax"),
                     label: NSLocalizedString("Autosens Max", comment: "Autosens Max"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+                    miniHint: """
+                    The higher limit of the Autosens Ratio
+                    Default: **120%**
+                    """,
                     verboseHint: NSLocalizedString(
-                        "This is a multiplier cap for autosens (and autotune) to set a 20% max limit on how high the autosens ratio can be, which in turn determines how high autosens can adjust basals, how low it can adjust ISF, and how low it can set the BG target.",
+                        """
+                        Autosens Max sets the maximum Autosens Ratio used by Autosens, Dynamic ISF, Sigmoid Formula, and/or Autotune. 
+                        The Autosens Ratio is used to calculate the amount of adjustment needed to basals, ISF, and CR.
+                        Increasing this value allows automatic adjustments of basal rates to be higher, ISF to be lower, and CR to be lower. This can result in more insulin given.
+                        """,
                         comment: "Autosens Max"
                     ),
                     headerText: "Glucose Deviations Algorithm"
@@ -70,9 +77,16 @@ extension AutosensSettings {
                     units: state.units,
                     type: .decimal("autosensMin"),
                     label: NSLocalizedString("Autosens Min", comment: "Autosens Min"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+                    miniHint: """
+                    The lower limit of the Autosens Ratio
+                    Default: **80%**
+                    """,
                     verboseHint: NSLocalizedString(
-                        "The other side of the autosens safety limits, putting a cap on how low autosens can adjust basals, and how high it can adjust ISF and BG targets.",
+                        """
+                        Autosens Min sets the minimum Autosens Ratio used by Autosens, Dynamic ISF, Sigmoid Formula, and/or Autotune. 
+                        The Autosens Ratio is used to calculate the amount of adjustment needed to basals, ISF, and CR.
+                        Decreasing this value allows automatic adjustments of basal rates to be lower, ISF to be higher, and CR to be higher.
+                        """,
                         comment: "Autosens Min"
                     )
                 )
