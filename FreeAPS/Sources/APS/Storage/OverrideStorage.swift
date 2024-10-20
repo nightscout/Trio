@@ -137,16 +137,16 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             if override.advancedSettings {
                 newOverride.advancedSettings = true
 
-                if override.smbIsScheduledOff {
-                    newOverride.smbIsScheduledOff = true
-                    newOverride.start = override.start as NSDecimalNumber
-                    newOverride.end = override.end as NSDecimalNumber
-                } else {
-                    newOverride.smbIsScheduledOff = false
-                }
-
                 newOverride.smbMinutes = override.smbMinutes as NSDecimalNumber
                 newOverride.uamMinutes = override.uamMinutes as NSDecimalNumber
+            }
+
+            if override.smbIsScheduledOff {
+                newOverride.smbIsScheduledOff = true
+                newOverride.start = override.start as NSDecimalNumber
+                newOverride.end = override.end as NSDecimalNumber
+            } else {
+                newOverride.smbIsScheduledOff = false
             }
 
             do {
