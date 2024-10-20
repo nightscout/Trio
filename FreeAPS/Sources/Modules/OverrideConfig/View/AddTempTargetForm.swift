@@ -98,62 +98,67 @@ struct AddTempTargetForm: View {
     }
 
     @ViewBuilder private func addTempTarget() -> some View {
-        Section {
-            let pad: CGFloat = 3
-            HStack {
-                Text("Name")
-                Spacer()
-                TextField("Enter Name (optional)", text: $state.tempTargetName)
-                    .multilineTextAlignment(.trailing)
-            }
-            .padding(.vertical, pad)
-            DatePicker("Date", selection: $state.date)
-            VStack {
+        Group {
+            Section {
                 HStack {
-                    Text("Duration")
+                    Text("Name")
                     Spacer()
-                    Text(formatHrMin(Int(state.tempTargetDuration)))
-                        .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
+                    TextField("Enter Name (optional)", text: $state.tempTargetName)
+                        .multilineTextAlignment(.trailing)
                 }
-                .padding(.vertical, pad)
-                .onTapGesture {
-                    displayPickerDuration.toggle()
-                }
+            }.listRowBackground(Color.chart)
 
-                if displayPickerDuration {
+            Section {
+                DatePicker("Date", selection: $state.date)
+            }.listRowBackground(Color.chart)
+
+            Section {
+                VStack {
                     HStack {
-                        Picker("Hours", selection: $durationHours) {
-                            ForEach(0 ..< 24) { hour in
-                                Text("\(hour) hr").tag(hour)
-                            }
-                        }
-                        .pickerStyle(WheelPickerStyle())
-                        .frame(maxWidth: .infinity)
-                        .onChange(of: durationHours) {
-                            state.tempTargetDuration = Decimal(totalDurationInMinutes())
-                        }
+                        Text("Duration")
+                        Spacer()
+                        Text(formatHrMin(Int(state.tempTargetDuration)))
+                            .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
+                    }
+                    .onTapGesture {
+                        displayPickerDuration.toggle()
+                    }
 
-                        Picker("Minutes", selection: $durationMinutes) {
-                            ForEach(Array(stride(from: 0, through: 55, by: 5)), id: \.self) { minute in
-                                Text("\(minute) min").tag(minute)
+                    if displayPickerDuration {
+                        HStack {
+                            Picker("Hours", selection: $durationHours) {
+                                ForEach(0 ..< 24) { hour in
+                                    Text("\(hour) hr").tag(hour)
+                                }
                             }
-                        }
-                        .pickerStyle(WheelPickerStyle())
-                        .frame(maxWidth: .infinity)
-                        .onChange(of: durationMinutes) {
-                            state.tempTargetDuration = Decimal(totalDurationInMinutes())
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: .infinity)
+                            .onChange(of: durationHours) {
+                                state.tempTargetDuration = Decimal(totalDurationInMinutes())
+                            }
+
+                            Picker("Minutes", selection: $durationMinutes) {
+                                ForEach(Array(stride(from: 0, through: 55, by: 5)), id: \.self) { minute in
+                                    Text("\(minute) min").tag(minute)
+                                }
+                            }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: .infinity)
+                            .onChange(of: durationMinutes) {
+                                state.tempTargetDuration = Decimal(totalDurationInMinutes())
+                            }
                         }
                     }
                 }
-            }
-            VStack {
+            }.listRowBackground(Color.chart)
+
+            Section {
                 HStack {
                     Text("Target Glucose")
                     Spacer()
                     Text(formattedGlucose(glucose: state.tempTargetTarget))
                         .foregroundColor(!displayPickerTarget ? .primary : .accentColor)
                 }
-                .padding(.vertical, pad)
                 .onTapGesture {
                     displayPickerTarget.toggle()
                 }
@@ -193,99 +198,22 @@ struct AddTempTargetForm: View {
                         }
                         .pickerStyle(WheelPickerStyle())
                         .frame(maxWidth: .infinity)
-                        .onChange(of: state.tempTargetTarget) { _ in
+                        .onChange(of: state.tempTargetTarget) {
                             state.percentage = Double(state.computeAdjustedPercentage() * 100)
                         }
                     }
                 }
-            }
-            if isSliderEnabled && state.tempTargetTarget != 0 {
-                if state.tempTargetTarget > 100 {
-                    Section {
-                        VStack(alignment: .leading) {
-                            Text("Raised Sensitivity:")
-                                .font(.footnote)
-                                .fontWeight(.bold)
-                            Text("Insulin reduced to \(formattedPercentage(state.percentage))% of regular amount.")
-                                .font(.footnote)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.8)
-                        }
-                        .padding(.vertical, pad)
-                    }.listRowBackground(Color.tabBar)
-                    Section {
-                        VStack {
-                            Toggle("Adjust Sensitivity", isOn: $state.didAdjustSens).padding(.top)
-                            HStack(alignment: .top) {
-                                Text(
-                                    "Temp Target raises Sensitivity. Further adjust if desired!"
-                                )
-                                .font(.footnote)
-                                .foregroundColor(.secondary)
-                                .lineLimit(nil)
-                                Spacer()
-                                Button(
-                                    action: {
-                                        hintLabel = "Adjust Sensitivity for high Temp Target "
-                                        selectedVerboseHint =
-                                            "You have enabled High TempTarget Raises Sensitivity in Target Behaviour settings. Therefore current high Temp Target of \(state.tempTargetTarget) would raise your sensitivity, hence reduce Insulin dosing to \(formattedPercentage(state.percentage)) % of regular amount. This can be adjusted to another desired Insulin percentage!"
-                                        shouldDisplayHint.toggle()
-                                    },
-                                    label: {
-                                        HStack {
-                                            Image(systemName: "questionmark.circle")
-                                        }
-                                    }
-                                ).buttonStyle(BorderlessButtonStyle())
-                            }.padding(.top)
-                        }
-                        .padding(.vertical, pad)
-                    }.listRowBackground(Color.chart)
-                } else if state.tempTargetTarget < 100 {
-                    Section {
-                        VStack(alignment: .leading) {
-                            Text("Lowered Sensitivity:")
-                                .font(.footnote)
-                                .fontWeight(.bold)
-                            Text("Insulin increased to \(formattedPercentage(state.percentage))% of regular amount.")
-                                .font(.footnote)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.8)
-                        }
-                        .padding(.vertical, pad)
-                    }.listRowBackground(Color.tabBar)
-                    Section {
-                        VStack {
-                            Toggle("Adjust Insulin %", isOn: $state.didAdjustSens).padding(.top)
-                            HStack(alignment: .top) {
-                                Text(
-                                    "Temp Target lowers Sensitivity. Further adjust if desired!"
-                                )
-                                .font(.footnote)
-                                .foregroundColor(.secondary)
-                                .lineLimit(nil)
-                                Spacer()
-                                Button(
-                                    action: {
-                                        hintLabel = "Adjust Sensitivity for low Temp Target "
-                                        selectedVerboseHint =
-                                            "You have enabled Low TempTarget Lowers Sensitivity in Target Behaviour settings and set autosens Max > 1. Therefore current low Temp Target of \(state.tempTargetTarget) would lower your sensitivity, hence increase Insulin dosing to \(formattedPercentage(state.percentage)) % of regular amount. This can be adjusted to another desired Insulin percentage!"
-                                        shouldDisplayHint.toggle()
-                                    },
-                                    label: {
-                                        HStack {
-                                            Image(systemName: "questionmark.circle")
-                                        }
-                                    }
-                                ).buttonStyle(BorderlessButtonStyle())
-                            }.padding(.top)
-                        }
-                        .padding(.vertical, pad)
-                    }.listRowBackground(Color.chart)
-                }
+            }.listRowBackground(Color.chart)
 
-                if state.didAdjustSens && state.tempTargetTarget != 100 {
-                    Section {
+            if state.tempTargetTarget != 0 {
+                let headerText = state
+                    .tempTargetTarget > 100 ?
+                    "Raised Sensitivity: Insulin reduced to \(formattedPercentage(state.percentage))% of regular amount." :
+                    "Lowered Sensitivity: Insulin increased to \(formattedPercentage(state.percentage))% of regular amount."
+                Section(
+                    header: Text(headerText).textCase(.none)
+                        .foregroundStyle(colorScheme == .dark ? Color.orange : Color.accentColor),
+                    content: {
                         VStack {
                             Text("\(Int(state.percentage)) % Insulin")
                                 .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
@@ -316,11 +244,10 @@ struct AddTempTargetForm: View {
                                 Spacer()
                             }
                         }
-                        .padding(.vertical, pad)
-                    }.listRowBackground(Color.chart)
-                }
+                    }
+                ).listRowBackground(Color.chart)
             }
-        }.listRowBackground(Color.chart)
+        }
     }
 
     private func isTempTargetInvalid() -> (Bool, String?) {
