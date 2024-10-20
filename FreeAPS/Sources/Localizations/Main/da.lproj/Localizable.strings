@@ -47,7 +47,7 @@
 "Agree and continue" = "Godkend og fortsæt";
 
 /* Bolus progress view */
-"of" = "of";
+"of" = "af";
 
 /* Headline in enacted pop up (at: at what time) */
 "Enacted at" = "Udført";
@@ -212,10 +212,10 @@
 "Top target" = "Øvre mål";
 
 /*  Temp target set for ... minutes */
-"for" = "for";
+"for" = "til";
 
 /*  Temp target set for ... minutes */
-"min" = "min";
+"min" = "min.";
 
 /*  */
 "Autotune" = "Autotune";
@@ -272,7 +272,7 @@
 "Carb Ratios" = "Kolhydratsratio";
 
 /*  */
-"Ratio" = "Ratio";
+"Ratio" = "Forhold";
 
 /*  */
 "Autosens" = "Autosens";
@@ -321,7 +321,7 @@ Enact a temp Basal or a temp target */
 "Connecting..." = "Forbinder...";
 
 /*  */
-"Invalid URL" = "Invalid URL";
+"Invalid URL" = "Ugyldig URL";
 
 /*  */
 "Local glucose source" = "Local glukose kilde";
@@ -339,7 +339,7 @@ Enact a temp Basal or a temp target */
 "Use local glucose server" = "Brug lokal server som glukosekilde";
 
 /* Enable Statistics */
-"This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n" = "This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n";
+"This enables uploading of statistics.json to Nightscout, which can be used by the Community Statistics and Demographics Project.\n\nParticipation in Community Statistics is opt-in, and requires separate registration at:\n" = "Dette gør det muligt at uploade statistics.json til Nightscout, som kan bruges af Fællesskabets statistikker og demografiske projekt.\n\nDeltagelse i EF-statistikker er fravalgt, og kræver separat registrering på:\n";
 
 /*  */
 "Edit settings json" = "Rediger indstillingsjson";
@@ -423,7 +423,7 @@ Enact a temp Basal or a temp target */
 "hours" = "timer";
 
 /* Max setting */
-"Max Basal" = "Max Basal";
+"Max Basal" = "Maks Basal";
 
 /* Max setting */
 "Max Bolus" = "Max Bolus";
@@ -432,28 +432,28 @@ Enact a temp Basal or a temp target */
 "Max Carbs" = "Maks Kulhydrater";
 
 /* Max setting */
-"Max Fat" = "Max Fat";
+"Max Fat" = "Maks. Fedt";
 
 /* Max setting */
 "Max Protein" = "Max Protein";
 
 /* Max setting */
-"Limit Per Entry" = "Limit Per Entry";
+"Limit Per Entry" = "Grænse Pr. Indgang";
 
 /* Max Carbs limit exceeded */
-"Max Carbs of" = "Max Carbs of";
+"Max Carbs of" = "Maks. kulhydrater af";
 
 /* Max Fat limit exceeded */
-"Max Fat of" = "Max Fat of";
+"Max Fat of" = "Maks. fedt af";
 
 /* Max Protein limit exceeded */
-"Max Protein of" = "Max Protein of";
+"Max Protein of" = "Max protein af";
 
 /* Max Bolus limit exceeded */
-"Max Bolus of" = "Max Bolus of";
+"Max Bolus of" = "Max Bolus af";
 
 /* Limit Exceeded label */
-"exceeded" = "exceeded";
+"exceeded" = "overskredet";
 
 /* */
 "Pump Settings" = "Pumpe Indstillinger";
@@ -606,16 +606,16 @@ Enact a temp Basal or a temp target */
 "Temp Targets" = "Midlertidige Mål";
 
 /* Delete carbs from data table and Nightscout */
-"Delete Carbs?" = "Delete Carbs?";
+"Delete Carbs?" = "Slet Kulhydrater?";
 
 /* Delete insulin from pump history and Nightscout */
-"Delete Insulin?" = "Delete Insulin?";
+"Delete Insulin?" = "Slet Insulin?";
 
 /* Treatments list */
 "Treatments" = "Behandlinger";
 
 /* " min" in Treatments list */
-" min" = " min";
+" min" = " min.";
 
 /* */
 "Unable to change anything" = "Kunne ikke ændre noget";
@@ -657,7 +657,7 @@ Enact a temp Basal or a temp target */
 "Modes" = "Sendere";
 
 /* Libre 2 Direct */
-"Libre 2 Direct" = "Libre 2 Direct";
+"Libre 2 Direct" = "Libre 2 Direkte";
 
 /* */
 "Select the third party transmitter you want to connect to" = "Vælg den tredjeparts sensor du vil forbinde til";
@@ -666,10 +666,10 @@ Enact a temp Basal or a temp target */
 "State was restored" = "Tilstand blev gendannet";
 
 /* The short unit display string for millimoles of glucose per liter */
-"mmol/L" = "mmol/L";
+"mmol/L" = "mmol/l";
 
 /* The short unit display string for milligrams of glucose per decilter */
-"mg/dL" = "mg/dL";
+"mg/dL" = "mg/dl";
 
 /* */
 "Add calibration" = "Tilføj kalibrering";
@@ -684,7 +684,7 @@ Enact a temp Basal or a temp target */
 "Slope" = "Hældning";
 
 /* */
-"Intercept" = "Intercept";
+"Intercept" = "Skæring";
 
 /* */
 "Chart" = "Graf";
@@ -702,7 +702,7 @@ Enact a temp Basal or a temp target */
 "About the Process" = "Om Processen";
 
 /* */
-"Please make sure that your Libre 2 sensor is already activated and finished warming up. If you have other apps connecting to the sensor via bluetooth, these need to be shut down or uninstalled. \n\n You can only have one app communicating with the sensor via bluetooth. Then press the \"pariring and connection\" button below to start the process. Please note that the bluetooth connection might take up to a couple of minutes before it starts working." = "Please make sure that your Libre 2 sensor is already activated and finished warming up. If you have other apps connecting to the sensor via bluetooth, these need to be shut down or uninstalled. \n\n You can only have one app communicating with the sensor via bluetooth. Then press the \"pariring and connection\" button below to start the process. Please note that the bluetooth connection might take up to a couple of minutes before it starts working.";
+"Please make sure that your Libre 2 sensor is already activated and finished warming up. If you have other apps connecting to the sensor via bluetooth, these need to be shut down or uninstalled. \n\n You can only have one app communicating with the sensor via bluetooth. Then press the \"pariring and connection\" button below to start the process. Please note that the bluetooth connection might take up to a couple of minutes before it starts working." = "Sørg for, at din Libre 2-sensor allerede er aktiveret og færdig med opvarmningen. Hvis du har andre apps, der opretter forbindelse til sensoren via bluetooth, skal disse lukkes ned eller afinstalleres. \n\n Du kan kun få én app til at kommunikere med sensoren via bluetooth. Tryk derefter på knappen \"parring og forbindelse\" nedenfor for at starte processen. Bemærk venligst, at bluetooth-forbindelsen kan tage op til et par minutter, før det begynder at virke.";
 
 /* */
 "Pairinginfo" = "Pairinginfo";
@@ -738,13 +738,13 @@ Enact a temp Basal or a temp target */
 "No Libre Transmitter Selected" = "Ingen Libre Sensor Valgt";
 
 /* Delete Transmitter and start anew. */
-"Delete CGMManager and start anew. Your libreoopweb credentials will be preserved" = "Delete CGMManager and start anew. Your libreoopweb credentials will be preserved";
+"Delete CGMManager and start anew. Your libreoopweb credentials will be preserved" = "Slet CGMManager og starte på ny. Dine libreoopweb legitimationsoplysninger vil blive bevaret";
 
 /* Invalid libre checksum */
 "Invalid libre checksum" = "Ugyldig libre checksum";
 
 /* Libre sensor was incorrectly read, CRCs were not valid */
-"Libre sensor was incorrectly read, CRCs were not valid" = "Libre sensor was incorrectly read, CRCs were not valid";
+"Libre sensor was incorrectly read, CRCs were not valid" = "Libre sensor blev forkert læst, CRC'er var ikke gyldige";
 
 /* Glucose */
 "Glucose" = "Glukose";
@@ -768,7 +768,7 @@ Enact a temp Basal or a temp target */
 "No Sensor Detected" = "Ingen Sensor Fundet";
 
 /* This might be an intermittent problem, but please check that your transmitter is tightly secured over your sensor */
-"This might be an intermittent problem, but please check that your transmitter is tightly secured over your sensor" = "This might be an intermittent problem, but please check that your transmitter is tightly secured over your sensor";
+"This might be an intermittent problem, but please check that your transmitter is tightly secured over your sensor" = "Dette kan være et periodisk problem, men tjek venligst at senderen er tæt fastgjort over din sensor";
 
 /* New Sensor Detected */
 "New Sensor Detected" = "Ny Sensor Fundet";
@@ -807,13 +807,13 @@ Enact a temp Basal or a temp target */
 "Battery is running low %@, consider charging your %@ device as soon as possible" = "Lavt batteriniveau %@, lad venligst din %@ enhed snarest muligt";
 
 /* Extracting calibrationdata from sensor */
-"Extracting calibrationdata from sensor" = "Extracting calibrationdata from sensor";
+"Extracting calibrationdata from sensor" = "Udtrækker kalibreringsdata fra sensor";
 
 /* Sensor Ending Soon */
 "Sensor Ending Soon" = "Sensor Udløber Snart";
 
 /* Current Sensor is Ending soon! Sensor Life left in %@ */
-"Current Sensor is Ending soon! Sensor Life left in %@" = "Current Sensor is Ending soon! Sensor Life left in %@";
+"Current Sensor is Ending soon! Sensor Life left in %@" = "Nuværende sensor slutter snart! Sensorliv tilbage i %@";
 
 /* */
 "Libre Bluetooth" = "Libre Bluetooth";
@@ -828,10 +828,10 @@ Enact a temp Basal or a temp target */
 "Sensor Footer checksum" = "Sensor Footer checksum";
 
 /* */
-"Last Blood Sugar prediction" = "Last Blood Sugar prediction";
+"Last Blood Sugar prediction" = "Sidste blodsukker forudsigelse";
 
 /* */
-"CurrentBG" = "CurrentBG";
+"CurrentBG" = "Nuværende BG";
 
 /* */
 "Sensor Info" = "Sensor Info";
@@ -927,7 +927,7 @@ Enact a temp Basal or a temp target */
 "Always Notify Glucose" = "Send altid Glukosenotifikation";
 
 /* */
-"Notify per reading" = "Notify per reading";
+"Notify per reading" = "Advisér pr. læsning";
 
 /* */
 "Value" = "Værdi";
@@ -948,7 +948,7 @@ Enact a temp Basal or a temp target */
 "Misc" = "Diverse";
 
 /* */
-"Unit override" = "Unit override";
+"Unit override" = "Tilsidesæt enhed";
 
 /* */
 "Low" = "Lav";
@@ -963,46 +963,46 @@ Enact a temp Basal or a temp target */
 "Schedule " = "Skema ";
 
 /* */
-"tapped save schedules" = "tapped save schedules";
+"tapped save schedules" = "gem skemaer med tappet";
 
 /* */
 "Error" = "Fejl";
 
 /* */
-"Some ui element was incorrectly specified" = "Some ui element was incorrectly specified";
+"Some ui element was incorrectly specified" = "Noget ui element blev forkert angivet";
 
 /* */
 "Success" = "Succes";
 
 /* */
-"Schedules were saved successfully!" = "Schedules were saved successfully!";
+"Schedules were saved successfully!" = "Tidsplaner blev gemt med succes!";
 
 /* */
-"High Glucose Alarm active" = "High Glucose Alarm active";
+"High Glucose Alarm active" = "Høj glukosealarm aktiv";
 
 /* */
-"Low Glucose Alarm active" = "Low Glucose Alarm active";
+"Low Glucose Alarm active" = "Lavt glukosealarm aktiv";
 
 /* */
-"No Glucose Alarm active" = "No Glucose Alarm active";
+"No Glucose Alarm active" = "Ingen glukosealarm aktiv";
 
 /* */
-"snoozing until %@" = "snoozing until %@";
+"snoozing until %@" = "udskyder indtil %@";
 
 /* */
-"not snoozing" = "not snoozing";
+"not snoozing" = "ikke udskyder";
 
 /* */
-"nothing to see here" = "nothing to see here";
+"nothing to see here" = "intet at se her";
 
 /* */
-"snooze from testview clicked" = "snooze from testview clicked";
+"snooze from testview clicked" = "udskyd fra testview klikket";
 
 /* */
-"will snooze for %@ until %@" = "will snooze for %@ until %@";
+"will snooze for %@ until %@" = "vil snooze for %@ indtil %@";
 
 /* */
-"Click to Snooze Alerts" = "Click to Snooze Alerts";
+"Click to Snooze Alerts" = "Klik for at udskyde påmindelser";
 
 /* */
 "Strength" = "Styrke";
@@ -1023,70 +1023,70 @@ Enact a temp Basal or a temp target */
 "Found devices: %d" = "Fundne enheder: %d";
 
 /* */
-"Backfill options" = "Backfill options";
+"Backfill options" = "Valgmuligheder for sikkerhedskopiering";
 
 /* */
-"Backfilling from trend is currently not well supported by Loop" = "Backfilling from trend is currently not well supported by Loop";
+"Backfilling from trend is currently not well supported by Loop" = "Backfilling fra trend understøttes i øjeblikket ikke godt af Loop";
 
 /* */
-"Backfill from history" = "Backfill from history";
+"Backfill from history" = "Backfill fra historik";
 
 /* */
-"Backfill from trend" = "Backfill from trend";
+"Backfill from trend" = "Tilbagefyld fra trend";
 
 /* */
-"Debug options" = "Debug options";
+"Debug options" = "Fejlfindingsindstillinger";
 
 /* */
-"Adds a lot of data to the Issue Report " = "Adds a lot of data to the Issue Report ";
+"Adds a lot of data to the Issue Report " = "Tilføjer en masse data til Issue Report ";
 
 /* */
 "Persist sensordata" = "Persist sensordata";
 
 /* */
-"Battery" = "Battery";
+"Battery" = "Batteri";
 
 /* */
-"Also add source info" = "Also add source info";
+"Also add source info" = "Tilføj også kildeinfo";
 
 /* */
-"Carbs Required Threshold" = "Carbs Required Threshold";
+"Carbs Required Threshold" = "Kulhydrater Påkrævet Tærskel";
 
 /* */
-"Carbs required: %d g" = "Carbs required: %d g";
+"Carbs required: %d g" = "Kulhydrater påkrævet: %d g";
 
 /* */
-"To prevent LOW required %d g of carbs" = "To prevent LOW required %d g of carbs";
+"To prevent LOW required %d g of carbs" = "For at forhindre LOW kræves %d g kulhydrater";
 
 /* */
-"Trio Not Active" = "Trio Not Active";
+"Trio Not Active" = "Trio Ikke Aktiv";
 
 /* */
-"Last loop was more than %d min ago" = "Last loop was more than %d min ago";
+"Last loop was more than %d min ago" = "Sidste løkke var mere end %d min siden";
 
 /* Glucose badge */
-"Show glucose on the app badge" = "Show glucose on the app badge";
+"Show glucose on the app badge" = "Vis glucose på appens badge";
 
 /* */
-"Backfill glucose" = "Backfill glucose";
+"Backfill glucose" = "Tilbagefyldnings glukose";
 
 /* About this source */
-"About this source" = "About this source";
+"About this source" = "Om denne kilde";
 
 /* */
-"Bolus failed" = "Bolus failed";
+"Bolus failed" = "Bolus mislykkedes";
 
 /* */
-"Bolus failed or inaccurate. Check pump history before repeating." = "Bolus failed or inaccurate. Check pump history before repeating.";
+"Bolus failed or inaccurate. Check pump history before repeating." = "Bolus mislykkedes eller unøjagtige. Tjek pumpehistorik før gentagelse.";
 
 /* */
-"Carbs" = "Carbs";
+"Carbs" = "Kulhydrater";
 
 /* Food Type / Meal Note */
-"Note" = "Note";
+"Note" = "Bemærkning";
 
 /* */
-"Temp Basal" = "Temp Basal";
+"Temp Basal" = "Midlertidig Basal";
 
 /* */
 "Temp Target" = "Temp Target";
@@ -1104,26 +1104,26 @@ Enact a temp Basal or a temp target */
 " day(s)" = " dag(e)";
 
 /* Option to show HR in Watch app*/
-"Display HR on Watch" = "Display HR on Watch";
+"Display HR on Watch" = "Vis HR på vagt";
 
 
 /* Headers for settings ----------------------- */
-"OpenAPS main settings" = "OpenAPS main settings";
+"OpenAPS main settings" = "OpenAPS hovedindstillinger";
 
-"OpenAPS SMB settings" = "OpenAPS SMB settings";
+"OpenAPS SMB settings" = "OpenAPS SMB indstillinger";
 
-"OpenAPS targets settings" = "OpenAPS targets settings";
+"OpenAPS targets settings" = "Opsætning af OpenAPS mål";
 
-"OpenAPS other settings" = "OpenAPS other settings";
+"OpenAPS other settings" = "OpenAPS andre indstillinger";
 
 /* Glucose Simulator CGM */
-"Glucose Simulator" = "Glucose Simulator";
+"Glucose Simulator" = "Glukose Simulator";
 
 /* Restored state message */
-"Bluetooth State restored (APS restarted?). Found %d peripherals, and connected to %@ with identifier %@" = "Bluetooth State restored (APS restarted?). Found %d peripherals, and connected to %@ with identifier %@";
+"Bluetooth State restored (APS restarted?). Found %d peripherals, and connected to %@ with identifier %@" = "Bluetooth-tilstand gendannet (APS genstartet?). Fundet %d perifere enheder, og forbundet til %@ med id %@";
 
 /* Shared app group xDrip4iOS */
-"Using shared app group with external CGM app xDrip4iOS" = "Using shared app group with external CGM app xDrip4iOS";
+"Using shared app group with external CGM app xDrip4iOS" = "Brug af delt app-gruppe med ekstern CGM app xDrip4iOS";
 
 /* Shared app group GlucoseDirect */
 "Using shared app group with external CGM app GlucoseDirect" = "Brug af delt app-gruppe med ekstern CGM app GlucoseDirect";
@@ -1170,7 +1170,7 @@ Enact a temp Basal or a temp target */
 "Save as your Normal Basal Rates" = "Gem som dine normale basalsatser";
 
 /* */
-"Save on Pump" = "Gem på Pump";
+"Save on Pump" = "Gem på Pumpe";
 
 /* Debug option view Pump History */
 "Pump History" = "Pumpe Historie";
@@ -1194,10 +1194,10 @@ Enact a temp Basal or a temp target */
 "Enacted" = "Udført";
 
 /* Debug option view Announcements (from NS) */
-"Announcements" = "Announcements";
+"Announcements" = "Meddelelser";
 
 /* Debug option view Enacted announcements announcements (from NS) */
-"Enacted announcements" = "Enacted announcements";
+"Enacted announcements" = "Vedhæftede meddelelser";
 
 /* Debug option view Autotune */
 "Autotune" = "Autotune";
@@ -1213,7 +1213,7 @@ Enact a temp Basal or a temp target */
 
 /* --------------- HealthKit intergration --------------------*/
 /* */
-"Apple Health" = "Apple Health";
+"Apple Health" = "Æble Sundhed";
 
 /* */
 "Connect to Apple Health" = "Forbind til Apple Health";
@@ -1241,7 +1241,7 @@ Enact a temp Basal or a temp target */
 "SMB" = "SMB";
 
 /* A manually entered dose of external insulin */
-"External Insulin" = "External Insulin";
+"External Insulin" = "Ekstern Insulin";
 
 /* Status highlight when manual temp basal is running. */
 "Manual Basal" = "Manuel Basal";
@@ -1253,7 +1253,7 @@ Enact a temp Basal or a temp target */
 " U/day" = " E/dag";
 
 /* Total AT / Scheduled basal insulin */
-"Total" = "Total";
+"Total" = "I Alt";
 
 /* -------------------------------------------- FPU Strings ------------------------------------------------------*/
 /* Enable FPU */
@@ -1261,7 +1261,7 @@ Enact a temp Basal or a temp target */
 "Enable" = "Aktivér";
 
 /* Header */
-"Fat and Protein Conversion Settings" = "Fat and Protein Conversion Settings";
+"Fat and Protein Conversion Settings" = "Indstillinger for fedt- og proteinkonvertering";
 
 /* Delay */
 "Delay In Minutes" = "Forsinkelse I Minutter";
@@ -1276,10 +1276,10 @@ Enact a temp Basal or a temp target */
 "Override With A Factor Of " = "Overskriv Med En Faktor Af ";
 
 /* Description */
-"Allows fat and protein to be converted into future carb equivalents using the Warsaw formula of kilocalories divided by 10.\n\nThis spreads the carb equivilants over a maximum duration setting that can be configured from 5-12 hours.\n\nDelay is time from now until the first future carb entry.\n\nInterval in minutes is how many minutes are between entries. The shorter the interval, the smoother the result. 10, 15, 20, 30, or 60 are reasonable choices.\n\nAdjustment factor is how much effect the fat and protein has on the entries. 1.0 is full effect (original Warsaw Method) and 0.5 is half effect. Note that you may find that your normal carb ratio needs to increase to a larger number if you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 0.5 to ease into it.\n\nDefault settings: Time Cap: 8 h, Interval: 30 min, Factor: 0.5, Delay 60 min" = "Allows fat and protein to be converted into future carb equivalents using the Warsaw formula of kilocalories divided by 10.\n\nThis spreads the carb equivilants over a maximum duration setting that can be configured from 5-12 hours.\n\nDelay is time from now until the first future carb entry.\n\nInterval in minutes is how many minutes are between entries. The shorter the interval, the smoother the result. 10, 15, 20, 30, or 60 are reasonable choices.\n\nAdjustment factor is how much effect the fat and protein has on the entries. 1.0 is full effect (original Warsaw Method) and 0.5 is half effect. Note that you may find that your normal carb ratio needs to increase to a larger number if you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 0.5 to ease into it.\n\nDefault settings: Time Cap: 8 h, Interval: 30 min, Factor: 0.5, Delay 60 min";
+"Allows fat and protein to be converted into future carb equivalents using the Warsaw formula of kilocalories divided by 10.\n\nThis spreads the carb equivilants over a maximum duration setting that can be configured from 5-12 hours.\n\nDelay is time from now until the first future carb entry.\n\nInterval in minutes is how many minutes are between entries. The shorter the interval, the smoother the result. 10, 15, 20, 30, or 60 are reasonable choices.\n\nAdjustment factor is how much effect the fat and protein has on the entries. 1.0 is full effect (original Warsaw Method) and 0.5 is half effect. Note that you may find that your normal carb ratio needs to increase to a larger number if you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 0.5 to ease into it.\n\nDefault settings: Time Cap: 8 h, Interval: 30 min, Factor: 0.5, Delay 60 min" = "Gør det muligt at omdanne fedt og protein til fremtidige kulhydrater ved hjælp af Warszawa-formlen af kilokalorier divideret med 10.\n\nDette spreder carb equivilants over en maksimal varighed indstilling, der kan konfigureres fra 5-12 timer.\n\nForsinkelse er tid fra nu og indtil den første fremtidige carb post.\n\nInterval i minutter er, hvor mange minutter er mellem poster. Jo kortere interval, den glattere resultatet. 10, 15, 20, 30 eller 60 er rimelige valg.\n\nJusteringsfaktor er, hvor meget fedt og protein har på entrierne. 1.0 er fuld effekt (oprindelige Warszawa Metode) og 0. er halv effekt. Bemærk, at du kan opdage, at din normale carb ratio skal stige til et større antal, hvis du begynder at tilføje fedt og protein poster. Derfor er det bedst at starte med en faktor på omkring 0,5 for at lette ind i det.\n\nStandardindstillinger: Tid Cap: 8 h, Interval: 30 min, Faktor: 0,5, Forsinkelse 60 min";
 
 /* FPU Settings Title */
-"Fat and Protein" = "Fat and Protein";
+"Fat and Protein" = "Fedt og protein";
 
 /* Display fat and protein entities */
 "Fat & Protein" = "Fedt & Protein";
@@ -1294,99 +1294,99 @@ Enact a temp Basal or a temp target */
 "Protein" = "Protein";
 
 /* Service Section */
-"Meal Settings" = "Meal Settings";
+"Meal Settings" = "Måltider Indstillinger";
 
 /* Service Section */
-"Profile Override" = "Profile Override";
+"Profile Override" = "Profil Tilsidesæt";
 
 /* */
-"Override Profiles" = "Override Profiles";
+"Override Profiles" = "Tilsidesæt Profiler";
 
 /* */
 "Normal " = "Normal ";
 
-"Currently no Override active" = "Currently no Override active";
+"Currently no Override active" = "Aktuelt ingen Tilsidesæt aktiv";
 
 /* */
-"Total Insulin Adjustment" = "Total Insulin Adjustment";
+"Total Insulin Adjustment" = "Total Insulinjustering";
 
 /* */
-"Override your Basal, ISF, CR and Target profiles" = "Override your Basal, ISF, CR and Target profiles";
+"Override your Basal, ISF, CR and Target profiles" = "Tilsidesæt dine Basal-, ISF-, CR- og målprofiler";
 
 /* */
-"Enable indefinitely" = "Enable indefinitely";
+"Enable indefinitely" = "Aktiver på ubestemt tid";
 
 /* */
-"Override Profile target" = "Override Profile target";
+"Override Profile target" = "Tilsidesæt profilmål";
 
 /* */
-"Disable SMBs" = "Disable SMBs";
+"Disable SMBs" = "Deaktiver SMB'er";
 
 /* Your normal Profile. Use a short string */
-"Normal Profile" = "Normal Profile";
+"Normal Profile" = "Normal Profil";
 
 /* Custom but unsaved Profile */
-"Custom Profile" = "Custom Profile";
+"Custom Profile" = "Brugerdefineret Profil";
 
 /* */
 "Profiles" = "Profiles";
 
 /* */
-"More options" = "More options";
+"More options" = "Flere valgmuligheder";
 
 /* */
-"Schedule when SMBs are Off" = "Schedule when SMBs are Off";
+"Schedule when SMBs are Off" = "Planlæg hvornår SMB'er er slået fra";
 
 /* */
-"Change ISF and CR" = "Change ISF and CR";
+"Change ISF and CR" = "Ændre ISF og CR";
 
 /* */
-"Change ISF" = "Change ISF";
+"Change ISF" = "Ændre ISF";
 
 /* */
-"Change CR" = "Change CR";
+"Change CR" = "Skift CR";
 
 /* */
-"SMB Minutes" = "SMB Minutes";
+"SMB Minutes" = "SMB Minutter";
 
 /* */
 "UAM SMB Minutes" = "UAM SMB Minutes";
 
 /* */
-"Start new Profile" = "Start new Profile";
+"Start new Profile" = "Start ny profil";
 
 /* */
-"Save as Profile" = "Save as Profile";
+"Save as Profile" = "Gem som profil";
 
 /* Alert */
 "Cancel Profile Override" = "Cancel Profile Override";
 
 /* Alert */
-"Cancel Temp Target" = "Annuller Midlertidigt Mål";
+"Cancel Temp Target" = "Cancel Temp Target";
 
 /* Alert */
-"Return to Normal?" = "Return to Normal?";
+"Return to Normal?" = "Tilbage til Normal?";
 
 /* */
-"This will change settings back to your normal profile." = "This will change settings back to your normal profile.";
+"This will change settings back to your normal profile." = "Dette vil ændre indstillingerne tilbage til din normale profil.";
 
 /* Start Profile Alert */
 "Start Profile" = "Start Profil";
 
 /* */
-"Your profile basal insulin will be adjusted with the override percentage and your profile ISF and CR will be inversly adjusted with the percentage." = "Your profile basal insulin will be adjusted with the override percentage and your profile ISF and CR will be inversly adjusted with the percentage.";
+"Your profile basal insulin will be adjusted with the override percentage and your profile ISF and CR will be inversly adjusted with the percentage." = "Din profil basalinsulin vil blive justeret med overskrivningsprocenten, og din profil ISF og CR vil blive omvendt justeret med procentdelen.";
 
 /* */
-"Starting this override will change your Profiles and/or your Target Glucose used for looping during the entire selected duration. Tapping ”Start Profile” will start your new profile or edit your current active profile." = "Starting this override will change your Profiles and/or your Target Glucose used for looping during the entire selected duration. Tapping ”Start Profile” will start your new profile or edit your current active profile.";
+"Starting this override will change your Profiles and/or your Target Glucose used for looping during the entire selected duration. Tapping ”Start Profile” will start your new profile or edit your current active profile." = "Start af denne tilsidesættelse vil ændre dine profiler og / eller dit mål Glukose, der bruges til looping i hele den valgte varighed. Tryk på ”Start profil” vil starte din nye profil eller redigere din nuværende aktive profil.";
 
 /* Change Target glucose in profile settings */
-"Override Profile Target" = "Override Profile Target";
+"Override Profile Target" = "Tilsidesæt Profilmål";
 
 /* Alert string. Keep spaces. */
-" SMBs are disabled either by schedule or during the entire duration." = " SMBs are disabled either by schedule or during the entire duration.";
+" SMBs are disabled either by schedule or during the entire duration." = " SMB'er deaktiveres enten efter tidsplan eller i hele perioden.";
 
 /* Alert strings. Keep spaces */
-" infinite duration." = " infinite duration.";
+" infinite duration." = " uendelig varighed.";
 
 /* Service Section */
 "App Icons" = "Appikoner";
@@ -1395,28 +1395,28 @@ Enact a temp Basal or a temp target */
 "Trio Icon" = "Trio Ikon";
 
 /* Service Section */
-"Statistics and Home View" = "Statistics and Home View";
+"Statistics and Home View" = "Statistik og hjemmevisning";
 
 /* Alert text */
-"Delete Carb Equivalents?" = "Delete Carb Equivalents?";
+"Delete Carb Equivalents?" = "Slet Kulhydrat Ækvivalenter?";
 
 /* */
-"All FPUs of the meal will be deleted." = "All FPUs of the meal will be deleted.";
+"All FPUs of the meal will be deleted." = "Alle FPU'er i måltidet vil blive slettet.";
 
 /* */
-"Delete Glucose?" = "Delete Glucose?";
+"Delete Glucose?" = "Slet Glucose?";
 
 /* */
-"Meal Presets" = "Meal Presets";
+"Meal Presets" = "Måltider Forudindstillinger";
 
 /* */
 "Empty" = "Tom";
 
 /* */
-"Delete Selected Preset" = "Delete Selected Preset";
+"Delete Selected Preset" = "Slet Valgte Forudindstilling";
 
 /* */
-"Enter Meal Preset Name" = "Enter Meal Preset Name";
+"Enter Meal Preset Name" = "Indtast Måltid Forudindstilling Navn";
 
 /* */
 "Name Of Dish" = "Navn på ret";
@@ -1428,10 +1428,10 @@ Enact a temp Basal or a temp target */
 "Save as Preset" = "Gem som forudindstilling";
 
 /* */
-"Predictions" = "Predictions";
+"Predictions" = "Forudsigelser";
 
 /* Watch Config Option */
-"Display Protein & Fat" = "Display Protein & Fat";
+"Display Protein & Fat" = "Vis Protein & Fedt";
 
 /* ----------------------- New Bolus Calculator ---------------------------*/
 /* Warning about bolus recommendation. Title */
@@ -1445,68 +1445,68 @@ Enact a temp Basal or a temp target */
 "Eventual Glucose" = "Eventuelt Glukoseniveau";
 
 /* */
-"Please wait" = "Please wait";
+"Please wait" = "Vent venligst";
 
 /* */
-"Glucose, " = "Glucose, ";
+"Glucose, " = "Glucose ";
 
 /* */
-"Target Glucose" = "Target Glucose";
+"Target Glucose" = "Mål Blodsukker";
 
 /* */
-"Percentage setting" = "Percentage setting";
+"Percentage setting" = "Indstilling i procent";
 
 /* */
-"Insulin Sensitivity" = "Insulin Sensitivity";
+"Insulin Sensitivity" = "Insulin Følsomhed";
 
 /* Formula displayed in Bolus info pop-up. Make translation short! */
 "(Eventual Glucose - Target) / ISF" = "(Eventual Glucose - Target) / ISF";
 
 /* */
-"Formula:" = "Formula:";
+"Formula:" = "Formel:";
 
 /* Bolus pop-up footer */
-"Carbs and previous insulin are included in the glucose prediction, but if the Eventual Glucose is lower than the Target Glucose, a bolus will not be recommended." = "Carbs and previous insulin are included in the glucose prediction, but if the Eventual Glucose is lower than the Target Glucose, a bolus will not be recommended.";
+"Carbs and previous insulin are included in the glucose prediction, but if the Eventual Glucose is lower than the Target Glucose, a bolus will not be recommended." = "Kulhydrater og tidligere insulin er inkluderet i glucoseforudsigelsen, men hvis den Eventuelle Glucose er lavere end målglukose, en bolus vil ikke blive anbefalet.";
 
 /* Hide pop-up */
 "Hide" = "Skjul";
 
 /* Bolus pop-up / Alert string. Make translations concise! */
-"Eventual Glucose > Target Glucose, but glucose is predicted to drop down to " = "Eventual Glucose > Target Glucose, but glucose is predicted to first drop down to ";
+"Eventual Glucose > Target Glucose, but glucose is predicted to drop down to " = "Eventuel glukose > Målglukose, men glukose forventes først at falde ned til ";
 
 /* Bolus pop-up / Alert string. Make translations concise! */
-"which is below your Threshold (" = "which is below your Threshold (";
+"which is below your Threshold (" = "som er under din tærskel (";
 
 /* Bolus pop-up / Alert string. Make translations concise! */
-"Eventual Glucose > Target Glucose, but glucose is climbing slower than expected. Expected: " = "Eventual Glucose > Target Glucose, but glucose is climbing slower than expected. Expected: ";
+"Eventual Glucose > Target Glucose, but glucose is climbing slower than expected. Expected: " = "Eventuel glukose > Målglukose, men glukose klatrer langsommere end forventet. Forventet: ";
 
 //* Bolus pop-up / Alert string. Make translations concise! */
-". Climbing: " = ". Climbing: ";
+". Climbing: " = ". Klatring: ";
 
 /* Bolus pop-up / Alert string. Make translations concise! */
-"Eventual Glucose > Target Glucose, but glucose is falling faster than expected. Expected: " = "Eventual Glucose > Target Glucose, but glucose is falling faster than expected. Expected: ";
+"Eventual Glucose > Target Glucose, but glucose is falling faster than expected. Expected: " = "Eventuel glukose > Målglukose, men glukose falder hurtigere end forventet. Forventet: ";
 
 /* Bolus pop-up / Alert string. Make translations concise! */
-". Falling: " = ". Falling: ";
+". Falling: " = "Falder: ";
 
 /* Bolus pop-up / Alert string. Make translations concise! */
-"Eventual Glucose > Target Glucose, but glucose is changing faster than expected. Expected: " = "Eventual Glucose > Target Glucose, but glucose is changing faster than expected. Expected: ";
+"Eventual Glucose > Target Glucose, but glucose is changing faster than expected. Expected: " = "Eventuel glukose > Målglukose, men glukose ændrer sig hurtigere end forventet. Forventet: ";
 
 /* Bolus pop-up / Alert string. Make translations concise! */
-". Changing: " = ". Changing: ";
+". Changing: " = "Ændring: ";
 
 /* Add insulin without bolusing alert */
-" without bolusing" = " without bolusing";
+" without bolusing" = " uden bolusforbrug";
 
 /* -------------------------------------------------------------------------------------------
   DASH strings
 */
-"Attach Pod" = "Attach Pod";
+"Attach Pod" = "Vedhæft Pod";
 
 "Deactivate Pod" = "Deaktiver Pod";
 
 /* */
-"Deactivating..." = "Deactivating...";
+"Deactivating..." = "Deaktiverer...";
 
 "Pair Pod" = "Par Pod";
 
@@ -1514,9 +1514,9 @@ Enact a temp Basal or a temp target */
 "Previous Pod Information" = "Forringe Pod Information";
 
 /* Text for confidence reminders navigation link */
-"Confidence Reminders" = "Confidence Reminders";
+"Confidence Reminders" = "Påmindelser Om Tillid";
 
-"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced.";
+"Confidence reminders are beeps from the Pod which can be used to acknowledge selected commands when the Pod is not silenced." = "Tillid påmindelser er bipper fra Pod som kan bruges til at anerkende valgte kommandoer, når Pod ikke er tavse.";
 
 /* button title for saving low reservoir reminder while saving */
 "Saving..." = "Gemmer...";
@@ -1525,7 +1525,7 @@ Enact a temp Basal or a temp target */
 "Save" = "Gem";
 
 /* Alert title for error when updating confidence reminder preference */
-"Failed to update confidence reminder preference." = "Failed to update confidence reminder preference.";
+"Failed to update confidence reminder preference." = "Kunne ikke opdatere påmindelse om tillid.";
 
 /* */
 "No Error" = "Ingen fejl";
@@ -1543,105 +1543,105 @@ Enact a temp Basal or a temp target */
 "Extended" = "Forlænget";
 
 /* Description for BeepPreference.silent */
-"No confidence reminders are used." = "No confidence reminders are used.";
+"No confidence reminders are used." = "Der anvendes ingen tillidspåmindelser.";
 
 /* Description for BeepPreference.manualCommands */
-"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used.";
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Tillid påmindelser vil lyde for kommandoer, du initierer, ligesom bolus, annullere bolus, suspendere, genoptage, gemme underretningspåmindelser osv. Når appen automatisk justerer leveringen, bruges ingen tillidspåmindelser.";
 
 /* Description for BeepPreference.extended */
-"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate.";
+"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Tillid påmindelser vil lyde, når appen automatisk justerer levering samt for kommandoer, du initierer.";
 
 /* Label text for expiration reminder default row */
-"Expiration Reminder Default" = "Expiration Reminder Default";
+"Expiration Reminder Default" = "Påmindelse Om Udløb Standard";
 
 /* */
 "Expiration Reminder" = "Udløbs Påmindelse";
 
 /* */
-"Low Reservoir" = "Low Reservoir";
+"Low Reservoir" = "Lav Reservoir";
 
 /* Value text for no expiration reminder */
-"No Reminder" = "No Reminder";
+"No Reminder" = "Ingen Påmindelse";
 
 /* */
-"Scheduled Reminder" = "Scheduled Reminder";
+"Scheduled Reminder" = "Planlagt Påmindelse";
 
 /* */
-"Low Reservoir Reminder" = "Low Reservoir Reminder";
+"Low Reservoir Reminder" = "Påmindelse Om Lav Reservoir";
 
 /* The action string on pod status page when pod data is stale */
-"Make sure your phone and pod are close to each other. If communication issues persist, move to a new area." = "Make sure your phone and pod are close to each other. If communication issues persist, move to a new area.";
+"Make sure your phone and pod are close to each other. If communication issues persist, move to a new area." = "Sørg for, at din telefon og pod er tæt på hinanden. Hvis kommunikationsproblemer fortsætter, skal du flytte til et nyt område.";
 /* Format string for the action string on pod status page when pod expired. (1: service time remaining) */
-"Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains." = "Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains.";
+"Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains." = "Skift Pod nu. Levering af insulin vil stoppe i %1$@ eller når der ikke er mere insulin tilbage.";
 
 /* Label text for temporary basal rate summary */
-"Rate" = "Værdi";
+"Rate" = "Sats";
 
 /* Summary string for temporary basal rate configuration page */
 "%1$@ for %2$@" = "%1$@ for %2$@";
 
 /* Description text on manual temp basal action sheet */
-"Loop will not automatically adjust your insulin delivery until the temporary basal rate finishes or is canceled." = "Loop will not automatically adjust your insulin delivery until the temporary basal rate finishes or is canceled.";
+"Loop will not automatically adjust your insulin delivery until the temporary basal rate finishes or is canceled." = "Loop vil ikke automatisk justere din insulinlevering, før den midlertidige basal sats er færdig eller er annulleret.";
 /* Button text for setting manual temporary basal rate*/
-"Set Temporary Basal" = "Set Temporary Basal";
+"Set Temporary Basal" = "Sæt Midlertidig Basal";
 
 /* Navigation Title for ManualTempBasalEntryView */
 "Temporary Basal" = "Midlertidig Basal";
 
 /* Alert title for a failure to set temporary basal */
-"Temporary Basal Failed" = "Temporary Basal Failed";
+"Temporary Basal Failed" = "Midlertidig Basal Mislykkedes";
 
 /* Alert format string for a failure to set temporary basal with recovery suggestion. (1: error description) (2: recovery text) */
-"Unable to set a temporary basal rate: %1$@\n\n%2$@" = "Unable to set a temporary basal rate: %1$@\n\n%2$@";
+"Unable to set a temporary basal rate: %1$@\n\n%2$@" = "Kan ikke indstille en midlertidig basal rate: %1$@\n\n%2$@";
 
 /* Alert format string for a failure to set temporary basal. (1: error description) */
-"Unable to set a temporary basal rate: %1$@" = "Unable to set a temporary basal rate: %1$@";
+"Unable to set a temporary basal rate: %1$@" = "Kan ikke indstille en midlertidig basal rate: %1$@";
 
 /* Alert title for missing temp basal configuration */
-"Missing Config" = "Missing Config";
+"Missing Config" = "Manglende Konfiguration";
 
 /* Alert format string for missing temp basal configuration. */
-"This PumpManager has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to therapy settings -> delivery limits and set a new maximum basal rate." = "This PumpManager has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to therapy settings -> delivery limits and set a new maximum basal rate.";
+"This PumpManager has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to therapy settings -> delivery limits and set a new maximum basal rate." = "Denne PumpManager er ikke blevet konfigureret med en maksimal basal sats, fordi det blev tilføjet før manuel temp basal var en funktion. Gå til terapiindstillinger -> leveringsgrænser og sæt en ny maksimal basal hastighed.";
 
 /* description label for active time pod details row */
 "Active Time" = "Aktiv Tid";
 
 /* description label for total delivery pod details row */
-"Total Delivery" = "Total Delivery";
+"Total Delivery" = "Levering I Alt";
 
 /* */
-"Add Omnipod Dash" = "Add Omnipod Dash";
+"Add Omnipod Dash" = "Tilføj Omnipod Dash";
 
 /* */
 "Insert Cannula" = "Indfør kanyle";
 
 /* */
-"Check Cannula" = "Check Cannula";
+"Check Cannula" = "Kontroller Cannula";
 
 /* */
-"Setup Complete" = "Setup Complete";
+"Setup Complete" = "Opsætning Fuldført";
 
 /* */
-"Insulin Suspended" = "Insulin Suspended";
+"Insulin Suspended" = "Insulin Suspenderet";
 
 /* Text for suspend resume button when insulin delivery is suspending */
-"Suspending insulin delivery..." = "Suspending insulin delivery...";
+"Suspending insulin delivery..." = "Suspenderer insulinlevering...";
 
 /* Text for suspend resume button when insulin delivery is suspended */
-"Resume Insulin Delivery" = "Resume Insulin Delivery";
+"Resume Insulin Delivery" = "Genoptag Insulin Levering";
 
 /* Text for suspend resume button when insulin delivery is resuming */
-"Resuming insulin delivery..." = "Resuming insulin delivery...";
+"Resuming insulin delivery..." = "Genoptager insulinleverancer...";
 
 /* Alert title for suspend error */
-"Failed to Suspend Insulin Delivery" = "Failed to Suspend Insulin Delivery";
+"Failed to Suspend Insulin Delivery" = "Kunne ikke suspendere leveringen af insulin";
 
 //* -----------------------------------------------------------------------*/
 /* ----------------------Statistics strings -------------------------------*/
 /* */
 
 
-"Today" = "Today";
+"Today" = "Idag";
 
 /* */
 "Day" = "Dag";
@@ -1653,7 +1653,7 @@ Enact a temp Basal or a temp target */
 "Month" = "Måned";
 
 /* */
-"Total" = "Total";
+"Total" = "I Alt";
 
 /* Headline Statistics */
 "Statistics" = "Statistik";
@@ -1668,52 +1668,52 @@ Enact a temp Basal or a temp target */
 "High" = "Høj";
 
 /* In Range */
-"In Range" = "In Range";
+"In Range" = "I Interval";
 
 /* Display % */
 "Change HbA1c Unit" = "Skift HbA1c Enhed";
 
 /* */
-"Display Chart X - Grid lines" = "Display Chart X - Grid lines";
+"Display Chart X - Grid lines" = "Vis figur X - gitterlinjer";
 
 /* */
-"Display Chart Y - Grid lines" = "Display Chart Y - Grid lines";
+"Display Chart Y - Grid lines" = "Vis diagram Y - gitterlinjer";
 
 /* */
-"Display Chart Threshold lines for Low and High" = "Display Chart Threshold lines for Low and High";
+"Display Chart Threshold lines for Low and High" = "Vis kortgrænser for lav og høj";
 
 /* */
-"Standing / Laying TIR Chart" = "Standing / Laying TIR Chart";
+"Standing / Laying TIR Chart" = "Stående / TIR-diagram";
 
 /* */
-"Hours X-Axis (6 default)" = "Hours X-Axis (6 default)";
+"Hours X-Axis (6 default)" = "Timer X-akse (6 standard)";
 
 /* */
 "2 hours" = "2 timer";
 
 /* */
-"4 hours" = "4 hours";
+"4 hours" = "4 timer";
 
 /* */
-"6 hours" = "6 hours";
+"6 hours" = "6 timer";
 
 /* */
-"12 hours" = "12 hours";
+"12 hours" = "12 timer";
 
 /* */
-"24 hours" = "24 hours";
+"24 hours" = "24 timer";
 
 /* Average BG = */
-"Average" = "Average";
+"Average" = "Gennemsnit";
 
 /* Median BG */
 "Median" = "Median";
 
 /* CGM readings in statView */
-"Readings" = "Readings";
+"Readings" = "Aflæsninger";
 
 /* CGM readings in statView */
-"Readings / 24h" = "Readings / 24h";
+"Readings / 24h" = "Aflæsninger / 24 timer";
 
 /* Days of saved readings*/
 "Days" = "Dage";
@@ -1755,16 +1755,16 @@ Enact a temp Basal or a temp target */
 "Duration" = "Varighed";
 
 /* "Display SD */
-"Display SD instead of CV" = "Display SD instead of CV";
+"Display SD instead of CV" = "Vis SD i stedet for CV";
 
 /* Description for display SD */
-"Display Standard Deviation (SD) instead of Coefficient of Variation (CV) in statPanel" = "Display Standard Deviation (SD) instead of Coefficient of Variation (CV) in statPanel";
+"Display Standard Deviation (SD) instead of Coefficient of Variation (CV) in statPanel" = "Vis standardafvigelse (SD) i stedet for variationskoefficient (CV) i statPanel";
 
 /* How often to update the statistics */
 "Update every number of minutes:" = "Opdater hvert antal minutter:";
 
 /* Description for update interval for statistics */
-"Default is 20 minutes. How often to update and save the statistics.json and to upload last array, when enabled, to Nightscout." = "Default is 20 minutes. How often to update and save the statistics.json and to upload last array, when enabled, to Nightscout.";
+"Default is 20 minutes. How often to update and save the statistics.json and to upload last array, when enabled, to Nightscout." = "Standard er 20 minutter. Hvor ofte at opdatere og gemme statistik.json og uploade sidste array, når aktiveret, til Nightscout.";
 
 /* Duration displayed in statPanel */
 "Past 24 Hours " = "Sidste 24 Timer ";
@@ -1782,33 +1782,33 @@ Enact a temp Basal or a temp target */
 "All Past Days of Data " = "Alle Tidligere Dages Data ";
 
 /* "Display Loop statistics in statPanel */
-"Display Loop Cycle statistics" = "Display Loop Cycle statistics";
+"Display Loop Cycle statistics" = "Vis statistik over sløjfecyklus";
 
 /* Description for Display Loop statistics */
-"Displays Loop statistics in the statPanel in Home View" = "Displays Loop statistics in the statPanel in Home View";
+"Displays Loop statistics in the statPanel in Home View" = "Viser Loop statistik i statPanel i Home View";
 
 /* Description for Override HbA1c unit */
-"Change default HbA1c unit in statPanlel. The unit in statPanel will be updateded with next statistics.json update" = "Change default HbA1c unit in statPanlel. The unit in statPanel will be updateded with next statistics.json update";
+"Change default HbA1c unit in statPanlel. The unit in statPanel will be updateded with next statistics.json update" = "Skift standard HbA1c enhed i statPanlel. Enheden i statPanel vil blive opdateret med næste statistik.json opdatering";
 
 /* HbA1c for all glucose storage days */
-"all" = "all";
+"all" = "alle";
 
 /* --------------------------------------------------------  Dexcom G7 --------------------------------------*/
 
-"CGM Configuration" = "CGM Configuration";
+"CGM Configuration" = "Konfiguration Af Cgm";
 
 "Heartbeat" = "Heartbeat";
 
-"CGM address :" = "CGM address :";
+"CGM address :" = "CGM adresse :";
 
-"CGM is not used as heartbeat." = "CGM is not used as heartbeat.";
+"CGM is not used as heartbeat." = "CGM anvendes ikke som hjerteslag.";
 
-"Are you sure you want to delete this CGM?" = "Are you sure you want to delete this CGM?";
+"Are you sure you want to delete this CGM?" = "Er du sikker på, at du vil slette denne CGM?";
 
 /* New Experimental feature */
-"Experimental" = "Experimental";
+"Experimental" = "Eksperimentel";
 /* Smoothing of CGM readings */
-"Smooth Glucose Value" = "Smooth Glucose Value";
+"Smooth Glucose Value" = "Glat Blodsukker Værdi";
 
 /* -----------------------------------------------------------------------------------------------------------
 
@@ -1820,365 +1820,365 @@ Enact a temp Basal or a temp target */
 "Rewind Resets Autosens" = "Rewind Resets Autosens";
 
 /* ”Rewind Resets Autosens” */
-"This feature, enabled by default, resets the autosens ratio to neutral when you rewind your pump, on the assumption that this corresponds to a probable site change. Autosens will begin learning sensitivity anew from the time of the rewind, which may take up to 6 hours. If you usually rewind your pump independently of site changes, you may want to consider disabling this feature." = "This feature, enabled by default, resets the autosens ratio to neutral when you rewind your pump, on the assumption that this corresponds to a probable site change. Autosens will begin learning sensitivity anew from the time of the rewind, which may take up to 6 hours. If you usually rewind your pump independently of site changes, you may want to consider disabling this feature.";
+"This feature, enabled by default, resets the autosens ratio to neutral when you rewind your pump, on the assumption that this corresponds to a probable site change. Autosens will begin learning sensitivity anew from the time of the rewind, which may take up to 6 hours. If you usually rewind your pump independently of site changes, you may want to consider disabling this feature." = "Denne funktion, aktiveret som standard, nulstiller autosens forholdet til neutral, når du spoler din pumpe tilbage ud fra den antagelse, at dette svarer til en sandsynlig stedændring. Autosens vil begynde at lære følsomhed på ny fra genvindingstidspunktet, hvilket kan tage op til 6 timer. Hvis du normalt spolere din pumpe uafhængigt af ændringer på webstedet, kan du overveje at deaktivere denne funktion.";
 
 /* Headline "High Temptarget Raises Sensitivity" */
-"High Temptarget Raises Sensitivity" = "High Temptarget Raises Sensitivity";
+"High Temptarget Raises Sensitivity" = "Højt Temptarget Hæver Følsomhed";
 
 /* ”High Temptarget Raises Sensitivity" */
-"Defaults to false. When set to true, raises sensitivity (lower sensitivity ratio) for temp targets set to >= 111. Synonym for exercise_mode. The higher your temp target above 110 will result in more sensitive (lower) ratios, e.g., temp target of 120 results in sensitivity ratio of 0.75, while 140 results in 0.6 (with default halfBasalTarget of 160)." = "Defaults to false. When set to true, raises sensitivity (lower sensitivity ratio) for temp targets set to >= 111. Synonym for exercise_mode. The higher your temp target above 110 will result in more sensitive (lower) ratios, e.g., temp target of 120 results in sensitivity ratio of 0.75, while 140 results in 0.6 (with default halfBasalTarget of 160).";
+"Defaults to false. When set to true, raises sensitivity (lower sensitivity ratio) for temp targets set to >= 111. Synonym for exercise_mode. The higher your temp target above 110 will result in more sensitive (lower) ratios, e.g., temp target of 120 results in sensitivity ratio of 0.75, while 140 results in 0.6 (with default halfBasalTarget of 160)." = "Defaults to false. When set to true, raises sensitivity (lower sensitivity ratio) for temp targets set to >= 111. Synonym for exercise_mode. Jo højere dit temp mål over 110 vil resultere i mere følsomme (lavere) nøgletal, f.eks. temp mål på 120 resulterer i et sensitivitetsforhold på 0,75, mens 140 resulterer i 0,6 (med standard-halfBasalTarget på 160).";
 
 /* Headline ”Low Temptarget Lowers Sensitivity" */
-"Low Temptarget Lowers Sensitivity" = "Low Temptarget Lowers Sensitivity";
+"Low Temptarget Lowers Sensitivity" = "Lavt Temptarget Lavere Følsomhed";
 
 /* ”Low Temptarget Lowers Sensitivity" */
-"Defaults to false. When set to true, can lower sensitivity (higher sensitivity ratio) for temptargets <= 99. The lower your temp target below 100 will result in less sensitive (higher) ratios, e.g., temp target of 95 results in sensitivity ratio of 1.09, while 85 results in 1.33 (with default halfBasalTarget of 160)." = "Defaults to false. When set to true, can lower sensitivity (higher sensitivity ratio) for temptargets <= 99. The lower your temp target below 100 will result in less sensitive (higher) ratios, e.g., temp target of 95 results in sensitivity ratio of 1.09, while 85 results in 1.33 (with default halfBasalTarget of 160).";
+"Defaults to false. When set to true, can lower sensitivity (higher sensitivity ratio) for temptargets <= 99. The lower your temp target below 100 will result in less sensitive (higher) ratios, e.g., temp target of 95 results in sensitivity ratio of 1.09, while 85 results in 1.33 (with default halfBasalTarget of 160)." = "Defaults to false. When set to true, can lower sensitivity (higher sensitivity ratio) for temptargets <= 99. Jo lavere dit temp mål under 100 vil resultere i mindre følsomme (højere) forhold, e. ., temp mål på 95 resulterer i sensitivitetsratio på 1,09, mens 85 resulterer i 1,33 (med standard halfBasalTarget på 160).";
 
 /* Headline ”Sensitivity Raises Target" */
-"Sensitivity Raises Target" = "Sensitivity Raises Target";
+"Sensitivity Raises Target" = "Følsomhed Hæver Mål";
 
 /* ”Sensitivity Raises Target" */
-"When true, raises BG target when autosens detects sensitivity" = "When true, raises BG target when autosens detects sensitivity";
+"When true, raises BG target when autosens detects sensitivity" = "Når sandt, hæver BG mål, når autosens registrerer følsomhed";
 
 /* Headline ”Resistance Lowers Target" */
-"Resistance Lowers Target" = "Resistance Lowers Target";
+"Resistance Lowers Target" = "Resistens Nedre Mål";
 
 /* ”Resistance Lowers Target" */
-"Defaults to false. When true, will lower BG target when autosens detects resistance" = "Defaults to false. When true, will lower BG target when autosens detects resistance";
+"Defaults to false. When true, will lower BG target when autosens detects resistance" = "Standard er falsk. Når sand, vil sænke BG mål, når autosens detekterer modstand";
 
 /* Headline ”Advanced Target Adjustments" */
-"Advanced Target Adjustments" = "Advanced Target Adjustments";
+"Advanced Target Adjustments" = "Avancerede Måljusteringer";
 
 /* ”Advanced Target Adjustments" */
-"This feature was previously enabled by default but will now default to false (will NOT be enabled automatically) in oref0 0.6.0 and beyond. (There is no need for this with 0.6.0). This feature lowers oref0’s target BG automatically when current BG and eventualBG are high. This helps prevent and mitigate high BG, but automatically switches to low-temping to ensure that BG comes down smoothly toward your actual target. If you find this behavior too aggressive, you can disable this feature. If you do so, please let us know so we can better understand what settings work best for everyone." = "This feature was previously enabled by default but will now default to false (will NOT be enabled automatically) in oref0 0.6.0 and beyond. (There is no need for this with 0.6.0). This feature lowers oref0’s target BG automatically when current BG and eventualBG are high. This helps prevent and mitigate high BG, but automatically switches to low-temping to ensure that BG comes down smoothly toward your actual target. If you find this behavior too aggressive, you can disable this feature. If you do so, please let us know so we can better understand what settings work best for everyone.";
+"This feature was previously enabled by default but will now default to false (will NOT be enabled automatically) in oref0 0.6.0 and beyond. (There is no need for this with 0.6.0). This feature lowers oref0’s target BG automatically when current BG and eventualBG are high. This helps prevent and mitigate high BG, but automatically switches to low-temping to ensure that BG comes down smoothly toward your actual target. If you find this behavior too aggressive, you can disable this feature. If you do so, please let us know so we can better understand what settings work best for everyone." = "Denne funktion var tidligere aktiveret som standard, men vil nu som standard være falsk (vil IKKE blive aktiveret automatisk) i oref0 0.6.0 og derefter. (Der er ingen grund til dette med 0.6.0). Denne funktion sænker oref0's mål BG automatisk, når den aktuelle BG og eventualBG er høj. Dette hjælper med at forhindre og afbøde høj BG, men skifter automatisk til lav-fristende at sikre, at BG kommer ned glat mod dit faktiske mål. Hvis du finder denne adfærd for aggressiv, kan du deaktivere denne funktion. Hvis du gør det, så lad os vide, så vi bedre kan forstå, hvilke indstillinger der fungerer bedst for alle.";
 
 /* Headline "Exercise Mode" */
-"Exercise Mode" = "Exercise Mode";
+"Exercise Mode" = "Motion Tilstand";
 
 /* "Exercise Mode" */
 "Defaults to false. When true, > 105 mg/dL high temp target adjusts sensitivityRatio for exercise_mode. Synonym for high_temptarget_raises_sensitivity" = "Defaults to false. When true, > 105 mg/dL high temp target adjusts sensitivityRatio for exercise_mode. Synonym for high_temptarget_raises_sensitivity";
 
 /* Headline "Wide BG Target Range" */
-"Wide BG Target Range" = "Wide BG Target Range";
+"Wide BG Target Range" = "Bred Blodsukker Målområde";
 
 /* "Wide BG Target Range" */
-"Defaults to false, which means by default only the low end of the pump’s BG target range is used as OpenAPS target. This is a safety feature to prevent too-wide targets and less-optimal outcomes. Therefore the higher end of the target range is used only for avoiding bolus wizard overcorrections. Use wide_bg_target_range: true to force neutral temps over a wider range of eventualBGs." = "Defaults to false, which means by default only the low end of the pump’s BG target range is used as OpenAPS target. This is a safety feature to prevent too-wide targets and less-optimal outcomes. Therefore the higher end of the target range is used only for avoiding bolus wizard overcorrections. Use wide_bg_target_range: true to force neutral temps over a wider range of eventualBGs.";
+"Defaults to false, which means by default only the low end of the pump’s BG target range is used as OpenAPS target. This is a safety feature to prevent too-wide targets and less-optimal outcomes. Therefore the higher end of the target range is used only for avoiding bolus wizard overcorrections. Use wide_bg_target_range: true to force neutral temps over a wider range of eventualBGs." = "Standard er falsk, hvilket betyder som standard kun den lave ende af pumpens BG målområde bruges som OpenAPS mål. Dette er en sikkerhedsfunktion for at forhindre alt for brede mål og mindre optimale resultater. Derfor er den højere ende af målområdet kun bruges til at undgå bolus guiden overkorrektioner. Brug wide_bg_target_range: sand for at tvinge neutrale temps over en bredere vifte af eventualBGs.";
 
 /* Headline "Skip Neutral Temps" */
-"Skip Neutral Temps" = "Skip Neutral Temps";
+"Skip Neutral Temps" = "Spring Over Neutrale Temps";
 
 /* "Skip Neutral Temps" */
-"Defaults to false, so that Trio will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means Trio will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night." = "Defaults to false, so that Trio will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means OpenAPS will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications form the 'rig', that may wake you up during the night. ";
+"Defaults to false, so that Trio will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means Trio will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night." = "Standard er falsk, så Trio vil sætte temps når det er muligt, så det vil være lettere at se, om systemet fungerer, selv når du er offline. Det betyder, at OpenAPS vil sætte en “neutral” temp (samme som din standard basal) hvis der ikke er behov for justeringer. Dette er en gammel indstilling for OpenAPS at have muligheder for at minimere lyde og meddelelser fra 'rig', der kan vække dig om natten. ";
 
 /* Headline "Unsuspend If No Temp” */
-"Unsuspend If No Temp" = "Unsuspend If No Temp";
+"Unsuspend If No Temp" = "Afbryd Hvis Ingen Temp";
 
 /* "Unsuspend If No Temp” */
-"Many people occasionally forget to resume / unsuspend their pump after reconnecting it. If you’re one of them, and you are willing to reliably set a zero temp basal whenever suspending and disconnecting your pump, this feature has your back. If enabled, it will automatically resume / unsuspend the pump if you forget to do so before your zero temp expires. As long as the zero temp is still running, it will leave the pump suspended." = "Many people occasionally forget to resume / unsuspend their pump after reconnecting it. If you’re one of them, and you are willing to reliably set a zero temp basal whenever suspending and disconnecting your pump, this feature has your back. If enabled, it will automatically resume / unsuspend the pump if you forget to do so before your zero temp expires. As long as the zero temp is still running, it will leave the pump suspended.";
+"Many people occasionally forget to resume / unsuspend their pump after reconnecting it. If you’re one of them, and you are willing to reliably set a zero temp basal whenever suspending and disconnecting your pump, this feature has your back. If enabled, it will automatically resume / unsuspend the pump if you forget to do so before your zero temp expires. As long as the zero temp is still running, it will leave the pump suspended." = "Mange mennesker glemmer lejlighedsvis at genoptage / suspendere deres pumpe efter gentilslutning af det. Hvis du er en af dem, og du er villig til pålideligt at indstille en nul temp basal, når suspendere og afbryde din pumpe, denne funktion har din ryg. Hvis aktiveret, vil det automatisk genoptage/suspendere pumpen, hvis du glemmer at gøre det, før din nul temperatur udløber. Så længe nul temp stadig kører, vil det efterlade pumpen suspenderet.";
 
 /* Headline "Enable UAM" */
-"Enable UAM" = "Enable UAM";
+"Enable UAM" = "Aktiver UAM";
 
 /* "Enable UAM" */
-"With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell Trio about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier." = "With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell Trio about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier.";
+"With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell Trio about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier." = "Med denne indstilling aktiveret, kan SMB-algoritmen genkende uanmeldte måltider. Dette er nyttigt, hvis du glemmer at fortælle Trio om dine kulhydrater eller estimere dine kulhydrater forkert, og mængden af indtastede kulhydrater er forkert, eller hvis et måltid med masser af fedt og protein har en længere varighed end forventet. Uden nogen carb indgang, UAM kan genkende hurtige stigning i glucose forårsaget af kulhydrater, adrenalin osv., og forsøger at justere det med SMB'er. Dette virker også på den modsatte måde: Hvis der sker en hurtig reduktion af glukose, kan det stoppe SMB tidligere.";
 
 /* Headline "Enable SMB With COB" */
-"Enable SMB With COB" = "Enable SMB With COB";
+"Enable SMB With COB" = "Aktiver SMB med COB";
 
 /* Enable SMB With COB" */
-"This enables supermicrobolus (SMB) while carbs on board (COB) are positive." = "This enables supermicrobolus (SMB) while carbs on board (COB) are positive.";
+"This enables supermicrobolus (SMB) while carbs on board (COB) are positive." = "Dette muliggør supermikrobolus (SMB), mens kulhydrater om bord (COB) er positive.";
 
 /* Headline "Enable SMB With Temptarget” */
-"Enable SMB With Temptarget" = "Enable SMB With Temptarget";
+"Enable SMB With Temptarget" = "Aktiver SMB Med Temptarget";
 
 /* "Enable SMB With Temptarget” */
-"This enables supermicrobolus (SMB) with eating soon / low temp targets. With this feature enabled, any temporary target below 100mg/dL, such as a temp target of 99 (or 80, the typical eating soon target) will enable SMB." = "This enables supermicrobolus (SMB) with eating soon / low temp targets. With this feature enabled, any temporary target below 100mg/dL, such as a temp target of 99 (or 80, the typical eating soon target) will enable SMB.";
+"This enables supermicrobolus (SMB) with eating soon / low temp targets. With this feature enabled, any temporary target below 100mg/dL, such as a temp target of 99 (or 80, the typical eating soon target) will enable SMB." = "Dette muliggør supermikrobolus (SMB) med at spise snart / lave temp mål. Med denne funktion aktiveret, ethvert midlertidigt mål under 100 mg/dL, såsom et temp mål på 99 (eller 80, den typiske spise snart mål) vil gøre det muligt for SMB.";
 
 /* Headline "Enable SMB Always" */
-"Enable SMB Always" = "Enable SMB Always";
+"Enable SMB Always" = "Aktiver SMB Altid";
 
 /* "Enable SMB Always" */
-"Defaults to false. When true, always enable supermicrobolus (unless disabled by high temptarget)." = "Defaults to false. When true, always enable supermicrobolus (unless disabled by high temptarget).";
+"Defaults to false. When true, always enable supermicrobolus (unless disabled by high temptarget)." = "Defaults to false. Når sandt, skal du altid aktivere supermicrobolus (medmindre deaktiveret af højt temptarget).";
 
 /* Headline "Enable SMB After Carbs" */
-"Enable SMB After Carbs" = "Enable SMB After Carbs";
+"Enable SMB After Carbs" = "Aktiver SMB Efter Kulhydrater";
 
 /* "Enable SMB After Carbs" */
-"Defaults to false. When true, enables supermicrobolus (SMB) for 6h after carbs, even with 0 carbs on board (COB)." = "Defaults to false. When true, enables supermicrobolus (SMB) for 6h after carbs, even with 0 carbs on board (COB).";
+"Defaults to false. When true, enables supermicrobolus (SMB) for 6h after carbs, even with 0 carbs on board (COB)." = "Defaults to false. Når sandt, muliggør supermicrobolus (SMB) i 6 timer efter kulstof, selv med 0 kulhydrater om bord (COB).";
 
 /* Enable "Allow SMB With High Temptarget" */
-"Allow SMB With High Temptarget" = "Allow SMB With High Temptarget";
+"Allow SMB With High Temptarget" = "Tillad SMB Med Højt Temptarget";
 
 /* Headline "Allow SMB With High Temptarget" */
-"Allow SMB With High Temptarget" = "Allow SMB With High Temptarget";
+"Allow SMB With High Temptarget" = "Tillad SMB Med Højt Temptarget";
 
 /* "Allow SMB With High Temptarget" */
-"Defaults to false. When true, allows supermicrobolus (if otherwise enabled) even with high temp targets (> 100 mg/dl)." = "Defaults to false. When true, allows supermicrobolus (if otherwise enabled) even with high temp targets (> 100 mg/dl).";
+"Defaults to false. When true, allows supermicrobolus (if otherwise enabled) even with high temp targets (> 100 mg/dl)." = "Defaults to false. Når sandt, tillader supermicrobolus (hvis ellers aktiveret) selv med høje temp mål (> 100 mg/dl).";
 
 /* Headline "Use Custom Peak Time” */
-"Use Custom Peak Time" = "Use Custom Peak Time";
+"Use Custom Peak Time" = "Benyt Brugerdefineret Tidspunkt";
 
 /* "Use Custom Peak Time” */
-"Defaults to false. Setting to true allows changing insulinPeakTime" = "Defaults to false. Setting to true allows changing insulinPeakTime";
+"Defaults to false. Setting to true allows changing insulinPeakTime" = "Standard er falsk. Indstilling til sand tillader ændring af insulinPeakTime";
 
 /* Headline "Suspend Zeros IOB” */
 "Suspend Zeros IOB" = "Suspend Zeros IOB";
 
 /* "Suspend Zeros IOB” */
-"Default is false. Any existing temp basals during times the pump was suspended will be deleted and 0 temp basals to negate the profile basal rates during times pump is suspended will be added." = "Default is false. Any existing temp basals during times the pump was suspended will be deleted and 0 temp basals to negate the profile basal rates during times pump is suspended will be added.";
+"Default is false. Any existing temp basals during times the pump was suspended will be deleted and 0 temp basals to negate the profile basal rates during times pump is suspended will be added." = "Standard er falsk. Alle eksisterende temp basaler i tider, hvor pumpen blev suspenderet, vil blive slettet, og 0 temp basaler til at negere profilen basal hastigheder i tider, pumpen er suspenderet, vil blive tilføjet.";
 
 /* Headline "Max IOB" */
 "Max IOB" = "Max IOB";
 
 /* "Max IOB" */
-"Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two OpenAPS safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings\n\n(Tip from https://www.loopandlearn.org/freeaps-x/#open-loop)." = "Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two OpenAPS safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings\n\n(Tip from https://www.loopandlearn.org/freeaps-x/#open-loop).";
+"Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two OpenAPS safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings\n\n(Tip from https://www.loopandlearn.org/freeaps-x/#open-loop)." = "Max IOB er den maksimale mængde insulin om bord fra alle kilder – både basal (eller SMB korrektion) og bolus insulin – at dit loop er tilladt at akkumulere til behandling af højere end mål BG. I modsætning til de to andre OpenAPS sikkerhedsindstillinger (max_daily_safety_multiplier og current_basal_safety_multiplier), er max_iob indstillet som et fast antal enheder insulin. Som nu manuelle bolusser er IKKE begrænset af denne indstilling. \n\n For at teste dine basale satser om natten, kan du ændre Max IOB indstillingen til nul, mens du er i Lukket Loop. Dette vil aktivere suspensionstilstand med lav glukose, mens du tester dine basale rater indstillinger\n\n(Tip fra https://www.loopandlearn.org/freeaps-x/#open-loop).";
 
 /* Headline "Max Daily Safety Multiplier" */
-"Max Daily Safety Multiplier" = "Max Daily Safety Multiplier";
+"Max Daily Safety Multiplier" = "Maks. Daglige Sikkerhedsmultiplikator";
 
 /* "Max Daily Safety Multiplier" */
-"This is an important OpenAPS safety limit. The default setting (which is unlikely to need adjusting) is 3. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 3x the highest hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "This is an important OpenAPS safety limit. The default setting (which is unlikely to need adjusting) is 3. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 3x the highest hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune.";
+"This is an important OpenAPS safety limit. The default setting (which is unlikely to need adjusting) is 3. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 3x the highest hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "Dette er en vigtig sikkerhedsgrænse for OpenAPS. Standardindstillingen (som sandsynligvis ikke behøver at justere) er 3. Det betyder, at OpenAPS aldrig vil få lov til at indstille en midlertidig basal sats, der er mere end 3x den højeste timeløn basal sats programmeret i en brugers pumpe, eller, hvis aktiveret, bestemmes af autotune.";
 
 /* Headline "Current Basal Safety Multiplier" */
-"Current Basal Safety Multiplier" = "Current Basal Safety Multiplier";
+"Current Basal Safety Multiplier" = "Nuværende Basal Sikkerheds Multiplikator";
 
 /* "Current Basal Safety Multiplier" */
-"This is another important OpenAPS safety limit. The default setting (which is also unlikely to need adjusting) is 4. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 4x the current hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "This is another important OpenAPS safety limit. The default setting (which is also unlikely to need adjusting) is 4. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 4x the current hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune.";
+"This is another important OpenAPS safety limit. The default setting (which is also unlikely to need adjusting) is 4. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 4x the current hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "Dette er en anden vigtig OpenAPS sikkerhedsgrænse. Standardindstillingen (som også sandsynligvis ikke behøver at justere) er 4. Det betyder, at OpenAPS aldrig vil få lov til at indstille en midlertidig basal sats, der er mere end 4x den aktuelle time basal sats programmeret i en brugers pumpe, eller, hvis aktiveret, bestemmes af autotune.";
 
 /* Headline "Autosens Max" */
 "Autosens Max" = "Autosens Max";
 
 /* "Autosens Max" */
-"This is a multiplier cap for autosens (and autotune) to set a 20% max limit on how high the autosens ratio can be, which in turn determines how high autosens can adjust basals, how low it can adjust ISF, and how low it can set the BG target." = "This is a multiplier cap for autosens (and autotune) to set a 20% max limit on how high the autosens ratio can be, which in turn determines how high autosens can adjust basals, how low it can adjust ISF, and how low it can set the BG target.";
+"This is a multiplier cap for autosens (and autotune) to set a 20% max limit on how high the autosens ratio can be, which in turn determines how high autosens can adjust basals, how low it can adjust ISF, and how low it can set the BG target." = "Dette er en multiplikator cap for autosens (og autotune) til at sætte en 20% max grænse for, hvor højt autosens forhold kan være, som igen bestemmer, hvor høje autosens kan justere basalerne, hvor lavt det kan justere ISF, og hvor lavt det kan indstille BG mål.";
 
 /* Headline "Autosens Min" */
 "Autosens Min" = "Autosens Min";
 
 /* "Autosens Min" */
-"The other side of the autosens safety limits, putting a cap on how low autosens can adjust basals, and how high it can adjust ISF and BG targets." = "The other side of the autosens safety limits, putting a cap on how low autosens can adjust basals, and how high it can adjust ISF and BG targets.";
+"The other side of the autosens safety limits, putting a cap on how low autosens can adjust basals, and how high it can adjust ISF and BG targets." = "Den anden side af autosens sikkerhedsgrænser, sætte en hætte på, hvor lav autosens kan justere basals, og hvor højt det kan justere ISF og BG mål.";
 
 /* Headline "Half Basal Exercise Target" */
-"Half Basal Exercise Target" = "Half Basal Exercise Target";
+"Half Basal Exercise Target" = "Halv Basal Motion Mål";
 
 /* "Half Basal Exercise Target" */
-"Set to a number, e.g. 160, which means when temp target is 160 mg/dL and exercise_mode=true, run 50% basal at this level (120 = 75%; 140 = 60%). This can be adjusted, to give you more control over your exercise modes." = "Set to a number, e.g. 160, which means when temp target is 160 mg/dL and exercise_mode=true, run 50% basal at this level (120 = 75%; 140 = 60%). This can be adjusted, to give you more control over your exercise modes.";
+"Set to a number, e.g. 160, which means when temp target is 160 mg/dL and exercise_mode=true, run 50% basal at this level (120 = 75%; 140 = 60%). This can be adjusted, to give you more control over your exercise modes." = "Sæt til et nummer, f.eks. 160, hvilket betyder, at når temp mål er 160 mg/dl og exercise_mode=true, køre 50% basal på dette niveau (120 = 75%; 140 = 60%). Dette kan justeres, for at give dig mere kontrol over dine motionstilstande.";
 
 /* Headline "Max COB" */
 "Max COB" = "Max COB";
 
 /* "Max COB" */
-"The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, Trio will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)" = "The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, Trio will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)";
+"The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, Trio will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)" = "Standard for maxCOB er 120. (Hvis nogen indtaster flere kulhydrater i en eller flere poster, Trio vil cap COB til maxCOB og holde det på maxCOB indtil kulhydrater indtastet over maxCOB har vist sig at blive absorberet. I bund og grund begrænser dette blot UAM som en sikkerhedsgrænse mod underlige COB beregninger på grund af fluky data.)";
 
 /* Headline "Bolus Snooze DIA Divisor" */
 "Bolus Snooze DIA Divisor" = "Bolus Snooze DIA Divisor";
 
 /* "Bolus Snooze DIA Divisor" */
-"Bolus snooze is enacted after you do a meal bolus, so the loop won’t counteract with low temps when you’ve just eaten. The example here and default is 2; so a 3 hour DIA means that bolus snooze will be gradually phased out over 1.5 hours (3DIA/2)." = "Bolus snooze is enacted after you do a meal bolus, so the loop won’t counteract with low temps when you’ve just eaten. The example here and default is 2; so a 3 hour DIA means that bolus snooze will be gradually phased out over 1.5 hours (3DIA/2).";
+"Bolus snooze is enacted after you do a meal bolus, so the loop won’t counteract with low temps when you’ve just eaten. The example here and default is 2; so a 3 hour DIA means that bolus snooze will be gradually phased out over 1.5 hours (3DIA/2)." = "Bolus snooze er vedtaget, når du har lavet et måltid bolus, så løkken vil ikke modvirke lave temps, når du bare har spist. Eksemplet her og standard er 2; så en 3 timers DIA betyder, at bolus snooze gradvist udfases over 1,5 timer (3DIA/2).";
 
 /* Headline "Min 5m Carbimpact" */
 "Min 5m Carbimpact" = "Min 5m Carbimpact";
 
 /* "Min 5m Carbimpact" */
-"This is a setting for default carb absorption impact per 5 minutes. The default is an expected 8 mg/dL/5min. This affects how fast COB is decayed in situations when carb absorption is not visible in BG deviations. The default of 8 mg/dL/5min corresponds to a minimum carb absorption rate of 24g/hr at a CSF of 4 mg/dL/g." = "This is a setting for default carb absorption impact per 5 minutes. The default is an expected 8 mg/dL/5min. This affects how fast COB is decayed in situations when carb absorption is not visible in BG deviations. The default of 8 mg/dL/5min corresponds to a minimum carb absorption rate of 24g/hr at a CSF of 4 mg/dL/g.";
+"This is a setting for default carb absorption impact per 5 minutes. The default is an expected 8 mg/dL/5min. This affects how fast COB is decayed in situations when carb absorption is not visible in BG deviations. The default of 8 mg/dL/5min corresponds to a minimum carb absorption rate of 24g/hr at a CSF of 4 mg/dL/g." = "Dette er en indstilling for standard carb absorption effekt per 5 minutter. Standard er en forventet 8 mg/dL/5min. Dette påvirker hvor hurtigt COB nedbrydes i situationer, hvor carb absorption ikke er synlig i BG afvigelser. Standard på 8 mg/dL/5min svarer til en mindste carb absorptionshastighed på 24 g/time ved en CSF på 4 mg/dL/g.";
 
 /* Headline "Autotune ISF Adjustment Fraction" */
-"Autotune ISF Adjustment Fraction" = "Autotune ISF Adjustment Fraction";
+"Autotune ISF Adjustment Fraction" = "Autotune ISF-justeringsfraktion";
 
 /* "Autotune ISF Adjustment Fraction" */
-"The default of 0.5 for this value keeps autotune ISF closer to pump ISF via a weighted average of fullNewISF and pumpISF. 1.0 allows full adjustment, 0 is no adjustment from pump ISF." = "The default of 0.5 for this value keeps autotune ISF closer to pump ISF via a weighted average of fullNewISF and pumpISF. 1.0 allows full adjustment, 0 is no adjustment from pump ISF.";
+"The default of 0.5 for this value keeps autotune ISF closer to pump ISF via a weighted average of fullNewISF and pumpISF. 1.0 allows full adjustment, 0 is no adjustment from pump ISF." = "Standard 0,5 for denne værdi holder autotune ISF tættere på pumpe ISF via et vægtet gennemsnit af fullNewISF og pumpISF. 1.0 tillader fuld justering, 0 er ingen justering fra pumpe ISF.";
 
 /* Headline "Remaining Carbs Fraction" */
-"Remaining Carbs Fraction" = "Remaining Carbs Fraction";
+"Remaining Carbs Fraction" = "Resterende Kulhydrater Brøk";
 
 /* "Remaining Carbs Fraction" */
-"This is the fraction of carbs we’ll assume will absorb over 4h if we don’t yet see carb absorption." = "This is the fraction of carbs we’ll assume will absorb over 4h if we don’t yet see carb absorption.";
+"This is the fraction of carbs we’ll assume will absorb over 4h if we don’t yet see carb absorption." = "Dette er den brøkdel af kulhydrater vi antager, vil absorbere over 4 timer, hvis vi endnu ikke ser carb absorption.";
 
 /* Headline "Remaining Carbs Cap" */
-"Remaining Carbs Cap" = "Remaining Carbs Cap";
+"Remaining Carbs Cap" = "Resterende Kulhydrathætte";
 
 /* "Remaining Carbs Cap" */
-"This is the amount of the maximum number of carbs we’ll assume will absorb over 4h if we don’t yet see carb absorption." = "This is the amount of the maximum number of carbs we’ll assume will absorb over 4h if we don’t yet see carb absorption.";
+"This is the amount of the maximum number of carbs we’ll assume will absorb over 4h if we don’t yet see carb absorption." = "Dette er mængden af det maksimale antal kulhydrater vi antager, vil absorbere over 4 timer, hvis vi endnu ikke ser carb absorption.";
 
 /* Headline ”Max SMB Basal Minutes" */
-"Max SMB Basal Minutes" = "Max SMB Basal Minutes";
+"Max SMB Basal Minutes" = "Maks. SMB Basal Minutter";
 
 /* ”Max SMB Basal Minutes" */
-"Defaults to start at 30. This is the maximum minutes of basal that can be delivered as a single SMB with uncovered COB. This gives the ability to make SMB more aggressive if you choose. It is recommended that the value is set to start at 30, in line with the default, and if you choose to increase this value, do so in no more than 15 minute increments, keeping a close eye on the effects of the changes. It is not recommended to set this value higher than 90 mins, as this may affect the ability for the algorithm to safely zero temp. It is also recommended that pushover is used when setting the value to be greater than default, so that alerts are generated for any predicted lows or highs." = "Defaults to start at 30. This is the maximum minutes of basal that can be delivered as a single SMB with uncovered COB. This gives the ability to make SMB more aggressive if you choose. It is recommended that the value is set to start at 30, in line with the default, and if you choose to increase this value, do so in no more than 15 minute increments, keeping a close eye on the effects of the changes. It is not recommended to set this value higher than 90 mins, as this may affect the ability for the algorithm to safely zero temp. It is also recommended that pushover is used when setting the value to be greater than default, so that alerts are generated for any predicted lows or highs.";
+"Defaults to start at 30. This is the maximum minutes of basal that can be delivered as a single SMB with uncovered COB. This gives the ability to make SMB more aggressive if you choose. It is recommended that the value is set to start at 30, in line with the default, and if you choose to increase this value, do so in no more than 15 minute increments, keeping a close eye on the effects of the changes. It is not recommended to set this value higher than 90 mins, as this may affect the ability for the algorithm to safely zero temp. It is also recommended that pushover is used when setting the value to be greater than default, so that alerts are generated for any predicted lows or highs." = "Standard starter ved 30. Dette er de maksimale minutter af basal, der kan leveres som en enkelt SMB med afdækkede COB. Dette giver mulighed for at gøre SMB mere aggressiv, hvis du vælger. Det anbefales, at værdien er sat til at starte på 30, i overensstemmelse med standarden, og hvis du vælger at øge denne værdi, gøre det i højst 15 minutters trin, holde nøje øje med virkningerne af ændringerne. Det anbefales ikke at sætte denne værdi højere end 90 minutter, da dette kan påvirke algoritmens evne til sikkert at nul temp. Det anbefales også, at pushover bruges ved indstilling af værdien til at være større end standard, således at der genereres alarmer for eventuelle forudsagte lav eller højder.";
 
 /* Headline "Max UAM SMB Basal Minutes" */
-"Max UAM SMB Basal Minutes" = "Max UAM SMB Basal Minutes";
+"Max UAM SMB Basal Minutes" = "Maks. UAM SMB Basal Minutter";
 
 /* "Max UAM SMB Basal Minutes" */
-"Defaults to start at 30. This is the maximum minutes of basal that can be delivered by UAM as a single SMB when IOB exceeds COB. This gives the ability to make UAM more or less aggressive if you choose. It is recommended that the value is set to start at 30, in line with the default, and if you choose to increase this value, do so in no more than 15 minute increments, keeping a close eye on the effects of the changes. Reducing the value will cause UAM to dose less insulin for each SMB. It is not recommended to set this value higher than 60 mins, as this may affect the ability for the algorithm to safely zero temp. It is also recommended that pushover is used when setting the value to be greater than default, so that alerts are generated for any predicted lows or highs." = "Defaults to start at 30. This is the maximum minutes of basal that can be delivered by UAM as a single SMB when IOB exceeds COB. This gives the ability to make UAM more or less aggressive if you choose. It is recommended that the value is set to start at 30, in line with the default, and if you choose to increase this value, do so in no more than 15 minute increments, keeping a close eye on the effects of the changes. Reducing the value will cause UAM to dose less insulin for each SMB. It is not recommended to set this value higher than 60 mins, as this may affect the ability for the algorithm to safely zero temp. It is also recommended that pushover is used when setting the value to be greater than default, so that alerts are generated for any predicted lows or highs.";
+"Defaults to start at 30. This is the maximum minutes of basal that can be delivered by UAM as a single SMB when IOB exceeds COB. This gives the ability to make UAM more or less aggressive if you choose. It is recommended that the value is set to start at 30, in line with the default, and if you choose to increase this value, do so in no more than 15 minute increments, keeping a close eye on the effects of the changes. Reducing the value will cause UAM to dose less insulin for each SMB. It is not recommended to set this value higher than 60 mins, as this may affect the ability for the algorithm to safely zero temp. It is also recommended that pushover is used when setting the value to be greater than default, so that alerts are generated for any predicted lows or highs." = "Standarder for at starte ved 30. Dette er de maksimale minutter af basal, der kan leveres af UAM som en enkelt SMB, når IOB overstiger COB. Dette giver mulighed for at gøre UAM mere eller mindre aggressiv, hvis du vælger. Det anbefales, at værdien er sat til at starte på 30, i overensstemmelse med standarden, og hvis du vælger at øge denne værdi, gøre det i højst 15 minutters trin, holde nøje øje med virkningerne af ændringerne. En reduktion af værdien vil medføre, at UAM doserer mindre insulin for hver SMB. Det anbefales ikke at sætte denne værdi højere end 60 minutter, da dette kan påvirke algoritmens evne til sikkert at nul temp. Det anbefales også, at pushover bruges ved indstilling af værdien til at være større end standard, således at der genereres alarmer for eventuelle forudsagte lav eller højder.";
 
 /* Headline "SMB Interval" */
 "SMB Interval" = "SMB Interval";
 
 /* "SMB Interval" */
-"Minimum duration in minutes for new SMB since last SMB or manual bolus" = "Minimum duration in minutes for new SMB since last SMB or manual bolus";
+"Minimum duration in minutes for new SMB since last SMB or manual bolus" = "Minimum varighed i minutter for nye SMB siden sidste SMB eller manuel bolus";
 
 /* Headline "Bolus Increment" */
-"Bolus Increment" = "Bolus Increment";
+"Bolus Increment" = "Bolus Forøgelse";
 
 /* "Bolus Increment" */
-"Smallest enacted SMB amount. Minimum amount for Omnipod pumps is 0.05 U, whereas for Medtronic pumps it differs for various models, from 0.025 U to 0.10 U. Please check the minimum bolus amount which can be delivered by your pump. The default value is 0.1." = "Smallest enacted SMB amount. Minimum amount for Omnipod pumps is 0.05 U, whereas for Medtronic pumps it differs for various models, from 0.025 U to 0.10 U. Please check the minimum bolus amount which can be delivered by your pump. The default value is 0.1.";
+"Smallest enacted SMB amount. Minimum amount for Omnipod pumps is 0.05 U, whereas for Medtronic pumps it differs for various models, from 0.025 U to 0.10 U. Please check the minimum bolus amount which can be delivered by your pump. The default value is 0.1." = "Mindst tilladte SMB beløb. Minimumsbeløb for Omnipod pumper er 0,05 U, mens det for Medtronic pumper er forskelligt for forskellige modeller, fra 0. 25 U til 0.10 U. Kontroller venligst det minimum bolus beløb, som kan leveres af din pumpe. Standardværdien er 0.1.";
 
 /* Headline "Insulin Peak Time" */
-"Insulin Peak Time" = "Insulin Peak Time";
+"Insulin Peak Time" = "Insulin Spidstidspunkt";
 
 /* "Insulin Peak Time" */
-"Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with Trio, longer loop calculations and possible red loops." = "Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with Trio, longer loop calculations and possible red loops.";
+"Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with Trio, longer loop calculations and possible red loops." = "Tidspunkt for insulins maksimale blodsukkersænkende effekt på få minutter. Pas på: Oref antager at kurver for ultrahurtige (Lyumjev) og hurtigtvirkende (Fiasp) minimale (35 & 50 min) og maksimum (100 & 120 min) gældende insulinPeakTimes. Brug af en brugerdefineret insulinPeakTime uden for disse grænser vil resultere i problemer med Trio, længere loop beregninger og mulige røde løkker.";
 
 /* Headline "Carbs Req Threshold" */
-"Carbs Req Threshold" = "Carbs Req Threshold";
+"Carbs Req Threshold" = "Kulhydrater Req Threshold";
 
 /* "Carbs Req Threshold" */
-"Grams of carbsReq to trigger a pushover. Defaults to 1 (for 1 gram of carbohydrate). Can be increased if you only want to get Pushover for carbsReq at X threshold." = "Grams of carbsReq to trigger a pushover. Defaults to 1 (for 1 gram of carbohydrate). Can be increased if you only want to get Pushover for carbsReq at X threshold.";
+"Grams of carbsReq to trigger a pushover. Defaults to 1 (for 1 gram of carbohydrate). Can be increased if you only want to get Pushover for carbsReq at X threshold." = "Gramme af karberReq til at udløse en pushover. Standard er 1 (for 1 gram kulhydrat). Kan øges, hvis du kun ønsker at få Pushover til carbsReq ved X tærskel.";
 
 /* Headline "Noisy CGM Target Multiplier" */
 "Noisy CGM Target Multiplier" = "Noisy CGM Target Multiplier";
 
 /* "Noisy CGM Target Multiplier" */
-"Defaults to 1.3. Increase target by this amount when looping off raw/noisy CGM data" = "Defaults to 1.3. Increase target by this amount when looping off raw/noisy CGM data";
+"Defaults to 1.3. Increase target by this amount when looping off raw/noisy CGM data" = "Standard er 1,3. Øg målet med dette beløb ved sløjfning af rå/støjende CGM-data";
 
 /* Headline "SMB DeliveryRatio" */
 "SMB DeliveryRatio" = "SMB DeliveryRatio";
 
 /* SMB DeliveryRatio */
-"Default value: 0.5 This is another key OpenAPS safety cap, and specifies what share of the total insulin required can be delivered as SMB. Increase this experimental value slowly and with caution." = "Default value: 0.5 This is another key OpenAPS safety cap, and specifies what share of the total insulin required can be delivered as SMB. Increase this experimental value slowly and with caution.";
+"Default value: 0.5 This is another key OpenAPS safety cap, and specifies what share of the total insulin required can be delivered as SMB. Increase this experimental value slowly and with caution." = "Standardværdi: 0.5 Dette er en anden nøgle OpenAPS sikkerhed cap, og angiver, hvilken andel af den samlede insulin der kræves kan leveres som SMB. Forøg denne eksperimentelle værdi langsomt og med forsigtighed.";
 
 // Dynamic ISF + CR Settings:
 /* Headline "Adjust Dynamic ISF constant" */
 
-"Adjust Dynamic ISF constant" = "Adjust Dynamic ISF constant";
+"Adjust Dynamic ISF constant" = "Juster Dynamisk ISF konstant";
 
 /* Adjust Dynamic ISF constant */
-"Adjust Dynamic ISF constant" = "Adjust Dynamic ISF constant";
+"Adjust Dynamic ISF constant" = "Juster Dynamisk ISF konstant";
 
 /* Enable Dynamic ISF, Headline */
-"Enable Dynamic ISF" = "Enable Dynamic ISF";
+"Enable Dynamic ISF" = "Aktiver Dynamisk ISF";
 
 /* Headline "Enable Dynamic ISF" */
-"Enable Dynamic ISF" = "Enable Dynamic ISF";
+"Enable Dynamic ISF" = "Aktiver Dynamisk ISF";
 
 /* Enable Dynamic ISF */
-"Calculate a new ISF with every loop cycle. New ISF will be based on current BG, TDD of insulin (past 24 hours or a weighted average) and an Adjustment Factor (default is 1).\n\nDynamic ISF and CR ratios will be limited by your autosens.min/max limits.\n\nDynamic ratio replaces the autosens.ratio: New ISF = Static ISF / Dynamic ratio,\nDynamic ratio = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes" = "Calculate a new ISF with every loop cycle. New ISF will be based on current BG, TDD of insulin (past 24 hours or a weighted average) and an Adjustment Factor (default is 1).\n\nDynamic ISF and CR ratios will be limited by your autosens.min/max limits.\n\nDynamic ratio replaces the autosens.ratio: New ISF = Static ISF / Dynamic ratio,\nDynamic ratio = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes";
+"Calculate a new ISF with every loop cycle. New ISF will be based on current BG, TDD of insulin (past 24 hours or a weighted average) and an Adjustment Factor (default is 1).\n\nDynamic ISF and CR ratios will be limited by your autosens.min/max limits.\n\nDynamic ratio replaces the autosens.ratio: New ISF = Static ISF / Dynamic ratio,\nDynamic ratio = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes" = "Beregn en ny ISF med hver løkke cyklus. Ny ISF vil blive baseret på aktuelle BG, TDD insulin (tidligere 24 timer eller et vægtet gennemsnit) og en justeringsfaktor (standard er 1).\n\nDynamisk ISF og CR forhold vil blive begrænset af dine autosens.min/max grænser.\n\nDynamisk forhold erstatter autosens.ratio: Ny ISF = Statisk ISF / Dynamisk forhold,\nDynamisk forhold = profil. ens * justeringFaktor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinfaktor = 120 - InsulinPeakTimeInMinutter";
 
 /* Headline Enable Dynamic CR */
-"Enable Dynamic CR" = "Enable Dynamic CR";
+"Enable Dynamic CR" = "Aktiver Dynamisk CR";
 
 /* Enable Dynamic CR */
-"Use Dynamic CR. The dynamic ratio will be used for CR as follows:\n\n When ratio > 1:  dynCR = (newRatio - 1) / 2 + 1.\nWhen ratio < 1: dynCR = CR/dynCR.\n\nDon't use toghether with a high Insulin Fraction (> 2)" = "Use Dynamic CR. The dynamic ratio will be used for CR as follows:\n\n When ratio > 1:  dynCR = (newRatio - 1) / 2 + 1.\nWhen ratio < 1: dynCR = CR/dynCR.\n\nDon't use toghether with a high Insulin Fraction (> 2)";
+"Use Dynamic CR. The dynamic ratio will be used for CR as follows:\n\n When ratio > 1:  dynCR = (newRatio - 1) / 2 + 1.\nWhen ratio < 1: dynCR = CR/dynCR.\n\nDon't use toghether with a high Insulin Fraction (> 2)" = "Brug Dynamisk CR. Det dynamiske forhold vil blive anvendt til CR som følger:\n\n Når forholdet > 1: dynCR = (newRatio - 1) / 2 + 1.\nNår forholdet < 1: dynCR = CR/dynCR.\n\nBrug ikke i ether med en høj insulinfraktion (> 2)";
 
 /* Enable Dyn ISF */
-"Activate Dynamic Sensitivity (ISF)" = "Activate Dynamic Sensitivity (ISF)";
+"Activate Dynamic Sensitivity (ISF)" = "Aktiver Dynamisk Følsomhed (ISF)";
 
 /* Enable Dyn CR */
-"Activate Dynamic Carb Ratio (CR)" = "Activate Dynamic Carb Ratio (CR)";
+"Activate Dynamic Carb Ratio (CR)" = "Aktiver Dynamisk Carb Ratio (CR)";
 
 /* Headline "Adjust Dynamic ISF constant" */
-"Adjust Dynamic ISF constant" = "Adjust Dynamic ISF constant";
+"Adjust Dynamic ISF constant" = "Juster Dynamisk ISF konstant";
 
 /* Adjust Dynamic ISF constant */
-"Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula there is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users" = "Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula threre is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users";
+"Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula there is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users" = "Juster Dynamiske nøgletal med en konstant. Standard er 0,5. Jo højere værdi, jo større korrektion af din ISF vil være for et højt eller lavt BG. Maksimal korrektion bestemmes af Autosens min/maks indstillinger. For Sigmoid funktion anbefales en justeringsfaktor på 0,4 - 0,5 til at begynde med. For den logaritmiske formel threre er mindre konsensus, men startende med 0,5 - 0,8 er mere appropiate for de fleste brugere";
 
 /* Headline Use Sigmoid Function */
-"Use Sigmoid Function" = "Use Sigmoid Function";
+"Use Sigmoid Function" = "Brug Sigmoid Funktion";
 
 /* Which dyn ISF function to use */
-"Formula" = "Formula";
+"Formula" = "Formel";
 
 /* Extra Safety Features when using dyn ISF */
-"Safety" = "Safety";
+"Safety" = "Sikkerhed";
 
 /* Use Sigmoid Function */
-"Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function." = "Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function.";
+"Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function." = "Brug en sigmoidfunktion til ISF (og til CR, når aktiveret) i stedet for standard Logaritmisk formel. Kræver, at Dynamic ISF-indstillingen aktiveres i indstillingerne\n\nJusteringsindstillingen justerer kurvens hældning (Y: Dynamisk ratio, X: Blodglukose). En lavere værdi ==> mindre stejl == mindre aggressiv.\n\nAutosenerne. / max indstillinger bestemmer både max/min grænser for det dynamiske forhold OG hvor meget det dynamiske forhold er justeret. Hvis AF er hældningen af kurven, autosenerne. in/max er højden af grafen, Y-intervallet, hvor Y: dynamisk forhold. Kurven vil altid have en sigmoid form, uanset hvilke autosener. / max indstillinger anvendes, hvilket betyder at disse indstillinger har store konsekvenser for resultatet af den beregnede dynamiske ISF. Vær forsigtig med at indstille en for høj autosens.max værdi. Med en korrekt profil ISF indstilling, vil du sandsynligvis aldrig brug for det for at være højere end 1.\n\nEn Autosens.max grænse > 1, 5 er ikke tilrådelig, når sigmoid funktion.";
 
 /* Headline Threshold Setting */
-"Minimum Safety Threshold (mg/dL)" = "Minimum Safety Threshold (mg/dL)";
+"Minimum Safety Threshold (mg/dL)" = "Minimumssikkerhedsgrænse (mg/dl)";
 
 /* Minimum Safety Threshold */
-"All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted." = "All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted.";
+"All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted." = "Al insulin vil blive suspenderet, hvis dit blodsukker forventes at falde under sikkerhedstærsklen.\n\nSkal indstilles mellem 60-120 mg/dl.\nSådan konverteres fra mmol/l, multipliceres med 18.\n\nBemærk: Basal kan genoptages, hvis der er negativ IOB og glucose stiger hurtigere end forventet.";
 
 /* Header */
-"Calculator settings" = "Calculator settings";
+"Calculator settings" = "Lommeregner indstillinger";
 
 /* UI/UX option */
-"Display Predictions" = "Display Predictions";
+"Display Predictions" = "Vis Forudsigelser";
 
 /* UI/UX option */
-"Smaller iPhone Screens" = "Smaller iPhone Screens";
+"Smaller iPhone Screens" = "Mindre iPhone-skærme";
 
 /* UI/UX option */
-"Display and allow Fat and Protein entries" = "Display and allow Fat and Protein entries";
+"Display and allow Fat and Protein entries" = "Vis og tillad indgange til fedt og protein";
 
 /* UI/UX option */
-"Add Meal View settings " = "Add Meal View settings ";
+"Add Meal View settings " = "Tilføj indstillinger for måltidsvisning ";
 
 /* UI/UX option */
-"Display Temp Targets Button" = "Display Temp Targets Button";
+"Display Temp Targets Button" = "Vis Knappen Temp Mål";
 
 /* UI/UX option */
-"Home View Button Panel " = "Home View Button Panel ";
+"Home View Button Panel " = "Hjem Vis Knap Panel ";
 
 /* UI/UX option */
-"In case you're using both profiles and temp targets" = "In case you're using both profiles and temp targets";
+"In case you're using both profiles and temp targets" = "Hvis du bruger både profiler og temp mål";
 
 /* UI/UX option */
-"Always Color Glucose Value (green, yellow etc)" = "Always Color Glucose Value (green, yellow etc)";
+"Always Color Glucose Value (green, yellow etc)" = "Altid farve glukose værdi (grøn, gul osv)";
 
 /* UI/UX option */
-"Header settings" = "Header settings";
+"Header settings" = "Header indstillinger";
 /* UI/UX option */
-"Normally glucose is colored red only when over or under your notification limits for high/low" = "Normally glucose is colored red only when over or under your notification limits for high/low";
+"Normally glucose is colored red only when over or under your notification limits for high/low" = "Normalt er glukose kun farvet rødt, når over eller under din anmeldelse grænser for høj/lav";
 
 /* UI/UX option */
-"Horizontal Scroll View Visible hours" = "Horizontal Scroll View Visible hours";
+"Horizontal Scroll View Visible hours" = "Vandret rullevisning Synlige timer";
 
 /* Notification option */
-"Live Activity" = "Live Activity";
+"Live Activity" = "Live Aktivitet";
 
 /* Notification option */
-"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)";
+"Live activity displays blood glucose live on the lock screen and on the dynamic island (if available)" = "Live aktivitet viser blodglukose live på låseskærmen og på den dynamiske ø (hvis tilgængelig)";
 
 /* Notification option */
-"Show live activity" = "Show live activity";
+"Show live activity" = "Vis live aktivitet";
 
 /* Headline "Weighted Average of TDD. Weight of past 24 hours:" */
-"Weighted Average of TDD. Weight of past 24 hours:" = "Weighted Average of TDD. Weight of past 24 hours:";
+"Weighted Average of TDD. Weight of past 24 hours:" = "Vægtet Gennemsnit af TDD. Vægt af de seneste 24 timer:";
 
 /* Weight of past 24 hours of insulin */
-"Has to be > 0 and <= 1.\nDefault is 0.65 (65 %) * TDD. The rest will be from average of total data (up to 14 days) of all TDD calculations (35 %). To only use past 24 hours, set this to 1.\n\nTo avoid sudden fluctuations, for instance after a big meal, an average of the past 2 hours of TDD calculations is used instead of just the current TDD (past 24 hours at this moment)." = "Has to be > 0 and <= 1.\nDefault is 0.65 (65 %) * TDD. The rest will be from average of total data (up to 14 days) of all TDD calculations (35 %). To only use past 24 hours, set this to 1.\n\nTo avoid sudden fluctuations, for instance after a big meal, an average of the past 2 hours of TDD calculations is used instead of just the current TDD (past 24 hours at this moment).";
+"Has to be > 0 and <= 1.\nDefault is 0.65 (65 %) * TDD. The rest will be from average of total data (up to 14 days) of all TDD calculations (35 %). To only use past 24 hours, set this to 1.\n\nTo avoid sudden fluctuations, for instance after a big meal, an average of the past 2 hours of TDD calculations is used instead of just the current TDD (past 24 hours at this moment)." = "Skal være > 0 og <= 1.\nStandard er 0,65 (65 %) * TDD. Resten vil være fra gennemsnittet af de samlede data (op til 14 dage) af alle TDD-beregninger (35 %). For kun at bruge de sidste 24 timer, sæt dette til 1.\n\nFor at undgå pludselige udsving for eksempel efter et stort måltid, et gennemsnit af de sidste 2 timers TDD-beregninger anvendes i stedet for blot den aktuelle TDD (de seneste 24 timer på nuværende tidspunkt).";
 
 /* Headline "Adjust basal" */
-"Adjust basal" = "Adjust basal";
+"Adjust basal" = "Justér basal";
 
 /* Enable adjustment of basal profile */
-"Enable adjustment of basal based on the ratio of current TDD / 7 day average TDD" = "Enable adjustment of basal based on the ratio of current TDD / 7 day average TDD";
+"Enable adjustment of basal based on the ratio of current TDD / 7 day average TDD" = "Aktiver justering af basal baseret på forholdet mellem nuværende TDD / 7 dages gennemsnit TDD";
 
 /* Headline "Max Delta-BG Threshold SMB" */
-"Max Delta-BG Threshold SMB" = "Max Delta-BG Threshold SMB";
+"Max Delta-BG Threshold SMB" = "Maks. Delta-BG Grænseværdi SMB";
 
 /* Max Delta-BG Threshold SMB */
-"Defaults to 0.2 (20%). Maximum positive percentual change of BG level to use SMB, above that will disable SMB. Hardcoded cap of 40%. For UAM fully-closed-loop 30% is advisable. Observe in log and popup (maxDelta 27 > 20% of BG 100 - disabling SMB!)." = "Defaults to 0.2 (20%). Maximum positive percentual change of BG level to use SMB, above that will disable SMB. Hardcoded cap of 40%. For UAM fully-closed-loop 30% is advisable. Observe in log and popup (maxDelta 27 > 20% of BG 100 - disabling SMB!).";
+"Defaults to 0.2 (20%). Maximum positive percentual change of BG level to use SMB, above that will disable SMB. Hardcoded cap of 40%. For UAM fully-closed-loop 30% is advisable. Observe in log and popup (maxDelta 27 > 20% of BG 100 - disabling SMB!)." = "Standard er 0,2 (20 %). Maksimal positiv procentvis ændring af BG niveau til at bruge SMB, ovenover, der vil deaktivere SMB. Hardcoded cap på 40 %. For UAM er fuldt lukket-loop 30% tilrådelig. Observere i log og popup (maxDelta 27 > 20% af BG 100 - deaktivering SMB!).";
 
 /* Headline "... When Blood Glucose Is Over (mg/dl):" */
-"... When Blood Glucose Is Over (mg/dl):" = "... When Blood Glucose Is Over (mg/dl):";
+"... When Blood Glucose Is Over (mg/dl):" = "... Når Blodglukose Er Over (mg/dl):";
 
 /* ... When Blood Glucose Is Over (mg/dl): */
-"Set the value enableSMB_high_bg will compare against to enable SMB. If BG > than this value, SMBs should enable." = "Set the value enableSMB_high_bg will compare against to enable SMB. If BG > than this value, SMBs should enable.";
+"Set the value enableSMB_high_bg will compare against to enable SMB. If BG > than this value, SMBs should enable." = "Sæt værdien enableSMB_high_bg vil sammenligne med for at aktivere SMB. Hvis BG > end denne værdi, skal SMB'er aktiveres.";
 
 /* Headline "Enable SMB With High BG" */
-"Enable SMB With High BG" = "Enable SMB With High BG";
+"Enable SMB With High BG" = "Aktiver SMB Med Høj BG";
 
 /* "Enable SMB With High BG" */
-"Enable SMBs when a high BG is detected, based on the high BG target (adjusted or profile)" = "Enable SMBs when a high BG is detected, based on the high BG target (adjusted or profile)";
+"Enable SMBs when a high BG is detected, based on the high BG target (adjusted or profile)" = "Aktiver SMB'er, når der registreres et højt BG baseret på det høje BG-mål (justeret eller profil)";
 
 /* Headline "Dynamic settings" */
-"Dynamic settings" = "Dynamic settings";
+"Dynamic settings" = "Dynamiske indstillinger";
 
 /* Insulin curve */
-"Insulin curve" = "Insulin curve";
+"Insulin curve" = "Insulin kurve";
 
 /* Headline "Adjustment Factor" */
-"Adjustment Factor" = "Adjustment Factor";
+"Adjustment Factor" = "Justeringsfaktor";
