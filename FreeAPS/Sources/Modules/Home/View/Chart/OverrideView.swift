@@ -60,9 +60,9 @@ struct OverrideView: ChartContent {
         {
             return target
         } else if override.target == 0 {
-            return state.currentBGTarget // Default target
+            return state.currentGlucoseTarget // Default target
         } else {
-            return override.target?.decimalValue ?? state.currentBGTarget
+            return override.target?.decimalValue ?? state.currentGlucoseTarget
         }
     }
 }

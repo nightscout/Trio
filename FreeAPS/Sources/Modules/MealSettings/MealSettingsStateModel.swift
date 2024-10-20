@@ -20,22 +20,19 @@ extension MealSettings {
             subscribeSetting(\.maxFat, on: $maxFat) { maxFat = $0 }
             subscribeSetting(\.maxProtein, on: $maxProtein) { maxProtein = $0 }
             subscribeSetting(\.timeCap, on: $timeCap.map(Int.init), initial: {
-                let value = max(min($0, 12), 5)
-                timeCap = Decimal(value)
+                timeCap = Decimal($0)
             }, map: {
                 $0
             })
 
             subscribeSetting(\.minuteInterval, on: $minuteInterval.map(Int.init), initial: {
-                let value = max(min($0, 60), 10)
-                minuteInterval = Decimal(value)
+                minuteInterval = Decimal($0)
             }, map: {
                 $0
             })
 
             subscribeSetting(\.delay, on: $delay.map(Int.init), initial: {
-                let value = max(min($0, 120), 60)
-                delay = Decimal(value)
+                delay = Decimal($0)
             }, map: {
                 $0
             })

@@ -1,30 +1,31 @@
 import CoreData
 import HealthKit
+import Observation
 import SwiftUI
 
 extension DataTable {
-    final class StateModel: BaseStateModel<Provider> {
-        @Injected() var broadcaster: Broadcaster!
-        @Injected() var apsManager: APSManager!
-        @Injected() var unlockmanager: UnlockManager!
-        @Injected() private var storage: FileStorage!
-        @Injected() var pumpHistoryStorage: PumpHistoryStorage!
-        @Injected() var glucoseStorage: GlucoseStorage!
-        @Injected() var healthKitManager: HealthKitManager!
-        @Injected() var carbsStorage: CarbsStorage!
+    @Observable final class StateModel: BaseStateModel<Provider> {
+        @ObservationIgnored @Injected() var broadcaster: Broadcaster!
+        @ObservationIgnored @Injected() var apsManager: APSManager!
+        @ObservationIgnored @Injected() var unlockmanager: UnlockManager!
+        @ObservationIgnored @Injected() private var storage: FileStorage!
+        @ObservationIgnored @Injected() var pumpHistoryStorage: PumpHistoryStorage!
+        @ObservationIgnored @Injected() var glucoseStorage: GlucoseStorage!
+        @ObservationIgnored @Injected() var healthKitManager: HealthKitManager!
+        @ObservationIgnored @Injected() var carbsStorage: CarbsStorage!
 
         let coredataContext = CoreDataStack.shared.newTaskContext()
 
-        @Published var mode: Mode = .treatments
-        @Published var treatments: [Treatment] = []
-        @Published var glucose: [Glucose] = []
-        @Published var meals: [Treatment] = []
-        @Published var manualGlucose: Decimal = 0
-        @Published var maxBolus: Decimal = 0
-        @Published var waitForSuggestion: Bool = false
+        var mode: Mode = .treatments
+        var treatments: [Treatment] = []
+        var glucose: [Glucose] = []
+        var meals: [Treatment] = []
+        var manualGlucose: Decimal = 0
+        var maxBolus: Decimal = 0
+        var waitForSuggestion: Bool = false
 
-        @Published var insulinEntryDeleted: Bool = false
-        @Published var carbEntryDeleted: Bool = false
+        var insulinEntryDeleted: Bool = false
+        var carbEntryDeleted: Bool = false
 
         var units: GlucoseUnits = .mgdL
 
