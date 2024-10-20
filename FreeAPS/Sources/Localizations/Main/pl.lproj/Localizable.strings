@@ -1941,7 +1941,7 @@ Enact a temp Basal or a temp target */
 "This is an important OpenAPS safety limit. The default setting (which is unlikely to need adjusting) is 3. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 3x the highest hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "Jest to ważny limit bezpieczeństwa OpenAPS. Domyślne ustawienie (jest mało prawdopodobne, aby wymagało dostosowania) to 3. Oznacza to, że OpenAPS nigdy nie będzie mógł ustawiać tymczasowej dawki podstawowej, która jest większa niż 3 krotność najwyższej godzinowej raty dawki podstawowej zaprogramowanej w pompie użytkownika, lub włączonej przez autotune.";
 
 /* Headline "Current Basal Safety Multiplier" */
-"Current Basal Safety Multiplier" = "Godzinowy mnożnik bezpieczeństwa bazy";
+"Current Basal Safety Multiplier" = "Aktualny mnożnik bezpieczeństwa";
 
 /* "Current Basal Safety Multiplier" */
 "This is another important OpenAPS safety limit. The default setting (which is also unlikely to need adjusting) is 4. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 4x the current hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "Jest to kolejny ważny limit bezpieczeństwa OpenAPS. Domyślne ustawienie (co również jest mało prawdopodobne, aby wymagało dostosowania) wynosi 4. Oznacza to, że OpenAPS nigdy nie będzie mógł ustawiać tymczasowej dawki podstawowej, która jest większa niż 4 krotność aktualnej godzinowej raty dawki podstawowej zaprogramowanej w pompie użytkownika, lub włączonej przez autotune.";
