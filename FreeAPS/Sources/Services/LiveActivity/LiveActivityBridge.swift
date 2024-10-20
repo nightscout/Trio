@@ -43,7 +43,7 @@ import UIKit
     private var currentActivity: ActiveActivity?
     private var latestGlucose: GlucoseData?
     var glucoseFromPersistence: [GlucoseData]?
-    var isOverridesActive: OverrideData?
+    var override: OverrideData?
     var widgetItems: [LiveActivityAttributes.LiveActivityItem]?
 
     let context = CoreDataStack.shared.newTaskContext()
@@ -94,7 +94,7 @@ import UIKit
 
     func settingsDidChange(_: FreeAPSSettings) {
         Task {
-            await updateContentState()
+            await updateContentState(determination)
         }
     }
 
@@ -122,19 +122,19 @@ import UIKit
     }
 
     private func cobOrIobDidUpdate() {
-        Task {
-            await fetchAndMapDetermination()
+        Task { @MainActor in
+            self.determination = await fetchAndMapDetermination()
             if let determination = determination {
-                await self.pushDeterminationUpdate(determination)
+                await self.updateContentState(determination)
             }
         }
     }
 
     private func overridesDidUpdate() {
-        Task {
-            await fetchAndMapOverride()
+        Task { @MainActor in
+            self.override = await fetchAndMapOverride()
             if let determination = determination {
-                await self.pushDeterminationUpdate(determination)
+                await self.updateContentState(determination)
             }
         }
     }
@@ -147,40 +147,53 @@ import UIKit
         }
     }
 
-    @MainActor private func updateContentState() async {
+    @MainActor private func updateContentState<T>(_ update: T) async {
         guard let latestGlucose = latestGlucose else { return }
 
-        let content = LiveActivityAttributes.ContentState(
-            new: latestGlucose,
-            prev: latestGlucose,
-            units: settings.units,
-            chart: glucoseFromPersistence ?? [],
-            settings: settings,
-            determination: determination,
-            override: isOverridesActive,
-            widgetItems: widgetItems
-        )
+        var content: LiveActivityAttributes.ContentState?
+
+        if let determination = update as? DeterminationData {
+            content = LiveActivityAttributes.ContentState(
+                new: latestGlucose,
+                prev: latestGlucose,
+                units: settings.units,
+                chart: glucoseFromPersistence ?? [],
+                settings: settings,
+                determination: determination,
+                override: override,
+                widgetItems: widgetItems
+            )
+        } else if let override = update as? OverrideData {
+            content = LiveActivityAttributes.ContentState(
+                new: latestGlucose,
+                prev: latestGlucose,
+                units: settings.units,
+                chart: glucoseFromPersistence ?? [],
+                settings: settings,
+                determination: determination,
+                override: override,
+                widgetItems: widgetItems
+            )
+        }
 
         if let content = content {
-            Task {
-                await pushUpdate(content)
-            }
+            await pushUpdate(content)
         }
     }
 
     @MainActor private func updateLiveActivityOrder() async {
         Task {
-            await updateContentState()
+            await updateContentState(determination)
         }
     }
 
     private func setupGlucoseArray() {
-        Task {
+        Task { @MainActor in
             // Fetch and map glucose to GlucoseData struct
-            await fetchAndMapGlucose()
+            self.glucoseFromPersistence = await fetchAndMapGlucose()
 
             // Push the update to the Live Activity
-            await glucoseDidUpdate(glucoseFromPersistence ?? [])
+            glucoseDidUpdate(glucoseFromPersistence ?? [])
         }
     }
 
@@ -270,12 +283,6 @@ import UIKit
         }
     }
 
-    @MainActor private func pushDeterminationUpdate(_: DeterminationData) async {
-        Task {
-            await updateContentState()
-        }
-    }
-
     /// ends all live activities immediateny
     private func endActivity() async {
         if let currentActivity {
@@ -322,7 +329,7 @@ extension LiveActivityBridge {
                 chart: glucose,
                 settings: settings,
                 determination: determination,
-                override: isOverridesActive,
+                override: override,
                 widgetItems: widgetItems
             )
 

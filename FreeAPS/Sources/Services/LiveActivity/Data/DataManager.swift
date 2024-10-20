@@ -4,7 +4,7 @@ import Foundation
 
 @available(iOS 16.2, *)
 extension LiveActivityBridge {
-    func fetchAndMapGlucose() async {
+    func fetchAndMapGlucose() async -> [GlucoseData] {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: context,
@@ -14,18 +14,18 @@ extension LiveActivityBridge {
             fetchLimit: 72
         )
 
-        await context.perform {
+        return await context.perform {
             guard let glucoseResults = results as? [GlucoseStored] else {
-                return
+                return []
             }
 
-            self.glucoseFromPersistence = glucoseResults.map {
+            return glucoseResults.map {
                 GlucoseData(glucose: Int($0.glucose), date: $0.date ?? Date(), direction: $0.directionEnum)
             }
         }
     }
 
-    func fetchAndMapDetermination() async {
+    func fetchAndMapDetermination() async -> DeterminationData? {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
             onContext: context,
@@ -36,12 +36,12 @@ extension LiveActivityBridge {
             propertiesToFetch: ["iob", "cob", "currentTarget"]
         )
 
-        await context.perform {
+        return await context.perform {
             guard let determinationResults = results as? [[String: Any]] else {
-                return
+                return nil
             }
 
-            self.determination = determinationResults.first.map {
+            return determinationResults.first.map {
                 DeterminationData(
                     cob: ($0["cob"] as? Int) ?? 0,
                     iob: ($0["iob"] as? NSDecimalNumber)?.decimalValue ?? 0,
@@ -51,7 +51,7 @@ extension LiveActivityBridge {
         }
     }
 
-    func fetchAndMapOverride() async {
+    func fetchAndMapOverride() async -> OverrideData? {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OverrideStored.self,
             onContext: context,
@@ -62,12 +62,12 @@ extension LiveActivityBridge {
             propertiesToFetch: ["enabled", "name", "target", "date", "duration"]
         )
 
-        await context.perform {
+        return await context.perform {
             guard let overrideResults = results as? [[String: Any]] else {
-                return
+                return nil
             }
 
-            self.isOverridesActive = overrideResults.first.map {
+            return overrideResults.first.map {
                 OverrideData(
                     isActive: $0["enabled"] as? Bool ?? false,
                     overrideName: $0["name"] as? String ?? "Override",

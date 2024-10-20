@@ -90,7 +90,7 @@ struct LiveActivityChartView: View {
             plotContent
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(colorScheme == .light ? Color.black.opacity(0.275) : .clear)
+                        .fill(colorScheme == .light ? Color.black.opacity(0.2) : .clear)
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 12))
         }
@@ -98,7 +98,7 @@ struct LiveActivityChartView: View {
         .chartXAxis {
             AxisMarks(position: .automatic) { _ in
                 AxisGridLine(stroke: .init(lineWidth: 0.65, dash: [2, 3]))
-                    .foregroundStyle(Color.white.opacity(colorScheme == .light ? 1 : 0.5))
+                    .foregroundStyle(Color.primary.opacity(colorScheme == .light ? 1 : 0.5))
             }
         }
     }
