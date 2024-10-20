@@ -16,8 +16,7 @@ extension Home.StateModel {
             onContext: glucoseFetchContext,
             predicate: NSPredicate.glucose,
             key: "date",
-            ascending: true,
-            fetchLimit: 288
+            ascending: true
         )
 
         return await glucoseFetchContext.perform {
