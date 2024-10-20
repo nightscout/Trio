@@ -286,6 +286,9 @@ class TrioRemoteControl: Injectable {
         do {
             if viewContext.hasChanges {
                 try viewContext.save()
+
+                Foundation.NotificationCenter.default.post(name: .willUpdateOverrideConfiguration, object: nil)
+                await awaitNotification(.didUpdateOverrideConfiguration)
             }
         } catch {
             debug(.remoteControl, "Failed to enact override preset: \(error.localizedDescription)")
@@ -296,13 +299,13 @@ class TrioRemoteControl: Injectable {
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
         let ids = await overrideStorage.loadLatestOverrideConfigurations(fetchLimit: 0) // 0 = no fetch limit
 
-        await viewContext.perform {
+        let didPostNotification = await viewContext.perform { () -> Bool in
             do {
                 let results = try ids.compactMap { id in
                     try viewContext.existingObject(with: id) as? OverrideStored
                 }
 
-                guard !results.isEmpty else { return }
+                guard !results.isEmpty else { return false }
 
                 for canceledOverride in results where canceledOverride.enabled {
                     let newOverrideRunStored = OverrideRunStored(context: viewContext)
@@ -320,12 +323,21 @@ class TrioRemoteControl: Injectable {
 
                 if viewContext.hasChanges {
                     try viewContext.save()
+                    Foundation.NotificationCenter.default.post(name: .willUpdateOverrideConfiguration, object: nil)
+                    return true
+                } else {
+                    return false
                 }
             } catch {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to disable active Overrides with error: \(error.localizedDescription)"
                 )
+                return false
             }
+        }
+
+        if didPostNotification {
+            await awaitNotification(.didUpdateOverrideConfiguration)
         }
     }
 
