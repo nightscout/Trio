@@ -200,7 +200,10 @@ struct AddOverrideForm: View {
                             ForEach([1, 5], id: \.self) { step in
                                 RadioButton(isSelected: percentageStep == step, label: "\(step) %") {
                                     percentageStep = step
-                                    roundOverridePercentageToStep()
+                                    state.overridePercentage = OverrideConfig.StateModel.roundOverridePercentageToStep(
+                                        state.overridePercentage,
+                                        step
+                                    )
                                 }
                                 .padding(.top, 10)
                             }
@@ -292,7 +295,7 @@ struct AddOverrideForm: View {
                                             label: label
                                         ) {
                                             targetStep = step
-                                            state.target = roundTargetToStep(state.target, targetStep)
+                                            state.target = OverrideConfig.StateModel.roundTargetToStep(state.target, targetStep)
                                         }
                                         .padding(.top, 10)
                                     }
@@ -303,7 +306,7 @@ struct AddOverrideForm: View {
 
                                 // Picker on the right side
                                 Picker(selection: Binding(
-                                    get: { roundTargetToStep(state.target, targetStep) },
+                                    get: { OverrideConfig.StateModel.roundTargetToStep(state.target, targetStep) },
                                     set: { state.target = $0 }
                                 ), label: Text("")) {
                                     ForEach(
@@ -552,48 +555,6 @@ struct AddOverrideForm: View {
         }
 
         return (false, nil)
-    }
-
-    private func roundOverridePercentageToStep() {
-        // Check if overridePercentage is not divisible by the selected step
-        if state.overridePercentage.truncatingRemainder(dividingBy: Double(percentageStep)) != 0 {
-            let roundedValue: Double
-
-            if state.overridePercentage > 100 {
-                // Round down to the nearest valid step away from 100
-                let stepCount = (state.overridePercentage - 100) / Double(percentageStep)
-                roundedValue = 100 + floor(stepCount) * Double(percentageStep)
-            } else {
-                // Round up to the nearest valid step away from 100
-                let stepCount = (100 - state.overridePercentage) / Double(percentageStep)
-                roundedValue = 100 - floor(stepCount) * Double(percentageStep)
-            }
-
-            // Ensure the value stays between 10 and 200
-            state.overridePercentage = max(10, min(roundedValue, 200))
-        }
-    }
-
-    private func roundTargetToStep(_ target: Decimal, _ step: Decimal) -> Decimal {
-        // Convert target and step to NSDecimalNumber
-        guard let targetValue = NSDecimalNumber(decimal: target).doubleValue as Double?,
-              let stepValue = NSDecimalNumber(decimal: step).doubleValue as Double?
-        else {
-            print("Failed to unwrap target or step as NSDecimalNumber")
-            return target
-        }
-
-        // Perform the remainder check using truncatingRemainder
-        let remainder = Decimal(targetValue.truncatingRemainder(dividingBy: stepValue))
-
-        if remainder != 0 {
-            // Calculate how much to adjust (up or down) based on the remainder
-            let adjustment = step - remainder
-            return target + adjustment
-        }
-
-        // Return the original target if no adjustment is needed
-        return target
     }
 
     func generateTargetPickerValues() -> [Decimal] {

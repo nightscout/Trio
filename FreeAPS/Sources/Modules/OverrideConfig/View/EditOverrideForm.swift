@@ -286,7 +286,7 @@ struct EditOverrideForm: View {
                             ForEach([1, 5], id: \.self) { step in
                                 RadioButton(isSelected: percentageStep == step, label: "\(step) %") {
                                     percentageStep = step
-                                    roundPercentageToStep()
+                                    percentage = OverrideConfig.StateModel.roundOverridePercentageToStep(percentage, step)
                                 }
                                 .padding(.top, 10)
                             }
@@ -658,26 +658,6 @@ struct EditOverrideForm: View {
         uamMinutes = override.uamMinutes?.decimalValue ?? state.defaultUamMinutes
     }
 
-    private func roundPercentageToStep() {
-        // Check if overridePercentage is not divisible by the selected step
-        if percentage.truncatingRemainder(dividingBy: Double(percentageStep)) != 0 {
-            let roundedValue: Double
-
-            if percentage > 100 {
-                // Round down to the nearest valid step away from 100
-                let stepCount = (percentage - 100) / Double(percentageStep)
-                roundedValue = 100 + floor(stepCount) * Double(percentageStep)
-            } else {
-                // Round up to the nearest valid step away from 100
-                let stepCount = (100 - percentage) / Double(percentageStep)
-                roundedValue = 100 - floor(stepCount) * Double(percentageStep)
-            }
-
-            // Ensure the value stays between 10 and 200
-            percentage = max(10, min(roundedValue, 200))
-        }
-    }
-
     func generateTargetPickerValues() -> [Decimal] {
         var values: [Decimal] = []
         var currentValue: Double = 72
@@ -709,28 +689,6 @@ struct EditOverrideForm: View {
 
         return values
     }
-}
-
-private func roundTargetToStep(_ target: Decimal, _ step: Decimal) -> Decimal {
-    // Convert target and step to NSDecimalNumber
-    guard let targetValue = NSDecimalNumber(decimal: target).doubleValue as Double?,
-          let stepValue = NSDecimalNumber(decimal: step).doubleValue as Double?
-    else {
-        print("Failed to unwrap target or step as NSDecimalNumber")
-        return target
-    }
-
-    // Perform the remainder check using truncatingRemainder
-    let remainder = Decimal(targetValue.truncatingRemainder(dividingBy: stepValue))
-
-    if remainder != 0 {
-        // Calculate how much to adjust (up or down) based on the remainder
-        let adjustment = step - remainder
-        return target + adjustment
-    }
-
-    // Return the original target if no adjustment is needed
-    return target
 }
 
 struct TargetPicker: View {
@@ -769,7 +727,7 @@ struct TargetPicker: View {
                                 label: label
                             ) {
                                 targetStep = step
-                                selection = roundTargetToStep(selection, step)
+                                selection = OverrideConfig.StateModel.roundTargetToStep(selection, step)
                             }
                             .padding(.top, 10)
                         }
@@ -780,7 +738,7 @@ struct TargetPicker: View {
 
                     // Picker on the right side
                     Picker(selection: Binding(
-                        get: { roundTargetToStep(selection, targetStep) },
+                        get: { OverrideConfig.StateModel.roundTargetToStep(selection, targetStep) },
                         set: {
                             selection = $0
                             hasChanges = true

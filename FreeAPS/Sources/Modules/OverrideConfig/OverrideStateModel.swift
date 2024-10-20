@@ -409,6 +409,50 @@ extension OverrideConfig.StateModel {
         uamMinutes = defaultUamMinutes
         target = 100
     }
+
+    static func roundTargetToStep(_ target: Decimal, _ step: Decimal) -> Decimal {
+        // Convert target and step to NSDecimalNumber
+        guard let targetValue = NSDecimalNumber(decimal: target).doubleValue as Double?,
+              let stepValue = NSDecimalNumber(decimal: step).doubleValue as Double?
+        else {
+            return target
+        }
+
+        // Perform the remainder check using truncatingRemainder
+        let remainder = Decimal(targetValue.truncatingRemainder(dividingBy: stepValue))
+
+        if remainder != 0 {
+            // Calculate how much to adjust (up or down) based on the remainder
+            let adjustment = step - remainder
+            return target + adjustment
+        }
+
+        // Return the original target if no adjustment is needed
+        return target
+    }
+
+    static func roundOverridePercentageToStep(_ percentage: Double, _ step: Int) -> Double {
+        let stepDouble = Double(step)
+        // Check if overridePercentage is not divisible by the selected step
+        if percentage.truncatingRemainder(dividingBy: stepDouble) != 0 {
+            let roundedValue: Double
+
+            if percentage > 100 {
+                // Round down to the nearest valid step away from 100
+                let stepCount = (percentage - 100) / stepDouble
+                roundedValue = 100 + floor(stepCount) * stepDouble
+            } else {
+                // Round up to the nearest valid step away from 100
+                let stepCount = (100 - percentage) / stepDouble
+                roundedValue = 100 - floor(stepCount) * stepDouble
+            }
+
+            // Ensure the value stays between 10 and 200
+            return max(10, min(roundedValue, 200))
+        }
+
+        return percentage
+    }
 }
 
 // MARK: - TEMP TARGET
