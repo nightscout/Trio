@@ -15,6 +15,7 @@ extension OverrideConfig {
         var indefinite = true
         var overrideDuration: Decimal = 0
         var target: Decimal = 0
+        var currentGlucoseTarget: Decimal = 100
         var shouldOverrideTarget: Bool = false
         var smbIsOff: Bool = false
         var id = ""
@@ -105,6 +106,56 @@ extension OverrideConfig {
             }
         }
 
+        func getCurrentGlucoseTarget() async {
+            let now = Date()
+            let calendar = Calendar.current
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "HH:mm:ss"
+            dateFormatter.timeZone = TimeZone.current
+
+            let bgTargets = await provider.getBGTarget()
+            let entries: [(start: String, value: Decimal)] = bgTargets.targets.map { ($0.start, $0.low) }
+
+            for (index, entry) in entries.enumerated() {
+                guard let entryTime = dateFormatter.date(from: entry.start) else {
+                    print("Invalid entry start time: \(entry.start)")
+                    continue
+                }
+
+                let entryComponents = calendar.dateComponents([.hour, .minute, .second], from: entryTime)
+                let entryStartTime = calendar.date(
+                    bySettingHour: entryComponents.hour!,
+                    minute: entryComponents.minute!,
+                    second: entryComponents.second!,
+                    of: now
+                )!
+
+                let entryEndTime: Date
+                if index < entries.count - 1,
+                   let nextEntryTime = dateFormatter.date(from: entries[index + 1].start)
+                {
+                    let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
+                    entryEndTime = calendar.date(
+                        bySettingHour: nextEntryComponents.hour!,
+                        minute: nextEntryComponents.minute!,
+                        second: nextEntryComponents.second!,
+                        of: now
+                    )!
+                } else {
+                    entryEndTime = calendar.date(byAdding: .day, value: 1, to: entryStartTime)!
+                }
+
+                if now >= entryStartTime, now < entryEndTime {
+                    await MainActor.run {
+                        currentGlucoseTarget = units == .mgdL ? entry.value : entry.value.asMmolL
+                        target = currentGlucoseTarget
+                        tempTargetTarget = currentGlucoseTarget
+                    }
+                    return
+                }
+            }
+        }
+
         private func setupSettings() {
             units = settingsManager.settings.units
             defaultSmbMinutes = settingsManager.preferences.maxSMBBasalMinutes
@@ -114,6 +165,9 @@ extension OverrideConfig {
             settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
             halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
             percentage = Double(computeAdjustedPercentage() * 100)
+            Task {
+                await getCurrentGlucoseTarget()
+            }
         }
 
         func isInputInvalid(target: Decimal) -> Bool {
@@ -507,7 +561,7 @@ extension OverrideConfig.StateModel {
         end = 23
         smbMinutes = defaultSmbMinutes
         uamMinutes = defaultUamMinutes
-        target = 0
+        target = currentGlucoseTarget
     }
 }
 
@@ -791,7 +845,7 @@ extension OverrideConfig.StateModel {
 
     @MainActor func resetTempTargetState() async {
         tempTargetName = ""
-        tempTargetTarget = 0
+        tempTargetTarget = currentGlucoseTarget
         tempTargetDuration = 0
         percentage = 100
         halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
@@ -862,5 +916,8 @@ extension OverrideConfig.StateModel: SettingsObserver {
         defaultUamMinutes = settingsManager.preferences.maxUAMSMBBasalMinutes
         maxValue = settingsManager.preferences.autosensMax
         minValue = settingsManager.preferences.autosensMin
+        Task {
+            await getCurrentGlucoseTarget()
+        }
     }
 }

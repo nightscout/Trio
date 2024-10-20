@@ -93,7 +93,12 @@ struct AddTempTargetForm: View {
                     sheetTitle: "Help"
                 )
             }
-            .onAppear { targetStep = state.units == .mgdL ? 5 : 9 }
+            .onAppear {
+                targetStep = state.units == .mgdL ? 5 : 9
+                Task {
+                    await state.getCurrentGlucoseTarget()
+                }
+            }
         }
     }
 
@@ -205,14 +210,33 @@ struct AddTempTargetForm: View {
                 }
             }.listRowBackground(Color.chart)
 
-            if state.tempTargetTarget != 0 {
-                let headerText = state
-                    .tempTargetTarget > 100 ?
-                    "Raised Sensitivity: Insulin reduced to \(formattedPercentage(state.percentage))% of regular amount." :
-                    "Lowered Sensitivity: Insulin increased to \(formattedPercentage(state.percentage))% of regular amount."
+            if state.tempTargetTarget != state.currentGlucoseTarget {
+                let computedHalfBasalTarget = state.computeHalfBasalTarget()
+
                 Section(
-                    header: Text(headerText).textCase(.none)
-                        .foregroundStyle(colorScheme == .dark ? Color.orange : Color.accentColor),
+                    header: HStack {
+                        if state
+                            .tempTargetTarget > state.currentGlucoseTarget
+                        {
+                            HStack(spacing: 5) {
+                                Text("Sensitivity")
+                                Image(systemName: "arrow.up.circle")
+                                Text("Insulin")
+                                Image(systemName: "arrow.down.circle")
+                                Text("using \(formattedPercentage(state.percentage))% of default.")
+                            }
+                        } else {
+                            HStack(spacing: 5) {
+                                Text("Sensitivity")
+                                Image(systemName: "arrow.down.circle")
+                                Text("Insulin")
+                                Image(systemName: "arrow.up.circle")
+                                Text("using \(formattedPercentage(state.percentage))% of default.")
+                            }
+                        }
+                    }
+                    .textCase(.none)
+                    .foregroundStyle(colorScheme == .dark ? Color.orange : Color.accentColor),
                     content: {
                         VStack {
                             Text("\(Int(state.percentage)) % Insulin")
@@ -234,18 +258,24 @@ struct AddTempTargetForm: View {
                             .disabled(!isSliderEnabled)
 
                             Divider()
+
                             HStack {
                                 Text(
-                                    "Half Basal Exercise Target at: \(formattedGlucose(glucose: Decimal(state.computeHalfBasalTarget())))"
+                                    "Half Basal Exercise Target:"
                                 )
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.8)
-                                .foregroundColor(.secondary)
                                 Spacer()
-                            }
-                        }
+                                Text(
+                                    (
+                                        state.units == .mgdL ? computedHalfBasalTarget.description : computedHalfBasalTarget
+                                            .formattedAsMmolL
+                                    ) + " " + state.units.rawValue
+                                )
+                            }.foregroundStyle(.primary)
+                        }.padding(.vertical, 10)
                     }
-                ).listRowBackground(Color.chart)
+                )
+                .listRowBackground(Color.chart)
+                .padding(.top, -10)
             }
         }
     }
