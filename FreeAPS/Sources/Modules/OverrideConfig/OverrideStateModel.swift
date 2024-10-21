@@ -49,7 +49,7 @@ extension OverrideConfig {
         let normalTarget: Decimal = 100
         var tempTargetDuration: Decimal = 0
         var tempTargetName: String = ""
-        var tempTargetTarget: Decimal = 0 // lel
+        var tempTargetTarget: Decimal = 100
         var isTempTargetEnabled: Bool = false
         var date = Date()
         var newPresetName = ""
@@ -150,7 +150,6 @@ extension OverrideConfig {
                     await MainActor.run {
                         currentGlucoseTarget = units == .mgdL ? entry.value : entry.value.asMmolL
                         target = currentGlucoseTarget
-                        tempTargetTarget = currentGlucoseTarget
                     }
                     return
                 }
@@ -846,7 +845,7 @@ extension OverrideConfig.StateModel {
 
     @MainActor func resetTempTargetState() async {
         tempTargetName = ""
-        tempTargetTarget = currentGlucoseTarget
+        tempTargetTarget = 100
         tempTargetDuration = 0
         percentage = 100
         halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
@@ -875,26 +874,27 @@ extension OverrideConfig.StateModel {
     }
 
     func computeSliderLow(usingTarget initialTarget: Decimal? = nil) -> Double {
-        var minSens: Double = 15
-        var calcTarget = initialTarget
-        let tempTargetValue = calcTarget != nil ? calcTarget : tempTargetTarget
-        if tempTargetValue == 0 { return minSens }
-        if tempTargetValue ?? normalTarget <= normalTarget ||
-            (
-                !settingsManager.preferences.highTemptargetRaisesSensitivity && !settingsManager.preferences
-                    .exerciseMode
-            ) { minSens = 100 }
-        minSens = max(0, minSens)
-        return minSens
+        let calcTarget = initialTarget ?? tempTargetTarget
+        guard calcTarget != 0 else { return 15 }
+
+        let shouldRaiseSensitivity = settingsManager.preferences.highTemptargetRaisesSensitivity
+        let isExerciseModeActive = settingsManager.preferences.exerciseMode
+        let isTargetNormalOrLower = calcTarget <= normalTarget
+
+        let minSens = (isTargetNormalOrLower || (!shouldRaiseSensitivity && !isExerciseModeActive)) ? 100 : 15
+
+        return Double(max(0, minSens))
     }
 
     func computeSliderHigh(usingTarget initialTarget: Decimal? = nil) -> Double {
-        var calcTarget = initialTarget
-        let tempTargetValue = calcTarget != nil ? calcTarget : tempTargetTarget
-        var maxSens = Double(maxValue * 100)
-        if tempTargetValue == 0 { return maxSens }
-        if tempTargetValue ?? normalTarget >= normalTarget || !settingsManager.preferences
-            .lowTemptargetLowersSensitivity { maxSens = 100 }
+        let calcTarget = initialTarget ?? tempTargetTarget
+        guard calcTarget != 0 else { return Double(maxValue * 100) }
+
+        let shouldLowerSensitivity = settingsManager.preferences.lowTemptargetLowersSensitivity
+        let isTargetNormalOrHigher = calcTarget >= normalTarget
+
+        let maxSens = (isTargetNormalOrHigher || !shouldLowerSensitivity) ? 100 : Double(maxValue * 100)
+
         return maxSens
     }
 
@@ -903,19 +903,14 @@ extension OverrideConfig.StateModel {
         usingTarget initialTarget: Decimal? = nil
     ) -> Decimal {
         let halfBasalTargetValue = initialHalfBasalTarget ?? halfBasalTarget
-        let calcTarget = initialTarget
-        let deviationFromNormal = (halfBasalTargetValue - normalTarget)
-        let tempTargetValue = calcTarget != nil ? calcTarget : tempTargetTarget
-        var adjustmentRatio: Decimal = 1
+        let calcTarget = initialTarget ?? tempTargetTarget
+        let deviationFromNormal = halfBasalTargetValue - normalTarget
 
-        if deviationFromNormal * (deviationFromNormal + (tempTargetValue ?? normalTarget) - normalTarget) <= 0 {
-            adjustmentRatio = maxValue
-        } else {
-            adjustmentRatio = deviationFromNormal / (deviationFromNormal + (tempTargetValue ?? normalTarget) - normalTarget)
-        }
+        let adjustmentFactor = deviationFromNormal + (calcTarget - normalTarget)
+        let adjustmentRatio: Decimal = (deviationFromNormal * adjustmentFactor <= 0) ? maxValue : deviationFromNormal /
+            adjustmentFactor
 
-        adjustmentRatio = min(adjustmentRatio, maxValue)
-        return adjustmentRatio
+        return min(adjustmentRatio, maxValue)
     }
 }
 
