@@ -531,7 +531,7 @@ extension BaseTidepoolManager {
         let now = Date()
         let calendar = Calendar.current
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "HH:mm:ss"
+        dateFormatter.dateFormat = "HH:mm"
         dateFormatter.timeZone = TimeZone.current
 
         let basalEntries = storage.retrieve(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self)

@@ -227,8 +227,8 @@ extension Bolus {
             sweetMealFactor = settings.settings.sweetMealFactor
             displayPresets = settings.settings.displayPresets
             forecastDisplayType = settings.settings.forecastDisplayType
-            lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
-            highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL
+            lowGlucose = settingsManager.settings.low
+            highGlucose = settingsManager.settings.high
             maxCarbs = settings.settings.maxCarbs
             maxFat = settings.settings.maxFat
             maxProtein = settings.settings.maxProtein
@@ -241,7 +241,7 @@ extension Bolus {
             let now = Date()
             let calendar = Calendar.current
             let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "HH:mm:ss"
+            dateFormatter.dateFormat = "HH:mm"
             dateFormatter.timeZone = TimeZone.current
 
             let entries: [(start: String, value: Decimal)]

@@ -4,6 +4,7 @@ import Foundation
 extension Notification.Name {
     static let willUpdateOverrideConfiguration = Notification.Name("willUpdateOverrideConfiguration")
     static let didUpdateOverrideConfiguration = Notification.Name("didUpdateOverrideConfiguration")
+    static let liveActivityOrderDidChange = Notification.Name("liveActivityOrderDidChange")
 }
 
 func awaitNotification(_ name: Notification.Name) async {
