@@ -18,10 +18,16 @@ class PickerSettingsProvider: ObservableObject {
         }
 
         // Glucose values are stored as mg/dl values, so Integers.
-        // Filter out odd numbers to avoid duplicate mmol/L values due to rounding.
+        // Filter out duplicate values when rounded to 1 decimal place.
         if units == .mmolL, setting.type == PickerSetting.PickerSettingType.glucose {
-            values = values.filter { Int($0) % 2 == 0 }
+            // Use a Set to track unique values rounded to 1 decimal
+            var uniqueRoundedValues = Set<String>()
+            values = values.filter { value in
+                let roundedValue = String(format: "%.1f", NSDecimalNumber(decimal: value.asMmolL).doubleValue)
+                return uniqueRoundedValues.insert(roundedValue).inserted
+            }
         }
+
         return values
     }
 }
