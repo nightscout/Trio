@@ -244,7 +244,6 @@ extension MainChartView {
 
     @ViewBuilder var selectionPopover: some View {
         if let sgv = selectedGlucose?.glucose {
-            let glucoseToShow = units == .mgdL ? Decimal(sgv) : Decimal(sgv).asMmolL
             VStack(alignment: .leading) {
                 HStack {
                     Image(systemName: "clock")
@@ -252,16 +251,20 @@ extension MainChartView {
                         .font(.body).bold()
                 }.font(.body).padding(.bottom, 5)
 
+                // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
+                let hardCodedLow = Decimal(55)
+                let hardCodedHigh = Decimal(220)
+                let isDynamicColorScheme = glucoseColorScheme == .dynamicColor
+
                 let glucoseColor = FreeAPS.getDynamicGlucoseColor(
-                    glucoseValue: glucoseToShow,
-                    highGlucoseColorValue: highGlucose,
-                    lowGlucoseColorValue: lowGlucose,
+                    glucoseValue: Decimal(sgv),
+                    highGlucoseColorValue: isDynamicColorScheme ? hardCodedHigh : highGlucose,
+                    lowGlucoseColorValue: isDynamicColorScheme ? hardCodedLow : lowGlucose,
                     targetGlucose: currentGlucoseTarget,
-                    glucoseColorScheme: glucoseColorScheme,
-                    offset: units == .mgdL ? 20 : 20.asMmolL
+                    glucoseColorScheme: glucoseColorScheme
                 )
                 HStack {
-                    Text(units == .mgdL ? glucoseToShow.description : Decimal(sgv).formattedAsMmolL)
+                    Text(units == .mgdL ? Decimal(sgv).description : Decimal(sgv).formattedAsMmolL)
                         .bold()
                         + Text(" \(units.rawValue)")
                 }.foregroundStyle(

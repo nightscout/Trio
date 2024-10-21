@@ -25,7 +25,7 @@ import UIKit
     }
 }
 
-@available(iOS 16.2, *) final class LiveActivityBridge: Injectable, ObservableObject
+@available(iOS 16.2, *) final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver
 {
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var broadcaster: Broadcaster!
@@ -43,7 +43,8 @@ import UIKit
     private var currentActivity: ActiveActivity?
     private var latestGlucose: GlucoseData?
     var glucoseFromPersistence: [GlucoseData]?
-    var isOverridesActive: OverrideData?
+    var override: OverrideData?
+    var widgetItems: [LiveActivityAttributes.LiveActivityItem]?
 
     let context = CoreDataStack.shared.newTaskContext()
 
@@ -64,6 +65,7 @@ import UIKit
         registerHandler()
         monitorForLiveActivityAuthorizationChanges()
         setupGlucoseArray()
+        broadcaster.register(SettingsObserver.self, observer: self)
     }
 
     private func setupNotifications() {
@@ -80,6 +82,20 @@ import UIKit
                     self?.forceActivityUpdate()
                 }
             }
+        notificationCenter.addObserver(
+            self,
+            selector: #selector(handleLiveActivityOrderChange),
+            name: .liveActivityOrderDidChange,
+            object: nil
+        )
+    }
+
+    // TODO: - use a delegate or a custom notification here instead
+
+    func settingsDidChange(_: FreeAPSSettings) {
+        Task {
+            await updateContentState(determination)
+        }
     }
 
     private func registerHandler() {
@@ -106,30 +122,78 @@ import UIKit
     }
 
     private func cobOrIobDidUpdate() {
-        Task {
-            await fetchAndMapDetermination()
+        Task { @MainActor in
+            self.determination = await fetchAndMapDetermination()
             if let determination = determination {
-                await self.pushDeterminationUpdate(determination)
+                await self.updateContentState(determination)
             }
         }
     }
 
     private func overridesDidUpdate() {
-        Task {
-            await fetchAndMapOverride()
+        Task { @MainActor in
+            self.override = await fetchAndMapOverride()
             if let determination = determination {
-                await self.pushDeterminationUpdate(determination)
+                await self.updateContentState(determination)
             }
         }
     }
 
-    private func setupGlucoseArray() {
+    @objc private func handleLiveActivityOrderChange() {
         Task {
+            self.widgetItems = UserDefaults.standard
+                .loadLiveActivityOrderFromUserDefaults() ?? LiveActivityAttributes.LiveActivityItem.defaultItems
+            await self.updateLiveActivityOrder()
+        }
+    }
+
+    @MainActor private func updateContentState<T>(_ update: T) async {
+        guard let latestGlucose = latestGlucose else { return }
+
+        var content: LiveActivityAttributes.ContentState?
+
+        if let determination = update as? DeterminationData {
+            content = LiveActivityAttributes.ContentState(
+                new: latestGlucose,
+                prev: latestGlucose,
+                units: settings.units,
+                chart: glucoseFromPersistence ?? [],
+                settings: settings,
+                determination: determination,
+                override: override,
+                widgetItems: widgetItems
+            )
+        } else if let override = update as? OverrideData {
+            content = LiveActivityAttributes.ContentState(
+                new: latestGlucose,
+                prev: latestGlucose,
+                units: settings.units,
+                chart: glucoseFromPersistence ?? [],
+                settings: settings,
+                determination: determination,
+                override: override,
+                widgetItems: widgetItems
+            )
+        }
+
+        if let content = content {
+            await pushUpdate(content)
+        }
+    }
+
+    @MainActor private func updateLiveActivityOrder() async {
+        Task {
+            await updateContentState(determination)
+        }
+    }
+
+    private func setupGlucoseArray() {
+        Task { @MainActor in
             // Fetch and map glucose to GlucoseData struct
-            await fetchAndMapGlucose()
+            self.glucoseFromPersistence = await fetchAndMapGlucose()
 
             // Push the update to the Live Activity
-            await glucoseDidUpdate(glucoseFromPersistence ?? [])
+            glucoseDidUpdate(glucoseFromPersistence ?? [])
         }
     }
 
@@ -195,6 +259,7 @@ import UIKit
                         date: Date.now,
                         highGlucose: settings.high,
                         lowGlucose: settings.low,
+                        target: determination?.target ?? 100 as Decimal,
                         glucoseColorScheme: settings.glucoseColorScheme.rawValue,
                         detailedViewState: nil,
                         isInitialState: true
@@ -215,24 +280,6 @@ import UIKit
             } catch {
                 print("Activity creation error: \(error)")
             }
-        }
-    }
-
-    @MainActor private func pushDeterminationUpdate(_ determination: DeterminationData) async {
-        guard let latestGlucose = latestGlucose else { return }
-
-        let content = LiveActivityAttributes.ContentState(
-            new: latestGlucose,
-            prev: latestGlucose,
-            units: settings.units,
-            chart: glucoseFromPersistence ?? [],
-            settings: settings,
-            determination: determination,
-            override: isOverridesActive
-        )
-
-        if let content = content {
-            await pushUpdate(content)
         }
     }
 
@@ -282,7 +329,8 @@ extension LiveActivityBridge {
                 chart: glucose,
                 settings: settings,
                 determination: determination,
-                override: isOverridesActive
+                override: override,
+                widgetItems: widgetItems
             )
 
             if let content = content {

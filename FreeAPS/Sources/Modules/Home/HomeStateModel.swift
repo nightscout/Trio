@@ -342,8 +342,8 @@ extension Home {
             isSmoothingEnabled = settingsManager.settings.smoothGlucose
             glucoseColorScheme = settingsManager.settings.glucoseColorScheme
             maxValue = settingsManager.preferences.autosensMax
-            lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
-            highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL
+            lowGlucose = settingsManager.settings.low
+            highGlucose = settingsManager.settings.high
             overrideUnit = settingsManager.settings.overrideHbA1cUnit
             displayXgridLines = settingsManager.settings.xGridLines
             displayYgridLines = settingsManager.settings.yGridLines
@@ -475,7 +475,7 @@ extension Home {
             let now = Date()
             let calendar = Calendar.current
             let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "HH:mm:ss"
+            dateFormatter.dateFormat = "HH:mm"
             dateFormatter.timeZone = TimeZone.current
 
             let bgTargets = await provider.getBGTarget()
@@ -512,7 +512,7 @@ extension Home {
 
                 if now >= entryStartTime, now < entryEndTime {
                     await MainActor.run {
-                        currentGlucoseTarget = units == .mgdL ? entry.value : entry.value.asMmolL
+                        currentGlucoseTarget = entry.value
                     }
                     return
                 }
@@ -550,8 +550,8 @@ extension Home.StateModel:
         units = settingsManager.settings.units
         manualTempBasal = apsManager.isManualTempBasal
         isSmoothingEnabled = settingsManager.settings.smoothGlucose
-        lowGlucose = units == .mgdL ? settingsManager.settings.low : settingsManager.settings.low.asMmolL
-        highGlucose = units == .mgdL ? settingsManager.settings.high : settingsManager.settings.high.asMmolL
+        lowGlucose = settingsManager.settings.low
+        highGlucose = settingsManager.settings.high
         Task {
             await getCurrentGlucoseTarget()
         }

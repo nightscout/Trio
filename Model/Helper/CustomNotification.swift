@@ -5,6 +5,7 @@ extension Notification.Name {
     static let willUpdateOverrideConfiguration = Notification.Name("willUpdateOverrideConfiguration")
     static let didUpdateOverrideConfiguration = Notification.Name("didUpdateOverrideConfiguration")
     static let didUpdateTempTargetConfiguration = Notification.Name("didUpdateTempTargetConfiguration")
+    static let liveActivityOrderDidChange = Notification.Name("liveActivityOrderDidChange")
 }
 
 func awaitNotification(_ name: Notification.Name) async {
