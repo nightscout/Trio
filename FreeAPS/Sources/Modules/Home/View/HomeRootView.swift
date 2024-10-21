@@ -670,14 +670,14 @@ extension Home {
                             .foregroundStyle(Color.clear)
                     }
                 }.padding(.horizontal, 10)
-                    .confirmationDialog("Adjustment to Cancel", isPresented: $showCancelConfirmDialog) {
-                        Button("Stop Override") {
+                    .confirmationDialog("Adjustment to Stop", isPresented: $showCancelConfirmDialog) {
+                        Button("Stop Override", role: .destructive) {
                             Task {
                                 guard let objectID = latestOverride.first?.objectID else { return }
                                 await state.cancelOverride(withID: objectID)
                             }
                         }
-                        Button("Stop Temp Target") {
+                        Button("Stop Temp Target", role: .destructive) {
                             Task {
                                 guard let objectID = latestTempTarget.first?.objectID else { return }
                                 await state.cancelTempTarget(withID: objectID)
