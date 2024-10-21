@@ -8,12 +8,14 @@ class TrioRemoteControl: Injectable {
     @Injected() private var tempTargetsStorage: TempTargetsStorage!
     @Injected() private var carbsStorage: CarbsStorage!
     @Injected() private var nightscoutManager: NightscoutManager!
-    @Injected() private var pumpHistoryStorage: PumpHistoryStorage!
     @Injected() private var overrideStorage: OverrideStorage!
 
     private let timeWindow: TimeInterval = 600 // Defines how old messages that are accepted, 10 minutes
 
+    private let pumpHistoryFetchContext: NSManagedObjectContext
+
     private init() {
+        pumpHistoryFetchContext = CoreDataStack.shared.newTaskContext()
         injectServices(FreeAPSApp.resolver)
     }
 
@@ -85,13 +87,7 @@ class TrioRemoteControl: Injectable {
                 await handleStartOverrideCommand(pushMessage)
             case .cancelOverride:
                 await handleCancelOverrideCommand(pushMessage)
-            default:
-                await logError(
-                    "Command rejected: unsupported command type '\(pushMessage.commandType)'.",
-                    pushMessage: pushMessage
-                )
             }
-
         } catch {
             await logError("Error: unable to process the command due to decoding failure (\(error.localizedDescription)).")
         }
@@ -181,12 +177,7 @@ class TrioRemoteControl: Injectable {
             return
         }
 
-        let recentPumpEvents = pumpHistoryStorage.recent()
-        let recentBoluses = recentPumpEvents.filter { event in
-            event.type == .bolus && event.timestamp > Date(timeIntervalSince1970: pushMessage.timestamp)
-        }
-
-        let totalRecentBolusAmount = recentBoluses.reduce(Decimal(0)) { $0 + ($1.amount ?? 0) }
+        let totalRecentBolusAmount = await fetchTotalRecentBolusAmount(since: Date(timeIntervalSince1970: pushMessage.timestamp))
 
         if totalRecentBolusAmount >= bolusAmount * 0.2 {
             await logError(
@@ -207,6 +198,33 @@ class TrioRemoteControl: Injectable {
         }
 
         await apsManager.enactBolus(amount: Double(truncating: bolusAmount as NSNumber), isSMB: false)
+    }
+
+    private func fetchTotalRecentBolusAmount(since date: Date) async -> Decimal {
+        let fetchRequest: NSFetchRequest<PumpEventStored> = PumpEventStored.fetchRequest()
+        fetchRequest.predicate = NSPredicate(
+            format: "type == %@ AND timestamp > %@",
+            PumpEventStored.EventType.bolus.rawValue,
+            date as NSDate
+        )
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: true)]
+
+        do {
+            let totalAmount = try await pumpHistoryFetchContext.perform {
+                let results = try self.pumpHistoryFetchContext.fetch(fetchRequest)
+                var total = Decimal(0)
+                for pumpEvent in results {
+                    if let bolus = pumpEvent.bolus, let amount = bolus.amount?.decimalValue {
+                        total += amount
+                    }
+                }
+                return total
+            }
+            return totalAmount
+        } catch {
+            await logError("Failed to fetch recent bolus pump events: \(error.localizedDescription)")
+            return Decimal(0)
+        }
     }
 
     private func handleTempTargetCommand(_ pushMessage: PushMessage) async {
