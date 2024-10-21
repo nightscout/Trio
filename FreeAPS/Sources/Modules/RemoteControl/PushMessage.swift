@@ -38,6 +38,7 @@ struct PushMessage: Codable {
     var sharedSecret: String
     var timestamp: TimeInterval
     var overrideName: String?
+    var scheduledTime: TimeInterval?
 
     enum CodingKeys: String, CodingKey {
         case aps
@@ -52,6 +53,7 @@ struct PushMessage: Codable {
         case sharedSecret = "shared_secret"
         case timestamp
         case overrideName
+        case scheduledTime = "scheduled_time"
     }
 
     func encode(to encoder: Encoder) throws {
@@ -67,6 +69,9 @@ struct PushMessage: Codable {
         try container.encode(sharedSecret, forKey: .sharedSecret)
         try container.encode(timestamp, forKey: .timestamp)
         try container.encodeIfPresent(overrideName, forKey: .overrideName)
+        if let scheduledTime = scheduledTime {
+            try container.encode(scheduledTime, forKey: .scheduledTime)
+        }
     }
 
     init(from decoder: Decoder) throws {
@@ -82,6 +87,7 @@ struct PushMessage: Codable {
         sharedSecret = try container.decode(String.self, forKey: .sharedSecret)
         timestamp = try container.decode(TimeInterval.self, forKey: .timestamp)
         overrideName = try container.decodeIfPresent(String.self, forKey: .overrideName)
+        scheduledTime = try container.decodeIfPresent(TimeInterval.self, forKey: .scheduledTime)
     }
 
     init(
@@ -95,7 +101,8 @@ struct PushMessage: Codable {
         fat: Int? = nil,
         sharedSecret: String,
         timestamp: TimeInterval,
-        overrideName: String? = nil
+        overrideName: String? = nil,
+        scheduledTime: TimeInterval? = nil
     ) {
         self.user = user
         self.commandType = commandType
@@ -108,6 +115,7 @@ struct PushMessage: Codable {
         self.sharedSecret = sharedSecret
         self.timestamp = timestamp
         self.overrideName = overrideName
+        self.scheduledTime = scheduledTime
     }
 
     func humanReadableDescription() -> String {
@@ -143,6 +151,15 @@ struct PushMessage: Codable {
             }
         case .cancelOverride:
             description += "Cancel Override command."
+        }
+
+        if let scheduledTime = scheduledTime {
+            let date = Date(timeIntervalSince1970: scheduledTime)
+            let formatter = DateFormatter()
+            formatter.dateStyle = .short
+            formatter.timeStyle = .short
+            let dateString = formatter.string(from: date)
+            description += " Scheduled for: \(dateString)."
         }
 
         return description

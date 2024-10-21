@@ -144,10 +144,17 @@ class TrioRemoteControl: Injectable {
             return
         }
 
+        let actualDate: Date?
+        if let scheduledTime = pushMessage.scheduledTime {
+            actualDate = Date(timeIntervalSince1970: scheduledTime)
+        } else {
+            actualDate = nil
+        }
+
         let mealEntry = CarbsEntry(
             id: UUID().uuidString,
             createdAt: Date(),
-            actualDate: nil,
+            actualDate: actualDate,
             carbs: Decimal(carbs),
             fat: Decimal(fat),
             protein: Decimal(protein),
@@ -159,6 +166,20 @@ class TrioRemoteControl: Injectable {
 
         await carbsStorage.storeCarbs([mealEntry], areFetchedFromRemote: false)
         debug(.remoteControl, "Meal command processed successfully with carbs: \(carbs)g, fat: \(fat)g, protein: \(protein)g.")
+
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .short
+        dateFormatter.timeStyle = .short
+        let dateString: String
+        if let actualDate = actualDate {
+            dateString = dateFormatter.string(from: actualDate)
+        } else {
+            dateString = dateFormatter.string(from: Date())
+        }
+        debug(
+            .remoteControl,
+            "Meal command processed successfully with carbs: \(carbs)g, fat: \(fat)g, protein: \(protein)g at \(dateString)."
+        )
     }
 
     private func handleBolusCommand(_ pushMessage: PushMessage) async {
