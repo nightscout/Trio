@@ -788,22 +788,28 @@ extension Home {
                         List {
                             DefinitionRow(
                                 term: "IOB (Insulin on Board)",
-                                definition: "Forecasts BG based on the amount of insulin still active in the body.",
+                                definition: Text("Forecasts BG based on the amount of insulin still active in the body."),
                                 color: .insulin
                             )
                             DefinitionRow(
                                 term: "ZT (Zero-Temp)",
-                                definition: "Forecasts the worst-case blood glucose (BG) scenario if no carbs are absorbed and insulin delivery is stopped until BG starts rising.",
+                                definition: Text(
+                                    "Forecasts the worst-case blood glucose (BG) scenario if no carbs are absorbed and insulin delivery is stopped until BG starts rising."
+                                ),
                                 color: .zt
                             )
                             DefinitionRow(
                                 term: "COB (Carbs on Board)",
-                                definition: "Forecasts BG changes by considering the amount of carbohydrates still being absorbed in the body.",
+                                definition: Text(
+                                    "Forecasts BG changes by considering the amount of carbohydrates still being absorbed in the body."
+                                ),
                                 color: .loopYellow
                             )
                             DefinitionRow(
                                 term: "UAM (Unannounced Meal)",
-                                definition: "Forecasts BG levels and insulin dosing needs for unexpected meals or other causes of BG rises without prior notice.",
+                                definition: Text(
+                                    "Forecasts BG levels and insulin dosing needs for unexpected meals or other causes of BG rises without prior notice."
+                                ),
                                 color: .uam
                             )
                         }
@@ -813,7 +819,9 @@ extension Home {
                         List {
                             DefinitionRow(
                                 term: "Cone of Uncertainty",
-                                definition: "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result.\n\nTo modify the forecast display type, go to Trio Settings > Features > User Interface > Forecast Display Type.",
+                                definition: Text(
+                                    "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result.\n\nTo modify the forecast display type, go to Trio Settings > Features > User Interface > Forecast Display Type."
+                                ),
                                 color: Color.blue.opacity(0.5)
                             )
                         }

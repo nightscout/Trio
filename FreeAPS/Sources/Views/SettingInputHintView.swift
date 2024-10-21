@@ -1,10 +1,10 @@
 import SwiftUI
 
-struct SettingInputHintView: View {
+struct SettingInputHintView<HintView: View>: View {
     @Binding var hintDetent: PresentationDetent
     @Binding var shouldDisplayHint: Bool
     var hintLabel: String
-    var hintText: String
+    var hintText: HintView
     var sheetTitle: String
 
     @Environment(\.colorScheme) private var colorScheme

@@ -7,7 +7,7 @@ extension UnitsLimitsSettings {
         @StateObject var state = StateModel()
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -51,7 +51,7 @@ extension UnitsLimitsSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Max IOB", comment: "Max IOB")
                         }
                     ),
@@ -59,9 +59,11 @@ extension UnitsLimitsSettings {
                     type: .decimal("maxIOB"),
                     label: NSLocalizedString("Max IOB", comment: "Max IOB"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two OpenAPS safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings.",
-                        comment: "Max IOB"
+                    verboseHint: Text(
+                        NSLocalizedString(
+                            "Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two OpenAPS safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings.",
+                            comment: "Max IOB"
+                        )
                     )
                 )
 
@@ -72,7 +74,7 @@ extension UnitsLimitsSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Max Bolus"
                         }
                     ),
@@ -80,7 +82,7 @@ extension UnitsLimitsSettings {
                     type: .decimal("maxBolus"),
                     label: "Max Bolus",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Max Bolus… bla bla bla"
+                    verboseHint: Text("Max Bolus… bla bla bla")
                 )
 
                 SettingInputSection(
@@ -90,7 +92,7 @@ extension UnitsLimitsSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Max Basal"
                         }
                     ),
@@ -98,7 +100,7 @@ extension UnitsLimitsSettings {
                     type: .decimal("maxBasal"),
                     label: "Max Basal",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Max Basal… bla bla bla"
+                    verboseHint: Text("Max Basal… bla bla bla")
                 )
 
                 SettingInputSection(
@@ -108,7 +110,7 @@ extension UnitsLimitsSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Max COB", comment: "Max COB")
                         }
                     ),
@@ -116,9 +118,11 @@ extension UnitsLimitsSettings {
                     type: .decimal("maxCOB"),
                     label: NSLocalizedString("Max COB", comment: "Max COB"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, Trio will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)",
-                        comment: "Max COB"
+                    verboseHint: Text(
+                        NSLocalizedString(
+                            "The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, Trio will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)",
+                            comment: "Max COB"
+                        )
                     )
                 )
             }
@@ -127,7 +131,7 @@ extension UnitsLimitsSettings {
                     hintDetent: $hintDetent,
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: "Help"
                 )
             }

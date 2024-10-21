@@ -5,7 +5,7 @@ struct NightscoutUploadView: View {
 
     @State private var shouldDisplayHint: Bool = false
     @State var hintDetent = PresentationDetent.large
-    @State var selectedVerboseHint: String?
+    @State var selectedVerboseHint: AnyView?
     @State var hintLabel: String?
     @State private var decimalPlaceholder: Decimal = 0.0
     @State private var booleanPlaceholder: Bool = false
@@ -37,7 +37,7 @@ struct NightscoutUploadView: View {
                 selectedVerboseHint: Binding(
                     get: { selectedVerboseHint },
                     set: {
-                        selectedVerboseHint = $0
+                        selectedVerboseHint = $0.map { AnyView($0) }
                         hintLabel = "Allow Uploading to Nightscout"
                         shouldDisplayHint = true
                     }
@@ -46,7 +46,9 @@ struct NightscoutUploadView: View {
                 type: .boolean,
                 label: "Allow Uploading to Nightscout",
                 miniHint: "Enables upload of selected data sets to Nightscout. See hint for more details.",
-                verboseHint: "The Upload Treatments toggle enables uploading of carbs, temp targets, device status, preferences and settings."
+                verboseHint: Text(
+                    "The Upload Treatments toggle enables uploading of carbs, temp targets, device status, preferences and settings."
+                )
             )
 
             if state.changeUploadGlucose {
@@ -57,7 +59,7 @@ struct NightscoutUploadView: View {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Upload Glucose"
                             shouldDisplayHint = true
                         }
@@ -66,7 +68,7 @@ struct NightscoutUploadView: View {
                     type: .boolean,
                     label: "Upload Glucose",
                     miniHint: "Enables uploading of CGM readings to Nightscout.",
-                    verboseHint: "Write stuff here."
+                    verboseHint: Text("Write stuff here.")
                 )
             }
         }
@@ -75,7 +77,7 @@ struct NightscoutUploadView: View {
                 hintDetent: $hintDetent,
                 shouldDisplayHint: $shouldDisplayHint,
                 hintLabel: hintLabel ?? "",
-                hintText: selectedVerboseHint ?? "",
+                hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                 sheetTitle: "Help"
             )
         }

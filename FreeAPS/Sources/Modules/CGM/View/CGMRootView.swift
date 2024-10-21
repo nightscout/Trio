@@ -11,7 +11,7 @@ extension CGM {
 
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -62,7 +62,11 @@ extension CGM {
                                         action: {
                                             hintLabel = "Available CGM Types for Trio"
                                             selectedVerboseHint =
-                                                "CGM Types… bla bla \n\nLorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                                AnyView(
+                                                    Text(
+                                                        "CGM Types… bla bla \n\nLorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                                    )
+                                                )
                                             shouldDisplayHint.toggle()
                                         },
                                         label: {
@@ -172,7 +176,8 @@ extension CGM {
                                     Button(
                                         action: {
                                             hintLabel = "CGM Heartbeat"
-                                            selectedVerboseHint = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                            selectedVerboseHint =
+                                                AnyView(Text("Lorem ipsum dolor sit amet, consetetur sadipscing elitr."))
                                             shouldDisplayHint.toggle()
                                         },
                                         label: {
@@ -199,7 +204,7 @@ extension CGM {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
+                                selectedVerboseHint = $0.map { AnyView($0) }
                                 hintLabel = "Smooth Glucose Value"
                             }
                         ),
@@ -207,7 +212,7 @@ extension CGM {
                         type: .boolean,
                         label: "Smooth Glucose Value",
                         miniHint: "Smooth CGM readings using Savitzky–Golay filtering.",
-                        verboseHint: "Smooth Glucose Value… bla bla bla"
+                        verboseHint: Text("Smooth Glucose Value… bla bla bla")
                     )
                 }
                 .scrollContentBackground(.hidden).background(color)
@@ -219,7 +224,7 @@ extension CGM {
                         hintDetent: $hintDetent,
                         shouldDisplayHint: $shouldDisplayHint,
                         hintLabel: hintLabel ?? "",
-                        hintText: selectedVerboseHint ?? "",
+                        hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                         sheetTitle: "Help"
                     )
                 }

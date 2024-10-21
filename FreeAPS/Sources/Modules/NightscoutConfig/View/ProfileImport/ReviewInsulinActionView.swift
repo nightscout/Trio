@@ -10,7 +10,7 @@ struct ReviewInsulinActionView: BaseView {
 
     @State private var shouldDisplayHint: Bool = false
     @State private var hintDetent = PresentationDetent.large
-    @State private var selectedVerboseHint: String?
+    @State private var selectedVerboseHint: AnyView?
     @State private var hintLabel: String?
     @State private var decimalPlaceholder: Decimal = 0.0
     @State private var booleanPlaceholder: Bool = false
@@ -42,7 +42,7 @@ struct ReviewInsulinActionView: BaseView {
                 selectedVerboseHint: Binding(
                     get: { selectedVerboseHint },
                     set: {
-                        selectedVerboseHint = $0
+                        selectedVerboseHint = $0.map { AnyView($0) }
                         hintLabel = "Duration of Insulin Action"
                     }
                 ),
@@ -50,7 +50,7 @@ struct ReviewInsulinActionView: BaseView {
                 type: .decimal("dia"),
                 label: "Duration of Insulin Action",
                 miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                verboseHint: "Duration of Insulin Action… bla bla bla",
+                verboseHint: Text("Duration of Insulin Action… bla bla bla"),
                 headerText: "Review imported DIA"
             )
         }
@@ -59,7 +59,7 @@ struct ReviewInsulinActionView: BaseView {
                 hintDetent: $hintDetent,
                 shouldDisplayHint: $shouldDisplayHint,
                 hintLabel: hintLabel ?? "",
-                hintText: selectedVerboseHint ?? "",
+                hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                 sheetTitle: "Help"
             )
         }

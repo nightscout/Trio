@@ -12,7 +12,7 @@ extension NightscoutConfig {
         @State var importedHasRun = false
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -111,7 +111,11 @@ extension NightscoutConfig {
                                     action: {
                                         hintLabel = "Import Settings from Nightscout"
                                         selectedVerboseHint =
-                                            "This will overwrite the following Trio therapy settings: \n • Basal Rates \n • Insulin Sensitivities \n • Carb Ratios \n • Target Glucose \n • Duration of Insulin Action"
+                                            AnyView(
+                                                Text(
+                                                    "This will overwrite the following Trio therapy settings: \n • Basal Rates \n • Insulin Sensitivities \n • Carb Ratios \n • Target Glucose \n • Duration of Insulin Action"
+                                                )
+                                            )
                                         shouldDisplayHint.toggle()
                                     },
                                     label: {
@@ -150,8 +154,7 @@ extension NightscoutConfig {
                                     Button(
                                         action: {
                                             hintLabel = "Backfill Glucose from Nightscout"
-                                            selectedVerboseHint =
-                                                "Explanation… limitation… etc."
+                                            selectedVerboseHint = AnyView(Text("Explanation… limitation… etc."))
                                             shouldDisplayHint.toggle()
                                         },
                                         label: {
@@ -178,7 +181,7 @@ extension NightscoutConfig {
                     hintDetent: $hintDetent,
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: "Help"
                 )
             }

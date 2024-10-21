@@ -7,7 +7,7 @@ extension AlgorithmAdvancedSettings {
         @State var state = StateModel()
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -53,7 +53,7 @@ extension AlgorithmAdvancedSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Max Daily Safety Multiplier", comment: "Max Daily Safety Multiplier")
                         }
                     ),
@@ -61,9 +61,11 @@ extension AlgorithmAdvancedSettings {
                     type: .decimal("maxDailySafetyMultiplier"),
                     label: NSLocalizedString("Max Daily Safety Multiplier", comment: "Max Daily Safety Multiplier"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "This is an important OpenAPS safety limit. The default setting (which is unlikely to need adjusting) is 3. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 3x the highest hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune.",
-                        comment: "Max Daily Safety Multiplier"
+                    verboseHint: Text(
+                        NSLocalizedString(
+                            "This is an important OpenAPS safety limit. The default setting (which is unlikely to need adjusting) is 3. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 3x the highest hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune.",
+                            comment: "Max Daily Safety Multiplier"
+                        )
                     )
                 )
 
@@ -74,7 +76,7 @@ extension AlgorithmAdvancedSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString(
                                 "Current Basal Safety Multiplier",
                                 comment: "Current Basal Safety Multiplier"
@@ -85,9 +87,11 @@ extension AlgorithmAdvancedSettings {
                     type: .decimal("currentBasalSafetyMultiplier"),
                     label: NSLocalizedString("Current Basal Safety Multiplier", comment: "Current Basal Safety Multiplier"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "This is another important OpenAPS safety limit. The default setting (which is also unlikely to need adjusting) is 4. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 4x the current hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune.",
-                        comment: "Current Basal Safety Multiplier"
+                    verboseHint: Text(
+                        NSLocalizedString(
+                            "This is another important OpenAPS safety limit. The default setting (which is also unlikely to need adjusting) is 4. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 4x the current hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune.",
+                            comment: "Current Basal Safety Multiplier"
+                        )
                     )
                 )
 
@@ -98,7 +102,7 @@ extension AlgorithmAdvancedSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Duration of Insulin Action"
                         }
                     ),
@@ -106,7 +110,7 @@ extension AlgorithmAdvancedSettings {
                     type: .decimal("dia"),
                     label: "Duration of Insulin Action",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Duration of Insulin Action… bla bla bla"
+                    verboseHint: Text("Duration of Insulin Action… bla bla bla")
                 )
 
                 SettingInputSection(
@@ -116,7 +120,7 @@ extension AlgorithmAdvancedSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Use Custom Peak Time", comment: "Use Custom Peak Time")
                         }
                     ),
@@ -125,12 +129,12 @@ extension AlgorithmAdvancedSettings {
                     label: NSLocalizedString("Use Custom Peak Time", comment: "Use Custom Peak Time"),
                     conditionalLabel: NSLocalizedString("Insulin Peak Time", comment: "Insulin Peak Time"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
+                    verboseHint: Text(NSLocalizedString(
                         "Defaults to false. Setting to true allows changing insulinPeakTime", comment: "Use Custom Peak Time"
                     ) + NSLocalizedString(
                         "Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with Trio, longer loop calculations and possible red loops.",
                         comment: "Insulin Peak Time"
-                    )
+                    ))
                 )
 
                 SettingInputSection(
@@ -140,7 +144,7 @@ extension AlgorithmAdvancedSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Skip Neutral Temps", comment: "Skip Neutral Temps")
                         }
                     ),
@@ -148,9 +152,11 @@ extension AlgorithmAdvancedSettings {
                     type: .boolean,
                     label: NSLocalizedString("Skip Neutral Temps", comment: "Skip Neutral Temps"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "Defaults to false, so that Trio will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means Trio will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night.",
-                        comment: "Skip Neutral Temps"
+                    verboseHint: Text(
+                        NSLocalizedString(
+                            "Defaults to false, so that Trio will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means Trio will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night.",
+                            comment: "Skip Neutral Temps"
+                        )
                     )
                 )
 
@@ -161,7 +167,7 @@ extension AlgorithmAdvancedSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Unsuspend If No Temp", comment: "Unsuspend If No Temp")
                         }
                     ),
@@ -169,9 +175,11 @@ extension AlgorithmAdvancedSettings {
                     type: .boolean,
                     label: NSLocalizedString("Unsuspend If No Temp", comment: "Unsuspend If No Temp"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "Many people occasionally forget to resume / unsuspend their pump after reconnecting it. If you’re one of them, and you are willing to reliably set a zero temp basal whenever suspending and disconnecting your pump, this feature has your back. If enabled, it will automatically resume / unsuspend the pump if you forget to do so before your zero temp expires. As long as the zero temp is still running, it will leave the pump suspended.",
-                        comment: "Unsuspend If No Temp"
+                    verboseHint: Text(
+                        NSLocalizedString(
+                            "Many people occasionally forget to resume / unsuspend their pump after reconnecting it. If you’re one of them, and you are willing to reliably set a zero temp basal whenever suspending and disconnecting your pump, this feature has your back. If enabled, it will automatically resume / unsuspend the pump if you forget to do so before your zero temp expires. As long as the zero temp is still running, it will leave the pump suspended.",
+                            comment: "Unsuspend If No Temp"
+                        )
                     )
                 )
 
@@ -182,7 +190,7 @@ extension AlgorithmAdvancedSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Suspend Zeros IOB", comment: "Suspend Zeros IOB")
                         }
                     ),
@@ -190,9 +198,11 @@ extension AlgorithmAdvancedSettings {
                     type: .boolean,
                     label: NSLocalizedString("Suspend Zeros IOB", comment: "Suspend Zeros IOB"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "Default is false. Any existing temp basals during times the pump was suspended will be deleted and 0 temp basals to negate the profile basal rates during times pump is suspended will be added.",
-                        comment: "Suspend Zeros IOB"
+                    verboseHint: Text(
+                        NSLocalizedString(
+                            "Default is false. Any existing temp basals during times the pump was suspended will be deleted and 0 temp basals to negate the profile basal rates during times pump is suspended will be added.",
+                            comment: "Suspend Zeros IOB"
+                        )
                     )
                 )
 
@@ -203,7 +213,7 @@ extension AlgorithmAdvancedSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString(
                                 "Autotune ISF Adjustment Fraction",
                                 comment: "Autotune ISF Adjustment Fraction"
@@ -214,9 +224,11 @@ extension AlgorithmAdvancedSettings {
                     type: .decimal("autotuneISFAdjustmentFraction"),
                     label: NSLocalizedString("Autotune ISF Adjustment Fraction", comment: "Autotune ISF Adjustment Fraction"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "The default of 0.5 for this value keeps autotune ISF closer to pump ISF via a weighted average of fullNewISF and pumpISF. 1.0 allows full adjustment, 0 is no adjustment from pump ISF.",
-                        comment: "Autotune ISF Adjustment Fraction"
+                    verboseHint: Text(
+                        NSLocalizedString(
+                            "The default of 0.5 for this value keeps autotune ISF closer to pump ISF via a weighted average of fullNewISF and pumpISF. 1.0 allows full adjustment, 0 is no adjustment from pump ISF.",
+                            comment: "Autotune ISF Adjustment Fraction"
+                        )
                     )
                 )
 
@@ -227,7 +239,7 @@ extension AlgorithmAdvancedSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Min 5m Carbimpact", comment: "Min 5m Carbimpact")
                         }
                     ),
@@ -235,9 +247,11 @@ extension AlgorithmAdvancedSettings {
                     type: .decimal("min5mCarbimpact"),
                     label: NSLocalizedString("Min 5m Carbimpact", comment: "Min 5m Carbimpact"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "This is a setting for default carb absorption impact per 5 minutes. The default is an expected 8 mg/dL/5min. This affects how fast COB is decayed in situations when carb absorption is not visible in BG deviations. The default of 8 mg/dL/5min corresponds to a minimum carb absorption rate of 24g/hr at a CSF of 4 mg/dL/g.",
-                        comment: "Min 5m Carbimpact"
+                    verboseHint: Text(
+                        NSLocalizedString(
+                            "This is a setting for default carb absorption impact per 5 minutes. The default is an expected 8 mg/dL/5min. This affects how fast COB is decayed in situations when carb absorption is not visible in BG deviations. The default of 8 mg/dL/5min corresponds to a minimum carb absorption rate of 24g/hr at a CSF of 4 mg/dL/g.",
+                            comment: "Min 5m Carbimpact"
+                        )
                     )
                 )
 
@@ -248,7 +262,7 @@ extension AlgorithmAdvancedSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Remaining Carbs Fraction", comment: "Remaining Carbs Fraction")
                         }
                     ),
@@ -256,9 +270,11 @@ extension AlgorithmAdvancedSettings {
                     type: .decimal("remainingCarbsFraction"),
                     label: NSLocalizedString("Remaining Carbs Fraction", comment: "Remaining Carbs Fraction"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "This is the fraction of carbs we’ll assume will absorb over 4h if we don’t yet see carb absorption.",
-                        comment: "Remaining Carbs Fraction"
+                    verboseHint: Text(
+                        NSLocalizedString(
+                            "This is the fraction of carbs we’ll assume will absorb over 4h if we don’t yet see carb absorption.",
+                            comment: "Remaining Carbs Fraction"
+                        )
                     )
                 )
 
@@ -269,7 +285,7 @@ extension AlgorithmAdvancedSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Remaining Carbs Cap", comment: "Remaining Carbs Cap")
                         }
                     ),
@@ -277,9 +293,11 @@ extension AlgorithmAdvancedSettings {
                     type: .decimal("remainingCarbsCap"),
                     label: NSLocalizedString("Remaining Carbs Cap", comment: "Remaining Carbs Cap"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "This is the amount of the maximum number of carbs we’ll assume will absorb over 4h if we don’t yet see carb absorption.",
-                        comment: "Remaining Carbs Cap"
+                    verboseHint: Text(
+                        NSLocalizedString(
+                            "This is the amount of the maximum number of carbs we’ll assume will absorb over 4h if we don’t yet see carb absorption.",
+                            comment: "Remaining Carbs Cap"
+                        )
                     )
                 )
 
@@ -290,7 +308,7 @@ extension AlgorithmAdvancedSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Noisy CGM Target Multiplier", comment: "Noisy CGM Target Multiplier")
                         }
                     ),
@@ -298,9 +316,11 @@ extension AlgorithmAdvancedSettings {
                     type: .decimal("noisyCGMTargetMultiplier"),
                     label: NSLocalizedString("Noisy CGM Target Multiplier", comment: "Noisy CGM Target Multiplier"),
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "Defaults to 1.3. Increase target by this amount when looping off raw/noisy CGM data",
-                        comment: "Noisy CGM Target Multiplier"
+                    verboseHint: Text(
+                        NSLocalizedString(
+                            "Defaults to 1.3. Increase target by this amount when looping off raw/noisy CGM data",
+                            comment: "Noisy CGM Target Multiplier"
+                        )
                     )
                 )
             }
@@ -309,7 +329,7 @@ extension AlgorithmAdvancedSettings {
                     hintDetent: $hintDetent,
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: "Help"
                 )
             }

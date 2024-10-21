@@ -5,7 +5,7 @@ struct WatchConfigGarminView: View {
 
     @State private var shouldDisplayHint: Bool = false
     @State var hintDetent = PresentationDetent.large
-    @State var selectedVerboseHint: String?
+    @State var selectedVerboseHint: AnyView?
     @State var hintLabel: String?
     @State private var decimalPlaceholder: Decimal = 0.0
     @State private var booleanPlaceholder: Bool = false
@@ -59,7 +59,7 @@ struct WatchConfigGarminView: View {
                             Button(
                                 action: {
                                     hintLabel = "Add Device"
-                                    selectedVerboseHint = "Add Garmin Device… bla bla bla"
+                                    selectedVerboseHint = AnyView(Text("Add Garmin Device… bla bla bla"))
                                     shouldDisplayHint.toggle()
                                 },
                                 label: {
@@ -89,7 +89,7 @@ struct WatchConfigGarminView: View {
                 hintDetent: $hintDetent,
                 shouldDisplayHint: $shouldDisplayHint,
                 hintLabel: hintLabel ?? "",
-                hintText: selectedVerboseHint ?? "",
+                hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                 sheetTitle: "Help"
             )
         }

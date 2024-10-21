@@ -9,7 +9,7 @@ extension BolusCalculatorConfig {
 
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -55,7 +55,7 @@ extension BolusCalculatorConfig {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Display Meal Presets"
                         }
                     ),
@@ -63,7 +63,7 @@ extension BolusCalculatorConfig {
                     type: .boolean,
                     label: "Display Meal Presets",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                    verboseHint: Text("Lorem ipsum dolor sit amet, consetetur sadipscing elitr.")
                 )
 
                 SettingInputSection(
@@ -73,7 +73,7 @@ extension BolusCalculatorConfig {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Recommended Bolus Percentage"
                         }
                     ),
@@ -81,7 +81,7 @@ extension BolusCalculatorConfig {
                     type: .decimal("overrideFactor"),
                     label: "Recommended Bolus Percentage",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Recommended Bolus Percentage… bla bla bla",
+                    verboseHint: Text("Recommended Bolus Percentage… bla bla bla"),
                     headerText: "Calculator Configuration"
                 )
 
@@ -92,7 +92,7 @@ extension BolusCalculatorConfig {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Fatty Meal Factor"
                         }
                     ),
@@ -101,7 +101,9 @@ extension BolusCalculatorConfig {
                     label: "Enable Fatty Meal Factor",
                     conditionalLabel: "Fatty Meal Factor",
                     miniHint: "Lower your bolus recommendation by factor x for fatty meals.",
-                    verboseHint: "You can add the option in your bolus calculator to apply another (!) customizable factor at the end of the calculation which could be useful for fatty meals, e.g Pizza (default 0.7)."
+                    verboseHint: Text(
+                        "You can add the option in your bolus calculator to apply another (!) customizable factor at the end of the calculation which could be useful for fatty meals, e.g Pizza (default 0.7)."
+                    )
                 )
 
                 SettingInputSection(
@@ -111,7 +113,7 @@ extension BolusCalculatorConfig {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Super Bolus & Sweet Meal Factor"
                         }
                     ),
@@ -120,7 +122,9 @@ extension BolusCalculatorConfig {
                     label: "Enable Super Bolus",
                     conditionalLabel: "Super Bolus Factor",
                     miniHint: "Add x times current scheduled basal rate to your bolus recommendation.",
-                    verboseHint: "You can enable the super bolus functionality which could be useful when eating sweets/cake etc. Therefore your current basal rate will be added x-times to your bolus recommendation. You can adjust the factor X here, the default is 2 times your current scheduled basal rate."
+                    verboseHint: Text(
+                        "You can enable the super bolus functionality which could be useful when eating sweets/cake etc. Therefore your current basal rate will be added x-times to your bolus recommendation. You can adjust the factor X here, the default is 2 times your current scheduled basal rate."
+                    )
                 )
             }
             .sheet(isPresented: $shouldDisplayHint) {
@@ -128,7 +132,7 @@ extension BolusCalculatorConfig {
                     hintDetent: $hintDetent,
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: "Help"
                 )
             }

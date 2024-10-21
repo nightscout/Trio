@@ -9,7 +9,7 @@ extension LiveActivitySettings {
 
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -68,7 +68,7 @@ extension LiveActivitySettings {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
+                                selectedVerboseHint = $0.map { AnyView($0) }
                                 hintLabel = "Enable Live Activity"
                             }
                         ),
@@ -76,7 +76,9 @@ extension LiveActivitySettings {
                         type: .boolean,
                         label: "Enable Live Activity",
                         miniHint: "Live Activities display Trio's glucose readings, and other current data on the iPhone Lock Screen and in the Dynamic Island",
-                        verboseHint: "With Live Activities, you can let Trio display most current data, e.g. glucose reading from CGM, insulin on board, carbohydrates on board, or even a glucose trend chart, on the iPhone Lock Screen and in the Dynamic Island. It allows you to refer to live information at a glance and perform quick actions in your diabetes management.",
+                        verboseHint: Text(
+                            "With Live Activities, you can let Trio display most current data, e.g. glucose reading from CGM, insulin on board, carbohydrates on board, or even a glucose trend chart, on the iPhone Lock Screen and in the Dynamic Island. It allows you to refer to live information at a glance and perform quick actions in your diabetes management."
+                        ),
                         headerText: "Display Live Data From Trio"
                     )
 
@@ -104,7 +106,11 @@ extension LiveActivitySettings {
                                         action: {
                                             hintLabel = "Lock Screen Widget Style"
                                             selectedVerboseHint =
-                                                "Trio's simple lock screen widget only display current glucose reading, trend arrow, delta and the timestamp of the current reading.\n\nThe detailed Lock Screen widget offers users a glucose chart, glucose trend arrow, glucose delta, current insulin and carbohydrates on board, and an icon as an indicator for running overrides."
+                                                AnyView(
+                                                    Text(
+                                                        "Trio's simple lock screen widget only display current glucose reading, trend arrow, delta and the timestamp of the current reading.\n\nThe detailed Lock Screen widget offers users a glucose chart, glucose trend arrow, glucose delta, current insulin and carbohydrates on board, and an icon as an indicator for running overrides."
+                                                    )
+                                                )
                                             shouldDisplayHint.toggle()
                                         },
                                         label: {
@@ -139,7 +145,7 @@ extension LiveActivitySettings {
                     hintDetent: $hintDetent,
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: "Help"
                 )
             }
