@@ -81,21 +81,20 @@ struct CurrentGlucoseView: View {
                             let displayGlucose = units == .mgdL ? Decimal(glucoseValue).description : Decimal(glucoseValue)
                                 .formattedAsMmolL
 
-                            // low glucose, high glucose and target is parsed in state to mmol/L; parse it back to mg/dl here for comparison
-                            let lowGlucose = units == .mgdL ? lowGlucose : lowGlucose.asMgdL
-                            let highGlucose = units == .mgdL ? highGlucose : highGlucose.asMgdL
-                            let targetGlucose = units == .mgdL ? currentGlucoseTarget : currentGlucoseTarget.asMgdL
-
                             var glucoseDisplayColor = Color.primary
+
+                            // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
+                            let hardCodedLow = Decimal(55)
+                            let hardCodedHigh = Decimal(220)
+                            let isDynamicColorScheme = glucoseColorScheme == .dynamicColor
 
                             if Decimal(glucoseValue) <= lowGlucose || Decimal(glucoseValue) >= highGlucose {
                                 glucoseDisplayColor = FreeAPS.getDynamicGlucoseColor(
                                     glucoseValue: Decimal(glucoseValue),
-                                    highGlucoseColorValue: highGlucose,
-                                    lowGlucoseColorValue: lowGlucose,
-                                    targetGlucose: targetGlucose,
-                                    glucoseColorScheme: glucoseColorScheme,
-                                    offset: 20
+                                    highGlucoseColorValue: isDynamicColorScheme ? hardCodedHigh : highGlucose,
+                                    lowGlucoseColorValue: isDynamicColorScheme ? hardCodedLow : lowGlucose,
+                                    targetGlucose: currentGlucoseTarget,
+                                    glucoseColorScheme: glucoseColorScheme
                                 )
                             }
 
@@ -179,28 +178,6 @@ struct CurrentGlucoseView: View {
         let deltaAsDecimal = units == .mmolL ? Decimal(delta).asMmolL : Decimal(delta)
         return deltaFormatter.string(from: deltaAsDecimal as NSNumber) ?? "--"
     }
-
-//    var glucoseDisplayColor: Color {
-//        guard let lastGlucose = glucose.last?.glucose else { return .primary }
-//
-//        // low and high glucose is parsed in state to mmol/L; parse it back to mg/dl here for comparison
-//        let lowGlucose = units == .mgdL ? lowGlucose : lowGlucose.asMgdL
-//        let highGlucose = units == .mgdL ? highGlucose : highGlucose.asMgdL
-//
-//        // Ensure the thresholds are logical
-//        guard lowGlucose < highGlucose else { return .primary }
-//
-//        guard Decimal(lastGlucose) <= lowGlucose && Decimal(lastGlucose) >= highGlucose else { return .primary }
-//
-//        return FreeAPS.getDynamicGlucoseColor(
-//            glucoseValue: Decimal(lastGlucose),
-//            highGlucoseColorValue: highGlucose,
-//            lowGlucoseColorValue: lowGlucose,
-//            targetGlucose: currentGlucoseTarget,
-//            glucoseColorScheme: glucoseColorScheme,
-//            offset: 20
-//        )
-//    }
 }
 
 struct Triangle: Shape {
