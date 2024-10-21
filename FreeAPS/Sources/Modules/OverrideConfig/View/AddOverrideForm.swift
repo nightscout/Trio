@@ -21,19 +21,6 @@ struct AddOverrideForm: View {
 
     @Environment(\.dismiss) var dismiss
 
-    enum IsfAndOrCrOptions: String, CaseIterable {
-        case isfAndCr = "ISF/CR"
-        case isf = "ISF"
-        case cr = "CR"
-        case nothing = "None"
-    }
-
-    enum DisableSmbOptions: String, CaseIterable {
-        case dontDisable = "Don't Disable"
-        case disable = "Disable"
-        case disableOnSchedule = "Disable on Schedule"
-    }
-
     var color: LinearGradient {
         colorScheme == .dark ? LinearGradient(
             gradient: Gradient(colors: [
@@ -92,17 +79,7 @@ struct AddOverrideForm: View {
             .sheet(isPresented: $state.isHelpSheetPresented) {
                 NavigationStack {
                     List {
-                        Text(
-                            "Lorem Ipsum Dolor Sit Amet"
-                        )
-
-                        Text(
-                            "Lorem Ipsum Dolor Sit Amet"
-                        )
-
-                        Text(
-                            "Lorem Ipsum Dolor Sit Amet"
-                        )
+                        Text("Lorem Ipsum Dolor Sit Amet")
                     }
                     .padding(.trailing, 10)
                     .navigationBarTitle("Help", displayMode: .inline)
@@ -178,7 +155,7 @@ struct AddOverrideForm: View {
             }
             .listRowBackground(Color.chart)
 
-            Section {
+            Section(footer: percentageDescription(state.overridePercentage)) {
                 // Percentage Picker
                 HStack {
                     Text("Change Basal Rate by")
@@ -573,6 +550,36 @@ struct AddOverrideForm: View {
 
         return values
     }
+}
+
+enum IsfAndOrCrOptions: String, CaseIterable {
+    case isfAndCr = "ISF/CR"
+    case isf = "ISF"
+    case cr = "CR"
+    case nothing = "None"
+}
+
+enum DisableSmbOptions: String, CaseIterable {
+    case dontDisable = "Don't Disable"
+    case disable = "Disable"
+    case disableOnSchedule = "Disable on Schedule"
+}
+
+func percentageDescription(_ percent: Double) -> Text? {
+    if percent.isNaN || percent == 100 { return nil }
+
+    var description: String = "Insulin doses will be "
+
+    if percent < 100 {
+        description += "decreased by "
+    } else {
+        description += "increased by "
+    }
+
+    let deviationFrom100 = abs(percent - 100)
+    description += String(format: "%.0f% %.", deviationFrom100)
+
+    return Text(description)
 }
 
 // Function to check if the phone is using 24-hour format

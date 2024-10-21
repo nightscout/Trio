@@ -65,19 +65,6 @@ struct EditOverrideForm: View {
         _uamMinutes = State(initialValue: overrideToEdit.uamMinutes?.decimalValue)
     }
 
-    enum IsfAndOrCrOptions: String, CaseIterable {
-        case isfAndCr = "ISF/CR"
-        case isf = "ISF"
-        case cr = "CR"
-        case nothing = "None"
-    }
-
-    enum DisableSmbOptions: String, CaseIterable {
-        case dontDisable = "Don't Disable"
-        case disable = "Disable"
-        case disableOnSchedule = "Disable on Schedule"
-    }
-
     var color: LinearGradient {
         colorScheme == .dark ? LinearGradient(
             gradient: Gradient(colors: [
@@ -155,17 +142,7 @@ struct EditOverrideForm: View {
             .sheet(isPresented: $state.isHelpSheetPresented) {
                 NavigationStack {
                     List {
-                        Text(
-                            "Lorem Ipsum Dolor Sit Amet"
-                        )
-
-                        Text(
-                            "Lorem Ipsum Dolor Sit Amet"
-                        )
-
-                        Text(
-                            "Lorem Ipsum Dolor Sit Amet"
-                        )
+                        Text("Lorem Ipsum Dolor Sit Amet")
                     }
                     .padding(.trailing, 10)
                     .navigationBarTitle("Help", displayMode: .inline)
@@ -264,7 +241,7 @@ struct EditOverrideForm: View {
             .listRowBackground(Color.chart)
 
             // Percentage Picker
-            Section {
+            Section(footer: percentageDescription(percentage)) {
                 HStack {
                     Text("Change Basal Rate by")
                     Spacer()
