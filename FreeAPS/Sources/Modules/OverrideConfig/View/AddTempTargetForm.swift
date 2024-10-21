@@ -58,10 +58,6 @@ struct AddTempTargetForm: View {
         return formatter
     }
 
-    var isSliderEnabled: Bool {
-        state.computeSliderHigh() > state.computeSliderLow()
-    }
-
     var body: some View {
         NavigationView {
             List {
@@ -95,9 +91,7 @@ struct AddTempTargetForm: View {
             }
             .onAppear {
                 targetStep = state.units == .mgdL ? 5 : 9
-                Task {
-                    await state.getCurrentGlucoseTarget()
-                }
+                state.tempTargetTarget = state.normalTarget
             }
         }
     }
@@ -210,72 +204,73 @@ struct AddTempTargetForm: View {
                 }
             }.listRowBackground(Color.chart)
 
-            if state.tempTargetTarget != state.currentGlucoseTarget {
+            if state.tempTargetTarget != state.normalTarget {
                 let computedHalfBasalTarget = state.computeHalfBasalTarget()
-
-                Section(
-                    header: HStack {
-                        if state
-                            .tempTargetTarget > state.currentGlucoseTarget
-                        {
-                            HStack(spacing: 5) {
-                                Text("Sensitivity")
-                                Image(systemName: "arrow.up.circle")
-                                Text("Insulin")
-                                Image(systemName: "arrow.down.circle")
-                                Text("using \(formattedPercentage(state.percentage))% of default.")
+                if state.isAdjustSensEnabled() {
+                    Section(
+                        header: HStack {
+                            if state
+                                .tempTargetTarget > state.normalTarget
+                            {
+                                HStack(spacing: 5) {
+                                    Text("Sensitivity")
+                                    Image(systemName: "arrow.up.circle")
+                                    Text("Insulin")
+                                    Image(systemName: "arrow.down.circle")
+                                    Text("using \(formattedPercentage(state.percentage))% of default.")
+                                }
                             }
-                        } else {
-                            HStack(spacing: 5) {
-                                Text("Sensitivity")
-                                Image(systemName: "arrow.down.circle")
-                                Text("Insulin")
-                                Image(systemName: "arrow.up.circle")
-                                Text("using \(formattedPercentage(state.percentage))% of default.")
+                            if state.tempTargetTarget < state.normalTarget {
+                                HStack(spacing: 5) {
+                                    Text("Sensitivity")
+                                    Image(systemName: "arrow.down.circle")
+                                    Text("Insulin")
+                                    Image(systemName: "arrow.up.circle")
+                                    Text("using \(formattedPercentage(state.percentage))% of default.")
+                                }
                             }
                         }
-                    }
-                    .textCase(.none)
-                    .foregroundStyle(colorScheme == .dark ? Color.orange : Color.accentColor),
-                    content: {
-                        VStack {
-                            Text("\(Int(state.percentage)) % Insulin")
-                                .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
-                                .font(.title3)
-                                .fontWeight(.bold)
-                            Slider(
-                                value: $state.percentage,
-                                in: state.computeSliderLow() ... state.computeSliderHigh(),
-                                step: 5
-                            ) {} minimumValueLabel: {
-                                Text("\(state.computeSliderLow(), specifier: "%.0f")%")
-                            } maximumValueLabel: {
-                                Text("\(state.computeSliderHigh(), specifier: "%.0f")%")
-                            } onEditingChanged: { editing in
-                                isUsingSlider = editing
-                                state.halfBasalTarget = Decimal(state.computeHalfBasalTarget())
-                            }
-                            .disabled(!isSliderEnabled)
+                        .textCase(.none)
+                        .foregroundStyle(colorScheme == .dark ? Color.orange : Color.accentColor),
+                        content: {
+                            VStack {
+                                Text("\(Int(state.percentage)) % Insulin")
+                                    .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
+                                    .font(.title3)
+                                    .fontWeight(.bold)
+                                Slider(
+                                    value: $state.percentage,
+                                    in: state.computeSliderLow() ... state.computeSliderHigh(),
+                                    step: 5
+                                ) {} minimumValueLabel: {
+                                    Text("\(state.computeSliderLow(), specifier: "%.0f")%")
+                                } maximumValueLabel: {
+                                    Text("\(state.computeSliderHigh(), specifier: "%.0f")%")
+                                } onEditingChanged: { editing in
+                                    isUsingSlider = editing
+                                    state.halfBasalTarget = Decimal(state.computeHalfBasalTarget())
+                                }
 
-                            Divider()
+                                Divider()
 
-                            HStack {
-                                Text(
-                                    "Half Basal Exercise Target:"
-                                )
-                                Spacer()
-                                Text(
-                                    (
-                                        state.units == .mgdL ? computedHalfBasalTarget.description : computedHalfBasalTarget
-                                            .formattedAsMmolL
-                                    ) + " " + state.units.rawValue
-                                )
-                            }.foregroundStyle(.primary)
-                        }.padding(.vertical, 10)
-                    }
-                )
-                .listRowBackground(Color.chart)
-                .padding(.top, -10)
+                                HStack {
+                                    Text(
+                                        "Half Basal Exercise Target:"
+                                    )
+                                    Spacer()
+                                    Text(
+                                        (
+                                            state.units == .mgdL ? computedHalfBasalTarget.description : computedHalfBasalTarget
+                                                .formattedAsMmolL
+                                        ) + " " + state.units.rawValue
+                                    )
+                                }.foregroundStyle(.primary)
+                            }.padding(.vertical, 10)
+                        }
+                    )
+                    .listRowBackground(Color.chart)
+                    .padding(.top, -10)
+                }
             }
         }
     }

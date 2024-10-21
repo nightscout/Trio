@@ -405,7 +405,16 @@ extension OverrideConfig {
 
         private func tempTargetView(for preset: TempTargetStored) -> some View {
             var target = preset.target
+            let presetTarget = Decimal(target as! Double.RawValue)
             let isSelected = preset.id?.uuidString == selectedTempTargetPresetID
+            let presetHalfBasalTarget = Decimal(
+                preset.halfBasalTarget as? Double
+                    .RawValue ?? Double(state.settingHalfBasalTarget)
+            )
+            let percentage = Int(
+                state
+                    .computeAdjustedPercentage(usingHBT: presetHalfBasalTarget, usingTarget: presetTarget) * 100
+            )
 
             return ZStack(alignment: .trailing, content: {
                 HStack {
@@ -427,7 +436,10 @@ extension OverrideConfig {
                             Text("min")
                                 .foregroundColor(.secondary)
                                 .font(.caption)
-
+                            if state.isAdjustSensEnabled(usingTarget: presetTarget) { Text(", \(percentage)%")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                            }
                             Spacer()
                         }.padding(.top, 2)
                     }

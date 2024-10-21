@@ -46,6 +46,7 @@ extension OverrideConfig {
         var units: GlucoseUnits = .mgdL
 
         // temp target stuff
+        let normalTarget: Decimal = 100
         var tempTargetDuration: Decimal = 0
         var tempTargetName: String = ""
         var tempTargetTarget: Decimal = 0 // lel
@@ -854,13 +855,16 @@ extension OverrideConfig.StateModel {
     func handleAdjustSensToggle() {
         if !didAdjustSens {
             halfBasalTarget = settingHalfBasalTarget
-            percentage = Double(computeAdjustedPercentage(using: settingHalfBasalTarget) * 100)
+            percentage = Double(computeAdjustedPercentage(usingHBT: settingHalfBasalTarget) * 100)
         }
+    }
+
+    func isAdjustSensEnabled(usingTarget initialTarget: Decimal? = nil) -> Bool {
+        computeSliderHigh(usingTarget: initialTarget) > computeSliderLow(usingTarget: initialTarget)
     }
 
     func computeHalfBasalTarget() -> Double {
         let adjustmentRatio = Decimal(percentage / 100)
-        let normalTarget: Decimal = 100
         let tempTargetValue: Decimal = tempTargetTarget
         var halfBasalTargetValue = halfBasalTarget
         if adjustmentRatio != 1 {
@@ -870,11 +874,12 @@ extension OverrideConfig.StateModel {
         return round(Double(halfBasalTargetValue))
     }
 
-    func computeSliderLow() -> Double {
+    func computeSliderLow(usingTarget initialTarget: Decimal? = nil) -> Double {
         var minSens: Double = 15
-        let tempTargetValue = tempTargetTarget
+        var calcTarget = initialTarget
+        let tempTargetValue = calcTarget != nil ? calcTarget : tempTargetTarget
         if tempTargetValue == 0 { return minSens }
-        if tempTargetValue < 100 ||
+        if tempTargetValue ?? normalTarget <= normalTarget ||
             (
                 !settingsManager.preferences.highTemptargetRaisesSensitivity && !settingsManager.preferences
                     .exerciseMode
@@ -883,25 +888,30 @@ extension OverrideConfig.StateModel {
         return minSens
     }
 
-    func computeSliderHigh() -> Double {
+    func computeSliderHigh(usingTarget initialTarget: Decimal? = nil) -> Double {
+        var calcTarget = initialTarget
+        let tempTargetValue = calcTarget != nil ? calcTarget : tempTargetTarget
         var maxSens = Double(maxValue * 100)
-        let tempTargetValue = tempTargetTarget
         if tempTargetValue == 0 { return maxSens }
-        if tempTargetValue > 100 || !settingsManager.preferences.lowTemptargetLowersSensitivity { maxSens = 100 }
+        if tempTargetValue ?? normalTarget >= normalTarget || !settingsManager.preferences
+            .lowTemptargetLowersSensitivity { maxSens = 100 }
         return maxSens
     }
 
-    func computeAdjustedPercentage(using initialHalfBasalTarget: Decimal? = nil) -> Decimal {
+    func computeAdjustedPercentage(
+        usingHBT initialHalfBasalTarget: Decimal? = nil,
+        usingTarget initialTarget: Decimal? = nil
+    ) -> Decimal {
         let halfBasalTargetValue = initialHalfBasalTarget ?? halfBasalTarget
-        let normalTarget: Decimal = 100
+        let calcTarget = initialTarget
         let deviationFromNormal = (halfBasalTargetValue - normalTarget)
-        let tempTargetValue = tempTargetTarget
+        let tempTargetValue = calcTarget != nil ? calcTarget : tempTargetTarget
         var adjustmentRatio: Decimal = 1
 
-        if deviationFromNormal * (deviationFromNormal + tempTargetValue - normalTarget) <= 0 {
+        if deviationFromNormal * (deviationFromNormal + (tempTargetValue ?? normalTarget) - normalTarget) <= 0 {
             adjustmentRatio = maxValue
         } else {
-            adjustmentRatio = deviationFromNormal / (deviationFromNormal + tempTargetValue - normalTarget)
+            adjustmentRatio = deviationFromNormal / (deviationFromNormal + (tempTargetValue ?? normalTarget) - normalTarget)
         }
 
         adjustmentRatio = min(adjustmentRatio, maxValue)
