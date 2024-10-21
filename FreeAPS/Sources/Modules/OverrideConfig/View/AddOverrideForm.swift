@@ -64,7 +64,6 @@ struct AddOverrideForm: View {
                 saveButton
             }
             .listSectionSpacing(10)
-            .listRowSpacing(10)
             .padding(.top, 30)
             .ignoresSafeArea(edges: .top)
             .scrollContentBackground(.hidden).background(color)
@@ -123,22 +122,21 @@ struct AddOverrideForm: View {
     }
 
     @ViewBuilder private func addOverride() -> some View {
-        Section {
-            let pad: CGFloat = 3
-            VStack {
+        Group {
+            Section {
                 HStack {
                     Text("Name")
                     Spacer()
                     TextField("(Optional)", text: $state.overrideName).multilineTextAlignment(.trailing)
                 }
-                .padding(.vertical, pad)
             }
+            .listRowBackground(Color.chart)
 
-            VStack {
+            Section {
                 Toggle(isOn: $state.indefinite) {
                     Text("Enable Indefinitely")
                 }
-                .padding(.vertical, pad)
+
                 if !state.indefinite {
                     HStack {
                         Text("Duration")
@@ -146,7 +144,6 @@ struct AddOverrideForm: View {
                         Text(formatHrMin(Int(state.overrideDuration)))
                             .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
                     }
-                    .padding(.vertical, pad)
                     .onTapGesture {
                         displayPickerDuration.toggle()
                     }
@@ -175,11 +172,13 @@ struct AddOverrideForm: View {
                                 state.overrideDuration = Decimal(totalDurationInMinutes())
                             }
                         }
+                        .listRowSeparator(.hidden, edges: .top)
                     }
                 }
             }
+            .listRowBackground(Color.chart)
 
-            VStack {
+            Section {
                 // Percentage Picker
                 HStack {
                     Text("Change Basal Rate by")
@@ -187,7 +186,6 @@ struct AddOverrideForm: View {
                     Text("\(state.overridePercentage.formatted(.number)) %")
                         .foregroundColor(!displayPickerPercentage ? .primary : .accentColor)
                 }
-                .padding(.vertical, pad)
                 .onTapGesture {
                     displayPickerPercentage.toggle()
                 }
@@ -227,6 +225,7 @@ struct AddOverrideForm: View {
                         .frame(maxWidth: .infinity)
                     }
                     .frame(maxWidth: .infinity)
+                    .listRowSeparator(.hidden, edges: .top)
                 }
 
                 // Picker for ISF/CR settings
@@ -235,7 +234,6 @@ struct AddOverrideForm: View {
                         Text(option.rawValue).tag(option)
                     }
                 }
-                .padding(.top, pad)
                 .pickerStyle(MenuPickerStyle())
                 .onChange(of: selectedIsfCrOption) { _, newValue in
                     switch newValue {
@@ -258,84 +256,83 @@ struct AddOverrideForm: View {
                     }
                 }
             }
+            .listRowBackground(Color.chart)
 
-            VStack {
+            Section {
                 Toggle(isOn: $state.shouldOverrideTarget) {
                     Text("Override Profile Target")
                 }
-                .padding(.vertical, pad)
+
                 if state.shouldOverrideTarget {
-                    VStack {
+                    HStack {
+                        Text("Target Glucose")
+                        Spacer()
+                        Text(
+                            (state.units == .mgdL ? state.target.description : state.target.formattedAsMmolL) + " " + state
+                                .units.rawValue
+                        )
+                        .foregroundColor(!displayPickerTarget ? .primary : .accentColor)
+                    }
+                    .onTapGesture {
+                        displayPickerTarget.toggle()
+                    }
+
+                    if displayPickerTarget {
                         HStack {
-                            Text("Target Glucose")
-                            Spacer()
-                            Text(
-                                (state.units == .mgdL ? state.target.description : state.target.formattedAsMmolL) + " " + state
-                                    .units.rawValue
-                            )
-                            .foregroundColor(!displayPickerTarget ? .primary : .accentColor)
-                        }
-                        .padding(.vertical, pad)
-                        .onTapGesture {
-                            displayPickerTarget.toggle()
-                        }
+                            // Radio buttons and text on the left side
+                            VStack(alignment: .leading) {
+                                // Radio buttons for step iteration
+                                let stepChoices: [Decimal] = state.units == .mgdL ? [1, 5] : [1, 9]
+                                ForEach(stepChoices, id: \.self) { step in
+                                    let label = (state.units == .mgdL ? step.description : step.formattedAsMmolL) + " " +
+                                        state.units.rawValue
 
-                        if displayPickerTarget {
-                            HStack {
-                                // Radio buttons and text on the left side
-                                VStack(alignment: .leading) {
-                                    // Radio buttons for step iteration
-                                    let stepChoices: [Decimal] = state.units == .mgdL ? [1, 5] : [1, 9]
-                                    ForEach(stepChoices, id: \.self) { step in
-                                        let label = (state.units == .mgdL ? step.description : step.formattedAsMmolL) + " " +
-                                            state.units.rawValue
-
-                                        RadioButton(
-                                            isSelected: targetStep == step,
-                                            label: label
-                                        ) {
-                                            targetStep = step
-                                            state.target = OverrideConfig.StateModel.roundTargetToStep(state.target, targetStep)
-                                        }
-                                        .padding(.top, 10)
+                                    RadioButton(
+                                        isSelected: targetStep == step,
+                                        label: label
+                                    ) {
+                                        targetStep = step
+                                        state.target = OverrideConfig.StateModel.roundTargetToStep(state.target, targetStep)
                                     }
+                                    .padding(.top, 10)
                                 }
-                                .frame(maxWidth: .infinity)
-
-                                Spacer()
-
-                                // Picker on the right side
-                                Picker(selection: Binding(
-                                    get: { OverrideConfig.StateModel.roundTargetToStep(state.target, targetStep) },
-                                    set: { state.target = $0 }
-                                ), label: Text("")) {
-                                    ForEach(
-                                        generateTargetPickerValues(),
-                                        id: \.self
-                                    ) { glucose in
-                                        Text(
-                                            (state.units == .mgdL ? glucose.description : glucose.formattedAsMmolL) + " " + state
-                                                .units.rawValue
-                                        )
-                                        .tag(glucose)
-                                    }
-                                }
-                                .pickerStyle(WheelPickerStyle())
-                                .frame(maxWidth: .infinity)
                             }
+                            .frame(maxWidth: .infinity)
+
+                            Spacer()
+
+                            // Picker on the right side
+                            Picker(selection: Binding(
+                                get: { OverrideConfig.StateModel.roundTargetToStep(state.target, targetStep) },
+                                set: { state.target = $0 }
+                            ), label: Text("")) {
+                                ForEach(
+                                    generateTargetPickerValues(),
+                                    id: \.self
+                                ) { glucose in
+                                    Text(
+                                        (state.units == .mgdL ? glucose.description : glucose.formattedAsMmolL) + " " + state
+                                            .units.rawValue
+                                    )
+                                    .tag(glucose)
+                                }
+                            }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: .infinity)
                         }
+                        .listRowSeparator(.hidden, edges: .top)
                     }
                 }
             }
+            .listRowBackground(Color.chart)
 
-            VStack {
+            Section {
                 // Picker for ISF/CR settings
                 Picker("Disable SMBs", selection: $selectedDisableSmbOption) {
                     ForEach(DisableSmbOptions.allCases, id: \.self) { option in
                         Text(option.rawValue).tag(option)
                     }
                 }
-                .padding(.vertical, pad)
                 .pickerStyle(MenuPickerStyle())
                 .onChange(of: selectedDisableSmbOption) { _, newValue in
                     switch newValue {
@@ -353,132 +350,120 @@ struct AddOverrideForm: View {
 
                 if state.smbIsScheduledOff {
                     // First Hour SMBs Are Disabled
-                    VStack {
+                    HStack {
+                        Text("From")
+                        Spacer()
+                        Text(
+                            is24HourFormat() ? format24Hour(Int(truncating: state.start as NSNumber)) + ":00" :
+                                convertTo12HourFormat(Int(truncating: state.start as NSNumber))
+                        )
+                        .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
+                        Spacer()
+                        Divider().frame(width: 1, height: 20)
+                        Spacer()
+                        Text("To")
+                        Spacer()
+                        Text(
+                            is24HourFormat() ? format24Hour(Int(truncating: state.end as NSNumber)) + ":00" :
+                                convertTo12HourFormat(Int(truncating: state.end as NSNumber))
+                        )
+                        .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
+                        Spacer()
+                    }
+                    .onTapGesture {
+                        displayPickerDisableSmbSchedule.toggle()
+                    }
+
+                    if displayPickerDisableSmbSchedule {
                         HStack {
-                            Text("From")
-                            Spacer()
-                            Text(
-                                is24HourFormat() ? format24Hour(Int(truncating: state.start as NSNumber)) + ":00" :
-                                    convertTo12HourFormat(Int(truncating: state.start as NSNumber))
-                            )
-                            .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
-
-                            Spacer()
-
-                            Divider().frame(width: 1, height: 20)
-
-                            Spacer()
-
-                            Text("To")
-                            Spacer()
-                            Text(
-                                is24HourFormat() ? format24Hour(Int(truncating: state.end as NSNumber)) + ":00" :
-                                    convertTo12HourFormat(Int(truncating: state.end as NSNumber))
-                            )
-                            .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
-                            Spacer()
-                        }
-                        .padding(.vertical, pad)
-                        .onTapGesture {
-                            displayPickerDisableSmbSchedule.toggle()
-                        }
-
-                        if displayPickerDisableSmbSchedule {
-                            HStack {
-                                // From Picker
-                                Picker(selection: Binding(
-                                    get: { Int(truncating: state.start as NSNumber) },
-                                    set: { state.start = Decimal($0) }
-                                ), label: Text("")) {
-                                    ForEach(0 ..< 24, id: \.self) { hour in
-                                        Text(is24HourFormat() ? format24Hour(hour) + ":00" : convertTo12HourFormat(hour))
-                                            .tag(hour)
-                                    }
+                            // From Picker
+                            Picker(selection: Binding(
+                                get: { Int(truncating: state.start as NSNumber) },
+                                set: { state.start = Decimal($0) }
+                            ), label: Text("")) {
+                                ForEach(0 ..< 24, id: \.self) { hour in
+                                    Text(is24HourFormat() ? format24Hour(hour) + ":00" : convertTo12HourFormat(hour))
+                                        .tag(hour)
                                 }
-                                .pickerStyle(WheelPickerStyle())
-                                .frame(maxWidth: .infinity)
-
-                                // To Picker
-                                Picker(selection: Binding(
-                                    get: { Int(truncating: state.end as NSNumber) },
-                                    set: { state.end = Decimal($0) }
-                                ), label: Text("")) {
-                                    ForEach(0 ..< 24, id: \.self) { hour in
-                                        Text(is24HourFormat() ? format24Hour(hour) + ":00" : convertTo12HourFormat(hour))
-                                            .tag(hour)
-                                    }
-                                }
-                                .pickerStyle(WheelPickerStyle())
-                                .frame(maxWidth: .infinity)
                             }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: .infinity)
+
+                            // To Picker
+                            Picker(selection: Binding(
+                                get: { Int(truncating: state.end as NSNumber) },
+                                set: { state.end = Decimal($0) }
+                            ), label: Text("")) {
+                                ForEach(0 ..< 24, id: \.self) { hour in
+                                    Text(is24HourFormat() ? format24Hour(hour) + ":00" : convertTo12HourFormat(hour))
+                                        .tag(hour)
+                                }
+                            }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: .infinity)
                         }
+                        .listRowSeparator(.hidden, edges: .top)
                     }
                 }
             }
+            .listRowBackground(Color.chart)
 
             if !state.smbIsOff {
-                VStack {
+                Section {
                     Toggle(isOn: $state.advancedSettings) {
                         Text("Override Max SMB Minutes")
                     }
-                    .padding(.vertical, pad)
 
                     if state.advancedSettings {
                         // SMB Minutes Picker
-                        VStack {
+                        HStack {
+                            Text("SMB")
+                            Spacer()
+                            Text("\(state.smbMinutes.formatted(.number)) min")
+                                .foregroundColor(!displayPickerSmbMinutes ? .primary : .accentColor)
+                            Spacer()
+                            Divider().frame(width: 1, height: 20)
+                            Spacer()
+                            Text("UAM")
+                            Spacer()
+                            Text("\(state.uamMinutes.formatted(.number)) min")
+                                .foregroundColor(!displayPickerSmbMinutes ? .primary : .accentColor)
+                        }
+                        .onTapGesture {
+                            displayPickerSmbMinutes.toggle()
+                        }
+
+                        if displayPickerSmbMinutes {
                             HStack {
-                                Text("SMB")
-                                Spacer()
-                                Text("\(state.smbMinutes.formatted(.number)) min")
-                                    .foregroundColor(!displayPickerSmbMinutes ? .primary : .accentColor)
-
-                                Spacer()
-
-                                Divider().frame(width: 1, height: 20)
-
-                                Spacer()
-
-                                Text("UAM")
-                                Spacer()
-                                Text("\(state.uamMinutes.formatted(.number)) min")
-                                    .foregroundColor(!displayPickerSmbMinutes ? .primary : .accentColor)
-                            }
-                            .padding(.vertical, pad)
-                            .onTapGesture {
-                                displayPickerSmbMinutes.toggle()
-                            }
-
-                            if displayPickerSmbMinutes {
-                                HStack {
-                                    Picker(selection: Binding(
-                                        get: { Int(truncating: state.smbMinutes as NSNumber) },
-                                        set: { state.smbMinutes = Decimal($0) }
-                                    ), label: Text("")) {
-                                        ForEach(Array(stride(from: 0, through: 180, by: 5)), id: \.self) { minute in
-                                            Text("\(minute) min").tag(minute)
-                                        }
+                                Picker(selection: Binding(
+                                    get: { Int(truncating: state.smbMinutes as NSNumber) },
+                                    set: { state.smbMinutes = Decimal($0) }
+                                ), label: Text("")) {
+                                    ForEach(Array(stride(from: 0, through: 180, by: 5)), id: \.self) { minute in
+                                        Text("\(minute) min").tag(minute)
                                     }
-                                    .pickerStyle(WheelPickerStyle())
-                                    .frame(maxWidth: .infinity)
-
-                                    Picker(selection: Binding(
-                                        get: { Int(truncating: state.uamMinutes as NSNumber) },
-                                        set: { state.uamMinutes = Decimal($0) }
-                                    ), label: Text("")) {
-                                        ForEach(Array(stride(from: 0, through: 180, by: 5)), id: \.self) { minute in
-                                            Text("\(minute) min").tag(minute)
-                                        }
-                                    }
-                                    .pickerStyle(WheelPickerStyle())
-                                    .frame(maxWidth: .infinity)
                                 }
+                                .pickerStyle(WheelPickerStyle())
+                                .frame(maxWidth: .infinity)
+
+                                Picker(selection: Binding(
+                                    get: { Int(truncating: state.uamMinutes as NSNumber) },
+                                    set: { state.uamMinutes = Decimal($0) }
+                                ), label: Text("")) {
+                                    ForEach(Array(stride(from: 0, through: 180, by: 5)), id: \.self) { minute in
+                                        Text("\(minute) min").tag(minute)
+                                    }
+                                }
+                                .pickerStyle(WheelPickerStyle())
+                                .frame(maxWidth: .infinity)
                             }
+                            .listRowSeparator(.hidden, edges: .top)
                         }
                     }
                 }
+                .listRowBackground(Color.chart)
             }
         }
-        .listRowBackground(Color.chart)
     }
 
     private var saveButton: some View {

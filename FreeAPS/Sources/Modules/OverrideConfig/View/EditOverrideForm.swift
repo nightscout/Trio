@@ -121,7 +121,6 @@ struct EditOverrideForm: View {
                 saveButton
             }
             .listSectionSpacing(10)
-            .listRowSpacing(10)
             .padding(.top, 30)
             .ignoresSafeArea(edges: .top)
             .scrollContentBackground(.hidden).background(color)
@@ -186,10 +185,9 @@ struct EditOverrideForm: View {
     }
 
     @ViewBuilder private func editOverride() -> some View {
-        Section {
-            let pad: CGFloat = 3
+        Group {
             if override.name != nil {
-                VStack {
+                Section {
                     HStack {
                         Text("Name")
                         Spacer()
@@ -197,13 +195,12 @@ struct EditOverrideForm: View {
                             .onChange(of: name) { hasChanges = true }
                             .multilineTextAlignment(.trailing)
                     }
-                    .padding(.vertical, pad)
                 }
+                .listRowBackground(Color.chart)
             }
 
-            VStack {
+            Section {
                 Toggle(isOn: $indefinite) { Text("Enable Indefinitely") }
-                    .padding(.vertical, pad)
                     .onChange(of: indefinite) { hasChanges = true }
 
                 if !indefinite {
@@ -213,7 +210,6 @@ struct EditOverrideForm: View {
                         Text(formatHrMin(Int(truncating: duration as NSNumber)))
                             .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
                     }
-                    .padding(.vertical, pad)
                     .onTapGesture {
                         displayPickerDuration.toggle()
                     }
@@ -261,19 +257,20 @@ struct EditOverrideForm: View {
                             .pickerStyle(WheelPickerStyle())
                             .frame(maxWidth: .infinity)
                         }
+                        .listRowSeparator(.hidden, edges: .top)
                     }
                 }
             }
+            .listRowBackground(Color.chart)
 
             // Percentage Picker
-            VStack {
+            Section {
                 HStack {
                     Text("Change Basal Rate by")
                     Spacer()
                     Text("\(percentage.formatted(.number)) %")
                         .foregroundColor(!displayPickerPercentage ? .primary : .accentColor)
                 }
-                .padding(.vertical, pad)
                 .onTapGesture {
                     displayPickerPercentage.toggle()
                 }
@@ -310,6 +307,7 @@ struct EditOverrideForm: View {
                         .pickerStyle(WheelPickerStyle())
                         .frame(maxWidth: .infinity)
                     }
+                    .listRowSeparator(.hidden, edges: .top)
                 }
 
                 // Picker for ISF/CR settings
@@ -318,7 +316,6 @@ struct EditOverrideForm: View {
                         Text(option.rawValue).tag(option)
                     }
                 }
-                .padding(.top, pad)
                 .pickerStyle(MenuPickerStyle())
                 .onChange(of: selectedIsfCrOption) { _, newValue in
                     switch newValue {
@@ -342,12 +339,12 @@ struct EditOverrideForm: View {
                     hasChanges = true
                 }
             }
+            .listRowBackground(Color.chart)
 
-            VStack {
+            Section {
                 Toggle(isOn: $target_override) {
                     Text("Override Target")
                 }
-                .padding(.vertical, pad)
                 .onChange(of: target_override) {
                     hasChanges = true
                 }
@@ -366,15 +363,15 @@ struct EditOverrideForm: View {
                     )
                 }
             }
+            .listRowBackground(Color.chart)
 
-            VStack {
+            Section {
                 // Picker for Disable SMB settings
                 Picker("Disable SMBs", selection: $selectedDisableSmbOption) {
                     ForEach(DisableSmbOptions.allCases, id: \.self) { option in
                         Text(option.rawValue).tag(option)
                     }
                 }
-                .padding(.vertical, pad)
                 .pickerStyle(MenuPickerStyle())
                 .onChange(of: selectedDisableSmbOption) { _, newValue in
                     switch newValue {
@@ -416,7 +413,6 @@ struct EditOverrideForm: View {
                         )
                         .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
                     }
-                    .padding(.vertical, pad)
                     .onTapGesture {
                         displayPickerDisableSmbSchedule.toggle()
                     }
@@ -463,86 +459,85 @@ struct EditOverrideForm: View {
                             .pickerStyle(WheelPickerStyle())
                             .frame(maxWidth: .infinity)
                         }
+                        .listRowSeparator(.hidden, edges: .top)
                     }
                 }
             }
+            .listRowBackground(Color.chart)
 
             if !smbIsOff {
-                VStack {
+                Section {
                     Toggle(isOn: $advancedSettings) {
                         Text("Change Max SMB Minutes")
                     }
-                    .padding(.vertical, pad)
                     .onChange(of: advancedSettings) { hasChanges = true }
 
                     if advancedSettings {
                         // SMB Minutes Picker
-                        VStack {
+                        HStack {
+                            Text("SMB")
+                            Spacer()
+                            Text("\(smbMinutes?.formatted(.number) ?? "\(state.defaultSmbMinutes)") min")
+                                .foregroundColor(!displayPickerSmbMinutes ? .primary : .accentColor)
+
+                            Spacer()
+
+                            Divider().frame(width: 1, height: 20)
+
+                            Spacer()
+
+                            Text("UAM")
+                            Spacer()
+                            Text("\(uamMinutes?.formatted(.number) ?? "\(state.defaultUamMinutes)") min")
+                                .foregroundColor(!displayPickerSmbMinutes ? .primary : .accentColor)
+                        }
+                        .onTapGesture {
+                            displayPickerSmbMinutes.toggle()
+                        }
+
+                        if displayPickerSmbMinutes {
                             HStack {
-                                Text("SMB")
-                                Spacer()
-                                Text("\(smbMinutes?.formatted(.number) ?? "\(state.defaultSmbMinutes)") min")
-                                    .foregroundColor(!displayPickerSmbMinutes ? .primary : .accentColor)
-
-                                Spacer()
-
-                                Divider().frame(width: 1, height: 20)
-
-                                Spacer()
-
-                                Text("UAM")
-                                Spacer()
-                                Text("\(uamMinutes?.formatted(.number) ?? "\(state.defaultUamMinutes)") min")
-                                    .foregroundColor(!displayPickerSmbMinutes ? .primary : .accentColor)
-                            }
-                            .padding(.vertical, pad)
-                            .onTapGesture {
-                                displayPickerSmbMinutes.toggle()
-                            }
-
-                            if displayPickerSmbMinutes {
-                                HStack {
-                                    Picker(
-                                        selection: Binding(
-                                            get: { smbMinutes ?? state.defaultSmbMinutes },
-                                            set: {
-                                                smbMinutes = $0
-                                                hasChanges = true
-                                            }
-                                        ),
-                                        label: Text("")
-                                    ) {
-                                        ForEach(Array(stride(from: 0, through: 180, by: 5)), id: \.self) { minute in
-                                            Text("\(minute) min").tag(Decimal(minute))
+                                Picker(
+                                    selection: Binding(
+                                        get: { smbMinutes ?? state.defaultSmbMinutes },
+                                        set: {
+                                            smbMinutes = $0
+                                            hasChanges = true
                                         }
+                                    ),
+                                    label: Text("")
+                                ) {
+                                    ForEach(Array(stride(from: 0, through: 180, by: 5)), id: \.self) { minute in
+                                        Text("\(minute) min").tag(Decimal(minute))
                                     }
-                                    .pickerStyle(WheelPickerStyle())
-                                    .frame(maxWidth: .infinity)
-
-                                    Picker(
-                                        selection: Binding(
-                                            get: { uamMinutes ?? state.defaultUamMinutes },
-                                            set: {
-                                                uamMinutes = $0
-                                                hasChanges = true
-                                            }
-                                        ),
-                                        label: Text("")
-                                    ) {
-                                        ForEach(Array(stride(from: 0, through: 180, by: 5)), id: \.self) { minute in
-                                            Text("\(minute) min").tag(Decimal(minute))
-                                        }
-                                    }
-                                    .pickerStyle(WheelPickerStyle())
-                                    .frame(maxWidth: .infinity)
                                 }
+                                .pickerStyle(WheelPickerStyle())
+                                .frame(maxWidth: .infinity)
+
+                                Picker(
+                                    selection: Binding(
+                                        get: { uamMinutes ?? state.defaultUamMinutes },
+                                        set: {
+                                            uamMinutes = $0
+                                            hasChanges = true
+                                        }
+                                    ),
+                                    label: Text("")
+                                ) {
+                                    ForEach(Array(stride(from: 0, through: 180, by: 5)), id: \.self) { minute in
+                                        Text("\(minute) min").tag(Decimal(minute))
+                                    }
+                                }
+                                .pickerStyle(WheelPickerStyle())
+                                .frame(maxWidth: .infinity)
                             }
+                            .listRowSeparator(.hidden, edges: .top)
                         }
                     }
                 }
+                .listRowBackground(Color.chart)
             }
         }
-        .listRowBackground(Color.chart)
     }
 
     private var saveButton: some View {
@@ -701,58 +696,57 @@ struct TargetPicker: View {
     @State private var isDisplayed: Bool = false
 
     var body: some View {
-        VStack {
+        HStack {
+            Text(label)
+            Spacer()
+            Text(
+                (units == .mgdL ? selection.description : selection.formattedAsMmolL) + " " + units.rawValue
+            )
+            .foregroundColor(!isDisplayed ? .primary : .accentColor)
+        }
+        .onTapGesture {
+            isDisplayed.toggle()
+        }
+        if isDisplayed {
             HStack {
-                Text(label)
-                Spacer()
-                Text(
-                    (units == .mgdL ? selection.description : selection.formattedAsMmolL) + " " + units.rawValue
-                )
-                .foregroundColor(!isDisplayed ? .primary : .accentColor)
-            }
-            .onTapGesture {
-                isDisplayed.toggle()
-            }
-            if isDisplayed {
-                HStack {
-                    // Radio buttons and text on the left side
-                    VStack(alignment: .leading) {
-                        // Radio buttons for step iteration
-                        let stepChoices: [Decimal] = units == .mgdL ? [1, 5] : [1, 9]
-                        ForEach(stepChoices, id: \.self) { step in
-                            let label = (units == .mgdL ? step.description : step.formattedAsMmolL) + " " +
-                                units.rawValue
-                            RadioButton(
-                                isSelected: targetStep == step,
-                                label: label
-                            ) {
-                                targetStep = step
-                                selection = OverrideConfig.StateModel.roundTargetToStep(selection, step)
-                            }
-                            .padding(.top, 10)
+                // Radio buttons and text on the left side
+                VStack(alignment: .leading) {
+                    // Radio buttons for step iteration
+                    let stepChoices: [Decimal] = units == .mgdL ? [1, 5] : [1, 9]
+                    ForEach(stepChoices, id: \.self) { step in
+                        let label = (units == .mgdL ? step.description : step.formattedAsMmolL) + " " +
+                            units.rawValue
+                        RadioButton(
+                            isSelected: targetStep == step,
+                            label: label
+                        ) {
+                            targetStep = step
+                            selection = OverrideConfig.StateModel.roundTargetToStep(selection, step)
                         }
+                        .padding(.top, 10)
                     }
-                    .frame(maxWidth: .infinity)
-
-                    Spacer()
-
-                    // Picker on the right side
-                    Picker(selection: Binding(
-                        get: { OverrideConfig.StateModel.roundTargetToStep(selection, targetStep) },
-                        set: {
-                            selection = $0
-                            hasChanges = true
-                        }
-                    ), label: Text("")) {
-                        ForEach(options, id: \.self) { option in
-                            Text((units == .mgdL ? option.description : option.formattedAsMmolL) + " " + units.rawValue)
-                                .tag(option)
-                        }
-                    }
-                    .pickerStyle(WheelPickerStyle())
-                    .frame(maxWidth: .infinity)
                 }
+                .frame(maxWidth: .infinity)
+
+                Spacer()
+
+                // Picker on the right side
+                Picker(selection: Binding(
+                    get: { OverrideConfig.StateModel.roundTargetToStep(selection, targetStep) },
+                    set: {
+                        selection = $0
+                        hasChanges = true
+                    }
+                ), label: Text("")) {
+                    ForEach(options, id: \.self) { option in
+                        Text((units == .mgdL ? option.description : option.formattedAsMmolL) + " " + units.rawValue)
+                            .tag(option)
+                    }
+                }
+                .pickerStyle(WheelPickerStyle())
+                .frame(maxWidth: .infinity)
             }
+            .listRowSeparator(.hidden, edges: .top)
         }
     }
 }
